@@ -1,0 +1,15 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="dp2MServer.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ServerURI" Type="System.String" Scope="User">
+      <Value Profile="(Default)">http://*:8083</Value>
+    </Setting>
+    <Setting Name="ServerPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">/dp2MServer</Value>
+    </Setting>
+    <Setting Name="DataDir" Type="System.String" Scope="User">
+      <Value Profile="(Default)">c:\mserver_data</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

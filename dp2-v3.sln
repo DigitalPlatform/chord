@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2MServer", "dp2MServer\dp2MServer.csproj", "{946F6F11-C4F6-4370-894B-4907D5A2008F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageWeb", "MessageWeb\MessageWeb.csproj", "{519A6EEB-F873-4410-AD01-85C179DE08F7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.MessageServer", "DigitalPlatform.MessageServer\DigitalPlatform.MessageServer.csproj", "{9565E12A-5D62-4EB1-A265-0559B9D46334}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{946F6F11-C4F6-4370-894B-4907D5A2008F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{946F6F11-C4F6-4370-894B-4907D5A2008F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{946F6F11-C4F6-4370-894B-4907D5A2008F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{946F6F11-C4F6-4370-894B-4907D5A2008F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{519A6EEB-F873-4410-AD01-85C179DE08F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{519A6EEB-F873-4410-AD01-85C179DE08F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{519A6EEB-F873-4410-AD01-85C179DE08F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{519A6EEB-F873-4410-AD01-85C179DE08F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9565E12A-5D62-4EB1-A265-0559B9D46334}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9565E12A-5D62-4EB1-A265-0559B9D46334}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9565E12A-5D62-4EB1-A265-0559B9D46334}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9565E12A-5D62-4EB1-A265-0559B9D46334}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
