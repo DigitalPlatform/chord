@@ -48,7 +48,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.textBox_getReaderInfo_remoteUserName = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
-            this.tabPage_searchReader = new System.Windows.Forms.TabPage();
+            this.tabPage_searchPatron = new System.Windows.Forms.TabPage();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.tabControl_main.SuspendLayout();
@@ -77,7 +77,7 @@
             // 
             this.tabControl_main.Controls.Add(this.tabPage_config);
             this.tabControl_main.Controls.Add(this.tabPage_getPatronInfo);
-            this.tabControl_main.Controls.Add(this.tabPage_searchReader);
+            this.tabControl_main.Controls.Add(this.tabPage_searchPatron);
             this.tabControl_main.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl_main.Location = new System.Drawing.Point(0, 49);
             this.tabControl_main.Name = "tabControl_main";
@@ -240,15 +240,15 @@
             this.label4.TabIndex = 4;
             this.label4.Text = "Remote User Name:";
             // 
-            // tabPage_searchReader
+            // tabPage_searchPatron
             // 
-            this.tabPage_searchReader.Location = new System.Drawing.Point(4, 22);
-            this.tabPage_searchReader.Name = "tabPage_searchReader";
-            this.tabPage_searchReader.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_searchReader.Size = new System.Drawing.Size(479, 240);
-            this.tabPage_searchReader.TabIndex = 1;
-            this.tabPage_searchReader.Text = "SearchReader";
-            this.tabPage_searchReader.UseVisualStyleBackColor = true;
+            this.tabPage_searchPatron.Location = new System.Drawing.Point(4, 22);
+            this.tabPage_searchPatron.Name = "tabPage_searchPatron";
+            this.tabPage_searchPatron.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage_searchPatron.Size = new System.Drawing.Size(479, 240);
+            this.tabPage_searchPatron.TabIndex = 1;
+            this.tabPage_searchPatron.Text = "SearchPatron";
+            this.tabPage_searchPatron.UseVisualStyleBackColor = true;
             // 
             // toolStrip1
             // 
@@ -304,7 +304,7 @@
         private System.Windows.Forms.TabControl tabControl_main;
         private System.Windows.Forms.TabPage tabPage_config;
         private System.Windows.Forms.TabPage tabPage_getPatronInfo;
-        private System.Windows.Forms.TabPage tabPage_searchReader;
+        private System.Windows.Forms.TabPage tabPage_searchPatron;
         private System.Windows.Forms.TextBox textBox_config_messageServerUrl;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox textBox_config_password;

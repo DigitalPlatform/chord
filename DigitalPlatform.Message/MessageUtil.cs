@@ -11,7 +11,7 @@ namespace DigitalPlatform.Message
 
     }
 
-    public class BiblioRecord
+    public class Record
     {
         // 记录路径。这是本地路径，例如 “图书总库/1”
         public string RecPath { get; set; }

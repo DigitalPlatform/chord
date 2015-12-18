@@ -163,15 +163,15 @@ namespace DigitalPlatform.MessageClient
                 OnAddMessageRecieved(name, message)
                 );
 
-            HubProxy.On<SearchRequest>("searchBiblio",
+            HubProxy.On<SearchRequest>("search",
                 (searchParam) => OnSearchBiblioRecieved(searchParam)
                 );
 
             HubProxy.On<string,
     long,
     long,
-    IList<BiblioRecord>,
-        string>("responseSearchBiblio", (searchID,
+    IList<Record>,
+        string>("responseSearch", (searchID,
     resultCount,
     start,
     records,
@@ -308,15 +308,17 @@ SearchRequest param
         {
         }
 
-        public Task<SearchBiblioResult> SearchBiblioAsync(
+        // 进行检索并得到结果
+        // 这是将发出和接受消息结合起来的功能比较完整的 API
+        public Task<SearchResult> SearchAsync(
             string strRemoteUserName,
             SearchRequest request,
             TimeSpan timeout,
             CancellationToken token)
         {
-            return Task.Factory.StartNew<SearchBiblioResult>(() =>
+            return Task.Factory.StartNew<SearchResult>(() =>
             {
-                SearchBiblioResult result = new SearchBiblioResult();
+                SearchResult result = new SearchResult();
 
                 if (string.IsNullOrEmpty(request.SearchID) == true)
                 {
@@ -324,7 +326,7 @@ SearchRequest param
                 }
 
                 MessageResult message = HubProxy.Invoke<MessageResult>(
-    "RequestSearchBiblio",
+    "RequestSearch",
     strRemoteUserName,
     request).Result;
                 if (message.Value == -1 || message.Value == 0)
@@ -345,7 +347,7 @@ SearchRequest param
                     if (DateTime.Now - start_time >= timeout)
                         throw new TimeoutException("已超时 " + timeout.ToString());
 
-                    SearchBiblioResult result0 = (SearchBiblioResult)_resultTable[request.SearchID];
+                    SearchResult result0 = (SearchResult)_resultTable[request.SearchID];
                     if (result0 != null && result0.ResultCount == -1)
                     {
                         ClearResultFromTable(request.SearchID);
@@ -382,21 +384,21 @@ SearchRequest param
         public virtual void OnSearchResponseRecieved(string searchID,
     long resultCount,
     long start,
-    IList<BiblioRecord> records,
+    IList<Record> records,
     string errorInfo)
         {
             // TODO: 监视 Hashtable 中的元素数量，超过一个极限值要抛出异常
 
-            SearchBiblioResult result = (SearchBiblioResult)_resultTable[searchID];
+            SearchResult result = (SearchResult)_resultTable[searchID];
             if (result == null)
             {
-                result = new SearchBiblioResult();
+                result = new SearchResult();
                 // result.SearchID = searchID;
                 _resultTable[searchID] = result;
             }
 
             if (result.Records == null)
-                result.Records = new List<BiblioRecord>();
+                result.Records = new List<Record>();
 
             if (resultCount == -1 && start == -1)
             {
@@ -558,16 +560,17 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
         #region 调用 Server 端函数
 
         // 发起一次书目检索
+        // 这是比较原始的 API，并不负责接收对方传来的消息
         // result.Value:
         //      -1  出错
         //      0   没有检索目标
         //      1   成功发起检索。此时 Result.String 里面返回了 searchID
-        public Task<MessageResult> SearchBiblioAsync(
+        public Task<MessageResult> SearchAsync(
             string userNameList,
             SearchRequest searchParam)
         {
             return HubProxy.Invoke<MessageResult>(
-                "RequestSearchBiblio",
+                "RequestSearch",
                 userNameList,
                 searchParam);
         }
@@ -688,12 +691,12 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             string searchID,
             long resultCount,
             long start,
-            IList<BiblioRecord> records,
+            IList<Record> records,
             string errorInfo)
         {
             try
             {
-                MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSearchBiblio",
+                MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSearch",
     searchID,
     resultCount,
     start,
@@ -769,10 +772,10 @@ errorInfo);
         #endregion
     }
 
-    public class SearchBiblioResult
+    public class SearchResult
     {
         public long ResultCount = 0;
-        public List<BiblioRecord> Records = null;
+        public List<Record> Records = null;
         public string ErrorInfo = "";
         public bool Finished = false;
     }

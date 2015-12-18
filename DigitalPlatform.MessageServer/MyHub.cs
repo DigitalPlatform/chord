@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.AspNet.SignalR;
+
 using DigitalPlatform.Message;
 
 namespace DigitalPlatform.MessageServer
@@ -252,7 +253,7 @@ namespace DigitalPlatform.MessageServer
 
         // return:
         //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
-        public MessageResult RequestSearchBiblio(
+        public MessageResult RequestSearch(
             string userNameList,
 #if NO
             string operation,
@@ -344,7 +345,7 @@ namespace DigitalPlatform.MessageServer
 
             result.String = search_info.UID;   // 返回检索请求的 UID
 
-            Clients.Clients(connectionIds).searchBiblio(// "searchBiblio",
+            Clients.Clients(connectionIds).search(// "searchBiblio",
 #if NO
                 search_info.UID,   // 检索请求的 UID
                 operation,
@@ -381,10 +382,10 @@ namespace DigitalPlatform.MessageServer
         //      resultCount    命中的总的结果数。如果为 -1，表示检索出错，errorInfo 会给出出错信息
         //      start  records 参数中的第一个元素，在总的命中结果集中的偏移
         //      errorInfo   错误信息
-        public MessageResult ResponseSearchBiblio(string searchID,
+        public MessageResult ResponseSearch(string searchID,
             long resultCount,
             long start,
-            IList<BiblioRecord> records,
+            IList<Record> records,
             string errorInfo)
         {
             // Thread.Sleep(1000 * 60 * 2);
@@ -407,7 +408,7 @@ namespace DigitalPlatform.MessageServer
                     result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。回传检索结果失败";
                     return result;
                 }
-                foreach (BiblioRecord record in records)
+                foreach (Record record in records)
                 {
                     // record.RecPath += "@UID:" + connection_info.LibraryUID;
                     record.LibraryName = connection_info.LibraryName;
@@ -416,7 +417,7 @@ namespace DigitalPlatform.MessageServer
             }
 
             // 让前端获得检索结果
-            Clients.Client(info.RequestConnectionID).responseSearchBiblio(
+            Clients.Client(info.RequestConnectionID).responseSearch(
                 searchID,
                 resultCount,
                 start,
@@ -433,7 +434,7 @@ namespace DigitalPlatform.MessageServer
                 if (bAllComplete)
                 {
                     // 追加一个消息，表示检索响应已经全部完成
-                    Clients.Client(info.RequestConnectionID).responseSearchBiblio(
+                    Clients.Client(info.RequestConnectionID).responseSearch(
     searchID,
     -1,
     -1,
@@ -450,7 +451,7 @@ namespace DigitalPlatform.MessageServer
         // 判断响应是否为(顺次发回的)最后一个响应
         static bool IsComplete(long resultCount,
             long start,
-            IList<BiblioRecord> records)
+            IList<Record> records)
         {
             if (resultCount == -1)
                 return true;    // 出错，也意味着响应结束

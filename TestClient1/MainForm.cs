@@ -138,8 +138,8 @@ namespace TestClient1
                 Task<MessageConnection> task = this._channels.GetConnectionAsync(
                     this.textBox_config_messageServerUrl.Text,
                     this.textBox_getReaderInfo_remoteUserName.Text);
-                SearchBiblioResult result =
-                task.ContinueWith<SearchBiblioResult>((antecendent) =>
+                SearchResult result =
+                task.ContinueWith<SearchResult>((antecendent) =>
                 {
                     if (antecendent.IsFaulted == true)
                     {
@@ -147,7 +147,7 @@ namespace TestClient1
                         // return "exception" + antecendent.Exception;
                     }
                     MessageConnection connection = task.Result;
-                    return connection.SearchBiblioAsync(
+                    return connection.SearchAsync(
                     connection.Name,
                     request,
                     new TimeSpan(0, 1, 0),
@@ -176,7 +176,7 @@ namespace TestClient1
             MessageBox.Show(this, strError);
         }
 
-        static string ToString(SearchBiblioResult result)
+        static string ToString(SearchResult result)
         {
             StringBuilder text = new StringBuilder();
             text.Append("ResultCount=" + result.ResultCount + "\r\n");
@@ -184,7 +184,7 @@ namespace TestClient1
             if (result.Records != null)
             {
                 int i = 0;
-                foreach (BiblioRecord record in result.Records)
+                foreach (Record record in result.Records)
                 {
                     text.Append((i + 1).ToString() + ") ===");
                     text.Append("RecPath=" + record.RecPath + "\r\n");
