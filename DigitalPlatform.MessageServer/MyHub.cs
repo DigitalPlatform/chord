@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.AspNet.SignalR;
+using DigitalPlatform.Message;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -35,8 +36,31 @@ namespace DigitalPlatform.MessageServer
             // 获得用户信息
             var task = ServerInfo.UserDatabase.GetUsers(userName, start, count);
             task.Wait();
-            result.Users = task.Result;
+            result.Users = BuildUsers(task.Result);
             return result;
+        }
+
+        static List<User> BuildUsers(List<UserItem> items)
+        {
+            List<User> results = new List<User>();
+            foreach (UserItem item in items)
+            {
+                results.Add(BuildUser(item));
+            }
+            return results;
+        }
+
+        static User BuildUser(UserItem item)
+        {
+            User user = new User();
+            user.id = item.id;
+            user.userName = item.userName;
+            user.password = item.password;
+            user.rights = item.rights;
+            user.department = item.department;
+            user.tel = item.tel;
+            user.comment = item.comment;
+            return user;
         }
 
         public MessageResult SetUsers(string action, List<UserItem> users)
@@ -106,6 +130,26 @@ namespace DigitalPlatform.MessageServer
                 result.Value = -1;
                 result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。登录失败";
                 return result;
+            }
+
+            if (string.IsNullOrEmpty(userName) == false)
+            {
+                // 获得用户信息
+                var results = ServerInfo.UserDatabase.GetUsers(userName, 0, 1).Result;
+                if (results.Count != 1)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "用户名 '" + userName + "' 不存在。登录失败";
+                    return result;
+                }
+                var user = results[0];
+                if (user.password != password)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "密码不正确。登录失败";
+                    return result;
+                }
+                info.UserItem = user;
             }
 
             info.PropertyList = propertyList;
@@ -209,13 +253,19 @@ namespace DigitalPlatform.MessageServer
         // return:
         //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
         public MessageResult RequestSearchBiblio(
-            string strSearchID,
+            string userNameList,
+#if NO
+            string operation,
+            string searchID,
             string dbNameList,
             string queryWord,
             string fromList,
             string matchStyle,
             string formatList,
-            long maxResults)
+            long maxResults
+#endif
+ SearchRequest searchParam
+            )
         {
             MessageResult result = new MessageResult();
 
@@ -227,13 +277,16 @@ namespace DigitalPlatform.MessageServer
                 return result;
             }
 
-            if (Global.Contains(connection_info.PropertyList, "biblio_search") == false)
+            if (searchParam.Operation == "searchBiblio"
+                && userNameList == "*"
+                && Global.Contains(connection_info.PropertyList, "biblio_search") == false)
             {
                 result.Value = -1;
                 result.ErrorInfo = "当前连接未开通书目检索功能";
                 return result;
             }
 
+#if NO
             List<string> connectionIds = null;
             string strError = "";
             // 获得书目检索的目标 connection 的 id 集合
@@ -244,6 +297,22 @@ namespace DigitalPlatform.MessageServer
             //      0   成功
             int nRet = ServerInfo.ConnectionTable.GetBiblioSearchTargets(
                 connection_info.LibraryUID,
+                out connectionIds,
+                out strError);
+            if (nRet == -1)
+            {
+                result.Value = -1;
+                result.ErrorInfo = strError;
+                return result;
+            }
+#endif
+            List<string> connectionIds = null;
+            string strError = "";
+            int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
+                userNameList,
+                connection_info.UserName,
+                searchParam.Operation,
+                "all",
                 out connectionIds,
                 out strError);
             if (nRet == -1)
@@ -264,25 +333,29 @@ namespace DigitalPlatform.MessageServer
 
             try
             {
-                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId, strSearchID);
+                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId, searchParam.SearchID);
             }
             catch (ArgumentException)
             {
                 result.Value = -1;
-                result.ErrorInfo = "SearchID '" + strSearchID + "' 已经存在了，不允许重复使用";
+                result.ErrorInfo = "SearchID '" + searchParam.SearchID + "' 已经存在了，不允许重复使用";
                 return result;
             }
 
             result.String = search_info.UID;   // 返回检索请求的 UID
 
             Clients.Clients(connectionIds).searchBiblio(// "searchBiblio",
+#if NO
                 search_info.UID,   // 检索请求的 UID
+                operation,
                 dbNameList,
                 queryWord,
                 fromList,
                 matchStyle,
                 formatList,
-                maxResults);
+                maxResults
+#endif
+                searchParam);
 
             search_info.TargetIDs = connectionIds;
             result.Value = 1;   // 表示已经成功发起了检索
@@ -342,6 +415,7 @@ namespace DigitalPlatform.MessageServer
                 }
             }
 
+            // 让前端获得检索结果
             Clients.Client(info.RequestConnectionID).responseSearchBiblio(
                 searchID,
                 resultCount,
@@ -436,38 +510,4 @@ namespace DigitalPlatform.MessageServer
         }
     }
 
-    public class BiblioRecord
-    {
-        // 记录路径。这是本地路径，例如 “图书总库/1”
-        public string RecPath { get; set; }
-        // 图书馆 UID
-        public string LibraryUID { get; set; }
-        // 图书馆名
-        public string LibraryName { get; set; }
-
-        public string Format { get; set; }
-        public string Data { get; set; }
-        public string Timestamp { get; set; }
-    }
-
-    public class MessageResult
-    {
-        public string String { get; set; }  // 字符串类型的返回值
-        public long Value { get; set; }      // 整数类型的返回值
-        public string ErrorInfo { get; set; }   // 出错信息
-    }
-
-    public class GetUserResult : MessageResult
-    {
-        public List<UserItem> Users { get; set; }
-    }
-
-    public class GetRecordResult : MessageResult
-    {
-        public List<string> Formats { get; set; }
-        public List<string> Results { get; set; }
-
-        public string RecPath { get; set; }
-        public string Timestamp { get; set; }
-    }
 }

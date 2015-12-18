@@ -131,7 +131,6 @@ namespace DigitalPlatform.MessageServer
             this._lock.EnterReadLock();
             try
             {
-
                 foreach (string key in this.Keys)
                 {
                     ConnectionInfo info = this[key];
@@ -177,6 +176,99 @@ namespace DigitalPlatform.MessageServer
             return 0;
         }
 
+        // 获得书目检索的目标 connection 的 id 集合
+        // parameters:
+        //      strTargetUserNameList    被操作一方的用户名列表。本函数要搜索这些用户的连接
+        //      strRequestUserName  发起操作一方的用户名。本函数要判断被操作方是否同意发起方进行操作
+        //      strStyle            获取 id 集合的方式。first/all 之一
+        // return:
+        //      -1  出错
+        //      0   成功
+        public int GetOperTargetsByUserName(
+            string strTargetUserNameList,
+            string strRequestUserName,
+            string strOperation,
+            string strStyle,
+            out List<string> connectionIds,
+            out string strError)
+        {
+            strError = "";
+
+            connectionIds = new List<string>();
+            List<ConnectionInfo> infos = new List<ConnectionInfo>();
+
+            this._lock.EnterReadLock();
+            try
+            {
+                string[] target_usernames = strTargetUserNameList.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                // TODO: 后面需要给 username 提供一个 hashtable 索引，提高运行速度
+                foreach (string key in this.Keys)
+                {
+                    ConnectionInfo info = this[key];
+
+                    string strUserName = "";
+                    string strRightsString = "";
+                    if (info.UserItem != null)
+                    {
+                        strUserName = info.UserItem.userName;
+                        strRightsString = info.UserItem.rights;
+                    }
+
+                    if (Array.IndexOf(target_usernames, strUserName) == -1)
+                        continue;
+
+                    // 如何表达允许操作的权限?
+                    // getreaderinfo:username1|username2
+                    // 如果没有配置，表示不允许
+                    string strRights = Global.GetParameterByPrefix(strRightsString, strOperation + ":");
+                    if (strRights == null
+                        || Global.Contains(strRights, strRequestUserName) == false)
+                        continue;
+
+                    infos.Add(info);
+                    // TODO: 这里可以在找到第一个以后就退出循环，以提高速度
+                }
+            }
+            finally
+            {
+                this._lock.ExitReadLock();
+            }
+
+            if (infos.Count == 0)
+                return 0;
+
+            infos.Sort((a, b) =>
+            {
+                int nRet = string.Compare(a.LibraryUID, b.LibraryUID);
+                if (nRet != 0)
+                    return nRet;
+                return (int)a.SearchCount - (int)b.SearchCount;
+            });
+
+            if (strStyle == "first")
+            {
+                // 选择使用次数较小的一个
+                ConnectionInfo info = infos[0];
+                connectionIds.Add(info.ConnectionID);
+                info.SearchCount++;
+                return 0;
+            }
+
+            // 对于每个目标图书馆，只选择一个连接。经过排序后，使用次数较小的在前
+            string strPrevUID = "";
+            foreach (ConnectionInfo info in infos)
+            {
+                if (strPrevUID != info.LibraryUID)
+                {
+                    connectionIds.Add(info.ConnectionID);
+                    info.SearchCount++;
+                }
+                strPrevUID = info.LibraryUID;
+            }
+
+            return 0;
+        }
+
     }
 
     // Connection 查找表的一个事项
@@ -185,11 +277,24 @@ namespace DigitalPlatform.MessageServer
         public string UID = "";
         public string ConnectionID = "";
 
+        // public string UserName = "";    // 用户名
         public string PropertyList = "";    // 属性值列表 biblio_search
         public string LibraryUID = "";      // 用户所属图书馆的 UID。用它可以避免给若干同属一个图书馆的连接发送检索请求，因为这样势必会得到完全重复的命中结果
         public string LibraryName = "";     // 图书馆名
 
         public long SearchCount = 0;    // 响应检索请求的累积次数
+
+        public UserItem UserItem = null;    // 登录后的用户信息
+
+        public string UserName
+        {
+            get
+            {
+                if (this.UserItem == null)
+                    return "";
+                return this.UserItem.userName;
+            }
+        }
     }
 
 }
