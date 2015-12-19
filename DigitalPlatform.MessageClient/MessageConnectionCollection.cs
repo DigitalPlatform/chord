@@ -15,14 +15,16 @@ namespace DigitalPlatform.MessageClient
 
         public event LoginEventHandler Login = null;
 
+        // parameters:
+        //      strName 连接的名字。如果要针对同一 dp2mserver 使用多根连接，可以用名字区分它们。如果不想区分，可以使用空
         public Task<MessageConnection> GetConnectionAsync(string url,
-    string remoteUserName,
+    string strName,
     bool autoConnect = true)
         {
             MessageConnection connection = null;
             foreach (MessageConnection current_connection in _connections)
             {
-                if (current_connection.ServerUrl == url && current_connection.Name == remoteUserName)
+                if (current_connection.ServerUrl == url && current_connection.Name == strName)
                 {
                     connection = current_connection;
                     goto FOUND;
@@ -31,7 +33,7 @@ namespace DigitalPlatform.MessageClient
 
             connection = new MessageConnection();
             connection.ServerUrl = url;
-            connection.Name = remoteUserName;
+            connection.Name = strName;
             connection.Container = this;
             this._connections.Add(connection);
 
@@ -57,18 +59,20 @@ namespace DigitalPlatform.MessageClient
             }
         }
 
+#if NO
         // parameters:
+        //      strName 连接的名字。如果要针对同一 dp2mserver 使用多根连接，可以用名字区分它们。如果不想区分，可以使用空
         //      autoConnect 是否自动连接
         //      waitConnecting  是否等待连接完成后再返回?
         public MessageConnection GetConnection(string url,
-            string remoteUserName,
+            string remoteName,
             bool autoConnect = true,
             bool waitConnecting = true)
         {
             MessageConnection connection = null;
             foreach (MessageConnection current_connection in _connections)
             {
-                if (current_connection.ServerUrl == url && current_connection.Name == remoteUserName)
+                if (current_connection.ServerUrl == url && current_connection.Name == remoteName)
                 {
                     connection = current_connection;
                     goto FOUND;
@@ -77,7 +81,7 @@ namespace DigitalPlatform.MessageClient
 
             connection = new MessageConnection();
             connection.ServerUrl = url;
-            connection.Name = remoteUserName;
+            connection.Name = remoteName;
             connection.Container = this;
             this._connections.Add(connection);
 
@@ -92,6 +96,7 @@ namespace DigitalPlatform.MessageClient
 
             return connection;
         }
+#endif
 
         public void DeleteConnection(MessageConnection channel)
         {

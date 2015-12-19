@@ -207,11 +207,11 @@ namespace DigitalPlatform.MessageServer
                     ConnectionInfo info = this[key];
 
                     string strUserName = "";
-                    string strRightsString = "";
+                    string strDuty = "";
                     if (info.UserItem != null)
                     {
                         strUserName = info.UserItem.userName;
-                        strRightsString = info.UserItem.rights;
+                        strDuty = info.UserItem.duty;
                     }
 
                     if (Array.IndexOf(target_usernames, strUserName) == -1)
@@ -220,9 +220,9 @@ namespace DigitalPlatform.MessageServer
                     // 如何表达允许操作的权限?
                     // getreaderinfo:username1|username2
                     // 如果没有配置，表示不允许
-                    string strRights = Global.GetParameterByPrefix(strRightsString, strOperation + ":");
-                    if (strRights == null
-                        || Global.Contains(strRights, strRequestUserName) == false)
+                    string strAllowUserList = Global.GetParameterByPrefix(strDuty, strOperation + ":");
+                    if (strAllowUserList == null
+                        || Global.Contains(strAllowUserList, strRequestUserName) == false)
                         continue;
 
                     infos.Add(info);
@@ -293,6 +293,16 @@ namespace DigitalPlatform.MessageServer
                 if (this.UserItem == null)
                     return "";
                 return this.UserItem.userName;
+            }
+        }
+
+        public string Rights
+        {
+            get
+            {
+                if (this.UserItem == null)
+                    return "";
+                return this.UserItem.rights;
             }
         }
     }

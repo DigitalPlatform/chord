@@ -58,6 +58,7 @@ namespace DigitalPlatform.MessageServer
             user.userName = item.userName;
             user.password = item.password;
             user.rights = item.rights;
+            user.duty = item.duty;
             user.department = item.department;
             user.tel = item.tel;
             user.comment = item.comment;
@@ -307,6 +308,14 @@ namespace DigitalPlatform.MessageServer
                 return result;
             }
 #endif
+            // 检查请求者是否具备操作的权限
+            if (Global.Contains(connection_info.Rights, searchParam.Operation) == false)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "当前用户 '"+connection_info.UserName+"' 不具备进行 '"+searchParam.Operation+"' 操作的权限";
+                return result;
+            }
+
             List<string> connectionIds = null;
             string strError = "";
             int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(

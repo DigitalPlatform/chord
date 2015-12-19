@@ -94,5 +94,77 @@ namespace TestClient1.Properties {
                 this["getReaderInfo_formatList"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string searchPatron_dbNameList {
+            get {
+                return ((string)(this["searchPatron_dbNameList"]));
+            }
+            set {
+                this["searchPatron_dbNameList"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string searchPatron_queryWord {
+            get {
+                return ((string)(this["searchPatron_queryWord"]));
+            }
+            set {
+                this["searchPatron_queryWord"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string searchPatron_use {
+            get {
+                return ((string)(this["searchPatron_use"]));
+            }
+            set {
+                this["searchPatron_use"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string searchPatron_matchStyle {
+            get {
+                return ((string)(this["searchPatron_matchStyle"]));
+            }
+            set {
+                this["searchPatron_matchStyle"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string searchPatron_formatList {
+            get {
+                return ((string)(this["searchPatron_formatList"]));
+            }
+            set {
+                this["searchPatron_formatList"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string searchPatron_remoteUserName {
+            get {
+                return ((string)(this["searchPatron_remoteUserName"]));
+            }
+            set {
+                this["searchPatron_remoteUserName"] = value;
+            }
+        }
     }
 }

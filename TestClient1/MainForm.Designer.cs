@@ -49,11 +49,26 @@
             this.textBox_getReaderInfo_remoteUserName = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.tabPage_searchPatron = new System.Windows.Forms.TabPage();
+            this.textBox_searchPatron_dbNameList = new System.Windows.Forms.TextBox();
+            this.label14 = new System.Windows.Forms.Label();
+            this.textBox_searchPatron_matchStyle = new System.Windows.Forms.TextBox();
+            this.label13 = new System.Windows.Forms.Label();
+            this.textBox_searchPatron_use = new System.Windows.Forms.TextBox();
+            this.label12 = new System.Windows.Forms.Label();
+            this.textBox_searchPatron_results = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.textBox_searchPatron_formatList = new System.Windows.Forms.TextBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.textBox_searchPatron_queryWord = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
+            this.textBox_searchPatron_remoteUserName = new System.Windows.Forms.TextBox();
+            this.label11 = new System.Windows.Forms.Label();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.tabControl_main.SuspendLayout();
             this.tabPage_config.SuspendLayout();
             this.tabPage_getPatronInfo.SuspendLayout();
+            this.tabPage_searchPatron.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -153,6 +168,7 @@
             // 
             // tabPage_getPatronInfo
             // 
+            this.tabPage_getPatronInfo.AutoScroll = true;
             this.tabPage_getPatronInfo.Controls.Add(this.textBox_getReaderInfo_results);
             this.tabPage_getPatronInfo.Controls.Add(this.label7);
             this.tabPage_getPatronInfo.Controls.Add(this.textBox_getReaderInfo_formatList);
@@ -171,14 +187,13 @@
             // 
             // textBox_getReaderInfo_results
             // 
-            this.textBox_getReaderInfo_results.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.textBox_getReaderInfo_results.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_getReaderInfo_results.Location = new System.Drawing.Point(132, 95);
             this.textBox_getReaderInfo_results.Multiline = true;
             this.textBox_getReaderInfo_results.Name = "textBox_getReaderInfo_results";
             this.textBox_getReaderInfo_results.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox_getReaderInfo_results.Size = new System.Drawing.Size(339, 133);
+            this.textBox_getReaderInfo_results.Size = new System.Drawing.Size(322, 232);
             this.textBox_getReaderInfo_results.TabIndex = 11;
             // 
             // label7
@@ -196,7 +211,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_getReaderInfo_formatList.Location = new System.Drawing.Point(132, 69);
             this.textBox_getReaderInfo_formatList.Name = "textBox_getReaderInfo_formatList";
-            this.textBox_getReaderInfo_formatList.Size = new System.Drawing.Size(339, 21);
+            this.textBox_getReaderInfo_formatList.Size = new System.Drawing.Size(322, 21);
             this.textBox_getReaderInfo_formatList.TabIndex = 9;
             // 
             // label6
@@ -242,6 +257,21 @@
             // 
             // tabPage_searchPatron
             // 
+            this.tabPage_searchPatron.AutoScroll = true;
+            this.tabPage_searchPatron.Controls.Add(this.textBox_searchPatron_dbNameList);
+            this.tabPage_searchPatron.Controls.Add(this.label14);
+            this.tabPage_searchPatron.Controls.Add(this.textBox_searchPatron_matchStyle);
+            this.tabPage_searchPatron.Controls.Add(this.label13);
+            this.tabPage_searchPatron.Controls.Add(this.textBox_searchPatron_use);
+            this.tabPage_searchPatron.Controls.Add(this.label12);
+            this.tabPage_searchPatron.Controls.Add(this.textBox_searchPatron_results);
+            this.tabPage_searchPatron.Controls.Add(this.label8);
+            this.tabPage_searchPatron.Controls.Add(this.textBox_searchPatron_formatList);
+            this.tabPage_searchPatron.Controls.Add(this.label9);
+            this.tabPage_searchPatron.Controls.Add(this.textBox_searchPatron_queryWord);
+            this.tabPage_searchPatron.Controls.Add(this.label10);
+            this.tabPage_searchPatron.Controls.Add(this.textBox_searchPatron_remoteUserName);
+            this.tabPage_searchPatron.Controls.Add(this.label11);
             this.tabPage_searchPatron.Location = new System.Drawing.Point(4, 22);
             this.tabPage_searchPatron.Name = "tabPage_searchPatron";
             this.tabPage_searchPatron.Padding = new System.Windows.Forms.Padding(3);
@@ -249,6 +279,124 @@
             this.tabPage_searchPatron.TabIndex = 1;
             this.tabPage_searchPatron.Text = "SearchPatron";
             this.tabPage_searchPatron.UseVisualStyleBackColor = true;
+            // 
+            // textBox_searchPatron_dbNameList
+            // 
+            this.textBox_searchPatron_dbNameList.Location = new System.Drawing.Point(131, 41);
+            this.textBox_searchPatron_dbNameList.Name = "textBox_searchPatron_dbNameList";
+            this.textBox_searchPatron_dbNameList.Size = new System.Drawing.Size(161, 21);
+            this.textBox_searchPatron_dbNameList.TabIndex = 25;
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(8, 44);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(77, 12);
+            this.label14.TabIndex = 24;
+            this.label14.Text = "DBName List:";
+            // 
+            // textBox_searchPatron_matchStyle
+            // 
+            this.textBox_searchPatron_matchStyle.Location = new System.Drawing.Point(131, 129);
+            this.textBox_searchPatron_matchStyle.Name = "textBox_searchPatron_matchStyle";
+            this.textBox_searchPatron_matchStyle.Size = new System.Drawing.Size(161, 21);
+            this.textBox_searchPatron_matchStyle.TabIndex = 23;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(8, 132);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(77, 12);
+            this.label13.TabIndex = 22;
+            this.label13.Text = "Match Style:";
+            // 
+            // textBox_searchPatron_use
+            // 
+            this.textBox_searchPatron_use.Location = new System.Drawing.Point(131, 102);
+            this.textBox_searchPatron_use.Name = "textBox_searchPatron_use";
+            this.textBox_searchPatron_use.Size = new System.Drawing.Size(161, 21);
+            this.textBox_searchPatron_use.TabIndex = 21;
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(8, 105);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(29, 12);
+            this.label12.TabIndex = 20;
+            this.label12.Text = "Use:";
+            // 
+            // textBox_searchPatron_results
+            // 
+            this.textBox_searchPatron_results.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_searchPatron_results.Location = new System.Drawing.Point(131, 194);
+            this.textBox_searchPatron_results.Multiline = true;
+            this.textBox_searchPatron_results.Name = "textBox_searchPatron_results";
+            this.textBox_searchPatron_results.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.textBox_searchPatron_results.Size = new System.Drawing.Size(322, 300);
+            this.textBox_searchPatron_results.TabIndex = 19;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(8, 197);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(53, 12);
+            this.label8.TabIndex = 18;
+            this.label8.Text = "Results:";
+            // 
+            // textBox_searchPatron_formatList
+            // 
+            this.textBox_searchPatron_formatList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_searchPatron_formatList.Location = new System.Drawing.Point(131, 168);
+            this.textBox_searchPatron_formatList.Name = "textBox_searchPatron_formatList";
+            this.textBox_searchPatron_formatList.Size = new System.Drawing.Size(322, 21);
+            this.textBox_searchPatron_formatList.TabIndex = 17;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(8, 171);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(77, 12);
+            this.label9.TabIndex = 16;
+            this.label9.Text = "Format List:";
+            // 
+            // textBox_searchPatron_queryWord
+            // 
+            this.textBox_searchPatron_queryWord.Location = new System.Drawing.Point(131, 75);
+            this.textBox_searchPatron_queryWord.Name = "textBox_searchPatron_queryWord";
+            this.textBox_searchPatron_queryWord.Size = new System.Drawing.Size(161, 21);
+            this.textBox_searchPatron_queryWord.TabIndex = 15;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(8, 78);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(71, 12);
+            this.label10.TabIndex = 14;
+            this.label10.Text = "Query Word:";
+            // 
+            // textBox_searchPatron_remoteUserName
+            // 
+            this.textBox_searchPatron_remoteUserName.Location = new System.Drawing.Point(131, 14);
+            this.textBox_searchPatron_remoteUserName.Name = "textBox_searchPatron_remoteUserName";
+            this.textBox_searchPatron_remoteUserName.Size = new System.Drawing.Size(161, 21);
+            this.textBox_searchPatron_remoteUserName.TabIndex = 13;
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(8, 17);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(107, 12);
+            this.label11.TabIndex = 12;
+            this.label11.Text = "Remote User Name:";
             // 
             // toolStrip1
             // 
@@ -290,6 +438,8 @@
             this.tabPage_config.PerformLayout();
             this.tabPage_getPatronInfo.ResumeLayout(false);
             this.tabPage_getPatronInfo.PerformLayout();
+            this.tabPage_searchPatron.ResumeLayout(false);
+            this.tabPage_searchPatron.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -321,6 +471,20 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton toolStripButton_begin;
+        private System.Windows.Forms.TextBox textBox_searchPatron_matchStyle;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.TextBox textBox_searchPatron_use;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.TextBox textBox_searchPatron_results;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox textBox_searchPatron_formatList;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.TextBox textBox_searchPatron_queryWord;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.TextBox textBox_searchPatron_remoteUserName;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.TextBox textBox_searchPatron_dbNameList;
+        private System.Windows.Forms.Label label14;
     }
 }
 
