@@ -62,108 +62,156 @@ namespace TestClient1.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string getReaderInfo_remoteUserName {
+        public string getInfo_remoteUserName {
             get {
-                return ((string)(this["getReaderInfo_remoteUserName"]));
+                return ((string)(this["getInfo_remoteUserName"]));
             }
             set {
-                this["getReaderInfo_remoteUserName"] = value;
+                this["getInfo_remoteUserName"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string getReaderInfo_queryWord {
+        public string getInfo_queryWord {
             get {
-                return ((string)(this["getReaderInfo_queryWord"]));
+                return ((string)(this["getInfo_queryWord"]));
             }
             set {
-                this["getReaderInfo_queryWord"] = value;
+                this["getInfo_queryWord"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string getReaderInfo_formatList {
+        public string getInfo_formatList {
             get {
-                return ((string)(this["getReaderInfo_formatList"]));
+                return ((string)(this["getInfo_formatList"]));
             }
             set {
-                this["getReaderInfo_formatList"] = value;
+                this["getInfo_formatList"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string searchPatron_dbNameList {
+        public string search_dbNameList {
             get {
-                return ((string)(this["searchPatron_dbNameList"]));
+                return ((string)(this["search_dbNameList"]));
             }
             set {
-                this["searchPatron_dbNameList"] = value;
+                this["search_dbNameList"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string searchPatron_queryWord {
+        public string search_queryWord {
             get {
-                return ((string)(this["searchPatron_queryWord"]));
+                return ((string)(this["search_queryWord"]));
             }
             set {
-                this["searchPatron_queryWord"] = value;
+                this["search_queryWord"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string searchPatron_use {
+        public string search_use {
             get {
-                return ((string)(this["searchPatron_use"]));
+                return ((string)(this["search_use"]));
             }
             set {
-                this["searchPatron_use"] = value;
+                this["search_use"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string searchPatron_matchStyle {
+        public string search_matchStyle {
             get {
-                return ((string)(this["searchPatron_matchStyle"]));
+                return ((string)(this["search_matchStyle"]));
             }
             set {
-                this["searchPatron_matchStyle"] = value;
+                this["search_matchStyle"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string searchPatron_formatList {
+        public string search_formatList {
             get {
-                return ((string)(this["searchPatron_formatList"]));
+                return ((string)(this["search_formatList"]));
             }
             set {
-                this["searchPatron_formatList"] = value;
+                this["search_formatList"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string searchPatron_remoteUserName {
+        public string search_remoteUserName {
             get {
-                return ((string)(this["searchPatron_remoteUserName"]));
+                return ((string)(this["search_remoteUserName"]));
             }
             set {
-                this["searchPatron_remoteUserName"] = value;
+                this["search_remoteUserName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("getPatronInfo")]
+        public string getInfo_method {
+            get {
+                return ((string)(this["getInfo_method"]));
+            }
+            set {
+                this["getInfo_method"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("searchPatron")]
+        public string search_method {
+            get {
+                return ((string)(this["search_method"]));
+            }
+            set {
+                this["search_method"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string search_resultSetName {
+            get {
+                return ((string)(this["search_resultSetName"]));
+            }
+            set {
+                this["search_resultSetName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0,100")]
+        public string search_position {
+            get {
+                return ((string)(this["search_position"]));
+            }
+            set {
+                this["search_position"] = value;
             }
         }
     }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.SignalR;
 
 using DigitalPlatform.Message;
+using DigitalPlatform.Text;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -281,7 +282,7 @@ namespace DigitalPlatform.MessageServer
 
             if (searchParam.Operation == "searchBiblio"
                 && userNameList == "*"
-                && Global.Contains(connection_info.PropertyList, "biblio_search") == false)
+                && StringUtil.Contains(connection_info.PropertyList, "biblio_search") == false)
             {
                 result.Value = -1;
                 result.ErrorInfo = "当前连接未开通书目检索功能";
@@ -309,7 +310,7 @@ namespace DigitalPlatform.MessageServer
             }
 #endif
             // 检查请求者是否具备操作的权限
-            if (Global.Contains(connection_info.Rights, searchParam.Operation) == false)
+            if (StringUtil.Contains(connection_info.Rights, searchParam.Operation) == false)
             {
                 result.Value = -1;
                 result.ErrorInfo = "当前用户 '"+connection_info.UserName+"' 不具备进行 '"+searchParam.Operation+"' 操作的权限";
@@ -343,7 +344,10 @@ namespace DigitalPlatform.MessageServer
 
             try
             {
-                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId, searchParam.SearchID);
+                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId, 
+                    searchParam.SearchID,
+                    searchParam.Start,
+                    searchParam.Count);
             }
             catch (ArgumentException)
             {
@@ -435,6 +439,8 @@ namespace DigitalPlatform.MessageServer
 
             // 判断响应是否为最后一个响应
             bool bRet = IsComplete(resultCount,
+                info.ReturnStart,
+                info.ReturnCount,
                 start,
                 records);
             if (bRet == true)
@@ -458,7 +464,14 @@ namespace DigitalPlatform.MessageServer
         }
 
         // 判断响应是否为(顺次发回的)最后一个响应
+        // parameters:
+        //      resultCount 结果集中命中的结果总数
+        //      returnStart 本次要返回的，结果集中的开始位置
+        //      returnCount 本次要返回的，结果集中的从 returnStart 开始的元素个数
+        //      start   集合 records 开始的偏移位置。数值是从结果集的最开头算起
         static bool IsComplete(long resultCount,
+            long returnStart,
+            long returnCount,
             long start,
             IList<Record> records)
         {
@@ -468,14 +481,18 @@ namespace DigitalPlatform.MessageServer
             if (resultCount < 0)
                 return false;   // -1 表示结果尺寸不确定
 
+            long tail = resultCount;
+            if (returnCount != -1)
+                tail = returnStart + returnCount;
+
             if (records == null)
             {
-                if (start >= resultCount)
+                if (start >= tail)
                     return true;
                 return false;
             }
 
-            if (start + records.Count >= resultCount)
+            if (start + records.Count >= tail)
                 return true;
             return false;
         }

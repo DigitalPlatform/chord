@@ -408,6 +408,7 @@ SearchRequest param
             }
 
             result.ResultCount = resultCount;
+            // TODO: 似乎应该关注 start 位置
             result.Records.AddRange(records);
             result.ErrorInfo = errorInfo;
             return;

@@ -13,6 +13,9 @@ using TestClient1.Properties;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
+using DigitalPlatform.Xml;
+using DigitalPlatform.Text;
+using System.Web;
 
 namespace TestClient1
 {
@@ -24,7 +27,6 @@ namespace TestClient1
         {
             InitializeComponent();
         }
-
 
         private void MainForm_Load(object sender, EventArgs e)
         {
@@ -91,17 +93,20 @@ namespace TestClient1
             this.textBox_config_userName.Text = Settings.Default.config_userName;
             this.textBox_config_password.Text = Settings.Default.config_password;
 
-            this.textBox_getReaderInfo_remoteUserName.Text = Settings.Default.getReaderInfo_remoteUserName;
-            this.textBox_getReaderInfo_queryWord.Text = Settings.Default.getReaderInfo_queryWord;
-            this.textBox_getReaderInfo_formatList.Text = Settings.Default.getReaderInfo_formatList;
+            this.comboBox_getInfo_method.Text = Settings.Default.getInfo_method;
+            this.textBox_getInfo_remoteUserName.Text = Settings.Default.getInfo_remoteUserName;
+            this.textBox_getInfo_queryWord.Text = Settings.Default.getInfo_queryWord;
+            this.textBox_getInfo_formatList.Text = Settings.Default.getInfo_formatList;
 
-            this.textBox_searchPatron_remoteUserName.Text = Settings.Default.searchPatron_remoteUserName;
-            this.textBox_searchPatron_dbNameList.Text = Settings.Default.searchPatron_dbNameList;
-            this.textBox_searchPatron_queryWord.Text = Settings.Default.searchPatron_queryWord;
-            this.textBox_searchPatron_use.Text = Settings.Default.searchPatron_use;
-            this.textBox_searchPatron_matchStyle.Text = Settings.Default.searchPatron_matchStyle;
-            this.textBox_searchPatron_formatList.Text = Settings.Default.searchPatron_formatList;
-
+            this.comboBox_search_method.Text = Settings.Default.search_method;
+            this.textBox_search_remoteUserName.Text = Settings.Default.search_remoteUserName;
+            this.textBox_search_dbNameList.Text = Settings.Default.search_dbNameList;
+            this.textBox_search_queryWord.Text = Settings.Default.search_queryWord;
+            this.textBox_search_use.Text = Settings.Default.search_use;
+            this.textBox_search_matchStyle.Text = Settings.Default.search_matchStyle;
+            this.textBox_search_formatList.Text = Settings.Default.search_formatList;
+            this.textBox_search_resultSetName.Text = Settings.Default.search_resultSetName;
+            this.textBox_search_position.Text = Settings.Default.search_position;
         }
 
         void SaveSettings()
@@ -110,30 +115,36 @@ namespace TestClient1
             Settings.Default.config_userName = this.textBox_config_userName.Text;
             Settings.Default.config_password = this.textBox_config_password.Text;
 
-            Settings.Default.getReaderInfo_remoteUserName = this.textBox_getReaderInfo_remoteUserName.Text;
-            Settings.Default.getReaderInfo_queryWord = this.textBox_getReaderInfo_queryWord.Text;
-            Settings.Default.getReaderInfo_formatList = this.textBox_getReaderInfo_formatList.Text;
+            Settings.Default.getInfo_method = this.comboBox_getInfo_method.Text;
+            Settings.Default.getInfo_remoteUserName = this.textBox_getInfo_remoteUserName.Text;
+            Settings.Default.getInfo_queryWord = this.textBox_getInfo_queryWord.Text;
+            Settings.Default.getInfo_formatList = this.textBox_getInfo_formatList.Text;
 
-            Settings.Default.searchPatron_remoteUserName = this.textBox_searchPatron_remoteUserName.Text;
-            Settings.Default.searchPatron_dbNameList = this.textBox_searchPatron_dbNameList.Text;
-            Settings.Default.searchPatron_queryWord = this.textBox_searchPatron_queryWord.Text;
-            Settings.Default.searchPatron_use = this.textBox_searchPatron_use.Text;
-            Settings.Default.searchPatron_matchStyle = this.textBox_searchPatron_matchStyle.Text;
-            Settings.Default.searchPatron_formatList = this.textBox_searchPatron_formatList.Text;
+            Settings.Default.search_method = this.comboBox_search_method.Text;
+            Settings.Default.search_remoteUserName = this.textBox_search_remoteUserName.Text;
+            Settings.Default.search_dbNameList = this.textBox_search_dbNameList.Text;
+            Settings.Default.search_queryWord = this.textBox_search_queryWord.Text;
+            Settings.Default.search_use = this.textBox_search_use.Text;
+            Settings.Default.search_matchStyle = this.textBox_search_matchStyle.Text;
+            Settings.Default.search_formatList = this.textBox_search_formatList.Text;
+            Settings.Default.search_resultSetName = this.textBox_search_resultSetName.Text;
+            Settings.Default.search_position = this.textBox_search_position.Text;
 
             Settings.Default.Save();
         }
 
         private void toolStripButton_begin_Click(object sender, EventArgs e)
         {
-            if (this.tabControl_main.SelectedTab == tabPage_getPatronInfo)
+            if (this.tabControl_main.SelectedTab == tabPage_getInfo)
             {
-                Task.Factory.StartNew(() => DoGetPatronInfo());
+                // Task.Factory.StartNew(() => DoGetPatronInfo());
+                DoGetInfo();
             }
 
-            if (this.tabControl_main.SelectedTab == this.tabPage_searchPatron)
+            if (this.tabControl_main.SelectedTab == this.tabPage_search)
             {
-                Task.Factory.StartNew(() => DoSearchPatron());
+                // Task.Factory.StartNew(() => DoSearchPatron());
+                DoSearch();
             }
 
         }
@@ -150,9 +161,24 @@ namespace TestClient1
             this.toolStrip1.Enabled = bEnable;
         }
 
-        void DoSearchPatron()
+        async void DoSearch()
         {
             string strError = "";
+
+            SetTextString(this.webBrowser1, "");
+
+            if (string.IsNullOrEmpty(this.comboBox_search_method.Text) == true)
+            {
+                strError = "尚未指定方法";
+                goto ERROR1;
+            }
+
+            long start = 0;
+            long count = 0;
+
+            start = StringUtil.GetSubInt64(this.textBox_search_position.Text, ',', 0);
+            count = StringUtil.GetSubInt64(this.textBox_search_position.Text, ',', 1);
+
 
             EnableControls(false);
             try
@@ -161,39 +187,33 @@ namespace TestClient1
 
                 string id = Guid.NewGuid().ToString();
                 SearchRequest request = new SearchRequest(id,
-                    "searchPatron",
-                    this.textBox_searchPatron_dbNameList.Text,
-                    this.textBox_searchPatron_queryWord.Text,
-                    this.textBox_searchPatron_use.Text,
-                    this.textBox_searchPatron_matchStyle.Text,
-                    this.textBox_searchPatron_formatList.Text,
-                    1000);
+                    this.comboBox_search_method.Text,
+                    this.textBox_search_dbNameList.Text,
+                    this.textBox_search_queryWord.Text,
+                    this.textBox_search_use.Text,
+                    this.textBox_search_matchStyle.Text,
+                    this.textBox_search_resultSetName.Text,
+                    this.textBox_search_formatList.Text,
+                    1000,
+                    start,
+                    count);
                 try
                 {
-                    Task<MessageConnection> task = this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
                         this.textBox_config_messageServerUrl.Text,
-                        this.textBox_searchPatron_remoteUserName.Text);
-                    SearchResult result =
-                    task.ContinueWith<SearchResult>((antecendent) =>
-                    {
-                        if (antecendent.IsFaulted == true)
-                        {
-                            throw antecendent.Exception;
-                        }
-                        MessageConnection connection = task.Result;
-                        return connection.SearchAsync(
-                        this.textBox_searchPatron_remoteUserName.Text,
+                        this.textBox_search_remoteUserName.Text);
+                    SearchResult result = await connection.SearchAsync(
+                        this.textBox_search_remoteUserName.Text,
                         request,
                         new TimeSpan(0, 1, 0),
-                        cancel_token).Result;
-                    }).Result;
+                        cancel_token);
 
                     this.Invoke(new Action(() =>
                     {
                         if (result.ResultCount == 0)
-                            this.textBox_searchPatron_results.Text = "没有找到";
+                            SetTextString(this.webBrowser1, "没有找到");
                         else
-                            this.textBox_searchPatron_results.Text = ToString(result);
+                            SetTextString(this.webBrowser1, ToString(result));
                     }));
                 }
                 catch (AggregateException ex)
@@ -216,6 +236,86 @@ namespace TestClient1
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 
+        async void DoGetInfo()
+        {
+            string strError = "";
+
+            if (string.IsNullOrEmpty(this.comboBox_getInfo_method.Text) == true)
+            {
+                strError = "尚未指定方法";
+                goto ERROR1;
+            }
+
+            EnableControls(false);
+            try
+            {
+                CancellationToken cancel_token = new CancellationToken();
+
+                string id = Guid.NewGuid().ToString();
+                SearchRequest request = new SearchRequest(id,
+                    this.comboBox_getInfo_method.Text,
+                    "",
+                    this.textBox_getInfo_queryWord.Text,
+                    "",
+                    "",
+                    "",
+                    this.textBox_getInfo_formatList.Text,
+                    1,
+                    0,
+                    -1);
+
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        this.textBox_getInfo_remoteUserName.Text);
+
+                    SearchResult result = await connection.SearchAsync(
+                        this.textBox_getInfo_remoteUserName.Text,
+                        request,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+
+                    this.Invoke(new Action(() =>
+                    {
+                        if (result.ResultCount == 0)
+                            SetTextString(this.webBrowser1, "没有找到");
+                        else
+                            SetTextString(this.webBrowser1, ToString(result));
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+        }
+
+
+        public static void SetHtmlString(WebBrowser webBrowser,
+string strHtml)
+        {
+            webBrowser.DocumentText = strHtml;
+        }
+
+        static void SetTextString(WebBrowser webBrowser, string strText)
+        {
+            SetHtmlString(webBrowser, "<pre>" + HttpUtility.HtmlEncode(strText) + "</pre>");
+        }
+#if NO
         void DoGetPatronInfo()
         {
             string strError = "";
@@ -281,7 +381,7 @@ namespace TestClient1
         ERROR1:
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
-
+#endif
         static string ToString(SearchResult result)
         {
             StringBuilder text = new StringBuilder();
@@ -295,7 +395,7 @@ namespace TestClient1
                     text.Append((i + 1).ToString() + ") ===");
                     text.Append("RecPath=" + record.RecPath + "\r\n");
                     text.Append("Format=" + record.Format + "\r\n");
-                    text.Append("Data=" + record.Data + "\r\n");
+                    text.Append("Data=" + XmlUtil.TryGetIndentXml(record.Data) + "\r\n");
                     i++;
                 }
             }

@@ -11,32 +11,44 @@
     <Setting Name="config_password" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="getReaderInfo_remoteUserName" Type="System.String" Scope="User">
+    <Setting Name="getInfo_remoteUserName" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="getReaderInfo_queryWord" Type="System.String" Scope="User">
+    <Setting Name="getInfo_queryWord" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="getReaderInfo_formatList" Type="System.String" Scope="User">
+    <Setting Name="getInfo_formatList" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="searchPatron_dbNameList" Type="System.String" Scope="User">
+    <Setting Name="search_dbNameList" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="searchPatron_queryWord" Type="System.String" Scope="User">
+    <Setting Name="search_queryWord" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="searchPatron_use" Type="System.String" Scope="User">
+    <Setting Name="search_use" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="searchPatron_matchStyle" Type="System.String" Scope="User">
+    <Setting Name="search_matchStyle" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="searchPatron_formatList" Type="System.String" Scope="User">
+    <Setting Name="search_formatList" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="searchPatron_remoteUserName" Type="System.String" Scope="User">
+    <Setting Name="search_remoteUserName" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="getInfo_method" Type="System.String" Scope="User">
+      <Value Profile="(Default)">getPatronInfo</Value>
+    </Setting>
+    <Setting Name="search_method" Type="System.String" Scope="User">
+      <Value Profile="(Default)">searchPatron</Value>
+    </Setting>
+    <Setting Name="search_resultSetName" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="search_position" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0,100</Value>
     </Setting>
   </Settings>
 </SettingsFile>

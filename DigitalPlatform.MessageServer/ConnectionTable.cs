@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using DigitalPlatform.Text;
+
 namespace DigitalPlatform.MessageServer
 {
     /// <summary>
@@ -139,7 +141,7 @@ namespace DigitalPlatform.MessageServer
                     if (info.LibraryUID == strRequestLibraryUID)
                         continue;
 
-                    if (Global.Contains(info.PropertyList, "biblio_search") == false)
+                    if (StringUtil.Contains(info.PropertyList, "biblio_search") == false)
                         continue;
 
                     infos.Add(info);
@@ -220,9 +222,9 @@ namespace DigitalPlatform.MessageServer
                     // 如何表达允许操作的权限?
                     // getreaderinfo:username1|username2
                     // 如果没有配置，表示不允许
-                    string strAllowUserList = Global.GetParameterByPrefix(strDuty, strOperation + ":");
+                    string strAllowUserList = StringUtil.GetParameterByPrefix(strDuty, strOperation + ":");
                     if (strAllowUserList == null
-                        || Global.Contains(strAllowUserList, strRequestUserName) == false)
+                        || StringUtil.Contains(strAllowUserList, strRequestUserName) == false)
                         continue;
 
                     infos.Add(info);
