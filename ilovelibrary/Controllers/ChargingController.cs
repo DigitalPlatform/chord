@@ -9,16 +9,6 @@ namespace ilovelibrary.Controllers
 {
     public class ChargingController : Controller
     {
-        /// <summary>
-        /// 单页测试
-        /// </summary>
-        /// <returns></returns>
-        public ActionResult Test()
-        {
-            return View();
-        }
-
-
         //
         // GET: /Charging/
         public ActionResult Main()
@@ -27,10 +17,9 @@ namespace ilovelibrary.Controllers
             if (Session[SessionInfo.C_Session_sessioninfo] == null)
             {
                 return this.RedirectToAction("Login", "Account", new { ReturnUrl = "~/Charging/Main"});
-            }       
+            }      
            
             return View();
         }
-
     }
 }

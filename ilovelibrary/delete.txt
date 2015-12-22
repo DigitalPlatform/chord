@@ -1,4 +1,60 @@
-﻿    <br />
+﻿        由于加了一行显示出错信息，与div class="table-responsive"不能一起使用
+		
+		==============
+		// 读者view model
+        var patronVModel = {
+            barcode: ko.observable(),
+            name: ko.observable(),
+            department: ko.observable(),
+            readerType: ko.observable(),
+
+            state: ko.observable(),
+            createDate: ko.observable(),
+            expireDate: ko.observable(),
+            comment: ko.observable(),
+
+            errorInfo:ko.observable()
+        };
+
+        // 加载读者
+        function loadPatronInfo() {
+            // 从服务器api获得读者json数据
+            sendAjaxRequest("GET", function (data) {
+
+                var apiResult = data.ApiResult;
+
+                alert(apiResult.ErrorCode);
+                // 先看看是不是有错误信息
+                if (apiResult.ErrorCode == -1) {
+                    alert(apiResult.ErrorInfo);
+                    patronVModel.errorInfo(apiResult.ErrorInfo);
+                }
+                else {
+
+                    var patron = data.patron;
+
+                    // 更新到patronVModel上
+                    patronVModel.barcode(patron.barcode);
+                    patronVModel.name(patron.name);
+                    patronVModel.department(patron.department);
+                    patronVModel.readerType(patron.readerType);
+
+                    patronVModel.state(patron.state);
+                    patronVModel.createDate(patron.createDate);
+                    patronVModel.expireDate(patron.expireDate);
+                    patronVModel.comment(patron.comment);
+
+                    // 焦点换到item上
+                    $("#txtItemBarcode").focus();
+                }
+
+            }, "/api/patron/" + $("#txtReaderBarcode").val(),null,
+            function (XMLHttpRequest, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+        }
+===============
+    <br />
     <!-- Page Heading/Breadcrumbs -->
     <div class="row">
         <div class="col-lg-12">

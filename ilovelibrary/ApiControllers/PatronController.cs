@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Web;
 using System.Web.Http;
 
-namespace ilovelibrary.Controllers
+namespace ilovelibrary.ApiControllers
 {
     public class PatronController : ApiController
     {
@@ -17,16 +17,17 @@ namespace ilovelibrary.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [NotImplExceptionFilter]
-        public Patron GetPatron(string id)
+        public PatronResult GetPatron(string id)
         {
             if (HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo] == null)
             {
                 throw new Exception("尚未登录!");
             }
             SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo];
-            Patron patron = ilovelibraryServer.Instance.GetPatronInfo(sessionInfo, id);
-            return patron;
-
+            
+            // 获取读者基本信息
+            PatronResult patronResult = ilovelibraryServer.Instance.GetPatronInfo(sessionInfo, id);
+            return patronResult;
         }
 
         /// <summary>
@@ -35,18 +36,18 @@ namespace ilovelibrary.Controllers
         /// <param name="id"></param>
         /// <param name="format"></param>
         /// <returns></returns>
-        public List<BorrowInfo> GetBorrowInfo(string id, [FromUri] string format)
-        {
-            
+        public BorrowInfoResult GetBorrowInfo(string id, [FromUri] string format)
+        {            
             if (HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo] == null)
             {
                 throw new Exception("尚未登录");
             }
-
             SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo] ;
-            List<BorrowInfo> borrowList = ilovelibraryServer.Instance.GetBorrowInfo(sessionInfo, id);
+            
+            //获取读者借阅信息
+            BorrowInfoResult result = ilovelibraryServer.Instance.GetBorrowInfo(sessionInfo, id);
 
-            return borrowList;              
+            return result;              
         }
 
 

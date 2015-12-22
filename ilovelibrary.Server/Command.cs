@@ -12,11 +12,12 @@ namespace ilovelibrary.Server
         public string type { get; set; }
         public string readerBarcode { get; set; }
         public string itemBarcode { get; set; }
-
         public string description { get; set; }
-        public string resultInfo { get; set; }
-        public int state { get; set; }
-
         public string operTime { get; set; }
+
+        // 处理状态
+        public int state { get; set; }
+        public string resultInfo { get; set; }
+
     }
 }

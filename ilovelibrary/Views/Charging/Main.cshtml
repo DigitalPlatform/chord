@@ -1,22 +1,24 @@
 ﻿@{
     ViewBag.Title = "出纳窗";
 }
-
+@section style {
+    <style type="text/css">
+        .pending {            
+            background-color: gray;
+        }
+        .errorspan {
+            color: red;
+        }
+    </style>
+}
 @section Scripts {
     <script>
 
         //======================
         // 读者view model
         var patronVModel = {
-            barcode: ko.observable(),
-            name: ko.observable(),
-            department: ko.observable(),
-            readerType: ko.observable(),
-
-            state: ko.observable(),
-            createDate: ko.observable(),
-            expireDate: ko.observable(),
-            comment: ko.observable()
+            errorInfo: ko.observable(""),
+            patron:ko.observable
         };
 
         // 加载读者
@@ -24,20 +26,15 @@
             // 从服务器api获得读者json数据
             sendAjaxRequest("GET", function (data) {
 
-                // 更新到patronVModel上
-                //alert(data.barcode);
-                patronVModel.barcode(data.barcode);
-                patronVModel.name(data.name);
-                patronVModel.department(data.department);
-                patronVModel.readerType(data.readerType);
+                patronVModel.errorInfo(data.apiResult.errorInfo);
+                patronVModel.patron(data.patron);
 
-                patronVModel.state(data.state);
-                patronVModel.createDate(data.createDate);
-                patronVModel.expireDate(data.expireDate);
-                patronVModel.comment(data.comment);
+                if (data.apiResult.errorCode != -1)
+                {
+                    // 焦点换到item上
+                    $("#txtItemBarcode").focus();
+                }
 
-                // 焦点换到item上
-                $("#txtItemBarcode").focus();
 
             }, "/api/patron/" + $("#txtReaderBarcode").val(),null,
             function (XMLHttpRequest, textStatus, errorThrown) {
@@ -56,10 +53,9 @@
         //===========================
         // 借阅信息
         var borrowModel = {
+            errorInfo: ko.observable(""),
             borrows: ko.observableArray(),
         }
-
-
 
         //获取借阅信息
         function loadBorrowInfo() {
@@ -67,16 +63,73 @@
             var url = "/api/patron/" + $("#txtReaderBarcode").val() + "?format=borrowinfo";
             sendAjaxRequest("GET", function (data) {
 
-                //alert("回来了");
-
                 // 先删除可观察数组中的已有数据
                 borrowModel.borrows.removeAll();
-                for (var i = 0; i < data.length; i++) {
-                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
-                    borrowModel.borrows.push(data[i]);
+
+                // 设上返回的error
+                borrowModel.errorInfo(data.apiResult.errorInfo);
+
+                if (data.apiResult.errorCode != -1) {
+                    // 加载借阅记录
+                    var list = data.borrowList;
+                    for (var i = 0; i < list.length; i++) {
+                        //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                        borrowModel.borrows.push(list[i]);
+                    }
+
+                    // 加载书目摘要
+                    //GetSummary();
+                    window.setTimeout("GetSummary()", 1);
                 }
 
             }, url);
+        }
+
+        // 获得书目摘要
+        function GetSummary() {
+            //alert("GetSummary1");
+            var o = $(".pending:first");
+            if (o.length == 0) {
+                // $(window).scroll();
+                return;
+            }
+
+            //alert("GetSummary2");
+            var barcode = o.text();
+            if (barcode == "") {
+                o.removeClass("pending");
+                window.setTimeout("GetSummary()", 1);
+                return;
+            }
+
+            //alert("GetSummary3");
+            var lang = "zh";//$('select#langlist option[SELECTED]').attr('value');
+            var summaryUrl = "/api/biblio/" + encodeURIComponent(barcode) + "?format=summary";
+            //alert(summaryUrl);
+
+            $.ajax({
+                url: summaryUrl, //+ lang
+                type: 'GET',
+                cache: true,
+                statusCode: {
+                    500: function () {
+                        //alert("GetSummary41");
+                        o.text('\r\nerror 500');
+                        o.removeClass("pending");
+                    }
+                },
+                success: function (data) {
+                    //alert("GetSummary42");
+
+                    o.text(data);
+                    o.removeClass("pending");
+                    
+                    //o.show();
+                    window.setTimeout("GetSummary()", 1);
+                }
+            });
+
+            //alert("GetSummary5");
         }
 
         //=========================
@@ -111,7 +164,9 @@
 
             sendAjaxRequest("POST", function (newItem) {
                 //alert("addCmd1");
-                cmdModel.commands.push(newItem);
+
+                // 插入到最前面
+                cmdModel.commands.unshift(newItem); //push是加到最后面
                 //alert("addCmd2");
 
                 // 刷新借阅信息
@@ -199,14 +254,14 @@
             // 证条码输入框失去焦点
             //$("#txtReaderBarcode").blur(loadPatron);
 
-            
+
             // 给读者证条码输入框加回车事件
             $('#txtReaderBarcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
                     loadPatron();
                 }
             });
-            
+
 
             // 给执行按钮绑事件
             $("#btnDo").click(addCmd);
@@ -219,6 +274,8 @@
                     addCmd();
                 }
             });
+
+
 
         })
 
@@ -297,31 +354,34 @@
         </div>
         <div class="col-md-6">
             <h3><span class="label label-default">读者信息</span></h3>
-            <div class="table-responsive" id="divPatron">
+            <div id="divPatron">
+                <span class="errorspan" data-bind="text: patronVModel.errorInfo"></span>
                 <table class="table">
                     <tr>
                         <td class="col-lg-3" style="background-color:#EEEEEE">读者证条码号</td>
-                        <td class="col-lg-3" data-bind="text: patronVModel.barcode"></td>
+                        <td class="col-lg-3" data-bind="text: patronVModel.patron().barcode"></td>
                         <td class="col-lg-3" style="background-color:#EEEEEE">证状态</td>
-                        <td class="col-lg-3" data-bind="text: patronVModel.state">&nbsp;</td>
+                        <td class="col-lg-3" data-bind="text: patronVModel.patron().state">&nbsp;</td>
                     </tr>
                     <tr>
                         <td style="background-color:#EEEEEE">读者类别</td>
-                        <td data-bind="text: patronVModel.readerType"> </td>
+                        <td data-bind="text: patronVModel.patron().readerType"> </td>
                         <td style="background-color:#EEEEEE">失效日期</td>
-                        <td data-bind="text: patronVModel.expireDate"></td>
+                        <td data-bind="text: patronVModel.patron().expireDate"></td>
                     </tr>
                     <tr>
                         <td style="background-color:#EEEEEE">姓名</td>
-                        <td data-bind="text: patronVModel.name"></td>
+                        <td data-bind="text: patronVModel.patron().name"></td>
                         <td style="background-color:#EEEEEE">单位</td>
-                        <td data-bind="text: patronVModel.department"></td>
+                        <td data-bind="text: patronVModel.patron().department"></td>
                     </tr>
                 </table>
             </div>
 
             <h3><span class="label label-default">借阅信息</span></h3>
-            <div class="table-responsive" id="divBorrow">
+            <div  id="divBorrow">
+                <span class="errorspan" data-bind="text: borrowModel.errorInfo"></span>
+
                 <table class="table  table-striped">
                     <thead></thead>
                     <tr>
@@ -336,7 +396,7 @@
                     <tbody data-bind="foreach: borrowModel.borrows">
                         <tr>
                             <td data-bind="text: barcode"></td>
-                            <td>Summary</td>
+                            <td class="pending" >C10</td>
                             <td data-bind="text:renewNo"></td>
                             <td data-bind="text:borrowDate"></td>
                             <td data-bind="text:period"></td>
