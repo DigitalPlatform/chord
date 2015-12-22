@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ilovelibrary.Server
 {
-    public class Patron
+    public class Patron1
     {
         public string barcode { get; set; }
         public string name { get; set; }
@@ -18,4 +18,12 @@ namespace ilovelibrary.Server
         public string expireDate { get; set; }
         public string comment { get; set; }
     }
+
+    public class PatronResult
+    {
+        public Patron1 patron { get; set; }
+        public ApiResult apiResult { get; set; }
+    }
+
+
 }

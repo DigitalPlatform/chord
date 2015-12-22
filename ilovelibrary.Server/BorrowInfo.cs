@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace ilovelibrary.Server
 {
+    public class BorrowInfoResult
+    {
+        public List<BorrowInfo> borrowList { get; set; }
+        public ApiResult apiResult { get; set; }
+    }
+
     public class BorrowInfo
     {
         public string barcode { get; set; }

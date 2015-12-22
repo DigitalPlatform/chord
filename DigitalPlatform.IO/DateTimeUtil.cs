@@ -610,7 +610,7 @@ out string strError)
                 }
                 catch (Exception ex)
                 {
-                    strError = ExceptionUtil.GetAutoText(ex);
+                    strError = DigitalPlatform.ExceptionUtil.GetAutoText(ex);
                     return -1;
                 }
 
