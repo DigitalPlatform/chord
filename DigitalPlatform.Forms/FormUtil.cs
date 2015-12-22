@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace DigitalPlatform.MessageServer
+namespace DigitalPlatform.Forms
 {
-
+    public static class FormUtil
+    {
+    }
 }

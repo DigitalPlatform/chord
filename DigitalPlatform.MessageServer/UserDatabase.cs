@@ -148,6 +148,7 @@ namespace DigitalPlatform.MessageServer
             var update = Builders<UserItem>.Update
                 .Set("userName", item.userName)
                 .Set("rights", item.rights)
+                .Set("duty", item.duty)
                 .Set("department", item.department)
                 .Set("tel", item.tel)
                 .Set("comment", item.comment);
@@ -284,6 +285,7 @@ namespace DigitalPlatform.MessageServer
         public string userName { get; set; } // 用户名
         public string password { get; set; }  // 密码
         public string rights { get; set; } // 权限
+        public string duty { get; set; }    // 义务
         public string department { get; set; } // 部门名称
         public string tel { get; set; }  // 电话号码
         public string comment { get; set; }  // 注释

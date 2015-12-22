@@ -30,7 +30,10 @@ namespace DigitalPlatform.MessageServer
 
         // TODO: 限制集合的最大元素数。防止被攻击
         // 新增一个 SearchInfo 对象
-        public SearchInfo AddSearch(string strConnectionID, string strSearchID = "")
+        public SearchInfo AddSearch(string strConnectionID,
+            string strSearchID = "",
+            long returnStart = 0,
+            long returnCount = -1)
         {
             this._lock.EnterWriteLock();
             try
@@ -39,7 +42,7 @@ namespace DigitalPlatform.MessageServer
                 if (string.IsNullOrEmpty(strSearchID) == false)
                 {
                     if (this.ContainsKey(strSearchID) == true)
-                        throw new ArgumentException("strSearchID", "strSearchID 已经存在了");
+                        throw new ArgumentException("strSearchID", "strSearchID '" + strSearchID + "' 已经存在了");
                 }
 
                 SearchInfo info = new SearchInfo();
@@ -50,6 +53,8 @@ namespace DigitalPlatform.MessageServer
                     info.UID = strSearchID;
 
                 info.RequestConnectionID = strConnectionID;
+                info.ReturnStart = returnStart;
+                info.ReturnCount = returnCount;
                 this[info.UID] = info;
                 return info;
             }
@@ -146,6 +151,9 @@ namespace DigitalPlatform.MessageServer
         public string UID = "";
         public DateTime CreateTime; // 请求的时刻
         public string RequestConnectionID = "";    // 请求者的 connection ID
+
+        public long ReturnStart = 0;    // 结果集中要返回部分的开始位置。从 0 开始计数
+        public long ReturnCount = -1;   // 结果集中要返回部分的记录个数。-1 表示尽可能多
 
         public List<string> TargetIDs = new List<string>(); // 检索目标的 connection id 集合
 

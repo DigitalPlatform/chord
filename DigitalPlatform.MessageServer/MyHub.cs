@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 using Microsoft.AspNet.SignalR;
 
+using DigitalPlatform.Message;
+using DigitalPlatform.Text;
+
 namespace DigitalPlatform.MessageServer
 {
     /// <summary>
@@ -35,8 +38,32 @@ namespace DigitalPlatform.MessageServer
             // 获得用户信息
             var task = ServerInfo.UserDatabase.GetUsers(userName, start, count);
             task.Wait();
-            result.Users = task.Result;
+            result.Users = BuildUsers(task.Result);
             return result;
+        }
+
+        static List<User> BuildUsers(List<UserItem> items)
+        {
+            List<User> results = new List<User>();
+            foreach (UserItem item in items)
+            {
+                results.Add(BuildUser(item));
+            }
+            return results;
+        }
+
+        static User BuildUser(UserItem item)
+        {
+            User user = new User();
+            user.id = item.id;
+            user.userName = item.userName;
+            user.password = item.password;
+            user.rights = item.rights;
+            user.duty = item.duty;
+            user.department = item.department;
+            user.tel = item.tel;
+            user.comment = item.comment;
+            return user;
         }
 
         public MessageResult SetUsers(string action, List<UserItem> users)
@@ -106,6 +133,26 @@ namespace DigitalPlatform.MessageServer
                 result.Value = -1;
                 result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。登录失败";
                 return result;
+            }
+
+            if (string.IsNullOrEmpty(userName) == false)
+            {
+                // 获得用户信息
+                var results = ServerInfo.UserDatabase.GetUsers(userName, 0, 1).Result;
+                if (results.Count != 1)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "用户名 '" + userName + "' 不存在。登录失败";
+                    return result;
+                }
+                var user = results[0];
+                if (user.password != password)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "密码不正确。登录失败";
+                    return result;
+                }
+                info.UserItem = user;
             }
 
             info.PropertyList = propertyList;
@@ -208,14 +255,20 @@ namespace DigitalPlatform.MessageServer
 
         // return:
         //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
-        public MessageResult RequestSearchBiblio(
-            string strSearchID,
+        public MessageResult RequestSearch(
+            string userNameList,
+#if NO
+            string operation,
+            string searchID,
             string dbNameList,
             string queryWord,
             string fromList,
             string matchStyle,
             string formatList,
-            long maxResults)
+            long maxResults
+#endif
+ SearchRequest searchParam
+            )
         {
             MessageResult result = new MessageResult();
 
@@ -227,13 +280,16 @@ namespace DigitalPlatform.MessageServer
                 return result;
             }
 
-            if (Global.Contains(connection_info.PropertyList, "biblio_search") == false)
+            if (searchParam.Operation == "searchBiblio"
+                && userNameList == "*"
+                && StringUtil.Contains(connection_info.PropertyList, "biblio_search") == false)
             {
                 result.Value = -1;
                 result.ErrorInfo = "当前连接未开通书目检索功能";
                 return result;
             }
 
+#if NO
             List<string> connectionIds = null;
             string strError = "";
             // 获得书目检索的目标 connection 的 id 集合
@@ -244,6 +300,30 @@ namespace DigitalPlatform.MessageServer
             //      0   成功
             int nRet = ServerInfo.ConnectionTable.GetBiblioSearchTargets(
                 connection_info.LibraryUID,
+                out connectionIds,
+                out strError);
+            if (nRet == -1)
+            {
+                result.Value = -1;
+                result.ErrorInfo = strError;
+                return result;
+            }
+#endif
+            // 检查请求者是否具备操作的权限
+            if (StringUtil.Contains(connection_info.Rights, searchParam.Operation) == false)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "当前用户 '"+connection_info.UserName+"' 不具备进行 '"+searchParam.Operation+"' 操作的权限";
+                return result;
+            }
+
+            List<string> connectionIds = null;
+            string strError = "";
+            int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
+                userNameList,
+                connection_info.UserName,
+                searchParam.Operation,
+                "all",
                 out connectionIds,
                 out strError);
             if (nRet == -1)
@@ -264,25 +344,32 @@ namespace DigitalPlatform.MessageServer
 
             try
             {
-                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId, strSearchID);
+                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId, 
+                    searchParam.SearchID,
+                    searchParam.Start,
+                    searchParam.Count);
             }
             catch (ArgumentException)
             {
                 result.Value = -1;
-                result.ErrorInfo = "SearchID '" + strSearchID + "' 已经存在了，不允许重复使用";
+                result.ErrorInfo = "SearchID '" + searchParam.SearchID + "' 已经存在了，不允许重复使用";
                 return result;
             }
 
             result.String = search_info.UID;   // 返回检索请求的 UID
 
-            Clients.Clients(connectionIds).searchBiblio(// "searchBiblio",
+            Clients.Clients(connectionIds).search(// "searchBiblio",
+#if NO
                 search_info.UID,   // 检索请求的 UID
+                operation,
                 dbNameList,
                 queryWord,
                 fromList,
                 matchStyle,
                 formatList,
-                maxResults);
+                maxResults
+#endif
+                searchParam);
 
             search_info.TargetIDs = connectionIds;
             result.Value = 1;   // 表示已经成功发起了检索
@@ -308,10 +395,10 @@ namespace DigitalPlatform.MessageServer
         //      resultCount    命中的总的结果数。如果为 -1，表示检索出错，errorInfo 会给出出错信息
         //      start  records 参数中的第一个元素，在总的命中结果集中的偏移
         //      errorInfo   错误信息
-        public MessageResult ResponseSearchBiblio(string searchID,
+        public MessageResult ResponseSearch(string searchID,
             long resultCount,
             long start,
-            IList<BiblioRecord> records,
+            IList<Record> records,
             string errorInfo)
         {
             // Thread.Sleep(1000 * 60 * 2);
@@ -334,7 +421,7 @@ namespace DigitalPlatform.MessageServer
                     result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。回传检索结果失败";
                     return result;
                 }
-                foreach (BiblioRecord record in records)
+                foreach (Record record in records)
                 {
                     // record.RecPath += "@UID:" + connection_info.LibraryUID;
                     record.LibraryName = connection_info.LibraryName;
@@ -342,7 +429,8 @@ namespace DigitalPlatform.MessageServer
                 }
             }
 
-            Clients.Client(info.RequestConnectionID).responseSearchBiblio(
+            // 让前端获得检索结果
+            Clients.Client(info.RequestConnectionID).responseSearch(
                 searchID,
                 resultCount,
                 start,
@@ -351,6 +439,8 @@ namespace DigitalPlatform.MessageServer
 
             // 判断响应是否为最后一个响应
             bool bRet = IsComplete(resultCount,
+                info.ReturnStart,
+                info.ReturnCount,
                 start,
                 records);
             if (bRet == true)
@@ -359,7 +449,7 @@ namespace DigitalPlatform.MessageServer
                 if (bAllComplete)
                 {
                     // 追加一个消息，表示检索响应已经全部完成
-                    Clients.Client(info.RequestConnectionID).responseSearchBiblio(
+                    Clients.Client(info.RequestConnectionID).responseSearch(
     searchID,
     -1,
     -1,
@@ -374,9 +464,16 @@ namespace DigitalPlatform.MessageServer
         }
 
         // 判断响应是否为(顺次发回的)最后一个响应
+        // parameters:
+        //      resultCount 结果集中命中的结果总数
+        //      returnStart 本次要返回的，结果集中的开始位置
+        //      returnCount 本次要返回的，结果集中的从 returnStart 开始的元素个数
+        //      start   集合 records 开始的偏移位置。数值是从结果集的最开头算起
         static bool IsComplete(long resultCount,
+            long returnStart,
+            long returnCount,
             long start,
-            IList<BiblioRecord> records)
+            IList<Record> records)
         {
             if (resultCount == -1)
                 return true;    // 出错，也意味着响应结束
@@ -384,14 +481,18 @@ namespace DigitalPlatform.MessageServer
             if (resultCount < 0)
                 return false;   // -1 表示结果尺寸不确定
 
+            long tail = resultCount;
+            if (returnCount != -1)
+                tail = returnStart + returnCount;
+
             if (records == null)
             {
-                if (start >= resultCount)
+                if (start >= tail)
                     return true;
                 return false;
             }
 
-            if (start + records.Count >= resultCount)
+            if (start + records.Count >= tail)
                 return true;
             return false;
         }
@@ -436,38 +537,4 @@ namespace DigitalPlatform.MessageServer
         }
     }
 
-    public class BiblioRecord
-    {
-        // 记录路径。这是本地路径，例如 “图书总库/1”
-        public string RecPath { get; set; }
-        // 图书馆 UID
-        public string LibraryUID { get; set; }
-        // 图书馆名
-        public string LibraryName { get; set; }
-
-        public string Format { get; set; }
-        public string Data { get; set; }
-        public string Timestamp { get; set; }
-    }
-
-    public class MessageResult
-    {
-        public string String { get; set; }  // 字符串类型的返回值
-        public long Value { get; set; }      // 整数类型的返回值
-        public string ErrorInfo { get; set; }   // 出错信息
-    }
-
-    public class GetUserResult : MessageResult
-    {
-        public List<UserItem> Users { get; set; }
-    }
-
-    public class GetRecordResult : MessageResult
-    {
-        public List<string> Formats { get; set; }
-        public List<string> Results { get; set; }
-
-        public string RecPath { get; set; }
-        public string Timestamp { get; set; }
-    }
 }
