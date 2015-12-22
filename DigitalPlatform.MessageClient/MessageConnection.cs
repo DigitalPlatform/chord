@@ -171,12 +171,12 @@ namespace DigitalPlatform.MessageClient
     long,
     long,
     IList<Record>,
-        string>("responseSearch", (searchID,
+        string>("responseSearch", (taskID,
     resultCount,
     start,
     records,
     errorInfo) =>
- OnSearchResponseRecieved(searchID,
+ OnSearchResponseRecieved(taskID,
     resultCount,
     start,
     records,
@@ -292,19 +292,7 @@ namespace DigitalPlatform.MessageClient
 
         // 
         // 当 server 发来检索请求的时候被调用。重载的时候要进行检索，并调用 Response 把检索结果发送给 server
-        public virtual void OnSearchBiblioRecieved(
-#if NO
-            string searchID,
-            string operation,
-            string dbNameList,
-             string queryWord,
-             string fromList,
-             string matchStyle,
-             string formatList,
-             long maxResults
-#endif
-SearchRequest param
-            )
+        public virtual void OnSearchBiblioRecieved(SearchRequest param)
         {
         }
 
@@ -320,9 +308,9 @@ SearchRequest param
             {
                 SearchResult result = new SearchResult();
 
-                if (string.IsNullOrEmpty(request.SearchID) == true)
+                if (string.IsNullOrEmpty(request.TaskID) == true)
                 {
-                    request.SearchID = Guid.NewGuid().ToString();
+                    request.TaskID = Guid.NewGuid().ToString();
                 }
 
                 MessageResult message = HubProxy.Invoke<MessageResult>(
@@ -347,22 +335,22 @@ SearchRequest param
                     if (DateTime.Now - start_time >= timeout)
                         throw new TimeoutException("已超时 " + timeout.ToString());
 
-                    SearchResult result0 = (SearchResult)_resultTable[request.SearchID];
+                    SearchResult result0 = (SearchResult)_resultTable[request.TaskID];
                     if (result0 != null && result0.ResultCount == -1)
                     {
-                        ClearResultFromTable(request.SearchID);
+                        ClearResultFromTable(request.TaskID);
                         return result0;
                     }
 
                     if (result0 != null && result0.Records != null && result0.Records.Count >= result0.ResultCount)
                     {
-                        ClearResultFromTable(request.SearchID);
+                        ClearResultFromTable(request.TaskID);
                         return result0;
                     }
 
                     if (result0 != null && result0.Finished == true)
                     {
-                        ClearResultFromTable(request.SearchID);
+                        ClearResultFromTable(request.TaskID);
                         return result0;
                     }
 
@@ -371,17 +359,17 @@ SearchRequest param
             }, token);
         }
 
-        Hashtable _resultTable = new Hashtable();   // searchID --> SearchBiblioResult 
+        Hashtable _resultTable = new Hashtable();   // taskID --> SearchResult 
 
         // 从结果集表中移走结果
-        void ClearResultFromTable(string searchID)
+        void ClearResultFromTable(string taskID)
         {
-            _resultTable.Remove(searchID);
+            _resultTable.Remove(taskID);
         }
 
         // TODO: 按照 searchID 把检索结果一一存储起来。用信号通知消费线程。消费线程每次可以取走一部分，以后每一次就取走余下的。
         // 当 server 发来检索响应的时候被调用。重载时可以显示收到的记录
-        public virtual void OnSearchResponseRecieved(string searchID,
+        public virtual void OnSearchResponseRecieved(string taskID,
     long resultCount,
     long start,
     IList<Record> records,
@@ -389,12 +377,11 @@ SearchRequest param
         {
             // TODO: 监视 Hashtable 中的元素数量，超过一个极限值要抛出异常
 
-            SearchResult result = (SearchResult)_resultTable[searchID];
+            SearchResult result = (SearchResult)_resultTable[taskID];
             if (result == null)
             {
                 result = new SearchResult();
-                // result.SearchID = searchID;
-                _resultTable[searchID] = result;
+                _resultTable[taskID] = result;
             }
 
             if (result.Records == null)
@@ -565,7 +552,7 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
         // result.Value:
         //      -1  出错
         //      0   没有检索目标
-        //      1   成功发起检索。此时 Result.String 里面返回了 searchID
+        //      1   成功发起检索。此时 Result.String 里面返回了 taskID
         public Task<MessageResult> SearchAsync(
             string userNameList,
             SearchRequest searchParam)
@@ -688,8 +675,8 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
 #endif
 
         // 调用 server 端 ResponseSearchBiblio
-        public async void Response(
-            string searchID,
+        public async void ResponseSearch(
+            string taskID,
             long resultCount,
             long start,
             IList<Record> records,
@@ -698,7 +685,7 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             try
             {
                 MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSearch",
-    searchID,
+    taskID,
     resultCount,
     start,
     records,
@@ -713,26 +700,6 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             {
                 AddErrorLine(ex.Message);
             }
-
-
-#if NO
-            Task<MessageResult> task = HubProxy.Invoke<MessageResult>("ResponseSearchBiblio",
-searchID,
-resultCount,
-start,
-records,
-errorInfo);
-            task.Wait();
-            if (task.IsFaulted == true)
-            {
-                AddErrorLine(GetExceptionText(task.Exception));
-                return;
-            }
-            if (task.Result.Value == -1)
-            {
-                AddErrorLine(task.Result.ErrorInfo);
-            }
-#endif
         }
 
         public GetUserResult GetUsers(string userName, int start, int count)

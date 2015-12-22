@@ -1015,9 +1015,9 @@ namespace dp2Command.Server
                 {
                     DateTime now = DateTime.Now;
                     // 每天一个日志文件
-                    string strFilename = PathUtil.MergePath(this.dp2WeiXinLogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
+                    string strFilename = Path.Combine(this.dp2WeiXinLogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
                     string strTime = now.ToString();
-                    StreamUtil.WriteText(strFilename,
+                    FileUtil.WriteText(strFilename,
                         strTime + " " + strText + "\r\n");
                 }
             }
