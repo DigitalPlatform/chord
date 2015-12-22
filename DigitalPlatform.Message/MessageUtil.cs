@@ -13,17 +13,34 @@ namespace DigitalPlatform.Message
 
     public class Record
     {
-        // 记录路径。这是本地路径，例如 “图书总库/1”
+        // 记录路径。可能是本地路径，例如 “图书总库/1”；也可能是全局路径，例如“图书总库@xxxxxxx”
         public string RecPath { get; set; }
-        // 图书馆 UID
-        public string LibraryUID { get; set; }
-        // 图书馆名
-        public string LibraryName { get; set; }
-
         public string Format { get; set; }
         public string Data { get; set; }
         public string Timestamp { get; set; }
     }
+
+#if NO
+    // 全局记录。包含了图书馆名称信息
+    public class GlobalRecord
+    {
+        // 图书馆 UID
+        public string LibraryUID { get; set; }
+        // 图书馆名
+        public string LibraryName { get; set; }
+        // 基本记录
+        public Record Record { get; set; }
+
+        public GlobalRecord(Record record)
+        {
+            this.Record = new Record();
+            this.Record.RecPath = record.RecPath;
+            this.Record.Format = record.Format;
+            this.Record.Data = record.Data;
+            this.Record.Timestamp = record.Timestamp;
+        }
+    }
+#endif
 
     public class MessageResult
     {
@@ -48,10 +65,10 @@ namespace DigitalPlatform.Message
 
     public class SearchRequest
     {
-        public string SearchID { get; set; }    // 本次检索的 ID。由于一个 Connection 可以用于同时进行若干检索操作，本参数用于区分不同的检索操作
-        public string Operation { get; set; }   // 操作名。若为 getResult 表示本次不需要进行检索，而是从已有的结果集中获取数据。结果集名在 ResultSetName 中
+        public string TaskID { get; set; }    // 本次检索的任务 ID。由于一个 Connection 可以用于同时进行若干检索操作，本参数用于区分不同的检索操作
+        public string Operation { get; set; }   // 操作名。
         public string DbNameList { get; set; }  // 数据库名列表。一般为 "<全部>"
-        public string QueryWord { get; set; }   // 检索词。
+        public string QueryWord { get; set; }   // 检索词。若为 !getResult 表示不检索、从已有结果集中获取记录
         public string UseList { get; set; }     // 检索途径列表
         public string MatchStyle { get; set; }  // 匹配方式。为 exact/left/right/middle 之一
         public string ResultSetName { get; set; }   // 检索创建的结果集名。空表示为默认结果集
@@ -60,7 +77,7 @@ namespace DigitalPlatform.Message
         public long Start { get; set; } // 本次获得结果的开始位置
         public long Count { get; set; } // 本次获得结果的个数。 -1表示尽可能多
 
-        public SearchRequest(string searchID,
+        public SearchRequest(string taskID,
             string operation,
             string dbNameList,
             string queryWord,
@@ -72,7 +89,7 @@ namespace DigitalPlatform.Message
             long start,
             long count)
         {
-            this.SearchID = searchID;
+            this.TaskID = taskID;
             this.Operation = operation;
             this.DbNameList = dbNameList;
             this.QueryWord = queryWord;
@@ -97,5 +114,31 @@ namespace DigitalPlatform.Message
         public string department { get; set; } // 部门名称
         public string tel { get; set; }  // 电话号码
         public string comment { get; set; }  // 注释
+    }
+
+    public class SetInfoRequest
+    {
+        public string TaskID { get; set; }    // 任务 ID。由于一个 Connection 可以用于同时执行多个任务，本参数用于区分不同的任务
+        public string Operation { get; set; }   // 操作名。
+
+        public string BiblioRecPath { get; set; }
+        public List<Entity> Entities { get; set; }
+    }
+
+    public class Entity
+    {
+        public string Action { get; set; }   // 要执行的操作(get时此项无用)
+
+        public string RefID { get; set; }   // 参考 ID
+
+        public Record OldRecord { get; set; }
+
+        public Record NewRecord { get; set; }
+
+        public string Style { get; set; }   // 风格。常用作附加的特性参数。例如: nocheckdup,noeventlog,force
+
+        public string ErrorInfo { get; set; }  // 出错信息
+
+        public string ErrorCode { get; set; }   // 出错码（表示属于何种类型的错误）
     }
 }

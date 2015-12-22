@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.Forms", "Di
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.Text", "DigitalPlatform.Text\DigitalPlatform.Text.csproj", "{EEB5253B-AB62-4D06-896E-8F17E3FFD215}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestClient2", "TestClient2\TestClient2.csproj", "{48F1070C-14AC-450F-AD7F-56105FE332E4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{EEB5253B-AB62-4D06-896E-8F17E3FFD215}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EEB5253B-AB62-4D06-896E-8F17E3FFD215}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EEB5253B-AB62-4D06-896E-8F17E3FFD215}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48F1070C-14AC-450F-AD7F-56105FE332E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48F1070C-14AC-450F-AD7F-56105FE332E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48F1070C-14AC-450F-AD7F-56105FE332E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48F1070C-14AC-450F-AD7F-56105FE332E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

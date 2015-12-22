@@ -161,6 +161,7 @@ namespace DigitalPlatform.MessageServer
             return result;
         }
 
+#if NO
         // parameters:
         //      userNames   被请求的用户名列表
         //      recordType  什么类型的记录。书目库记录？读者库记录？实体记录?
@@ -251,8 +252,9 @@ namespace DigitalPlatform.MessageServer
             result.Value = 1;   // 表示已经成功发起了检索
             return result;
         }
+#endif
 
-
+        #region Search() API
         // return:
         //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
         public MessageResult RequestSearch(
@@ -345,14 +347,14 @@ namespace DigitalPlatform.MessageServer
             try
             {
                 search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId, 
-                    searchParam.SearchID,
+                    searchParam.TaskID,
                     searchParam.Start,
                     searchParam.Count);
             }
             catch (ArgumentException)
             {
                 result.Value = -1;
-                result.ErrorInfo = "SearchID '" + searchParam.SearchID + "' 已经存在了，不允许重复使用";
+                result.ErrorInfo = "TaskID '" + searchParam.TaskID + "' 已经存在了，不允许重复使用";
                 return result;
             }
 
@@ -395,7 +397,7 @@ namespace DigitalPlatform.MessageServer
         //      resultCount    命中的总的结果数。如果为 -1，表示检索出错，errorInfo 会给出出错信息
         //      start  records 参数中的第一个元素，在总的命中结果集中的偏移
         //      errorInfo   错误信息
-        public MessageResult ResponseSearch(string searchID,
+        public MessageResult ResponseSearch(string taskID,
             long resultCount,
             long start,
             IList<Record> records,
@@ -403,10 +405,10 @@ namespace DigitalPlatform.MessageServer
         {
             // Thread.Sleep(1000 * 60 * 2);
             MessageResult result = new MessageResult();
-            SearchInfo info = ServerInfo.SearchTable.GetSearchInfo(searchID);
+            SearchInfo info = ServerInfo.SearchTable.GetSearchInfo(taskID);
             if (info == null)
             {
-                result.ErrorInfo = "ID 为 '" + searchID + "' 的检索对象无法找到";
+                result.ErrorInfo = "ID 为 '" + taskID + "' 的检索对象无法找到";
                 result.Value = -1;
                 return result;
             }
@@ -421,17 +423,19 @@ namespace DigitalPlatform.MessageServer
                     result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。回传检索结果失败";
                     return result;
                 }
+                string strPostfix = connection_info.LibraryUID;
+                if (string.IsNullOrEmpty(strPostfix) == true)
+                    strPostfix = connection_info.LibraryName;
+
                 foreach (Record record in records)
                 {
-                    // record.RecPath += "@UID:" + connection_info.LibraryUID;
-                    record.LibraryName = connection_info.LibraryName;
-                    record.LibraryUID = connection_info.LibraryUID;
+                    record.RecPath = record.RecPath + "@" + strPostfix;
                 }
             }
 
             // 让前端获得检索结果
             Clients.Client(info.RequestConnectionID).responseSearch(
-                searchID,
+                taskID,
                 resultCount,
                 start,
                 records,
@@ -450,18 +454,20 @@ namespace DigitalPlatform.MessageServer
                 {
                     // 追加一个消息，表示检索响应已经全部完成
                     Clients.Client(info.RequestConnectionID).responseSearch(
-    searchID,
+    taskID,
     -1,
     -1,
     null,
     "");
                     // 主动清除已经完成的检索对象
-                    ServerInfo.SearchTable.RemoveSearch(searchID);
+                    ServerInfo.SearchTable.RemoveSearch(taskID);
                 }
             }
 
             return result;
         }
+
+        #endregion
 
         // 判断响应是否为(顺次发回的)最后一个响应
         // parameters:
@@ -496,6 +502,130 @@ namespace DigitalPlatform.MessageServer
                 return true;
             return false;
         }
+
+        #region SetInfo() API
+
+        // return:
+        //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
+        public MessageResult RequestSetInfo(
+            string userNameList,
+            SetInfoRequest setInfoParam
+            )
+        {
+            MessageResult result = new MessageResult();
+
+            ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+            if (connection_info == null)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。请求检索书目失败";
+                return result;
+            }
+
+            // 检查请求者是否具备操作的权限
+            if (StringUtil.Contains(connection_info.Rights, setInfoParam.Operation) == false)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + setInfoParam.Operation + "' 操作的权限";
+                return result;
+            }
+
+            List<string> connectionIds = null;
+            string strError = "";
+            int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
+                userNameList,
+                connection_info.UserName,
+                setInfoParam.Operation,
+                "all",
+                out connectionIds,
+                out strError);
+            if (nRet == -1)
+            {
+                result.Value = -1;
+                result.ErrorInfo = strError;
+                return result;
+            }
+
+            if (connectionIds == null || connectionIds.Count == 0)
+            {
+                result.Value = 0;
+                result.ErrorInfo = "当前没有任何可操作的目标";
+                return result;
+            }
+
+            SearchInfo search_info = null;
+
+            try
+            {
+                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                    setInfoParam.TaskID);
+            }
+            catch (ArgumentException)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "TaskID '" + setInfoParam.TaskID + "' 已经存在了，不允许重复使用";
+                return result;
+            }
+
+            result.String = search_info.UID;   // 返回检索请求的 UID
+
+            Clients.Clients(connectionIds).setInfo(
+                setInfoParam);
+
+            search_info.TargetIDs = connectionIds;
+            result.Value = 1;   // 表示已经成功发起了操作
+            return result;
+        }
+
+        // parameters:
+        //      resultCount    命中的总的结果数。如果为 -1，表示检索出错，errorInfo 会给出出错信息
+        //      start  records 参数中的第一个元素，在总的命中结果集中的偏移
+        //      errorInfo   错误信息
+        public MessageResult ResponseSetInfo(string taskID,
+            long resultValue,
+            IList<Entity> entities,
+            string errorInfo)
+        {
+            // Thread.Sleep(1000 * 60 * 2);
+            MessageResult result = new MessageResult();
+            SearchInfo info = ServerInfo.SearchTable.GetSearchInfo(taskID);
+            if (info == null)
+            {
+                result.ErrorInfo = "找不到 ID 为 '" + taskID + "' 的任务对象";
+                result.Value = -1;
+                return result;
+            }
+
+#if NO
+            // 给 RecPath 加上 @ 部分
+            if (records != null)
+            {
+                ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+                if (connection_info == null)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。回传检索结果失败";
+                    return result;
+                }
+                foreach (Record record in records)
+                {
+                    // record.RecPath += "@UID:" + connection_info.LibraryUID;
+                    record.LibraryName = connection_info.LibraryName;
+                    record.LibraryUID = connection_info.LibraryUID;
+                }
+            }
+#endif
+
+            // 让前端获得检索结果
+            Clients.Client(info.RequestConnectionID).responseSetInfo(
+                taskID,
+                resultValue,
+                entities,
+                errorInfo);
+            return result;
+        }
+
+        #endregion
 
         public override Task OnConnected()
         {
