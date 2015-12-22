@@ -111,7 +111,9 @@
 
             sendAjaxRequest("POST", function (newItem) {
                 //alert("addCmd1");
-                cmdModel.commands.push(newItem);
+
+                // 插入到最前面
+                cmdModel.commands.unshift(newItem); //push是加到最后面
                 //alert("addCmd2");
 
                 // 刷新借阅信息
