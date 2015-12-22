@@ -58,13 +58,13 @@
     <Content Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\DigitalPlatform.Message\DigitalPlatform.Message.csproj">
       <Project>{2fbb1294-0814-447d-b8c6-77e206417231}</Project>
       <Name>DigitalPlatform.Message</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

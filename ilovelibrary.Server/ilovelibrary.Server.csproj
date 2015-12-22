@@ -4,14 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A62F763A-96EE-43AD-80C5-9CE57ECFEAF4}</ProjectGuid>
+    <ProjectGuid>{159E08AE-5C0F-4DA7-9F73-AF07791247CE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DigitalPlatform.Xml</RootNamespace>
-    <AssemblyName>DigitalPlatform.Xml</AssemblyName>
+    <RootNamespace>ilovelibrary.Server</RootNamespace>
+    <AssemblyName>ilovelibrary.Server</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +20,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,7 +28,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -42,13 +39,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DigitalPlatform.Xml.cs" />
-    <Compile Include="DomUtil.cs" />
-    <Compile Include="XmlUtil.cs" />
+    <Compile Include="BorrowInfo.cs" />
+    <Compile Include="Command.cs" />
+    <Compile Include="ilovelibraryServer.cs" />
+    <Compile Include="Patron.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SessionInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="readme.txt" />
+    <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj">
+      <Project>{441cb814-af78-4503-91ef-dce5f3269502}</Project>
+      <Name>DigitalPlatform.IO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.LibraryRestClient\DigitalPlatform.LibraryRestClient.csproj">
+      <Project>{1b74d69a-530f-4275-845b-8ca6d1463bdd}</Project>
+      <Name>DigitalPlatform.LibraryRestClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.Text\DigitalPlatform.Text.csproj">
+      <Project>{26f96cc3-a4a9-4bc4-a10a-bc7e25581ff6}</Project>
+      <Name>DigitalPlatform.Text</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.Xml\DigitalPlatform.Xml.csproj">
+      <Project>{e6489e89-1349-4ee7-a00b-ac96b9912587}</Project>
+      <Name>DigitalPlatform.Xml</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,0 +1,396 @@
+﻿    <br />
+    <!-- Page Heading/Breadcrumbs -->
+    <div class="row">
+        <div class="col-lg-12">
+            <ol class="breadcrumb">
+                <li>
+                    <a href="index.html">主页</a>
+                </li>
+                <li class="active">出纳窗</li>
+            </ol>
+        </div>
+    </div>
+//=============
+                        <tr>
+                            <td><font color="green"><span class="glyphicon glyphicon-ok"></span></font></td>
+                            <td>借书</td>
+                            <td>R001借C001</td>
+                            <td>借书成功</td>
+                            <td>2015-12-18 16:40</td>
+                        </tr>
+                    </tbody>
+                        <tr class="danger">
+                            <td><font color="red"><span class="glyphicon glyphicon-exclamation-sign "></span></font></td>
+                            <td>还书</td>
+                            <td>还C002</td>
+                            <td>还书出错：册条码不存在！</td>
+                            <td>2015-12-18 17:00</td>
+                        </tr>
+//=======================
+
+@{
+    ViewBag.Title = "出纳窗";
+}
+
+@section Scripts {
+    <script>
+
+        // 读者view model
+        var patronVModel = {
+            barcode: ko.observable(),
+            readerType: ko.observable(),
+            name: ko.observable(),
+            expireDate: ko.observable()
+        };
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+            // 加载绑定
+            ko.applyBindings(patronVModel);
+
+            // 给装载按钮绑事件
+            $("#btnLoad").click(loadPatron);
+        })
+
+
+        // 加载读者
+        function loadPatron() {
+            // 从服务器api获得读者json数据
+            sendAjaxRequest("GET", function (data) {
+
+                // 更新到patronVModel上
+                alert(data.barcode);
+                patronVModel.barcode(data.barcode);
+                patronVModel.readerType(data.readerType);
+                patronVModel.name(data.name);
+                patronVModel.expireDate(data.expireDate);
+
+                // 焦点换到item上
+                $("#txtItemBarcode").focus();
+
+            }, $("#txtReaderBarcode").val());
+
+            /*
+            $.getJSON('/a1.json', function (data) {
+                viewModel.barcode(data.barcode);
+                viewModel.readerType(data.readerType);
+                viewModel.name(data.name);
+                viewModel.expireDate(data.expireDate);
+            });
+            */
+        }
+
+        // ajax请求
+        function sendAjaxRequest(httpMethod, callback, url, reqData) {
+            $.ajax("/api/patron" + (url ? "/" + url : ""), {
+                type: httpMethod,
+                success: callback,
+                data: reqData
+            });
+        }
+
+    </script>
+}
+
+<hgroup class="page-header">
+    <h2>@ViewBag.Title</h2>
+</hgroup>
+
+
+
+<div class="container" style="background-color:#ffffff">
+    <div class="row">
+        <div class="col-md-6" style="background-color:#ffffff">
+            <!-- Provides extra visual weight and identifies the primary action in a set of buttons -->
+            <button type="button" class="btn btn-default btn-lg " id="borrow">借</button>
+            &nbsp;&nbsp;
+            <!-- Indicates a successful or positive action -->
+            <button type="button" class="btn btn-default btn-lg" id="return">还</button>
+            &nbsp;&nbsp;
+            <!-- Contextual button for informational alert messages -->
+            <button type="button" class="btn btn-default btn-lg" id="renew">续借</button>
+            <br />
+            <br />
+
+            <table>
+                <tr>
+                    <td 读者证条码号></td>
+                </tr>
+            </table>
+
+            <div class="panel panel-default" id="operPanel">
+                <div class="panel-heading">
+                    <h3 class="panel-title" id="operPanelTitle">您现在是借书输入框</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="form-horizontal" role="form">
+                        <div class="form-group form-inline" id="divReaderBarcode">
+                            <label id="lblReaderBarcode" class="col-sm-3 control-label">读者证条码号</label>
+                            <input type="text" class="form-control col-sm-8" id="txtReaderBarcode" placeholder="读者证条码号">
+                            &nbsp;<button type="button" class="btn btn-default btn-lg" id="btnLoad" >装载</button>
+                        </div>
+                        <div class="form-group  form-inline" id="divItemBarcode">
+                            <label id="lblItemBarcode" class="col-sm-3 control-label">册条码号</label>
+                            <input type="text" class="form-control  col-sm-8" id="txtItemBarcode" placeholder="册条码号">
+                            &nbsp;<button type="submit" class="btn btn-default btn-lg" id="btnDo">&nbsp;借&nbsp;&nbsp;</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="panel panel-default">
+
+                <!-- Table -->
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="col-lg-1">状态</th>
+                            <th>命令</th>
+                            <th>操作说明</th>
+                            <th>信息</th>
+                            <th>操作时间</th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td><font color="green"><span class="glyphicon glyphicon-ok"></span></font></td>
+                        <td>借书</td>
+                        <td>R001借C001</td>
+                        <td>借书成功</td>
+                        <td>2015-12-18 16:40</td>
+                    </tr>
+                    <tr class="danger">
+                        <td><font color="red"><span class="glyphicon glyphicon-exclamation-sign "></span></font></td>
+                        <td>还书</td>
+                        <td>还C002</td>
+                        <td>还书出错：册条码不存在！</td>
+                        <td>2015-12-18 17:00</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+
+        <div class="col-md-6">
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">读者信息</h3>
+                </div>
+                <div class="panel-body" id="panelReader">
+                    <table class="table">
+                        <tr>
+                            <td style="background-color:#EEEEEE">读者证条码号</td>
+                            <td data-bind="text: patronVModel.barcode"></td>
+                            <td style="background-color:#EEEEEE">证状态</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td style="background-color:#EEEEEE">
+                                读者类别
+                            </td>
+                            <td> </td>
+                            <td style="background-color:#EEEEEE">失效日期</td>
+                            <td>2016/1/1 </td>
+                        </tr>
+                        <tr>
+                            <td style="background-color:#EEEEEE">姓名</td>
+                            <td></td>
+                            <td style="background-color:#EEEEEE">单位</td>
+                            <td>&nbsp;</td>
+                        </tr>
+
+                    </table>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">借阅信息</h3>
+                    </div>
+                    <div class="panel-body">
+                        <table class="table  table-striped">
+                            <thead></thead>
+                            <tr>
+                                <th>册条码号</th>
+                                <th>摘要</th>
+                                <th>价格</th>
+                                <th>续借次</th>
+                                <th>借阅日期</th>
+                                <th>期限</th>
+                                <th>操作者</th>
+                                <th>应还日期</th>
+                            </tr>
+                            <tr>
+                                <td>C001</td>
+                                <td>中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00</td>
+                                <td>20.00</td>
+                                <td>2次</td>
+                                <td>2015/12/15</td>
+                                <td>31天</td>
+                                <td>supervisor</td>
+                                <td>2016/1/15</td>
+                            </tr>
+
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">预约请求</h3>
+                    </div>
+                    <div class="panel-body">
+                        <table class="table  table-striped">
+                            <tr>
+                                <td></td>
+                                <td> </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td> </td>
+                            </tr>
+                            <tr><td></td><td> </td></tr>
+
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+
+\==================
+
+
+        
+        /*
+        var patronViewModel = function () {
+            var self = this;
+
+            self.barcode = ko.observable("0");
+            self.name = ko.observable("");
+
+
+
+            //加载读者信息
+            function loadPatron() {
+
+
+
+                alert("test1");
+
+                sendAjaxRequest("GET", function (data) {
+                    alert(data);
+                    //this.patronViewModel = data;
+                    // patronViewModel.barcode ("aaa");
+    
+                    //patronViewModel.name = data.name;
+    
+    
+                    //model.patron = data;
+                    // 焦点换到item上
+                    $("#txtItemBarcode").focus();
+    
+                    //alert(model.patron.barcode);
+    
+                }, $("#txtReaderBarcode").val());
+                
+
+
+                self.barcode("bbc");
+                alert("2");
+
+            }
+
+        }
+
+        */
+     
+        /*
+        // 观察读者
+        var patronViewModel = {
+            barcode: ko.observable,
+            name:ko.observable
+        };
+        */
+        
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+      //  $(document).ready(function () {
+
+            //调用ko.applyBindings函数，使用数据模型处理那些data - bind标签属性。
+            //ko.applyBindings(model);
+           // ko.applyBindings(patronViewModel);
+
+            
+            // 设焦点在读者证条码上
+            //$("#txtReaderBarcode").focus();
+
+            // 给装载按钮绑事件
+            //$("#btnLoad").click(loadPatron);
+
+            /*
+            // 给读者证条码输入框加回车事件
+            $('#txtReaderBarcode').bind('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    loadPatron();
+                }
+            });
+
+            // 给执行按钮绑事件
+            $("#btnDo").click(doString);
+
+            // 当册条码绑回车事件
+            $('#txtItemBarcode').bind('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    doString();
+                }
+            });
+            */
+       // });
+
+        /*
+        $("#borrow").click(function () {
+            // 显示读者证条码
+            $("#divReaderBarcode").show();
+            // 显示标题
+            $("#operPanelTitle").text("您现在是借书输入框");
+        });
+
+        $("#return").click(function () {
+            // 隐藏读者证条码
+            $("#divReaderBarcode").hide();
+            $("#operPanelTitle").text("您现在是还书输入框");
+        });
+
+        $("#renew").click(function () {
+            // 显示读者证条码
+            $("#divReaderBarcode").show();
+            $("#operPanelTitle").text("您现在是续借输入框");
+        });
+        */
+
+       
+        /*
+        
+        // 执行借还续借操作
+        function doString() {
+
+            alert("未完成");
+
+        }
+
+        function sendAjaxRequest(httpMethod, callback, url, reqData) {
+            $.ajax("/api/patron" + (url ? "/" + url : ""), {
+                type: httpMethod,
+                success: callback,
+                data: reqData
+            });
+        }
+         
+         */

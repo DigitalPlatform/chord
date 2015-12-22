@@ -1,0 +1,26 @@
+﻿<root>
+        <item>
+            <Title>上帝的火柴</Title>
+            <Description>用安徒生童话点亮心灯</Description>
+            <PicUrl>/img/book1.jpg</PicUrl>
+            <Url>http://book.douban.com/subject/26585473/</Url>
+        </item>
+        <item>
+            <Title>14只老鼠过冬天</Title>
+            <Description>14只老鼠过冬天</Description>
+            <PicUrl>/img/book2.jpg</PicUrl>
+            <Url>http://item.jd.com/1052116406.html</Url>
+        </item>
+        <item>
+            <Title>书3</Title>
+            <Description>图书3描述</Description>
+            <PicUrl>/img/book3.jpg</PicUrl>
+            <Url>http://dp2003.com</Url>
+        </item>
+        <item>
+            <Title>书4</Title>
+            <Description>图书4描述</Description>
+            <PicUrl>/img/book4.jpg</PicUrl>
+            <Url>http://dp2003.com</Url>
+        </item>
+</root>

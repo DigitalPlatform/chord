@@ -1,0 +1,356 @@
+﻿@{
+    ViewBag.Title = "出纳窗";
+}
+
+@section Scripts {
+    <script>
+
+        //======================
+        // 读者view model
+        var patronVModel = {
+            barcode: ko.observable(),
+            name: ko.observable(),
+            department: ko.observable(),
+            readerType: ko.observable(),
+
+            state: ko.observable(),
+            createDate: ko.observable(),
+            expireDate: ko.observable(),
+            comment: ko.observable()
+        };
+
+        // 加载读者
+        function loadPatronInfo() {
+            // 从服务器api获得读者json数据
+            sendAjaxRequest("GET", function (data) {
+
+                // 更新到patronVModel上
+                //alert(data.barcode);
+                patronVModel.barcode(data.barcode);
+                patronVModel.name(data.name);
+                patronVModel.department(data.department);
+                patronVModel.readerType(data.readerType);
+
+                patronVModel.state(data.state);
+                patronVModel.createDate(data.createDate);
+                patronVModel.expireDate(data.expireDate);
+                patronVModel.comment(data.comment);
+
+                // 焦点换到item上
+                $("#txtItemBarcode").focus();
+
+            }, "/api/patron/" + $("#txtReaderBarcode").val(),null,
+            function (XMLHttpRequest, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+        }
+
+        // 加载读者信息与借阅信息
+        function loadPatron() {
+            //alert("1");
+            loadPatronInfo();
+            //alert("2");
+            loadBorrowInfo();
+        }
+
+        //===========================
+        // 借阅信息
+        var borrowModel = {
+            borrows: ko.observableArray(),
+        }
+
+
+
+        //获取借阅信息
+        function loadBorrowInfo() {
+
+            var url = "/api/patron/" + $("#txtReaderBarcode").val() + "?format=borrowinfo";
+            sendAjaxRequest("GET", function (data) {
+
+                //alert("回来了");
+
+                // 先删除可观察数组中的已有数据
+                borrowModel.borrows.removeAll();
+                for (var i = 0; i < data.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    borrowModel.borrows.push(data[i]);
+                }
+
+            }, url);
+        }
+
+        //=========================
+        var cmdModel = {
+            commands: ko.observableArray(),
+            // 命令编辑
+            editor: {
+                type: ko.observable("borrow"),
+                readerBarcode: ko.observable(""),
+                itemBarcode: ko.observable("")
+            }
+        };
+
+        //用于获取所有命令
+        function getAllCmd() {
+            sendAjaxRequest("GET", function (data) {
+
+                //alert("getAllCmd");
+
+                // 先删除可观察数组中的已有数据
+                cmdModel.commands.removeAll();
+                for (var i = 0; i < data.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    cmdModel.commands.push(data[i]);
+                }
+            }, "/api/command");
+        }
+
+        // 执行命令
+        function addCmd() {
+            //alert("addCmd0-" + cmdModel.editor.type() + "~" + cmdModel.editor.readerBarcode() + "~" + cmdModel.editor.itemBarcode());
+
+            sendAjaxRequest("POST", function (newItem) {
+                //alert("addCmd1");
+                cmdModel.commands.push(newItem);
+                //alert("addCmd2");
+
+                // 刷新借阅信息
+                loadBorrowInfo();
+
+                //alert("addCmd3");
+            }, "/api/command", {
+                type: cmdModel.editor.type,
+                readerBarcode: cmdModel.editor.readerBarcode,
+                itemBarcode: cmdModel.editor.itemBarcode
+            })
+        };
+
+        // 删除命令
+        function removeCmd(item) {
+            //alert("remove-" + item.id);
+            sendAjaxRequest("DELETE", function () {
+
+                //alert("back");
+                for (var i = 0; i < cmdModel.commands().length; i++) {
+                    if (cmdModel.commands()[i].id == item.id) {
+                        cmdModel.commands.remove(cmdModel.commands()[i]);
+                        break;
+                    }
+                }
+            }, "/api/command/" + item.id);
+        }
+
+
+        //===================
+
+        // ajax请求
+        function sendAjaxRequest(httpMethod, callback, url, reqData,errorCallback) {
+            $.ajax(url, {
+                type: httpMethod,
+                success: callback,
+                error: errorCallback,
+                data: reqData
+            });
+        }
+
+        //==========
+
+        //=================
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 获取所有的操作命令
+            getAllCmd();
+
+            // 加载绑定
+            ko.applyBindings(patronVModel, document.getElementById('divPatron'));
+            ko.applyBindings(borrowModel, document.getElementById('divBorrow'));
+            ko.applyBindings(cmdModel, document.getElementById('divCmd'));
+
+            // 切换table
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                e.target // activated tab
+                e.relatedTarget // previous tab
+
+               // alert(e.target.id);
+
+                if (e.target.id == "aReturn") {
+                    $("#trReaderBarcode").hide();
+                    $("#btnDo").text("还");
+                    cmdModel.editor.type("return");
+                }
+                else {
+                    $("#trReaderBarcode").show();
+                    if (e.target.id == "aBorrow") {
+                        $("#btnDo").text("借");
+                        cmdModel.editor.type("borrow");
+                    }
+                    else {
+                        $("#btnDo").text("续借");
+                        cmdModel.editor.type("renew");
+                    }
+                }
+            })
+
+            // 给装载按钮绑事件
+            $("#btnLoad").click(loadPatron);
+
+            // 证条码输入框失去焦点
+            //$("#txtReaderBarcode").blur(loadPatron);
+
+            
+            // 给读者证条码输入框加回车事件
+            $('#txtReaderBarcode').bind('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    loadPatron();
+                }
+            });
+            
+
+            // 给执行按钮绑事件
+            $("#btnDo").click(addCmd);
+
+            // 当册条码绑回车事件
+            $('#txtItemBarcode').bind('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    cmdModel.editor.itemBarcode($('#txtItemBarcode').val());
+
+                    addCmd();
+                }
+            });
+
+        })
+
+
+
+    </script>
+}
+
+
+
+
+<div class="container" style="background-color:#ffffff">
+    <h1>@ViewBag.Title</h1>
+
+    <div class="row">
+        <div class="col-md-6" style="background-color:#ffffff" id="divCmd">
+            <h3>
+                <div class="well">
+                    <ul class="nav nav-tabs" id="myTab">
+                        <li class="active"><a href="#" data-toggle="tab" id="aBorrow">借</a></li>
+                        <li><a href="#home" data-toggle="tab" id="aReturn">还</a></li>
+                        <li><a href="#home" data-toggle="tab" id="aRenew">续借</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade in active" id="home">
+                            <table class="table-condensed">
+                                <tr id="trReaderBarcode">
+                                    <td class="col-sm-4"><span class="glyphicon glyphicon-user"></span><strong> 证条码号</strong></td>
+                                    <td class="col-sm-6"><input type="text" class="form-control" id="txtReaderBarcode" placeholder="读者证条码号" data-bind="value:cmdModel.editor.readerBarcode"></td>
+                                    <td class="col-sm-2"><strong><button type="button" class="btn btn-default btn-lg col-lg-12 active" id="btnLoad">装载</button></strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="col-sm-4"><span class="glyphicon  glyphicon-book "></span>&nbsp;<strong>册条码号</strong></td>
+                                    <td class="col-sm-6"><input type="text" class="form-control  col-sm-6" id="txtItemBarcode" placeholder="册条码号" data-bind="value:cmdModel.editor.itemBarcode"></td>
+                                    <td class="col-sm-2" style="height:80px"><button type="submit" class="btn btn-primary btn-lg col-lg-12" id="btnDo">借</button></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </h3>
+
+            <!-- Table -->
+            <h3><span class="label label-default">操作历史</span></h3>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="col-lg-1">状态</th>
+                            <th>序号</th>
+                            <th>命令</th>
+                            <th>操作说明</th>
+                            <th>信息</th>
+                            <th>操作时间</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: cmdModel.commands">
+                        <tr data-bind="css: {'danger': state==-1, 'success': state==0}">
+                            <td>
+                                <font color="green"><span data-bind="css: { 'glyphicon glyphicon-ok': state==0 }"></span></font>
+                                <font color="red"><span data-bind="css: { 'glyphicon glyphicon-exclamation-sign': state==-1 }"></span></font>
+                            </td>
+                            <td data-bind="text:id"></td>
+                            <td data-bind="text:type"></td>
+                            <td data-bind="text:description"></td>
+                            <td data-bind="text:resultInfo"></td>
+                            <td data-bind="text:operTime"></td>
+                            <td>
+                                <span class="glyphicon glyphicon-remove" data-bind="click:removeCmd"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h3><span class="label label-default">读者信息</span></h3>
+            <div class="table-responsive" id="divPatron">
+                <table class="table">
+                    <tr>
+                        <td class="col-lg-3" style="background-color:#EEEEEE">读者证条码号</td>
+                        <td class="col-lg-3" data-bind="text: patronVModel.barcode"></td>
+                        <td class="col-lg-3" style="background-color:#EEEEEE">证状态</td>
+                        <td class="col-lg-3" data-bind="text: patronVModel.state">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td style="background-color:#EEEEEE">读者类别</td>
+                        <td data-bind="text: patronVModel.readerType"> </td>
+                        <td style="background-color:#EEEEEE">失效日期</td>
+                        <td data-bind="text: patronVModel.expireDate"></td>
+                    </tr>
+                    <tr>
+                        <td style="background-color:#EEEEEE">姓名</td>
+                        <td data-bind="text: patronVModel.name"></td>
+                        <td style="background-color:#EEEEEE">单位</td>
+                        <td data-bind="text: patronVModel.department"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3><span class="label label-default">借阅信息</span></h3>
+            <div class="table-responsive" id="divBorrow">
+                <table class="table  table-striped">
+                    <thead></thead>
+                    <tr>
+                        <th>册条码号</th>
+                        <th>摘要</th>
+                        <th>续借次</th>
+                        <th>借阅日期</th>
+                        <th>期限</th>
+                        <th>操作者</th>
+                        <th>应还日期</th>
+                    </tr>
+                    <tbody data-bind="foreach: borrowModel.borrows">
+                        <tr>
+                            <td data-bind="text: barcode"></td>
+                            <td>Summary</td>
+                            <td data-bind="text:renewNo"></td>
+                            <td data-bind="text:borrowDate"></td>
+                            <td data-bind="text:period"></td>
+                            <td data-bind="text:borrowOperator"></td>
+                            <td data-bind="text:returnDate"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+
+
+        </div>
+    </div>
+</div>
+
