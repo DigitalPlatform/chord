@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Web;
 using System.Web.Http;
 
-namespace ilovelibrary.Controllers
+namespace ilovelibrary.ApiControllers
 {
     public class PatronController : ApiController
     {
@@ -26,7 +26,6 @@ namespace ilovelibrary.Controllers
             SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo];
             Patron patron = ilovelibraryServer.Instance.GetPatronInfo(sessionInfo, id);
             return patron;
-
         }
 
         /// <summary>
@@ -36,8 +35,7 @@ namespace ilovelibrary.Controllers
         /// <param name="format"></param>
         /// <returns></returns>
         public List<BorrowInfo> GetBorrowInfo(string id, [FromUri] string format)
-        {
-            
+        {            
             if (HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo] == null)
             {
                 throw new Exception("尚未登录");

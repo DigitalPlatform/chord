@@ -1,7 +1,13 @@
 ﻿@{
     ViewBag.Title = "出纳窗";
 }
-
+@section style {
+    <style type="text/css">
+        .pending {            
+            background-color: gray;
+        }
+    </style>
+}
 @section Scripts {
     <script>
 
@@ -59,8 +65,6 @@
             borrows: ko.observableArray(),
         }
 
-
-
         //获取借阅信息
         function loadBorrowInfo() {
 
@@ -76,7 +80,60 @@
                     borrowModel.borrows.push(data[i]);
                 }
 
+                // 加载书目摘要
+                GetSummary();
+
             }, url);
+
+
+            //window.setTimeout("GetSummary()", 1);
+        }
+
+        // 获得书目摘要
+        function GetSummary() {
+            //alert("GetSummary1");
+            var o = $(".pending:first");
+            if (o.length == 0) {
+                // $(window).scroll();
+                return;
+            }
+
+            //alert("GetSummary2");
+            var barcode = o.text();
+            if (barcode == "") {
+                o.removeClass("pending");
+                window.setTimeout("GetSummary()", 1);
+                return;
+            }
+
+            //alert("GetSummary3");
+            var lang = "zh";//$('select#langlist option[SELECTED]').attr('value');
+            var summaryUrl = "/api/biblio/" + encodeURIComponent(barcode) + "?format=summary";
+            //alert(summaryUrl);
+
+            $.ajax({
+                url: summaryUrl, //+ lang
+                type: 'GET',
+                cache: true,
+                statusCode: {
+                    500: function () {
+                        //alert("GetSummary41");
+                        o.text('\r\nerror 500');
+                        o.removeClass("pending");
+                    }
+                },
+                success: function (data) {
+                    //alert("GetSummary42");
+
+                    o.text(data);
+                    o.removeClass("pending");
+                    
+                    //o.show();
+                    window.setTimeout("GetSummary()", 1);
+                }
+            });
+
+            //alert("GetSummary5");
         }
 
         //=========================
@@ -201,14 +258,14 @@
             // 证条码输入框失去焦点
             //$("#txtReaderBarcode").blur(loadPatron);
 
-            
+
             // 给读者证条码输入框加回车事件
             $('#txtReaderBarcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
                     loadPatron();
                 }
             });
-            
+
 
             // 给执行按钮绑事件
             $("#btnDo").click(addCmd);
@@ -221,6 +278,8 @@
                     addCmd();
                 }
             });
+
+
 
         })
 
@@ -338,7 +397,7 @@
                     <tbody data-bind="foreach: borrowModel.borrows">
                         <tr>
                             <td data-bind="text: barcode"></td>
-                            <td>Summary</td>
+                            <td class="pending" >C10</td>
                             <td data-bind="text:renewNo"></td>
                             <td data-bind="text:borrowDate"></td>
                             <td data-bind="text:period"></td>

@@ -271,6 +271,28 @@ namespace ilovelibrary.Server
             return borrowList;
         }
 
+        /// <summary>
+        /// 获取书目摘要
+        /// </summary>
+        /// <param name="strItemBarcode"></param>
+        /// <returns></returns>
+        public string GetBiblioSummary(SessionInfo sessionInfo, string strItemBarcode)
+        {
+            if (sessionInfo == null)
+                throw new Exception("尚未登录");
+
+            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
+            channel.Password = sessionInfo.Password;
+            try
+            {
+                return channel.GetBiblioSummary(strItemBarcode);
+            }
+            finally
+            {
+                this.ChannelPool.ReturnChannel(channel);
+            }
+        }
+
 
         #region 静态函数
 
@@ -417,7 +439,7 @@ namespace ilovelibrary.Server
             // 补充命令信息
             item.id = this.cmdList.Count + 1;
             item.description = item.readerBarcode + "-" + item.type + "-" + item.itemBarcode;
-            item.operTime = DateTimeUtil.DateTimeString(DateTime.Now);
+            item.operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
             // 加到集合里
             this.cmdList.Add(item);
 

@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Web;
 using System.Web.Http;
 
-namespace ilovelibrary.Controllers
+namespace ilovelibrary.ApiControllers
 {
     public class CommandController : ApiController
     {

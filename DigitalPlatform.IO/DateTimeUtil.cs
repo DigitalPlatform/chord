@@ -879,49 +879,10 @@ out string strError)
         }
 
 
-        //
-
-        public static string DateTimeString(DateTime time)
+        // 日期转换成yyyy-MM-dd HH:mm:ss格式字符串
+        public static string DateTimeToString(DateTime time)
         {
-            System.Globalization.DateTimeFormatInfo info = new System.Globalization.DateTimeFormatInfo();
-
-#if NO
-            CultureInfo en = new CultureInfo("en-US");
-
-            CultureInfo save = Thread.CurrentThread.CurrentCulture;
-
-            Thread.CurrentThread.CurrentCulture = en;
-#endif
-
-            string strTime = time.ToString(info.LongTimePattern,
-                DateTimeFormatInfo.InvariantInfo);
-
-#if NO
-            Thread.CurrentThread.CurrentCulture = save;
-#endif
-            return strTime;
-        }
-
-        public static DateTime ToDateTime(string strTime)
-        {
-            System.Globalization.DateTimeFormatInfo info = new System.Globalization.DateTimeFormatInfo();
-
-#if NO
-            CultureInfo en = new CultureInfo("en-US");
-
-            CultureInfo save = Thread.CurrentThread.CurrentCulture;
-#endif
-            DateTime parsedBack = DateTime.ParseExact(strTime,
-                info.LongTimePattern,
-                DateTimeFormatInfo.InvariantInfo
-                // en.DateTimeFormat
-                                                  );
-#if NO
-            Thread.CurrentThread.CurrentCulture = save;
-#endif
-            // DateTime localTime = TimeZone.CurrentTimeZone.ToLocalTime(parsedBack);
-            //return localTime.ToString();
-            return parsedBack;
+            return time.ToString("yyyy-MM-dd HH:mm:ss");
         }
 
     }
