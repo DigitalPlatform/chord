@@ -1,0 +1,20 @@
+﻿@{
+    ViewBag.Title = "test";
+}
+
+<h2>test</h2>
+    输入值：<input type="text" id="txtValue" data-bind="value: myValue" /><br />
+    响应文本：<span id="spnValue" data-bind="text: myValue"></span>
+@section Scripts {
+    <script>
+        var myViewModel =
+        {
+            myValue: ko.observable("Halower")
+        }
+
+        $(document).ready(function () {
+            ko.applyBindings(myViewModel);
+        })
+
+    </script>
+}

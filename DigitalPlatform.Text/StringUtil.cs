@@ -98,5 +98,57 @@ namespace DigitalPlatform.Text
 
             return null;
         }
+
+        //===================
+        // 任延华 2015-12-22 加
+
+        public static string MakePathList(List<string> aPath,
+            string strSep)
+        {
+            // 2012/9/7
+            if (aPath.Count == 0)
+                return "";
+
+            string[] pathlist = new string[aPath.Count];
+            aPath.CopyTo(pathlist);
+
+            return String.Join(strSep, pathlist);
+        }
+
+        // 得到用16进制表示的时间戳字符串
+        public static string GetHexTimeStampString(byte[] baTimeStamp)
+        {
+            if (baTimeStamp == null)
+                return "";
+            string strText = "";
+            for (int i = 0; i < baTimeStamp.Length; i++)
+            {
+                string strHex = Convert.ToString(baTimeStamp[i], 16);
+                strText += strHex.PadLeft(2, '0');
+            }
+
+            return strText;
+        }
+
+        // 得到byte[]类型的时间戳
+        public static byte[] GetTimeStampByteArray(string strHexTimeStamp)
+        {
+            if (strHexTimeStamp == "")
+                return null;
+
+            byte[] result = new byte[strHexTimeStamp.Length / 2];
+
+            for (int i = 0; i < strHexTimeStamp.Length / 2; i++)
+            {
+                string strHex = strHexTimeStamp.Substring(i * 2, 2);
+                result[i] = Convert.ToByte(strHex, 16);
+
+            }
+
+            return result;
+        }
+        //===================
+
+
     }
 }
