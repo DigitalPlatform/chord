@@ -91,9 +91,14 @@
                     //alert("borrow3");
                     // 加载借阅记录
                     var list = data.borrowList;
-                    for (var i = 0; i < list.length; i++) {
-                        //遍历从服务器得到的结果，以push方法对该数组填充新数据
-                        borrowModel.borrows.push(list[i]);
+                    if (list.length > 0) {
+                        for (var i = 0; i < list.length; i++) {
+                            //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                            borrowModel.borrows.push(list[i]);
+                        }
+                    } else {
+                        // 显示没有借阅记录
+                        borrowModel.errorInfo("您目前没有在借图书。");
                     }
 
                     // 加载书目摘要
@@ -188,15 +193,17 @@
                 cmdModel.commands.unshift(newItem); //push是加到最后面
                 //alert("addCmd2");
 
-                // 刷新借阅信息
-                loadBorrowInfo();
-
                 // 置空册条码输入空
                 if (newItem.state == 0) {
-                    //cmdModel.editor.readerBarcode("");
+                    
+                    // 成功清空册条码框
                     cmdModel.editor.itemBarcode("");
+
+                    // 当操作成功，才刷新借阅信息
+                    loadBorrowInfo();
                 }
                 else {
+                    //操作失败选中册条码框
                     $("#txtItemBarcode").select();
                 }
 

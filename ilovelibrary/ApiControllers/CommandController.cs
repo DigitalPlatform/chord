@@ -14,12 +14,24 @@ namespace ilovelibrary.ApiControllers
         // GET: api/Command
         public IEnumerable<Command> GetAllCmd()
         {
-            return ilovelibraryServer.Instance.GetAllCmd();
+            if (HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo] == null)
+            {
+                throw new Exception("尚未登录!");
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo];
+
+            return sessionInfo.GetAllCmd();
         }
 
         public Command GetCmd(int id)
         {
-            return ilovelibraryServer.Instance.GetCmd(id);
+            if (HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo] == null)
+            {
+                throw new Exception("尚未登录!");
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo];
+
+            return sessionInfo.GetCmd(id);
         }
 
         [HttpPost]
@@ -33,20 +45,20 @@ namespace ilovelibrary.ApiControllers
             
             // 执行命令
             string strError="";
-            int nRet = ilovelibraryServer.Instance.AddCmd(sessionInfo,item, out strError);
+            int nRet = sessionInfo.AddCmd(item, out strError);
             return item;
         }
 
-        [HttpPut]
-        public bool UpdateCmd(Command item)
-        {
-            return ilovelibraryServer.Instance.UpdateCmd(item);
-        }
 
         [HttpDelete]
         public void DeleteCmd(int id)
         {
-            ilovelibraryServer.Instance.RemoveCmd(id);
+            if (HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo] == null)
+            {
+                throw new Exception("尚未登录!");
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo];
+            sessionInfo.RemoveCmd(id);
         }
 
 
