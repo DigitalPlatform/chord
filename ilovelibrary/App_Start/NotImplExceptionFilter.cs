@@ -13,13 +13,6 @@ namespace ilovelibrary
     {
         public override void OnException(HttpActionExecutedContext context)
         {
-            /*
-                  var resp = new HttpResponseMessage(HttpStatusCode.ExpectationFailed)
-                {
-                    ReasonPhrase = context.Exception.Message
-                };
-                throw new HttpResponseException(resp);
-            */
             if (context.Exception is NotImplementedException)
             {
                 context.Response = new HttpResponseMessage(HttpStatusCode.NotImplemented);

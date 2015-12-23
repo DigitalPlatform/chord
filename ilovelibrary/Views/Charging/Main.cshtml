@@ -18,16 +18,27 @@
         // 读者view model
         var patronVModel = {
             errorInfo: ko.observable(""),
-            patron:ko.observable
+
+            // 注意必须要后面带("")，可以监控对象
+            patron:ko.observable("")
         };
 
         // 加载读者
         function loadPatronInfo() {
+            //alert("loadPatronInfo1");
+
             // 从服务器api获得读者json数据
             sendAjaxRequest("GET", function (data) {
+                //alert(data.apiResult.errorCode);
+                //alert(data.patron.barcode);
 
                 patronVModel.errorInfo(data.apiResult.errorInfo);
-                patronVModel.patron(data.patron);
+                if (data.patron == null)
+                    patronVModel.patron("");
+                else
+                    patronVModel.patron(data.patron);
+
+                //alert(patronVModel.patron().barcode);
 
                 if (data.apiResult.errorCode != -1)
                 {
@@ -378,7 +389,7 @@
                 </table>
             </div>
 
-            <h3><span class="label label-default">借阅信息</span></h3>
+            <h3><span class="label label-default">在借册</span></h3>
             <div  id="divBorrow">
                 <span class="errorspan" data-bind="text: borrowModel.errorInfo"></span>
 

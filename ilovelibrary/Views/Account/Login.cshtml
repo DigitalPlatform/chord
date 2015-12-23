@@ -57,17 +57,18 @@
 
 <div class="container">
 
-@using (Html.BeginForm("Login", "Account", new {ReturnUrl = ViewBag.ReturnUrl},FormMethod.Post, new { @class = "form-signin" }))
-{
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true)
+    @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-signin" }))
+    {
+        @Html.AntiForgeryToken()
+    <font style="color:red">@Html.ValidationSummary(true)</font>
+
         <h2 class="form-signin-heading">请&nbsp;登&nbsp;录</h2>
-        
+
         <label for="inputEmail" class="sr-only">用户名</label>
-    <input type="text" name="UserName" class="form-control" placeholder="用户名" required autofocus value="ILL-User1">
+        <input type="text" name="UserName" class="form-control" placeholder="用户名" required autofocus value="ILL-User1">
 
         <label for="inputPassword" class="sr-only">密码</label>
-    <input type="password" name="Password" class="form-control" placeholder="密码" required value="111111">
+        <input type="password" name="Password" class="form-control" placeholder="密码" required value="111111">
 
         <div class="checkbox">
             <label>
@@ -76,5 +77,5 @@
         </div>
 
         <button class="btn btn-lg btn-primary btn-block" type="submit">登录</button>
-}
+    }
 </div> <!-- /container -->

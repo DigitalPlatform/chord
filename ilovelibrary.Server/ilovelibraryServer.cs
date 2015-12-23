@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Net;
 
 namespace ilovelibrary.Server
 {
@@ -109,6 +110,16 @@ namespace ilovelibrary.Server
                 sessionInfo.LibraryCode = ret.strLibraryCode;
                 return sessionInfo;
             }
+            catch (WebException wex)
+            {
+                strError = "访问dp2library服务器出错："+wex.Message+"\n请联系系统管理员修改dp2library服务器地址配置。";
+                return null;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return null;
+            }
             finally
             {
                 this.ChannelPool.ReturnChannel(channel);
@@ -163,7 +174,7 @@ namespace ilovelibrary.Server
                 string strXml = response.results[0];
 
                 // 取出个人信息
-                Patron1 patron = new Patron1();
+                Patron patron = new Patron();
                 XmlDocument dom = new XmlDocument();
                 dom.LoadXml(strXml);
                 patron.barcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
