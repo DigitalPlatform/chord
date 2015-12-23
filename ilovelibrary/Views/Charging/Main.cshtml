@@ -40,10 +40,13 @@
 
                 //alert(patronVModel.patron().barcode);
 
-                if (data.apiResult.errorCode != -1)
-                {
+                if (data.apiResult.errorCode != -1) {
                     // 焦点换到item上
                     $("#txtItemBarcode").focus();
+                }
+                else {
+                    // 不成功选中
+                    $("#txtReaderBarcode").select();
                 }
 
 
@@ -71,6 +74,7 @@
         //获取借阅信息
         function loadBorrowInfo() {
 
+            //alert("borrow1");
             var url = "/api/patron/" + $("#txtReaderBarcode").val() + "?format=borrowinfo";
             sendAjaxRequest("GET", function (data) {
 
@@ -80,7 +84,11 @@
                 // 设上返回的error
                 borrowModel.errorInfo(data.apiResult.errorInfo);
 
+                //alert("borrow2-" + data.apiResult.errorCode)
+
                 if (data.apiResult.errorCode != -1) {
+
+                    //alert("borrow3");
                     // 加载借阅记录
                     var list = data.borrowList;
                     for (var i = 0; i < list.length; i++) {
@@ -183,6 +191,15 @@
                 // 刷新借阅信息
                 loadBorrowInfo();
 
+                // 置空册条码输入空
+                if (newItem.state == 0) {
+                    //cmdModel.editor.readerBarcode("");
+                    cmdModel.editor.itemBarcode("");
+                }
+                else {
+                    $("#txtItemBarcode").select();
+                }
+
                 //alert("addCmd3");
             }, "/api/command", {
                 type: cmdModel.editor.type,
@@ -225,10 +242,8 @@
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
-
             // 获取所有的操作命令
             getAllCmd();
-
             // 加载绑定
             ko.applyBindings(patronVModel, document.getElementById('divPatron'));
             ko.applyBindings(borrowModel, document.getElementById('divBorrow'));
@@ -238,14 +253,23 @@
             $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                 e.target // activated tab
                 e.relatedTarget // previous tab
+
+                // 先把输入框中的数据清除
+                cmdModel.editor.readerBarcode("");
+                cmdModel.editor.itemBarcode("");
+
                // alert(e.target.id);
                 if (e.target.id == "aReturn") {
                     $("#trReaderBarcode").hide();
+                    $("#txtItemBarcode").focus();
                     $("#btnDo").text("还");
                     cmdModel.editor.type("return");
+                    
                 }
                 else {
                     $("#trReaderBarcode").show();
+                    $("#txtReaderBarcode").focus();
+
                     if (e.target.id == "aBorrow") {
                         $("#btnDo").text("借");
                         cmdModel.editor.type("borrow");
@@ -281,22 +305,20 @@
     </script>
 }
 
-@{   
-    
-    //<p>参数：@Request["showbtn"]-@Request["showlbl"]</p>
-    
+@{       
+    //<p>参数：@Request["showbtn"]-@Request["showlbl"]</p>    
     // 根据url参数决定是否显示标签和按钮
     // 计算各部分宽度
     int icon = 1;
     int left = 0;
     int middle = 0;
     int right = 0;
-    string readerIconStr = "<label class='col-sm-" + icon.ToString() + " control-label'><span style='font-size:22px'> <span class='glyphicon glyphicon-user'></span></span></label>";
+    string readerIconStr = "<label class='col-xs-" + icon.ToString() + " control-label'><span style='font-size:22px'> <span class='glyphicon glyphicon-user'></span></span></label>";
     string readerLeftStr = "";    
     string readerMiddleStr = "";    
     string readerRightStr = "";
     string readerBarcodeGroupStr = "";
-    string itemIconStr = "<label class='col-sm-" + icon.ToString() + " control-label'><span style='font-size:22px'> <span class='glyphicon glyphicon-book'></span></span></label>";
+    string itemIconStr = "<label class='col-xs-" + icon.ToString() + " control-label'><span style='font-size:22px'> <span class='glyphicon glyphicon-book'></span></span></label>";
     string itemLeftStr = "";
     string itemMiddleStr = "";
     string itemRightStr = "";
@@ -304,24 +326,24 @@
     if (Request["showlbl"] == "1") 
     {
         left = 2;
-        readerLeftStr = "<label class='col-sm-" + left.ToString() + " control-label'>证条码号</label>";
-        itemLeftStr = "<label class='col-sm-" + left.ToString() + " control-label'>册条码号</label>";
+        readerLeftStr = "<label class='col-xs-" + left.ToString() + " control-label'>证条码号</label>";
+        itemLeftStr = "<label class='col-xs-" + left.ToString() + " control-label'>册条码号</label>";
     }
     if (Request["showbtn"] == "1")
     {
         right = 2;
-        readerRightStr = "<div class='col-sm-" + right.ToString() + "'>"
+        readerRightStr = "<div class='col-xs-" + right.ToString() + "'>"
                         +"<button type='button' class='btn btn-default btn-lg' id='btnLoad'>装载</button>"
                         +"</div>";
-        itemRightStr = "<div class='col-sm-" + right.ToString() + "'>"
+        itemRightStr = "<div class='col-xs-" + right.ToString() + "'>"
                         + "<button type='button' class='btn btn-default btn-lg' id='btnDo'>借</button>"
                         + "</div>";
     }
     middle = 12 - icon - left - right;
-    readerMiddleStr = "<div class='col-sm-" + middle + "'>"
+    readerMiddleStr = "<div class='col-xs-" + middle + "'>"
                      +"<input type='text' class='form-control input-lg' id='txtReaderBarcode' placeholder='读者证条码号' data-bind='value:cmdModel.editor.readerBarcode'>"
                      +"</div>";
-    itemMiddleStr = "<div class='col-sm-" + middle + "'>"
+    itemMiddleStr = "<div class='col-xs-" + middle + "'>"
                      + "<input type='text' class='form-control input-lg' id='txtItemBarcode' placeholder='册条码号' data-bind='value:cmdModel.editor.itemBarcode'>"
                      + "</div>";                     
 
@@ -335,9 +357,7 @@
     var formStr = "<div class='form-horizontal' role='form'>"
         + readerBarcodeGroupStr
         + itemBarcodeGroupStr
-        + "</div>";
-
-                                             
+        + "</div>";                                             
 }
 
 
