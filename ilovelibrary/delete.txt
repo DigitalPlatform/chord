@@ -1,4 +1,39 @@
-﻿        由于加了一行显示出错信息，与div class="table-responsive"不能一起使用
+﻿<div class="form-horizontal" >
+                                <div class="form-group">
+                                    <label class='col-sm-3 control-label'><span class='glyphicon glyphicon-user'></span>&nbsp;证条码号</label>
+                                    <div class='col-sm-7'>
+                                        <input type='text' class='form-control input-lg' id='txtReaderBarcode' placeholder='读者证条码号' data-bind='value:cmdModel.editor.readerBarcode'>
+                                    </div>
+                                    <div class='col-sm-2'>
+                                        <button type='button' class='btn btn-primary btn-lg' id='btnLoad'>装载</button>
+                                    </div>
+                                </div>
+                             </div>
+                                    
+                                                                <table class="table-condensed">
+                                        <tr id="trReaderBarcode">
+                                            <td class="col-sm-4"><span class="glyphicon glyphicon-user"></span>&nbsp;证条码号</td>
+                                            <td class="col-sm-6"></td>
+                                            @if (Request["showbtn"] == "1")
+                                            {
+                                                <td class="col-sm-2"><strong></strong></td>
+                                            }
+                                        </tr>
+                                        <tr>
+                                            <td class="col-sm-4"><span class="glyphicon  glyphicon-book "></span>&nbsp;册条码号</td>
+                                            <td class="col-sm-6"><input type="text" class="form-control  col-sm-6" id="txtItemBarcode" placeholder="册条码号" data-bind="value:cmdModel.editor.itemBarcode"></td>
+                                            @if (Request["showbtn"] == "1")
+                                            {
+                                                <td class="col-sm-2" style="height:80px"><button type="submit" class="btn btn-primary btn-lg col-lg-12" id="btnDo">借</button></td>
+                                            }
+                                        </tr>
+                                    </table>
+                                </div>
+
+==============
+
+
+        由于加了一行显示出错信息，与div class="table-responsive"不能一起使用
 		
 		==============
 		// 读者view model

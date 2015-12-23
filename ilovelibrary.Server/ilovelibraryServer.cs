@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Net;
 
 namespace ilovelibrary.Server
 {
@@ -109,6 +110,16 @@ namespace ilovelibrary.Server
                 sessionInfo.LibraryCode = ret.strLibraryCode;
                 return sessionInfo;
             }
+            catch (WebException wex)
+            {
+                strError = "访问dp2library服务器出错："+wex.Message+"\n请联系系统管理员修改dp2library服务器地址配置信息。";
+                return null;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return null;
+            }
             finally
             {
                 this.ChannelPool.ReturnChannel(channel);
@@ -163,7 +174,7 @@ namespace ilovelibrary.Server
                 string strXml = response.results[0];
 
                 // 取出个人信息
-                Patron1 patron = new Patron1();
+                Patron patron = new Patron();
                 XmlDocument dom = new XmlDocument();
                 dom.LoadXml(strXml);
                 patron.barcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
@@ -447,122 +458,6 @@ namespace ilovelibrary.Server
         #endregion
 
 
-        #region 命令相关
 
-        // 命令常量
-        public const string C_Command_Borrow = "borrow";
-        public const string C_Command_Return = "return";
-        public const string C_Command_Renew = "renew";
-
-        //命令集合，暂放内存中
-        private List<Command> cmdList = new List<Command>();
-
-        public IEnumerable<Command> GetAllCmd()
-        {
-            return this.cmdList;
-        }
-
-        public Command GetCmd(int id)
-        {
-            return this.cmdList.Where(r => r.id == id).FirstOrDefault();
-        }
-
-        public int AddCmd(SessionInfo sessionInfo, Command item, out string strError)
-        {
-            Debug.Assert(item != null, "AddCmd传进的item不能为空。");
-            Debug.Assert(String.IsNullOrEmpty(item.type)==false,"命令类型不能为空。" );
-            strError = "";
-
-            if (item.type == C_Command_Borrow || item.type == C_Command_Renew)
-            {
-                if (String.IsNullOrEmpty(item.readerBarcode) == true)
-                {
-                    strError = "读者证条码号不能为空。";
-                    return -1;
-                }
-            }
-
-            if (String.IsNullOrEmpty(item.itemBarcode) == true)
-            {
-                strError = "册条码号不能为空。";
-                return -1;
-            }
-
-            // 补充命令信息
-            item.id = this.cmdList.Count + 1;
-            item.description = item.readerBarcode + "-" + item.type + "-" + item.itemBarcode;
-            item.operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-            // 加到集合里
-            this.cmdList.Add(item);
-
-
-
-            // 执行这个命令
-            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
-            channel.Password = sessionInfo.Password;
-            try
-            {
-                long lRet = -1;
-                // 借书或续借
-                if (item.type == C_Command_Borrow || item.type == C_Command_Renew)
-                {
-                    bool bRenew = false;
-                    if (item.type == C_Command_Renew)
-                        bRenew = true;
-                    DigitalPlatform.LibraryRestClient.BorrowInfo borrowInfo = null;
-                    lRet = channel.Borrow(bRenew,
-                                        item.readerBarcode,
-                                        item.itemBarcode,
-                                        out borrowInfo,
-                                        out strError);
-                }
-                else if (item.type == C_Command_Return)
-                {
-                    // 还书
-                    ReturnInfo returnInfo = null;
-                    lRet = channel.Return(item.itemBarcode, out returnInfo, out strError);
-                }
-
-                if (lRet == -1)
-                {
-                    item.state = -1;
-                    item.resultInfo = "失败:" + strError;
-                    return -1;
-                }
-
-                item.state = 0;
-                item.resultInfo = "成功";
-                return 1;
-            }
-            finally
-            {
-                this.ChannelPool.ReturnChannel(channel);
-            }
-        }
-
-        public void RemoveCmd(int id)
-        {
-            Command item = GetCmd(id);
-            if (item != null)
-            {
-                this.cmdList.Remove(item);
-            }
-        }
-
-        public bool UpdateCmd(Command item)
-        {
-            Command storedItem = GetCmd(item.id);
-            if (storedItem != null)
-            {
-                storedItem.readerBarcode = item.readerBarcode;
-                storedItem.itemBarcode = item.itemBarcode;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        #endregion
     }
 }

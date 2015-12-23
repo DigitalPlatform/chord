@@ -18,21 +18,34 @@
         // 读者view model
         var patronVModel = {
             errorInfo: ko.observable(""),
-            patron:ko.observable
+
+            // 注意必须要后面带("")，可以监控对象
+            patron:ko.observable("")
         };
 
         // 加载读者
         function loadPatronInfo() {
+            //alert("loadPatronInfo1");
+
             // 从服务器api获得读者json数据
             sendAjaxRequest("GET", function (data) {
+                //alert(data.apiResult.errorCode);
+                //alert(data.patron.barcode);
 
                 patronVModel.errorInfo(data.apiResult.errorInfo);
-                patronVModel.patron(data.patron);
+                if (data.patron == null)
+                    patronVModel.patron("");
+                else
+                    patronVModel.patron(data.patron);
 
-                if (data.apiResult.errorCode != -1)
-                {
-                    // 焦点换到item上
+                //alert(patronVModel.patron().barcode);               
+                if (data.apiResult.errorCode != -1) {                
+                    // 成功，焦点换到item上
                     $("#txtItemBarcode").focus();
+                }
+                else {
+                    // 不成功选中
+                    $("#txtReaderBarcode").select();
                 }
 
 
@@ -60,6 +73,7 @@
         //获取借阅信息
         function loadBorrowInfo() {
 
+            //alert("borrow1");
             var url = "/api/patron/" + $("#txtReaderBarcode").val() + "?format=borrowinfo";
             sendAjaxRequest("GET", function (data) {
 
@@ -69,12 +83,21 @@
                 // 设上返回的error
                 borrowModel.errorInfo(data.apiResult.errorInfo);
 
+                //alert("borrow2-" + data.apiResult.errorCode)
+
                 if (data.apiResult.errorCode != -1) {
+
+                    //alert("borrow3");
                     // 加载借阅记录
                     var list = data.borrowList;
-                    for (var i = 0; i < list.length; i++) {
-                        //遍历从服务器得到的结果，以push方法对该数组填充新数据
-                        borrowModel.borrows.push(list[i]);
+                    if (list.length > 0) {
+                        for (var i = 0; i < list.length; i++) {
+                            //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                            borrowModel.borrows.push(list[i]);
+                        }
+                    } else {
+                        // 显示没有借阅记录
+                        borrowModel.errorInfo("您目前没有在借图书。");
                     }
 
                     // 加载书目摘要
@@ -169,8 +192,19 @@
                 cmdModel.commands.unshift(newItem); //push是加到最后面
                 //alert("addCmd2");
 
-                // 刷新借阅信息
-                loadBorrowInfo();
+                // 置空册条码输入空
+                if (newItem.state == 0) {
+                    
+                    // 成功清空册条码框
+                    cmdModel.editor.itemBarcode("");
+
+                    // 当操作成功，才刷新借阅信息
+                    loadBorrowInfo();
+                }
+                else {
+                    //操作失败选中册条码框
+                    $("#txtItemBarcode").select();
+                }
 
                 //alert("addCmd3");
             }, "/api/command", {
@@ -214,10 +248,8 @@
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
-
             // 获取所有的操作命令
             getAllCmd();
-
             // 加载绑定
             ko.applyBindings(patronVModel, document.getElementById('divPatron'));
             ko.applyBindings(borrowModel, document.getElementById('divBorrow'));
@@ -228,15 +260,22 @@
                 e.target // activated tab
                 e.relatedTarget // previous tab
 
-               // alert(e.target.id);
+                // 先把输入框中的数据清除
+                cmdModel.editor.readerBarcode("");
+                cmdModel.editor.itemBarcode("");
 
+               // alert(e.target.id);
                 if (e.target.id == "aReturn") {
                     $("#trReaderBarcode").hide();
+                    $("#txtItemBarcode").focus();
                     $("#btnDo").text("还");
                     cmdModel.editor.type("return");
+                    
                 }
                 else {
                     $("#trReaderBarcode").show();
+                    $("#txtReaderBarcode").focus();
+
                     if (e.target.id == "aBorrow") {
                         $("#btnDo").text("借");
                         cmdModel.editor.type("borrow");
@@ -250,11 +289,6 @@
 
             // 给装载按钮绑事件
             $("#btnLoad").click(loadPatron);
-
-            // 证条码输入框失去焦点
-            //$("#txtReaderBarcode").blur(loadPatron);
-
-
             // 给读者证条码输入框加回车事件
             $('#txtReaderBarcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
@@ -262,10 +296,8 @@
                 }
             });
 
-
             // 给执行按钮绑事件
             $("#btnDo").click(addCmd);
-
             // 当册条码绑回车事件
             $('#txtItemBarcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
@@ -274,49 +306,88 @@
                     addCmd();
                 }
             });
-
-
-
-        })
-
-
+        })        
 
     </script>
+}
+
+@{       
+    //<p>参数：@Request["showbtn"]-@Request["showlbl"]</p>    
+    // 根据url参数决定是否显示标签和按钮
+    // 计算各部分宽度
+    int icon = 1;
+    int left = 0;
+    int middle = 0;
+    int right = 0;
+    string readerIconStr = "<label class='col-xs-" + icon.ToString() + " control-label'><span style='font-size:22px'> <span class='glyphicon glyphicon-user'></span></span></label>";
+    string readerLeftStr = "";    
+    string readerMiddleStr = "";    
+    string readerRightStr = "";
+    string readerBarcodeGroupStr = "";
+    string itemIconStr = "<label class='col-xs-" + icon.ToString() + " control-label'><span style='font-size:22px'> <span class='glyphicon glyphicon-book'></span></span></label>";
+    string itemLeftStr = "";
+    string itemMiddleStr = "";
+    string itemRightStr = "";
+    string itemBarcodeGroupStr = "";
+    if (Request["showlbl"] == "1") 
+    {
+        left = 2;
+        readerLeftStr = "<label class='col-xs-" + left.ToString() + " control-label'>证条码号</label>";
+        itemLeftStr = "<label class='col-xs-" + left.ToString() + " control-label'>册条码号</label>";
+    }
+    if (Request["showbtn"] == "1")
+    {
+        right = 2;
+        readerRightStr = "<div class='col-xs-" + right.ToString() + "'>"
+                        +"<button type='button' class='btn btn-default btn-lg' id='btnLoad'>装载</button>"
+                        +"</div>";
+        itemRightStr = "<div class='col-xs-" + right.ToString() + "'>"
+                        + "<button type='button' class='btn btn-default btn-lg' id='btnDo'>借</button>"
+                        + "</div>";
+    }
+    middle = 12 - icon - left - right;
+    readerMiddleStr = "<div class='col-xs-" + middle + "'>"
+                     + "<input type='text' class='form-control input-lg' id='txtReaderBarcode' placeholder='读者证条码号' data-bind='value:cmdModel.editor.readerBarcode'><span style='color:red' data-bind='text: patronVModel.errorInfo'></span><span style='color:green' data-bind='text: patronVModel.patron().name'></span>"
+                     +"</div>";
+    itemMiddleStr = "<div class='col-xs-" + middle + "'>"
+                     + "<input type='text' class='form-control input-lg' id='txtItemBarcode' placeholder='册条码号' data-bind='value:cmdModel.editor.itemBarcode'>"
+                     + "</div>";                     
+
+    readerBarcodeGroupStr = "<div class='form-group' id='trReaderBarcode'>"
+        + readerIconStr + readerLeftStr + readerMiddleStr + readerRightStr
+        + "</div>";
+    itemBarcodeGroupStr = "<div class='form-group' >"
+        + itemIconStr + itemLeftStr + itemMiddleStr + itemRightStr
+        + "</div>";
+
+    var formStr = "<div class='form-horizontal' role='form'>"
+        + readerBarcodeGroupStr
+        + itemBarcodeGroupStr
+        + "</div>";                                             
 }
 
 
 
 
 <div class="container" style="background-color:#ffffff">
-    <h1>@ViewBag.Title</h1>
-
     <div class="row">
         <div class="col-md-6" style="background-color:#ffffff" id="divCmd">
-            <h3>
+            <h3><span class="label label-default">出纳窗</span></h3>
                 <div class="well">
-                    <ul class="nav nav-tabs" id="myTab">
-                        <li class="active"><a href="#" data-toggle="tab" id="aBorrow">借</a></li>
-                        <li><a href="#home" data-toggle="tab" id="aReturn">还</a></li>
-                        <li><a href="#home" data-toggle="tab" id="aRenew">续借</a></li>
-                    </ul>
+                    <span style="font-size:large">                        
+                            <ul class="nav nav-tabs" id="myTab">
+                                <li class="active"><a href="#" data-toggle="tab" id="aBorrow">借</a></li>
+                                <li><a href="#home" data-toggle="tab" id="aReturn">还</a></li>
+                                <li><a href="#home" data-toggle="tab" id="aRenew">续借</a></li>
+                            </ul>
+                    </span>
+                    <br/>
                     <div class="tab-content">
                         <div class="tab-pane fade in active" id="home">
-                            <table class="table-condensed">
-                                <tr id="trReaderBarcode">
-                                    <td class="col-sm-4"><span class="glyphicon glyphicon-user"></span><strong> 证条码号</strong></td>
-                                    <td class="col-sm-6"><input type="text" class="form-control" id="txtReaderBarcode" placeholder="读者证条码号" data-bind="value:cmdModel.editor.readerBarcode"></td>
-                                    <td class="col-sm-2"><strong><button type="button" class="btn btn-default btn-lg col-lg-12 active" id="btnLoad">装载</button></strong></td>
-                                </tr>
-                                <tr>
-                                    <td class="col-sm-4"><span class="glyphicon  glyphicon-book "></span>&nbsp;<strong>册条码号</strong></td>
-                                    <td class="col-sm-6"><input type="text" class="form-control  col-sm-6" id="txtItemBarcode" placeholder="册条码号" data-bind="value:cmdModel.editor.itemBarcode"></td>
-                                    <td class="col-sm-2" style="height:80px"><button type="submit" class="btn btn-primary btn-lg col-lg-12" id="btnDo">借</button></td>
-                                </tr>
-                            </table>
+                            @Html.Raw(formStr)
                         </div>
-                    </div>
                 </div>
-            </h3>
+</div>
 
             <!-- Table -->
             <h3><span class="label label-default">操作历史</span></h3>
@@ -378,7 +449,7 @@
                 </table>
             </div>
 
-            <h3><span class="label label-default">借阅信息</span></h3>
+            <h3><span class="label label-default">在借册</span></h3>
             <div  id="divBorrow">
                 <span class="errorspan" data-bind="text: borrowModel.errorInfo"></span>
 
