@@ -238,9 +238,7 @@
             $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                 e.target // activated tab
                 e.relatedTarget // previous tab
-
                // alert(e.target.id);
-
                 if (e.target.id == "aReturn") {
                     $("#trReaderBarcode").hide();
                     $("#btnDo").text("还");
@@ -261,11 +259,6 @@
 
             // 给装载按钮绑事件
             $("#btnLoad").click(loadPatron);
-
-            // 证条码输入框失去焦点
-            //$("#txtReaderBarcode").blur(loadPatron);
-
-
             // 给读者证条码输入框加回车事件
             $('#txtReaderBarcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
@@ -273,10 +266,8 @@
                 }
             });
 
-
             // 给执行按钮绑事件
             $("#btnDo").click(addCmd);
-
             // 当册条码绑回车事件
             $('#txtItemBarcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
@@ -285,49 +276,92 @@
                     addCmd();
                 }
             });
-
-
-
-        })
-
-
+        })        
 
     </script>
+}
+
+@{   
+    
+    //<p>参数：@Request["showbtn"]-@Request["showlbl"]</p>
+    
+    // 根据url参数决定是否显示标签和按钮
+    // 计算各部分宽度
+    int icon = 1;
+    int left = 0;
+    int middle = 0;
+    int right = 0;
+    string readerIconStr = "<label class='col-sm-" + icon.ToString() + " control-label'><span style='font-size:22px'> <span class='glyphicon glyphicon-user'></span></span></label>";
+    string readerLeftStr = "";    
+    string readerMiddleStr = "";    
+    string readerRightStr = "";
+    string readerBarcodeGroupStr = "";
+    string itemIconStr = "<label class='col-sm-" + icon.ToString() + " control-label'><span style='font-size:22px'> <span class='glyphicon glyphicon-book'></span></span></label>";
+    string itemLeftStr = "";
+    string itemMiddleStr = "";
+    string itemRightStr = "";
+    string itemBarcodeGroupStr = "";
+    if (Request["showlbl"] == "1") 
+    {
+        left = 2;
+        readerLeftStr = "<label class='col-sm-" + left.ToString() + " control-label'>证条码号</label>";
+        itemLeftStr = "<label class='col-sm-" + left.ToString() + " control-label'>册条码号</label>";
+    }
+    if (Request["showbtn"] == "1")
+    {
+        right = 2;
+        readerRightStr = "<div class='col-sm-" + right.ToString() + "'>"
+                        +"<button type='button' class='btn btn-default btn-lg' id='btnLoad'>装载</button>"
+                        +"</div>";
+        itemRightStr = "<div class='col-sm-" + right.ToString() + "'>"
+                        + "<button type='button' class='btn btn-default btn-lg' id='btnDo'>借</button>"
+                        + "</div>";
+    }
+    middle = 12 - icon - left - right;
+    readerMiddleStr = "<div class='col-sm-" + middle + "'>"
+                     +"<input type='text' class='form-control input-lg' id='txtReaderBarcode' placeholder='读者证条码号' data-bind='value:cmdModel.editor.readerBarcode'>"
+                     +"</div>";
+    itemMiddleStr = "<div class='col-sm-" + middle + "'>"
+                     + "<input type='text' class='form-control input-lg' id='txtItemBarcode' placeholder='册条码号' data-bind='value:cmdModel.editor.itemBarcode'>"
+                     + "</div>";                     
+
+    readerBarcodeGroupStr = "<div class='form-group' id='trReaderBarcode'>"
+        + readerIconStr + readerLeftStr + readerMiddleStr + readerRightStr
+        + "</div>";
+    itemBarcodeGroupStr = "<div class='form-group' >"
+        + itemIconStr + itemLeftStr + itemMiddleStr + itemRightStr
+        + "</div>";
+
+    var formStr = "<div class='form-horizontal' role='form'>"
+        + readerBarcodeGroupStr
+        + itemBarcodeGroupStr
+        + "</div>";
+
+                                             
 }
 
 
 
 
 <div class="container" style="background-color:#ffffff">
-    <h1>@ViewBag.Title</h1>
-
     <div class="row">
         <div class="col-md-6" style="background-color:#ffffff" id="divCmd">
-            <h3>
+            <h3><span class="label label-default">出纳窗</span></h3>
                 <div class="well">
-                    <ul class="nav nav-tabs" id="myTab">
-                        <li class="active"><a href="#" data-toggle="tab" id="aBorrow">借</a></li>
-                        <li><a href="#home" data-toggle="tab" id="aReturn">还</a></li>
-                        <li><a href="#home" data-toggle="tab" id="aRenew">续借</a></li>
-                    </ul>
+                    <span style="font-size:large">                        
+                            <ul class="nav nav-tabs" id="myTab">
+                                <li class="active"><a href="#" data-toggle="tab" id="aBorrow">借</a></li>
+                                <li><a href="#home" data-toggle="tab" id="aReturn">还</a></li>
+                                <li><a href="#home" data-toggle="tab" id="aRenew">续借</a></li>
+                            </ul>
+                    </span>
+                    <br/>
                     <div class="tab-content">
                         <div class="tab-pane fade in active" id="home">
-                            <table class="table-condensed">
-                                <tr id="trReaderBarcode">
-                                    <td class="col-sm-4"><span class="glyphicon glyphicon-user"></span><strong> 证条码号</strong></td>
-                                    <td class="col-sm-6"><input type="text" class="form-control" id="txtReaderBarcode" placeholder="读者证条码号" data-bind="value:cmdModel.editor.readerBarcode"></td>
-                                    <td class="col-sm-2"><strong><button type="button" class="btn btn-default btn-lg col-lg-12 active" id="btnLoad">装载</button></strong></td>
-                                </tr>
-                                <tr>
-                                    <td class="col-sm-4"><span class="glyphicon  glyphicon-book "></span>&nbsp;<strong>册条码号</strong></td>
-                                    <td class="col-sm-6"><input type="text" class="form-control  col-sm-6" id="txtItemBarcode" placeholder="册条码号" data-bind="value:cmdModel.editor.itemBarcode"></td>
-                                    <td class="col-sm-2" style="height:80px"><button type="submit" class="btn btn-primary btn-lg col-lg-12" id="btnDo">借</button></td>
-                                </tr>
-                            </table>
+                            @Html.Raw(formStr)
                         </div>
-                    </div>
                 </div>
-            </h3>
+</div>
 
             <!-- Table -->
             <h3><span class="label label-default">操作历史</span></h3>

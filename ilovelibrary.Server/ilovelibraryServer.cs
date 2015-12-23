@@ -112,7 +112,7 @@ namespace ilovelibrary.Server
             }
             catch (WebException wex)
             {
-                strError = "访问dp2library服务器出错："+wex.Message+"\n请联系系统管理员修改dp2library服务器地址配置。";
+                strError = "访问dp2library服务器出错："+wex.Message+"\n请联系系统管理员修改dp2library服务器地址配置信息。";
                 return null;
             }
             catch (Exception ex)
