@@ -38,10 +38,9 @@
                 else
                     patronVModel.patron(data.patron);
 
-                //alert(patronVModel.patron().barcode);
-
-                if (data.apiResult.errorCode != -1) {
-                    // 焦点换到item上
+                //alert(patronVModel.patron().barcode);               
+                if (data.apiResult.errorCode != -1) {                
+                    // 成功，焦点换到item上
                     $("#txtItemBarcode").focus();
                 }
                 else {
@@ -348,7 +347,7 @@
     }
     middle = 12 - icon - left - right;
     readerMiddleStr = "<div class='col-xs-" + middle + "'>"
-                     +"<input type='text' class='form-control input-lg' id='txtReaderBarcode' placeholder='读者证条码号' data-bind='value:cmdModel.editor.readerBarcode'>"
+                     + "<input type='text' class='form-control input-lg' id='txtReaderBarcode' placeholder='读者证条码号' data-bind='value:cmdModel.editor.readerBarcode'><span style='color:red' data-bind='text: patronVModel.errorInfo'></span><span style='color:green' data-bind='text: patronVModel.patron().name'></span>"
                      +"</div>";
     itemMiddleStr = "<div class='col-xs-" + middle + "'>"
                      + "<input type='text' class='form-control input-lg' id='txtItemBarcode' placeholder='册条码号' data-bind='value:cmdModel.editor.itemBarcode'>"
