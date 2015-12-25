@@ -214,6 +214,7 @@
     <Content Include="Content\bootstrap.css.map" />
     <None Include="Properties\PublishProfiles\ilovelibrary.pubxml" />
     <None Include="Scripts\jquery-1.9.1.intellisense.js" />
+    <Content Include="img\wait.gif" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\jquery-1.9.1.js" />
@@ -230,9 +231,19 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\knockout-2.2.0.debug.js" />
     <Content Include="Scripts\knockout-2.2.0.js" />
+    <Content Include="Scripts\layer.ext.js" />
+    <Content Include="Scripts\layer.js" />
     <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\_references.js" />
     <Content Include="delete.txt" />
+    <Content Include="skin\default\icon-ext.png" />
+    <Content Include="skin\default\icon.png" />
+    <Content Include="skin\default\loading-0.gif" />
+    <Content Include="skin\default\loading-1.gif" />
+    <Content Include="skin\default\loading-2.gif" />
+    <Content Include="skin\layer.css" />
+    <Content Include="skin\layer.ext.css" />
+    <Content Include="summaryTest.html" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

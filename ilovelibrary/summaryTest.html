@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    
+
+    <script src="/Scripts/jquery-1.9.1.js"></script>
+    <script src="/Scripts/layer.js"></script>
+    <script src="/Scripts/layer.ext.js"></script>
+    <link href="/skin/layer.css" type="text/css" rel="stylesheet" />
+
+    <script>
+
+
+        $(document).ready(function () {
+
+
+            //layer.msg('很高兴一开场就见到你');
+
+            //var index = layer.load(3, { shade: [0.5, '#ababab'] });
+
+            // 给装载按钮绑事件
+            $("#btnLoad").click(function () {
+                
+                //layer.alert("test");
+
+                //信息框-例1
+                //layer.alert('见到你真的很高兴', { icon: 6 });
+
+                //layer.alert('见到你真的很高兴', { icon: 6 });
+                //var index = layer.load();
+
+                //var index = layer.load(3, { shade: [0.5, '#ababab'],time:3000 });
+                //加载层
+                layer.load(2, { shade: [0.5, '#EEEEEE'], time: 3000 })
+
+                //2,0,true
+                /*
+               var aa= layer.open({
+                    type: 1,
+                    content: '传入任意的文本或html' //这里content是一个普通的String
+               });
+
+               var index = layer.open({
+                   content: 'test'
+               });
+               */
+                /*
+                var index = layer.load(1, {
+                    shade: [0.1, '#fff'] //0.1透明度的白色背景
+                });
+                */
+            });
+            
+        })
+
+    </script>
+
+</head>
+<body>
+
+大家好
+    <div>
+        <input id="btnLoad" type="button" value="填充" />
+    </div>
+<div id="waitDiv"> 
+    <input id="" type="hidden" value="aaa"/> 
+
+    <br />
+
+
+ </div>
+
+</body>
+</html>

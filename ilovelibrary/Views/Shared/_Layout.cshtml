@@ -13,12 +13,21 @@
     @Scripts.Render("~/bundles/jquery")
     <script src="~/Scripts/bootstrap.js"></script>
     <script src="~/Scripts/knockout-2.2.0.js"></script>
+    <script src="/Scripts/layer.js"></script>
+    <script src="/Scripts/layer.ext.js"></script>
+    <link href="/skin/layer.css" type="text/css" rel="stylesheet" />
+    
     <script>
 
         // 高亮显示当前的菜单
         $(document).ready(function () {
+
+            // 当前菜单高亮显示
             $('ul.nav.navbar-nav').find('a[href="' + location.pathname + '"]')
                 .closest('li').addClass('active');
+
+
+
         });
     </script>
 
