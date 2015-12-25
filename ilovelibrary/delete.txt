@@ -1,4 +1,60 @@
-﻿<div class="form-horizontal" >
+﻿ data-bind="style: {'background-color': type=='borrow' ? 'green' : 'blue' }"
+====
+                        <td class="col-xs-1" data-bind="css: {'success': type=='borrow','primary': type=='return','info': type=='renew'}">
+
+===
+            <!-- Table -->
+            <h3><span class="label label-default">操作历史</span></h3>
+            <div>
+                <table class="table" data-bind="foreach: cmdModel.commands">
+                    <tr data-bind="css: {'danger': state==-1}">
+                        <td class="col-xs-1">
+                            <span style="font-weight:bold" data-bind="text:typeString"></span>
+                            <br />
+                            <font color="green"><span data-bind="css: { 'glyphicon glyphicon-ok': state==0 }"></span></font>
+                            <font color="red"><span data-bind="css: { 'glyphicon glyphicon-exclamation-sign': state==-1 }"></span></font>
+
+                        </td>
+                        <td class="col-xs-11">
+                            <table>
+
+                                <tr><td data-bind="text:resultInfo"></td></tr>
+                                <tr><td>读者&nbsp;<span style="font-size:14.8px;font-weight:bold" data-bind="text:readerBarcode"></span>&nbsp;摘要位置</td></tr>
+                                <tr><td>册&nbsp;<span style="font-size:14.8px;font-weight:bold" data-bind="text:itemBarcode"></span>&nbsp;摘要位置</td></tr>
+                                <tr><td data-bind="text:operTime"></td></tr>
+                            </table>
+
+                        </td>
+                    </tr>                    
+                </table>
+
+            </div>
+
+=====
+
+绑2个样式
+ data-bind="css: {'danger': state==-1, 'success': state==0}"
+=================
+<div class="container" style="background-color:#ffffff">
+    <div class="row">
+        <div class="col-md-6" style="background-color:#ffffff" id="divCmd">
+                <div class="well">
+                    <span style="font-size:large">                        
+                            <ul class="nav nav-tabs" id="myTab">
+                                <li class="active"><a href="#" data-toggle="tab" id="aBorrow">借</a></li>
+                                <li><a href="#home" data-toggle="tab" id="aReturn">还</a></li>
+                                <li><a href="#home" data-toggle="tab" id="aRenew">续借</a></li>
+                            </ul>
+                    </span>
+                    <br/>
+                    <div class="tab-content">
+                        <div class="tab-pane fade in active" id="home">
+                            @Html.Raw(formStr)
+                        </div>
+                </div>
+</div>
+=============
+<div class="form-horizontal" >
                                 <div class="form-group">
                                     <label class='col-sm-3 control-label'><span class='glyphicon glyphicon-user'></span>&nbsp;证条码号</label>
                                     <div class='col-sm-7'>

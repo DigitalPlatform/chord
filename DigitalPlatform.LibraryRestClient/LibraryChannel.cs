@@ -554,9 +554,11 @@ namespace DigitalPlatform.LibraryRestClient
         /// <para>1:    操作成功，并且有值得操作人员留意的情况。提示信息在 strError 中</para>
         /// </returns>
         public int Return(string strItemBarcode,
+            out string strOutputReaderBarcode,
             out ReturnInfo return_info,
             out string strError)
         {
+            strOutputReaderBarcode = "";
             return_info = null;
             strError = "";
 
@@ -626,6 +628,7 @@ namespace DigitalPlatform.LibraryRestClient
                 }
                 return_info = response.return_info;
                 strError = response.ReturnResult.ErrorInfo;
+                strOutputReaderBarcode = response.strOutputReaderBarcode;
                 this.ErrorCode = response.ReturnResult.ErrorCode;
                 this.ClearRedoCount();
                 return (int)response.ReturnResult.Value;

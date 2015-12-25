@@ -21,10 +21,7 @@ namespace ilovelibrary.Server
 
         #region 命令相关
 
-        // 命令常量
-        public const string C_Command_Borrow = "borrow";
-        public const string C_Command_Return = "return";
-        public const string C_Command_Renew = "renew";
+
 
         //命令集合，暂放内存中
         private List<Command> cmdList = new List<Command>();
@@ -45,7 +42,7 @@ namespace ilovelibrary.Server
             Debug.Assert(String.IsNullOrEmpty(item.type) == false, "命令类型不能为空。");
             strError = "";
 
-            if (item.type == C_Command_Borrow || item.type == C_Command_Renew)
+            if (item.type == Command.C_Command_Borrow || item.type == Command.C_Command_Renew)
             {
                 if (String.IsNullOrEmpty(item.readerBarcode) == true)
                 {
@@ -64,8 +61,8 @@ namespace ilovelibrary.Server
             item.id = this.cmdList.Count + 1;
             item.description = item.readerBarcode + "-" + item.type + "-" + item.itemBarcode;
             item.operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-            // 加到集合里
-            this.cmdList.Add(item);
+            item.typeString = Command.getTypeString(item.type);
+
 
 
 
@@ -76,10 +73,10 @@ namespace ilovelibrary.Server
             {
                 long lRet = -1;
                 // 借书或续借
-                if (item.type == C_Command_Borrow || item.type == C_Command_Renew)
+                if (item.type == Command.C_Command_Borrow || item.type == Command.C_Command_Renew)
                 {
                     bool bRenew = false;
-                    if (item.type == C_Command_Renew)
+                    if (item.type == Command.C_Command_Renew)
                         bRenew = true;
                     DigitalPlatform.LibraryRestClient.BorrowInfo borrowInfo = null;
                     lRet = channel.Borrow(bRenew,
@@ -88,20 +85,26 @@ namespace ilovelibrary.Server
                                         out borrowInfo,
                                         out strError);
                 }
-                else if (item.type == C_Command_Return)
+                else if (item.type == Command.C_Command_Return)
                 {
                     // 还书
                     ReturnInfo returnInfo = null;
-                    lRet = channel.Return(item.itemBarcode, out returnInfo, out strError);
+                    string strOutputReaderBarcode = "";
+                    lRet = channel.Return(item.itemBarcode, 
+                        out strOutputReaderBarcode,
+                        out returnInfo, out strError);
+                    item.readerBarcode = strOutputReaderBarcode;
                 }
 
                 if (lRet == -1)
                 {
                     item.state = -1;
-                    item.resultInfo = "失败:" + strError;
+                    item.resultInfo = "失败：" + strError;
                     return -1;
                 }
 
+                // 成功才加到集合里
+                this.cmdList.Insert(0, item);
                 item.state = 0;
                 item.resultInfo = "成功";
                 return 1;
