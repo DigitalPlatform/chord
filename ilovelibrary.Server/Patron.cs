@@ -25,5 +25,9 @@ namespace ilovelibrary.Server
         public ApiResult apiResult { get; set; }
     }
 
-
+    public class PatronSummaryResult
+    {
+        public string summary { get; set; }
+        public ApiResult apiResult { get; set; }
+    }
 }

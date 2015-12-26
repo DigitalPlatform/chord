@@ -10,8 +10,6 @@ namespace ilovelibrary.Controllers
 {
     public class ChargingController : Controller
     {
-        //
-        // GET: /Charging/
         public ActionResult Main()
         {            
             // 如果未登录，先去登录界面
@@ -19,10 +17,6 @@ namespace ilovelibrary.Controllers
             {
                 return this.RedirectToAction("Login", "Account", new { ReturnUrl = "~/Charging/Main"});
             }
-
-            //为了书写简单，开关参数值用0和1表示
-            //string showbtn = Request["showbtn"];
-            //string showlbl = Request["showlbl"];
 
             return View();
         }

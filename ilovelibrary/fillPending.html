@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <script src="/Scripts/jquery-1.9.1.js"></script>
+    <script src="/Scripts/layer.js"></script>
+    <script src="/Scripts/layer.ext.js"></script>
+    <link href="/skin/layer.css" type="text/css" rel="stylesheet" />
+    <style type="text/css">
+        /*所有需要后面填充内容的元素样式*/
+        .pending {
+            /*设为背景图影响效果太大了，还是元素里面加个img吧*/
+            /*background-image:url("img/wait.gif");*/
+        }
+    </style>
+
+    <script>
+
+        // 万能函数，给样式为pending的元素填充内容
+        function fillPending() {
+
+            // 选取第一个样式为pending的元素
+            var o = $(".pending:first");
+            if (o.length == 0) {
+                // 没有pending类型元素则返回
+                return;
+            }
+
+            // 找到下级的标签，里面存储的线索
+            var mylable = o.children("label");
+            // 如果没有定义标签label，则去掉pending状态，继续下一个pending
+            if (mylable.length == 0) {
+                o.removeClass("pending");
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
+
+            // 取出label设置的线索信息
+            var keyword = mylable.text();
+            // 未给label设值，去掉pending状态，继续下一个pending
+            if (keyword.length == 0) {
+                o.removeClass("pending");
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
+
+            // bs-为书目summary，rs-为读者summary
+            // 线索信息不足，去掉pending状态，继续下一个pending
+            if (keyword.length <= 3) {
+                o.removeClass("pending");
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
+
+            // 取出线索类型和值
+            var mytype = keyword.substring(0, 3);
+            var myvalue = keyword.substring(3);
+            //alert("type["+mytype + "]-value["+myvalue+"]");
+
+            var mycontent = "";
+            if (mytype == "bs-")
+            {
+                //调书目摘要api
+                mycontent = "这是图书[" +myvalue+ "]的摘要。";
+            }
+            else if (mytype == "rs-")
+            {
+                //调读者摘要api
+                mycontent = "这是读者[" + myvalue + "]的摘要。";
+            }
+
+            //换成实际的值，去掉pending状态，继续下一个pending
+            o.html(mycontent);
+            o.removeClass("pending");
+            window.setTimeout("fillPending()", 1);
+            
+            return;
+        }
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行
+        $(document).ready(function () {
+
+             // 给装载按钮绑click事件
+            $("#btnLoad").click(function () {
+                 //加载层
+                 layer.load(2, { shade: [0.6, '#dddddd'], time: 3000 })
+             });
+
+            // 给填充按钮绑click事件
+            $("#btnFill").click(function () {
+                 fillPending();
+             });
+
+        })
+    
+    </script>
+</head>
+<body>
+    <div class="pending">
+        <label style="display:none">rs-R001</label>
+        <img src="img/wait2.gif"/>
+    </div> 
+    <div class="pending">
+        <label style="display:none">bs-C001</label>
+        <img src="img/wait2.gif" />
+    </div> 
+    <p>
+        一段文字开始
+        <span class="pending">
+            <label style="display:none">bs-C002</label>
+            <img src="img/wait.gif" />
+        </span> 
+        文字结束
+    </p>
+    
+    <input id="btnFill" type="button" value="填充" />
+    <br/>
+    <br/>
+    <input id="btnLoad" type="button" value="测试 loading遮罩图层" /> 
+</body>
+</html>

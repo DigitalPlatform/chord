@@ -41,7 +41,7 @@ namespace ilovelibrary.Controllers
                 }
                 else
                 {
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Main", "Charging");
                 }
             }
 
