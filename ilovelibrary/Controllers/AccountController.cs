@@ -22,11 +22,18 @@ namespace ilovelibrary.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(LoginModel model, string returnUrl)
         {
+            string  isReader = model.IsReader;
+            bool bReader = false;
+            if (isReader == "1")
+                bReader = true;
+
+
             string strError = "";
             string strRight = "";
             //登录dp2library服务器
             SessionInfo sessionInfo = ilovelibraryServer.Instance.Login(model.UserName,
                 model.Password,
+                bReader,
                 out strRight,
                 out strError);
             if (sessionInfo != null)
@@ -41,7 +48,7 @@ namespace ilovelibrary.Controllers
                 }
                 else
                 {
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Main", "Charging");
                 }
             }
 

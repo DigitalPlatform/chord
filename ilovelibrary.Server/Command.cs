@@ -25,6 +25,9 @@ namespace ilovelibrary.Server
         public int state { get; set; }
         public string resultInfo { get; set; }
 
+        // 是否需要划横线，不同读者间画线
+        public int isAddLine = 0;
+        public string itemBarcodeUrl { get; set; }
         public static string getTypeString(string type)
         {
             if (type == C_Command_Borrow)

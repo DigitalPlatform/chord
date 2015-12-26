@@ -1,4 +1,53 @@
-﻿ data-bind="style: {'background-color': type=='borrow' ? 'green' : 'blue' }"
+﻿                            <table style="padding:2px">
+                                <tr>
+                                    <td>
+                                        
+                                        <span style="color:gray">
+                                            读者&nbsp;&nbsp;
+                                        </span>
+                                        <span style="font-size:14.8px;font-weight:bold;color:green" data-bind="text:readerBarcode"></span>
+                                        &nbsp;&nbsp;
+                                        <span class="pending">
+                                            <label style="display:inline" data-bind="text:readerBarcode=='' ? '' : 'rs-'+readerBarcode"></label>
+                                            <img src="~/img/wait2.gif" />
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <td valign="top">
+                                                    <span style="color:gray"> 册&nbsp;&nbsp;</span>
+                                                </td>
+                                                <td valign="top">
+
+                                                    <a data-bind="attr: { href: itemBarcodeUrl}" target="_blank">
+                                                        <span style="font-size:14.8px;font-weight:bold;color:green" data-bind="text:itemBarcode"></span>
+                                                    </a>                                                     
+                                                    &nbsp;&nbsp;
+                                                </td>
+                                                <td valign="top">
+
+                                                    <span class="pending">
+                                                        <label style="display:inline" data-bind="text:itemBarcode=='' ? '' : 'bs-'+itemBarcode"></label>
+                                                        <img src="~/img/wait2.gif" />
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span style="color:gray">操作时间&nbsp;&nbsp;</span>
+                                        <span data-bind="text:operTime"></span>
+                                    </td>
+                                </tr>
+                            </table>
+============
+ data-bind="style: {'background-color': type=='borrow' ? 'green' : 'blue' }"
 ====
                         <td class="col-xs-1" data-bind="css: {'success': type=='borrow','primary': type=='return','info': type=='renew'}">
 

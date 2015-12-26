@@ -101,8 +101,17 @@ namespace ilovelibrary.Server
                     item.state = -1;
                     item.resultInfo = "失败：" + strError;
                     return -1;
-                }
+                }                
 
+                // 检索是否与前面同一个读者，不加要加线
+                if (this.cmdList.Count > 0)
+                {
+                    Command firstCmd = this.cmdList[0];
+                    if (firstCmd.readerBarcode != item.readerBarcode)
+                        item.isAddLine = 1;
+                }
+                // 设链接地址
+                item.itemBarcodeUrl = ilovelibraryServer.Instance.dp2OpacUrl + "/book.aspx?barcode=" + item.itemBarcode + "&borrower=" + item.readerBarcode;
                 // 成功才加到集合里
                 this.cmdList.Insert(0, item);
                 item.state = 0;

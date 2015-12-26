@@ -41,20 +41,32 @@ namespace ilovelibrary.Server
 
         // dp2服务器地址
         public string dp2LibraryUrl = "";//"http://dp2003.com/dp2library/rest/"; //"http://localhost:8001/dp2library/rest/";//
-        public string logDir = "";
+        public string dataDir = "";
+        public string dp2OpacUrl = "";
 
         // dp2通道池
         public LibraryChannelPool ChannelPool = null;
 
-        public void Init(string strDp2LibraryUrl, string strLogDir)
+        // 背景图管理器
+        public string TodayUrl="";
+
+        public void Init(string strDp2LibraryUrl, string strDataDir,string strDp2OpacUrl)
         {
             this.dp2LibraryUrl = strDp2LibraryUrl;
-            this.logDir = strLogDir;
+            this.dp2OpacUrl = strDp2OpacUrl;
+            this.dataDir = strDataDir;
+            PathUtil.CreateDirIfNeed(this.dataDir);	// 确保目录创建
 
             // 通道池对象
             ChannelPool = new LibraryChannelPool();
             ChannelPool.BeforeLogin -= new BeforeLoginEventHandle(Channel_BeforeLogin);
             ChannelPool.BeforeLogin += new BeforeLoginEventHandle(Channel_BeforeLogin);            
+
+            // 初始img manager
+            string imgFile = this.dataDir+ "\\" +"image.xml";
+            ImgManager imgManager = new ImgManager(imgFile);
+            string todayNo = DateTime.Now.Day.ToString();
+            TodayUrl = imgManager.GetImgUrl(todayNo);
         }
 
         /// <summary>
@@ -86,6 +98,7 @@ namespace ilovelibrary.Server
         /// <param name="strError"></param>
         /// <returns></returns>
         public SessionInfo Login(string strUserName, string strPassword,
+            bool bReader,
             out string rights,
             out string strError)
         {
@@ -96,7 +109,10 @@ namespace ilovelibrary.Server
             channel.Password = strPassword;
             try
             {
-                LoginResponse ret = channel.Login(strUserName, strPassword, "");
+                string strParam = "";
+                if (bReader == true)
+                    strParam = "type=reader";
+                LoginResponse ret = channel.Login(strUserName, strPassword, strParam);
                 if (ret.LoginResult.Value != 1)
                 {
                     strError = ret.LoginResult.ErrorInfo;
@@ -226,6 +242,81 @@ namespace ilovelibrary.Server
         }
 
         /// <summary>
+        /// 获取读者摘要
+        /// </summary>
+        /// <param name="sessionInfo"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public PatronSummaryResult GetPatronSummary(SessionInfo sessionInfo, string strReaderBarcode)
+        {
+            // 返回对象
+            PatronSummaryResult result = new PatronSummaryResult();
+            result.summary = "";
+            result.apiResult = new ApiResult();
+            if (sessionInfo == null)
+            {
+                result.apiResult.errorCode = -1;
+                result.apiResult.errorInfo = "尚未登录";
+                return result;
+            }
+
+            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
+            channel.Password = sessionInfo.Password;
+            try
+            {
+                // 先根据barcode检索出来,得到原记录与时间戳
+                GetReaderInfoResponse response = channel.GetReaderInfo(strReaderBarcode,//"@path:" + strRecPath,
+                   "advancexml");// "advancexml,advancexml_borrow_bibliosummary,advancexml_overdue_bibliosummary");
+                if (response.GetReaderInfoResult.Value == -1)
+                {
+                    result.apiResult.errorCode = -1;
+                    result.apiResult.errorInfo = "获取读者记录出错：" + response.GetReaderInfoResult.ErrorInfo;
+                    return result;
+                }
+                else if (response.GetReaderInfoResult.Value == 0)
+                {
+                    result.apiResult.errorCode = -1;
+                    result.apiResult.errorInfo = "未找到证条码号为[" + strReaderBarcode + "]的读者记录";
+                    return result;
+                }
+                else if (response.GetReaderInfoResult.Value > 1)
+                {
+                    result.apiResult.errorCode = -1;
+                    result.apiResult.errorInfo = "异常：根据证条码号[" + strReaderBarcode + "]找到多条读者记录，请联系管理员。";
+                    return result;
+                }
+                string strXml = response.results[0];
+
+                // 取出个人信息
+                XmlDocument dom = new XmlDocument();
+                dom.LoadXml(strXml);
+                string name = DomUtil.GetElementText(dom.DocumentElement, "name");
+                string department = DomUtil.GetElementText(dom.DocumentElement, "department");
+
+                if (name != "")
+                {
+                    result.summary = "<span style=' font-size: 14.8px;font-weight:bold'>" + name + "</span>";
+
+                    if (department != "")
+                        result.summary += "（" + department + "）";
+                }
+                    
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.apiResult.errorCode = -1;
+                result.apiResult.errorInfo = ex.Message;
+                return result;
+            }
+            finally
+            {
+                this.ChannelPool.ReturnChannel(channel);
+            }
+        }
+
+        /// <summary>
         /// 获得读者借阅信息
         /// </summary>
         /// <param name="sessionInfo"></param>
@@ -317,6 +408,7 @@ namespace ilovelibrary.Server
                     borrowInfo.renewComment = strRenewComment;
                     borrowInfo.overdue = strOverDue;
                     borrowInfo.returnDate = strReturnDate;
+                    borrowInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode="+strBarcode+"&borrower="+strReaderBarcode;
                     borrowList.Add(borrowInfo);
                 }
             }
@@ -456,6 +548,8 @@ namespace ilovelibrary.Server
         }
 
         #endregion
+
+
 
 
 

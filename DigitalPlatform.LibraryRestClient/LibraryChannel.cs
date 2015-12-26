@@ -944,7 +944,7 @@ namespace DigitalPlatform.LibraryRestClient
             LoginRequest request = new LoginRequest();
             request.strUserName = strUserName;
             request.strPassword = strPassword;
-            request.strParameters = "";// "location=#web,type=reader"; 
+            request.strParameters = strParameters;// "location=#web,type=reader"; 
             byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
 
             byte[] result = client.UploadData(this.GetRestfulApiUrl("login"),
