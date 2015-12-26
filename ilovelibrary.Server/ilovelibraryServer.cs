@@ -42,6 +42,7 @@ namespace ilovelibrary.Server
         // dp2服务器地址
         public string dp2LibraryUrl = "";//"http://dp2003.com/dp2library/rest/"; //"http://localhost:8001/dp2library/rest/";//
         public string dataDir = "";
+        public string dp2OpacUrl = "";
 
         // dp2通道池
         public LibraryChannelPool ChannelPool = null;
@@ -49,9 +50,10 @@ namespace ilovelibrary.Server
         // 背景图管理器
         public string TodayUrl="";
 
-        public void Init(string strDp2LibraryUrl, string strDataDir)
+        public void Init(string strDp2LibraryUrl, string strDataDir,string strDp2OpacUrl)
         {
             this.dp2LibraryUrl = strDp2LibraryUrl;
+            this.dp2OpacUrl = strDp2OpacUrl;
             this.dataDir = strDataDir;
             PathUtil.CreateDirIfNeed(this.dataDir);	// 确保目录创建
 
@@ -96,6 +98,7 @@ namespace ilovelibrary.Server
         /// <param name="strError"></param>
         /// <returns></returns>
         public SessionInfo Login(string strUserName, string strPassword,
+            bool bReader,
             out string rights,
             out string strError)
         {
@@ -106,7 +109,10 @@ namespace ilovelibrary.Server
             channel.Password = strPassword;
             try
             {
-                LoginResponse ret = channel.Login(strUserName, strPassword, "");
+                string strParam = "";
+                if (bReader == true)
+                    strParam = "type=reader";
+                LoginResponse ret = channel.Login(strUserName, strPassword, strParam);
                 if (ret.LoginResult.Value != 1)
                 {
                     strError = ret.LoginResult.ErrorInfo;
@@ -402,6 +408,7 @@ namespace ilovelibrary.Server
                     borrowInfo.renewComment = strRenewComment;
                     borrowInfo.overdue = strOverDue;
                     borrowInfo.returnDate = strReturnDate;
+                    borrowInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode="+strBarcode+"&borrower="+strReaderBarcode;
                     borrowList.Add(borrowInfo);
                 }
             }

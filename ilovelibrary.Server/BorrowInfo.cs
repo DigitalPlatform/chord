@@ -22,5 +22,7 @@ namespace ilovelibrary.Server
         public string renewComment { get; set; }
         public string overdue { get; set; }
         public string returnDate { get; set; }
+
+        public string barcodeUrl { get; set; }
     }
 }

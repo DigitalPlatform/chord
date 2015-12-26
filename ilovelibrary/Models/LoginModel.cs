@@ -19,5 +19,8 @@ namespace ilovelibrary.Models
 
         [Display(Name = "记住我?")]
         public bool RememberMe { get; set; }
+
+        [Display(Name = "读者")]
+        public string IsReader { get; set; }
     }
 }

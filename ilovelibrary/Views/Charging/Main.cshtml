@@ -40,7 +40,7 @@
     middle = 12 - icon - left - right;
     readerMiddleStr = "<div class='col-xs-" + middle + "'>"
                      + "<input type='text' class='form-control input-lg' id='txtReaderBarcode' placeholder='证 条码号' data-bind='value:cmdModel.editor.readerBarcode'>"
-                     +@"<span class='pending' id='divReaderSummary'>
+                     + @"<span class='pending' id='divReaderSummary'>
                                 <label  id='readerKeyWord'></label>
                                 <img src='../img/wait2.gif' />
                             </span> "
@@ -65,7 +65,7 @@
 }
 
 @section Scripts {
-    <script>        
+    <script>
 
         // 读者view model
         var patronVModel = {
@@ -96,11 +96,12 @@
         // 加载读者信息
         function loadPatron(readerBarcode) {
 
-            if (readerBarcode == null || readerBarcode == "")
-                readerBarcode =$("#txtReaderBarcode").val();
+            //alert("loadPatron");
 
-            if (readerBarcode=="")
-            {
+            if (readerBarcode == null || readerBarcode == "")
+                readerBarcode = $("#txtReaderBarcode").val();
+
+            if (readerBarcode == "") {
                 //layer.alert("内部错误：加载读者信息，但未传来证条码参数。");
                 alert("请输入读者证条码!");
                 return -1;
@@ -121,8 +122,8 @@
 
 
             // 从服务器api获得读者json数据
-           var url = "/api/patron/" + readerBarcode;
-           sendAjaxRequest(url,"GET", function (data) {
+            var url = "/api/patron/" + readerBarcode;
+            sendAjaxRequest(url, "GET", function (data) {
                 //将返回数据绑在观察模型上
                 patronVModel.errorInfo(data.apiResult.errorInfo);
                 if (data.patron == null)
@@ -142,9 +143,12 @@
                     $("#txtItemBarcode").focus();
 
                     // 设到读者线索上
-                    $("#readerKeyWord").text("rs-" + readerBarcode);
+                    var readerKeyWord= "rs-" + readerBarcode;
+                    $("#divReaderSummary").html("<label  id='readerKeyWord'>" + readerKeyWord + "</label><img src='../img/wait2.gif' />");
                     // 给divReaderSummary设pending样式
                     $("#divReaderSummary").addClass("pending");
+
+                    //alert("加pending");
 
                     // 加载在借册
                     loadBorrowInfo(readerBarcode);
@@ -157,9 +161,9 @@
                 alertServerError(errorThrown);
                 // 关闭等待层
                 layer.close(index);
-            },null,false);
+            }, null, false);
 
-           return 0;
+            return 0;
         }
 
         //获取借阅信息
@@ -187,7 +191,7 @@
 
             // 调web api
             var url = "/api/patron/" + readerBarcode + "?format=borrowinfo";
-            sendAjaxRequest(url,"GET", function (data) {
+            sendAjaxRequest(url, "GET", function (data) {
                 // 设上返回的error
                 borrowModel.errorInfo(data.apiResult.errorInfo);
                 if (data.apiResult.errorCode == -1) {
@@ -204,11 +208,11 @@
                         }
                         $("#borrowTable").show();
 
-                        
+
                     } else {
                         // 显示没有借阅记录
                         borrowModel.errorInfo("该读者目前没有在借图书。");
-                    }                    
+                    }
                 }
 
                 // 更新summary
@@ -257,7 +261,7 @@
             var keyword = mylable.text();
             // 未给label设值，去掉pending状态，继续下一个pending
             if (keyword.length == 0) {
-               // alert("fillPending1-3:[" + mylable.text() + "]");
+                // alert("fillPending1-3:[" + mylable.text() + "]");
                 o.removeClass("pending");
                 window.setTimeout("fillPending()", 1);
                 return;
@@ -282,7 +286,18 @@
                 // 调api
                 sendAjaxRequest(url, "GET", function (data) {
                     //换成实际的值，去掉pending状态，继续下一个pending
-                    o.html(data);
+
+                    // 短25个字符...，加tip
+                    var shortText = data;
+                    if (shortText.length > 25)
+                        shortText = shortText.substring(0, 25) + "···";
+                    var myHtml = "<a href='#' data-toggle='tooltip' data-placement='right' "
+                           + " title='" + data + "'>"
+                           + shortText
+                           + "</a>";
+
+                    o.html(myHtml);
+
                     o.removeClass("pending");
                     window.setTimeout("fillPending()", 1);
                 }, function (xhq, textStatus, errorThrown) {
@@ -318,8 +333,7 @@
                     window.setTimeout("fillPending()", 1);
                 });
             }
-            else
-            {
+            else {
                 // 继续下面的
                 o.removeClass("pending");
                 window.setTimeout("fillPending()", 1);
@@ -346,7 +360,7 @@
             //alert("getAllCmd1");
 
             // 调web api
-            var url ="/api/command";
+            var url = "/api/command";
             sendAjaxRequest(url, "GET", function (data) {
 
                 //alert("getAllCmd2");
@@ -371,7 +385,7 @@
                 alertServerError(errorThrown);
                 // 关闭等待层
                 layer.close(index);
-            });          
+            });
         }
 
         // 执行命令
@@ -395,7 +409,7 @@
                     return;
                 }
             }
-            if (cmdModel.editor.itemBarcode() == "") {      
+            if (cmdModel.editor.itemBarcode() == "") {
 
                 /*
                 layer.alert("请输入册条码号!", { icon: 0 }, function (index) {
@@ -413,13 +427,13 @@
             var indexTop = loadLayer();
 
             //调 web api
-            var url ="/api/command";
+            var url = "/api/command";
             var data = {
                 type: cmdModel.editor.type,
                 readerBarcode: cmdModel.editor.readerBarcode,
                 itemBarcode: cmdModel.editor.itemBarcode
             };
-            sendAjaxRequest(url,"POST", function (newItem) {
+            sendAjaxRequest(url, "POST", function (newItem) {
                 // 返回命令执行成功
                 if (newItem.state == 0) {
                     // 插入到最前面
@@ -458,13 +472,13 @@
                     layer.close(indexTop);
                 }
 
-                
+
 
             }, function (xhq, textStatus, errorThrown) {
                 alertServerError(errorThrown);
                 // 关闭等待层
                 layer.close(indexTop);
-            },data);
+            }, data);
         }
 
         //=================
@@ -496,7 +510,7 @@
                 //清空绑定的在借册
                 borrowModel.errorInfo("");
                 borrowModel.borrows.removeAll();
-                $("#borrowTable").hide();                
+                $("#borrowTable").hide();
 
                 // alert(e.target.id);
                 if (e.target.id == "aReturn") {
@@ -569,9 +583,9 @@
             //读者信息与在借册一开始不显示
             $("#readerTable").hide();
             $("#divReaderSummary").hide();
-            
-            $("#borrowTable").hide();            
-       })
+
+            $("#borrowTable").hide();
+        })
 
         //===========================
         // 以下是共用函数
@@ -608,7 +622,6 @@
 
 @section style {
     <style type="text/css">
-
         /*所有需要后面填充内容的元素样式*/
         .pending {
             /*设为背景图影响效果太大了，还是元素里面加个img吧*/
@@ -629,7 +642,7 @@
         .input-lg-focus {
             height: 66px;
             padding: 10px 16px;
-            font-size: 28px;            
+            font-size: 28px;
             line-height: 1.3333333;
             border-radius: 6px;
         }
@@ -651,8 +664,8 @@
             margin-bottom: 20px;
             background-color: #dddddd;
             /*
-                background-color: #f5f5f5;  
-                border: 1px solid #e3e3e3;                  
+                background-color: #f5f5f5;
+                border: 1px solid #e3e3e3;
                 border-radius: 4px;
                 -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
                  box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
@@ -661,30 +674,27 @@
 
         .label-default {
             background-color: #ffffff;
-            color:#dddddd;
+            color: #dddddd;
         }
 
         .reader-barcode {
-            font-size:28px; 
-            font-weight:bold;
-            color:green;
+            font-size: 28px;
+            font-weight: bold;
+            color: green;
         }
 
         .reader-name {
-            font-size:28px; 
-            font-weight:bold;
-            color:black;
+            font-size: 28px;
+            font-weight: bold;
+            color: black;
         }
 
-                .td-right {
-
-    text-align:right;
-    color:#CCCCCC;
+        .td-right {
+            text-align: right;
+            color: #CCCCCC;
         }
-
     </style>
 }
-
 
 <div class="container" style="background-color:#ffffff">
     <div class="row">
@@ -705,137 +715,141 @@
                 </div>
             </div>
 
-
             <!-- Table -->
             <h3><span class="label label-default">操作历史</span></h3>
             <div>
                 <table class="table" data-bind="foreach: cmdModel.commands">
-                    <tr>
-                        <td  width="1%" style="color:white;vertical-align:middle;text-align:center" data-bind="style: {'background-color': type=='borrow' ? '#43A102' : '#049FF1' }">
+                    <tr data-bind="style: {'border-bottom': isAddLine==1 ? '2px solid #FF6666' : ' ' }">
+                        <td width=" 1%" style="color:white;vertical-align:middle;text-align:center" data-bind="style: {'background-color': type=='borrow' ? '#43A102' : '#049FF1' }">
                             <span style="font-weight:bold" data-bind="text:typeString"></span>
                         </td>
                         <td width="99%">
                             <table style="padding:2px">
                                 <tr>
-                                <td><span style="color:gray">
-    读者&nbsp;&nbsp;</span>
-    <span style="font-size:14.8px;font-weight:bold;color:green" data-bind="text:readerBarcode"></span>
-    &nbsp;&nbsp;
-                                    <span class="pending">
-                                        <label style="display:inline" data-bind="text:readerBarcode=='' ? '' : 'rs-'+readerBarcode"></label>
-                                        <img src="~/img/wait2.gif" />
-                                    </span>
-</td>
-                                </tr>
-                                <tr>
-                                <td>
-                                    <table><tr>
-                                               <td valign="top">
-                                                   <span style="color:gray"> 册&nbsp;&nbsp;</span>
-                                               </td>
-                                               <td valign="top">
-                                        <span style="font-size:14.8px;font-weight:bold;color:green" data-bind="text:itemBarcode"></span>
-                                               &nbsp;&nbsp;
-                                               </td>
-                                               <td valign="top">
-
-                                                   <span class="pending">
-                                                       <label style="display:inline" data-bind="text:itemBarcode=='' ? '' : 'bs-'+itemBarcode"></label>
-                                                       <img src="~/img/wait2.gif" />
-                                                   </span>
-                                               </td>
-                                        </tr></table>
-
-                                    
+                                    <td>
+                                        <span data-bind="text:readerBarcode"></span>
+                                        &nbsp;&nbsp;
+                                        <span class="pending">
+                                            <label style="display:inline" data-bind="text:readerBarcode=='' ? '' : 'rs-'+readerBarcode"></label>
+                                            <img src="~/img/wait2.gif" />
+                                        </span>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td >
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <td valign="top">
+                                                    <a data-bind="attr: { href: itemBarcodeUrl}" target="_blank">
+                                                        <span  data-bind="text:itemBarcode"></span>
+                                                    </a>                                                     
+                                                    &nbsp;&nbsp;
+                                                </td>
+                                                <td valign="top">
+                                                    <span class="pending">
+                                                        <label style="display:inline" data-bind="text:itemBarcode=='' ? '' : 'bs-'+itemBarcode"></label>
+                                                        <img src="~/img/wait2.gif" />
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
                                         <span style="color:gray">操作时间&nbsp;&nbsp;</span>
                                         <span data-bind="text:operTime"></span>
                                     </td>
                                 </tr>
                             </table>
-                            
+
                         </td>
-                    </tr>                    
+                    </tr>
                 </table>
 
             </div>
 
         </div>
         <div class="col-md-6">
-                    <h3><span class="label label-default">读者信息</span></h3>
-                    <div id="divPatron" >
-                        <span class="errorspan" data-bind="text: patronVModel.errorInfo"></span>
+            <h3><span class="label label-default">读者信息</span></h3>
+            <div id="divPatron">
+                <span class="errorspan" data-bind="text: patronVModel.errorInfo"></span>
 
-                        <div id="readerTable" style="border:1px solid #dddddd;border-radius: 6px;">
-                            <table class="table">
-                                <tr>
-                                    <td class="td-right"><span class="reader-name" data-bind="text: patronVModel.patron().name"></span></td>
-                                    <td style="vertical-align:middle">（<span data-bind="text: patronVModel.patron().department"></span>）</td>
-                                </tr>
-                                <tr>
-                                    <td class="col-xs-3 td-right" style="vertical-align:middle">读者证条码号</td>
-                                    <td class="col-xs-9"><span class="reader-barcode" data-bind="text: patronVModel.patron().barcode"></span></td>
-                                </tr>
-                                <tr>
-                                    <td class="td-right">读者类别</td>
-                                    <td data-bind="text: patronVModel.patron().readerType"> </td>
-                                </tr>
-
-
-
-                                <tr>
-                                    <td class="td-right">证状态</td>
-                                    <td data-bind="text: patronVModel.patron().state">&nbsp;</td>
-                                </tr>
-
-                                <tr>
-                                    <td class="td-right">失效日期</td>
-                                    <td data-bind="text: patronVModel.patron().expireDate"></td>
-                                </tr>
-
-                            </table>
-                        </div>
-                        </div>
+                <div id="readerTable" style="border:1px solid #dddddd;border-radius: 6px;">
+                    <table class="table">
+                        <tr>
+                            <td class="td-right"><span class="reader-name" data-bind="text: patronVModel.patron().name"></span></td>
+                            <td style="vertical-align:middle">（<span data-bind="text: patronVModel.patron().department"></span>）</td>
+                        </tr>
+                        <tr>
+                            <td class="col-xs-3 td-right" style="vertical-align:middle">读者证条码号</td>
+                            <td class="col-xs-9"><span class="reader-barcode" data-bind="text: patronVModel.patron().barcode"></span></td>
+                        </tr>
+                        <tr>
+                            <td class="td-right">读者类别</td>
+                            <td data-bind="text: patronVModel.patron().readerType"> </td>
+                        </tr>
 
 
-                    <h3><span class="label label-default">在借册</span></h3>
-                    <div id="divBorrow">
-                        <span class="errorspan" data-bind="text: borrowModel.errorInfo"></span>
-                        <table id="borrowTable" class="table  table-striped">
-                            <thead></thead>
-                            <tr>
-                                <th>册条码号</th>
-                                <th>续借次</th>
-                                <th>借阅日期</th>
-                                <th>期限</th>
-                                <th>操作者</th>
-                                <th>应还日期</th>
-                            </tr>
-                            <tbody data-bind="foreach: borrowModel.borrows">
-                                <tr>
-                                    <td style="color:green;font-size:14.8px;font-weight:bold" data-bind="text: barcode"></td>
-                                    <td data-bind="text:renewNo"></td>
-                                    <td data-bind="text:borrowDate"></td>
-                                    <td data-bind="text:period"></td>
-                                    <td data-bind="text:borrowOperator"></td>
-                                    <td data-bind="text:returnDate"></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="6" >摘要：
-                                        <span class="pending">
-                                            <label style="display:inline" data-bind="text:barcode=='' ? '' : 'bs-'+barcode"></label>
-                                            <img src="~/img/wait2.gif" />
-                                        </span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
 
+                        <tr>
+                            <td class="td-right">证状态</td>
+                            <td data-bind="text: patronVModel.patron().state">&nbsp;</td>
+                        </tr>
 
+                        <tr>
+                            <td class="td-right">失效日期</td>
+                            <td data-bind="text: patronVModel.patron().expireDate"></td>
+                        </tr>
+
+                    </table>
                 </div>
             </div>
+
+
+            <h3><span class="label label-default">在借册</span></h3>
+            <div id="divBorrow">
+                <span class="errorspan" data-bind="text: borrowModel.errorInfo"></span>
+                <table id="borrowTable" class="table  table-striped">
+                    <thead></thead>
+                    <tr>
+                        <th>册条码号</th>
+                        <th>续借次</th>
+                        <th>借阅日期</th>
+                        <th>期限</th>
+                        <th>操作者</th>
+                        <th>应还日期</th>
+                    </tr>
+                    <tbody data-bind="foreach: borrowModel.borrows">
+                        <tr>
+                            <td style="color:green;font-size:14.8px;font-weight:bold" >
+
+                                <a data-bind="attr: { href: barcodeUrl}" target="_blank">
+                                    <span data-bind="text: barcode"></span>
+                                </a> 
+
+                            </td>
+                            <td data-bind="text:renewNo"></td>
+                            <td data-bind="text:borrowDate"></td>
+                            <td data-bind="text:period"></td>
+                            <td data-bind="text:borrowOperator"></td>
+                            <td data-bind="text:returnDate"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="6">
+                                摘要：
+                                <span class="pending">
+                                    <label style="display:inline" data-bind="text:barcode=='' ? '' : 'bs-'+barcode"></label>
+                                    <img src="~/img/wait2.gif" />
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
         </div>
+    </div>
+</div>
