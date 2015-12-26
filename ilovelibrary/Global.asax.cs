@@ -38,8 +38,8 @@ namespace ilovelibrary
             // 初始化全局服务器
             //"http://localhost/dp2library/xe/rest";//"http://dp2003.com/dp2library/rest/";
             string dp2LibraryUrl = WebConfigurationManager.AppSettings["dp2LibraryUrl"];
-            string logDir = WebConfigurationManager.AppSettings["ilovelibraryLogDir"]; //"C:\\ilovelibrary_log";
-            ilovelibraryServer.Instance.Init(dp2LibraryUrl, logDir);
+            string dataDir = WebConfigurationManager.AppSettings["ilovelibraryDataDir"]; //"C:\\ilovelibrary_log";
+            ilovelibraryServer.Instance.Init(dp2LibraryUrl, dataDir);
         }
 
 

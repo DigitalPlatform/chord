@@ -41,20 +41,30 @@ namespace ilovelibrary.Server
 
         // dp2服务器地址
         public string dp2LibraryUrl = "";//"http://dp2003.com/dp2library/rest/"; //"http://localhost:8001/dp2library/rest/";//
-        public string logDir = "";
+        public string dataDir = "";
 
         // dp2通道池
         public LibraryChannelPool ChannelPool = null;
 
-        public void Init(string strDp2LibraryUrl, string strLogDir)
+        // 背景图管理器
+        public string TodayUrl="";
+
+        public void Init(string strDp2LibraryUrl, string strDataDir)
         {
             this.dp2LibraryUrl = strDp2LibraryUrl;
-            this.logDir = strLogDir;
+            this.dataDir = strDataDir;
+            PathUtil.CreateDirIfNeed(this.dataDir);	// 确保目录创建
 
             // 通道池对象
             ChannelPool = new LibraryChannelPool();
             ChannelPool.BeforeLogin -= new BeforeLoginEventHandle(Channel_BeforeLogin);
             ChannelPool.BeforeLogin += new BeforeLoginEventHandle(Channel_BeforeLogin);            
+
+            // 初始img manager
+            string imgFile = this.dataDir+ "\\" +"image.xml";
+            ImgManager imgManager = new ImgManager(imgFile);
+            string todayNo = DateTime.Now.Day.ToString();
+            TodayUrl = imgManager.GetImgUrl(todayNo);
         }
 
         /// <summary>
