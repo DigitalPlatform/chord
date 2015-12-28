@@ -21,6 +21,24 @@ namespace ilovelibrary.Server
         public string description { get; set; }
         public string operTime { get; set; }
 
+
+
+        public string cmdCss
+        {
+            get
+            {
+                if (state == -1)
+                    return "cmderror";
+                if (state == 0)
+                    return "cmdsuccess";
+                if (state == 1)
+                    return "cmdwarning";
+
+                // 其它
+                return "cmdwarning";
+            }
+        }
+
         // 处理状态
         public int state { get; set; }
         public string resultInfo { get; set; }

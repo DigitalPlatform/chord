@@ -2743,7 +2743,7 @@ th {
     }
 
     .table > tbody + tbody {
-        border-top: 2px solid #ddd;
+        border-top: 2px solid #ffffff;
     }
 
     .table .table {

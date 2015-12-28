@@ -169,6 +169,7 @@
             // 线索信息不足，去掉pending状态，继续下一个pending
             if (keyword.length <= 3) {
                 //alert("fillPending1-4");
+                o.html("");
                 o.removeClass("pending");
                 window.setTimeout("fillPending()", 1);
                 return;
@@ -178,6 +179,13 @@
             var mytype = keyword.substring(0, 3);
             var myvalue = keyword.substring(3);
             //alert("type[" + mytype + "]-value[" + myvalue + "]");
+            if (myvalue == "")
+            {
+                o.html("");
+                o.removeClass("pending");
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
 
             if (mytype == "bs-") {
                 var url = "/api/biblio/" + encodeURIComponent(myvalue) + "?format=summary";
@@ -345,11 +353,14 @@
                 readerBarcode: cmdModel.editor.readerBarcode,
                 itemBarcode: cmdModel.editor.itemBarcode
             };
+
             sendAjaxRequest(url, "POST", function (newItem) {
+
+                //错误也进历史
+                cmdModel.commands.unshift(newItem); //push是加到最后面
+
                 // 返回命令执行成功
-                if (newItem.state == 0) {
-                    // 插入到最前面
-                    cmdModel.commands.unshift(newItem); //push是加到最后面
+                if (newItem.state == 0 || newItem.state == 1) {
 
                     // 清空册条码框
                     cmdModel.editor.itemBarcode("");
@@ -375,13 +386,30 @@
                     */
 
                     // layer.alert回车无效
-                    alert(newItem.resultInfo);
+                    //alert(newItem.resultInfo);
+
+                    //var index2 = layer.load(-2, { shade: [0.5, 'yellow'] ,time:1000,content:newItem.resultInfo} );
+                    
+                    var msg = "<span style='color:red'>" +newItem.resultInfo+ "</span>";
+                   // layer.msg(msg, { icon: 2 });
+
+                    
+                    layer.msg(msg, { shade: [0.5, 'gray'], time: 1000, icon: 2 }, function () {
+                        //关闭后的操作
+                    });
+                    
+
                     //操作失败选中册条码框
                     $("#txtItemBarcode").select();
                     $("#txtItemBarcode").focus();
 
+                    
+
                     // 关闭图层
                     layer.close(indexTop);
+
+                    // 更新summary
+                    window.setTimeout("fillPending()", 1);
                 }
 
             }, function (xhq, textStatus, errorThrown) {
@@ -712,6 +740,33 @@ DIV.warning .text
 	background-color: #99ff99;
 }
 
+        .cmdsuccess {
+            color:white;
+            vertical-align:middle;
+            text-align:center;
+            background-color:darkgreen;
+        }
+        .cmdsuccess {
+            color:white;
+            vertical-align:middle;
+            text-align:center;
+            background-color:darkgreen;
+        }
+
+        .cmdwarning {
+            color:black;
+            vertical-align:middle;
+            text-align:center;
+            background-color:yellow;
+        }
+
+         .cmderror {
+            color:white;
+            vertical-align:middle;
+            text-align:center;
+            background-color:red;
+        }
+
     </style>
 }
 
@@ -759,17 +814,18 @@ DIV.warning .text
             <h3><span class="label label-default">操作历史</span></h3>
             <table class="table" data-bind="foreach: cmdModel.commands">
                 <tr data-bind="style: {'border-bottom': isAddLine==1 ? '2px solid #FF6666' : ' ' }">
-                    <td width=" 1%" style="color:white;vertical-align:middle;text-align:center" data-bind="style: {'background-color': type=='borrow' ? '#43A102' : '#049FF1' }">
+                    <td width=" 1%" data-bind="css:cmdCss" style="padding:0.5px;vertical-align:middle">
                         <span style="font-weight:bold" data-bind="text:typeString"></span>
                     </td>
                     <td width="99%">
-                        <table style="padding:2px">
+                        <table style="padding:2px;background-color">
+                            <tr><td data-bind="style: {'color': state!=0? 'red':'blank' }"><span data-bind="html:resultInfo"></span></td></tr>
                             <tr>
                                 <td>
                                     <span data-bind="text:readerBarcode"></span>
                                     &nbsp;&nbsp;
                                     <span class="pending">
-                                        <label style="display:inline" data-bind="text:readerBarcode=='' ? '' : 'rs-'+readerBarcode"></label>
+                                        <label style="display:inline;" data-bind="text:readerBarcode=='' ? 'rs-' : 'rs-'+readerBarcode"></label>
                                         <img src="~/img/wait2.gif" />
                                     </span>
                                 </td>
