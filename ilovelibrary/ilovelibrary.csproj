@@ -140,6 +140,7 @@
     <Content Include="HtmlPage1.html" />
     <Content Include="img\nonePhoto.png" />
     <Content Include="readerxml2html.txt" />
+    <Content Include="XMLFile1.xml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap-theme.css" />

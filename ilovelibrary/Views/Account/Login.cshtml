@@ -7,7 +7,7 @@
 @section style {
     <style type="text/css">
         body {
-            padding-top: 40px;
+            padding-top: 30px;
             padding-bottom: 40px;
             background-color: #eee;
         }
@@ -15,7 +15,9 @@
         .form-signin {
             max-width: 330px;
             padding: 15px;
+            padding-top:5px;
             margin: 0 auto;
+            background-color: rgba(255,255,255,0.6); /* IE9、标准浏览器、IE6和部分IE7内核的浏览器(如QQ浏览器)会读懂 */
         }
 
             .form-signin .form-signin-heading,
@@ -25,6 +27,7 @@
 
             .form-signin .checkbox {
                 font-weight: normal;
+               font-size:large;
             }
 
             .form-signin .form-control {
@@ -52,23 +55,24 @@
                 border-top-left-radius: 0;
                 border-top-right-radius: 0;
             }
+
+
+        textborder {
+            border: red solid thin;
+            outline: #00ff00 dotted thick;
+        }
     </style>
 }
 
 <div class="container">
-
     @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-signin" }))
     {
-        @Html.AntiForgeryToken()
-    <font style="color:red">@Html.ValidationSummary(true)</font>
-
-        <h2 class="form-signin-heading">我爱图书馆</h2>
-
+        <span style="text-align:center;"> <h2 class="form-signin-heading">我爱图书馆</h2></span>
         <label for="inputEmail" class="sr-only">用户名</label>
-        <input type="text" name="UserName" class="form-control" placeholder="用户名" required autofocus >
+        <input type="text" name="UserName" class="form-control" placeholder="用户名" required autofocus>
 
         <label for="inputPassword" class="sr-only">密码</label>
-        <input type="password" name="Password" class="form-control" placeholder="密码" required >
+        <input type="password" name="Password" class="form-control" placeholder="密码" required>
         <!--
         <div class="checkbox">
             <label>
@@ -77,10 +81,13 @@
         </div>
             -->
     <div class="checkbox">
-        <label>
-            <input type="checkbox" value="1" name="IsReader"> 读者
+        <label >
+            <input type="checkbox" value="1" name="IsReader" >读者
         </label>
     </div>
         <button class="btn btn-lg btn-primary btn-block" type="submit">登录</button>
+
+    @Html.AntiForgeryToken()
+    <font style="color:red">@Html.ValidationSummary(true)</font>
     }
 </div> <!-- /container -->

@@ -24,5 +24,7 @@ namespace ilovelibrary.Server
         public string returnDate { get; set; }
 
         public string barcodeUrl { get; set; }
+
+        public string rowCss { get; set; }
     }
 }

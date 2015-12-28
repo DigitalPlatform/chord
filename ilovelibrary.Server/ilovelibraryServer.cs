@@ -171,7 +171,7 @@ namespace ilovelibrary.Server
             {
                 // 先根据barcode检索出来,得到原记录与时间戳
                 GetReaderInfoResponse response = channel.GetReaderInfo(strReaderBarcode,
-                    "advancexml");
+                    "advancexml");//
                 if (response.GetReaderInfoResult.Value == -1)
                 {
                     result.apiResult.errorCode = -1;
@@ -206,91 +206,12 @@ namespace ilovelibrary.Server
                 patron.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");
                 // 赋给返回对象
                 result.patron = patron;
-                
-                // ***
-                // 在借册
-                XmlNodeList nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
-                int nBorrowCount = nodes.Count;
-                /*
-  <info>
-    <item name="可借总册数" value="10" />
-    <item name="日历名">
-      <value>ILL1/新建日历</value>
-    </item>
-    <item name="当前还可借" value="10" />
-  </info>                  
-                 */
-
-                string strMaxItemCount = "10";// GetParam(strReaderType, "", "可借总册数");
-                int nMax = -1;
-                try
-                {
-                    nMax = System.Convert.ToInt32(strMaxItemCount);
-                }
-                catch { }
-                if (nMax == -1)
-                {
-                    patron.maxBorrowCount = "当前读者 可借总册数 参数 '" + strMaxItemCount + "' 格式错误";
-                }
-                else
-                {
-                    patron.maxBorrowCount = "最多可借:" + strMaxItemCount;
-                    patron.curBorrowCount = "当前可借:" + System.Convert.ToString(Math.Max(0, nMax - nBorrowCount));
-                }
-                int nOverdueCount = 0;
-                List<BorrowInfo> borrowList = new List<BorrowInfo>();
-                for (int i = 0; i < nodes.Count; i++)
-                {
-                    XmlNode node = nodes[i];
-
-                    string strBarcode = DomUtil.GetAttr(node, "barcode");
-                    string strRenewNo = DomUtil.GetAttr(node, "no");
-                    string strBorrowDate = DomUtil.GetAttr(node, "borrowDate");
-                    string strPeriod = DomUtil.GetAttr(node, "borrowPeriod");
-                    string strOperator = DomUtil.GetAttr(node, "operator");
-                    string strRenewComment = DomUtil.GetAttr(node, "renewComment");
-
-                    string strOverDue = "";
-                    bool bOverdue = false;  // 是否超期                   
-                    strOverDue = DomUtil.GetAttr(node, "overdueInfo");
-                    string strOverdue1 = DomUtil.GetAttr(node, "overdueInfo1");
-                    string strIsOverdue = DomUtil.GetAttr(node, "isOverdue");
-                    if (strIsOverdue == "yes")
-                        bOverdue = true;
-
-                    DateTime timeReturning = DateTime.MinValue;
-                    string strTimeReturning = DomUtil.GetAttr(node, "timeReturning");
-                    if (String.IsNullOrEmpty(strTimeReturning) == false)
-                        timeReturning = DateTimeUtil.FromRfc1123DateTimeString(strTimeReturning).ToLocalTime();
-                    string strReturnDate = LocalDateOrTime(timeReturning, strPeriod);
-
-                    // todo 判断是否超期
-                    //nOverdueCount++; 
-
-                    // 创建 borrowinfo对象，加到集合里
-                    BorrowInfo borrowInfo = new BorrowInfo();
-                    borrowInfo.barcode = strBarcode;
-                    borrowInfo.renewNo = strRenewNo;
-                    borrowInfo.borrowDate = LocalDateOrTime(strBorrowDate, strPeriod);// strBorrowDate;
-                    borrowInfo.period = strPeriod;
-                    borrowInfo.borrowOperator = strOperator;
-                    borrowInfo.renewComment = strRenewComment;
-                    borrowInfo.overdue = strOverDue;
-                    borrowInfo.returnDate = strReturnDate;
-                    borrowInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode + "&borrower=" + strReaderBarcode;
-                    borrowList.Add(borrowInfo);
-                    
-                }
-                if (nOverdueCount > 0)
-                    strWarningText += "<div class='warning overdue'><div class='number'>" + nOverdueCount.ToString() + "</div><div class='text'>已超期</div></div>";
-                // 赋给返回对象
-                result.borrowList = borrowList;
 
 
                 // ***
                 // 违约/交费信息
                 List<OverdueInfo> overdueLit = new List<OverdueInfo>();
-                nodes = dom.DocumentElement.SelectNodes("overdues/overdue");
+                XmlNodeList nodes = dom.DocumentElement.SelectNodes("overdues/overdue");
                 if (nodes.Count > 0)
                 {
                     for (int i = 0; i < nodes.Count; i++)
@@ -329,6 +250,109 @@ namespace ilovelibrary.Server
                 }
                 // 赋到返回对象上
                 result.overdueList = overdueLit;
+                
+                // ***
+                // 在借册
+                nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
+                int nBorrowCount = nodes.Count;
+                /*
+  <info>
+    <item name="可借总册数" value="10" />
+    <item name="日历名">
+      <value>ILL1/新建日历</value>
+    </item>
+    <item name="当前还可借" value="10" />
+  </info>                  
+                 */
+                XmlNode nodeMax = dom.DocumentElement.SelectSingleNode("info/item[@name='可借总册数']");
+                if (nodeMax == null)
+                {
+                    patron.maxBorrowCount = "获取当前读者可借总册数出错：未找到对应节点。";
+                }
+                else
+                {
+                    string maxCount = DomUtil.GetAttr(nodeMax, "value");
+                    if (maxCount == "")
+                    {
+                        patron.maxBorrowCount = "获取当前读者可借总册数出错：未设置对应值。";
+                    }
+                    else
+                    {
+                        patron.maxBorrowCount = "最多可借:" + maxCount; ;
+                        XmlNode nodeCurrent = dom.DocumentElement.SelectSingleNode("info/item[@name='当前还可借']");
+                        if (nodeCurrent == null)
+                        {
+                            patron.curBorrowCount = "获取当前还可借出错：未找到对应节点。";
+                        }
+                        else
+                        {
+                            patron.curBorrowCount = "当前可借:" + DomUtil.GetAttr(nodeCurrent, "value");
+                        }
+                    } 
+                }
+/*
+  <borrows>
+    <borrow barcode="C20" recPath="中文图书实体/10" biblioRecPath="中文图书/3" borrowDate="Mon, 28 Dec 2015 10:14:18 +0800" borrowPeriod="5day" returningDate="Sat, 02 Jan 2016 12:00:00 +0800" operator="ILL1-R002" type="童话" price="" isOverdue="yes" overdueInfo="已超过借阅期限 (2016年1月2日) 3 天。" overdueInfo1=" (已超期 3 天)" timeReturning="Sat, 02 Jan 2016 12:00:00 +0800" />
+    <borrow barcode="C10" recPath="中文图书实体/3" biblioRecPath="中文图书/1" borrowDate="Mon, 28 Dec 2015 09:49:47 +0800" borrowPeriod="5day" returningDate="Sat, 02 Jan 2016 12:00:00 +0800" operator="ILL1-R002" type="童话" price="15" isOverdue="yes" overdueInfo="已超过借阅期限 (2016年1月2日) 3 天。" overdueInfo1=" (已超期 3 天)" timeReturning="Sat, 02 Jan 2016 12:00:00 +0800" />
+    <borrow barcode="C32" recPath="中文图书实体/13" biblioRecPath="中文图书/2" borrowDate="Mon, 28 Dec 2015 04:15:39 +0800" borrowPeriod="5day" returningDate="Sat, 02 Jan 2016 12:00:00 +0800" operator="supervisor" type="童话" price="" isOverdue="yes" overdueInfo="已超过借阅期限 (2016年1月2日) 3 天。" overdueInfo1=" (已超期 3 天)" timeReturning="Sat, 02 Jan 2016 12:00:00 +0800" />
+    <borrow barcode="C33" recPath="中文图书实体/14" biblioRecPath="中文图书/2" borrowDate="Mon, 28 Dec 2015 04:14:43 +0800" borrowPeriod="5day" returningDate="Sat, 02 Jan 2016 12:00:00 +0800" operator="supervisor" type="音乐" price="" isOverdue="yes" overdueInfo="已超过借阅期限 (2016年1月2日) 3 天。" overdueInfo1=" (已超期 3 天)" timeReturning="Sat, 02 Jan 2016 12:00:00 +0800" />
+    <borrow barcode="C31" recPath="中文图书实体/12" biblioRecPath="中文图书/2" borrowDate="Mon, 28 Dec 2015 04:14:39 +0800" borrowPeriod="5day" returningDate="Sat, 02 Jan 2016 12:00:00 +0800" operator="supervisor" type="童话" price="" isOverdue="yes" overdueInfo="已超过借阅期限 (2016年1月2日) 3 天。" overdueInfo1=" (已超期 3 天)" timeReturning="Sat, 02 Jan 2016 12:00:00 +0800" />
+    <borrow barcode="C23" recPath="中文图书实体/9" biblioRecPath="中文图书/3" borrowDate="Mon, 28 Dec 2015 04:14:36 +0800" borrowPeriod="5day" returningDate="Sat, 02 Jan 2016 12:00:00 +0800" operator="supervisor" type="童话" price="" isOverdue="yes" overdueInfo="已超过借阅期限 (2016年1月2日) 3 天。" overdueInfo1=" (已超期 3 天)" timeReturning="Sat, 02 Jan 2016 12:00:00 +0800" />
+  </borrows>
+*/
+                int nOverdueCount = 0;
+                List<BorrowInfo> borrowList = new List<BorrowInfo>();
+                for (int i = 0; i < nodes.Count; i++)
+                {
+                    XmlNode node = nodes[i];
+
+                    //借阅基本信息
+                    string strBarcode = DomUtil.GetAttr(node, "barcode");
+                    string strBorrowDate = DateTimeUtil.LocalDate( DomUtil.GetAttr(node, "borrowDate"));
+                    string strPeriod = DomUtil.GetAttr(node, "borrowPeriod");
+                    string strOperator = DomUtil.GetAttr(node, "operator");
+                    string strTimeReturning = DateTimeUtil.LocalDate(DomUtil.GetAttr(node, "timeReturning"));
+
+                    // 续借信息
+                    string strRenewNo = DomUtil.GetAttr(node, "no"); // 续借次数
+                    string strRenewComment = DomUtil.GetAttr(node, "renewComment");
+
+                    string rowCss = "";
+                    string strOverdueInfo = DomUtil.GetAttr(node, "overdueInfo");
+                    string strOverdue1 = DomUtil.GetAttr(node, "overdueInfo1");
+                    bool bOverdue = false; 
+                    string strIsOverdue = DomUtil.GetAttr(node, "isOverdue");
+                    if (strIsOverdue == "yes")
+                    {
+                        bOverdue = true;
+                        nOverdueCount++;
+
+                        strTimeReturning += strOverdue1;
+
+                        rowCss = "borrowinfo-overdue";
+                    }
+
+                    // 创建 borrowinfo对象，加到集合里
+                    BorrowInfo borrowInfo = new BorrowInfo();
+                    borrowInfo.barcode = strBarcode;
+                    borrowInfo.renewNo = strRenewNo;
+                    borrowInfo.borrowDate = strBorrowDate;
+                    borrowInfo.period = strPeriod;
+                    borrowInfo.borrowOperator = strOperator;
+                    borrowInfo.renewComment = strRenewComment;
+                    borrowInfo.overdue = strOverdueInfo;
+                    borrowInfo.returnDate = strTimeReturning;
+                    borrowInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode + "&borrower=" + strReaderBarcode;
+                    borrowInfo.rowCss = rowCss;
+                    borrowList.Add(borrowInfo);
+                    
+                }
+                if (nOverdueCount > 0)
+                    strWarningText += "<div class='warning overdue'><div class='number'>" + nOverdueCount.ToString() + "</div><div class='text'>已超期</div></div>";
+                // 赋给返回对象
+                result.borrowList = borrowList;
+
+
 
 
                 // ***
@@ -819,27 +843,7 @@ namespace ilovelibrary.Server
             return DateTimeUtil.LocalTime(strTimeString);
         }
 
-        // 根据strPeriod中的时间单位(day/hour)，返回本地日期或者时间字符串
-        // parameters:
-        //      strPeriod   原始格式的时间长度字符串。也就是说，时间单位不和语言相关，是"day"或"hour"
-        public static string LocalDateOrTime(DateTime time,
-            string strPeriod)
-        {
-            string strError = "";
-            long lValue = 0;
-            string strUnit = "";
-            int nRet = ParsePeriodUnit(strPeriod,
-                        out lValue,
-                        out strUnit,
-                        out strError);
-            if (nRet == -1)
-                strUnit = "day";
-            if (strUnit == "day")
-                return time.ToString("d");  // 精确到日
 
-            return time.ToString("g");  // 精确到分钟。G精确到秒
-            // http://www.java2s.com/Tutorial/CSharp/0260__Date-Time/UsetheToStringmethodtoconvertaDateTimetoastringdDfFgGmrstTuUy.htm
-        }
 
         // 分析期限参数
         public static int ParsePeriodUnit(string strPeriod,

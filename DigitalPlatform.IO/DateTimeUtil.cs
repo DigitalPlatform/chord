@@ -458,6 +458,7 @@ out string strError)
         {
             try
             {
+
                 if (String.IsNullOrEmpty(strRfc1123Time) == true)
                     return "";
 
