@@ -47,17 +47,20 @@ namespace ilovelibrary.ApiControllers
                 throw new Exception("尚未登录");
             }
             SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo] ;
-
+            /*
             // 取在借册
             if (format == C_format_borrowinfo)
             {
                 BorrowInfoResult result = ilovelibraryServer.Instance.GetBorrowInfo(sessionInfo, id);
                 return result;
             }
+             */
 
             // 取summary
             if (format == C_format_summary)
             {
+
+                //id=HtmlEncoding 
                 return  ilovelibraryServer.Instance.GetPatronSummary(sessionInfo, id);
             }
 

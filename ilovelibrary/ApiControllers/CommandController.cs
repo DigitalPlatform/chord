@@ -44,9 +44,7 @@ namespace ilovelibrary.ApiControllers
             SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo];
             
             // 执行命令
-            string strError="";
-            int nRet = sessionInfo.AddCmd(item, out strError);
-            return item;
+            return  sessionInfo.AddCmd(item);
         }
 
 

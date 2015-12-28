@@ -67,7 +67,7 @@ namespace ilovelibrary.Controllers
             // 将session置空
             Session[SessionInfo.C_Session_sessioninfo] = null;
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Main", "Charging");
         }
     }
 }

@@ -2743,7 +2743,8 @@ th {
     }
 
     .table > tbody + tbody {
-        border-top: 2px solid #ddd;
+        /*border-top: 2px solid #ffffff;*/
+        padding-top:1em;
     }
 
     .table .table {
@@ -2767,7 +2768,7 @@ th {
     }
 
 .table-striped > tbody > tr:nth-of-type(odd) {
-    background-color: #f9f9f9;
+    /*background-color: #f9f9f9;*/
 }
 
 .table-hover > tbody > tr:hover {

@@ -820,44 +820,40 @@ namespace DigitalPlatform.LibraryRestClient
         /// </summary>
         /// <param name="strItemBarcode"></param>
         /// <returns></returns>
-        public string GetBiblioSummary(string strItemBarcode)
+        public GetBiblioSummaryResponse GetBiblioSummary(string strItemBarcode,
+            string strBiblioRecPathExclude)
         {
             string strError = "";
         REDO:
 
-            try
+
+            CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
+            client.Headers["Content-type"] = "application/json; charset=utf-8";
+
+            GetBiblioSummaryRequest request = new GetBiblioSummaryRequest();
+            request.strItemBarcode = strItemBarcode; // 册条码号
+            request.strConfirmItemRecPath = "";//this.GetBiblioSummary_textBox_strConfirmItemRecPath.Text; // 记录路径
+            request.strBiblioRecPathExclude = strBiblioRecPathExclude;//null; // 希望排除掉的书目记录路径
+
+
+            byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
+            byte[] result = client.UploadData(this.GetRestfulApiUrl("GetBiblioSummary"),
+                                                "POST",
+                                                baData);
+
+            string strResult = Encoding.UTF8.GetString(result);
+
+            GetBiblioSummaryResponse response = Deserialize<GetBiblioSummaryResponse>(strResult);
+            if (response.GetBiblioSummaryResult.Value == -1 && response.GetBiblioSummaryResult.ErrorCode == ErrorCode.NotLogin)
             {
-                CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
-                client.Headers["Content-type"] = "application/json; charset=utf-8";
-
-                GetBiblioSummaryRequest request = new GetBiblioSummaryRequest();
-                request.strItemBarcode = strItemBarcode; // 册条码号
-                request.strConfirmItemRecPath = "";//this.GetBiblioSummary_textBox_strConfirmItemRecPath.Text; // 记录路径
-                request.strBiblioRecPathExclude = "";//null; // 希望排除掉的书目记录路径
-
-
-                byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
-                byte[] result = client.UploadData(this.GetRestfulApiUrl("GetBiblioSummary"),
-                                                    "POST",
-                                                    baData);
-
-                string strResult = Encoding.UTF8.GetString(result);
-
-                GetBiblioSummaryResponse response = Deserialize<GetBiblioSummaryResponse>(strResult);
-                if (response.GetBiblioSummaryResult.Value == -1 && response.GetBiblioSummaryResult.ErrorCode == ErrorCode.NotLogin)
-                {
-                    if (DoNotLogin(ref strError) == 1)
-                        goto REDO;
-                    return strError;
-                }
-
-                return response.strSummary;
-
+                if (DoNotLogin(ref strError) == 1)
+                    goto REDO;
+                return response;
             }
-            catch (Exception ex)
-            {
-                return ex.Message;
-            }
+
+            return response;
+
+
         }
 
         // 验证读者密码

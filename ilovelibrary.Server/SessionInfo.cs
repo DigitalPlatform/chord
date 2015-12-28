@@ -36,26 +36,11 @@ namespace ilovelibrary.Server
             return this.cmdList.Where(r => r.id == id).FirstOrDefault();
         }
 
-        public int AddCmd(Command item, out string strError)
+        public Command AddCmd(Command item)
         {
             Debug.Assert(item != null, "AddCmd传进的item不能为空。");
             Debug.Assert(String.IsNullOrEmpty(item.type) == false, "命令类型不能为空。");
-            strError = "";
-
-            if (item.type == Command.C_Command_Borrow || item.type == Command.C_Command_Renew)
-            {
-                if (String.IsNullOrEmpty(item.readerBarcode) == true)
-                {
-                    strError = "读者证条码号不能为空。";
-                    return -1;
-                }
-            }
-
-            if (String.IsNullOrEmpty(item.itemBarcode) == true)
-            {
-                strError = "册条码号不能为空。";
-                return -1;
-            }
+            string strError = "";
 
             // 补充命令信息
             item.id = this.cmdList.Count + 1;
@@ -63,8 +48,20 @@ namespace ilovelibrary.Server
             item.operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
             item.typeString = Command.getTypeString(item.type);
 
+            if (item.type == Command.C_Command_Borrow || item.type == Command.C_Command_Renew)
+            {
+                if (String.IsNullOrEmpty(item.readerBarcode) == true)
+                {
+                    item.state = -1;
+                    item.resultInfo = "读者证条码号不能为空。";
+                }
+            }
 
-
+            if (String.IsNullOrEmpty(item.itemBarcode) == true)
+            {
+                item.state = -1;
+                item.resultInfo = "册条码号不能为空。";
+            }
 
             // 执行这个命令
             LibraryChannel channel = ilovelibraryServer.Instance.ChannelPool.GetChannel(ilovelibraryServer.Instance.dp2LibraryUrl, this.UserName);
@@ -99,12 +96,22 @@ namespace ilovelibrary.Server
                 if (lRet == -1)
                 {
                     item.state = -1;
-                    item.resultInfo = "失败：" + strError;
-                    return -1;
-                }                
+                    item.resultInfo = item.typeString+"书操作失败：" + strError;
+                }
+                else if (lRet == 0)
+                {
+                    item.state = 0;
+                    item.resultInfo = item.typeString + "书操作成功。";           
+                }
+                else
+                {
+                    item.state = 1;
+                    item.resultInfo =  strError;           
+
+                }
 
                 // 检索是否与前面同一个读者，不加要加线
-                if (this.cmdList.Count > 0)
+                if (this.cmdList.Count > 0 && item.readerBarcode !="")
                 {
                     Command firstCmd = this.cmdList[0];
                     if (firstCmd.readerBarcode != item.readerBarcode)
@@ -112,11 +119,11 @@ namespace ilovelibrary.Server
                 }
                 // 设链接地址
                 item.itemBarcodeUrl = ilovelibraryServer.Instance.dp2OpacUrl + "/book.aspx?barcode=" + item.itemBarcode + "&borrower=" + item.readerBarcode;
-                // 成功才加到集合里
+
+                // 加到集合里
                 this.cmdList.Insert(0, item);
-                item.state = 0;
-                item.resultInfo = "成功";
-                return 1;
+
+                return item;
             }
             finally
             {

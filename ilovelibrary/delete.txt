@@ -1,4 +1,19 @@
-﻿                            <table style="padding:2px">
+﻿2015-12-28
+ class="container" style="background-color:#ffffff"
+ =========
+                                 <!--    
+                                <span class="pending">
+                                    <label style="display:inline" data-bind="text:barcode=='' ? '' : 'bs-'+barcode"></label>
+                                    <img src="~/img/wait2.gif" height="10" width="10" />
+                                </span>
+                                    -->
+ =========
+  取观察模型的数据时，要加(),$('#readerStateTable').effect('shake', { times: 10 }, 500);
+
+样式绑定必须这样写
+ data-bind="style: {'background-color': patronVModel.patron()!=null && patronVModel.patron().state != null && patronVModel.patron().state !='' ? 'red' : 'white ' }"
+==============
+                            <table style="padding:2px">
                                 <tr>
                                     <td>
                                         

@@ -76,7 +76,7 @@ namespace ilovelibrary.Server
             //2、idx，非必要。不存在或者等于0时，输出当天的图片，-1为已经预备用于明天显示的信息，1则为昨天的图片，idx最多获取到前16天的图片信息。
             //3、n，必要参数。这是输出信息的数量。比如n=1，即为1条，以此类推，至多输出8条。
             //在返回的XML文件中我们通过访问images->image->url获得图片地址，然后通过http://s.cn.bing.net/获得的图片地址进行访问
-            string url = "http://cn.bing.com/HPImageArchive.aspx?format=xml&idx=-1&n=1";
+            string url = "http://cn.bing.com/HPImageArchive.aspx?format=xml&idx=0&n=1";
             WebClient client = new WebClient();
             byte[] result = client.DownloadData(url);
             string strResult = Encoding.UTF8.GetString(result);
