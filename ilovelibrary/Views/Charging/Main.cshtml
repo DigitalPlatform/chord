@@ -2,68 +2,6 @@
     ViewBag.Title = "出纳窗";
 }
 
-@{
-
-    //<p>参数：@Request["showbtn"]-@Request["showlbl"]</p>
-    // 根据url参数决定是否显示标签和按钮
-    // 计算各部分宽度
-    int icon = 1;
-    int left = 0;
-    int middle = 0;
-    int right = 0;
-    string readerIconStr = "<label class='col-xs-" + icon.ToString() + " control-label'><span style='font-size:22px'> <span class='glyphicon glyphicon-user'></span></span></label>";
-    string readerLeftStr = "";
-    string readerMiddleStr = "";
-    string readerRightStr = "";
-    string readerBarcodeGroupStr = "";
-    string itemIconStr = "<label class='col-xs-" + icon.ToString() + " control-label'><span style='font-size:22px'> <span class='glyphicon glyphicon-book'></span></span></label>";
-    string itemLeftStr = "";
-    string itemMiddleStr = "";
-    string itemRightStr = "";
-    string itemBarcodeGroupStr = "";
-    if (Request["showlbl"] == "1")
-    {
-        left = 2;
-        readerLeftStr = "<label class='col-xs-" + left.ToString() + " control-label'>证条码号</label>";
-        itemLeftStr = "<label class='col-xs-" + left.ToString() + " control-label'>册条码号</label>";
-    }
-    if (Request["showbtn"] == "1")
-    {
-        right = 2;
-        readerRightStr = "<div class='col-xs-" + right.ToString() + "'>"
-                        + "<button type='button' class='btn btn-default btn-lg' id='btnLoad'>装载</button>"
-                        + "</div>";
-        itemRightStr = "<div class='col-xs-" + right.ToString() + "'>"
-                        + "<button type='button' class='btn btn-default btn-lg' id='btnDo'>借</button>"
-                        + "</div>";
-    }
-    middle = 12 - icon - left - right;
-    readerMiddleStr = "<div class='col-xs-" + middle + "'>"
-                     + "<input type='text' class='form-control input-lg' id='txtReaderBarcode' placeholder='证 条码号' data-bind='value:cmdModel.editor.readerBarcode'>"
-                     + @"<span class='pending' id='divReaderSummary'>
-                                <label  id='readerKeyWord'></label>
-                                <img src='../img/wait2.gif' />
-                            </span> "
-                     + "</div>";
-    itemMiddleStr = "<div class='col-xs-" + middle + "'>"
-                     + "<input type='text' class='form-control input-lg' id='txtItemBarcode' placeholder='册 条码号' data-bind='value:cmdModel.editor.itemBarcode'>"
-                     + "</div>";
-
-    readerBarcodeGroupStr = "<div class='form-group' id='trReaderBarcode'>"
-        + readerIconStr + readerLeftStr + readerMiddleStr + readerRightStr
-        + "</div>";
-    itemBarcodeGroupStr = "<div class='form-group' >"
-        + itemIconStr + itemLeftStr + itemMiddleStr + itemRightStr
-        + "</div>";
-
-    var formStr = "<div class='form-horizontal' role='form'>"
-        + readerBarcodeGroupStr
-        + itemBarcodeGroupStr
-        + "</div>";
-
-
-}
-
 @section Scripts {
     <script>
 
@@ -72,14 +10,11 @@
             errorInfo: ko.observable(""),
 
             // 注意必须要后面带("")，可以监控对象
-            patron: ko.observable("")
+            patron: ko.observable(""),
+            overdueList: ko.observableArray(),
+            borrowList: ko.observableArray(),
+            reservationList: ko.observableArray()
         };
-
-        // 借阅信息 view model
-        var borrowModel = {
-            errorInfo: ko.observable(""),
-            borrows: ko.observableArray(),
-        }
 
         //操作 view model
         var cmdModel = {
@@ -110,25 +45,17 @@
             //等待图层
             var index = layer.load(2, { shade: [0.5, '#EEEEEE'] })
 
-            // 隐藏读者基本信息
-            $("#readerTable").hide();
-            $("#divReaderSummary").hide();
-
-            //隐藏borrowinfo 区
-            $("#borrowTable").hide();
-            // 先删除可观察数组中的已有数据
-            borrowModel.borrows.removeAll();
-
-
+            // 隐藏读者信息
+            showReaderInfo(false);
 
             // 从服务器api获得读者json数据
             var url = "/api/patron/" + readerBarcode;
             sendAjaxRequest(url, "GET", function (data) {
-                //将返回数据绑在观察模型上
+
+                //设置出借信息
                 patronVModel.errorInfo(data.apiResult.errorInfo);
-                if (data.patron == null)
-                    patronVModel.patron("");
-                else
+                // 设基本信息
+                if (data.patron !=null)
                     patronVModel.patron(data.patron);
 
                 if (data.apiResult.errorCode == -1) {
@@ -136,22 +63,62 @@
                     $("#txtReaderBarcode").select();
                 }
                 else {
-                    // 显示读者基本信息
+
+                    // 设置读者线索
+                    var readerKeyWord = "rs-" + readerBarcode;
+                    $("#divReaderSummary").html("<label  id='readerKeyWord'>" + readerKeyWord + "</label><img src='../img/wait2.gif' />");
+                    $("#divReaderSummary").addClass("pending");
+
+                    // 显示基本信息
                     $("#readerTable").show();
                     $("#divReaderSummary").show();
+
+                    //设违约/交费
+                    var olist = data.overdueList;
+                    if (olist != null && olist.length > 0) {
+                        for (var i = 0; i < olist.length; i++) {
+                            patronVModel.overdueList.push(olist[i]);
+                        }
+                        //显示违约交费
+                        $("#divOverdue").show();
+                    }
+
+                    //设在借册
+                    var blist = data.borrowList;
+                    if (blist != null && blist.length > 0) {
+                        for (var i = 0; i < blist.length; i++) {
+                            patronVModel.borrowList.push(blist[i]);
+                        }
+
+                        //显示在借册
+                        $("#borrowTable").show();
+                    }
+
+                    var rlist = data.reservationList;
+                    if (rlist != null && rlist.length > 0) {
+                        for (var i = 0; i < rlist.length; i++) {
+                            patronVModel.reservationList.push(rlist[i]);
+                        }
+
+                        //显示预约
+                        $("#reservationTable").show();
+                    }
+
+
                     // 成功，焦点换到item上
                     $("#txtItemBarcode").focus();
 
-                    // 设到读者线索上
-                    var readerKeyWord= "rs-" + readerBarcode;
-                    $("#divReaderSummary").html("<label  id='readerKeyWord'>" + readerKeyWord + "</label><img src='../img/wait2.gif' />");
-                    // 给divReaderSummary设pending样式
-                    $("#divReaderSummary").addClass("pending");
+                    // 动效果
+                    if (patronVModel.patron().warningText != null && patronVModel.patron().warningText != "") {
+                        $('#insertpoint').effect('pulsate', { times: 3 }, 500);
+                    }
+                    if (patronVModel.patron().state != null && patronVModel.patron().state != "") {
+                        //alert("test");
+                        $('#readerStateTable').effect('shake', { times: 10 }, 500);
+                    }
 
-                    //alert("加pending");
-
-                    // 加载在借册
-                    loadBorrowInfo(readerBarcode);
+                    // 更新summary
+                    window.setTimeout("fillPending()", 1);
                 }
 
                 // 关闭等待层
@@ -166,77 +133,8 @@
             return 0;
         }
 
-        //获取借阅信息
-        function loadBorrowInfo(readerBarcode) {
-
-            if (readerBarcode == null || readerBarcode == "")
-                readerBarcode = $("#txtReaderBarcode").val();
-
-            if (readerBarcode == "") {
-                //layer.alert("内部错误：加载在借册，但未传来证条码参数。");
-                alert("请输入读者证条码!");
-                return;
-            }
-
-            //等待图层
-            //var index = loadLayer();
-
-            //alert("loadBorrowInfo1");
-            //先隐藏borrowinfo 区
-            $("#borrowTable").hide();
-            // 先删除可观察数组中的已有数据
-            borrowModel.borrows.removeAll();
-
-            //alert("loadBorrowInfo1-1");
-
-            // 调web api
-            var url = "/api/patron/" + readerBarcode + "?format=borrowinfo";
-            sendAjaxRequest(url, "GET", function (data) {
-                // 设上返回的error
-                borrowModel.errorInfo(data.apiResult.errorInfo);
-                if (data.apiResult.errorCode == -1) {
-                    // 隐藏在借区
-                    $("#borrowTable").hide();
-                }
-                else {
-                    // 加载借阅记录
-                    var list = data.borrowList;
-                    if (list.length > 0) {
-                        for (var i = 0; i < list.length; i++) {
-                            //遍历从服务器得到的结果，以push方法对该数组填充新数据
-                            borrowModel.borrows.push(list[i]);
-                        }
-                        $("#borrowTable").show();
-
-
-                    } else {
-                        // 显示没有借阅记录
-                        borrowModel.errorInfo("该读者目前没有在借图书。");
-                    }
-                }
-
-                // 更新summary
-                window.setTimeout("fillPending()", 1);
-
-                // 关闭等待层
-                //layer.close(index);
-
-            }, function (xhq, textStatus, errorThrown) {
-                alertServerError(errorThrown);
-                // 关闭等待层
-                //layer.close(index);
-
-                // 更新summary
-                window.setTimeout("fillPending()", 1);
-            });
-
-        }
-
-
-
         // 万能函数，给样式为pending的元素填充内容
         function fillPending() {
-            //return;
             //alert("fillPending");
 
             // 选取第一个样式为pending的元素
@@ -333,6 +231,22 @@
                     window.setTimeout("fillPending()", 1);
                 });
             }
+            else if(mytype == "ms-") {
+                var url = "/api/biblio/more" + "?format=" + encodeURIComponent(myvalue);
+                //alert(url);
+                // 调api
+                sendAjaxRequest(url, "GET", function (data) {
+                    //换成实际的值，去掉pending状态，继续下一个pending
+                    o.html(data);
+                    o.removeClass("pending");
+                    window.setTimeout("fillPending()", 1);
+                }, function (xhq, textStatus, errorThrown) {
+                    //换成实际的值，去掉pending状态，继续下一个pending
+                    o.html("访问服务器出错：" + errorThrown);
+                    o.removeClass("pending");
+                    window.setTimeout("fillPending()", 1);
+                });
+            }
             else {
                 // 继续下面的
                 o.removeClass("pending");
@@ -345,8 +259,6 @@
             //window.setTimeout("fillPending()", 1);
             return;
         }
-
-
 
         //用于获取所有命令
         //这个似乎不需要冻结界面 todo
@@ -472,8 +384,6 @@
                     layer.close(indexTop);
                 }
 
-
-
             }, function (xhq, textStatus, errorThrown) {
                 alertServerError(errorThrown);
                 // 关闭等待层
@@ -490,7 +400,6 @@
 
             // 加载绑定
             ko.applyBindings(patronVModel, document.getElementById('divPatron'));
-            ko.applyBindings(borrowModel, document.getElementById('divBorrow'));
             ko.applyBindings(cmdModel, document.getElementById('divCmd'));
 
             // 切换table事件
@@ -501,16 +410,9 @@
                 // 先把输入框中的数据清除
                 cmdModel.editor.readerBarcode("");
                 cmdModel.editor.itemBarcode("");
-                //清空绑定的读者
-                patronVModel.errorInfo("");
-                patronVModel.patron("");
-                $("#readerTable").hide();
-                $("#divReaderSummary").hide();
 
-                //清空绑定的在借册
-                borrowModel.errorInfo("");
-                borrowModel.borrows.removeAll();
-                $("#borrowTable").hide();
+                //隐藏读者信息
+                showReaderInfo(false);
 
                 // alert(e.target.id);
                 if (e.target.id == "aReturn") {
@@ -518,7 +420,6 @@
                     $("#txtItemBarcode").focus();
                     $("#btnDo").text("还");
                     cmdModel.editor.type("return");
-
                 }
                 else {
                     $("#trReaderBarcode").show();
@@ -558,37 +459,81 @@
             //===================
             // 证条码框获得焦点
             $("#txtReaderBarcode").focus(function () {
-                $("#txtReaderBarcode").removeClass("input-lg");
-                $("#txtReaderBarcode").addClass("input-lg-focus");
+                setInputFocus($("#txtReaderBarcode"), true);
+
+                // $("#txtReaderBarcode").removeClass("input-lg");
+                // $("#txtReaderBarcode").addClass("input-lg-focus");
             });
             //失去焦点
             $("#txtReaderBarcode").blur(function () {
-                $("#txtReaderBarcode").removeClass("input-lg-focus");
-                $("#txtReaderBarcode").addClass("input-lg");
+                setInputFocus($("#txtReaderBarcode"), false);
+
+                // $("#txtReaderBarcode").removeClass("input-lg-focus");
+                // $("#txtReaderBarcode").addClass("input-lg");
             });
 
 
             //===================
             // 册条码框获得焦点
             $("#txtItemBarcode").focus(function () {
-                $("#txtItemBarcode").removeClass("input-lg");
-                $("#txtItemBarcode").addClass("input-lg-focus");
+
+                setInputFocus($("#txtItemBarcode"), true);
+                //$("#txtItemBarcode").removeClass("input-lg");
+                //$("#txtItemBarcode").addClass("input-lg-focus");
             });
             //失去焦点
             $("#txtItemBarcode").blur(function () {
-                $("#txtItemBarcode").removeClass("input-lg-focus");
-                $("#txtItemBarcode").addClass("input-lg");
+                setInputFocus($("#txtItemBarcode"), false);
+
+                // $("#txtItemBarcode").removeClass("input-lg-focus");
+                //$("#txtItemBarcode").addClass("input-lg");
             });
 
-            //读者信息与在借册一开始不显示
-            $("#readerTable").hide();
-            $("#divReaderSummary").hide();
+            //隐藏读者信息
+            showReaderInfo(false);
 
-            $("#borrowTable").hide();
+
         })
 
         //===========================
         // 以下是共用函数
+
+        function setInputFocus(obj, bFocus) {
+            if (bFocus == true) {
+                obj.removeClass("input-lg");
+                obj.addClass("input-lg-focus");
+            }
+            else {
+                obj.removeClass("input-lg-focus");
+                obj.addClass("input-lg");
+            }
+        }
+
+        // 显示/隐藏读者信息
+        function showReaderInfo(bShow) {
+            if (bShow == true) {
+                $("#readerTable").show();
+                $("#divReaderSummary").show();
+                $("#divOverdue").show();
+                $("#borrowTable").show();
+                $("#reservationTable").show();
+                
+            }
+            else {
+                //置空观察数组
+                patronVModel.errorInfo("");
+                patronVModel.patron("");
+                patronVModel.overdueList.removeAll();// 清空违约交费可观察数组
+                patronVModel.borrowList.removeAll();// 清空在借册可观察数组
+                patronVModel.reservationList.removeAll();
+
+                $("#readerTable").hide();
+                $("#divReaderSummary").hide();
+                $("#divOverdue").hide();
+                $("#borrowTable").hide();
+                $("#reservationTable").hide();
+            }
+        }
 
         // 显示服务器错误
         function alertServerError(info) {
@@ -606,9 +551,6 @@
 
         // ajax请求
         function sendAjaxRequest(url, httpMethod, successCallback, errorCallback, mydata, myasync) {
-
-            //alert("sendAjaxRequest");
-
             $.ajax(url, {
                 type: httpMethod,
                 success: successCallback,
@@ -678,7 +620,7 @@
         }
 
         .reader-barcode {
-            font-size: 28px;
+            font-size: 20px;
             font-weight: bold;
             color: green;
         }
@@ -692,14 +634,90 @@
         .td-right {
             text-align: right;
             color: #CCCCCC;
+            padding:0.5em;
+            width:30%;
         }
+        .td-left {
+            text-align: left;
+            padding:0.5em;
+        }
+
+        .warning
+{
+    vertical-align: top;
+    text-align:center;
+}
+
+        .amerce .number
+{
+    background-color: #bbbb00;
+}
+
+.amerce .text
+{
+    background-color: #ffff00;
+}
+
+    DIV.warning .number
+{
+    font-size: 16pt;
+    font-weight: bolder;
+    /*width: 100%;*/
+    color: White;
+}
+
+DIV.warning .text
+{
+    font-size: 8pt;
+    /*width: 100%;*/
+}
+    
+.overdue .number
+{
+    background-color: #990000;
+}
+
+.overdue .text
+{
+    background-color: #ff9999;
+}
+
+.arrive .number
+{
+    background-color: #009900;
+}
+
+.arrive .text
+{
+    background-color: #99ff99;
+}
+
+    .deleted
+{
+    text-decoration: line-through;
+}
+.borrowinfo-overdue
+{
+	font-size: 8pt;
+	background-color: #ffcccc;
+}
+.borrowinfo-active
+{
+	font-size: 10pt;
+	background-color: cornsilk;
+}
+
+    .reservation-active
+{
+	background-color: #99ff99;
+}
+
     </style>
 }
 
-<div class="container" style="background-color:#ffffff">
+<div class="container" style="background-color:#ffffff;"  >
     <div class="row">
         <div class="col-md-6" style="background-color:#ffffff" id="divCmd">
-
             <span style="font-size:20px;">
                 <ul class="nav nav-tabs" id="myTab">
                     <li class="active"><a href="#" data-toggle="tab" id="aBorrow">借</a></li>
@@ -710,144 +728,253 @@
             <div class="well">
                 <div class="tab-content">
                     <div class="tab-pane fade in active" id="home">
-                        @Html.Raw(formStr)
+                        <div class='form-horizontal' role='form'>
+                            <div class='form-group' id='trReaderBarcode'>
+                                <label class='col-xs-1 control-label'>
+                                    <span style='font-size:22px'> <span class='glyphicon glyphicon-user'></span></span>
+                                </label>
+                                <div class='col-xs-11'>
+                                    <input type='text' class='form-control input-lg' id='txtReaderBarcode' placeholder='证 条码号' data-bind='value:cmdModel.editor.readerBarcode' />
+                                    <span class='pending' id='divReaderSummary'>
+                                        <label id='readerKeyWord'></label>
+                                        <img src='../img/wait2.gif' />
+                                    </span>
+                                </div>
+                            </div>
+                            <div class='form-group'>
+                                <label class='col-xs-1 control-label'>
+                                    <span style='font-size:22px'> <span class='glyphicon glyphicon-book'></span></span>
+                                </label>
+                                <div class='col-xs-11'>
+                                    <input type='text' class='form-control input-lg' id='txtItemBarcode' placeholder='册 条码号' data-bind='value:cmdModel.editor.itemBarcode' />
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
             </div>
 
             <!-- Table -->
             <h3><span class="label label-default">操作历史</span></h3>
-            <div>
-                <table class="table" data-bind="foreach: cmdModel.commands">
-                    <tr data-bind="style: {'border-bottom': isAddLine==1 ? '2px solid #FF6666' : ' ' }">
-                        <td width=" 1%" style="color:white;vertical-align:middle;text-align:center" data-bind="style: {'background-color': type=='borrow' ? '#43A102' : '#049FF1' }">
-                            <span style="font-weight:bold" data-bind="text:typeString"></span>
-                        </td>
-                        <td width="99%">
-                            <table style="padding:2px">
-                                <tr>
-                                    <td>
-                                        <span data-bind="text:readerBarcode"></span>
-                                        &nbsp;&nbsp;
-                                        <span class="pending">
-                                            <label style="display:inline" data-bind="text:readerBarcode=='' ? '' : 'rs-'+readerBarcode"></label>
-                                            <img src="~/img/wait2.gif" />
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <table>
-                                            <tr>
-                                                <td valign="top">
-                                                    <a data-bind="attr: { href: itemBarcodeUrl}" target="_blank">
-                                                        <span  data-bind="text:itemBarcode"></span>
-                                                    </a>                                                     
-                                                    &nbsp;&nbsp;
-                                                </td>
-                                                <td valign="top">
-                                                    <span class="pending">
-                                                        <label style="display:inline" data-bind="text:itemBarcode=='' ? '' : 'bs-'+itemBarcode"></label>
-                                                        <img src="~/img/wait2.gif" />
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        </table>
+            <table class="table" data-bind="foreach: cmdModel.commands">
+                <tr data-bind="style: {'border-bottom': isAddLine==1 ? '2px solid #FF6666' : ' ' }">
+                    <td width=" 1%" style="color:white;vertical-align:middle;text-align:center" data-bind="style: {'background-color': type=='borrow' ? '#43A102' : '#049FF1' }">
+                        <span style="font-weight:bold" data-bind="text:typeString"></span>
+                    </td>
+                    <td width="99%">
+                        <table style="padding:2px">
+                            <tr>
+                                <td>
+                                    <span data-bind="text:readerBarcode"></span>
+                                    &nbsp;&nbsp;
+                                    <span class="pending">
+                                        <label style="display:inline" data-bind="text:readerBarcode=='' ? '' : 'rs-'+readerBarcode"></label>
+                                        <img src="~/img/wait2.gif" />
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table>
+                                        <tr>
+                                            <td valign="top">
+                                                <a data-bind="attr: { href: itemBarcodeUrl}" target="_blank">
+                                                    <span data-bind="text:itemBarcode"></span>
+                                                </a>
+                                                &nbsp;&nbsp;
+                                            </td>
+                                            <td valign="top">
+                                                <span class="pending">
+                                                    <label style="display:inline" data-bind="text:itemBarcode=='' ? '' : 'bs-'+itemBarcode"></label>
+                                                    <img src="~/img/wait2.gif" />
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </table>
 
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <span style="color:gray">操作时间&nbsp;&nbsp;</span>
-                                        <span data-bind="text:operTime"></span>
-                                    </td>
-                                </tr>
-                            </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span style="color:gray">操作时间&nbsp;&nbsp;</span>
+                                    <span data-bind="text:operTime"></span>
+                                </td>
+                            </tr>
+                        </table>
 
-                        </td>
-                    </tr>
-                </table>
-
-            </div>
+                    </td>
+                </tr>
+            </table>
 
         </div>
-        <div class="col-md-6">
+        <div class="col-md-6" id="divPatron" data-bind="style: {'background-color': patronVModel.patron()!=null && patronVModel.patron().state != null && patronVModel.patron().state !='' ? 'yellow' : 'white ' }">
             <h3><span class="label label-default">读者信息</span></h3>
-            <div id="divPatron">
-                <span class="errorspan" data-bind="text: patronVModel.errorInfo"></span>
+            <span class="errorspan" data-bind="text: patronVModel.errorInfo"></span>
+            <div style="width:100%">
+                <div class="row" id="readerTable" style="border:1px solid #dddddd;border-radius: 6px;">
+                    <div class="col-md-2" style="padding:0.2cm">
+                        <table style="width:100%">
+                            <tr>
+                            <td>
+                                <img id='cardphoto'  src='~/img/nonePhoto.png' alt='读者10 的照片' />
+                            </td>
+                            <td class='warning' id='insertpoint' data-bind="html: patronVModel.patron().warningText">
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-5" style="padding:0cm">
+                        <table style="background-color:white;width:100%">
+                            <tr>
+                                <td colspan="2" align="center">
+                                    <span class="reader-name" data-bind="text: patronVModel.patron().name"></span>
+                                    （<span data-bind="text: patronVModel.patron().department"></span>）
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="td-right" style="vertical-align:middle">证条码号</td>
+                                <td class="td-left"><span class="reader-barcode" data-bind="text: patronVModel.patron().barcode"></span></td>
+                            </tr>
+                            <tr>
+                                <td class="td-right">读者类别</td>
+                                <td class="td-left" data-bind="text: patronVModel.patron().readerType"> </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-5"  >
+                        <table id="readerStateTable"  style="background-color:white;width:100%">
+                            <tr>
+                                <td class="td-right">证状态</td>
+                                <td  style="color:red;font-size:28px" data-bind="text: patronVModel.patron().state">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td class="td-right">失效日期</td>
+                                <td class="td-left" data-bind="text: patronVModel.patron().expireDate"></td>
+                            </tr>
+                            <tr>
+                                <td class="td-right">注释</td>
+                                <td class="td-left" data-bind="text: patronVModel.patron().comment"></td>
+                            </tr>
 
-                <div id="readerTable" style="border:1px solid #dddddd;border-radius: 6px;">
-                    <table class="table">
-                        <tr>
-                            <td class="td-right"><span class="reader-name" data-bind="text: patronVModel.patron().name"></span></td>
-                            <td style="vertical-align:middle">（<span data-bind="text: patronVModel.patron().department"></span>）</td>
-                        </tr>
-                        <tr>
-                            <td class="col-xs-3 td-right" style="vertical-align:middle">读者证条码号</td>
-                            <td class="col-xs-9"><span class="reader-barcode" data-bind="text: patronVModel.patron().barcode"></span></td>
-                        </tr>
-                        <tr>
-                            <td class="td-right">读者类别</td>
-                            <td data-bind="text: patronVModel.patron().readerType"> </td>
-                        </tr>
+                        </table>
+                    </div>
 
-
-
-                        <tr>
-                            <td class="td-right">证状态</td>
-                            <td data-bind="text: patronVModel.patron().state">&nbsp;</td>
-                        </tr>
-
-                        <tr>
-                            <td class="td-right">失效日期</td>
-                            <td data-bind="text: patronVModel.patron().expireDate"></td>
-                        </tr>
-
-                    </table>
                 </div>
             </div>
 
-
-            <h3><span class="label label-default">在借册</span></h3>
-            <div id="divBorrow">
-                <span class="errorspan" data-bind="text: borrowModel.errorInfo"></span>
-                <table id="borrowTable" class="table  table-striped">
-                    <thead></thead>
-                    <tr>
-                        <th>册条码号</th>
-                        <th>续借次</th>
-                        <th>借阅日期</th>
-                        <th>期限</th>
-                        <th>操作者</th>
-                        <th>应还日期</th>
+            <div id="divOverdue">
+                <h3><span class="label label-default">违约/交费信息</span></h3>
+                <table class="table  table-striped">
+                    <tr style="color:gray" data-bind="visible: patronVModel.patron().curBorrowCount !='' ">
+                        <td>册条码号</td>
+                        <td>说明</td>
+                        <td>金额</td>
+                        <td>以停代金情况</td>
+                        <td>起点日期</td>
+                        <td>期限</td>
+                        <td>终点日期</td>
                     </tr>
-                    <tbody data-bind="foreach: borrowModel.borrows">
-                        <tr>
-                            <td style="color:green;font-size:14.8px;font-weight:bold" >
-
+                    <tbody data-bind="foreach: patronVModel.overdueList">
+                        <tr style="background-color:yellow">
+                            <td style="color:green;font-size:14.8px;font-weight:bold">
                                 <a data-bind="attr: { href: barcodeUrl}" target="_blank">
                                     <span data-bind="text: barcode"></span>
-                                </a> 
-
+                                </a>
                             </td>
-                            <td data-bind="text:renewNo"></td>
+                            <td data-bind="text:reason"></td>
+                            <td data-bind="text:price"></td>
+                            <td data-bind="text:pauseInfo"></td>
                             <td data-bind="text:borrowDate"></td>
-                            <td data-bind="text:period"></td>
-                            <td data-bind="text:borrowOperator"></td>
+                            <td data-bind="text:borrowPeriod"></td>
                             <td data-bind="text:returnDate"></td>
-                        </tr>
-                        <tr>
-                            <td colspan="6">
-                                摘要：
-                                <span class="pending">
-                                    <label style="display:inline" data-bind="text:barcode=='' ? '' : 'bs-'+barcode"></label>
-                                    <img src="~/img/wait2.gif" />
-                                </span>
-                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+
+            <h3><span class="label label-default">在借册</span></h3>
+
+                <table id="borrowTable" class="table  table-striped">
+                    <tr><td colspan="6" align="right" style="background-color:#eeeeee"><span data-bind="text: patronVModel.patron().maxBorrowCount"></span> &nbsp;<span data-bind="text: patronVModel.patron().curBorrowCount"></span></td></tr>
+                    <tr style="color:gray" data-bind="visible: patronVModel.patron().curBorrowCount !='' ">
+                        <td>册条码号</td>
+                        <td>续借次</td>
+                        <td>借阅日期</td>
+                        <td>期限</td>
+                        <td>操作者</td>
+                        <td>应还日期</td>
+                    </tr>
+                    <tbody data-bind="foreach: patronVModel.borrowList">
+                        <tr>
+                            <td colspan="6">
+                                <table width="100%">
+                                    <tr>
+                                        <td style="color:green;font-size:14.8px;font-weight:bold">
+                                            <a data-bind="attr: { href: barcodeUrl}" target="_blank">
+                                                <span data-bind="text: barcode"></span>
+                                            </a>
+                                        </td>
+                                        <td data-bind="text:renewNo"></td>
+                                        <td data-bind="text:borrowDate"></td>
+                                        <td data-bind="text:period"></td>
+                                        <td data-bind="text:borrowOperator"></td>
+                                        <td data-bind="text:returnDate"></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="6">
+                                            <span class="pending">
+                                                <label style="display:inline" data-bind="text:barcode=='' ? '' : 'bs-'+barcode"></label>
+                                                <img src="~/img/wait2.gif" height="10" width="10" />
+                                            </span>
+                                        </td>
+                                    </tr>
+
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+
+
+            <h3><span class="label label-default">预约请求</span></h3>
+                <table id="reservationTable" class="table  table-striped">
+                    <tr style="color:gray">
+                        <td>册条码号</td>
+                        <td>请求日期</td>
+                        <td>操作者</td>
+                    </tr>
+                    <tbody data-bind="foreach: patronVModel.reservationList">
+                        <tr data-bind="css: {'reservation-active': state=='arrived'}">
+                            <td colspan="3">
+                                <table width="100%">
+                                    <tr>
+                                        <td>
+                                            <span data-bind="html: barcodes"></span>
+                                        </td>
+                                        <td data-bind="text:requestdate"></td>
+                                        <td data-bind="text:operatorAccount"></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3">
+                                            <span style="color:gray">到达情况:</span><span data-bind="text:stateText"></span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3">
+                                            <span class="pending">
+                                                <label style="display:inline" data-bind="text:fullBarcodes=='' ? '' : 'ms-'+fullBarcodes"></label>
+                                                <img src="~/img/wait2.gif" height="10" width="10" />
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
 
 
         </div>

@@ -162,13 +162,16 @@ namespace ilovelibrary.Server
                 return result;
             }
 
+            // 警告信息，显示在头像旁边
+            string strWarningText = "";
+
             LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
             channel.Password = sessionInfo.Password;
             try
             {
                 // 先根据barcode检索出来,得到原记录与时间戳
-                GetReaderInfoResponse response = channel.GetReaderInfo(strReaderBarcode,//"@path:" + strRecPath,
-                   "advancexml");// "advancexml,advancexml_borrow_bibliosummary,advancexml_overdue_bibliosummary");
+                GetReaderInfoResponse response = channel.GetReaderInfo(strReaderBarcode,
+                    "advancexml");
                 if (response.GetReaderInfoResult.Value == -1)
                 {
                     result.apiResult.errorCode = -1;
@@ -201,9 +204,192 @@ namespace ilovelibrary.Server
                 patron.createDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement, "createDate"), "yyyy/MM/dd");
                 patron.expireDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement, "expireDate"), "yyyy/MM/dd");
                 patron.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");
-
                 // 赋给返回对象
                 result.patron = patron;
+                
+                // ***
+                // 在借册
+                XmlNodeList nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
+                int nBorrowCount = nodes.Count;
+                /*
+  <info>
+    <item name="可借总册数" value="10" />
+    <item name="日历名">
+      <value>ILL1/新建日历</value>
+    </item>
+    <item name="当前还可借" value="10" />
+  </info>                  
+                 */
+
+                string strMaxItemCount = "10";// GetParam(strReaderType, "", "可借总册数");
+                int nMax = -1;
+                try
+                {
+                    nMax = System.Convert.ToInt32(strMaxItemCount);
+                }
+                catch { }
+                if (nMax == -1)
+                {
+                    patron.maxBorrowCount = "当前读者 可借总册数 参数 '" + strMaxItemCount + "' 格式错误";
+                }
+                else
+                {
+                    patron.maxBorrowCount = "最多可借:" + strMaxItemCount;
+                    patron.curBorrowCount = "当前可借:" + System.Convert.ToString(Math.Max(0, nMax - nBorrowCount));
+                }
+                int nOverdueCount = 0;
+                List<BorrowInfo> borrowList = new List<BorrowInfo>();
+                for (int i = 0; i < nodes.Count; i++)
+                {
+                    XmlNode node = nodes[i];
+
+                    string strBarcode = DomUtil.GetAttr(node, "barcode");
+                    string strRenewNo = DomUtil.GetAttr(node, "no");
+                    string strBorrowDate = DomUtil.GetAttr(node, "borrowDate");
+                    string strPeriod = DomUtil.GetAttr(node, "borrowPeriod");
+                    string strOperator = DomUtil.GetAttr(node, "operator");
+                    string strRenewComment = DomUtil.GetAttr(node, "renewComment");
+
+                    string strOverDue = "";
+                    bool bOverdue = false;  // 是否超期                   
+                    strOverDue = DomUtil.GetAttr(node, "overdueInfo");
+                    string strOverdue1 = DomUtil.GetAttr(node, "overdueInfo1");
+                    string strIsOverdue = DomUtil.GetAttr(node, "isOverdue");
+                    if (strIsOverdue == "yes")
+                        bOverdue = true;
+
+                    DateTime timeReturning = DateTime.MinValue;
+                    string strTimeReturning = DomUtil.GetAttr(node, "timeReturning");
+                    if (String.IsNullOrEmpty(strTimeReturning) == false)
+                        timeReturning = DateTimeUtil.FromRfc1123DateTimeString(strTimeReturning).ToLocalTime();
+                    string strReturnDate = LocalDateOrTime(timeReturning, strPeriod);
+
+                    // todo 判断是否超期
+                    //nOverdueCount++; 
+
+                    // 创建 borrowinfo对象，加到集合里
+                    BorrowInfo borrowInfo = new BorrowInfo();
+                    borrowInfo.barcode = strBarcode;
+                    borrowInfo.renewNo = strRenewNo;
+                    borrowInfo.borrowDate = LocalDateOrTime(strBorrowDate, strPeriod);// strBorrowDate;
+                    borrowInfo.period = strPeriod;
+                    borrowInfo.borrowOperator = strOperator;
+                    borrowInfo.renewComment = strRenewComment;
+                    borrowInfo.overdue = strOverDue;
+                    borrowInfo.returnDate = strReturnDate;
+                    borrowInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode + "&borrower=" + strReaderBarcode;
+                    borrowList.Add(borrowInfo);
+                    
+                }
+                if (nOverdueCount > 0)
+                    strWarningText += "<div class='warning overdue'><div class='number'>" + nOverdueCount.ToString() + "</div><div class='text'>已超期</div></div>";
+                // 赋给返回对象
+                result.borrowList = borrowList;
+
+
+                // ***
+                // 违约/交费信息
+                List<OverdueInfo> overdueLit = new List<OverdueInfo>();
+                nodes = dom.DocumentElement.SelectNodes("overdues/overdue");
+                if (nodes.Count > 0)
+                {
+                    for (int i = 0; i < nodes.Count; i++)
+                    {
+                        XmlNode node = nodes[i];
+                        string strBarcode = DomUtil.GetAttr(node, "barcode");
+                        string strOver = DomUtil.GetAttr(node, "reason");
+                        string strBorrowPeriod = DomUtil.GetAttr(node, "borrowPeriod");
+                        string strBorrowDate = LocalDateOrTime(DomUtil.GetAttr(node, "borrowDate"), strBorrowPeriod);
+                        string strReturnDate = LocalDateOrTime(DomUtil.GetAttr(node, "returnDate"), strBorrowPeriod);
+                        string strID = DomUtil.GetAttr(node, "id");
+                        string strPrice = DomUtil.GetAttr(node, "price");
+                        string strOverduePeriod = DomUtil.GetAttr(node, "overduePeriod");
+                        string strComment = DomUtil.GetAttr(node, "comment");
+                        if (String.IsNullOrEmpty(strComment) == true)
+                            strComment = "&nbsp;";
+                        string strPauseInfo = "";
+                        // 把一行文字变为两行显示
+                        //strBorrowDate = strBorrowDate.Replace(" ", "<br/>");
+                        //strReturnDate = strReturnDate.Replace(" ", "<br/>");
+
+                        OverdueInfo overdueInfo = new OverdueInfo();
+                        overdueInfo.barcode = strBarcode;
+                        overdueInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode + "&borrower=" + strReaderBarcode;
+                        overdueInfo.reason = strOver;
+                        overdueInfo.price = strPrice;
+                        overdueInfo.pauseInfo = strPauseInfo;
+                        overdueInfo.borrowDate = strBorrowDate;
+                        overdueInfo.borrowPeriod = strBorrowPeriod;
+                        overdueInfo.returnDate = strReturnDate;
+                        overdueInfo.comment = strComment;
+                        overdueLit.Add(overdueInfo);
+                    }
+
+                    strWarningText += "<div class='warning amerce'><div class='number'>" + nodes.Count.ToString() + "</div><div class='text'>待交费</div></div>";
+                }
+                // 赋到返回对象上
+                result.overdueList = overdueLit;
+
+
+                // ***
+                // 预约请求
+                nodes = dom.DocumentElement.SelectNodes("reservations/request");
+                if (nodes.Count > 0)
+                {
+                    List<ReservationInfo> reservationList = new List<ReservationInfo>();
+                    int nArriveCount = 0;
+                    for (int i = 0; i < nodes.Count; i++)
+                    {
+                        XmlNode node = nodes[i];
+
+
+                        string strBarcodes = DomUtil.GetAttr(node, "items");
+                        string strRequestDate = DateTimeUtil.LocalTime(DomUtil.GetAttr(node, "requestDate"));
+
+                        string strOperator = DomUtil.GetAttr(node, "operator");
+                        string strArrivedItemBarcode = DomUtil.GetAttr(node, "arrivedItemBarcode");
+
+                        int nBarcodesCount = GetBarcodesCount(strBarcodes);
+                        // 状态
+                        string strArrivedDate = DateTimeUtil.LocalTime(DomUtil.GetAttr(node, "arrivedDate"));
+                        string strState = DomUtil.GetAttr(node, "state");
+                        string strStateText = "";
+                        if (strState == "arrived")
+                        {
+                            strStateText = "册 " + strArrivedItemBarcode + " 已于 " + strArrivedDate + " 到书";
+
+                            if (nBarcodesCount > 1)
+                            {
+                                strStateText += string.Format("; 同一预约请求中的其余 {0} 册旋即失效",  // "；同一预约请求中的其余 {0} 册旋即失效"
+                                    (nBarcodesCount - 1).ToString());
+                            }
+
+                            nArriveCount++;
+                        }
+
+                        string strBarcodesHtml = MakeBarcodeListHyperLink(strBarcodes, strArrivedItemBarcode, ", ")
+                         + (nBarcodesCount > 1 ? " 之一" : "");
+
+                        ReservationInfo reservationInfo = new ReservationInfo();
+                        reservationInfo.barcodes = strBarcodesHtml;
+                        reservationInfo.state = strState;
+                        reservationInfo.stateText = strStateText;
+                        reservationInfo.requestdate = strRequestDate;
+                        reservationInfo.operatorAccount = strOperator;
+                        reservationInfo.arrivedBarcode = strArrivedItemBarcode;
+                        reservationInfo.fullBarcodes = strBarcodes + "*" + strArrivedItemBarcode;
+                        reservationList.Add(reservationInfo);
+                    }
+
+                    result.reservationList = reservationList;
+
+                    if (nArriveCount > 0)
+                        strWarningText += "<div class='warning arrive'><div class='number'>" + nArriveCount.ToString() + "</div><div class='text'>预约到书</div></div>";
+                }
+
+
+                result.patron.warningText = strWarningText;
+
                 return result;
             }
             catch (Exception ex)
@@ -218,6 +404,87 @@ namespace ilovelibrary.Server
             }
         }
 
+        static int GetBarcodesCount(string strBarcodes)
+        {
+            string[] barcodes = strBarcodes.Split(new char[] { ',' });
+
+            return barcodes.Length;
+        }
+
+        string MakeBarcodeListHyperLink(string strBarcodes,
+            string strArrivedItemBarcode,
+            string strSep)
+        {
+            string strResult = "";
+            string strDisableClass = "";
+            if (string.IsNullOrEmpty(strArrivedItemBarcode) == false)
+                strDisableClass = "deleted";
+            string[] barcodes = strBarcodes.Split(new char[] { ',' });
+            for (int i = 0; i < barcodes.Length; i++)
+            {
+                string strBarcode = barcodes[i];
+                if (String.IsNullOrEmpty(strBarcode) == true)
+                    continue;
+
+                if (strResult != "")
+                    strResult += strSep;
+                strResult += "<a "
+                    + (string.IsNullOrEmpty(strDisableClass) == false && strBarcode != strArrivedItemBarcode ? "class='" + strDisableClass + "'" : "")
+                    + " href=' "+ this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode + "'  target='_blank' " + ">" + strBarcode + "</a>";
+            }
+
+            return strResult;
+        }
+
+        // return:
+        //      -1  检测过程发生了错误。应当作不能借阅来处理
+        //      0   可以借阅
+        //      1   证已经过了失效期，不能借阅
+        //      2   证有不让借阅的状态
+        public int CheckReaderExpireAndState(XmlDocument readerdom,
+            out string strError)
+        {
+            strError = "";
+
+            string strExpireDate = DomUtil.GetElementText(readerdom.DocumentElement, "expireDate");
+            if (String.IsNullOrEmpty(strExpireDate) == false)
+            {
+                DateTime expireDate;
+                try
+                {
+                    expireDate = DateTimeUtil.FromRfc1123DateTimeString(strExpireDate);
+                }
+                catch
+                {
+                    strError = string.Format("借阅证失效期值s格式错误", // "借阅证失效期<expireDate>值 '{0}' 格式错误"
+                        strExpireDate);
+
+                    // "借阅证失效期<expireDate>值 '" + strExpireDate + "' 格式错误";
+                    return -1;
+                }
+
+                DateTime now = DateTime.Now;//todo//this.Clock.UtcNow;
+                if (expireDate <= now)
+                {
+                    // text-level: 用户提示
+                    strError = string.Format("今天s已经超过借阅证失效期s",  // "今天({0})已经超过借阅证失效期({1})。"
+                        now.ToLocalTime().ToLongDateString(),
+                        expireDate.ToLocalTime().ToLongDateString());
+                    return 1;
+                }
+
+            }
+
+            string strState = DomUtil.GetElementText(readerdom.DocumentElement, "state");
+            if (String.IsNullOrEmpty(strState) == false)
+            {
+                strError = string.Format("借阅证的状态为s", // "借阅证的状态为 '{0}'。"
+                    strState);
+                return 2;
+            }
+
+            return 0;
+        }
         /// <summary>
         /// 得到的读者的联系方式
         /// </summary>
@@ -315,7 +582,7 @@ namespace ilovelibrary.Server
                 this.ChannelPool.ReturnChannel(channel);
             }
         }
-
+#if NO
         /// <summary>
         /// 获得读者借阅信息
         /// </summary>
@@ -425,7 +692,7 @@ namespace ilovelibrary.Server
 
             return result;
         }
-
+#endif
         /// <summary>
         /// 获取书目摘要
         /// </summary>
@@ -440,12 +707,92 @@ namespace ilovelibrary.Server
             channel.Password = sessionInfo.Password;
             try
             {
-                return channel.GetBiblioSummary(strItemBarcode);
+                GetBiblioSummaryResponse result = channel.GetBiblioSummary(strItemBarcode,"");
+                if (result.GetBiblioSummaryResult.Value == -1 || result.GetBiblioSummaryResult.Value==0)
+                    return result.GetBiblioSummaryResult.ErrorInfo;
+
+                return result.strSummary;
             }
             finally
             {
                 this.ChannelPool.ReturnChannel(channel);
             }
+        }
+
+        // 获取多个item的summary
+        public string GetBarcodesSummary(SessionInfo sessionInfo,
+            string strBarcodes)
+        {
+            string strSummary = "";
+             string strArrivedItemBarcode="";
+            int nIndex = strBarcodes.IndexOf("*");
+            if (nIndex > 0)
+            {
+                string tempBarcodes = strBarcodes.Substring(0, nIndex);
+                strArrivedItemBarcode = strBarcodes.Substring(nIndex+1);
+                strBarcodes = tempBarcodes;
+            }
+
+            string strDisableClass = "";
+            if (string.IsNullOrEmpty(strArrivedItemBarcode) == false)
+                strDisableClass = "deleted";
+
+            string strPrevBiblioRecPath = "";
+            string[] barcodes = strBarcodes.Split(new char[] { ',' });
+            for (int j = 0; j < barcodes.Length; j++)
+            {
+                string strBarcode = barcodes[j];
+                if (String.IsNullOrEmpty(strBarcode) == true)
+                    continue;
+
+                // 获得摘要
+                string strOneSummary = "";
+                string strBiblioRecPath = "";
+
+                // 2012/3/28
+                LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
+                channel.Password = sessionInfo.Password;
+                try
+                {
+                    GetBiblioSummaryResponse result = channel.GetBiblioSummary(strBarcode,strPrevBiblioRecPath);
+                    strOneSummary = result.strSummary;
+                    strBiblioRecPath = result.strBiblioRecPath;
+
+                    if (result.GetBiblioSummaryResult.Value == -1 || result.GetBiblioSummaryResult.Value == 0)
+                        strOneSummary = result.GetBiblioSummaryResult.ErrorInfo;
+
+                    if (strOneSummary=="" && strPrevBiblioRecPath == strBiblioRecPath)
+                        strOneSummary = "(同上)";
+
+                    string strClass = "";
+                    if (string.IsNullOrEmpty(strDisableClass) == false && strBarcode != strArrivedItemBarcode)
+                        strClass=" class='"+strDisableClass+"' ";
+
+                    string strBarcodeLink = "<a " + strClass
+                        + " href='" + this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode + "'   target='_blank' " + ">" + strBarcode + "</a>";
+
+                    string shortText = strOneSummary;
+                    if (shortText.Length > 30)
+                        shortText = shortText.Substring(0, 30) + "···";
+                    var strOneSummaryTip = "<a href='#' data-toggle='tooltip' data-placement='right' "
+                           + " title='" + strOneSummary + "'>"
+                           + shortText
+                           + "</a>";
+
+                    strSummary += strBarcodeLink + " : " + strOneSummaryTip + "<br/>";
+
+
+                    strPrevBiblioRecPath = strBiblioRecPath;
+
+                }
+                finally
+                {
+                    this.ChannelPool.ReturnChannel(channel);
+                }
+            }
+
+
+            return strSummary;
         }
 
 

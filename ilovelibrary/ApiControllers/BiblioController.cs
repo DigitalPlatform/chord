@@ -19,17 +19,25 @@ namespace ilovelibrary.ApiControllers
         /// <returns></returns>
         public string GetBiblio(string id, [FromUri] string format)
         {
+            string strSummary = "";
             if (HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo] == null)
             {
                 throw new Exception("尚未登录");
             }         
             SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo];
+            if (id == "more") //todo 将summary字符串改为常量
+            {
+                strSummary = ilovelibraryServer.Instance.GetBarcodesSummary(sessionInfo, format);
+                return strSummary;
+            }
+
 
             if (format == "summary") //todo 将summary字符串改为常量
             {
-                string strSummary = ilovelibraryServer.Instance.GetBiblioSummary(sessionInfo, id);
+                strSummary = ilovelibraryServer.Instance.GetBiblioSummary(sessionInfo, id);
                 return strSummary;
             }
+
 
             return "未实现的风格:" + format;
         }
