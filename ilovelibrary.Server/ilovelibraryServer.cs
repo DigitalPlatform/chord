@@ -88,6 +88,7 @@ namespace ilovelibrary.Server
             e.LibraryServerUrl = channel.Url;
             e.UserName = channel.UserName;
             e.Password = channel.Password;
+            e.Parameters = channel.Parameters;
         }
 
         /// <summary>
@@ -122,6 +123,7 @@ namespace ilovelibrary.Server
                 SessionInfo sessionInfo = new SessionInfo();
                 sessionInfo.UserName = strUserName;
                 sessionInfo.Password = strPassword;
+                sessionInfo.Parameters = strParam;
                 sessionInfo.Rights = ret.strRights;
                 sessionInfo.LibraryCode = ret.strLibraryCode;
                 return sessionInfo;
@@ -167,6 +169,7 @@ namespace ilovelibrary.Server
 
             LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
             channel.Password = sessionInfo.Password;
+            channel.Parameters = sessionInfo.Parameters;
             try
             {
                 // 先根据barcode检索出来,得到原记录与时间戳
@@ -553,6 +556,7 @@ namespace ilovelibrary.Server
 
             LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
             channel.Password = sessionInfo.Password;
+            channel.Parameters = sessionInfo.Parameters;
             try
             {
                 // 先根据barcode检索出来,得到原记录与时间戳
@@ -729,6 +733,7 @@ namespace ilovelibrary.Server
 
             LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
             channel.Password = sessionInfo.Password;
+            channel.Parameters = sessionInfo.Parameters;
             try
             {
                 GetBiblioSummaryResponse result = channel.GetBiblioSummary(strItemBarcode,"");
@@ -776,6 +781,7 @@ namespace ilovelibrary.Server
                 // 2012/3/28
                 LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
                 channel.Password = sessionInfo.Password;
+                channel.Parameters = sessionInfo.Parameters;
                 try
                 {
                     GetBiblioSummaryResponse result = channel.GetBiblioSummary(strBarcode,strPrevBiblioRecPath);

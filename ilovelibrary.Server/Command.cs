@@ -12,6 +12,7 @@ namespace ilovelibrary.Server
         public const string C_Command_Borrow = "borrow";
         public const string C_Command_Return = "return";
         public const string C_Command_Renew = "renew";
+        public const string C_Command_VerifyRenew = "verifyrenew";
 
         public int id { get; set; }
         public string type { get; set; }
@@ -54,7 +55,12 @@ namespace ilovelibrary.Server
                 return "还";
             if (type == C_Command_Renew)
                 return "续借";
+            if (type == C_Command_VerifyRenew)
+                return "验证续借";
             return "未知命令";
         }
+
+        // 本接口同时返回读者信息
+        public PatronResult patronResult { get; set; }
     }
 }

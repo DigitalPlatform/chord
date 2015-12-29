@@ -15,6 +15,7 @@ namespace ilovelibrary.Server
 
         public string UserName = "";
         public string Password = "";
+        public string Parameters = "";
         public string Rights = "";
         public string LibraryCode = "";
 
@@ -48,7 +49,7 @@ namespace ilovelibrary.Server
             item.operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
             item.typeString = Command.getTypeString(item.type);
 
-            if (item.type == Command.C_Command_Borrow || item.type == Command.C_Command_Renew)
+            if (item.type == Command.C_Command_Borrow || item.type == Command.C_Command_VerifyRenew)
             {
                 if (String.IsNullOrEmpty(item.readerBarcode) == true)
                 {
@@ -66,21 +67,30 @@ namespace ilovelibrary.Server
             // 执行这个命令
             LibraryChannel channel = ilovelibraryServer.Instance.ChannelPool.GetChannel(ilovelibraryServer.Instance.dp2LibraryUrl, this.UserName);
             channel.Password = this.Password;
+            channel.Parameters = this.Parameters;
             try
             {
                 long lRet = -1;
                 // 借书或续借
-                if (item.type == Command.C_Command_Borrow || item.type == Command.C_Command_Renew)
+                if (item.type == Command.C_Command_Borrow 
+                    || item.type == Command.C_Command_Renew
+                    || item.type == Command.C_Command_VerifyRenew)
                 {
                     bool bRenew = false;
-                    if (item.type == Command.C_Command_Renew)
+                    if (item.type == Command.C_Command_Renew 
+                        || item.type==Command.C_Command_VerifyRenew)
+                    {
                         bRenew = true;
+                    }
                     DigitalPlatform.LibraryRestClient.BorrowInfo borrowInfo = null;
+                    string strOutputReaderBarcode = "";
                     lRet = channel.Borrow(bRenew,
                                         item.readerBarcode,
                                         item.itemBarcode,
+                                        out strOutputReaderBarcode,
                                         out borrowInfo,
                                         out strError);
+                    item.readerBarcode = strOutputReaderBarcode;
                 }
                 else if (item.type == Command.C_Command_Return)
                 {
@@ -89,7 +99,8 @@ namespace ilovelibrary.Server
                     string strOutputReaderBarcode = "";
                     lRet = channel.Return(item.itemBarcode, 
                         out strOutputReaderBarcode,
-                        out returnInfo, out strError);
+                        out returnInfo, 
+                        out strError);
                     item.readerBarcode = strOutputReaderBarcode;
                 }
 
@@ -111,14 +122,24 @@ namespace ilovelibrary.Server
                 }
 
                 // 检索是否与前面同一个读者，不加要加线
-                if (this.cmdList.Count > 0 && item.readerBarcode !="")
+                if (this.cmdList.Count > 0)
                 {
                     Command firstCmd = this.cmdList[0];
-                    if (firstCmd.readerBarcode != item.readerBarcode)
+                    if (firstCmd.readerBarcode != item.readerBarcode
+                        && String.IsNullOrEmpty(item.readerBarcode) == false
+                        && String.IsNullOrEmpty(firstCmd.readerBarcode) == false)
+                    {
                         item.isAddLine = 1;
+                    }
                 }
                 // 设链接地址
                 item.itemBarcodeUrl = ilovelibraryServer.Instance.dp2OpacUrl + "/book.aspx?barcode=" + item.itemBarcode + "&borrower=" + item.readerBarcode;
+
+
+                // 检索读者信息 todo 改为从borrow,renew接口直接取数据
+                PatronResult patronResult = ilovelibraryServer.Instance.GetPatronInfo(this, item.readerBarcode);
+                item.patronResult = patronResult;
+
 
                 // 加到集合里
                 this.cmdList.Insert(0, item);

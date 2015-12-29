@@ -27,25 +27,89 @@
             }
         }
 
+        //解析读者数据
+        function parsePatronData(data)
+        {
+            var readerBarcode = cmdModel.editor.readerBarcode;
+            if (data.patron != null)
+                readerBarcode = data.patron.barcode;
 
+            //设置出借信息
+            patronVModel.errorInfo(data.apiResult.errorInfo);
+            // 设基本信息
+            if (data.patron != null)
+                patronVModel.patron(data.patron);
+
+            if (data.apiResult.errorCode == -1) {
+                // 不成功选中
+                $("#txtReaderBarcode").select();
+            }
+            else {
+
+                // 设置读者线索
+                var readerKeyWord = "rs-" + readerBarcode;
+                $("#divReaderSummary").html("<label  id='readerKeyWord'>" + readerKeyWord + "</label><img src='../img/wait2.gif' />");
+                $("#divReaderSummary").addClass("pending");
+
+                // 显示基本信息
+                $("#readerTable").show();
+                $("#divReaderSummary").show();
+
+                //设违约/交费
+                var olist = data.overdueList;
+                if (olist != null && olist.length > 0) {
+                    for (var i = 0; i < olist.length; i++) {
+                        patronVModel.overdueList.push(olist[i]);
+                    }
+                    //显示违约交费
+                    $("#divOverdue").show();
+                }
+
+                //设在借册
+                var blist = data.borrowList;
+                if (blist != null && blist.length > 0) {
+                    for (var i = 0; i < blist.length; i++) {
+                        patronVModel.borrowList.push(blist[i]);
+                    }
+                }
+                //显示在借册
+                $("#borrowTable").show();
+
+                var rlist = data.reservationList;
+                if (rlist != null && rlist.length > 0) {
+                    for (var i = 0; i < rlist.length; i++) {
+                        patronVModel.reservationList.push(rlist[i]);
+                    }
+
+                    //显示预约
+                    $("#reservationTable").show();
+                }
+
+                // 成功，焦点换到item上
+                $("#txtItemBarcode").focus();
+
+                // 动效果
+                if (patronVModel.patron().warningText != null && patronVModel.patron().warningText != "") {
+                    $('#insertpoint').effect('pulsate', { times: 3 }, 400);
+                }
+                if (patronVModel.patron().state != null && patronVModel.patron().state != "") {
+
+                    // alert("test");
+                    $('#readerStateTable').effect('shake', { times: 10 }, 400);
+                }
+            }
+        }
 
         //============================
         // 加载读者信息
-        function loadPatron(readerBarcode) {
+        function loadPatron(readerBarcode, patronData) {
 
             //alert("loadPatron");
 
             if (readerBarcode == null || readerBarcode == "")
                 readerBarcode = $("#txtReaderBarcode").val();
 
-            if (readerBarcode == "") {
-                //layer.alert("内部错误：加载读者信息，但未传来证条码参数。");
-                alert("请输入读者证条码!");
-                return -1;
-            }
 
-            //等待图层
-            var index = layer.load(2, { shade: [0.5, '#EEEEEE'] })
 
             //注意先停掉动画,并且用stop(true,true)
             $('#insertpoint').stop(true,true)
@@ -55,89 +119,51 @@
             // 隐藏读者信息
             showReaderInfo(false);
 
-            // 从服务器api获得读者json数据
-            var url = "/api/patron/" + readerBarcode;
-            sendAjaxRequest(url, "GET", function (data) {
+            if (readerBarcode == "") {
+                //layer.alert("内部错误：加载读者信息，但未传来证条码参数。");
+                //alert("请输入读者证条码!12344");
+                // 更新summary
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
 
-                //设置出借信息
-                patronVModel.errorInfo(data.apiResult.errorInfo);
-                // 设基本信息
-                if (data.patron != null)
-                    patronVModel.patron(data.patron);
+            // 如果数据不为空，直接解析
+            if (patronData != null && patronData != "") {
 
-                if (data.apiResult.errorCode == -1) {
-                    // 不成功选中
-                    $("#txtReaderBarcode").select();
-                }
-                else {
+                alert("aa");
+                parsePatronData(patronData);
+                // 更新summary
+                window.setTimeout("fillPending()", 1);
+            }
+            else {
 
-                    // 设置读者线索
-                    var readerKeyWord = "rs-" + readerBarcode;
-                    $("#divReaderSummary").html("<label  id='readerKeyWord'>" + readerKeyWord + "</label><img src='../img/wait2.gif' />");
-                    $("#divReaderSummary").addClass("pending");
+                alert("bb");
 
-                    // 显示基本信息
-                    $("#readerTable").show();
-                    $("#divReaderSummary").show();
-
-                    //设违约/交费
-                    var olist = data.overdueList;
-                    if (olist != null && olist.length > 0) {
-                        for (var i = 0; i < olist.length; i++) {
-                            patronVModel.overdueList.push(olist[i]);
-                        }
-                        //显示违约交费
-                        $("#divOverdue").show();
-                    }
-
-                    //设在借册
-                    var blist = data.borrowList;
-                    if (blist != null && blist.length > 0) {
-                        for (var i = 0; i < blist.length; i++) {
-                            patronVModel.borrowList.push(blist[i]);
-                        }
-                    }
-                    //显示在借册
-                    $("#borrowTable").show();
-
-                    var rlist = data.reservationList;
-                    if (rlist != null && rlist.length > 0) {
-                        for (var i = 0; i < rlist.length; i++) {
-                            patronVModel.reservationList.push(rlist[i]);
-                        }
-
-                        //显示预约
-                        $("#reservationTable").show();
-                    }
+                //等待图层
+                var index = layer.load(2, { shade: [0.5, '#EEEEEE'] })
 
 
-                    // 成功，焦点换到item上
-                    $("#txtItemBarcode").focus();
+                // 从服务器api获得读者json数据
+                var url = "/api/patron/" + readerBarcode;
+                sendAjaxRequest(url, "GET", function (data) {
 
-                    // 动效果
-                    if (patronVModel.patron().warningText != null && patronVModel.patron().warningText != "") {
-                        $('#insertpoint').effect('pulsate', { times: 3 }, 400);
-                    }
-                    if (patronVModel.patron().state != null && patronVModel.patron().state != "") {
+                    parsePatronData(data);
 
-                       // alert("test");
-                        $('#readerStateTable').effect('shake', { times: 10 }, 400);
-                    }
-
+                    // 返回错误也调一下填充信息，因为有其它地方等待
                     // 更新summary
                     window.setTimeout("fillPending()", 1);
-                }
 
-                // 关闭等待层
-                layer.close(index);
+                    // 关闭等待层
+                    layer.close(index);
 
-            }, function (xhq, textStatus, errorThrown) {
-                alertServerError(errorThrown);
-                // 关闭等待层
-                layer.close(index);
-            }, null, false);
+                }, function (xhq, textStatus, errorThrown) {
+                    alertServerError(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                }, null, false);
+            }
 
-            return 0;
+            return;
         }
 
         // 万能函数，给样式为pending的元素填充内容
@@ -326,7 +352,7 @@
             //alert("addCmd0-" + cmdModel.editor.type() + "~" + cmdModel.editor.readerBarcode() + "~" + cmdModel.editor.itemBarcode());
 
             // 先检查有没有输入需要的信息
-            if (cmdModel.editor.type() == "borrow" || cmdModel.editor.type == "renew") {
+            if (cmdModel.editor.type() == "borrow" || cmdModel.editor.type == "verifyrenew") {
                 if (cmdModel.editor.readerBarcode() == "") {
 
                     /*
@@ -372,8 +398,13 @@
                 //错误也进历史
                 cmdModel.commands.unshift(newItem); //push是加到最后面
 
+                // 显示返回的读者数据todo
+
                 // 返回命令执行成功
                 if (newItem.state == 0 || newItem.state == 1) {
+
+                    // 改为使用返回的读者数据
+                    loadPatron(newItem.readerBarcode, newItem.patronResult);
 
                     // 清空册条码框
                     cmdModel.editor.itemBarcode("");
@@ -381,8 +412,9 @@
                     // 关闭图层，因为加载读者信息的函数里面也显示了图层
                     layer.close(indexTop);
 
+                    // 换为使用返回数据
                     // 刷新读者信息，注意这里传的返回的readerBarcode，因为还书不需要输入
-                    loadPatron(newItem.readerBarcode);
+                    //loadPatron(newItem.readerBarcode,null);
 
                 }
                 else {
@@ -401,21 +433,29 @@
                     // layer.alert回车无效
                     //alert(newItem.resultInfo);
 
+                    // 改为使用返回的读者数据
+                    loadPatron(newItem.readerBarcode, newItem.patronResult);
 
-                    $("#txtItemBarcode").blur();
 
-                    var msg = "<span style='color:red'>" + newItem.resultInfo + "</span>";
-                    //var index2 = layer.load(-2, { shade: [0.5, 'gray'], content: msg, icon: 2 });
-                    //layer.load('加载带文字', 3);
-                    // layer.msg(msg, { icon: 2 });
-
-                    
+                  
                     // 关闭图层
                     layer.close(indexTop);
 
-                    layer.msg(msg, { shade: [0.5, 'gray'],  icon: 2 }, function () {
-                        //关闭后的操作k       
+                    /*
+                    //这行代码必须放在layer.msg的前面
+                    // 刷新读者信息，注意这里传的返回的readerBarcode，因为还书不需要输入
+                    var tempReaderBarcode =newItem.readerBarcode;
+                    if (tempReaderBarcode==null || tempReaderBarcode=="")
+                        tempReaderBarcode = cmdModel.editor.readerBarcode;
+                    loadPatron(tempReaderBarcode, null);
+                    */
 
+
+                    //弹出提示图层
+                    $("#txtItemBarcode").blur();
+                    var msg = "<span style='color:red'>" + newItem.resultInfo + "</span>";
+                    layer.msg(msg, { shade: [0.5, 'gray'],  icon: 2 }, function () {
+                        //关闭后的操作
                         //alert("tesstr");
                         //操作失败选中册条码框
                          $("#txtItemBarcode").select();
@@ -424,8 +464,7 @@
                     
 
 
-                    // 更新summary
-                    window.setTimeout("fillPending()", 1);
+
                 }
 
             }, function (xhq, textStatus, errorThrown) {
@@ -462,6 +501,13 @@
                     $("#btnDo").text("还");
                     cmdModel.editor.type("return");
                 }
+                else if (e.target.id == "aRenew")
+                {
+                    $("#trReaderBarcode").hide();
+                    $("#txtItemBarcode").focus();
+                    $("#btnDo").text("续借");
+                    cmdModel.editor.type("renew");
+                }
                 else {
                     $("#trReaderBarcode").show();
                     $("#txtReaderBarcode").focus();
@@ -472,7 +518,7 @@
                     }
                     else {
                         $("#btnDo").text("续借");
-                        cmdModel.editor.type("renew");
+                        cmdModel.editor.type("verifyrenew");
                     }
                 }
             })
@@ -515,22 +561,26 @@
                 */
             })
 
+           
             // 给装载按钮绑事件
-            $("#btnLoad").click(loadPatron);
-            // 给读者证条码输入框加回车事件
+            //$("#btnLoad").click(loadPatron(null,null));
+            // 给读者证条码输入框加回车事件 
+            
             $('#txtReaderBarcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
-                    loadPatron();
+                    //alert("test");
+                    loadPatron(null,null);
                 }
             });
+            
 
             // 给执行按钮绑事件
-            $("#btnDo").click(addCmd);
+            //$("#btnDo").click(addCmd);
             // 当册条码绑回车事件
             $('#txtItemBarcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
                     cmdModel.editor.itemBarcode($('#txtItemBarcode').val());
-
+                    //alert("test2");
                     addCmd();
                 }
             });
@@ -831,6 +881,7 @@
                     <li class="active"><a href="#" data-toggle="tab" id="aBorrow">借</a></li>
                     <li><a href="#home" data-toggle="tab" id="aReturn">还</a></li>
                     <li><a href="#home" data-toggle="tab" id="aRenew">续借</a></li>
+                    <li><a href="#home" data-toggle="tab" id="aVerifyRenew">验证续借</a></li>
                 </ul>
             </span>
             <div class="well">

@@ -33,6 +33,7 @@ namespace DigitalPlatform.LibraryRestClient
         public string Url = "";
         public string UserName = "";
         public string Password = "";
+        public string Parameters = "";
 
         /// <summary>
         /// 当前通道所使用的 HTTP Cookies
@@ -474,11 +475,13 @@ namespace DigitalPlatform.LibraryRestClient
         public int Borrow(bool bRenew,
             string strReaderBarcode,
             string strItemBarcode,
+            out string strOutputReaderBarcode,
             out BorrowInfo borrow_info,
             out string strError)
         {
             borrow_info = null;
             strError = "";
+            strOutputReaderBarcode = "";
 
         REDO:
             try
@@ -532,6 +535,7 @@ namespace DigitalPlatform.LibraryRestClient
                         goto REDO;
                     return -1;
                 }
+                strOutputReaderBarcode = response.strOutputReaderBarcode;
                 borrow_info = response.borrow_info;
                 strError = response.BorrowResult.ErrorInfo;
                 this.ErrorCode = response.BorrowResult.ErrorCode;
