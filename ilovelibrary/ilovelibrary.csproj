@@ -138,6 +138,7 @@
     <Compile Include="Models\LoginModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Content Include="HtmlPage1.html" />
+    <Content Include="HtmlPage2.html" />
     <Content Include="img\nonePhoto.png" />
     <Content Include="readerxml2html.txt" />
     <Content Include="XMLFile1.xml" />

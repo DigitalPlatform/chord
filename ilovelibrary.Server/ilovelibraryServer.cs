@@ -203,7 +203,7 @@ namespace ilovelibrary.Server
                 patron.state = DomUtil.GetElementText(dom.DocumentElement, "state");
                 patron.createDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement, "createDate"), "yyyy/MM/dd");
                 patron.expireDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement, "expireDate"), "yyyy/MM/dd");
-                patron.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");
+                patron.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");// +"测试革skdslfjsalfjsda;dfsajf;k;lllllllaslkjdfasssssfffffffffffffffffffffffffffffffsal;sdjflsafjsla;fdjadsl;fjsal;fjaslfjdaslfjaslfjlsafjsadlj我们枯叶sksdlfjasfljsaf;lasjf;aslfjsda;lfjsadlf";
                 // 赋给返回对象
                 result.patron = patron;
 
@@ -795,6 +795,7 @@ namespace ilovelibrary.Server
                     string strBarcodeLink = "<a " + strClass
                         + " href='" + this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode + "'   target='_blank' " + ">" + strBarcode + "</a>";
 
+                    /*
                     string shortText = strOneSummary;
                     if (shortText.Length > 30)
                         shortText = shortText.Substring(0, 30) + "···";
@@ -802,8 +803,17 @@ namespace ilovelibrary.Server
                            + " title='" + strOneSummary + "'>"
                            + shortText
                            + "</a>";
+                     */
 
-                    strSummary += strBarcodeLink + " : " + strOneSummaryTip + "<br/>";
+                    var strOneSummaryOverflow = "<div style='width:100%;white-space:nowrap;overflow:hidden; text-overflow:ellipsis;'  title='" + strOneSummary + "'>"
+                       + strOneSummary 
+                       + "</div>";
+
+                    strSummary += "<table style='width:100%;table-layout:fixed;'>"
+                        +"<tr>"
+                        + "<td width='10%;vertical-align:middle'>" + strBarcodeLink + "</td>"
+                        +"<td>" + strOneSummaryOverflow + "</td>"
+                        +"</tr></table>"; 
 
 
                     strPrevBiblioRecPath = strBiblioRecPath;
