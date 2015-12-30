@@ -25,7 +25,8 @@ namespace ilovelibrary.Server
         public string warningText { get; set; }
 
         // 是否可借
-        public int canBorrow { get; set; }
+        public int isWarning = 0;
+
     }
 
     public class PatronResult
