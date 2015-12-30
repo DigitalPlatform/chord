@@ -1,0 +1,891 @@
+﻿<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="/favicon.ico" rel="icon">
+    <title>出纳窗 - 我爱图书馆</title>
+    <!-- Bootstrap core CSS -->
+    <link href="/Content/bootstrap.min.css" rel="stylesheet">
+    <link href="/Content/sticky-footer-navbar.css" rel="stylesheet">
+
+    <style type="text/css">
+        /*所有需要后面填充内容的元素样式*/
+        .pending {
+            /*设为背景图影响效果太大了，还是元素里面加个img吧*/
+            /*background-image:url("img/wait.gif");*/
+        }
+
+        /*错误提示样式*/
+        .errorspan {
+            color: red;
+        }
+
+        /*input 去掉边框*/
+        .form-horizontal input[type="text"] {
+            border: none;
+        }
+
+        /*输入框获得焦点*/
+        .input-lg-focus {
+            height: 66px;
+            padding: 10px 16px;
+            font-size: 28px;
+            line-height: 1.3333333;
+            border-radius: 6px;
+        }
+
+        /*当前tab*/
+        .nav-tabs > li.active > a,
+        .nav-tabs > li.active > a:hover,
+        .nav-tabs > li.active > a:focus {
+            color: #555555;
+            cursor: default;
+            background-color: #eeeeee;
+            border: 1px solid #dddddd;
+            border-bottom-color: transparent;
+        }
+
+        .well {
+            min-height: 20px;
+            padding: 19px;
+            margin-bottom: 20px;
+            background-color: #dddddd;
+            /*
+                background-color: #f5f5f5;
+                border: 1px solid #e3e3e3;
+                border-radius: 4px;
+                -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+                 box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+            */
+        }
+
+        .label-default {
+            background-color: #ffffff;
+            color: #dddddd;
+        }
+
+        .reader-barcode {
+            font-size: 20px;
+            font-weight: bold;
+            color: green;
+        }
+
+        .reader-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: black;
+        }
+
+        .td-right {
+            text-align: right;
+            color: #CCCCCC;
+            padding: 0.5em;
+            width: 35%;
+        }
+
+        .td-left {
+            text-align: left;
+            padding: 0.5em;
+        }
+
+        .warning {
+            vertical-align: top;
+            text-align: center;
+        }
+
+        .amerce .number {
+            background-color: #bbbb00;
+        }
+
+        .amerce .text {
+            background-color: #ffff00;
+        }
+
+        DIV.warning .number {
+            font-size: 16pt;
+            font-weight: bolder;
+            /*width: 100%;*/
+            color: White;
+        }
+
+        DIV.warning .text {
+            font-size: 8pt;
+            /*width: 100%;*/
+        }
+
+        .overdue .number {
+            background-color: #990000;
+        }
+
+        .overdue .text {
+            background-color: #ff9999;
+        }
+
+        .arrive .number {
+            background-color: #009900;
+        }
+
+        .arrive .text {
+            background-color: #99ff99;
+        }
+
+        .deleted {
+            text-decoration: line-through;
+        }
+
+        .borrowinfo-overdue {
+            /*font-size: 8pt;*/
+            background-color: #ffcccc;
+        }
+
+        .borrowinfo-active {
+            font-size: 10pt;
+            background-color: cornsilk;
+        }
+
+        .reservation-active {
+            background-color: #99ff99;
+        }
+
+        .cmdsuccess {
+            color: white;
+            vertical-align: middle;
+            text-align: center;
+            background-color: darkgreen;
+        }
+
+        .cmdsuccess {
+            color: white;
+            vertical-align: middle;
+            text-align: center;
+            background-color: darkgreen;
+        }
+
+        .cmdwarning {
+            color: black;
+            vertical-align: middle;
+            text-align: center;
+            background-color: yellow;
+        }
+
+        .cmderror {
+            color: white;
+            vertical-align: middle;
+            text-align: center;
+            background-color: red;
+        }
+    </style>
+    <script src="/Scripts/jquery-1.9.1.js"></script>
+    <script src="/Scripts/jquery-ui-1.8.24.js"></script>
+    <script src="/Scripts/bootstrap.js"></script>
+    <script src="/Scripts/knockout-2.2.0.js"></script>
+    <script src="/Scripts/layer.js"></script>
+    <link id="layui_layer_skinlayercss" href="http://localhost:28413/Scripts/skin/layer.css" rel="stylesheet">
+    <script src="/Scripts/layer.ext.js"></script>
+    <link id="layui_layer_skinlayerextcss" href="http://localhost:28413/Scripts/skin/layer.ext.css" rel="stylesheet">
+    <link href="/skin/layer.css" rel="stylesheet" type="text/css">
+
+    <script>
+
+        // 高亮显示当前的菜单
+        $(document).ready(function () {
+
+            // 当前菜单高亮显示
+            $('ul.nav.navbar-nav').find('a[href="' + location.pathname + '"]')
+                .closest('li').addClass('active');
+
+
+
+        });
+    </script>
+
+    <script>
+
+        // 读者view model
+        var patronVModel = {
+            errorInfo: ko.observable(""),
+
+            // 注意必须要后面带("")，可以监控对象
+            patron: ko.observable(""),
+            overdueList: ko.observableArray(),
+            borrowList: ko.observableArray(),
+            reservationList: ko.observableArray()
+        };
+
+        //操作 view model
+        var cmdModel = {
+            commands: ko.observableArray(),
+            // 命令编辑
+            editor: {
+                type: ko.observable("borrow"),
+                readerBarcode: ko.observable(""),
+                itemBarcode: ko.observable("")
+            }
+        }
+
+        //============================
+        // 加载读者信息
+        function loadPatron(readerBarcode) {
+
+            //alert("loadPatron");
+
+            if (readerBarcode == null || readerBarcode == "")
+                readerBarcode = $("#txtReaderBarcode").val();
+
+            if (readerBarcode == "") {
+                //layer.alert("内部错误：加载读者信息，但未传来证条码参数。");
+                alert("请输入读者证条码!");
+                return -1;
+            }
+
+            //等待图层
+            var index = layer.load(2, { shade: [0.5, '#EEEEEE'] })
+
+            //注意先停掉动画,并且用stop(true,true)
+            $('#insertpoint').stop(true,true)
+            $('#readerStateTable').stop(true,true);
+            //alert("stop()后")
+
+            // 隐藏读者信息
+            showReaderInfo(false);
+
+            // 从服务器api获得读者json数据
+            var url = "/api/patron/" + readerBarcode;
+            sendAjaxRequest(url, "GET", function (data) {
+
+                //设置出借信息
+                patronVModel.errorInfo(data.apiResult.errorInfo);
+                // 设基本信息
+                if (data.patron != null)
+                    patronVModel.patron(data.patron);
+
+                if (data.apiResult.errorCode == -1) {
+                    // 不成功选中
+                    $("#txtReaderBarcode").select();
+                }
+                else {
+
+                    // 设置读者线索
+                    var readerKeyWord = "rs-" + readerBarcode;
+                    $("#divReaderSummary").html("<label  id='readerKeyWord'>" + readerKeyWord + "</label><img src='../img/wait2.gif' />");
+                    $("#divReaderSummary").addClass("pending");
+
+                    // 显示基本信息
+                    $("#readerTable").show();
+                    $("#divReaderSummary").show();
+
+                    //设违约/交费
+                    var olist = data.overdueList;
+                    if (olist != null && olist.length > 0) {
+                        for (var i = 0; i < olist.length; i++) {
+                            patronVModel.overdueList.push(olist[i]);
+                        }
+                        //显示违约交费
+                        $("#divOverdue").show();
+                    }
+
+                    //设在借册
+                    var blist = data.borrowList;
+                    if (blist != null && blist.length > 0) {
+                        for (var i = 0; i < blist.length; i++) {
+                            patronVModel.borrowList.push(blist[i]);
+                        }
+                    }
+                    //显示在借册
+                    $("#borrowTable").show();
+
+                    var rlist = data.reservationList;
+                    if (rlist != null && rlist.length > 0) {
+                        for (var i = 0; i < rlist.length; i++) {
+                            patronVModel.reservationList.push(rlist[i]);
+                        }
+
+                        //显示预约
+                        $("#reservationTable").show();
+                    }
+
+
+                    // 成功，焦点换到item上
+                    $("#txtItemBarcode").focus();
+
+                    // 动效果
+                    if (patronVModel.patron().warningText != null && patronVModel.patron().warningText != "") {
+                        $('#insertpoint').effect('pulsate', { times: 3 }, 400);
+                    }
+                    if (patronVModel.patron().state != null && patronVModel.patron().state != "") {
+
+                        // alert("test");
+                        $('#readerStateTable').effect('shake', { times: 10 }, 400);
+                    }
+
+                    // 更新summary
+                    window.setTimeout("fillPending()", 1);
+                }
+
+                // 关闭等待层
+                layer.close(index);
+
+            }, function (xhq, textStatus, errorThrown) {
+                alertServerError(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            }, null, false);
+
+            return 0;
+        }
+
+        // 万能函数，给样式为pending的元素填充内容
+        function fillPending() {
+            //alert("fillPending");
+
+            // 选取第一个样式为pending的元素
+            var o = $(".pending:first");
+            if (o.length == 0) {
+                //alert("fillPending1-1");
+                // 没有pending类型元素则返回
+                return;
+            }
+
+            // 找到下级的标签，里面存储的线索
+            var mylable = o.children("label");
+            // 如果没有定义标签label，则去掉pending状态，继续下一个pending
+            if (mylable.length == 0) {
+                //alert("fillPending1-2");
+                o.removeClass("pending");
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
+
+            // 取出label设置的线索信息
+            var keyword = mylable.text();
+            // 未给label设值，去掉pending状态，继续下一个pending
+            if (keyword.length == 0) {
+                // alert("fillPending1-3:[" + mylable.text() + "]");
+                o.removeClass("pending");
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
+
+            // bs-为书目summary，rs-为读者summary
+            // 线索信息不足，去掉pending状态，继续下一个pending
+            if (keyword.length <= 3) {
+                //alert("fillPending1-4");
+                o.html("");
+                o.removeClass("pending");
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
+
+            // 取出线索类型和值
+            var mytype = keyword.substring(0, 3);
+            var myvalue = keyword.substring(3);
+            //alert("type[" + mytype + "]-value[" + myvalue + "]");
+            if (myvalue == "") {
+                o.html("");
+                o.removeClass("pending");
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
+
+            if (mytype == "bs-") {
+                var url = "/api/biblio/" + encodeURIComponent(myvalue) + "?format=summary";
+                // 调api
+                sendAjaxRequest(url, "GET", function (data) {
+                    //换成实际的值，去掉pending状态，继续下一个pending
+
+                    /*
+                    // 短25个字符...，加tip
+                    var shortText = data;
+                    if (shortText.length > 30)
+                        shortText = shortText.substring(0, 30) + "···";
+                    var myHtml = "<span  data-toggle='tooltip' data-placement='right' "
+                           + " title='" + data + "'>"
+                           + shortText
+                           + "</span>";
+                    */
+
+                    //overflow-wrap:break-word;text-wrap:none;word-wrap:break-word
+                    var myhtml = "<div style='width:100%; overflow:hidden;text-overflow:ellipsis; -ms-text-overflow: ellipsis; overflow-wrap:break-word;'  title='" + data + "'>"
+                        + "<nobr>"+ data+"</nobr>"
+                        + "</div>";
+
+                    o.html(myhtml);
+
+                    o.removeClass("pending");
+                    window.setTimeout("fillPending()", 1);
+                }, function (xhq, textStatus, errorThrown) {
+                    //换成实际的值，去掉pending状态，继续下一个pending
+                    o.html("访问服务器出错：" + errorThrown);
+                    o.removeClass("pending");
+                    window.setTimeout("fillPending()", 1);
+                });
+            }
+            else if (mytype == "rs-") {
+                var url = "/api/patron/" + encodeURIComponent(myvalue) + "?format=summary";
+                //alert(url);
+
+                sendAjaxRequest(url, "GET", function (data) {
+                    if (data.apiResult.errorCode == -1) {
+                        //alert("err1");
+                        //换成实际的值，去掉pending状态，继续下一个pending
+                        o.html("出错：" + data.apiResult.errorInfo);
+                        o.removeClass("pending");
+                        window.setTimeout("fillPending()", 1);
+                    }
+                    else {
+                        //换成实际的值，去掉pending状态，继续下一个pending
+                        //alert(data.summary);
+                        o.html(data.summary);
+                        o.removeClass("pending");
+                        window.setTimeout("fillPending()", 1);
+                    }
+                }, function (xhq, textStatus, errorThrown) {
+                    //换成实际的值，去掉pending状态，继续下一个pending
+                    o.html("访问服务器出错：" + errorThrown);
+                    o.removeClass("pending");
+                    window.setTimeout("fillPending()", 1);
+                });
+            }
+            else if (mytype == "ms-") {
+                var url = "/api/biblio/more" + "?format=" + encodeURIComponent(myvalue);
+                //alert(url);
+                // 调api
+                sendAjaxRequest(url, "GET", function (data) {
+                    //换成实际的值，去掉pending状态，继续下一个pending
+                    o.html(data);
+                    o.removeClass("pending");
+                    window.setTimeout("fillPending()", 1);
+                }, function (xhq, textStatus, errorThrown) {
+                    //换成实际的值，去掉pending状态，继续下一个pending
+                    o.html("访问服务器出错：" + errorThrown);
+                    o.removeClass("pending");
+                    window.setTimeout("fillPending()", 1);
+                });
+            }
+            else {
+                // 继续下面的
+                o.removeClass("pending");
+                window.setTimeout("fillPending()", 1);
+            }
+
+
+            // 不能写到这里，因为上面的异常调用还没返回更新数据，会导致调多次api
+            //处理下一个pending
+            //window.setTimeout("fillPending()", 1);
+            return;
+        }
+
+        //用于获取所有命令
+        //这个似乎不需要冻结界面 todo
+        function getAllCmd() {
+            //显示等待图层
+            var index = loadLayer();
+
+            // 先删除可观察数组中的已有数据
+            cmdModel.commands.removeAll();
+
+            //alert("getAllCmd1");
+
+            // 调web api
+            var url = "/api/command";
+            sendAjaxRequest(url, "GET", function (data) {
+
+                //alert("getAllCmd2");
+                for (var i = 0; i < data.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    cmdModel.commands.push(data[i]);
+                }
+
+                //alert("getAllCmd3");
+                // 关闭等待层
+                layer.close(index);
+
+                //alert("getAllCmd31");
+                // 填充summary
+                window.setTimeout("fillPending()", 1);
+
+                //alert("getAllCmd4");
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                //alert("getAllCmd5");
+                alertServerError(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        // 执行命令
+        function addCmd() {
+            //alert("addCmd0-" + cmdModel.editor.type() + "~" + cmdModel.editor.readerBarcode() + "~" + cmdModel.editor.itemBarcode());
+
+            // 先检查有没有输入需要的信息
+            if (cmdModel.editor.type() == "borrow" || cmdModel.editor.type == "renew") {
+                if (cmdModel.editor.readerBarcode() == "") {
+
+                    /*
+                    layer.alert("请输入证条码号", { icon: 1 }, function (index) {
+                        //do something
+                        $("#txtReaderBarcode").focus();
+                        // 关信息图层
+                        layer.close(index);
+                    });
+                    */
+
+                    alert("请输入证条码号!");
+                    return;
+                }
+            }
+            if (cmdModel.editor.itemBarcode() == "") {
+
+                /*
+                layer.alert("请输入册条码号!", { icon: 0 }, function (index) {
+                    //do something
+                    $("#txtItemBarcode").focus();
+                    layer.close(index);
+                });
+                */
+
+                alert("请输入册条码号!");
+                return;
+            }
+
+            //显示等待图层
+            var indexTop = loadLayer();
+
+            //调 web api
+            var url = "/api/command";
+            var data = {
+                type: cmdModel.editor.type,
+                readerBarcode: cmdModel.editor.readerBarcode,
+                itemBarcode: cmdModel.editor.itemBarcode
+            };
+
+            sendAjaxRequest(url, "POST", function (newItem) {
+
+                //错误也进历史
+                cmdModel.commands.unshift(newItem); //push是加到最后面
+
+                // 返回命令执行成功
+                if (newItem.state == 0 || newItem.state == 1) {
+
+                    // 清空册条码框
+                    cmdModel.editor.itemBarcode("");
+
+                    // 关闭图层，因为加载读者信息的函数里面也显示了图层
+                    layer.close(indexTop);
+
+                    // 刷新读者信息，注意这里传的返回的readerBarcode，因为还书不需要输入
+                    loadPatron(newItem.readerBarcode);
+
+                }
+                else {
+                    /*
+                    //命令执行出错，弹出提示
+                    layer.alert(newItem.resultInfo, { icon: 2 }, function (index) {
+                        //操作失败选中册条码框
+                        $("#txtItemBarcode").select();
+                        $("#txtItemBarcode").focus();
+
+                        // 一定记着关闭信息图层
+                        layer.close(index);
+                    });
+                    */
+
+                    // layer.alert回车无效
+                    //alert(newItem.resultInfo);
+
+
+                    $("#txtItemBarcode").blur();
+
+                    var msg = "<span style='color:red'>" + newItem.resultInfo + "</span>";
+                    //var index2 = layer.load(-2, { shade: [0.5, 'gray'], content: msg, icon: 2 });
+                    //layer.load('加载带文字', 3);
+                    // layer.msg(msg, { icon: 2 });
+
+
+                    // 关闭图层
+                    layer.close(indexTop);
+
+                    layer.msg(msg, { shade: [0.5, 'gray'],  icon: 2 }, function () {
+                        //关闭后的操作k
+
+                        //alert("tesstr");
+                        //操作失败选中册条码框
+                        $("#txtItemBarcode").select();
+                        $("#txtItemBarcode").focus();
+                    });
+
+
+
+
+
+
+
+
+
+
+
+
+                    // 更新summary
+                    window.setTimeout("fillPending()", 1);
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+                alertServerError(errorThrown);
+                // 关闭等待层
+                layer.close(indexTop);
+            }, data);
+        }
+
+        //=================
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+            // 获取所有的操作命令
+            getAllCmd();
+
+            // 加载绑定
+            ko.applyBindings(patronVModel, document.getElementById('divPatron'));
+            ko.applyBindings(cmdModel, document.getElementById('divCmd'));
+
+            // 切换table事件
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                e.target // activated tab
+                e.relatedTarget // previous tab
+
+                // 先把输入框中的数据清除
+                cmdModel.editor.readerBarcode("");
+                cmdModel.editor.itemBarcode("");
+
+                //隐藏读者信息
+                showReaderInfo(false);
+
+                // alert(e.target.id);
+                if (e.target.id == "aReturn") {
+                    $("#trReaderBarcode").hide();
+                    $("#txtItemBarcode").focus();
+                    $("#btnDo").text("还");
+                    cmdModel.editor.type("return");
+                }
+                else {
+                    $("#trReaderBarcode").show();
+                    $("#txtReaderBarcode").focus();
+
+                    if (e.target.id == "aBorrow") {
+                        $("#btnDo").text("借");
+                        cmdModel.editor.type("borrow");
+                    }
+                    else {
+                        $("#btnDo").text("续借");
+                        cmdModel.editor.type("renew");
+                    }
+                }
+            })
+
+            // 给装载按钮绑事件
+            $("#btnLoad").click(loadPatron);
+            // 给读者证条码输入框加回车事件
+            $('#txtReaderBarcode').bind('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    loadPatron();
+                }
+            });
+
+            // 给执行按钮绑事件
+            $("#btnDo").click(addCmd);
+            // 当册条码绑回车事件
+            $('#txtItemBarcode').bind('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    cmdModel.editor.itemBarcode($('#txtItemBarcode').val());
+
+                    addCmd();
+                }
+            });
+
+            //===================
+            // 证条码框获得焦点
+            $("#txtReaderBarcode").focus(function () {
+                setInputFocus($("#txtReaderBarcode"), true);
+
+                // $("#txtReaderBarcode").removeClass("input-lg");
+                // $("#txtReaderBarcode").addClass("input-lg-focus");
+            });
+            //失去焦点
+            $("#txtReaderBarcode").blur(function () {
+                setInputFocus($("#txtReaderBarcode"), false);
+
+                // $("#txtReaderBarcode").removeClass("input-lg-focus");
+                // $("#txtReaderBarcode").addClass("input-lg");
+            });
+
+
+            //===================
+            // 册条码框获得焦点
+            $("#txtItemBarcode").focus(function () {
+
+                setInputFocus($("#txtItemBarcode"), true);
+                //$("#txtItemBarcode").removeClass("input-lg");
+                //$("#txtItemBarcode").addClass("input-lg-focus");
+            });
+            //失去焦点
+            $("#txtItemBarcode").blur(function () {
+                setInputFocus($("#txtItemBarcode"), false);
+
+                // $("#txtItemBarcode").removeClass("input-lg-focus");
+                //$("#txtItemBarcode").addClass("input-lg");
+            });
+
+            // 键盘按任意键，消掉图层
+            $(document).keydown(function (event) {
+                layer.closeAll();
+            });
+
+            //隐藏读者信息
+            showReaderInfo(false);
+
+
+        })
+
+        //===========================
+        // 以下是共用函数
+
+        function setInputFocus(obj, bFocus) {
+            if (bFocus == true) {
+                obj.removeClass("input-lg");
+                obj.addClass("input-lg-focus");
+            }
+            else {
+                obj.removeClass("input-lg-focus");
+                obj.addClass("input-lg");
+            }
+        }
+
+        // 显示/隐藏读者信息
+        function showReaderInfo(bShow) {
+            if (bShow == true) {
+                $("#readerTable").show();
+                $("#divReaderSummary").show();
+                $("#divOverdue").show();
+                $("#borrowTable").show();
+                $("#reservationTable").show();
+
+            }
+            else {
+                //置空观察数组
+                patronVModel.errorInfo("");
+                patronVModel.patron("");
+                patronVModel.overdueList.removeAll();// 清空违约交费可观察数组
+                patronVModel.borrowList.removeAll();// 清空在借册可观察数组
+                patronVModel.reservationList.removeAll();
+
+                $("#readerTable").hide();
+                $("#divReaderSummary").hide();
+                $("#divOverdue").hide();
+                $("#borrowTable").hide();
+                $("#reservationTable").hide();
+            }
+        }
+
+        // 显示服务器错误
+        function alertServerError(info) {
+
+            alert("服务器返回错误：" + errorThrown);
+
+            //layer.alert("服务器返回错误：" + errorThrown, { icon: 2 });
+
+        }
+
+        // 显示等待图层
+        function loadLayer() {
+            return layer.load(2, { shade: [0.5, '#EEEEEE'] });
+        }
+
+        // ajax请求
+        function sendAjaxRequest(url, httpMethod, successCallback, errorCallback, mydata, myasync) {
+            $.ajax(url, {
+                type: httpMethod,
+                success: successCallback,
+                error: errorCallback,
+                data: mydata,
+                async: myasync
+            });
+        }
+    </script>
+</head>
+<body >
+
+
+    <!-- Begin page content -->
+    <div style="width:100%;background-color: green">
+        <!--部分页占位符 -->
+
+
+
+        <div style="background-color: blue;width:80%">
+            <div  id="divCmd" style="width:40%; background-color: darkblue);">
+
+                <!-- Table -->
+                <h3><span class="label label-default">操作历史</span></h3>
+                <table class="table" style="background-color:red;width:100%" data-bind="foreach: cmdModel.commands">
+                    <tbody>
+                        <tr style="border-bottom-color: white; border-bottom-width: 2px; border-bottom-style: solid;" data-bind="style: {'border-bottom': isAddLine==1 ? '2px dashed #FF9999' : '2px solid white ' }">
+                            <td width="1%" class="cmdsuccess" style="padding: 1px; vertical-align: middle;" data-bind="css:cmdCss">
+                                <span style="font-weight: bold;" data-bind="text:typeString">还</span>
+                            </td>
+                            <td width="99%">
+                                <table style="padding: 2px;">
+                                    <tbody>
+                                        <tr><td data-bind="style: {'color': state!=0? 'red':'blank' }"><span data-bind="html:resultInfo">还书操作成功。</span></td></tr>
+                                        <tr>
+                                            <td>
+                                                <span data-bind="text:readerBarcode">ILL1-R12</span>
+                                                &nbsp;&nbsp;
+                                                <span><span style="font-size: 14.8px; font-weight: bold;">读者12</span>（一年级）</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <table>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td valign="top">
+                                                                <a href="http://localhost:8081/dp2OPAC/book.aspx?barcode=C31&amp;borrower=ILL1-R12" target="_blank" data-bind="attr: { href: itemBarcodeUrl}">
+                                                                    <span data-bind="text:itemBarcode">C31</span>
+                                                                </a>
+                                                                &nbsp;&nbsp;
+                                                            </td>
+                                                            <td width="80%" height="20" valign="top"><div title="HTML资源手册 = HTML Sourcebook / Ian S. Graham著 ; 张文旭、李也白、鲁百年、刘红英译. -- ISBN 7-5053-3814-5 : ￥29.00" style="width: 100px; overflow: hidden; -ms-text-overflow: ellipsis; overflow-wrap: break-word;"><nobr>HTML资源手册 = HTML Sourcebook / Ian S. Graham著 ; 张文旭、李也白、鲁百年、刘红英译. -- ISBN 7-5053-3814-5 : ￥29.00</nobr></div></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <span style="color: gray;">操作时间&nbsp;&nbsp;</span>
+                                                <span data-bind="text:operTime">2015-12-29 03:52:25</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div  id="divPatron" style="width:40%;background-color: gray;" data-bind="style: {'background-color': patronVModel.patron()!=null &amp;&amp; patronVModel.patron().state != null &amp;&amp; patronVModel.patron().state !='' ? 'yellow' : 'white ' }">
+                <h3><span class="label label-default">读者信息</span></h3>
+            </div>
+        </div>
+    </div>
+   
+    <!-- Visual Studio Browser Link -->
+    <script id="__browserLink_initializationData" type="application/json">
+        {"appName":"Internet Explorer","requestId":"6757b012172a465e8fdd9e278ea5508b"}
+    </script>
+    <script src="http://localhost:1561/b4fe87bceb5f4875a3edc8048e825e34/browserLink" type="text/javascript" async="async"></script>
+    <!-- End Browser Link -->
+
+</body>
+</html>

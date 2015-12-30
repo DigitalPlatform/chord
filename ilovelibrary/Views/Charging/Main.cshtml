@@ -27,23 +27,89 @@
             }
         }
 
+        //解析读者数据
+        function parsePatronData(data)
+        {
+            var readerBarcode = cmdModel.editor.readerBarcode;
+            if (data.patron != null)
+                readerBarcode = data.patron.barcode;
+
+            //设置出借信息
+            patronVModel.errorInfo(data.apiResult.errorInfo);
+            // 设基本信息
+            if (data.patron != null)
+                patronVModel.patron(data.patron);
+
+            if (data.apiResult.errorCode == -1) {
+                // 不成功选中
+                $("#txtReaderBarcode").select();
+            }
+            else {
+
+                // 设置读者线索
+                var readerKeyWord = "rs-" + readerBarcode;
+                $("#divReaderSummary").html("<label  id='readerKeyWord'>" + readerKeyWord + "</label><img src='../img/wait2.gif' />");
+                $("#divReaderSummary").addClass("pending");
+
+                // 显示基本信息
+                $("#readerTable").show();
+                $("#divReaderSummary").show();
+
+                //设违约/交费
+                var olist = data.overdueList;
+                if (olist != null && olist.length > 0) {
+                    for (var i = 0; i < olist.length; i++) {
+                        patronVModel.overdueList.push(olist[i]);
+                    }
+                    //显示违约交费
+                    $("#divOverdue").show();
+                }
+
+                //设在借册
+                var blist = data.borrowList;
+                if (blist != null && blist.length > 0) {
+                    for (var i = 0; i < blist.length; i++) {
+                        patronVModel.borrowList.push(blist[i]);
+                    }
+                }
+                //显示在借册
+                $("#borrowTable").show();
+
+                var rlist = data.reservationList;
+                if (rlist != null && rlist.length > 0) {
+                    for (var i = 0; i < rlist.length; i++) {
+                        patronVModel.reservationList.push(rlist[i]);
+                    }
+
+                    //显示预约
+                    $("#reservationTable").show();
+                }
+
+                // 成功，焦点换到item上
+                $("#txtItemBarcode").focus();
+
+                // 动效果
+                if (patronVModel.patron().warningText != null && patronVModel.patron().warningText != "") {
+                    $('#insertpoint').effect('pulsate', { times: 3 }, 400);
+                }
+                if (patronVModel.patron().state != null && patronVModel.patron().state != "") {
+
+                    // alert("test");
+                    $('#readerStateTable').effect('shake', { times: 10 }, 400);
+                }
+            }
+        }
+
         //============================
         // 加载读者信息
-        function loadPatron(readerBarcode) {
+        function loadPatron(readerBarcode, patronData) {
 
             //alert("loadPatron");
 
             if (readerBarcode == null || readerBarcode == "")
                 readerBarcode = $("#txtReaderBarcode").val();
 
-            if (readerBarcode == "") {
-                //layer.alert("内部错误：加载读者信息，但未传来证条码参数。");
-                alert("请输入读者证条码!");
-                return -1;
-            }
 
-            //等待图层
-            var index = layer.load(2, { shade: [0.5, '#EEEEEE'] })
 
             //注意先停掉动画,并且用stop(true,true)
             $('#insertpoint').stop(true,true)
@@ -53,89 +119,51 @@
             // 隐藏读者信息
             showReaderInfo(false);
 
-            // 从服务器api获得读者json数据
-            var url = "/api/patron/" + readerBarcode;
-            sendAjaxRequest(url, "GET", function (data) {
+            if (readerBarcode == "") {
+                //layer.alert("内部错误：加载读者信息，但未传来证条码参数。");
+                //alert("请输入读者证条码!12344");
+                // 更新summary
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
 
-                //设置出借信息
-                patronVModel.errorInfo(data.apiResult.errorInfo);
-                // 设基本信息
-                if (data.patron != null)
-                    patronVModel.patron(data.patron);
+            // 如果数据不为空，直接解析
+            if (patronData != null && patronData != "") {
 
-                if (data.apiResult.errorCode == -1) {
-                    // 不成功选中
-                    $("#txtReaderBarcode").select();
-                }
-                else {
+                alert("aa");
+                parsePatronData(patronData);
+                // 更新summary
+                window.setTimeout("fillPending()", 1);
+            }
+            else {
 
-                    // 设置读者线索
-                    var readerKeyWord = "rs-" + readerBarcode;
-                    $("#divReaderSummary").html("<label  id='readerKeyWord'>" + readerKeyWord + "</label><img src='../img/wait2.gif' />");
-                    $("#divReaderSummary").addClass("pending");
+                alert("bb");
 
-                    // 显示基本信息
-                    $("#readerTable").show();
-                    $("#divReaderSummary").show();
-
-                    //设违约/交费
-                    var olist = data.overdueList;
-                    if (olist != null && olist.length > 0) {
-                        for (var i = 0; i < olist.length; i++) {
-                            patronVModel.overdueList.push(olist[i]);
-                        }
-                        //显示违约交费
-                        $("#divOverdue").show();
-                    }
-
-                    //设在借册
-                    var blist = data.borrowList;
-                    if (blist != null && blist.length > 0) {
-                        for (var i = 0; i < blist.length; i++) {
-                            patronVModel.borrowList.push(blist[i]);
-                        }
-                    }
-                    //显示在借册
-                    $("#borrowTable").show();
-
-                    var rlist = data.reservationList;
-                    if (rlist != null && rlist.length > 0) {
-                        for (var i = 0; i < rlist.length; i++) {
-                            patronVModel.reservationList.push(rlist[i]);
-                        }
-
-                        //显示预约
-                        $("#reservationTable").show();
-                    }
+                //等待图层
+                var index = layer.load(2, { shade: [0.5, '#EEEEEE'] })
 
 
-                    // 成功，焦点换到item上
-                    $("#txtItemBarcode").focus();
+                // 从服务器api获得读者json数据
+                var url = "/api/patron/" + readerBarcode;
+                sendAjaxRequest(url, "GET", function (data) {
 
-                    // 动效果
-                    if (patronVModel.patron().warningText != null && patronVModel.patron().warningText != "") {
-                        $('#insertpoint').effect('pulsate', { times: 3 }, 400);
-                    }
-                    if (patronVModel.patron().state != null && patronVModel.patron().state != "") {
+                    parsePatronData(data);
 
-                       // alert("test");
-                        $('#readerStateTable').effect('shake', { times: 10 }, 400);
-                    }
-
+                    // 返回错误也调一下填充信息，因为有其它地方等待
                     // 更新summary
                     window.setTimeout("fillPending()", 1);
-                }
 
-                // 关闭等待层
-                layer.close(index);
+                    // 关闭等待层
+                    layer.close(index);
 
-            }, function (xhq, textStatus, errorThrown) {
-                alertServerError(errorThrown);
-                // 关闭等待层
-                layer.close(index);
-            }, null, false);
+                }, function (xhq, textStatus, errorThrown) {
+                    alertServerError(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                }, null, false);
+            }
 
-            return 0;
+            return;
         }
 
         // 万能函数，给样式为pending的元素填充内容
@@ -197,16 +225,23 @@
                 sendAjaxRequest(url, "GET", function (data) {
                     //换成实际的值，去掉pending状态，继续下一个pending
 
+                    /*
                     // 短25个字符...，加tip
                     var shortText = data;
-                    if (shortText.length > 25)
-                        shortText = shortText.substring(0, 25) + "···";
-                    var myHtml = "<a href='#' data-toggle='tooltip' data-placement='right' "
+                    if (shortText.length > 30)
+                        shortText = shortText.substring(0, 30) + "···";
+                    var myHtml = "<span  data-toggle='tooltip' data-placement='right' "
                            + " title='" + data + "'>"
                            + shortText
-                           + "</a>";
+                           + "</span>";
+                    */
 
-                    o.html(myHtml);
+                    //overflow-wrap:break-word;text-wrap:none;word-wrap:break-word
+                    var myhtml = "<div style='width:100%; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; '  title='" + data + "'>"
+                        + data
+                        + "</div>";
+
+                    o.html(myhtml);
 
                     o.removeClass("pending");
                     window.setTimeout("fillPending()", 1);
@@ -317,7 +352,7 @@
             //alert("addCmd0-" + cmdModel.editor.type() + "~" + cmdModel.editor.readerBarcode() + "~" + cmdModel.editor.itemBarcode());
 
             // 先检查有没有输入需要的信息
-            if (cmdModel.editor.type() == "borrow" || cmdModel.editor.type == "renew") {
+            if (cmdModel.editor.type() == "borrow" || cmdModel.editor.type == "verifyrenew") {
                 if (cmdModel.editor.readerBarcode() == "") {
 
                     /*
@@ -363,8 +398,13 @@
                 //错误也进历史
                 cmdModel.commands.unshift(newItem); //push是加到最后面
 
+                // 显示返回的读者数据todo
+
                 // 返回命令执行成功
                 if (newItem.state == 0 || newItem.state == 1) {
+
+                    // 改为使用返回的读者数据
+                    loadPatron(newItem.readerBarcode, newItem.patronResult);
 
                     // 清空册条码框
                     cmdModel.editor.itemBarcode("");
@@ -372,8 +412,9 @@
                     // 关闭图层，因为加载读者信息的函数里面也显示了图层
                     layer.close(indexTop);
 
+                    // 换为使用返回数据
                     // 刷新读者信息，注意这里传的返回的readerBarcode，因为还书不需要输入
-                    loadPatron(newItem.readerBarcode);
+                    //loadPatron(newItem.readerBarcode,null);
 
                 }
                 else {
@@ -392,21 +433,29 @@
                     // layer.alert回车无效
                     //alert(newItem.resultInfo);
 
+                    // 改为使用返回的读者数据
+                    loadPatron(newItem.readerBarcode, newItem.patronResult);
 
-                    $("#txtItemBarcode").blur();
 
-                    var msg = "<span style='color:red'>" + newItem.resultInfo + "</span>";
-                    //var index2 = layer.load(-2, { shade: [0.5, 'gray'], content: msg, icon: 2 });
-                    //layer.load('加载带文字', 3);
-                    // layer.msg(msg, { icon: 2 });
-
-                    
+                  
                     // 关闭图层
                     layer.close(indexTop);
 
-                    layer.msg(msg, { shade: [0.5, 'gray'],  icon: 2 }, function () {
-                        //关闭后的操作k       
+                    /*
+                    //这行代码必须放在layer.msg的前面
+                    // 刷新读者信息，注意这里传的返回的readerBarcode，因为还书不需要输入
+                    var tempReaderBarcode =newItem.readerBarcode;
+                    if (tempReaderBarcode==null || tempReaderBarcode=="")
+                        tempReaderBarcode = cmdModel.editor.readerBarcode;
+                    loadPatron(tempReaderBarcode, null);
+                    */
 
+
+                    //弹出提示图层
+                    $("#txtItemBarcode").blur();
+                    var msg = "<span style='color:red'>" + newItem.resultInfo + "</span>";
+                    layer.msg(msg, { shade: [0.5, 'gray'],  icon: 2 }, function () {
+                        //关闭后的操作
                         //alert("tesstr");
                         //操作失败选中册条码框
                          $("#txtItemBarcode").select();
@@ -415,17 +464,7 @@
                     
 
 
-                    
-                    
 
-
-
-
-
-
-
-                    // 更新summary
-                    window.setTimeout("fillPending()", 1);
                 }
 
             }, function (xhq, textStatus, errorThrown) {
@@ -446,11 +485,52 @@
             ko.applyBindings(patronVModel, document.getElementById('divPatron'));
             ko.applyBindings(cmdModel, document.getElementById('divCmd'));
 
+            $('#myTab a').click(function (e) {
+
+                // 先把输入框中的数据清除
+                cmdModel.editor.readerBarcode("");
+                cmdModel.editor.itemBarcode("");
+
+                //隐藏读者信息
+                showReaderInfo(false);
+
+                // alert(e.target.id);
+                if (e.target.id == "aReturn") {
+                    $("#trReaderBarcode").hide();
+                    $("#txtItemBarcode").focus();
+                    $("#btnDo").text("还");
+                    cmdModel.editor.type("return");
+                }
+                else if (e.target.id == "aRenew")
+                {
+                    $("#trReaderBarcode").hide();
+                    $("#txtItemBarcode").focus();
+                    $("#btnDo").text("续借");
+                    cmdModel.editor.type("renew");
+                }
+                else {
+                    $("#trReaderBarcode").show();
+                    $("#txtReaderBarcode").focus();
+
+                    if (e.target.id == "aBorrow") {
+                        $("#btnDo").text("借");
+                        cmdModel.editor.type("borrow");
+                    }
+                    else {
+                        $("#btnDo").text("续借");
+                        cmdModel.editor.type("verifyrenew");
+                    }
+                }
+            })
+
             // 切换table事件
             $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                 e.target // activated tab
                 e.relatedTarget // previous tab
 
+                
+
+                /*
                 // 先把输入框中的数据清除
                 cmdModel.editor.readerBarcode("");
                 cmdModel.editor.itemBarcode("");
@@ -478,24 +558,29 @@
                         cmdModel.editor.type("renew");
                     }
                 }
+                */
             })
 
+           
             // 给装载按钮绑事件
-            $("#btnLoad").click(loadPatron);
-            // 给读者证条码输入框加回车事件
+            //$("#btnLoad").click(loadPatron(null,null));
+            // 给读者证条码输入框加回车事件 
+            
             $('#txtReaderBarcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
-                    loadPatron();
+                    //alert("test");
+                    loadPatron(null,null);
                 }
             });
+            
 
             // 给执行按钮绑事件
-            $("#btnDo").click(addCmd);
+            //$("#btnDo").click(addCmd);
             // 当册条码绑回车事件
             $('#txtItemBarcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
                     cmdModel.editor.itemBarcode($('#txtItemBarcode').val());
-
+                    //alert("test2");
                     addCmd();
                 }
             });
@@ -505,32 +590,23 @@
             $("#txtReaderBarcode").focus(function () {
                 setInputFocus($("#txtReaderBarcode"), true);
 
-                // $("#txtReaderBarcode").removeClass("input-lg");
-                // $("#txtReaderBarcode").addClass("input-lg-focus");
+                // 删除册条码框的数据
+                cmdModel.editor.itemBarcode("");
             });
             //失去焦点
             $("#txtReaderBarcode").blur(function () {
                 setInputFocus($("#txtReaderBarcode"), false);
-
-                // $("#txtReaderBarcode").removeClass("input-lg-focus");
-                // $("#txtReaderBarcode").addClass("input-lg");
             });
 
 
             //===================
             // 册条码框获得焦点
             $("#txtItemBarcode").focus(function () {
-
                 setInputFocus($("#txtItemBarcode"), true);
-                //$("#txtItemBarcode").removeClass("input-lg");
-                //$("#txtItemBarcode").addClass("input-lg-focus");
             });
             //失去焦点
             $("#txtItemBarcode").blur(function () {
                 setInputFocus($("#txtItemBarcode"), false);
-
-                // $("#txtItemBarcode").removeClass("input-lg-focus");
-                //$("#txtItemBarcode").addClass("input-lg");
             });
 
             // 键盘按任意键，消掉图层
@@ -538,9 +614,13 @@
                 layer.closeAll();
             });
 
+
+
             //隐藏读者信息
             showReaderInfo(false);
 
+            // 证条码框获得焦点
+            $("#txtReaderBarcode").focus();
 
         })
 
@@ -598,9 +678,21 @@
             return layer.load(2, { shade: [0.5, '#EEEEEE'] });
         }
 
-        // ajax请求
+        function getRootPath() {
+            var pathName = window.location.pathname.substring(1);
+            var webName = pathName == '' ? '' : pathName.substring(0, pathName.indexOf('/'));
+            var rootPath = window.location.protocol + '//' + window.location.host;//+ '/' + webName;
+            return rootPath;
+        }
+
+        // ajax请求l
         function sendAjaxRequest(url, httpMethod, successCallback, errorCallback, mydata, myasync) {
-            $.ajax(url, {
+
+            var apiFullPath = getRootPath()+url;
+
+            //alert(rootPath +url);
+
+            $.ajax(apiFullPath, {
                 type: httpMethod,
                 success: successCallback,
                 error: errorCallback,
@@ -789,6 +881,7 @@
                     <li class="active"><a href="#" data-toggle="tab" id="aBorrow">借</a></li>
                     <li><a href="#home" data-toggle="tab" id="aReturn">还</a></li>
                     <li><a href="#home" data-toggle="tab" id="aRenew">续借</a></li>
+                    <li><a href="#home" data-toggle="tab" id="aVerifyRenew">验证续借</a></li>
                 </ul>
             </span>
             <div class="well">
@@ -797,7 +890,7 @@
                         <div class='form-horizontal' role='form'>
                             <div class='form-group' id='trReaderBarcode'>
                                 <label class='col-xs-1 control-label'>
-                                    <span style='font-size:22px'> <span class='glyphicon glyphicon-user'></span></span>
+                                    <span style='font-size:22px;'> <span class='glyphicon glyphicon-user'></span></span>
                                 </label>
                                 <div class='col-xs-11'>
                                     <input type='text' class='form-control input-lg' id='txtReaderBarcode' placeholder='证 条码号' data-bind='value:cmdModel.editor.readerBarcode' />
@@ -843,19 +936,16 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <table>
+                                    <table style='width:100%;table-layout:fixed;'>
                                         <tr>
-                                            <td valign="top">
+                                            <td style="width:10%;vertical-align:middle">
                                                 <a data-bind="attr: { href: itemBarcodeUrl}" target="_blank">
                                                     <span data-bind="text:itemBarcode"></span>
                                                 </a>
-                                                &nbsp;&nbsp;
                                             </td>
-                                            <td valign="top">
-                                                <span class="pending">
-                                                    <label style="display:inline" data-bind="text:itemBarcode=='' ? '' : 'bs-'+itemBarcode"></label>
-                                                    <img src="~/img/wait2.gif" />
-                                                </span>
+                                            <td class="pending">
+                                                <label style="display:inline" data-bind="text:itemBarcode=='' ? '' : 'bs-'+itemBarcode"></label>
+                                                <img src="~/img/wait2.gif" />
                                             </td>
                                         </tr>
                                     </table>
@@ -876,170 +966,170 @@
 
         </div>
         <div class="col-md-6" id="divPatron" data-bind="style: {'background-color': patronVModel.patron()!=null && patronVModel.patron().state != null && patronVModel.patron().state !='' ? 'yellow' : 'white ' }">
-            <h3><span class="label label-default">读者信息</span></h3>
-            <span class="errorspan" data-bind="text: patronVModel.errorInfo"></span>
-            <div style="width:100%">
-                <div class="row" id="readerTable" style="border:1px solid #dddddd;border-radius: 6px;">
-                    <div class="col-md-2" style="padding:0.2cm">
-                        <table style="width:100%">
-                            <tr>
-                                <td>
-                                    <img id='cardphoto' src='~/img/nonePhoto.png' alt='读者10 的照片' />
-                                </td>
-                                <td class='warning' id='insertpoint' data-bind="html: patronVModel.patron().warningText"></td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-5" style="padding:0cm">
-                        <table style="background-color:white;width:100%">
-                            <tr>
-                                <td colspan="2" align="center">
-                                    <span class="reader-name" data-bind="text: patronVModel.patron().name"></span>
-                                    （<span data-bind="text: patronVModel.patron().department"></span>）
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="td-right" style="vertical-align:middle">证条码号</td>
-                                <td class="td-left"><span class="reader-barcode" data-bind="text: patronVModel.patron().barcode"></span></td>
-                            </tr>
-                            <tr>
-                                <td class="td-right">读者类别</td>
-                                <td class="td-left" data-bind="text: patronVModel.patron().readerType"> </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-5">
-                        <table id="readerStateTable" style="background-color:white;width:100%">
-                            <tr>
-                                <td class="td-right">证状态</td>
-                                <td style="color:red;font-size:28px" data-bind="text: patronVModel.patron().state">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td class="td-right">失效日期</td>
-                                <td class="td-left" data-bind="text: patronVModel.patron().expireDate"></td>
-                            </tr>
-                            <tr>
-                                <td class="td-right">注释</td>
-                                <td class="td-left" data-bind="text: patronVModel.patron().comment"></td>
-                            </tr>
+                        <h3><span class="label label-default">读者信息</span></h3>
+                        <span class="errorspan" data-bind="text: patronVModel.errorInfo"></span>
+                        <div class="container" style="width:100%">
+                            <div class="row" id="readerTable" style="border:1px solid #dddddd;border-radius: 6px;">
+                                <div class="col-md-2" style="padding:0.2cm">
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td>
+                                                <img id='cardphoto' src='~/img/nonePhoto.png' alt='读者照片' />
+                                            </td>
+                                            <td class='warning' id='insertpoint' data-bind="html: patronVModel.patron().warningText"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-5" style="padding:0cm">
+                                    <table style="background-color:white;width:100%">
+                                        <tr>
+                                            <td colspan="2" align="center">
+                                                <span class="reader-name" data-bind="text: patronVModel.patron().name"></span>
+                                                （<span data-bind="text: patronVModel.patron().department"></span>）
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="td-right" style="vertical-align:middle">证条码号</td>
+                                            <td class="td-left"><span class="reader-barcode" data-bind="text: patronVModel.patron().barcode"></span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="td-right">读者类别</td>
+                                            <td class="td-left" data-bind="text: patronVModel.patron().readerType"> </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-5">
+                                    <table id="readerStateTable" style="background-color:white;width:100%;table-layout:fixed">
+                                        <tr>
+                                            <td class="td-right">证状态</td>
+                                            <td style="color:red;font-size:28px" data-bind="text: patronVModel.patron().state">&nbsp;</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="td-right">失效日期</td>
+                                            <td class="td-left" data-bind="text: patronVModel.patron().expireDate"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="td-right">注释</td>
+                                            <td class="td-left" data-bind="attr: { title: patronVModel.patron().comment},text: patronVModel.patron().comment" style='white-space:nowrap;overflow:hidden; text-overflow:ellipsis;'>
+                                            </td>
+                                        </tr>
 
-                        </table>
-                    </div>
+                                    </table>
+                                </div>
 
-                </div>
-            </div>
+                            </div>
+                        </div>
 
-            <div id="divOverdue">
-                <h3><span class="label label-default">违约/交费信息</span></h3>
-                <table class="table  table-striped" style="background-color:white">
-                    <tr style="color:gray" data-bind="visible: patronVModel.patron().curBorrowCount !='' ">
-                        <td>册条码号</td>
-                        <td>说明</td>
-                        <td>金额</td>
-                        <td>以停代金情况</td>
-                        <td>起点日期</td>
-                        <td>期限</td>
-                        <td>终点日期</td>
-                    </tr>
-                    <tbody data-bind="foreach: patronVModel.overdueList">
-                        <tr style="background-color:yellow">
-                            <td style="color:green;font-size:14.8px;font-weight:bold">
-                                <a data-bind="attr: { href: barcodeUrl}" target="_blank">
-                                    <span data-bind="text: barcode"></span>
-                                </a>
-                            </td>
-                            <td data-bind="text:reason"></td>
-                            <td data-bind="text:price"></td>
-                            <td data-bind="text:pauseInfo"></td>
-                            <td data-bind="text:borrowDate"></td>
-                            <td data-bind="text:borrowPeriod"></td>
-                            <td data-bind="text:returnDate"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
 
-            <h3><span class="label label-default">在借册</span></h3>
-            <table id="borrowTable" class="table  table-striped" style="background-color:white">
-                <tr><td colspan="6" align="right" style="background-color:#eeeeee"><span data-bind="text: patronVModel.patron().maxBorrowCount"></span> &nbsp;<span data-bind="text: patronVModel.patron().curBorrowCount"></span></td></tr>
-                <tr style="color:gray" data-bind="visible: patronVModel.borrowList().count>0 ">
-                    <td>册条码号</td>
-                    <td>续借次</td>
-                    <td>借阅日期</td>
-                    <td>期限</td>
-                    <td>操作者</td>
-                    <td>应还日期</td>
-                </tr>
-                <tbody data-bind="foreach: patronVModel.borrowList">
-                    <tr data-bind="css:rowCss">
-                        <td colspan="6">
-                            <table width="100%">
-                                <tr>
-                                    <td style="color:green;font-size:14.8px;font-weight:bold">
-                                        <a data-bind="attr: { href: barcodeUrl}" target="_blank">
-                                            <span data-bind="text: barcode"></span>
-                                        </a>
-                                    </td>
-                                    <td data-bind="text:renewNo"></td>
-                                    <td data-bind="text:borrowDate"></td>
-                                    <td data-bind="text:period"></td>
-                                    <td data-bind="text:borrowOperator"></td>
-                                    <td data-bind="text:returnDate"></td>
+                        <div id="divOverdue">
+                            <h3><span class="label label-default">违约/交费信息</span></h3>
+                            <table class="table  table-striped" style="background-color:white">
+                                <tr style="color:gray" data-bind="visible: patronVModel.patron().curBorrowCount !='' ">
+                                    <td>册条码号</td>
+                                    <td>说明</td>
+                                    <td>金额</td>
+                                    <td>附注</td>
+                                    <td>起点日期</td>
+                                    <td>期限</td>
+                                    <td>终点日期</td>
                                 </tr>
-                                <tr>
+                                <tbody data-bind="foreach: patronVModel.overdueList">
+                                    <tr style="background-color:yellow">
+                                        <td style="color:green;font-size:14.8px;font-weight:bold">
+                                            <a data-bind="attr: { href: barcodeUrl}" target="_blank">
+                                                <span data-bind="text: barcode"></span>
+                                            </a>
+                                        </td>
+                                        <td data-bind="text:reason"></td>
+                                        <td data-bind="text:price"></td>
+                                        <td data-bind="text:pauseInfo"></td>
+                                        <td data-bind="text:borrowDate"></td>
+                                        <td data-bind="text:borrowPeriod"></td>
+                                        <td data-bind="text:returnDate"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                        <h3><span class="label label-default">在借册</span></h3>
+                        <table id="borrowTable" class="table  table-striped" style="background-color:white">
+                            <tr><td colspan="6" align="right" style="background-color:#eeeeee"><span data-bind="text: patronVModel.patron().maxBorrowCount"></span> &nbsp;<span data-bind="text: patronVModel.patron().curBorrowCount"></span></td></tr>
+                            <tr style="color:gray" data-bind="visible: patronVModel.borrowList().length>0 ">
+                                <td>册条码号</td>
+                                <td>续借次</td>
+                                <td>借阅日期</td>
+                                <td>期限</td>
+                                <td>操作者</td>
+                                <td>应还日期</td>
+                            </tr>
+                            <tbody data-bind="foreach: patronVModel.borrowList">
+                                <tr data-bind="css:rowCss">
                                     <td colspan="6">
-                                        <span class="pending">
-                                            <label style="display:inline" data-bind="text:barcode=='' ? '' : 'bs-'+barcode"></label>
-                                            <img src="~/img/wait2.gif" height="10" width="10" />
-                                        </span>
+                                        <table style="width:100%;table-layout:fixed;" >
+                                            <tr>
+                                                <td style="color:green;font-size:14.8px;font-weight:bold">
+                                                    <a data-bind="attr: { href: barcodeUrl}" target="_blank">
+                                                        <span data-bind="text: barcode"></span>
+                                                    </a>
+                                                </td>
+                                                <td data-bind="text:renewNo"></td>
+                                                <td data-bind="text:borrowDate"></td>
+                                                <td data-bind="text:period"></td>
+                                                <td data-bind="text:borrowOperator"></td>
+                                                <td data-bind="text:returnDate"></td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="6" style="width:100%" class="pending">
+                                                        <label style="display:inline" data-bind="text:barcode=='' ? '' : 'bs-'+barcode"></label>
+                                                        <img src="~/img/wait2.gif" height="10" width="10" />
+                                                </td>
+                                            </tr>
+
+                                        </table>
                                     </td>
                                 </tr>
+                            </tbody>
+                        </table>
 
-                            </table>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-
-
-            <h3><span class="label label-default">预约请求</span></h3>
-            <table id="reservationTable" class="table  table-striped" style="background-color:white">
-                <tr style="color:gray">
-                    <td>册条码号</td>
-                    <td>请求日期</td>
-                    <td>操作者</td>
-                </tr>
-                <tbody data-bind="foreach: patronVModel.reservationList">
-                    <tr data-bind="css: {'reservation-active': state=='arrived'}">
-                        <td colspan="3">
-                            <table width="100%">
-                                <tr>
-                                    <td>
-                                        <span data-bind="html: barcodes"></span>
-                                    </td>
-                                    <td data-bind="text:requestdate"></td>
-                                    <td data-bind="text:operatorAccount"></td>
-                                </tr>
-                                <tr>
+                        <h3><span class="label label-default">预约请求</span></h3>
+                        <table id="reservationTable" class="table  table-striped" style="background-color:white">
+                            <tr style="color:gray">
+                                <td>册条码号</td>
+                                <td>请求日期</td>
+                                <td>操作者</td>
+                            </tr>
+                            <tbody data-bind="foreach: patronVModel.reservationList">
+                                <tr data-bind="css: {'reservation-active': state=='arrived'}">
                                     <td colspan="3">
-                                        <span style="color:gray">到达情况:</span><span data-bind="text:stateText"></span>
+                                        <table style="width:100%">
+                                            <tr>
+                                                <td>
+                                                    <span data-bind="html: barcodes"></span>
+                                                </td>
+                                                <td data-bind="text:requestdate"></td>
+                                                <td data-bind="text:operatorAccount"></td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3">
+                                                    <span style="color:gray">到达情况:</span><span data-bind="text:stateText"></span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3">
+                                                    <span class="pending">
+                                                        <label style="display:inline" data-bind="text:fullBarcodes=='' ? '' : 'ms-'+fullBarcodes"></label>
+                                                        <img src="~/img/wait2.gif" height="10" width="10" />
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </table>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td colspan="3">
-                                        <span class="pending">
-                                            <label style="display:inline" data-bind="text:fullBarcodes=='' ? '' : 'ms-'+fullBarcodes"></label>
-                                            <img src="~/img/wait2.gif" height="10" width="10" />
-                                        </span>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
 
-                </tbody>
-            </table>
+                            </tbody>
+                        </table>
+
 
 
         </div>

@@ -13,6 +13,9 @@
             /*设为背景图影响效果太大了，还是元素里面加个img吧*/
             /*background-image:url("img/wait.gif");*/
         }
+
+
+
     </style>
 
     <script>
@@ -99,26 +102,73 @@
     </script>
 </head>
 <body>
-    <div class="pending">
-        <label style="display:none">rs-R001</label>
-        <img src="img/wait2.gif"/>
-    </div> 
-    <div class="pending">
-        <label style="display:none">bs-C001</label>
-        <img src="img/wait2.gif" />
-    </div> 
-    <p>
-        一段文字开始
-        <span class="pending">
-            <label style="display:none">bs-C002</label>
-            <img src="img/wait.gif" />
-        </span> 
-        文字结束
-    </p>
-    
-    <input id="btnFill" type="button" value="填充" />
+
+
+    <table style="width:100%;background-color:red;table-layout:fixed;">
+        <tr>
+            <td valign="top" style="width:20%;background-color:yellow">C10 </td>
+            <td valign="top" style="width:80%;background-color:gray;" align="left" title="ilovelibary">
+                <div title="test" style="width: 100%; white-space:nowrap;overflow: hidden;text-overflow: ellipsis;">
+                    中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
+                </div>
+            </td>
+        </tr>
+    </table>
+
+
+
+
+    <br />
     <br/>
-    <br/>
-    <input id="btnLoad" type="button" value="测试 loading遮罩图层" /> 
+
+        <table border="1" cellspacing="0" summary="测试">
+            <thead>
+                <tr>
+                    <th class="col1"><strong>产品名称</strong></th>
+                    <th class="col2"><strong>产品介绍</strong></th>
+                    <th class="col3"><strong>产品备注</strong></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>神舟 优雅Q400N</td>
+                    <td>优雅Q400N，2007年7月上市，采用Intel Core2 Duo(Merom) T5450(1.66G)处理器</td>
+                    <td>迅驰4平台，突出的性价比，漂亮的外观</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <br />
+        <div style="width: 220px; height: 50px;">
+            <div style="width:100%;overflow:hidden; text-overflow:ellipsis" title="">
+                <nobr>就是比如有一行文字，很长，表格内一行显示不下就是比如有一行文字，很长，表格内一行显示不下就是比如有一行文字，很长，表格内一行显示不下就是比如有一行文字，很长，表格内一行显示不下就是比如有一行文字，很长，表格内一行显示不下就是比如有一行文字，很长，表格内一行显示不下</nobr>
+            </div>
+
+        </div>
+        <div style="width: 120px; height: 50px; border: 1px solid blue; overflow: hidden; text-overflow:ellipsis" title="test">
+            就是比如有一行文字，很长，表格内一行显示不下.
+        </div>
+
+        <div class="pending">
+            <label style="display:none">rs-R001</label>
+            <img src="img/wait2.gif" />
+        </div>
+        <div class="pending">
+            <label style="display:none">bs-C001</label>
+            <img src="img/wait2.gif" />
+        </div>
+        <p>
+            一段文字开始
+            <span class="pending">
+                <label style="display:none">bs-C002</label>
+                <img src="img/wait.gif" />
+            </span>
+            文字结束
+        </p>
+
+        <input id="btnFill" type="button" value="填充" />
+        <br />
+        <br />
+        <input id="btnLoad" type="button" value="测试 loading遮罩图层" />
 </body>
 </html>

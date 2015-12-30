@@ -88,6 +88,7 @@ namespace ilovelibrary.Server
             e.LibraryServerUrl = channel.Url;
             e.UserName = channel.UserName;
             e.Password = channel.Password;
+            e.Parameters = channel.Parameters;
         }
 
         /// <summary>
@@ -122,6 +123,7 @@ namespace ilovelibrary.Server
                 SessionInfo sessionInfo = new SessionInfo();
                 sessionInfo.UserName = strUserName;
                 sessionInfo.Password = strPassword;
+                sessionInfo.Parameters = strParam;
                 sessionInfo.Rights = ret.strRights;
                 sessionInfo.LibraryCode = ret.strLibraryCode;
                 return sessionInfo;
@@ -167,6 +169,7 @@ namespace ilovelibrary.Server
 
             LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
             channel.Password = sessionInfo.Password;
+            channel.Parameters = sessionInfo.Parameters;
             try
             {
                 // 先根据barcode检索出来,得到原记录与时间戳
@@ -203,7 +206,7 @@ namespace ilovelibrary.Server
                 patron.state = DomUtil.GetElementText(dom.DocumentElement, "state");
                 patron.createDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement, "createDate"), "yyyy/MM/dd");
                 patron.expireDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement, "expireDate"), "yyyy/MM/dd");
-                patron.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");
+                patron.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");// +"测试革skdslfjsalfjsda;dfsajf;k;lllllllaslkjdfasssssfffffffffffffffffffffffffffffffsal;sdjflsafjsla;fdjadsl;fjsal;fjaslfjdaslfjaslfjlsafjsadlj我们枯叶sksdlfjasfljsaf;lasjf;aslfjsda;lfjsadlf";
                 // 赋给返回对象
                 result.patron = patron;
 
@@ -553,6 +556,7 @@ namespace ilovelibrary.Server
 
             LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
             channel.Password = sessionInfo.Password;
+            channel.Parameters = sessionInfo.Parameters;
             try
             {
                 // 先根据barcode检索出来,得到原记录与时间戳
@@ -729,6 +733,7 @@ namespace ilovelibrary.Server
 
             LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
             channel.Password = sessionInfo.Password;
+            channel.Parameters = sessionInfo.Parameters;
             try
             {
                 GetBiblioSummaryResponse result = channel.GetBiblioSummary(strItemBarcode,"");
@@ -776,6 +781,7 @@ namespace ilovelibrary.Server
                 // 2012/3/28
                 LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
                 channel.Password = sessionInfo.Password;
+                channel.Parameters = sessionInfo.Parameters;
                 try
                 {
                     GetBiblioSummaryResponse result = channel.GetBiblioSummary(strBarcode,strPrevBiblioRecPath);
@@ -795,6 +801,7 @@ namespace ilovelibrary.Server
                     string strBarcodeLink = "<a " + strClass
                         + " href='" + this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode + "'   target='_blank' " + ">" + strBarcode + "</a>";
 
+                    /*
                     string shortText = strOneSummary;
                     if (shortText.Length > 30)
                         shortText = shortText.Substring(0, 30) + "···";
@@ -802,8 +809,17 @@ namespace ilovelibrary.Server
                            + " title='" + strOneSummary + "'>"
                            + shortText
                            + "</a>";
+                     */
 
-                    strSummary += strBarcodeLink + " : " + strOneSummaryTip + "<br/>";
+                    var strOneSummaryOverflow = "<div style='width:100%;white-space:nowrap;overflow:hidden; text-overflow:ellipsis;'  title='" + strOneSummary + "'>"
+                       + strOneSummary 
+                       + "</div>";
+
+                    strSummary += "<table style='width:100%;table-layout:fixed;'>"
+                        +"<tr>"
+                        + "<td width='10%;vertical-align:middle'>" + strBarcodeLink + "</td>"
+                        +"<td>" + strOneSummaryOverflow + "</td>"
+                        +"</tr></table>"; 
 
 
                     strPrevBiblioRecPath = strBiblioRecPath;
