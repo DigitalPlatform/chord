@@ -141,9 +141,9 @@ namespace ilovelibrary.Server
 
 
                 // 解析读者信息
-                PatronResult patronResult = ilovelibraryServer.Instance.GetPatronInfo(this, item.readerBarcode);
-                item.patronResult = patronResult;
-                /*
+                //PatronResult patronResult = ilovelibraryServer.Instance.GetPatronInfo(this, item.readerBarcode);
+                //item.patronResult = patronResult;
+                
                 PatronResult patronResult = new PatronResult();
                 patronResult.patron = null;
                 patronResult.apiResult = new ApiResult();
@@ -158,7 +158,7 @@ namespace ilovelibrary.Server
                     ilovelibraryServer.Instance.ParseReaderXml(strReaderXml, patronResult);
                 }
                 item.patronResult = patronResult;
-                */
+                
 
                 // 加到集合里
                 this.cmdList.Insert(0, item);

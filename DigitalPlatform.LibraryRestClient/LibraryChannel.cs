@@ -517,7 +517,7 @@ namespace DigitalPlatform.LibraryRestClient
                 request.bForce = false;
                 request.saBorrowedItemBarcode = null;
                 request.strStyle = "reader"; //返回读者信息
-                request.strReaderFormatList = "xml";//advancexml
+                request.strReaderFormatList = "advancexml";//
                 request.strItemFormatList = "";
                 request.strBiblioFormatList = "";
 

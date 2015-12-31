@@ -719,10 +719,17 @@ namespace DigitalPlatform.LibraryRestClient
 
         [DataMember]
         public string[] saBorrowedItemBarcode { get; set; }
+
         [DataMember]
         public string strStyle { get; set; }
+
+        [DataMember]
         public string strItemFormatList { get; set; }
+
+        [DataMember]
         public string strReaderFormatList { get; set; }
+
+        [DataMember]
         public string strBiblioFormatList { get; set; }
     }
 
@@ -804,8 +811,14 @@ namespace DigitalPlatform.LibraryRestClient
         public bool bForce { get; set; }
         [DataMember]
         public string strStyle { get; set; }
+
+        [DataMember]
         public string strItemFormatList { get; set; }
+
+        [DataMember]
         public string strReaderFormatList { get; set; }
+
+        [DataMember]
         public string strBiblioFormatList { get; set; }
     }
 
