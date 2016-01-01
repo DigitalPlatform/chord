@@ -71,6 +71,8 @@ namespace ilovelibrary.Server
             try
             {
                 long lRet = -1;
+                string strOutputReaderBarcode = "";
+                string strReaderXml = "";
                 // 借书或续借
                 if (item.type == Command.C_Command_Borrow 
                     || item.type == Command.C_Command_Renew
@@ -83,26 +85,28 @@ namespace ilovelibrary.Server
                         bRenew = true;
                     }
                     DigitalPlatform.LibraryRestClient.BorrowInfo borrowInfo = null;
-                    string strOutputReaderBarcode = "";
                     lRet = channel.Borrow(bRenew,
                                         item.readerBarcode,
                                         item.itemBarcode,
                                         out strOutputReaderBarcode,
+                                        out strReaderXml,
                                         out borrowInfo,
                                         out strError);
-                    item.readerBarcode = strOutputReaderBarcode;
                 }
                 else if (item.type == Command.C_Command_Return)
                 {
                     // 还书
                     ReturnInfo returnInfo = null;
-                    string strOutputReaderBarcode = "";
                     lRet = channel.Return(item.itemBarcode, 
                         out strOutputReaderBarcode,
+                        out strReaderXml,
                         out returnInfo, 
                         out strError);
-                    item.readerBarcode = strOutputReaderBarcode;
                 }
+
+                // 设上实际的读者证条码
+                item.readerBarcode = strOutputReaderBarcode;
+
 
                 if (lRet == -1)
                 {
@@ -136,10 +140,25 @@ namespace ilovelibrary.Server
                 item.itemBarcodeUrl = ilovelibraryServer.Instance.dp2OpacUrl + "/book.aspx?barcode=" + item.itemBarcode + "&borrower=" + item.readerBarcode;
 
 
-                // 检索读者信息 todo 改为从borrow,renew接口直接取数据
-                PatronResult patronResult = ilovelibraryServer.Instance.GetPatronInfo(this, item.readerBarcode);
+                // 解析读者信息
+                //PatronResult patronResult = ilovelibraryServer.Instance.GetPatronInfo(this, item.readerBarcode);
+                //item.patronResult = patronResult;
+                
+                PatronResult patronResult = new PatronResult();
+                patronResult.patron = null;
+                patronResult.apiResult = new ApiResult();
+                if (String.IsNullOrEmpty(strReaderXml) == true)
+                {
+                    patronResult.apiResult.errorCode = -1;
+                    patronResult.apiResult.errorInfo = "dp2服务端操作api返回的读者xml为空。";
+                }
+                else
+                {
+                    //解析返回的读者xml
+                    ilovelibraryServer.Instance.ParseReaderXml(strReaderXml, patronResult);
+                }
                 item.patronResult = patronResult;
-
+                
 
                 // 加到集合里
                 this.cmdList.Insert(0, item);

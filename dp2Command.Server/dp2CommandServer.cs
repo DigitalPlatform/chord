@@ -647,9 +647,14 @@ namespace dp2Command.Server
             channel.Password = this.dp2Password;
             try
             {
+
+                string strOutputReaderBarcode="";
+                string strReaderXml="";
                 long lRet = channel.Borrow(true,
                     strReaderBarcode,
                     strItemBarcode,
+                    out strOutputReaderBarcode,
+                    out strReaderXml,
                     out borrowInfo,
                     out strError);
                 if (lRet == -1)

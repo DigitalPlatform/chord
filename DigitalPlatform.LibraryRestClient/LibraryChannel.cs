@@ -476,12 +476,14 @@ namespace DigitalPlatform.LibraryRestClient
             string strReaderBarcode,
             string strItemBarcode,
             out string strOutputReaderBarcode,
+            out string strReaderXml,
             out BorrowInfo borrow_info,
             out string strError)
         {
             borrow_info = null;
             strError = "";
             strOutputReaderBarcode = "";
+            strReaderXml = "";
 
         REDO:
             try
@@ -513,12 +515,11 @@ namespace DigitalPlatform.LibraryRestClient
                 request.strItemBarcode = strItemBarcode;
                 request.strConfirmItemRecPath = "";
                 request.bForce = false;
-                request.saBorrowedItemBarcode = null;//??
-                request.strStyle = ""; //??
-                request.strItemFormatList = "";//???
-                request.strReaderFormatList = "";//??
+                request.saBorrowedItemBarcode = null;
+                request.strStyle = "reader"; //返回读者信息
+                request.strReaderFormatList = "advancexml";//
+                request.strItemFormatList = "";
                 request.strBiblioFormatList = "";
-
 
                 byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
                 byte[] result = client.UploadData(this.GetRestfulApiUrl("Borrow"),
@@ -539,6 +540,10 @@ namespace DigitalPlatform.LibraryRestClient
                 borrow_info = response.borrow_info;
                 strError = response.BorrowResult.ErrorInfo;
                 this.ErrorCode = response.BorrowResult.ErrorCode;
+
+                if (response.reader_records!=null && response.reader_records.Length > 0)
+                    strReaderXml=response.reader_records[0];
+
                 this.ClearRedoCount();
                 return (int)response.BorrowResult.Value;
             }
@@ -559,10 +564,12 @@ namespace DigitalPlatform.LibraryRestClient
         /// </returns>
         public int Return(string strItemBarcode,
             out string strOutputReaderBarcode,
+            out string strReaderXml,
             out ReturnInfo return_info,
             out string strError)
         {
             strOutputReaderBarcode = "";
+            strReaderXml = "";
             return_info = null;
             strError = "";
 
@@ -611,9 +618,9 @@ namespace DigitalPlatform.LibraryRestClient
                 request.strItemBarcode = strItemBarcode;
                 request.strConfirmItemRecPath = "";
                 request.bForce = false;
-                request.strStyle = ""; 
+                request.strStyle = "reader"; //返回读者信息
                 request.strItemFormatList = "";
-                request.strReaderFormatList = "";
+                request.strReaderFormatList = "advancexml";
                 request.strBiblioFormatList = "";
 
                 byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
@@ -634,6 +641,10 @@ namespace DigitalPlatform.LibraryRestClient
                 strError = response.ReturnResult.ErrorInfo;
                 strOutputReaderBarcode = response.strOutputReaderBarcode;
                 this.ErrorCode = response.ReturnResult.ErrorCode;
+
+                if (response.reader_records != null && response.reader_records.Length > 0)
+                    strReaderXml = response.reader_records[0];
+
                 this.ClearRedoCount();
                 return (int)response.ReturnResult.Value;
             }
