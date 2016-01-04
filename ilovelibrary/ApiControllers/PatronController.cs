@@ -14,6 +14,7 @@ namespace ilovelibrary.ApiControllers
         // 参数值常量
         public const string C_format_summary = "summary";
         public const string C_format_borrowinfo = "borrowinfo";
+        public const string C_format_verifyBarcode = "verifyBarcode";
 
         /// <summary>
         /// 获得读者基本信息
@@ -62,6 +63,12 @@ namespace ilovelibrary.ApiControllers
 
                 //id=HtmlEncoding 
                 return  ilovelibraryServer.Instance.GetPatronSummary(sessionInfo, id);
+            }
+
+            if (format == C_format_verifyBarcode)
+            {
+                //C_format_verifyBarcode
+                return ilovelibraryServer.Instance.VerifyBarcode(sessionInfo, id);
             }
 
             return "";

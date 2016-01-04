@@ -49,6 +49,7 @@ namespace ilovelibrary.Server
 
         // 背景图管理器
         public string TodayUrl="";
+        public bool isVerifyBarcode = true; //是否校验证条码号
 
         public void Init(string strDp2LibraryUrl, string strDataDir,string strDp2OpacUrl)
         {
@@ -91,6 +92,50 @@ namespace ilovelibrary.Server
             e.Parameters = channel.Parameters;
         }
 
+        //      result.Value 0: 不是合法的条码号 1:合法的读者证条码号 2:合法的册条码号
+        // -2 服务器端未配置该函数
+        public ApiResult VerifyBarcode(SessionInfo sessionInfo,
+            string strBarcode)
+        {
+            string strError = "";
+            ApiResult result = new ApiResult();
+
+            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl,
+                sessionInfo.UserName);
+            channel.Password = sessionInfo.Password;
+            channel.Parameters = sessionInfo.Parameters;
+            try
+            {
+                // todo 这里传的工作人员的libraryCode对吗？
+                long ret = channel.VerifyBarcode(sessionInfo.LibraryCode,strBarcode,out strError);
+                if (ret < 0)  //-1未设置校验函数
+                {
+                    this.isVerifyBarcode = false;
+                }
+                result.errorCode = (int)ret;
+                result.errorInfo = strError;
+
+
+                return result;
+            }
+            catch (WebException wex)
+            {
+                result.errorCode = -1;
+                result.errorInfo = "访问dp2library服务器出错：" + wex.Message + "\n请联系系统管理员修改dp2library服务器地址配置信息。";
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.errorCode = -1;
+                result.errorInfo= ex.Message;
+                return result;
+            }
+            finally
+            {
+                this.ChannelPool.ReturnChannel(channel);
+            }
+        }
+
         /// <summary>
         /// 登录
         /// </summary>
@@ -119,6 +164,16 @@ namespace ilovelibrary.Server
                     strError = ret.LoginResult.ErrorInfo;
                     return null;
                 }
+
+                //光光 0:05:23
+                //最近我为 dp2library 增加了一种强制检查前端版本号的机制。ilovelibrary 也是一个“前端”，其 Login() API 需要新的参数：
+                //光光 0:05:26
+                //e.Parameters += ",client=dp2circulation|" + Program.ClientVersion;
+                //光光 0:05:54
+                //其中 dp2circulation 可以换成 ilovelibrary。竖线后面是个版本号，例如 1.1 之类
+                //光光 0:06:21
+                //整个加起来就是 ,client=ilovelibrary|1.1
+                strParam += ",client=ilovelibrary|1.1";
 
                 SessionInfo sessionInfo = new SessionInfo();
                 sessionInfo.UserName = strUserName;

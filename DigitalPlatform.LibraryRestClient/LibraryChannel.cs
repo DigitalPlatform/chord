@@ -53,6 +53,40 @@ namespace DigitalPlatform.LibraryRestClient
         /// </summary>
         public ErrorCode ErrorCode = ErrorCode.NoError;
 
+        public long VerifyBarcode(string strLibraryCode,
+            string strBarcode,
+            out string strError)
+        {
+            strError = "";
+            long nRet = 0;
+            try
+            {
+                CookieAwareWebClient client = new CookieAwareWebClient(Cookies);
+                client.Headers["Content-type"] = "application/json; charset=utf-8";
+
+                VerifyBarcodeRequest request = new VerifyBarcodeRequest();
+                request.strLibraryCode = strLibraryCode;
+                request.strBarcode = strBarcode;
+
+                byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
+                byte[] result = client.UploadData(GetRestfulApiUrl("VerifyBarcode"),
+                        "POST",
+                        baData);
+
+                string strResult = Encoding.UTF8.GetString(result);
+                VerifyBarcodeResponse response = Deserialize<VerifyBarcodeResponse>(strResult);
+                nRet = response.VerifyBarcodeResult.Value;
+                strError = response.VerifyBarcodeResult.ErrorInfo;
+
+                return nRet;
+            }
+            catch (Exception ex)
+            {
+                strError = "Exception :" + ex.Message;
+                return -1;
+            }
+        }
+
 
         // return:
         //      -1  error

@@ -77,11 +77,27 @@
                 $("#divReaderSummary").addClass("pending");
 
                 // 把读者全局div显示出来
-                $("#divPatron").show();
+                $("#divPatron").show("fast",function(){
+                    // 显示基本信息
+                    $("#readerTable").show();
+                    $("#divReaderSummary").show();
 
-                // 显示基本信息
-                $("#readerTable").show();
-                $("#divReaderSummary").show();
+                    // 动效果
+                    if (patronVModel.patron().warningText != null && patronVModel.patron().warningText != "") {
+                        $('#insertpoint').effect('pulsate', { times: 3 }, 400);
+                    }
+                    if (patronVModel.patron().state != null && patronVModel.patron().state != "") {
+                        $('#readerStateTable').effect('shake', { times: 10 }, 400);
+                    }
+
+                });
+                //$('#divPatron').effect('blind', { times: 10 }, 200);
+                //$('#divPatron').effect('drop', { times: 10 }, 200);
+                //blind drop
+                //$("#divPatron").toggle("explode");
+                //$("#divPatron").toggle("explode");
+
+
 
                 //设违约/交费
                 var olist = data.overdueList;
@@ -115,16 +131,11 @@
 
                 // 成功，焦点换到item上
                 $("#txtItemBarcode").focus();
+                $("#txtItemBarcode").val("");
 
-                // 动效果
-                if (patronVModel.patron().warningText != null && patronVModel.patron().warningText != "") {
-                    $('#insertpoint').effect('pulsate', { times: 3 }, 400);
-                }
-                if (patronVModel.patron().state != null && patronVModel.patron().state != "") {
+               
 
-                    // alert("test");
-                    $('#readerStateTable').effect('shake', { times: 10 }, 400);
-                }
+
             }
         }
 
@@ -501,10 +512,20 @@
             }, data);
         }
 
+        // 是否校验barcode
+        var isVerifyBarcode = true;
+
         //=================
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
+
+            // 将服务器记载的校验开关设到js的变量
+            var tempValue = $("#lblIsVerifyBarcode").text().trim().toLowerCase();
+            //alert(tempValue);
+            if (tempValue != "true")
+                isVerifyBarcode = false;
+
             // 获取所有的操作命令
             getAllCmd();
 
@@ -603,9 +624,9 @@
             // 当册条码绑回车事件
             $('#txtItemBarcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
-                    cmdModel.editor.itemBarcode($('#txtItemBarcode').val());
-                    //alert("test2");
-                    addCmd();
+
+                    // 执行操作
+                    doThing();
                 }
             });
 
@@ -648,8 +669,78 @@
 
         })
 
+        //执行操作
+        function doThing()
+        {
+            //取出输入的条码值
+            var strItemBarcode = $('#txtItemBarcode').val();
+
+            //设到观察对象上，且不能为空
+            cmdModel.editor.itemBarcode(strItemBarcode);
+            if (cmdModel.editor.itemBarcode() == "") {
+                // 焦点其实还是不在图层上，
+                //不过现在全局加了按任意键关闭所有图层，这个问题被掩盖了
+                layer.alert("请输入册条码号!", { icon: 0 }, function (index) {
+                    //do something
+                    $("#txtItemBarcode").focus();
+                    // 关信息图层
+                    layer.close(index);
+                });
+                return;
+            }
+
+            // 根据校验条码开关，
+            if (isVerifyBarcode == true) {
+
+                //alert("校验");
+
+                //等待图层
+                var index1 = layer.load(2, { shade: [0.5, '#EEEEEE'] })
+
+                // 调服务器api校验条码 1读者证条码 2册条码
+                var url = "/api/patron/" + strItemBarcode + "?format=verifyBarcode";
+                sendAjaxRequest(url, "GET", function (data) {
+                    // 关闭等待层
+                    layer.close(index1);
+                    //alert("返回" + data.errorCode + "-" + data.errorInfo)
+
+                    // 返回-1，下次则不再校验
+                    if (data.errorCode <= 0) {
+                        isVerifyBarcode = false;
+                    }
+
+                    // 如果是读者证条码
+                    if (data.errorCode == 1) {
+                        //把值传到证条码框
+                        $('#txtReaderBarcode').val(strItemBarcode)
+                        //加载读者信息
+                        loadPatron("", true);
+                    }
+                    else {
+                        //执行命令
+                        addCmd();
+                    }
+
+                }, function (xhq, textStatus, errorThrown) {
+
+                    alertServerError(errorThrown);
+
+                    // 关闭等待层
+                    layer.close(index1);
+                }, null, false);
+            }
+            else {
+                //alert("不校验");
+
+                // 执行命令
+                addCmd();
+            }
+        }
+
         //===========================
         // 以下是共用函数
+
+
 
         function setInputFocus(obj, bFocus) {
             if (bFocus == true) {
@@ -955,6 +1046,7 @@
             </div>
 
             <!-- Table -->
+            <label style="display:none" id="lblIsVerifyBarcode">@ilovelibrary.Server.ilovelibraryServer.Instance.isVerifyBarcode</label>
             <h3><span class="label label-default">操作历史</span></h3>
             <table class="table" data-bind="foreach: cmdModel.commands">
                 <tr data-bind="style: {'border-bottom': isAddLine==1 ? '2px dashed #FF9999' : '2px solid white ' }">

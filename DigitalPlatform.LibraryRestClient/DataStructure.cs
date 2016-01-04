@@ -133,6 +133,31 @@ namespace DigitalPlatform.LibraryRestClient
 
     #region API 参数 打包解包
 
+    // 校验条码号
+    // parameters:
+    //      strLibraryCode  分馆代码
+    //      strBarcode 条码号
+    // return:
+    //      result.Value 0: 不是合法的条码号 1:合法的读者证条码号 2:合法的册条码号
+    // 权限：暂时不需要任何权限
+    [DataContract]
+    public class VerifyBarcodeRequest
+    {
+        [DataMember]
+        public string strLibraryCode { get; set; }
+        [DataMember]
+        public string strBarcode { get; set; }
+    }
+
+    [DataContract]
+    public class VerifyBarcodeResponse
+    {
+        [DataMember]
+        public LibraryServerResult VerifyBarcodeResult { get; set; }
+
+    }
+
+
     // SearchBiblioRequest
     [DataContract]
     public class SearchBiblioRequest
