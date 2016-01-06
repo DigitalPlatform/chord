@@ -246,6 +246,7 @@
     <Content Include="skin\default\loading-2.gif" />
     <Content Include="skin\layer.css" />
     <Content Include="skin\layer.ext.css" />
+    <Content Include="testTable.html" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

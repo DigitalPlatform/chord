@@ -570,11 +570,21 @@ namespace DigitalPlatform.LibraryRestClient
                         goto REDO;
                     return -1;
                 }
+
+
+
                 strOutputReaderBarcode = response.strOutputReaderBarcode;
                 borrow_info = response.borrow_info;
                 strError = response.BorrowResult.ErrorInfo;
                 this.ErrorCode = response.BorrowResult.ErrorCode;
 
+                
+                // 多笔读者记录
+                if (response.BorrowResult.Value == -1 && response.BorrowResult.ErrorCode == ErrorCode.IdcardNumberDup)
+                {
+                    return 2;
+                }
+                
                 if (response.reader_records!=null && response.reader_records.Length > 0)
                     strReaderXml=response.reader_records[0];
 

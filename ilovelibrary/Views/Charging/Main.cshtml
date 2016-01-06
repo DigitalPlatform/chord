@@ -30,6 +30,69 @@
             }
         }
 
+        function selectReader(readerHtml,nextStep) {
+            $("#readerTableDiv").html(readerHtml);
+            $("#readerTableDiv").show();
+
+            //单击选中每一行
+            $(".reader-tr").click(function () {
+                $(".reader-tr").removeClass("selected-bg");
+                $(this).addClass("selected-bg");
+            });
+
+            // 双击行
+            $(".reader-tr").dblclick(function () {
+                var readerBarcode = $(this).find("td").first().text();//.html();
+                //alert("关前：" +readerBarcode);
+                layer.close(index1);
+                //alert("关后：" + readerBarcode);
+
+                $("#txtReaderBarcode").val(readerBarcode);
+                patronVModel.readerBarcode(readerBarcode);
+                cmdModel.editor.readerBarcode(readerBarcode);
+
+                if (nextStep == "loadPatron")
+                    loadPatron(null, false);
+                else if (nextStep == "addCmd")
+                    addCmd();
+            });
+
+            //页面层
+            var index1 = layer.open({
+                type: 1,
+                title: "请选择一个读者",
+                skin: 'layui-layer-rim', //加上边框
+                area: ['420px', '240px'], //宽高
+                content: $("#tab"),
+                btn: ['确定', '取消'],
+                yes: function (index, layero) { 
+                    var readerBarcode = $(".selected-bg").find("td").first().text();//.html();
+
+                    if (readerBarcode == null || readerBarcode == "")
+                    {
+                        alert("请选择一个读者");
+                        return false;
+                    }
+
+                    //alert("ok-" + readerBarcode);
+                    layer.close(index1);
+                    $("#txtReaderBarcode").val(readerBarcode);
+                    patronVModel.readerBarcode(readerBarcode);
+                    cmdModel.editor.readerBarcode(readerBarcode);
+                    if (nextStep == "loadPatron")
+                        loadPatron(null, false);
+                    else if (nextStep == "addCmd")
+                        addCmd();
+                },
+                cancel: function (index) { 
+                    //alert("cancel");
+                }
+
+            });
+
+
+        }
+
         //解析读者数据
         function parsePatronData(data, isQuiet)
         {
@@ -69,6 +132,12 @@
                     $("#txtReaderBarcode").select();
                 }
             }
+            else if (data.apiResult.errorCode >1)
+            {
+                //alert(data.multipleReaderHtml);
+
+                selectReader(data.multipleReaderHtml, "loadPatron");
+            }
             else
             {
                 // 设置读者线索
@@ -91,13 +160,6 @@
                     }
 
                 });
-                //$('#divPatron').effect('blind', { times: 10 }, 200);
-                //$('#divPatron').effect('drop', { times: 10 }, 200);
-                //blind drop
-                //$("#divPatron").toggle("explode");
-                //$("#divPatron").toggle("explode");
-
-
 
                 //设违约/交费
                 var olist = data.overdueList;
@@ -434,6 +496,18 @@
             };
 
             sendAjaxRequest(url, "POST", function (newItem) {
+
+                // todo 这里是显示出错信息，还是让选择一个读者
+                if (newItem.state > 1)
+                {
+                    // 关闭图层
+                    layer.close(indexTop);
+
+                    //有多笔读者的情况
+                    loadPatron(null, true);
+                    return;
+                }
+                
 
                 //错误也进历史
                 cmdModel.commands.unshift(newItem); //push是加到最后面
@@ -1001,6 +1075,30 @@
             font-size:28px;
         }
 
+        /*========================*/
+        /*给弹出选读者表格使用的样式*/
+
+        /*
+                #tab {
+            border-collapse: collapse;
+            font-family: "宋体",Arial, Helvetica, sans-serif;
+            font-size: 12px;
+        }
+
+            #tab td {
+                height: 20px;
+                padding: 0 2px;
+                border: 1px #6FB0D0 solid;
+            }
+            */
+        .reader-tr {
+        }
+        
+        .selected-bg {
+            background: #DDdddd;
+        }
+        
+        /*========================*/
     </style>
 }
 
@@ -1046,6 +1144,7 @@
             </div>
 
             <!-- Table -->
+            <div id="readerTableDiv" style="display:none"></div>
             <label style="display:none" id="lblIsVerifyBarcode">@ilovelibrary.Server.ilovelibraryServer.Instance.isVerifyBarcode</label>
             <h3><span class="label label-default">操作历史</span></h3>
             <table class="table" data-bind="foreach: cmdModel.commands">

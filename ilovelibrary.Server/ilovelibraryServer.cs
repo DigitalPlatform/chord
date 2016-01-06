@@ -443,7 +443,7 @@ namespace ilovelibrary.Server
             string strReaderBarcode)
         {
             // 返回对象
-            PatronResult result = new PatronResult();     
+            PatronResult result = new PatronResult();
             result.patron = null;
             result.apiResult = new ApiResult();
             if (sessionInfo == null)
@@ -476,13 +476,30 @@ namespace ilovelibrary.Server
                 }
                 else if (response.GetReaderInfoResult.Value > 1)
                 {
-                    result.apiResult.errorCode = -1;
-                    result.apiResult.errorInfo = "异常：根据证条码号[" + strReaderBarcode + "]找到多条读者记录，请联系管理员。";
+                    result.apiResult.errorCode = (int)response.GetReaderInfoResult.Value;
+                    result.apiResult.errorInfo = "查到" + response.GetReaderInfoResult.Value + "条读者记录";
+
+                    string strHtml = "";
+                    string strError = "";
+                    int nRet = ReaderMulPath2Html(channel,
+                        response.strRecPath,
+                        out strHtml,
+                        out strError);
+                    if (nRet == -1)
+                    {
+                        result.apiResult.errorCode = -1;
+                        result.apiResult.errorInfo = strError;
+                        return result;
+                    }
+
+                    // 直接返回
+                    result.multipleReaderHtml = strHtml;
                     return result;
                 }
+
                 string strXml = response.results[0];
 
-               //解析读者xml到对象
+                //解析读者xml到对象
                 this.ParseReaderXml(strXml, result);
 
                 return result;
@@ -497,6 +514,96 @@ namespace ilovelibrary.Server
             {
                 this.ChannelPool.ReturnChannel(channel);
             }
+        }
+
+        public int ReaderMulPath2Html(LibraryChannel channel, 
+            string strRecPath, 
+            out string strHtml,
+            out string strError)
+        {
+            strHtml = "";
+            strError = "";
+
+            StringBuilder sr = new StringBuilder(1024);
+            sr.Append("<table class='table table-hover' align='center' border='0' cellspacing='0' cellpadding='0' id='tab' >");
+            sr.Append("<tr style='color:gray;border-bottom:1px solid #DDDDDD'>"
+                + "<td>证条码号</td>"
+                + "<td>状态</td>"
+                + "<td>姓名</td>"
+                + "<td>性别</td>"
+                + "<td>部门</td>"
+                + "<td>身份证号</td>"
+                + "</tr>");
+
+            // 拆分rec path
+            List<string> pathList = StringUtil.SplitList(strRecPath);
+            foreach (string onePath in pathList)
+            {
+                GetReaderInfoResponse response = channel.GetReaderInfo("@path:" + onePath,
+                    "xml");
+                if (response.GetReaderInfoResult.Value == -1)
+                {
+                    strError = "获取读者记录出错：" + response.GetReaderInfoResult.ErrorInfo;
+                    return -1;
+                }
+                else if (response.GetReaderInfoResult.Value == 0)
+                {
+                    strError = "未找到路径为[" + onePath + "]的读者记录";
+                    return -1;
+                }
+                if (response.results == null || response.results.Length < 1)
+                {
+                    strError = "results error";
+                    return -1;
+                }
+
+                string strXml = response.results[0];
+                XmlDocument dom = new XmlDocument();
+                try
+                {
+                    dom.LoadXml(strXml);
+                }
+                catch (Exception ex)
+                {
+                    strError = "XML装入DOM失败: " + ex.Message;
+                    return -1;
+                }
+
+                string strBarcode = DomUtil.GetElementText(dom.DocumentElement,
+                    "barcode");
+                string strState = DomUtil.GetElementText(dom.DocumentElement,
+                    "state");
+                string strName = DomUtil.GetElementText(dom.DocumentElement,
+                    "name");
+                string strGender = DomUtil.GetElementText(dom.DocumentElement,
+                    "gender");
+                string strDepartment = DomUtil.GetElementText(dom.DocumentElement,
+                    "department");
+                string strIdCardNumber = DomUtil.GetElementText(dom.DocumentElement,
+                    "idCardNumber");
+
+                string strComment = DomUtil.GetElementText(dom.DocumentElement,
+                    "comment");
+
+                sr.Append("<tr class='reader-tr'>"
+                    + "<td>" + strBarcode + "</td>"
+                    + "<td>" + strState + "</td>"
+                    + "<td>" + strName + "</td>"
+                    + "<td>" + strGender + "</td>"
+                    + "<td>" + strDepartment + "</td>"
+                    + "<td>" + strIdCardNumber + "</td>"
+                    +"</tr>");
+            }
+
+            sr.Append("</table>");
+
+
+            // todo StringUtil.SplitList(strRecPath).Count < lRet
+
+            //todo 检查是否有重新的证条码号，严重错误
+
+            strHtml = sr.ToString();
+            return 0;
         }
 
         static int GetBarcodesCount(string strBarcodes)

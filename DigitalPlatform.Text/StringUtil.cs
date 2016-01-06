@@ -147,6 +147,18 @@ namespace DigitalPlatform.Text
 
             return result;
         }
+
+        public static List<string> SplitList(string strText)
+        {
+            // 2011/12/26
+            if (string.IsNullOrEmpty(strText) == true)
+                return new List<string>();
+
+            string[] parts = strText.Split(new char[] { ',' });
+            List<string> results = new List<string>();
+            results.AddRange(parts);
+            return results;
+        }
         //===================
 
 

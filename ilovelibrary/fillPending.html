@@ -98,6 +98,17 @@
              });
 
         })
+
+
+        $(document).ready(function () {
+            $("#sample tr").click(function () {
+                //change the background color to red before removing
+                $(this).css("background-color", "#FF3700");
+                $(this).fadeOut(400, function () {
+                    $(this).remove();
+                });
+            });
+        });
     
     </script>
 </head>
