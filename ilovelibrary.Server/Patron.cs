@@ -43,6 +43,8 @@ namespace ilovelibrary.Server
         // 预约请求
         public List<ReservationInfo> reservationList { get; set; }
 
+        public string multipleReaderHtml { get; set; }
+
     }
 
     //<td nowrap>册条码号</td><td nowrap>到达情况</td><td nowrap>摘要</td><td nowrap>请求日期</td><td nowrap>操作者</td>

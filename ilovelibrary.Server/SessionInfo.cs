@@ -107,7 +107,6 @@ namespace ilovelibrary.Server
                 // 设上实际的读者证条码
                 item.readerBarcode = strOutputReaderBarcode;
 
-
                 if (lRet == -1)
                 {
                     item.state = -1;
@@ -117,12 +116,19 @@ namespace ilovelibrary.Server
                 {
                     item.state = 0;
                     item.resultInfo = item.typeString + "书操作成功。";           
+                }                    
+                else if (lRet >1)
+                {
+                    item.state = (int)lRet;
+                    item.resultInfo = item.typeString + "书操作失败：" + strError;
+
+                    //直接返回了，因为不会加到操作历史里
+                    return item;
                 }
                 else
                 {
                     item.state = 1;
-                    item.resultInfo =  strError;           
-
+                    item.resultInfo =  strError;   
                 }
 
                 // 检索是否与前面同一个读者，不加要加线

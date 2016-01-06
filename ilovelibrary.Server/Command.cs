@@ -62,5 +62,6 @@ namespace ilovelibrary.Server
 
         // 本接口同时返回读者信息
         public PatronResult patronResult { get; set; }
+
     }
 }
