@@ -143,7 +143,7 @@
                 $("#divReaderSummary").addClass("pending");
 
                 // 把读者全局div显示出来
-                $("#divPatron").show("fast",function(){
+                $("#divPatron").slideDown("fast",function(){
                     // 显示基本信息
                     $("#readerTable").show();
                     $("#divReaderSummary").show();
@@ -776,7 +776,7 @@
                     //alert("返回" + data.errorCode + "-" + data.errorInfo)
 
                     // 返回-1，下次则不再校验
-                    if (data.errorCode <= 0) {
+                    if (data.errorCode < 0) {
                         isVerifyBarcode = false;
                     }
 
@@ -785,7 +785,7 @@
                         //把值传到证条码框
                         $('#txtReaderBarcode').val(strItemBarcode)
                         //加载读者信息
-                        loadPatron("", true);
+                        loadPatron("", false);
                     }
                     else {
                         //执行命令

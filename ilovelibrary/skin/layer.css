@@ -721,8 +721,13 @@ html #layui_layer_skinlayercss {
     border: none;
 }
 
-.layui-layer-lan .layui-layer-btn .layui-layer-btn1 {
+.layui-layer-lan .layui-layer-btn  {
     background: #C9C5C5;
+}
+.layui-layer-btn1 {
+    border-color: #4898d5;
+    background-color: #2e8ded;
+    color: #fff;
 }
 
 .layui-layer-molv .layui-layer-title {
@@ -735,6 +740,6 @@ html #layui_layer_skinlayercss {
     background: #009f95;
 }
 
-.layui-layer-molv .layui-layer-btn .layui-layer-btn1 {
+.layui-layer-molv .layui-layer-btn  {
     background: #92B8B1;
 }
