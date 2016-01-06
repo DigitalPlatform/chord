@@ -30,7 +30,7 @@
             }
         }
 
-        function selectReader(readerHtml,nextStep) {
+        function selectReader(readerHtml) {
             $("#readerTableDiv").html(readerHtml);
             $("#readerTableDiv").show();
 
@@ -48,13 +48,9 @@
                 //alert("关后：" + readerBarcode);
 
                 $("#txtReaderBarcode").val(readerBarcode);
-                patronVModel.readerBarcode(readerBarcode);
                 cmdModel.editor.readerBarcode(readerBarcode);
 
-                if (nextStep == "loadPatron")
-                    loadPatron(null, false);
-                else if (nextStep == "addCmd")
-                    addCmd();
+                loadPatron(null, false);
             });
 
             //页面层
@@ -64,12 +60,12 @@
                 skin: 'layui-layer-rim', //加上边框
                 area: ['420px', '240px'], //宽高
                 content: $("#tab"),
-                btn: ['确定', '取消'],
-                yes: function (index, layero) { 
+                btn: ['确定', '取消'],   //<a class="layui-layer-btn0">取消</a>
+                closeBtn: 1,
+                yes: function (index, layero) {
                     var readerBarcode = $(".selected-bg").find("td").first().text();//.html();
 
-                    if (readerBarcode == null || readerBarcode == "")
-                    {
+                    if (readerBarcode == null || readerBarcode == "") {
                         alert("请选择一个读者");
                         return false;
                     }
@@ -77,16 +73,22 @@
                     //alert("ok-" + readerBarcode);
                     layer.close(index1);
                     $("#txtReaderBarcode").val(readerBarcode);
-                    patronVModel.readerBarcode(readerBarcode);
                     cmdModel.editor.readerBarcode(readerBarcode);
-                    if (nextStep == "loadPatron")
-                        loadPatron(null, false);
-                    else if (nextStep == "addCmd")
-                        addCmd();
+
+                    loadPatron(null, false);
                 },
                 cancel: function (index) { 
                     //alert("cancel");
+                },
+                close: function (index) { 
+                    //alert("alert");
+                    //return false;
+                },
+                end: function () {
+                    //alert("end");
+                    //return false;
                 }
+
 
             });
 
@@ -97,10 +99,6 @@
         function parsePatronData(data, isQuiet)
         {
             //alert("parsePatronData1");
-
-            var readerBarcode = cmdModel.editor.readerBarcode;
-            if (data.patron != null)
-                readerBarcode = data.patron.barcode;
 
             //设置出借信息
             patronVModel.errorInfo(data.apiResult.errorInfo);
@@ -135,13 +133,12 @@
             else if (data.apiResult.errorCode >1)
             {
                 //alert(data.multipleReaderHtml);
-
                 selectReader(data.multipleReaderHtml, "loadPatron");
             }
             else
             {
                 // 设置读者线索
-                var readerKeyWord = "rs-" + readerBarcode;
+                var readerKeyWord = "rs-" + data.patron.barcode;
                 $("#divReaderSummary").html("<label  id='readerKeyWord'>" + readerKeyWord + "</label><img src='../img/wait2.gif' />");
                 $("#divReaderSummary").addClass("pending");
 
