@@ -158,12 +158,6 @@ namespace ilovelibrary.Server
                 string strParam = "";
                 if (bReader == true)
                     strParam = "type=reader";
-                LoginResponse ret = channel.Login(strUserName, strPassword, strParam);
-                if (ret.LoginResult.Value != 1)
-                {
-                    strError = ret.LoginResult.ErrorInfo;
-                    return null;
-                }
 
                 //光光 0:05:23
                 //最近我为 dp2library 增加了一种强制检查前端版本号的机制。ilovelibrary 也是一个“前端”，其 Login() API 需要新的参数：
@@ -173,7 +167,26 @@ namespace ilovelibrary.Server
                 //其中 dp2circulation 可以换成 ilovelibrary。竖线后面是个版本号，例如 1.1 之类
                 //光光 0:06:21
                 //整个加起来就是 ,client=ilovelibrary|1.1
-                strParam += ",client=ilovelibrary|1.1";
+                //光光
+                //为了测试最新的强制 dp2library 验证前端版本号功能，需要在 library.xml 的根元素下配置这么一个片段：
+                //光光 2016/1/7 21:58:00
+                //<login checkClientVersion="true" />
+                //光光 2016/1/7 21:58:36
+                //今晚红泥巴服务器的 dp2library 我已经这样配置了。ilovelibrary 登录的时候就会失败，说版本不够新
+                //光光 2016/1/7 21:59:01
+                //需要在 Login() API 的 parameters 参数中，添加一点内容 
+                //光光 2016/1/7 21:59:24
+                //,client=ilovelibrary|1.0
+                strParam += ",client=ilovelibrary|1.0";
+
+                LoginResponse ret = channel.Login(strUserName, strPassword, strParam);
+                if (ret.LoginResult.Value != 1)
+                {
+                    strError = ret.LoginResult.ErrorInfo;
+                    return null;
+                }
+
+
 
                 SessionInfo sessionInfo = new SessionInfo();
                 sessionInfo.UserName = strUserName;
@@ -525,7 +538,7 @@ namespace ilovelibrary.Server
             strError = "";
 
             StringBuilder sr = new StringBuilder(1024);
-            sr.Append("<table class='table table-hover' align='center' border='0' cellspacing='0' cellpadding='0' id='tab' >");
+            sr.Append("<table class='table' align='center' border='0' cellspacing='0' cellpadding='0' id='tab' >");
             sr.Append("<tr style='color:gray;border-bottom:1px solid #DDDDDD'>"
                 + "<td>证条码号</td>"
                 + "<td>状态</td>"
@@ -586,7 +599,7 @@ namespace ilovelibrary.Server
                     "comment");
 
                 sr.Append("<tr class='reader-tr'>"
-                    + "<td>" + strBarcode + "</td>"
+                    + "<td style='white-space:nowrap'>" + strBarcode + "</td>"
                     + "<td>" + strState + "</td>"
                     + "<td>" + strName + "</td>"
                     + "<td>" + strGender + "</td>"
