@@ -1023,6 +1023,373 @@ namespace ilovelibrary.Server
             return strSummary;
         }
 
+        /// <summary>
+        /// 获取书目摘要
+        /// </summary>
+        /// <param name="strItemBarcode"></param>
+        /// <returns></returns>
+        public SearchItemResult SearchItem(SessionInfo sessionInfo,
+            string functionType,
+            string searchText)
+        {
+            string strError = "";
+
+            // 返回对象
+            SearchItemResult result = new SearchItemResult();
+            result.itemList = new List<BiblioItem>();
+            result.apiResult = new ApiResult();
+            if (sessionInfo == null)
+            {
+                result.apiResult.errorCode = -1;
+                result.apiResult.errorInfo = "尚未登录";
+                return result;
+            }
+
+            // searchText格式   检索途径::关键词
+            string strFromStyle="";
+            string strQueryWord = "";
+            int nIndex = searchText.IndexOf("::");
+            if (nIndex > 0)
+            {
+                strFromStyle = searchText.Substring(0, nIndex);
+                strQueryWord = searchText.Substring(nIndex + 2);
+            }
+            if (String.IsNullOrEmpty(strFromStyle) == true)
+            {
+                result.apiResult.errorCode = -1;
+                result.apiResult.errorInfo = "尚未选定检索途径";
+                return result;
+            }
+            if (String.IsNullOrEmpty(strQueryWord) == true)
+            {
+                result.apiResult.errorCode = -1;
+                result.apiResult.errorInfo = "尚未设置检索词";
+                return result;
+            }
+
+
+            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
+            channel.Password = sessionInfo.Password;
+            channel.Parameters = sessionInfo.Parameters;
+            try
+            {
+                string strMatchStyle = "left"; 
+                /*
+        public long SearchBiblio(
+            string strBiblioDbNames,
+            string strQueryWord,
+            int nPerMax,
+            string strFromStyle,
+            string strMatchStyle,
+            string strResultSetName,
+             string strOutputStyle,
+            out string strQueryXml,
+            out string strError)
+                 */
+                string strQueryXml = "";
+                long lRet = channel.SearchBiblio( "<全部>",  //this.GetBiblioDbNames(),   todo
+                    strQueryWord,   // this.textBox_queryWord.Text,
+                    1000, // TODO: 最多检索1000条的限制，可以作为参数配置？
+                    strFromStyle,
+                    strMatchStyle,                    
+                    null,   // strResultSetName
+                    "", // strOutputStyle
+                    out strQueryXml,
+                    out strError);
+                if (lRet == -1)
+                {
+                    result.apiResult.errorCode = -1;
+                    result.apiResult.errorInfo = "检索失败：" + strError;
+                    return result;
+                }                
+
+                // 未命中
+                long lHitCount = lRet;
+                if (lHitCount == 0)
+                {
+                    strError = "从途径 '" + strFromStyle + "' 检索 '" + strQueryWord + "' 没有命中";
+                    result.apiResult.errorCode =0;
+                    result.apiResult.errorInfo = strError;
+                    return result;
+                }
+
+                long lStart = 0;
+                long lPerCount = Math.Min(50, lHitCount);
+                Record[] searchresults = null;
+                List<string> biblioRecPaths = new List<string>();
+                // 装入浏览格式
+                for (; ; )
+                {
+                    /*
+                            public long GetSearchResult(
+            string strResultSetName,
+            long lStart,
+            long lCount,
+            string strBrowseInfoStyle,
+            string strLang,
+            out Record[] searchresults,
+            out string strError)
+                     */
+                    lRet = channel.GetSearchResult(
+                        null,   // strResultSetName
+                        lStart,
+                        lPerCount,
+                        "id", // "id,cols",
+                        "zh",
+                        out searchresults,
+                        out strError);
+                    if (lRet == -1)
+                    {
+                        result.apiResult.errorCode = -1;
+                        result.apiResult.errorInfo = "检索失败：" + strError;
+                        return result;
+                    }
+
+                    if (lRet == 0)
+                    {
+                        //result.apiResult.errorCode = 0;
+                        //result.apiResult.errorInfo = "未命中";
+                        //return result;
+                        break;
+                    }
+
+                    // 处理浏览结果
+                    foreach (Record record in searchresults)
+                    {
+                        biblioRecPaths.Add(record.Path);
+                    }
+
+                    lStart += searchresults.Length;
+                    if (lStart >= lHitCount || lPerCount <= 0)
+                        break;
+                }
+
+                // 将每条书目记录下属的册记录装入
+                List<BiblioItem> allItemList = new List<BiblioItem>();
+                foreach (string strBiblioRecPath in biblioRecPaths)
+                {
+                    List<BiblioItem> itemList = null;
+                    int nRet = LoadBiblioSubItems(channel,
+                        functionType,
+                        strBiblioRecPath,
+                        out itemList,
+                        out strError);
+                    if (nRet == -1)
+                    {
+                        result.apiResult.errorCode = -1;
+                        result.apiResult.errorInfo = strError;
+                        return result;
+                    }
+
+                    // 加到全局记录里
+                    allItemList.AddRange(itemList);
+                }
+
+                // 将册记录设到返回对象上
+                result.itemList = allItemList;
+                result.apiResult.errorCode = result.itemList.Count;
+                return result;
+            }
+            finally
+            {
+                this.ChannelPool.ReturnChannel(channel);
+            }
+        }
+
+        // 将一条书目记录下属的若干册记录装入列表
+        // return:
+        //      -2  用户中断
+        //      -1  出错
+        //      >=0 装入的册记录条数
+        int LoadBiblioSubItems(LibraryChannel channel,
+            string functionType,
+            string strBiblioRecPath,
+            out List<BiblioItem> itemList,
+            out string strError)
+        {
+            strError = "";
+            itemList = new List<BiblioItem>();
+
+            int nCount = 0;
+
+            long lPerCount = 100; // 每批获得多少个
+            long lStart = 0;
+            long lResultCount = 0;
+            long lCount = -1;
+            for (; ; )
+            {
+                EntityInfo[] entities = null;
+
+                long lRet = channel.GetEntities(
+         strBiblioRecPath,
+         lStart,
+         lCount,
+         "",  // bDisplayOtherLibraryItem == true ? "getotherlibraryitem" : "",
+         "zh",
+         out entities,
+         out strError);
+                if (lRet == -1)
+                    return -1;
+
+                lResultCount = lRet;
+
+                if (lRet == 0)
+                    return nCount;
+
+                Debug.Assert(entities != null, "");
+
+                foreach (EntityInfo entity in entities)
+                {
+                    string strXml = entity.OldRecord;
+
+                    XmlDocument dom = new XmlDocument();
+                    {
+                        try
+                        {
+                            if (string.IsNullOrEmpty(strXml) == false)
+                                dom.LoadXml(strXml);
+                            else
+                                dom.LoadXml("<root />");
+                        }
+                        catch (Exception ex)
+                        {
+                            strError = "XML 装入 DOM 出错: " + ex.Message;
+                            return -1;
+                        }
+                    }
+                    BiblioItem item = new BiblioItem();
+
+                    string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+                    string strBorrower = DomUtil.GetElementText(dom.DocumentElement, "borrower");
+                    if (functionType == "borrow")
+                    {
+                        // 在借的册、或者状态有值的需要显示为灰色
+                        if (string.IsNullOrEmpty(strBorrower) == false
+                            || string.IsNullOrEmpty(strState) == false)
+                        {
+                            item.isGray = true;
+                        }
+                    }
+                    else if (functionType == "return")
+                    {
+                        // 没有在借的册需要显示为灰色
+                        if (string.IsNullOrEmpty(strBorrower) == true)
+                            item.isGray = true;
+
+                        /*
+                        if (string.IsNullOrEmpty(this.VerifyBorrower) == false)
+                        {
+                            // 验证还书时，不是要求的读者所借阅的册，显示为灰色
+                            if (strBorrower != this.VerifyBorrower)
+                                SetGrayText(row);
+                        }
+                         */
+                    }
+                    else if (functionType == "renew")
+                    {
+                        // 没有在借的册需要显示为灰色
+                        if (string.IsNullOrEmpty(strBorrower) == true)
+                            item.isGray = true;
+                    }
+
+                    string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
+                    string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
+
+                    // 状态
+                    item.state = strState;
+
+                    // 册条码号
+                    if (string.IsNullOrEmpty(strBarcode) == false)
+                        item.barcode = strBarcode;
+                    else
+                        item.barcode = "@refID:" + strRefID;
+
+                    // 在借情况
+                    if (string.IsNullOrEmpty(strBorrower) == false)
+                    {
+                        string strReaderSummary = "";//todo this.MainForm.GetReaderSummary(strBorrower, false);
+                        bool bError = (string.IsNullOrEmpty(strReaderSummary) == false && strReaderSummary[0] == '!');
+
+                        if (bError == true)
+                            item.readerSummaryBackColor = "#B40000";//Color.FromArgb(180, 0, 0);
+                        else
+                        {
+                            if (item.isGray == true)
+                                item.readerSummaryBackColor = "#DCDC00"; //Color.FromArgb(220, 220, 0);
+                            else
+                                item.readerSummaryBackColor = "#B4B400"; //Color.FromArgb(180, 180, 0);
+                        }
+
+                        //if (bError == false)
+                         //   cell.Font = new System.Drawing.Font(this.dpTable_items.Font.FontFamily.Name, this.dpTable_items.Font.Size * 2, FontStyle.Bold);
+
+                        item.readerSummaryForeColor = "#FFFFFF";//Color.FromArgb(255, 255, 255);
+                        // TODO: 后面还可加上借阅时间，应还时间
+                    }
+
+                    // 书目摘要
+                    string strSummary = "";
+                    if (entity.ErrorCode != ErrorCodeValue.NoError)
+                    {
+                        strSummary = entity.ErrorInfo;
+                    }
+                    else
+                    {
+                        /*
+                        int nRet = this.MainForm.GetBiblioSummary("@bibliorecpath:" + strBiblioRecPath,
+                            "",
+                            false,
+                            out strSummary,
+                            out strError);
+                        if (nRet == -1)
+                            strSummary = strError;
+                         */
+                        strSummary = "摘要"; //todo
+                    }
+                    item.summary = strSummary;
+
+                    // 卷册
+                    string strVolumn = DomUtil.GetElementText(dom.DocumentElement, "volumn");
+                    item.volumn = strVolumn;
+
+                    // 地点
+                    string strLocation = DomUtil.GetElementText(dom.DocumentElement, "location");
+                    item.location = strLocation;
+
+                    // 价格
+                    string strPrice = DomUtil.GetElementText(dom.DocumentElement, "price");
+                   item.price= strPrice;
+
+                    // 册记录路径
+                   item.oldRecPath = entity.OldRecPath;
+
+                   itemList.Add(item);
+                    nCount++;
+                }
+
+                lStart += entities.Length;
+                if (lStart >= lResultCount)
+                    break;
+
+                if (lCount == -1)
+                    lCount = lPerCount;
+
+                if (lStart + lCount > lResultCount)
+                    lCount = lResultCount - lStart;
+            }
+
+            /* 加一条横线
+            if (lStart > 0)
+            {
+                DpRow row = new DpRow();
+                row.Style = DpRowStyle.Seperator;
+                this.dpTable_items.Rows.Add(row);
+            }
+             */
+
+            return nCount;
+        }
+
 
         #region 静态函数
 

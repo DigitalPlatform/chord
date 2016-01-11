@@ -46,6 +46,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="DataStructure.cs" />
+    <Compile Include="IsbnSplitter.cs" />
     <Compile Include="LibraryChannel.cs" />
     <Compile Include="LibraryChannelPool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

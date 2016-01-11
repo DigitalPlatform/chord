@@ -17,6 +17,9 @@ namespace dp2Command.Server
 {
     public class dp2CommandServer
     {
+        // 检索限制最大命中数常量
+        public const int C_Search_MaxCount = 100;
+
         //=================
         // 设为单一实例
         static dp2CommandServer _instance;
@@ -134,10 +137,28 @@ namespace dp2Command.Server
             channel.Password = this.dp2Password;
             try
             {
+                /*
+                         public long SearchBiblio(
+            string strBiblioDbNames,
+            string strQueryWord,
+            int nPerMax,
+            string strFromStyle,
+            string strMatchStyle,
+            string strResultSetName,
+             string strOutputStyle,
+            out string strError)
+                 */
                 // -1失败
                 // 0 未命令
-                long lRet = channel.SearchBiblio(strWord,
-                    "",//全部途径
+                string strQueryXml = "";
+                long lRet = channel.SearchBiblio("",//全部途径
+                    strWord,
+                    C_Search_MaxCount,
+                    "",
+                    "middle",
+                    "", // "weixin-biblio";  
+                    "id,cols",
+                    out strQueryXml,
                     out strError);
                 if (lRet == -1 || lRet == 0)
                 {
@@ -281,10 +302,28 @@ namespace dp2Command.Server
             channel.Password = this.dp2Password;
             try
             {
+                /*
+         public long SearchBiblio(
+string strBiblioDbNames,
+string strQueryWord,
+int nPerMax,
+string strFromStyle,
+string strMatchStyle,
+string strResultSetName,
+string strOutputStyle,
+out string strError)
+ */
                 // -1失败
                 // 0 未命令
-                long lRet = channel.SearchBiblio(strWord,
+                string strQueryXml = "";
+                long lRet = channel.SearchBiblio("",//全部途径
+                    strWord,
+                    C_Search_MaxCount,
                     "publishtime,_time,_freetime",
+                    "left",
+                    "",
+                    "id,cols",
+                    out strQueryXml,
                     out strError);
                 if (lRet == -1 || lRet == 0)
                 {

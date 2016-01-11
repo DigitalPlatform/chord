@@ -29,12 +29,16 @@
             }
         }
 
+        // 是否打开了选择读者对话框
         var openSelectReader = false;
+        // 选择读者
         function selectReader(readerHtml) {
-
+            //设为true
             openSelectReader = true;
-            $("#readerTableDiv").html(readerHtml);
-            $("#readerTableDiv").show();
+
+            // 对话框图层
+            $("#selReaderDiv").html(readerHtml);
+            $("#selReaderDiv").show();
 
             //单击选中每一行
             $(".reader-tr").click(function () {
@@ -51,14 +55,15 @@
 
             // 双击行
             $(".reader-tr").dblclick(function () {
+                // 取出选中行对应的barcode
                 var readerBarcode = $(this).find("td").first().text();//.html();
-                //alert("关前：" +readerBarcode);
                 layer.close(index1);
-                //alert("关后：" + readerBarcode);
 
+                // 设到界面上的证条码框
                 $("#txtReaderBarcode").val(readerBarcode);
                 cmdModel.editor.readerBarcode(readerBarcode);
 
+                // 加载读者信息
                 loadPatron(null, false);
             });
 
@@ -67,7 +72,6 @@
             $("#txtItemBarcode").blur();
 
             //页面层
-            //parent.layer.iframeAuto(index);
             var index1 = layer.open({
                 type: 1,
                 title: "请选择一个读者",
@@ -83,20 +87,16 @@
                     canDoThing = true;
                 },
                 cancel: function (index) {
-                    // 图层消毁时会到这里
+                    // 取消
                     $("#txtReaderBarcode").focus();
-                    //alert("cancel");
                 },
                 close: function (index) {
-                    // 图层消毁时会到这里
+                    // 关闭
                     $("#txtReaderBarcode").focus();
-                    //alert("alert");
-                    //return false;
                 },
                 end: function () {
-                    //alert("end");
+                    //图层消毁时，设置开关变量为false
                     openSelectReader = false;
-
                 }
             });
 
@@ -118,9 +118,10 @@
             //layer.close(index1);
             layer.closeAll();
             
+            //设到界面的证条码框
             $("#txtReaderBarcode").val(readerBarcode);
             cmdModel.editor.readerBarcode(readerBarcode);
-
+            //加载读者
             loadPatron(null, false);
         }
 
@@ -160,7 +161,7 @@
             }
             else if (data.apiResult.errorCode > 1) {
                 //alert(data.multipleReaderHtml);
-                selectReader(data.multipleReaderHtml, "loadPatron");
+                selectReader(data.multipleReaderHtml);
             }
             else {
                 // 设置读者线索
@@ -469,6 +470,160 @@
             });
         }
 
+        // 是否打开了选择读者对话框
+        var selectItemLayerOpened = false;
+        // 选择读者
+        function selectItem(cmdType,isbn) {            
+
+            var searchText = "isbn::" + isbn;
+            //调检索的api
+            var url = "/api/biblio?action=search&searchText=" + encodeURIComponent(searchText) + "&functionType=" + cmdType;
+            // 调api
+            sendAjaxRequest(url, "GET", function (data) {
+
+                if (data.apiResult.errorCode == -1)
+                {
+                    alert(data.apiResult.errorInfo);
+                    return;
+                }
+                else if (data.apiResult.errorCode == 0) {
+                    alert("未命中");
+                    return;
+                }
+                else {
+                    //alert("命中'" + data.apiResult.errorCode + "'条");
+
+                    openSelectItemLayer(cmdType,isbn, data);
+
+                }
+
+                
+            }, function (xhq, textStatus, errorThrown) {
+                alertServerError(errorThrown);
+            });
+
+
+
+        }
+
+        function openSelectItemLayer(cmdType,isbn, data)
+        {
+            selectItemLayerOpened = true;
+            var myhtml = "<div id='searchItem'>"
+    + "<table width='100%' style='background-color:red'><tr>"
+    + "<td>检索途径</td><td><input type='text' id='txtWord' value='" + isbn + "'/></td><td>检索按钮</td>"
+    + "</tr></table>"
+    + "<table class='table' style='background-color:green'>"
++ "<tr>"
++ "<td>状态</td>"
++ "<td>册条码号</td>"
++ "<td>在借情况</td>"
++ "<td>书目摘要</td>"
++ "<td>卷册</td>"
++ "<td>馆藏地</td>"
++ "<td>价格</td>"
++ "<td>册记录路径</td>"
++ "</tr>";
+
+            alert(data.itemList.length);
+            for (var i = 0; i < data.itemList.length; i++)
+            {
+                var item = data.itemList[i];
+                alert("item-" + item);
+                myhtml += "<tr>"
++ "<td>" + item.state + "</td>"
++ "<td>" + item.barcode + "</td>"
++ "<td>" + item.readerSummary + "</td>"
++ "<td>" + item.summary + "</td>"
++ "<td>" + item.volumn + "</td>"
++ "<td>" + item.location + "</td>"
++ "<td>" + item.price + "</td>"
++ "<td>" + item.oldRecPath + "</td>"
++ "</tr>";
+            }
+
+            myhtml += "</table>"
++ "<p>命中" + data.apiResult.errorCode + "条记录</p>"
++ "</div>";
+
+            // 册对话框图层
+            $("#selItemDiv").html(myhtml);
+            $("#selItemDiv").show();
+
+
+            /*
+            //单击选中每一行
+            $(".reader-tr").click(function () {
+                $(".reader-tr").removeClass("selected-bg");
+                $(this).addClass("selected-bg");
+            });
+
+            //滑过表格
+            $(".reader-tr").hover(function () {
+                $(this).addClass("reader-tr-over")
+            }, function () {
+                $(this).removeClass("reader-tr-over")
+            });
+
+            // 双击行
+            $(".reader-tr").dblclick(function () {
+                // 取出选中行对应的barcode
+                var readerBarcode = $(this).find("td").first().text();//.html();
+                layer.close(index1);
+
+                // 设到界面上的证条码框
+                $("#txtReaderBarcode").val(readerBarcode);
+                cmdModel.editor.readerBarcode(readerBarcode);
+
+                // 加载读者信息
+                loadPatron(null, false);
+            });
+            */
+
+            //让焦点失效
+            $("#txtReaderBarcode").blur();
+            $("#txtItemBarcode").blur();
+
+            var title = "";
+            if (cmdType == "borrow")
+                title = "请选择要借阅的册";
+            else if (cmdType = "return")
+                title = "请选择要还回的册";
+            else if (cmdType = "renew")
+                title = "请选择要续借的册";
+            else if (cmdType = "verifyrenew")
+                title = "请选择要(验证)续借的册";
+
+            //页面层
+            var index1 = layer.open({
+                type: 1,
+                title: title,
+                skin: 'layui-layer-rim', //加上边框
+                area: 'auto',//['420px', '240px'], //宽高
+                maxWidth: 800,
+                //offset: ['100px'],
+                content: $("#searchItem"),
+                btn: ['确定', '取消'],   //<a class="layui-layer-btn0">取消</a>
+                closeBtn: 1,
+                yes: function (index, layero) {
+                    okSelectReaderLayer();
+                    //canDoThing = true;
+                },
+                cancel: function (index) {
+                    // 取消
+                    $("#txtItemBarcode").focus();
+                },
+                close: function (index) {
+                    // 关闭
+                    $("#txtItemBarcode").focus();
+                },
+                end: function () {
+                    //图层消毁时，设置开关变量为false
+                    openSelectReader = false;
+                }
+            });
+        }
+
         // 执行命令
         function addCmd() {
             //alert("addCmd0-" + cmdModel.editor.type() + "~" + cmdModel.editor.readerBarcode() + "~" + cmdModel.editor.itemBarcode());
@@ -515,15 +670,15 @@
             //调 web api
             var url = "/api/command";
             var data = {
-                type: cmdModel.editor.type,
-                readerBarcode: cmdModel.editor.readerBarcode,
-                itemBarcode: cmdModel.editor.itemBarcode
+                type: cmdModel.editor.type(),
+                readerBarcode: cmdModel.editor.readerBarcode(),
+                itemBarcode: cmdModel.editor.itemBarcode()
             };
 
             sendAjaxRequest(url, "POST", function (newItem) {
 
-                // todo 这里是显示出错信息，还是让选择一个读者
-                if (newItem.state > 1) {
+                // 返回值2表示多个读者，弹出选择读者对话框
+                if (newItem.state == 2) {
                     // 关闭图层
                     layer.close(indexTop);
 
@@ -531,6 +686,17 @@
                     loadPatron(null, true);
                     return;
                 }
+
+                //返回值3表示通过ISBN借书，弹出选择册对话框
+                if (newItem.state == 3) {
+                    // 关闭图层
+                    layer.close(indexTop);
+
+                    //alert("isbn借书，需要选择册");
+                    selectItem(cmdModel.editor.type(), newItem.resultInfo);
+                    return;
+                }
+
 
 
                 //错误也进历史
@@ -871,7 +1037,7 @@
         // 显示服务器错误
         function alertServerError(info) {
 
-            alert("服务器返回错误：" + errorThrown);
+            alert("服务器返回错误：" + info);
 
             //layer.alert("服务器返回错误：" + errorThrown, { icon: 2 });
 
@@ -1151,7 +1317,8 @@
             </div>
         </div>
         <!-- Table -->
-        <div id="readerTableDiv" style="display:none"></div>
+        <div id="selReaderDiv" style="display:none"></div>
+        <div id="selItemDiv" style="display:none"></div>
         <label style="display:none" id="lblIsVerifyBarcode">@ilovelibrary.Server.ilovelibraryServer.Instance.isVerifyBarcode</label>
         <h3><span class="label label-default">操作历史</span></h3>
         <table class="table" data-bind="foreach: cmdModel.commands">

@@ -159,6 +159,37 @@ namespace DigitalPlatform.Text
             results.AddRange(parts);
             return results;
         }
+
+        // 检测一个字符串的头部
+        public static bool HasHead(string strText,
+            string strHead,
+            bool bIgnoreCase = false)
+        {
+            // 2013/9/11
+            if (strText == null)
+                strText = "";
+            if (strHead == null)
+                strHead = "";
+
+            if (strText.Length < strHead.Length)
+                return false;
+
+            string strPart = strText.Substring(0, strHead.Length);  // BUG!!! strText.Substring(strHead.Length);
+
+            // 2015/4/3
+            if (bIgnoreCase == true)
+            {
+                if (string.Compare(strPart, strHead, true) == 0)
+                    return true;
+                return false;
+            }
+
+            if (strPart == strHead)
+                return true;
+
+            return false;
+        }
+
         //===================
 
 
