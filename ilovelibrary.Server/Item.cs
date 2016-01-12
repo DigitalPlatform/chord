@@ -41,7 +41,6 @@ namespace ilovelibrary.Server
 
 
         public bool isGray = false;
-        public string readerSummaryBackColor  { get; set; }
-            public string readerSummaryForeColor { get; set; }
+        public string readerSummaryStyle  { get; set; }
     }
 }

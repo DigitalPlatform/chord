@@ -538,7 +538,7 @@ namespace ilovelibrary.Server
             strError = "";
 
             StringBuilder sr = new StringBuilder(1024);
-            sr.Append("<table class='table' align='center' border='0' cellspacing='0' cellpadding='0' id='tab' >");
+            sr.Append("<table class='table readerTable' align='center' border='0' cellspacing='0' cellpadding='0' id='tab' >");
             sr.Append("<tr style='color:gray;border-bottom:1px solid #DDDDDD'>"
                 + "<td>证条码号</td>"
                 + "<td>状态</td>"
@@ -754,43 +754,22 @@ namespace ilovelibrary.Server
             channel.Parameters = sessionInfo.Parameters;
             try
             {
-                // 先根据barcode检索出来,得到原记录与时间戳
-                GetReaderInfoResponse response = channel.GetReaderInfo(strReaderBarcode,//"@path:" + strRecPath,
-                   "advancexml");// "advancexml,advancexml_borrow_bibliosummary,advancexml_overdue_bibliosummary");
-                if (response.GetReaderInfoResult.Value == -1)
+                string strSummary = "";
+                string strError = "";
+                int nRet =this.GetPatronSummary(channel, strReaderBarcode,
+                    true,
+                    out strSummary,
+                    out strError);
+                if (nRet == -1)
                 {
                     result.apiResult.errorCode = -1;
-                    result.apiResult.errorInfo = "获取读者记录出错：" + response.GetReaderInfoResult.ErrorInfo;
+                    result.apiResult.errorInfo = strError;
                     return result;
                 }
-                else if (response.GetReaderInfoResult.Value == 0)
+                if (strSummary!="")
                 {
-                    result.apiResult.errorCode = -1;
-                    result.apiResult.errorInfo = "未找到证条码号为[" + strReaderBarcode + "]的读者记录";
-                    return result;
-                }
-                else if (response.GetReaderInfoResult.Value > 1)
-                {
-                    result.apiResult.errorCode = -1;
-                    result.apiResult.errorInfo = "异常：根据证条码号[" + strReaderBarcode + "]找到多条读者记录，请联系管理员。";
-                    return result;
-                }
-                string strXml = response.results[0];
-
-                // 取出个人信息
-                XmlDocument dom = new XmlDocument();
-                dom.LoadXml(strXml);
-                string name = DomUtil.GetElementText(dom.DocumentElement, "name");
-                string department = DomUtil.GetElementText(dom.DocumentElement, "department");
-
-                if (name != "")
-                {
-                    result.summary = "<span style=' font-size: 14.8px;font-weight:bold'>" + name + "</span>";
-
-                    if (department != "")
-                        result.summary += "（" + department + "）";
-                }
-                    
+                    result.summary = "<span style=' font-size: 14.8px;font-weight:bold'>" + strSummary + "</span>";
+                }                    
 
                 return result;
             }
@@ -805,117 +784,53 @@ namespace ilovelibrary.Server
                 this.ChannelPool.ReturnChannel(channel);
             }
         }
-#if NO
-        /// <summary>
-        /// 获得读者借阅信息
-        /// </summary>
-        /// <param name="sessionInfo"></param>
-        /// <param name="strReaderBarcode"></param>
-        /// <returns></returns>
-        public BorrowInfoResult GetBorrowInfo(SessionInfo sessionInfo,
-            string strReaderBarcode)
+
+        private int GetPatronSummary(LibraryChannel channel, string strReaderBarcode,
+            bool isContainDept,
+            out string strSummary,
+            out string strError)
         {
-            BorrowInfoResult result = new BorrowInfoResult();
-            List<BorrowInfo> borrowList = new List<BorrowInfo>();
-            result.borrowList = borrowList;
-            result.apiResult = new ApiResult();
-            if (sessionInfo == null)
+            strSummary = "";
+            strError = "";
+
+            // 先根据barcode检索出来,得到原记录与时间戳
+            GetReaderInfoResponse response = channel.GetReaderInfo(strReaderBarcode,//"@path:" + strRecPath,
+               "advancexml");// "advancexml,advancexml_borrow_bibliosummary,advancexml_overdue_bibliosummary");
+            if (response.GetReaderInfoResult.Value == -1)
             {
-                result.apiResult.errorCode = -1;
-                result.apiResult.errorInfo = "尚未登录";
-                return result;
+                strError = "获取读者记录出错：" + response.GetReaderInfoResult.ErrorInfo;
+                return -1;
             }
-
-            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
-            channel.Password = sessionInfo.Password;
-            try
+            else if (response.GetReaderInfoResult.Value == 0)
             {
-                // 先根据barcode检索出来,得到原记录与时间戳
-                GetReaderInfoResponse response = channel.GetReaderInfo(strReaderBarcode,//"@path:" + strRecPath,
-                   "advancexml,advancexml_borrow_bibliosummary,advancexml_overdue_bibliosummary");
-                /// <para>-1:   出错</para>
-                /// <para>0:    没有找到读者记录</para>
-                /// <para>1:    找到读者记录</para>
-                /// <para>&gt;>1:   找到多于一条读者记录，返回值是找到的记录数，这是一种不正常的情况</para>
-                if (response.GetReaderInfoResult.Value == -1)
-                {
-                    result.apiResult.errorCode = -1;
-                    result.apiResult.errorInfo = "获取读者记录出错：" + response.GetReaderInfoResult.ErrorInfo;
-                    return result;
-                }
-                else if (response.GetReaderInfoResult.Value == 0)
-                {
-                    result.apiResult.errorCode = -1;
-                    result.apiResult.errorInfo = "未找到证条码号为[" + strReaderBarcode + "]的读者记录";
-                    return result;
-                }
-                else if (response.GetReaderInfoResult.Value > 1)
-                {
-                    result.apiResult.errorCode = -1;
-                    result.apiResult.errorInfo = "异常：根据证条码号[" + strReaderBarcode + "]找到多条读者记录，请联系管理员。";
-                    return result;
-                }
-                string strXml = response.results[0];
-
-                // 取出个人信息
-                XmlDocument dom = new XmlDocument();
-                dom.LoadXml(strXml);
-
-                XmlNodeList nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
-                int borrowLineCount = nodes.Count;
-                for (int i = 0; i < nodes.Count; i++)
-                {
-                    XmlNode node = nodes[i];
-
-                    string strBarcode = DomUtil.GetAttr(node, "barcode");
-                    string strRenewNo = DomUtil.GetAttr(node, "no");
-                    string strBorrowDate = DomUtil.GetAttr(node, "borrowDate");
-                    string strPeriod = DomUtil.GetAttr(node, "borrowPeriod");
-                    string strOperator = DomUtil.GetAttr(node, "operator");
-                    string strRenewComment = DomUtil.GetAttr(node, "renewComment");
-
-                    string strOverDue = "";
-                    bool bOverdue = false;  // 是否超期                   
-                    strOverDue = DomUtil.GetAttr(node, "overdueInfo");
-                    string strOverdue1 = DomUtil.GetAttr(node, "overdueInfo1");
-                    string strIsOverdue = DomUtil.GetAttr(node, "isOverdue");
-                    if (strIsOverdue == "yes")
-                        bOverdue = true;
-
-                    DateTime timeReturning = DateTime.MinValue;
-                    string strTimeReturning = DomUtil.GetAttr(node, "timeReturning");
-                    if (String.IsNullOrEmpty(strTimeReturning) == false)
-                        timeReturning = DateTimeUtil.FromRfc1123DateTimeString(strTimeReturning).ToLocalTime();
-                    string strReturnDate = LocalDateOrTime(timeReturning, strPeriod);
-
-                    // 创建 borrowinfo对象，加到集合里
-                    BorrowInfo borrowInfo = new BorrowInfo();
-                    borrowInfo.barcode = strBarcode;
-                    borrowInfo.renewNo = strRenewNo;
-                    borrowInfo.borrowDate = LocalDateOrTime(strBorrowDate, strPeriod);// strBorrowDate;
-                    borrowInfo.period = strPeriod;
-                    borrowInfo.borrowOperator = strOperator;
-                    borrowInfo.renewComment = strRenewComment;
-                    borrowInfo.overdue = strOverDue;
-                    borrowInfo.returnDate = strReturnDate;
-                    borrowInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode="+strBarcode+"&borrower="+strReaderBarcode;
-                    borrowList.Add(borrowInfo);
-                }
+                strError = "未找到证条码号为[" + strReaderBarcode + "]的读者记录";
+                return -1;
             }
-            catch (Exception ex)
+            else if (response.GetReaderInfoResult.Value > 1)
             {
-                result.apiResult.errorCode = -1;
-                result.apiResult.errorInfo = ex.Message;
-                return result;
+                strError = "异常：根据证条码号[" + strReaderBarcode + "]找到多条读者记录，请联系管理员。";
+                return -1;
             }
-            finally
-            {
-                this.ChannelPool.ReturnChannel(channel);
-            }
+            string strXml = response.results[0];
 
-            return result;
+            // 取出个人信息
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(strXml);
+            string name = DomUtil.GetElementText(dom.DocumentElement, "name");
+            string department = DomUtil.GetElementText(dom.DocumentElement, "department");
+
+            if (name != "")
+            {
+                strSummary = name;//"<span style=' font-size: 14.8px;font-weight:bold'>" 
+
+                if (department != "" && isContainDept==true)
+                    strSummary += "（" + department + "）";
+            }
+            return 0;
+
         }
-#endif
+
+
         /// <summary>
         /// 获取书目摘要
         /// </summary>
@@ -1316,23 +1231,34 @@ namespace ilovelibrary.Server
                     if (string.IsNullOrEmpty(strBorrower) == false)
                     {
                         strReaderSummary = "";//todo this.MainForm.GetReaderSummary(strBorrower, false);
+                        int nRet = this.GetPatronSummary(channel, strBorrower,
+                            false,
+                            out strReaderSummary,
+                            out strError);
+                        if (nRet == -1)
+                            strReaderSummary = strError;
+
                         bool bError = (string.IsNullOrEmpty(strReaderSummary) == false && strReaderSummary[0] == '!');
 
+                        string backColor = "";                        
                         if (bError == true)
-                            item.readerSummaryBackColor = "#B40000";//Color.FromArgb(180, 0, 0);
+                            backColor = "#B40000";//Color.FromArgb(180, 0, 0);
                         else
                         {
                             if (item.isGray == true)
-                                item.readerSummaryBackColor = "#DCDC00"; //Color.FromArgb(220, 220, 0);
+                                backColor = "#DCDC00"; //Color.FromArgb(220, 220, 0);
                             else
-                                item.readerSummaryBackColor = "#B4B400"; //Color.FromArgb(180, 180, 0);
+                                backColor = "#B4B400"; //Color.FromArgb(180, 180, 0);
                         }
 
-                        //if (bError == false)
-                         //   cell.Font = new System.Drawing.Font(this.dpTable_items.Font.FontFamily.Name, this.dpTable_items.Font.Size * 2, FontStyle.Bold);
+                        string strFont="";
+                        if (bError == false)
+                            strFont = "font-size: 20px;font-weight: bold;";//new System.Drawing.Font(this.dpTable_items.Font.FontFamily.Name, this.dpTable_items.Font.Size * 2, FontStyle.Bold);
 
-                        item.readerSummaryForeColor = "#FFFFFF";//Color.FromArgb(255, 255, 255);
+                        string foreColor = "#FFFFFF";//Color.FromArgb(255, 255, 255);
                         // TODO: 后面还可加上借阅时间，应还时间
+
+                        item.readerSummaryStyle = " style='text-align: center;white-space: nowrap;background-color:" + backColor + ";color:" + foreColor + ";" + strFont + "' ";
                     }
                     item.readerSummary=strReaderSummary;
 
@@ -1354,7 +1280,8 @@ namespace ilovelibrary.Server
                         if (nRet == -1)
                             strSummary = strError;
                          */
-                        strSummary = "摘要"; //todo
+                        strSummary = "<label style='display:inline' >bs-@bibliorecpath:" + strBiblioRecPath+"</label>"
+                                    +"<img src='~/img/wait2.gif' height='10' width='10' />"; //todo
                     }
                     item.summary = strSummary;
 

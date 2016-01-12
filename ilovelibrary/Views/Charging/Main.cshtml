@@ -342,7 +342,10 @@
             }
 
             if (mytype == "bs-") {
-                var url = "/api/biblio/" + encodeURIComponent(myvalue) + "?format=summary";
+                var url = "/api/biblio/?id=" + encodeURIComponent(myvalue) + "&format=summary";
+
+                //alert(url);
+
                 // 调api
                 sendAjaxRequest(url, "GET", function (data) {
                     //换成实际的值，去掉pending状态，继续下一个pending
@@ -508,11 +511,11 @@
             var title = "";
             if (cmdType == "borrow")
                 title = "请选择要借阅的册";
-            else if (cmdType = "return")
+            else if (cmdType == "return")
                 title = "请选择要还回的册";
-            else if (cmdType = "renew")
+            else if (cmdType == "renew")
                 title = "请选择要续借的册";
-            else if (cmdType = "verifyrenew")
+            else if (cmdType == "verifyrenew")
                 title = "请选择要(验证)续借的册";
 
             //页面层
@@ -530,7 +533,7 @@
                 yes: function (index, layero) {
 
                     // 确定
-                    okSelectItemLayer();
+                    okSelectItemLayer(null);
 
                 },
                 cancel: function (index) {
@@ -549,19 +552,48 @@
                 }
             });
 
+            // 一行时还是没变高
+            //$("#selItemScrollDiv").css("height", "100%");
+            //$("#selItemTable").css("height", "100%");
+            //alert($("#selItemScrollDiv").css("height"));
+
             // 调检索函数
             doSearchItem(cmdType);
         }
 
         // 选择读者图层点击ok时
-        function okSelectItemLayer() {
-            //canDoThing = false;
+        function okSelectItemLayer(row) {
 
-            var itemBarcode = $(".item-selected-bg").find("td").first().next().text();//.html();
-            if (itemBarcode == null || itemBarcode == "") {
-                alert("请选择一条册记录");
+            if (row == null)
+                row = $(".item-selected-bg").first();
+
+            if (row == null || row.length == 0) {
+                alert("请选择一条册记录！");
                 return false;
             }
+
+            var itemBarcode = row.find(".itemBarcode-td").first().text();//.html();
+            if (itemBarcode == null || itemBarcode == "") {
+                alert("该行册条码为空！");
+                return false;
+            }
+
+            // gray行
+            if (row.hasClass("item-gray") == true) {
+
+                var functionType = cmdModel.editor.type();
+                var strError = "当前功能不允许选择此行。";
+                if (functionType == "borrow")
+                    strError += "只能对尚未借出的、状态为空的册进行借书操作";
+                else if (functionType == "return")
+                    strError += "只能对在借状态的册进行还书操作";
+                else if (functionType == "renew")
+                    strError += "只能对在借状态的册进行续借操作";
+
+                alert(strError);
+                return false;
+            }
+
             //alert("ok-" + itemBarcode);
             //layer.close(index1);
             layer.closeAll();
@@ -617,21 +649,47 @@
 
                     var myhtml = "";
                     //alert(data.itemList.length);
+                    var availableCount = 0;
                     for (var i = 0; i < data.itemList.length; i++) {
                         var item = data.itemList[i];
-                        var selectedClass = "";
-                        if (i == -1)
-                            selectedClass = " item-selected-bg";
-                        myhtml += "<tr class='item-tr " + selectedClass + "'>"
+                        var myClass = "";
+                        if (item.isGray == true)
+                            myClass += " item-gray ";
+                            
+
+                        if (availableCount == 0) {
+                            if (item.isGray == false)
+                                availableCount++;
+                        }
+                        else {
+                            availableCount++;
+                        }
+
+                        // 选中第一个可用行
+                        if (availableCount == 1)
+                            myClass += " item-selected-bg";
+
+
+                        myhtml += "<tr class='item-tr " + myClass + "' >"
+                            + "<td colspan='7'>"
+                            + "<table style='width:100%;table-layout:fixed;'>"
+                            +"<tr>"
         + "<td>" + item.state + "</td>"
-        + "<td>" + item.barcode + "</td>"
-        + "<td>" + item.readerSummary + "</td>"
-        + "<td>" + item.summary + "</td>"
+        + "<td class='itemBarcode-td'>" + item.barcode + "</td>"
+        + "<td " + item.readerSummaryStyle + ">" + item.readerSummary + "</td>"
         + "<td>" + item.volumn + "</td>"
-        + "<td>" + item.location + "</td>"
+        + "<td   width='10%'>" + item.location + "</td>"
         + "<td>" + item.price + "</td>"
-        + "<td>" + item.oldRecPath + "</td>"
+        + "<td  width='15%'>" + item.oldRecPath + "</td>"
         + "</tr>";
+
+
+                        myhtml += "<tr>"
+     + "<td colspan='7' style='width:100%' class='pending'>"
+        + item.summary
+    + "</td></tr>"
+                        +"</table>"
+                        +"</td></tr>";
                     }
 
                     // 显示命中的册记录
@@ -653,16 +711,12 @@
 
                     // 双击行
                     $(".item-tr").dblclick(function () {
-                        // 取出选中行对应的barcode
-                        var itemBarcode = $(this).find("td").first().text();//.html();
-                        layer.close(index1);
 
-                        // 设到界面上的证条码框
-                        $("#txtItemBarcode").val(itemBarcode);
-                        cmdModel.editor.itemBarcode(itemBarcode);
-
-                        // todo 进行借书
+                        okSelectItemLayer($(this));
                     });
+
+                    // 更新summary
+                    window.setTimeout("fillPending()", 1);
 
                 }
 
@@ -680,7 +734,8 @@
             // alert("cmd1");
 
             var readerBarcode=cmdModel.editor.readerBarcode().trim();
-            var itemBarcode=cmdModel.editor.itemBarcode().trim();
+            var itemBarcode = cmdModel.editor.itemBarcode().trim();
+
 
             // 先检查有没有输入需要的信息
             if (cmdModel.editor.type() == "borrow" || cmdModel.editor.type == "verifyrenew") {
@@ -719,6 +774,8 @@
 
             //显示等待图层
             var indexTop = loadLayer();
+
+            //alert("[" + itemBarcode + "]");
 
             //调 web api
             var url = "/api/command";
@@ -975,7 +1032,7 @@
                         if (isWordFocus == false && isBtnFocus == false)
                         {
                             //alert("关闭图层");
-                            okSelectItemLayer();
+                            okSelectItemLayer(null);
                         }
                         
                     }
@@ -1031,7 +1088,7 @@
             //alert("dothing");
 
             //取出输入的条码值
-            var strItemBarcode = $('#txtItemBarcode').val();
+            var strItemBarcode = $('#txtItemBarcode').val().trim();
 
             //设到观察对象上，且不能为空
             cmdModel.editor.itemBarcode(strItemBarcode);
@@ -1369,10 +1426,21 @@
         }
         .reader-selected-bg {
             color: white;
-            background: green;
+            background: #278DF3;
         }
 
         .itemTable th{
+            white-space: nowrap;
+        }
+
+                .itemTable td{
+            white-space: nowrap;
+        }
+
+        .readerTable th{
+            white-space: nowrap;
+        }
+        .readerTable td{
             white-space: nowrap;
         }
 
@@ -1384,7 +1452,15 @@
         }
         .item-selected-bg {
             color: white;
-            background: green;
+            background: #278DF3;
+        }
+
+        .item-gray {
+            color: #cccccc;
+        }
+
+        /*存放证条码的行*/
+        .itemBarcode-td {
         }
 
         /*========================*/
@@ -1451,21 +1527,20 @@
                     </td>
                 </tr>
             </table>
-            <div style="overflow: auto; width: 100%;padding:5px" >
-                <table class="table itemTable" align="center">
+            <div id="selItemScrollDiv" style="overflow:scroll; overflow-y:hidden;width: 100%;padding:5px;height:100%">
+                <table id="selItemTable" class="table itemTable" align="center" style="width: 100%;height:100%">
                     <tr style='background-color:#EEEEEE'>
                         <th>状态</th>
                         <th>册条码号</th>
                         <th>在借情况</th>
-                        <th>书目摘要</th>
                         <th>卷册</th>
-                        <th>馆藏地</th>
+                        <th width="10%">馆藏地</th>
                         <th>价格</th>
-                        <th>册记录路径</th>
+                        <th width="15%">册记录路径</th>
                     </tr>
                     <tbody id='itemsBody'></tbody>
                 </table>
-                </div>
+            </div>
             </div>
         <label style="display:none" id="lblIsVerifyBarcode">@ilovelibrary.Server.ilovelibraryServer.Instance.isVerifyBarcode</label>
         <h3><span class="label label-default">操作历史</span></h3>

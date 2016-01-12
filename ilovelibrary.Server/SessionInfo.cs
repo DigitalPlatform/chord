@@ -95,8 +95,6 @@ namespace ilovelibrary.Server
                 }
                 else if (item.type == Command.C_Command_Return)
                 {
-
-
                     // 还书
                     ReturnInfo returnInfo = null;
                     lRet = channel.Return(item.itemBarcode, 
