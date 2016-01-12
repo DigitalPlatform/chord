@@ -629,6 +629,13 @@ namespace DigitalPlatform.LibraryRestClient
             return_info = null;
             strError = "";
 
+            string strTemp = strItemBarcode;
+            if (IsbnSplitter.IsISBN(ref strTemp) == true)
+            {
+                strError = strTemp;
+                return 3;
+            }
+
         REDO:
             try
             {

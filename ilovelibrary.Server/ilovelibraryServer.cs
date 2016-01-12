@@ -550,6 +550,7 @@ namespace ilovelibrary.Server
 
             // 拆分rec path
             List<string> pathList = StringUtil.SplitList(strRecPath);
+            int i = 0;
             foreach (string onePath in pathList)
             {
                 GetReaderInfoResponse response = channel.GetReaderInfo("@path:" + onePath,
@@ -598,7 +599,12 @@ namespace ilovelibrary.Server
                 string strComment = DomUtil.GetElementText(dom.DocumentElement,
                     "comment");
 
-                sr.Append("<tr class='reader-tr'>"
+                string strSelected = "";
+                if (i == 0)
+                    strSelected = " reader-selected-bg";
+
+
+                sr.Append("<tr class='reader-tr " + strSelected+ "'>"
                     + "<td style='white-space:nowrap'>" + strBarcode + "</td>"
                     + "<td>" + strState + "</td>"
                     + "<td>" + strName + "</td>"
@@ -606,6 +612,7 @@ namespace ilovelibrary.Server
                     + "<td>" + strDepartment + "</td>"
                     + "<td>" + strIdCardNumber + "</td>"
                     +"</tr>");
+                i++;
             }
 
             sr.Append("</table>");
@@ -1305,9 +1312,10 @@ namespace ilovelibrary.Server
                         item.barcode = "@refID:" + strRefID;
 
                     // 在借情况
+                    string strReaderSummary = "";
                     if (string.IsNullOrEmpty(strBorrower) == false)
                     {
-                        string strReaderSummary = "";//todo this.MainForm.GetReaderSummary(strBorrower, false);
+                        strReaderSummary = "";//todo this.MainForm.GetReaderSummary(strBorrower, false);
                         bool bError = (string.IsNullOrEmpty(strReaderSummary) == false && strReaderSummary[0] == '!');
 
                         if (bError == true)
@@ -1326,6 +1334,8 @@ namespace ilovelibrary.Server
                         item.readerSummaryForeColor = "#FFFFFF";//Color.FromArgb(255, 255, 255);
                         // TODO: 后面还可加上借阅时间，应还时间
                     }
+                    item.readerSummary=strReaderSummary;
+
 
                     // 书目摘要
                     string strSummary = "";

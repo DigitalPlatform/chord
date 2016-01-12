@@ -95,6 +95,8 @@ namespace ilovelibrary.Server
                 }
                 else if (item.type == Command.C_Command_Return)
                 {
+
+
                     // 还书
                     ReturnInfo returnInfo = null;
                     lRet = channel.Return(item.itemBarcode, 
@@ -104,44 +106,6 @@ namespace ilovelibrary.Server
                         out strError);
                 }
 
-                /*
-                  if ( ( this.UseIsbnBorrow == true 
-                && QuickChargingForm.IsISBN(ref strTemp) == true)
-                || strTemp.ToLower() == "?b"
-                || string.IsNullOrEmpty(strTemp) == true)
-            {
-                string strItemBarcode = "";
-                // return:
-                //      -1  error
-                //      0   放弃
-                //      1   成功
-                nRet = SelectOneItem(this.FuncState,
-                    strTemp.ToLower() == "?b" ? "" : strTemp,
-                    out strItemBarcode,
-                    out strError);
-                if (nRet == -1)
-                {
-                    strError = "选择册记录的过程中出错: " + strError;
-                    goto ERROR1;
-                }
-                if (nRet == 0)
-                {
-                    strFastInputText = ChargingInfoDlg.Show(
-                        this.CharingInfoHost,
-                        "已取消选择册记录。注意操作并未执行",
-                        InfoColor.Red,
-                        "扫入册条码",
-                        this.InfoDlgOpacity,
-                        this.MainForm.DefaultFont);
-                    this.SwitchFocus(ITEM_BARCODE, strFastInputText);
-                    return -1;
-                }
-
-                this.textBox_itemBarcode.Text = strItemBarcode;
-            }
-
-            this.ActiveItemBarcode = this.textBox_itemBarcode.Text;
-                 */
 
                 // 设上实际的读者证条码
                 item.readerBarcode = strOutputReaderBarcode;
