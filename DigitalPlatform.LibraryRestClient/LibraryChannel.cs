@@ -24,8 +24,7 @@ namespace DigitalPlatform.LibraryRestClient
     /// </summary>
     public class LibraryChannel
     {
-        // 检索限制最大命中数常量
-        public const int C_Search_MaxCount = 100;
+
 
         /// <summary>
         /// dp2Library 服务器的 URL
@@ -564,6 +563,8 @@ namespace DigitalPlatform.LibraryRestClient
 
                 BorrowResponse response = Deserialize<BorrowResponse>(strResult);
                 // 未登录的情况
+                
+                
                 if (response.BorrowResult.Value == -1 && response.BorrowResult.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -583,6 +584,17 @@ namespace DigitalPlatform.LibraryRestClient
                 if (response.BorrowResult.Value == -1 && response.BorrowResult.ErrorCode == ErrorCode.IdcardNumberDup)
                 {
                     return 2;
+                }
+
+                // 未找到对应的册条码，检索是不是isbn
+                if (response.BorrowResult.Value == -1 && response.BorrowResult.ErrorCode == ErrorCode.ItemBarcodeNotFound)
+                {
+                    string strTemp = strItemBarcode;
+                    if (IsbnSplitter.IsISBN(ref strTemp) == true)
+                    {
+                        strError = strTemp;                            
+                        return 3;
+                    }
                 }
                 
                 if (response.reader_records!=null && response.reader_records.Length > 0)
@@ -616,6 +628,13 @@ namespace DigitalPlatform.LibraryRestClient
             strReaderXml = "";
             return_info = null;
             strError = "";
+
+            string strTemp = strItemBarcode;
+            if (IsbnSplitter.IsISBN(ref strTemp) == true)
+            {
+                strError = strTemp;
+                return 3;
+            }
 
         REDO:
             try
@@ -710,12 +729,31 @@ namespace DigitalPlatform.LibraryRestClient
         /// <para>0:    没有命中</para>
         /// <para>&gt;=1:   命中。值为命中的记录条数</para>
         /// <returns></returns>
-        public long SearchBiblio(
-            string strWord,
+        /*
+            string strBiblioDbNames,
+            string strQueryWord,
+            int nPerMax,
             string strFromStyle,
+            string strMatchStyle,
+            string strLang,
+            string strResultSetName,
+            string strSearchStyle,
+            string strOutputStyle,
+            out string strQueryXml)
+         */
+        public long SearchBiblio(
+            string strBiblioDbNames,
+            string strQueryWord,
+            int nPerMax,
+            string strFromStyle,
+            string strMatchStyle,
+            string strResultSetName,
+             string strOutputStyle,
+            out string strQueryXml,
             out string strError)
         {
             strError = "";
+            strQueryXml = "";
         REDO:
             try
             {
@@ -724,15 +762,18 @@ namespace DigitalPlatform.LibraryRestClient
                 client.Headers["Content-type"] = "application/json; charset=utf-8";
 
                 SearchBiblioRequest request = new SearchBiblioRequest();
-                request.strQueryWord = strWord;
-                request.strBiblioDbNames = ""; //??
-                request.nPerMax = C_Search_MaxCount; //500;// -1;
-                request.strLang = "zh";
-                request.strSearchStyle = "";// "desc";
-                request.strOutputStyle = "id,cols";
+                request.strBiblioDbNames = strBiblioDbNames;
+                request.strQueryWord = strQueryWord;
+                request.nPerMax = nPerMax;
                 request.strFromStyle = strFromStyle;
-                request.strMatchStyle = "middle";
-                request.strResultSetName = "weixin-biblio";
+                request.strMatchStyle = strMatchStyle;
+
+                request.strLang = "zh";
+                request.strResultSetName = strResultSetName;              
+                request.strSearchStyle = "";// "desc";
+                request.strOutputStyle = strOutputStyle;
+
+
 
                 byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
 
@@ -753,11 +794,81 @@ namespace DigitalPlatform.LibraryRestClient
                         goto REDO;
                     return -1;
                 }
-
+                strQueryXml = response.strQueryXml;
                 strError = response.SearchBiblioResult.ErrorInfo;
                 this.ErrorCode = response.SearchBiblioResult.ErrorCode;
                 this.ClearRedoCount();
                 return response.SearchBiblioResult.Value;
+            }
+            catch (Exception ex)
+            {
+                int nRet = ConvertWebError(ex, out strError);
+                if (nRet == 0)
+                    return -1;
+                goto REDO;
+            }
+        }
+
+        // 获得册信息
+        // parameters:
+        //      strBiblioRecPath    书目记录路径，仅包含库名和id部分
+        //      lStart  返回从第几个开始    2009/6/7 add
+        //      lCount  总共返回几个。0和-1都表示全部返回(0是为了兼容旧API)
+        //      strStyle    "opac" 把实体记录按照OPAC要求进行加工，增补一些元素
+        //                  "onlygetpath"   仅返回每个路径
+        //                  "getfirstxml"   是对onlygetpath的补充，仅获得第一个元素的XML记录，其余的依然只返回路径
+        //                  "getotherlibraryitem"    返回全部分馆的记录的详情。这个用法只对分馆用户有用。因为分馆用户如果不用这个style，则只获得属于自己管辖分馆的册记录的详情
+        //      entityinfos 返回的实体信息数组
+        //      Result.Value    -1出错 0没有找到 其他 总的实体记录的个数(本次返回的，可以通过entities.Count得到)
+        // 权限：需要有getiteminfo或order权限(兼容getentities权限)
+        public long GetEntities(string strBiblioRecPath, 
+            long lStart, 
+            long lCount,
+            string strStyle,
+            string strLang, 
+            out EntityInfo[] entities, 
+            out string strError)
+        {
+            strError = "";
+            entities = null;
+        REDO:
+            try
+            {
+
+                CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
+                client.Headers["Content-type"] = "application/json; charset=utf-8";
+
+                GetEntitiesRequest request = new GetEntitiesRequest();
+                request.strBiblioRecPath = strBiblioRecPath;
+                request.lStart = lStart;
+                request.lCount = lCount;
+                request.strStyle = "";// "onlygetpath";//strStyle;
+                request.strLang = strLang;
+
+                byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
+
+                string strRequest = Encoding.UTF8.GetString(baData);
+
+                byte[] result = client.UploadData(this.GetRestfulApiUrl("GetEntities"),
+                                "POST",
+                                 baData);
+
+                string strResult = Encoding.UTF8.GetString(result);
+
+                GetEntitiesResponse response = Deserialize<GetEntitiesResponse>(strResult);
+
+                // 未登录的情况
+                if (response.GetEntitiesResult.Value == -1 && response.GetEntitiesResult.ErrorCode == ErrorCode.NotLogin)
+                {
+                    if (DoNotLogin(ref strError) == 1)
+                        goto REDO;
+                    return -1;
+                }
+                entities = response.entityinfos;
+                strError = response.GetEntitiesResult.ErrorInfo;
+                this.ErrorCode = response.GetEntitiesResult.ErrorCode;
+                this.ClearRedoCount();
+                return response.GetEntitiesResult.Value;
             }
             catch (Exception ex)
             {
@@ -787,7 +898,7 @@ namespace DigitalPlatform.LibraryRestClient
         {
             resultPathList = new List<string>();
             Record[] searchresults = null;
-            long lRet = this.GetSearchResult("weixin-biblio",
+            long lRet = this.GetSearchResult("",//weixin-biblio",
                 lStart,
                 lCount,
                 "id,cols",
@@ -1314,6 +1425,8 @@ namespace DigitalPlatform.LibraryRestClient
         }
 
         #endregion
+
+
     }
 
     /// <summary>

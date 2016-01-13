@@ -579,7 +579,7 @@ namespace DigitalPlatform.LibraryRestClient
     public class GetEntitiesResponse
     {
         [DataMember]
-        public LibraryServerResult GetBiblioInfoResult { get; set; }
+        public LibraryServerResult GetEntitiesResult { get; set; }
         [DataMember]
         public EntityInfo[] entityinfos { get; set; }
     }

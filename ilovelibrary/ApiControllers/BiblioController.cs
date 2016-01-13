@@ -25,7 +25,7 @@ namespace ilovelibrary.ApiControllers
                 throw new Exception("尚未登录");
             }         
             SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo];
-            if (id == "more") //todo 将summary字符串改为常量
+            if (id == "more") 
             {
                 strSummary = ilovelibraryServer.Instance.GetBarcodesSummary(sessionInfo, format);
                 return strSummary;
@@ -40,6 +40,34 @@ namespace ilovelibrary.ApiControllers
 
 
             return "未实现的风格:" + format;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="action">search</param>
+        /// <param name="functionType"></param>
+        /// <param name="searchText"></param>
+        /// <returns></returns>
+        public SearchItemResult GetItem(string action,string searchText, string functionType )
+        {
+            // 检查是否登录
+            if (HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo] == null)
+            {
+                SearchItemResult result = new SearchItemResult();
+                result.apiResult = new ApiResult();
+                result.apiResult.errorCode = -1;
+                result.apiResult.errorInfo = "尚未登录";
+                return result;
+            }
+            
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[SessionInfo.C_Session_sessioninfo];
+            if (action == "search")
+            {
+                return ilovelibraryServer.Instance.SearchItem(sessionInfo, functionType, searchText);
+            }
+
+            return null;
         }
     }
 }
