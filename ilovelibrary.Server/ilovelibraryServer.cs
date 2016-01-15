@@ -539,14 +539,7 @@ namespace ilovelibrary.Server
 
             StringBuilder sr = new StringBuilder(1024);
             sr.Append("<table class='table readerTable' align='center' border='0' cellspacing='0' cellpadding='0' id='tab' >");
-            sr.Append("<tr style='color:gray;border-bottom:1px solid #DDDDDD'>"
-                + "<td>证条码号</td>"
-                + "<td>状态</td>"
-                + "<td>姓名</td>"
-                + "<td>性别</td>"
-                + "<td>部门</td>"
-                + "<td>身份证号</td>"
-                + "</tr>");
+
 
             // 拆分rec path
             List<string> pathList = StringUtil.SplitList(strRecPath);
@@ -604,14 +597,35 @@ namespace ilovelibrary.Server
                     strSelected = " reader-selected-bg";
 
 
-                sr.Append("<tr class='reader-tr " + strSelected+ "'>"
-                    + "<td style='white-space:nowrap'>" + strBarcode + "</td>"
-                    + "<td>" + strState + "</td>"
-                    + "<td>" + strName + "</td>"
-                    + "<td>" + strGender + "</td>"
-                    + "<td>" + strDepartment + "</td>"
-                    + "<td>" + strIdCardNumber + "</td>"
-                    +"</tr>");
+                sr.Append("<tr class='reader-tr " + strSelected + "' onclick='readerClick(this)' ondblclick='okSelectReaderLayer(this)'>");
+                sr.Append(@"<td>        <table>
+            <tr>
+                <td class='itemLeftTd'>证条码号</td>
+                <td class='readerBarcode-td itemRightTd'>" + strBarcode + @"</td>
+            </tr>
+            <tr>
+                <td class='itemLeftTd'>状态</td>
+                <td class='itemRightTd'>" + strState + @"</td>
+            </tr>
+            <tr>
+                <td class='itemLeftTd'>姓名</td>
+                <td class='itemRightTd'>" + strName + @"</td>
+            </tr>
+            <tr>
+                <td class='itemLeftTd'>性别</td>
+                <td class='itemRightTd'>" + strGender + @"</td>
+            </tr>
+            <tr>
+                <td class='itemLeftTd'>部门</td>
+                <td class='itemRightTd'>" + strDepartment + @"</td>
+            </tr>                                                
+            <tr>
+                <td class='itemLeftTd'>身份证号</td>
+                <td class='itemRightTd'>" + strIdCardNumber + @"</td>
+            </tr> 
+        </table></td></tr>");
+
+
                 i++;
             }
 
@@ -1228,6 +1242,7 @@ namespace ilovelibrary.Server
 
                     // 在借情况
                     string strReaderSummary = "";
+                    item.readerSummaryStyle = " style=''";
                     if (string.IsNullOrEmpty(strBorrower) == false)
                     {
                         strReaderSummary = "";//todo this.MainForm.GetReaderSummary(strBorrower, false);
