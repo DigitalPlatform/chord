@@ -83,7 +83,7 @@
         // 选择读者图层点击ok时
         function okSelectReaderLayer(obj) {
             canDoThing = false;
-            alert("okSelectReaderLayer-canDoThing = false;")
+            //alert("okSelectReaderLayer-canDoThing = false;")
 
             if (obj == null)
                 obj = $(".reader-selected-bg").first();
@@ -724,13 +724,14 @@
                         
                     });
 
+                    /*
                     //滑过表格
                     $(".item-tr").hover(function () {
                         $(this).addClass("item-tr-over")
                     }, function () {
                         $(this).removeClass("item-tr-over")
                     });
-
+                    */
                     // 双击行
                     $(".item-tr").dblclick(function () {
 
@@ -1117,14 +1118,14 @@
             //alert("dothing");
 
             if (canDoThing == false) {
-                alert("canDoThing==false");
+                //alert("canDoThing==false");
                 canDoThing = true;
                 return;
             }
             
             if (isMsgEnter == true)
             {
-                alert("isMsgEnter==true");
+                //alert("isMsgEnter==true");
                 isMsgEnter = false;
                 return;
             }         
