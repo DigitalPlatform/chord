@@ -29,6 +29,16 @@
             }
         }
 
+        function readerClick(obj)
+        {
+            $(".reader-tr").removeClass("reader-selected-bg");
+            //$(".reader-tr").find(".itemLeftTd").css("background-color", "#EEEEEE");
+
+            $(obj).addClass("reader-selected-bg");
+            //$(obj).find(".itemLeftTd").css("background-color", "#278DF3");
+        }
+
+
         // 是否打开了选择读者对话框
         var openSelectReader = false;
         // 选择读者
@@ -36,61 +46,27 @@
             //设为true
             openSelectReader = true;
 
-            // 对话框图层
-            $("#selReaderDiv").html(readerHtml);
-            $("#selReaderDiv").show();
-
-            //单击选中每一行
-            $(".reader-tr").click(function () {
-                $(".reader-tr").removeClass("reader-selected-bg");
-                $(this).addClass("reader-selected-bg");
-            });
-
-            //滑过表格
-            $(".reader-tr").hover(function () {
-                $(this).addClass("reader-tr-over")
-            }, function () {
-                $(this).removeClass("reader-tr-over")
-            });
-
-            // 双击行
-            $(".reader-tr").dblclick(function () {
-                // 取出选中行对应的barcode
-                var readerBarcode = $(this).find("td").first().text();//.html();
-                layer.close(index1);
-
-                // 设到界面上的证条码框
-                $("#txtReaderBarcode").val(readerBarcode);
-                cmdModel.editor.readerBarcode(readerBarcode);
-
-                // 加载读者信息
-                loadPatron(null, false);
-            });
-
             //让焦点失效
             $("#txtReaderBarcode").blur();
             $("#txtItemBarcode").blur();
 
+            
             //页面层
             var index1 = layer.open({
                 type: 1,
                 title: "请选择一个读者",
-                skin: 'layui-layer-rim', //加上边框
-                area: 'auto',//['420px', '240px'], //宽高
-                maxWidth: 800,
-                //offset: ['100px'],
-                content: $("#tab"),
-                btn: ['确定', '取消'],   //<a class="layui-layer-btn0">取消</a>
+                style: 'border:none;overflow:auto;position:fixed; left:0; top:0; width:100%; height:100%;',
+                content: readerHtml,
+                btn: ['确定', '取消'],  
                 closeBtn: 1,
                 yes: function (index, layero) {
-                    okSelectReaderLayer();
-                    canDoThing = true;
+                    okSelectReaderLayer(null);
                 },
                 cancel: function (index) {
                     // 取消
                     $("#txtReaderBarcode").focus();
                 },
-                close: function (index) {
+                no: function (index) {
                     // 关闭
                     $("#txtReaderBarcode").focus();
                 },
@@ -99,22 +75,29 @@
                     openSelectReader = false;
                 }
             });
-
+            
         }
 
         // 设一个变量，解决选读者打回车，导致在册条码框收到回车事件了。
         var canDoThing = true;
         // 选择读者图层点击ok时
-        function okSelectReaderLayer() {
+        function okSelectReaderLayer(obj) {
             canDoThing = false;
+            alert("okSelectReaderLayer-canDoThing = false;")
 
-            var readerBarcode = $(".reader-selected-bg").find("td").first().text();//.html();
-            if (readerBarcode == null || readerBarcode == "") {
-                alert("请选择一个读者");
+            if (obj == null)
+                obj = $(".reader-selected-bg").first();
+
+            if (obj == null || obj.length == 0) {
+                alert("请选择一个读者！");
                 return false;
             }
-            //alert("ok-" + readerBarcode);
-            //layer.close(index1);
+
+            var readerBarcode = $(obj).find(".readerBarcode-td").first().text();//.html();
+            if (readerBarcode == null || readerBarcode == "") {
+                alert("读者条码为空！");
+                return false;
+            }
             layer.closeAll();
 
             //设到界面的证条码框
@@ -122,6 +105,8 @@
             cmdModel.editor.readerBarcode(readerBarcode);
             //加载读者
             loadPatron(null, false);
+
+
         }
 
         //解析读者数据
@@ -144,6 +129,7 @@
 
                     //alert(data.apiResult.errorInfo);
 
+                    /*
                     // 焦点其实还是不在图层上，
                     //不过现在全局加了按任意键关闭所有图层，这个问题被掩盖了
                     layer.alert(data.apiResult.errorInfo, { icon: 2 }, function (index) {
@@ -153,8 +139,13 @@
                         // 关信息图层
                         layer.close(index);
                     });
+                    */
+
+                    openMsg(data.apiResult.errorInfo);
+
 
                     // 不成功选中
+                    $("#txtReaderBarcode").focus();
                     $("#txtReaderBarcode").select();
                 }
             }
@@ -223,14 +214,18 @@
             }
         }
 
-
-
         //============================
+        var isMsgEnter = false;
+
         // 加载读者信息，调读者api方式
         //isQuiet:是否是安静的方式，即不弹出错误提示，一般是在命令返回出错，但证条码不同的时候调用
         function loadPatron(readerBarcode, isQuiet) {
-
             //alert("loadPatron");
+            if (isMsgEnter == true)
+            {
+                isMsgEnter = false;
+                return;
+            }
 
             if (readerBarcode == null || readerBarcode == "")
                 readerBarcode = $("#txtReaderBarcode").val();
@@ -240,15 +235,7 @@
 
             if (readerBarcode == "") {
                 //alert("请输入读者证条码!");
-
-                // 焦点其实还是不在图层上，
-                //不过现在全局加了按任意键关闭所有图层，这个问题被掩盖了
-                layer.alert("请输入证条码号!", { icon: 0 }, function (index) {
-                    //do something
-                    $("#txtReaderBarcode").focus();
-                    // 关信息图层
-                    layer.close(index);
-                });
+                openMsg("请输入证条码号"); 
 
                 // 更新summary
                 window.setTimeout("fillPending()", 1);
@@ -262,7 +249,7 @@
             patronVModel.readerBarcode(readerBarcode);
 
             //等待图层
-            var index = layer.load(2, { shade: [0.5, '#EEEEEE'] })
+            var index = loadLayer();
 
             // 从服务器api获得读者json数据
             var url = "/api/patron/" + readerBarcode;
@@ -279,6 +266,9 @@
                 // 更新summary
                 window.setTimeout("fillPending()", 1);
 
+                // 防止当选择了读者，没法增加命令了
+                //canDoThing = true;
+
             }, function (xhq, textStatus, errorThrown) {
                 alertServerError(errorThrown);
                 // 关闭等待层
@@ -286,6 +276,16 @@
             }, null, false);
 
             return;
+        }
+
+        function openMsg(msg, endCallback)
+        {
+            isMsgEnter = true;
+            layer.open({
+                //title:'提示信息',
+                content: msg,
+                end: endCallback
+            });
         }
 
         // 万能函数，给样式为pending的元素填充内容
@@ -472,35 +472,36 @@
             });
         }
 
-
-
-
         // 是否打开了选择读者对话框
         var selectItemLayerOpened = false;
         function openSelectItemLayer(cmdType, isbn) {
             selectItemLayerOpened = true;
 
             // 册对话框图层
-            $("#selItemDiv").show();
-            //$("#itemsBody").html(myhtml);
-
-            // 设置检索途径为ISBN
-            $("#txtWord").val(isbn);
-            $("#selFrom").val("ISBN");
-
-            // 绑定检索事件
-            $("#btnSearchItem").unbind("click")
-            $("#btnSearchItem").click(function () {
-                doSearchItem(cmdType);
-            });
-
-            // 在检索词输入框打了回车，调检索函数
-            $("#txtWord").unbind("keydown")
-            $('#txtWord').keydown(function(e){
-                if(e.keyCode==13){
-                    doSearchItem(cmdType);
-                    }
-            });
+            var myHtml = "<div id='selItemDiv' >"
+                 + "<table style='width:100%; ' align='center'>"
+                 + "    <tr>"
+                 + "        <td style='width:20%;padding-left:5px' align='center'>"
+                 + "           <select class='form-control' id='selFrom'>"
+                 + "                <option value='<all>'>全部</option>"
+                 + "                <option value='ISBN' selected>ISBN</option>"
+                 + "                <option value='title'>题名</option>"
+                 + "            </select>"
+                 + "        </td>"
+                 + "        <td style='width:70%;padding-left:5px' align='center'>"
+                 + "            <input type='text' class='form-control' id='txtWord'  placeholder='请输入检索词' onkeydown='wordEnter(event)' value='" + isbn + "' />"
+                 + "        </td>"
+                 + "        <td style='width:10%' align='center'>"
+                 + "            <button type='button' class='btn btn-default' id='btnSearchItem' onclick='doSearchItem()'>检索</button>"
+                 + "        </td>"
+                 + "    </tr>"
+                 + "</table>"
+                 //+ "<div id='selItemScrollDiv' style='overflow:scroll; overflow-y:hidden;width: 100%;padding:5px;height:100%'>"
+                 + "    <table id='selItemTable' class='table itemTable' align='center' style='width: 100%;height:100%'>"
+                 + "        <tbody id='itemsBody'></tbody>"
+                 + "    </table>"
+                 //+ "</div>"
+             + "</div>";
 
 
 
@@ -520,45 +521,38 @@
 
             //页面层
             var index1 = layer.open({
-                scrollbar: false,
+                style: 'border:none;overflow:auto;position:fixed; left:0; top:0; width:100%; height:100%;',
                 type: 1,
                 title: title,
-                skin: 'layui-layer-rim', //加上边框
-                area: ['600px', '400px'], //宽高  //'auto',//
-                maxWidth: 600,
-                content: $("#selItemDiv"),
+                content: myHtml,//$("#selItemDiv").html(),
                 btn: ['确定', '取消'],  
-                closeBtn: 1,
-                
+                closeBtn: 1,                
                 yes: function (index, layero) {
-
                     // 确定
                     okSelectItemLayer(null);
-
                 },
-                cancel: function (index) {
-                    // 取消
-                    $("#txtItemBarcode").focus();
-
-                    alert("已取消选择册记录。注意操作并未执行");
-                },
-                close: function (index) {
+                no: function (index) {
+                    //alert("no");
                     // 关闭
                     $("#txtItemBarcode").focus();
+                    alert("已取消选择册记录。注意操作并未执行");
                 },
+                cancel: function (index) {
+                    //alert("cancel");
+                    // 取消
+                    $("#txtItemBarcode").focus();
+                    alert("已取消选择册记录。注意操作并未执行");
+                },
+
                 end: function () {
+                    //alert("end");
                     //图层消毁时，设置开关变量为false
                     selectItemLayerOpened = false;
                 }
             });
 
-            // 一行时还是没变高
-            //$("#selItemScrollDiv").css("height", "100%");
-            //$("#selItemTable").css("height", "100%");
-            //alert($("#selItemScrollDiv").css("height"));
-
             // 调检索函数
-            doSearchItem(cmdType);
+            doSearchItem();
         }
 
         // 选择读者图层点击ok时
@@ -607,8 +601,14 @@
             //loadPatron(null, false);
         }
 
+        function wordEnter(e)
+        {
+            if (e.keyCode == 13) {
+                doSearchItem();
+            }
+        }
         //检索 
-        function doSearchItem(cmdType) {
+        function doSearchItem() {
 
             //alert("doSearchItem");
 
@@ -632,7 +632,8 @@
             //alert(searchText);
 
             //调检索的api
-            var url = "/api/biblio?action=search&searchText=" + encodeURIComponent(searchText) + "&functionType=" + cmdType;
+            var functionType = cmdModel.editor.type();
+            var url = "/api/biblio?action=search&searchText=" + encodeURIComponent(searchText) + "&functionType=" + functionType;
             // 调api
             sendAjaxRequest(url, "GET", function (data) {
 
@@ -671,23 +672,40 @@
 
 
                         myhtml += "<tr class='item-tr " + myClass + "' >"
-                            + "<td colspan='7'>"
+                            + "<td>"
                             + "<table style='width:100%;table-layout:fixed;'>"
+                            + "<tr>"
+                            + "<td class='itemLeftTd'>册条码号</td>"
+                            + "<td class='itemBarcode-td itemRightTd' >" + item.barcode + "</td>"
+                            + "</tr>"
                             +"<tr>"
-        + "<td>" + item.state + "</td>"
-        + "<td class='itemBarcode-td'>" + item.barcode + "</td>"
-        + "<td " + item.readerSummaryStyle + ">" + item.readerSummary + "</td>"
-        + "<td>" + item.volumn + "</td>"
-        + "<td   width='10%'>" + item.location + "</td>"
-        + "<td>" + item.price + "</td>"
-        + "<td  width='15%'>" + item.oldRecPath + "</td>"
-        + "</tr>";
+                            + "<td class='itemLeftTd'>状态</td><td class='itemRightTd'>" + item.state + "</td>"
+                            +"</tr>"
 
-
-                        myhtml += "<tr>"
-     + "<td colspan='7' style='width:100%' class='pending'>"
-        + item.summary
-    + "</td></tr>"
+                            + "<tr>"
+                            + "<td class='itemLeftTd'>在借情况</td>"
+                            + "<td " + item.readerSummaryStyle + "  class='itemRightTd'>" + item.readerSummary + "</td>"
+                            + "</tr>"
+                            + "<tr>"
+                            + "<td class='itemLeftTd'>书目摘要</td>"
+                            + "<td class='pending itemRightTd' >" + item.summary + "</td>"
+                            + "</tr>"
+                            + "<tr>"
+                            + "<td class='itemLeftTd'>卷册</td>"
+                            + "<td  class='itemRightTd'>" + item.volumn + "</td>"
+                            + "</tr>"
+                            + "<tr>"
+                            + "<td class='itemLeftTd'>馆藏地</td>"
+                            + "<td  class='itemRightTd'>" + item.location + "</td>"
+                            + "</tr>"
+                            + "<tr>"
+                            + "<td class='itemLeftTd'>价格</td>"
+                            + "<td  class='itemRightTd'>" + item.price + "</td>"
+                            + "</tr>"
+                            + "<tr>"
+                            + "<td class='itemLeftTd'>册记录路径</td>"
+                            + "<td  class='itemRightTd'>" + item.oldRecPath + "</td>"
+                            + "</tr>"
                         +"</table>"
                         +"</td></tr>";
                     }
@@ -699,7 +717,11 @@
                     //单击选中每一行
                     $(".item-tr").click(function () {
                         $(".item-tr").removeClass("item-selected-bg");
+                        //$(".item-tr").find(".itemLeftTd").css("background-color", "#eeeeee");
+
                         $(this).addClass("item-selected-bg");
+                        //$(this).find(".itemLeftTd").css("background-color", "#278DF3");
+                        
                     });
 
                     //滑过表格
@@ -743,15 +765,13 @@
 
                     //alert("请输入证条码号!");
 
-                    // 焦点其实还是不在图层上，
-                    //不过现在全局加了按任意键关闭所有图层，这个问题被掩盖了
-                    layer.alert("请输入证条码号!", { icon: 0 }, function (index) {
-                        //do something
-                        $("#txtReaderBarcode").focus();
-                        // 关信息图层
-                        layer.close(index);
+                    layer.open({
+                        title: [
+                            '提示信息',
+                            'background-color:#8DCE16; color:#fff;'
+                        ],
+                        content: '请输入证条码号！'
                     });
-
 
                     return;
                 }
@@ -760,13 +780,12 @@
 
                 //alert("请输入册条码号!");
 
-                // 焦点其实还是不在图层上，
-                //不过现在全局加了按任意键关闭所有图层，这个问题被掩盖了
-                layer.alert("请输入册条码号!", { icon: 0 }, function (index) {
-                    //do something
-                    $("#txtItemBarcode").focus();
-                    // 关信息图层
-                    layer.close(index);
+                layer.open({
+                    title: [
+                        '提示信息',
+                        'background-color:#8DCE16; color:#fff;'
+                    ],
+                    content: '请输入册条码号！'
                 });
 
                 return;
@@ -803,6 +822,7 @@
                     layer.close(indexTop);
 
                     //弹出选择册图层
+                    //alert(newItem.resultInfo);
                     openSelectItemLayer(cmdModel.editor.type(), newItem.resultInfo);
                     return;
                 }
@@ -870,7 +890,23 @@
 
                     //弹出提示图层
                     $("#txtItemBarcode").blur();
+
+                    // 此时打回车，不能做事
+                    canDoThing = false;
+                    //alert("出错：canDoThing = false;")
                     var msg = "<span style='color:red'>" + newItem.resultInfo + "</span>";
+                    layer.open({
+                        content:msg,
+                        style: "shade: [0.5, 'gray']",
+                        //time: 2,
+                        end:function () {
+                            //操作失败选中册条码框
+                            $("#txtItemBarcode").select();
+                            $("#txtItemBarcode").focus();
+                        }
+                    });
+
+                    /*
                     layer.msg(msg, { shade: [0.5, 'gray'], icon: 2 }, function () {
                         //关闭后的操作
                         //alert("tesstr");
@@ -878,7 +914,7 @@
                         $("#txtItemBarcode").select();
                         $("#txtItemBarcode").focus();
                     });
-
+                    */
 
 
 
@@ -890,6 +926,7 @@
                 layer.close(indexTop);
             }, data);
         }
+
 
         // 是否校验barcode
         var isVerifyBarcode = true;
@@ -1002,7 +1039,7 @@
                 if (openSelectReader == true) {
                     if (event.keyCode == "13") {
                         //alert("open");
-                        okSelectReaderLayer();
+                        okSelectReaderLayer(null);
                         //layer.closeAll();
                     }
                     else if (event.keyCode == 38) {
@@ -1062,11 +1099,9 @@
                     return;
                 }
                 else {
-
                     layer.closeAll();
                 }
             });
-
 
 
             //隐藏读者信息
@@ -1079,13 +1114,20 @@
 
         //执行操作
         function doThing() {
+            //alert("dothing");
 
             if (canDoThing == false) {
+                alert("canDoThing==false");
                 canDoThing = true;
                 return;
             }
-
-            //alert("dothing");
+            
+            if (isMsgEnter == true)
+            {
+                alert("isMsgEnter==true");
+                isMsgEnter = false;
+                return;
+            }         
 
             //取出输入的条码值
             var strItemBarcode = $('#txtItemBarcode').val().trim();
@@ -1093,14 +1135,8 @@
             //设到观察对象上，且不能为空
             cmdModel.editor.itemBarcode(strItemBarcode);
             if (cmdModel.editor.itemBarcode() == "") {
-                // 焦点其实还是不在图层上，
-                //不过现在全局加了按任意键关闭所有图层，这个问题被掩盖了
-                layer.alert("请输入册条码号!", { icon: 0 }, function (index) {
-                    //do something
-                    $("#txtItemBarcode").focus();
-                    // 关信息图层
-                    layer.close(index);
-                });
+
+                openMsg("请输入册条码号!");
                 return;
             }
 
@@ -1110,7 +1146,7 @@
                 //alert("校验");
 
                 //等待图层
-                var index1 = layer.load(2, { shade: [0.5, '#EEEEEE'] })
+                var index1 = loadLayer();
 
                 // 调服务器api校验条码 1读者证条码 2册条码
                 var url = "/api/patron/" + strItemBarcode + "?format=verifyBarcode";
@@ -1215,7 +1251,11 @@
 
         // 显示等待图层
         function loadLayer() {
-            return layer.load(2, { shade: [0.5, '#EEEEEE'] });
+            //return layer.load(2, { shade: [0.5, '#EEEEEE'] });
+            return layer.open({
+                type: 2,
+                shadeClose: false
+            });
         }
 
         function getRootPath() {
@@ -1433,6 +1473,20 @@
             white-space: nowrap;
         }
 
+        .itemLeftTd{
+            width:80px;
+            white-space: nowrap;
+            border-right: 1px solid #dddddd;
+            color:gray;
+            padding-left:5px;
+            background-color:#eeeeee;
+
+        }
+
+        .itemRightTd{
+            padding-left:5px;
+        }
+
                 .itemTable td{
             white-space: nowrap;
         }
@@ -1441,7 +1495,7 @@
             white-space: nowrap;
         }
         .readerTable td{
-            white-space: nowrap;
+            /*white-space: nowrap;*/
         }
 
         .item-tr {
@@ -1460,6 +1514,10 @@
         }
 
         /*存放证条码的行*/
+        .readerBarcode-td {
+        }
+
+        /*存放册条码的行*/
         .itemBarcode-td {
         }
 
@@ -1469,12 +1527,14 @@
 
 <div class="row" style="background-color: rgba(255,255,255,0.9);">
     <div class="col-md-6" style="background-color:#ffffff" id="divCmd">
-        <span style="font-size:20px;">
+
+        <span style="font-size:14.8px;">
             <ul class="nav nav-tabs" id="myTab">
-                <li class="active"><a href="#" data-toggle="tab" id="aBorrow">借</a></li>
+                <li class="active"><a href="#home" data-toggle="tab" id="aBorrow">借</a></li>
                 <li><a href="#home" data-toggle="tab" id="aReturn">还</a></li>
                 <li><a href="#home" data-toggle="tab" id="aRenew">续借</a></li>
                 <li><a href="#home" data-toggle="tab" id="aVerifyRenew">验证续借</a></li>
+                <li><a href="#home" data-toggle="tab" id="aRead">读过</a></li>
             </ul>
         </span>
         <div class="well">
@@ -1505,43 +1565,12 @@
                 </div>
             </div>
         </div>
-        <!-- Table -->
-        <div id="selReaderDiv" style="display:none">
 
-        </div>
-        <div id="selItemDiv" style="display:none;">
-            <table style="width:100%; " align="center">
-                <tr>
-                    <td style="width:20%;padding-left:5px" align="center">
-                        <select class='form-control' id="selFrom">
-                            <option value="<all>">全部</option>
-                            <option value="ISBN">ISBN</option>
-                            <option value="title">题名</option>
-                        </select>
-                    </td>
-                    <td style="width:70%;padding-left:5px" align="center">
-                        <input type='text' class='form-control' id='txtWord' value='isbn' placeholder="请输入检索词" />
-                    </td>
-                    <td style="width:10%" align="center">
-                        <button type="button" class="btn btn-default" id="btnSearchItem">检索</button>
-                    </td>
-                </tr>
-            </table>
-            <div id="selItemScrollDiv" style="overflow:scroll; overflow-y:hidden;width: 100%;padding:5px;height:100%">
-                <table id="selItemTable" class="table itemTable" align="center" style="width: 100%;height:100%">
-                    <tr style='background-color:#EEEEEE'>
-                        <th>状态</th>
-                        <th>册条码号</th>
-                        <th>在借情况</th>
-                        <th>卷册</th>
-                        <th width="10%">馆藏地</th>
-                        <th>价格</th>
-                        <th width="15%">册记录路径</th>
-                    </tr>
-                    <tbody id='itemsBody'></tbody>
-                </table>
-            </div>
-            </div>
+
+
+        <!-- Table -->
+
+
         <label style="display:none" id="lblIsVerifyBarcode">@ilovelibrary.Server.ilovelibraryServer.Instance.isVerifyBarcode</label>
         <h3><span class="label label-default">操作历史</span></h3>
         <table class="table" data-bind="foreach: cmdModel.commands">
@@ -1743,6 +1772,8 @@
                 </tr>
             </tbody>
         </table>
+
+
 
     </div>
 </div>
