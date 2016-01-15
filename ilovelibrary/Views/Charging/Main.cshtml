@@ -959,6 +959,17 @@
                 //隐藏读者信息
                 hiddleReaderInfo();
 
+                $("#trReaderBarcode").show();
+                $("#txtItemBarcode").show();
+
+                if (e.target.id == "aRead") {
+                    $("#trReaderBarcode").hide();
+                    $("#txtItemBarcode").hide();
+                    $("#btnDo").text("读过");
+                    cmdModel.editor.type("read");
+                    return;
+                }
+
                 // alert(e.target.id);
                 if (e.target.id == "aReturn") {
                     $("#trReaderBarcode").hide();
