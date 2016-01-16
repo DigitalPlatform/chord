@@ -40,7 +40,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiResult.cs" />
-    <Compile Include="BiblioDbProperty.cs" />
     <Compile Include="BorrowInfo.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="ilovelibraryServer.cs" />
