@@ -18,6 +18,7 @@ namespace ilovelibrary.Server
         public string Parameters = "";
         public string Rights = "";
         public string LibraryCode = "";
+        public string PersonalLibrary = "";
 
 
         #region 命令相关

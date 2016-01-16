@@ -86,6 +86,48 @@ namespace DigitalPlatform.LibraryRestClient
             }
         }
 
+        public int GetAllDatabase(out string strDbXml,
+            out string strError)
+        {
+            strDbXml = "";
+            strError = "";
+            CookieAwareWebClient client = new CookieAwareWebClient(Cookies);
+            client.Headers["Content-type"] = "application/json; charset=utf-8";
+
+            /*
+        // 管理数据库
+        // parameters:
+        //      strAction   动作。create delete initialize backup getinfo
+        // return:
+        //      result.Value    -1 错误
+        public LibraryServerResult ManageDatabase(string strAction,
+            string strDatabaseName,
+            string strDatabaseInfo,
+            out string strOutputInfo)   
+*/
+            ManageDatabaseRequest request = new ManageDatabaseRequest();
+            request.strAction = "getinfo";
+            request.strDatabaseName = "";
+            request.strDatabaseInfo = "";
+
+            byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
+            byte[] result = client.UploadData(GetRestfulApiUrl("ManageDatabase"),
+                    "POST",
+                    baData);
+
+            string strResult = Encoding.UTF8.GetString(result);
+            ManageDatabaseResponse response = Deserialize<ManageDatabaseResponse>(strResult);
+            if (response.ManageDatabaseResult.Value == -1)
+            {
+                strError = response.ManageDatabaseResult.ErrorInfo;
+                return -1;
+            }
+
+            strDbXml = response.strOutputInfo;
+
+            return 0;
+
+        }
 
         // return:
         //      -1  error

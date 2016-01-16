@@ -51,6 +51,9 @@ namespace ilovelibrary.Server
         public string TodayUrl="";
         public bool isVerifyBarcode = true; //是否校验证条码号
 
+        // 检索用的有实体库的书目库
+        string strBiblioDbNames = "";
+
         public void Init(string strDp2LibraryUrl, string strDataDir,string strDp2OpacUrl)
         {
             this.dp2LibraryUrl = strDp2LibraryUrl;
@@ -185,15 +188,46 @@ namespace ilovelibrary.Server
                     strError = ret.LoginResult.ErrorInfo;
                     return null;
                 }
-
-
-
                 SessionInfo sessionInfo = new SessionInfo();
                 sessionInfo.UserName = strUserName;
                 sessionInfo.Password = strPassword;
                 sessionInfo.Parameters = strParam;
                 sessionInfo.Rights = ret.strRights;
                 sessionInfo.LibraryCode = ret.strLibraryCode;
+
+                // 初始一下数据库
+                int nRet = this.GetBiblioDbNames(channel, out this.strBiblioDbNames, out strError);
+                if (nRet == -1)
+                {
+                    strError = "获得书目库出错："+strError;
+                    return null;
+                }
+
+
+
+                // 取一下书斋名称
+                if (strParam.Contains("type=reader") == true)
+                {
+                    GetReaderInfoResponse res = channel.GetReaderInfo(strUserName, "xml");
+                    if (res.GetReaderInfoResult.Value == -1 || res.GetReaderInfoResult.Value == 0)
+                    {
+                        strError = "获得读者记录出错：" + strError;
+                        return null;
+                    }
+                    Debug.Assert(res.results != null, "res.results不应该为null");
+                    Debug.Assert(res.results.Length==1, "res.results应该包括一个值");
+
+                    string xml = res.results[0];
+                    XmlDocument dom = new XmlDocument();
+                    dom.LoadXml(xml);
+                    XmlNode node = dom.DocumentElement.SelectSingleNode("personalLibrary");
+                    sessionInfo.PersonalLibrary = DomUtil.GetNodeText(node);
+                }
+
+
+
+
+
                 return sessionInfo;
             }
             catch (WebException wex)
@@ -538,7 +572,7 @@ namespace ilovelibrary.Server
             strError = "";
 
             StringBuilder sr = new StringBuilder(1024);
-            sr.Append("<table class='table readerTable' align='center' border='0' cellspacing='0' cellpadding='0' id='tab' >");
+            sr.Append("<table  onload='alert(1)' class='table readerTable' align='center' border='0' cellspacing='0' cellpadding='0' id='tab' >");
 
 
             // 拆分rec path
@@ -959,6 +993,54 @@ namespace ilovelibrary.Server
             return strSummary;
         }
 
+
+
+        // 
+        // return:
+        //      -1  出错，不希望继续以后的操作
+        //      0   成功
+        //      1   出错，但希望继续后面的操作
+        /// <summary>
+        /// 获得编目库属性列表
+        /// </summary>
+        /// <param name="bPrepareSearch">是否要准备通道</param>
+        /// <returns>-1: 出错，不希望继续以后的操作; 0: 成功; 1: 出错，但希望继续后面的操作</returns>
+        public int GetBiblioDbNames(LibraryChannel channel,
+            out string strDbNames,
+            out string strError)
+        {
+            strDbNames = "";
+            strError = "";
+            int nRet = 0;
+
+            string strDbXml = "";
+            nRet = channel.GetAllDatabase(out strDbXml, out strError);
+            if (nRet == -1)
+                return -1;
+            if (String.IsNullOrEmpty(strDbXml) == true)
+                return 0;
+
+            List<string> results = new List<string>();
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(strDbXml);
+            XmlNodeList nodes = dom.DocumentElement.SelectNodes("database[@type='biblio']");
+            foreach (XmlNode node in nodes)
+            {
+
+                string strName = DomUtil.GetAttr(node, "name");
+                string strItemDbName = DomUtil.GetAttr(node, "entityDbName");
+                if (string.IsNullOrEmpty(strName) == false &&
+    string.IsNullOrEmpty(strItemDbName) == false)
+                {
+                    results.Add(strName);
+                }
+            }
+
+            strDbNames= StringUtil.MakePathList(results);
+            return 0;
+        }
+
+
         /// <summary>
         /// 获取书目摘要
         /// </summary>
@@ -1023,7 +1105,7 @@ namespace ilovelibrary.Server
             out string strError)
                  */
                 string strQueryXml = "";
-                long lRet = channel.SearchBiblio( "<全部>",  //this.GetBiblioDbNames(),   todo
+                long lRet = channel.SearchBiblio( strBiblioDbNames,  //this.GetBiblioDbNames(),   todo
                     strQueryWord,   // this.textBox_queryWord.Text,
                     1000, // TODO: 最多检索1000条的限制，可以作为参数配置？
                     strFromStyle,
@@ -1106,6 +1188,7 @@ namespace ilovelibrary.Server
                 {
                     List<BiblioItem> itemList = null;
                     int nRet = LoadBiblioSubItems(channel,
+                        sessionInfo,
                         functionType,
                         strBiblioRecPath,
                         out itemList,
@@ -1138,6 +1221,7 @@ namespace ilovelibrary.Server
         //      -1  出错
         //      >=0 装入的册记录条数
         int LoadBiblioSubItems(LibraryChannel channel,
+            SessionInfo sessionInfo,
             string functionType,
             string strBiblioRecPath,
             out List<BiblioItem> itemList,
@@ -1307,6 +1391,32 @@ namespace ilovelibrary.Server
                     // 地点
                     string strLocation = DomUtil.GetElementText(dom.DocumentElement, "location");
                     item.location = strLocation;
+                    item.isManagetLoc = true;
+                    // 检查一下当前操作用户是否有管理本馆书的权限
+                    if (sessionInfo.PersonalLibrary != "" && sessionInfo.PersonalLibrary != "*")
+                    {
+                        string itemLib = "";
+                        string itemLibLevel2 = strLocation;
+                        int nTempIndex = strLocation.IndexOf("/");
+                        if (nTempIndex >= 0)
+                        {
+                            itemLib = strLocation.Substring(0, nTempIndex);
+                            itemLibLevel2 = strLocation.Substring(nTempIndex + 1);
+                        }
+
+                        // 分馆相同，且该书馆藏在读者管理的馆藏中
+                        if (itemLib == sessionInfo.LibraryCode
+                            && sessionInfo.PersonalLibrary.Contains(itemLibLevel2))
+                        {
+                            //这里可用的情况
+                            item.isManagetLoc = true;
+                        }
+                        else
+                        {
+                            item.isManagetLoc =false ;
+                        } 
+                    }
+
 
                     // 价格
                     string strPrice = DomUtil.GetElementText(dom.DocumentElement, "price");

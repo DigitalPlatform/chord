@@ -133,6 +133,41 @@ namespace DigitalPlatform.LibraryRestClient
 
     #region API 参数 打包解包
 
+    /*
+        // 管理数据库
+        // parameters:
+        //      strAction   动作。create delete initialize backup getinfo
+        // return:
+        //      result.Value    -1 错误
+        public LibraryServerResult ManageDatabase(string strAction,
+            string strDatabaseName,
+            string strDatabaseInfo,
+            out string strOutputInfo)     
+     */
+    [DataContract]
+    public class ManageDatabaseRequest
+    {
+        [DataMember]
+        public string strAction { get; set; }
+        [DataMember]
+        public string strDatabaseName { get; set; }
+
+        [DataMember]
+        public string strDatabaseInfo { get; set; }
+    }
+
+    [DataContract]
+    public class ManageDatabaseResponse
+    {
+        [DataMember]
+        public LibraryServerResult ManageDatabaseResult { get; set; }
+
+        [DataMember]
+        public string strOutputInfo { get; set; }
+
+    }
+
+
     // 校验条码号
     // parameters:
     //      strLibraryCode  分馆代码

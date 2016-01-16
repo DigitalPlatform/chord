@@ -137,9 +137,10 @@
     </Compile>
     <Compile Include="Models\LoginModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Content Include="Content\layer.css" />
+    <Content Include="Content\layer.m.css" />
     <Content Include="fillPending.html" />
     <Content Include="img\nonePhoto.png" />
+    <Content Include="XMLFile1.xml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap-theme.css" />

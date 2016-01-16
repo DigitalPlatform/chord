@@ -38,6 +38,11 @@
             //$(obj).find(".itemLeftTd").css("background-color", "#278DF3");
         }
 
+        function addClassForLayer()
+        {
+            alert("add");
+            $(".layermcont").addClass(".layermcontAdd");
+        }
 
         // 是否打开了选择读者对话框
         var openSelectReader = false;
@@ -50,12 +55,27 @@
             $("#txtReaderBarcode").blur();
             $("#txtItemBarcode").blur();
 
+            var dw = $(document).width();
+            var dh = $(document).height();
+            var top = dh * 0.1 / 2;
+            var left = (dw - 600) / 2;
+            //alert(left+"-"+top);
+
+            var myStyle = "";
+            if (dw >= 800) {
+                myStyle = "width:600px;height:500px;position:relative; ";
+            }
+            else {
+                myStyle= "border:none;position:fixed; left:0; top:0; width:100%; height:100%;";
+            }
+
+            //alert(myStyle);
             
             //页面层
             var index1 = layer.open({
                 type: 1,
-                title: "请选择一个读者",
-                style: 'border:none;overflow:auto;position:fixed; left:0; top:0; width:100%; height:100%;',
+                title: '请选择一个读者',
+                style: myStyle,
                 content: readerHtml,
                 btn: ['确定', '取消'],  
                 closeBtn: 1,
@@ -76,6 +96,7 @@
                 }
             });
             
+            //addClassForLayer();
         }
 
         // 设一个变量，解决选读者打回车，导致在册条码框收到回车事件了。
@@ -497,7 +518,7 @@
                  + "    </tr>"
                  + "</table>"
                  //+ "<div id='selItemScrollDiv' style='overflow:scroll; overflow-y:hidden;width: 100%;padding:5px;height:100%'>"
-                 + "    <table id='selItemTable' class='table itemTable' align='center' style='width: 100%;height:100%'>"
+                 + "    <table id='selItemTable' class='table itemTable' align='center' style='width: 100%;height:100%;'>"
                  + "        <tbody id='itemsBody'></tbody>"
                  + "    </table>"
                  //+ "</div>"
@@ -519,9 +540,24 @@
             else if (cmdType == "verifyrenew")
                 title = "请选择要(验证)续借的册";
 
+
+            var dw = $(document).width();
+            var dh = $(document).height();
+            var top = dh * 0.1 / 2;
+            var left = (dw - 600) / 2;
+            //alert(left+"-"+top);
+
+            var myStyle = "";
+            if (dw >= 800) {
+                myStyle = "width:600px;overflow:none;height:500px;position:relative; ";
+            }
+            else {
+                myStyle = "border:none;overflow:none;position:fixed; left:0; top:0; width:100%; height:100%;";
+            }
+
             //页面层
             var index1 = layer.open({
-                style: 'border:none;overflow:auto;position:fixed; left:0; top:0; width:100%; height:100%;',
+                style:myStyle,// 'border:none;overflow:auto;position:fixed; left:0; top:0; width:100%; height:100%;',
                 type: 1,
                 title: title,
                 content: myHtml,//$("#selItemDiv").html(),
@@ -572,6 +608,13 @@
                 return false;
             }
 
+            // 无馆藏权限行
+            if (row.hasClass("item-noManagerLoc") == true) {
+                strError = "没有操作该馆藏册的权限！";
+                alert(strError);
+                return false;
+            }
+
             // gray行
             if (row.hasClass("item-gray") == true) {
 
@@ -587,6 +630,8 @@
                 alert(strError);
                 return false;
             }
+
+
 
             //alert("ok-" + itemBarcode);
             //layer.close(index1);
@@ -656,10 +701,16 @@
                         var myClass = "";
                         if (item.isGray == true)
                             myClass += " item-gray ";
+
+                        // 非可管理的馆藏
+                        if (item.isManagetLoc == false)
+                        {
+                            myClass += " item-noManagerLoc";
+                        }
                             
 
                         if (availableCount == 0) {
-                            if (item.isGray == false)
+                            if (item.isGray == false && item.isManagetLoc == true)
                                 availableCount++;
                         }
                         else {
@@ -1122,6 +1173,14 @@
             // 证条码框获得焦点
             $("#txtReaderBarcode").focus();
 
+            var w = $(window).width() + "-" + $(document).width() + "-" + $(document.body).width() + "-" + $(document.body).outerWidth(true);
+            //alert(w); //浏览器当前窗口可视区域宽度
+            //alert();//浏览器当前窗口文档对象宽度
+            //alert();//浏览器当前窗口文档body的宽度
+            //alert();//浏览器当前窗口文档body的总宽度 包括border padding margin
+
+
+
         })
 
         //执行操作
@@ -1524,6 +1583,10 @@
         .item-gray {
             color: #cccccc;
         }
+    .item-noManagerLoc {
+       color:#CC9966;
+    }
+       
 
         /*存放证条码的行*/
         .readerBarcode-td {
@@ -1532,6 +1595,15 @@
         /*存放册条码的行*/
         .itemBarcode-td {
         }
+
+        /*存放册条码的行*/
+        .layermcontAdd{
+            
+    overflow:auto;
+    height:70%;
+        }
+
+        
 
         /*========================*/
     </style>

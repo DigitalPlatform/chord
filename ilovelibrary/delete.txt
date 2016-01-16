@@ -1,4 +1,6 @@
-﻿main源文件
+﻿overflow:auto;
+=========
+main源文件
 
 @{
     ViewBag.Title = "出纳窗";

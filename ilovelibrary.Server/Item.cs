@@ -41,6 +41,9 @@ namespace ilovelibrary.Server
 
 
         public bool isGray = false;
+
+        public bool isManagetLoc = true;
+
         public string readerSummaryStyle  { get; set; }
     }
 }
