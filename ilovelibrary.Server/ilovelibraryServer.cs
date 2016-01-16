@@ -572,7 +572,7 @@ namespace ilovelibrary.Server
             strError = "";
 
             StringBuilder sr = new StringBuilder(1024);
-            sr.Append("<table  onload='alert(1)' class='table readerTable' align='center' border='0' cellspacing='0' cellpadding='0' id='tab' >");
+            sr.Append("<table  class='table readerTable' align='center' border='0' cellspacing='0' cellpadding='0' id='tab' >");
 
 
             // 拆分rec path
