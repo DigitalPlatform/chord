@@ -190,6 +190,19 @@ namespace DigitalPlatform.Text
             return false;
         }
 
+        // 构造路径列表字符串，逗号分隔
+        public static string MakePathList(List<string> aPath)
+        {
+            // 2012/9/7
+            if (aPath.Count == 0)
+                return "";
+
+            string[] pathlist = new string[aPath.Count];
+            aPath.CopyTo(pathlist);
+
+            return String.Join(",", pathlist);
+        }
+
         //===================
 
 
