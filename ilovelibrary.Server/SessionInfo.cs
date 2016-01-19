@@ -20,6 +20,10 @@ namespace ilovelibrary.Server
         public string LibraryCode = "";
         public string PersonalLibrary = "";
 
+        // 在登录时选定的馆藏
+        public string SelPerLib = "";
+
+        public bool isReader = false;
 
         #region 命令相关
 

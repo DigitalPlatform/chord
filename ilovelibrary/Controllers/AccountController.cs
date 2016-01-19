@@ -38,18 +38,22 @@ namespace ilovelibrary.Controllers
                 out strError);
             if (sessionInfo != null)
             {
-                // 存在Session中
+                // 存到Session中
                 Session[SessionInfo.C_Session_sessioninfo] = sessionInfo;
+                if (String.IsNullOrEmpty(returnUrl) == true)
+                    returnUrl = "~/Charging/Main";
 
-                // 返回来源界面
-                if (String.IsNullOrEmpty(returnUrl) == false)
+                // 是读者身份登录，且书斋名称不等空和*，转到选择馆藏地界面
+                if (sessionInfo.isReader == true
+                    && String.IsNullOrEmpty(sessionInfo.PersonalLibrary) == false
+                    && sessionInfo.PersonalLibrary != "*")
                 {
-                    return Redirect(returnUrl);
+                    return this.RedirectToAction("Login2", "Account", new { ReturnUrl = returnUrl });
                 }
                 else
                 {
-                    return RedirectToAction("Main", "Charging");
-                }
+                    return Redirect(returnUrl);
+                }                
             }
 
 
@@ -68,6 +72,26 @@ namespace ilovelibrary.Controllers
             Session[SessionInfo.C_Session_sessioninfo] = null;
 
             return RedirectToAction("Main", "Charging");
+        }
+
+        public ActionResult Login2(string returnUrl)
+        {
+            ViewBag.ReturnUrl = returnUrl;
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult Login2(FormCollection c, string returnUrl)
+        {
+            // 设定选定的馆藏
+            string temp = c["perLib"];
+            if (String.IsNullOrEmpty(temp) == false)
+            {
+                SessionInfo sinfo = (SessionInfo)Session[SessionInfo.C_Session_sessioninfo];
+                sinfo.SelPerLib = temp;
+            }           
+
+            return Redirect(returnUrl);
         }
     }
 }

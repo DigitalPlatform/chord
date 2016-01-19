@@ -1,8 +1,13 @@
 ﻿@if (Session[ilovelibrary.Server.SessionInfo.C_Session_sessioninfo] != null)
 {
     ilovelibrary.Server.SessionInfo user = (ilovelibrary.Server.SessionInfo)Session[ilovelibrary.Server.SessionInfo.C_Session_sessioninfo];
-    <li><a href="#">欢迎<strong> @user.UserName</strong> &nbsp;分馆代码 [<strong> @user.LibraryCode </strong>] </a></li>
-    <li>&nbsp;&nbsp;</li>
+    string strTemp = "";
+    if (String.IsNullOrEmpty(user.SelPerLib) == false)
+    {
+        strTemp = "关注馆藏[<strong>" + user.SelPerLib + "</strong>]";
+    }
+    <li><a>欢迎<strong> @user.UserName</strong> &nbsp;分馆代码 [<strong> @user.LibraryCode </strong>] @Html.Raw(strTemp)</a></li>
+
     <li>@Html.ActionLink("登出", "Logout", "Account")</li>
 }
 else

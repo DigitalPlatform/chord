@@ -703,9 +703,11 @@
                             myClass += " item-gray ";
 
                         // 非可管理的馆藏
+                        var strIconTd = "<td  class='itemFirstCol1'></td>";
                         if (item.isManagetLoc == false)
                         {
                             myClass += " item-noManagerLoc";
+                            strIconTd = "<td  class='itemFirstCol2'><span style='color:gray'><span class='glyphicon glyphicon-minus-sign'></span></span></td>";
                         }
                             
 
@@ -722,38 +724,38 @@
                             myClass += " item-selected-bg";
 
 
-                        myhtml += "<tr class='item-tr " + myClass + "' >"
+                        myhtml += "<tr class='item-tr " + myClass + "'   style=''>"
                             + "<td>"
                             + "<table style='width:100%;table-layout:fixed;'>"
-                            + "<tr>"
+                            + "<tr>" + strIconTd 
                             + "<td class='itemLeftTd'>册条码号</td>"
                             + "<td class='itemBarcode-td itemRightTd' >" + item.barcode + "</td>"
                             + "</tr>"
-                            +"<tr>"
+                            + "<tr><td  class='itemFirstCol1'></td>"
                             + "<td class='itemLeftTd'>状态</td><td class='itemRightTd'>" + item.state + "</td>"
                             +"</tr>"
 
-                            + "<tr>"
+                            + "<tr><td  class='itemFirstCol1'></td>"
                             + "<td class='itemLeftTd'>在借情况</td>"
                             + "<td " + item.readerSummaryStyle + "  class='itemRightTd'>" + item.readerSummary + "</td>"
                             + "</tr>"
-                            + "<tr>"
+                            + "<tr><td  class='itemFirstCol1'></td>"
                             + "<td class='itemLeftTd'>书目摘要</td>"
                             + "<td class='pending itemRightTd' >" + item.summary + "</td>"
                             + "</tr>"
-                            + "<tr>"
+                            + "<tr><td class='itemFirstCol1'></td>"
                             + "<td class='itemLeftTd'>卷册</td>"
                             + "<td  class='itemRightTd'>" + item.volumn + "</td>"
                             + "</tr>"
-                            + "<tr>"
+                            + "<tr><td class='itemFirstCol1'></td>"
                             + "<td class='itemLeftTd'>馆藏地</td>"
                             + "<td  class='itemRightTd'>" + item.location + "</td>"
                             + "</tr>"
-                            + "<tr>"
+                            + "<tr><td class='itemFirstCol1'></td>"
                             + "<td class='itemLeftTd'>价格</td>"
                             + "<td  class='itemRightTd'>" + item.price + "</td>"
                             + "</tr>"
-                            + "<tr>"
+                            + "<tr><td class='itemFirstCol1'></td>"
                             + "<td class='itemLeftTd'>册记录路径</td>"
                             + "<td  class='itemRightTd'>" + item.oldRecPath + "</td>"
                             + "</tr>"
@@ -772,6 +774,23 @@
 
                         $(this).addClass("item-selected-bg");
                         //$(this).find(".itemLeftTd").css("background-color", "#278DF3");
+
+                        var btn = $(".layermbtn").children("span").first().next();
+
+                        if ($(this).hasClass("item-gray") == true
+                            || $(this).hasClass("item-noManagerLoc") == true)
+                        {
+                            btn.text("确定(不可用)");
+                            btn.addClass("item-gray");
+                            //alert("不可用");
+                        }
+                        else
+                        {
+                            //alert("可用");
+                            btn.text("确定");
+                            btn.removeClass("item-gray");
+                        }
+
                         
                     });
 
@@ -1367,7 +1386,7 @@
         }
 
         /*input 去掉边框*/
-        .form-horizontal input[type="text"] {
+        .input-group input[type="text"] {
             border: none;
         }
 
@@ -1544,6 +1563,18 @@
             white-space: nowrap;
         }
 
+    .itemFirstCol1 {
+        width: 1px;
+        background-color: #eeeeee;
+        border-right: 1px solid #CCCCCC;
+    }
+
+    .itemFirstCol2 {
+        width: 15px;
+        background-color: #eeeeee;
+        border-right: 1px solid #CCCCCC;
+    }
+
         .itemLeftTd{
             width:80px;
             white-space: nowrap;
@@ -1584,7 +1615,7 @@
             color: #cccccc;
         }
     .item-noManagerLoc {
-       color:#CC9966;
+       color:#cccccc;
     }
        
 
@@ -1621,38 +1652,33 @@
                 <li><a href="#home" data-toggle="tab" id="aRead">读过</a></li>
             </ul>
         </span>
-        <div class="well">
+        <div class="well" style="padding-left:0px;">
             <div class="tab-content">
                 <div class="tab-pane fade in active" id="home">
-                    <div class='form-horizontal' role='form'>
-                        <div class='form-group' id='trReaderBarcode'>
-                            <label class='col-xs-1 control-label'>
-                                <span style='font-size:22px;'> <span class='glyphicon glyphicon-user'></span></span>
-                            </label>
-                            <div class='col-xs-11'>
-                                <input type='text' class='form-control input-lg' id='txtReaderBarcode' placeholder='证 条码号' data-bind='value:cmdModel.editor.readerBarcode' />
-                                <span class='pending' id='divReaderSummary'>
-                                    <label id='readerKeyWord'></label>
-                                    <img src='../img/wait2.gif' />
-                                </span>
-                            </div>
-                        </div>
-                        <div class='form-group'>
-                            <label class='col-xs-1 control-label'>
-                                <span style='font-size:22px'> <span class='glyphicon glyphicon-book'></span></span>
-                            </label>
-                            <div class='col-xs-11'>
-                                <input type='text' class='form-control input-lg' id='txtItemBarcode' placeholder='册 条码号' data-bind='value:cmdModel.editor.itemBarcode' />
-                            </div>
+                    <div class="input-group  input-group-lg" id='trReaderBarcode'>
+                        <span class="input-group-addon"><span class='glyphicon glyphicon-user'></span></span>
+                        <div>
+                            <input type='text' style="border-radius:6px" class='form-control  input-lg' id='txtReaderBarcode' placeholder='证 条码号或姓名 请回车' data-bind='value:cmdModel.editor.readerBarcode' />
+                            <span class='pending' id='divReaderSummary'>
+                                <label id='readerKeyWord'></label>
+                                <img src='../img/wait2.gif' />
+                            </span>
                         </div>
                     </div>
+                    <div class="input-group  input-group-lg" style="padding-top:10px">
+                        <span class="input-group-addon"><span class='glyphicon glyphicon-book'></span></span>
+                        <div>
+                            <input type='text' class='form-control input-lg' style="border-radius:6px" id='txtItemBarcode' placeholder='册 条码号或ISBN号 请回车' data-bind='value:cmdModel.editor.itemBarcode' />
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
 
 
 
-        <!-- Table -->
+      <!-- Table -->
 
 
         <label style="display:none" id="lblIsVerifyBarcode">@ilovelibrary.Server.ilovelibraryServer.Instance.isVerifyBarcode</label>
