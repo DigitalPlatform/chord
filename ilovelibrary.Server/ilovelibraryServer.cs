@@ -188,6 +188,7 @@ namespace ilovelibrary.Server
                     strError = ret.LoginResult.ErrorInfo;
                     return null;
                 }
+                strUserName = ret.strOutputUserName;
                 SessionInfo sessionInfo = new SessionInfo();
                 sessionInfo.UserName = strUserName;
                 sessionInfo.Password = strPassword;
@@ -195,16 +196,15 @@ namespace ilovelibrary.Server
                 sessionInfo.Rights = ret.strRights;
                 sessionInfo.LibraryCode = ret.strLibraryCode;
                 sessionInfo.isReader = isReader;
+                sessionInfo.PersonalLibrary = "";
 
-                // 初始一下数据库
+                // 初始一下可用的书目数据库
                 int nRet = this.GetBiblioDbNames(channel, out this.strBiblioDbNames, out strError);
                 if (nRet == -1)
                 {
                     strError = "获得书目库出错："+strError;
                     return null;
                 }
-
-
 
                 // 取一下书斋名称
                 if (strParam.Contains("type=reader") == true)
@@ -222,13 +222,9 @@ namespace ilovelibrary.Server
                     XmlDocument dom = new XmlDocument();
                     dom.LoadXml(xml);
                     XmlNode node = dom.DocumentElement.SelectSingleNode("personalLibrary");
-                    sessionInfo.PersonalLibrary = DomUtil.GetNodeText(node);
+                    if (node !=null)
+                        sessionInfo.PersonalLibrary = DomUtil.GetNodeText(node);
                 }
-
-
-
-
-
                 return sessionInfo;
             }
             catch (WebException wex)
@@ -238,7 +234,7 @@ namespace ilovelibrary.Server
             }
             catch (Exception ex)
             {
-                strError = ex.Message;
+                strError = "Login() 函数出现异常:" + ex.Message;
                 return null;
             }
             finally
@@ -1242,13 +1238,13 @@ namespace ilovelibrary.Server
                 EntityInfo[] entities = null;
 
                 long lRet = channel.GetEntities(
-         strBiblioRecPath,
-         lStart,
-         lCount,
-         "",  // bDisplayOtherLibraryItem == true ? "getotherlibraryitem" : "",
-         "zh",
-         out entities,
-         out strError);
+                     strBiblioRecPath,
+                     lStart,
+                     lCount,
+                     "",  // bDisplayOtherLibraryItem == true ? "getotherlibraryitem" : "",
+                     "zh",
+                     out entities,
+                     out strError);
                 if (lRet == -1)
                     return -1;
 

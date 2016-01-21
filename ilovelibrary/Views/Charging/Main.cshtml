@@ -1031,10 +1031,12 @@
 
                 $("#trReaderBarcode").show();
                 $("#txtItemBarcode").show();
+                $("#divItemBarcode").show();
 
                 if (e.target.id == "aRead") {
                     $("#trReaderBarcode").hide();
                     $("#txtItemBarcode").hide();
+                    $("#divItemBarcode").hide();
                     $("#btnDo").text("读过");
                     cmdModel.editor.type("read");
                     return;
@@ -1665,7 +1667,7 @@
                             </span>
                         </div>
                     </div>
-                    <div class="input-group  input-group-lg" style="padding-top:10px">
+                    <div class="input-group  input-group-lg" style="padding-top:10px" id='divItemBarcode'>
                         <span class="input-group-addon"><span class='glyphicon glyphicon-book'></span></span>
                         <div>
                             <input type='text' class='form-control input-lg' style="border-radius:6px" id='txtItemBarcode' placeholder='册 条码号或ISBN号 请回车' data-bind='value:cmdModel.editor.itemBarcode' />

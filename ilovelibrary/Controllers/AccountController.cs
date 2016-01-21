@@ -27,11 +27,23 @@ namespace ilovelibrary.Controllers
             if (isReader == "1")
                 bReader = true;
 
+            //FormCollection c=this.for
+            string userName = model.UserName;
+
+            if (bReader == true)
+            {
+                string prefix = Request.Form["selPrefix"];
+                if (String.IsNullOrEmpty(prefix) == false)
+                {
+                    userName = prefix + ":" + userName;
+                }
+            }
+
 
             string strError = "";
             string strRight = "";
             //登录dp2library服务器
-            SessionInfo sessionInfo = ilovelibraryServer.Instance.Login(model.UserName,
+            SessionInfo sessionInfo = ilovelibraryServer.Instance.Login(userName,
                 model.Password,
                 bReader,
                 out strRight,
