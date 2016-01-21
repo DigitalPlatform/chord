@@ -147,7 +147,7 @@ namespace ilovelibrary.Server
         /// <param name="strError"></param>
         /// <returns></returns>
         public SessionInfo Login(string strUserName, string strPassword,
-            bool bReader,
+            bool isReader,
             out string rights,
             out string strError)
         {
@@ -159,7 +159,7 @@ namespace ilovelibrary.Server
             try
             {
                 string strParam = "";
-                if (bReader == true)
+                if (isReader == true)
                     strParam = "type=reader";
 
                 //光光 0:05:23
@@ -188,22 +188,23 @@ namespace ilovelibrary.Server
                     strError = ret.LoginResult.ErrorInfo;
                     return null;
                 }
+                strUserName = ret.strOutputUserName;
                 SessionInfo sessionInfo = new SessionInfo();
                 sessionInfo.UserName = strUserName;
                 sessionInfo.Password = strPassword;
                 sessionInfo.Parameters = strParam;
                 sessionInfo.Rights = ret.strRights;
                 sessionInfo.LibraryCode = ret.strLibraryCode;
+                sessionInfo.isReader = isReader;
+                sessionInfo.PersonalLibrary = "";
 
-                // 初始一下数据库
+                // 初始一下可用的书目数据库
                 int nRet = this.GetBiblioDbNames(channel, out this.strBiblioDbNames, out strError);
                 if (nRet == -1)
                 {
                     strError = "获得书目库出错："+strError;
                     return null;
                 }
-
-
 
                 // 取一下书斋名称
                 if (strParam.Contains("type=reader") == true)
@@ -221,13 +222,9 @@ namespace ilovelibrary.Server
                     XmlDocument dom = new XmlDocument();
                     dom.LoadXml(xml);
                     XmlNode node = dom.DocumentElement.SelectSingleNode("personalLibrary");
-                    sessionInfo.PersonalLibrary = DomUtil.GetNodeText(node);
+                    if (node !=null)
+                        sessionInfo.PersonalLibrary = DomUtil.GetNodeText(node);
                 }
-
-
-
-
-
                 return sessionInfo;
             }
             catch (WebException wex)
@@ -237,7 +234,7 @@ namespace ilovelibrary.Server
             }
             catch (Exception ex)
             {
-                strError = ex.Message;
+                strError = "Login() 函数出现异常:" + ex.Message;
                 return null;
             }
             finally
@@ -1241,13 +1238,13 @@ namespace ilovelibrary.Server
                 EntityInfo[] entities = null;
 
                 long lRet = channel.GetEntities(
-         strBiblioRecPath,
-         lStart,
-         lCount,
-         "",  // bDisplayOtherLibraryItem == true ? "getotherlibraryitem" : "",
-         "zh",
-         out entities,
-         out strError);
+                     strBiblioRecPath,
+                     lStart,
+                     lCount,
+                     "",  // bDisplayOtherLibraryItem == true ? "getotherlibraryitem" : "",
+                     "zh",
+                     out entities,
+                     out strError);
                 if (lRet == -1)
                     return -1;
 
@@ -1388,14 +1385,17 @@ namespace ilovelibrary.Server
                     string strVolumn = DomUtil.GetElementText(dom.DocumentElement, "volumn");
                     item.volumn = strVolumn;
 
+                    // 价格
+                    string strPrice = DomUtil.GetElementText(dom.DocumentElement, "price");
+                    item.price = strPrice;
+
+                    // 册记录路径
+                    item.oldRecPath = entity.OldRecPath;
+
                     // 地点
                     string strLocation = DomUtil.GetElementText(dom.DocumentElement, "location");
                     item.location = strLocation;
-                    item.isManagetLoc = true;
-                    // 检查一下当前操作用户是否有管理本馆书的权限
-                    if (sessionInfo.PersonalLibrary != "" && sessionInfo.PersonalLibrary != "*")
-                    {
-                        string itemLib = "";
+                     string itemLib = "";
                         string itemLibLevel2 = strLocation;
                         int nTempIndex = strLocation.IndexOf("/");
                         if (nTempIndex >= 0)
@@ -1404,6 +1404,11 @@ namespace ilovelibrary.Server
                             itemLibLevel2 = strLocation.Substring(nTempIndex + 1);
                         }
 
+                    item.isManagetLoc = true;
+                    // 检查一下当前操作用户是否有管理本馆书的权限
+                    if (String.IsNullOrEmpty(sessionInfo.PersonalLibrary) ==false 
+                        && sessionInfo.PersonalLibrary != "*")
+                    {
                         // 分馆相同，且该书馆藏在读者管理的馆藏中
                         if (itemLib == sessionInfo.LibraryCode
                             && sessionInfo.PersonalLibrary.Contains(itemLibLevel2))
@@ -1418,14 +1423,21 @@ namespace ilovelibrary.Server
                     }
 
 
-                    // 价格
-                    string strPrice = DomUtil.GetElementText(dom.DocumentElement, "price");
-                   item.price= strPrice;
 
-                    // 册记录路径
-                   item.oldRecPath = entity.OldRecPath;
 
-                   itemList.Add(item);
+                    // 在登录时，选定了馆藏
+                   if (String.IsNullOrEmpty(sessionInfo.SelPerLib) == false)
+                   {
+                       if (itemLib == sessionInfo.LibraryCode
+                            && sessionInfo.SelPerLib.Contains(itemLibLevel2))
+                       {
+                           itemList.Add(item);
+                       }
+                   }
+                   else
+                   {
+                       itemList.Add(item);
+                   }
                     nCount++;
                 }
 

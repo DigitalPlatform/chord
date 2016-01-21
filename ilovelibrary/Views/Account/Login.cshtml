@@ -15,19 +15,18 @@
         .form-signin {
             max-width: 330px;
             padding: 15px;
-            padding-top:5px;
+            padding-top: 5px;
             margin: 0 auto;
             background-color: rgba(255,255,255,0.6); /* IE9、标准浏览器、IE6和部分IE7内核的浏览器(如QQ浏览器)会读懂 */
         }
 
-            .form-signin .form-signin-heading,
-            .form-signin .checkbox {
+            .form-signin .form-signin-heading {
                 margin-bottom: 10px;
             }
 
             .form-signin .checkbox {
                 font-weight: normal;
-               font-size:large;
+                font-size: large;
             }
 
             .form-signin .form-control {
@@ -64,30 +63,65 @@
     </style>
 }
 
+@section Scripts {
+    <script>
+
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+    $(document).ready(function () {
+
+        // 点击读者checkbox
+        $('#IsReader').click(function (e) {
+            var isReader = $('#IsReader').is(":checked");
+            if (isReader == true) {
+                $('#selPrefix').show();
+                $('#UserName').prop("placeholder", "证条码号");
+            }
+            else {
+                $('#selPrefix').hide();
+                $('#UserName').prop("placeholder", "用户名");
+            }
+
+        });
+
+        // 选择检索途径,输入框的提示名称跟着变
+        $('#selPrefix').change(function (e) {
+
+            var curText = $('#selPrefix option:checked').text();
+            $('#UserName').prop("placeholder", curText);
+        });
+
+
+    });
+
+
+</script>
+    }
+
 <div class="container">
     @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-signin" }))
     {
-        <span style="text-align:center;"> <h2 class="form-signin-heading">我爱图书馆</h2></span>
-        <label for="inputEmail" class="sr-only">用户名</label>
-        <input type="text" name="UserName" class="form-control" placeholder="用户名" required autofocus>
-
-        <label for="inputPassword" class="sr-only">密码</label>
-        <input type="password" name="Password" class="form-control" placeholder="密码" required>
-        <!--
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" value="RememberMe" name="RememberMe"> 记住我
-            </label>
-        </div>
-            -->
-    <div class="checkbox">
-        <label >
-            <input type="checkbox" value="1" name="IsReader" >读者
-        </label>
+        <span style="text-align:center;">
+            <h3 class="form-signin-heading">我爱图书馆</h3>
+        </span>
+    <input type="text" name="UserName" id="UserName" class="form-control" placeholder="用户名" required autofocus>
+    <input type="password" name="Password" class="form-control" placeholder="密码" required>
+    <div class="input-group  input-group-lg" style="padding-top:0px;padding-bottom:10px;text-align:left">
+        <span class="input-group-addon" style="padding-top:0px;padding-left:0px;padding-right:5px;text-align:left">
+            <input type="checkbox" value="1" name="IsReader" id="IsReader">&nbsp;读者
+        </span>
+        <select class="form-control" id="selPrefix" name="selPrefix" style="border-radius:6px;padding-left:5px;display:none">
+            <option value="">证条码号</option>
+            <option value="NB">姓名</option>
+            <option value="EM">email</option>
+            <option value="TP">电话号码</option>
+            <option value="ID">身份证号</option>
+            <option value="CN">证号</option>
+        </select>
     </div>
+
         <button class="btn btn-lg btn-primary btn-block" type="submit">登录</button>
 
-    @Html.AntiForgeryToken()
-    <font style="color:red">@Html.ValidationSummary(true)</font>
+        @Html.AntiForgeryToken()
+        <font style="color:red">@Html.ValidationSummary(true)</font>
     }
 </div> <!-- /container -->

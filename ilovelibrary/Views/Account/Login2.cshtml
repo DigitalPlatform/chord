@@ -1,0 +1,145 @@
+﻿@model ilovelibrary.Models.LoginModel
+
+@{
+    ViewBag.Title = "登录-选择馆藏地";
+}
+
+@section style {
+    <style type="text/css">
+        body {
+            padding-top: 30px;
+            padding-bottom: 40px;
+            background-color: #eee;
+        }
+
+        .testRad {
+            padding-top: 30px;
+            padding-bottom: 40px;
+            background-color: #eee;
+        }
+
+        .form-signin {
+            max-width: 330px;
+            padding: 15px;
+            padding-top: 5px;
+            margin: 0 auto;
+            background-color: rgba(255,255,255,0.7); /* IE9、标准浏览器、IE6和部分IE7内核的浏览器(如QQ浏览器)会读懂 */
+        }
+
+            .form-signin .form-signin-heading {
+                margin-bottom: 10px;
+            }
+
+
+
+            .form-signin .form-control {
+                position: relative;
+                height: auto;
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                box-sizing: border-box;
+                padding: 10px;
+                font-size: 16px;
+            }
+
+                .form-signin .form-control:focus {
+                    z-index: 2;
+                }
+
+            .form-signin input[type="text"] {
+                margin-bottom: -1px;
+                border-bottom-right-radius: 0;
+                border-bottom-left-radius: 0;
+            }
+
+            .form-signin input[type="password"] {
+                margin-bottom: 10px;
+                border-top-left-radius: 0;
+                border-top-right-radius: 0;
+            }
+
+
+        textborder {
+            border: red solid thin;
+            outline: #00ff00 dotted thick;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 单选按钮单击
+            $('.radio input').click(function (e) {
+                var myValue = $('input[name="radAll"]:checked').val();
+                if (myValue == 1) {
+                    $("input[name='perLib']").prop("checked", false);//.removeAttr("checked");//取消全选
+                }
+            });
+
+            // 馆藏地的checkbox单击
+            $('.checkbox input').click(function (e) {
+                var str = "";
+                $('input[name="perLib"]:checked').each(function () {
+                    if (str != "")
+                        str += ",";
+                    str += $(this).val();
+                })
+
+                if (str != "") {
+                    $("input[name = 'radAll'][value=1]").prop("checked", false);
+                    $("input[name = 'radAll'][value=0]").prop("checked", true);
+                }
+            });
+
+
+        });
+    </script>
+}
+@{
+    string chkStr = "";
+    ilovelibrary.Server.SessionInfo user = (ilovelibrary.Server.SessionInfo)Session[ilovelibrary.Server.SessionInfo.C_Session_sessioninfo];
+    List<string> libs = DigitalPlatform.Text.StringUtil.SplitList(user.PersonalLibrary);
+
+
+    for (int i = 0; i < libs.Count; i++)
+    {
+        chkStr += @"<div class='checkbox'>
+                            <label>
+                                <input type='checkbox' id='perLib' name='perLib' value='" + libs[i]+ "'>"
+                                +libs[i]
+                            +@"</label>
+                        </div>";
+    }
+}
+
+<div class="container">
+    @using (Html.BeginForm("Login2", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-signin" }))
+    {
+        <h4 class="form-signin-heading">选择关注的馆藏地</h4>
+        <hr />
+        <div class="radio">
+            <label>
+                <input type="radio" name="radAll" id="radAll" value="1" checked class="testRad" />
+                <span style="font-size:14.8px">不限制（本馆全部馆藏地）</span>
+            </label>
+        </div>
+
+        <div class="radio" style="padding:0px;margin:0px">
+            <label style="padding-bottom:0px">
+                <input type="radio" style="padding-bottom:0px" name="radAll" id="radAll" value="0" class="testRad" />
+                <span style="font-size:14.8px">选择关注的馆藏地</span>
+            </label>
+        </div>
+        <div class="panel panel-default" style="padding:0px">
+            <div class="panel-body" id="panelChk" style="padding-left:10px;padding-top:0px;padding-bottom:0px">
+                @Html.Raw(chkStr)
+
+            </div>
+        </div>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">完成</button>
+    }
+</div> <!-- /container -->
