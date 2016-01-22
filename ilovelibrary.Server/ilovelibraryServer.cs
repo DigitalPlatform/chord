@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Net;
+using System.Collections;
+using DigitalPlatform.Marc;
 
 namespace ilovelibrary.Server
 {
@@ -1060,6 +1062,9 @@ namespace ilovelibrary.Server
                 return result;
             }
 
+            // 置空
+            this._biblioXmlTable.Clear();
+
             // searchText格式   检索途径::关键词
             string strFromStyle="";
             string strQueryWord = "";
@@ -1172,6 +1177,10 @@ namespace ilovelibrary.Server
                     foreach (Record record in searchresults)
                     {
                         biblioRecPaths.Add(record.Path);
+
+                        // 存储书目记录 XML
+                        if (functionType == "read" && record.RecordBody != null)
+                            this._biblioXmlTable[record.Path] = record.RecordBody.Xml;
                     }
 
                     lStart += searchresults.Length;
@@ -1212,6 +1221,8 @@ namespace ilovelibrary.Server
             }
         }
 
+        Hashtable _biblioXmlTable = new Hashtable(); // biblioRecPath --> xml
+
         // 将一条书目记录下属的若干册记录装入列表
         // return:
         //      -2  用户中断
@@ -1226,6 +1237,13 @@ namespace ilovelibrary.Server
         {
             strError = "";
             itemList = new List<BiblioItem>();
+
+            // 如果是读过，加书目行
+            if (functionType == "read")
+            {
+                BiblioItem biblio=GetBiblioLine(strBiblioRecPath);
+                itemList.Add(biblio);
+            }
 
             int nCount = 0;
 
@@ -1251,8 +1269,10 @@ namespace ilovelibrary.Server
                 lResultCount = lRet;
 
                 if (lRet == 0)
-                    return nCount;
-
+                {
+                    //return nCount;
+                    break;
+                }
                 Debug.Assert(entities != null, "");
 
                 foreach (EntityInfo entity in entities)
@@ -1275,6 +1295,7 @@ namespace ilovelibrary.Server
                         }
                     }
                     BiblioItem item = new BiblioItem();
+                    item.backColor = "";
 
                     string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
                     string strBorrower = DomUtil.GetElementText(dom.DocumentElement, "borrower");
@@ -1377,7 +1398,7 @@ namespace ilovelibrary.Server
                             strSummary = strError;
                          */
                         strSummary = "<label style='display:inline' >bs-@bibliorecpath:" + strBiblioRecPath+"</label>"
-                                    +"<img src='~/img/wait2.gif' height='10' width='10' />"; //todo
+                                    +"<img src='~/img/wait2.gif' height='10' width='10' />"; 
                     }
                     item.summary = strSummary;
 
@@ -1461,8 +1482,124 @@ namespace ilovelibrary.Server
             }
              */
 
+            // 本书目最后一行加画线标志
+            if (itemList.Count > 0)
+            {
+                itemList[itemList.Count - 1].isAddLine = true;
+            }
+
             return nCount;
         }
+
+
+
+        // 生成书目行
+        BiblioItem GetBiblioLine(string strBiblioRecPath)
+        {
+            string strError = "";
+
+            string strVolume = "";
+            string strPrice = "";
+
+            GetVolume(strBiblioRecPath,
+            out strVolume,
+            out strPrice);
+
+            // 背景LightGreen
+            BiblioItem item = new BiblioItem();
+            item.backColor = "LightGreen";
+
+            // 状态
+            item.state="";
+
+            // 册条码号
+            item.barcode = "@biblioRecPath:" + strBiblioRecPath;
+
+            // 在借情况
+            item.readerSummary="";
+
+            // 书目摘要
+            string strSummary = "<label style='display:inline' >bs-@bibliorecpath:" + strBiblioRecPath+"</label>"
+                                    +"<img src='~/img/wait2.gif' height='10' width='10' />"; 
+            item.summary = strSummary;
+
+            // 卷册
+            item.volumn = strVolume;
+
+            // 地点
+            item.location="";
+
+            // 价格
+            item.price=strPrice;
+
+            // 册记录路径
+            item.oldRecPath= strBiblioRecPath;
+
+            return item;
+        }
+
+        void GetVolume(string strBiblioRecPath,
+            out string strVolume,
+            out string strPrice)
+        {
+            strVolume = "";
+            strPrice = "";
+
+            string strXml = (string)this._biblioXmlTable[strBiblioRecPath];
+            if (string.IsNullOrEmpty(strXml) == true)
+                return;
+
+            string strOutMarcSyntax = "";
+            string strMARC = "";
+            string strError = "";
+            int nRet = MarcUtil.Xml2Marc(strXml,
+                false,
+                "",
+                out strOutMarcSyntax,
+                out strMARC,
+                out strError);
+            if (nRet == -1)
+                return;
+            if (string.IsNullOrEmpty(strMARC) == true)
+                return;
+            MarcRecord record = new MarcRecord(strMARC);
+            if (strOutMarcSyntax == "unimarc")
+            {
+                string h = record.select("field[@name='200']/subfield[@name='h']").FirstContent;
+                string i = record.select("field[@name='200']/subfield[@name='h']").FirstContent;
+                if (string.IsNullOrEmpty(h) == false && string.IsNullOrEmpty(i) == false)
+                    strVolume = h + " . " + i;
+                else
+                {
+                    if (h == null)
+                        h = "";
+                    strVolume = h + i;
+                }
+
+                strPrice = record.select("field[@name='010']/subfield[@name='d']").FirstContent;
+            }
+            else if (strOutMarcSyntax == "usmarc")
+            {
+                string n = record.select("field[@name='200']/subfield[@name='n']").FirstContent;
+                string p = record.select("field[@name='200']/subfield[@name='p']").FirstContent;
+                if (string.IsNullOrEmpty(n) == false && string.IsNullOrEmpty(p) == false)
+                    strVolume = n + " . " + p;
+                else
+                {
+                    if (n == null)
+                        n = "";
+                    strVolume = n + p;
+                }
+
+                strPrice = record.select("field[@name='020']/subfield[@name='c']").FirstContent;
+            }
+            else
+            {
+
+            }
+
+        }
+
 
 
         #region 静态函数

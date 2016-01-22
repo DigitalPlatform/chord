@@ -11,7 +11,8 @@ namespace ilovelibrary.Controllers
         // GET: Home
         public ActionResult Index()
         {
-            return View();
+            return this.RedirectToAction("Main", "Charging");
+            //return View();
         }
 
         /// <summary>

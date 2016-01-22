@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace DigitalPlatform.Text
 {
@@ -201,6 +202,66 @@ namespace DigitalPlatform.Text
             aPath.CopyTo(pathlist);
 
             return String.Join(",", pathlist);
+        }
+
+        // 修改字符串某一个位字符
+        public static string SetAt(string strText, int index, char c)
+        {
+            strText = strText.Remove(index, 1);
+            strText = strText.Insert(index, new string(c, 1));
+
+            return strText;
+        }
+
+        // 获取引导的{...}内容。注意返回值不包括花括号
+        public static string GetLeadingCommand(string strLine)
+        {
+            if (string.IsNullOrEmpty(strLine) == true)
+                return null;
+
+            // 关注"{...}"
+            if (strLine[0] == '{')
+            {
+                int nRet = strLine.IndexOf("}");
+                if (nRet != -1)
+                    return strLine.Substring(1, nRet - 1).Trim();
+            }
+
+            return null;
+        }
+
+        // 检测字符串是否为纯数字(前面可以包含一个'-'号)
+        public static bool IsNumber(string s)
+        {
+            if (string.IsNullOrEmpty(s) == true)
+                return false;
+
+            bool bFoundNumber = false;
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (s[i] == '-' && bFoundNumber == false)
+                {
+                    continue;
+                }
+                if (s[i] > '9' || s[i] < '0')
+                    return false;
+                bFoundNumber = true;
+            }
+            return true;
+        }
+
+        //比较字符串是否符合正则表达式
+        public static bool RegexCompare(string strPattern,
+            RegexOptions regOptions,
+            string strInstance)
+        {
+            Regex r = new Regex(strPattern, regOptions);
+            System.Text.RegularExpressions.Match m = r.Match(strInstance);
+
+            if (m.Success)
+                return true;
+            else
+                return false;
         }
 
         //===================

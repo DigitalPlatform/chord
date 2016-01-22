@@ -539,6 +539,8 @@
                 title = "请选择要续借的册";
             else if (cmdType == "verifyrenew")
                 title = "请选择要(验证)续借的册";
+            else if (cmdType == "read")
+                title = "请选择要读过的书或册";
 
 
             var dw = $(document).width();
@@ -709,6 +711,18 @@
                             myClass += " item-noManagerLoc";
                             strIconTd = "<td  class='itemFirstCol2'><span style='color:gray'><span class='glyphicon glyphicon-minus-sign'></span></span></td>";
                         }
+
+                        // 检查背景和底部线条
+                        var myStyle = "style='";
+                        if (item.backColor != "")
+                        {
+                            myStyle += " background-color:"+ item.backColor+"; ";
+                        }
+                        if (item.isAddLine == true)
+                        {
+                            myStyle += " border-bottom:2px solid #CCCCCC; ";
+                        }
+                        myStyle += "'";
                             
 
                         if (availableCount == 0) {
@@ -724,7 +738,7 @@
                             myClass += " item-selected-bg";
 
 
-                        myhtml += "<tr class='item-tr " + myClass + "'   style=''>"
+                        myhtml += "<tr class='item-tr " + myClass + "'  "+myStyle+">"
                             + "<td>"
                             + "<table style='width:100%;table-layout:fixed;'>"
                             + "<tr>" + strIconTd 
@@ -760,7 +774,9 @@
                             + "<td  class='itemRightTd'>" + item.oldRecPath + "</td>"
                             + "</tr>"
                         +"</table>"
-                        +"</td></tr>";
+                        + "</td></tr>";
+
+                        
                     }
 
                     // 显示命中的册记录
@@ -829,6 +845,7 @@
             var readerBarcode=cmdModel.editor.readerBarcode().trim();
             var itemBarcode = cmdModel.editor.itemBarcode().trim();
 
+            //alert(itemBarcode);
 
             // 先检查有没有输入需要的信息
             if (cmdModel.editor.type() == "borrow" || cmdModel.editor.type == "verifyrenew") {
@@ -867,6 +884,8 @@
 
             //alert("[" + itemBarcode + "]");
 
+           // alert("转义后：" + encodeURIComponent(itemBarcode));
+
             //调 web api
             var url = "/api/command";
             var data = {
@@ -874,7 +893,7 @@
                 readerBarcode: readerBarcode,
                 itemBarcode: itemBarcode
             };
-
+            
             sendAjaxRequest(url, "POST", function (newItem) {
 
                 // 返回值2表示多个读者，弹出选择读者对话框
@@ -1033,15 +1052,6 @@
                 $("#txtItemBarcode").show();
                 $("#divItemBarcode").show();
 
-                if (e.target.id == "aRead") {
-                    $("#trReaderBarcode").hide();
-                    $("#txtItemBarcode").hide();
-                    $("#divItemBarcode").hide();
-                    $("#btnDo").text("读过");
-                    cmdModel.editor.type("read");
-                    return;
-                }
-
                 // alert(e.target.id);
                 if (e.target.id == "aReturn") {
                     $("#trReaderBarcode").hide();
@@ -1062,6 +1072,10 @@
                     if (e.target.id == "aBorrow") {
                         $("#btnDo").text("借");
                         cmdModel.editor.type("borrow");
+                    }
+                    else if (e.target.id == "aRead") {
+                        $("#btnDo").text("读过");
+                        cmdModel.editor.type("read");
                     }
                     else {
                         $("#btnDo").text("续借");
@@ -1241,7 +1255,7 @@
                 var index1 = loadLayer();
 
                 // 调服务器api校验条码 1读者证条码 2册条码
-                var url = "/api/patron/" + strItemBarcode + "?format=verifyBarcode";
+                var url = "/api/patron/?id=" +encodeURIComponent(strItemBarcode) + "&format=verifyBarcode";
                 sendAjaxRequest(url, "GET", function (data) {
                     // 关闭等待层
                     layer.close(index1);
