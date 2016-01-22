@@ -32,18 +32,15 @@ namespace ilovelibrary.Server
         public string barcode { get; set; }
         public string readerSummary { get; set; }
         public string summary { get; set; }
-
-
         public string volumn { get; set; }
         public string location { get; set; }
         public string price { get; set; }
         public string oldRecPath { get; set; }
-
-
         public bool isGray = false;
-
         public bool isManagetLoc = true;
-
         public string readerSummaryStyle  { get; set; }
+
+        public string backColor = "";
+        public bool isAddLine = false;
     }
 }

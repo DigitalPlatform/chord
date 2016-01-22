@@ -55,6 +55,17 @@
                 border-top-right-radius: 0;
             }
 
+                        
+            .form-signin select {
+                border-radius:6px;
+                padding-left:5px;
+                padding-bottom:0px;
+                margin-bottom: -1px;
+                border-bottom-right-radius: 0;
+                border-bottom-left-radius: 0;
+                display:none
+            }
+
 
         textborder {
             border: red solid thin;
@@ -74,11 +85,17 @@
             var isReader = $('#IsReader').is(":checked");
             if (isReader == true) {
                 $('#selPrefix').show();
-                $('#UserName').prop("placeholder", "证条码号");
+                $('#UserName').prop("placeholder", "请输入 姓名");
+                //$("#selPrefix option[value='NB']").prop("checked", true);
+                $("#selPrefix option").eq(1).attr("selected", "selected");//prop("checked", true);
+                //$("#selPrefix").val("NB");
+                //$("#selPrefix").text("姓名");
+
+                //alert($("#selPrefix option").eq(1).is(":checked"));
             }
             else {
                 $('#selPrefix').hide();
-                $('#UserName').prop("placeholder", "用户名");
+                $('#UserName').prop("placeholder", "请输入 用户名");
             }
 
         });
@@ -87,7 +104,7 @@
         $('#selPrefix').change(function (e) {
 
             var curText = $('#selPrefix option:checked').text();
-            $('#UserName').prop("placeholder", curText);
+            $('#UserName').prop("placeholder", "请输入 "+curText);
         });
 
 
@@ -103,22 +120,22 @@
         <span style="text-align:center;">
             <h3 class="form-signin-heading">我爱图书馆</h3>
         </span>
-    <input type="text" name="UserName" id="UserName" class="form-control" placeholder="用户名" required autofocus>
-    <input type="password" name="Password" class="form-control" placeholder="密码" required>
+    <select class="form-control" id="selPrefix" name="selPrefix">
+        <option value="">证条码号</option>
+        <option value="NB">姓名</option>
+        <option value="EM">email</option>
+        <option value="TP">电话号码</option>
+        <option value="ID">身份证号</option>
+        <option value="CN">证号</option>
+    </select>
+        
+    <input type="text" name="UserName" id="UserName" class="form-control" placeholder="请输入 用户名"  required autofocus>
+    <input type="password" name="Password" class="form-control" placeholder="请输入 密码" required>
     <div class="input-group  input-group-lg" style="padding-top:0px;padding-bottom:10px;text-align:left">
         <span class="input-group-addon" style="padding-top:0px;padding-left:0px;padding-right:5px;text-align:left">
             <input type="checkbox" value="1" name="IsReader" id="IsReader">&nbsp;读者
         </span>
-        <select class="form-control" id="selPrefix" name="selPrefix" style="border-radius:6px;padding-left:5px;display:none">
-            <option value="">证条码号</option>
-            <option value="NB">姓名</option>
-            <option value="EM">email</option>
-            <option value="TP">电话号码</option>
-            <option value="ID">身份证号</option>
-            <option value="CN">证号</option>
-        </select>
     </div>
-
         <button class="btn btn-lg btn-primary btn-block" type="submit">登录</button>
 
         @Html.AntiForgeryToken()

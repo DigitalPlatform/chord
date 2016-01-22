@@ -654,13 +654,133 @@ namespace DigitalPlatform.LibraryRestClient
             }
         }
 
+        public int Read(string strReaderBarcode,
+            string strItemBarcode,
+            out string strOutputReaderBarcode,
+            out string strReaderXml,
+            out BorrowInfo borrow_info,
+            out string strError)
+        {
+            borrow_info = null;
+            strError = "";
+            strOutputReaderBarcode = "";
+            strReaderXml = "";
+
+            string strTemp = strItemBarcode;
+            if (IsbnSplitter.IsISBN(ref strTemp) == true)
+            {
+                strError = strTemp;
+                return 3;
+            }
+
+            /*
+
+        REDO:
+            try
+            {
+                CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
+                client.Headers["Content-type"] = "application/json; charset=utf-8";
+
+
+                /// <param name="bRenew">是否为续借。true 表示xujie；false 表示普通借阅</param>
+                /// <param name="strReaderBarcode">读者证条码号，或读者身份证号</param>
+                /// <param name="strItemBarcode">要借阅的册条码号</param>
+                /// <param name="strConfirmItemRecPath">用于确认册记录的路径</param>
+                /// <param name="bForce">此参数目前未使用，设为 false 即可</param>
+                /// <param name="saBorrowedItemBarcode">针对同一读者的连续操作中已经借阅的册条码号数组。用于在读者信息 HTML 界面上为这些册的信息行设置特殊背景色</param>
+                /// <param name="strStyle">操作风格</param>
+                /// <param name="strItemFormatList">指定在 item_records 参数中返回信息的格式列表</param>
+                /// <param name="item_records">返回册相关的信息数组</param>
+                /// <param name="strReaderFormatList">指定在 reader_records 参数中返回信息的各式列表</param>
+                /// <param name="reader_records">返回读者相关的信息数组</param>
+                /// <param name="strBiblioFormatList">指定在 biblio_records 参数中返回信息的格式列表</param>
+                /// <param name="biblio_records">返回书目相关的信息数组</param>
+                /// <param name="aDupPath">如果发生条码号重复，这里返回了相关册记录的路径</param>
+                /// <param name="strOutputReaderBarcode">返回实际操作针对的读者证条码号</param>
+                /// <param name="borrow_info">返回 BorrowInfo 结构对象，里面是一些关于借阅的详细信息</param>
+                /// <param name="strError">返回出错信息</param>
+                BorrowRequest request = new BorrowRequest();
+                request.strReaderBarcode = strReaderBarcode;
+                request.strItemBarcode = strItemBarcode;
+                request.strConfirmItemRecPath = "";
+                request.bForce = false;
+                request.saBorrowedItemBarcode = null;
+                request.strStyle = "reader"; //返回读者信息
+                request.strReaderFormatList = "advancexml";//
+                request.strItemFormatList = "";
+                request.strBiblioFormatList = "";
+
+                byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
+                byte[] result = client.UploadData(this.GetRestfulApiUrl("Borrow"),
+                    "POST",
+                    baData);
+
+                string strResult = Encoding.UTF8.GetString(result);
+
+                BorrowResponse response = Deserialize<BorrowResponse>(strResult);
+                // 未登录的情况
+
+
+                if (response.BorrowResult.Value == -1 && response.BorrowResult.ErrorCode == ErrorCode.NotLogin)
+                {
+                    if (DoNotLogin(ref strError) == 1)
+                        goto REDO;
+                    return -1;
+                }
+
+
+
+                strOutputReaderBarcode = response.strOutputReaderBarcode;
+                borrow_info = response.borrow_info;
+                strError = response.BorrowResult.ErrorInfo;
+                this.ErrorCode = response.BorrowResult.ErrorCode;
+
+
+                // 多笔读者记录
+                if (response.BorrowResult.Value == -1 && response.BorrowResult.ErrorCode == ErrorCode.IdcardNumberDup)
+                {
+                    return 2;
+                }
+
+                // 未找到对应的册条码，检索是不是isbn
+                if (response.BorrowResult.Value == -1 && response.BorrowResult.ErrorCode == ErrorCode.ItemBarcodeNotFound)
+                {
+                    string strTemp = strItemBarcode;
+                    if (IsbnSplitter.IsISBN(ref strTemp) == true)
+                    {
+                        strError = strTemp;
+                        return 3;
+                    }
+                }
+
+                if (response.reader_records != null && response.reader_records.Length > 0)
+                    strReaderXml = response.reader_records[0];
+
+                this.ClearRedoCount();
+                return (int)response.BorrowResult.Value;
+            }
+            catch (Exception ex)
+            {
+                int nRet = ConvertWebError(ex, out strError);
+                if (nRet == 0)
+                    return -1;
+                goto REDO;
+            }
+             */
+
+            strError = "未执行";
+            return -1;
+        }
+
         ///还书
         /// <returns>
         /// <para>-1:   出错</para>
         /// <para>0:    操作成功</para>
         /// <para>1:    操作成功，并且有值得操作人员留意的情况。提示信息在 strError 中</para>
         /// </returns>
-        public int Return(string strItemBarcode,
+        public int Return(string strAction,
+            string strReaderBarcode, 
+            string strItemBarcode,
             out string strOutputReaderBarcode,
             out string strReaderXml,
             out ReturnInfo return_info,
@@ -671,11 +791,15 @@ namespace DigitalPlatform.LibraryRestClient
             return_info = null;
             strError = "";
 
-            string strTemp = strItemBarcode;
-            if (IsbnSplitter.IsISBN(ref strTemp) == true)
+            // 对于还回，不会同时输入证条码与册条码，所以不用检索读者是否有重，可能先判断是否isbn
+            if (strAction == "return")
             {
-                strError = strTemp;
-                return 3;
+                string strTemp = strItemBarcode;
+                if (IsbnSplitter.IsISBN(ref strTemp) == true)
+                {
+                    strError = strTemp;
+                    return 3;
+                }
             }
 
         REDO:
@@ -718,8 +842,8 @@ namespace DigitalPlatform.LibraryRestClient
                 /// <para>1:    操作成功，并且有值得操作人员留意的情况。提示信息在 strError 中</para>
                 /// </returns>
                 ReturnRequest request = new ReturnRequest();
-                request.strAction = "return";
-                request.strReaderBarcode = "";
+                request.strAction =strAction;
+                request.strReaderBarcode = strReaderBarcode;
                 request.strItemBarcode = strItemBarcode;
                 request.strConfirmItemRecPath = "";
                 request.bForce = false;
@@ -747,6 +871,22 @@ namespace DigitalPlatform.LibraryRestClient
                 strOutputReaderBarcode = response.strOutputReaderBarcode;
                 this.ErrorCode = response.ReturnResult.ErrorCode;
 
+                // 多笔读者记录
+                if (response.ReturnResult.Value == -1 && response.ReturnResult.ErrorCode == ErrorCode.IdcardNumberDup)
+                {
+                    return 2;
+                }
+                // 未找到对应的册条码，检索是不是isbn
+                if (response.ReturnResult.Value == -1 && response.ReturnResult.ErrorCode == ErrorCode.ItemBarcodeNotFound)
+                {
+                    string strTemp = strItemBarcode;
+                    if (IsbnSplitter.IsISBN(ref strTemp) == true)
+                    {
+                        strError = strTemp;
+                        return 3;
+                    }
+                }
+
                 if (response.reader_records != null && response.reader_records.Length > 0)
                     strReaderXml = response.reader_records[0];
 
@@ -761,6 +901,8 @@ namespace DigitalPlatform.LibraryRestClient
                 goto REDO;
             }
         }
+
+
 
         /// <summary>
         /// 检索书目

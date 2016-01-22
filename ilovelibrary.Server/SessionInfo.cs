@@ -98,16 +98,19 @@ namespace ilovelibrary.Server
                                         out borrowInfo,
                                         out strError);
                 }
-                else if (item.type == Command.C_Command_Return)
-                {
-                    // 还书
+                else if (item.type == Command.C_Command_Return
+                    || item.type == Command.C_Command_Read)
+                {                  
                     ReturnInfo returnInfo = null;
-                    lRet = channel.Return(item.itemBarcode, 
+                    lRet = channel.Return(item.type,
+                        item.readerBarcode,
+                        item.itemBarcode, 
                         out strOutputReaderBarcode,
                         out strReaderXml,
                         out returnInfo, 
                         out strError);
                 }
+
 
 
                 // 设上实际的读者证条码
