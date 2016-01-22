@@ -14,28 +14,16 @@ using System.Web;
 
 namespace DigitalPlatform.Marc
 {
-    public enum ItemType
-    {
-        Filter = 0,
-        Record = 1,
-        Field = 2,
-        Subfield = 3,
-        Group = 4,
-        Char = 5,
-    }
-
     /// <summary>
     /// 一些有关MARC的实用函数
     /// </summary>
     public class MarcUtil
     {
-
         public const char FLDEND = (char)30;	// 字段结束符
         public const char RECEND = (char)29;	// 记录结束符
         public const char SUBFLD = (char)31;	// 子字段指示符
 
-        public const int FLDNAME_LEN = 3;       // 字段名长度
-        public const int MAX_MARCREC_LEN = 100000;   // MARC记录的最大长度
+
 
 
 
@@ -353,89 +341,7 @@ namespace DigitalPlatform.Marc
     }
 
 
-#if NO
-	/// <summary>
-	/// byte数组，可以动态扩展
-	/// </summary>
-	public class TempByteArray : ArrayList
-	{
-		public void AddRange(byte[] baSource)
-		{
-			for(int i=0;i<baSource.Length;i++) 
-			{
-				this.Add(baSource[i]);
-			}
-		}
 
-		public int AddRange(byte[] baSource,
-			int nStart,
-			int nLength)
-		{
-			int nCount = 0;
-			for(int i=nStart;i<baSource.Length && i<nStart+nLength;i++) 
-			{
-				this.Add(baSource[i]);
-				nCount ++;
-			}
-
-			return nCount;
-		}
-			
-		public byte[] GetByteArray()
-		{
-			byte[] result = new byte[this.Count];
-
-			for(int i=0;i<this.Count;i++) 
-			{
-				result[i] = (byte)this[i];
-			}
-
-			return result;
-		}
-	}
-
-#endif
-    /// <summary>
-    /// byte数组，可以动态扩展
-    /// </summary>
-    public class MyByteList : List<byte>
-    {
-        public MyByteList()
-            : base()
-        {
-        }
-
-        public MyByteList(int capacity)
-            : base(capacity)
-        {
-        }
-
-        public void AddRange(byte[] baSource)
-        {
-            base.AddRange(baSource);
-        }
-
-        public int AddRange(byte[] baSource,
-            int nStart,
-            int nLength)
-        {
-            int nCount = 0;
-            for (int i = nStart; i < baSource.Length && i < nStart + nLength; i++)
-            {
-                this.Add(baSource[i]);
-                nCount++;
-            }
-
-            return nCount;
-        }
-
-        public byte[] GetByteArray()
-        {
-            byte[] result = new byte[this.Count];
-            base.CopyTo(result);
-            return result;
-        }
-    }
 
 }
 
