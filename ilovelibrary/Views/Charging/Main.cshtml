@@ -705,7 +705,7 @@
                             myClass += " item-gray ";
 
                         // 非可管理的馆藏
-                        var strIconTd = "<td  class='itemFirstCol1'></td>";
+                        var strIconTd = "<td  class='itemFirstCol2'></td>";
                         if (item.isManagetLoc == false)
                         {
                             myClass += " item-noManagerLoc";
@@ -716,7 +716,7 @@
                         var myStyle = "style='";
                         if (item.backColor != "")
                         {
-                            myStyle += " background-color:"+ item.backColor+"; ";
+                            //myStyle += " background-color:"+ item.backColor+"; ";
                         }
                         if (item.isAddLine == true)
                         {
@@ -737,43 +737,73 @@
                         if (availableCount == 1)
                             myClass += " item-selected-bg";
 
+                        var pathTitle = "册记录路径";
+                        var strTypeIconTd = "<td  class='itemFirstCol2'><span style='color:gray'><span class='glyphicon glyphicon-book'></span></span></td>";
+                        if (item.isBiblio == true)
+                        {
+                            pathTitle = "书目路径";
+                            strTypeIconTd = "<td  class='itemFirstCol2'><span style='color:gray'><span class='glyphicon glyphicon-credit-card'></span></span></td>";
+                        }
 
-                        myhtml += "<tr class='item-tr " + myClass + "'  "+myStyle+">"
+
+
+
+                        myhtml += "<tr class='item-tr " + myClass + "'  " + myStyle + ">"
                             + "<td>"
-                            + "<table style='width:100%;table-layout:fixed;'>"
-                            + "<tr>" + strIconTd 
-                            + "<td class='itemLeftTd'>册条码号</td>"
-                            + "<td class='itemBarcode-td itemRightTd' >" + item.barcode + "</td>"
-                            + "</tr>"
-                            + "<tr><td  class='itemFirstCol1'></td>"
-                            + "<td class='itemLeftTd'>状态</td><td class='itemRightTd'>" + item.state + "</td>"
-                            +"</tr>"
+                            + "<table style='width:100%;table-layout:fixed;'>";
 
+                        
+                        if (item.isBiblio == true) {
+                            myhtml += "<tr>"+strIconTd
+                            + "<td class='itemLeftTd'>" + pathTitle + "</td>"
+                            + "<td  class='itemRightTd'>" + item.oldRecPath + "</td>"
+                            + "</tr>"
+                        }
+                        else {                        
+                            myhtml += "<tr>" + strIconTd
+                                + "<td class='itemLeftTd'>册条码号</td>"
+                                + "<td class='itemBarcode-td itemRightTd' >" + item.barcode + "</td>"
+                                + "</tr>";
+                        }
+
+
+                        if (item.isBiblio == false) {
+                            myhtml += "<tr><td  class='itemFirstCol1'></td>"
+                            + "<td class='itemLeftTd'>状态</td><td class='itemRightTd'>" + item.state + "</td>"
+                            + "</tr>"
                             + "<tr><td  class='itemFirstCol1'></td>"
                             + "<td class='itemLeftTd'>在借情况</td>"
                             + "<td " + item.readerSummaryStyle + "  class='itemRightTd'>" + item.readerSummary + "</td>"
-                            + "</tr>"
-                            + "<tr><td  class='itemFirstCol1'></td>"
-                            + "<td class='itemLeftTd'>书目摘要</td>"
-                            + "<td class='pending itemRightTd' >" + item.summary + "</td>"
-                            + "</tr>"
-                            + "<tr><td class='itemFirstCol1'></td>"
-                            + "<td class='itemLeftTd'>卷册</td>"
-                            + "<td  class='itemRightTd'>" + item.volumn + "</td>"
-                            + "</tr>"
-                            + "<tr><td class='itemFirstCol1'></td>"
-                            + "<td class='itemLeftTd'>馆藏地</td>"
-                            + "<td  class='itemRightTd'>" + item.location + "</td>"
-                            + "</tr>"
-                            + "<tr><td class='itemFirstCol1'></td>"
+                            + "</tr>";
+                        }
+
+                        myhtml += "<tr>" + strTypeIconTd
+                        + "<td class='itemLeftTd'>书目摘要</td>"
+                        + "<td class='pending itemRightTd' >" + item.summary + "</td>"
+                        + "</tr>"
+                        + "<tr><td class='itemFirstCol1'></td>"
+                        + "<td class='itemLeftTd'>卷册</td>"
+                        + "<td  class='itemRightTd'>" + item.volumn + "</td>"
+                        + "</tr>";
+                        if (item.isBiblio == false) {
+                            myhtml += "<tr><td class='itemFirstCol1'></td>"
+                                + "<td class='itemLeftTd'>馆藏地</td>"
+                                + "<td  class='itemRightTd'>" + item.location + "</td>"
+                                + "</tr>";
+                        }
+                        myhtml += "<tr><td class='itemFirstCol1'></td>"
                             + "<td class='itemLeftTd'>价格</td>"
                             + "<td  class='itemRightTd'>" + item.price + "</td>"
-                            + "</tr>"
-                            + "<tr><td class='itemFirstCol1'></td>"
-                            + "<td class='itemLeftTd'>册记录路径</td>"
+                            + "</tr>";
+
+                        if (item.isBiblio == false) {
+                            myhtml += "<tr><td class='itemFirstCol1'></td>"
+                            + "<td class='itemLeftTd'>" + pathTitle + "</td>"
                             + "<td  class='itemRightTd'>" + item.oldRecPath + "</td>"
                             + "</tr>"
-                        +"</table>"
+                        }
+
+                        myhtml += "</table>"
                         + "</td></tr>";
 
                         

@@ -1154,7 +1154,7 @@ namespace ilovelibrary.Server
                         null,   // strResultSetName
                         lStart,
                         lPerCount,
-                        "id", // "id,cols",
+                        functionType == "read" ? "id,xml" : "id", // "id,cols","id",
                         "zh",
                         out searchresults,
                         out strError);
@@ -1508,6 +1508,7 @@ namespace ilovelibrary.Server
             // 背景LightGreen
             BiblioItem item = new BiblioItem();
             item.backColor = "LightGreen";
+            item.isBiblio = true;
 
             // 状态
             item.state="";
@@ -1566,7 +1567,7 @@ namespace ilovelibrary.Server
             if (strOutMarcSyntax == "unimarc")
             {
                 string h = record.select("field[@name='200']/subfield[@name='h']").FirstContent;
-                string i = record.select("field[@name='200']/subfield[@name='h']").FirstContent;
+                string i = record.select("field[@name='200']/subfield[@name='i']").FirstContent;
                 if (string.IsNullOrEmpty(h) == false && string.IsNullOrEmpty(i) == false)
                     strVolume = h + " . " + i;
                 else
