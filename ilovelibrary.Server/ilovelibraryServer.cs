@@ -299,7 +299,10 @@ namespace ilovelibrary.Server
 
                     OverdueInfo overdueInfo = new OverdueInfo();
                     overdueInfo.barcode = strBarcode;
-                    overdueInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode;
+                    if (string.IsNullOrEmpty(this.dp2OpacUrl) == false)
+                        overdueInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode;
+                    else
+                        overdueInfo.barcodeUrl="";
                     overdueInfo.reason = strOver;
                     overdueInfo.price = strPrice;
                     overdueInfo.pauseInfo = strPauseInfo;
@@ -406,7 +409,10 @@ namespace ilovelibrary.Server
                 borrowInfo.renewComment = strRenewComment;
                 borrowInfo.overdue = strOverdueInfo;
                 borrowInfo.returnDate = strTimeReturning;
-                borrowInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode;
+                if (string.IsNullOrEmpty(this.dp2OpacUrl) == false)
+                    borrowInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode;
+                else
+                    borrowInfo.barcodeUrl = "";
                 borrowInfo.rowCss = rowCss;
                 borrowList.Add(borrowInfo);
 

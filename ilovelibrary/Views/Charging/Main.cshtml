@@ -737,11 +737,11 @@
                         if (availableCount == 1)
                             myClass += " item-selected-bg";
 
-                        var pathTitle = "册记录路径";
+                        var barcodeTitle = "册条码号";
                         var strTypeIconTd = "<td  class='itemFirstCol2'><span style='color:gray'><span class='glyphicon glyphicon-book'></span></span></td>";
                         if (item.isBiblio == true)
                         {
-                            pathTitle = "书目路径";
+                            barcodeTitle = "书目路径";
                             strTypeIconTd = "<td  class='itemFirstCol2'><span style='color:gray'><span class='glyphicon glyphicon-credit-card'></span></span></td>";
                         }
 
@@ -751,20 +751,13 @@
                         myhtml += "<tr class='item-tr " + myClass + "'  " + myStyle + ">"
                             + "<td>"
                             + "<table style='width:100%;table-layout:fixed;'>";
-
                         
-                        if (item.isBiblio == true) {
-                            myhtml += "<tr>"+strIconTd
-                            + "<td class='itemLeftTd'>" + pathTitle + "</td>"
-                            + "<td  class='itemRightTd'>" + item.oldRecPath + "</td>"
-                            + "</tr>"
-                        }
-                        else {                        
+                    //barcode
                             myhtml += "<tr>" + strIconTd
-                                + "<td class='itemLeftTd'>册条码号</td>"
+                                + "<td class='itemLeftTd'>" + barcodeTitle + "</td>"
                                 + "<td class='itemBarcode-td itemRightTd' >" + item.barcode + "</td>"
                                 + "</tr>";
-                        }
+
 
 
                         if (item.isBiblio == false) {
@@ -798,7 +791,7 @@
 
                         if (item.isBiblio == false) {
                             myhtml += "<tr><td class='itemFirstCol1'></td>"
-                            + "<td class='itemLeftTd'>" + pathTitle + "</td>"
+                            + "<td class='itemLeftTd'>册记录路径</td>"
                             + "<td  class='itemRightTd'>" + item.oldRecPath + "</td>"
                             + "</tr>"
                         }
@@ -1558,32 +1551,28 @@
             background-color: #99ff99;
         }
 
-        .cmdsuccess {
-            color: white;
-            vertical-align: middle;
-            text-align: center;
-            background-color: darkgreen;
-        }
 
         .cmdsuccess {
-            color: white;
+            color: black;
             vertical-align: middle;
             text-align: center;
-            background-color: darkgreen;
+            border-right:2px solid darkgreen;
         }
 
         .cmdwarning {
             color: black;
             vertical-align: middle;
             text-align: center;
-            background-color: yellow;
+            border-right:2px solid yellow;
+            /*background-color: yellow;*/
         }
 
         .cmderror {
-            color: white;
+            color: black;
             vertical-align: middle;
             text-align: center;
-            background-color: red;
+            border-right:2px solid red;
+            /*background-color: red;*/
         }
 
         .text-warning {
@@ -1751,10 +1740,7 @@
                             <td>
                                 <table style='width:100%;table-layout:fixed;'>
                                     <tr>
-                                        <td style="width:12.9%;vertical-align:middle">
-                                            <a data-bind="attr: { href: itemBarcodeUrl}" target="_blank">
-                                                <span data-bind="text:itemBarcode" style="text-wrap:none"></span>
-                                            </a>
+                                        <td style="width:100px;vertical-align:middle" data-bind="html:itemBarcodeUrl">
                                         </td>
                                         <td class="pending">
                                             <label style="display:inline" data-bind="text:itemBarcode=='' ? '' : 'bs-'+itemBarcode"></label>

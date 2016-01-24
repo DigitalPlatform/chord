@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace ilovelibrary.Server
 {
@@ -165,9 +166,16 @@ namespace ilovelibrary.Server
                     }
                 }
                 // 设链接地址
-                item.itemBarcodeUrl = ilovelibraryServer.Instance.dp2OpacUrl + "/book.aspx?barcode=" + item.itemBarcode + "&borrower=" + item.readerBarcode;
-
-
+                if (item.itemBarcode.Contains("@biblioRecPath") == false && string.IsNullOrEmpty(ilovelibraryServer.Instance.dp2OpacUrl) == false)
+                {
+                    item.itemBarcodeUrl = ilovelibraryServer.Instance.dp2OpacUrl + "/book.aspx?barcode=" + HttpUtility.UrlEncode(item.itemBarcode) + "&borrower=" + item.readerBarcode;
+                    
+                       item.itemBarcodeUrl ="<a href='" +item.itemBarcodeUrl+ "' target='_blank'>"+item.itemBarcode+"</a>";
+                }
+                else
+                {
+                    item.itemBarcodeUrl = item.itemBarcode;
+                }
                 // 解析读者信息
                 //PatronResult patronResult = ilovelibraryServer.Instance.GetPatronInfo(this, item.readerBarcode);
                 //item.patronResult = patronResult;
