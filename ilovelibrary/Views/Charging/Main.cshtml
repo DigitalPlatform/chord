@@ -1100,9 +1100,13 @@
                         $("#btnDo").text("读过");
                         cmdModel.editor.type("read");
                     }
-                    else {
-                        $("#btnDo").text("续借");
+                    else if (e.target.id == "aVerifyRenew") {
+                        $("#btnDo").text("验证续借");
                         cmdModel.editor.type("verifyrenew");
+                    }
+                    else if (e.target.id == "aVerifyReturn") {
+                        $("#btnDo").text("验证还");
+                        cmdModel.editor.type("verifyreturn");
                     }
                 }
             })
@@ -1682,6 +1686,7 @@
             <ul class="nav nav-tabs" id="myTab">
                 <li class="active"><a href="#home" data-toggle="tab" id="aBorrow">借</a></li>
                 <li><a href="#home" data-toggle="tab" id="aReturn">还</a></li>
+                <li><a href="#home" data-toggle="tab" id="aVerifyReturn">验证还</a></li>
                 <li><a href="#home" data-toggle="tab" id="aRenew">续借</a></li>
                 <li><a href="#home" data-toggle="tab" id="aVerifyRenew">验证续借</a></li>
                 <li><a href="#home" data-toggle="tab" id="aRead">读过</a></li>
@@ -1720,11 +1725,18 @@
         <h3><span class="label label-default">操作历史</span></h3>
         <table class="table" data-bind="foreach: cmdModel.commands">
             <tr data-bind="style: {'border-bottom': isAddLine==1 ? '2px dashed #FF9999' : '2px solid white ' }">
-                <td width=" 1%" data-bind="css:cmdCss" style="padding:1px;vertical-align:middle">
-                    <span style="font-weight:bold" data-bind="text:typeString"></span>
+                <td width=" 1%" height="100%"  style="padding:1px;vertical-align:middle">
+                    <table width="100%" height="100%">
+                    <tr>
+                        <td data-bind="css:cmdCss">
+                        <span style="font-weight:bold" data-bind="text:typeString"></span>
+                        </td>
+                        </tr>
+                    </table>
+                    
                 </td>
                 <td width="99%">
-                    <table style="padding:2px;background-color">
+                    <table style="padding:2px;">
                         <tr><td data-bind="style: {'color': state!=0? 'red':'blank' }"><span data-bind="html:resultInfo"></span></td></tr>
                         <tr>
                             <td>

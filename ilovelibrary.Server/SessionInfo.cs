@@ -55,7 +55,9 @@ namespace ilovelibrary.Server
             item.operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
             item.typeString = Command.getTypeString(item.type);
 
-            if (item.type == Command.C_Command_Borrow || item.type == Command.C_Command_VerifyRenew)
+            if (item.type == Command.C_Command_Borrow 
+                || item.type == Command.C_Command_VerifyRenew
+                || item.type == Command.C_Command_VerifyReturn)
             {
                 if (String.IsNullOrEmpty(item.readerBarcode) == true)
                 {
@@ -100,10 +102,19 @@ namespace ilovelibrary.Server
                                         out strError);
                 }
                 else if (item.type == Command.C_Command_Return
+                    || item.type == Command.C_Command_VerifyReturn
                     || item.type == Command.C_Command_Read)
-                {                  
+                {
+                    string strAction = "";
+                    if (item.type == Command.C_Command_Return 
+                        || item.type == Command.C_Command_VerifyReturn)
+                        strAction = "return";
+                    else
+                        strAction = "read";
+
+                 
                     ReturnInfo returnInfo = null;
-                    lRet = channel.Return(item.type,
+                    lRet = channel.Return(strAction,
                         item.readerBarcode,
                         item.itemBarcode, 
                         out strOutputReaderBarcode,
