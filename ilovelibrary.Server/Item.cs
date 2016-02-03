@@ -42,5 +42,6 @@ namespace ilovelibrary.Server
 
         public string backColor = "";
         public bool isAddLine = false;
+        public bool isBiblio = false;
     }
 }

@@ -299,7 +299,10 @@ namespace ilovelibrary.Server
 
                     OverdueInfo overdueInfo = new OverdueInfo();
                     overdueInfo.barcode = strBarcode;
-                    overdueInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode;
+                    if (string.IsNullOrEmpty(this.dp2OpacUrl) == false)
+                        overdueInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode;
+                    else
+                        overdueInfo.barcodeUrl="";
                     overdueInfo.reason = strOver;
                     overdueInfo.price = strPrice;
                     overdueInfo.pauseInfo = strPauseInfo;
@@ -406,7 +409,10 @@ namespace ilovelibrary.Server
                 borrowInfo.renewComment = strRenewComment;
                 borrowInfo.overdue = strOverdueInfo;
                 borrowInfo.returnDate = strTimeReturning;
-                borrowInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode;
+                if (string.IsNullOrEmpty(this.dp2OpacUrl) == false)
+                    borrowInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode;
+                else
+                    borrowInfo.barcodeUrl = "";
                 borrowInfo.rowCss = rowCss;
                 borrowList.Add(borrowInfo);
 
@@ -1154,7 +1160,7 @@ namespace ilovelibrary.Server
                         null,   // strResultSetName
                         lStart,
                         lPerCount,
-                        "id", // "id,cols",
+                        functionType == "read" ? "id,xml" : "id", // "id,cols","id",
                         "zh",
                         out searchresults,
                         out strError);
@@ -1508,6 +1514,7 @@ namespace ilovelibrary.Server
             // 背景LightGreen
             BiblioItem item = new BiblioItem();
             item.backColor = "LightGreen";
+            item.isBiblio = true;
 
             // 状态
             item.state="";
@@ -1566,7 +1573,7 @@ namespace ilovelibrary.Server
             if (strOutMarcSyntax == "unimarc")
             {
                 string h = record.select("field[@name='200']/subfield[@name='h']").FirstContent;
-                string i = record.select("field[@name='200']/subfield[@name='h']").FirstContent;
+                string i = record.select("field[@name='200']/subfield[@name='i']").FirstContent;
                 if (string.IsNullOrEmpty(h) == false && string.IsNullOrEmpty(i) == false)
                     strVolume = h + " . " + i;
                 else

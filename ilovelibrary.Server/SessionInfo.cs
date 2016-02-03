@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace ilovelibrary.Server
 {
@@ -54,7 +55,9 @@ namespace ilovelibrary.Server
             item.operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
             item.typeString = Command.getTypeString(item.type);
 
-            if (item.type == Command.C_Command_Borrow || item.type == Command.C_Command_VerifyRenew)
+            if (item.type == Command.C_Command_Borrow 
+                || item.type == Command.C_Command_VerifyRenew
+                || item.type == Command.C_Command_VerifyReturn)
             {
                 if (String.IsNullOrEmpty(item.readerBarcode) == true)
                 {
@@ -99,10 +102,19 @@ namespace ilovelibrary.Server
                                         out strError);
                 }
                 else if (item.type == Command.C_Command_Return
+                    || item.type == Command.C_Command_VerifyReturn
                     || item.type == Command.C_Command_Read)
-                {                  
+                {
+                    string strAction = "";
+                    if (item.type == Command.C_Command_Return 
+                        || item.type == Command.C_Command_VerifyReturn)
+                        strAction = "return";
+                    else
+                        strAction = "read";
+
+                 
                     ReturnInfo returnInfo = null;
-                    lRet = channel.Return(item.type,
+                    lRet = channel.Return(strAction,
                         item.readerBarcode,
                         item.itemBarcode, 
                         out strOutputReaderBarcode,
@@ -165,9 +177,16 @@ namespace ilovelibrary.Server
                     }
                 }
                 // 设链接地址
-                item.itemBarcodeUrl = ilovelibraryServer.Instance.dp2OpacUrl + "/book.aspx?barcode=" + item.itemBarcode + "&borrower=" + item.readerBarcode;
-
-
+                if (item.itemBarcode.Contains("@biblioRecPath") == false && string.IsNullOrEmpty(ilovelibraryServer.Instance.dp2OpacUrl) == false)
+                {
+                    item.itemBarcodeUrl = ilovelibraryServer.Instance.dp2OpacUrl + "/book.aspx?barcode=" + HttpUtility.UrlEncode(item.itemBarcode) + "&borrower=" + item.readerBarcode;
+                    
+                       item.itemBarcodeUrl ="<a href='" +item.itemBarcodeUrl+ "' target='_blank'>"+item.itemBarcode+"</a>";
+                }
+                else
+                {
+                    item.itemBarcodeUrl = item.itemBarcode;
+                }
                 // 解析读者信息
                 //PatronResult patronResult = ilovelibraryServer.Instance.GetPatronInfo(this, item.readerBarcode);
                 //item.patronResult = patronResult;
