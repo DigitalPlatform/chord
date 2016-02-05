@@ -15,13 +15,14 @@ using Microsoft.Owin.Cors;
 using Microsoft.Owin.Hosting;
 using Microsoft.AspNet.SignalR;
 
-using DigitalPlatform.MessageServer;
-
 using dp2MServer.Properties;
+
+using DigitalPlatform.MessageServer;
+using DigitalPlatform.ServiceProcess;
 
 namespace dp2MServer
 {
-    class Program : ServiceBase
+    class Program : MyServiceBase
     {
         static IDisposable SignalR { get; set; }
         // const string ServerURI = "http://localhost:8083";
@@ -29,6 +30,7 @@ namespace dp2MServer
         public Program()
         {
             this.ServiceName = "dp2 Message Service";
+            ServiceShortName = "dp2mserver";
         }
 
         static void Main(string[] args)
@@ -170,6 +172,7 @@ namespace dp2MServer
             }
         }
 
+#if NO
         // 写入Windows系统日志
         public static void WriteWindowsLog(string strText)
         {
@@ -247,6 +250,7 @@ namespace dp2MServer
         }
 
         #endregion
+#endif
 
         protected override void OnStart(string[] args)
         {
@@ -255,6 +259,13 @@ namespace dp2MServer
 
         protected override void OnStop()
         {
+            this.Close();
+        }
+
+        public override void Close()
+        {
+            base.Close();
+
             ServerInfo.Exit();
 
             if (SignalR != null)
@@ -262,6 +273,16 @@ namespace dp2MServer
                 SignalR.Dispose();
                 SignalR = null;
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.Close();
+            }
+
+            base.Dispose(disposing);
         }
 
         static string ServerURI
@@ -300,6 +321,7 @@ namespace dp2MServer
             }
             WriteToConsole("Server started at " + ServerURI + ServerPath);
         }
+        
         /// <summary>
         /// This method adds a line to the RichTextBoxConsole control, using Invoke if used
         /// from a SignalR hub thread rather than the UI thread.

@@ -136,6 +136,10 @@
       <Project>{9565e12a-5d62-4eb1-a265-0559b9d46334}</Project>
       <Name>DigitalPlatform.MessageServer</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.ServiceProcess\DigitalPlatform.ServiceProcess.csproj">
+      <Project>{696b2b7f-d5f6-47ae-8113-c0cd27fad21e}</Project>
+      <Name>DigitalPlatform.ServiceProcess</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
