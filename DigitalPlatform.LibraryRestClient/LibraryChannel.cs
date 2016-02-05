@@ -791,6 +791,7 @@ namespace DigitalPlatform.LibraryRestClient
             return_info = null;
             strError = "";
 
+            /*
             // 对于还回，不会同时输入证条码与册条码，所以不用检索读者是否有重，可能先判断是否isbn
             if (strAction == "return")
             {
@@ -801,6 +802,7 @@ namespace DigitalPlatform.LibraryRestClient
                     return 3;
                 }
             }
+             */
 
         REDO:
             try

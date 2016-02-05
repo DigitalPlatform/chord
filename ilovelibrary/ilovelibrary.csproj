@@ -139,6 +139,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Content Include="Content\layer.m.css" />
     <Content Include="fillPending.html" />
+    <Content Include="img\book.png" />
+    <Content Include="img\card.png" />
     <Content Include="img\nonePhoto.png" />
   </ItemGroup>
   <ItemGroup>

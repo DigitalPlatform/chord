@@ -14,6 +14,7 @@ namespace ilovelibrary.Server
         public const string C_Command_Renew = "renew";
         public const string C_Command_VerifyRenew = "verifyrenew";
         public const string C_Command_Read = "read";
+        public const string C_Command_VerifyReturn = "verifyreturn";
 
         public int id { get; set; }
         public string type { get; set; }
@@ -60,7 +61,7 @@ namespace ilovelibrary.Server
                 return "验证续借";
             if (type == C_Command_Read)
                 return "读过";
-            return "未知命令";
+            return "验证还";
         }
 
         // 本接口同时返回读者信息

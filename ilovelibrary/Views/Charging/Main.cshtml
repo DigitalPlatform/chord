@@ -705,7 +705,7 @@
                             myClass += " item-gray ";
 
                         // 非可管理的馆藏
-                        var strIconTd = "<td  class='itemFirstCol1'></td>";
+                        var strIconTd = "<td  class='itemFirstCol2'></td>";
                         if (item.isManagetLoc == false)
                         {
                             myClass += " item-noManagerLoc";
@@ -716,7 +716,7 @@
                         var myStyle = "style='";
                         if (item.backColor != "")
                         {
-                            myStyle += " background-color:"+ item.backColor+"; ";
+                            //myStyle += " background-color:"+ item.backColor+"; ";
                         }
                         if (item.isAddLine == true)
                         {
@@ -737,43 +737,66 @@
                         if (availableCount == 1)
                             myClass += " item-selected-bg";
 
+                        var barcodeTitle = "册条码号";
+                        var strTypeIconTd = "<td  class='itemFirstCol2'><span style='color:gray'><span class='glyphicon glyphicon-book'></span></span></td>";
+                        if (item.isBiblio == true)
+                        {
+                            barcodeTitle = "书目路径";
+                            strTypeIconTd = "<td  class='itemFirstCol2'><span style='color:gray'><span class='glyphicon glyphicon-credit-card'></span></span></td>";
+                        }
 
-                        myhtml += "<tr class='item-tr " + myClass + "'  "+myStyle+">"
+
+
+
+                        myhtml += "<tr class='item-tr " + myClass + "'  " + myStyle + ">"
                             + "<td>"
-                            + "<table style='width:100%;table-layout:fixed;'>"
-                            + "<tr>" + strIconTd 
-                            + "<td class='itemLeftTd'>册条码号</td>"
-                            + "<td class='itemBarcode-td itemRightTd' >" + item.barcode + "</td>"
-                            + "</tr>"
-                            + "<tr><td  class='itemFirstCol1'></td>"
-                            + "<td class='itemLeftTd'>状态</td><td class='itemRightTd'>" + item.state + "</td>"
-                            +"</tr>"
+                            + "<table style='width:100%;table-layout:fixed;'>";
+                        
+                    //barcode
+                            myhtml += "<tr>" + strIconTd
+                                + "<td class='itemLeftTd'>" + barcodeTitle + "</td>"
+                                + "<td class='itemBarcode-td itemRightTd' >" + item.barcode + "</td>"
+                                + "</tr>";
 
+
+
+                        if (item.isBiblio == false) {
+                            myhtml += "<tr><td  class='itemFirstCol1'></td>"
+                            + "<td class='itemLeftTd'>状态</td><td class='itemRightTd'>" + item.state + "</td>"
+                            + "</tr>"
                             + "<tr><td  class='itemFirstCol1'></td>"
                             + "<td class='itemLeftTd'>在借情况</td>"
                             + "<td " + item.readerSummaryStyle + "  class='itemRightTd'>" + item.readerSummary + "</td>"
-                            + "</tr>"
-                            + "<tr><td  class='itemFirstCol1'></td>"
-                            + "<td class='itemLeftTd'>书目摘要</td>"
-                            + "<td class='pending itemRightTd' >" + item.summary + "</td>"
-                            + "</tr>"
-                            + "<tr><td class='itemFirstCol1'></td>"
-                            + "<td class='itemLeftTd'>卷册</td>"
-                            + "<td  class='itemRightTd'>" + item.volumn + "</td>"
-                            + "</tr>"
-                            + "<tr><td class='itemFirstCol1'></td>"
-                            + "<td class='itemLeftTd'>馆藏地</td>"
-                            + "<td  class='itemRightTd'>" + item.location + "</td>"
-                            + "</tr>"
-                            + "<tr><td class='itemFirstCol1'></td>"
+                            + "</tr>";
+                        }
+
+                        myhtml += "<tr>" + strTypeIconTd
+                        + "<td class='itemLeftTd'>书目摘要</td>"
+                        + "<td class='pending itemRightTd' >" + item.summary + "</td>"
+                        + "</tr>"
+                        + "<tr><td class='itemFirstCol1'></td>"
+                        + "<td class='itemLeftTd'>卷册</td>"
+                        + "<td  class='itemRightTd'>" + item.volumn + "</td>"
+                        + "</tr>";
+                        if (item.isBiblio == false) {
+                            myhtml += "<tr><td class='itemFirstCol1'></td>"
+                                + "<td class='itemLeftTd'>馆藏地</td>"
+                                + "<td  class='itemRightTd'>" + item.location + "</td>"
+                                + "</tr>";
+                        }
+                        myhtml += "<tr><td class='itemFirstCol1'></td>"
                             + "<td class='itemLeftTd'>价格</td>"
                             + "<td  class='itemRightTd'>" + item.price + "</td>"
-                            + "</tr>"
-                            + "<tr><td class='itemFirstCol1'></td>"
+                            + "</tr>";
+
+                        if (item.isBiblio == false) {
+                            myhtml += "<tr><td class='itemFirstCol1'></td>"
                             + "<td class='itemLeftTd'>册记录路径</td>"
                             + "<td  class='itemRightTd'>" + item.oldRecPath + "</td>"
                             + "</tr>"
-                        +"</table>"
+                        }
+
+                        myhtml += "</table>"
                         + "</td></tr>";
 
                         
@@ -1077,9 +1100,13 @@
                         $("#btnDo").text("读过");
                         cmdModel.editor.type("read");
                     }
-                    else {
-                        $("#btnDo").text("续借");
+                    else if (e.target.id == "aVerifyRenew") {
+                        $("#btnDo").text("验证续借");
                         cmdModel.editor.type("verifyrenew");
+                    }
+                    else if (e.target.id == "aVerifyReturn") {
+                        $("#btnDo").text("验证还");
+                        cmdModel.editor.type("verifyreturn");
                     }
                 }
             })
@@ -1528,32 +1555,28 @@
             background-color: #99ff99;
         }
 
-        .cmdsuccess {
-            color: white;
-            vertical-align: middle;
-            text-align: center;
-            background-color: darkgreen;
-        }
 
         .cmdsuccess {
-            color: white;
+            color: black;
             vertical-align: middle;
             text-align: center;
-            background-color: darkgreen;
+            border-right:2px solid darkgreen;
         }
 
         .cmdwarning {
             color: black;
             vertical-align: middle;
             text-align: center;
-            background-color: yellow;
+            border-right:2px solid yellow;
+            /*background-color: yellow;*/
         }
 
         .cmderror {
-            color: white;
+            color: black;
             vertical-align: middle;
             text-align: center;
-            background-color: red;
+            border-right:2px solid red;
+            /*background-color: red;*/
         }
 
         .text-warning {
@@ -1663,6 +1686,7 @@
             <ul class="nav nav-tabs" id="myTab">
                 <li class="active"><a href="#home" data-toggle="tab" id="aBorrow">借</a></li>
                 <li><a href="#home" data-toggle="tab" id="aReturn">还</a></li>
+                <li><a href="#home" data-toggle="tab" id="aVerifyReturn">验证还</a></li>
                 <li><a href="#home" data-toggle="tab" id="aRenew">续借</a></li>
                 <li><a href="#home" data-toggle="tab" id="aVerifyRenew">验证续借</a></li>
                 <li><a href="#home" data-toggle="tab" id="aRead">读过</a></li>
@@ -1701,11 +1725,18 @@
         <h3><span class="label label-default">操作历史</span></h3>
         <table class="table" data-bind="foreach: cmdModel.commands">
             <tr data-bind="style: {'border-bottom': isAddLine==1 ? '2px dashed #FF9999' : '2px solid white ' }">
-                <td width=" 1%" data-bind="css:cmdCss" style="padding:1px;vertical-align:middle">
-                    <span style="font-weight:bold" data-bind="text:typeString"></span>
+                <td width=" 1%" height="100%"  style="padding:1px;vertical-align:middle">
+                    <table width="100%" height="100%">
+                    <tr>
+                        <td data-bind="css:cmdCss">
+                        <span style="font-weight:bold" data-bind="text:typeString"></span>
+                        </td>
+                        </tr>
+                    </table>
+                    
                 </td>
                 <td width="99%">
-                    <table style="padding:2px;background-color">
+                    <table style="padding:2px;">
                         <tr><td data-bind="style: {'color': state!=0? 'red':'blank' }"><span data-bind="html:resultInfo"></span></td></tr>
                         <tr>
                             <td>
@@ -1721,10 +1752,7 @@
                             <td>
                                 <table style='width:100%;table-layout:fixed;'>
                                     <tr>
-                                        <td style="width:12.9%;vertical-align:middle">
-                                            <a data-bind="attr: { href: itemBarcodeUrl}" target="_blank">
-                                                <span data-bind="text:itemBarcode" style="text-wrap:none"></span>
-                                            </a>
+                                        <td style="width:100px;vertical-align:middle" data-bind="html:itemBarcodeUrl">
                                         </td>
                                         <td class="pending">
                                             <label style="display:inline" data-bind="text:itemBarcode=='' ? '' : 'bs-'+itemBarcode"></label>
