@@ -29,7 +29,6 @@ out string strError)
                 isolated.Dispose();
             }
         }
-
     }
 
     /// <summary>
