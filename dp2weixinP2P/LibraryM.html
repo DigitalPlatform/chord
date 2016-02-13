@@ -1,0 +1,247 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <link href="Content/bootstrap.min.css" rel="stylesheet">
+    <link href="Content/layer.m.css" rel="stylesheet">    
+    <script src="Scripts/jquery-1.9.1.js"></script>
+    <script src="Scripts/jquery-ui-1.8.24.js"></script>
+    <script src="Scripts/knockout-2.2.0.js"></script>
+    <script src="Scripts/layer.js"></script>
+    <script>
+        var model = {
+            librarys: ko.observableArray(),
+            editor: {
+                libCode: ko.observable(""),
+                libName: ko.observable(""),
+                libP2PAccount: ko.observable(""),
+                comment:ko.observable("")
+            },
+            displaySummary: ko.observable(true)
+
+        }
+
+        //用于获取图书馆
+        function getAllLib() {
+            //显示等待图层
+            var index = loadLayer();
+
+            //alert("getAllLib");
+
+            // 先删除可观察数组中的已有数据
+            model.librarys.removeAll();
+
+            // 调web api
+            var url = "/api/library";
+            sendAjaxRequest(url, "GET", function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    model.librarys.push(data[i]);
+                }
+
+                // 关闭等待层
+                layer.close(index);
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        // 删除一项
+        function removeLib(item) {
+            //alert("remove-"+item.libId);
+            var url = "/api/library/" + item.id;
+            sendAjaxRequest(url, "DELETE", function () {
+                //getAllLib();
+
+                for (var i = 0; i < model.librarys().length; i++) {
+                    if (model.librarys()[i].id == item.id) {
+                        model.librarys.remove(model.librarys()[i]);
+                        break;
+                    }
+                }
+
+
+            }, function (xhq, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+        }
+
+        // 新增一项
+        function addLib() {
+
+            var libCode = model.editor.libCode().trim();
+            if (libCode == "") {
+                alert("尚未输入图书馆代码!");
+                return;
+            }
+            var libName = model.editor.libName().trim();
+            if (libName == "") {
+                alert("尚未输入图书馆名称!");
+                return;
+            }
+            var libP2PAccount = model.editor.libP2PAccount().trim();
+            if (libP2PAccount == "") {
+                alert("尚未输入图书馆点对点账号!");
+                return;
+            }
+
+            var comment = model.editor.comment().trim();
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/library";
+            sendAjaxRequest(url, "POST",
+                function (newItem) {
+                    model.librarys.push(newItem);
+                    model.displaySummary(true);
+
+                    //清空编辑界面信息
+                    model.editor.libCode("");
+                    model.editor.libName("");
+                    model.editor.libP2PAccount("");
+                    model.editor.comment("");
+
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    libCode:libCode,
+                    libName:libName,
+                    libP2PAccount: libP2PAccount,
+                    comment:comment
+                }
+            );
+        }
+
+        // 点击新增图书馆按钮
+        function handleCreateClick() {
+            model.displaySummary(false);
+        }
+
+        // 在新增图书馆，点击取消
+        function handleCancelClick() {
+            model.displaySummary(true);
+        }
+
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 获取所有的操作命令
+            getAllLib();
+            ko.applyBindings(model);
+        })
+
+        // 显示等待图层
+        function loadLayer() {
+            return layer.open({
+                type: 2,
+                shadeClose: false
+            });
+        }
+
+        // 得到虚拟目录路径
+        function getRootPath() {
+            var pathName = window.location.pathname.substring(1);
+            var webName = pathName == '' ? '' : pathName.substring(0, pathName.indexOf('/'));
+            var rootPath = window.location.protocol + '//' + window.location.host;//+ '/' + webName;
+            return rootPath;
+        }
+
+        // ajax请求
+        function sendAjaxRequest(url, httpMethod, successCallback, errorCallback, mydata, myasync) {
+
+            var apiFullPath = getRootPath() + url;
+            //alert(rootPath +url);
+            $.ajax(apiFullPath, {
+                type: httpMethod,
+                success: successCallback,
+                error: errorCallback,
+                data: mydata,
+                async: myasync
+            });
+        }
+
+
+
+    </script>
+</head>
+<body>
+
+    <div class="col-md-12" data-bind="if: model.displaySummary">
+        <center><h3>图书馆列表</h3></center>
+        <table class="table table-striped">
+            <thead>
+                <tr><th>馆代码</th><th>馆名称</th><th>点对点账号</th><th>备注</th><th>操作</th></tr>
+            </thead>
+            <tbody data-bind="foreach:model.librarys">
+                <tr>
+                    <td data-bind="text:libCode"></td>
+                    <td data-bind="text:libName"></td>
+                    <td data-bind="text:libP2PAccount"></td>
+                    <td data-bind="text:comment"></td>
+                    <td>
+                        <button class="btn btn-xs btn-default" data-bind="click: removeLib">X</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="btn btn-default btn-lg" data-bind="click: handleCreateClick">
+            新增图书馆
+        </button>
+    </div>
+
+    <div class="col-md-12" data-bind="ifnot: model.displaySummary">
+        <center><h3>新增图书馆</h3></center>
+        <br />
+        <div class="form-horizontal">
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label" style="color:gray">馆代码</label>
+                <div class="col-sm-10">
+                    <input class="form-control" placeholder="图书馆代码" data-bind="value:model.editor.libCode">
+                </div>
+            </div>
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label" style="color:gray">馆名称</label>
+                <div class="col-sm-10">
+                    <input class="form-control" placeholder="图书馆名称" data-bind="value:model.editor.libName">
+                </div>
+            </div>
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label" style="color:gray">点对点帐号</label>
+                <div class="col-sm-10">
+                    <input class="form-control" placeholder="图书馆点对点帐号" data-bind="value:model.editor.libP2PAccount">
+                </div>
+            </div>
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label" style="color:gray">备注</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" rows="3" data-bind="value:model.editor.comment"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button class="btn btn-default btn-lg" data-bind="click: addLib">保存</button>
+                    &nbsp;&nbsp;
+                    <button class="btn btn-default btn-lg" data-bind="click: handleCancelClick">取消</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
