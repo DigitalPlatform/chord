@@ -24,7 +24,7 @@ namespace Senparc.Weixin.MP.Sample.Controllers
     using Senparc.Weixin.MP.MessageHandlers;
     using Senparc.Weixin.MP.Entities;
     using Senparc.Weixin.MP.Helpers;
-    using Senparc.Weixin.MP.MvcExtension;
+    //using Senparc.Weixin.MP.MvcExtension;
     //using Senparc.Weixin.MP.Sample.Service;
     //using Senparc.Weixin.MP.Sample.CustomerMessageHandler;
     using Senparc.Weixin.MP.Sample.CommonService;
@@ -121,8 +121,8 @@ namespace Senparc.Weixin.MP.Sample.Controllers
                     messageHandler.FinalResponseDocument.Save(Path.Combine(logPath, string.Format("{0}_Response_Final_{1}.txt", _getRandomFileName(), messageHandler.RequestMessage.FromUserName)));
                 }
 
-                //return Content(messageHandler.ResponseDocument.ToString());//v0.7-
-                return new FixWeixinBugWeixinResult(messageHandler);//为了解决官方微信5.0软件换行bug暂时添加的方法，平时用下面一个方法即可
+                return Content(messageHandler.ResponseDocument.ToString());//v0.7-
+                //return new FixWeixinBugWeixinResult(messageHandler);//为了解决官方微信5.0软件换行bug暂时添加的方法，平时用下面一个方法即可
                 //return new WeixinResult(messageHandler);//v0.8+
             }
             catch (Exception ex)
@@ -164,8 +164,8 @@ namespace Senparc.Weixin.MP.Sample.Controllers
         {
             if (!CheckSignature.Check(postModel.Signature, postModel.Timestamp, postModel.Nonce, Token))
             {
-                //return Content("参数错误！");//v0.7-
-                return new WeixinResult("参数错误！");//v0.8+
+                return Content("参数错误！");//v0.7-
+                //return new WeixinResult("参数错误！");//v0.8+
             }
 
             postModel.Token = Token;
@@ -176,9 +176,9 @@ namespace Senparc.Weixin.MP.Sample.Controllers
 
             messageHandler.Execute();//执行微信处理过程
 
-            //return Content(messageHandler.ResponseDocument.ToString());//v0.7-
-            return new FixWeixinBugWeixinResult(messageHandler);//v0.8+
-            return new WeixinResult(messageHandler);//v0.8+
+            return Content(messageHandler.ResponseDocument.ToString());//v0.7-
+            //return new FixWeixinBugWeixinResult(messageHandler);//v0.8+
+           // return new WeixinResult(messageHandler);//v0.8+
         }
 
         /*
