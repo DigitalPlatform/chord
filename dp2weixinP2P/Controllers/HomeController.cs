@@ -1,5 +1,6 @@
 ﻿using DigitalPlatform.LibraryRestClient;
 using dp2weixin;
+using dp2weixinP2P.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,11 +13,11 @@ namespace dp2weixinP2P.Controllers
 {
     public class HomeController : Controller
     {
-        string url = "~/weixin/index";
+        string url = "http://localhost:15794/weixin/index";
         /// <summary>
         /// 通道所使用的 HTTP Cookies
         /// </summary>
-        public CookieContainer Cookies = new System.Net.CookieContainer();
+        //public CookieContainer Cookies = new System.Net.CookieContainer();
 
         public ActionResult Index()
         {
@@ -37,18 +38,20 @@ namespace dp2weixinP2P.Controllers
         //WeixinMessage
         public ActionResult WeixinMessage()
         {
-            return View();
+            MessageModel model = new MessageModel();
+            return View(model);
         }
 
         [HttpPost]
         //WeixinMessage
-        public ActionResult WeixinMessagePost()
+        public ActionResult WeixinMessage(MessageModel model)
         {
-            string msgSend = Request["txtMessage"];
+            string msgSend = model.RequestMsg;//Request["txtMessage"];
             string resultStr = "";
             try
             {
-                CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
+                CookieContainer cookies = new System.Net.CookieContainer();
+                CookieAwareWebClient client = new CookieAwareWebClient(cookies);
                 client.Headers["Content-type"] = "application/xml; charset=utf-8";
                 string xml = WeiXinClientUtil.GetPostXmlToWeiXinGZH(msgSend);
                 byte[] baData = Encoding.UTF8.GetBytes(xml);
@@ -57,12 +60,6 @@ namespace dp2weixinP2P.Controllers
                     baData);
                 string strResult = Encoding.UTF8.GetString(result);
                 resultStr = strResult;
-
-                // 将焦点设回输入框
-                //this.lblMessage.Text = "您刚才发的消息是[" + this.txtMessage.Text + "]";
-
-                //this.txtMessage.Text = "";
-                //this.txtMessage.Focus();
             }
             catch (Exception ex)
             {
@@ -70,8 +67,8 @@ namespace dp2weixinP2P.Controllers
             }
 
             // 继续跟上登录成功返回的url
-            ViewBag.msgResult = resultStr;
-            return View();
+            model.ResponseMsg = resultStr;
+            return View(model);
         }
 
         //WeixinMenu

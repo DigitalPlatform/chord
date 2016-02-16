@@ -30,8 +30,8 @@ namespace dp2weixin
                     <CreateTime>" + WeiXinClientUtil.DateTimeToLongString(DateTime.Now) + "</CreateTime>"
                     + "<MsgType>text</MsgType>"
                     + "<Content>" + message + "</Content>"
-                    + @"<MsgId>1234567890123456</MsgId>
-                    </xml>";
+                    + @"<MsgId>" + DateTime.Now.Ticks + "</MsgId>"
+                    + "</xml>";
             return xml;
         }
     }

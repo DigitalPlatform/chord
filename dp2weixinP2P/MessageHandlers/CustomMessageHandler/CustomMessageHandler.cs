@@ -40,9 +40,9 @@ namespace Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler
 
 
 #if DEBUG
-        string agentUrl = "http://localhost:12222/App/Weixin/4";
-        string agentToken = "27C455F496044A87";
-        string wiweihiKey = "CNadjJuWzyX5bz5Gn+/XoyqiqMa5DjXQ";
+        //string agentUrl = "http://localhost:12222/App/Weixin/4";
+        //string agentToken = "27C455F496044A87";
+        //string wiweihiKey = "CNadjJuWzyX5bz5Gn+/XoyqiqMa5DjXQ";
 #else
         //下面的Url和Token可以用其他平台的消息，或者到www.weiweihi.com注册微信用户，将自动在“微信营销工具”下得到
         private string agentUrl = WebConfigurationManager.AppSettings["WeixinAgentUrl"];//这里使用了www.weiweihi.com微信自动托管平台
@@ -99,7 +99,6 @@ namespace Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler
         /// <returns></returns>
         public override IResponseMessageBase OnTextRequest(RequestMessageText requestMessage)
         {
-            //TODO:这里的逻辑可以交给Service处理具体信息，参考OnLocationRequest方法或/Service/LocationSercice.cs
 
             //书中例子
             //if (requestMessage.Content == "你好")
@@ -156,60 +155,7 @@ namespace Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler
 <a href=""http://weixin.senparc.com/FilterTest/"">点击这里</a>进行客户端约束测试（地址：http://weixin.senparc.com/FilterTest/），如果在微信外打开将直接返回文字。
 或：
 <a href=""http://weixin.senparc.com/FilterTest/Redirect"">点击这里</a>进行客户端约束测试（地址：http://weixin.senparc.com/FilterTest/Redirect），如果在微信外打开将重定向一次URL。";
-            }
-            else if (requestMessage.Content == "托管" || requestMessage.Content == "代理")
-            {
-                //开始用代理托管，把请求转到其他服务器上去，然后拿回结果
-                //甚至也可以将所有请求在DefaultResponseMessage()中托管到外部。
-
-                DateTime dt1 = DateTime.Now; //计时开始
-
-                var responseXml = MessageAgent.RequestXml(this, agentUrl, agentToken, RequestDocument.ToString());
-                //获取返回的XML
-                //上面的方法也可以使用扩展方法：this.RequestResponseMessage(this,agentUrl, agentToken, RequestDocument.ToString());
-
-                /* 如果有WeiweihiKey，可以直接使用下面的这个MessageAgent.RequestWeiweihiXml()方法。
-                 * WeiweihiKey专门用于对接www.weiweihi.com平台，获取方式见：http://www.weiweihi.com/ApiDocuments/Item/25#51
-                 */
-                //var responseXml = MessageAgent.RequestWeiweihiXml(weiweihiKey, RequestDocument.ToString());//获取Weiweihi返回的XML
-
-                DateTime dt2 = DateTime.Now; //计时结束
-
-                //转成实体。
-                /* 如果要写成一行，可以直接用：
-                 * responseMessage = MessageAgent.RequestResponseMessage(agentUrl, agentToken, RequestDocument.ToString());
-                 * 或
-                 * 
-                 */
-                var msg = string.Format("\r\n\r\n代理过程总耗时：{0}毫秒", (dt2 - dt1).Milliseconds);
-                var agentResponseMessage = responseXml.CreateResponseMessage();
-                if (agentResponseMessage is ResponseMessageText)
-                {
-                    (agentResponseMessage as ResponseMessageText).Content += msg;
-                }
-                else if (agentResponseMessage is ResponseMessageNews)
-                {
-                    (agentResponseMessage as ResponseMessageNews).Articles[0].Description += msg;
-                }
-                return agentResponseMessage;//可能出现多种类型，直接在这里返回
-            }
-            else if (requestMessage.Content == "测试" || requestMessage.Content == "退出")
-            {
-                /* 
-                * 这是一个特殊的过程，此请求通常来自于微微嗨（http://www.weiweihi.com）的“盛派网络小助手”应用请求（http://www.weiweihi.com/User/App/Detail/1），
-                * 用于演示微微嗨应用商店的处理过程，由于微微嗨的应用内部可以单独设置对话过期时间，所以这里通常不需要考虑对话状态，只要做最简单的响应。
-                */
-                if (requestMessage.Content == "测试")
-                {
-                    //进入APP测试
-                    responseMessage.Content = "您已经进入【盛派网络小助手】的测试程序，请发送任意信息进行测试。发送文字【退出】退出测试对话。10分钟内无任何交互将自动退出应用对话状态。";
-                }
-                else
-                {
-                    //退出APP测试
-                    responseMessage.Content = "您已经退出【盛派网络小助手】的测试程序。";
-                }
-            }
+            }           
             else if (requestMessage.Content == "AsyncTest")
             {
                 //异步并发测试（提供给单元测试使用）
@@ -227,21 +173,6 @@ namespace Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler
                         end,
                         t2 - t1
                         );
-            }
-            else if (requestMessage.Content == "open")
-            {
-                var openResponseMessage = requestMessage.CreateResponseMessage<ResponseMessageNews>();
-                openResponseMessage.Articles.Add(new Article()
-                {
-                    Title = "开放平台微信授权测试",
-                    Description = @"点击进入Open授权页面。
-
-授权之后，您的微信所收到的消息将转发到第三方（盛派网络小助手）的服务器上，并获得对应的回复。
-
-测试完成后，您可以登陆公众号后台取消授权。",
-                    Url = "http://weixin.senparc.com/OpenOAuth/JumpToMpOAuth"
-                });
-                return openResponseMessage;
             }
             else if (requestMessage.Content == "错误")
             {

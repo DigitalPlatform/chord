@@ -1,21 +1,29 @@
-﻿
+﻿@model  dp2weixinP2P.Models.MessageModel
 @{
     ViewBag.Title = "WeixinMessage";
-}
-<form id="form1" action="home/WeixinMessagePost">
-    <div>
-        <b>request:</b>
-        <br />
-        <asp:TextBox ID="txtMessage" runat="server" Width="429px"></asp:TextBox>
-        <asp:Button ID="btnSend" runat="server" Text="send" OnClick="btnSend_Click" BackColor="#FF9933" />
 
-        <br />
-        <asp:Label ID="lblMessage" runat="server" Text="" BackColor="#66ccff"></asp:Label>
-        <br />
-        <br />
-        <b>response:</b>
-        <br />
-        <asp:TextBox ID="txtResult" runat="server" Height="255px" Width="860px" TextMode="MultiLine" Rows="5">@ViewBag.msgResult</asp:TextBox>
-        <br />
+
+}
+@using (Html.BeginForm("WeixinMessage", "home", FormMethod.Post, new { @class = "form-horizontal" }))
+{
+    <div class="form-group form-group-lg">
+        <label class="col-sm-2 control-label" style="color:gray">request</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" rows="2" id="RequestMsg" name="RequestMsg"></textarea>
+        </div>
     </div>
-</form>
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <button class="btn btn-primary btn-lg" data-bind="click: addLib">发送</button>
+        </div>
+    </div>
+    <div class="form-group form-group-lg">
+        <label class="col-sm-2 control-label" style="color:gray">response</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" rows="10" readonly>@Model.ResponseMsg</textarea>
+            <span style="color:blue">您刚才发的消息是:@Model.RequestMsg</span>
+        </div>
+    </div>
+
+
+}

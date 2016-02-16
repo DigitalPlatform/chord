@@ -19,16 +19,20 @@ using System.Web.Mvc;
 using System.Xml.Linq;
 using Senparc.Weixin.MP.Entities.Request;
 
-namespace Senparc.Weixin.MP.Sample.Controllers
+using Senparc.Weixin.MP.MessageHandlers;
+using Senparc.Weixin.MP.Entities;
+using Senparc.Weixin.MP.Helpers;
+//using Senparc.Weixin.MP.MvcExtension;
+//using Senparc.Weixin.MP.Sample.Service;
+//using Senparc.Weixin.MP.Sample.CustomerMessageHandler;
+using Senparc.Weixin.MP.Sample.CommonService;
+using Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler;
+using Senparc.Weixin.MP.MvcExtension;
+using Senparc.Weixin.MP;
+
+namespace dp2weixinP2P.Controllers
 {
-    using Senparc.Weixin.MP.MessageHandlers;
-    using Senparc.Weixin.MP.Entities;
-    using Senparc.Weixin.MP.Helpers;
-    //using Senparc.Weixin.MP.MvcExtension;
-    //using Senparc.Weixin.MP.Sample.Service;
-    //using Senparc.Weixin.MP.Sample.CustomerMessageHandler;
-    using Senparc.Weixin.MP.Sample.CommonService;
-    using Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler;
+
 
     public partial class WeixinController : Controller
     {
@@ -56,7 +60,7 @@ namespace Senparc.Weixin.MP.Sample.Controllers
             }
             else
             {
-                return Content("failed:" + postModel.Signature + "," + MP.CheckSignature.GetSignature(postModel.Timestamp, postModel.Nonce, Token) + "。" +
+                return Content("failed:" + postModel.Signature + "," + CheckSignature.GetSignature(postModel.Timestamp, postModel.Nonce, Token) + "。" +
                     "如果你在浏览器中看到这句话，说明此地址可以被作为微信公众账号后台的Url，请注意保持Token一致。");
             }
         }
@@ -70,10 +74,13 @@ namespace Senparc.Weixin.MP.Sample.Controllers
         [ActionName("Index")]
         public ActionResult Post(PostModel postModel)
         {
+            // 本机调试注掉
+            /*
             if (!CheckSignature.Check(postModel.Signature, postModel.Timestamp, postModel.Nonce, Token))
             {
                 return Content("参数错误！");
             }
+             */
 
             postModel.Token = Token;//根据自己后台的设置保持一致
             postModel.EncodingAESKey = EncodingAESKey;//根据自己后台的设置保持一致
@@ -121,9 +128,9 @@ namespace Senparc.Weixin.MP.Sample.Controllers
                     messageHandler.FinalResponseDocument.Save(Path.Combine(logPath, string.Format("{0}_Response_Final_{1}.txt", _getRandomFileName(), messageHandler.RequestMessage.FromUserName)));
                 }
 
-                return Content(messageHandler.ResponseDocument.ToString());//v0.7-
+                //return Content(messageHandler.ResponseDocument.ToString());//v0.7-
                 //return new FixWeixinBugWeixinResult(messageHandler);//为了解决官方微信5.0软件换行bug暂时添加的方法，平时用下面一个方法即可
-                //return new WeixinResult(messageHandler);//v0.8+
+                return new WeixinResult(messageHandler);//v0.8+
             }
             catch (Exception ex)
             {
@@ -176,9 +183,9 @@ namespace Senparc.Weixin.MP.Sample.Controllers
 
             messageHandler.Execute();//执行微信处理过程
 
-            return Content(messageHandler.ResponseDocument.ToString());//v0.7-
+            //return Content(messageHandler.ResponseDocument.ToString());//v0.7-
             //return new FixWeixinBugWeixinResult(messageHandler);//v0.8+
-           // return new WeixinResult(messageHandler);//v0.8+
+           return new WeixinResult(messageHandler);//v0.8+
         }
 
         /*
