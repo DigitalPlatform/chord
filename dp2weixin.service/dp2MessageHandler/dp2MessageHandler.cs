@@ -42,14 +42,14 @@ namespace dp2weixin
         /// </summary>
         /// <param name="inputStream"></param>
         /// <param name="maxRecordCount"></param>
-        public dp2MessageHandler(dp2CommandServer cmdServer,Stream inputStream, PostModel postModel, int maxRecordCount = 0)
+        public dp2MessageHandler(Stream inputStream, PostModel postModel, int maxRecordCount = 0)
             : base(inputStream, postModel, maxRecordCount)
         {
             //这里设置仅用于测试，实际开发可以在外部更全局的地方设置，
             //比如MessageHandler<MessageContext>.GlobalWeixinContext.ExpireMinutes = 3。
             WeixinContext.ExpireMinutes = 3;
 
-            this.CmdServer = cmdServer;
+            this.CmdServer = dp2CommandServer.Instance;
         }
 
         /// <summary>
