@@ -29,11 +29,12 @@ namespace dp2weixin
             string strDp2WeiXinUrl = "http://dp2003.com/dp2weixin";
             
             // 初始化命令服务类
-            dp2CommandServer.Instance.Init(strDp2Url,
+            dp2CommandService.Instance.Init(strDp2Url,
                 strDp2UserName,
                 strDp2Password,
                 strDp2WeiXinUrl,
-                strDp2WeiXinLogDir);
+                strDp2WeiXinLogDir,
+                false);
         }
 
     }

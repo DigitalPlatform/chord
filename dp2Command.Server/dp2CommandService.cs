@@ -15,20 +15,20 @@ using System.Xml;
 
 namespace dp2Command.Server
 {
-    public class dp2CommandServer
+    public class dp2CommandService
     {
         // 检索限制最大命中数常量
         public const int C_Search_MaxCount = 100;
 
         //=================
         // 设为单一实例
-        static dp2CommandServer _instance;
-        private dp2CommandServer()
+        static dp2CommandService _instance;
+        private dp2CommandService()
         {
             //Thread.Sleep(100); //假设多线程的时候因某种原因阻塞100毫秒
         }
         static object myObject = new object();
-        static public dp2CommandServer Instance
+        static public dp2CommandService Instance
         {
             get
             {
@@ -36,7 +36,7 @@ namespace dp2Command.Server
                 {
                     if (null == _instance)
                     {
-                        _instance = new dp2CommandServer();
+                        _instance = new dp2CommandService();
                     }
                     return _instance;
                 }
@@ -52,12 +52,13 @@ namespace dp2Command.Server
 
         // dp2weixin 
         public string dp2WeiXinUrl = "http://dp2003.com/dp2weixin";
-        public string dp2WeiXinLogDir = "";
-        
+        public string dp2WeiXinLogDir = "";        
 
         // dp2通道池
         public LibraryChannelPool ChannelPool = null;
 
+        // 是否使用mongodb存储微信用户与读者关系
+        private bool IsUseMongoDb = false;
 
         /// <summary>
         /// 构造函数
@@ -71,7 +72,8 @@ namespace dp2Command.Server
             string strDp2UserName,
             string strDp2Password,
             string strDp2WeiXinUrl,
-            string strDp2WeiXinLogDir)
+            string strDp2WeiXinLogDir,
+            bool isUseMongoDb)
         {
             this.dp2Url = strDp2Url;
             this.dp2UserName = strDp2UserName;
@@ -84,6 +86,8 @@ namespace dp2Command.Server
             ChannelPool.BeforeLogin -= new BeforeLoginEventHandle(Channel_BeforeLogin);
             ChannelPool.BeforeLogin += new BeforeLoginEventHandle(Channel_BeforeLogin);
 
+            //
+            this.IsUseMongoDb = isUseMongoDb;
         }
 
 
@@ -473,8 +477,14 @@ out string strError)
 
                     // 绑定成功，把读者证条码记下来，用于续借 2015/11/7，不要用strbarcode变量，因为可能做的大小写转换
                     strReaderBarcode = DomUtil.GetNodeText(readerDom.DocumentElement.SelectSingleNode("barcode"));                    
+                    
+                    // todo 存在mongodb
+                    if (this.IsUseMongoDb == true)
+                    {
+ 
+                    }
+                    
                     return 1;
-
                 }
 
                 strError = "校验读者账号返回未知情况，返回值：" + lRet.ToString() + "-" + strError;
@@ -494,7 +504,9 @@ out string strError)
         /// <param name="strXml"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public long SearchReaderByWeiXinId(string strWeiXinId, out string strRecPath, out string strXml,
+        public long SearchReaderByWeiXinId(string strWeiXinId, 
+            out string strRecPath, 
+            out string strXml,
             out string strError)
         {
             strError = "";
@@ -508,7 +520,16 @@ out string strError)
             try
             {
                 strWeiXinId = dp2CommandUtility.C_WeiXinIdPrefix + strWeiXinId;//weixinid:
-                lRet = channel.SearchReaderByWeiXinId(strWeiXinId, out strError);
+
+                // todo 从mongodb
+                if (this.IsUseMongoDb == true)
+                {
+
+                    return 0;
+                }
+                
+               
+                lRet = this.SearchReaderByWeiXinId(channel, strWeiXinId, out strError);
                 if (lRet == -1)
                 {
                     strError = "检索微信用户对应的读者出错:" + strError;
@@ -526,7 +547,8 @@ out string strError)
                 }
                 else if (lRet == 1)
                 {
-                    lRet = channel.GetSearchResultForWeiXinUser(out strRecPath,
+                    lRet = this.GetSearchResultForWeiXinUser(channel,
+                        out strRecPath,
                          out strXml,
                          out strError);
                     if (lRet != 1)
@@ -630,8 +652,12 @@ out string strError)
                     return -1;
                 }
 
-                //清掉内存的ReaderBarcode???
-                //this.ReaderBarcode = "";
+                // todo 从mongodb删除
+                if (this.IsUseMongoDb == true)
+                {
+
+                    
+                }
 
                 return 1;
             }
@@ -1076,5 +1102,65 @@ out string strError)
         }
 
         #endregion
+
+        
+        /// <summary>
+        /// 专门检索微信用户对应的图书馆账号
+        /// </summary>
+        /// <param name="strUserOpenId"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public long SearchReaderByWeiXinId(LibraryChannel channel,
+            string strWeiXinId,
+            out string strError)
+        {
+            return channel.SearchReader("",
+                strWeiXinId,
+                -1,
+                "email",
+                "exact",
+                "zh",
+                "weixin",
+                "keyid",
+                out strError);            
+        }
+
+        /// <summary>
+        /// 获取根据微信id检索到的唯一读者记录
+        /// </summary>
+        /// <param name="strPath">读者记录路径</param>
+        /// <param name="strXml">读者xml</param>
+        /// <param name="strError">返回出错信息</param>
+        /// <returns>
+        /// <para>-1:   出错</para>
+        /// <para>&gt;=0:  结果集内的记录数。注意，不是本次调用返回的结果数</para>
+        /// </returns>
+        public long GetSearchResultForWeiXinUser(LibraryChannel channel,
+            out string strPath,
+            out string strXml,
+            out string strError)
+        {
+            strPath = "";
+            strXml = "";
+
+            Record[] searchresults = null;
+            long lRet = channel.GetSearchResult("weixin",
+                0,
+                -1,
+                "id,xml",
+                "zh",
+                out searchresults,
+                out strError);
+            if (searchresults.Length != 1)
+            {
+                throw new Exception("获得的记录数不是1");
+            }
+
+            strPath = searchresults[0].Path;
+            strXml = searchresults[0].RecordBody.Xml;
+
+            return lRet;
+        }
+        
     }
 }

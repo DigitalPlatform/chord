@@ -164,26 +164,6 @@ namespace DigitalPlatform.LibraryRestClient
 
 
         /// <summary>
-        /// 专门检索微信用户对应的图书馆账号
-        /// </summary>
-        /// <param name="strUserOpenId"></param>
-        /// <param name="strError"></param>
-        /// <returns></returns>
-        public long SearchReaderByWeiXinId(string strWeiXinId,
-            out string strError)
-        {
-            return this.SearchReader("",
-                strWeiXinId,
-                -1,
-                "email",
-                "exact",
-                "zh",
-                "weixin",
-                "keyid",
-                out strError);            
-        }
-
-        /// <summary>
         /// 检索读者记录。
         /// 请参考 dp2Library API SearchReader() 的详细说明
         /// </summary>
@@ -247,42 +227,7 @@ namespace DigitalPlatform.LibraryRestClient
             return response.SearchReaderResult.Value;
         }
 
-        /// <summary>
-        /// 获取根据微信id检索到的唯一读者记录
-        /// </summary>
-        /// <param name="strPath">读者记录路径</param>
-        /// <param name="strXml">读者xml</param>
-        /// <param name="strError">返回出错信息</param>
-        /// <returns>
-        /// <para>-1:   出错</para>
-        /// <para>&gt;=0:  结果集内的记录数。注意，不是本次调用返回的结果数</para>
-        /// </returns>
-        public long GetSearchResultForWeiXinUser(
-            out string strPath,
-            out string strXml,
-            out string strError)
-        {
-            strPath = "";
-            strXml = "";
 
-            Record[] searchresults = null;
-            long lRet = this.GetSearchResult("weixin",
-                0,
-                -1,
-                "id,xml",
-                "zh",
-                out searchresults,
-                out strError);
-            if (searchresults.Length != 1)
-            {
-                throw new Exception("获得的记录数不是1");
-            }
-
-            strPath = searchresults[0].Path;
-            strXml = searchresults[0].RecordBody.Xml;
-
-            return lRet;
-        }
 
         /// <summary>
         /// 获得检索结果。

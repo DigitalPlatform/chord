@@ -53,11 +53,11 @@ namespace dp2ConsoleToWeiXin
             string strDp2WeiXinUrl = "http://dp2003.com/dp2weixin";
 
             // 将命令服务类改为单一实例方式 2015-12-15
-            dp2CommandServer.Instance.Init(strDp2Url,
+            dp2CommandService.Instance.Init(strDp2Url,
                 strDp2UserName,
                 strDp2Password,
                 strDp2WeiXinUrl,
-                strDp2WeiXinLogDir);
+                strDp2WeiXinLogDir,false);
 
             //命令集合
             this.CmdContiner = new CommandContainer();
@@ -195,7 +195,7 @@ namespace dp2ConsoleToWeiXin
 
             string strReaderBarcode = "";
             string strError = "";
-            long lRet = dp2CommandServer.Instance.Binding(bindingCmd.ReaderBarcode,
+            long lRet = dp2CommandService.Instance.Binding(bindingCmd.ReaderBarcode,
                 bindingCmd.Password,
                 this.WeiXinId,
                 out strReaderBarcode,
@@ -243,7 +243,7 @@ namespace dp2ConsoleToWeiXin
             }
 
             // 解除绑定
-            lRet = dp2CommandServer.Instance.Unbinding(this.ReaderBarcode, out strError);
+            lRet = dp2CommandService.Instance.Unbinding(this.ReaderBarcode, out strError);
             if (lRet == -1 || lRet == 0)
             {
                 Console.WriteLine(strError);
@@ -284,7 +284,7 @@ namespace dp2ConsoleToWeiXin
 
             // 获取读者信息
             string strMyInfo = "";
-            lRet = dp2CommandServer.Instance.GetMyInfo1(this.ReaderBarcode, out strMyInfo,
+            lRet = dp2CommandService.Instance.GetMyInfo1(this.ReaderBarcode, out strMyInfo,
                 out strError);
             if (lRet == -1 || lRet == 0)
             {
@@ -323,7 +323,7 @@ namespace dp2ConsoleToWeiXin
             }
 
             string strBorrowInfo = "";
-            lRet = dp2CommandServer.Instance.GetBorrowInfo1(this.ReaderBarcode, out strBorrowInfo,
+            lRet = dp2CommandService.Instance.GetBorrowInfo1(this.ReaderBarcode, out strBorrowInfo,
                 out strError);
             if (lRet == -1)
             {
@@ -366,7 +366,7 @@ namespace dp2ConsoleToWeiXin
             if (strParam == "" || strParam == "view")
             {
                 string strBorrowInfo = "";
-                lRet = dp2CommandServer.Instance.GetBorrowInfo1(this.ReaderBarcode, out strBorrowInfo,
+                lRet = dp2CommandService.Instance.GetBorrowInfo1(this.ReaderBarcode, out strBorrowInfo,
                     out strError);
                 if (lRet == -1)
                 {
@@ -389,7 +389,7 @@ namespace dp2ConsoleToWeiXin
 
             // 认作册条码
             BorrowInfo borrowInfo = null;
-            lRet = dp2CommandServer.Instance.Renew(this.ReaderBarcode,
+            lRet = dp2CommandService.Instance.Renew(this.ReaderBarcode,
                 strParam,
                 out borrowInfo,
                 out strError);
@@ -454,7 +454,7 @@ namespace dp2ConsoleToWeiXin
                 if (nBiblioIndex >= 1)
                 {
                     string strBiblioInfo = "";
-                    lRet = dp2CommandServer.Instance.GetDetailBiblioInfo(searchCmd, nBiblioIndex,
+                    lRet = dp2CommandService.Instance.GetDetailBiblioInfo(searchCmd, nBiblioIndex,
                         out strBiblioInfo,
                         out strError);
                     if (lRet == -1)
@@ -471,7 +471,7 @@ namespace dp2ConsoleToWeiXin
 
             // 检索
             string strFirstPage = "";
-            lRet = dp2CommandServer.Instance.SearchBiblio(strParam, searchCmd,
+            lRet = dp2CommandService.Instance.SearchBiblio(strParam, searchCmd,
                 out strFirstPage,
                 out strError);
             if (lRet == -1)
@@ -505,7 +505,7 @@ namespace dp2ConsoleToWeiXin
                 // 根据openid检索绑定的读者
                 string strRecPath = "";
                 string strXml = "";
-                long lRet = dp2CommandServer.Instance.SearchReaderByWeiXinId(this.WeiXinId, out strRecPath,
+                long lRet = dp2CommandService.Instance.SearchReaderByWeiXinId(this.WeiXinId, out strRecPath,
                     out strXml,
                     out strError);
                 if (lRet == -1)
