@@ -106,6 +106,7 @@ namespace dp2Command.Server
             e.LibraryServerUrl = channel.Url;
             e.UserName = channel.UserName;
             e.Password = channel.Password;
+            e.Parameters = "client=ilovelibrary|1.0"; //todo
         }
 
         #region 检索相关

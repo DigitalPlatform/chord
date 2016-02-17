@@ -67,8 +67,7 @@ namespace dp2weixin
                 var maxRecordCount = 10;
 
                 //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
-                var messageHandler = new dp2MessageHandler(dp2CommandServer.Instance,
-                    Request.InputStream, postModel, maxRecordCount);
+                var messageHandler = new dp2MessageHandler(Request.InputStream, postModel, maxRecordCount);
                 messageHandler.dp2WeiXinAppDir = Server.MapPath("~");
 
                 try

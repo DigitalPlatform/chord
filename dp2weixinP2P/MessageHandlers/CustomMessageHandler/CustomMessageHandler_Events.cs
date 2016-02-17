@@ -130,6 +130,7 @@ Nuget地址：https://www.nuget.org/packages/Senparc.Weixin.MP
                     break;
                 case "SubClickRoot_Agent"://代理消息
                     {
+                        /*
                         //获取返回的XML
                         DateTime dt1 = DateTime.Now;
                         reponseMessage = MessageAgent.RequestResponseMessage(this, agentUrl, agentToken, RequestDocument.ToString());
@@ -143,12 +144,13 @@ Nuget地址：https://www.nuget.org/packages/Senparc.Weixin.MP
                                 .Articles[0]
                                 .Description += string.Format("\r\n\r\n代理过程总耗时：{0}毫秒", (dt2 - dt1).Milliseconds);
                         }
+                         */
                     }
                     break;
                 case "Member"://托管代理会员信息
                     {
                         //原始方法为：MessageAgent.RequestXml(this,agentUrl, agentToken, RequestDocument.ToString());//获取返回的XML
-                        reponseMessage = this.RequestResponseMessage(agentUrl, agentToken, RequestDocument.ToString());
+                        //reponseMessage = this.RequestResponseMessage(agentUrl, agentToken, RequestDocument.ToString());
                     }
                     break;
                 case "OAuth"://OAuth授权测试

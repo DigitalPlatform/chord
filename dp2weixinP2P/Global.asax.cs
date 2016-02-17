@@ -8,6 +8,8 @@ using System.Web.Security;
 using System.Web.SessionState;
 using System.Web.Http;
 using System.Web.Configuration;
+using dp2Command.Server;
+using DigitalPlatform.IO;
 
 namespace dp2weixinP2P
 {
@@ -29,6 +31,25 @@ namespace dp2weixinP2P
             }
             string instancePrefix = WebConfigurationManager.AppSettings["instancePrefix"];
             LibDatabase.Current.Open(mongoDbConnStr, instancePrefix);
+
+            // 从web config中取出url,weixin代理账号
+            string strDp2Url = WebConfigurationManager.AppSettings["dp2Url"];
+            string strDp2UserName = WebConfigurationManager.AppSettings["dp2UserName"];
+            // todo 密码改为加密格式
+            string strDp2Password = WebConfigurationManager.AppSettings["dp2Password"];
+
+            // 错误日志目录
+            string strDp2WeiXinLogDir = WebConfigurationManager.AppSettings["dp2WeiXinLogDir"];
+            PathUtil.CreateDirIfNeed(strDp2WeiXinLogDir);	// 确保目录创建
+
+            string strDp2WeiXinUrl = "http://dp2003.com/dp2weixin";
+
+            // 初始化命令服务类
+            dp2CommandServer.Instance.Init(strDp2Url,
+                strDp2UserName,
+                strDp2Password,
+                strDp2WeiXinUrl,
+                strDp2WeiXinLogDir);
         }
     }
 }

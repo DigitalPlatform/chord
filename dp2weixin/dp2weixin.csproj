@@ -87,9 +87,6 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="dp2MessageHandler\dp2MessageContext.cs" />
-    <Compile Include="dp2MessageHandler\dp2MessageHandler.cs" />
-    <Compile Include="dp2MessageHandler\dp2MessageHandler_Events.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -125,6 +122,10 @@
     <ProjectReference Include="..\dp2Command.Server\dp2Command.Server.csproj">
       <Project>{a77b8a4a-3ae8-4bd7-b09a-bf8d92fe802d}</Project>
       <Name>dp2Command.Server</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\dp2weixin.service\dp2weixin.service.csproj">
+      <Project>{8085b933-f69e-4a89-97eb-0a61d115c69f}</Project>
+      <Name>dp2weixin.service</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
