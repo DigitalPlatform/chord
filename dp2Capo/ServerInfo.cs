@@ -33,6 +33,26 @@ namespace dp2Capo
             }
         }
 
+        // 运用控制台显示方式，设置一个实例的基本参数
+        public static void ChangeInstanceSettings(string strDataDir, int index)
+        {
+            DirectoryInfo root = new DirectoryInfo(strDataDir);
+            var dis = root.GetDirectories();
+            int i = 0;
+            foreach (DirectoryInfo di in dis)
+            {
+                string strXmlFileName = Path.Combine(di.FullName, "capo.xml");
+                
+                if ( i == index)
+                {
+                    Instance.ChangeSettings(strXmlFileName);
+                    return;
+                }
+                i++;
+            }
+
+            throw new Exception("下标 "+index.ToString()+" 超过了当前实际存在的实例数");
+        }
         // 准备退出
         public static void Exit()
         {
