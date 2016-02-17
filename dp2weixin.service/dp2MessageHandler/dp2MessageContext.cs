@@ -15,7 +15,7 @@ using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using Senparc.Weixin.MP.Entities;
-using dp2Command.Server;
+using dp2Command.Service;
 
 namespace dp2weixin
 {

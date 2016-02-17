@@ -30,7 +30,7 @@ using Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler;
 using Senparc.Weixin.MP.MvcExtension;
 using Senparc.Weixin.MP;
 using dp2weixin;
-using dp2Command.Server;
+using dp2Command.Service;
 
 namespace dp2weixinP2P.Controllers
 {

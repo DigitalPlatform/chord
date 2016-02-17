@@ -7,7 +7,7 @@ using Senparc.Weixin.MP.Entities;
 using Senparc.Weixin.MP.Helpers;
 using Senparc.Weixin.MP.MessageHandlers;
 using Senparc.Weixin.Context;
-using dp2Command.Server;
+using dp2Command.Service;
 namespace dp2weixin
 {
     /// <summary>

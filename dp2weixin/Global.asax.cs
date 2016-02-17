@@ -7,7 +7,7 @@ using System.Web.SessionState;
 //using dp2weixin.dp2RestfulApi;
 using System.Web.Configuration;
 using DigitalPlatform.IO;
-using dp2Command.Server;
+using dp2Command.Service;
 
 namespace dp2weixin
 {

@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace dp2Command.Server
+namespace dp2Command.Service
 {
     public class dp2CommandService
     {

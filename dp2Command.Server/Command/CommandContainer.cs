@@ -1,11 +1,10 @@
-﻿using dp2Command.Server.Command;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace dp2Command.Server
+namespace dp2Command.Service
 {
     public class CommandContainer
     {

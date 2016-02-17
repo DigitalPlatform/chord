@@ -16,9 +16,9 @@ using DigitalPlatform.IO;
 using System.Diagnostics;
 using DigitalPlatform;
 using DigitalPlatform.Text;
-using dp2Command.Server;
-using dp2Command.Server.Command;
+using dp2Command.Service;
 using DigitalPlatform.LibraryRestClient;
+using dp2Command.Service;
 
 namespace dp2weixin
 {
