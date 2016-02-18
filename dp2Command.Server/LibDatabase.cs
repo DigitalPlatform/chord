@@ -10,22 +10,6 @@ using System.Threading.Tasks;
 namespace dp2Command.Service
 {
 
-    public class LibItem
-    {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string id { get; set; } //private todo mongodb怎么取值
-
-        public string libCode { get; set; }
-        public string libName { get; set; }
-        public string libP2PAccount { get; set; }
-
-
-        public string comment { get; set; }  // 注释
-
-        public string OperTime { get; set; } // 操作时间
-
-    }
 
     /// <summary>
     /// 用户数据库
@@ -209,6 +193,22 @@ namespace dp2Command.Service
 
     }
 
+    public class LibItem
+    {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string id { get; private set; }
+
+        public string libCode { get; set; }
+        public string libName { get; set; }
+        public string libP2PAccount { get; set; }
+
+
+        public string comment { get; set; }  // 注释
+
+        public string OperTime { get; set; } // 操作时间
+
+    }
     /*
     public class LibraryRespository
     {
