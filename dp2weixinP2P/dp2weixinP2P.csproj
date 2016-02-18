@@ -114,7 +114,6 @@
     <Content Include="Content\layer.m.css" />
     <Content Include="Content\sticky-footer-navbar.css" />
     <Content Include="Global.asax" />
-    <Content Include="LibraryM.html" />
     <Content Include="Scripts\bootstrap.js" />
     <None Include="Scripts\jquery-1.6.4-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.4.js" />
@@ -132,6 +131,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiControllers\LibraryController.cs" />
+    <Compile Include="ApiControllers\WxUserController.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />

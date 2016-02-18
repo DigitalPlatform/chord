@@ -51,7 +51,9 @@ namespace dp2weixinP2P
                 strDp2Password,
                 strDp2WeiXinUrl,
                 strDp2WeiXinLogDir,
-                false);//todo 使用mongodb
+                true,
+                mongoDbConnStr,
+                instancePrefix);
         }
     }
 }

@@ -34,7 +34,7 @@ namespace dp2weixin
                 strDp2Password,
                 strDp2WeiXinUrl,
                 strDp2WeiXinLogDir,
-                false);
+                false,"","");
         }
 
     }

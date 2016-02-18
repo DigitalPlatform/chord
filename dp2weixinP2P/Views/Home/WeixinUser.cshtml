@@ -3,5 +3,126 @@
     ViewBag.Title = "WeixinUser";
 }
 
-<h2>WeixinUser</h2>
+@section Scripts {
+
+    <script>
+    var model = {
+        wxUsers: ko.observableArray()
+    }
+
+    //用于获取图书馆
+    function getAllUsers() {
+        //显示等待图层
+        var index = loadLayer();
+
+        //alert("getAllUsers");
+
+        // 先删除可观察数组中的已有数据
+        model.wxUsers.removeAll();
+
+        // 调web api
+        var url = "/api/wxuser";
+        sendAjaxRequest(url, "GET", function (data) {
+            for (var i = 0; i < data.length; i++) {
+                //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                model.wxUsers.push(data[i]);
+            }
+
+            // 关闭等待层
+            layer.close(index);
+
+        }, function (xhq, textStatus, errorThrown) {
+
+            alert(errorThrown);
+            // 关闭等待层
+            layer.close(index);
+        });
+    }
+
+    // 删除一项
+    function removeUser(item) {
+        //alert("remove-"+item.libId);
+        var url = "/api/wxuser/" + item.id;
+        sendAjaxRequest(url, "DELETE", function () {
+            //getAllLib();
+            for (var i = 0; i < model.wxUsers().length; i++) {
+                if (model.wxUsers()[i].id == item.id) {
+                    model.wxUsers.remove(model.wxUsers()[i]);
+                    break;
+                }
+            }
+
+        }, function (xhq, textStatus, errorThrown) {
+            alert(errorThrown);
+        });
+    }
+        
+
+    //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+    //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+    $(document).ready(function () {
+
+        // 获取所有的操作命令
+        getAllUsers();
+        ko.applyBindings(model);
+    })
+
+    // 显示等待图层
+    function loadLayer() {
+        return layer.open({
+            type: 2,
+            shadeClose: false
+        });
+    }
+
+    // 得到虚拟目录路径
+    function getRootPath() {
+        var pathName = window.location.pathname.substring(1);
+        var webName = pathName == '' ? '' : pathName.substring(0, pathName.indexOf('/'));
+        var rootPath = window.location.protocol + '//' + window.location.host;//+ '/' + webName;
+        return rootPath;
+    }
+
+    // ajax请求
+    function sendAjaxRequest(url, httpMethod, successCallback, errorCallback, mydata, myasync) {
+
+        var apiFullPath = getRootPath() + url;
+        //alert(rootPath +url);
+        $.ajax(apiFullPath, {
+            type: httpMethod,
+            success: successCallback,
+            error: errorCallback,
+            data: mydata,
+            async: myasync
+        });
+    }
+
+
+
+    </script>
+
+}
+
+
+<div class="col-md-12" >
+    <center><h3>用户列表</h3></center>
+    <table class="table table-striped">
+        <thead>
+            <tr><th>微信id</th><th>馆代码</th><th>证条码号</th><th>姓名</th><th>创建时间</th><th>操作</th></tr>
+        </thead>
+        <tbody data-bind="foreach:model.wxUsers">
+            <tr>
+                <td data-bind="text:weixinId"></td>
+                <td data-bind="text:libCode"></td>
+                <td data-bind="text:readerBarcode"></td>
+                <td data-bind="text:readerName"></td>
+                <td data-bind="text:CreateTime"></td>
+                <td>
+                    <button class="btn btn-xs btn-default" data-bind="click: removeUser">X</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
 

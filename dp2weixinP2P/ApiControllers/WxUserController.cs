@@ -8,32 +8,32 @@ using System.Web.Http;
 
 namespace dp2weixinP2P.ApiControllers
 {
-    public class LibraryController : ApiController
+    public class WxUserController : ApiController
     {
         //private LibraryRespository repo = LibraryRespository.Current;
-        private LibDatabase repo = LibDatabase.Current;    
+        private WxUserDatabase repo = WxUserDatabase.Current;
 
         // GET api/<controller>
-        public IEnumerable<LibItem> Get()
+        public IEnumerable<WxUserItem> Get()
         {
-            List<LibItem> list = repo.GetLibs();//"*", 0, -1).Result;
+            List<WxUserItem> list = repo.GetUsers();//"*", 0, -1).Result;
             return list;
         }
 
         // GET api/<controller>/5
-        public LibItem Get(string id)
+        public WxUserItem Get(string id)
         {
-            return repo.GetLibById(id);
+            return repo.GetOneByWeixinId(id);
         }
 
         // POST api/<controller>
-        public LibItem Post(LibItem item)
+        public WxUserItem Post(WxUserItem item)
         {
             return repo.Add(item);
         }
 
         // PUT api/<controller>/5
-        public long Put(LibItem item)
+        public long Put(WxUserItem item)
         {
             return repo.Update(item).Result;
         }

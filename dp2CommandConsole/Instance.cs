@@ -56,7 +56,8 @@ namespace dp2ConsoleToWeiXin
                 strDp2UserName,
                 strDp2Password,
                 strDp2WeiXinUrl,
-                strDp2WeiXinLogDir,false);
+                strDp2WeiXinLogDir,
+                false,"","");
 
             //命令集合
             this.CmdContiner = new CommandContainer();
@@ -242,7 +243,8 @@ namespace dp2ConsoleToWeiXin
             }
 
             // 解除绑定
-            lRet = dp2CommandService.Instance.Unbinding(this.ReaderBarcode, out strError);
+            lRet = dp2CommandService.Instance.Unbinding(this.WeiXinId,
+                this.ReaderBarcode, out strError);
             if (lRet == -1 || lRet == 0)
             {
                 Console.WriteLine(strError);

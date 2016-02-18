@@ -53,31 +53,29 @@ namespace dp2Command.Service
 
             //图书馆点对点账号
             _wxUserCollection = this._database.GetCollection<WxUserItem>("item");
-
-            /*
+            
             // todo 创建索引            
             bool bExist = false;
-            var indexes = _libCollection.Indexes.ListAsync().Result.ToListAsync().Result;
+            var indexes = _wxUserCollection.Indexes.ListAsync().Result.ToListAsync().Result;
             foreach (BsonDocument doc in indexes)
             {
             }
             // _logCollection.DropAllIndexes();
             if (bExist == false)
             {
-                //await CreateIndex();
+                CreateIndex();
             }
-             */
+             
         }
 
         // 创建索引
-        public async Task CreateIndex()
-        {
-            /*
-            var options = new CreateIndexOptions() { Unique = true };
-            await _libCollection.Indexes.CreateOneAsync(
-                Builders<LibItem>.IndexKeys.Ascending("libCode"),
-                options);
-             */
+        public void CreateIndex()
+        {            
+            var options = new CreateIndexOptions() { Unique = false };  //不唯一，一个微信用户可能对应多个读者
+            _wxUserCollection.Indexes.CreateOne(
+                Builders<WxUserItem>.IndexKeys.Ascending("weixinId"),
+                options); 
+            
         }
 
         // 清除集合内的全部内容
@@ -91,65 +89,46 @@ namespace dp2Command.Service
             // https://docs.mongodb.org/getting-started/csharp/remove/
             var filter = new BsonDocument();
             await _wxUserCollection.DeleteManyAsync(filter);
-            //await CreateIndex();
+            CreateIndex();
         }
 
-        public WxUserItem GetLibById(string id)
+        //只返回一个
+        public WxUserItem GetOneByWeixinId(string weixinId)
         {
-            var filter = Builders<WxUserItem>.Filter.Eq("id", id);
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId);
 
-            var list = this.wxUserCollection.Find(new BsonDocument("id", id)).ToListAsync().Result;
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();//.ToListAsync().Result;
             if (list.Count > 0)
                 return list[0];
 
             return null;
         }
 
-        public List<WxUserItem> GetLibs()
+        public List<WxUserItem> GetByWeixinId(string weixinId)
         {
-            return this.wxUserCollection.Find(new BsonDocument()).ToListAsync().Result;
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId);
+
+            return this.wxUserCollection.Find(filter).ToList();//.ToListAsync().Result;
         }
 
         /// <summary>
-        /// 根据libCode获得图书馆对象
+        /// 查找所有用户
         /// </summary>
-        /// <param name="libCode">*获取全部</param>
-        /// <param name="start">0</param>
-        /// <param name="count">-1</param>
         /// <returns></returns>
-        public async Task<List<WxUserItem>> GetLibs(string libCode,
-            int start,
-            int count)
+        public List<WxUserItem> GetUsers()
         {
-            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
+            IFindFluent<WxUserItem,WxUserItem> f= this.wxUserCollection.Find(new BsonDocument());
+            if (f != null)
+                return f.ToList();
 
-            List<WxUserItem> results = new List<WxUserItem>();
-
-            var filter = Builders<WxUserItem>.Filter.Eq("libCode", libCode);
-            var index = 0;
-            using (var cursor = await collection.FindAsync(
-                libCode == "*" ? new BsonDocument() : filter
-                ))
-            {
-                while (await cursor.MoveNextAsync())
-                {
-                    var batch = cursor.Current;
-                    foreach (var document in batch)
-                    {
-                        if (count != -1 && index - start >= count)
-                            break;
-                        if (index >= start)
-                            results.Add(document);
-                        index++;
-                    }
-                }
-            }
-            return results;
+            return null;
         }
+
+
 
         public WxUserItem Add(WxUserItem item)
         {
-            item.CreateTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
+            //item.CreateTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
 
             this.wxUserCollection.InsertOne(item);
 
@@ -165,6 +144,7 @@ namespace dp2Command.Service
             var update = Builders<WxUserItem>.Update
                 .Set("weixinId", item.weixinId)
                 .Set("readerBarcode", item.readerBarcode)
+                .Set("readerBarcode", item.readerName)
                 .Set("libCode", item.libCode)
                 .Set("CreateTime", item.CreateTime);
 
@@ -186,6 +166,23 @@ namespace dp2Command.Service
             collection.DeleteOne(filter);
         }
 
+        /// <summary>
+        /// 删除绑定
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="readerBarcode"></param>
+        public long Delete(String weixinId, string readerBarcode)
+        {
+            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
+          
+            var builder = Builders<WxUserItem>.Filter;
+            var filter = builder.Eq("weixinId", weixinId) & builder.Eq("readerBarcode", readerBarcode);
+
+            DeleteResult ret = collection.DeleteOne(filter);
+
+            return ret.DeletedCount;
+        }
+
     }
     public class WxUserItem
     {
@@ -195,6 +192,9 @@ namespace dp2Command.Service
 
         public string weixinId { get; set; }
         public string readerBarcode { get; set; }
+
+        public string readerName { get; set; }
+
         public string libCode { get; set; }
 
         public string CreateTime { get; set; } // 操作时间

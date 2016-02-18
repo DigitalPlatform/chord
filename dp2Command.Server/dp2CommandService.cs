@@ -73,7 +73,9 @@ namespace dp2Command.Service
             string strDp2Password,
             string strDp2WeiXinUrl,
             string strDp2WeiXinLogDir,
-            bool isUseMongoDb)
+            bool isUseMongoDb,
+            string mongoDbConnStr,
+            string instancePrefix)
         {
             this.dp2Url = strDp2Url;
             this.dp2UserName = strDp2UserName;
@@ -86,8 +88,12 @@ namespace dp2Command.Service
             ChannelPool.BeforeLogin -= new BeforeLoginEventHandle(Channel_BeforeLogin);
             ChannelPool.BeforeLogin += new BeforeLoginEventHandle(Channel_BeforeLogin);
 
-            //
+            // 使用mongodb存储微信用户与读者绑定关系
             this.IsUseMongoDb = isUseMongoDb;
+            if (this.IsUseMongoDb == true)
+            {
+                WxUserDatabase.Current.Open(mongoDbConnStr, instancePrefix);
+            }
         }
 
 
@@ -110,7 +116,7 @@ namespace dp2Command.Service
             e.LibraryServerUrl = channel.Url;
             e.UserName = channel.UserName;
             e.Password = channel.Password;
-            e.Parameters = "client=ilovelibrary|1.0"; //todo
+            e.Parameters = "client=ilovelibrary|1.0"; //todo 写到这里合适吗
         }
 
         #region 检索相关
@@ -477,11 +483,23 @@ out string strError)
 
                     // 绑定成功，把读者证条码记下来，用于续借 2015/11/7，不要用strbarcode变量，因为可能做的大小写转换
                     strReaderBarcode = DomUtil.GetNodeText(readerDom.DocumentElement.SelectSingleNode("barcode"));                    
-                    
-                    // todo 存在mongodb
+
+                    // 将关系存到mongodb库
                     if (this.IsUseMongoDb == true)
                     {
- 
+                        //name
+                        string name = "";
+                        XmlNode node = readerDom.DocumentElement.SelectSingleNode("name");
+                        if (node != null)
+                            name = DomUtil.GetNodeText(node);
+
+                        WxUserItem userItem = new WxUserItem();
+                        userItem.weixinId = strWeiXinId;
+                        userItem.readerBarcode = strBarcode;
+                        userItem.readerName = name;
+                        userItem.libCode = "";
+                        userItem.CreateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                        WxUserDatabase.Current.Add(userItem); 
                     }
                     
                     return 1;
@@ -521,7 +539,7 @@ out string strError)
             {
                 strWeiXinId = dp2CommandUtility.C_WeiXinIdPrefix + strWeiXinId;//weixinid:
 
-                // todo 从mongodb
+                // 先从mongodb查
                 if (this.IsUseMongoDb == true)
                 {
 
@@ -556,6 +574,28 @@ out string strError)
                         strError = "获取结果集异常:" + strError;
                         return -1;
                     }
+
+                    XmlDocument dom = new XmlDocument();
+                    dom.LoadXml(strXml);
+                    string strBarcode = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("barcode"));
+                    // 将关系存到mongodb库
+                    if (this.IsUseMongoDb == true)
+                    {
+                        //name
+                        string name = "";
+                        XmlNode node = dom.DocumentElement.SelectSingleNode("name");
+                        if (node != null)
+                            name = DomUtil.GetNodeText(node);
+
+                        WxUserItem userItem = new WxUserItem();
+                        userItem.weixinId = strWeiXinId;
+                        userItem.readerBarcode = strBarcode;
+                        userItem.readerName = name;
+                        userItem.libCode = "";
+                        userItem.CreateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                        WxUserDatabase.Current.Add(userItem);
+                    }
+                    
                 }
             }
             finally
@@ -576,7 +616,8 @@ out string strError)
         /// 0   本来就未绑定，不需解绑
         /// 1   解除绑定成功
         /// </returns>
-        public int Unbinding(string strReaderBarcode, out string strError)
+        public int Unbinding(string weixinId,
+            string strReaderBarcode, out string strError)
         {
             strError = "";
 
@@ -652,11 +693,10 @@ out string strError)
                     return -1;
                 }
 
-                // todo 从mongodb删除
+                // 从mongodb删除
                 if (this.IsUseMongoDb == true)
                 {
-
-                    
+                    long nCount = WxUserDatabase.Current.Delete(weixinId,strReaderBarcode);                    
                 }
 
                 return 1;

@@ -378,7 +378,8 @@ namespace dp2weixin
             }
 
             // 解除绑定
-            lRet = this.CmdService.Unbinding(this.CurrentMessageContext.ReaderBarcode, out strError);
+            lRet = this.CmdService.Unbinding(this.CurrentMessageContext.UserName,
+                this.CurrentMessageContext.ReaderBarcode, out strError);
             if (lRet == -1 || lRet == 0)
             {
                 return this.CreateTextResponseMessage(strError);
