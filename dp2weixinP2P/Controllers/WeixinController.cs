@@ -30,6 +30,7 @@ using Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler;
 using Senparc.Weixin.MP.MvcExtension;
 using Senparc.Weixin.MP;
 using dp2weixin;
+using dp2Command.Service;
 
 namespace dp2weixinP2P.Controllers
 {
@@ -101,8 +102,9 @@ namespace dp2weixinP2P.Controllers
             */
 
             //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
-            var messageHandler = new dp2MessageHandler(Request.InputStream, postModel, maxRecordCount);
-            messageHandler.dp2WeiXinAppDir = Server.MapPath("~");
+            var messageHandler = new dp2MessageHandler(dp2CommandService.Instance,
+                Request.InputStream, postModel, maxRecordCount);
+            messageHandler.Init(Server.MapPath("~"), true);
             try
             {
                 /*
@@ -133,6 +135,8 @@ namespace dp2weixinP2P.Controllers
                     messageHandler.FinalResponseDocument.Save(Path.Combine(logPath, string.Format("{0}_Response_Final_{1}.txt", _getRandomFileName(), messageHandler.RequestMessage.FromUserName)));
                 }
                  */
+
+
                 //return Content(messageHandler.ResponseDocument.ToString());//v0.7-
                 //return new FixWeixinBugWeixinResult(messageHandler);//为了解决官方微信5.0软件换行bug暂时添加的方法，平时用下面一个方法即可
                 return new WeixinResult(messageHandler);//v0.8+

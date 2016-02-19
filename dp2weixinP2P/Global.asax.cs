@@ -8,8 +8,9 @@ using System.Web.Security;
 using System.Web.SessionState;
 using System.Web.Http;
 using System.Web.Configuration;
-using dp2Command.Server;
+using dp2Command.Service;
 using DigitalPlatform.IO;
+using dp2Command.Service;
 
 namespace dp2weixinP2P
 {
@@ -45,11 +46,14 @@ namespace dp2weixinP2P
             string strDp2WeiXinUrl = "http://dp2003.com/dp2weixin";
 
             // 初始化命令服务类
-            dp2CommandServer.Instance.Init(strDp2Url,
+            dp2CommandService.Instance.Init(strDp2Url,
                 strDp2UserName,
                 strDp2Password,
                 strDp2WeiXinUrl,
-                strDp2WeiXinLogDir);
+                strDp2WeiXinLogDir,
+                true,
+                mongoDbConnStr,
+                instancePrefix);
         }
     }
 }

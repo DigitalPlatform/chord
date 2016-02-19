@@ -92,9 +92,9 @@
       <Project>{1b74d69a-530f-4275-845b-8ca6d1463bdd}</Project>
       <Name>DigitalPlatform.LibraryRestClient</Name>
     </ProjectReference>
-    <ProjectReference Include="..\dp2Command.Server\dp2Command.Server.csproj">
+    <ProjectReference Include="..\dp2Command.Server\dp2Command.Service.csproj">
       <Project>{a77b8a4a-3ae8-4bd7-b09a-bf8d92fe802d}</Project>
-      <Name>dp2Command.Server</Name>
+      <Name>dp2Command.Service</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

@@ -43,15 +43,6 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
-    <Reference Include="MongoDB.Bson">
-      <HintPath>..\packages\MongoDB.Bson.2.2.3\lib\net45\MongoDB.Bson.dll</HintPath>
-    </Reference>
-    <Reference Include="MongoDB.Driver">
-      <HintPath>..\packages\MongoDB.Driver.2.2.3\lib\net45\MongoDB.Driver.dll</HintPath>
-    </Reference>
-    <Reference Include="MongoDB.Driver.Core">
-      <HintPath>..\packages\MongoDB.Driver.Core.2.2.3\lib\net45\MongoDB.Driver.Core.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -123,7 +114,6 @@
     <Content Include="Content\layer.m.css" />
     <Content Include="Content\sticky-footer-navbar.css" />
     <Content Include="Global.asax" />
-    <Content Include="LibraryM.html" />
     <Content Include="Scripts\bootstrap.js" />
     <None Include="Scripts\jquery-1.6.4-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.4.js" />
@@ -141,6 +131,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiControllers\LibraryController.cs" />
+    <Compile Include="ApiControllers\WxUserController.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -154,7 +145,6 @@
     <Compile Include="MessageHandlers\CustomMessageHandler\CustomMessageHandler_Events.cs" />
     <Compile Include="Models\MessageModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="LibDatabase.cs" />
     <Compile Include="Results\WeixinResult.cs" />
     <Compile Include="Utilities\Server.cs" />
     <Compile Include="WeiXinClientUtil.cs" />
@@ -191,9 +181,9 @@
       <Project>{1b74d69a-530f-4275-845b-8ca6d1463bdd}</Project>
       <Name>DigitalPlatform.LibraryRestClient</Name>
     </ProjectReference>
-    <ProjectReference Include="..\dp2Command.Server\dp2Command.Server.csproj">
+    <ProjectReference Include="..\dp2Command.Server\dp2Command.Service.csproj">
       <Project>{a77b8a4a-3ae8-4bd7-b09a-bf8d92fe802d}</Project>
-      <Name>dp2Command.Server</Name>
+      <Name>dp2Command.Service</Name>
     </ProjectReference>
     <ProjectReference Include="..\dp2weixin.service\dp2weixin.service.csproj">
       <Project>{8085b933-f69e-4a89-97eb-0a61d115c69f}</Project>

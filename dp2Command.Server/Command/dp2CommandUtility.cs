@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace dp2Command.Server
+namespace dp2Command.Service
 {
     public class dp2CommandUtility
     {

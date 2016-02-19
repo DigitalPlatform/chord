@@ -119,9 +119,9 @@
       <Project>{e6489e89-1349-4ee7-a00b-ac96b9912587}</Project>
       <Name>DigitalPlatform.Xml</Name>
     </ProjectReference>
-    <ProjectReference Include="..\dp2Command.Server\dp2Command.Server.csproj">
+    <ProjectReference Include="..\dp2Command.Server\dp2Command.Service.csproj">
       <Project>{a77b8a4a-3ae8-4bd7-b09a-bf8d92fe802d}</Project>
-      <Name>dp2Command.Server</Name>
+      <Name>dp2Command.Service</Name>
     </ProjectReference>
     <ProjectReference Include="..\dp2weixin.service\dp2weixin.service.csproj">
       <Project>{8085b933-f69e-4a89-97eb-0a61d115c69f}</Project>

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace dp2Command.Server
+namespace dp2Command.Service
 {
     public class BaseCommand
     {

@@ -27,7 +27,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.IO", "Digit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.LibraryRestClient", "DigitalPlatform.LibraryRestClient\DigitalPlatform.LibraryRestClient.csproj", "{1B74D69A-530F-4275-845B-8CA6D1463BDD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2Command.Server", "dp2Command.Server\dp2Command.Server.csproj", "{A77B8A4A-3AE8-4BD7-B09A-BF8D92FE802D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2Command.Service", "dp2Command.Server\dp2Command.Service.csproj", "{A77B8A4A-3AE8-4BD7-B09A-BF8D92FE802D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2CommandConsole", "dp2CommandConsole\dp2CommandConsole.csproj", "{AA0ADD05-854B-43F9-8C57-9A8768C7A564}"
 EndProject
