@@ -31,6 +31,7 @@ namespace DigitalPlatform.ServiceProcess
             EventLogEntryType type)
         {
             EventLog Log = new EventLog();
+            Debug.Assert(string.IsNullOrEmpty(ServiceShortName) == false, "");
             Log.Source = ServiceShortName;
             Log.WriteEntry(strText, type);
         }

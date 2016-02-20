@@ -21,3 +21,7 @@ dp2Capo -- 为 dp2library 提供点对点接口，以允许 dp2 V3 项目模块�
 而一级目录名配置在 settings 里面就可以了。如果按照 dp2library 等的习惯，这些信息是要配置到 registry 里面的，但 registry 方法不利于软件绿色安装。
 
 可以开发一个对话框配置界面让控制台程序调用它。
+
+~~~
+
+注册 Windows Service 的时候，需要一并开辟好 Event Log 的 source
