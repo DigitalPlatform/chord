@@ -22,7 +22,7 @@ namespace dp2Command.Service
                 return CmdDict[cmdName];
             }
 
-            // todo这里改为具体的类型
+            // 不存在自动创建
             BaseCommand command = null;
             if (cmdName == dp2CommandUtility.C_Command_Search)
             {

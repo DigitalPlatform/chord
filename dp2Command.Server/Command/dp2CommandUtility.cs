@@ -7,6 +7,10 @@ namespace dp2Command.Service
 {
     public class dp2CommandUtility
     {
+        // 2016/2/20 选择图书馆
+        public const string C_Command_SelectLib = "selectlib";
+             
+
         public const string C_Command_Binding = "binding";
         public const string C_Command_Unbinding = "unbinding";
         public const string C_Command_MyInfo = "myinfo";
@@ -38,7 +42,9 @@ namespace dp2Command.Service
                 || strText == C_Command_BorrowInfo
                 || strText == C_Command_Renew
                 || strText == C_Command_BookRecommend
-                || strText == C_Command_Notice)
+                || strText == C_Command_Notice
+                || strText == C_Command_SelectLib
+                )
             {
                 return true;
             }
