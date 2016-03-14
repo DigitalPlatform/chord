@@ -34,6 +34,8 @@ namespace dp2weixin
         private string Dp2WeiXinAppDir = "";
         // 是否显示消息路径
         private bool IsDisplayPath = true;
+        // 是否需要选择图书馆
+        private bool IsNeedSelectLib = false;
 
         /// <summary>
         /// 构造函数
@@ -52,10 +54,11 @@ namespace dp2weixin
         }
 
         // 初始化
-        public void Init(string dp2weixinAppDir, bool isDisplayPath)
+        public void Init(string dp2weixinAppDir, bool isDisplayPath,bool isNeedSelectLib)
         {
             this.Dp2WeiXinAppDir = dp2weixinAppDir;
             this.IsDisplayPath = isDisplayPath;
+            this.IsNeedSelectLib = isNeedSelectLib;
         }
 
         /// <summary>
@@ -135,6 +138,32 @@ namespace dp2weixin
             strCommand = strCommand.ToLower();
 
             //=========================
+
+            // todo selectlib
+            if (this.IsNeedSelectLib == true)
+            {
+                if (strCommand == dp2CommandUtility.C_Command_SelectLib)
+                {
+                    return this.DoSelectLib(strParam);
+                }
+                else
+                {
+                    // 进行其它命令前，如果尚未选择访问的图书馆，提示请先选择图书馆
+                    if (this.CurrentMessageContext.LibCode == "")
+                    {
+                        List<LibItem> libs = LibDatabase.Current.GetLibs();
+                        string text = "";
+                        foreach (LibItem item in libs)
+                        {
+                            text += item.libCode + "\t" + item.libName + "\n";
+                        }
+                        text = "请选择要访问图书馆，回复:selectlib 图书馆代码\n" + text;
+                        return this.CreateTextResponseMessage(text);
+                    }
+                }
+            }
+
+
             // 检索命令
             if (strCommand == dp2CommandUtility.C_Command_Search)
             {
@@ -194,6 +223,29 @@ namespace dp2weixin
             // 不认识的命令
             return DoUnknownCmd(strText);
 
+        }
+
+        private IResponseMessageBase DoSelectLib(string strParam)
+        {
+            // 设置当前命令
+            this.CurrentMessageContext.CurrentCmdName = dp2CommandUtility.C_Command_Renew;
+            long lRet = 0;
+            string strError = "";
+
+            if (strParam == "")
+            {
+                List<LibItem> libs = LibDatabase.Current.GetLibs();
+                string text = "";
+                foreach (LibItem item in libs)
+                {
+                    text += item.libCode + "\t" + item.libName + "\n";
+                }
+                text = "请选择要访问图书馆，回复:selectlib 图书馆代码\n" + text;
+                return this.CreateTextResponseMessage(text);
+            }
+
+            this.CurrentMessageContext.LibCode = strParam;
+            return this.CreateTextResponseMessage("您成功选定图书馆" + strParam);
         }
 
 
@@ -506,7 +558,7 @@ namespace dp2weixin
             }
 
 
-            // 目前只认作册条码，todo支持序与
+            // 目前只认作册条码，todo支持序号
             BorrowInfo borrowInfo = null;
             lRet = this.CmdService.Renew(this.CurrentMessageContext.ReaderBarcode,
                 strParam,

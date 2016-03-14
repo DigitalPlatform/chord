@@ -59,6 +59,7 @@ namespace dp2Command.Service
 
         // 是否使用mongodb存储微信用户与读者关系
         private bool IsUseMongoDb = false;
+        //private bool IsBindingLib = false;
 
         /// <summary>
         /// 构造函数
@@ -75,7 +76,8 @@ namespace dp2Command.Service
             string strDp2WeiXinLogDir,
             bool isUseMongoDb,
             string mongoDbConnStr,
-            string instancePrefix)
+            string instancePrefix //bool isBindingLib
+            )
         {
             this.dp2Url = strDp2Url;
             this.dp2UserName = strDp2UserName;
@@ -94,6 +96,7 @@ namespace dp2Command.Service
             {
                 WxUserDatabase.Current.Open(mongoDbConnStr, instancePrefix);
             }
+            //this.IsBindingLib = isBindingLib;
         }
 
 

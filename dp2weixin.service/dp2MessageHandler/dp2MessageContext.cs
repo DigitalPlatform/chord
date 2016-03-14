@@ -37,6 +37,9 @@ namespace dp2weixin
         // 当前命令路径,该变量主要用于输入
         public string CurrentCmdPath = "";
 
+        // 图书馆代码
+        public string LibCode = "";
+
         /// <summary>
         /// 构造函数
         /// </summary>
