@@ -8,6 +8,11 @@ namespace dp2ConsoleToWeiXin
 {
     class Program
     {
+        public Program()
+        {
+            string text = "123";
+        }
+
         static void Main(string[] args)
         {
             using (Instance instance = new Instance())
