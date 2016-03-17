@@ -406,41 +406,6 @@ out string strError)
 
         #region 绑定解绑
 
-        public string CheckIsSelectLib(string strWeiXinId)
-        {
-            WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
-            if (userItem == null)
-                return "";
-
-            if (userItem.libCode=="")
-                return "";
-
-            return userItem.libCode;
-        }
-
-        public void SelectLib(string strWeiXinId, string libCode)
-        {
-            WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
-            if (userItem == null)
-            {
-                userItem = new WxUserItem();
-                userItem.weixinId = strWeiXinId;
-                userItem.libCode = libCode;
-                userItem.readerBarcode = "";
-                userItem.readerName = "";
-                userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                WxUserDatabase.Current.Add(userItem);
-            }
-            else
-            {
-                userItem.libCode = libCode;
-                userItem.readerBarcode = "";
-                userItem.readerName = "";
-                userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                WxUserDatabase.Current.Update(userItem);
-            }
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -531,25 +496,13 @@ out string strError)
                         if (node != null)
                             name = DomUtil.GetNodeText(node);
 
-                        WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
-                        if (userItem == null)
-                        {
-                            // 大微信号管理多个图书馆不可能出现不存在的情况，必然先选择了图书馆
-                            userItem = new WxUserItem();
-                            userItem.weixinId = strWeiXinId;
-                            userItem.libCode = "";
-                            userItem.readerBarcode = "";
-                            userItem.readerName = "";
-                            userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                            WxUserDatabase.Current.Add(userItem);
-                        }
-                        else
-                        {
-                            userItem.readerBarcode = strBarcode;
-                            userItem.readerName = name;
-                            userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                            lRet = WxUserDatabase.Current.Update(userItem);
-                        }
+                        WxUserItem userItem = new WxUserItem();
+                        userItem.weixinId = strWeiXinId;
+                        userItem.readerBarcode = strBarcode;
+                        userItem.readerName = name;
+                        userItem.libCode = "";
+                        userItem.CreateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                        WxUserDatabase.Current.Add(userItem); 
                     }
                     
                     return 1;
@@ -642,7 +595,7 @@ out string strError)
                         userItem.readerBarcode = strBarcode;
                         userItem.readerName = name;
                         userItem.libCode = "";
-                        userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                        userItem.CreateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
                         WxUserDatabase.Current.Add(userItem);
                     }
                     
