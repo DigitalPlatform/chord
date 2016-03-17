@@ -18,7 +18,7 @@ namespace dp2Capo
         static Program()
         {
             // this.ServiceName = "dp2 Capo Service";
-            ServiceShortName = "dp2capo";
+            ServiceShortName = "dp2Capo";
         }
 
         static void Main(string[] args)
@@ -31,6 +31,43 @@ namespace dp2Capo
                 return;
             }
 
+            // 注册或注销 Windows Service
+            if (args.Length == 1
+        && (args[0].Equals("install") || args[0].Equals("uninstall"))
+        )
+            {
+                bool bInstall = true;
+
+                if (args[0].Equals("uninstall"))
+                    bInstall = false;
+
+                // 注册为 Windows Service
+                string strExePath = Assembly.GetExecutingAssembly().Location;
+                Console.WriteLine((bInstall ? "注册" : "注销") + " Windows Service ...");
+
+                string strError = "";
+                int nRet = ServiceUtil.InstallService(strExePath,
+        bInstall,
+        out strError);
+                if (nRet == -1)
+                    Console.WriteLine("error: " + strError);
+
+                if (bInstall == true)
+                {
+                    // 创建事件日志目录
+                    if (!EventLog.SourceExists(ServiceShortName))   // "dp2Capo"
+                    {
+                        EventLog.CreateEventSource(ServiceShortName, "DigitalPlatform");
+                    }
+                }
+
+                Console.WriteLine();
+                Console.WriteLine("(按回车键返回)");
+                Console.ReadLine();
+                return;
+            }
+
+            // 以控制台方式运行
             if (args.Length == 1 && args[0].Equals("console"))
             {
                 if (Initial() == false)

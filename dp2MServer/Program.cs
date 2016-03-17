@@ -60,9 +60,6 @@ namespace dp2MServer
                 SignalR = null;
             }
 #endif
-            // 2016-3-14 任延华加，因为进main()前不会先进program(),该变量未赋值，导致写日志抛异常。
-            ServiceShortName = "dp2mserver";
-
             // 修改配置
             if (args.Length == 1 && args[0].Equals("setting"))
             {
