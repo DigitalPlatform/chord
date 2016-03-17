@@ -52,7 +52,7 @@ namespace dp2Command.Service
 
         // dp2weixin 
         public string dp2WeiXinUrl = "http://dp2003.com/dp2weixin";
-        public string dp2WeiXinLogDir = "";        
+        public string dp2WeiXinLogDir = "";
 
         // dp2通道池
         public LibraryChannelPool ChannelPool = null;
@@ -69,7 +69,7 @@ namespace dp2Command.Service
         /// <param name="strDp2Password"></param>
         /// <param name="strDp2WeiXinUrl"></param>
         /// <param name="strDp2WeiXinLogDir"></param>
-        public void  Init(string strDp2Url,
+        public void Init(string strDp2Url,
             string strDp2UserName,
             string strDp2Password,
             string strDp2WeiXinUrl,
@@ -246,7 +246,7 @@ namespace dp2Command.Service
         /// <param name="strError"></param>
         /// <returns></returns>
         public int GetDetailBiblioInfo(SearchCommand searchCmd,
-            int  nIndex,
+            int nIndex,
             out string strBiblioInfo,
             out string strError)
         {
@@ -277,7 +277,7 @@ namespace dp2Command.Service
                 {
                     strError = "获取详细信息失败：" + strError;
                     return -1;
-                }               
+                }
             }
             finally
             {
@@ -406,6 +406,41 @@ out string strError)
 
         #region 绑定解绑
 
+        public string CheckIsSelectLib(string strWeiXinId)
+        {
+            WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
+            if (userItem == null)
+                return "";
+
+            if (userItem.libCode == "")
+                return "";
+
+            return userItem.libCode;
+        }
+
+        public void SelectLib(string strWeiXinId, string libCode)
+        {
+            WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
+            if (userItem == null)
+            {
+                userItem = new WxUserItem();
+                userItem.weixinId = strWeiXinId;
+                userItem.libCode = libCode;
+                userItem.readerBarcode = "";
+                userItem.readerName = "";
+                userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                WxUserDatabase.Current.Add(userItem);
+            }
+            else
+            {
+                userItem.libCode = libCode;
+                userItem.readerBarcode = "";
+                userItem.readerName = "";
+                userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                WxUserDatabase.Current.Update(userItem);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -417,8 +452,8 @@ out string strError)
         /// 0 读者证条码号或密码不正确
         /// 1 成功
         /// </returns>
-        public int Binding(string strBarcode, 
-            string strPassword, 
+        public int Binding(string strBarcode,
+            string strPassword,
             string strWeiXinId,
             out string strReaderBarcode,
             out string strError)
@@ -485,7 +520,7 @@ out string strError)
                     }
 
                     // 绑定成功，把读者证条码记下来，用于续借 2015/11/7，不要用strbarcode变量，因为可能做的大小写转换
-                    strReaderBarcode = DomUtil.GetNodeText(readerDom.DocumentElement.SelectSingleNode("barcode"));                    
+                    strReaderBarcode = DomUtil.GetNodeText(readerDom.DocumentElement.SelectSingleNode("barcode"));
 
                     // 将关系存到mongodb库
                     if (this.IsUseMongoDb == true)
@@ -496,15 +531,27 @@ out string strError)
                         if (node != null)
                             name = DomUtil.GetNodeText(node);
 
-                        WxUserItem userItem = new WxUserItem();
-                        userItem.weixinId = strWeiXinId;
-                        userItem.readerBarcode = strBarcode;
-                        userItem.readerName = name;
-                        userItem.libCode = "";
-                        userItem.CreateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                        WxUserDatabase.Current.Add(userItem); 
+                        WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
+                        if (userItem == null)
+                        {
+                            // 大微信号管理多个图书馆不可能出现不存在的情况，必然先选择了图书馆
+                            userItem = new WxUserItem();
+                            userItem.weixinId = strWeiXinId;
+                            userItem.libCode = "";
+                            userItem.readerBarcode = "";
+                            userItem.readerName = "";
+                            userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                            WxUserDatabase.Current.Add(userItem);
+                        }
+                        else
+                        {
+                            userItem.readerBarcode = strBarcode;
+                            userItem.readerName = name;
+                            userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                            lRet = WxUserDatabase.Current.Update(userItem);
+                        }
                     }
-                    
+
                     return 1;
                 }
 
@@ -525,8 +572,8 @@ out string strError)
         /// <param name="strXml"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public long SearchReaderByWeiXinId(string strWeiXinId, 
-            out string strRecPath, 
+        public long SearchReaderByWeiXinId(string strWeiXinId,
+            out string strRecPath,
             out string strXml,
             out string strError)
         {
@@ -548,8 +595,8 @@ out string strError)
 
                     return 0;
                 }
-                
-               
+
+
                 lRet = this.SearchReaderByWeiXinId(channel, strWeiXinId, out strError);
                 if (lRet == -1)
                 {
@@ -595,10 +642,10 @@ out string strError)
                         userItem.readerBarcode = strBarcode;
                         userItem.readerName = name;
                         userItem.libCode = "";
-                        userItem.CreateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                        userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
                         WxUserDatabase.Current.Add(userItem);
                     }
-                    
+
                 }
             }
             finally
@@ -699,7 +746,7 @@ out string strError)
                 // 从mongodb删除
                 if (this.IsUseMongoDb == true)
                 {
-                    long nCount = WxUserDatabase.Current.Delete(weixinId,strReaderBarcode);                    
+                    long nCount = WxUserDatabase.Current.Delete(weixinId, strReaderBarcode);
                 }
 
                 return 1;
@@ -736,7 +783,7 @@ out string strError)
                 return -1;
             }
 
-            if (String.IsNullOrEmpty(strReaderBarcode )==true)
+            if (String.IsNullOrEmpty(strReaderBarcode) == true)
             {
                 strError = "续借失败：内部错误，读者证条码号为空。";
                 return -1;
@@ -757,8 +804,8 @@ out string strError)
             try
             {
 
-                string strOutputReaderBarcode="";
-                string strReaderXml="";
+                string strOutputReaderBarcode = "";
+                string strReaderXml = "";
                 long lRet = channel.Borrow(true,
                     strReaderBarcode,
                     strItemBarcode,
@@ -883,7 +930,7 @@ out string strError)
             if (lRet == -1)
                 return -1;
 
-           // 提取借书信息
+            // 提取借书信息
             lRet = this.GetBorrowsInfoInternal(strXml, out strBorrowInfo);
             if (lRet == -1)
                 return -1;
@@ -899,7 +946,7 @@ out string strError)
         /// <param name="strXml"></param>
         /// <param name="strBorrowInfo"></param>
         /// <returns></returns>
-       private int GetBorrowsInfoInternal(string strXml, out string strBorrowInfo)
+        private int GetBorrowsInfoInternal(string strXml, out string strBorrowInfo)
         {
             strBorrowInfo = "";
 
@@ -908,9 +955,9 @@ out string strError)
             XmlNodeList nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
             if (nodes.Count == 0)
             {
-                strBorrowInfo= "无借阅记录";
+                strBorrowInfo = "无借阅记录";
                 return 0;
-            }            
+            }
 
             Dictionary<string, string> borrowLit = new Dictionary<string, string>();
 
@@ -945,7 +992,7 @@ out string strError)
                     + "借阅时间：" + DateTimeUtil.ToLocalTime(borrow.GetAttribute("borrowDate"), "yyyy-MM-dd HH:mm") + "\n"
                     + "借       期：" + DateTimeUtil.GetDisplayTimePeriodString(borrow.GetAttribute("borrowPeriod")) + "\n"
                     + "应还时间：" + DateTimeUtil.ToLocalTime(borrow.GetAttribute("returningDate"), "yyyy-MM-dd") + "\n"
-                    + "是否超期：" + overdueText+"\n";
+                    + "是否超期：" + overdueText + "\n";
 
 
                 index++; //编号+1
@@ -966,7 +1013,7 @@ out string strError)
         /// <param name="strXml"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        private int GetReaderAdvanceXml(string strReaderBarcode, out string strXml, out string strError) 
+        private int GetReaderAdvanceXml(string strReaderBarcode, out string strXml, out string strError)
         {
             strXml = "";
             strError = "";
@@ -1146,7 +1193,7 @@ out string strError)
 
         #endregion
 
-        
+
         /// <summary>
         /// 专门检索微信用户对应的图书馆账号
         /// </summary>
@@ -1165,7 +1212,7 @@ out string strError)
                 "zh",
                 "weixin",
                 "keyid",
-                out strError);            
+                out strError);
         }
 
         /// <summary>
@@ -1204,6 +1251,6 @@ out string strError)
 
             return lRet;
         }
-        
+
     }
 }
