@@ -36,7 +36,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -45,6 +48,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Installer1.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Installer1.Designer.cs">
+      <DependentUpon>Installer1.cs</DependentUpon>
+    </Compile>
     <Compile Include="Instance.cs" />
     <Compile Include="Program.cs">
       <SubType>Component</SubType>
@@ -72,6 +81,10 @@
     <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj">
       <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
       <Name>DigitalPlatform.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.LibraryClient\DigitalPlatform.LibraryClient.csproj">
+      <Project>{cff3ddab-e444-4a73-aab2-bee66ea510cc}</Project>
+      <Name>DigitalPlatform.LibraryClient</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.MessageClient\DigitalPlatform.MessageClient.csproj">
       <Project>{e4b339d9-4843-40f1-a404-33043adcd6a3}</Project>
