@@ -59,9 +59,6 @@ namespace dp2weixin
             this.Dp2WeiXinAppDir = dp2weixinAppDir;
             this.IsDisplayPath = isDisplayPath;
             this.IsNeedSelectLib = isNeedSelectLib;
-
-            // 检索是否选择了图书馆
-            this.CheckIsSelectLib();
         }
 
         /// <summary>
@@ -154,8 +151,13 @@ namespace dp2weixin
                     // 进行其它命令前，如果尚未选择访问的图书馆，提示请先选择图书馆
                     if (this.CurrentMessageContext.LibCode == "")
                     {
-                        this.CurrentMessageContext.CurrentCmdName = dp2CommandUtility.C_Command_SelectLib;
-                        string text = "您尚未选择图书馆，"+this.getLibList();
+                        List<LibItem> libs = LibDatabase.Current.GetLibs();
+                        string text = "";
+                        foreach (LibItem item in libs)
+                        {
+                            text += item.libCode + "\t" + item.libName + "\n";
+                        }
+                        text = "请选择要访问图书馆，回复:selectlib 图书馆代码\n" + text;
                         return this.CreateTextResponseMessage(text);
                     }
                 }
@@ -226,80 +228,24 @@ namespace dp2weixin
         private IResponseMessageBase DoSelectLib(string strParam)
         {
             // 设置当前命令
-            this.CurrentMessageContext.CurrentCmdName = dp2CommandUtility.C_Command_SelectLib;
+            this.CurrentMessageContext.CurrentCmdName = dp2CommandUtility.C_Command_Renew;
             long lRet = 0;
             string strError = "";
 
             if (strParam == "")
             {
-                string text = this.getLibList();
+                List<LibItem> libs = LibDatabase.Current.GetLibs();
+                string text = "";
+                foreach (LibItem item in libs)
+                {
+                    text += item.libCode + "\t" + item.libName + "\n";
+                }
+                text = "请选择要访问图书馆，回复:selectlib 图书馆代码\n" + text;
                 return this.CreateTextResponseMessage(text);
             }
 
-            // 判断输入是序号还是图书馆代码
-            string libCode = "";
-            string templibCode = "";
-            int nIndex = -1;
-            try
-            {
-                nIndex = Convert.ToInt32(strParam);
-            }
-            catch
-            {
-                templibCode = strParam;
-            }
-
-            List<LibItem> libs = LibDatabase.Current.GetLibs();
-            if (nIndex != -1)
-            {
-                if (nIndex > 0 && nIndex <= libs.Count)
-                {
-                    libCode = libs[nIndex-1].libCode;
-                }
-                else
-                {
-                    string text = "您输入的序号不正确，请重新输入。\n" + this.getLibList();
-                    return this.CreateTextResponseMessage(text);
-                }
-            }
-            else
-            {
-                foreach (LibItem item in libs)
-                {
-                    if (item.libCode == templibCode)
-                    {
-                        libCode = item.libCode;
-                    }
-                }
-
-                if (libCode == "")
-                {
-                    string text = "您输入的馆代码不正确，请重新输入。\n" + this.getLibList();
-                    return this.CreateTextResponseMessage(text);
-                }
-            }
-
-            this.CurrentMessageContext.LibCode = libCode;
-
-            //要保存到微信用户表中，下面绑定用户从对应的图书馆查读者。
-            //todo
-            this.CmdService.SelectLib(this.CurrentMessageContext.UserName, libCode);
-            return this.CreateTextResponseMessage("您成功选择了图书馆[" + libCode+"]");
-        }
-
-        public string getLibList()
-        {
-            List<LibItem> libs = LibDatabase.Current.GetLibs();
-            string text = "";
-            int i = 1;
-            foreach (LibItem item in libs)
-            {
-                text += i.ToString() + "  " + item.libCode + "  " + item.libName + "\n";
-                i++;
-            }
-            text = "下面是图书馆列表，请回复序号或者馆代码。\n" + text;
-
-            return text;
+            this.CurrentMessageContext.LibCode = strParam;
+            return this.CreateTextResponseMessage("您成功选定图书馆" + strParam);
         }
 
 
@@ -671,27 +617,6 @@ namespace dp2weixin
         private IResponseMessageBase CreateTextResponseMessage(string strText)
         {
             return this.CreateTextResponseMessage(strText, true);
-        }
-
-        /// <summary>
-        /// 检索是否选择了图书馆
-        /// </summary>
-        /// <param name="strError"></param>
-        /// <returns></returns>
-        private bool CheckIsSelectLib()
-        {
-
-            if (String.IsNullOrEmpty(this.CurrentMessageContext.LibCode) == true)
-            {
-                // 从mongodb中查
-                string libCode = this.CmdService.CheckIsSelectLib(this.WeixinOpenId);
-                if (string.IsNullOrEmpty(libCode) == true)
-                    return false;
-
-                this.CurrentMessageContext.LibCode = libCode;
-            }
-
-            return true;
         }
 
         /// <summary>

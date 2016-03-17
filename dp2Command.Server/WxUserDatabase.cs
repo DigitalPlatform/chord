@@ -1,5 +1,4 @@
-﻿using DigitalPlatform.IO;
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using System;
@@ -137,41 +136,22 @@ namespace dp2Command.Service
         }
 
         // 更新
-        public long Update(WxUserItem item)
+        public async Task<long> Update(WxUserItem item)
         {
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
 
-            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", item.weixinId);
+            var filter = Builders<WxUserItem>.Filter.Eq("id", item.id);
             var update = Builders<WxUserItem>.Update
                 .Set("weixinId", item.weixinId)
                 .Set("readerBarcode", item.readerBarcode)
-                .Set("readerName", item.readerName)
+                .Set("readerBarcode", item.readerName)
                 .Set("libCode", item.libCode)
-                .Set("createTime", item.createTime);
-
-            UpdateResult ret = collection.UpdateOne(filter, update);
-            return ret.ModifiedCount;
-        }
-
-        /*
-        public async Task<long> UpdateLibCode(WxUserItem item)
-        {
-            item.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-
-            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
-
-            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", item.weixinId);
-            var update = Builders<WxUserItem>.Update
-                //.Set("weixinId", item.weixinId)
-                //.Set("readerBarcode", item.readerBarcode)
-                //.Set("readerBarcode", item.readerName)
-                .Set("libCode", item.libCode)
-                .Set("createTime", item.createTime);
+                .Set("CreateTime", item.CreateTime);
 
             UpdateResult ret = await collection.UpdateOneAsync(filter, update);
             return ret.ModifiedCount;
         }
-        */
+
 
         /// <summary>
         /// 删除
@@ -203,8 +183,6 @@ namespace dp2Command.Service
             return ret.DeletedCount;
         }
 
-
-
     }
     public class WxUserItem
     {
@@ -219,7 +197,7 @@ namespace dp2Command.Service
 
         public string libCode { get; set; }
 
-        public string createTime { get; set; } // 操作时间
+        public string CreateTime { get; set; } // 操作时间
 
     }
 
