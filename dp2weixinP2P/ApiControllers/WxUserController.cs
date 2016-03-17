@@ -35,7 +35,7 @@ namespace dp2weixinP2P.ApiControllers
         // PUT api/<controller>/5
         public long Put(WxUserItem item)
         {
-            return repo.Update(item);
+            return repo.Update(item).Result;
         }
 
         // DELETE api/<controller>/5
