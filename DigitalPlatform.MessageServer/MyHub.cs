@@ -25,23 +25,61 @@ namespace DigitalPlatform.MessageServer
         {
             GetUserResult result = new GetUserResult();
 
-            ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
-            if (info == null)
+            try
             {
-                result.Value = -1;
-                result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。操作失败";
+                ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+                if (info == null)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。操作失败";
+                    return result;
+                }
+
+                if (info.UserItem == null)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "尚未登录，无法使用 GetUsers() 功能";
+                }
+
+                // supervisor 权限用户，可以获得所有用户的信息
+                if (StringUtil.Contains(info.UserItem == null ? "" : info.UserItem.rights,
+                    "supervisor") == true)
+                {
+                    var task = ServerInfo.UserDatabase.GetUsers(userName, start, count);
+                    task.Wait();
+                    result.Users = BuildUsers(task.Result);
+                }
+                else
+                {
+                    // 否则只能获得自己的用户信息
+                    string strCurrentUserName = info.UserItem == null ? "" : info.UserItem.userName;
+
+                    if (userName == "*" || string.IsNullOrEmpty(userName) == true)
+                        userName = strCurrentUserName;
+                    else
+                    {
+                        // userName 参数为 * 或者 空 以外的值
+                        result.Value = -1;
+                        result.ErrorInfo = "当前用户身份 '" + strCurrentUserName + "' 无法获得用户名为 '"+userName+"' 的用户信息";
+                        return result;
+                    }
+
+                    var task = ServerInfo.UserDatabase.GetUsers(userName, start, count);
+                    task.Wait();
+                    result.Users = BuildUsers(task.Result);
+                }
+
                 return result;
             }
-
-            // 验证请求者是否登录，是否有 supervisor 权限
-
-            // 获得用户信息
-            var task = ServerInfo.UserDatabase.GetUsers(userName, start, count);
-            task.Wait();
-            result.Users = BuildUsers(task.Result);
-            return result;
+            catch (Exception ex)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "GetUsers() 出错：" + ExceptionUtil.GetExceptionText(ex);
+                return result;
+            }
         }
 
+        // 构造适于返回给前端的 User 对象列表
         static List<User> BuildUsers(List<UserItem> items)
         {
             List<User> results = new List<User>();
@@ -52,12 +90,13 @@ namespace DigitalPlatform.MessageServer
             return results;
         }
 
+        // 构造适于返回给前端的 User 对象
         static User BuildUser(UserItem item)
         {
             User user = new User();
             user.id = item.id;
             user.userName = item.userName;
-            user.password = item.password;
+            user.password = ""; // 密码不必返回给前端，因为这是 hash 以后的字符串了。 item.password;
             user.rights = item.rights;
             user.duty = item.duty;
             user.department = item.department;
@@ -70,50 +109,95 @@ namespace DigitalPlatform.MessageServer
         {
             MessageResult result = new MessageResult();
 
-            ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
-            if (info == null)
+            try
             {
-                result.Value = -1;
-                result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。操作失败";
+                ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+                if (info == null)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。操作失败";
+                    return result;
+                }
+
+                // 验证请求者是否登录，是否有 supervisor 权限
+
+                if (action == "create")
+                {
+                    if (StringUtil.Contains(info.UserItem.rights, "supervisor") == false)
+                    {
+                        result.String = "Denied";
+                        result.Value = -1;
+                        result.ErrorInfo = "当前用户不具备 supervisor 权限，create 命令被拒绝";
+                        return result;
+                    }
+
+                    foreach (UserItem item in users)
+                    {
+                        ServerInfo.UserDatabase.Add(item).Wait();
+                    }
+                }
+                else if (action == "change")
+                {
+                    if (StringUtil.Contains(info.UserItem.rights, "supervisor") == false)
+                    {
+                        result.String = "Denied";
+                        result.Value = -1;
+                        result.ErrorInfo = "当前用户不具备 supervisor 权限，change 命令被拒绝";
+                        return result;
+                    }
+
+                    foreach (UserItem item in users)
+                    {
+                        ServerInfo.UserDatabase.Update(item).Wait();
+                    }
+                }
+                else if (action == "changePassword")
+                {
+                    // 超级用户可以修改所有用户的密码。而普通用户只能修改自己的密码
+                    foreach (UserItem item in users)
+                    {
+                        if (StringUtil.Contains(info.UserItem.rights, "supervisor") == false
+                            && item.userName != info.UserItem.userName)
+                        {
+                            result.String = "Denied";
+                            result.Value = -1;
+                            result.ErrorInfo = "当前用户不具备 supervisor 权限，试图修改其他用户 '" + item.userName + "' 密码的 changePassword 命令被拒绝";
+                            return result;
+                        }
+
+                        ServerInfo.UserDatabase.UpdatePassword(item).Wait();
+                    }
+                }
+                else if (action == "delete")
+                {
+                    if (StringUtil.Contains(info.UserItem.rights, "supervisor") == false)
+                    {
+                        result.String = "Denied";
+                        result.Value = -1;
+                        result.ErrorInfo = "当前用户不具备 supervisor 权限，delete 命令被拒绝";
+                        return result;
+                    }
+
+                    foreach (UserItem item in users)
+                    {
+                        ServerInfo.UserDatabase.Delete(item).Wait();
+                    }
+                }
+                else
+                {
+                    result.String = "ActionError";
+                    result.Value = -1;
+                    result.ErrorInfo = "无法识别的 action 参数值 '" + action + "'";
+                }
                 return result;
             }
-
-            // 验证请求者是否登录，是否有 supervisor 权限
-
-            if (action == "create")
+            catch (Exception ex)
             {
-                foreach (UserItem item in users)
-                {
-                    ServerInfo.UserDatabase.Add(item);
-                }
-            }
-            else if (action == "change")
-            {
-                foreach (UserItem item in users)
-                {
-                    ServerInfo.UserDatabase.Update(item);
-                }
-            }
-            else if (action == "changePassword")
-            {
-                foreach (UserItem item in users)
-                {
-                    ServerInfo.UserDatabase.UpdatePassword(item);
-                }
-            }
-            else if (action == "delete")
-            {
-                foreach (UserItem item in users)
-                {
-                    ServerInfo.UserDatabase.Delete(item);
-                }
-            }
-            else
-            {
+                result.String = "Exception";
                 result.Value = -1;
-                result.ErrorInfo = "无法识别的 action 参数值 '" + action + "'";
+                result.ErrorInfo = "SetUsers() 出错：" + ExceptionUtil.GetExceptionText(ex);
+                return result;
             }
-            return result;
         }
 
         // 登录，并告知 server 关于自己的一些属性。如果不登录，则 server 会按照缺省的方式设置这些属性，例如无法实现检索响应功能
@@ -146,7 +230,9 @@ namespace DigitalPlatform.MessageServer
                     return result;
                 }
                 var user = results[0];
-                if (user.password != password)
+                string strHashed = Cryptography.GetSHA1(password);
+
+                if (user.password != strHashed)
                 {
                     result.Value = -1;
                     result.ErrorInfo = "密码不正确。登录失败";
@@ -282,6 +368,12 @@ namespace DigitalPlatform.MessageServer
                 return result;
             }
 
+            if (connection_info.UserItem == null)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "尚未登录，无法使用 RequestSearch() 功能";
+            }
+
             if (searchParam.Operation == "searchBiblio"
                 && userNameList == "*"
                 && StringUtil.Contains(connection_info.PropertyList, "biblio_search") == false)
@@ -315,7 +407,7 @@ namespace DigitalPlatform.MessageServer
             if (StringUtil.Contains(connection_info.Rights, searchParam.Operation) == false)
             {
                 result.Value = -1;
-                result.ErrorInfo = "当前用户 '"+connection_info.UserName+"' 不具备进行 '"+searchParam.Operation+"' 操作的权限";
+                result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + searchParam.Operation + "' 操作的权限";
                 return result;
             }
 
@@ -338,7 +430,7 @@ namespace DigitalPlatform.MessageServer
             if (connectionIds == null || connectionIds.Count == 0)
             {
                 result.Value = 0;
-                result.ErrorInfo = "当前没有任何可检索的目标";
+                result.ErrorInfo = "当前没有任何可检索的目标 (目标用户名 '"+userNameList+"'; 操作 '"+searchParam.Operation+"')";
                 return result;
             }
 
@@ -346,7 +438,7 @@ namespace DigitalPlatform.MessageServer
 
             try
             {
-                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId, 
+                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
                     searchParam.TaskID,
                     searchParam.Start,
                     searchParam.Count);
@@ -520,6 +612,12 @@ namespace DigitalPlatform.MessageServer
                 result.Value = -1;
                 result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。请求检索书目失败";
                 return result;
+            }
+
+            if (connection_info.UserItem == null)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "尚未登录，无法使用 RequestSetInfo() 功能";
             }
 
             // 检查请求者是否具备操作的权限

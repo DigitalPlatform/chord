@@ -88,6 +88,35 @@ namespace dp2MServer
                 return;
             }
 
+            // 创建超级用户账户
+            if (args.Length == 1 && args[0].Equals("createuser"))
+            {
+                if (Initial() == false)
+                    return;
+
+                string strUserName = "supervisor";
+                string strPassword = "";
+
+                Console.WriteLine("(直接回车表示不修改当前值)");
+                Console.WriteLine("请输入超级用户名: (当前值为 " + strUserName + ")");
+                string strValue = Console.ReadLine();
+                if (string.IsNullOrEmpty(strValue) == false)
+                    strUserName = strValue;
+
+                Console.WriteLine("请输入超级用户密码: ");
+                strValue = Console.ReadLine();
+                strPassword = strValue;
+
+                CreateSupervisor(strUserName, strPassword);
+
+                Console.WriteLine();
+                Console.WriteLine("注：修改已经立即生效");
+                Console.WriteLine("(按回车键返回)");
+                Console.ReadLine();
+                ServerInfo.Exit();  // Initial() 执行后，需要 Exit() 才能退出
+                return;
+            }
+
             if (args.Length == 1
                     && (args[0].Equals("install") || args[0].Equals("uninstall"))
                     )
@@ -154,6 +183,18 @@ namespace dp2MServer
             }
         }
 
+        static void CreateSupervisor(string strUserName, string strPassword)
+        {
+            UserItem item = new UserItem();
+            item.userName = strUserName;
+
+            ServerInfo.UserDatabase.Delete(item);
+
+            item.password = strPassword;
+            item.rights = "supervisor";
+            ServerInfo.UserDatabase.Add(item);
+        }
+
         // return:
         //      true    初始化成功
         //      false   初始化失败
@@ -164,10 +205,10 @@ namespace dp2MServer
                 ServerInfo.Initial(Settings.Default.DataDir);
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 WriteWindowsLog(ex.Message, EventLogEntryType.Error);
-                Console.WriteLine("初始化失败: " +ex.Message);
+                Console.WriteLine("初始化失败: " + ex.Message);
                 return false;
             }
         }
@@ -321,7 +362,7 @@ namespace dp2MServer
             }
             WriteToConsole("Server started at " + ServerURI + ServerPath);
         }
-        
+
         /// <summary>
         /// This method adds a line to the RichTextBoxConsole control, using Invoke if used
         /// from a SignalR hub thread rather than the UI thread.

@@ -179,7 +179,6 @@ namespace TestClient1
             start = StringUtil.GetSubInt64(this.textBox_search_position.Text, ',', 0);
             count = StringUtil.GetSubInt64(this.textBox_search_position.Text, ',', 1);
 
-
             EnableControls(false);
             try
             {
@@ -303,7 +302,6 @@ namespace TestClient1
         ERROR1:
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
-
 
         public static void SetHtmlString(WebBrowser webBrowser,
 string strHtml)

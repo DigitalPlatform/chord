@@ -262,7 +262,8 @@ namespace DigitalPlatform.MessageClient
 
             AddInfoLine("Connection_Reconnected");
 
-            this.TriggerLogin();
+            Task.Factory.StartNew(() => { Thread.Sleep(1000); this.TriggerLogin(); });
+            // this.TriggerLogin();
         }
 
         void Connection_Closed()

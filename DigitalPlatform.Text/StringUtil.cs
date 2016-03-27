@@ -83,20 +83,25 @@ namespace DigitalPlatform.Text
         }
 
         // parameters:
-        //      strPrefix 前缀。例如 "getreaderinfo:"
+        //      strPrefix 前缀。例如 "getreaderinfo"
+        //      strDelimiter    前缀和后面参数的分隔符号。例如 ":"
         // return:
         //      null    没有找到前缀
         //      ""      找到了前缀，并且值部分为空
         //      其他     返回值部分
-        public static string GetParameterByPrefix(string strList, string strPrefix)
+        public static string GetParameterByPrefix(string strList, 
+            string strPrefix,
+            string strDelimiter = ":")
         {
             if (string.IsNullOrEmpty(strList) == true)
                 return "";
             string[] list = strList.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string s in list)
             {
-                if (s.StartsWith(strPrefix) == true)
-                    return s.Substring(strPrefix.Length);
+                if (s.StartsWith(strPrefix + strDelimiter) == true)
+                    return s.Substring(strPrefix.Length + strDelimiter.Length);
+                if (s == strPrefix)
+                    return "";
             }
 
             return null;

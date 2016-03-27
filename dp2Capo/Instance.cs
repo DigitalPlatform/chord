@@ -12,7 +12,7 @@ namespace dp2Capo
     /// <summary>
     /// 一个服务器实例
     /// </summary>
-    public class Instance 
+    public class Instance
     {
         public HostInfo dp2library { get; set; }
         public HostInfo dp2mserver { get; set; }
@@ -26,7 +26,7 @@ namespace dp2Capo
 
             XmlElement element = dom.DocumentElement.SelectSingleNode("dp2library") as XmlElement;
             if (element == null)
-                throw new Exception("配置文件 "+strXmlFileName+" 中根元素下尚未定义 dp2library 元素");
+                throw new Exception("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2library 元素");
 
             try
             {
@@ -42,7 +42,7 @@ namespace dp2Capo
 
                 this.MessageConnection.dp2library = dp2library;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception("配置文件 " + strXmlFileName + " 格式错误: " + ex.Message);
             }
@@ -51,6 +51,10 @@ namespace dp2Capo
         public void BeginConnnect()
         {
             this.MessageConnection.ServerUrl = this.dp2mserver.Url;
+
+            this.MessageConnection.UserName = this.dp2mserver.UserName;
+            this.MessageConnection.Password = this.dp2mserver.Password;
+
             this.MessageConnection.InitialAsync();
         }
 
@@ -62,7 +66,7 @@ namespace dp2Capo
             {
                 dom.Load(strXmlFileName);
             }
-            catch(FileNotFoundException)
+            catch (FileNotFoundException)
             {
                 dom.LoadXml("<root />");
             }
@@ -113,11 +117,11 @@ namespace dp2Capo
 
             strPassword = Cryptography.Decrypt(element.GetAttribute("password"), HostInfo.EncryptKey);
             Console.WriteLine("请输入 dp2mserver 服务器 密码: (当前值为 '" + new string('*', strPassword.Length) + "' )");
-            
+
             Console.BackgroundColor = Console.ForegroundColor;
             strNewValue = Console.ReadLine();
             Console.ResetColor();
-            
+
             if (string.IsNullOrEmpty(strNewValue) == false)
                 element.SetAttribute("password", Cryptography.Encrypt(strNewValue, HostInfo.EncryptKey));
 
@@ -140,7 +144,7 @@ namespace dp2Capo
         {
             this.Url = element.GetAttribute("url");
             if (string.IsNullOrEmpty(this.Url) == true)
-                throw new Exception("元素 "+element.Name+" 尚未定义 url 属性");
+                throw new Exception("元素 " + element.Name + " 尚未定义 url 属性");
 
             this.UserName = element.GetAttribute("userName");
             if (string.IsNullOrEmpty(this.UserName) == true)

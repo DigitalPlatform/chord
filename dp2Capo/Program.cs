@@ -84,6 +84,7 @@ namespace dp2Capo
                     Console.WriteLine("注销 Windows Service: dp2capo uninstall");
                     Console.WriteLine("以控制台方式运行: dp2capo console");
                     Console.WriteLine("修改配置参数: dp2capo setting");
+                    Console.WriteLine("修改实例配置参数: dp2capo setting 1");
 
                     Console.WriteLine("(按回车键返回)");
                     Console.ReadLine();
