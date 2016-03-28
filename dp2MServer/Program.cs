@@ -169,6 +169,7 @@ namespace dp2MServer
                     Console.WriteLine("注销 Windows Service: dp2mserver uninstall");
                     Console.WriteLine("以控制台方式运行: dp2mserver console");
                     Console.WriteLine("修改配置参数: dp2mserver setting");
+                    Console.WriteLine("创建超级用户: dp2mserver createuser");
 
                     Console.WriteLine("(按回车键返回)");
                     Console.ReadLine();

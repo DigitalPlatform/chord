@@ -153,6 +153,8 @@ namespace dp2Capo
             return;
         }
 
+        // parameters:
+        //      index   实例子目录下标。从 0 开始计数
         static void ChangeInstanceSettings(int index)
         {
             ServerInfo.ChangeInstanceSettings(Settings.Default.DataDir, index);
