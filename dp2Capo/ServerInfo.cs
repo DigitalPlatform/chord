@@ -34,6 +34,8 @@ namespace dp2Capo
         }
 
         // 运用控制台显示方式，设置一个实例的基本参数
+        // parameters:
+        //      index   实例子目录下标。从 0 开始计数
         public static void ChangeInstanceSettings(string strDataDir, int index)
         {
             DirectoryInfo root = new DirectoryInfo(strDataDir);
@@ -51,7 +53,22 @@ namespace dp2Capo
                 i++;
             }
 
-            throw new Exception("下标 "+index.ToString()+" 超过了当前实际存在的实例数");
+            // throw new Exception("下标 "+index.ToString()+" 超过了当前实际存在的实例数");
+
+            // 创建足够多的新实例子目录
+            for (; i<=index;i++ )
+            {
+                string strName = Guid.NewGuid().ToString();
+                string strInstanceDir = Path.Combine(strDataDir, strName);
+                Directory.CreateDirectory(strInstanceDir);
+                if (i == index)
+                {
+                    string strXmlFileName = Path.Combine(strInstanceDir, "capo.xml");
+                    Instance.ChangeSettings(strXmlFileName);
+                    return;
+                }
+            }
+
         }
         // 准备退出
         public static void Exit()

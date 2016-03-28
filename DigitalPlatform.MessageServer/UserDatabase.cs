@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using DigitalPlatform.Text;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -20,7 +21,6 @@ namespace DigitalPlatform.MessageServer
         string _userDatabaseName = "";
 
         IMongoCollection<UserItem> _userCollection = null;
-
 
         // 初始化
         // parameters:
@@ -38,11 +38,10 @@ namespace DigitalPlatform.MessageServer
 
             this._mongoClient = new MongoClient(strMongoDbConnStr);
 
-
             {
                 var db = this._mongoClient.GetDatabase(this._userDatabaseName);
 
-                _userCollection = db.GetCollection<UserItem>("accessLog");
+                _userCollection = db.GetCollection<UserItem>("data");
 
                 bool bExist = false;
                 // collection.Indexes.ListAsync().Result.ToListAsync().Result 
@@ -131,16 +130,27 @@ namespace DigitalPlatform.MessageServer
             return results;
         }
 
-        public async void Add(UserItem item)
+        // parameters:
+        //      item    要加入的读者信息事项。注意，item.password 中是明码，在加入数据库时，会自动被变为 Hash 码形态
+        public async Task Add(UserItem item)
         {
+            // 检查 item
+            if (string.IsNullOrEmpty(item.userName) == true)
+                throw new Exception("用户名不能为空");
+
             IMongoCollection<UserItem> collection = this.LogCollection;
 
+            item.password = Cryptography.GetSHA1(item.password);
             await collection.InsertOneAsync(item);
         }
 
         // 更新 password 以外的全部字段
-        public async void Update(UserItem item)
+        public async Task Update(UserItem item)
         {
+            // 检查 item
+            if (string.IsNullOrEmpty(item.userName) == true)
+                throw new Exception("用户名不能为空");
+
             IMongoCollection<UserItem> collection = this.LogCollection;
 
             // var filter = Builders<UserItem>.Filter.Eq("id", item.id);
@@ -157,9 +167,13 @@ namespace DigitalPlatform.MessageServer
         }
 
         // 只更新 password
-        public async void UpdatePassword(UserItem item)
+        // parameters:
+        //      item    读者信息事项。注意，item.password 中是明码，在用于更新密码时，会自动被变为 Hash 码形态
+        public async Task UpdatePassword(UserItem item)
         {
             IMongoCollection<UserItem> collection = this.LogCollection;
+
+            item.password = Cryptography.GetSHA1(item.password);
 
             // var filter = Builders<UserItem>.Filter.Eq("id", item.id);
             var filter = Builders<UserItem>.Filter.Eq("userName", item.userName);
@@ -169,7 +183,7 @@ namespace DigitalPlatform.MessageServer
             await collection.UpdateOneAsync(filter, update);
         }
 
-        public async void Delete(UserItem item)
+        public async Task Delete(UserItem item)
         {
             IMongoCollection<UserItem> collection = this.LogCollection;
 

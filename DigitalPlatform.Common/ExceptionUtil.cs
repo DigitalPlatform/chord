@@ -65,6 +65,26 @@ namespace DigitalPlatform
 
             return strResult;
         }
+
+        public static string GetExceptionText(Exception ex)
+        {
+            if (ex is AggregateException)
+                return GetAggregateExceptionText(ex as AggregateException);
+
+            return ex.Message;
+        }
+
+        public static string GetAggregateExceptionText(AggregateException exception)
+        {
+            StringBuilder text = new StringBuilder();
+            foreach (Exception ex in exception.InnerExceptions)
+            {
+                text.Append(ex.Message + "\r\n");
+                // text.Append(ex.ToString() + "\r\n");
+            }
+
+            return text.ToString();
+        }
     }
 
 }

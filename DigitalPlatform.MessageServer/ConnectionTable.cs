@@ -222,9 +222,11 @@ namespace DigitalPlatform.MessageServer
                     // 如何表达允许操作的权限?
                     // getreaderinfo:username1|username2
                     // 如果没有配置，表示不允许
-                    string strAllowUserList = StringUtil.GetParameterByPrefix(strDuty, strOperation + ":");
-                    if (strAllowUserList == null
+                    string strAllowUserList = StringUtil.GetParameterByPrefix(strDuty, strOperation, ":");
+                    if (strAllowUserList != "" &&   // "" 表示所有用户名均通配
+                        (strAllowUserList == null
                         || StringUtil.Contains(strAllowUserList, strRequestUserName) == false)
+                        )
                         continue;
 
                     infos.Add(info);
@@ -257,7 +259,7 @@ namespace DigitalPlatform.MessageServer
             }
 
             // 对于每个目标图书馆，只选择一个连接。经过排序后，使用次数较小的在前
-            string strPrevUID = "";
+            string strPrevUID = null;
             foreach (ConnectionInfo info in infos)
             {
                 if (strPrevUID != info.LibraryUID)
