@@ -11,7 +11,7 @@
         editor: {
             libCode: ko.observable(""),
             libName: ko.observable(""),
-            libP2PAccount: ko.observable(""),
+            libUserName: ko.observable(""),
             comment: ko.observable("")
         },
         displaySummary: ko.observable(true)
@@ -80,8 +80,8 @@
             alert("尚未输入图书馆名称!");
             return;
         }
-        var libP2PAccount = model.editor.libP2PAccount().trim();
-        if (libP2PAccount == "") {
+        var libUserName = model.editor.libUserName().trim();
+        if (libUserName == "") {
             alert("尚未输入图书馆点对点账号!");
             return;
         }
@@ -100,7 +100,7 @@
                 //清空编辑界面信息
                 model.editor.libCode("");
                 model.editor.libName("");
-                model.editor.libP2PAccount("");
+                model.editor.libUserName("");
                 model.editor.comment("");
 
                 // 关闭等待层
@@ -114,7 +114,7 @@
             {
                 libCode: libCode,
                 libName: libName,
-                libP2PAccount: libP2PAccount,
+                libUserName: libUserName,
                 comment: comment
             }
         );
@@ -188,7 +188,7 @@
             <tr>
                 <td data-bind="text:libCode"></td>
                 <td data-bind="text:libName"></td>
-                <td data-bind="text:libP2PAccount"></td>
+                <td data-bind="text:libUserName"></td>
                 <td data-bind="text:comment"></td>
                 <td>
                     <button class="btn btn-xs btn-default" data-bind="click: removeLib">X</button>
@@ -220,7 +220,7 @@
         <div class="form-group form-group-lg">
             <label class="col-sm-2 control-label" style="color:gray">点对点帐号</label>
             <div class="col-sm-10">
-                <input class="form-control" placeholder="图书馆点对点帐号" data-bind="value:model.editor.libP2PAccount">
+                <input class="form-control" placeholder="图书馆点对点帐号" data-bind="value:model.editor.libUserName">
             </div>
         </div>
         <div class="form-group form-group-lg">

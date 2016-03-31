@@ -38,7 +38,8 @@ namespace dp2weixin
         public string CurrentCmdPath = "";
 
         // 图书馆代码
-        public string LibCode = "";
+        public string LibCode1 = "";
+        public string LibUserName = "";
 
         /// <summary>
         /// 构造函数

@@ -107,12 +107,13 @@
     <center><h3>用户列表</h3></center>
     <table class="table table-striped">
         <thead>
-            <tr><th>微信id</th><th>馆代码</th><th>证条码号</th><th>姓名</th><th>创建时间</th><th>操作</th></tr>
+            <tr><th>微信id</th><th>馆代码</th><th>馆账号</th><th>证条码号</th><th>姓名</th><th>创建时间</th><th>操作</th></tr>
         </thead>
         <tbody data-bind="foreach:model.wxUsers">
             <tr>
                 <td data-bind="text:weixinId"></td>
                 <td data-bind="text:libCode"></td>
+                <td data-bind="text:libUserName"></td>
                 <td data-bind="text:readerBarcode"></td>
                 <td data-bind="text:readerName"></td>
                 <td data-bind="text:createTime"></td>

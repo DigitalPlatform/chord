@@ -51,7 +51,7 @@ namespace dp2Command.Service
         public string dp2Password = "";//"111111";
 
         // dp2weixin 
-        public string dp2WeiXinUrl = "http://dp2003.com/dp2weixin";
+        public string dp2WeiXinUrl = "";
         public string dp2WeiXinLogDir = "";
 
         // dp2通道池
@@ -59,7 +59,6 @@ namespace dp2Command.Service
 
         // 是否使用mongodb存储微信用户与读者关系
         private bool IsUseMongoDb = false;
-        //private bool IsBindingLib = false;
 
         /// <summary>
         /// 构造函数
@@ -76,7 +75,7 @@ namespace dp2Command.Service
             string strDp2WeiXinLogDir,
             bool isUseMongoDb,
             string mongoDbConnStr,
-            string instancePrefix //bool isBindingLib
+            string instancePrefix 
             )
         {
             this.dp2Url = strDp2Url;
@@ -96,7 +95,6 @@ namespace dp2Command.Service
             {
                 WxUserDatabase.Current.Open(mongoDbConnStr, instancePrefix);
             }
-            //this.IsBindingLib = isBindingLib;
         }
 
 
@@ -404,21 +402,34 @@ out string strError)
 
         #endregion
 
-        #region 绑定解绑
+        #region 微信用户选择图书馆
 
-        public string CheckIsSelectLib(string strWeiXinId)
+        /// <summary>
+        /// 检查微信用户是否已经选择了图书馆
+        /// </summary>
+        /// <param name="strWeiXinId"></param>
+        /// <returns></returns>
+        public WxUserItem CheckIsSelectLib(string strWeiXinId)
         {
             WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
             if (userItem == null)
-                return "";
+                return null;
 
+            return userItem;
+
+            /*
             if (userItem.libCode == "")
                 return "";
 
-            return userItem.libCode;
+            return userItem.libCode;*/
         }
 
-        public void SelectLib(string strWeiXinId, string libCode)
+        /// <summary>
+        /// 选择图书馆
+        /// </summary>
+        /// <param name="strWeiXinId"></param>
+        /// <param name="libCode"></param>
+        public void SelectLib(string strWeiXinId, string libCode,string libUserName)
         {
             WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
             if (userItem == null)
@@ -426,6 +437,7 @@ out string strError)
                 userItem = new WxUserItem();
                 userItem.weixinId = strWeiXinId;
                 userItem.libCode = libCode;
+                userItem.libUserName = libUserName;
                 userItem.readerBarcode = "";
                 userItem.readerName = "";
                 userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
@@ -434,12 +446,20 @@ out string strError)
             else
             {
                 userItem.libCode = libCode;
+                userItem.libUserName = libUserName;
                 userItem.readerBarcode = "";
                 userItem.readerName = "";
                 userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
                 WxUserDatabase.Current.Update(userItem);
             }
         }
+
+        #endregion
+
+
+        #region 绑定解绑
+
+
 
         /// <summary>
         /// 
@@ -538,6 +558,7 @@ out string strError)
                             userItem = new WxUserItem();
                             userItem.weixinId = strWeiXinId;
                             userItem.libCode = "";
+                            userItem.libUserName = "";
                             userItem.readerBarcode = "";
                             userItem.readerName = "";
                             userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
@@ -642,6 +663,7 @@ out string strError)
                         userItem.readerBarcode = strBarcode;
                         userItem.readerName = name;
                         userItem.libCode = "";
+                        userItem.libUserName = "";
                         userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
                         WxUserDatabase.Current.Add(userItem);
                     }

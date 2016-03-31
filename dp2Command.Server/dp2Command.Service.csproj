@@ -62,6 +62,7 @@
     <Compile Include="Command\CommandContainer.cs" />
     <Compile Include="Command\dp2CommandUtility.cs" />
     <Compile Include="dp2CommandService.cs" />
+    <Compile Include="dp2CmdService2.cs" />
     <Compile Include="WxUserDatabase.cs" />
     <Compile Include="LibDatabase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
