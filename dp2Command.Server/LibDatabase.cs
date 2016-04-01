@@ -168,7 +168,7 @@ namespace dp2Command.Service
             var update = Builders<LibItem>.Update
                 .Set("libCode", item.libCode)
                 .Set("libName", item.libName)
-                .Set("libP2PAccount", item.libP2PAccount)
+                .Set("libP2PAccount", item.libUserName)
                 .Set("comment", item.comment)
                 .Set("OperTime", item.OperTime);
 
@@ -201,7 +201,7 @@ namespace dp2Command.Service
 
         public string libCode { get; set; }
         public string libName { get; set; }
-        public string libP2PAccount { get; set; }
+        public string libUserName { get; set; }
 
 
         public string comment { get; set; }  // 注释

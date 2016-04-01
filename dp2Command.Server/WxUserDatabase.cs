@@ -147,6 +147,7 @@ namespace dp2Command.Service
                 .Set("readerBarcode", item.readerBarcode)
                 .Set("readerName", item.readerName)
                 .Set("libCode", item.libCode)
+                .Set("libUserName", item.libUserName)
                 .Set("createTime", item.createTime);
 
             UpdateResult ret = collection.UpdateOne(filter, update);
@@ -218,6 +219,8 @@ namespace dp2Command.Service
         public string readerName { get; set; }
 
         public string libCode { get; set; }
+        public string libUserName { get; set; }
+        
 
         public string createTime { get; set; } // 操作时间
 

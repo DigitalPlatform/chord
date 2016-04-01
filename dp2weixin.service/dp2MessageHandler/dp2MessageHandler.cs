@@ -152,7 +152,7 @@ namespace dp2weixin
                 else
                 {
                     // 进行其它命令前，如果尚未选择访问的图书馆，提示请先选择图书馆
-                    if (this.CurrentMessageContext.LibCode == "")
+                    if (this.CurrentMessageContext.LibCode1 == "")
                     {
                         this.CurrentMessageContext.CurrentCmdName = dp2CommandUtility.C_Command_SelectLib;
                         string text = "您尚未选择图书馆，" + this.getLibList();
@@ -238,6 +238,7 @@ namespace dp2weixin
 
             // 判断输入是序号还是图书馆代码
             string libCode = "";
+            string libUserName = "";
             string templibCode = "";
             int nIndex = -1;
             try
@@ -255,6 +256,7 @@ namespace dp2weixin
                 if (nIndex > 0 && nIndex <= libs.Count)
                 {
                     libCode = libs[nIndex - 1].libCode;
+                    libUserName = libs[nIndex - 1].libUserName;
                 }
                 else
                 {
@@ -269,6 +271,7 @@ namespace dp2weixin
                     if (item.libCode == templibCode)
                     {
                         libCode = item.libCode;
+                        libUserName = item.libUserName;
                     }
                 }
 
@@ -279,11 +282,11 @@ namespace dp2weixin
                 }
             }
 
-            this.CurrentMessageContext.LibCode = libCode;
+            this.CurrentMessageContext.LibCode1 = libCode;
+            this.CurrentMessageContext.LibUserName = libUserName;
 
             //要保存到微信用户表中，下面绑定用户从对应的图书馆查读者。
-            //todo
-            this.CmdService.SelectLib(this.CurrentMessageContext.UserName, libCode);
+            this.CmdService.SelectLib(this.CurrentMessageContext.UserName, libCode,libUserName);
             return this.CreateTextResponseMessage("您成功选择了图书馆[" + libCode + "]");
         }
 
@@ -681,14 +684,16 @@ namespace dp2weixin
         private bool CheckIsSelectLib()
         {
 
-            if (String.IsNullOrEmpty(this.CurrentMessageContext.LibCode) == true)
+            if (String.IsNullOrEmpty(this.CurrentMessageContext.LibCode1) == true)
             {
                 // 从mongodb中查
-                string libCode = this.CmdService.CheckIsSelectLib(this.WeixinOpenId);
-                if (string.IsNullOrEmpty(libCode) == true)
+                WxUserItem userItem= this.CmdService.CheckIsSelectLib(this.WeixinOpenId);
+                if (userItem== null)
                     return false;
 
-                this.CurrentMessageContext.LibCode = libCode;
+
+                this.CurrentMessageContext.LibCode1 = userItem.libCode;
+                this.CurrentMessageContext.LibUserName = userItem.libUserName;
             }
 
             return true;
