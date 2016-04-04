@@ -1,17 +1,23 @@
 ﻿using DigitalPlatform.IO;
+using DigitalPlatform.Message;
+using DigitalPlatform.MessageClient;
 using DigitalPlatform.Xml;
 using dp2Command.Service;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
 namespace dp2Command.Server
 {
-    public class dp2CmdService2
+    public class dp2CmdService2:dp2BaseCommandService
     {
+        MessageConnectionCollection _channels = new MessageConnectionCollection();
+
 
         //=================
         // 设为单一实例
@@ -39,16 +45,16 @@ namespace dp2Command.Server
 
 
         // dp2服务器地址与代理账号
-        public string dp2mServerUrl = "";
+        public string dp2MServerUrl = "";
         public string userName = "";
         public string password = "";
 
-        // 微信web程序url
-        public string weiXinUrl = "";
-        // 微信目录
-        public string weiXinLogDir = "";
+        // 访问的目标图书馆
+        public string remoteUserName = "capo1";
 
-        public void Init(string dp2mServerUrl,
+
+
+        public void Init(string dp2MServerUrl,
             string userName,
             string password,
             string weiXinUrl,
@@ -56,66 +62,38 @@ namespace dp2Command.Server
             string mongoDbConnStr,
             string instancePrefix)
         {
-            this.dp2mServerUrl = dp2mServerUrl;
+            this.dp2MServerUrl = dp2MServerUrl;
             this.userName = userName;
             this.password = password;
             this.weiXinUrl = weiXinUrl;
             this.weiXinLogDir = weiXinLogDir;
 
+            _channels.Login += _channels_Login;
+
             // 使用mongodb存储微信用户与读者绑定关系
             WxUserDatabase.Current.Open(mongoDbConnStr, instancePrefix);
         }
 
-        #region 微信用户选择图书馆
-
-        /// <summary>
-        /// 检查微信用户是否已经选择了图书馆
-        /// </summary>
-        /// <param name="strWeiXinId"></param>
-        /// <returns></returns>
-        public string CheckIsSelectLib(string strWeiXinId)
+        void _channels_Login(object sender, LoginEventArgs e)
         {
-            WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
-            if (userItem == null)
-                return "";
+            MessageConnection connection = sender as MessageConnection;
 
-            if (userItem.libCode == "")
-                return "";
+            if (string.IsNullOrEmpty(this.userName) == true)
+                throw new Exception("尚未指定用户名，无法进行登录");
 
-            return userItem.libCode;
-        }
-
-        /// <summary>
-        /// 选择图书馆
-        /// </summary>
-        /// <param name="strWeiXinId"></param>
-        /// <param name="libCode"></param>
-        public void SelectLib(string strWeiXinId, string libCode, string libUserName)
-        {
-            WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
-            if (userItem == null)
+            MessageResult result = connection.LoginAsync(
+                this.userName,
+                this.password,
+                "",
+                "",
+                "property").Result;
+            if (result.Value == -1)
             {
-                userItem = new WxUserItem();
-                userItem.weixinId = strWeiXinId;
-                userItem.libCode = libCode;
-                userItem.libUserName = libUserName;
-                userItem.readerBarcode = "";
-                userItem.readerName = "";
-                userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                WxUserDatabase.Current.Add(userItem);
-            }
-            else
-            {
-                userItem.libCode = libCode;
-                userItem.libUserName = libUserName;
-                userItem.readerBarcode = "";
-                userItem.readerName = "";
-                userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                WxUserDatabase.Current.Update(userItem);
+                throw new Exception(result.ErrorInfo);
             }
         }
 
-        #endregion
+
 
         #region 绑定解绑
 
@@ -132,7 +110,7 @@ namespace dp2Command.Server
         /// 0 读者证条码号或密码不正确
         /// 1 成功
         /// </returns>
-        public int Binding(string strBarcode,
+        public override int Binding(string strBarcode,
             string strPassword,
             string strWeiXinId,
             out string strReaderBarcode,
@@ -215,7 +193,7 @@ namespace dp2Command.Server
         /// 0   本来就未绑定，不需解绑
         /// 1   解除绑定成功
         /// </returns>
-        public int Unbinding(string weixinId,
+        public override int Unbinding(string weixinId,
             string strReaderBarcode, out string strError)
         {
             strError = "";
@@ -290,5 +268,89 @@ namespace dp2Command.Server
         }
 
         #endregion
+
+        #region 检索书目
+
+        public override long SearchBiblio(string strWord,
+    SearchCommand searchCmd,
+    out string strFirstPage,
+    out string strError)
+        {
+            strFirstPage = "";
+            strError = "未实现";
+
+            long nRet =SearchBiblio(strWord).Result;
+
+            return -1;
+        }
+
+        /// <summary>
+        /// 检索书目
+        /// </summary>
+        /// <param name="strWord"></param>
+        /// <returns></returns>
+        public async Task<long> SearchBiblio(string strWord)
+        {
+            string strError = "";
+
+
+            CancellationToken cancel_token = new CancellationToken();
+
+            string id = Guid.NewGuid().ToString();
+            SearchRequest request = new SearchRequest(id,
+                "searchBiblio",
+                "<全部>",
+                strWord,
+                "middle",
+                "title",
+                "",
+                "id,cols",
+                1000,
+                0,
+                C_Search_MaxCount);
+            try
+            {
+                MessageConnection connection = await this._channels.GetConnectionAsync(
+                    this.dp2MServerUrl,
+                    this.remoteUserName);
+
+                SearchResult result = await connection.SearchAsync(
+                    this.remoteUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token);
+
+                return result.ResultCount;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+        ERROR1:
+            return -1;
+        }
+
+        public override int GetDetailBiblioInfo(SearchCommand searchCmd,
+            int nIndex,
+            out string strBiblioInfo,
+            out string strError)
+        {
+            strBiblioInfo = "";
+            strError = "未实现";
+            Debug.Assert(searchCmd != null);
+
+            
+
+            return -1;
+        }
+
+        #endregion
+
     }
 }

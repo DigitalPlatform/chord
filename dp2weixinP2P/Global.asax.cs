@@ -11,6 +11,8 @@ using System.Web.Configuration;
 using dp2Command.Service;
 using DigitalPlatform.IO;
 using dp2Command.Server;
+using DigitalPlatform.Text;
+using dp2weixin;
 
 namespace dp2weixinP2P
 {
@@ -35,8 +37,9 @@ namespace dp2weixinP2P
             // 从web config中取出mserver服务器地址，微信自己的账号
             string dp2MServerUrl = WebConfigurationManager.AppSettings["dp2MServerUrl"];
             string userName = WebConfigurationManager.AppSettings["userName"];
-            // todo 密码改为加密格式
             string password = WebConfigurationManager.AppSettings["password"];
+            if (string.IsNullOrEmpty(password) == false)// 解密
+                password = Cryptography.Decrypt(password, WeiXinClientUtil.EncryptKey);
 
             // 错误日志目录
             string weiXinLogDir = WebConfigurationManager.AppSettings["weiXinLogDir"];

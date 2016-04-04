@@ -15,10 +15,9 @@ using System.Xml;
 
 namespace dp2Command.Service
 {
-    public class dp2CommandService
+    public class dp2CommandService : dp2BaseCommandService
     {
-        // 检索限制最大命中数常量
-        public const int C_Search_MaxCount = 100;
+
 
         //=================
         // 设为单一实例
@@ -50,9 +49,6 @@ namespace dp2Command.Service
         public string dp2UserName = "";//"weixin";
         public string dp2Password = "";//"111111";
 
-        // dp2weixin 
-        public string dp2WeiXinUrl = "";
-        public string dp2WeiXinLogDir = "";
 
         // dp2通道池
         public LibraryChannelPool ChannelPool = null;
@@ -71,8 +67,8 @@ namespace dp2Command.Service
         public void Init(string strDp2Url,
             string strDp2UserName,
             string strDp2Password,
-            string strDp2WeiXinUrl,
-            string strDp2WeiXinLogDir,
+            string weiXinUrl,
+            string weiXinLogDir,
             bool isUseMongoDb,
             string mongoDbConnStr,
             string instancePrefix 
@@ -81,8 +77,8 @@ namespace dp2Command.Service
             this.dp2Url = strDp2Url;
             this.dp2UserName = strDp2UserName;
             this.dp2Password = strDp2Password;
-            this.dp2WeiXinUrl = strDp2WeiXinUrl;
-            this.dp2WeiXinLogDir = strDp2WeiXinLogDir;
+            this.weiXinUrl = weiXinUrl;
+            this.weiXinLogDir = weiXinLogDir;
 
             // 通道池对象
             ChannelPool = new LibraryChannelPool();
@@ -127,7 +123,7 @@ namespace dp2Command.Service
         /// </summary>
         /// <param name="strWord"></param>
         /// <returns></returns>
-        public long SearchBiblio(string strWord,
+        public override long SearchBiblio(string strWord,
             SearchCommand searchCmd,
             out string strFirstPage,
             out string strError)
@@ -243,7 +239,7 @@ namespace dp2Command.Service
         /// <param name="strInfo"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int GetDetailBiblioInfo(SearchCommand searchCmd,
+        public override int GetDetailBiblioInfo(SearchCommand searchCmd,
             int nIndex,
             out string strBiblioInfo,
             out string strError)
@@ -402,59 +398,7 @@ out string strError)
 
         #endregion
 
-        #region 微信用户选择图书馆
 
-        /// <summary>
-        /// 检查微信用户是否已经选择了图书馆
-        /// </summary>
-        /// <param name="strWeiXinId"></param>
-        /// <returns></returns>
-        public WxUserItem CheckIsSelectLib(string strWeiXinId)
-        {
-            WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
-            if (userItem == null)
-                return null;
-
-            return userItem;
-
-            /*
-            if (userItem.libCode == "")
-                return "";
-
-            return userItem.libCode;*/
-        }
-
-        /// <summary>
-        /// 选择图书馆
-        /// </summary>
-        /// <param name="strWeiXinId"></param>
-        /// <param name="libCode"></param>
-        public void SelectLib(string strWeiXinId, string libCode,string libUserName)
-        {
-            WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
-            if (userItem == null)
-            {
-                userItem = new WxUserItem();
-                userItem.weixinId = strWeiXinId;
-                userItem.libCode = libCode;
-                userItem.libUserName = libUserName;
-                userItem.readerBarcode = "";
-                userItem.readerName = "";
-                userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                WxUserDatabase.Current.Add(userItem);
-            }
-            else
-            {
-                userItem.libCode = libCode;
-                userItem.libUserName = libUserName;
-                userItem.readerBarcode = "";
-                userItem.readerName = "";
-                userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                WxUserDatabase.Current.Update(userItem);
-            }
-        }
-
-        #endregion
 
 
         #region 绑定解绑
@@ -472,7 +416,7 @@ out string strError)
         /// 0 读者证条码号或密码不正确
         /// 1 成功
         /// </returns>
-        public int Binding(string strBarcode,
+        public override int Binding(string strBarcode,
             string strPassword,
             string strWeiXinId,
             out string strReaderBarcode,
@@ -593,7 +537,7 @@ out string strError)
         /// <param name="strXml"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public long SearchReaderByWeiXinId(string strWeiXinId,
+        public override long SearchReaderByWeiXinId(string strWeiXinId,
             out string strRecPath,
             out string strXml,
             out string strError)
@@ -688,7 +632,7 @@ out string strError)
         /// 0   本来就未绑定，不需解绑
         /// 1   解除绑定成功
         /// </returns>
-        public int Unbinding(string weixinId,
+        public override int Unbinding(string weixinId,
             string strReaderBarcode, out string strError)
         {
             strError = "";
@@ -791,7 +735,10 @@ out string strError)
         /// </summary>
         /// <param name="strItemBarcode">册条码号</param>
         /// <returns></returns>
-        public int Renew(string strReaderBarcode, string strItemBarcode, out BorrowInfo borrowInfo, out string strError)
+        public override int Renew(string strReaderBarcode, 
+            string strItemBarcode, 
+            out BorrowInfo borrowInfo, 
+            out string strError)
         {
             borrowInfo = null;
             strError = "";
@@ -862,12 +809,14 @@ out string strError)
         /// 0   未绑定
         /// 1   成功
         /// </returns>
-        public int GetMyInfo1(string strReaderBarcode, out string strMyInfo, out string strError)
+        public override int GetMyInfo1(string strReaderBarcode,
+            out string strMyInfo, 
+            out string strError)
         {
             strError = "";
             strMyInfo = "";
-
             Debug.Assert(String.IsNullOrEmpty(strReaderBarcode) == false);
+
             /*
             // 检查是否已经绑定读者账号
             long lRet = this.CheckIsBinding(strWeiXinId,out strError);
@@ -927,23 +876,10 @@ out string strError)
         /// 0   未绑定
         /// 1   成功
         /// </returns>
-        public int GetBorrowInfo1(string strReaderBarcode, out string strBorrowInfo, out string strError)
+        public override int GetBorrowInfo1(string strReaderBarcode, out string strBorrowInfo, out string strError)
         {
             strError = "";
             strBorrowInfo = "";
-
-            /*
-            // 检查是否已经绑定读者账号
-            long lRet = this.CheckIsBinding(strWeiXinId, out strError);
-            if (lRet == -1)
-                return -1;
-            // 未绑定
-            if (lRet == 0)
-            {
-                strError = "尚未绑定读者账号";
-                return 0;
-            }
-             */
 
             // 得到高级xml
             string strXml = "";
@@ -1198,7 +1134,7 @@ out string strError)
                 {
                     DateTime now = DateTime.Now;
                     // 每天一个日志文件
-                    string strFilename = Path.Combine(this.dp2WeiXinLogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
+                    string strFilename = Path.Combine(this.weiXinLogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
                     string strTime = now.ToString();
                     FileUtil.WriteText(strFilename,
                         strTime + " " + strText + "\r\n");
