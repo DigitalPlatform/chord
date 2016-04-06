@@ -8,6 +8,8 @@ namespace dp2weixin
 {
     public static class WeiXinClientUtil
     {
+        public static string EncryptKey = "dp2weixinPassword";
+
         /// <summary>
         /// 微信的CreateTime是当前与1970-01-01 00:00:00之间的秒数
         /// </summary>

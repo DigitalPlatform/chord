@@ -7,8 +7,8 @@
     <ProjectGuid>{A77B8A4A-3AE8-4BD7-B09A-BF8D92FE802D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>dp2Command.Server</RootNamespace>
-    <AssemblyName>dp2Command.Server</AssemblyName>
+    <RootNamespace>dp2Command.Service</RootNamespace>
+    <AssemblyName>dp2Command.Service</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -61,6 +61,7 @@
     <Compile Include="Command\BaseCommand.cs" />
     <Compile Include="Command\CommandContainer.cs" />
     <Compile Include="Command\dp2CommandUtility.cs" />
+    <Compile Include="dp2BaseCommandService.cs" />
     <Compile Include="dp2CommandService.cs" />
     <Compile Include="dp2CmdService2.cs" />
     <Compile Include="WxUserDatabase.cs" />
@@ -82,6 +83,14 @@
     <ProjectReference Include="..\DigitalPlatform.LibraryRestClient\DigitalPlatform.LibraryRestClient.csproj">
       <Project>{1b74d69a-530f-4275-845b-8ca6d1463bdd}</Project>
       <Name>DigitalPlatform.LibraryRestClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.MessageClient\DigitalPlatform.MessageClient.csproj">
+      <Project>{e4b339d9-4843-40f1-a404-33043adcd6a3}</Project>
+      <Name>DigitalPlatform.MessageClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.Message\DigitalPlatform.Message.csproj">
+      <Project>{2fbb1294-0814-447d-b8c6-77e206417231}</Project>
+      <Name>DigitalPlatform.Message</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.Text\DigitalPlatform.Text.csproj">
       <Project>{26f96cc3-a4a9-4bc4-a10a-bc7e25581ff6}</Project>

@@ -29,7 +29,7 @@ namespace dp2weixin
     public partial class dp2MessageHandler : MessageHandler<dp2MessageContext>
     {
         // 由外面传进来的CommandServer
-        private dp2CommandService CmdService = null;
+        private dp2BaseCommandService CmdService = null;
         // 公众号程序目录，用于获取新书推荐与公告配置文件的路径
         private string Dp2WeiXinAppDir = "";
         // 是否显示消息路径
@@ -42,7 +42,7 @@ namespace dp2weixin
         /// </summary>
         /// <param name="inputStream"></param>
         /// <param name="maxRecordCount"></param>
-        public dp2MessageHandler(dp2CommandService cmdServer,
+        public dp2MessageHandler(dp2BaseCommandService cmdServer,
             Stream inputStream, PostModel postModel, int maxRecordCount = 0)
             : base(inputStream, postModel, maxRecordCount)
         {
@@ -769,7 +769,7 @@ namespace dp2weixin
                 {
                     Title = DomUtil.GetNodeText(node.SelectSingleNode("Title")),
                     Description = DomUtil.GetNodeText(node.SelectSingleNode("Description")),
-                    PicUrl = this.CmdService.dp2WeiXinUrl + DomUtil.GetNodeText(node.SelectSingleNode("PicUrl")),
+                    PicUrl = this.CmdService.weiXinUrl + DomUtil.GetNodeText(node.SelectSingleNode("PicUrl")),
                     Url = DomUtil.GetNodeText(node.SelectSingleNode("Url"))
                 });
             }
@@ -807,7 +807,7 @@ namespace dp2weixin
                 article.Description = DomUtil.GetNodeText(node.SelectSingleNode("Description"));
                 string picUrl = DomUtil.GetNodeText(node.SelectSingleNode("PicUrl"));
                 if (String.IsNullOrEmpty(picUrl) == false)
-                    article.PicUrl = this.CmdService.dp2WeiXinUrl + picUrl;
+                    article.PicUrl = this.CmdService.weiXinUrl + picUrl;
                 article.Url = DomUtil.GetNodeText(node.SelectSingleNode("Url"));
                 responseMessage.Articles.Add(article);
             }

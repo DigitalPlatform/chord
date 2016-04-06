@@ -31,6 +31,7 @@ using Senparc.Weixin.MP.MvcExtension;
 using Senparc.Weixin.MP;
 using dp2weixin;
 using dp2Command.Service;
+using dp2Command.Server;
 
 namespace dp2weixinP2P.Controllers
 {
@@ -102,7 +103,7 @@ namespace dp2weixinP2P.Controllers
             */
 
             //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
-            var messageHandler = new dp2MessageHandler(dp2CommandService.Instance,
+            var messageHandler = new dp2MessageHandler(dp2CmdService2.Instance,
                 Request.InputStream, postModel, maxRecordCount);
             messageHandler.Init(Server.MapPath("~"), true,true);
             try
