@@ -50,7 +50,7 @@ namespace dp2Command.Server
         public string password = "";
 
         // 访问的目标图书馆
-        public string remoteUserName = "capo1";
+        public string remoteUserName = "capo2";
 
 
 
@@ -301,24 +301,25 @@ namespace dp2Command.Server
                 "searchBiblio",
                 "<全部>",
                 strWord,
-                "middle",
                 "title",
-                "",
+
+                "middle",
+                "test",
                 "id,cols",
                 1000,
                 0,
                 C_Search_MaxCount);
             try
             {
-                MessageConnection connection = await this._channels.GetConnectionAsync(
+                MessageConnection connection =  this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    this.remoteUserName);
+                    this.remoteUserName).Result;
 
-                SearchResult result = await connection.SearchAsync(
+                SearchResult result = connection.SearchAsync(
                     this.remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
-                    cancel_token);
+                    cancel_token).Result;
 
                 return result.ResultCount;
             }
