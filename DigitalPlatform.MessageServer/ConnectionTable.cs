@@ -196,6 +196,8 @@ namespace DigitalPlatform.MessageServer
         {
             strError = "";
 
+            List<string> matched_usernames = new List<string>();    // 匹配上的用户名。用于精确报错
+
             connectionIds = new List<string>();
             List<ConnectionInfo> infos = new List<ConnectionInfo>();
 
@@ -219,6 +221,8 @@ namespace DigitalPlatform.MessageServer
                     if (Array.IndexOf(target_usernames, strUserName) == -1)
                         continue;
 
+                    matched_usernames.Add(strUserName);
+
                     // 如何表达允许操作的权限?
                     // getreaderinfo:username1|username2
                     // 如果没有配置，表示不允许
@@ -239,7 +243,13 @@ namespace DigitalPlatform.MessageServer
             }
 
             if (infos.Count == 0)
+            {
+                if (matched_usernames.Count == 0)
+                    strError = "没有匹配上任何目标用户名 '"+strTargetUserNameList+"'";
+                else
+                    strError = "匹配的用户名 '" + StringUtil.MakePathList(matched_usernames) + "' 中没有找到满足操作 '" + strOperation + "' 的用户";
                 return 0;
+            }
 
             infos.Sort((a, b) =>
             {

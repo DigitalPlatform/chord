@@ -3172,8 +3172,51 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.ResetPassword(                    strParameters,
-                    strMessageTemplate
-);
+                    strMessageTemplate);
+                if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
+                {
+                    if (DoNotLogin(ref strError) == 1)
+                        goto REDO;
+                    return -1;
+                }
+                strError = result.ErrorInfo;
+                this.ErrorCode = result.ErrorCode;
+                this.ClearRedoCount();
+                return result.Value;
+            }
+            catch (Exception ex)
+            {
+                int nRet = ConvertWebError(ex, out strError);
+                if (nRet == 0)
+                    return -1;
+                goto REDO;
+            }
+        }
+
+        public long BindPatron(
+    string strAction,
+    string strQueryWord,
+    string strPassword,
+    string strBindingID,
+    string strStyle,
+    string strResultTypeList,
+    out string[] results,
+    out string strError)
+        {
+            strError = "";
+            results = null;
+
+        REDO:
+            try
+            {
+                LibraryServerResult result = this.ws.BindPatron(
+                    strAction,
+                    strQueryWord,
+                    strPassword,
+                    strBindingID,
+                    strStyle,
+                    strResultTypeList,
+                    out results);
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)

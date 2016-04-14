@@ -107,6 +107,15 @@ namespace TestClient1
             this.textBox_search_formatList.Text = Settings.Default.search_formatList;
             this.textBox_search_resultSetName.Text = Settings.Default.search_resultSetName;
             this.textBox_search_position.Text = Settings.Default.search_position;
+
+            this.textBox_bindPatron_remoteUserName.Text = Settings.Default.bindPatron_remoteUserName;
+            this.comboBox_bindPatron_action.Text = Settings.Default.bindPatron_action;
+            this.textBox_bindPatron_queryWord.Text = Settings.Default.bindPatron_queryWord;
+            this.textBox_bindPatron_password.Text = Settings.Default.bindPatron_password;
+            this.textBox_bindPatron_bindingID.Text = Settings.Default.bindPatron_bindingID;
+            this.textBox_bindPatron_style.Text = Settings.Default.bindPatron_style;
+            this.textBox_bindPatron_resultTypeList.Text = Settings.Default.bindPatron_resultTypeList;
+
         }
 
         void SaveSettings()
@@ -130,6 +139,14 @@ namespace TestClient1
             Settings.Default.search_resultSetName = this.textBox_search_resultSetName.Text;
             Settings.Default.search_position = this.textBox_search_position.Text;
 
+            Settings.Default.bindPatron_remoteUserName = this.textBox_bindPatron_remoteUserName.Text;
+            Settings.Default.bindPatron_action = this.comboBox_bindPatron_action.Text;
+            Settings.Default.bindPatron_queryWord = this.textBox_bindPatron_queryWord.Text;
+            Settings.Default.bindPatron_password = this.textBox_bindPatron_password.Text;
+            Settings.Default.bindPatron_bindingID = this.textBox_bindPatron_bindingID.Text;
+            Settings.Default.bindPatron_style = this.textBox_bindPatron_style.Text;
+            Settings.Default.bindPatron_resultTypeList = this.textBox_bindPatron_resultTypeList.Text;
+
             Settings.Default.Save();
         }
 
@@ -147,6 +164,10 @@ namespace TestClient1
                 DoSearch();
             }
 
+            if (this.tabControl_main.SelectedTab == this.tabPage_bindPatron)
+            {
+                DoBindPatron();
+            }
         }
 
         void EnableControls(bool bEnable)
@@ -159,6 +180,70 @@ namespace TestClient1
 
             this.tabControl_main.Enabled = bEnable;
             this.toolStrip1.Enabled = bEnable;
+        }
+
+        async void DoBindPatron()
+        {
+            string strError = "";
+
+            SetTextString(this.webBrowser1, "");
+
+            if (string.IsNullOrEmpty(this.comboBox_bindPatron_action.Text) == true)
+            {
+                strError = "尚未指定 Action";
+                goto ERROR1;
+            }
+
+            EnableControls(false);
+            try
+            {
+                CancellationToken cancel_token = new CancellationToken();
+
+                string id = Guid.NewGuid().ToString();
+                BindPatronRequest request = new BindPatronRequest(id,
+                    this.comboBox_bindPatron_action.Text,
+                    this.textBox_bindPatron_queryWord.Text,
+                    this.textBox_bindPatron_password.Text,
+                    this.textBox_bindPatron_bindingID.Text,
+                    this.textBox_bindPatron_style.Text,
+                    this.textBox_bindPatron_resultTypeList.Text);
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        this.textBox_search_remoteUserName.Text);
+                    BindPatronResult result = await connection.BindPatronAsync(
+                        this.textBox_search_remoteUserName.Text,
+                        request,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+
+                    this.Invoke(new Action(() =>
+                    {
+                        if (result.Value == -1)
+                            SetTextString(this.webBrowser1, "出错: " + result.ErrorInfo);
+                        else
+                            SetTextString(this.webBrowser1, ToString(result));
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 
         async void DoSearch()
@@ -380,6 +465,26 @@ string strHtml)
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 #endif
+        static string ToString(BindPatronResult result)
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("ResultValue=" + result.Value + "\r\n");
+            text.Append("ErrorInfo=" + result.ErrorInfo + "\r\n");
+            if (result.Results != null)
+            {
+                text.Append("Results.Count=" + result.Results.Count + "\r\n");
+                int i = 0;
+                foreach (string s in result.Results)
+                {
+                    text.Append((i + 1).ToString() + ") ===");
+                    text.Append("Data=" + XmlUtil.TryGetIndentXml(s) + "\r\n");
+                    i++;
+                }
+            }
+
+            return text.ToString();
+        }
+
         static string ToString(SearchResult result)
         {
             StringBuilder text = new StringBuilder();

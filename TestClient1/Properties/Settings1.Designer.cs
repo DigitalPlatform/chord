@@ -214,5 +214,89 @@ namespace TestClient1.Properties {
                 this["search_position"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string bindPatron_remoteUserName {
+            get {
+                return ((string)(this["bindPatron_remoteUserName"]));
+            }
+            set {
+                this["bindPatron_remoteUserName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("bind")]
+        public string bindPatron_action {
+            get {
+                return ((string)(this["bindPatron_action"]));
+            }
+            set {
+                this["bindPatron_action"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string bindPatron_queryWord {
+            get {
+                return ((string)(this["bindPatron_queryWord"]));
+            }
+            set {
+                this["bindPatron_queryWord"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string bindPatron_password {
+            get {
+                return ((string)(this["bindPatron_password"]));
+            }
+            set {
+                this["bindPatron_password"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string bindPatron_bindingID {
+            get {
+                return ((string)(this["bindPatron_bindingID"]));
+            }
+            set {
+                this["bindPatron_bindingID"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("single")]
+        public string bindPatron_style {
+            get {
+                return ((string)(this["bindPatron_style"]));
+            }
+            set {
+                this["bindPatron_style"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("xml")]
+        public string bindPatron_resultTypeList {
+            get {
+                return ((string)(this["bindPatron_resultTypeList"]));
+            }
+            set {
+                this["bindPatron_resultTypeList"] = value;
+            }
+        }
     }
 }

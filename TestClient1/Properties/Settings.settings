@@ -50,5 +50,26 @@
     <Setting Name="search_position" Type="System.String" Scope="User">
       <Value Profile="(Default)">0,100</Value>
     </Setting>
+    <Setting Name="bindPatron_remoteUserName" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="bindPatron_action" Type="System.String" Scope="User">
+      <Value Profile="(Default)">bind</Value>
+    </Setting>
+    <Setting Name="bindPatron_queryWord" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="bindPatron_password" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="bindPatron_bindingID" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="bindPatron_style" Type="System.String" Scope="User">
+      <Value Profile="(Default)">single</Value>
+    </Setting>
+    <Setting Name="bindPatron_resultTypeList" Type="System.String" Scope="User">
+      <Value Profile="(Default)">xml</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

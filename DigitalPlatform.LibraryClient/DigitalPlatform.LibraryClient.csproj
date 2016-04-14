@@ -80,6 +80,12 @@
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.BiblioDbFromInfo.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
+    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.BindPatronResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.BindPatronResponse1.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.BorrowInfo.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>

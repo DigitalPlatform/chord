@@ -430,7 +430,8 @@ namespace DigitalPlatform.MessageServer
             if (connectionIds == null || connectionIds.Count == 0)
             {
                 result.Value = 0;
-                result.ErrorInfo = "当前没有任何可检索的目标 (目标用户名 '"+userNameList+"'; 操作 '"+searchParam.Operation+"')";
+                // result.ErrorInfo = "当前没有任何可检索的目标 (目标用户名 '"+userNameList+"'; 操作 '"+searchParam.Operation+"')";
+                result.ErrorInfo = "当前没有发现可检索的目标 (详情 '"+strError+"')";
                 return result;
             }
 
@@ -724,6 +725,114 @@ namespace DigitalPlatform.MessageServer
         }
 
         #endregion
+
+        #region BindPatron() API
+
+        // return:
+        //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
+        public MessageResult RequestBindPatron(
+            string userNameList,
+            BindPatronRequest bindPatronParam
+            )
+        {
+            MessageResult result = new MessageResult();
+
+            ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+            if (connection_info == null)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。请求检索书目失败";
+                return result;
+            }
+
+            if (connection_info.UserItem == null)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "尚未登录，无法使用 RequestSetInfo() 功能";
+            }
+
+            // 检查请求者是否具备操作的权限
+            if (StringUtil.Contains(connection_info.Rights, "bindPatron") == false)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 'bindPatron' 操作的权限";
+                return result;
+            }
+
+            List<string> connectionIds = null;
+            string strError = "";
+            int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
+                userNameList,
+                connection_info.UserName,
+                "bindPatron",
+                "all",
+                out connectionIds,
+                out strError);
+            if (nRet == -1)
+            {
+                result.Value = -1;
+                result.ErrorInfo = strError;
+                return result;
+            }
+
+            if (connectionIds == null || connectionIds.Count == 0)
+            {
+                result.Value = 0;
+                result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
+                return result;
+            }
+
+            SearchInfo search_info = null;
+
+            try
+            {
+                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                    bindPatronParam.TaskID);
+            }
+            catch (ArgumentException)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "TaskID '" + bindPatronParam.TaskID + "' 已经存在了，不允许重复使用";
+                return result;
+            }
+
+            result.String = search_info.UID;   // 返回操作请求的 UID
+
+            Clients.Clients(connectionIds).bindPatron(
+                bindPatronParam);
+
+            search_info.TargetIDs = connectionIds;
+            result.Value = 1;   // 表示已经成功发起了操作
+            return result;
+        }
+
+        // parameters:
+        public MessageResult ResponseBindPatron(string taskID,
+            long resultValue,
+            List<string> results,
+            string errorInfo)
+        {
+            // Thread.Sleep(1000 * 60 * 2);
+            MessageResult result = new MessageResult();
+            SearchInfo info = ServerInfo.SearchTable.GetSearchInfo(taskID);
+            if (info == null)
+            {
+                result.ErrorInfo = "找不到 ID 为 '" + taskID + "' 的任务对象";
+                result.Value = -1;
+                return result;
+            }
+
+            // 让前端获得检索结果
+            Clients.Client(info.RequestConnectionID).responseBindPatron(
+                taskID,
+                resultValue,
+                results,
+                errorInfo);
+            return result;
+        }
+
+        #endregion
+
 
         public override Task OnConnected()
         {
