@@ -141,4 +141,43 @@ namespace DigitalPlatform.Message
 
         public string ErrorCode { get; set; }   // 出错码（表示属于何种类型的错误）
     }
+
+    public class BindPatronRequest
+    {
+        public string TaskID { get; set; }    // 任务 ID。由于一个 Connection 可以用于同时执行多个任务，本参数用于区分不同的任务
+        public string Action { get; set; }   // 动作名。
+
+        public string QueryWord { get; set; }
+
+        public string Password { get; set; }
+        public string BindingID { get; set; }
+        public string Style { get; set; }
+        public string ResultTypeList { get; set; }
+
+        public BindPatronRequest(string taskID,
+            string action,
+            string queryWord,
+            string password,
+            string bindID,
+            string style,
+            string resultTypeList)
+        {
+            this.TaskID = taskID;
+            this.Action = action;
+            this.QueryWord = queryWord;
+            this.Password = password;
+            this.BindingID = bindID;
+            this.Style = style;
+            this.ResultTypeList = resultTypeList;
+        }
+    }
+
+    public class BindPatronResult : MessageResult
+    {
+        public List<string> Formats { get; set; }
+        public List<string> Results { get; set; }
+
+        public string RecPath { get; set; }
+        public string Timestamp { get; set; }
+    }
 }

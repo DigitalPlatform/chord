@@ -65,6 +65,65 @@ namespace dp2Capo
             return this._channelPool.GetChannel(strServerUrl, strUserName);
         }
 
+        #region BindPatron() API
+
+        public override void OnBindPatronRecieved(BindPatronRequest param)
+        {
+            // 单独给一个线程来执行
+            Task.Factory.StartNew(() => BindPatronAndResponse(param));
+        }
+
+        void BindPatronAndResponse(BindPatronRequest param)
+        {
+            string strError = "";
+            IList<string> results = new List<string>();
+
+            LibraryChannel channel = GetChannel();
+            try
+            {
+                string[] temp_results = null;
+                long lRet = channel.BindPatron(param.Action,
+                    param.QueryWord,
+                    param.Password,
+                    param.BindingID,
+                    param.Style,
+                    param.ResultTypeList,
+                    out temp_results,
+                    out strError);
+                if (temp_results != null)
+                {
+                    foreach(string s in temp_results)
+                    {
+                        results.Add(s);
+                    }
+                }
+                ResponseBindPatron(param.TaskID,
+    lRet,
+    results,
+    strError);
+                return;
+            }
+            catch (Exception ex)
+            {
+                AddErrorLine("BindPatronAndResponse() 出现异常: " + ex.Message);
+                strError = ex.Message;
+                goto ERROR1;
+            }
+            finally
+            {
+                this._channelPool.ReturnChannel(channel);
+            }
+
+        ERROR1:
+            // 报错
+            ResponseBindPatron(
+param.TaskID,
+-1,
+results,
+strError);
+        }
+
+        #endregion
 
         // 
         // 当 server 发来检索请求的时候被调用。重载的时候要进行检索，并调用 Response 把检索结果发送给 server
@@ -72,7 +131,6 @@ namespace dp2Capo
         {
             // 单独给一个线程来执行
             Task.Factory.StartNew(() => SearchAndResponse(param));
-
         }
 
         // TODO: 本函数最好放在一个工作线程内执行
@@ -199,7 +257,7 @@ records,
                         string strBrowseStyle = "id,xml";
 
                         lRet = channel.GetSearchResult(
-            // null,
+                            // null,
             strResultSetName,
             lStart,
             lPerCount,

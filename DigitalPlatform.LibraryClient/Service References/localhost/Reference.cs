@@ -3263,6 +3263,13 @@ namespace DigitalPlatform.LibraryClient.localhost {
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/rest/dp2libraryREST/SearchCharging", ReplyAction="http://dp2003.com/dp2library/rest/dp2libraryREST/SearchChargingResponse")]
         System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.SearchChargingResponse> SearchChargingAsync(DigitalPlatform.LibraryClient.localhost.SearchChargingRequest request);
         
+        [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/rest/dp2libraryREST/BindPatron", ReplyAction="http://dp2003.com/dp2library/rest/dp2libraryREST/BindPatronResponse")]
+        DigitalPlatform.LibraryClient.localhost.BindPatronResponse BindPatron(DigitalPlatform.LibraryClient.localhost.BindPatronRequest request);
+        
+        // CODEGEN: 正在生成消息协定，应为该操作具有多个返回值。
+        [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/rest/dp2libraryREST/BindPatron", ReplyAction="http://dp2003.com/dp2library/rest/dp2libraryREST/BindPatronResponse")]
+        System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.BindPatronResponse> BindPatronAsync(DigitalPlatform.LibraryClient.localhost.BindPatronRequest request);
+        
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/rest/dp2libraryREST/GetVersion", ReplyAction="http://dp2003.com/dp2library/rest/dp2libraryREST/GetVersionResponse")]
         DigitalPlatform.LibraryClient.localhost.GetVersionResponse GetVersion(DigitalPlatform.LibraryClient.localhost.GetVersionRequest request);
         
@@ -4413,6 +4420,62 @@ namespace DigitalPlatform.LibraryClient.localhost {
         
         public SearchChargingResponse(DigitalPlatform.LibraryClient.localhost.LibraryServerResult SearchChargingResult, DigitalPlatform.LibraryClient.localhost.ChargingItemWrapper[] results) {
             this.SearchChargingResult = SearchChargingResult;
+            this.results = results;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="BindPatron", WrapperNamespace="http://dp2003.com/dp2library/rest", IsWrapped=true)]
+    public partial class BindPatronRequest {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=0)]
+        public string strAction;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=1)]
+        public string strQueryWord;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=2)]
+        public string strPassword;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=3)]
+        public string strBindingID;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=4)]
+        public string strStyle;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=5)]
+        public string strResultTypeList;
+        
+        public BindPatronRequest() {
+        }
+        
+        public BindPatronRequest(string strAction, string strQueryWord, string strPassword, string strBindingID, string strStyle, string strResultTypeList) {
+            this.strAction = strAction;
+            this.strQueryWord = strQueryWord;
+            this.strPassword = strPassword;
+            this.strBindingID = strBindingID;
+            this.strStyle = strStyle;
+            this.strResultTypeList = strResultTypeList;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="BindPatronResponse", WrapperNamespace="http://dp2003.com/dp2library/rest", IsWrapped=true)]
+    public partial class BindPatronResponse {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=0)]
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult BindPatronResult;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=1)]
+        public string[] results;
+        
+        public BindPatronResponse() {
+        }
+        
+        public BindPatronResponse(DigitalPlatform.LibraryClient.localhost.LibraryServerResult BindPatronResult, string[] results) {
+            this.BindPatronResult = BindPatronResult;
             this.results = results;
         }
     }
@@ -7755,6 +7818,28 @@ namespace DigitalPlatform.LibraryClient.localhost {
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        DigitalPlatform.LibraryClient.localhost.BindPatronResponse DigitalPlatform.LibraryClient.localhost.dp2libraryREST.BindPatron(DigitalPlatform.LibraryClient.localhost.BindPatronRequest request) {
+            return base.Channel.BindPatron(request);
+        }
+        
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult BindPatron(string strAction, string strQueryWord, string strPassword, string strBindingID, string strStyle, string strResultTypeList, out string[] results) {
+            DigitalPlatform.LibraryClient.localhost.BindPatronRequest inValue = new DigitalPlatform.LibraryClient.localhost.BindPatronRequest();
+            inValue.strAction = strAction;
+            inValue.strQueryWord = strQueryWord;
+            inValue.strPassword = strPassword;
+            inValue.strBindingID = strBindingID;
+            inValue.strStyle = strStyle;
+            inValue.strResultTypeList = strResultTypeList;
+            DigitalPlatform.LibraryClient.localhost.BindPatronResponse retVal = ((DigitalPlatform.LibraryClient.localhost.dp2libraryREST)(this)).BindPatron(inValue);
+            results = retVal.results;
+            return retVal.BindPatronResult;
+        }
+        
+        public System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.BindPatronResponse> BindPatronAsync(DigitalPlatform.LibraryClient.localhost.BindPatronRequest request) {
+            return base.Channel.BindPatronAsync(request);
+        }
+        
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         DigitalPlatform.LibraryClient.localhost.GetVersionResponse DigitalPlatform.LibraryClient.localhost.dp2libraryREST.GetVersion(DigitalPlatform.LibraryClient.localhost.GetVersionRequest request) {
             return base.Channel.GetVersion(request);
         }
@@ -9312,6 +9397,13 @@ namespace DigitalPlatform.LibraryClient.localhost {
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/dp2library/SearchCharging", ReplyAction="http://dp2003.com/dp2library/dp2library/SearchChargingResponse")]
         System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.SearchChargingResponse1> SearchChargingAsync(DigitalPlatform.LibraryClient.localhost.SearchChargingRequest1 request);
         
+        [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/dp2library/BindPatron", ReplyAction="http://dp2003.com/dp2library/dp2library/BindPatronResponse")]
+        DigitalPlatform.LibraryClient.localhost.BindPatronResponse1 BindPatron(DigitalPlatform.LibraryClient.localhost.BindPatronRequest1 request);
+        
+        // CODEGEN: 正在生成消息协定，应为该操作具有多个返回值。
+        [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/dp2library/BindPatron", ReplyAction="http://dp2003.com/dp2library/dp2library/BindPatronResponse")]
+        System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.BindPatronResponse1> BindPatronAsync(DigitalPlatform.LibraryClient.localhost.BindPatronRequest1 request);
+        
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/dp2library/GetVersion", ReplyAction="http://dp2003.com/dp2library/dp2library/GetVersionResponse")]
         DigitalPlatform.LibraryClient.localhost.GetVersionResponse1 GetVersion(DigitalPlatform.LibraryClient.localhost.GetVersionRequest1 request);
         
@@ -10456,6 +10548,62 @@ namespace DigitalPlatform.LibraryClient.localhost {
         
         public SearchChargingResponse1(DigitalPlatform.LibraryClient.localhost.LibraryServerResult SearchChargingResult, DigitalPlatform.LibraryClient.localhost.ChargingItemWrapper[] results) {
             this.SearchChargingResult = SearchChargingResult;
+            this.results = results;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="BindPatron", WrapperNamespace="http://dp2003.com/dp2library/", IsWrapped=true)]
+    public partial class BindPatronRequest1 {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=0)]
+        public string strAction;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=1)]
+        public string strQueryWord;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=2)]
+        public string strPassword;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=3)]
+        public string strBindingID;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=4)]
+        public string strStyle;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=5)]
+        public string strResultTypeList;
+        
+        public BindPatronRequest1() {
+        }
+        
+        public BindPatronRequest1(string strAction, string strQueryWord, string strPassword, string strBindingID, string strStyle, string strResultTypeList) {
+            this.strAction = strAction;
+            this.strQueryWord = strQueryWord;
+            this.strPassword = strPassword;
+            this.strBindingID = strBindingID;
+            this.strStyle = strStyle;
+            this.strResultTypeList = strResultTypeList;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="BindPatronResponse", WrapperNamespace="http://dp2003.com/dp2library/", IsWrapped=true)]
+    public partial class BindPatronResponse1 {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=0)]
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult BindPatronResult;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=1)]
+        public string[] results;
+        
+        public BindPatronResponse1() {
+        }
+        
+        public BindPatronResponse1(DigitalPlatform.LibraryClient.localhost.LibraryServerResult BindPatronResult, string[] results) {
+            this.BindPatronResult = BindPatronResult;
             this.results = results;
         }
     }
@@ -13795,6 +13943,28 @@ namespace DigitalPlatform.LibraryClient.localhost {
         
         public System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.SearchChargingResponse1> SearchChargingAsync(DigitalPlatform.LibraryClient.localhost.SearchChargingRequest1 request) {
             return base.Channel.SearchChargingAsync(request);
+        }
+        
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        DigitalPlatform.LibraryClient.localhost.BindPatronResponse1 DigitalPlatform.LibraryClient.localhost.dp2library.BindPatron(DigitalPlatform.LibraryClient.localhost.BindPatronRequest1 request) {
+            return base.Channel.BindPatron(request);
+        }
+        
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult BindPatron(string strAction, string strQueryWord, string strPassword, string strBindingID, string strStyle, string strResultTypeList, out string[] results) {
+            DigitalPlatform.LibraryClient.localhost.BindPatronRequest1 inValue = new DigitalPlatform.LibraryClient.localhost.BindPatronRequest1();
+            inValue.strAction = strAction;
+            inValue.strQueryWord = strQueryWord;
+            inValue.strPassword = strPassword;
+            inValue.strBindingID = strBindingID;
+            inValue.strStyle = strStyle;
+            inValue.strResultTypeList = strResultTypeList;
+            DigitalPlatform.LibraryClient.localhost.BindPatronResponse1 retVal = ((DigitalPlatform.LibraryClient.localhost.dp2library)(this)).BindPatron(inValue);
+            results = retVal.results;
+            return retVal.BindPatronResult;
+        }
+        
+        public System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.BindPatronResponse1> BindPatronAsync(DigitalPlatform.LibraryClient.localhost.BindPatronRequest1 request) {
+            return base.Channel.BindPatronAsync(request);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]

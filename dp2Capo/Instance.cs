@@ -98,6 +98,12 @@ namespace dp2Capo
             if (string.IsNullOrEmpty(strNewValue) == false)
                 element.SetAttribute("password", Cryptography.Encrypt(strNewValue, HostInfo.EncryptKey));
 
+            // 2016/4/10
+            Console.WriteLine("请输入 dp2library 的 MSMQ 消息队列名: (当前值为 '" + element.GetAttribute("defaultQueue") + "' )");
+            strNewValue = Console.ReadLine();
+            if (string.IsNullOrEmpty(strNewValue) == false)
+                element.SetAttribute("defaultQueue", strNewValue);
+
             element = dom.DocumentElement.SelectSingleNode("dp2mserver") as XmlElement;
             if (element == null)
             {

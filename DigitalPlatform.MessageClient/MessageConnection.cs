@@ -163,65 +163,46 @@ namespace DigitalPlatform.MessageClient
                 OnAddMessageRecieved(name, message)
                 );
 
+            // *** search
             HubProxy.On<SearchRequest>("search",
                 (searchParam) => OnSearchBiblioRecieved(searchParam)
                 );
-
             HubProxy.On<string,
     long,
     long,
     IList<Record>,
-        string>("responseSearch", (taskID,
-    resultCount,
-    start,
-    records,
-    errorInfo) =>
- OnSearchResponseRecieved(taskID,
-    resultCount,
-    start,
-    records,
-    errorInfo)
+    string>("responseSearch",
+    (taskID,
+resultCount,
+start,
+records,
+errorInfo) =>
+OnSearchResponseRecieved(taskID,
+resultCount,
+start,
+records,
+errorInfo)
+);
+
+            // *** bindPatron
+            HubProxy.On<BindPatronRequest>("bindPatron",
+                (bindPatronParam) => OnBindPatronRecieved(bindPatronParam)
+                );
+
+
+            HubProxy.On<string, long, IList<string>, string>("responseBindPatron",
+    (taskID,
+resultValue,
+results,
+errorInfo) =>
+OnResponseBindPatronRecieved(taskID,
+resultValue,
+results,
+errorInfo)
 
 );
 
-#if NO
-            Task task = Connection.Start();
-#if NO
-            CancellationTokenSource token = new CancellationTokenSource();
-            if (!task.Wait(60 * 1000, token.Token))
-            {
-                token.Cancel();
-                // labelStatusText.Text = "time out";
-                AddMessageLine("error", "time out");
-                return;
-            }
-#endif
-            while (task.IsCompleted == false)
-            {
-                Application.DoEvents();
-                Thread.Sleep(200);
-            }
 
-            if (task.IsFaulted == true)
-            {
-#if NO
-                if (task.Exception is HttpRequestException)
-                    labelStatusText.Text = "Unable to connect to server: start server bofore connection client.";
-#endif
-                AddErrorLine(GetExceptionText(task.Exception));
-                return;
-            }
-
-
-            AddInfoLine("停止 Timer");
-            _timer.Stop();
-
-            //EnableControls(true);
-            //textBox_input.Focus();
-            AddInfoLine("成功连接到 " + strServerUrl);
-
-            this.MainForm.BeginInvoke(new Action(Login));
-#endif
             try
             {
                 return Connection.Start()
@@ -297,6 +278,63 @@ namespace DigitalPlatform.MessageClient
         {
         }
 
+        public virtual void OnBindPatronRecieved(BindPatronRequest param)
+        {
+        }
+
+        public Task<BindPatronResult> BindPatronAsync(
+            string strRemoteUserName,
+            BindPatronRequest request,
+            TimeSpan timeout,
+            CancellationToken token)
+        {
+            return Task.Factory.StartNew<BindPatronResult>(() =>
+            {
+                BindPatronResult result = new BindPatronResult();
+
+                if (string.IsNullOrEmpty(request.TaskID) == true)
+                {
+                    request.TaskID = Guid.NewGuid().ToString();
+                }
+
+                MessageResult message = HubProxy.Invoke<MessageResult>(
+    "RequestBindPatron",
+    strRemoteUserName,
+    request).Result;
+                if (message.Value == -1
+                    || message.Value == 0)
+                {
+                    result.ErrorInfo = message.ErrorInfo;
+                    result.Value = -1;
+                    return result;
+                }
+
+                DateTime start_time = DateTime.Now;
+
+                // 循环，取出得到的检索结果
+                for (; ; )
+                {
+                    if (token != null)
+                        token.ThrowIfCancellationRequested();
+
+                    if (DateTime.Now - start_time >= timeout)
+                        throw new TimeoutException("已超时 " + timeout.ToString());
+
+                    BindPatronResult result0 = (BindPatronResult)_resultTable[request.TaskID];
+                    if (result0 != null)
+                    {
+                        ClearResultFromTable(request.TaskID);
+                        return result0;
+                    }
+
+                    Thread.Sleep(200);
+                }
+            }, token);
+
+            // TODO: 超时以后到来的结果，放入 hashtable 以后，时间长了谁来清理？可能还是需要一个专门的线程来做清理
+            // 或者超时的时候，在 Hashtable 中放入一个占位事项，后面响应到来的时候看到这个占位事项就知道已经超时了，需要把事项清除。但，如果响应始终不来呢？
+        }
+
         // 进行检索并得到结果
         // 这是将发出和接受消息结合起来的功能比较完整的 API
         public Task<SearchResult> SearchAsync(
@@ -368,6 +406,31 @@ namespace DigitalPlatform.MessageClient
             _resultTable.Remove(taskID);
         }
 
+        // 当 server 发来检索响应的时候被调用。重载时可以显示收到的记录
+        // 按照 searchID 把返回的唯一结果存储起来。消费线程一旦发现有了这个事项，就表明请求得到了响应，可取走结果，注意要从 Hashtable 里面删除结果，避免长期运行后堆积占据空间
+        public virtual void OnResponseBindPatronRecieved(string taskID,
+    long resultValue,
+    IList<string> results,
+    string errorInfo)
+        {
+            lock (_resultTable)
+            {
+                BindPatronResult result = (BindPatronResult)_resultTable[taskID];
+                if (result == null)
+                {
+                    result = new BindPatronResult();
+                    _resultTable[taskID] = result;
+                }
+
+                if (result.Results == null)
+                    result.Results = new List<string>();
+
+                result.Results.AddRange(results);
+                result.Value = resultValue;
+                result.ErrorInfo = errorInfo;
+            }
+        }
+
         // TODO: 按照 searchID 把检索结果一一存储起来。用信号通知消费线程。消费线程每次可以取走一部分，以后每一次就取走余下的。
         // 当 server 发来检索响应的时候被调用。重载时可以显示收到的记录
         public virtual void OnSearchResponseRecieved(string taskID,
@@ -376,30 +439,32 @@ namespace DigitalPlatform.MessageClient
     IList<Record> records,
     string errorInfo)
         {
-            // TODO: 监视 Hashtable 中的元素数量，超过一个极限值要抛出异常
-
-            SearchResult result = (SearchResult)_resultTable[taskID];
-            if (result == null)
+            lock (_resultTable)
             {
-                result = new SearchResult();
-                _resultTable[taskID] = result;
+                // TODO: 监视 Hashtable 中的元素数量，超过一个极限值要抛出异常
+
+                SearchResult result = (SearchResult)_resultTable[taskID];
+                if (result == null)
+                {
+                    result = new SearchResult();
+                    _resultTable[taskID] = result;
+                }
+
+                if (result.Records == null)
+                    result.Records = new List<Record>();
+
+                if (resultCount == -1 && start == -1)
+                {
+                    // 表示发送响应过程已经结束
+                    result.Finished = true;
+                    return;
+                }
+
+                result.ResultCount = resultCount;
+                // TODO: 似乎应该关注 start 位置
+                result.Records.AddRange(records);
+                result.ErrorInfo = errorInfo;
             }
-
-            if (result.Records == null)
-                result.Records = new List<Record>();
-
-            if (resultCount == -1 && start == -1)
-            {
-                // 表示发送响应过程已经结束
-                result.Finished = true;
-                return;
-            }
-
-            result.ResultCount = resultCount;
-            // TODO: 似乎应该关注 start 位置
-            result.Records.AddRange(records);
-            result.ErrorInfo = errorInfo;
-            return;
         }
 
         // 关闭连接，并且不会引起自动重连接
@@ -674,6 +739,32 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             }
         }
 #endif
+
+        // 调用 server 端 ResponseBindPatron
+        public async void ResponseBindPatron(
+            string taskID,
+            long resultValue,
+            IList<string> results,
+            string errorInfo)
+        {
+            try
+            {
+                MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseBindPatron",
+    taskID,
+    resultValue,
+    results,
+    errorInfo);
+                if (result.Value == -1)
+                {
+                    AddErrorLine(result.ErrorInfo);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                AddErrorLine(ex.Message);
+            }
+        }
 
         // 调用 server 端 ResponseSearchBiblio
         public async void ResponseSearch(
