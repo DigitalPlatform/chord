@@ -171,17 +171,20 @@ namespace DigitalPlatform.MessageClient
     long,
     long,
     IList<Record>,
-    string>("responseSearch",
+    string,
+            string>("responseSearch",
     (taskID,
 resultCount,
 start,
 records,
-errorInfo) =>
+errorInfo,
+errorCode) =>
 OnResponseSearchRecieved(taskID,
 resultCount,
 start,
 records,
-errorInfo)
+errorInfo,
+errorCode)
 );
 
             // *** bindPatron
@@ -348,7 +351,8 @@ errorInfo)
     long resultCount,
     long start,
     IList<Record> records,
-    string errorInfo)
+    string errorInfo,
+            string errorCode)   // 2016/4/15 增加
         {
             lock (_resultTable)
             {
@@ -375,6 +379,7 @@ errorInfo)
                 // TODO: 似乎应该关注 start 位置
                 result.Records.AddRange(records);
                 result.ErrorInfo = errorInfo;
+                result.ErrorCode = errorCode;   // 2016/4/15 增加
             }
         }
 
@@ -781,7 +786,8 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             long resultCount,
             long start,
             IList<Record> records,
-            string errorInfo)
+            string errorInfo,
+            string errorCode)
         {
             try
             {
@@ -790,7 +796,8 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
     resultCount,
     start,
     records,
-    errorInfo);
+    errorInfo,
+    errorCode);
                 if (result.Value == -1)
                 {
                     AddErrorLine(result.ErrorInfo);
@@ -846,6 +853,7 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
         public long ResultCount = 0;
         public List<Record> Records = null;
         public string ErrorInfo = "";
+        public string ErrorCode = "";   // 2016/4/15 增加
         public bool Finished = false;
     }
 }

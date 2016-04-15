@@ -166,6 +166,7 @@ strError);
             }
 
             string strError = "";
+            string strErrorCode = "";
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
 
             string strResultSetName = searchParam.ResultSetName;
@@ -220,6 +221,8 @@ strError);
                         strError = "无法识别的 Operation 值 '" + searchParam.Operation + "'";
                     }
 
+                    strErrorCode = channel.ErrorCode.ToString();
+
                     if (lRet == -1 || lRet == 0)
                     {
                         if (lRet == 0
@@ -231,7 +234,8 @@ strError);
     0,
     0,
     records,
-    strError);  // 出错信息大概为 not found。
+    strError,  // 出错信息大概为 not found。
+    strErrorCode);
                             return;
                         }
                         goto ERROR1;
@@ -250,7 +254,8 @@ strError);
                             lHitCount,
 0,
 records,
-"本次没有返回任何记录");
+"本次没有返回任何记录",
+strErrorCode);
                         return;
                     }
 
@@ -287,6 +292,7 @@ records,
             "zh", // this.Lang,
             out searchresults,
             out strError);
+                        strErrorCode = channel.ErrorCode.ToString();
                         if (lRet == -1)
                             goto ERROR1;
 
@@ -313,7 +319,8 @@ records,
                             lHitCount,
                             lStart,
                             records,
-                            "");
+                            "",
+                            strErrorCode);
 
                         lStart += searchresults.Length;
 
@@ -345,12 +352,14 @@ searchParam.TaskID,
 -1,
 0,
 records,
-strError);
+strError,
+strErrorCode);
         }
 
         void GetItemInfo(SearchRequest searchParam)
         {
             string strError = "";
+            string strErrorCode = "";
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
 
 #if NO
@@ -410,6 +419,8 @@ strError);
                     goto ERROR1;
                 }
 
+                strErrorCode = channel.ErrorCode.ToString();
+
                 if (lRet == -1 || lRet == 0)
                 {
                     if (lRet == 0
@@ -421,7 +432,8 @@ searchParam.TaskID,
 0,
 0,
 records,
-strError);  // 出错信息大概为 not found。
+strError,  // 出错信息大概为 not found。
+strErrorCode);
                         return;
                     }
                     // TODO: 如何返回 channel.ErrorCode ?
@@ -452,7 +464,8 @@ strError);  // 出错信息大概为 not found。
                     records.Count,  // lHitCount,
                     0, // lStart,
                     records,
-                    "");
+                    "",
+                    strErrorCode);
             }
             catch (Exception ex)
             {
@@ -474,7 +487,8 @@ searchParam.TaskID,
 -1,
 0,
 records,
-strError);
+strError,
+strErrorCode);
         }
 
         /*
@@ -507,6 +521,7 @@ strError);
         void GetBiblioSummary(SearchRequest searchParam)
         {
             string strError = "";
+            string strErrorCode = "";
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
 
             LibraryChannel channel = GetChannel();
@@ -522,6 +537,7 @@ strError);
                     out strBiblioRecPath,
                     out strSummary,
                     out strError);
+                strErrorCode = channel.ErrorCode.ToString();
                 if (lRet == -1 || lRet == 0)
                 {
                     if (lRet == 0
@@ -533,7 +549,8 @@ searchParam.TaskID,
 0,
 0,
 records,
-strError);  // 出错信息大概为 not found。
+strError,   // 出错信息大概为 not found。
+strErrorCode);
                         return;
                     }
                     goto ERROR1;
@@ -553,7 +570,8 @@ strError);  // 出错信息大概为 not found。
                     records.Count,  // lHitCount,
                     0, // lStart,
                     records,
-                    "");
+                    "",
+                    strErrorCode);
             }
             catch (Exception ex)
             {
@@ -575,13 +593,15 @@ searchParam.TaskID,
 -1,
 0,
 records,
-strError);
+strError,
+strErrorCode);
         }
 
         // searchParam.UseList 里面提供 strBiblioXml 参数，即，前端提供给服务器，希望服务器加工处理的书目XML内容
         void GetBiblioInfo(SearchRequest searchParam)
         {
             string strError = "";
+            string strErrorCode = "";
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
 
             if (string.IsNullOrEmpty(searchParam.FormatList) == true)
@@ -606,6 +626,7 @@ strError);
                     out results,
                     out baTimestamp,
                     out strError);
+                strErrorCode = channel.ErrorCode.ToString();
                 if (lRet == -1 || lRet == 0)
                 {
                     if (lRet == 0
@@ -617,7 +638,8 @@ searchParam.TaskID,
 0,
 0,
 records,
-strError);  // 出错信息大概为 not found。
+strError,  // 出错信息大概为 not found。
+strErrorCode);
                         return;
                     }
                     goto ERROR1;
@@ -650,7 +672,8 @@ strError);  // 出错信息大概为 not found。
                     records.Count,  // lHitCount,
                     0, // lStart,
                     records,
-                    "");
+                    "",
+                    strErrorCode);
             }
             catch (Exception ex)
             {
@@ -672,12 +695,14 @@ searchParam.TaskID,
 -1,
 0,
 records,
-strError);
+strError,
+strErrorCode);
         }
 
         void GetPatronInfo(SearchRequest searchParam)
         {
             string strError = "";
+            string strErrorCode = "";
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
 
             if (string.IsNullOrEmpty(searchParam.FormatList) == true)
@@ -700,6 +725,7 @@ strError);
                     out strRecPath,
                     out baTimestamp,
                     out strError);
+                strErrorCode = channel.ErrorCode.ToString();
                 if (lRet == -1 || lRet == 0)
                 {
                     if (lRet == 0
@@ -711,7 +737,8 @@ searchParam.TaskID,
 0,
 0,
 records,
-strError);  // 出错信息大概为 not found。
+strError,  // 出错信息大概为 not found。
+strErrorCode);
                         return;
                     }
                     goto ERROR1;
@@ -738,7 +765,8 @@ strError);  // 出错信息大概为 not found。
                     records.Count,  // lHitCount,
                     0, // lStart,
                     records,
-                    "");
+                    "",
+                    strErrorCode);
             }
             catch (Exception ex)
             {
@@ -760,7 +788,8 @@ searchParam.TaskID,
 -1,
 0,
 records,
-strError);
+strError,
+strErrorCode);
         }
 
         #endregion

@@ -490,6 +490,7 @@ string strHtml)
             StringBuilder text = new StringBuilder();
             text.Append("ResultCount=" + result.ResultCount + "\r\n");
             text.Append("ErrorInfo=" + result.ErrorInfo + "\r\n");
+            text.Append("ErrorCode=" + result.ErrorCode + "\r\n");
             if (result.Records != null)
             {
                 int i = 0;
