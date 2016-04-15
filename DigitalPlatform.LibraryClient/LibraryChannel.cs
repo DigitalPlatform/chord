@@ -5532,6 +5532,48 @@ out strError);
             return 0;
         }
 
+        public long GetEntities(
+    string strBiblioRecPath,
+    long lStart,
+    long lCount,
+    string strStyle,
+    string strLang,
+    out EntityInfo[] entityinfos,
+    out string strError)
+        {
+            entityinfos = null;
+            strError = "";
+
+        REDO:
+            try
+            {
+                LibraryServerResult result = this.ws.GetEntities(
+                    strBiblioRecPath,
+                    lStart,
+                    lCount,
+                    strStyle,
+                    strLang,
+                    out entityinfos);
+                if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
+                {
+                    if (DoNotLogin(ref strError) == 1)
+                        goto REDO;
+                    return -1;
+                }
+                strError = result.ErrorInfo;
+                this.ErrorCode = result.ErrorCode;
+                this.ClearRedoCount();
+                return result.Value;
+            }
+            catch (Exception ex)
+            {
+                int nRet = ConvertWebError(ex, out strError);
+                if (nRet == 0)
+                    return -1;
+                goto REDO;
+            }
+        }
+
         /// *** 期相关功能
 
         // 获得期信息

@@ -494,7 +494,7 @@ namespace DigitalPlatform.MessageServer
             long resultCount,
             long start,
             IList<Record> records,
-            string errorInfo)
+            string errorInfo)   // TODO: 应增加 errorCode
         {
             // Thread.Sleep(1000 * 60 * 2);
             MessageResult result = new MessageResult();

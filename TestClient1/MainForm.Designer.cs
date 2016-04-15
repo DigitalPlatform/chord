@@ -67,13 +67,9 @@
             this.label10 = new System.Windows.Forms.Label();
             this.textBox_search_remoteUserName = new System.Windows.Forms.TextBox();
             this.label11 = new System.Windows.Forms.Label();
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
-            this.splitContainer_main = new System.Windows.Forms.SplitContainer();
-            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.tabPage_bindPatron = new System.Windows.Forms.TabPage();
-            this.textBox_bindPatron_remoteUserName = new System.Windows.Forms.TextBox();
-            this.label7 = new System.Windows.Forms.Label();
+            this.comboBox_bindPatron_action = new System.Windows.Forms.ComboBox();
+            this.label25 = new System.Windows.Forms.Label();
             this.textBox_bindPatron_queryWord = new System.Windows.Forms.TextBox();
             this.label20 = new System.Windows.Forms.Label();
             this.textBox_bindPatron_style = new System.Windows.Forms.TextBox();
@@ -84,18 +80,22 @@
             this.label23 = new System.Windows.Forms.Label();
             this.textBox_bindPatron_password = new System.Windows.Forms.TextBox();
             this.label24 = new System.Windows.Forms.Label();
-            this.comboBox_bindPatron_action = new System.Windows.Forms.ComboBox();
-            this.label25 = new System.Windows.Forms.Label();
+            this.textBox_bindPatron_remoteUserName = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
+            this.splitContainer_main = new System.Windows.Forms.SplitContainer();
+            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.tabControl_main.SuspendLayout();
             this.tabPage_config.SuspendLayout();
             this.tabPage_getInfo.SuspendLayout();
             this.tabPage_search.SuspendLayout();
+            this.tabPage_bindPatron.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_main)).BeginInit();
             this.splitContainer_main.Panel1.SuspendLayout();
             this.splitContainer_main.Panel2.SuspendLayout();
             this.splitContainer_main.SuspendLayout();
-            this.tabPage_bindPatron.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -137,7 +137,7 @@
             this.tabPage_config.Controls.Add(this.label1);
             this.tabPage_config.Location = new System.Drawing.Point(4, 22);
             this.tabPage_config.Name = "tabPage_config";
-            this.tabPage_config.Size = new System.Drawing.Size(246, 272);
+            this.tabPage_config.Size = new System.Drawing.Size(333, 272);
             this.tabPage_config.TabIndex = 2;
             this.tabPage_config.Text = "Config";
             this.tabPage_config.UseVisualStyleBackColor = true;
@@ -181,7 +181,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_config_messageServerUrl.Location = new System.Drawing.Point(11, 36);
             this.textBox_config_messageServerUrl.Name = "textBox_config_messageServerUrl";
-            this.textBox_config_messageServerUrl.Size = new System.Drawing.Size(227, 21);
+            this.textBox_config_messageServerUrl.Size = new System.Drawing.Size(314, 21);
             this.textBox_config_messageServerUrl.TabIndex = 1;
             // 
             // label1
@@ -207,7 +207,7 @@
             this.tabPage_getInfo.Location = new System.Drawing.Point(4, 22);
             this.tabPage_getInfo.Name = "tabPage_getInfo";
             this.tabPage_getInfo.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_getInfo.Size = new System.Drawing.Size(246, 272);
+            this.tabPage_getInfo.Size = new System.Drawing.Size(333, 272);
             this.tabPage_getInfo.TabIndex = 0;
             this.tabPage_getInfo.Text = "GetXXXInfo";
             this.tabPage_getInfo.UseVisualStyleBackColor = true;
@@ -239,7 +239,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_getInfo_formatList.Location = new System.Drawing.Point(132, 91);
             this.textBox_getInfo_formatList.Name = "textBox_getInfo_formatList";
-            this.textBox_getInfo_formatList.Size = new System.Drawing.Size(152, 21);
+            this.textBox_getInfo_formatList.Size = new System.Drawing.Size(239, 21);
             this.textBox_getInfo_formatList.TabIndex = 7;
             // 
             // label6
@@ -350,7 +350,10 @@
             this.comboBox_search_method.Items.AddRange(new object[] {
             "searchPatron",
             "searchBiblio",
-            "searchItem"});
+            "searchItem",
+            "getBiblioInfo",
+            "getBiblioSummary",
+            "getItemInfo"});
             this.comboBox_search_method.Location = new System.Drawing.Point(130, 6);
             this.comboBox_search_method.Name = "comboBox_search_method";
             this.comboBox_search_method.Size = new System.Drawing.Size(161, 20);
@@ -463,53 +466,6 @@
             this.label11.TabIndex = 2;
             this.label11.Text = "Remote User Name:";
             // 
-            // toolStrip1
-            // 
-            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripButton_begin});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 24);
-            this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(728, 25);
-            this.toolStrip1.TabIndex = 1;
-            this.toolStrip1.Text = "toolStrip1";
-            // 
-            // toolStripButton_begin
-            // 
-            this.toolStripButton_begin.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.toolStripButton_begin.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton_begin.Image")));
-            this.toolStripButton_begin.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton_begin.Name = "toolStripButton_begin";
-            this.toolStripButton_begin.Size = new System.Drawing.Size(45, 22);
-            this.toolStripButton_begin.Text = "Begin";
-            this.toolStripButton_begin.Click += new System.EventHandler(this.toolStripButton_begin_Click);
-            // 
-            // splitContainer_main
-            // 
-            this.splitContainer_main.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer_main.Location = new System.Drawing.Point(0, 49);
-            this.splitContainer_main.Name = "splitContainer_main";
-            // 
-            // splitContainer_main.Panel1
-            // 
-            this.splitContainer_main.Panel1.Controls.Add(this.tabControl_main);
-            // 
-            // splitContainer_main.Panel2
-            // 
-            this.splitContainer_main.Panel2.Controls.Add(this.webBrowser1);
-            this.splitContainer_main.Size = new System.Drawing.Size(728, 298);
-            this.splitContainer_main.SplitterDistance = 341;
-            this.splitContainer_main.SplitterWidth = 8;
-            this.splitContainer_main.TabIndex = 3;
-            // 
-            // webBrowser1
-            // 
-            this.webBrowser1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.webBrowser1.Location = new System.Drawing.Point(0, 0);
-            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
-            this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(379, 298);
-            this.webBrowser1.TabIndex = 0;
-            // 
             // tabPage_bindPatron
             // 
             this.tabPage_bindPatron.Controls.Add(this.comboBox_bindPatron_action);
@@ -533,21 +489,25 @@
             this.tabPage_bindPatron.Text = "BindPatron";
             this.tabPage_bindPatron.UseVisualStyleBackColor = true;
             // 
-            // textBox_bindPatron_remoteUserName
+            // comboBox_bindPatron_action
             // 
-            this.textBox_bindPatron_remoteUserName.Location = new System.Drawing.Point(131, 14);
-            this.textBox_bindPatron_remoteUserName.Name = "textBox_bindPatron_remoteUserName";
-            this.textBox_bindPatron_remoteUserName.Size = new System.Drawing.Size(161, 21);
-            this.textBox_bindPatron_remoteUserName.TabIndex = 5;
+            this.comboBox_bindPatron_action.FormattingEnabled = true;
+            this.comboBox_bindPatron_action.Items.AddRange(new object[] {
+            "bind",
+            "unbind"});
+            this.comboBox_bindPatron_action.Location = new System.Drawing.Point(131, 41);
+            this.comboBox_bindPatron_action.Name = "comboBox_bindPatron_action";
+            this.comboBox_bindPatron_action.Size = new System.Drawing.Size(161, 20);
+            this.comboBox_bindPatron_action.TabIndex = 36;
             // 
-            // label7
+            // label25
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(9, 17);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(107, 12);
-            this.label7.TabIndex = 4;
-            this.label7.Text = "Remote User Name:";
+            this.label25.AutoSize = true;
+            this.label25.Location = new System.Drawing.Point(9, 44);
+            this.label25.Name = "label25";
+            this.label25.Size = new System.Drawing.Size(47, 12);
+            this.label25.TabIndex = 35;
+            this.label25.Text = "Action:";
             // 
             // textBox_bindPatron_queryWord
             // 
@@ -631,25 +591,68 @@
             this.label24.TabIndex = 23;
             this.label24.Text = "Password:";
             // 
-            // comboBox_bindPatron_action
+            // textBox_bindPatron_remoteUserName
             // 
-            this.comboBox_bindPatron_action.FormattingEnabled = true;
-            this.comboBox_bindPatron_action.Items.AddRange(new object[] {
-            "bind",
-            "unbind"});
-            this.comboBox_bindPatron_action.Location = new System.Drawing.Point(131, 41);
-            this.comboBox_bindPatron_action.Name = "comboBox_bindPatron_action";
-            this.comboBox_bindPatron_action.Size = new System.Drawing.Size(161, 20);
-            this.comboBox_bindPatron_action.TabIndex = 36;
+            this.textBox_bindPatron_remoteUserName.Location = new System.Drawing.Point(131, 14);
+            this.textBox_bindPatron_remoteUserName.Name = "textBox_bindPatron_remoteUserName";
+            this.textBox_bindPatron_remoteUserName.Size = new System.Drawing.Size(161, 21);
+            this.textBox_bindPatron_remoteUserName.TabIndex = 5;
             // 
-            // label25
+            // label7
             // 
-            this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(9, 44);
-            this.label25.Name = "label25";
-            this.label25.Size = new System.Drawing.Size(47, 12);
-            this.label25.TabIndex = 35;
-            this.label25.Text = "Action:";
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(9, 17);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(107, 12);
+            this.label7.TabIndex = 4;
+            this.label7.Text = "Remote User Name:";
+            // 
+            // toolStrip1
+            // 
+            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripButton_begin});
+            this.toolStrip1.Location = new System.Drawing.Point(0, 24);
+            this.toolStrip1.Name = "toolStrip1";
+            this.toolStrip1.Size = new System.Drawing.Size(728, 25);
+            this.toolStrip1.TabIndex = 1;
+            this.toolStrip1.Text = "toolStrip1";
+            // 
+            // toolStripButton_begin
+            // 
+            this.toolStripButton_begin.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripButton_begin.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton_begin.Image")));
+            this.toolStripButton_begin.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton_begin.Name = "toolStripButton_begin";
+            this.toolStripButton_begin.Size = new System.Drawing.Size(45, 22);
+            this.toolStripButton_begin.Text = "Begin";
+            this.toolStripButton_begin.Click += new System.EventHandler(this.toolStripButton_begin_Click);
+            // 
+            // splitContainer_main
+            // 
+            this.splitContainer_main.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer_main.Location = new System.Drawing.Point(0, 49);
+            this.splitContainer_main.Name = "splitContainer_main";
+            // 
+            // splitContainer_main.Panel1
+            // 
+            this.splitContainer_main.Panel1.Controls.Add(this.tabControl_main);
+            // 
+            // splitContainer_main.Panel2
+            // 
+            this.splitContainer_main.Panel2.Controls.Add(this.webBrowser1);
+            this.splitContainer_main.Size = new System.Drawing.Size(728, 298);
+            this.splitContainer_main.SplitterDistance = 341;
+            this.splitContainer_main.SplitterWidth = 8;
+            this.splitContainer_main.TabIndex = 3;
+            // 
+            // webBrowser1
+            // 
+            this.webBrowser1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.webBrowser1.Location = new System.Drawing.Point(0, 0);
+            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
+            this.webBrowser1.Name = "webBrowser1";
+            this.webBrowser1.Size = new System.Drawing.Size(379, 298);
+            this.webBrowser1.TabIndex = 0;
             // 
             // MainForm
             // 
@@ -673,14 +676,14 @@
             this.tabPage_getInfo.PerformLayout();
             this.tabPage_search.ResumeLayout(false);
             this.tabPage_search.PerformLayout();
+            this.tabPage_bindPatron.ResumeLayout(false);
+            this.tabPage_bindPatron.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.splitContainer_main.Panel1.ResumeLayout(false);
             this.splitContainer_main.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_main)).EndInit();
             this.splitContainer_main.ResumeLayout(false);
-            this.tabPage_bindPatron.ResumeLayout(false);
-            this.tabPage_bindPatron.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
