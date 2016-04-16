@@ -490,16 +490,23 @@ string strHtml)
             StringBuilder text = new StringBuilder();
             text.Append("ResultCount=" + result.ResultCount + "\r\n");
             text.Append("ErrorInfo=" + result.ErrorInfo + "\r\n");
-            text.Append("ErrorCode=" + result.ErrorCode + "\r\n");
+            if (string.IsNullOrEmpty(result.ErrorCode) == false)
+                text.Append("ErrorCode=" + result.ErrorCode + "\r\n");
             if (result.Records != null)
             {
                 int i = 0;
                 foreach (Record record in result.Records)
                 {
                     text.Append((i + 1).ToString() + ") ===");
-                    text.Append("RecPath=" + record.RecPath + "\r\n");
-                    text.Append("Format=" + record.Format + "\r\n");
+                    if (string.IsNullOrEmpty(record.RecPath) == false)
+                        text.Append("RecPath=" + record.RecPath + "\r\n");
+                    if (string.IsNullOrEmpty(record.Format) == false)
+                        text.Append("Format=" + record.Format + "\r\n");
                     text.Append("Data=" + XmlUtil.TryGetIndentXml(record.Data) + "\r\n");
+
+                    if (string.IsNullOrEmpty(record.Timestamp) == false)
+                        text.Append("Timestamp=" + record.Timestamp + "\r\n");
+
                     i++;
                 }
             }

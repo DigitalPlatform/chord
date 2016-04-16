@@ -8,6 +8,8 @@ using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform;
 using DigitalPlatform.LibraryClient;
+using System.Xml;
+using DigitalPlatform.Xml;
 
 namespace dp2Capo
 {
@@ -162,6 +164,12 @@ strError);
             if (searchParam.Operation == "getItemInfo")
             {
                 GetItemInfo(searchParam);
+                return;
+            }
+
+            if (searchParam.Operation == "getBrowseRecords")
+            {
+                GetBrowseRecords(searchParam);
                 return;
             }
 
@@ -356,6 +364,145 @@ strError,
 strErrorCode);
         }
 
+        void GetBrowseRecords(SearchRequest searchParam)
+        {
+            string strError = "";
+            string strErrorCode = "";
+            IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
+
+            LibraryChannel channel = GetChannel();
+            try
+            {
+                DigitalPlatform.LibraryClient.localhost.Record [] searchresults = null;
+                // return:
+                //      result.Value    -1 出错；0 成功
+                long lRet = channel.GetBrowseRecords(
+                    searchParam.QueryWord.Split(new char [] {','}),
+                    searchParam.FormatList,
+                    out searchresults,
+                    out strError);
+                strErrorCode = channel.ErrorCode.ToString();
+                if (lRet == -1)
+                {
+                    if (lRet == 0
+                        || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                    {
+                        // 没有命中
+                        ResponseSearch(
+searchParam.TaskID,
+0,
+0,
+records,
+strError,   // 出错信息大概为 not found。
+strErrorCode);
+                        return;
+                    }
+                    goto ERROR1;
+                }
+
+                records.Clear();
+
+                // TODO: 根据 format list 选择返回哪些信息
+
+                foreach(DigitalPlatform.LibraryClient.localhost.Record record in searchresults)
+                {
+                    DigitalPlatform.Message.Record biblio = FillBiblio(record);
+                    records.Add(biblio);
+                }
+
+                ResponseSearch(
+                    searchParam.TaskID,
+                    records.Count,  // lHitCount,
+                    0, // lStart,
+                    records,
+                    "",
+                    strErrorCode);
+            }
+            catch (Exception ex)
+            {
+                AddErrorLine("GetBrowseRecords() 出现异常: " + ex.Message);
+                strError = "GetBrowseRecords() 异常：" + ExceptionUtil.GetDebugText(ex);
+                goto ERROR1;
+            }
+            finally
+            {
+                this._channelPool.ReturnChannel(channel);
+            }
+
+            this.AddInfoLine("search and response end");
+            return;
+        ERROR1:
+            // 报错
+            ResponseSearch(
+searchParam.TaskID,
+-1,
+0,
+records,
+strError,
+strErrorCode);
+        }
+
+        static DigitalPlatform.Message.Record FillBiblio(DigitalPlatform.LibraryClient.localhost.Record record)
+        {
+            DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
+            biblio.RecPath = record.Path;
+
+            XmlDocument dom = new XmlDocument();
+            if (record.RecordBody != null
+                && string.IsNullOrEmpty(record.RecordBody.Xml) == false)
+            {
+                // xml
+                dom.LoadXml(record.RecordBody.Xml);
+            }
+            else
+            {
+                dom.LoadXml("<root />");
+            }
+
+            if (record.Cols != null)
+            {
+                // cols
+                foreach(string s in record.Cols)
+                {
+                    XmlElement col = dom.CreateElement("col");
+                    dom.DocumentElement.AppendChild(col);
+                    col.InnerText = s;
+                }
+            }
+
+            biblio.Format = "";
+            if (record.RecordBody != null)
+            {
+                // metadata
+                if (string.IsNullOrEmpty(record.RecordBody.Metadata) == false)
+                {
+                    // 在根元素下放一个 metadata 元素
+                    XmlElement metadata = dom.CreateElement("metadata");
+                    dom.DocumentElement.AppendChild(metadata);
+
+                    try
+                    {
+                        XmlDocument metadata_dom = new XmlDocument();
+                        metadata_dom.LoadXml(record.RecordBody.Metadata);
+
+                        foreach (XmlAttribute attr in metadata_dom.DocumentElement.Attributes)
+                        {
+                            metadata.SetAttribute(attr.Name, attr.Value);
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        metadata.SetAttribute("error", "metadata XML '" + record.RecordBody.Metadata + "' 装入 DOM 时出错: " + ex.Message);
+                    }
+                }
+                // timestamp
+                biblio.Timestamp = ByteArray.GetHexTimeStampString(record.RecordBody.Timestamp);
+            }
+
+            biblio.Data = dom.DocumentElement.OuterXml;
+            return biblio;
+        }
+
         void GetItemInfo(SearchRequest searchParam)
         {
             string strError = "";
@@ -373,6 +520,8 @@ strErrorCode);
             LibraryChannel channel = GetChannel();
             try
             {
+                // TODO: 若一次调用不足以满足 searchParam.Count 所要求的数量，要能反复多次发出响应数据，直到满足要求的数量未为止。这样的好处是让调用者比较简单，可以假定请求的数量一定会被满足
+
                 DigitalPlatform.LibraryClient.localhost.EntityInfo[] entities = null;
 
                 long lRet = 0;

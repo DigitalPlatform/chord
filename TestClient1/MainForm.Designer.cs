@@ -218,7 +218,8 @@
             this.comboBox_getInfo_method.Items.AddRange(new object[] {
             "getPatronInfo",
             "getBiblioInfo",
-            "getItemInfo"});
+            "getItemInfo",
+            "getBrowseRecords"});
             this.comboBox_getInfo_method.Location = new System.Drawing.Point(132, 10);
             this.comboBox_getInfo_method.Name = "comboBox_getInfo_method";
             this.comboBox_getInfo_method.Size = new System.Drawing.Size(161, 20);
@@ -353,7 +354,8 @@
             "searchItem",
             "getBiblioInfo",
             "getBiblioSummary",
-            "getItemInfo"});
+            "getItemInfo",
+            "getBrowseRecords"});
             this.comboBox_search_method.Location = new System.Drawing.Point(130, 6);
             this.comboBox_search_method.Name = "comboBox_search_method";
             this.comboBox_search_method.Size = new System.Drawing.Size(161, 20);
