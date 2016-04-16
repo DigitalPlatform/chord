@@ -494,7 +494,8 @@ namespace DigitalPlatform.MessageServer
             long resultCount,
             long start,
             IList<Record> records,
-            string errorInfo)
+            string errorInfo,
+            string errorCode)
         {
             // Thread.Sleep(1000 * 60 * 2);
             MessageResult result = new MessageResult();
@@ -503,6 +504,7 @@ namespace DigitalPlatform.MessageServer
             {
                 result.ErrorInfo = "ID 为 '" + taskID + "' 的检索对象无法找到";
                 result.Value = -1;
+                // result.String = "errorCode";
                 return result;
             }
 
@@ -532,7 +534,8 @@ namespace DigitalPlatform.MessageServer
                 resultCount,
                 start,
                 records,
-                errorInfo);
+                errorInfo,
+                errorCode);
 
             // 判断响应是否为最后一个响应
             bool bRet = IsComplete(resultCount,
@@ -551,6 +554,7 @@ namespace DigitalPlatform.MessageServer
     -1,
     -1,
     null,
+    "",
     "");
                     // 主动清除已经完成的检索对象
                     ServerInfo.SearchTable.RemoveSearch(taskID);

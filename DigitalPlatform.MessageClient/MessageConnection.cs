@@ -165,23 +165,26 @@ namespace DigitalPlatform.MessageClient
 
             // *** search
             HubProxy.On<SearchRequest>("search",
-                (searchParam) => OnSearchBiblioRecieved(searchParam)
+                (searchParam) => OnSearchRecieved(searchParam)
                 );
             HubProxy.On<string,
     long,
     long,
     IList<Record>,
-    string>("responseSearch",
+    string,
+            string>("responseSearch",
     (taskID,
 resultCount,
 start,
 records,
-errorInfo) =>
-OnSearchResponseRecieved(taskID,
+errorInfo,
+errorCode) =>
+OnResponseSearchRecieved(taskID,
 resultCount,
 start,
 records,
-errorInfo)
+errorInfo,
+errorCode)
 );
 
             // *** bindPatron
@@ -272,67 +275,11 @@ errorInfo)
 
         }
 
+        #region Search() API
         // 
         // 当 server 发来检索请求的时候被调用。重载的时候要进行检索，并调用 Response 把检索结果发送给 server
-        public virtual void OnSearchBiblioRecieved(SearchRequest param)
+        public virtual void OnSearchRecieved(SearchRequest param)
         {
-        }
-
-        public virtual void OnBindPatronRecieved(BindPatronRequest param)
-        {
-        }
-
-        public Task<BindPatronResult> BindPatronAsync(
-            string strRemoteUserName,
-            BindPatronRequest request,
-            TimeSpan timeout,
-            CancellationToken token)
-        {
-            return Task.Factory.StartNew<BindPatronResult>(() =>
-            {
-                BindPatronResult result = new BindPatronResult();
-
-                if (string.IsNullOrEmpty(request.TaskID) == true)
-                {
-                    request.TaskID = Guid.NewGuid().ToString();
-                }
-
-                MessageResult message = HubProxy.Invoke<MessageResult>(
-    "RequestBindPatron",
-    strRemoteUserName,
-    request).Result;
-                if (message.Value == -1
-                    || message.Value == 0)
-                {
-                    result.ErrorInfo = message.ErrorInfo;
-                    result.Value = -1;
-                    return result;
-                }
-
-                DateTime start_time = DateTime.Now;
-
-                // 循环，取出得到的检索结果
-                for (; ; )
-                {
-                    if (token != null)
-                        token.ThrowIfCancellationRequested();
-
-                    if (DateTime.Now - start_time >= timeout)
-                        throw new TimeoutException("已超时 " + timeout.ToString());
-
-                    BindPatronResult result0 = (BindPatronResult)_resultTable[request.TaskID];
-                    if (result0 != null)
-                    {
-                        ClearResultFromTable(request.TaskID);
-                        return result0;
-                    }
-
-                    Thread.Sleep(200);
-                }
-            }, token);
-
-            // TODO: 超时以后到来的结果，放入 hashtable 以后，时间长了谁来清理？可能还是需要一个专门的线程来做清理
-            // 或者超时的时候，在 Hashtable 中放入一个占位事项，后面响应到来的时候看到这个占位事项就知道已经超时了，需要把事项清除。但，如果响应始终不来呢？
         }
 
         // 进行检索并得到结果
@@ -398,12 +345,103 @@ errorInfo)
             }, token);
         }
 
-        Hashtable _resultTable = new Hashtable();   // taskID --> SearchResult 
-
-        // 从结果集表中移走结果
-        void ClearResultFromTable(string taskID)
+        // TODO: 按照 searchID 把检索结果一一存储起来。用信号通知消费线程。消费线程每次可以取走一部分，以后每一次就取走余下的。
+        // 当 server 发来检索响应的时候被调用。重载时可以显示收到的记录
+        public virtual void OnResponseSearchRecieved(string taskID,
+    long resultCount,
+    long start,
+    IList<Record> records,
+    string errorInfo,
+            string errorCode)   // 2016/4/15 增加
         {
-            _resultTable.Remove(taskID);
+            lock (_resultTable)
+            {
+                // TODO: 监视 Hashtable 中的元素数量，超过一个极限值要抛出异常
+
+                SearchResult result = (SearchResult)_resultTable[taskID];
+                if (result == null)
+                {
+                    result = new SearchResult();
+                    _resultTable[taskID] = result;
+                }
+
+                if (result.Records == null)
+                    result.Records = new List<Record>();
+
+                if (resultCount == -1 && start == -1)
+                {
+                    // 表示发送响应过程已经结束
+                    result.Finished = true;
+                    return;
+                }
+
+                result.ResultCount = resultCount;
+                // TODO: 似乎应该关注 start 位置
+                result.Records.AddRange(records);
+                result.ErrorInfo = errorInfo;
+                result.ErrorCode = errorCode;   // 2016/4/15 增加
+            }
+        }
+
+        #endregion
+
+        #region BindPatron() API
+
+        public virtual void OnBindPatronRecieved(BindPatronRequest param)
+        {
+        }
+
+        public Task<BindPatronResult> BindPatronAsync(
+            string strRemoteUserName,
+            BindPatronRequest request,
+            TimeSpan timeout,
+            CancellationToken token)
+        {
+            return Task.Factory.StartNew<BindPatronResult>(() =>
+            {
+                BindPatronResult result = new BindPatronResult();
+
+                if (string.IsNullOrEmpty(request.TaskID) == true)
+                {
+                    request.TaskID = Guid.NewGuid().ToString();
+                }
+
+                MessageResult message = HubProxy.Invoke<MessageResult>(
+    "RequestBindPatron",
+    strRemoteUserName,
+    request).Result;
+                if (message.Value == -1
+                    || message.Value == 0)
+                {
+                    result.ErrorInfo = message.ErrorInfo;
+                    result.Value = -1;
+                    return result;
+                }
+
+                DateTime start_time = DateTime.Now;
+
+                // 循环，取出得到的检索结果
+                for (; ; )
+                {
+                    if (token != null)
+                        token.ThrowIfCancellationRequested();
+
+                    if (DateTime.Now - start_time >= timeout)
+                        throw new TimeoutException("已超时 " + timeout.ToString());
+
+                    BindPatronResult result0 = (BindPatronResult)_resultTable[request.TaskID];
+                    if (result0 != null)
+                    {
+                        ClearResultFromTable(request.TaskID);
+                        return result0;
+                    }
+
+                    Thread.Sleep(200);
+                }
+            }, token);
+
+            // TODO: 超时以后到来的结果，放入 hashtable 以后，时间长了谁来清理？可能还是需要一个专门的线程来做清理
+            // 或者超时的时候，在 Hashtable 中放入一个占位事项，后面响应到来的时候看到这个占位事项就知道已经超时了，需要把事项清除。但，如果响应始终不来呢？
         }
 
         // 当 server 发来检索响应的时候被调用。重载时可以显示收到的记录
@@ -431,40 +469,16 @@ errorInfo)
             }
         }
 
-        // TODO: 按照 searchID 把检索结果一一存储起来。用信号通知消费线程。消费线程每次可以取走一部分，以后每一次就取走余下的。
-        // 当 server 发来检索响应的时候被调用。重载时可以显示收到的记录
-        public virtual void OnSearchResponseRecieved(string taskID,
-    long resultCount,
-    long start,
-    IList<Record> records,
-    string errorInfo)
+
+        #endregion
+
+
+        Hashtable _resultTable = new Hashtable();   // taskID --> SearchResult 
+
+        // 从结果集表中移走结果
+        void ClearResultFromTable(string taskID)
         {
-            lock (_resultTable)
-            {
-                // TODO: 监视 Hashtable 中的元素数量，超过一个极限值要抛出异常
-
-                SearchResult result = (SearchResult)_resultTable[taskID];
-                if (result == null)
-                {
-                    result = new SearchResult();
-                    _resultTable[taskID] = result;
-                }
-
-                if (result.Records == null)
-                    result.Records = new List<Record>();
-
-                if (resultCount == -1 && start == -1)
-                {
-                    // 表示发送响应过程已经结束
-                    result.Finished = true;
-                    return;
-                }
-
-                result.ResultCount = resultCount;
-                // TODO: 似乎应该关注 start 位置
-                result.Records.AddRange(records);
-                result.ErrorInfo = errorInfo;
-            }
+            _resultTable.Remove(taskID);
         }
 
         // 关闭连接，并且不会引起自动重连接
@@ -611,7 +625,7 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             task.Wait();
         }
 
-        #region 调用 Server 端函数
+        #region 调用 Server 端函数 (直接调用的浅包装)
 
         // 发起一次书目检索
         // 这是比较原始的 API，并不负责接收对方传来的消息
@@ -772,7 +786,8 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             long resultCount,
             long start,
             IList<Record> records,
-            string errorInfo)
+            string errorInfo,
+            string errorCode)
         {
             try
             {
@@ -781,7 +796,8 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
     resultCount,
     start,
     records,
-    errorInfo);
+    errorInfo,
+    errorCode);
                 if (result.Value == -1)
                 {
                     AddErrorLine(result.ErrorInfo);
@@ -837,6 +853,7 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
         public long ResultCount = 0;
         public List<Record> Records = null;
         public string ErrorInfo = "";
+        public string ErrorCode = "";   // 2016/4/15 增加
         public bool Finished = false;
     }
 }
