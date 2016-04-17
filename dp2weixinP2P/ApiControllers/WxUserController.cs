@@ -20,11 +20,13 @@ namespace dp2weixinP2P.ApiControllers
             return list;
         }
 
+        /*
         // GET api/<controller>/5
         public WxUserItem Get(string id)
         {
             return repo.GetOneByWeixinId(id);
         }
+         */
 
         // POST api/<controller>
         public WxUserItem Post(WxUserItem item)

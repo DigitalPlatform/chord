@@ -448,7 +448,7 @@ namespace dp2weixin
                 this.CurrentMessageContext.UserName, //.WeiXinId
                 out strReaderBarcode,
                 out strError);
-            if (lRet == -1 || lRet == 0)
+            if (lRet == -1)
             {
                 return CreateTextResponseMessage(strError);
             }
@@ -487,9 +487,10 @@ namespace dp2weixin
             }
 
             // 解除绑定
-            lRet = this.CmdService.Unbinding(this.CurrentMessageContext.UserName,
-                this.CurrentMessageContext.ReaderBarcode, out strError);
-            if (lRet == -1 || lRet == 0)
+            lRet = this.CmdService.Unbinding1(this.CurrentMessageContext.ReaderBarcode, 
+                this.CurrentMessageContext.UserName,
+                 out strError);
+            if (lRet == -1)
             {
                 return this.CreateTextResponseMessage(strError);
             }
@@ -683,14 +684,12 @@ namespace dp2weixin
         /// <returns></returns>
         private bool CheckIsSelectLib()
         {
-
             if (String.IsNullOrEmpty(this.CurrentMessageContext.LibCode1) == true)
             {
                 // 从mongodb中查
-                WxUserItem userItem= this.CmdService.CheckIsSelectLib(this.WeixinOpenId);
+                WxUserItem userItem=  this.CmdService.CheckIsSelectLib(this.WeixinOpenId);
                 if (userItem== null)
                     return false;
-
 
                 this.CurrentMessageContext.LibCode1 = userItem.libCode;
                 this.CurrentMessageContext.LibUserName = userItem.libUserName;
@@ -713,11 +712,9 @@ namespace dp2weixin
             if (String.IsNullOrEmpty(this.CurrentMessageContext.ReaderBarcode) == true)
             {
                 // 根据openid检索绑定的读者
-                string strRecPath = "";
-                string strXml = "";
-                long lRet = this.CmdService.SearchReaderByWeiXinId(this.CurrentMessageContext.UserName,
-                    out strRecPath,
-                    out strXml,
+                string strBarcode = "";
+                long lRet = this.CmdService.SearchPatronByWeiXinId(this.CurrentMessageContext.UserName,
+                    out strBarcode,
                     out strError);
                 if (lRet == -1)
                 {
@@ -729,9 +726,7 @@ namespace dp2weixin
                     return 0;
                 }
 
-                XmlDocument dom = new XmlDocument();
-                dom.LoadXml(strXml);
-                this.CurrentMessageContext.ReaderBarcode = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("barcode"));
+                this.CurrentMessageContext.ReaderBarcode = strBarcode;
             }
             return 1;
         }

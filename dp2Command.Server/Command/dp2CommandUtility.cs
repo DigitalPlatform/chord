@@ -9,6 +9,8 @@ namespace dp2Command.Service
     {
         // 2016/2/20 选择图书馆
         public const string C_Command_SelectLib = "selectlib";
+        // 切换读者，用于微信用户绑定多个读者的情况
+        public const string C_Command_ChangePatron = "changePatron";
              
 
         public const string C_Command_Binding = "binding";
