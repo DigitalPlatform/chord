@@ -46,6 +46,7 @@ namespace dp2Command.Service
                 || strText == C_Command_BookRecommend
                 || strText == C_Command_Notice
                 || strText == C_Command_SelectLib
+                || strText == C_Command_ChangePatron
                 )
             {
                 return true;
