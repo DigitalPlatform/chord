@@ -342,6 +342,23 @@ namespace DigitalPlatform.MessageServer
 #endif
 
         #region Search() API
+
+        public MessageResult CancelSearch(string taskID)
+        {
+            MessageResult result = new MessageResult();
+            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
+            if (search_info == null)
+            {
+                result.ErrorInfo = "ID 为 '" + taskID + "' 的检索对象无法找到";
+                result.Value = -1;
+                result.String = "_notFound";
+                return result;
+            }
+
+            ServerInfo.SearchTable.RemoveSearch(taskID);
+            return result;
+        }
+
         // return:
         //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
         public MessageResult RequestSearch(
@@ -516,7 +533,7 @@ namespace DigitalPlatform.MessageServer
                 {
                     result.ErrorInfo = "ID 为 '" + taskID + "' 的检索对象无法找到";
                     result.Value = -1;
-                    // result.String = "errorCode";
+                    result.String = "_notFound";
                     return result;
                 }
 

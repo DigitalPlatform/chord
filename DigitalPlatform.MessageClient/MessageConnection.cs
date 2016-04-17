@@ -372,7 +372,11 @@ errorInfo)
                             if (index == WaitHandle.WaitTimeout)
                             {
                                 if (DateTime.Now - start_time >= timeout)
+                                {
+                                    // 向服务器发送 CancelSearch 请求
+                                    CancelSearchAsync(request.TaskID);
                                     throw new TimeoutException("已超时 " + timeout.ToString());
+                                }
                             }
 
                             if (index == 0) // 正常完成
@@ -380,7 +384,11 @@ errorInfo)
                             else
                             {
                                 if (token != null)
+                                {
+                                    // 向服务器发送 CancelSearch 请求
+                                    CancelSearchAsync(request.TaskID);
                                     token.ThrowIfCancellationRequested();
+                                }
                             }
                         }
                     }
@@ -592,12 +600,20 @@ errorInfo)
 
                     int index = WaitHandle.WaitAny(events, timeout, false);
                     if (index == WaitHandle.WaitTimeout)
+                    {
+                        // 向服务器发送 CancelSearch 请求
+                        CancelSearchAsync(request.TaskID);
                         throw new TimeoutException("已超时 " + timeout.ToString());
+                    }
 
                     if (index == 0) // 正常完成
                         return result;
                     if (token != null)
+                    {
+                        // 向服务器发送 CancelSearch 请求
+                        CancelSearchAsync(request.TaskID);
                         token.ThrowIfCancellationRequested();
+                    }
                     result.ErrorInfo += "_error";
                     return result;
                 }
@@ -689,6 +705,7 @@ errorInfo)
         #endregion
 
 
+#if NO
         Hashtable _resultTable = new Hashtable();   // taskID --> SearchResult 
 
         // 从结果集表中移走结果
@@ -696,6 +713,7 @@ errorInfo)
         {
             _resultTable.Remove(taskID);
         }
+#endif
 
         // 关闭连接，并且不会引起自动重连接
         public void CloseConnection()
@@ -857,6 +875,14 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
                 "RequestSearch",
                 userNameList,
                 searchParam);
+        }
+
+        // 请求服务器中断一个 task
+        public Task<MessageResult> CancelSearchAsync(string taskID)
+        {
+            return HubProxy.Invoke<MessageResult>(
+                "CancelSearch",
+                taskID);
         }
 
 #if NO
@@ -1061,6 +1087,8 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
                         errorInfo,
                         errorCode).Result;
                     _lastTime = DateTime.Now;
+                    if (result.Value == -1)
+                        return false;   // 可能因为服务器端已经中断此 taskID，或者执行 ReponseSearch() 时出错
                 }
                 catch (Exception ex)
                 {

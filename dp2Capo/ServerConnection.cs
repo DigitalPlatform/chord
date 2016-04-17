@@ -479,6 +479,13 @@ strErrorCode);
             DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
             biblio.RecPath = record.Path;
 
+            if (record.RecordBody != null
+                && record.RecordBody.Result != null
+                && record.RecordBody.Result.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCodeValue.NotFound)
+                return biblio;  // 记录不存在
+
+            // biblio 中里面应该有表示错误码的成员就好了。Result.ErrorInfo 提供了错误信息
+
             XmlDocument dom = new XmlDocument();
             if (record.RecordBody != null
                 && string.IsNullOrEmpty(record.RecordBody.Xml) == false)
