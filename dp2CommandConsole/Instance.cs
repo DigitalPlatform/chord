@@ -195,12 +195,13 @@ namespace dp2ConsoleToWeiXin
 
             string strReaderBarcode = "";
             string strError = "";
-            long lRet = dp2CommandService.Instance.Binding(bindingCmd.ReaderBarcode,
+            long lRet = dp2CommandService.Instance.
+                Binding(bindingCmd.ReaderBarcode,
                 bindingCmd.Password,
                 this.WeiXinId,
                 out strReaderBarcode,
                 out strError);
-            if (lRet == -1 || lRet == 0)
+            if (lRet == -1)
             {
                 Console.WriteLine(strError);
                 return false;
@@ -243,9 +244,10 @@ namespace dp2ConsoleToWeiXin
             }
 
             // 解除绑定
-            lRet = dp2CommandService.Instance.Unbinding(this.WeiXinId,
-                this.ReaderBarcode, out strError);
-            if (lRet == -1 || lRet == 0)
+            lRet = dp2CommandService.Instance.Unbinding1(this.ReaderBarcode, 
+                this.WeiXinId,
+                 out strError);
+            if (lRet == -1 )
             {
                 Console.WriteLine(strError);
                 return false;
@@ -504,10 +506,9 @@ namespace dp2ConsoleToWeiXin
             if (String.IsNullOrEmpty(this.ReaderBarcode) == true)
             {
                 // 根据openid检索绑定的读者
-                string strRecPath = "";
-                string strXml = "";
-                long lRet = dp2CommandService.Instance.SearchReaderByWeiXinId(this.WeiXinId, out strRecPath,
-                    out strXml,
+                string strBarcode = "";
+                long lRet = dp2CommandService.Instance.SearchPatronByWeiXinId(this.WeiXinId,
+                    out strBarcode,
                     out strError);
                 if (lRet == -1)
                 {
@@ -518,10 +519,7 @@ namespace dp2ConsoleToWeiXin
                 {
                     return 0;
                 }
-
-                XmlDocument dom = new XmlDocument();
-                dom.LoadXml(strXml);
-                this.ReaderBarcode = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("barcode"));
+                this.ReaderBarcode = strBarcode;
             }
             return 1;
         }

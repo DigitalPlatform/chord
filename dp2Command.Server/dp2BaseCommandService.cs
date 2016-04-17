@@ -19,6 +19,10 @@ namespace dp2Command.Service
         // 微信目录
         public string weiXinLogDir = "";
 
+        // 访问的目标图书馆
+        public string libCode = "";
+        public string remoteUserName = "capo2";
+
         #region 绑定解绑
 
         public virtual int Binding(string strBarcode,
@@ -35,11 +39,11 @@ namespace dp2Command.Service
 
         /// <returns>
         /// -1 出错
-        /// 0   本来就未绑定，不需解绑
-        /// 1   解除绑定成功
+        /// 0   成功
         /// </returns>
-        public virtual int Unbinding(string weixinId,
-            string strReaderBarcode, out string strError)
+        public virtual int Unbinding1(string strrBarcode,
+            string strWeiXinId,
+             out string strError)
         {
             strError = "未实现";
 
@@ -50,14 +54,12 @@ namespace dp2Command.Service
 
         #region 根据微信id从远程库中查找对应读者
 
-        public virtual long SearchReaderByWeiXinId(string strWeiXinId,
-            out string strRecPath,
-            out string strXml,
+        public virtual long SearchPatronByWeiXinId(string strWeiXinId,
+            out string strBarcode,
             out string strError)
         {
             strError = "未实现";
-            strRecPath = "";
-            strXml = "";
+            strBarcode = "";
 
             return -1;
         }
@@ -154,17 +156,15 @@ namespace dp2Command.Service
         /// <returns></returns>
         public WxUserItem CheckIsSelectLib(string strWeiXinId)
         {
-            WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
+            WxUserItem userItem = WxUserDatabase.Current.GetActive(strWeiXinId);
             if (userItem == null)
                 return null;
 
+            //记下来，以便点对点方便访问该图书馆
+            this.libCode = userItem.libCode;
+            this.remoteUserName = userItem.libUserName;
+
             return userItem;
-
-            /*
-            if (userItem.libCode == "")
-                return "";
-
-            return userItem.libCode;*/
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace dp2Command.Service
         /// <param name="libCode"></param>
         public void SelectLib(string strWeiXinId, string libCode, string libUserName)
         {
-            WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
+            WxUserItem userItem = WxUserDatabase.Current.GetOne(strWeiXinId,libCode);
             if (userItem == null)
             {
                 userItem = new WxUserItem();
@@ -183,18 +183,19 @@ namespace dp2Command.Service
                 userItem.libUserName = libUserName;
                 userItem.readerBarcode = "";
                 userItem.readerName = "";
+                userItem.xml = "";
+                userItem.refID = "";
                 userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                userItem.updateTime = userItem.createTime;
                 WxUserDatabase.Current.Add(userItem);
             }
-            else
-            {
-                userItem.libCode = libCode;
-                userItem.libUserName = libUserName;
-                userItem.readerBarcode = "";
-                userItem.readerName = "";
-                userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                WxUserDatabase.Current.Update(userItem);
-            }
+
+            //设为当前活动状态
+            WxUserDatabase.Current.SetActive(userItem);
+
+            //记下来，以便点对点方便访问该图书馆
+            this.libCode = libCode;
+            this.remoteUserName = libUserName;
         }
 
         #endregion

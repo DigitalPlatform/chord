@@ -93,13 +93,57 @@ namespace dp2Command.Service
             CreateIndex();
         }
 
-        //只返回一个
-        public WxUserItem GetOneByWeixinId(string weixinId)
-        {
-            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId);
 
-            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();//.ToListAsync().Result;
+        /// <summary>
+        /// 根据微信号与图书馆代码查
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="libCode"></param>
+        /// <returns></returns>
+        public WxUserItem GetOne(string weixinId,string libCode)
+        {
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("libCode", libCode);
+
+            List<WxUserItem> list = this.wxUserCollection .Find(filter).ToList();
             if (list.Count > 0)
+                return list[0];
+
+            return null;
+        }
+
+        public WxUserItem GetOneOrEmptyPatron(string weixinId, string libCode,string readerBarcode)
+        {
+            // 先查到weixinId+libCode+readerBarcode唯一的记录
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("libCode", libCode)
+                & Builders<WxUserItem>.Filter.Eq("readerBarcode", readerBarcode);
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+            if (list.Count > 1)
+                return list[0];
+
+            // 未找到查weixinId+libCode，readerBarcoe为空的记录
+            filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("libCode", libCode)
+                & Builders<WxUserItem>.Filter.Eq("readerBarcode", "");
+            list = this.wxUserCollection.Find(filter).ToList();
+            if (list.Count > 1)
+                return list[0];
+
+
+            return null;
+        }
+
+        public WxUserItem GetActive(string weixinId)
+        {
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("isActive", 1);
+
+            List<WxUserItem> list= this.wxUserCollection.Find(filter).ToList();//.ToListAsync().Result;
+            if (list.Count > 1)
+                throw new Exception("程序异常：微信号活动读者数量有" +list.Count+"个");
+
+            if (list.Count == 1)
                 return list[0];
 
             return null;
@@ -141,38 +185,23 @@ namespace dp2Command.Service
         {
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
 
-            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", item.weixinId);
+            var filter = Builders<WxUserItem>.Filter.Eq("id", item.id);
             var update = Builders<WxUserItem>.Update
                 .Set("weixinId", item.weixinId)
                 .Set("readerBarcode", item.readerBarcode)
                 .Set("readerName", item.readerName)
                 .Set("libCode", item.libCode)
                 .Set("libUserName", item.libUserName)
-                .Set("createTime", item.createTime);
+                .Set("createTime", item.createTime)
+                .Set("updateTime", item.updateTime)
+                .Set("xml", item.xml)
+                .Set("refID", item.refID)
+                .Set("isActive", item.isActive);
 
             UpdateResult ret = collection.UpdateOne(filter, update);
             return ret.ModifiedCount;
         }
 
-        /*
-        public async Task<long> UpdateLibCode(WxUserItem item)
-        {
-            item.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-
-            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
-
-            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", item.weixinId);
-            var update = Builders<WxUserItem>.Update
-                //.Set("weixinId", item.weixinId)
-                //.Set("readerBarcode", item.readerBarcode)
-                //.Set("readerBarcode", item.readerName)
-                .Set("libCode", item.libCode)
-                .Set("createTime", item.createTime);
-
-            UpdateResult ret = await collection.UpdateOneAsync(filter, update);
-            return ret.ModifiedCount;
-        }
-        */
 
         /// <summary>
         /// 删除
@@ -187,18 +216,36 @@ namespace dp2Command.Service
             collection.DeleteOne(filter);
         }
 
+        public void SetActive(WxUserItem item)
+        {
+            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
+
+            // 先将该微信用户的所有绑定读者都设为非活动
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", item.weixinId);
+            var update = Builders<WxUserItem>.Update
+                .Set("isActive", 0)
+                .Set("updateTime", DateTimeUtil.DateTimeToString(DateTime.Now));
+            UpdateResult ret = collection.UpdateMany(filter, update);
+
+            // 再将参数传入的记录设为活动状态
+            filter = Builders<WxUserItem>.Filter.Eq("id", item.id);
+            update = Builders<WxUserItem>.Update
+                .Set("isActive", 1)
+                .Set("updateTime", DateTimeUtil.DateTimeToString(DateTime.Now));
+            ret = collection.UpdateMany(filter, update);
+        }
+
         /// <summary>
         /// 删除绑定
         /// </summary>
         /// <param name="weixinId"></param>
         /// <param name="readerBarcode"></param>
-        public long Delete(String weixinId, string readerBarcode)
+        public long Delete(String weixinId, string readerBarcode,string libCode)
         {
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
-
-            var builder = Builders<WxUserItem>.Filter;
-            var filter = builder.Eq("weixinId", weixinId) & builder.Eq("readerBarcode", readerBarcode);
-
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("readerBarcode", readerBarcode)
+                & Builders<WxUserItem>.Filter.Eq("libCode", libCode);
             DeleteResult ret = collection.DeleteOne(filter);
 
             return ret.DeletedCount;
@@ -222,7 +269,14 @@ namespace dp2Command.Service
         public string libUserName { get; set; }
         
 
-        public string createTime { get; set; } // 操作时间
+        public string createTime { get; set; } // 创建时间
+        public string updateTime { get; set; } // 更校报时间
+
+
+        public string xml { get; set; }
+        public string refID { get; set; }
+
+        public int isActive = 0;
 
     }
 

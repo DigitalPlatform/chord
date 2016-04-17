@@ -18,7 +18,7 @@ using DigitalPlatform;
 using DigitalPlatform.Text;
 using dp2Command.Service;
 using DigitalPlatform.LibraryRestClient;
-using dp2Command.Service;
+
 
 namespace dp2weixin
 {
@@ -161,6 +161,12 @@ namespace dp2weixin
                 }
             }
 
+            // 切换绑定的读者
+            if (strCommand == dp2CommandUtility.C_Command_ChangePatron)
+            {
+                return this.DoChangePatron(strParam);
+            }
+
 
             // 检索命令
             if (strCommand == dp2CommandUtility.C_Command_Search)
@@ -221,6 +227,68 @@ namespace dp2weixin
             // 不认识的命令
             return DoUnknownCmd(strText);
 
+        }
+
+        private IResponseMessageBase DoChangePatron(string strParam)
+        {
+            // 设置当前命令
+            this.CurrentMessageContext.CurrentCmdName = dp2CommandUtility.C_Command_ChangePatron;
+
+            if (strParam == "")
+            {
+                string text = this.getPatronList();
+                return this.CreateTextResponseMessage(text);
+            }
+
+            int nIndex = -1;
+            try
+            {
+                nIndex = Convert.ToInt32(strParam);
+            }
+            catch(Exception ex)
+            {
+                return this.CreateTextResponseMessage("您输入的序号不是数字。");
+            }
+
+            if (nIndex <= 0)
+            {
+                return this.CreateTextResponseMessage("您输入的序号必须大于0。");
+            }
+
+            List<WxUserItem> patrons = WxUserDatabase.Current.GetByWeixinId(this.CurrentMessageContext.UserName);
+            if (nIndex > patrons.Count)
+            {
+                return this.CreateTextResponseMessage("您输入的序号超出范围。");
+            }
+
+            // 切换为当前读者。
+            WxUserItem user = patrons[nIndex - 1];
+
+            this.CurrentMessageContext.ReaderBarcode = user.readerBarcode;
+            this.CurrentMessageContext.LibCode1 = user.libCode;
+            this.CurrentMessageContext.LibUserName = user.libUserName;
+
+            this.CmdService.libCode = user.libCode;
+            this.CmdService.remoteUserName = user.libUserName;
+            
+            WxUserDatabase.Current.SetActive(user);
+            return this.CreateTextResponseMessage("您成功切换当前读者为[" + user.readerBarcode+"("+user.readerName+")" + "]");
+
+        }
+
+        public string getPatronList()
+        {
+            List<WxUserItem> patrons = WxUserDatabase.Current.GetByWeixinId(this.CurrentMessageContext.UserName);
+            string text = "";
+            int i = 1;
+            foreach (WxUserItem item in patrons)
+            {
+                text += i.ToString() + "  " + item.libCode + "  " + item.readerBarcode + "  " + item.readerName + "\n";
+                i++;
+            }
+            text = "下面是您已绑定的读者列表，请回复序号选择当前读者。\n" + text;
+
+            return text;
         }
 
         private IResponseMessageBase DoSelectLib(string strParam)
@@ -448,7 +516,7 @@ namespace dp2weixin
                 this.CurrentMessageContext.UserName, //.WeiXinId
                 out strReaderBarcode,
                 out strError);
-            if (lRet == -1 || lRet == 0)
+            if (lRet == -1)
             {
                 return CreateTextResponseMessage(strError);
             }
@@ -487,9 +555,10 @@ namespace dp2weixin
             }
 
             // 解除绑定
-            lRet = this.CmdService.Unbinding(this.CurrentMessageContext.UserName,
-                this.CurrentMessageContext.ReaderBarcode, out strError);
-            if (lRet == -1 || lRet == 0)
+            lRet = this.CmdService.Unbinding1(this.CurrentMessageContext.ReaderBarcode, 
+                this.CurrentMessageContext.UserName,
+                 out strError);
+            if (lRet == -1)
             {
                 return this.CreateTextResponseMessage(strError);
             }
@@ -641,6 +710,7 @@ namespace dp2weixin
         private IResponseMessageBase DoUnknownCmd(string strText)
         {
             string strMessage = "您好，不认识的命令，您可以回复：\n"
+                    + "selectlib:选择图书馆" + "\n"
                    + "search:检索" + "\n"
                    + "binding:绑定读者账号" + "\n"
                    + "unbinding:解除绑定" + "\n"
@@ -648,7 +718,8 @@ namespace dp2weixin
                    + "borrowinfo:借阅信息" + "\n"
                    + "renew:续借" + "\n"
                    + "bookrecommend:新书推荐" + "\n"
-                   + "notice:最新公告";
+                   + "notice:最新公告"
+                   + "changePatron:切换读者" + "\n";
             return this.CreateTextResponseMessage(strMessage);
         }
 
@@ -683,14 +754,12 @@ namespace dp2weixin
         /// <returns></returns>
         private bool CheckIsSelectLib()
         {
-
             if (String.IsNullOrEmpty(this.CurrentMessageContext.LibCode1) == true)
             {
                 // 从mongodb中查
-                WxUserItem userItem= this.CmdService.CheckIsSelectLib(this.WeixinOpenId);
+                WxUserItem userItem=  this.CmdService.CheckIsSelectLib(this.WeixinOpenId);
                 if (userItem== null)
                     return false;
-
 
                 this.CurrentMessageContext.LibCode1 = userItem.libCode;
                 this.CurrentMessageContext.LibUserName = userItem.libUserName;
@@ -713,11 +782,9 @@ namespace dp2weixin
             if (String.IsNullOrEmpty(this.CurrentMessageContext.ReaderBarcode) == true)
             {
                 // 根据openid检索绑定的读者
-                string strRecPath = "";
-                string strXml = "";
-                long lRet = this.CmdService.SearchReaderByWeiXinId(this.CurrentMessageContext.UserName,
-                    out strRecPath,
-                    out strXml,
+                string strBarcode = "";
+                long lRet = this.CmdService.SearchPatronByWeiXinId(this.CurrentMessageContext.UserName,
+                    out strBarcode,
                     out strError);
                 if (lRet == -1)
                 {
@@ -729,9 +796,7 @@ namespace dp2weixin
                     return 0;
                 }
 
-                XmlDocument dom = new XmlDocument();
-                dom.LoadXml(strXml);
-                this.CurrentMessageContext.ReaderBarcode = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("barcode"));
+                this.CurrentMessageContext.ReaderBarcode = strBarcode;
             }
             return 1;
         }

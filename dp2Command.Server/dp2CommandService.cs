@@ -495,24 +495,28 @@ out string strError)
                         if (node != null)
                             name = DomUtil.GetNodeText(node);
 
-                        WxUserItem userItem = WxUserDatabase.Current.GetOneByWeixinId(strWeiXinId);
+                        WxUserItem userItem = WxUserDatabase.Current.GetOne(strWeiXinId,this.libCode);
                         if (userItem == null)
                         {
-                            // 大微信号管理多个图书馆不可能出现不存在的情况，必然先选择了图书馆
                             userItem = new WxUserItem();
                             userItem.weixinId = strWeiXinId;
                             userItem.libCode = "";
                             userItem.libUserName = "";
-                            userItem.readerBarcode = "";
-                            userItem.readerName = "";
+                            userItem.readerBarcode = strReaderBarcode;
+                            userItem.readerName = name;
+                            userItem.xml = strXml;
+                            userItem.refID = strRecPath;
                             userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                            userItem.updateTime = userItem.createTime;
                             WxUserDatabase.Current.Add(userItem);
                         }
                         else
                         {
-                            userItem.readerBarcode = strBarcode;
+                            userItem.readerBarcode = strReaderBarcode;
                             userItem.readerName = name;
-                            userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                            userItem.xml = strXml;
+                            userItem.refID = strRecPath;
+                            userItem.updateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
                             lRet = WxUserDatabase.Current.Update(userItem);
                         }
                     }
@@ -537,14 +541,12 @@ out string strError)
         /// <param name="strXml"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public override long SearchReaderByWeiXinId(string strWeiXinId,
-            out string strRecPath,
-            out string strXml,
+        public override long SearchPatronByWeiXinId(string strWeiXinId,
+            out string strBarcode,
             out string strError)
         {
             strError = "";
-            strRecPath = "";
-            strXml = "";
+            strBarcode = "";
 
             long lRet = 0;
 
@@ -562,7 +564,15 @@ out string strError)
                 }
 
 
-                lRet = this.SearchReaderByWeiXinId(channel, strWeiXinId, out strError);
+                lRet = channel.SearchReader("",
+                strWeiXinId,
+                -1,
+                "email",
+                "exact",
+                "zh",
+                "weixin",
+                "keyid",
+                out strError);
                 if (lRet == -1)
                 {
                     strError = "检索微信用户对应的读者出错:" + strError;
@@ -580,19 +590,28 @@ out string strError)
                 }
                 else if (lRet == 1)
                 {
-                    lRet = this.GetSearchResultForWeiXinUser(channel,
-                        out strRecPath,
-                         out strXml,
-                         out strError);
+                    Record[] searchresults = null;
+                    lRet = channel.GetSearchResult("weixin",
+                        0,
+                        -1,
+                        "id,xml",
+                        "zh",
+                        out searchresults,
+                        out strError);
+                    if (searchresults.Length != 1)
+                    {
+                        throw new Exception("获得的记录数不是1");
+                    }
                     if (lRet != 1)
                     {
                         strError = "获取结果集异常:" + strError;
                         return -1;
                     }
 
+                    string strXml = searchresults[0].RecordBody.Xml;
                     XmlDocument dom = new XmlDocument();
                     dom.LoadXml(strXml);
-                    string strBarcode = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("barcode"));
+                    strBarcode = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("barcode"));
                     // 将关系存到mongodb库
                     if (this.IsUseMongoDb == true)
                     {
@@ -608,7 +627,10 @@ out string strError)
                         userItem.readerName = name;
                         userItem.libCode = "";
                         userItem.libUserName = "";
+                        userItem.xml = strXml;
+                        userItem.refID = searchresults[0].Path ;
                         userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                        userItem.updateTime = userItem.createTime;
                         WxUserDatabase.Current.Add(userItem);
                     }
 
@@ -619,7 +641,7 @@ out string strError)
                 this.ChannelPool.ReturnChannel(channel);
             }
 
-            return 1;
+            return 0;
         }
 
         /// <summary>
@@ -629,34 +651,20 @@ out string strError)
         /// <param name="strError"></param>
         /// <returns>
         /// -1 出错
-        /// 0   本来就未绑定，不需解绑
-        /// 1   解除绑定成功
+        /// 0   成功
         /// </returns>
-        public override int Unbinding(string weixinId,
-            string strReaderBarcode, out string strError)
+        public override int Unbinding1(string strBarcode,
+            string strWeiXinId,
+            out string strError)
         {
             strError = "";
-
-            /*
-            // 检查微信用户是否绑定读者账号
-            string strBarcode = "";
-            long lRet = this.CheckIsBinding(strWeiXinId,out strBarcode, out strError);
-            if (lRet == -1)
-                return -1;
-            // 未绑定
-            if (lRet == 0)
-            {
-                strError = "您尚未绑定读者账号，不需要解除绑定。";
-                return 0;
-            }
-            */
 
             LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2Url, this.dp2UserName);
             channel.Password = this.dp2Password;
             try
             {
                 // 得到原读者记录与时间戳
-                GetReaderInfoResponse response = channel.GetReaderInfo(strReaderBarcode, "xml");
+                GetReaderInfoResponse response = channel.GetReaderInfo(strBarcode, "xml");
                 if (response.GetReaderInfoResult.Value != 1)
                 {
                     strError = "根据路径得到读者记录异常：" + response.GetReaderInfoResult.ErrorInfo;
@@ -712,10 +720,10 @@ out string strError)
                 // 从mongodb删除
                 if (this.IsUseMongoDb == true)
                 {
-                    long nCount = WxUserDatabase.Current.Delete(weixinId, strReaderBarcode);
+                    long nCount = WxUserDatabase.Current.Delete(strWeiXinId, strBarcode,this.libCode);
                 }
 
-                return 1;
+                return 0;
             }
             finally
             {
@@ -1151,64 +1159,6 @@ out string strError)
 
         #endregion
 
-
-        /// <summary>
-        /// 专门检索微信用户对应的图书馆账号
-        /// </summary>
-        /// <param name="strUserOpenId"></param>
-        /// <param name="strError"></param>
-        /// <returns></returns>
-        public long SearchReaderByWeiXinId(LibraryChannel channel,
-            string strWeiXinId,
-            out string strError)
-        {
-            return channel.SearchReader("",
-                strWeiXinId,
-                -1,
-                "email",
-                "exact",
-                "zh",
-                "weixin",
-                "keyid",
-                out strError);
-        }
-
-        /// <summary>
-        /// 获取根据微信id检索到的唯一读者记录
-        /// </summary>
-        /// <param name="strPath">读者记录路径</param>
-        /// <param name="strXml">读者xml</param>
-        /// <param name="strError">返回出错信息</param>
-        /// <returns>
-        /// <para>-1:   出错</para>
-        /// <para>&gt;=0:  结果集内的记录数。注意，不是本次调用返回的结果数</para>
-        /// </returns>
-        public long GetSearchResultForWeiXinUser(LibraryChannel channel,
-            out string strPath,
-            out string strXml,
-            out string strError)
-        {
-            strPath = "";
-            strXml = "";
-
-            Record[] searchresults = null;
-            long lRet = channel.GetSearchResult("weixin",
-                0,
-                -1,
-                "id,xml",
-                "zh",
-                out searchresults,
-                out strError);
-            if (searchresults.Length != 1)
-            {
-                throw new Exception("获得的记录数不是1");
-            }
-
-            strPath = searchresults[0].Path;
-            strXml = searchresults[0].RecordBody.Xml;
-
-            return lRet;
-        }
 
     }
 }
