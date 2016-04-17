@@ -9,6 +9,7 @@ using System.Collections;
 using Microsoft.AspNet.SignalR.Client;
 
 using DigitalPlatform.Message;
+using System.Diagnostics;
 
 namespace DigitalPlatform.MessageClient
 {
@@ -167,6 +168,8 @@ namespace DigitalPlatform.MessageClient
             HubProxy.On<SearchRequest>("search",
                 (searchParam) => OnSearchRecieved(searchParam)
                 );
+
+#if NO
             HubProxy.On<string,
     long,
     long,
@@ -186,13 +189,14 @@ records,
 errorInfo,
 errorCode)
 );
+#endif
 
             // *** bindPatron
             HubProxy.On<BindPatronRequest>("bindPatron",
                 (bindPatronParam) => OnBindPatronRecieved(bindPatronParam)
                 );
 
-
+#if NO
             HubProxy.On<string, long, IList<string>, string>("responseBindPatron",
     (taskID,
 resultValue,
@@ -204,7 +208,7 @@ results,
 errorInfo)
 
 );
-
+#endif
 
             try
             {
@@ -282,6 +286,117 @@ errorInfo)
         {
         }
 
+        // 新版 API，测试中
+        public Task<SearchResult> SearchAsync(
+    string strRemoteUserName,
+    SearchRequest request,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            return Task.Factory.StartNew<SearchResult>(
+                () =>
+                {
+                    DateTime start_time = DateTime.Now;
+
+                    SearchResult result = new SearchResult();
+                    if (result.Records == null)
+                        result.Records = new List<Record>();
+
+                    ManualResetEvent finish_event = new ManualResetEvent(false);
+
+                    if (string.IsNullOrEmpty(request.TaskID) == true)
+                    {
+                        request.TaskID = Guid.NewGuid().ToString();
+                    }
+
+                    using (var handler = HubProxy.On<
+                        string, long, long, IList<Record>, string, string>(
+                        "responseSearch",
+                        (taskID, resultCount, start, records, errorInfo, errorCode) =>
+                        {
+                            start_time = DateTime.Now;  // 重新计算超时
+
+                            // 装载命中结果
+                            if (resultCount == -1 && start == -1)
+                            {
+                                // 表示发送响应过程已经结束
+                                // result.Finished = true;
+                                finish_event.Set();
+                                return;
+                            }
+                            result.ResultCount = resultCount;
+                            // TODO: 似乎应该关注 start 位置
+                            result.Records.AddRange(records);
+                            result.ErrorInfo = errorInfo;
+                            result.ErrorCode = errorCode;
+
+                            if (IsComplete(request.Start, request.Count, resultCount, result.Records.Count) == true)
+                                finish_event.Set();
+                        }))
+                    {
+
+                        MessageResult message = HubProxy.Invoke<MessageResult>(
+            "RequestSearch",
+            strRemoteUserName,
+            request).Result;
+                        if (message.Value == -1 || message.Value == 0)
+                        {
+                            result.ErrorInfo = message.ErrorInfo;
+                            result.ResultCount = -1;
+                            return result;
+                        }
+
+                        start_time = DateTime.Now;
+
+                        WaitHandle[] events = null;
+
+                        if (token != null)
+                        {
+                            events = new WaitHandle[2];
+                            events[0] = finish_event;
+                            events[1] = token.WaitHandle;
+                        }
+                        else
+                        {
+                            events = new WaitHandle[1];
+                            events[0] = finish_event;
+                        }
+
+                        bool bFirst = true;
+                        while (true)
+                        {
+                            int index = WaitHandle.WaitAny(events,
+                                bFirst ? timeout : new TimeSpan(200), 
+                                false);
+                            bFirst = false;
+                            if (index == WaitHandle.WaitTimeout)
+                            {
+                                if (DateTime.Now - start_time >= timeout)
+                                {
+                                    // 向服务器发送 CancelSearch 请求
+                                    CancelSearchAsync(request.TaskID);
+                                    throw new TimeoutException("已超时 " + timeout.ToString());
+                                }
+                            }
+
+                            if (index == 0) // 正常完成
+                                return result;
+                            else
+                            {
+                                if (token != null)
+                                {
+                                    // 向服务器发送 CancelSearch 请求
+                                    CancelSearchAsync(request.TaskID);
+                                    token.ThrowIfCancellationRequested();
+                                }
+                            }
+                        }
+                    }
+                },
+            token);
+        }
+
+#if NO
         // 进行检索并得到结果
         // 这是将发出和接受消息结合起来的功能比较完整的 API
         public Task<SearchResult> SearchAsync(
@@ -312,6 +427,8 @@ errorInfo)
 
                 DateTime start_time = DateTime.Now;
 
+                // TODO: start_time 要被每次到来数据时候重新设置为当时时间。这样就重新开始计算超时。等于是从最近一次获取到数据开始计算超时
+
                 // 循环，取出得到的检索结果
                 for (; ; )
                 {
@@ -328,7 +445,13 @@ errorInfo)
                         return result0;
                     }
 
-                    if (result0 != null && result0.Records != null && result0.Records.Count >= result0.ResultCount)
+                    if (result0 != null && result0.Records != null
+                        && IsComplete(request.Start,
+            request.Count,
+            result0.ResultCount,
+            result0.Records.Count)
+                        // && result0.Records.Count >= result0.ResultCount
+                        )    // request.Start 不一定是从头开始，也不一定要获取到最末尾
                     {
                         ClearResultFromTable(request.TaskID);
                         return result0;
@@ -345,6 +468,25 @@ errorInfo)
             }, token);
         }
 
+#endif
+
+        static bool IsComplete(long requestStart,
+            long requestCount,
+            long totalCount,
+            long recordsCount)
+        {
+            long tail = 0;
+            if (requestCount != -1)
+                tail = Math.Min(requestStart + requestCount, totalCount);
+            else
+                tail = totalCount;
+
+            if (requestStart + recordsCount >= totalCount)
+                return true;
+            return false;
+        }
+
+#if NO
         // TODO: 按照 searchID 把检索结果一一存储起来。用信号通知消费线程。消费线程每次可以取走一部分，以后每一次就取走余下的。
         // 当 server 发来检索响应的时候被调用。重载时可以显示收到的记录
         public virtual void OnResponseSearchRecieved(string taskID,
@@ -354,8 +496,13 @@ errorInfo)
     string errorInfo,
             string errorCode)   // 2016/4/15 增加
         {
+            Debug.WriteLine("OnResponseSearchRecieved taskID=" + taskID + ", start=" + start + ", records.Count="
+                + (records == null ? "null" : records.Count.ToString())
+                + ", errorInfo=" + errorInfo
+                + ", errorCode=" + errorCode);
             lock (_resultTable)
             {
+
                 // TODO: 监视 Hashtable 中的元素数量，超过一个极限值要抛出异常
 
                 SearchResult result = (SearchResult)_resultTable[taskID];
@@ -383,6 +530,8 @@ errorInfo)
             }
         }
 
+#endif
+
         #endregion
 
         #region BindPatron() API
@@ -391,6 +540,87 @@ errorInfo)
         {
         }
 
+        public Task<BindPatronResult> BindPatronAsync(
+    string strRemoteUserName,
+    BindPatronRequest request,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            return Task.Factory.StartNew<BindPatronResult>(() =>
+            {
+                BindPatronResult result = new BindPatronResult();
+                if (result.Results == null)
+                    result.Results = new List<string>();
+
+                ManualResetEvent finish_event = new ManualResetEvent(false);
+
+                if (string.IsNullOrEmpty(request.TaskID) == true)
+                {
+                    request.TaskID = Guid.NewGuid().ToString();
+                }
+
+                using (var handler = HubProxy.On<
+                    string, long, IList<string>, string>(
+                    "responseBindPatron",
+                    (taskID, resultValue, results, errorInfo) =>
+                    {
+                        // 装载命中结果
+                        if (results != null)
+                            result.Results.AddRange(results);
+                        result.Value = resultValue;
+                        result.ErrorInfo = errorInfo;
+                        finish_event.Set();
+                    }))
+                {
+
+                    MessageResult message = HubProxy.Invoke<MessageResult>(
+        "RequestBindPatron",
+        strRemoteUserName,
+        request).Result;
+                    if (message.Value == -1
+                        || message.Value == 0)
+                    {
+                        result.ErrorInfo = message.ErrorInfo;
+                        result.Value = -1;
+                        return result;
+                    }
+
+                    WaitHandle[] events = null;
+                    if (token != null)
+                    {
+                        events = new WaitHandle[2];
+                        events[0] = finish_event;
+                        events[1] = token.WaitHandle;
+                    }
+                    else
+                    {
+                        events = new WaitHandle[1];
+                        events[0] = finish_event;
+                    }
+
+                    int index = WaitHandle.WaitAny(events, timeout, false);
+                    if (index == WaitHandle.WaitTimeout)
+                    {
+                        // 向服务器发送 CancelSearch 请求
+                        CancelSearchAsync(request.TaskID);
+                        throw new TimeoutException("已超时 " + timeout.ToString());
+                    }
+
+                    if (index == 0) // 正常完成
+                        return result;
+                    if (token != null)
+                    {
+                        // 向服务器发送 CancelSearch 请求
+                        CancelSearchAsync(request.TaskID);
+                        token.ThrowIfCancellationRequested();
+                    }
+                    result.ErrorInfo += "_error";
+                    return result;
+                }
+            }, token);
+        }
+
+#if NO
         public Task<BindPatronResult> BindPatronAsync(
             string strRemoteUserName,
             BindPatronRequest request,
@@ -443,7 +673,9 @@ errorInfo)
             // TODO: 超时以后到来的结果，放入 hashtable 以后，时间长了谁来清理？可能还是需要一个专门的线程来做清理
             // 或者超时的时候，在 Hashtable 中放入一个占位事项，后面响应到来的时候看到这个占位事项就知道已经超时了，需要把事项清除。但，如果响应始终不来呢？
         }
+#endif
 
+#if NO
         // 当 server 发来检索响应的时候被调用。重载时可以显示收到的记录
         // 按照 searchID 把返回的唯一结果存储起来。消费线程一旦发现有了这个事项，就表明请求得到了响应，可取走结果，注意要从 Hashtable 里面删除结果，避免长期运行后堆积占据空间
         public virtual void OnResponseBindPatronRecieved(string taskID,
@@ -468,11 +700,12 @@ errorInfo)
                 result.ErrorInfo = errorInfo;
             }
         }
-
+#endif
 
         #endregion
 
 
+#if NO
         Hashtable _resultTable = new Hashtable();   // taskID --> SearchResult 
 
         // 从结果集表中移走结果
@@ -480,6 +713,7 @@ errorInfo)
         {
             _resultTable.Remove(taskID);
         }
+#endif
 
         // 关闭连接，并且不会引起自动重连接
         public void CloseConnection()
@@ -643,6 +877,14 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
                 searchParam);
         }
 
+        // 请求服务器中断一个 task
+        public Task<MessageResult> CancelSearchAsync(string taskID)
+        {
+            return HubProxy.Invoke<MessageResult>(
+                "CancelSearch",
+                taskID);
+        }
+
 #if NO
         // 发起一次书目检索
         // 发起检索成功后，调主应该用 SearchResponseEvent 事件接收检索结果
@@ -780,6 +1022,150 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             }
         }
 
+        DateTime _lastTime = DateTime.Now;
+
+        // 和上次操作的时刻之间，等待至少这么多时间。
+        void Wait(TimeSpan length)
+        {
+            DateTime now = DateTime.Now;
+            TimeSpan delta = now - _lastTime;
+            if (delta < length)
+            {
+                // Console.WriteLine("Sleep " + (length - delta).ToString());
+                Thread.Sleep(length - delta);
+            }
+            _lastTime = DateTime.Now;
+        }
+
+        // TODO: 注意测试，一次只能发送一个元素，或者连一个元素都发送不成功的情况
+        // 具有重试机制的 ReponseSearch
+        // 运行策略是，当遇到 InvalidOperationException 异常时，减少一半数量重试发送，用多次小批发送解决问题
+        // 如果最终无法完成发送，则尝试发送一条报错信息，然后返回 false
+        // parameters:
+        //      batch_size  建议的最佳一次发送数目。-1 表示不限制
+        // return:
+        //      true    成功
+        //      false   失败
+        public bool TryResponseSearch(string taskID,
+            long resultCount,
+            long start,
+            IList<Record> records,
+            string errorInfo,
+            string errorCode,
+            ref long batch_size)
+        {
+            string strError = "";
+
+            List<Record> rest = new List<Record>(); // 等待发送的
+            List<Record> current = new List<Record>();  // 当前正在发送的
+            if (batch_size == -1)
+                current.AddRange(records);
+            else
+            {
+                rest.AddRange(records);
+
+                // 将最多 batch_size 个元素从 rest 中移动到 current 中
+                for (int i = 0; i < batch_size && rest.Count > 0; i++)
+                {
+                    current.Add(rest[0]);
+                    rest.RemoveAt(0);
+                }
+            }
+
+            long send = 0;  // 已经发送过的元素数
+            while (current.Count > 0)
+            {
+                try
+                {
+                    Wait(new TimeSpan(0, 0, 0, 0, 50));
+
+                    MessageResult result = ResponseSearchAsync(
+                        taskID,
+                        resultCount,
+                        start + send,
+                        current,
+                        errorInfo,
+                        errorCode).Result;
+                    _lastTime = DateTime.Now;
+                    if (result.Value == -1)
+                        return false;   // 可能因为服务器端已经中断此 taskID，或者执行 ReponseSearch() 时出错
+                }
+                catch (Exception ex)
+                {
+                    if (ex.InnerException is InvalidOperationException)
+                    {
+                        if (current.Count == 1)
+                        {
+                            strError = "向中心发送 ResponseSearch 消息时出现异常(连一个元素也发送不出去): " + ex.InnerException.Message;
+                            goto ERROR1;
+                        }
+                        // 减少一半元素发送
+                        int half = Math.Max(1, current.Count / 2);
+                        int offs = current.Count - half;
+                        for (int i = 0; current.Count > offs; i++)
+                        {
+                            Record record = current[offs];
+                            rest.Insert(i, record);
+                            current.RemoveAt(offs);
+                        }
+                        batch_size = half;
+                        continue;
+                    }
+
+                    strError = "向中心发送 ResponseSearch 消息时出现异常: " + ExceptionUtil.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+
+                Console.WriteLine("成功发送 " + current.Count.ToString());
+
+                send += current.Count;
+                current.Clear();
+                if (batch_size == -1)
+                    current.AddRange(rest);
+                else
+                {
+                    // 将最多 batch_size 个元素从 rest 中移动到 current 中
+                    for (int i = 0; i < batch_size && rest.Count > 0; i++)
+                    {
+                        current.Add(rest[0]);
+                        rest.RemoveAt(0);
+                    }
+                }
+            }
+
+            Debug.Assert(rest.Count == 0, "");
+            Debug.Assert(current.Count == 0, "");
+            return true;
+        ERROR1:
+            // 报错
+            ResponseSearch(
+taskID,
+-1,
+0,
+new List<Record>(),
+strError,
+"_sendResponseSearchError");    // 消息层面发生的错误(表示不是 dp2library 层面的错误)，错误码为 _ 开头
+            return false;
+        }
+
+        // 调用 server 端 ResponseSearchBiblio
+        public Task<MessageResult> ResponseSearchAsync(
+            string taskID,
+            long resultCount,
+            long start,
+            IList<Record> records,
+            string errorInfo,
+            string errorCode)
+        {
+            return HubProxy.Invoke<MessageResult>("ResponseSearch",
+taskID,
+resultCount,
+start,
+records,
+errorInfo,
+errorCode);
+        }
+
         // 调用 server 端 ResponseSearchBiblio
         public async void ResponseSearch(
             string taskID,
@@ -789,6 +1175,7 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             string errorInfo,
             string errorCode)
         {
+            // TODO: 等待执行完成。如果有异常要当时处理。比如减小尺寸重发。
             try
             {
                 MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSearch",
@@ -854,6 +1241,6 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
         public List<Record> Records = null;
         public string ErrorInfo = "";
         public string ErrorCode = "";   // 2016/4/15 增加
-        public bool Finished = false;
+        // public bool Finished = false;
     }
 }
