@@ -176,6 +176,7 @@ strError);
             string strError = "";
             string strErrorCode = "";
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
+            long batch_size = -1;
 
             string strResultSetName = searchParam.ResultSetName;
             if (string.IsNullOrEmpty(strResultSetName) == true)
@@ -289,7 +290,7 @@ strErrorCode);
                     // 装入浏览格式
                     for (; ; )
                     {
-                        string strBrowseStyle = "id,xml";
+                        string strBrowseStyle = searchParam.FormatList; // "id,xml";
 
                         lRet = channel.GetSearchResult(
                             // null,
@@ -316,12 +317,17 @@ strErrorCode);
                         records.Clear();
                         foreach (DigitalPlatform.LibraryClient.localhost.Record record in searchresults)
                         {
+#if NO
                             DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
                             biblio.RecPath = record.Path;
                             biblio.Data = record.RecordBody.Xml;
                             records.Add(biblio);
+#endif
+                            DigitalPlatform.Message.Record biblio = FillBiblio(record);
+                            records.Add(biblio);
                         }
 
+#if NO
                         ResponseSearch(
                             searchParam.TaskID,
                             lHitCount,
@@ -329,6 +335,18 @@ strErrorCode);
                             records,
                             "",
                             strErrorCode);
+#endif
+                        bool bRet = TryResponseSearch(
+        searchParam.TaskID,
+        lHitCount,
+        lStart,
+        records,
+        "",
+        strErrorCode,
+        ref batch_size);
+                        Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                        if (bRet == false)
+                            return;
 
                         lStart += searchresults.Length;
 
@@ -410,6 +428,7 @@ strErrorCode);
                     records.Add(biblio);
                 }
 
+#if NO
                 ResponseSearch(
                     searchParam.TaskID,
                     records.Count,  // lHitCount,
@@ -417,6 +436,19 @@ strErrorCode);
                     records,
                     "",
                     strErrorCode);
+#endif
+                long batch_size = -1;
+                bool bRet = TryResponseSearch(
+searchParam.TaskID,
+records.Count,
+0,
+records,
+"",
+strErrorCode,
+ref batch_size);
+                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                if (bRet == false)
+                    return;
             }
             catch (Exception ex)
             {
@@ -743,6 +775,7 @@ strErrorCode);
                     records.Add(biblio);
                 }
 
+#if NO
                 ResponseSearch(
                     searchParam.TaskID,
                     records.Count,  // lHitCount,
@@ -750,6 +783,20 @@ strErrorCode);
                     records,
                     "",
                     strErrorCode);
+#endif
+                // TODO: 是否按照 searchParam.Count 来返回？似乎没有必要，因为调用者可以控制请求参数中的路径个数
+                long batch_size = -1;
+                bool bRet = TryResponseSearch(
+searchParam.TaskID,
+records.Count,
+0,
+records,
+"",
+strErrorCode,
+ref batch_size);
+                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                if (bRet == false)
+                    return;
             }
             catch (Exception ex)
             {
@@ -845,6 +892,7 @@ strErrorCode);
                     i++;
                 }
 
+#if NO
                 ResponseSearch(
                     searchParam.TaskID,
                     records.Count,  // lHitCount,
@@ -852,6 +900,19 @@ strErrorCode);
                     records,
                     "",
                     strErrorCode);
+#endif
+                long batch_size = -1;
+                bool bRet = TryResponseSearch(
+searchParam.TaskID,
+records.Count,
+0,
+records,
+"",
+strErrorCode,
+ref batch_size);
+                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                if (bRet == false)
+                    return;
             }
             catch (Exception ex)
             {
@@ -938,6 +999,7 @@ strErrorCode);
                     i++;
                 }
 
+#if NO
                 ResponseSearch(
                     searchParam.TaskID,
                     records.Count,  // lHitCount,
@@ -945,6 +1007,19 @@ strErrorCode);
                     records,
                     "",
                     strErrorCode);
+#endif
+                long batch_size = -1;
+                bool bRet = TryResponseSearch(
+searchParam.TaskID,
+records.Count,
+0,
+records,
+"",
+strErrorCode,
+ref batch_size);
+                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                if (bRet == false)
+                    return;
             }
             catch (Exception ex)
             {
