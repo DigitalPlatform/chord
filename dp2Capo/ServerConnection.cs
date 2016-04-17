@@ -373,11 +373,11 @@ strErrorCode);
             LibraryChannel channel = GetChannel();
             try
             {
-                DigitalPlatform.LibraryClient.localhost.Record [] searchresults = null;
+                DigitalPlatform.LibraryClient.localhost.Record[] searchresults = null;
                 // return:
                 //      result.Value    -1 出错；0 成功
                 long lRet = channel.GetBrowseRecords(
-                    searchParam.QueryWord.Split(new char [] {','}),
+                    searchParam.QueryWord.Split(new char[] { ',' }),
                     searchParam.FormatList,
                     out searchresults,
                     out strError);
@@ -404,7 +404,7 @@ strErrorCode);
 
                 // TODO: 根据 format list 选择返回哪些信息
 
-                foreach(DigitalPlatform.LibraryClient.localhost.Record record in searchresults)
+                foreach (DigitalPlatform.LibraryClient.localhost.Record record in searchresults)
                 {
                     DigitalPlatform.Message.Record biblio = FillBiblio(record);
                     records.Add(biblio);
@@ -462,7 +462,7 @@ strErrorCode);
             if (record.Cols != null)
             {
                 // cols
-                foreach(string s in record.Cols)
+                foreach (string s in record.Cols)
                 {
                     XmlElement col = dom.CreateElement("col");
                     dom.DocumentElement.AppendChild(col);
@@ -490,7 +490,7 @@ strErrorCode);
                             metadata.SetAttribute(attr.Name, attr.Value);
                         }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         metadata.SetAttribute("error", "metadata XML '" + record.RecordBody.Metadata + "' 装入 DOM 时出错: " + ex.Message);
                     }
@@ -503,12 +503,13 @@ strErrorCode);
             return biblio;
         }
 
+        // TODO: 如果 count 要求 -1，则要循环获取直到 hitcount。
         void GetItemInfo(SearchRequest searchParam)
         {
             string strError = "";
             string strErrorCode = "";
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
-
+            long batch_size = -1;   // 50 比较合适
 #if NO
             if (string.IsNullOrEmpty(searchParam.FormatList) == true)
             {
@@ -520,21 +521,24 @@ strErrorCode);
             LibraryChannel channel = GetChannel();
             try
             {
-                // TODO: 若一次调用不足以满足 searchParam.Count 所要求的数量，要能反复多次发出响应数据，直到满足要求的数量未为止。这样的好处是让调用者比较简单，可以假定请求的数量一定会被满足
+            // TODO: 若一次调用不足以满足 searchParam.Count 所要求的数量，要能反复多次发出响应数据，直到满足要求的数量未为止。这样的好处是让调用者比较简单，可以假定请求的数量一定会被满足
 
+                BEGIN:
                 DigitalPlatform.LibraryClient.localhost.EntityInfo[] entities = null;
 
                 long lRet = 0;
-                
+
+
                 if (searchParam.DbNameList == "entity")
-                lRet = channel.GetEntities(
-                     searchParam.QueryWord,  // strBiblioRecPath
-                     searchParam.Start,
-                     searchParam.Count,
-                     searchParam.FormatList,
-                     "zh",
-                     out entities,
-                     out strError);
+                    lRet = channel.GetEntities(
+                         searchParam.QueryWord,  // strBiblioRecPath
+                         searchParam.Start,
+                        // searchParam.Count == -1 ? 20 : searchParam.Count,  // 为何这里直接用 -1 导致检索命中 100 个记录后，dp2mserver 收不到？
+                         searchParam.Count,  // 为何这里直接用 -1 导致检索命中 100 个记录后，dp2mserver 收不到？
+                         searchParam.FormatList,
+                         "zh",
+                         out entities,
+                         out strError);
                 else if (searchParam.DbNameList == "order")
                     lRet = channel.GetOrders(
                          searchParam.QueryWord,  // strBiblioRecPath
@@ -564,7 +568,7 @@ strErrorCode);
                          out strError);
                 else
                 {
-                    strError = "无法识别的 DbNameList 参数值 '"+searchParam.DbNameList+"'";
+                    strError = "无法识别的 DbNameList 参数值 '" + searchParam.DbNameList + "'";
                     goto ERROR1;
                 }
 
@@ -590,6 +594,8 @@ strErrorCode);
                     goto ERROR1;
                 }
 
+                long lHitCount = lRet;
+
                 if (entities == null)
                     entities = new DigitalPlatform.LibraryClient.localhost.EntityInfo[0];
 
@@ -608,13 +614,35 @@ strErrorCode);
                     i++;
                 }
 
-                ResponseSearch(
-                    searchParam.TaskID,
-                    records.Count,  // lHitCount,
-                    0, // lStart,
-                    records,
-                    "",
-                    strErrorCode);
+                // TODO: 如何限定 records 的总尺寸在 64K 以内？一种办法是每次减少一半的数量重新发送
+                bool bRet = TryResponseSearch(
+                        searchParam.TaskID,
+                        lHitCount,
+                        searchParam.Start, // lStart,
+                        records,
+                        "",
+                        strErrorCode,
+                        ref batch_size);
+                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                if (bRet == false)
+                    return;
+
+                if (searchParam.Start + records.Count < lHitCount)
+                {
+                    searchParam.Start += records.Count;
+#if NO
+                    if (searchParam.Start >= lHitCount)
+                        goto END1;
+#endif
+                    if (searchParam.Count != -1)
+                    {
+                        searchParam.Count -= records.Count;
+                        if (searchParam.Count <= 0)
+                            goto END1;
+                    }
+
+                    goto BEGIN;
+                }
             }
             catch (Exception ex)
             {
@@ -627,6 +655,7 @@ strErrorCode);
                 this._channelPool.ReturnChannel(channel);
             }
 
+        END1:
             this.AddInfoLine("search and response end");
             return;
         ERROR1:

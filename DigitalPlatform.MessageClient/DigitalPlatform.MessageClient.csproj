@@ -61,6 +61,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj">
+      <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
+      <Name>DigitalPlatform.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.Message\DigitalPlatform.Message.csproj">
       <Project>{2fbb1294-0814-447d-b8c6-77e206417231}</Project>
       <Name>DigitalPlatform.Message</Name>

@@ -9,6 +9,7 @@ using System.Collections;
 using Microsoft.AspNet.SignalR.Client;
 
 using DigitalPlatform.Message;
+using System.Diagnostics;
 
 namespace DigitalPlatform.MessageClient
 {
@@ -312,6 +313,8 @@ errorInfo)
 
                 DateTime start_time = DateTime.Now;
 
+                // TODO: start_time 要被每次到来数据时候重新设置为当时时间。这样就重新开始计算超时。等于是从最近一次获取到数据开始计算超时
+
                 // 循环，取出得到的检索结果
                 for (; ; )
                 {
@@ -328,7 +331,13 @@ errorInfo)
                         return result0;
                     }
 
-                    if (result0 != null && result0.Records != null && result0.Records.Count >= result0.ResultCount)
+                    if (result0 != null && result0.Records != null
+                        && IsComplete(request.Start,
+            request.Count,
+            result0.ResultCount,
+            result0.Records.Count)
+                        // && result0.Records.Count >= result0.ResultCount
+                        )    // request.Start 不一定是从头开始，也不一定要获取到最末尾
                     {
                         ClearResultFromTable(request.TaskID);
                         return result0;
@@ -345,6 +354,22 @@ errorInfo)
             }, token);
         }
 
+        static bool IsComplete(long requestStart,
+            long requestCount,
+            long totalCount,
+            long recordsCount)
+        {
+            long tail = 0;
+            if (requestCount != -1)
+                tail = Math.Min(requestStart + requestCount, totalCount);
+            else
+                tail = totalCount;
+
+            if (requestStart + recordsCount >= totalCount)
+                return true;
+            return false;
+        }
+
         // TODO: 按照 searchID 把检索结果一一存储起来。用信号通知消费线程。消费线程每次可以取走一部分，以后每一次就取走余下的。
         // 当 server 发来检索响应的时候被调用。重载时可以显示收到的记录
         public virtual void OnResponseSearchRecieved(string taskID,
@@ -354,8 +379,13 @@ errorInfo)
     string errorInfo,
             string errorCode)   // 2016/4/15 增加
         {
+            Debug.WriteLine("OnResponseSearchRecieved taskID=" + taskID + ", start=" + start + ", records.Count="
+                + (records == null ? "null" : records.Count.ToString())
+                + ", errorInfo=" + errorInfo
+                + ", errorCode=" + errorCode);
             lock (_resultTable)
             {
+
                 // TODO: 监视 Hashtable 中的元素数量，超过一个极限值要抛出异常
 
                 SearchResult result = (SearchResult)_resultTable[taskID];
@@ -780,6 +810,148 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             }
         }
 
+        DateTime _lastTime = DateTime.Now;
+
+        // 和上次操作的时刻之间，等待至少这么多时间。
+        void Wait(TimeSpan length)
+        {
+            DateTime now = DateTime.Now;
+            TimeSpan delta = now - _lastTime;
+            if (delta < length)
+            {
+                // Console.WriteLine("Sleep " + (length - delta).ToString());
+                Thread.Sleep(length - delta);
+            }
+            _lastTime = DateTime.Now;
+        }
+
+        // TODO: 注意测试，一次只能发送一个元素，或者连一个元素都发送不成功的情况
+        // 具有重试机制的 ReponseSearch
+        // 运行策略是，当遇到 InvalidOperationException 异常时，减少一半数量重试发送，用多次小批发送解决问题
+        // 如果最终无法完成发送，则尝试发送一条报错信息，然后返回 false
+        // parameters:
+        //      batch_size  建议的最佳一次发送数目。-1 表示不限制
+        // return:
+        //      true    成功
+        //      false   失败
+        public bool TryResponseSearch(string taskID,
+            long resultCount,
+            long start,
+            IList<Record> records,
+            string errorInfo,
+            string errorCode,
+            ref long batch_size)
+        {
+            string strError = "";
+
+            List<Record> rest = new List<Record>(); // 等待发送的
+            List<Record> current = new List<Record>();  // 当前正在发送的
+            if (batch_size == -1)
+                current.AddRange(records);
+            else
+            {
+                rest.AddRange(records);
+
+                // 将最多 batch_size 个元素从 rest 中移动到 current 中
+                for (int i = 0; i < batch_size && rest.Count > 0; i++)
+                {
+                    current.Add(rest[0]);
+                    rest.RemoveAt(0);
+                }
+            }
+
+            long send = 0;  // 已经发送过的元素数
+            while (current.Count > 0)
+            {
+                try
+                {
+                    Wait(new TimeSpan(0,0,0,0,50));
+
+                    MessageResult result = ResponseSearchAsync(
+                        taskID,
+                        resultCount,
+                        start + send,
+                        current,
+                        errorInfo,
+                        errorCode).Result;
+                    _lastTime = DateTime.Now;
+                }
+                catch (Exception ex)
+                {
+                    if (ex.InnerException is InvalidOperationException)
+                    {
+                        if (current.Count == 1)
+                        {
+                            strError = "向中心发送 ResponseSearch 消息时出现异常(连一个元素也发送不出去): " + ex.InnerException.Message;
+                            goto ERROR1;
+                        }
+                        // 减少一半元素发送
+                        int half = Math.Max(1, current.Count / 2);
+                        int offs = current.Count - half;
+                        for (int i = 0; current.Count > offs; i++)
+                        {
+                            Record record = current[offs];
+                            rest.Insert(i, record);
+                            current.RemoveAt(offs);
+                        }
+                        batch_size = half;
+                        continue;
+                    }
+
+                    strError = "向中心发送 ResponseSearch 消息时出现异常: " + ExceptionUtil.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+
+                Console.WriteLine("成功发送 " + current.Count.ToString());
+
+                send += current.Count;
+                current.Clear();
+                if (batch_size == -1)
+                    current.AddRange(rest);
+                else
+                {
+                    // 将最多 batch_size 个元素从 rest 中移动到 current 中
+                    for (int i = 0; i < batch_size && rest.Count > 0; i++)
+                    {
+                        current.Add(rest[0]);
+                        rest.RemoveAt(0);
+                    }
+                }
+            }
+
+            Debug.Assert(rest.Count == 0, "");
+            Debug.Assert(current.Count == 0, "");
+            return true;
+        ERROR1:
+            // 报错
+            ResponseSearch(
+taskID,
+-1,
+0,
+new List<Record>(),
+strError,
+"_sendResponseSearchError");    // 消息层面发生的错误(表示不是 dp2library 层面的错误)，错误码为 _ 开头
+            return false;
+        }
+
+        // 调用 server 端 ResponseSearchBiblio
+        public Task<MessageResult> ResponseSearchAsync(
+            string taskID,
+            long resultCount,
+            long start,
+            IList<Record> records,
+            string errorInfo,
+            string errorCode)
+        {
+            return HubProxy.Invoke<MessageResult>("ResponseSearch",
+taskID,
+resultCount,
+start,
+records,
+errorInfo,
+errorCode);
+        }
+
         // 调用 server 端 ResponseSearchBiblio
         public async void ResponseSearch(
             string taskID,
@@ -789,6 +961,7 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             string errorInfo,
             string errorCode)
         {
+            // TODO: 等待执行完成。如果有异常要当时处理。比如减小尺寸重发。
             try
             {
                 MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSearch",

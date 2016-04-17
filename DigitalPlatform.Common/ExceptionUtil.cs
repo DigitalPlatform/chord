@@ -71,7 +71,7 @@ namespace DigitalPlatform
             if (ex is AggregateException)
                 return GetAggregateExceptionText(ex as AggregateException);
 
-            return ex.Message;
+            return ex.GetType().ToString() + ":" + ex.Message;
         }
 
         public static string GetAggregateExceptionText(AggregateException exception)
@@ -79,7 +79,7 @@ namespace DigitalPlatform
             StringBuilder text = new StringBuilder();
             foreach (Exception ex in exception.InnerExceptions)
             {
-                text.Append(ex.Message + "\r\n");
+                text.Append(ex.GetType().ToString() + ":" + ex.Message + "\r\n");
                 // text.Append(ex.ToString() + "\r\n");
             }
 

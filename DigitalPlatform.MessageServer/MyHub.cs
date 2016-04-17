@@ -8,6 +8,7 @@ using Microsoft.AspNet.SignalR;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
+using System.Diagnostics;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -60,7 +61,7 @@ namespace DigitalPlatform.MessageServer
                     {
                         // userName 参数为 * 或者 空 以外的值
                         result.Value = -1;
-                        result.ErrorInfo = "当前用户身份 '" + strCurrentUserName + "' 无法获得用户名为 '"+userName+"' 的用户信息";
+                        result.ErrorInfo = "当前用户身份 '" + strCurrentUserName + "' 无法获得用户名为 '" + userName + "' 的用户信息";
                         return result;
                     }
 
@@ -358,6 +359,9 @@ namespace DigitalPlatform.MessageServer
  SearchRequest searchParam
             )
         {
+            if (searchParam.Count == 0)
+                searchParam.Count = -1;
+
             MessageResult result = new MessageResult();
 
             ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
@@ -431,12 +435,11 @@ namespace DigitalPlatform.MessageServer
             {
                 result.Value = 0;
                 // result.ErrorInfo = "当前没有任何可检索的目标 (目标用户名 '"+userNameList+"'; 操作 '"+searchParam.Operation+"')";
-                result.ErrorInfo = "当前没有发现可检索的目标 (详情 '"+strError+"')";
+                result.ErrorInfo = "当前没有发现可检索的目标 (详情 '" + strError + "')";
                 return result;
             }
 
             SearchInfo search_info = null;
-
             try
             {
                 search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
@@ -486,8 +489,11 @@ namespace DigitalPlatform.MessageServer
 #endif
         }
 
+        // object _lock = new object();
+
         // parameters:
         //      resultCount    命中的总的结果数。如果为 -1，表示检索出错，errorInfo 会给出出错信息
+        //                      这个值实际上是表示全部命中结果的数目，可能比 records 中的元素要多
         //      start  records 参数中的第一个元素，在总的命中结果集中的偏移
         //      errorInfo   错误信息
         public MessageResult ResponseSearch(string taskID,
@@ -497,71 +503,86 @@ namespace DigitalPlatform.MessageServer
             string errorInfo,
             string errorCode)
         {
-            // Thread.Sleep(1000 * 60 * 2);
-            MessageResult result = new MessageResult();
-            SearchInfo info = ServerInfo.SearchTable.GetSearchInfo(taskID);
-            if (info == null)
             {
-                result.ErrorInfo = "ID 为 '" + taskID + "' 的检索对象无法找到";
-                result.Value = -1;
-                // result.String = "errorCode";
-                return result;
-            }
+                Console.WriteLine("ResponseSearch start=" + start
+                    + ", records.Count=" + (records == null ? "null" : records.Count.ToString())
+                    + ", errorInfo=" + errorInfo
+                    + ", errorCode=" + errorCode);
 
-            // 给 RecPath 加上 @ 部分
-            if (records != null)
-            {
-                ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
-                if (connection_info == null)
+                // Thread.Sleep(1000 * 60 * 2);
+                MessageResult result = new MessageResult();
+                SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
+                if (search_info == null)
                 {
+                    result.ErrorInfo = "ID 为 '" + taskID + "' 的检索对象无法找到";
                     result.Value = -1;
-                    result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。回传检索结果失败";
+                    // result.String = "errorCode";
                     return result;
                 }
-                string strPostfix = connection_info.LibraryUID;
-                if (string.IsNullOrEmpty(strPostfix) == true)
-                    strPostfix = connection_info.LibraryName;
 
-                foreach (Record record in records)
+                // 给 RecPath 加上 @ 部分
+                if (records != null)
                 {
-                    record.RecPath = record.RecPath + "@" + strPostfix;
+                    ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+                    if (connection_info == null)
+                    {
+                        result.Value = -1;
+                        result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。回传检索结果失败";
+                        return result;
+                    }
+                    string strPostfix = connection_info.LibraryUID;
+                    if (string.IsNullOrEmpty(strPostfix) == true)
+                        strPostfix = connection_info.LibraryName;
+
+                    foreach (Record record in records)
+                    {
+                        record.RecPath = record.RecPath + "@" + strPostfix;
+                    }
                 }
-            }
 
-            // 让前端获得检索结果
-            Clients.Client(info.RequestConnectionID).responseSearch(
-                taskID,
-                resultCount,
-                start,
-                records,
-                errorInfo,
-                errorCode);
-
-            // 判断响应是否为最后一个响应
-            bool bRet = IsComplete(resultCount,
-                info.ReturnStart,
-                info.ReturnCount,
-                start,
-                records);
-            if (bRet == true)
-            {
-                bool bAllComplete = info.CompleteTarget(Context.ConnectionId);
-                if (bAllComplete)
+                // 让前端获得检索结果
+                try
                 {
-                    // 追加一个消息，表示检索响应已经全部完成
-                    Clients.Client(info.RequestConnectionID).responseSearch(
-    taskID,
-    -1,
-    -1,
-    null,
-    "",
-    "");
-                    // 主动清除已经完成的检索对象
-                    ServerInfo.SearchTable.RemoveSearch(taskID);
+                    Clients.Client(search_info.RequestConnectionID).responseSearch(
+                        taskID,
+                        resultCount,
+                        start,
+                        records,
+                        errorInfo,
+                        errorCode);
                 }
-            }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("中心向前端分发 responseSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                }
 
-            return result;
+                // 判断响应是否为最后一个响应
+                bool bRet = IsComplete(resultCount,
+                    search_info.ReturnStart,
+                    search_info.ReturnCount,
+                    start,
+                    records);
+                if (bRet == true)
+                {
+                    bool bAllComplete = search_info.CompleteTarget(Context.ConnectionId);
+                    if (bAllComplete)
+                    {
+                        // 追加一个消息，表示检索响应已经全部完成
+                        Clients.Client(search_info.RequestConnectionID).responseSearch(
+        taskID,
+        -1,
+        -1,
+        null,
+        "",
+        "");
+                        // 主动清除已经完成的检索对象
+                        ServerInfo.SearchTable.RemoveSearch(taskID);
+                        Console.WriteLine("complete");
+                    }
+                }
+
+                return result;
+            }
         }
 
         #endregion
@@ -578,6 +599,17 @@ namespace DigitalPlatform.MessageServer
             long start,
             IList<Record> records)
         {
+#if NO
+            Console.WriteLine("IsComplete() resultCount="+resultCount
+                +",returnStart="+returnStart
+                +",returnCount="+returnCount
+                +",start="+start
+                +",records.Count="
+                +records == null ? "null" : records.Count.ToString());
+#endif
+            if (returnCount == 0)
+                returnCount = -1;   // 暂时矫正
+
             if (resultCount == -1)
                 return true;    // 出错，也意味着响应结束
 
@@ -586,7 +618,7 @@ namespace DigitalPlatform.MessageServer
 
             long tail = resultCount;
             if (returnCount != -1)
-                tail = returnStart + returnCount;
+                tail = Math.Min(resultCount, returnStart + returnCount);
 
             if (records == null)
             {
@@ -818,8 +850,8 @@ namespace DigitalPlatform.MessageServer
         {
             // Thread.Sleep(1000 * 60 * 2);
             MessageResult result = new MessageResult();
-            SearchInfo info = ServerInfo.SearchTable.GetSearchInfo(taskID);
-            if (info == null)
+            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
+            if (search_info == null)
             {
                 result.ErrorInfo = "找不到 ID 为 '" + taskID + "' 的任务对象";
                 result.Value = -1;
@@ -827,7 +859,7 @@ namespace DigitalPlatform.MessageServer
             }
 
             // 让前端获得检索结果
-            Clients.Client(info.RequestConnectionID).responseBindPatron(
+            Clients.Client(search_info.RequestConnectionID).responseBindPatron(
                 taskID,
                 resultValue,
                 results,
