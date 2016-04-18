@@ -664,7 +664,7 @@ namespace dp2Command.Server
                     if (string.IsNullOrEmpty(strBarcode) == false)
                         strViewBarcode = strBarcode;
                     else
-                        strViewBarcode = "@refID:" + strRefID;
+                        strViewBarcode = "refID:" + strRefID;  //"@refID:"
                     //状态
                     string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
                     // 馆藏地
