@@ -128,7 +128,7 @@ namespace dp2Command.Server
                 strBarcode,
                 strPassword,
                 fullWeixinId,
-               "single",
+               "multiple",//single
                 "xml");
 
             try
@@ -241,9 +241,9 @@ namespace dp2Command.Server
             BindPatronRequest request = new BindPatronRequest(id,
                 "unbind",
                 strBarcode,
-                "1",//password  todo
+                "",//password  todo
                 fullWeixinId,
-               "single,null_password",
+               "multiple,null_password",
                 "xml");
             try
             {
@@ -518,17 +518,26 @@ namespace dp2Command.Server
 
             // 获取路径，注意要截取
             string strPath = searchCmd.BiblioResultPathList[nIndex - 1];
+            string strName = "";
             int index = strPath.IndexOf("*");
             if (index > 0)
+            {
+                strName = strPath.Substring(index + 1);
                 strPath = strPath.Substring(0, index);
 
-            // 取出summary
+            }
+            strBiblioInfo += strName + "\n";
+
+            int nRet = 0;
+            //微信时间不够，先不取summary
+            /*// 取出summary
             string strSummary ="";
             int nRet = this.GetBiblioSummary(strPath, out strSummary, out strError);
             if (nRet == -1 || nRet == 0)
                 return nRet;
             strBiblioInfo += strSummary + "\n";
-
+            */
+            
             // 取item
             string strItemInfo = "";
             nRet = (int)this.GetItemInfo(strPath, out strItemInfo, out strError);
@@ -540,6 +549,7 @@ namespace dp2Command.Server
                 strBiblioInfo += "===========\n";
                 strBiblioInfo += strItemInfo;
             }
+             
             return 1;
         }
 
