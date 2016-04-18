@@ -350,11 +350,15 @@ namespace dp2weixin
                 }
             }
 
-            this.CurrentMessageContext.LibCode1 = libCode;
-            this.CurrentMessageContext.LibUserName = libUserName;
+
 
             //要保存到微信用户表中，下面绑定用户从对应的图书馆查读者。
-            this.CmdService.SelectLib(this.CurrentMessageContext.UserName, libCode,libUserName);
+            WxUserItem userItem = this.CmdService.SelectLib(this.CurrentMessageContext.UserName, libCode, libUserName);
+
+            this.CurrentMessageContext.ReaderBarcode = userItem.readerBarcode;
+            this.CurrentMessageContext.LibCode1 = userItem.libCode;
+            this.CurrentMessageContext.LibUserName = userItem.libUserName;
+
             return this.CreateTextResponseMessage("您成功选择了图书馆[" + libCode + "]");
         }
 
@@ -441,7 +445,7 @@ namespace dp2weixin
                     lRet = this.CmdService.GetDetailBiblioInfo(searchCmd, nBiblioIndex,
                         out strBiblioInfo,
                         out strError);
-                    if (lRet == -1)
+                    if (lRet == -1 || lRet==0)
                     {
                         return this.CreateTextResponseMessage(strError);
                     }
@@ -594,7 +598,7 @@ namespace dp2weixin
 
             // 获取读者信息
             string strMyInfo = "";
-            lRet = this.CmdService.GetMyInfo1(this.CurrentMessageContext.ReaderBarcode, out strMyInfo,
+            lRet = this.CmdService.GetMyInfo(this.CurrentMessageContext.ReaderBarcode, out strMyInfo,
                 out strError);
             if (lRet == -1 || lRet == 0)
             {
@@ -630,7 +634,7 @@ namespace dp2weixin
             }
 
             string strBorrowInfo = "";
-            lRet = this.CmdService.GetBorrowInfo1(this.CurrentMessageContext.ReaderBarcode, out strBorrowInfo,
+            lRet = this.CmdService.GetBorrowInfo(this.CurrentMessageContext.ReaderBarcode, out strBorrowInfo,
                 out strError);
             if (lRet == -1)
             {
@@ -670,7 +674,7 @@ namespace dp2weixin
             if (strParam == "" || strParam == "view")
             {
                 string strBorrowInfo = "";
-                lRet = this.CmdService.GetBorrowInfo1(this.CurrentMessageContext.ReaderBarcode, out strBorrowInfo,
+                lRet = this.CmdService.GetBorrowInfo(this.CurrentMessageContext.ReaderBarcode, out strBorrowInfo,
                     out strError);
                 if (lRet == -1 || lRet == 0)
                 {
@@ -760,6 +764,7 @@ namespace dp2weixin
                 WxUserItem userItem=  this.CmdService.CheckIsSelectLib(this.WeixinOpenId);
                 if (userItem== null)
                     return false;
+                this.CurrentMessageContext.ReaderBarcode = userItem.readerBarcode;
 
                 this.CurrentMessageContext.LibCode1 = userItem.libCode;
                 this.CurrentMessageContext.LibUserName = userItem.libUserName;
@@ -779,6 +784,7 @@ namespace dp2weixin
         {
             strError = "";
 
+            
             if (String.IsNullOrEmpty(this.CurrentMessageContext.ReaderBarcode) == true)
             {
                 // 根据openid检索绑定的读者

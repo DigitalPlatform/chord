@@ -260,6 +260,7 @@ namespace dp2Command.Service
             int index = strPath.IndexOf("*");
             if (index > 0)
                 strPath = strPath.Substring(0, index);
+
             LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2Url, this.dp2UserName);
             channel.Password = this.dp2Password;
             try
@@ -495,7 +496,7 @@ out string strError)
                         if (node != null)
                             name = DomUtil.GetNodeText(node);
 
-                        WxUserItem userItem = WxUserDatabase.Current.GetOne(strWeiXinId,this.libCode);
+                        WxUserItem userItem = WxUserDatabase.Current.GetActiveOrFirst(strWeiXinId,this.libCode);
                         if (userItem == null)
                         {
                             userItem = new WxUserItem();
@@ -814,10 +815,10 @@ out string strError)
         /// <param name="strError"></param>
         /// <returns>
         /// -1  出错
-        /// 0   未绑定
+        /// 0   未找到读者记录
         /// 1   成功
         /// </returns>
-        public override int GetMyInfo1(string strReaderBarcode,
+        public override int GetMyInfo(string strReaderBarcode,
             out string strMyInfo, 
             out string strError)
         {
@@ -825,18 +826,6 @@ out string strError)
             strMyInfo = "";
             Debug.Assert(String.IsNullOrEmpty(strReaderBarcode) == false);
 
-            /*
-            // 检查是否已经绑定读者账号
-            long lRet = this.CheckIsBinding(strWeiXinId,out strError);
-            if (lRet == -1)
-                return -1;
-            // 未绑定
-            if (lRet == 0)
-            {
-                strError = "尚未绑定读者账号";
-                return 0;
-            }
-            */
             // 得到高级xml
             string strXml = "";
             long lRet = this.GetReaderAdvanceXml(strReaderBarcode, out strXml,
@@ -881,10 +870,10 @@ out string strError)
         /// <param name="strError"></param>
         /// <returns>
         /// -1  出错
-        /// 0   未绑定
+        /// 0   未找到读者记录
         /// 1   成功
         /// </returns>
-        public override int GetBorrowInfo1(string strReaderBarcode, out string strBorrowInfo, out string strError)
+        public override int GetBorrowInfo(string strReaderBarcode, out string strBorrowInfo, out string strError)
         {
             strError = "";
             strBorrowInfo = "";
@@ -906,70 +895,7 @@ out string strError)
 
         }
 
-        /// <summary>
-        /// 详细借阅信息
-        /// </summary>
-        /// <param name="strXml"></param>
-        /// <param name="strBorrowInfo"></param>
-        /// <returns></returns>
-        private int GetBorrowsInfoInternal(string strXml, out string strBorrowInfo)
-        {
-            strBorrowInfo = "";
 
-            XmlDocument dom = new XmlDocument();
-            dom.LoadXml(strXml);
-            XmlNodeList nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
-            if (nodes.Count == 0)
-            {
-                strBorrowInfo = "无借阅记录";
-                return 0;
-            }
-
-            Dictionary<string, string> borrowLit = new Dictionary<string, string>();
-
-            int index = 1;
-            foreach (XmlElement borrow in nodes)
-            {
-                if (strBorrowInfo != "")
-                    strBorrowInfo += "===============\n";
-
-                string overdueText = "";
-                string strIsOverdue = DomUtil.GetAttr(borrow, "isOverdue");
-                if (strIsOverdue == "yes")
-                    overdueText = DomUtil.GetAttr(borrow, "overdueInfo1");
-                else
-                    overdueText = "未超期";
-
-
-                string itemBarcode = DomUtil.GetAttr(borrow, "barcode");
-                borrowLit[index.ToString()] = itemBarcode; // 设到字典点，已变续借
-
-
-                string bookName = DomUtil.GetAttr(borrow, "summary");//borrow.GetAttribute("summary")
-                int tempIndex = bookName.IndexOf('/');
-                if (tempIndex > 0)
-                {
-                    bookName = bookName.Substring(0, tempIndex);
-                }
-
-                strBorrowInfo += "编号：" + index.ToString() + "\n"
-                    + "册条码号：" + itemBarcode + "\n"
-                    + "书       名：" + bookName + "\n"
-                    + "借阅时间：" + DateTimeUtil.ToLocalTime(borrow.GetAttribute("borrowDate"), "yyyy-MM-dd HH:mm") + "\n"
-                    + "借       期：" + DateTimeUtil.GetDisplayTimePeriodString(borrow.GetAttribute("borrowPeriod")) + "\n"
-                    + "应还时间：" + DateTimeUtil.ToLocalTime(borrow.GetAttribute("returningDate"), "yyyy-MM-dd") + "\n"
-                    + "是否超期：" + overdueText + "\n";
-
-
-                index++; //编号+1
-            }
-
-            // 设到用户上下文
-            //this.CurrentMessageContext.BorrowDict = borrowLit;
-
-            return nodes.Count;
-
-        }
 
 
         /// <summary>
@@ -1008,28 +934,7 @@ out string strError)
 
 
 
-        /// <summary>
-        /// 得到的读者的联系方式
-        /// </summary>
-        /// <param name="dom"></param>
-        /// <returns></returns>
-        private string GetContactString(XmlDocument dom)
-        {
-            string strTel = DomUtil.GetElementText(dom.DocumentElement, "tel");
-            string strEmail = DomUtil.GetElementText(dom.DocumentElement, "email");
-            string strAddress = DomUtil.GetElementText(dom.DocumentElement, "address");
-            List<string> list = new List<string>();
-            if (string.IsNullOrEmpty(strTel) == false)
-                list.Add(strTel);
-            if (string.IsNullOrEmpty(strEmail) == false)
-            {
-                strEmail = JoinEmail(strEmail, "");
-                list.Add(strEmail);
-            }
-            if (string.IsNullOrEmpty(strAddress) == false)
-                list.Add(strAddress);
-            return StringUtil.MakePathList(list, "; ");
-        }
+
 
         #endregion
 
