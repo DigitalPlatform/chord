@@ -319,11 +319,21 @@ errorInfo)
                             // 装载命中结果
                             if (resultCount == -1 && start == -1)
                             {
-                                // 表示发送响应过程已经结束
-                                // result.Finished = true;
+                                if (start == -1)
+                                {
+                                    // 表示发送响应过程已经结束
+                                    // result.Finished = true;
+                                }
+                                else
+                                {
+                                    result.ResultCount = resultCount;
+                                    result.ErrorInfo = errorInfo;
+                                    result.ErrorCode = errorCode;
+                                }
                                 finish_event.Set();
                                 return;
                             }
+
                             result.ResultCount = resultCount;
                             // TODO: 似乎应该关注 start 位置
                             result.Records.AddRange(records);
@@ -366,7 +376,7 @@ errorInfo)
                         while (true)
                         {
                             int index = WaitHandle.WaitAny(events,
-                                bFirst ? timeout : new TimeSpan(200), 
+                                bFirst ? timeout : new TimeSpan(200),
                                 false);
                             bFirst = false;
                             if (index == WaitHandle.WaitTimeout)
@@ -1176,6 +1186,8 @@ errorCode);
             string errorCode)
         {
             // TODO: 等待执行完成。如果有异常要当时处理。比如减小尺寸重发。
+            int nRedoCount = 0;
+        REDO:
             try
             {
                 MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSearch",
@@ -1194,6 +1206,13 @@ errorCode);
             catch (Exception ex)
             {
                 AddErrorLine(ex.Message);
+                if (ex.InnerException is InvalidOperationException
+                    && nRedoCount < 2)
+                {
+                    nRedoCount++;
+                    Thread.Sleep(1000);
+                    goto REDO;
+                }
             }
         }
 
