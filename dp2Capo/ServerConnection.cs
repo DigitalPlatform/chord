@@ -189,6 +189,13 @@ namespace dp2Capo
                         out return_info,
                         out strError);
                 }
+                else if (param.Operation == "reservation")
+                {
+                    lRet = channel.Reservation(param.Style,
+                        param.Patron,
+                        param.Item,
+                        out strError);
+                }
                 else
                 {
                     strError = "无法识别的 Operation 值 '" + param.Operation + "'";

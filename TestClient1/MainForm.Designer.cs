@@ -40,6 +40,7 @@
             this.textBox_config_messageServerUrl = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.tabPage_getInfo = new System.Windows.Forms.TabPage();
+            this.checkBox_getInfo_getSubEntities = new System.Windows.Forms.CheckBox();
             this.comboBox_getInfo_method = new System.Windows.Forms.ComboBox();
             this.label15 = new System.Windows.Forms.Label();
             this.textBox_getInfo_formatList = new System.Windows.Forms.TextBox();
@@ -115,7 +116,6 @@
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.checkBox_getInfo_getSubEntities = new System.Windows.Forms.CheckBox();
             this.tabControl_main.SuspendLayout();
             this.tabPage_config.SuspendLayout();
             this.tabPage_getInfo.SuspendLayout();
@@ -246,6 +246,16 @@
             this.tabPage_getInfo.TabIndex = 0;
             this.tabPage_getInfo.Text = "GetXXXInfo";
             this.tabPage_getInfo.UseVisualStyleBackColor = true;
+            // 
+            // checkBox_getInfo_getSubEntities
+            // 
+            this.checkBox_getInfo_getSubEntities.AutoSize = true;
+            this.checkBox_getInfo_getSubEntities.Location = new System.Drawing.Point(11, 159);
+            this.checkBox_getInfo_getSubEntities.Name = "checkBox_getInfo_getSubEntities";
+            this.checkBox_getInfo_getSubEntities.Size = new System.Drawing.Size(120, 16);
+            this.checkBox_getInfo_getSubEntities.TabIndex = 8;
+            this.checkBox_getInfo_getSubEntities.Text = "Get Sub Entities";
+            this.checkBox_getInfo_getSubEntities.UseVisualStyleBackColor = true;
             // 
             // comboBox_getInfo_method
             // 
@@ -793,7 +803,7 @@
             this.tabPage_circulation.Name = "tabPage_circulation";
             this.tabPage_circulation.Size = new System.Drawing.Size(333, 272);
             this.tabPage_circulation.TabIndex = 5;
-            this.tabPage_circulation.Text = "Patron Format List:";
+            this.tabPage_circulation.Text = "Circulation";
             this.tabPage_circulation.UseVisualStyleBackColor = true;
             // 
             // textBox_circulation_biblioFormatList
@@ -822,7 +832,8 @@
             "renew",
             "return",
             "lost",
-            "read"});
+            "read",
+            "reservation"});
             this.comboBox_circulation_operation.Location = new System.Drawing.Point(130, 40);
             this.comboBox_circulation_operation.Name = "comboBox_circulation_operation";
             this.comboBox_circulation_operation.Size = new System.Drawing.Size(161, 20);
@@ -983,16 +994,6 @@
             this.webBrowser1.Name = "webBrowser1";
             this.webBrowser1.Size = new System.Drawing.Size(379, 298);
             this.webBrowser1.TabIndex = 0;
-            // 
-            // checkBox_getInfo_getSubEntities
-            // 
-            this.checkBox_getInfo_getSubEntities.AutoSize = true;
-            this.checkBox_getInfo_getSubEntities.Location = new System.Drawing.Point(11, 159);
-            this.checkBox_getInfo_getSubEntities.Name = "checkBox_getInfo_getSubEntities";
-            this.checkBox_getInfo_getSubEntities.Size = new System.Drawing.Size(120, 16);
-            this.checkBox_getInfo_getSubEntities.TabIndex = 8;
-            this.checkBox_getInfo_getSubEntities.Text = "Get Sub Entities";
-            this.checkBox_getInfo_getSubEntities.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
