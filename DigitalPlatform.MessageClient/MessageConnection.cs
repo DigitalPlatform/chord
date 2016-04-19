@@ -313,7 +313,8 @@ errorInfo)
                     if (result.Records == null)
                         result.Records = new List<Record>();
 
-                    ManualResetEvent finish_event = new ManualResetEvent(false);
+                    ManualResetEvent finish_event = new ManualResetEvent(false);    // 表示数据全部到来
+                    AutoResetEvent active_event = new AutoResetEvent(false);    // 表示中途数据到来
 
                     if (string.IsNullOrEmpty(request.TaskID) == true)
                     {
@@ -325,6 +326,9 @@ errorInfo)
                         "responseSearch",
                         (taskID, resultCount, start, records, errorInfo, errorCode) =>
                         {
+                            if (taskID != request.TaskID)
+                                return;
+
                             start_time = DateTime.Now;  // 重新计算超时
 
                             // 装载命中结果
@@ -353,9 +357,10 @@ errorInfo)
 
                             if (IsComplete(request.Start, request.Count, resultCount, result.Records.Count) == true)
                                 finish_event.Set();
+                            else
+                                active_event.Set();
                         }))
                     {
-
                         MessageResult message = HubProxy.Invoke<MessageResult>(
             "RequestSearch",
             strRemoteUserName,
@@ -373,23 +378,23 @@ errorInfo)
 
                         if (token != null)
                         {
-                            events = new WaitHandle[2];
+                            events = new WaitHandle[3];
                             events[0] = finish_event;
-                            events[1] = token.WaitHandle;
+                            events[1] = active_event;
+                            events[2] = token.WaitHandle;
                         }
                         else
                         {
-                            events = new WaitHandle[1];
+                            events = new WaitHandle[2];
                             events[0] = finish_event;
+                            events[1] = active_event;
                         }
 
-                        bool bFirst = true;
                         while (true)
                         {
                             int index = WaitHandle.WaitAny(events,
-                                bFirst ? timeout : new TimeSpan(200),
+                                timeout,
                                 false);
-                            bFirst = false;
                             if (index == WaitHandle.WaitTimeout)
                             {
                                 if (DateTime.Now - start_time >= timeout)
@@ -402,6 +407,10 @@ errorInfo)
 
                             if (index == 0) // 正常完成
                                 return result;
+                            else if (index == 1)
+                            {
+                                // start_time = DateTime.Now;  // 重新计算超时开始时刻
+                            }
                             else
                             {
                                 if (token != null)
@@ -585,6 +594,9 @@ errorInfo)
                     "responseSetInfo",
                     (taskID, resultValue, entities, errorInfo) =>
                     {
+                        if (taskID != request.TaskID)
+                            return;
+
                         // 装载命中结果
                         if (entities != null)
                             result.Entities.AddRange(entities);
@@ -673,6 +685,9 @@ errorInfo)
                     "responseBindPatron",
                     (taskID, resultValue, results, errorInfo) =>
                     {
+                        if (taskID != request.TaskID)
+                            return;
+
                         // 装载命中结果
                         if (results != null)
                             result.Results.AddRange(results);
@@ -842,6 +857,9 @@ errorInfo)
                     "responseCirculation",
                     (taskID, circulation_result) =>
                     {
+                        if (taskID != request.TaskID)
+                            return;
+
                         // 装载命中结果
                         result = circulation_result;
                         finish_event.Set();

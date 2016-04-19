@@ -182,8 +182,11 @@ namespace TestClient1
         {
             if (this.tabControl_main.SelectedTab == tabPage_getInfo)
             {
-                // Task.Factory.StartNew(() => DoGetPatronInfo());
-                DoGetInfo();
+                if (this.comboBox_getInfo_method.Text == "getBiblioInfo"
+                    && this.checkBox_getInfo_getSubEntities.Checked)
+                    DoGetBiblioAndSub();
+                else
+                    DoGetInfo();
             }
 
             if (this.tabControl_main.SelectedTab == this.tabPage_search)
@@ -487,6 +490,103 @@ namespace TestClient1
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 
+        async void DoGetBiblioAndSub()
+        {
+            string strError = "";
+
+            if (string.IsNullOrEmpty(this.comboBox_getInfo_method.Text) == true)
+            {
+                strError = "尚未指定方法";
+                goto ERROR1;
+            }
+
+            EnableControls(false);
+            try
+            {
+                DateTime start_time = DateTime.Now;
+
+                CancellationToken cancel_token = new CancellationToken();
+
+                // 获取书目记录
+                string id1 = Guid.NewGuid().ToString();
+                SearchRequest request1 = new SearchRequest(id1,
+                    this.comboBox_getInfo_method.Text,
+                    "",
+                    this.textBox_getInfo_queryWord.Text,
+                    "",
+                    "",
+                    "",
+                    this.textBox_getInfo_formatList.Text,
+                    1,
+                    0,
+                    -1);
+                // 获取下属记录
+                string id2 = Guid.NewGuid().ToString();
+                SearchRequest request2 = new SearchRequest(id2,
+    "getItemInfo",
+    "entity",
+    this.textBox_getInfo_queryWord.Text,
+    "",
+    "",
+    "",
+    "", // "xml",
+    1,
+    0,
+    -1);
+
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        this.textBox_getInfo_remoteUserName.Text);
+
+                    Task<SearchResult> task1 = connection.SearchAsync(
+                        this.textBox_getInfo_remoteUserName.Text,
+                        request1,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+                    Task<SearchResult> task2 = connection.SearchAsync(
+                        this.textBox_getInfo_remoteUserName.Text,
+                        request2,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+
+                    Task<SearchResult>[] tasks = new Task<SearchResult>[2];
+                    tasks[0] = task1;
+                    tasks[1] = task2;
+                    Task.WaitAll(tasks);
+
+                    TimeSpan time_length = DateTime.Now - start_time;
+
+                    this.Invoke(new Action(() =>
+                    {
+                        string strResultText = "time span: "+time_length.TotalSeconds.ToString() + " secs"
+                            +"\r\n=== biblio ===\r\n" + ToString(task1.Result) 
+                            + "\r\n\r\n=== entities ===\r\n" + ToString(task2.Result);
+                        SetTextString(this.webBrowser1, strResultText);
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+
+        }
+
         async void DoGetInfo()
         {
             string strError = "";
@@ -500,6 +600,8 @@ namespace TestClient1
             EnableControls(false);
             try
             {
+                DateTime start_time = DateTime.Now;
+
                 CancellationToken cancel_token = new CancellationToken();
 
                 string id = Guid.NewGuid().ToString();
@@ -527,12 +629,18 @@ namespace TestClient1
                         new TimeSpan(0, 1, 0),
                         cancel_token);
 
+                    TimeSpan time_length = DateTime.Now - start_time;
+
                     this.Invoke(new Action(() =>
                     {
+                        string strResultText = "time span: "+time_length.TotalSeconds.ToString() + " secs"
+                            +"\r\n" + ToString(result);
+#if NO
                         if (result.ResultCount == 0)
                             SetTextString(this.webBrowser1, "没有找到");
                         else
-                            SetTextString(this.webBrowser1, ToString(result));
+#endif
+                        SetTextString(this.webBrowser1, strResultText);
                     }));
                 }
                 catch (AggregateException ex)
@@ -809,6 +917,14 @@ string strHtml)
             return;
         ERROR1:
             MessageBox.Show(this, strError);
+        }
+
+        private void comboBox_getInfo_method_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (this.comboBox_getInfo_method.Text == "getBiblioInfo")
+                this.checkBox_getInfo_getSubEntities.Enabled = true;
+            else
+                this.checkBox_getInfo_getSubEntities.Enabled = false;
         }
     }
 }
