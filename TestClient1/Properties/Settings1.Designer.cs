@@ -298,5 +298,53 @@ namespace TestClient1.Properties {
                 this["bindPatron_resultTypeList"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string setInfo_method {
+            get {
+                return ((string)(this["setInfo_method"]));
+            }
+            set {
+                this["setInfo_method"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string setInfo_remoteUserName {
+            get {
+                return ((string)(this["setInfo_remoteUserName"]));
+            }
+            set {
+                this["setInfo_remoteUserName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string setInfo_biblioRecPath {
+            get {
+                return ((string)(this["setInfo_biblioRecPath"]));
+            }
+            set {
+                this["setInfo_biblioRecPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string setInfo_action {
+            get {
+                return ((string)(this["setInfo_action"]));
+            }
+            set {
+                this["setInfo_action"] = value;
+            }
+        }
     }
 }

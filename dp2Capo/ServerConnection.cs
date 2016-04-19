@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform;
 using DigitalPlatform.LibraryClient;
-using System.Xml;
 using DigitalPlatform.Xml;
 
 namespace dp2Capo
@@ -66,6 +66,119 @@ namespace dp2Capo
 
             return this._channelPool.GetChannel(strServerUrl, strUserName);
         }
+
+        #region SetInfo() API
+
+        public override void OnSetInfoRecieved(SetInfoRequest param)
+        {
+            // 单独给一个线程来执行
+            Task.Factory.StartNew(() => SetInfoAndResponse(param));
+        }
+
+        DigitalPlatform.LibraryClient.localhost.EntityInfo BuildEntityInfo(Entity entity)
+        {
+            DigitalPlatform.LibraryClient.localhost.EntityInfo info = new DigitalPlatform.LibraryClient.localhost.EntityInfo();
+            info.Action = entity.Action;
+            info.RefID = entity.RefID;
+
+            if (entity.OldRecord != null)
+            {
+                info.OldRecord = entity.OldRecord.Data;
+                info.OldRecPath = entity.OldRecord.RecPath;
+                info.OldTimestamp = ByteArray.GetTimeStampByteArray(entity.OldRecord.Timestamp);
+            }
+
+            if (entity.NewRecord != null)
+            {
+                info.NewRecord = entity.NewRecord.Data;
+                info.OldRecPath = entity.NewRecord.RecPath;
+                info.OldTimestamp = ByteArray.GetTimeStampByteArray(entity.NewRecord.Timestamp);
+            }
+
+            info.Style = entity.Style;
+
+            info.ErrorInfo = entity.ErrorInfo;
+
+            info.ErrorCode = DigitalPlatform.LibraryClient.localhost.ErrorCodeValue.NoError;
+
+            return info;
+        }
+
+        Entity BuildEntity(DigitalPlatform.LibraryClient.localhost.EntityInfo info)
+        {
+            Entity entity = new Entity();
+            entity.Action = info.Action;
+            entity.RefID = info.RefID;
+
+            entity.OldRecord = new Record();
+            entity.OldRecord.Data = info.OldRecord;
+            entity.OldRecord.RecPath = info.OldRecPath;
+            entity.OldRecord.Timestamp = ByteArray.GetHexTimeStampString(info.OldTimestamp);
+
+            entity.NewRecord = new Record();
+            entity.NewRecord.Data = info.NewRecord;
+            entity.NewRecord.RecPath = info.NewRecPath;
+            entity.NewRecord.Timestamp = ByteArray.GetHexTimeStampString(info.NewTimestamp);
+
+            entity.Style = info.Style;
+            entity.ErrorInfo = info.ErrorInfo;
+            entity.ErrorCode = info.ErrorCode.ToString();
+            return entity;
+        }
+
+        void SetInfoAndResponse(SetInfoRequest param)
+        {
+            string strError = "";
+            IList<Entity> results = new List<Entity>();
+
+            List<DigitalPlatform.LibraryClient.localhost.EntityInfo> entities = new List<DigitalPlatform.LibraryClient.localhost.EntityInfo>();
+            foreach (Entity entity in param.Entities)
+            {
+                entities.Add(BuildEntityInfo(entity));
+            }
+
+            LibraryChannel channel = GetChannel();
+            try
+            {
+                DigitalPlatform.LibraryClient.localhost.EntityInfo[] errorinfos = null;
+                long lRet = channel.SetEntities(param.BiblioRecPath,
+                    entities.ToArray(),
+                    out errorinfos,
+                    out strError);
+                if (errorinfos != null)
+                {
+                    foreach (DigitalPlatform.LibraryClient.localhost.EntityInfo error in errorinfos)
+                    {
+                        results.Add(BuildEntity(error));
+                    }
+                }
+                ResponseSetInfo(param.TaskID,
+    lRet,
+    results,
+    strError);
+                return;
+            }
+            catch (Exception ex)
+            {
+                AddErrorLine("SetInfoAndResponse() 出现异常: " + ex.Message);
+                strError = ex.Message;
+                goto ERROR1;
+            }
+            finally
+            {
+                this._channelPool.ReturnChannel(channel);
+            }
+
+        ERROR1:
+            // 报错
+            ResponseSetInfo(
+param.TaskID,
+-1,
+results,
+strError);
+        }
+
+        #endregion
 
         #region BindPatron() API
 

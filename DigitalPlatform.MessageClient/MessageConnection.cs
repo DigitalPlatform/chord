@@ -210,6 +210,11 @@ errorInfo)
 );
 #endif
 
+            // *** setInfo
+            HubProxy.On<SetInfoRequest>("setInfo",
+                (setInfoParam) => OnSetInfoRecieved(setInfoParam)
+                );
+
             try
             {
                 return Connection.Start()
@@ -541,6 +546,94 @@ errorInfo)
         }
 
 #endif
+
+        #endregion
+
+        #region SetInfo() API
+
+        public virtual void OnSetInfoRecieved(SetInfoRequest param)
+        {
+        }
+
+        public Task<SetInfoResult> SetInfoAsync(
+    string strRemoteUserName,
+    SetInfoRequest request,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            return Task.Factory.StartNew<SetInfoResult>(() =>
+            {
+                SetInfoResult result = new SetInfoResult();
+                if (result.Entities == null)
+                    result.Entities = new List<Entity>();
+
+                ManualResetEvent finish_event = new ManualResetEvent(false);
+
+                if (string.IsNullOrEmpty(request.TaskID) == true)
+                {
+                    request.TaskID = Guid.NewGuid().ToString();
+                }
+
+                using (var handler = HubProxy.On<
+                    string, long, IList<Entity>, string>(
+                    "responseSetInfo",
+                    (taskID, resultValue, entities, errorInfo) =>
+                    {
+                        // 装载命中结果
+                        if (entities != null)
+                            result.Entities.AddRange(entities);
+                        result.Value = resultValue;
+                        result.ErrorInfo = errorInfo;
+                        finish_event.Set();
+                    }))
+                {
+
+                    MessageResult message = HubProxy.Invoke<MessageResult>(
+        "RequestSetInfo",
+        strRemoteUserName,
+        request).Result;
+                    if (message.Value == -1
+                        || message.Value == 0)
+                    {
+                        result.ErrorInfo = message.ErrorInfo;
+                        result.Value = -1;
+                        return result;
+                    }
+
+                    WaitHandle[] events = null;
+                    if (token != null)
+                    {
+                        events = new WaitHandle[2];
+                        events[0] = finish_event;
+                        events[1] = token.WaitHandle;
+                    }
+                    else
+                    {
+                        events = new WaitHandle[1];
+                        events[0] = finish_event;
+                    }
+
+                    int index = WaitHandle.WaitAny(events, timeout, false);
+                    if (index == WaitHandle.WaitTimeout)
+                    {
+                        // 向服务器发送 CancelSearch 请求
+                        CancelSearchAsync(request.TaskID);
+                        throw new TimeoutException("已超时 " + timeout.ToString());
+                    }
+
+                    if (index == 0) // 正常完成
+                        return result;
+                    if (token != null)
+                    {
+                        // 向服务器发送 CancelSearch 请求
+                        CancelSearchAsync(request.TaskID);
+                        token.ThrowIfCancellationRequested();
+                    }
+                    result.ErrorInfo += "_error";
+                    return result;
+                }
+            }, token);
+        }
 
         #endregion
 
@@ -1016,6 +1109,33 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             try
             {
                 MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseBindPatron",
+    taskID,
+    resultValue,
+    results,
+    errorInfo);
+                if (result.Value == -1)
+                {
+                    AddErrorLine(result.ErrorInfo);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                AddErrorLine(ex.Message);
+            }
+        }
+
+        // 调用 server 端 ResponseSetInfo
+        // TODO: 要考虑发送失败的问题
+        public async void ResponseSetInfo(
+            string taskID,
+            long resultValue,
+            IList<Entity> results,
+            string errorInfo)
+        {
+            try
+            {
+                MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSetInfo",
     taskID,
     resultValue,
     results,

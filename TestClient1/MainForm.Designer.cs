@@ -82,15 +82,28 @@
             this.label24 = new System.Windows.Forms.Label();
             this.textBox_bindPatron_remoteUserName = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
+            this.tabPage_setInfo = new System.Windows.Forms.TabPage();
+            this.webBrowser_setInfo_entities = new System.Windows.Forms.WebBrowser();
+            this.comboBox_setInfo_method = new System.Windows.Forms.ComboBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.label19 = new System.Windows.Forms.Label();
+            this.textBox_setInfo_biblioRecPath = new System.Windows.Forms.TextBox();
+            this.label26 = new System.Windows.Forms.Label();
+            this.textBox_setInfo_remoteUserName = new System.Windows.Forms.TextBox();
+            this.label27 = new System.Windows.Forms.Label();
+            this.button_testPaste = new System.Windows.Forms.Button();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.comboBox_setInfo_action = new System.Windows.Forms.ComboBox();
+            this.label28 = new System.Windows.Forms.Label();
             this.tabControl_main.SuspendLayout();
             this.tabPage_config.SuspendLayout();
             this.tabPage_getInfo.SuspendLayout();
             this.tabPage_search.SuspendLayout();
             this.tabPage_bindPatron.SuspendLayout();
+            this.tabPage_setInfo.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_main)).BeginInit();
             this.splitContainer_main.Panel1.SuspendLayout();
@@ -120,6 +133,7 @@
             this.tabControl_main.Controls.Add(this.tabPage_getInfo);
             this.tabControl_main.Controls.Add(this.tabPage_search);
             this.tabControl_main.Controls.Add(this.tabPage_bindPatron);
+            this.tabControl_main.Controls.Add(this.tabPage_setInfo);
             this.tabControl_main.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl_main.Location = new System.Drawing.Point(0, 0);
             this.tabControl_main.Name = "tabControl_main";
@@ -609,6 +623,111 @@
             this.label7.TabIndex = 4;
             this.label7.Text = "Remote User Name:";
             // 
+            // tabPage_setInfo
+            // 
+            this.tabPage_setInfo.AutoScroll = true;
+            this.tabPage_setInfo.Controls.Add(this.comboBox_setInfo_action);
+            this.tabPage_setInfo.Controls.Add(this.label28);
+            this.tabPage_setInfo.Controls.Add(this.webBrowser_setInfo_entities);
+            this.tabPage_setInfo.Controls.Add(this.comboBox_setInfo_method);
+            this.tabPage_setInfo.Controls.Add(this.label8);
+            this.tabPage_setInfo.Controls.Add(this.label19);
+            this.tabPage_setInfo.Controls.Add(this.textBox_setInfo_biblioRecPath);
+            this.tabPage_setInfo.Controls.Add(this.label26);
+            this.tabPage_setInfo.Controls.Add(this.textBox_setInfo_remoteUserName);
+            this.tabPage_setInfo.Controls.Add(this.label27);
+            this.tabPage_setInfo.Controls.Add(this.button_testPaste);
+            this.tabPage_setInfo.Location = new System.Drawing.Point(4, 22);
+            this.tabPage_setInfo.Name = "tabPage_setInfo";
+            this.tabPage_setInfo.Size = new System.Drawing.Size(333, 272);
+            this.tabPage_setInfo.TabIndex = 4;
+            this.tabPage_setInfo.Text = "SetXXXInfo";
+            this.tabPage_setInfo.UseVisualStyleBackColor = true;
+            // 
+            // webBrowser_setInfo_entities
+            // 
+            this.webBrowser_setInfo_entities.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.webBrowser_setInfo_entities.Location = new System.Drawing.Point(9, 156);
+            this.webBrowser_setInfo_entities.MinimumSize = new System.Drawing.Size(20, 100);
+            this.webBrowser_setInfo_entities.Name = "webBrowser_setInfo_entities";
+            this.webBrowser_setInfo_entities.Size = new System.Drawing.Size(304, 101);
+            this.webBrowser_setInfo_entities.TabIndex = 15;
+            // 
+            // comboBox_setInfo_method
+            // 
+            this.comboBox_setInfo_method.FormattingEnabled = true;
+            this.comboBox_setInfo_method.Items.AddRange(new object[] {
+            "setItemInfo",
+            "setOrderInfo",
+            "setIssueInfo",
+            "setCommentInfo"});
+            this.comboBox_setInfo_method.Location = new System.Drawing.Point(130, 13);
+            this.comboBox_setInfo_method.Name = "comboBox_setInfo_method";
+            this.comboBox_setInfo_method.Size = new System.Drawing.Size(161, 20);
+            this.comboBox_setInfo_method.TabIndex = 9;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(7, 16);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(47, 12);
+            this.label8.TabIndex = 8;
+            this.label8.Text = "Method:";
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(7, 122);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(59, 12);
+            this.label19.TabIndex = 14;
+            this.label19.Text = "Entities:";
+            // 
+            // textBox_setInfo_biblioRecPath
+            // 
+            this.textBox_setInfo_biblioRecPath.Location = new System.Drawing.Point(130, 92);
+            this.textBox_setInfo_biblioRecPath.Name = "textBox_setInfo_biblioRecPath";
+            this.textBox_setInfo_biblioRecPath.Size = new System.Drawing.Size(161, 21);
+            this.textBox_setInfo_biblioRecPath.TabIndex = 13;
+            // 
+            // label26
+            // 
+            this.label26.AutoSize = true;
+            this.label26.Location = new System.Drawing.Point(7, 95);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(95, 12);
+            this.label26.TabIndex = 12;
+            this.label26.Text = "Biblio RecPath:";
+            // 
+            // textBox_setInfo_remoteUserName
+            // 
+            this.textBox_setInfo_remoteUserName.Location = new System.Drawing.Point(130, 40);
+            this.textBox_setInfo_remoteUserName.Name = "textBox_setInfo_remoteUserName";
+            this.textBox_setInfo_remoteUserName.Size = new System.Drawing.Size(161, 21);
+            this.textBox_setInfo_remoteUserName.TabIndex = 11;
+            // 
+            // label27
+            // 
+            this.label27.AutoSize = true;
+            this.label27.Location = new System.Drawing.Point(7, 43);
+            this.label27.Name = "label27";
+            this.label27.Size = new System.Drawing.Size(107, 12);
+            this.label27.TabIndex = 10;
+            this.label27.Text = "Remote User Name:";
+            // 
+            // button_testPaste
+            // 
+            this.button_testPaste.Location = new System.Drawing.Point(130, 117);
+            this.button_testPaste.Name = "button_testPaste";
+            this.button_testPaste.Size = new System.Drawing.Size(129, 23);
+            this.button_testPaste.TabIndex = 0;
+            this.button_testPaste.Text = "paste entities";
+            this.button_testPaste.UseVisualStyleBackColor = true;
+            this.button_testPaste.Click += new System.EventHandler(this.button_pasteEntities_Click);
+            // 
             // toolStrip1
             // 
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -656,6 +775,27 @@
             this.webBrowser1.Size = new System.Drawing.Size(379, 298);
             this.webBrowser1.TabIndex = 0;
             // 
+            // comboBox_setInfo_action
+            // 
+            this.comboBox_setInfo_action.FormattingEnabled = true;
+            this.comboBox_setInfo_action.Items.AddRange(new object[] {
+            "new",
+            "delete",
+            "change"});
+            this.comboBox_setInfo_action.Location = new System.Drawing.Point(130, 66);
+            this.comboBox_setInfo_action.Name = "comboBox_setInfo_action";
+            this.comboBox_setInfo_action.Size = new System.Drawing.Size(161, 20);
+            this.comboBox_setInfo_action.TabIndex = 38;
+            // 
+            // label28
+            // 
+            this.label28.AutoSize = true;
+            this.label28.Location = new System.Drawing.Point(8, 69);
+            this.label28.Name = "label28";
+            this.label28.Size = new System.Drawing.Size(47, 12);
+            this.label28.TabIndex = 37;
+            this.label28.Text = "Action:";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -680,6 +820,8 @@
             this.tabPage_search.PerformLayout();
             this.tabPage_bindPatron.ResumeLayout(false);
             this.tabPage_bindPatron.PerformLayout();
+            this.tabPage_setInfo.ResumeLayout(false);
+            this.tabPage_setInfo.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.splitContainer_main.Panel1.ResumeLayout(false);
@@ -750,6 +892,18 @@
         private System.Windows.Forms.Label label24;
         private System.Windows.Forms.ComboBox comboBox_bindPatron_action;
         private System.Windows.Forms.Label label25;
+        private System.Windows.Forms.TabPage tabPage_setInfo;
+        private System.Windows.Forms.Button button_testPaste;
+        private System.Windows.Forms.ComboBox comboBox_setInfo_method;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label label19;
+        private System.Windows.Forms.TextBox textBox_setInfo_biblioRecPath;
+        private System.Windows.Forms.Label label26;
+        private System.Windows.Forms.TextBox textBox_setInfo_remoteUserName;
+        private System.Windows.Forms.Label label27;
+        private System.Windows.Forms.WebBrowser webBrowser_setInfo_entities;
+        private System.Windows.Forms.ComboBox comboBox_setInfo_action;
+        private System.Windows.Forms.Label label28;
     }
 }
 
