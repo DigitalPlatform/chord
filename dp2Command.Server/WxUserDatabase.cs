@@ -93,19 +93,42 @@ namespace dp2Command.Service
             CreateIndex();
         }
 
-
+        /*
         /// <summary>
         /// 根据微信号与图书馆代码查
         /// </summary>
         /// <param name="weixinId"></param>
         /// <param name="libCode"></param>
         /// <returns></returns>
-        public WxUserItem GetOne(string weixinId,string libCode)
+        public WxUserItem GetActive(string weixinId,string libCode)
         {
             var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
-                & Builders<WxUserItem>.Filter.Eq("libCode", libCode);
+                & Builders<WxUserItem>.Filter.Eq("libCode", libCode)
+                & Builders<WxUserItem>.Filter.Eq("isActive", 1);
 
             List<WxUserItem> list = this.wxUserCollection .Find(filter).ToList();
+            if (list.Count > 0)
+                return list[0];
+
+            return null;
+        }
+        */
+        public WxUserItem GetActiveOrFirst(string weixinId, string libCode)
+        {
+            // 先查active的
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("libCode", libCode)
+                & Builders<WxUserItem>.Filter.Eq("isActive", 1);
+
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+            if (list.Count > 0)
+                return list[0];
+
+            // 没有查first
+            filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                     & Builders<WxUserItem>.Filter.Eq("libCode", libCode);
+
+            list = this.wxUserCollection.Find(filter).ToList();
             if (list.Count > 0)
                 return list[0];
 
@@ -119,7 +142,7 @@ namespace dp2Command.Service
                 & Builders<WxUserItem>.Filter.Eq("libCode", libCode)
                 & Builders<WxUserItem>.Filter.Eq("readerBarcode", readerBarcode);
             List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
-            if (list.Count > 1)
+            if (list.Count >= 1)
                 return list[0];
 
             // 未找到查weixinId+libCode，readerBarcoe为空的记录
@@ -127,7 +150,7 @@ namespace dp2Command.Service
                 & Builders<WxUserItem>.Filter.Eq("libCode", libCode)
                 & Builders<WxUserItem>.Filter.Eq("readerBarcode", "");
             list = this.wxUserCollection.Find(filter).ToList();
-            if (list.Count > 1)
+            if (list.Count >= 1)
                 return list[0];
 
 

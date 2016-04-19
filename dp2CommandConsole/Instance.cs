@@ -287,7 +287,7 @@ namespace dp2ConsoleToWeiXin
 
             // 获取读者信息
             string strMyInfo = "";
-            lRet = dp2CommandService.Instance.GetMyInfo1(this.ReaderBarcode, out strMyInfo,
+            lRet = dp2CommandService.Instance.GetMyInfo(this.ReaderBarcode, out strMyInfo,
                 out strError);
             if (lRet == -1 || lRet == 0)
             {
@@ -326,7 +326,7 @@ namespace dp2ConsoleToWeiXin
             }
 
             string strBorrowInfo = "";
-            lRet = dp2CommandService.Instance.GetBorrowInfo1(this.ReaderBarcode, out strBorrowInfo,
+            lRet = dp2CommandService.Instance.GetBorrowInfo(this.ReaderBarcode, out strBorrowInfo,
                 out strError);
             if (lRet == -1)
             {
@@ -369,7 +369,7 @@ namespace dp2ConsoleToWeiXin
             if (strParam == "" || strParam == "view")
             {
                 string strBorrowInfo = "";
-                lRet = dp2CommandService.Instance.GetBorrowInfo1(this.ReaderBarcode, out strBorrowInfo,
+                lRet = dp2CommandService.Instance.GetBorrowInfo(this.ReaderBarcode, out strBorrowInfo,
                     out strError);
                 if (lRet == -1)
                 {

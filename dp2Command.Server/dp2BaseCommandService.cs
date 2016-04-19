@@ -1,11 +1,14 @@
 ﻿using DigitalPlatform.IO;
 using DigitalPlatform.LibraryRestClient;
+using DigitalPlatform.Text;
+using DigitalPlatform.Xml;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace dp2Command.Service
 {
@@ -21,7 +24,7 @@ namespace dp2Command.Service
 
         // 访问的目标图书馆
         public string libCode = "";
-        public string remoteUserName = "capo2";
+        public string remoteUserName = "";
 
         #region 绑定解绑
 
@@ -102,10 +105,10 @@ namespace dp2Command.Service
 
         /// <returns>
         /// -1  出错
-        /// 0   未绑定
+        /// 0   未找到读者记录
         /// 1   成功
         /// </returns>
-        public virtual int GetBorrowInfo1(string strReaderBarcode, 
+        public virtual int GetBorrowInfo(string strReaderBarcode, 
             out string strBorrowInfo, 
             out string strError)
         {
@@ -121,7 +124,7 @@ namespace dp2Command.Service
         /// 0   未绑定
         /// 1   成功
         /// </returns>
-        public virtual int GetMyInfo1(string strReaderBarcode,
+        public virtual int GetMyInfo(string strReaderBarcode,
             out string strMyInfo,
             out string strError)
         {
@@ -130,6 +133,31 @@ namespace dp2Command.Service
             Debug.Assert(String.IsNullOrEmpty(strReaderBarcode) == false);
             return -1;
         }
+
+        /// <summary>
+        /// 得到的读者的联系方式
+        /// </summary>
+        /// <param name="dom"></param>
+        /// <returns></returns>
+        public string GetContactString(XmlDocument dom)
+        {
+            string strTel = DomUtil.GetElementText(dom.DocumentElement, "tel");
+            string strEmail = DomUtil.GetElementText(dom.DocumentElement, "email");
+            string strAddress = DomUtil.GetElementText(dom.DocumentElement, "address");
+            List<string> list = new List<string>();
+            if (string.IsNullOrEmpty(strTel) == false)
+                list.Add(strTel);
+            if (string.IsNullOrEmpty(strEmail) == false)
+            {
+                //strEmail = JoinEmail(strEmail, "");
+                list.Add(strEmail);
+            }
+            if (string.IsNullOrEmpty(strAddress) == false)
+                list.Add(strAddress);
+            return StringUtil.MakePathList(list, "; ");
+        }
+
+
 
         /// <summary>
         /// 续借
@@ -145,6 +173,116 @@ namespace dp2Command.Service
             strError = "未实现";
 
             return -1;
+        }
+
+        /// <summary>
+        /// 详细借阅信息
+        /// </summary>
+        /// <param name="strXml"></param>
+        /// <param name="strBorrowInfo"></param>
+        /// <returns></returns>
+        public int GetBorrowsInfoInternal(string strXml, out string strBorrowInfo)
+        {
+            strBorrowInfo = "";
+
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(strXml);
+
+            /*
+                <info>
+        <item name="可借总册数" value="10" />
+        <item name="日历名">
+            <value>基本日历</value>
+        </item>
+        <item name="当前还可借" value="9" />
+    </info>
+''             
+             */
+            string maxBorrowCount = "";
+            string curBorrowCount = "";
+            XmlNode nodeMax = dom.DocumentElement.SelectSingleNode("info/item[@name='可借总册数']");
+            if (nodeMax == null)
+            {
+                maxBorrowCount = "获取当前读者可借总册数出错：未找到对应节点。";
+            }
+            else
+            {
+                string maxCount = DomUtil.GetAttr(nodeMax, "value");
+                if (maxCount == "")
+                {
+                    maxBorrowCount = "获取当前读者可借总册数出错：未设置对应值。";
+                }
+                else
+                {
+                    maxBorrowCount = "最多可借:" + maxCount; ;
+                    XmlNode nodeCurrent = dom.DocumentElement.SelectSingleNode("info/item[@name='当前还可借']");
+                    if (nodeCurrent == null)
+                    {
+                        curBorrowCount = "获取当前还可借出错：未找到对应节点。";
+                    }
+                    else
+                    {
+                        curBorrowCount = "当前可借:" + DomUtil.GetAttr(nodeCurrent, "value");
+                    }
+                }
+            }
+
+            strBorrowInfo = maxBorrowCount + " " + curBorrowCount + "\n";
+
+            XmlNodeList nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
+            if (nodes.Count == 0)
+            {
+                strBorrowInfo += "无借阅记录";
+                return 0;
+            }
+
+            Dictionary<string, string> borrowLit = new Dictionary<string, string>();
+            int index = 1;
+            string books = "";
+            foreach (XmlElement borrow in nodes)
+            {
+                if (books != "")
+                    books += "===============\n";
+
+                string overdueText = "";
+                string strIsOverdue = DomUtil.GetAttr(borrow, "isOverdue");
+                if (strIsOverdue == "yes")
+                    overdueText = DomUtil.GetAttr(borrow, "overdueInfo1");
+                else
+                    overdueText = "未超期";
+
+
+                string itemBarcode = DomUtil.GetAttr(borrow, "barcode");
+                borrowLit[index.ToString()] = itemBarcode; // 设到字典点，已变续借
+
+                /*
+                string bookName = DomUtil.GetAttr(borrow, "summary");//borrow.GetAttribute("summary")
+                int tempIndex = bookName.IndexOf('/');
+                if (tempIndex > 0)
+                {
+                    bookName = bookName.Substring(0, tempIndex);
+                }
+                 */
+                string summary = DomUtil.GetAttr(borrow, "summary");
+                books += "编号：" + index.ToString() + "\n"
+                    + "册条码号：" + itemBarcode + "\n"
+                    + "摘       要：" + summary + "\n"
+                    + "借阅时间：" + DateTimeUtil.ToLocalTime(borrow.GetAttribute("borrowDate"), "yyyy-MM-dd HH:mm") + "\n"
+                    + "借       期：" + DateTimeUtil.GetDisplayTimePeriodString(borrow.GetAttribute("borrowPeriod")) + "\n"
+                    + "应还时间：" + DateTimeUtil.ToLocalTime(borrow.GetAttribute("returningDate"), "yyyy-MM-dd") + "\n"
+                    + "是否超期：" + overdueText + "\n";
+
+
+                index++; //编号+1
+            }
+
+            strBorrowInfo += books;
+
+            // 设到用户上下文
+            //this.CurrentMessageContext.BorrowDict = borrowLit;
+
+            return nodes.Count;
+
         }
 
         #region 微信用户选择图书馆
@@ -172,9 +310,9 @@ namespace dp2Command.Service
         /// </summary>
         /// <param name="strWeiXinId"></param>
         /// <param name="libCode"></param>
-        public void SelectLib(string strWeiXinId, string libCode, string libUserName)
+        public WxUserItem SelectLib(string strWeiXinId, string libCode, string libUserName)
         {
-            WxUserItem userItem = WxUserDatabase.Current.GetOne(strWeiXinId,libCode);
+            WxUserItem userItem = WxUserDatabase.Current.GetActiveOrFirst(strWeiXinId,libCode);
             if (userItem == null)
             {
                 userItem = new WxUserItem();
@@ -196,6 +334,8 @@ namespace dp2Command.Service
             //记下来，以便点对点方便访问该图书馆
             this.libCode = libCode;
             this.remoteUserName = libUserName;
+
+            return userItem;
         }
 
         #endregion
