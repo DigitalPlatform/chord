@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Web;
 
 using TestClient1.Properties;
 
@@ -15,7 +16,7 @@ using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
-using System.Web;
+using DigitalPlatform;
 
 namespace TestClient1
 {
@@ -116,6 +117,10 @@ namespace TestClient1
             this.textBox_bindPatron_style.Text = Settings.Default.bindPatron_style;
             this.textBox_bindPatron_resultTypeList.Text = Settings.Default.bindPatron_resultTypeList;
 
+            this.comboBox_setInfo_method.Text = Settings.Default.setInfo_method;
+            this.textBox_setInfo_remoteUserName.Text = Settings.Default.setInfo_remoteUserName;
+            this.comboBox_setInfo_action.Text = Settings.Default.setInfo_action;
+            this.textBox_setInfo_biblioRecPath.Text = Settings.Default.setInfo_biblioRecPath;
         }
 
         void SaveSettings()
@@ -147,6 +152,11 @@ namespace TestClient1
             Settings.Default.bindPatron_style = this.textBox_bindPatron_style.Text;
             Settings.Default.bindPatron_resultTypeList = this.textBox_bindPatron_resultTypeList.Text;
 
+            Settings.Default.setInfo_method = this.comboBox_setInfo_method.Text;
+            Settings.Default.setInfo_remoteUserName = this.textBox_setInfo_remoteUserName.Text;
+            Settings.Default.setInfo_action = this.comboBox_setInfo_action.Text;
+            Settings.Default.setInfo_biblioRecPath = this.textBox_setInfo_biblioRecPath.Text;
+
             Settings.Default.Save();
         }
 
@@ -168,6 +178,12 @@ namespace TestClient1
             {
                 DoBindPatron();
             }
+
+            if (this.tabControl_main.SelectedTab == this.tabPage_setInfo)
+            {
+                DoSetInfo();
+            }
+
         }
 
         void EnableControls(bool bEnable)
@@ -180,6 +196,66 @@ namespace TestClient1
 
             this.tabControl_main.Enabled = bEnable;
             this.toolStrip1.Enabled = bEnable;
+        }
+
+        async void DoSetInfo()
+        {
+            string strError = "";
+
+            SetTextString(this.webBrowser1, "");
+
+            // TODO: 建立即将发送的对象数组
+            // 是否要刷新 refID? 是否要整理 parent 元素内容?
+            // action 要设置到每个对象
+            List<Entity> entities = null;
+
+            EnableControls(false);
+            try
+            {
+                CancellationToken cancel_token = new CancellationToken();
+
+                string id = Guid.NewGuid().ToString();
+                SetInfoRequest request = new SetInfoRequest(id,
+                    this.comboBox_setInfo_method.Text,
+                    this.textBox_setInfo_biblioRecPath.Text,
+                    entities);
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        this.textBox_search_remoteUserName.Text);
+                    SetInfoResult result = await connection.SetInfoAsync(
+                        this.textBox_search_remoteUserName.Text,
+                        request,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+
+                    this.Invoke(new Action(() =>
+                    {
+                        if (result.Value == -1)
+                            SetTextString(this.webBrowser1, "出错: " + result.ErrorInfo);
+                        else
+                            SetTextString(this.webBrowser1, ToString(result));
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 
         async void DoBindPatron()
@@ -465,6 +541,37 @@ string strHtml)
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 #endif
+        static string ToString(SetInfoResult result)
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("ResultValue=" + result.Value + "\r\n");
+            text.Append("ErrorInfo=" + result.ErrorInfo + "\r\n");
+            if (result.Entities != null)
+            {
+                text.Append("Entities.Count=" + result.Entities.Count + "\r\n");
+                int i = 0;
+                foreach (Entity entity in result.Entities)
+                {
+                    text.Append((i + 1).ToString() + ") ===");
+                    text.Append("NewRecord.RecPath=" + entity.NewRecord.RecPath + "\r\n");
+                    text.Append("NewRecord.Data=" + XmlUtil.TryGetIndentXml(entity.NewRecord.Data) + "\r\n");
+                    text.Append("NewRecord.Timestamp=" + entity.NewRecord.Timestamp + "\r\n");
+
+                    text.Append("OldRecord.RecPath=" + entity.OldRecord.RecPath + "\r\n");
+                    text.Append("OldRecord.Data=" + XmlUtil.TryGetIndentXml(entity.OldRecord.Data) + "\r\n");
+                    text.Append("OldRecord.Timestamp=" + entity.OldRecord.Timestamp + "\r\n");
+
+                    text.Append("RefID=" + entity.RefID + "\r\n");
+                    text.Append("ErrorInfo=" + entity.ErrorInfo + "\r\n");
+                    text.Append("ErrorCode=" + entity.ErrorCode + "\r\n");
+
+                    i++;
+                }
+            }
+
+            return text.ToString();
+        }
+
         static string ToString(BindPatronResult result)
         {
             StringBuilder text = new StringBuilder();
@@ -512,6 +619,42 @@ string strHtml)
             }
 
             return text.ToString();
+        }
+
+        List<string> _entities = new List<string>();
+
+        private void button_pasteEntities_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+
+            IDataObject iData = Clipboard.GetDataObject();
+            if (iData == null
+                || iData.GetDataPresent("xml") == false)
+            {
+                strError = "剪贴板中尚不存在 xml 类型数据";
+                goto ERROR1;
+            }
+
+            List<string> xmls = (List<string>)iData.GetData("xml");
+            if (xmls == null)
+            {
+                strError = "iData.GetData() return null";
+                goto ERROR1;
+            }
+
+            _entities = xmls;
+
+            StringBuilder text = new StringBuilder();
+            int i = 0;
+            foreach (string xml in xmls)
+            {
+                text.Append((i + 1).ToString() + ")\r\n" + DomUtil.GetIndentXml(xml) + "\r\n\r\n");
+                i++;
+            }
+            SetTextString(this.webBrowser_setInfo_entities, text.ToString());
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
         }
     }
 }

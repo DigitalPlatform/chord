@@ -123,6 +123,22 @@ namespace DigitalPlatform.Message
 
         public string BiblioRecPath { get; set; }
         public List<Entity> Entities { get; set; }
+
+        public SetInfoRequest(string taskID,
+            string operation,
+            string biblioRecPath,
+            List<Entity> entities)
+        {
+            this.TaskID = taskID;
+            this.Operation = operation;
+            this.BiblioRecPath = biblioRecPath;
+            this.Entities = entities;
+        }
+    }
+
+    public class SetInfoResult : MessageResult
+    {
+        public List<Entity> Entities { get; set; }
     }
 
     public class Entity
@@ -180,4 +196,5 @@ namespace DigitalPlatform.Message
         public string RecPath { get; set; }
         public string Timestamp { get; set; }
     }
+
 }

@@ -189,11 +189,11 @@ namespace dp2MServer
             UserItem item = new UserItem();
             item.userName = strUserName;
 
-            ServerInfo.UserDatabase.Delete(item);
+            ServerInfo.UserDatabase.Delete(item).Wait();
 
             item.password = strPassword;
             item.rights = "supervisor";
-            ServerInfo.UserDatabase.Add(item);
+            ServerInfo.UserDatabase.Add(item).Wait();
         }
 
         // return:
@@ -384,11 +384,22 @@ namespace dp2MServer
         {
             app.UseCors(CorsOptions.AllowAll);
             // app.MapSignalR();
-            var hubConfiguration = new HubConfiguration();
-            hubConfiguration.EnableDetailedErrors = true;
 
-            app.MapSignalR(Program.ServerPath, hubConfiguration);
+            {
+                var hubConfiguration = new HubConfiguration();
+                hubConfiguration.EnableDetailedErrors = true;
+                app.MapSignalR(Program.ServerPath, hubConfiguration);
+            }
+
+            /*
+https://github.com/SignalR/SignalR/issues/1205
+maximum message size #1205
+
+https://github.com/SignalR/SignalR/issues/2631
+InvalidOperationException : "Connection started reconnecting before invocation result was received" #2631 
+@fyip We added a MaxIncomingWebSocketMessageSize property to IConfigurationManager which allows you to increase or disable this limit.
+             * */
+            GlobalHost.Configuration.MaxIncomingWebSocketMessageSize = 128 * 1024;  // 默认为 64K
         }
     }
-
 }

@@ -729,6 +729,7 @@ namespace DigitalPlatform.MessageServer
             return result;
         }
 
+        // TODO: 是否会出现一次发送不完所有元素的情况?
         // parameters:
         //      resultCount    命中的总的结果数。如果为 -1，表示检索出错，errorInfo 会给出出错信息
         //      start  records 参数中的第一个元素，在总的命中结果集中的偏移
@@ -768,7 +769,7 @@ namespace DigitalPlatform.MessageServer
             }
 #endif
 
-            // 让前端获得检索结果
+            // 让前端获得操作结果
             Clients.Client(info.RequestConnectionID).responseSetInfo(
                 taskID,
                 resultValue,

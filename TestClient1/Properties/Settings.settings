@@ -71,5 +71,17 @@
     <Setting Name="bindPatron_resultTypeList" Type="System.String" Scope="User">
       <Value Profile="(Default)">xml</Value>
     </Setting>
+    <Setting Name="setInfo_method" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="setInfo_remoteUserName" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="setInfo_biblioRecPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="setInfo_action" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

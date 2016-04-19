@@ -210,6 +210,11 @@ errorInfo)
 );
 #endif
 
+            // *** setInfo
+            HubProxy.On<SetInfoRequest>("setInfo",
+                (setInfoParam) => OnSetInfoRecieved(setInfoParam)
+                );
+
             try
             {
                 return Connection.Start()
@@ -319,11 +324,21 @@ errorInfo)
                             // 装载命中结果
                             if (resultCount == -1 && start == -1)
                             {
-                                // 表示发送响应过程已经结束
-                                // result.Finished = true;
+                                if (start == -1)
+                                {
+                                    // 表示发送响应过程已经结束
+                                    // result.Finished = true;
+                                }
+                                else
+                                {
+                                    result.ResultCount = resultCount;
+                                    result.ErrorInfo = errorInfo;
+                                    result.ErrorCode = errorCode;
+                                }
                                 finish_event.Set();
                                 return;
                             }
+
                             result.ResultCount = resultCount;
                             // TODO: 似乎应该关注 start 位置
                             result.Records.AddRange(records);
@@ -366,7 +381,7 @@ errorInfo)
                         while (true)
                         {
                             int index = WaitHandle.WaitAny(events,
-                                bFirst ? timeout : new TimeSpan(200), 
+                                bFirst ? timeout : new TimeSpan(200),
                                 false);
                             bFirst = false;
                             if (index == WaitHandle.WaitTimeout)
@@ -531,6 +546,94 @@ errorInfo)
         }
 
 #endif
+
+        #endregion
+
+        #region SetInfo() API
+
+        public virtual void OnSetInfoRecieved(SetInfoRequest param)
+        {
+        }
+
+        public Task<SetInfoResult> SetInfoAsync(
+    string strRemoteUserName,
+    SetInfoRequest request,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            return Task.Factory.StartNew<SetInfoResult>(() =>
+            {
+                SetInfoResult result = new SetInfoResult();
+                if (result.Entities == null)
+                    result.Entities = new List<Entity>();
+
+                ManualResetEvent finish_event = new ManualResetEvent(false);
+
+                if (string.IsNullOrEmpty(request.TaskID) == true)
+                {
+                    request.TaskID = Guid.NewGuid().ToString();
+                }
+
+                using (var handler = HubProxy.On<
+                    string, long, IList<Entity>, string>(
+                    "responseSetInfo",
+                    (taskID, resultValue, entities, errorInfo) =>
+                    {
+                        // 装载命中结果
+                        if (entities != null)
+                            result.Entities.AddRange(entities);
+                        result.Value = resultValue;
+                        result.ErrorInfo = errorInfo;
+                        finish_event.Set();
+                    }))
+                {
+
+                    MessageResult message = HubProxy.Invoke<MessageResult>(
+        "RequestSetInfo",
+        strRemoteUserName,
+        request).Result;
+                    if (message.Value == -1
+                        || message.Value == 0)
+                    {
+                        result.ErrorInfo = message.ErrorInfo;
+                        result.Value = -1;
+                        return result;
+                    }
+
+                    WaitHandle[] events = null;
+                    if (token != null)
+                    {
+                        events = new WaitHandle[2];
+                        events[0] = finish_event;
+                        events[1] = token.WaitHandle;
+                    }
+                    else
+                    {
+                        events = new WaitHandle[1];
+                        events[0] = finish_event;
+                    }
+
+                    int index = WaitHandle.WaitAny(events, timeout, false);
+                    if (index == WaitHandle.WaitTimeout)
+                    {
+                        // 向服务器发送 CancelSearch 请求
+                        CancelSearchAsync(request.TaskID);
+                        throw new TimeoutException("已超时 " + timeout.ToString());
+                    }
+
+                    if (index == 0) // 正常完成
+                        return result;
+                    if (token != null)
+                    {
+                        // 向服务器发送 CancelSearch 请求
+                        CancelSearchAsync(request.TaskID);
+                        token.ThrowIfCancellationRequested();
+                    }
+                    result.ErrorInfo += "_error";
+                    return result;
+                }
+            }, token);
+        }
 
         #endregion
 
@@ -1022,6 +1125,33 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             }
         }
 
+        // 调用 server 端 ResponseSetInfo
+        // TODO: 要考虑发送失败的问题
+        public async void ResponseSetInfo(
+            string taskID,
+            long resultValue,
+            IList<Entity> results,
+            string errorInfo)
+        {
+            try
+            {
+                MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSetInfo",
+    taskID,
+    resultValue,
+    results,
+    errorInfo);
+                if (result.Value == -1)
+                {
+                    AddErrorLine(result.ErrorInfo);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                AddErrorLine(ex.Message);
+            }
+        }
+
         DateTime _lastTime = DateTime.Now;
 
         // 和上次操作的时刻之间，等待至少这么多时间。
@@ -1176,6 +1306,8 @@ errorCode);
             string errorCode)
         {
             // TODO: 等待执行完成。如果有异常要当时处理。比如减小尺寸重发。
+            int nRedoCount = 0;
+        REDO:
             try
             {
                 MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSearch",
@@ -1194,6 +1326,13 @@ errorCode);
             catch (Exception ex)
             {
                 AddErrorLine(ex.Message);
+                if (ex.InnerException is InvalidOperationException
+                    && nRedoCount < 2)
+                {
+                    nRedoCount++;
+                    Thread.Sleep(1000);
+                    goto REDO;
+                }
             }
         }
 
