@@ -166,7 +166,7 @@ namespace DigitalPlatform.MessageClient
 
             // *** search
             HubProxy.On<SearchRequest>("search",
-                (searchParam) => OnSearchRecieved(searchParam)
+                (param) => OnSearchRecieved(param)
                 );
 
 #if NO
@@ -193,7 +193,7 @@ errorCode)
 
             // *** bindPatron
             HubProxy.On<BindPatronRequest>("bindPatron",
-                (bindPatronParam) => OnBindPatronRecieved(bindPatronParam)
+                (param) => OnBindPatronRecieved(param)
                 );
 
 #if NO
@@ -212,8 +212,14 @@ errorInfo)
 
             // *** setInfo
             HubProxy.On<SetInfoRequest>("setInfo",
-                (setInfoParam) => OnSetInfoRecieved(setInfoParam)
+                (param) => OnSetInfoRecieved(param)
                 );
+
+            // *** circulation
+            HubProxy.On<CirculationRequest>("circulation",
+                (param) => OnCirculationRecieved(param)
+                );
+
 
             try
             {
@@ -808,6 +814,88 @@ errorInfo)
         #endregion
 
 
+        #region Circulation() API
+
+        public virtual void OnCirculationRecieved(CirculationRequest param)
+        {
+        }
+
+        public Task<CirculationResult> CirculationAsync(
+    string strRemoteUserName,
+    CirculationRequest request,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            return Task.Factory.StartNew<CirculationResult>(() =>
+            {
+                CirculationResult result = new CirculationResult();
+
+                ManualResetEvent finish_event = new ManualResetEvent(false);
+
+                if (string.IsNullOrEmpty(request.TaskID) == true)
+                {
+                    request.TaskID = Guid.NewGuid().ToString();
+                }
+
+                using (var handler = HubProxy.On<
+                    string, CirculationResult>(
+                    "responseCirculation",
+                    (taskID, circulation_result) =>
+                    {
+                        // 装载命中结果
+                        result = circulation_result;
+                        finish_event.Set();
+                    }))
+                {
+                    MessageResult message = HubProxy.Invoke<MessageResult>(
+        "RequestCirculation",
+        strRemoteUserName,
+        request).Result;
+                    if (message.Value == -1
+                        || message.Value == 0)
+                    {
+                        result.ErrorInfo = message.ErrorInfo;
+                        result.Value = -1;
+                        return result;
+                    }
+
+                    WaitHandle[] events = null;
+                    if (token != null)
+                    {
+                        events = new WaitHandle[2];
+                        events[0] = finish_event;
+                        events[1] = token.WaitHandle;
+                    }
+                    else
+                    {
+                        events = new WaitHandle[1];
+                        events[0] = finish_event;
+                    }
+
+                    int index = WaitHandle.WaitAny(events, timeout, false);
+                    if (index == WaitHandle.WaitTimeout)
+                    {
+                        // 向服务器发送 CancelSearch 请求
+                        CancelSearchAsync(request.TaskID);
+                        throw new TimeoutException("已超时 " + timeout.ToString());
+                    }
+
+                    if (index == 0) // 正常完成
+                        return result;
+                    if (token != null)
+                    {
+                        // 向服务器发送 CancelSearch 请求
+                        CancelSearchAsync(request.TaskID);
+                        token.ThrowIfCancellationRequested();
+                    }
+                    result.ErrorInfo += "_error";
+                    return result;
+                }
+            }, token);
+        }
+
+        #endregion
+
 #if NO
         Hashtable _resultTable = new Hashtable();   // taskID --> SearchResult 
 
@@ -823,6 +911,8 @@ errorInfo)
         {
             if (this.Connection != null)
             {
+                HubProxy.Invoke<MessageResult>("Logout").Wait(500);
+
                 Connection.Closed -= new Action(Connection_Closed);
                 /*
 操作类型 crashReport -- 异常报告 
@@ -1098,6 +1188,48 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             }
         }
 #endif
+
+        // 调用 server 端 ResponseCirculation
+        public Task<MessageResult> ResponseCirculationAsync(
+            string taskID,
+            CirculationResult circulation_result)
+        {
+            return HubProxy.Invoke<MessageResult>("ResponseCirculation",
+taskID,
+circulation_result);
+        }
+
+
+        // 调用 server 端 ResponseCirculation
+        public bool TryResponseCirculation(
+            string taskID,
+            CirculationResult circulation_result)
+        {
+            try
+            {
+                Wait(new TimeSpan(0, 0, 0, 0, 50));
+
+                MessageResult result = ResponseCirculationAsync(
+                    taskID,
+                    circulation_result).Result;
+                _lastTime = DateTime.Now;
+                if (result.Value == -1)
+                    return false;   // 可能因为服务器端已经中断此 taskID，或者执行 ReponseSearch() 时出错
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // 报错
+                CirculationResult error = new CirculationResult();
+                error.Value = -1;
+                error.ErrorInfo = ex.Message;
+                error.String = "_sendResponseCirculationError";
+                ResponseCirculationAsync(
+    taskID,
+    error);    // 消息层面发生的错误(表示不是 dp2library 层面的错误)，错误码为 _ 开头
+                return false;
+            }
+        }
 
         // 调用 server 端 ResponseBindPatron
         public async void ResponseBindPatron(

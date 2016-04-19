@@ -98,6 +98,23 @@
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.comboBox_setInfo_action = new System.Windows.Forms.ComboBox();
             this.label28 = new System.Windows.Forms.Label();
+            this.tabPage_circulation = new System.Windows.Forms.TabPage();
+            this.comboBox_circulation_operation = new System.Windows.Forms.ComboBox();
+            this.label29 = new System.Windows.Forms.Label();
+            this.textBox_circulation_patron = new System.Windows.Forms.TextBox();
+            this.label30 = new System.Windows.Forms.Label();
+            this.textBox_circulation_patronFormatList = new System.Windows.Forms.TextBox();
+            this.label31 = new System.Windows.Forms.Label();
+            this.textBox_circulation_style = new System.Windows.Forms.TextBox();
+            this.label32 = new System.Windows.Forms.Label();
+            this.textBox_circulation_itemFormatList = new System.Windows.Forms.TextBox();
+            this.label33 = new System.Windows.Forms.Label();
+            this.textBox_circulation_item = new System.Windows.Forms.TextBox();
+            this.label34 = new System.Windows.Forms.Label();
+            this.textBox_circulation_remoteUserName = new System.Windows.Forms.TextBox();
+            this.label35 = new System.Windows.Forms.Label();
+            this.textBox_circulation_biblioFormatList = new System.Windows.Forms.TextBox();
+            this.label36 = new System.Windows.Forms.Label();
             this.tabControl_main.SuspendLayout();
             this.tabPage_config.SuspendLayout();
             this.tabPage_getInfo.SuspendLayout();
@@ -109,6 +126,7 @@
             this.splitContainer_main.Panel1.SuspendLayout();
             this.splitContainer_main.Panel2.SuspendLayout();
             this.splitContainer_main.SuspendLayout();
+            this.tabPage_circulation.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -134,6 +152,7 @@
             this.tabControl_main.Controls.Add(this.tabPage_search);
             this.tabControl_main.Controls.Add(this.tabPage_bindPatron);
             this.tabControl_main.Controls.Add(this.tabPage_setInfo);
+            this.tabControl_main.Controls.Add(this.tabPage_circulation);
             this.tabControl_main.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl_main.Location = new System.Drawing.Point(0, 0);
             this.tabControl_main.Name = "tabControl_main";
@@ -796,6 +815,172 @@
             this.label28.TabIndex = 37;
             this.label28.Text = "Action:";
             // 
+            // tabPage_circulation
+            // 
+            this.tabPage_circulation.Controls.Add(this.textBox_circulation_biblioFormatList);
+            this.tabPage_circulation.Controls.Add(this.label36);
+            this.tabPage_circulation.Controls.Add(this.comboBox_circulation_operation);
+            this.tabPage_circulation.Controls.Add(this.label29);
+            this.tabPage_circulation.Controls.Add(this.textBox_circulation_patron);
+            this.tabPage_circulation.Controls.Add(this.label30);
+            this.tabPage_circulation.Controls.Add(this.textBox_circulation_patronFormatList);
+            this.tabPage_circulation.Controls.Add(this.label31);
+            this.tabPage_circulation.Controls.Add(this.textBox_circulation_style);
+            this.tabPage_circulation.Controls.Add(this.label32);
+            this.tabPage_circulation.Controls.Add(this.textBox_circulation_itemFormatList);
+            this.tabPage_circulation.Controls.Add(this.label33);
+            this.tabPage_circulation.Controls.Add(this.textBox_circulation_item);
+            this.tabPage_circulation.Controls.Add(this.label34);
+            this.tabPage_circulation.Controls.Add(this.textBox_circulation_remoteUserName);
+            this.tabPage_circulation.Controls.Add(this.label35);
+            this.tabPage_circulation.Location = new System.Drawing.Point(4, 22);
+            this.tabPage_circulation.Name = "tabPage_circulation";
+            this.tabPage_circulation.Size = new System.Drawing.Size(333, 272);
+            this.tabPage_circulation.TabIndex = 5;
+            this.tabPage_circulation.Text = "Patron Format List:";
+            this.tabPage_circulation.UseVisualStyleBackColor = true;
+            // 
+            // comboBox_circulation_operation
+            // 
+            this.comboBox_circulation_operation.FormattingEnabled = true;
+            this.comboBox_circulation_operation.Items.AddRange(new object[] {
+            "borrow",
+            "renew",
+            "return",
+            "lost",
+            "read"});
+            this.comboBox_circulation_operation.Location = new System.Drawing.Point(130, 40);
+            this.comboBox_circulation_operation.Name = "comboBox_circulation_operation";
+            this.comboBox_circulation_operation.Size = new System.Drawing.Size(161, 20);
+            this.comboBox_circulation_operation.TabIndex = 50;
+            // 
+            // label29
+            // 
+            this.label29.AutoSize = true;
+            this.label29.Location = new System.Drawing.Point(8, 43);
+            this.label29.Name = "label29";
+            this.label29.Size = new System.Drawing.Size(65, 12);
+            this.label29.TabIndex = 49;
+            this.label29.Text = "Operation:";
+            // 
+            // textBox_circulation_patron
+            // 
+            this.textBox_circulation_patron.Location = new System.Drawing.Point(130, 69);
+            this.textBox_circulation_patron.Name = "textBox_circulation_patron";
+            this.textBox_circulation_patron.Size = new System.Drawing.Size(161, 21);
+            this.textBox_circulation_patron.TabIndex = 40;
+            // 
+            // label30
+            // 
+            this.label30.AutoSize = true;
+            this.label30.Location = new System.Drawing.Point(7, 72);
+            this.label30.Name = "label30";
+            this.label30.Size = new System.Drawing.Size(47, 12);
+            this.label30.TabIndex = 39;
+            this.label30.Text = "Patron:";
+            // 
+            // textBox_circulation_patronFormatList
+            // 
+            this.textBox_circulation_patronFormatList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_circulation_patronFormatList.Location = new System.Drawing.Point(130, 157);
+            this.textBox_circulation_patronFormatList.Name = "textBox_circulation_patronFormatList";
+            this.textBox_circulation_patronFormatList.Size = new System.Drawing.Size(200, 21);
+            this.textBox_circulation_patronFormatList.TabIndex = 46;
+            // 
+            // label31
+            // 
+            this.label31.AutoSize = true;
+            this.label31.Location = new System.Drawing.Point(7, 160);
+            this.label31.Name = "label31";
+            this.label31.Size = new System.Drawing.Size(119, 12);
+            this.label31.TabIndex = 45;
+            this.label31.Text = "Patron Format List:";
+            // 
+            // textBox_circulation_style
+            // 
+            this.textBox_circulation_style.Location = new System.Drawing.Point(130, 130);
+            this.textBox_circulation_style.Name = "textBox_circulation_style";
+            this.textBox_circulation_style.Size = new System.Drawing.Size(161, 21);
+            this.textBox_circulation_style.TabIndex = 44;
+            // 
+            // label32
+            // 
+            this.label32.AutoSize = true;
+            this.label32.Location = new System.Drawing.Point(7, 133);
+            this.label32.Name = "label32";
+            this.label32.Size = new System.Drawing.Size(41, 12);
+            this.label32.TabIndex = 43;
+            this.label32.Text = "Style:";
+            // 
+            // textBox_circulation_itemFormatList
+            // 
+            this.textBox_circulation_itemFormatList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_circulation_itemFormatList.Location = new System.Drawing.Point(130, 184);
+            this.textBox_circulation_itemFormatList.Name = "textBox_circulation_itemFormatList";
+            this.textBox_circulation_itemFormatList.Size = new System.Drawing.Size(200, 21);
+            this.textBox_circulation_itemFormatList.TabIndex = 48;
+            // 
+            // label33
+            // 
+            this.label33.AutoSize = true;
+            this.label33.Location = new System.Drawing.Point(7, 187);
+            this.label33.Name = "label33";
+            this.label33.Size = new System.Drawing.Size(107, 12);
+            this.label33.TabIndex = 47;
+            this.label33.Text = "Item Format List:";
+            // 
+            // textBox_circulation_item
+            // 
+            this.textBox_circulation_item.Location = new System.Drawing.Point(130, 103);
+            this.textBox_circulation_item.Name = "textBox_circulation_item";
+            this.textBox_circulation_item.Size = new System.Drawing.Size(161, 21);
+            this.textBox_circulation_item.TabIndex = 42;
+            // 
+            // label34
+            // 
+            this.label34.AutoSize = true;
+            this.label34.Location = new System.Drawing.Point(7, 106);
+            this.label34.Name = "label34";
+            this.label34.Size = new System.Drawing.Size(35, 12);
+            this.label34.TabIndex = 41;
+            this.label34.Text = "Item:";
+            // 
+            // textBox_circulation_remoteUserName
+            // 
+            this.textBox_circulation_remoteUserName.Location = new System.Drawing.Point(130, 13);
+            this.textBox_circulation_remoteUserName.Name = "textBox_circulation_remoteUserName";
+            this.textBox_circulation_remoteUserName.Size = new System.Drawing.Size(161, 21);
+            this.textBox_circulation_remoteUserName.TabIndex = 38;
+            // 
+            // label35
+            // 
+            this.label35.AutoSize = true;
+            this.label35.Location = new System.Drawing.Point(8, 16);
+            this.label35.Name = "label35";
+            this.label35.Size = new System.Drawing.Size(107, 12);
+            this.label35.TabIndex = 37;
+            this.label35.Text = "Remote User Name:";
+            // 
+            // textBox_circulation_biblioFormatList
+            // 
+            this.textBox_circulation_biblioFormatList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_circulation_biblioFormatList.Location = new System.Drawing.Point(130, 211);
+            this.textBox_circulation_biblioFormatList.Name = "textBox_circulation_biblioFormatList";
+            this.textBox_circulation_biblioFormatList.Size = new System.Drawing.Size(200, 21);
+            this.textBox_circulation_biblioFormatList.TabIndex = 52;
+            // 
+            // label36
+            // 
+            this.label36.AutoSize = true;
+            this.label36.Location = new System.Drawing.Point(7, 214);
+            this.label36.Name = "label36";
+            this.label36.Size = new System.Drawing.Size(119, 12);
+            this.label36.TabIndex = 51;
+            this.label36.Text = "Biblio Format List:";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -828,6 +1013,8 @@
             this.splitContainer_main.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_main)).EndInit();
             this.splitContainer_main.ResumeLayout(false);
+            this.tabPage_circulation.ResumeLayout(false);
+            this.tabPage_circulation.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -904,6 +1091,23 @@
         private System.Windows.Forms.WebBrowser webBrowser_setInfo_entities;
         private System.Windows.Forms.ComboBox comboBox_setInfo_action;
         private System.Windows.Forms.Label label28;
+        private System.Windows.Forms.TabPage tabPage_circulation;
+        private System.Windows.Forms.ComboBox comboBox_circulation_operation;
+        private System.Windows.Forms.Label label29;
+        private System.Windows.Forms.TextBox textBox_circulation_patron;
+        private System.Windows.Forms.Label label30;
+        private System.Windows.Forms.TextBox textBox_circulation_patronFormatList;
+        private System.Windows.Forms.Label label31;
+        private System.Windows.Forms.TextBox textBox_circulation_style;
+        private System.Windows.Forms.Label label32;
+        private System.Windows.Forms.TextBox textBox_circulation_itemFormatList;
+        private System.Windows.Forms.Label label33;
+        private System.Windows.Forms.TextBox textBox_circulation_item;
+        private System.Windows.Forms.Label label34;
+        private System.Windows.Forms.TextBox textBox_circulation_remoteUserName;
+        private System.Windows.Forms.Label label35;
+        private System.Windows.Forms.TextBox textBox_circulation_biblioFormatList;
+        private System.Windows.Forms.Label label36;
     }
 }
 

@@ -58,6 +58,11 @@ namespace dp2Capo
             this.MessageConnection.InitialAsync();
         }
 
+        public void CloseConnection()
+        {
+            this.MessageConnection.CloseConnection();
+        }
+
         // 运用控制台显示方式，设置一个实例的基本参数
         public static void ChangeSettings(string strXmlFileName)
         {

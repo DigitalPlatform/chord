@@ -74,6 +74,12 @@ namespace dp2Capo
         public static void Exit()
         {
             // 保存配置
+
+            // 切断连接
+            foreach (Instance instance in _instances)
+            {
+                instance.CloseConnection();
+            }
         }
     }
 }

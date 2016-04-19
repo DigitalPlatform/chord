@@ -346,5 +346,101 @@ namespace TestClient1.Properties {
                 this["setInfo_action"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string circulation_remoteUserName {
+            get {
+                return ((string)(this["circulation_remoteUserName"]));
+            }
+            set {
+                this["circulation_remoteUserName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string circulation_operation {
+            get {
+                return ((string)(this["circulation_operation"]));
+            }
+            set {
+                this["circulation_operation"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string circulation_patron {
+            get {
+                return ((string)(this["circulation_patron"]));
+            }
+            set {
+                this["circulation_patron"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string circulation_item {
+            get {
+                return ((string)(this["circulation_item"]));
+            }
+            set {
+                this["circulation_item"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string circulation_style {
+            get {
+                return ((string)(this["circulation_style"]));
+            }
+            set {
+                this["circulation_style"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string circulation_patronFormatList {
+            get {
+                return ((string)(this["circulation_patronFormatList"]));
+            }
+            set {
+                this["circulation_patronFormatList"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string circulation_itemFormatList {
+            get {
+                return ((string)(this["circulation_itemFormatList"]));
+            }
+            set {
+                this["circulation_itemFormatList"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string circulation_biblioFormatList {
+            get {
+                return ((string)(this["circulation_biblioFormatList"]));
+            }
+            set {
+                this["circulation_biblioFormatList"] = value;
+            }
+        }
     }
 }

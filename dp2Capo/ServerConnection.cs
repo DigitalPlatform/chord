@@ -10,6 +10,7 @@ using DigitalPlatform.MessageClient;
 using DigitalPlatform;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.Xml;
+using DigitalPlatform.Text;
 
 namespace dp2Capo
 {
@@ -66,6 +67,176 @@ namespace dp2Capo
 
             return this._channelPool.GetChannel(strServerUrl, strUserName);
         }
+
+        #region Circulation() API
+
+        public override void OnCirculationRecieved(CirculationRequest param)
+        {
+            // 单独给一个线程来执行
+            Task.Factory.StartNew(() => CirculationAndResponse(param));
+        }
+
+        static string GetItemBarcode(string strText)
+        {
+            string strLeft = "";
+            string strRight = "";
+            StringUtil.ParseTwoPart(strText, "|", out strLeft, out strRight);
+            return strLeft;
+        }
+
+        static string GetItemConfirmPath(string strText)
+        {
+            string strLeft = "";
+            string strRight = "";
+            StringUtil.ParseTwoPart(strText, "|", out strLeft, out strRight);
+            return strRight;
+        }
+
+        static BorrowInfo BuildBorrowInfo(DigitalPlatform.LibraryClient.localhost.BorrowInfo borrow_info)
+        {
+            if (borrow_info == null)
+                return null;
+            BorrowInfo info = new BorrowInfo();
+            info.LatestReturnTime = borrow_info.LatestReturnTime;
+            info.Period = borrow_info.Period;
+            info.BorrowCount = borrow_info.BorrowCount;
+            info.BorrowOperator = borrow_info.BorrowOperator;
+            return info;
+        }
+
+        static ReturnInfo BuildReturnInfo(DigitalPlatform.LibraryClient.localhost.ReturnInfo return_info)
+        {
+            if (return_info == null)
+                return null;
+            ReturnInfo info = new ReturnInfo();
+            info.BorrowTime = return_info.BorrowTime;
+            info.LatestReturnTime = return_info.LatestReturnTime;
+            info.Period = return_info.Period;
+            info.BorrowCount = return_info.BorrowCount;
+            info.OverdueString = return_info.OverdueString;
+            info.BorrowOperator = return_info.BorrowOperator;
+            info.ReturnOperator = return_info.ReturnOperator;
+            info.BookType = return_info.BookType;
+            info.Location = return_info.Location;
+            return info;
+        }
+
+        void CirculationAndResponse(CirculationRequest param)
+        {
+            string strError = "";
+            IList<string> results = new List<string>();
+
+            LibraryChannel channel = GetChannel();
+            try
+            {
+                long lRet = 0;
+                string[] item_records = null;
+                string[] reader_records = null;
+                string[] biblio_records = null;
+                string[] dup_paths = null;
+                string strOutputReaderBarcode = "";
+                DigitalPlatform.LibraryClient.localhost.BorrowInfo borrow_info = null;
+                DigitalPlatform.LibraryClient.localhost.ReturnInfo return_info = null;
+
+                string strStyle = param.Style;
+                if (string.IsNullOrEmpty(param.PatronFormatList) == false)
+                    StringUtil.SetInList(ref strStyle, "reader", true);
+                if (string.IsNullOrEmpty(param.ItemFormatList) == false)
+                    StringUtil.SetInList(ref strStyle, "item", true);
+                if (string.IsNullOrEmpty(param.BiblioFormatList) == false)
+                    StringUtil.SetInList(ref strStyle, "biblio", true);
+
+                if (param.Operation == "borrow"
+                    || param.Operation == "renew")
+                {
+                    lRet = channel.Borrow(param.Operation == "renew",
+                        param.Patron,
+                        GetItemBarcode(param.Item),
+                        GetItemConfirmPath(param.Item),
+                        false,
+                        null,
+                        strStyle,   // param.Style,
+                        param.ItemFormatList,
+                        out item_records,
+                        param.PatronFormatList,
+                        out reader_records,
+                        param.BiblioFormatList,
+                        out biblio_records,
+                        out dup_paths,
+                        out strOutputReaderBarcode,
+                        out borrow_info,
+                        out strError);
+                }
+                else if (param.Operation == "return"
+                    || param.Operation == "lost"
+                    || param.Operation == "inventory"
+                    || param.Operation == "read")
+                {
+                    lRet = channel.Return(param.Operation,
+                        param.Patron,
+                        GetItemBarcode(param.Item),
+                        GetItemConfirmPath(param.Item),
+                        false,
+                        strStyle,   // param.Style,
+                        param.ItemFormatList,
+                        out item_records,
+                        param.PatronFormatList,
+                        out reader_records,
+                        param.BiblioFormatList,
+                        out biblio_records,
+                        out dup_paths,
+                        out strOutputReaderBarcode,
+                        out return_info,
+                        out strError);
+                }
+                else
+                {
+                    strError = "无法识别的 Operation 值 '" + param.Operation + "'";
+                    goto ERROR1;
+                }
+
+                CirculationResult circulation_result = new CirculationResult();
+                circulation_result.Value = lRet;
+                circulation_result.ErrorInfo = strError;
+                circulation_result.String = channel.ErrorCode.ToString();
+                circulation_result.DupPaths = dup_paths == null ? null : dup_paths.ToList();
+                circulation_result.PatronResults = reader_records == null ? null : reader_records.ToList();
+                circulation_result.ItemResults = item_records == null ? null : item_records.ToList();
+                circulation_result.BiblioResults = biblio_records == null ? null : biblio_records.ToList();
+                circulation_result.PatronBarcode = strOutputReaderBarcode;
+                circulation_result.ReturnInfo = BuildReturnInfo(return_info);
+                circulation_result.BorrowInfo = BuildBorrowInfo(borrow_info);
+
+                TryResponseCirculation(param.TaskID,
+    circulation_result);
+                return;
+            }
+            catch (Exception ex)
+            {
+                AddErrorLine("CirculationAndResponse() 出现异常: " + ex.Message);
+                strError = ex.Message;
+                goto ERROR1;
+            }
+            finally
+            {
+                this._channelPool.ReturnChannel(channel);
+            }
+
+        ERROR1:
+            {
+                // 报错
+                CirculationResult circulation_result = new CirculationResult();
+                circulation_result.Value = -1;
+                circulation_result.ErrorInfo = strError;
+                circulation_result.String = channel.ErrorCode.ToString();
+
+                TryResponseCirculation(
+    param.TaskID,
+    circulation_result);
+            }
+        }
+
+        #endregion
 
         #region SetInfo() API
 
@@ -239,7 +410,6 @@ strError);
         }
 
         #endregion
-
 
         #region Search() API
 

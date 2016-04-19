@@ -190,15 +190,21 @@ namespace DigitalPlatform.MessageServer
                     result.Value = -1;
                     result.ErrorInfo = "无法识别的 action 参数值 '" + action + "'";
                 }
-                return result;
             }
             catch (Exception ex)
             {
+                result.SetError("SetUsers() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                Console.WriteLine(result.ErrorInfo);
+
+#if NO
                 result.String = "Exception";
                 result.Value = -1;
                 result.ErrorInfo = "SetUsers() 出错：" + ExceptionUtil.GetExceptionText(ex);
                 return result;
+#endif
             }
+            return result;
         }
 
         // 登录，并告知 server 关于自己的一些属性。如果不登录，则 server 会按照缺省的方式设置这些属性，例如无法实现检索响应功能
@@ -211,40 +217,77 @@ namespace DigitalPlatform.MessageServer
             string propertyList)
         {
             MessageResult result = new MessageResult();
-
-            ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
-            if (info == null)
+            try
             {
-                result.Value = -1;
-                result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。登录失败";
-                return result;
-            }
-
-            if (string.IsNullOrEmpty(userName) == false)
-            {
-                // 获得用户信息
-                var results = ServerInfo.UserDatabase.GetUsers(userName, 0, 1).Result;
-                if (results.Count != 1)
+                ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+                if (info == null)
                 {
                     result.Value = -1;
-                    result.ErrorInfo = "用户名 '" + userName + "' 不存在。登录失败";
+                    result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。登录失败";
                     return result;
                 }
-                var user = results[0];
-                string strHashed = Cryptography.GetSHA1(password);
 
-                if (user.password != strHashed)
+                if (string.IsNullOrEmpty(userName) == false)
+                {
+                    // 获得用户信息
+                    var results = ServerInfo.UserDatabase.GetUsers(userName, 0, 1).Result;
+                    if (results.Count != 1)
+                    {
+                        result.Value = -1;
+                        result.ErrorInfo = "用户名 '" + userName + "' 不存在。登录失败";
+                        return result;
+                    }
+                    var user = results[0];
+                    string strHashed = Cryptography.GetSHA1(password);
+
+                    if (user.password != strHashed)
+                    {
+                        result.Value = -1;
+                        result.ErrorInfo = "密码不正确。登录失败";
+                        return result;
+                    }
+                    info.UserItem = user;
+                }
+
+                info.PropertyList = propertyList;
+                info.LibraryUID = libraryUID;
+                info.LibraryName = libraryName;
+            }
+            catch (Exception ex)
+            {
+                result.SetError("Login() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                Console.WriteLine(result.ErrorInfo);
+            }
+            return result;
+        }
+
+        public MessageResult Logout()
+        {
+            MessageResult result = new MessageResult();
+            try
+            {
+                ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+                if (info == null)
                 {
                     result.Value = -1;
-                    result.ErrorInfo = "密码不正确。登录失败";
+                    result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。登出失败";
                     return result;
                 }
-                info.UserItem = user;
-            }
 
-            info.PropertyList = propertyList;
-            info.LibraryUID = libraryUID;
-            info.LibraryName = libraryName;
+                // 登出。但连接依然存在
+                info.UserItem = null;
+                info.PropertyList = "";
+                info.LibraryUID = "";
+                info.LibraryName = "";
+                info.SearchCount = 0;
+            }
+            catch (Exception ex)
+            {
+                result.SetError("Login() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                Console.WriteLine(result.ErrorInfo);
+            }
             return result;
         }
 
@@ -346,16 +389,25 @@ namespace DigitalPlatform.MessageServer
         public MessageResult CancelSearch(string taskID)
         {
             MessageResult result = new MessageResult();
-            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
-            if (search_info == null)
+            try
             {
-                result.ErrorInfo = "ID 为 '" + taskID + "' 的检索对象无法找到";
-                result.Value = -1;
-                result.String = "_notFound";
-                return result;
-            }
+                SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
+                if (search_info == null)
+                {
+                    result.ErrorInfo = "ID 为 '" + taskID + "' 的检索对象无法找到";
+                    result.Value = -1;
+                    result.String = "_notFound";
+                    return result;
+                }
 
-            ServerInfo.SearchTable.RemoveSearch(taskID);
+                ServerInfo.SearchTable.RemoveSearch(taskID);
+            }
+            catch (Exception ex)
+            {
+                result.SetError("CancelSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                Console.WriteLine(result.ErrorInfo);
+            }
             return result;
         }
 
@@ -520,14 +572,15 @@ namespace DigitalPlatform.MessageServer
             string errorInfo,
             string errorCode)
         {
+            // Thread.Sleep(1000 * 60 * 2);
+            MessageResult result = new MessageResult();
+            try
             {
                 Console.WriteLine("ResponseSearch start=" + start
                     + ", records.Count=" + (records == null ? "null" : records.Count.ToString())
                     + ", errorInfo=" + errorInfo
                     + ", errorCode=" + errorCode);
 
-                // Thread.Sleep(1000 * 60 * 2);
-                MessageResult result = new MessageResult();
                 SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
                 if (search_info == null)
                 {
@@ -598,8 +651,14 @@ namespace DigitalPlatform.MessageServer
                     }
                 }
 
-                return result;
             }
+            catch (Exception ex)
+            {
+                result.SetError("ResponseSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                Console.WriteLine(result.ErrorInfo);
+            }
+            return result;
         }
 
         #endregion
@@ -741,13 +800,15 @@ namespace DigitalPlatform.MessageServer
         {
             // Thread.Sleep(1000 * 60 * 2);
             MessageResult result = new MessageResult();
-            SearchInfo info = ServerInfo.SearchTable.GetSearchInfo(taskID);
-            if (info == null)
+            try
             {
-                result.ErrorInfo = "找不到 ID 为 '" + taskID + "' 的任务对象";
-                result.Value = -1;
-                return result;
-            }
+                SearchInfo info = ServerInfo.SearchTable.GetSearchInfo(taskID);
+                if (info == null)
+                {
+                    result.ErrorInfo = "找不到 ID 为 '" + taskID + "' 的任务对象";
+                    result.Value = -1;
+                    return result;
+                }
 
 #if NO
             // 给 RecPath 加上 @ 部分
@@ -769,12 +830,19 @@ namespace DigitalPlatform.MessageServer
             }
 #endif
 
-            // 让前端获得操作结果
-            Clients.Client(info.RequestConnectionID).responseSetInfo(
-                taskID,
-                resultValue,
-                entities,
-                errorInfo);
+                // 让前端获得操作结果
+                Clients.Client(info.RequestConnectionID).responseSetInfo(
+                    taskID,
+                    resultValue,
+                    entities,
+                    errorInfo);
+            }
+            catch (Exception ex)
+            {
+                result.SetError("ResponseSetInfo() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                Console.WriteLine(result.ErrorInfo);
+            }
             return result;
         }
 
@@ -802,7 +870,7 @@ namespace DigitalPlatform.MessageServer
             if (connection_info.UserItem == null)
             {
                 result.Value = -1;
-                result.ErrorInfo = "尚未登录，无法使用 RequestSetInfo() 功能";
+                result.ErrorInfo = "尚未登录，无法使用 RequestBindPatron() 功能";
             }
 
             // 检查请求者是否具备操作的权限
@@ -868,25 +936,152 @@ namespace DigitalPlatform.MessageServer
         {
             // Thread.Sleep(1000 * 60 * 2);
             MessageResult result = new MessageResult();
-            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
-            if (search_info == null)
+            try
             {
-                result.ErrorInfo = "找不到 ID 为 '" + taskID + "' 的任务对象";
-                result.Value = -1;
-                return result;
-            }
+                SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
+                if (search_info == null)
+                {
+                    result.ErrorInfo = "找不到 ID 为 '" + taskID + "' 的任务对象";
+                    result.Value = -1;
+                    return result;
+                }
 
-            // 让前端获得检索结果
-            Clients.Client(search_info.RequestConnectionID).responseBindPatron(
-                taskID,
-                resultValue,
-                results,
-                errorInfo);
+                // 让前端获得检索结果
+                Clients.Client(search_info.RequestConnectionID).responseBindPatron(
+                    taskID,
+                    resultValue,
+                    results,
+                    errorInfo);
+            }
+            catch (Exception ex)
+            {
+                result.SetError("ResponseBindPatron() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+                    ex.GetType().ToString());
+                Console.WriteLine(result.ErrorInfo);
+            }
             return result;
         }
 
         #endregion
 
+        #region Circulation() API
+
+        // return:
+        //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
+        public MessageResult RequestCirculation(
+            string userNameList,
+            CirculationRequest circulationParam
+            )
+        {
+            MessageResult result = new MessageResult();
+
+            ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+            if (connection_info == null)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。请求检索书目失败";
+                return result;
+            }
+
+            if (connection_info.UserItem == null)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "尚未登录，无法使用 RequestCirculation() 功能";
+            }
+
+            // 检查请求者是否具备操作的权限
+            if (StringUtil.Contains(connection_info.Rights, "circulation") == false)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 'circulation' 操作的权限";
+                return result;
+            }
+
+            List<string> connectionIds = null;
+            string strError = "";
+            int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
+                userNameList,
+                connection_info.UserName,
+                "circulation",
+                "all",
+                out connectionIds,
+                out strError);
+            if (nRet == -1)
+            {
+                result.Value = -1;
+                result.ErrorInfo = strError;
+                return result;
+            }
+
+            if (connectionIds == null || connectionIds.Count == 0)
+            {
+                result.Value = 0;
+                result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
+                return result;
+            }
+
+            SearchInfo search_info = null;
+            try
+            {
+                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                    circulationParam.TaskID);
+            }
+            catch (ArgumentException)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "TaskID '" + circulationParam.TaskID + "' 已经存在了，不允许重复使用";
+                return result;
+            }
+
+            result.String = search_info.UID;   // 返回操作请求的 UID
+
+            try
+            {
+                Clients.Clients(connectionIds).circulation(
+                    circulationParam);
+            }
+            catch (Exception ex)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "分发 circulation 请求时出现异常: " + ExceptionUtil.GetExceptionText(ex);
+                return result;
+            }
+            search_info.TargetIDs = connectionIds;
+            result.Value = 1;   // 表示已经成功发起了操作
+            return result;
+        }
+
+        // parameters:
+        public MessageResult ResponseCirculation(string taskID,
+            CirculationResult circulation_result)
+        {
+            // Thread.Sleep(1000 * 60 * 2);
+            MessageResult result = new MessageResult();
+            try
+            {
+                SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
+                if (search_info == null)
+                {
+                    result.ErrorInfo = "找不到 ID 为 '" + taskID + "' 的任务对象";
+                    result.Value = -1;
+                    return result;
+                }
+
+                // 让前端获得检索结果
+                Clients.Client(search_info.RequestConnectionID).responseCirculation(
+                    taskID,
+                    circulation_result);
+            }
+            catch (Exception ex)
+            {
+                result.SetError("ResponseCirculation() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+    ex.GetType().ToString());
+                Console.WriteLine(result.ErrorInfo);
+            }
+            return result;
+        }
+
+        #endregion
 
         public override Task OnConnected()
         {
