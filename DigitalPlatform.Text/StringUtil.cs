@@ -13,6 +13,35 @@ namespace DigitalPlatform.Text
     /// </summary>
     public static class StringUtil
     {
+        /// <summary>
+        /// 通用的，切割两个部分的函数
+        /// </summary>
+        /// <param name="strText">要处理的字符串</param>
+        /// <param name="strSep">分隔符号</param>
+        /// <param name="strPart1">返回第一部分</param>
+        /// <param name="strPart2">返回第二部分</param>
+        public static void ParseTwoPart(string strText,
+            string strSep,
+            out string strPart1,
+            out string strPart2)
+        {
+            strPart1 = "";
+            strPart2 = "";
+
+            if (string.IsNullOrEmpty(strText) == true)
+                return;
+
+            int nRet = strText.IndexOf(strSep);
+            if (nRet == -1)
+            {
+                strPart1 = strText;
+                return;
+            }
+
+            strPart1 = strText.Substring(0, nRet).Trim();
+            strPart2 = strText.Substring(nRet + strSep.Length).Trim();
+        }
+
         public static long TryGetSubInt64(string strText,
     char seperator,
     int index,
@@ -649,6 +678,59 @@ namespace DigitalPlatform.Text
             strList = result.ToString();
 
             return bChanged;
+        }
+
+        // 在列举值中增加或清除一个值
+        // parameters:
+        //      strSub  里面可以包含多个值
+        public static void SetInList(ref string strList,
+            string strSub,
+            bool bOn)
+        {
+            if (bOn == false)
+            {
+                RemoveFromInList(strSub,
+                    true,
+                    ref strList);
+            }
+            else
+            {
+                // 单个值的情况
+                if (strSub.IndexOf(',') == -1)
+                {
+                    if (IsInList(strSub, strList) == true)
+                        return;	// 已经有了
+
+                    // 在尾部新增加
+                    if (string.IsNullOrEmpty(strList) == false)
+                        strList += ",";
+
+                    strList += strSub;
+                    return;
+                }
+
+                // 2012/2/2
+                // 多个值的情况
+                string[] sub_parts = strSub.Split(new char[] { ',' });
+                foreach (string sub in sub_parts)
+                {
+                    if (sub == null)
+                        continue;
+
+                    string strOne = sub.Trim();
+                    if (string.IsNullOrEmpty(strOne) == true)
+                        continue;
+
+                    if (IsInList(strOne, strList) == true)
+                        continue;	// 已经有了
+
+                    // 在尾部新增加
+                    if (string.IsNullOrEmpty(strList) == false)
+                        strList += ",";
+
+                    strList += strOne;
+                }
+            }
         }
 
         public static int CompareVersion(string strVersion1, string strVersion2)

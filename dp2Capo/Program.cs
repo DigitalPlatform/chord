@@ -23,7 +23,6 @@ namespace dp2Capo
 
         static void Main(string[] args)
         {
-
             // 修改配置
             if (args.Length >= 1 && args[0].Equals("setting"))
             {

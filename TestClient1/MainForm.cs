@@ -121,6 +121,15 @@ namespace TestClient1
             this.textBox_setInfo_remoteUserName.Text = Settings.Default.setInfo_remoteUserName;
             this.comboBox_setInfo_action.Text = Settings.Default.setInfo_action;
             this.textBox_setInfo_biblioRecPath.Text = Settings.Default.setInfo_biblioRecPath;
+
+            this.textBox_circulation_remoteUserName.Text = Settings.Default.circulation_remoteUserName;
+            this.comboBox_circulation_operation.Text = Settings.Default.circulation_operation;
+            this.textBox_circulation_patron.Text = Settings.Default.circulation_patron;
+            this.textBox_circulation_item.Text = Settings.Default.circulation_item;
+            this.textBox_circulation_style.Text = Settings.Default.circulation_style;
+            this.textBox_circulation_patronFormatList.Text = Settings.Default.circulation_patronFormatList;
+            this.textBox_circulation_itemFormatList.Text = Settings.Default.circulation_itemFormatList;
+            this.textBox_circulation_biblioFormatList.Text = Settings.Default.circulation_biblioFormatList;
         }
 
         void SaveSettings()
@@ -157,6 +166,15 @@ namespace TestClient1
             Settings.Default.setInfo_action = this.comboBox_setInfo_action.Text;
             Settings.Default.setInfo_biblioRecPath = this.textBox_setInfo_biblioRecPath.Text;
 
+            Settings.Default.circulation_remoteUserName = this.textBox_circulation_remoteUserName.Text;
+            Settings.Default.circulation_operation = this.comboBox_circulation_operation.Text;
+            Settings.Default.circulation_patron = this.textBox_circulation_patron.Text;
+            Settings.Default.circulation_item = this.textBox_circulation_item.Text;
+            Settings.Default.circulation_style = this.textBox_circulation_style.Text;
+            Settings.Default.circulation_patronFormatList = this.textBox_circulation_patronFormatList.Text;
+            Settings.Default.circulation_itemFormatList = this.textBox_circulation_itemFormatList.Text;
+            Settings.Default.circulation_biblioFormatList = this.textBox_circulation_biblioFormatList.Text;
+
             Settings.Default.Save();
         }
 
@@ -164,8 +182,11 @@ namespace TestClient1
         {
             if (this.tabControl_main.SelectedTab == tabPage_getInfo)
             {
-                // Task.Factory.StartNew(() => DoGetPatronInfo());
-                DoGetInfo();
+                if (this.comboBox_getInfo_method.Text == "getBiblioInfo"
+                    && this.checkBox_getInfo_getSubEntities.Checked)
+                    DoGetBiblioAndSub();
+                else
+                    DoGetInfo();
             }
 
             if (this.tabControl_main.SelectedTab == this.tabPage_search)
@@ -184,6 +205,10 @@ namespace TestClient1
                 DoSetInfo();
             }
 
+            if (this.tabControl_main.SelectedTab == this.tabPage_circulation)
+            {
+                DoCirculation();
+            }
         }
 
         void EnableControls(bool bEnable)
@@ -196,6 +221,75 @@ namespace TestClient1
 
             this.tabControl_main.Enabled = bEnable;
             this.toolStrip1.Enabled = bEnable;
+        }
+
+        async void DoCirculation()
+        {
+            string strError = "";
+
+            SetTextString(this.webBrowser1, "");
+
+            if (string.IsNullOrEmpty(this.comboBox_circulation_operation.Text) == true)
+            {
+                strError = "尚未指定 Operation";
+                goto ERROR1;
+            }
+
+            EnableControls(false);
+            try
+            {
+                CancellationToken cancel_token = new CancellationToken();
+
+                string id = Guid.NewGuid().ToString();
+                CirculationRequest request = new CirculationRequest(id,
+                    this.comboBox_circulation_operation.Text,
+                    this.textBox_circulation_patron.Text,
+                    this.textBox_circulation_item.Text,
+                    this.textBox_circulation_style.Text,
+                    this.textBox_circulation_patronFormatList.Text,
+                    this.textBox_circulation_itemFormatList.Text,
+                    this.textBox_circulation_biblioFormatList.Text);
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        this.textBox_search_remoteUserName.Text);
+                    CirculationResult result = await connection.CirculationAsync(
+                        this.textBox_search_remoteUserName.Text,
+                        request,
+                        new TimeSpan(0, 0, 10), // 10 秒
+                        cancel_token);
+
+                    this.Invoke(new Action(() =>
+                    {
+#if NO
+                        if (result.Value == -1)
+                            SetTextString(this.webBrowser1, "出错: " + result.ErrorInfo);
+                        else
+                            SetTextString(this.webBrowser1, ToString(result));
+#endif
+                        SetTextString(this.webBrowser1, ToString(result));
+
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 
         async void DoSetInfo()
@@ -396,6 +490,103 @@ namespace TestClient1
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 
+        async void DoGetBiblioAndSub()
+        {
+            string strError = "";
+
+            if (string.IsNullOrEmpty(this.comboBox_getInfo_method.Text) == true)
+            {
+                strError = "尚未指定方法";
+                goto ERROR1;
+            }
+
+            EnableControls(false);
+            try
+            {
+                DateTime start_time = DateTime.Now;
+
+                CancellationToken cancel_token = new CancellationToken();
+
+                // 获取书目记录
+                string id1 = Guid.NewGuid().ToString();
+                SearchRequest request1 = new SearchRequest(id1,
+                    this.comboBox_getInfo_method.Text,
+                    "",
+                    this.textBox_getInfo_queryWord.Text,
+                    "",
+                    "",
+                    "",
+                    this.textBox_getInfo_formatList.Text,
+                    1,
+                    0,
+                    -1);
+                // 获取下属记录
+                string id2 = Guid.NewGuid().ToString();
+                SearchRequest request2 = new SearchRequest(id2,
+    "getItemInfo",
+    "entity",
+    this.textBox_getInfo_queryWord.Text,
+    "",
+    "",
+    "",
+    "", // "xml",
+    1,
+    0,
+    -1);
+
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        this.textBox_getInfo_remoteUserName.Text);
+
+                    Task<SearchResult> task1 = connection.SearchAsync(
+                        this.textBox_getInfo_remoteUserName.Text,
+                        request1,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+                    Task<SearchResult> task2 = connection.SearchAsync(
+                        this.textBox_getInfo_remoteUserName.Text,
+                        request2,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+
+                    Task<SearchResult>[] tasks = new Task<SearchResult>[2];
+                    tasks[0] = task1;
+                    tasks[1] = task2;
+                    Task.WaitAll(tasks);
+
+                    TimeSpan time_length = DateTime.Now - start_time;
+
+                    this.Invoke(new Action(() =>
+                    {
+                        string strResultText = "time span: "+time_length.TotalSeconds.ToString() + " secs"
+                            +"\r\n=== biblio ===\r\n" + ToString(task1.Result) 
+                            + "\r\n\r\n=== entities ===\r\n" + ToString(task2.Result);
+                        SetTextString(this.webBrowser1, strResultText);
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+
+        }
+
         async void DoGetInfo()
         {
             string strError = "";
@@ -409,6 +600,8 @@ namespace TestClient1
             EnableControls(false);
             try
             {
+                DateTime start_time = DateTime.Now;
+
                 CancellationToken cancel_token = new CancellationToken();
 
                 string id = Guid.NewGuid().ToString();
@@ -436,12 +629,18 @@ namespace TestClient1
                         new TimeSpan(0, 1, 0),
                         cancel_token);
 
+                    TimeSpan time_length = DateTime.Now - start_time;
+
                     this.Invoke(new Action(() =>
                     {
+                        string strResultText = "time span: "+time_length.TotalSeconds.ToString() + " secs"
+                            +"\r\n" + ToString(result);
+#if NO
                         if (result.ResultCount == 0)
                             SetTextString(this.webBrowser1, "没有找到");
                         else
-                            SetTextString(this.webBrowser1, ToString(result));
+#endif
+                        SetTextString(this.webBrowser1, strResultText);
                     }));
                 }
                 catch (AggregateException ex)
@@ -541,6 +740,69 @@ string strHtml)
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 #endif
+        static string ToString(CirculationResult result)
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("ResultValue=" + result.Value + "\r\n");
+            text.Append("ErrorInfo=" + result.ErrorInfo + "\r\n");
+            text.Append("String=" + result.String + "\r\n");
+            if (result.PatronResults != null)
+            {
+                text.Append("PatronResults.Count=" + result.PatronResults.Count + "\r\n");
+                int i = 0;
+                foreach (string s in result.PatronResults)
+                {
+                    text.Append((i + 1).ToString() + ") ===");
+                    text.Append("Data=" + XmlUtil.TryGetIndentXml(s) + "\r\n");  // TODO: 如果是 XML 可显示为缩进形态
+                    i++;
+                }
+            }
+            if (result.ItemResults != null)
+            {
+                text.Append("ItemResults.Count=" + result.ItemResults.Count + "\r\n");
+                int i = 0;
+                foreach (string s in result.ItemResults)
+                {
+                    text.Append((i + 1).ToString() + ") ===");
+                    text.Append("Data=" + XmlUtil.TryGetIndentXml(s) + "\r\n");
+                    i++;
+                }
+            }
+            if (result.BiblioResults != null)
+            {
+                text.Append("BiblioResults.Count=" + result.BiblioResults.Count + "\r\n");
+                int i = 0;
+                foreach (string s in result.BiblioResults)
+                {
+                    text.Append((i + 1).ToString() + ") ===");
+                    text.Append("Data=" + XmlUtil.TryGetIndentXml(s) + "\r\n");
+                    i++;
+                }
+            }
+            if (result.BorrowInfo != null)
+            {
+                text.Append("BorrowInfo.LatestReturnTime=" + result.BorrowInfo.LatestReturnTime + "\r\n");
+                text.Append("BorrowInfo.Period=" + result.BorrowInfo.Period + "\r\n");
+                text.Append("BorrowInfo.BorrowCount=" + result.BorrowInfo.BorrowCount + "\r\n");
+                text.Append("BorrowInfo.BorrowOperator=" + result.BorrowInfo.BorrowOperator + "\r\n");
+            }
+            if (result.ReturnInfo != null)
+            {
+                text.Append("ReturnInfo.BorrowTime=" + result.ReturnInfo.BorrowTime + "\r\n");
+                text.Append("ReturnInfo.LatestReturnTime=" + result.ReturnInfo.LatestReturnTime + "\r\n");
+                text.Append("ReturnInfo.Period=" + result.ReturnInfo.Period + "\r\n");
+
+                text.Append("ReturnInfo.BorrowCount=" + result.ReturnInfo.BorrowCount + "\r\n");
+                text.Append("ReturnInfo.OverdueString=" + result.ReturnInfo.OverdueString + "\r\n");
+                text.Append("ReturnInfo.BorrowOperator=" + result.ReturnInfo.BorrowOperator + "\r\n");
+
+                text.Append("ReturnInfo.ReturnOperator=" + result.ReturnInfo.ReturnOperator + "\r\n");
+                text.Append("ReturnInfo.BookType=" + result.ReturnInfo.BookType + "\r\n");
+                text.Append("ReturnInfo.Location=" + result.ReturnInfo.Location + "\r\n");
+            }
+            return text.ToString();
+        }
+
         static string ToString(SetInfoResult result)
         {
             StringBuilder text = new StringBuilder();
@@ -655,6 +917,14 @@ string strHtml)
             return;
         ERROR1:
             MessageBox.Show(this, strError);
+        }
+
+        private void comboBox_getInfo_method_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (this.comboBox_getInfo_method.Text == "getBiblioInfo")
+                this.checkBox_getInfo_getSubEntities.Enabled = true;
+            else
+                this.checkBox_getInfo_getSubEntities.Enabled = false;
         }
     }
 }
