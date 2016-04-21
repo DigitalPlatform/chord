@@ -553,8 +553,9 @@ namespace TestClient1
 
                     Task<SearchResult>[] tasks = new Task<SearchResult>[2];
                     tasks[0] = task1;
-                    tasks[1] = task2;
+                    tasks[1] = task2;                    
                     Task.WaitAll(tasks);
+
 
                     TimeSpan time_length = DateTime.Now - start_time;
 
