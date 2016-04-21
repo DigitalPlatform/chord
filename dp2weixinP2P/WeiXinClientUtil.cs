@@ -28,7 +28,7 @@ namespace dp2weixin
         {
             string xml = @"<xml>
                     <ToUserName>123456789</ToUserName>
-                    <FromUserName>00002</FromUserName>
+                    <FromUserName>o4xvUviTxj2HbRqbQb9W2nMl4fGg</FromUserName>
                     <CreateTime>" + WeiXinClientUtil.DateTimeToLongString(DateTime.Now) + "</CreateTime>"
                     + "<MsgType>text</MsgType>"
                     + "<Content>" + message + "</Content>"

@@ -140,7 +140,20 @@ namespace dp2weixinP2P.Controllers
 
                 //return Content(messageHandler.ResponseDocument.ToString());//v0.7-
                 //return new FixWeixinBugWeixinResult(messageHandler);//为了解决官方微信5.0软件换行bug暂时添加的方法，平时用下面一个方法即可
+
+                //var responseMessage = messageHandler.CreateResponseMessage<ResponseMessageText>();
+
+                if (messageHandler.ResponseMessage is ResponseMessageText)
+                {
+                    var mess = (ResponseMessageText)messageHandler.ResponseMessage;
+                    if (String.IsNullOrEmpty(mess.Content) == true)
+                        return Content("");
+                }
+
+
                 return new WeixinResult(messageHandler);//v0.8+
+
+
             }
             catch (Exception ex)
             {

@@ -3,6 +3,8 @@ using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.Xml;
 using dp2Command.Service;
+using Senparc.Weixin.MP.AdvancedAPIs;
+using Senparc.Weixin.MP.CommonAPIs;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -526,7 +528,7 @@ namespace dp2Command.Server
                 strPath = strPath.Substring(0, index);
 
             }
-            strBiblioInfo += strName + "\n";
+            //strBiblioInfo += strName + "\n";
 
             // 开始时间
             DateTime start_time = DateTime.Now;
@@ -534,7 +536,7 @@ namespace dp2Command.Server
 
             int nRet = 0;
             string strInfo = "";
-            nRet = this.Test2Api(strPath,  //GetBiblioAndSub
+            nRet = this.GetBiblioAndSub(strPath,  //GetBiblioAndSub
                 out strInfo,
                 out strError);
             if (nRet == -1 || nRet == 0)
@@ -789,7 +791,7 @@ namespace dp2Command.Server
                     "",
                     "",
                     "opac",
-                    1,
+                    3,
                     0,
                     -1);
 
@@ -842,7 +844,10 @@ namespace dp2Command.Server
                     }
 
                     string itemInfo = "";
-                    for (int i = 0; i < task2.Result.ResultCount; i++)
+                    long nMax = 10;
+                    if (task2.Result.ResultCount < nMax)
+                        nMax = task2.Result.ResultCount;
+                    for (int i = 0; i < nMax; i++)
                     {
                         if (itemInfo != "")
                             itemInfo += "===========\n";
