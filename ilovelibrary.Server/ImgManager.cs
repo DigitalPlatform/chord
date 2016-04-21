@@ -26,23 +26,53 @@ namespace ilovelibrary.Server
             imgFileName = strImgFile;
             imgDom = new XmlDocument();
 
+            /*
+            if (File.Exists(strImgFile) == true)
+            {
+                File.Delete(strImgFile);
+                // 创建一个根元素
+                XmlNode root = imgDom.CreateElement("root");
+                imgDom.AppendChild(root);
+            }
+             */
+
+
+            
             if (File.Exists(strImgFile) == true)
             {
                 imgDom.Load(strImgFile);
                 XmlNodeList nodeList = imgDom.DocumentElement.SelectNodes("img");
+
+                bool bChange = false;
                 foreach (XmlNode node in nodeList)
                 {
                     string no = DomUtil.GetAttr(node, "no");
                     string url = DomUtil.GetAttr(node, "url");
-                    imgDict[no] = url;
+
+                    if (String.IsNullOrEmpty(no) == false && String.IsNullOrEmpty(url) == false)
+                    {
+                        imgDict[no] = url;
+                    }
+                    else
+                    {
+                        imgDom.DocumentElement.RemoveChild(node);
+                        bChange = true;
+                    }
+                }
+
+                if (bChange == true)
+                {
+                    imgDom.Save(this.imgFileName);
                 }
             }
+
             else
             {
                 // 创建一个根元素
                 XmlNode root = imgDom.CreateElement("root");
                 imgDom.AppendChild(root);
             }
+             
         }
 
         /// <summary>
