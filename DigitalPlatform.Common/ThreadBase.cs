@@ -3,22 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Security.Permissions;
 
-namespace DigitalPlatform.MessageServer
+namespace DigitalPlatform
 {
-#if NO
     /// <summary>
     /// 线程基础类
     /// </summary>
-    public class ThreadBase
+    [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
+    [System.Runtime.InteropServices.ComVisibleAttribute(true)]
+    public class ThreadBase : IDisposable
     {
         private bool m_bStopThread = true;
         protected Thread _thread = null;
 
         public AutoResetEvent eventClose = new AutoResetEvent(false);	// true : initial state is signaled 
         public AutoResetEvent eventActive = new AutoResetEvent(false);	// 激活信号
-        // internal AutoResetEvent eventFinished = new AutoResetEvent(false);	// true : initial state is signaled 
 
         public int PerTime = 1000;   // 1 秒 5 * 60 * 1000;	// 5 分钟
 
@@ -27,8 +27,12 @@ namespace DigitalPlatform.MessageServer
         {
         }
 #endif
+        public virtual void Dispose()
+        {
+            eventActive.Dispose();
+            eventClose.Dispose();
+        }
 
-        // TODO: 建议把 event 的生存周期控制在 ThreadMain 函数范围内
         void ThreadMain()
         {
             m_bStopThread = false;
@@ -140,6 +144,5 @@ namespace DigitalPlatform.MessageServer
         }
 
     }
-
-#endif
 }
+

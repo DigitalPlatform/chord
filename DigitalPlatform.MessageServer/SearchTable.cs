@@ -5,16 +5,24 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using DigitalPlatform;
+
 namespace DigitalPlatform.MessageServer
 {
     // TODO: 定期清除已超时的对象
     // 检索请求集合
     // search request UID --> SearchInfo 的查找表。同时也是 SearchInfo 对象的存储机制
-    public class SearchTable : Dictionary<string, SearchInfo>
+    public class SearchTable : Dictionary<string, SearchInfo>, IDisposable
     {
         internal ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
         CleanThread CleanThread = new CleanThread();
+
+        public virtual void Dispose()
+        {
+            _lock.Dispose();
+            CleanThread.Dispose();
+        }
 
         public SearchTable(bool bEnable)
         {
@@ -142,7 +150,6 @@ namespace DigitalPlatform.MessageServer
                 }
             }
         }
-
     }
 
     // 一个检索请求的相关信息

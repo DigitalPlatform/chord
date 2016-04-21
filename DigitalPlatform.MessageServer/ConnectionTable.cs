@@ -141,7 +141,16 @@ namespace DigitalPlatform.MessageServer
                     if (info.LibraryUID == strRequestLibraryUID)
                         continue;
 
-                    if (StringUtil.Contains(info.PropertyList, "biblio_search") == false)
+                    string strUserName = "";
+                    string strDuty = "";
+                    if (info.UserItem != null)
+                    {
+                        strUserName = info.UserItem.userName;
+                        strDuty = info.UserItem.duty;
+                    }
+
+                    if (StringUtil.IsInList("shareBiblio", strDuty) == false
+                        && StringUtil.Contains(info.PropertyList, "biblio_search") == false)
                         continue;
 
                     infos.Add(info);
@@ -164,7 +173,7 @@ namespace DigitalPlatform.MessageServer
             });
 
             // 对于每个目标图书馆，只选择一个连接。经过排序后，使用次数较小的在前
-            string strPrevUID = "";
+            string strPrevUID = null;
             foreach (ConnectionInfo info in infos)
             {
                 if (strPrevUID != info.LibraryUID)
@@ -218,20 +227,29 @@ namespace DigitalPlatform.MessageServer
                         strDuty = info.UserItem.duty;
                     }
 
-                    if (Array.IndexOf(target_usernames, strUserName) == -1)
+                    if (strTargetUserNameList != "*"
+                        && Array.IndexOf(target_usernames, strUserName) == -1)
                         continue;
 
                     matched_usernames.Add(strUserName);
 
-                    // 如何表达允许操作的权限?
-                    // getreaderinfo:username1|username2
-                    // 如果没有配置，表示不允许
-                    string strAllowUserList = StringUtil.GetParameterByPrefix(strDuty, strOperation, ":");
-                    if (strAllowUserList != "" &&   // "" 表示所有用户名均通配
-                        (strAllowUserList == null
-                        || StringUtil.Contains(strAllowUserList, strRequestUserName) == false)
-                        )
-                        continue;
+                    if (strOperation == "searchBiblio"
+                        && StringUtil.IsInList("shareBiblio", strDuty))
+                    {
+
+                    }
+                    else
+                    {
+                        // 如何表达允许操作的权限?
+                        // getreaderinfo:username1|username2
+                        // 如果没有配置，表示不允许
+                        string strAllowUserList = StringUtil.GetParameterByPrefix(strDuty, strOperation, ":");
+                        if (strAllowUserList != "" &&   // "" 表示所有用户名均通配
+                            (strAllowUserList == null
+                            || StringUtil.Contains(strAllowUserList, strRequestUserName) == false)
+                            )
+                            continue;
+                    }
 
                     infos.Add(info);
                     // TODO: 这里可以在找到第一个以后就退出循环，以提高速度
@@ -245,7 +263,7 @@ namespace DigitalPlatform.MessageServer
             if (infos.Count == 0)
             {
                 if (matched_usernames.Count == 0)
-                    strError = "没有匹配上任何目标用户名 '"+strTargetUserNameList+"'";
+                    strError = "没有匹配上任何目标用户名 '" + strTargetUserNameList + "'";
                 else
                     strError = "匹配的用户名 '" + StringUtil.MakePathList(matched_usernames) + "' 中没有找到满足操作 '" + strOperation + "' 的用户";
                 return 0;

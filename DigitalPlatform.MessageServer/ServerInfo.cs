@@ -48,6 +48,7 @@ namespace DigitalPlatform.MessageServer
         public static void Exit()
         {
             SearchTable.Exit();
+            SearchTable.Dispose();
         }
     }
 
