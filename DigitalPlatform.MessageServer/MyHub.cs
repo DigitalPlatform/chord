@@ -456,48 +456,61 @@ ex.GetType().ToString());
                 return result;
             }
 
-#if NO
-            List<string> connectionIds = null;
-            string strError = "";
-            // 获得书目检索的目标 connection 的 id 集合
-            // parameters:
-            //      strRequestLibraryUID    发起检索的人所在的图书馆的 UID。本函数要在返回结果中排除这个 UID 的图书馆的连接
-            // return:
-            //      -1  出错
-            //      0   成功
-            int nRet = ServerInfo.ConnectionTable.GetBiblioSearchTargets(
-                connection_info.LibraryUID,
-                out connectionIds,
-                out strError);
-            if (nRet == -1)
-            {
-                result.Value = -1;
-                result.ErrorInfo = strError;
-                return result;
-            }
-#endif
             // 检查请求者是否具备操作的权限
-            if (StringUtil.Contains(connection_info.Rights, searchParam.Operation) == false)
+            if (searchParam.Operation == "searchBiblio"
+    && userNameList == "*"
+    && StringUtil.Contains(connection_info.PropertyList, "biblio_search") == true)
             {
-                result.Value = -1;
-                result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + searchParam.Operation + "' 操作的权限";
-                return result;
+                // 请求者具有共享检索资格
+            }
+            else
+            {
+                if (StringUtil.Contains(connection_info.Rights, searchParam.Operation) == false)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + searchParam.Operation + "' 操作的权限";
+                    return result;
+                }
             }
 
             List<string> connectionIds = null;
             string strError = "";
-            int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
-                userNameList,
-                connection_info.UserName,
-                searchParam.Operation,
-                "all",
-                out connectionIds,
-                out strError);
-            if (nRet == -1)
+
+            if (searchParam.Operation == "searchBiblio"
+    && userNameList == "*")
             {
-                result.Value = -1;
-                result.ErrorInfo = strError;
-                return result;
+                // 获得书目检索的目标 connection 的 id 集合
+                // parameters:
+                //      strRequestLibraryUID    发起检索的人所在的图书馆的 UID。本函数要在返回结果中排除这个 UID 的图书馆的连接
+                // return:
+                //      -1  出错
+                //      0   成功
+                int nRet = ServerInfo.ConnectionTable.GetBiblioSearchTargets(
+                    connection_info.LibraryUID,
+                    out connectionIds,
+                    out strError);
+                if (nRet == -1)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = strError;
+                    return result;
+                }
+            }
+            else
+            {
+                int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
+                    userNameList,
+                    connection_info.UserName,
+                    searchParam.Operation,
+                    "all",
+                    out connectionIds,
+                    out strError);
+                if (nRet == -1)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = strError;
+                    return result;
+                }
             }
 
             if (connectionIds == null || connectionIds.Count == 0)
