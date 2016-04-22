@@ -182,7 +182,9 @@ namespace ilovelibrary.Server
                 //需要在 Login() API 的 parameters 参数中，添加一点内容 
                 //光光 2016/1/7 21:59:24
                 //,client=ilovelibrary|1.0
-                strParam += ",client=ilovelibrary|1.0";
+                strParam += ",client=ilovelibrary|0.01";//client=ilovelibrary|1.0
+
+
 
                 LoginResponse ret = channel.Login(strUserName, strPassword, strParam);
                 if (ret.LoginResult.Value != 1)

@@ -18,6 +18,10 @@ using DigitalPlatform;
 using DigitalPlatform.Text;
 using dp2Command.Service;
 using DigitalPlatform.LibraryRestClient;
+using Senparc.Weixin.MP.AdvancedAPIs;
+using Senparc.Weixin.MP.CommonAPIs;
+using System.Web.Mvc.Async;
+using System.Threading.Tasks;
 
 
 namespace dp2weixin
@@ -37,6 +41,10 @@ namespace dp2weixin
         // 是否需要选择图书馆
         private bool IsNeedSelectLib = false;
 
+        private string AppId = "";
+        private string EncodingAESKey = "";
+        private string Token = "";
+
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -50,8 +58,16 @@ namespace dp2weixin
             //比如MessageHandler<MessageContext>.GlobalWeixinContext.ExpireMinutes = 3。
             WeixinContext.ExpireMinutes = 3;
 
+           this.AppId=postModel.AppId;
+           this.EncodingAESKey = postModel.EncodingAESKey;
+           this.Token = postModel.Token;
+
+
+
             this.CmdService = cmdServer;
         }
+
+
 
         // 初始化
         public void Init(string dp2weixinAppDir, bool isDisplayPath, bool isNeedSelectLib)
@@ -440,7 +456,22 @@ namespace dp2weixin
                 { }
                 // 获取详细信息
                 if (nBiblioIndex >= 1)
-                {
+                {                    
+                    //异步操作 使用客服消息接口回复用户
+                    AsyncManager m = new AsyncManager();
+                    m.OutstandingOperations.Increment(3);//AsyncManager.OutstandingOperations.Increment();                    
+                    var task = Task.Factory.StartNew(() => this.SendCustomeMessage(searchCmd,nBiblioIndex));
+                    task.ContinueWith(t =>
+                    {
+                          m.OutstandingOperations.Decrement(); //AsyncManager.OutstandingOperations.Decrement();
+                    });
+
+                    // 返回空
+                    var responseMessage = CreateResponseMessage<ResponseMessageText>();
+                    responseMessage.Content = "";
+                    return responseMessage;
+                    
+                    /*
                     string strBiblioInfo = "";
                     lRet = this.CmdService.GetDetailBiblioInfo(searchCmd, nBiblioIndex,
                         out strBiblioInfo,
@@ -450,8 +481,9 @@ namespace dp2weixin
                         return this.CreateTextResponseMessage(strError);
                     }
 
-                    // 输入详细信息
+                    // 输出详细信息
                     return this.CreateTextResponseMessage(strBiblioInfo);
+                     */
                 }
             }
 
@@ -474,6 +506,36 @@ namespace dp2weixin
             }
         }
 
+        // 消息处理
+        public void SendCustomeMessage(SearchCommand searchCmd, int nBiblioIndex)
+        {
+            string sec="61ac93be56e3f7f42d0861bf073427e6 ";
+            
+            AccessTokenContainer.Register(this.AppId, sec);
+            var accessToken = AccessTokenContainer.GetAccessToken(this.AppId);
+
+            string strResult = "";
+
+            string strError = "";
+            string strBiblioInfo = "";
+            int lRet = this.CmdService.GetDetailBiblioInfo(searchCmd, nBiblioIndex,
+                out strBiblioInfo,
+                out strError);
+            if (lRet == -1 || lRet == 0)
+            {
+                strResult = strError;
+            }
+            else
+            {
+                strResult = strBiblioInfo;
+            }
+
+
+            var result = CustomApi.SendText(accessToken, this.WeixinOpenId, strBiblioInfo);
+
+
+        }
+
         /// <summary>
         /// 绑定
         /// </summary>
@@ -481,6 +543,8 @@ namespace dp2weixin
         /// <returns></returns>
         private IResponseMessageBase DoBinding(string strParam)
         {
+
+            
             // 设置当前命令
             this.CurrentMessageContext.CurrentCmdName = dp2CommandUtility.C_Command_Binding;
 

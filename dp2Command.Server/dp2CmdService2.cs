@@ -3,6 +3,8 @@ using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.Xml;
 using dp2Command.Service;
+using Senparc.Weixin.MP.AdvancedAPIs;
+using Senparc.Weixin.MP.CommonAPIs;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -526,17 +528,30 @@ namespace dp2Command.Server
                 strPath = strPath.Substring(0, index);
 
             }
-            strBiblioInfo += strName + "\n";
+            //strBiblioInfo += strName + "\n";
+
+            // 开始时间
+            DateTime start_time = DateTime.Now;
+
 
             int nRet = 0;
+            string strInfo = "";
+            nRet = this.GetBiblioAndSub(strPath,  //GetBiblioAndSub
+                out strInfo,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+                return nRet;
+            strBiblioInfo += strInfo + "\n";
+
+            /*
             //微信时间不够，先不取summary
-            /*// 取出summary
+            // 取出summary
             string strSummary ="";
-            int nRet = this.GetBiblioSummary(strPath, out strSummary, out strError);
+            nRet = this.GetBiblioSummary(strPath, out strSummary, out strError);
             if (nRet == -1 || nRet == 0)
                 return nRet;
             strBiblioInfo += strSummary + "\n";
-            */
+            
             
             // 取item
             string strItemInfo = "";
@@ -549,6 +564,12 @@ namespace dp2Command.Server
                 strBiblioInfo += "===========\n";
                 strBiblioInfo += strItemInfo;
             }
+            */
+
+            // 计算用了多少时间
+            TimeSpan time_length = DateTime.Now - start_time;
+            strBiblioInfo = "time span: " + time_length.TotalSeconds.ToString() + " secs" + "\n"
+                + strBiblioInfo;
              
             return 1;
         }
@@ -732,6 +753,280 @@ namespace dp2Command.Server
             }
         ERROR1:
             return -1;
+        }
+
+
+        private int GetBiblioAndSub(string biblioPath,
+            out string strInfo,
+            out string strError)
+        {
+             strError = "";
+             strInfo = "";
+
+
+                DateTime start_time = DateTime.Now;
+
+                CancellationToken cancel_token = new CancellationToken();
+
+                // 获取书目记录
+                string id1 = Guid.NewGuid().ToString();
+                SearchRequest request1 = new SearchRequest(id1,
+                    "getBiblioInfo",
+                    "<全部>",
+                    biblioPath,
+                    "",
+                    "",
+                    "",
+                    "summary",
+                    1,
+                    0,
+                    -1);
+                // 获取下属记录
+                string id2 = Guid.NewGuid().ToString();
+                SearchRequest request2 = new SearchRequest(id2,
+                    "getItemInfo",
+                    "entity",
+                    biblioPath,
+                    "",
+                    "",
+                    "",
+                    "opac",
+                    3,
+                    0,
+                    -1);
+
+                try
+                {
+                    MessageConnection connection = this._channels.GetConnectionAsync(
+    this.dp2MServerUrl,
+    this.remoteUserName).Result;
+
+
+                    Task<SearchResult> task1 = connection.SearchAsync(
+    this.remoteUserName,
+    request1,
+    new TimeSpan(0, 1, 0),
+    cancel_token);
+                    Task<SearchResult> task2 = connection.SearchAsync(
+                         this.remoteUserName,
+                        request2,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+
+                    Task<SearchResult>[] tasks = new Task<SearchResult>[2];
+                    tasks[0] = task1;
+                    tasks[1] = task2;
+                    Task.WaitAll(tasks);
+
+
+                    if (task1.Result.ResultCount == -1)
+                    {
+                        strError = "获取摘要出错：" + task1.Result.ErrorInfo;
+                        return -1;
+                    }
+                    if (task1.Result.ResultCount == 0)
+                    {
+                        strError = "未命中";
+                        return 0;
+                    }
+
+                    strInfo = task1.Result.Records[0].Data;
+
+                    if (task2.Result.ResultCount == -1)
+                    {
+                        strError = "获取册出错：" + task2.Result.ErrorInfo;
+                        return -1;
+                    }
+                    if (task2.Result.ResultCount == 0)
+                    {
+                        strError = "未命中";
+                        return 0;
+                    }
+
+                    string itemInfo = "";
+                    long nMax = 10;
+                    if (task2.Result.ResultCount < nMax)
+                        nMax = task2.Result.ResultCount;
+                    for (int i = 0; i < nMax; i++)
+                    {
+                        if (itemInfo != "")
+                            itemInfo += "===========\n";
+
+                        string xml = task2.Result.Records[i].Data;
+                        XmlDocument dom = new XmlDocument();
+                        dom.LoadXml(xml);
+
+                        string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
+                        string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
+                        // 册条码号
+                        string strViewBarcode = "";
+                        if (string.IsNullOrEmpty(strBarcode) == false)
+                            strViewBarcode = strBarcode;
+                        else
+                            strViewBarcode = "refID:" + strRefID;  //"@refID:"
+                        //状态
+                        string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+                        // 馆藏地
+                        string strLocation = DomUtil.GetElementText(dom.DocumentElement, "location");
+                        // 索引号
+                        string strAccessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
+
+                        // 出版日期
+                        string strPublishTime = DomUtil.GetElementText(dom.DocumentElement, "publishTime");
+                        // 价格
+                        string strPrice = DomUtil.GetElementText(dom.DocumentElement, "price");
+                        // 注释
+                        string strComment = DomUtil.GetElementText(dom.DocumentElement, "comment");
+
+                        // 借阅情况
+                        string strBorrowInfo = "借阅情况:在架";
+                        /*
+                         <borrower>R00001</borrower>
+        <borrowerReaderType>教职工</borrowerReaderType>
+        <borrowerRecPath>读者/1</borrowerRecPath>
+        <borrowDate>Sun, 17 Apr 2016 23:57:40 +0800</borrowDate>
+        <borrowPeriod>31day</borrowPeriod>
+        <returningDate>Wed, 18 May 2016 12:00:00 +0800</returningDate>
+                         */
+                        string strBorrower = DomUtil.GetElementText(dom.DocumentElement, "borrower");
+                        string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
+        "borrowDate"), "yyyy/MM/dd");
+                        string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
+                        if (string.IsNullOrEmpty(strBorrower) == false)
+                            strBorrowInfo = "借阅者:*** 借阅时间:" + borrowDate + " 借期:" + borrowPeriod;
+
+                        itemInfo += "序号:" + (i + 1).ToString() + "\n"
+                            + "册条码号:" + strViewBarcode + "\n"
+                            + "状态:" + strState + "\n"
+                            + "馆藏地:" + strLocation + "\n"
+                            + "索引号:" + strAccessNo + "\n"
+                            + "出版日期:" + strPublishTime + "\n"
+                            + "价格:" + strPrice + "\n"
+                            + "注释:" + strComment + "\n"
+                            + strBorrowInfo + "\n";
+                    }
+
+                    if (itemInfo != "")
+                    {
+                        strInfo += "===========\n";
+                        strInfo += itemInfo;
+                    }
+
+                    return (int)task2.Result.ResultCount;
+
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+
+            ERROR1:
+                return -1;
+
+        }
+
+        private int Test2Api(string biblioPath,
+            out string strInfo,
+            out string strError)
+        {
+            strError = "";
+            strInfo = "";
+
+
+            DateTime start_time = DateTime.Now;
+
+            CancellationToken cancel_token = new CancellationToken();
+
+            // 获取书目记录
+            string id1 = Guid.NewGuid().ToString();
+            SearchRequest request1 = new SearchRequest(id1,
+                "getBiblioInfo",
+                "<全部>",
+                biblioPath,
+                "",
+                "",
+                "",
+                "summary",
+                1,
+                0,
+                -1);
+            // 获取下属记录
+            string id2 = Guid.NewGuid().ToString();
+            SearchRequest request2 = new SearchRequest(id2,
+                "getBiblioInfo",
+                "<全部>",
+                biblioPath,
+                "",
+                "",
+                "",
+                "summary",
+                1,
+                0,
+                -1);
+
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+this.dp2MServerUrl,
+this.remoteUserName).Result;
+
+
+                Task<SearchResult> task1 = connection.SearchAsync(
+this.remoteUserName,
+request1,
+new TimeSpan(0, 1, 0),
+cancel_token);
+                Task<SearchResult> task2 = connection.SearchAsync(
+                     this.remoteUserName,
+                    request2,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token);
+
+                Task<SearchResult>[] tasks = new Task<SearchResult>[2];
+                tasks[0] = task1;
+                tasks[1] = task2;
+                Task.WaitAll(tasks);
+
+
+                if (task1.Result.ResultCount == -1)
+                {
+                    strError = "获取摘要出错：" + task1.Result.ErrorInfo;
+                    return -1;
+                }
+                if (task1.Result.ResultCount == 0)
+                {
+                    strError = "未命中";
+                    return 0;
+                }
+                strInfo = task1.Result.Records[0].Data+"\n";
+
+                // api 2
+                strInfo += task2.Result.Records[0].Data;
+
+
+                return (int)task2.Result.ResultCount;
+
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+
+        ERROR1:
+            return -1;
+
         }
         #endregion
 
