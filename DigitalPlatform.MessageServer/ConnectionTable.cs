@@ -6,13 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using DigitalPlatform.Text;
+using System.Collections;
 
 namespace DigitalPlatform.MessageServer
 {
     /// <summary>
     /// 存储 ConnectionInfo 对象的集合
     /// </summary>
-    public class ConnectionTable : Dictionary<string, ConnectionInfo>
+    public class ConnectionTable : Dictionary<string, ConnectionInfo>, IEnumerable
     {
         internal ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
@@ -114,14 +115,25 @@ namespace DigitalPlatform.MessageServer
             }
         }
 
+        public new IEnumerator GetEnumerator()
+        {  
+            foreach (string key in this.Keys)
+            {
+                ConnectionInfo info = this[key];
+                yield return info;
+            }
+        }
+
         // 获得书目检索的目标 connection 的 id 集合
         // parameters:
         //      strRequestLibraryUID    发起检索的人所在的图书馆的 UID。本函数要在返回结果中排除这个 UID 的图书馆的连接
+        //      bOutputDebugInfo    是否输出调试信息？在生产环境下，连接数量可能很大，要意识到调试信息可能会很大
         // return:
         //      -1  出错
         //      0   成功
         public int GetBiblioSearchTargets(
             string strRequestLibraryUID,
+            bool bOutputDebugInfo,
             out List<string> connectionIds,
             out string strError)
         {
@@ -135,21 +147,26 @@ namespace DigitalPlatform.MessageServer
             this._lock.EnterReadLock();
             try
             {
-                debugInfo.Append("Connection count="+this.Keys.Count+"\r\n");
-                debugInfo.Append("strRequestLibraryUID=" + strRequestLibraryUID + "\r\n");
-                debugInfo.Append("第一阶段匹配过程\r\n");
+                if (bOutputDebugInfo)
+                {
+                    debugInfo.Append("Connection count=" + this.Keys.Count + "\r\n");
+                    debugInfo.Append("strRequestLibraryUID=" + strRequestLibraryUID + "\r\n");
+                    debugInfo.Append("第一阶段匹配过程\r\n");
+                }
 
                 int i = 0;
                 foreach (string key in this.Keys)
                 {
                     ConnectionInfo info = this[key];
 
-                    debugInfo.Append("--- " + (i + 1).ToString() + ") " + info.Dump() + "\r\n");
+                    if (bOutputDebugInfo)
+                        debugInfo.Append("--- " + (i + 1).ToString() + ") " + info.Dump() + "\r\n");
 
                     // 不检索来自同一图书馆的连接
                     if (info.LibraryUID == strRequestLibraryUID)
                     {
-                        debugInfo.Append("不检索来自和 '" + strRequestLibraryUID + "' 同一图书馆的目标\r\n");
+                        if (bOutputDebugInfo)
+                            debugInfo.Append("不检索来自和 '" + strRequestLibraryUID + "' 同一图书馆的目标\r\n");
                         i++;
                         continue;
                     }
@@ -165,12 +182,14 @@ namespace DigitalPlatform.MessageServer
                     if (StringUtil.IsInList("shareBiblio", strDuty) == false
                         && StringUtil.Contains(info.PropertyList, "biblio_search") == false)
                     {
-                        debugInfo.Append("Duty 里面没有包含 'shareBiblio' 并且 PropertyList 没有包含 'biblio_search'\r\n");
+                        if (bOutputDebugInfo)
+                            debugInfo.Append("Duty 里面没有包含 'shareBiblio' 并且 PropertyList 没有包含 'biblio_search'\r\n");
                         i++;
                         continue;
                     }
 
-                    debugInfo.Append("匹配上了\r\n");
+                    if (bOutputDebugInfo)
+                        debugInfo.Append("匹配上了\r\n");
                     infos.Add(info);
                     i++;
                 }
@@ -182,7 +201,8 @@ namespace DigitalPlatform.MessageServer
 
             if (infos.Count == 0)
             {
-                strError = debugInfo.ToString();
+                if (bOutputDebugInfo)
+                    strError = debugInfo.ToString();
                 return 0;
             }
 
@@ -194,8 +214,11 @@ namespace DigitalPlatform.MessageServer
                 return (int)a.SearchCount - (int)b.SearchCount;
             });
 
-            debugInfo.Append("匹配上的数目=" + infos.Count + "\r\n");
-            debugInfo.Append("第二阶段对每个图书馆筛选出一个目标\r\n");
+            if (bOutputDebugInfo)
+            {
+                debugInfo.Append("匹配上的数目=" + infos.Count + "\r\n");
+                debugInfo.Append("第二阶段对每个图书馆筛选出一个目标\r\n");
+            }
 
             {
                 // 对于每个目标图书馆，只选择一个连接。经过排序后，使用次数较小的在前
@@ -203,17 +226,20 @@ namespace DigitalPlatform.MessageServer
                 int i = 0;
                 foreach (ConnectionInfo info in infos)
                 {
-                    debugInfo.Append("--- " + (i + 1).ToString() + ") " + info.Dump() + "\r\n");
+                    if (bOutputDebugInfo)
+                        debugInfo.Append("--- " + (i + 1).ToString() + ") " + info.Dump() + "\r\n");
 
                     if (strPrevUID != info.LibraryUID)
                     {
                         connectionIds.Add(info.ConnectionID);
                         info.SearchCount++;
-                        debugInfo.Append("strPrevUID '"+strPrevUID+"' != info.LibraryUID '"+info.LibraryUID+"', 被选中\r\n");
+                        if (bOutputDebugInfo)
+                            debugInfo.Append("strPrevUID '" + strPrevUID + "' != info.LibraryUID '" + info.LibraryUID + "', 被选中\r\n");
                     }
                     else
                     {
-                        debugInfo.Append("没有被选中\r\n");
+                        if (bOutputDebugInfo)
+                            debugInfo.Append("没有被选中\r\n");
                     }
 
                     strPrevUID = info.LibraryUID;
@@ -221,7 +247,8 @@ namespace DigitalPlatform.MessageServer
                 }
             }
 
-            strError = debugInfo.ToString();
+            if (bOutputDebugInfo)
+                strError = debugInfo.ToString();
             return 0;
         }
 

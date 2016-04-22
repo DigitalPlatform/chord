@@ -401,7 +401,8 @@
             "getBiblioInfo",
             "getBiblioSummary",
             "getItemInfo",
-            "getBrowseRecords"});
+            "getBrowseRecords",
+            "GetConnectionInfo"});
             this.comboBox_search_method.Location = new System.Drawing.Point(130, 6);
             this.comboBox_search_method.Name = "comboBox_search_method";
             this.comboBox_search_method.Size = new System.Drawing.Size(161, 20);
