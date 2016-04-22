@@ -127,19 +127,30 @@ namespace DigitalPlatform.MessageServer
         {
             strError = "";
 
+            StringBuilder debugInfo = new StringBuilder();
+
             connectionIds = new List<string>();
             List<ConnectionInfo> infos = new List<ConnectionInfo>();
 
             this._lock.EnterReadLock();
             try
             {
+                debugInfo.Append("Connection count="+this.Keys.Count+"\r\n");
+
+                int i = 0;
                 foreach (string key in this.Keys)
                 {
                     ConnectionInfo info = this[key];
 
+                    debugInfo.Append((i + 1).ToString() + ") " + info.Dump() + "\r\n");
+
                     // 不检索来自同一图书馆的连接
                     if (info.LibraryUID == strRequestLibraryUID)
+                    {
+                        debugInfo.Append("不检索来自和 '" + strRequestLibraryUID + "' 同一图书馆的目标\r\n");
+                        i++;
                         continue;
+                    }
 
                     string strUserName = "";
                     string strDuty = "";
@@ -151,9 +162,15 @@ namespace DigitalPlatform.MessageServer
 
                     if (StringUtil.IsInList("shareBiblio", strDuty) == false
                         && StringUtil.Contains(info.PropertyList, "biblio_search") == false)
+                    {
+                        debugInfo.Append("Duty 里面没有包含 'shareBiblio' 并且 PropertyList 没有包含 'biblio_search'\r\n");
+                        i++;
                         continue;
+                    }
 
+                    debugInfo.Append("匹配上了\r\n");
                     infos.Add(info);
+                    i++;
                 }
             }
             finally
@@ -162,7 +179,10 @@ namespace DigitalPlatform.MessageServer
             }
 
             if (infos.Count == 0)
+            {
+                strError = debugInfo.ToString();
                 return 0;
+            }
 
             infos.Sort((a, b) =>
             {
@@ -172,18 +192,33 @@ namespace DigitalPlatform.MessageServer
                 return (int)a.SearchCount - (int)b.SearchCount;
             });
 
-            // 对于每个目标图书馆，只选择一个连接。经过排序后，使用次数较小的在前
-            string strPrevUID = null;
-            foreach (ConnectionInfo info in infos)
+            debugInfo.Append("第二阶段\r\n");
+
             {
-                if (strPrevUID != info.LibraryUID)
+                // 对于每个目标图书馆，只选择一个连接。经过排序后，使用次数较小的在前
+                string strPrevUID = null;
+                int i = 0;
+                foreach (ConnectionInfo info in infos)
                 {
-                    connectionIds.Add(info.ConnectionID);
-                    info.SearchCount++;
+                    debugInfo.Append((i + 1).ToString() + ") " + info.Dump() + "\r\n");
+
+                    if (strPrevUID != info.LibraryUID)
+                    {
+                        connectionIds.Add(info.ConnectionID);
+                        info.SearchCount++;
+                        debugInfo.Append("strPrevUID '"+strPrevUID+"' != info.LibraryUID '"+info.LibraryUID+"', 被选中\r\n");
+                    }
+                    else
+                    {
+                        debugInfo.Append("没有被选中\r\n");
+                    }
+
+                    strPrevUID = info.LibraryUID;
+                    i++;
                 }
-                strPrevUID = info.LibraryUID;
             }
 
+            strError = debugInfo.ToString();
             return 0;
         }
 
@@ -306,6 +341,21 @@ namespace DigitalPlatform.MessageServer
     // Connection 查找表的一个事项
     public class ConnectionInfo
     {
+        public string Dump()
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("UID=" + this.UID + ",");
+            text.Append("ConnectionID=" + this.ConnectionID + ",");
+            text.Append("UID=" + this.UID + ",");
+            text.Append("UserName=" + this.UserName + ",");
+            text.Append("PropertyList=" + this.PropertyList + ",");
+            text.Append("LibraryUID=" + this.LibraryUID + ",");
+            text.Append("LibraryName=" + this.LibraryName + ",");
+            text.Append("Rights=" + this.Rights + ",");
+            text.Append("Duty=" + this.Duty + ",");
+            return text.ToString();
+        }
+
         public string UID = "";
         public string ConnectionID = "";
 
@@ -335,6 +385,16 @@ namespace DigitalPlatform.MessageServer
                 if (this.UserItem == null)
                     return "";
                 return this.UserItem.rights;
+            }
+        }
+
+        public string Duty
+        {
+            get
+            {
+                if (this.UserItem == null)
+                    return "";
+                return this.UserItem.duty;
             }
         }
     }
