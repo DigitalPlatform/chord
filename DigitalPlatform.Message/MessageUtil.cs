@@ -123,6 +123,67 @@ namespace DigitalPlatform.Message
         public string comment { get; set; }  // 注释
     }
 
+    public class GetConnectionInfoRequest
+    {
+        public string TaskID { get; set; }    // 本次检索的任务 ID。由于一个 Connection 可以用于同时进行若干检索操作，本参数用于区分不同的检索操作
+        public string Operation { get; set; }   // 操作名。
+        public string QueryWord { get; set; }   // 检索词。
+        public string FormatList { get; set; }  // 返回的数据格式列表
+        public long MaxResults { get; set; }    // 本次检索最多命中的记录数。-1 表示不限制
+        public long Start { get; set; } // 本次获得结果的开始位置
+        public long Count { get; set; } // 本次获得结果的个数。 -1表示尽可能多
+
+        public GetConnectionInfoRequest(string taskID,
+            string operation,
+            string queryWord,
+            string formatList,
+            long maxResults,
+            long start,
+            long count)
+        {
+            this.TaskID = taskID;
+            this.Operation = operation;
+            this.QueryWord = queryWord;
+            this.FormatList = formatList;
+            this.MaxResults = maxResults;
+            this.Start = start;
+            this.Count = count;
+        }
+    }
+
+    public class ConnectionRecord
+    {
+        public User User { get; set; }
+        public string LibraryUID { get; set; }
+        public string LibraryName { get; set; }
+
+        public string PropertyList { get; set; }
+
+        public ConnectionRecord(string userName,
+            string rights,
+            string duty,
+            string department,
+            string tel,
+            string comment,
+            string libraryUID,
+            string libraryName,
+            string propertyList)
+        {
+            User user = new User();
+            user.userName = userName;
+            user.rights = rights;
+            user.duty = duty;
+            user.department = department;
+            user.tel = tel;
+            user.comment = comment;
+
+            this.User = user;
+            this.LibraryUID = libraryUID;
+            this.LibraryName = LibraryName;
+            this.PropertyList = propertyList;
+        }
+    }
+
     public class SetInfoRequest
     {
         public string TaskID { get; set; }    // 任务 ID。由于一个 Connection 可以用于同时执行多个任务，本参数用于区分不同的任务

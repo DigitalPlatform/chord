@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 using Microsoft.AspNet.SignalR;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
-using System.Diagnostics;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -384,6 +384,215 @@ ex.GetType().ToString());
         }
 #endif
 
+        #region GetConnectionInfo() API
+
+        public MessageResult RequestGetConnectionInfo(GetConnectionInfoRequest param)
+        {
+            MessageResult result = new MessageResult();
+
+            ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+            if (connection_info == null)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。请求检索书目失败";
+                return result;
+            }
+
+            if (connection_info.UserItem == null)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "尚未登录，无法使用 RequestGetConnectionInfo() 功能";
+            }
+
+            SearchInfo search_info = null;
+            try
+            {
+                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                    param.TaskID,
+                    param.Start,
+                    param.Count);
+            }
+            catch (ArgumentException)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
+                return result;
+            }
+
+            result.String = search_info.UID;   // 返回检索请求的 UID
+
+            // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
+            // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
+            // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
+            Task.Factory.StartNew(() => SearchConnectionInfoAndResponse(param));
+
+            result.Value = 1;   // 成功
+            return result;
+        }
+
+        void SearchConnectionInfoAndResponse(
+            GetConnectionInfoRequest param)
+        {
+            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID);
+            if (search_info == null)
+                return;
+
+            try
+            {
+                int batch_size = 10;
+                int send_count = 0;
+                List<ConnectionRecord> records = new List<ConnectionRecord>();
+                int i = 0;
+                int count = ServerInfo.ConnectionTable.Count;
+                foreach (ConnectionInfo info in ServerInfo.ConnectionTable)
+                {
+                    // TODO: 根据请求者的级别不同，所获得的信息详尽程度不同
+                    ConnectionRecord record = new ConnectionRecord(info.UserName,
+            info.Rights,
+            info.Duty,
+            "", // department,
+            "", // tel,
+            "", // comment,
+            info.LibraryUID,
+            info.LibraryName,
+            info.PropertyList);
+                    records.Add(record);
+                    if (records.Count >= batch_size
+                        || i == count - 1)
+                    {
+                        // 每次发送前，重新试探获得一次，可以有效探知前端已经 CancelSearch() 的情况
+                        search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID);
+                        if (search_info == null)
+                            return;
+
+                        // 让前端获得检索结果
+                        try
+                        {
+                            Clients.Client(search_info.RequestConnectionID).responseGetConnectionInfo(
+                                param.TaskID,
+                                (long)count, // resultCount,
+                                (long)send_count,
+                                records,
+                                "", // errorInfo,
+                                "" // errorCode
+                                );
+                            send_count += records.Count;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("中心向前端分发 responseSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                        }
+                        records.Clear();
+                    }
+
+                    i++;
+                }
+            }
+            finally
+            {
+                // 主动清除已经完成的检索对象
+                ServerInfo.SearchTable.RemoveSearch(param.TaskID);
+            }
+        }
+
+#if NO
+        public MessageResult ResponseGetConnectionInfo(string taskID,
+    long resultCount,
+    long start,
+    IList<ConnectionRecord> records,
+    string errorInfo,
+    string errorCode)
+        {
+            // Thread.Sleep(1000 * 60 * 2);
+            MessageResult result = new MessageResult();
+            try
+            {
+                Console.WriteLine("ResponseSearch start=" + start
+                    + ", records.Count=" + (records == null ? "null" : records.Count.ToString())
+                    + ", errorInfo=" + errorInfo
+                    + ", errorCode=" + errorCode);
+
+                SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
+                if (search_info == null)
+                {
+                    result.ErrorInfo = "ID 为 '" + taskID + "' 的检索对象无法找到";
+                    result.Value = -1;
+                    result.String = "_notFound";
+                    return result;
+                }
+
+                // 给 RecPath 加上 @ 部分
+                if (records != null)
+                {
+                    ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+                    if (connection_info == null)
+                    {
+                        result.Value = -1;
+                        result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。回传检索结果失败";
+                        return result;
+                    }
+                    string strPostfix = connection_info.LibraryUID;
+                    if (string.IsNullOrEmpty(strPostfix) == true)
+                        strPostfix = connection_info.LibraryName;
+
+                    foreach (Record record in records)
+                    {
+                        record.RecPath = record.RecPath + "@" + strPostfix;
+                    }
+                }
+
+                // 让前端获得检索结果
+                try
+                {
+                    Clients.Client(search_info.RequestConnectionID).responseSearch(
+                        taskID,
+                        resultCount,
+                        start,
+                        records,
+                        errorInfo,
+                        errorCode);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("中心向前端分发 responseSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                }
+
+                // 判断响应是否为最后一个响应
+                bool bRet = IsComplete(resultCount,
+                    search_info.ReturnStart,
+                    search_info.ReturnCount,
+                    start,
+                    records);
+                if (bRet == true)
+                {
+                    bool bAllComplete = search_info.CompleteTarget(Context.ConnectionId);
+                    if (bAllComplete)
+                    {
+                        // 追加一个消息，表示检索响应已经全部完成
+                        Clients.Client(search_info.RequestConnectionID).responseSearch(
+        taskID,
+        -1,
+        -1,
+        null,
+        "",
+        "");
+                        // 主动清除已经完成的检索对象
+                        ServerInfo.SearchTable.RemoveSearch(taskID);
+                        Console.WriteLine("complete");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result.SetError("ResponseGetConnectionInfo() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                Console.WriteLine(result.ErrorInfo);
+            }
+            return result;
+        }
+#endif
+        #endregion
+
         #region Search() API
 
         public MessageResult CancelSearch(string taskID)
@@ -487,6 +696,7 @@ ex.GetType().ToString());
                 //      0   成功
                 int nRet = ServerInfo.ConnectionTable.GetBiblioSearchTargets(
                     connection_info.LibraryUID,
+                    false,
                     out connectionIds,
                     out strError);
                 if (nRet == -1)

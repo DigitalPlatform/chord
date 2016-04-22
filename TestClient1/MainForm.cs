@@ -191,8 +191,10 @@ namespace TestClient1
 
             if (this.tabControl_main.SelectedTab == this.tabPage_search)
             {
-                // Task.Factory.StartNew(() => DoSearchPatron());
-                DoSearch();
+                if (this.comboBox_search_method.Text == "GetConnectionInfo")
+                    DoGetConnectionInfo();
+                else
+                    DoSearch();
             }
 
             if (this.tabControl_main.SelectedTab == this.tabPage_bindPatron)
@@ -416,6 +418,66 @@ namespace TestClient1
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 
+        async void DoGetConnectionInfo()
+        {
+            string strError = "";
+
+            SetTextString(this.webBrowser1, "");
+
+            long start = 0;
+            long count = 0;
+
+            start = StringUtil.GetSubInt64(this.textBox_search_position.Text, ',', 0);
+            count = StringUtil.GetSubInt64(this.textBox_search_position.Text, ',', 1);
+
+            EnableControls(false);
+            try
+            {
+                CancellationToken cancel_token = new CancellationToken();
+
+                string id = Guid.NewGuid().ToString();
+                GetConnectionInfoRequest request = new GetConnectionInfoRequest(id,
+                    this.textBox_search_dbNameList.Text,    // operation
+                    this.textBox_search_queryWord.Text,
+                    this.textBox_search_formatList.Text,
+                    1000,
+                    start,
+                    count);
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        this.textBox_search_remoteUserName.Text);
+                    GetConnectionInfoResult result = await connection.GetConnectionInfoAsync(
+                        request,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+
+                    this.Invoke(new Action(() =>
+                    {
+                        SetTextString(this.webBrowser1, ToString(result));
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+        }
+
         async void DoSearch()
         {
             string strError = "";
@@ -553,7 +615,7 @@ namespace TestClient1
 
                     Task<SearchResult>[] tasks = new Task<SearchResult>[2];
                     tasks[0] = task1;
-                    tasks[1] = task2;                    
+                    tasks[1] = task2;
                     Task.WaitAll(tasks);
 
 
@@ -561,8 +623,8 @@ namespace TestClient1
 
                     this.Invoke(new Action(() =>
                     {
-                        string strResultText = "time span: "+time_length.TotalSeconds.ToString() + " secs"
-                            +"\r\n=== biblio ===\r\n" + ToString(task1.Result) 
+                        string strResultText = "time span: " + time_length.TotalSeconds.ToString() + " secs"
+                            + "\r\n=== biblio ===\r\n" + ToString(task1.Result)
                             + "\r\n\r\n=== entities ===\r\n" + ToString(task2.Result);
                         SetTextString(this.webBrowser1, strResultText);
                     }));
@@ -634,8 +696,8 @@ namespace TestClient1
 
                     this.Invoke(new Action(() =>
                     {
-                        string strResultText = "time span: "+time_length.TotalSeconds.ToString() + " secs"
-                            +"\r\n" + ToString(result);
+                        string strResultText = "time span: " + time_length.TotalSeconds.ToString() + " secs"
+                            + "\r\n" + ToString(result);
 #if NO
                         if (result.ResultCount == 0)
                             SetTextString(this.webBrowser1, "没有找到");
@@ -883,6 +945,42 @@ string strHtml)
 
             return text.ToString();
         }
+
+        static string ToString(GetConnectionInfoResult result)
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("ResultCount=" + result.ResultCount + "\r\n");
+            text.Append("ErrorInfo=" + result.ErrorInfo + "\r\n");
+            if (string.IsNullOrEmpty(result.ErrorCode) == false)
+                text.Append("ErrorCode=" + result.ErrorCode + "\r\n");
+            if (result.Records != null)
+            {
+                int i = 0;
+                foreach (ConnectionRecord record in result.Records)
+                {
+                    text.Append((i + 1).ToString() + ") ===");
+                    if (string.IsNullOrEmpty(record.User.userName) == false)
+                        text.Append("User.userName=" + record.User.userName + "\r\n");
+                    if (string.IsNullOrEmpty(record.User.rights) == false)
+                        text.Append("User.rights=" + record.User.rights + "\r\n");
+                    if (string.IsNullOrEmpty(record.User.duty) == false)
+                        text.Append("User.duty=" + record.User.duty + "\r\n");
+
+                    if (string.IsNullOrEmpty(record.LibraryUID) == false)
+                        text.Append("PropertyList=" + record.LibraryUID + "\r\n");
+                    if (string.IsNullOrEmpty(record.LibraryName) == false)
+                        text.Append("PropertyList=" + record.LibraryName + "\r\n");
+
+                    if (string.IsNullOrEmpty(record.PropertyList) == false)
+                        text.Append("PropertyList=" + record.PropertyList + "\r\n");
+
+                    i++;
+                }
+            }
+
+            return text.ToString();
+        }
+
 
         List<string> _entities = new List<string>();
 

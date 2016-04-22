@@ -290,6 +290,91 @@ errorInfo)
 
         }
 
+        #region GetConnectionInfo() API
+
+        public Task<GetConnectionInfoResult> GetConnectionInfoAsync(
+    GetConnectionInfoRequest request,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            return Task.Factory.StartNew<GetConnectionInfoResult>(
+                () =>
+                {
+                    GetConnectionInfoResult result = new GetConnectionInfoResult();
+                    if (result.Records == null)
+                        result.Records = new List<ConnectionRecord>();
+
+                    if (string.IsNullOrEmpty(request.TaskID) == true)
+                        request.TaskID = Guid.NewGuid().ToString();
+
+                    using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+                    {
+                        using (var handler = HubProxy.On<
+                            string, long, long, IList<ConnectionRecord>, string, string>(
+                            "responseGetConnectionInfo",
+                            (taskID, resultCount, start, records, errorInfo, errorCode) =>
+                            {
+                                if (taskID != request.TaskID)
+                                    return;
+
+                                // 装载命中结果
+                                if (resultCount == -1 && start == -1)
+                                {
+                                    if (start == -1)
+                                    {
+                                        // 表示发送响应过程已经结束。只是起到通知的作用，不携带任何信息
+                                        // result.Finished = true;
+                                    }
+                                    else
+                                    {
+                                        result.ResultCount = resultCount;
+                                        result.ErrorInfo = errorInfo;
+                                        result.ErrorCode = errorCode;
+                                    }
+                                    wait_events.finish_event.Set();
+                                    return;
+                                }
+
+                                result.ResultCount = resultCount;
+                                // TODO: 似乎应该关注 start 位置
+                                result.Records.AddRange(records);
+                                result.ErrorInfo = errorInfo;
+                                result.ErrorCode = errorCode;
+
+                                if (IsComplete(request.Start, request.Count, resultCount, result.Records.Count) == true)
+                                    wait_events.finish_event.Set();
+                                else
+                                    wait_events.active_event.Set();
+                            }))
+                        {
+                            MessageResult message = HubProxy.Invoke<MessageResult>(
+                "RequestGetConnectionInfo",
+                request).Result;
+                            if (message.Value == -1 || message.Value == 0)
+                            {
+                                result.ErrorInfo = message.ErrorInfo;
+                                result.ResultCount = -1;
+                                return result;
+                            }
+
+                            // result.String 里面是返回的 taskID
+
+                            // start_time = DateTime.Now;
+
+                            Wait(
+            request.TaskID,
+            wait_events,
+            timeout,
+            token);
+                            return result;
+                        }
+                    }
+                },
+            token);
+        }
+
+        #endregion
+
         #region Search() API
         // 
         // 当 server 发来检索请求的时候被调用。重载的时候要进行检索，并调用 Response 把检索结果发送给 server
@@ -1571,5 +1656,13 @@ errorCode);
         public string ErrorInfo = "";
         public string ErrorCode = "";   // 2016/4/15 增加
         // public bool Finished = false;
+    }
+
+    public class GetConnectionInfoResult
+    {
+        public long ResultCount = 0;
+        public List<ConnectionRecord> Records = null;
+        public string ErrorInfo = "";
+        public string ErrorCode = "";
     }
 }
