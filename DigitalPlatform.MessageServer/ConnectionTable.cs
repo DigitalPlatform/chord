@@ -136,13 +136,15 @@ namespace DigitalPlatform.MessageServer
             try
             {
                 debugInfo.Append("Connection count="+this.Keys.Count+"\r\n");
+                debugInfo.Append("strRequestLibraryUID=" + strRequestLibraryUID + "\r\n");
+                debugInfo.Append("第一阶段匹配过程\r\n");
 
                 int i = 0;
                 foreach (string key in this.Keys)
                 {
                     ConnectionInfo info = this[key];
 
-                    debugInfo.Append((i + 1).ToString() + ") " + info.Dump() + "\r\n");
+                    debugInfo.Append("--- " + (i + 1).ToString() + ") " + info.Dump() + "\r\n");
 
                     // 不检索来自同一图书馆的连接
                     if (info.LibraryUID == strRequestLibraryUID)
@@ -192,7 +194,8 @@ namespace DigitalPlatform.MessageServer
                 return (int)a.SearchCount - (int)b.SearchCount;
             });
 
-            debugInfo.Append("第二阶段\r\n");
+            debugInfo.Append("匹配上的数目=" + infos.Count + "\r\n");
+            debugInfo.Append("第二阶段对每个图书馆筛选出一个目标\r\n");
 
             {
                 // 对于每个目标图书馆，只选择一个连接。经过排序后，使用次数较小的在前
@@ -200,7 +203,7 @@ namespace DigitalPlatform.MessageServer
                 int i = 0;
                 foreach (ConnectionInfo info in infos)
                 {
-                    debugInfo.Append((i + 1).ToString() + ") " + info.Dump() + "\r\n");
+                    debugInfo.Append("--- " + (i + 1).ToString() + ") " + info.Dump() + "\r\n");
 
                     if (strPrevUID != info.LibraryUID)
                     {
@@ -341,18 +344,18 @@ namespace DigitalPlatform.MessageServer
     // Connection 查找表的一个事项
     public class ConnectionInfo
     {
-        public string Dump()
+        public string Dump(string strDelimiter = "\r\n")
         {
             StringBuilder text = new StringBuilder();
-            text.Append("UID=" + this.UID + ",");
-            text.Append("ConnectionID=" + this.ConnectionID + ",");
-            text.Append("UID=" + this.UID + ",");
-            text.Append("UserName=" + this.UserName + ",");
-            text.Append("PropertyList=" + this.PropertyList + ",");
-            text.Append("LibraryUID=" + this.LibraryUID + ",");
-            text.Append("LibraryName=" + this.LibraryName + ",");
-            text.Append("Rights=" + this.Rights + ",");
-            text.Append("Duty=" + this.Duty + ",");
+            text.Append("UID=" + this.UID + strDelimiter);
+            text.Append("ConnectionID=" + this.ConnectionID + strDelimiter);
+            text.Append("UID=" + this.UID + strDelimiter);
+            text.Append("UserName=" + this.UserName + strDelimiter);
+            text.Append("PropertyList=" + this.PropertyList + strDelimiter);
+            text.Append("LibraryUID=" + this.LibraryUID + strDelimiter);
+            text.Append("LibraryName=" + this.LibraryName + strDelimiter);
+            text.Append("Rights=" + this.Rights + strDelimiter);
+            text.Append("Duty=" + this.Duty + strDelimiter);
             return text.ToString();
         }
 
