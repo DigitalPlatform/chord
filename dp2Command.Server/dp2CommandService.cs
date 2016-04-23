@@ -56,19 +56,23 @@ namespace dp2Command.Service
         // 是否使用mongodb存储微信用户与读者关系
         private bool IsUseMongoDb = false;
 
+
         /// <summary>
-        /// 构造函数
+        /// 
         /// </summary>
         /// <param name="strDp2Url"></param>
         /// <param name="strDp2UserName"></param>
         /// <param name="strDp2Password"></param>
-        /// <param name="strDp2WeiXinUrl"></param>
-        /// <param name="strDp2WeiXinLogDir"></param>
+        /// <param name="weiXinUrl"></param>
+        /// <param name="weiXinLogDir"></param>
+        /// <param name="isUseMongoDb"></param>
+        /// <param name="mongoDbConnStr"></param>
+        /// <param name="instancePrefix"></param>
         public void Init(string strDp2Url,
             string strDp2UserName,
             string strDp2Password,
             string weiXinUrl,
-            string weiXinLogDir,
+            string weiXinDataDir,
             bool isUseMongoDb,
             string mongoDbConnStr,
             string instancePrefix 
@@ -78,7 +82,7 @@ namespace dp2Command.Service
             this.dp2UserName = strDp2UserName;
             this.dp2Password = strDp2Password;
             this.weiXinUrl = weiXinUrl;
-            this.weiXinLogDir = weiXinLogDir;
+            this.weiXinDataDir = weiXinDataDir;
 
             // 通道池对象
             ChannelPool = new LibraryChannelPool();
@@ -1028,41 +1032,7 @@ out string strError)
         #endregion
 
 
-        #region 错误日志
 
-        /// <summary>
-        /// 日志锁
-        /// </summary>
-        static object logSyncRoot = new object();
-
-        /// <summary>
-        /// 写错误日志
-        /// </summary>
-        /// <param name="strText"></param>
-        public void WriteErrorLog(string strText)
-        {
-            try
-            {
-                lock (logSyncRoot)
-                {
-                    DateTime now = DateTime.Now;
-                    // 每天一个日志文件
-                    string strFilename = Path.Combine(this.weiXinLogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
-                    string strTime = now.ToString();
-                    FileUtil.WriteText(strFilename,
-                        strTime + " " + strText + "\r\n");
-                }
-            }
-            catch (Exception ex)
-            {
-                EventLog Log = new EventLog();
-                Log.Source = "dp2opac";
-                Log.WriteEntry("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入Windows系统日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
-                Log.WriteEntry(strText, EventLogEntryType.Error);
-            }
-        }
-
-        #endregion
 
 
     }

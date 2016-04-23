@@ -456,11 +456,12 @@ namespace dp2weixin
                 { }
                 // 获取详细信息
                 if (nBiblioIndex >= 1)
-                {                    
+                {
+                    /*
                     //异步操作 使用客服消息接口回复用户
                     AsyncManager m = new AsyncManager();
                     m.OutstandingOperations.Increment(3);//AsyncManager.OutstandingOperations.Increment();                    
-                    var task = Task.Factory.StartNew(() => this.SendCustomeMessage(searchCmd,nBiblioIndex));
+                    var task = Task.Factory.StartNew(() => this.SendBiblioDetail(searchCmd,nBiblioIndex));
                     task.ContinueWith(t =>
                     {
                           m.OutstandingOperations.Decrement(); //AsyncManager.OutstandingOperations.Decrement();
@@ -470,8 +471,9 @@ namespace dp2weixin
                     var responseMessage = CreateResponseMessage<ResponseMessageText>();
                     responseMessage.Content = "";
                     return responseMessage;
+                    */
                     
-                    /*
+                    
                     string strBiblioInfo = "";
                     lRet = this.CmdService.GetDetailBiblioInfo(searchCmd, nBiblioIndex,
                         out strBiblioInfo,
@@ -483,7 +485,7 @@ namespace dp2weixin
 
                     // 输出详细信息
                     return this.CreateTextResponseMessage(strBiblioInfo);
-                     */
+                     
                 }
             }
 
@@ -507,15 +509,9 @@ namespace dp2weixin
         }
 
         // 消息处理
-        public void SendCustomeMessage(SearchCommand searchCmd, int nBiblioIndex)
+        public void SendBiblioDetail(SearchCommand searchCmd, int nBiblioIndex)
         {
-            string sec="61ac93be56e3f7f42d0861bf073427e6 ";
-            
-            AccessTokenContainer.Register(this.AppId, sec);
-            var accessToken = AccessTokenContainer.GetAccessToken(this.AppId);
-
             string strResult = "";
-
             string strError = "";
             string strBiblioInfo = "";
             int lRet = this.CmdService.GetDetailBiblioInfo(searchCmd, nBiblioIndex,
@@ -529,12 +525,29 @@ namespace dp2weixin
             {
                 strResult = strBiblioInfo;
             }
-
-
-            var result = CustomApi.SendText(accessToken, this.WeixinOpenId, strBiblioInfo);
-
-
+            // 发送客服消息
+            this.SendCustomeMessage(strResult);
         }
+
+        // 消息处理
+        public void SendCustomeMessage(string strText)
+        {
+            string sec = "61ac93be56e3f7f42d0861bf073427e6 ";
+            AccessTokenContainer.Register(this.AppId, sec);
+            var accessToken = AccessTokenContainer.GetAccessToken(this.AppId);
+
+            try
+            {
+                CustomApi.SendText(accessToken, this.WeixinOpenId, strText);
+            }
+            catch (Exception ex)
+            {
+                string error = dp2BaseCommandService.GetExceptionMessage(ex);
+                this.CmdService.WriteErrorLog(error);
+                CustomApi.SendText(accessToken, this.WeixinOpenId, ex.Message);
+            }
+        }
+        
 
         /// <summary>
         /// 绑定

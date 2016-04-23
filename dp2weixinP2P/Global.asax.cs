@@ -41,9 +41,11 @@ namespace dp2weixinP2P
             if (string.IsNullOrEmpty(password) == false)// 解密
                 password = Cryptography.Decrypt(password, WeiXinClientUtil.EncryptKey);
 
-            // 错误日志目录
-            string weiXinLogDir = WebConfigurationManager.AppSettings["weiXinLogDir"];
-            PathUtil.CreateDirIfNeed(weiXinLogDir);	// 确保目录创建
+            // 数据目录
+            //string weiXinDataDir = WebConfigurationManager.AppSettings["weiXinDataDir"];
+            //PathUtil.CreateDirIfNeed(weiXinDataDir);	// 确保目录创建
+
+            string weiXinDataDir=Server.MapPath(string.Format("~/App_Data"));
 
             string weiXinUrl = WebConfigurationManager.AppSettings["weiXinUrl"];
 
@@ -52,7 +54,7 @@ namespace dp2weixinP2P
                 userName,
                 password,
                 weiXinUrl,
-                weiXinLogDir,
+                weiXinDataDir,
                 mongoDbConnStr,
                 instancePrefix);
         }

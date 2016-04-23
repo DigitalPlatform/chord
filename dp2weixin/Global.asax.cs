@@ -23,8 +23,8 @@ namespace dp2weixin
             string strDp2Password = WebConfigurationManager.AppSettings["dp2Password"];
 
             // 错误日志目录
-            string strDp2WeiXinLogDir = WebConfigurationManager.AppSettings["dp2WeiXinLogDir"];
-            PathUtil.CreateDirIfNeed(strDp2WeiXinLogDir);	// 确保目录创建
+            string strDp2WeiXinDataDir = WebConfigurationManager.AppSettings["weiXinDataDir"];
+            PathUtil.CreateDirIfNeed(strDp2WeiXinDataDir);	// 确保目录创建
 
             string strDp2WeiXinUrl = "http://dp2003.com/dp2weixin";
             
@@ -33,7 +33,7 @@ namespace dp2weixin
                 strDp2UserName,
                 strDp2Password,
                 strDp2WeiXinUrl,
-                strDp2WeiXinLogDir,
+                strDp2WeiXinDataDir,
                 false,"","");
         }
 

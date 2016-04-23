@@ -85,6 +85,10 @@ namespace dp2weixinP2P.Controllers
             }
              */
 
+            // 开始时间
+            DateTime start_time = DateTime.Now;
+
+
             postModel.Token = Token;//根据自己后台的设置保持一致
             postModel.EncodingAESKey = EncodingAESKey;//根据自己后台的设置保持一致
             postModel.AppId = AppId;//根据自己后台的设置保持一致
@@ -92,99 +96,127 @@ namespace dp2weixinP2P.Controllers
             //v4.2.2之后的版本，可以设置每个人上下文消息储存的最大数量，防止内存占用过多，如果该参数小于等于0，则不限制
             var maxRecordCount = 10;
 
-            /*
-            var logPath = Server.MapPath(string.Format("~/App_Data/MP/{0}/", DateTime.Now.ToString("yyyy-MM-dd")));
-            if (!Directory.Exists(logPath))
+            // 日志总目录,使用前请确保App_Data文件夹存在，且有读写权限。
+            var logDir = dp2CmdService2.Instance.weiXinDataDir+"/log";//Server.MapPath(string.Format("~/App_Data/log"));
+            if (!Directory.Exists(logDir))
             {
-                Directory.CreateDirectory(logPath);
+                Directory.CreateDirectory(logDir);
             }
-            //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
-            var messageHandler = new CustomMessageHandler(Request.InputStream, postModel, maxRecordCount);
-            */
+            // 当日日志目录，用于详细输出消息
+            var logToday =string.Format(logDir + "/{0}/", DateTime.Now.ToString("yyyy-MM-dd"));
+            if (!Directory.Exists(logToday))
+            {
+                Directory.CreateDirectory(logToday);
+            }
 
             //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
             var messageHandler = new dp2MessageHandler(dp2CmdService2.Instance,
                 Request.InputStream, postModel, maxRecordCount);
-            messageHandler.Init(Server.MapPath("~"), true,true);
+            messageHandler.Init(Server.MapPath("~"), true, true);
             try
             {
-                /*
-                //测试时可开启此记录，帮助跟踪数据，使用前请确保App_Data文件夹存在，且有读写权限。
-                messageHandler.RequestDocument.Save(Path.Combine(logPath, string.Format("{0}_Request_{1}.txt", _getRandomFileName(), messageHandler.RequestMessage.FromUserName)));
+                //测试时可开启此记录，帮助跟踪数据
+                string id=_getRandomFileName();
+                string tempPath = Path.Combine(logToday, string.Format("{0}_Request_{1}.txt", id, messageHandler.RequestMessage.FromUserName));
+                messageHandler.RequestDocument.Save(tempPath);
                 if (messageHandler.UsingEcryptMessage)
                 {
-                    messageHandler.EcryptRequestDocument.Save(Path.Combine(logPath, string.Format("{0}_Request_Ecrypt_{1}.txt", _getRandomFileName(), messageHandler.RequestMessage.FromUserName)));
+                    tempPath = Path.Combine(logToday, string.Format("{0}_Request_Ecrypt_{1}.txt", id, messageHandler.RequestMessage.FromUserName));
+                    messageHandler.EcryptRequestDocument.Save(tempPath);
                 }
-                 */
 
                 /* 如果需要添加消息去重功能，只需打开OmitRepeatedMessage功能，SDK会自动处理。
                  * 收到重复消息通常是因为微信服务器没有及时收到响应，会持续发送2-5条不等的相同内容的RequestMessage*/
-                messageHandler.OmitRepeatedMessage = true;
+                //messageHandler.OmitRepeatedMessage = true;
+
                 //执行微信处理过程
                 messageHandler.Execute();
 
-                /*
                 //测试时可开启，帮助跟踪数据
                 if (messageHandler.ResponseDocument != null)
                 {
-                    messageHandler.ResponseDocument.Save(Path.Combine(logPath, string.Format("{0}_Response_{1}.txt", _getRandomFileName(), messageHandler.RequestMessage.FromUserName)));
-                }               
-
+                    tempPath = Path.Combine(logToday, string.Format("{0}_Response_{1}.txt", id, messageHandler.RequestMessage.FromUserName));
+                    messageHandler.ResponseDocument.Save(tempPath);
+                }
                 if (messageHandler.UsingEcryptMessage)
                 {
                     //记录加密后的响应信息
-                    messageHandler.FinalResponseDocument.Save(Path.Combine(logPath, string.Format("{0}_Response_Final_{1}.txt", _getRandomFileName(), messageHandler.RequestMessage.FromUserName)));
+                    tempPath = Path.Combine(logToday, string.Format("{0}_Response_Final_{1}.txt", id, messageHandler.RequestMessage.FromUserName));
+                    messageHandler.FinalResponseDocument.Save(tempPath);
                 }
-                 */
-
 
                 //return Content(messageHandler.ResponseDocument.ToString());//v0.7-
                 //return new FixWeixinBugWeixinResult(messageHandler);//为了解决官方微信5.0软件换行bug暂时添加的方法，平时用下面一个方法即可
+                
+                // 测试异常
+                //throw new Exception("test");
 
-                //var responseMessage = messageHandler.CreateResponseMessage<ResponseMessageText>();
+                // 计算处理消息用了多少时间
+                TimeSpan time_length = DateTime.Now - start_time;
+                string strMsgContext = "";
+                if (messageHandler.RequestMessage is RequestMessageText)
+                    strMsgContext = ((RequestMessageText)messageHandler.RequestMessage).Content;
+                string info = "处理[" + messageHandler.RequestMessage.CreateTime + "-" + messageHandler.RequestMessage.MsgType.ToString() + "-" + strMsgContext + "]消息，time span: " + time_length.TotalSeconds.ToString() + " secs";
+                if (time_length.TotalSeconds > 5)
+                {
+                    info="请求超时:"+info;
+                }
+                dp2CmdService2.Instance.WriteInfoLog(info);
 
+                // 发送客服消息
+                messageHandler.SendCustomeMessage(info);
+
+
+
+                // 如果消息是空内容，直接返回空，这样微信就不是重试了，用于 用户请求书目详细消息，公众号以客户消息返回
                 if (messageHandler.ResponseMessage is ResponseMessageText)
                 {
                     var mess = (ResponseMessageText)messageHandler.ResponseMessage;
                     if (String.IsNullOrEmpty(mess.Content) == true)
+                    {
                         return Content("");
+                    }
                 }
-
-
+                //return Content(messageHandler.ResponseDocument.ToString());//v0.7-
                 return new WeixinResult(messageHandler);//v0.8+
-
-
             }
             catch (Exception ex)
             {
-                /*
-                using (TextWriter tw = new StreamWriter(Server.MapPath("~/App_Data/Error_" + _getRandomFileName() + ".txt")))
+                // 发送客服消息
+                messageHandler.SendCustomeMessage("异常：" + ex.Message);
+
+                string error = "ExecptionMessage:" + ex.Message + "\n";
+                error += ex.Source + "\n";
+                error += ex.StackTrace + "\n";
+                //if (messageHandler.ResponseDocument != null)
+                //{
+                //    error += messageHandler.ResponseDocument.ToString() + "\n";
+                //}
+                if (ex.InnerException != null)
                 {
-                    tw.WriteLine("ExecptionMessage:" + ex.Message);
-                    tw.WriteLine(ex.Source);
-                    tw.WriteLine(ex.StackTrace);
-                    //tw.WriteLine("InnerExecptionMessage:" + ex.InnerException.Message);
-
-                    if (messageHandler.ResponseDocument != null)
-                    {
-                        tw.WriteLine(messageHandler.ResponseDocument.ToString());
-                    }
-
-                    if (ex.InnerException != null)
-                    {
-                        tw.WriteLine("========= InnerException =========");
-                        tw.WriteLine(ex.InnerException.Message);
-                        tw.WriteLine(ex.InnerException.Source);
-                        tw.WriteLine(ex.InnerException.StackTrace);
-                    }
-
-                    tw.Flush();
-                    tw.Close();
+                    error += "========= InnerException =========" + "\n"; ;
+                    error += ex.InnerException.Message + "\n"; ;
+                    error += ex.InnerException.Source + "\n"; ;
+                    error += ex.InnerException.StackTrace + "\n"; ;
                 }
-                 */
 
+                //将程序运行中发生的错误记录到日志
+                dp2CommandService.Instance.WriteErrorLog(error);
 
-                return Content("");
+                // 计算处理消息用了多少时间
+                TimeSpan time_length = DateTime.Now - start_time;
+                string strMsgContext = "";
+                if (messageHandler.RequestMessage is RequestMessageText)
+                    strMsgContext = ((RequestMessageText)messageHandler.RequestMessage).Content;
+                string info = "处理[" + messageHandler.RequestMessage.CreateTime + "-" + messageHandler.RequestMessage.MsgType.ToString() + "-" + strMsgContext + "]消息，time span: " + time_length.TotalSeconds.ToString() + " secs";
+                dp2CmdService2.Instance.WriteInfoLog(info);
+
+                // 发送客服消息
+                //messageHandler.SendCustomeMessage(error+"\n---"+info);
+
+                // 返回error信息
+                return new WeixinResult(error + "\n---" + info);
+
             }
         }
 
