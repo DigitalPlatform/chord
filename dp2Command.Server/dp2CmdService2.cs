@@ -60,7 +60,7 @@ namespace dp2Command.Server
             string userName,
             string password,
             string weiXinUrl,
-            string weiXinLogDir,
+            string weiXinDataDir,
             string mongoDbConnStr,
             string instancePrefix)
         {
@@ -68,7 +68,7 @@ namespace dp2Command.Server
             this.userName = userName;
             this.password = password;
             this.weiXinUrl = weiXinUrl;
-            this.weiXinLogDir = weiXinLogDir;
+            this.weiXinDataDir = weiXinDataDir;
 
             _channels.Login += _channels_Login;
 
@@ -511,6 +511,9 @@ namespace dp2Command.Server
             strError = "未实现";
             Debug.Assert(searchCmd != null);
 
+            // 开始时间
+            DateTime start_time = DateTime.Now;
+
             //检查有无超过数组界面
             if (nIndex <= 0 || searchCmd.BiblioResultPathList.Count < nIndex)
             {
@@ -530,11 +533,9 @@ namespace dp2Command.Server
             }
             //strBiblioInfo += strName + "\n";
 
-            // 开始时间
-            DateTime start_time = DateTime.Now;
-
-
             int nRet = 0;
+
+            //2个任务并行
             string strInfo = "";
             nRet = this.GetBiblioAndSub(strPath,  //GetBiblioAndSub
                 out strInfo,
@@ -542,34 +543,42 @@ namespace dp2Command.Server
             if (nRet == -1 || nRet == 0)
                 return nRet;
             strBiblioInfo += strInfo + "\n";
+            
 
             /*
-            //微信时间不够，先不取summary
-            // 取出summary
-            string strSummary ="";
-            nRet = this.GetBiblioSummary(strPath, out strSummary, out strError);
-            if (nRet == -1 || nRet == 0)
-                return nRet;
-            strBiblioInfo += strSummary + "\n";
-            
-            
-            // 取item
-            string strItemInfo = "";
-            nRet = (int)this.GetItemInfo(strPath, out strItemInfo, out strError);
-            if (nRet == -1 || nRet == 0)
-                return nRet;
-
-            if (strItemInfo != "")
+            try
             {
-                strBiblioInfo += "===========\n";
-                strBiblioInfo += strItemInfo;
+                // 取出summary
+                string strSummary = "";
+                nRet = this.GetBiblioSummary(strPath, out strSummary, out strError);
+                if (nRet == -1 || nRet == 0)
+                    return nRet;
+                strBiblioInfo += strSummary + "\n";
+
+
+                // 取item
+                string strItemInfo = "";
+                nRet = (int)this.GetItemInfo(strPath, out strItemInfo, out strError);
+                if (nRet == -1 || nRet == 0)
+                    return nRet;
+                if (strItemInfo != "")
+                {
+                    strBiblioInfo += "===========\n";
+                    strBiblioInfo += strItemInfo;
+                }
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
             }
             */
-
             // 计算用了多少时间
             TimeSpan time_length = DateTime.Now - start_time;
             strBiblioInfo = "time span: " + time_length.TotalSeconds.ToString() + " secs" + "\n"
                 + strBiblioInfo;
+
+            
              
             return 1;
         }
@@ -791,9 +800,9 @@ namespace dp2Command.Server
                     "",
                     "",
                     "opac",
-                    3,
+                    1000,
                     0,
-                    -1);
+                    10);
 
                 try
                 {
@@ -844,10 +853,7 @@ namespace dp2Command.Server
                     }
 
                     string itemInfo = "";
-                    long nMax = 10;
-                    if (task2.Result.ResultCount < nMax)
-                        nMax = task2.Result.ResultCount;
-                    for (int i = 0; i < nMax; i++)
+                    for (int i = 0; i < task2.Result.Records.Count; i++)
                     {
                         if (itemInfo != "")
                             itemInfo += "===========\n";

@@ -46,8 +46,8 @@ namespace dp2ConsoleToWeiXin
             string strDp2Password = "111111";
 
             // 错误日志目录
-            string strDp2WeiXinLogDir = "C:\\dp2weixin_log";
-            PathUtil.CreateDirIfNeed(strDp2WeiXinLogDir);	// 确保目录创建
+            string strDp2WeiXinDataDir = "C:\\weixin_data";
+            PathUtil.CreateDirIfNeed(strDp2WeiXinDataDir);	// 确保目录创建
 
             string strDp2WeiXinUrl = "http://dp2003.com/dp2weixin";
 
@@ -56,7 +56,7 @@ namespace dp2ConsoleToWeiXin
                 strDp2UserName,
                 strDp2Password,
                 strDp2WeiXinUrl,
-                strDp2WeiXinLogDir,
+                strDp2WeiXinDataDir,
                 false,"","");
 
             //命令集合
