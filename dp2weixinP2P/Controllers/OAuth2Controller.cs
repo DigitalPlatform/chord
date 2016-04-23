@@ -1,4 +1,5 @@
-﻿/*----------------------------------------------------------------
+﻿
+/*----------------------------------------------------------------
     Copyright (C) 2016 Senparc
     
     文件名：OAuth2Controller.cs
@@ -8,15 +9,15 @@
     创建标识：Senparc - 20150312
 ----------------------------------------------------------------*/
 
+using Senparc.Weixin.Exceptions;
+using Senparc.Weixin.MP.AdvancedAPIs;
+using Senparc.Weixin.MP.AdvancedAPIs.OAuth;
 using System;
+using System.Web.Mvc;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Web;
-using System.Web.Mvc;
-using Senparc.Weixin.Exceptions;
-using Senparc.Weixin.MP.AdvancedAPIs;
-using Senparc.Weixin.MP.AdvancedAPIs.OAuth;
 using Senparc.Weixin.MP.CommonAPIs;
 
 namespace Senparc.Weixin.MP.Sample.Controllers
@@ -75,6 +76,8 @@ namespace Senparc.Weixin.MP.Sample.Controllers
             Session["OAuthAccessTokenStartTime"] = DateTime.Now;
             Session["OAuthAccessToken"] = result;
 
+            
+
             //因为第一步选择的是OAuthScope.snsapi_userinfo，这里可以进一步获取用户详细信息
             try
             {
@@ -119,6 +122,9 @@ namespace Senparc.Weixin.MP.Sample.Controllers
             Session["OAuthAccessTokenStartTime"] = DateTime.Now;
             Session["OAuthAccessToken"] = result;
 
+           return Content("微信用户openid:" + result.openid);
+
+            /*
             //因为这里还不确定用户是否关注本微信，所以只能试探性地获取一下
             OAuthUserInfo userInfo = null;
             try
@@ -132,8 +138,9 @@ namespace Senparc.Weixin.MP.Sample.Controllers
             {
                 //未关注，只能授权，无法得到详细信息
                 //这里的 ex.JsonResult 可能为："{\"errcode\":40003,\"errmsg\":\"invalid openid\"}"
-                return Content("用户已授权，授权Token：" + result);
+                return Content("用户已授权，授权Token：" + result.access_token+",openid:" + result.openid);
             }
+             */
         }
     }
 }

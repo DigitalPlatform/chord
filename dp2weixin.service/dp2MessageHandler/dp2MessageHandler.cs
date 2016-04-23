@@ -457,7 +457,7 @@ namespace dp2weixin
                 // 获取详细信息
                 if (nBiblioIndex >= 1)
                 {
-                    /*
+                    
                     //异步操作 使用客服消息接口回复用户
                     AsyncManager m = new AsyncManager();
                     m.OutstandingOperations.Increment(3);//AsyncManager.OutstandingOperations.Increment();                    
@@ -471,9 +471,9 @@ namespace dp2weixin
                     var responseMessage = CreateResponseMessage<ResponseMessageText>();
                     responseMessage.Content = "";
                     return responseMessage;
-                    */
                     
                     
+                    /*
                     string strBiblioInfo = "";
                     lRet = this.CmdService.GetDetailBiblioInfo(searchCmd, nBiblioIndex,
                         out strBiblioInfo,
@@ -485,7 +485,7 @@ namespace dp2weixin
 
                     // 输出详细信息
                     return this.CreateTextResponseMessage(strBiblioInfo);
-                     
+                     */
                 }
             }
 
