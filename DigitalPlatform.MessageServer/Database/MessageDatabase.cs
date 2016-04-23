@@ -1,0 +1,222 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
+
+namespace DigitalPlatform.MessageServer
+{
+    // 消息 数据库
+    public class MessageDatabase : MongoDatabase<MessageItem>
+    {
+        public override async Task CreateIndex()
+        {
+            if (_collection == null)
+                throw new Exception("_collection 尚未初始化");
+
+            await _collection.Indexes.CreateOneAsync(
+                Builders<MessageItem>.IndexKeys.Ascending("publishTime"),
+                new CreateIndexOptions() { Unique = false });
+            await _collection.Indexes.CreateOneAsync(
+    Builders<MessageItem>.IndexKeys.Ascending("creator"),
+    new CreateIndexOptions() { Unique = false });
+            await _collection.Indexes.CreateOneAsync(
+Builders<MessageItem>.IndexKeys.Ascending("group"),
+new CreateIndexOptions() { Unique = false });
+            await _collection.Indexes.CreateOneAsync(
+Builders<MessageItem>.IndexKeys.Ascending("thread"),
+new CreateIndexOptions() { Unique = false });
+        }
+
+        // return:
+        //      true    表示后面要继续处理
+        //      false 表示后面要中断处理
+        public delegate bool Delegate_outputMessage(long totalCount, MessageItem item);
+
+        public async Task GetMessages(string groupName,
+int start,
+int count,
+            Delegate_outputMessage proc)
+        {
+            IMongoCollection<MessageItem> collection = this._collection;
+
+            // List<MessageItem> results = new List<MessageItem>();
+
+            var filter = Builders<MessageItem>.Filter.Eq("group", groupName);
+            var index = 0;
+            using (var cursor = await collection.FindAsync(
+                groupName == "*" ? new BsonDocument() : filter
+                ))
+            {
+                while (await cursor.MoveNextAsync())
+                {
+                    var batch = cursor.Current;
+                    long totalCount = batch.Count<MessageItem>();
+                    foreach (var document in batch)
+                    {
+                        if (count != -1 && index - start >= count)
+                            break;
+                        if (index >= start)
+                        {
+                            if (proc(totalCount, document) == false)
+                                return;
+                        }
+                        index++;
+                    }
+                }
+            }
+
+            proc(-1, null); // 表示结束
+        }
+
+        public async Task<List<MessageItem>> GetMessages(string groupName,
+    int start,
+    int count)
+        {
+            IMongoCollection<MessageItem> collection = this._collection;
+
+            List<MessageItem> results = new List<MessageItem>();
+
+            var filter = Builders<MessageItem>.Filter.Eq("group", groupName);
+            var index = 0;
+            using (var cursor = await collection.FindAsync(
+                groupName == "*" ? new BsonDocument() : filter
+                ))
+            {
+                while (await cursor.MoveNextAsync())
+                {
+                    var batch = cursor.Current;
+                    foreach (var document in batch)
+                    {
+                        if (count != -1 && index - start >= count)
+                            break;
+                        if (index >= start)
+                            results.Add(document);
+                        index++;
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        public async Task<List<MessageItem>> GetMessageByID(string id,
+    int start = 0,
+    int count = -1)
+        {
+            IMongoCollection<MessageItem> collection = this._collection;
+
+            List<MessageItem> results = new List<MessageItem>();
+
+            var filter = Builders<MessageItem>.Filter.Eq("id", id);
+            var index = 0;
+            using (var cursor = await collection.FindAsync(filter))
+            {
+                while (await cursor.MoveNextAsync())
+                {
+                    var batch = cursor.Current;
+                    foreach (var document in batch)
+                    {
+                        if (count != -1 && index - start >= count)
+                            break;
+                        if (index >= start)
+                            results.Add(document);
+                        index++;
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        // parameters:
+        //      item    要加入的消息事项
+        public async Task Add(MessageItem item)
+        {
+            // 检查 item
+            if (string.IsNullOrEmpty(item.creator) == true)
+                throw new Exception("creator 不能为空");
+
+            IMongoCollection<MessageItem> collection = this._collection;
+
+            //item.publishTime = DateTime.Now;
+            //item.expireTime = new DateTime(0); // 表示永远不失效
+
+            await collection.InsertOneAsync(item);
+        }
+
+        // 更新 id 以外的全部字段
+        public async Task Update(MessageItem item)
+        {
+            // 检查 item
+            if (string.IsNullOrEmpty(item.id) == true)
+                throw new Exception("id 不能为空");
+
+            IMongoCollection<MessageItem> collection = this._collection;
+
+            // var filter = Builders<UserItem>.Filter.Eq("id", item.id);
+            var filter = Builders<MessageItem>.Filter.Eq("id", item.id);
+            var update = Builders<MessageItem>.Update
+                .Set("group", item.group)
+                .Set("creator", item.creator)
+                .Set("data", item.data)
+                .Set("format", item.format)
+                .Set("type", item.type)
+                .Set("thread", item.thread);
+
+            await collection.UpdateOneAsync(filter, update);
+        }
+
+        // 根据一个字段的特征删除匹配的事项
+        public async Task Delete(string field, string value)
+        {
+            IMongoCollection<MessageItem> collection = this._collection;
+
+            // var filter = Builders<UserItem>.Filter.Eq("id", item.id);
+            var filter = Builders<MessageItem>.Filter.Eq(field, value);
+
+            await collection.DeleteOneAsync(filter);
+        }
+
+        public async Task DeleteByID(string id)
+        {
+            // 检查 id
+            if (string.IsNullOrEmpty(id) == true)
+                throw new ArgumentException("id 不能为空");
+
+            await Delete("id", id);
+        }
+    }
+
+    public class MessageItem
+    {
+        public void SetID(string id)
+        {
+            this.id = id;
+        }
+
+        [BsonId]
+        // [BsonRepresentation(BsonType.ObjectId)]
+        public string id { get; private set; }  // 消息的 id
+
+        public string group { get; set; }   // 组名 或 组id。消息所从属的组
+        public string creator { get; set; } // 创建消息的人。也就是发送消息的用户名或 id
+        public string data { get; set; }  // 消息数据体
+        public string format { get; set; } // 消息格式。格式是从存储格式角度来说的
+        public string type { get; set; }    // 消息类型。类型是从用途角度来说的
+        public string thread { get; set; }    // 消息所从属的话题线索
+
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        public DateTime publishTime { get; set; } // 消息发布时间
+
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        public DateTime expireTime { get; set; } // 消息失效时间
+
+        // TODO: 消息的历次修改者和时间。也可以不采用这种数据结构，而是在修改后在原时间重新写入一条修改后消息，并注明前后沿革关系
+    }
+
+}

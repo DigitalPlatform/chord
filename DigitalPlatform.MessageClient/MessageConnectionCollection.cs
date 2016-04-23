@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalPlatform.Message;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,7 @@ namespace DigitalPlatform.MessageClient
         List<MessageConnection> _connections = new List<MessageConnection>();
 
         public event LoginEventHandler Login = null;
+        public event AddMessageEventHandler AddMessage = null;
 
         // parameters:
         //      strName 连接的名字。如果要针对同一 dp2mserver 使用多根连接，可以用名字区分它们。如果不想区分，可以使用空
@@ -121,10 +123,22 @@ namespace DigitalPlatform.MessageClient
         // 触发登录事件
         public virtual void TriggerLogin(MessageConnection connection)
         {
-            if (this.Login != null)
+            LoginEventHandler handler = this.Login;
+            if (handler != null)
             {
                 LoginEventArgs e = new LoginEventArgs();
-                this.Login(connection, e);
+                handler(connection, e);
+            }
+        }
+
+        // 触发消息通知事件
+        public virtual void TriggerAddMessage(MessageConnection connection,
+            AddMessageEventArgs e)
+        {
+            AddMessageEventHandler handler = this.AddMessage;
+            if (handler != null)
+            {
+                handler(connection, e);
             }
         }
     }
@@ -143,5 +157,22 @@ namespace DigitalPlatform.MessageClient
     public class LoginEventArgs : EventArgs
     {
         // public string ErrorInfo = "";   // [out] 出错信息
+    }
+
+    /// <summary>
+    /// 消息通知事件
+    /// </summary>
+    /// <param name="sender">发送者</param>
+    /// <param name="e">事件参数</param>
+    public delegate void AddMessageEventHandler(object sender,
+        AddMessageEventArgs e);
+
+    /// <summary>
+    /// 消息通知事件的参数
+    /// </summary>
+    public class AddMessageEventArgs : EventArgs
+    {
+        public string Action = "";
+        public List<MessageRecord> Records = null;
     }
 }

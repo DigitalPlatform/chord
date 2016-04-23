@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+
 using DigitalPlatform.Text;
 
 namespace DigitalPlatform.MessageServer
 {
     /// <summary>
-    /// 用户数据库
+    /// 用户 数据库
     /// </summary>
-    public class UserDatabase
+    public class UserDatabase : MongoDatabase<UserItem>
     {
-        MongoClient _mongoClient = null;
-
+#if NO
         string _userDatabaseName = "";
 
         IMongoCollection<UserItem> _userCollection = null;
@@ -25,21 +25,21 @@ namespace DigitalPlatform.MessageServer
         // 初始化
         // parameters:
         public async void Open(
-            string strMongoDbConnStr,
+            MongoClient mongoClient,
+            // string strMongoDbConnStr,
             string strInstancePrefix)
         {
-            if (string.IsNullOrEmpty(strMongoDbConnStr) == true)
-                throw new ArgumentException("strMongoDbConnStr 参数值不应为空");
+            //if (string.IsNullOrEmpty(strMongoDbConnStr) == true)
+            //    throw new ArgumentException("strMongoDbConnStr 参数值不应为空");
 
             if (string.IsNullOrEmpty(strInstancePrefix) == false)
                 strInstancePrefix = strInstancePrefix + "_";
 
             _userDatabaseName = strInstancePrefix + "user";
 
-            this._mongoClient = new MongoClient(strMongoDbConnStr);
 
             {
-                var db = this._mongoClient.GetDatabase(this._userDatabaseName);
+                var db = mongoClient.GetDatabase(this._userDatabaseName);
 
                 _userCollection = db.GetCollection<UserItem>("data");
 
@@ -63,13 +63,20 @@ namespace DigitalPlatform.MessageServer
             }
         }
 
-        public async Task CreateIndex()
+#endif
+
+        public override async Task CreateIndex()
         {
+            if (_collection == null)
+                throw new Exception("_collection 尚未初始化");
+
             // FieldDefinition<UserItem> field = "OperTime";
-            var options = new CreateIndexOptions() { Unique = true };
-            await _userCollection.Indexes.CreateOneAsync(
+            await _collection.Indexes.CreateOneAsync(
                 Builders<UserItem>.IndexKeys.Ascending("userName"),
-                options);
+                new CreateIndexOptions() { Unique = true });
+            await _collection.Indexes.CreateOneAsync(
+    Builders<UserItem>.IndexKeys.Ascending("groups"),
+    new CreateIndexOptions() { Unique = false });
 
 #if NO
                 .CreateIndex(new IndexKeysBuilder().Ascending("OperTime"),
@@ -77,6 +84,7 @@ namespace DigitalPlatform.MessageServer
 #endif
         }
 
+#if NO
         // 清除集合内的全部内容
         public async Task Clear()
         {
@@ -98,12 +106,14 @@ namespace DigitalPlatform.MessageServer
                 return this._userCollection;
             }
         }
+#endif
 
-        public async Task<List<UserItem>> GetUsers(string userName,
+        // 根据用户名检索用户
+        public async Task<List<UserItem>> GetUsersByName(string userName,
             int start,
             int count)
         {
-            IMongoCollection<UserItem> collection = this.LogCollection;
+            IMongoCollection<UserItem> collection = this._collection;
 
             List<UserItem> results = new List<UserItem>();
 
@@ -111,6 +121,39 @@ namespace DigitalPlatform.MessageServer
             var index = 0;
             using (var cursor = await collection.FindAsync(
                 userName == "*" ? new BsonDocument() : filter
+                ))
+            {
+                while (await cursor.MoveNextAsync())
+                {
+                    var batch = cursor.Current;
+                    foreach (var document in batch)
+                    {
+                        if (count != -1 && index - start >= count)
+                            break;
+                        if (index >= start)
+                            results.Add(document);
+                        index++;
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        // 检索属于指定群组的用户
+        // https://docs.mongodb.org/manual/tutorial/query-documents/#arrays
+        public async Task<List<UserItem>> GetUsersByGroup(string groupName,
+    int start,
+    int count)
+        {
+            IMongoCollection<UserItem> collection = this._collection;
+
+            List<UserItem> results = new List<UserItem>();
+
+            var filter = Builders<UserItem>.Filter.Eq("groups", groupName);
+            var index = 0;
+            using (var cursor = await collection.FindAsync(
+                groupName == "*" ? new BsonDocument() : filter
                 ))
             {
                 while (await cursor.MoveNextAsync())
@@ -138,7 +181,7 @@ namespace DigitalPlatform.MessageServer
             if (string.IsNullOrEmpty(item.userName) == true)
                 throw new Exception("用户名不能为空");
 
-            IMongoCollection<UserItem> collection = this.LogCollection;
+            IMongoCollection<UserItem> collection = this._collection;
 
             item.password = Cryptography.GetSHA1(item.password);
             await collection.InsertOneAsync(item);
@@ -151,7 +194,7 @@ namespace DigitalPlatform.MessageServer
             if (string.IsNullOrEmpty(item.userName) == true)
                 throw new Exception("用户名不能为空");
 
-            IMongoCollection<UserItem> collection = this.LogCollection;
+            IMongoCollection<UserItem> collection = this._collection;
 
             // var filter = Builders<UserItem>.Filter.Eq("id", item.id);
             var filter = Builders<UserItem>.Filter.Eq("userName", item.userName);
@@ -161,7 +204,8 @@ namespace DigitalPlatform.MessageServer
                 .Set("duty", item.duty)
                 .Set("department", item.department)
                 .Set("tel", item.tel)
-                .Set("comment", item.comment);
+                .Set("comment", item.comment)
+                .Set("groups", item.groups);
 
             await collection.UpdateOneAsync(filter, update);
         }
@@ -171,7 +215,7 @@ namespace DigitalPlatform.MessageServer
         //      item    读者信息事项。注意，item.password 中是明码，在用于更新密码时，会自动被变为 Hash 码形态
         public async Task UpdatePassword(UserItem item)
         {
-            IMongoCollection<UserItem> collection = this.LogCollection;
+            IMongoCollection<UserItem> collection = this._collection;
 
             item.password = Cryptography.GetSHA1(item.password);
 
@@ -185,7 +229,7 @@ namespace DigitalPlatform.MessageServer
 
         public async Task Delete(UserItem item)
         {
-            IMongoCollection<UserItem> collection = this.LogCollection;
+            IMongoCollection<UserItem> collection = this._collection;
 
             // var filter = Builders<UserItem>.Filter.Eq("id", item.id);
             var filter = Builders<UserItem>.Filter.Eq("userName", item.userName);
@@ -304,6 +348,7 @@ namespace DigitalPlatform.MessageServer
         public string tel { get; set; }  // 电话号码
         public string comment { get; set; }  // 注释
 
+        public string [] groups { get; set; }  // 所加入的群组
 #if NO
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime OperTime { get; set; } // 操作时间

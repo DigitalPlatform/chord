@@ -9,9 +9,11 @@ using Microsoft.AspNet.SignalR;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
+using System.Collections;
 
 namespace DigitalPlatform.MessageServer
 {
+    // TODO: 检查所有前端需要使用的 API，对 notlogin 返回值做规范化处理。以便前端能统一处理这种状态
     /// <summary>
     /// 
     /// </summary>
@@ -22,31 +24,542 @@ namespace DigitalPlatform.MessageServer
             Clients.All.addMessage(name, message);
         }
 
+        #region 辅助函数
+
+        // 判断响应是否为(顺次发回的)最后一个响应
+        // parameters:
+        //      resultCount 结果集中命中的结果总数
+        //      returnStart 本次要返回的，结果集中的开始位置
+        //      returnCount 本次要返回的，结果集中的从 returnStart 开始的元素个数
+        //      start   集合 records 开始的偏移位置。数值是从结果集的最开头算起
+        static bool IsComplete(long resultCount,
+            long returnStart,
+            long returnCount,
+            long start,
+            IList<Record> records)
+        {
+#if NO
+            Console.WriteLine("IsComplete() resultCount="+resultCount
+                +",returnStart="+returnStart
+                +",returnCount="+returnCount
+                +",start="+start
+                +",records.Count="
+                +records == null ? "null" : records.Count.ToString());
+#endif
+            if (returnCount == 0)
+                returnCount = -1;   // 暂时矫正
+
+            if (resultCount == -1)
+                return true;    // 出错，也意味着响应结束
+
+            if (resultCount < 0)
+                return false;   // -1 表示结果尺寸不确定
+
+            long tail = resultCount;
+            if (returnCount != -1)
+                tail = Math.Min(resultCount, returnStart + returnCount);
+
+            if (records == null)
+            {
+                if (start >= tail)
+                    return true;
+                return false;
+            }
+
+            if (start + records.Count >= tail)
+                return true;
+            return false;
+        }
+
+        // 获得通道信息，并顺便检查状态
+        ConnectionInfo GetConnection(string id,
+            MessageResult result,
+            string strFunctionName,
+            bool checkLogin = true)
+        {
+            ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+            if (info == null)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。" + strFunctionName + " 操作失败";
+                result.String = "_connectionNotFound";
+                return null;
+            }
+
+            if (checkLogin && info.UserItem == null)
+            {
+                result.Value = -1;
+                result.String = "_notLogin";
+                result.ErrorInfo = "尚未登录，无法使用 " + strFunctionName + " 功能";
+                return null;
+            }
+
+            return info;
+        }
+
+        #endregion
+
+        #region SetMessage() API
+
+        // 返回 MessageRecord 数组，因为有些字段是服务器给设定的，例如 PublishTime, ID
+        // 但如果让前端知道哪条是哪条呢？方法是返回的数组和请求的数组大小顺序一样
+        // 前端得到这些内容的好处是，可以自己在本地刷新显示，不必等服务器发过来通知
+        // 在中途出错的情况下，数组中的元素可能少于请求的数目，但顺序是和请求是一致的
+        public SetMessageResult SetMessage(string action,
+            List<MessageRecord> messages)
+        {
+            SetMessageResult result = new SetMessageResult();
+            List<MessageItem> saved_items = new List<MessageItem>();
+            List<MessageItem> items = new List<MessageItem>();
+
+            // 转换类型
+            foreach (MessageRecord record in messages)
+            {
+                items.Add(BuildMessageItem(record));
+            }
+
+            try
+            {
+                ConnectionInfo info = GetConnection(Context.ConnectionId,
+result,
+"SetMessage()",
+false); // 没有以用户名登录的 connection 也可以在默认群发出消息
+                if (info == null)
+                    return result;
+
+                if (action == "create")
+                {
+                    // 超级用户可以在任何群组发布消息
+                    bool bSupervisor = (StringUtil.Contains(info.Rights, "supervisor"));
+
+                    foreach (MessageItem item in items)
+                    {
+                        if (bSupervisor == false)
+                        {
+                            if (info.UserItem == null)
+                            {
+                                if (string.IsNullOrEmpty(item.group) == false)
+                                {
+                                    result.String = "Denied";
+                                    result.Value = -1;
+                                    result.ErrorInfo = "当前用户只能在 默认 组创建消息";
+                                    return result;
+                                }
+                            }
+                            else
+                            {
+                                if (string.IsNullOrEmpty(item.group) == false
+                                    && info.UserItem.groups != null
+                                    && Array.IndexOf(info.UserItem.groups, item.group) == -1)
+                                {
+                                    result.String = "Denied";
+                                    result.Value = -1;
+                                    result.ErrorInfo = "当前用户没有加入群组 '" + item.group + "'，因此无法在其中创建消息";
+                                    return result;
+                                }
+                            }
+                        }
+
+                        item.publishTime = DateTime.Now;
+                        // item.expireTime = new DateTime(0);  // 表示永远不失效
+                        item.creator = BuildMessageUserID(info);
+                        item.SetID(Guid.NewGuid().ToString());  // 确保 id 字段有值。是否可以允许前端指定这个 ID 呢？如果要进行查重就麻烦了
+                        ServerInfo.MessageDatabase.Add(item).Wait();
+                        saved_items.Add(item);
+                    }
+                }
+                else if (action == "change")
+                {
+                    // 超级用户可以修改任何消息
+                    bool bSupervisor = (StringUtil.Contains(info.Rights, "supervisor"));
+
+                    foreach (MessageItem item in items)
+                    {
+                        if (bSupervisor == false)
+                        {
+                            if (info.UserItem == null)
+                            {
+                                if (string.IsNullOrEmpty(item.group) == false)
+                                {
+                                    result.String = "Denied";
+                                    result.Value = -1;
+                                    result.ErrorInfo = "当前用户只能修改 默认 组内的消息";
+                                    return result;
+                                }
+                            }
+                            else
+                            {
+                                if (string.IsNullOrEmpty(item.group) == false
+                                    && info.UserItem.groups != null
+                                    && Array.IndexOf(info.UserItem.groups, item.group) == -1)
+                                {
+                                    result.String = "Denied";
+                                    result.Value = -1;
+                                    result.ErrorInfo = "当前用户没有加入群组 '" + item.group + "'，因此无法修改其中的消息";
+                                    return result;
+                                }
+                            }
+
+                            // 检索出原有的消息，以便核对条件
+                            List<MessageItem> results = ServerInfo.MessageDatabase.GetMessageByID(item.id).Result;
+
+                            if (results.Count == 0)
+                            {
+                                result.String = "NotFound";
+                                result.Value = -1;
+                                result.ErrorInfo = "id 为 '" + item.id + "' 的消息不存在";
+                                return result;
+                            }
+
+                            MessageItem exist = results[0];
+                            if (exist.creator != info.UserID)
+                            {
+                                result.String = "Denied";
+                                result.Value = -1;
+                                result.ErrorInfo = "id 为 '" + item.id + "' 的消息不是当前用户创建的，修改操作被拒绝";
+                                return result;
+                            }
+                        }
+
+                        // 其他人只能修改自己的消息
+                        ServerInfo.MessageDatabase.Update(item).Wait();
+                        saved_items.Add(item);
+                    }
+                }
+                else if (action == "delete")
+                {
+                    // 超级用户可以删除任何消息
+                    bool bSupervisor = (StringUtil.Contains(info.Rights, "supervisor"));
+
+                    foreach (MessageItem item in items)
+                    {
+                        if (bSupervisor == false)
+                        {
+                            if (info.UserItem == null)
+                            {
+                                if (string.IsNullOrEmpty(item.group) == false)
+                                {
+                                    result.String = "Denied";
+                                    result.Value = -1;
+                                    result.ErrorInfo = "当前用户只能删除 默认 组内的消息";
+                                    return result;
+                                }
+                            }
+                            else
+                            {
+                                if (string.IsNullOrEmpty(item.group) == false
+                                    && info.UserItem.groups != null
+                                    && Array.IndexOf(info.UserItem.groups, item.group) == -1)
+                                {
+                                    result.String = "Denied";
+                                    result.Value = -1;
+                                    result.ErrorInfo = "当前用户没有加入群组 '" + item.group + "'，因此无法删除其中的消息";
+                                    return result;
+                                }
+                            }
+
+                            // 检索出原有的消息，以便核对条件
+                            List<MessageItem> results = ServerInfo.MessageDatabase.GetMessageByID(item.id).Result;
+
+                            if (results.Count == 0)
+                            {
+                                result.String = "NotFound";
+                                result.Value = -1;
+                                result.ErrorInfo = "id 为 '" + item.id + "' 的消息不存在";
+                                return result;
+                            }
+
+                            MessageItem exist = results[0];
+                            if (exist.creator != info.UserID)
+                            {
+                                result.String = "Denied";
+                                result.Value = -1;
+                                result.ErrorInfo = "id 为 '" + item.id + "' 的消息不是当前用户创建的，删除操作被拒绝";
+                                return result;
+                            }
+                        }
+
+                        // 其他人只能删除自己创建的消息
+                        ServerInfo.MessageDatabase.DeleteByID(item.id).Wait();
+                        saved_items.Add(item);
+                    }
+                }
+                else
+                {
+                    result.String = "ActionError";
+                    result.Value = -1;
+                    result.ErrorInfo = "无法识别的 action 参数值 '" + action + "'";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.SetError("SetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                Console.WriteLine(result.ErrorInfo);
+            }
+            finally
+            {
+                // 准备返回的数组
+                result.Results = new List<MessageRecord>();
+                foreach (MessageItem item in saved_items)
+                {
+                    MessageRecord record = BuildMessageRecord(item);
+                    // 为了节省空间，把 data 等字段清除
+                    record.data = null;
+                    result.Results.Add(record);
+                }
+                // 即便遇到抛出异常的情况，先前保存成功的部分消息也可以发送出去
+                // 启动一个任务，向相关的前端推送消息，以便它们在界面上显示消息或者变化(比如删除或者修改以后的效果)
+                Task.Factory.StartNew(() => PushMessageToClient(action, saved_items));
+            }
+
+            return result;
+        }
+
+        // 构造用于消息内 create 字段的 user id
+        static string BuildMessageUserID(ConnectionInfo info)
+        {
+            if (string.IsNullOrEmpty(info.UserID) == false)
+                return info.UserID;
+            return "~" + info.LibraryUserName + "@" + info.LibraryUID;
+        }
+
+        void PushMessageToClient(string action, List<MessageItem> messages)
+        {
+            // 按照 Group 名字，分为若干个 List
+            Hashtable table = new Hashtable();  // groupName --> List<MessageItem>
+            foreach (MessageItem item in messages)
+            {
+                Debug.Assert(string.IsNullOrEmpty(item.id) == false, "");
+
+                string groupName = item.group;
+                if (string.IsNullOrEmpty(groupName) == true)
+                    groupName = "<default>";
+                List<MessageRecord> records = (List<MessageRecord>)table[groupName];
+                if (records == null)
+                {
+                    records = new List<MessageRecord>();
+                    table[groupName] = records;
+                }
+                records.Add(BuildMessageRecord(item));
+            }
+
+            foreach (string groupName in table.Keys)
+            {
+                List<MessageRecord> records = (List<MessageRecord>)table[groupName];
+                Debug.Assert(records != null, "");
+                Debug.Assert(records.Count != 0, "");
+                Clients.Group(groupName).addMessage(action, records);
+            }
+        }
+
+        static MessageItem BuildMessageItem(MessageRecord record)
+        {
+            MessageItem item = new MessageItem();
+            item.SetID(record.id);
+            item.group = record.group;
+            item.creator = record.creator;
+            item.data = record.data;
+            item.format = record.format;
+            item.type = record.type;
+            item.thread = record.thread;
+
+            item.publishTime = record.publishTime;
+            item.expireTime = record.expireTime;
+            return item;
+        }
+
+        static MessageRecord BuildMessageRecord(MessageItem item)
+        {
+            MessageRecord record = new MessageRecord();
+            record.id = item.id;
+            record.group = item.group;
+            record.creator = item.creator;
+            record.data = item.data;
+            record.format = item.format;
+            record.type = item.type;
+            record.thread = item.thread;
+
+            record.publishTime = item.publishTime;
+            record.expireTime = item.expireTime;
+            return record;
+        }
+
+        #endregion
+
+        #region GetMessage() API
+
+        public MessageResult RequestGetMessage(GetMessageRequest param)
+        {
+            if (param.Count == 0)
+                param.Count = -1;
+
+            MessageResult result = new MessageResult();
+
+            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+result,
+"RequestGetMessage()",
+true);
+            if (connection_info == null)
+                return result;
+
+            SearchInfo search_info = null;
+            try
+            {
+                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                    param.TaskID,
+                    param.Start,
+                    param.Count);
+            }
+            catch (ArgumentException)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
+                return result;
+            }
+
+            result.String = search_info.UID;   // 返回检索请求的 UID
+
+            // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
+            // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
+            // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
+            Task.Factory.StartNew(() => SearchMessageAndResponse(param));
+
+            result.Value = 1;   // 成功
+            return result;
+        }
+
+        void SearchMessageAndResponse(
+            GetMessageRequest param)
+        {
+            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID);
+            if (search_info == null)
+                return;
+
+            try
+            {
+                int batch_size = 10;    // 100? 或者根据 data 尺寸动态计算每批的个数
+                int send_count = 0;
+
+                List<MessageRecord> records = new List<MessageRecord>();
+
+                ServerInfo.MessageDatabase.GetMessages(param.GroupCondition,
+                    (int)param.Start,
+                    (int)param.Count,
+                    (totalCount, item) =>
+                    {
+                        if (item != null)
+                            records.Add(BuildMessageRecord(item));
+                        // 集中发送一次
+                        if (records.Count >= batch_size || (records.Count > 0 && item == null))
+                        {
+                            // 让前端获得检索结果
+                            try
+                            {
+                                Clients.Client(search_info.RequestConnectionID).responseGetMessage(
+                                    param.TaskID,
+                                    (long)totalCount, // resultCount,
+                                    (long)send_count,
+                                    records,
+                                    "", // errorInfo,
+                                    "" // errorCode
+                                    );
+                                send_count += records.Count;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("中心向前端分发 responseGetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                                return false;
+                            }
+                            records.Clear();
+                        }
+
+                        return true;
+                    }).Wait();
+            }
+            finally
+            {
+                // 主动清除已经完成的检索对象
+                ServerInfo.SearchTable.RemoveSearch(param.TaskID);
+            }
+        }
+#if NO
+        public GetMessageResult GetMessage(GetMessageRequest param)
+        {
+            GetMessageResult result = new GetMessageResult();
+
+            try
+            {
+                ConnectionInfo info = GetConnection(Context.ConnectionId,
+            result,
+            "GetMessage()",
+            true);
+                if (info == null)
+                    return result;
+
+                // 按照群组名检索；按照用户名检索；按照群组名和用户名检索；加上时间范围限制
+                // 或者用 XML 检索式表示
+
+                var items = ServerInfo.MessageDatabase.GetMessages(param.GroupCondition, (int)param.Start, (int)param.Count).Result;
+                result.Results = new List<MessageRecord>();
+                foreach (MessageItem item in items)
+                {
+                    result.Results.Add(BuildMessageRecord(item));
+                }
+                result.Value = 0;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "GetMessage() 出错：" + ExceptionUtil.GetExceptionText(ex);
+                return result;
+            }
+        }
+#endif
+
+        #endregion
+
+
+        #region GetUsers() API
+
         public GetUserResult GetUsers(string userName, int start, int count)
         {
             GetUserResult result = new GetUserResult();
 
             try
             {
+#if NO
                 ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
                 if (info == null)
                 {
                     result.Value = -1;
                     result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。操作失败";
+                    result.String = "_connectionNotFound";
                     return result;
                 }
 
                 if (info.UserItem == null)
                 {
                     result.Value = -1;
+                    result.String = "_notLogin";
                     result.ErrorInfo = "尚未登录，无法使用 GetUsers() 功能";
+                    return result;
                 }
+#endif
+                ConnectionInfo info = GetConnection(Context.ConnectionId,
+            result,
+            "GetUsers()",
+            true);
+                if (info == null)
+                    return result;
 
                 // supervisor 权限用户，可以获得所有用户的信息
                 if (StringUtil.Contains(info.UserItem == null ? "" : info.UserItem.rights,
                     "supervisor") == true)
                 {
-                    var task = ServerInfo.UserDatabase.GetUsers(userName, start, count);
+                    var task = ServerInfo.UserDatabase.GetUsersByName(userName, start, count);
                     task.Wait();
                     result.Users = BuildUsers(task.Result);
                 }
@@ -65,7 +578,7 @@ namespace DigitalPlatform.MessageServer
                         return result;
                     }
 
-                    var task = ServerInfo.UserDatabase.GetUsers(userName, start, count);
+                    var task = ServerInfo.UserDatabase.GetUsersByName(userName, start, count);
                     task.Wait();
                     result.Users = BuildUsers(task.Result);
                 }
@@ -79,6 +592,133 @@ namespace DigitalPlatform.MessageServer
                 return result;
             }
         }
+
+        #endregion
+
+        #region SetUsers() API
+
+        // 设置用户。包括增删改功能
+        // 可能返回的错误码:
+        //      Denied
+        public MessageResult SetUsers(string action, List<UserItem> users)
+        {
+            MessageResult result = new MessageResult();
+
+            try
+            {
+#if NO
+                ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+                if (info == null)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。操作失败";
+                    return result;
+                }
+#endif
+                ConnectionInfo info = GetConnection(Context.ConnectionId,
+result,
+"SetUsers()",
+true);
+                if (info == null)
+                    return result;
+
+
+                if (action == "create")
+                {
+                    // 验证请求者是否有 supervisor 权限
+                    if (StringUtil.Contains(info.Rights, "supervisor") == false)
+                    {
+                        result.String = "Denied";
+                        result.Value = -1;
+                        result.ErrorInfo = "当前用户不具备 supervisor 权限，create 命令被拒绝";
+                        return result;
+                    }
+
+                    foreach (UserItem item in users)
+                    {
+                        ServerInfo.UserDatabase.Add(item).Wait();
+                    }
+                }
+                else if (action == "change")
+                {
+                    // TODO: 如果 groups 成员发生了修改，要重新加入 SignalR 的 group
+                    // 或者为了省事，全部重新加入一次
+
+                    // 验证请求者是否有 supervisor 权限
+                    if (StringUtil.Contains(info.Rights, "supervisor") == false)
+                    {
+                        result.String = "Denied";
+                        result.Value = -1;
+                        result.ErrorInfo = "当前用户不具备 supervisor 权限，change 命令被拒绝";
+                        return result;
+                    }
+
+                    foreach (UserItem item in users)
+                    {
+                        ServerInfo.UserDatabase.Update(item).Wait();
+                    }
+                }
+                else if (action == "changePassword")
+                {
+                    // 超级用户可以修改所有用户的密码。而普通用户只能修改自己的密码
+                    foreach (UserItem item in users)
+                    {
+                        if (StringUtil.Contains(info.Rights, "supervisor") == false
+                            && item.userName != info.UserName)
+                        {
+                            result.String = "Denied";
+                            result.Value = -1;
+                            result.ErrorInfo = "当前用户不具备 supervisor 权限，试图修改其他用户 '" + item.userName + "' 密码的 changePassword 命令被拒绝";
+                            return result;
+                        }
+
+                        ServerInfo.UserDatabase.UpdatePassword(item).Wait();
+                    }
+                }
+                else if (action == "delete")
+                {
+                    // TODO: 注意从 SignalR 的 group 中 remove
+
+                    // 验证请求者是否有 supervisor 权限
+                    if (StringUtil.Contains(info.Rights, "supervisor") == false)
+                    {
+                        result.String = "Denied";
+                        result.Value = -1;
+                        result.ErrorInfo = "当前用户不具备 supervisor 权限，delete 命令被拒绝";
+                        return result;
+                    }
+
+                    foreach (UserItem item in users)
+                    {
+                        ServerInfo.UserDatabase.Delete(item).Wait();
+                    }
+                }
+                else
+                {
+                    result.String = "ActionError";
+                    result.Value = -1;
+                    result.ErrorInfo = "无法识别的 action 参数值 '" + action + "'";
+                }
+
+                // 启动一个任务，刷新已经登录的连接中保持在内存的账户信息
+                Task.Factory.StartNew(() => RefreshUserInfo(action, users));
+            }
+            catch (Exception ex)
+            {
+                result.SetError("SetUsers() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                Console.WriteLine(result.ErrorInfo);
+
+#if NO
+                result.String = "Exception";
+                result.Value = -1;
+                result.ErrorInfo = "SetUsers() 出错：" + ExceptionUtil.GetExceptionText(ex);
+                return result;
+#endif
+            }
+            return result;
+        }
+
 
         // 构造适于返回给前端的 User 对象列表
         static List<User> BuildUsers(List<UserItem> items)
@@ -103,122 +743,85 @@ namespace DigitalPlatform.MessageServer
             user.department = item.department;
             user.tel = item.tel;
             user.comment = item.comment;
+            user.groups = item.groups;
             return user;
         }
 
-        public MessageResult SetUsers(string action, List<UserItem> users)
+
+        void RefreshUserInfo(string action, List<UserItem> users)
         {
-            MessageResult result = new MessageResult();
-
-            try
+            List<ConnectionInfo> delete_connections = new List<ConnectionInfo>();
+            foreach (ConnectionInfo info in ServerInfo.ConnectionTable)
             {
-                ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
-                if (info == null)
+                foreach (UserItem user in users)
                 {
-                    result.Value = -1;
-                    result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。操作失败";
-                    return result;
-                }
-
-                // 验证请求者是否登录，是否有 supervisor 权限
-
-                if (action == "create")
-                {
-                    if (StringUtil.Contains(info.UserItem.rights, "supervisor") == false)
+                    if (user.userName == info.UserName)
                     {
-                        result.String = "Denied";
-                        result.Value = -1;
-                        result.ErrorInfo = "当前用户不具备 supervisor 权限，create 命令被拒绝";
-                        return result;
-                    }
-
-                    foreach (UserItem item in users)
-                    {
-                        ServerInfo.UserDatabase.Add(item).Wait();
-                    }
-                }
-                else if (action == "change")
-                {
-                    if (StringUtil.Contains(info.UserItem.rights, "supervisor") == false)
-                    {
-                        result.String = "Denied";
-                        result.Value = -1;
-                        result.ErrorInfo = "当前用户不具备 supervisor 权限，change 命令被拒绝";
-                        return result;
-                    }
-
-                    foreach (UserItem item in users)
-                    {
-                        ServerInfo.UserDatabase.Update(item).Wait();
-                    }
-                }
-                else if (action == "changePassword")
-                {
-                    // 超级用户可以修改所有用户的密码。而普通用户只能修改自己的密码
-                    foreach (UserItem item in users)
-                    {
-                        if (StringUtil.Contains(info.UserItem.rights, "supervisor") == false
-                            && item.userName != info.UserItem.userName)
+                        if (action == "change")
                         {
-                            result.String = "Denied";
-                            result.Value = -1;
-                            result.ErrorInfo = "当前用户不具备 supervisor 权限，试图修改其他用户 '" + item.userName + "' 密码的 changePassword 命令被拒绝";
-                            return result;
+                            RefreshConnectionInfo(info, user);
                         }
-
-                        ServerInfo.UserDatabase.UpdatePassword(item).Wait();
+                        else if (action == "changePassword"
+                            || action == "delete")
+                        {
+                            delete_connections.Add(info);   // 希望强制登出
+                        }
+                        break;
                     }
-                }
-                else if (action == "delete")
-                {
-                    if (StringUtil.Contains(info.UserItem.rights, "supervisor") == false)
-                    {
-                        result.String = "Denied";
-                        result.Value = -1;
-                        result.ErrorInfo = "当前用户不具备 supervisor 权限，delete 命令被拒绝";
-                        return result;
-                    }
-
-                    foreach (UserItem item in users)
-                    {
-                        ServerInfo.UserDatabase.Delete(item).Wait();
-                    }
-                }
-                else
-                {
-                    result.String = "ActionError";
-                    result.Value = -1;
-                    result.ErrorInfo = "无法识别的 action 参数值 '" + action + "'";
                 }
             }
-            catch (Exception ex)
+
+            foreach (ConnectionInfo info in delete_connections)
             {
-                result.SetError("SetUsers() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
-ex.GetType().ToString());
-                Console.WriteLine(result.ErrorInfo);
-
-#if NO
-                result.String = "Exception";
-                result.Value = -1;
-                result.ErrorInfo = "SetUsers() 出错：" + ExceptionUtil.GetExceptionText(ex);
-                return result;
-#endif
+                ServerInfo.ConnectionTable.RemoveConnection(info.ConnectionID);
             }
-            return result;
+
+            // TODO: dp2Capo 遇到中途报错没有登录的情况，会自动重试登录么?
+            // 要测试一下密码被修改的情况，并且要把重新登录失败的情况记入事件日志，让管理员能看到
+            // 还有一个办法就是，遇到 dp2mserver 主动 logout 一个 connection 的情况，可以给前端发起一个调用，通知它 login 状态变化了，需要及时做出处理。这个机制可以和其他机制结合使用。因为这种通知也是不保险的，需要结合其他机制才能完整
         }
+
+        // 用 item 的信息更新 info 里面的对应字段
+        static void RefreshConnectionInfo(ConnectionInfo info, UserItem item)
+        {
+            if (info.UserItem == null)
+                return;
+
+            // id 不要更新
+            info.UserItem.userName = item.userName;
+            info.UserItem.rights = item.rights;
+
+            info.UserItem.duty = item.duty;
+            info.UserItem.department = item.department;
+            info.UserItem.tel = item.tel;
+            info.UserItem.comment = item.comment;
+            info.UserItem.groups = item.groups;
+        }
+
+        #endregion
+
+        #region Login() API
 
         // 登录，并告知 server 关于自己的一些属性。如果不登录，则 server 会按照缺省的方式设置这些属性，例如无法实现检索响应功能
         // parameters:
         //      propertyList    属性列表。
-        public MessageResult Login(string userName,
+        // 错误码
+        //      异常
+        public MessageResult Login(
+#if NO
+            string userName,
             string password,
             string libraryUID,
             string libraryName,
-            string propertyList)
+            string propertyList
+#endif
+LoginRequest param
+            )
         {
             MessageResult result = new MessageResult();
             try
             {
+#if NO
                 ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
                 if (info == null)
                 {
@@ -226,19 +829,26 @@ ex.GetType().ToString());
                     result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。登录失败";
                     return result;
                 }
+#endif
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+result,
+"Login()",
+false);
+                if (connection_info == null)
+                    return result;
 
-                if (string.IsNullOrEmpty(userName) == false)
+                if (string.IsNullOrEmpty(param.UserName) == false)
                 {
                     // 获得用户信息
-                    var results = ServerInfo.UserDatabase.GetUsers(userName, 0, 1).Result;
+                    var results = ServerInfo.UserDatabase.GetUsersByName(param.UserName, 0, 1).Result;
                     if (results.Count != 1)
                     {
                         result.Value = -1;
-                        result.ErrorInfo = "用户名 '" + userName + "' 不存在。登录失败";
+                        result.ErrorInfo = "用户名 '" + param.UserName + "' 不存在。登录失败";
                         return result;
                     }
                     var user = results[0];
-                    string strHashed = Cryptography.GetSHA1(password);
+                    string strHashed = Cryptography.GetSHA1(param.Password);
 
                     if (user.password != strHashed)
                     {
@@ -246,12 +856,24 @@ ex.GetType().ToString());
                         result.ErrorInfo = "密码不正确。登录失败";
                         return result;
                     }
-                    info.UserItem = user;
+                    connection_info.UserItem = user;
                 }
 
-                info.PropertyList = propertyList;
-                info.LibraryUID = libraryUID;
-                info.LibraryName = libraryName;
+                // 加入 SignalR 的 group
+                if (connection_info.UserItem != null
+                    && connection_info.UserItem.groups != null)
+                {
+                    foreach (string group in connection_info.UserItem.groups)
+                    {
+                        Groups.Add(Context.ConnectionId, group);
+                    }
+                }
+                Groups.Add(Context.ConnectionId, "<default>");
+
+                connection_info.PropertyList = param.PropertyList;
+                connection_info.LibraryUID = param.LibraryUID;
+                connection_info.LibraryName = param.LibraryName;
+                connection_info.LibraryUserName = param.LibraryUserName;
             }
             catch (Exception ex)
             {
@@ -262,11 +884,18 @@ ex.GetType().ToString());
             return result;
         }
 
+        #endregion
+
+        #region Logout() API
+
+        // 错误码:
+        //      异常
         public MessageResult Logout()
         {
             MessageResult result = new MessageResult();
             try
             {
+#if NO
                 ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
                 if (info == null)
                 {
@@ -274,13 +903,32 @@ ex.GetType().ToString());
                     result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。登出失败";
                     return result;
                 }
+#endif
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+result,
+"Logout()",
+false);
+                if (connection_info == null)
+                    return result;
 
                 // 登出。但连接依然存在
-                info.UserItem = null;
-                info.PropertyList = "";
-                info.LibraryUID = "";
-                info.LibraryName = "";
-                info.SearchCount = 0;
+                connection_info.UserItem = null;
+                connection_info.PropertyList = "";
+                connection_info.LibraryUID = "";
+                connection_info.LibraryName = "";
+                connection_info.SearchCount = 0;
+
+                // 从 SignalR 的 group 中移走
+                if (connection_info.UserItem != null
+                    && connection_info.UserItem.groups != null)
+                {
+                    foreach (string group in connection_info.UserItem.groups)
+                    {
+                        Groups.Remove(Context.ConnectionId, group);
+                    }
+                }
+                Groups.Remove(Context.ConnectionId, "<default>");
+
             }
             catch (Exception ex)
             {
@@ -290,6 +938,8 @@ ex.GetType().ToString());
             }
             return result;
         }
+
+        #endregion
 
 #if NO
         // parameters:
@@ -390,6 +1040,7 @@ ex.GetType().ToString());
         {
             MessageResult result = new MessageResult();
 
+#if NO
             ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
             if (connection_info == null)
             {
@@ -403,6 +1054,13 @@ ex.GetType().ToString());
                 result.Value = -1;
                 result.ErrorInfo = "尚未登录，无法使用 RequestGetConnectionInfo() 功能";
             }
+#endif
+            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+result,
+"RequestGetConnectionInfo()",
+true);
+            if (connection_info == null)
+                return result;
 
             SearchInfo search_info = null;
             try
@@ -480,7 +1138,7 @@ ex.GetType().ToString());
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("中心向前端分发 responseSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                            Console.WriteLine("中心向前端分发 responseGetConnectionInfo() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
                         }
                         records.Clear();
                     }
@@ -593,13 +1251,22 @@ ex.GetType().ToString());
 #endif
         #endregion
 
-        #region Search() API
-
+        #region CancelSearch() API
+        // 错误码:
+        //      _notFound/异常
         public MessageResult CancelSearch(string taskID)
         {
             MessageResult result = new MessageResult();
             try
             {
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+result,
+"CancelSearch()",
+true);
+                if (connection_info == null)
+                    return result;
+
+                // TODO: 要确信当前 connection 是启动 Search 的
                 SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
                 if (search_info == null)
                 {
@@ -620,21 +1287,16 @@ ex.GetType().ToString());
             return result;
         }
 
+        #endregion
+
+        #region Search() API
+
+
         // return:
         //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
         public MessageResult RequestSearch(
             string userNameList,
-#if NO
-            string operation,
-            string searchID,
-            string dbNameList,
-            string queryWord,
-            string fromList,
-            string matchStyle,
-            string formatList,
-            long maxResults
-#endif
- SearchRequest searchParam
+            SearchRequest searchParam
             )
         {
             if (searchParam.Count == 0)
@@ -642,6 +1304,7 @@ ex.GetType().ToString());
 
             MessageResult result = new MessageResult();
 
+#if NO
             ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
             if (connection_info == null)
             {
@@ -655,6 +1318,13 @@ ex.GetType().ToString());
                 result.Value = -1;
                 result.ErrorInfo = "尚未登录，无法使用 RequestSearch() 功能";
             }
+#endif
+            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+result,
+"RequestSearch()",
+true);
+            if (connection_info == null)
+                return result;
 
             if (searchParam.Operation == "searchBiblio"
                 && userNameList == "*"
@@ -747,6 +1417,7 @@ ex.GetType().ToString());
             }
 
             result.String = search_info.UID;   // 返回检索请求的 UID
+            search_info.SetTargetIDs(connectionIds);
 
             Clients.Clients(connectionIds).search(// "searchBiblio",
 #if NO
@@ -761,7 +1432,6 @@ ex.GetType().ToString());
 #endif
                 searchParam);
 
-            search_info.TargetIDs = connectionIds;
             result.Value = 1;   // 表示已经成功发起了检索
             return result;
 #if NO
@@ -886,51 +1556,6 @@ ex.GetType().ToString());
 
         #endregion
 
-        // 判断响应是否为(顺次发回的)最后一个响应
-        // parameters:
-        //      resultCount 结果集中命中的结果总数
-        //      returnStart 本次要返回的，结果集中的开始位置
-        //      returnCount 本次要返回的，结果集中的从 returnStart 开始的元素个数
-        //      start   集合 records 开始的偏移位置。数值是从结果集的最开头算起
-        static bool IsComplete(long resultCount,
-            long returnStart,
-            long returnCount,
-            long start,
-            IList<Record> records)
-        {
-#if NO
-            Console.WriteLine("IsComplete() resultCount="+resultCount
-                +",returnStart="+returnStart
-                +",returnCount="+returnCount
-                +",start="+start
-                +",records.Count="
-                +records == null ? "null" : records.Count.ToString());
-#endif
-            if (returnCount == 0)
-                returnCount = -1;   // 暂时矫正
-
-            if (resultCount == -1)
-                return true;    // 出错，也意味着响应结束
-
-            if (resultCount < 0)
-                return false;   // -1 表示结果尺寸不确定
-
-            long tail = resultCount;
-            if (returnCount != -1)
-                tail = Math.Min(resultCount, returnStart + returnCount);
-
-            if (records == null)
-            {
-                if (start >= tail)
-                    return true;
-                return false;
-            }
-
-            if (start + records.Count >= tail)
-                return true;
-            return false;
-        }
-
         #region SetInfo() API
 
         // return:
@@ -942,6 +1567,7 @@ ex.GetType().ToString());
         {
             MessageResult result = new MessageResult();
 
+#if NO
             ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
             if (connection_info == null)
             {
@@ -955,6 +1581,13 @@ ex.GetType().ToString());
                 result.Value = -1;
                 result.ErrorInfo = "尚未登录，无法使用 RequestSetInfo() 功能";
             }
+#endif
+            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+result,
+"RequestSetInfo()",
+true);
+            if (connection_info == null)
+                return result;
 
             // 检查请求者是否具备操作的权限
             if (StringUtil.Contains(connection_info.Rights, setInfoParam.Operation) == false)
@@ -1002,11 +1635,11 @@ ex.GetType().ToString());
             }
 
             result.String = search_info.UID;   // 返回检索请求的 UID
+            search_info.SetTargetIDs(connectionIds);
 
             Clients.Clients(connectionIds).setInfo(
                 setInfoParam);
 
-            search_info.TargetIDs = connectionIds;
             result.Value = 1;   // 表示已经成功发起了操作
             return result;
         }
@@ -1025,6 +1658,7 @@ ex.GetType().ToString());
             MessageResult result = new MessageResult();
             try
             {
+                // TODO: 要附加对方的 id 进行检查，看看是不是这个 task 请求过的对方。以免出现被冒用的情况
                 SearchInfo info = ServerInfo.SearchTable.GetSearchInfo(taskID);
                 if (info == null)
                 {
@@ -1082,6 +1716,7 @@ ex.GetType().ToString());
         {
             MessageResult result = new MessageResult();
 
+#if NO
             ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
             if (connection_info == null)
             {
@@ -1095,6 +1730,13 @@ ex.GetType().ToString());
                 result.Value = -1;
                 result.ErrorInfo = "尚未登录，无法使用 RequestBindPatron() 功能";
             }
+#endif
+            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+result,
+"RequestBindPatron()",
+true);
+            if (connection_info == null)
+                return result;
 
             // 检查请求者是否具备操作的权限
             if (StringUtil.Contains(connection_info.Rights, "bindPatron") == false)
@@ -1142,11 +1784,11 @@ ex.GetType().ToString());
             }
 
             result.String = search_info.UID;   // 返回操作请求的 UID
+            search_info.SetTargetIDs(connectionIds);
 
             Clients.Clients(connectionIds).bindPatron(
                 bindPatronParam);
 
-            search_info.TargetIDs = connectionIds;
             result.Value = 1;   // 表示已经成功发起了操作
             return result;
         }
@@ -1193,11 +1835,11 @@ ex.GetType().ToString());
         //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
         public MessageResult RequestCirculation(
             string userNameList,
-            CirculationRequest circulationParam
-            )
+            CirculationRequest circulationParam)
         {
             MessageResult result = new MessageResult();
 
+#if NO
             ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
             if (connection_info == null)
             {
@@ -1211,6 +1853,13 @@ ex.GetType().ToString());
                 result.Value = -1;
                 result.ErrorInfo = "尚未登录，无法使用 RequestCirculation() 功能";
             }
+#endif
+            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+result,
+"RequestCirculation()",
+true);
+            if (connection_info == null)
+                return result;
 
             // 检查请求者是否具备操作的权限
             if (StringUtil.Contains(connection_info.Rights, "circulation") == false)
@@ -1257,6 +1906,7 @@ ex.GetType().ToString());
             }
 
             result.String = search_info.UID;   // 返回操作请求的 UID
+            search_info.SetTargetIDs(connectionIds);
 
             try
             {
@@ -1269,7 +1919,6 @@ ex.GetType().ToString());
                 result.ErrorInfo = "分发 circulation 请求时出现异常: " + ExceptionUtil.GetExceptionText(ex);
                 return result;
             }
-            search_info.TargetIDs = connectionIds;
             result.Value = 1;   // 表示已经成功发起了操作
             return result;
         }
@@ -1305,6 +1954,8 @@ ex.GetType().ToString());
         }
 
         #endregion
+
+        #region 几个事件
 
         public override Task OnConnected()
         {
@@ -1344,6 +1995,9 @@ ex.GetType().ToString());
             //Program.WriteToConsole("Client disconnected: " + Context.ConnectionId);
             return base.OnDisconnected(stopCalled);
         }
+
+        #endregion
+
     }
 
 }

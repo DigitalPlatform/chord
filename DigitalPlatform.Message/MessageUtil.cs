@@ -11,6 +11,22 @@ namespace DigitalPlatform.Message
 
     }
 
+    public class MessageRecord
+    {
+        public string id { get; set; }  // 消息的 id
+
+        public string group { get; set; }   // 组名 或 组id。消息所从属的组
+        public string creator { get; set; } // 创建消息的人。也就是发送消息的用户名或 id
+        public string data { get; set; }  // 消息数据体
+        public string format { get; set; } // 消息格式。格式是从存储格式角度来说的
+        public string type { get; set; }    // 消息类型。类型是从用途角度来说的
+        public string thread { get; set; }    // 消息所从属的话题线索
+
+        public DateTime publishTime { get; set; } // 消息发布时间
+        public DateTime expireTime { get; set; } // 消息失效时间
+    }
+
+
     public class Record
     {
         // 记录路径。可能是本地路径，例如 “图书总库/1”；也可能是全局路径，例如“图书总库@xxxxxxx”
@@ -54,6 +70,54 @@ namespace DigitalPlatform.Message
             this.String = errorCode;
             this.Value = -1;
         }
+    }
+
+    public class SetMessageResult : MessageResult
+    {
+        public List<MessageRecord> Results { get; set; }    // 返回的实际被创建或者修改的消息
+    }
+
+    public class GetMessageRequest
+    {
+        public string TaskID { get; set; }    // 本次检索的任务 ID。由于一个 Connection 可以用于同时进行若干检索操作，本参数用于区分不同的检索操作
+
+        public string GroupCondition { get; set; }
+        public string UserCondition { get; set; }
+        public string TimeCondition { get; set; }
+
+        public long Start { get; set; }
+        public long Count { get; set; }
+
+        public GetMessageRequest(string taskID, 
+            string groupCondition,
+            string userCondition,
+            string timeCondition,
+            long start,
+            long count)
+        {
+            this.TaskID = taskID;
+            this.GroupCondition = groupCondition;
+            this.UserCondition = userCondition;
+            this.TimeCondition = timeCondition;
+            this.Start = start;
+            this.Count = count;
+        }
+    }
+
+    public class GetMessageResult : MessageResult
+    {
+        public List<MessageRecord> Results { get; set; }
+    }
+
+    public class LoginRequest
+    {
+        public string UserName { get; set; }
+        public string Password { get; set; }
+
+        public string LibraryUserName { get; set; }
+        public string LibraryUID { get; set; }
+        public string LibraryName { get; set; }
+        public string PropertyList { get; set; }
     }
 
     public class GetUserResult : MessageResult
@@ -121,6 +185,8 @@ namespace DigitalPlatform.Message
         public string department { get; set; } // 部门名称
         public string tel { get; set; }  // 电话号码
         public string comment { get; set; }  // 注释
+
+        public string[] groups { get; set; }  // 所加入的群组
     }
 
     public class GetConnectionInfoRequest
