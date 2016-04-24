@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Collections;
 
 using Microsoft.AspNet.SignalR;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
-using System.Collections;
+using System.Security.Claims;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -17,8 +18,11 @@ namespace DigitalPlatform.MessageServer
     /// <summary>
     /// 
     /// </summary>
+    [MyAuthorize]
     public class MyHub : Hub
     {
+        public const string USERITEM_KEY = "MyHub.UserItem";
+
         public void Send(string name, string message)
         {
             Clients.All.addMessage(name, message);
@@ -163,6 +167,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         item.publishTime = DateTime.Now;
                         // item.expireTime = new DateTime(0);  // 表示永远不失效
                         item.creator = BuildMessageUserID(info);
+                        item.userName = info.UserName;
                         item.SetID(Guid.NewGuid().ToString());  // 确保 id 字段有值。是否可以允许前端指定这个 ID 呢？如果要进行查重就麻烦了
                         ServerInfo.MessageDatabase.Add(item).Wait();
                         saved_items.Add(item);
@@ -322,6 +327,9 @@ ex.GetType().ToString());
         {
             if (string.IsNullOrEmpty(info.UserID) == false)
                 return info.UserID;
+            if (string.IsNullOrEmpty(info.LibraryName) == false)
+                return "~" + info.LibraryUserName + "@" + info.LibraryName;
+
             return "~" + info.LibraryUserName + "@" + info.LibraryUID;
         }
 
@@ -360,6 +368,7 @@ ex.GetType().ToString());
             item.SetID(record.id);
             item.group = record.group;
             item.creator = record.creator;
+            item.userName = record.userName;
             item.data = record.data;
             item.format = record.format;
             item.type = record.type;
@@ -376,6 +385,7 @@ ex.GetType().ToString());
             record.id = item.id;
             record.group = item.group;
             record.creator = item.creator;
+            record.userName = item.userName;
             record.data = item.data;
             record.format = item.format;
             record.type = item.type;
@@ -390,6 +400,13 @@ ex.GetType().ToString());
 
         #region GetMessage() API
 
+        static bool Include(string [] array, string one)
+        {
+            if (array == null && string.IsNullOrEmpty(one) == true)
+                return true;
+            return Array.IndexOf(array, one) != -1;
+        }
+
         public MessageResult RequestGetMessage(GetMessageRequest param)
         {
             if (param.Count == 0)
@@ -400,9 +417,28 @@ ex.GetType().ToString());
             ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
 result,
 "RequestGetMessage()",
-true);
+false);
             if (connection_info == null)
                 return result;
+
+            if (string.IsNullOrEmpty(connection_info.UserName))
+            {
+                if (string.IsNullOrEmpty(param.GroupCondition) == false)
+                {
+                    result.Value = -1;
+                    result.String = "Denied";
+                    result.ErrorInfo = "未登录的用户只能查看 默认 群组的消息，不能查看群组 '"+param.GroupCondition+"' 的消息";
+                    return result;
+                }
+            }
+
+            if (Include(connection_info.Groups, param.GroupCondition) == false )
+            {
+                result.Value = -1;
+                result.String = "Denied";
+                result.ErrorInfo = "当前用户不能查看群组 '" + param.GroupCondition + "' 的消息";
+                return result;
+            }
 
             SearchInfo search_info = null;
             try
@@ -807,14 +843,7 @@ ex.GetType().ToString());
         //      propertyList    属性列表。
         // 错误码
         //      异常
-        public MessageResult Login(
-#if NO
-            string userName,
-            string password,
-            string libraryUID,
-            string libraryName,
-            string propertyList
-#endif
+        MessageResult Login(
 LoginRequest param
             )
         {
@@ -890,7 +919,7 @@ ex.GetType().ToString());
 
         // 错误码:
         //      异常
-        public MessageResult Logout()
+        MessageResult Logout()
         {
             MessageResult result = new MessageResult();
             try
@@ -1108,11 +1137,12 @@ true);
                     ConnectionRecord record = new ConnectionRecord(info.UserName,
             info.Rights,
             info.Duty,
-            "", // department,
-            "", // tel,
-            "", // comment,
+            info.Department, // department,
+            info.Tel, // tel,
+            info.Comment, // comment,
             info.LibraryUID,
             info.LibraryName,
+            info.LibraryUserName,
             info.PropertyList);
                     records.Add(record);
                     if (records.Count >= batch_size
@@ -1322,7 +1352,7 @@ ex.GetType().ToString());
             ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
 result,
 "RequestSearch()",
-true);
+false);
             if (connection_info == null)
                 return result;
 
@@ -1957,9 +1987,65 @@ true);
 
         #region 几个事件
 
+        void AddConnection()
+        {
+            ConnectionInfo connection_info = ServerInfo.ConnectionTable.AddConnection(Context.ConnectionId);
+
+            if (Context.Request.Environment.ContainsKey(USERITEM_KEY))
+            {
+                UserItem useritem = (UserItem)Context.Request.Environment[USERITEM_KEY];
+                connection_info.UserItem = useritem;
+            }
+
+            string strParameters = Context.Request.Headers["parameters"];
+
+            Hashtable table = StringUtil.ParseParameters(strParameters, ',', '=', "url");
+            connection_info.PropertyList = (string)table["propertyList"];
+            connection_info.LibraryUID = (string)table["libraryUID"];
+            connection_info.LibraryName = (string)table["libraryName"];
+            connection_info.LibraryUserName = (string)table["libraryUserName"];
+
+            // 加入 SignalR 的 group
+            if (connection_info.UserItem != null
+                && connection_info.UserItem.groups != null)
+            {
+                foreach (string group in connection_info.UserItem.groups)
+                {
+                    Groups.Add(Context.ConnectionId, group);
+                }
+            }
+            Groups.Add(Context.ConnectionId, "<default>");
+        }
+
         public override Task OnConnected()
         {
+#if NO
+            UserItem useritem = (UserItem)Context.Request.Environment[USERITEM_KEY];
+
+            string userName = Context.Headers["username"];
+            string password = Context.Headers["password"];
+            string parameters = Context.Headers["parameters"];
+
+            Hashtable table = StringUtil.ParseParameters(parameters);
+            LoginRequest param = new LoginRequest();
+            param.UserName = userName;
+            param.Password = password;
+            param.LibraryName = (string)table["libraryName"];
+            param.LibraryUID = (string)table["libraryUID"];
+            param.LibraryUserName = (string)table["libraryUserName"];
+            param.PropertyList = (string)table["propertyList"];
+
             ServerInfo.ConnectionTable.AddConnection(Context.ConnectionId);
+
+            MessageResult result = Login(param);
+            if (result.Value == -1)
+            {
+                ServerInfo.ConnectionTable.RemoveConnection(Context.ConnectionId);
+                // return Task.Run(() => { });
+                throw new Exception(result.ErrorInfo);
+            }
+#endif
+            AddConnection();
 
             //Program.WriteToConsole("Client connected: " + Context.ConnectionId);
             return base.OnConnected();
@@ -1967,7 +2053,32 @@ true);
 
         public override Task OnReconnected()
         {
+#if NO
+            UserItem useritem = (UserItem)Context.Request.Environment[USERITEM_KEY];
+
+            string userName = Context.Headers["username"];
+            string password = Context.Headers["password"];
+            string parameters = Context.Headers["parameters"];
+
+            Hashtable table = StringUtil.ParseParameters(parameters);
+            LoginRequest param = new LoginRequest();
+            param.UserName = userName;
+            param.Password = password;
+            param.LibraryName = (string)table["libraryName"];
+            param.LibraryUID = (string)table["libraryUID"];
+            param.LibraryUserName = (string)table["libraryUserName"];
+            param.PropertyList = (string)table["propertyList"];
+
             ServerInfo.ConnectionTable.AddConnection(Context.ConnectionId);
+
+            MessageResult result = Login(param);
+            if (result.Value == -1)
+            {
+                ServerInfo.ConnectionTable.RemoveConnection(Context.ConnectionId);
+                throw new Exception(result.ErrorInfo);
+            }
+#endif
+            AddConnection();
 
             //Program.WriteToConsole("Client Re-connected: " + Context.ConnectionId);
 
@@ -2000,4 +2111,95 @@ true);
 
     }
 
+    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+    public class MyAuthorizeAttribute : AuthorizeAttribute
+    {
+        protected override bool UserAuthorized(System.Security.Principal.IPrincipal user)
+        {
+            return true;
+
+#if NO
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            var principal = user as ClaimsPrincipal;
+
+            if (principal != null)
+            {
+                Claim authenticated = principal.FindFirst(ClaimTypes.Authentication);
+                if (authenticated != null && authenticated.Value == "true")
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+#endif
+        }
+
+        public override bool AuthorizeHubConnection(Microsoft.AspNet.SignalR.Hubs.HubDescriptor hubDescriptor, IRequest request)
+        {
+            // return base.AuthorizeHubConnection(hubDescriptor, request);
+
+            return AuthenticateUser(request);
+        }
+
+        private static bool AuthenticateUser(
+            IRequest request
+            // string credentials
+            )
+        {
+            if (request.Environment.ContainsKey(MyHub.USERITEM_KEY) == true)
+                return true;
+
+            string userName = request.Headers["username"];
+
+            if (string.IsNullOrEmpty(userName) == true)
+                return true;    // 也算授权成功，但 request.Environment 里面没有用户对象
+
+            string password = request.Headers["password"];
+
+            // 获得用户信息
+            var results = ServerInfo.UserDatabase.GetUsersByName(userName, 0, 1).Result;
+            if (results.Count != 1)
+                return false;
+            var user = results[0];
+            string strHashed = Cryptography.GetSHA1(password);
+
+            if (user.password != strHashed)
+                return false;
+            request.Environment[MyHub.USERITEM_KEY] = user;
+            return true;
+        }
+
+#if NO
+        private static bool CheckAuthorization()
+        {
+            var cache = AppHostBase.Resolve<ICacheClient>();
+            var sess = cache.SessionAs<AuthUserSession>();
+            return sess.IsAuthenticated;
+        }
+#endif
+
+        public override bool AuthorizeHubMethodInvocation(Microsoft.AspNet.SignalR.Hubs.IHubIncomingInvokerContext hubIncomingInvokerContext, bool appliesToMethod)
+        {
+            return base.AuthorizeHubMethodInvocation(hubIncomingInvokerContext, appliesToMethod);
+        }
+    }
+
+    public class AuthenticatedConnection : PersistentConnection
+    {
+        protected override bool AuthorizeRequest(IRequest request)
+        {
+            return request.User.Identity.IsAuthenticated;
+        }
+    }
 }

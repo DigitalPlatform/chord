@@ -19,8 +19,10 @@ namespace dp2Capo
     /// </summary>
     public class ServerConnection : MessageConnection
     {
+#if NO
         public string UserName { get; set; }
         public string Password { get; set; }
+#endif
 
         public HostInfo dp2library { get; set; }
         internal LibraryChannelPool _channelPool = new LibraryChannelPool();
@@ -1344,7 +1346,7 @@ strErrorCode);
 
         #endregion
 
-
+#if NO
         // 连接成功后被调用，执行登录功能。重载时要调用 Login(...) 向 server 发送 login 消息
         public override void TriggerLogin()
         {
@@ -1364,5 +1366,6 @@ strErrorCode);
                         }
                     });
         }
+#endif
     }
 }

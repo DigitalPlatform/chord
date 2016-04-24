@@ -191,6 +191,7 @@
             this.textBox_config_password.PasswordChar = '*';
             this.textBox_config_password.Size = new System.Drawing.Size(161, 21);
             this.textBox_config_password.TabIndex = 5;
+            this.textBox_config_password.TextChanged += new System.EventHandler(this.textBox_config_messageServerUrl_TextChanged);
             // 
             // label3
             // 
@@ -207,6 +208,7 @@
             this.textBox_config_userName.Name = "textBox_config_userName";
             this.textBox_config_userName.Size = new System.Drawing.Size(161, 21);
             this.textBox_config_userName.TabIndex = 3;
+            this.textBox_config_userName.TextChanged += new System.EventHandler(this.textBox_config_messageServerUrl_TextChanged);
             // 
             // label2
             // 
@@ -225,6 +227,7 @@
             this.textBox_config_messageServerUrl.Name = "textBox_config_messageServerUrl";
             this.textBox_config_messageServerUrl.Size = new System.Drawing.Size(314, 21);
             this.textBox_config_messageServerUrl.TabIndex = 1;
+            this.textBox_config_messageServerUrl.TextChanged += new System.EventHandler(this.textBox_config_messageServerUrl_TextChanged);
             // 
             // label1
             // 

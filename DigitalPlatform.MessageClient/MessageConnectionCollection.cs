@@ -39,12 +39,30 @@ namespace DigitalPlatform.MessageClient
             connection.Container = this;
             this._connections.Add(connection);
 
+
         FOUND:
+            LoginEventArgs e = new LoginEventArgs();
+            e.ServerUrl = url;
+            e.Name = strName;
+            LoginEventHandler handler = this.Login;
+            if (handler != null)
+                handler(connection, e);
+
+            if (string.IsNullOrEmpty(e.ErrorInfo) == false)
+                throw new Exception(e.ErrorInfo);
+
+            connection.UserName = e.UserName;
+            connection.Password = e.Password;
+            connection.Parameters = e.Parameters;
+
             if (autoConnect && connection.IsConnected == false)
             {
                 Task<MessageConnection> task = new Task<MessageConnection>(() =>
                 {
-                    connection.ConnectAsync(url).Wait();
+                    // TODO: 建议抛出原有 Exception
+                    MessageResult result = connection.ConnectAsync().Result;
+                    if (result.Value == -1)
+                        throw new Exception(result.ErrorInfo);
                     return connection;
                 });
                 task.Start();
@@ -120,6 +138,7 @@ namespace DigitalPlatform.MessageClient
             this.Clear();
         }
 
+#if NO
         // 触发登录事件
         public virtual void TriggerLogin(MessageConnection connection)
         {
@@ -130,6 +149,7 @@ namespace DigitalPlatform.MessageClient
                 handler(connection, e);
             }
         }
+#endif
 
         // 触发消息通知事件
         public virtual void TriggerAddMessage(MessageConnection connection,
@@ -156,7 +176,14 @@ namespace DigitalPlatform.MessageClient
     /// </summary>
     public class LoginEventArgs : EventArgs
     {
-        // public string ErrorInfo = "";   // [out] 出错信息
+        public string ServerUrl = "";   // [in]
+        public string Name = "";        // [in]
+
+        public string UserName = "";    // [out]
+        public string Password = "";    // [out]
+        public string Parameters = "";  // [out]
+
+        public string ErrorInfo = "";   // [out] 出错信息。表示无法进行登录
     }
 
     /// <summary>

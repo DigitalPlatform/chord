@@ -222,7 +222,7 @@ namespace DigitalPlatform.MessageServer
 
             {
                 // 对于每个目标图书馆，只选择一个连接。经过排序后，使用次数较小的在前
-                string strPrevUID = null;
+                string strPrevUID = "~";    // 预设一个不可能的值
                 int i = 0;
                 foreach (ConnectionInfo info in infos)
                 {
@@ -352,7 +352,7 @@ namespace DigitalPlatform.MessageServer
             }
 
             // 对于每个目标图书馆，只选择一个连接。经过排序后，使用次数较小的在前
-            string strPrevUID = null;
+            string strPrevUID = "~";    // 预设一个不可能的值
             foreach (ConnectionInfo info in infos)
             {
                 if (strPrevUID != info.LibraryUID)
@@ -438,6 +438,46 @@ namespace DigitalPlatform.MessageServer
                 if (this.UserItem == null)
                     return "";
                 return this.UserItem.id;
+            }
+        }
+
+        public string Department
+        {
+            get
+            {
+                if (this.UserItem == null)
+                    return "";
+                return this.UserItem.department;
+            }
+        }
+
+        public string Tel
+        {
+            get
+            {
+                if (this.UserItem == null)
+                    return "";
+                return this.UserItem.tel;
+            }
+        }
+
+        public string Comment
+        {
+            get
+            {
+                if (this.UserItem == null)
+                    return "";
+                return this.UserItem.comment;
+            }
+        }
+
+        public string [] Groups
+        {
+            get
+            {
+                if (this.UserItem == null)
+                    return null;
+                return this.UserItem.groups;
             }
         }
     }
