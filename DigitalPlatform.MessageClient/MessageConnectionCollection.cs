@@ -43,6 +43,7 @@ namespace DigitalPlatform.MessageClient
         FOUND:
             LoginEventArgs e = new LoginEventArgs();
             e.ServerUrl = url;
+            e.Name = strName;
             LoginEventHandler handler = this.Login;
             if (handler != null)
                 handler(connection, e);
@@ -176,6 +177,7 @@ namespace DigitalPlatform.MessageClient
     public class LoginEventArgs : EventArgs
     {
         public string ServerUrl = "";   // [in]
+        public string Name = "";        // [in]
 
         public string UserName = "";    // [out]
         public string Password = "";    // [out]
