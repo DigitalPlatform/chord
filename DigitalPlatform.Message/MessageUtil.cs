@@ -222,6 +222,7 @@ namespace DigitalPlatform.Message
         public User User { get; set; }
         public string LibraryUID { get; set; }
         public string LibraryName { get; set; }
+        public string LibraryUserName { get; set; }
 
         public string PropertyList { get; set; }
 
@@ -233,6 +234,7 @@ namespace DigitalPlatform.Message
             string comment,
             string libraryUID,
             string libraryName,
+            string libraryUserName,
             string propertyList)
         {
             User user = new User();
@@ -245,7 +247,8 @@ namespace DigitalPlatform.Message
 
             this.User = user;
             this.LibraryUID = libraryUID;
-            this.LibraryName = LibraryName;
+            this.LibraryName = libraryName;
+            this.LibraryUserName = libraryUserName;
             this.PropertyList = propertyList;
         }
     }

@@ -10,6 +10,7 @@ using System.Diagnostics;
 using Microsoft.AspNet.SignalR.Client;
 
 using DigitalPlatform.Message;
+using System.Net;
 
 namespace DigitalPlatform.MessageClient
 {
@@ -65,18 +66,38 @@ namespace DigitalPlatform.MessageClient
             set;
         }
 
+        public string UserName
+        {
+            get;
+            set;
+        }
+
+        public string Password
+        {
+            get;
+            set;
+        }
+
+        public string Parameters
+        {
+            get;
+            set;
+        }
+
+
         public MessageConnection()
         {
             _timer.Interval = 1000 * 30;
             _timer.Elapsed += _timer_Elapsed;
         }
 
+        // 调用前要求先设置好 this.ServerUrl this.UserName this.Password this.Parameters
         public virtual void InitialAsync()
         {
             if (string.IsNullOrEmpty(this.ServerUrl) == false)
             {
                 // this.MainForm.BeginInvoke(new Action<string>(ConnectAsync), this.dp2MServerUrl);
-                ConnectAsync(this.ServerUrl);
+                ConnectAsync();
             }
         }
 
@@ -109,8 +130,7 @@ namespace DigitalPlatform.MessageClient
 
             if (this.Connection == null || this.Connection.State == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
             {
-                // this.MainForm.BeginInvoke(new Action<string>(ConnectAsync), this.dp2MServerUrl);
-                ConnectAsync(this.ServerUrl).Wait();
+                ConnectAsync().Wait();
             }
         }
 
@@ -147,15 +167,23 @@ namespace DigitalPlatform.MessageClient
         #endregion
 
         // 连接 server
-        public Task ConnectAsync(string strServerUrl)
+        // 要求调用前设置好 this.ServerUrl this.UserName this.Password this.Parameters
+        public Task<MessageResult> ConnectAsync(
+            // string strServerUrl
+            )
         {
-            AddInfoLine("正在连接服务器 " + strServerUrl + " ...");
+            AddInfoLine("正在连接服务器 " + this.ServerUrl + " ...");
+            Connection = new HubConnection(this.ServerUrl);
 
-            Connection = new HubConnection(strServerUrl);
             Connection.Closed += new Action(Connection_Closed);
             Connection.Reconnecting += Connection_Reconnecting;
             Connection.Reconnected += Connection_Reconnected;
             // Connection.Error += Connection_Error;
+
+            // Connection.Credentials = new NetworkCredential("testusername", "testpassword");
+            Connection.Headers.Add("username", this.UserName);
+            Connection.Headers.Add("password", this.Password);
+            Connection.Headers.Add("parameters", this.Parameters);
 
             HubProxy = Connection.CreateHubProxy("MyHub");
 
@@ -224,17 +252,24 @@ errorInfo)
             try
             {
                 return Connection.Start()
-                    .ContinueWith((antecendent) =>
+                    .ContinueWith<MessageResult>((antecendent) =>
                     {
+                            MessageResult result = new MessageResult();
                         if (antecendent.IsFaulted == true)
                         {
+#if NO
                             AddErrorLine(GetExceptionText(antecendent.Exception));
                             return;
+#endif
+                            result.Value = -1;
+                            result.ErrorInfo = GetExceptionText(antecendent.Exception);
+                            return result;
                         }
                         AddInfoLine("停止 Timer");
                         _timer.Stop();
-                        AddInfoLine("成功连接到 " + strServerUrl);
-                        TriggerLogin();
+                        AddInfoLine("成功连接到 " + this.ServerUrl);
+                        // TriggerLogin();
+                        return result;
                     });
             }
             catch (Exception ex)
@@ -244,15 +279,19 @@ errorInfo)
             }
         }
 
+#if NO
         // 连接成功后被调用，执行登录功能。重载时要调用 Login(...) 向 server 发送 login 消息
         public virtual void TriggerLogin()
         {
             this.Container.TriggerLogin(this);
         }
+#endif
 
         void Connection_Reconnecting()
         {
             // tryingToReconnect = true;
+
+            // Connection.Headers 里面还保留着已经设置好的内容
         }
 
         void Connection_Reconnected()
@@ -261,8 +300,7 @@ errorInfo)
 
             AddInfoLine("Connection_Reconnected");
 
-            Task.Factory.StartNew(() => { Thread.Sleep(1000); this.TriggerLogin(); });
-            // this.TriggerLogin();
+            // Task.Factory.StartNew(() => { Thread.Sleep(1000); this.TriggerLogin(); });
         }
 
         void Connection_Closed()
@@ -1171,7 +1209,7 @@ token);
         {
             if (this.Connection != null)
             {
-                HubProxy.Invoke<MessageResult>("Logout").Wait(500);
+                // HubProxy.Invoke<MessageResult>("Logout").Wait(500);
 
                 Connection.Closed -= new Action(Connection_Closed);
                 /*

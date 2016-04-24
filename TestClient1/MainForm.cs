@@ -121,7 +121,15 @@ namespace TestClient1
         {
             MessageConnection connection = sender as MessageConnection;
 
+            e.UserName = GetUserName();
+            if (string.IsNullOrEmpty(e.UserName) == true)
+                throw new Exception("尚未指定用户名，无法进行登录");
 
+            e.Password = GetPassword();
+            e.Parameters = "";
+
+            // TODO: 登录如果失败，界面会有提示么?
+#if NO
             LoginRequest param = new LoginRequest();
             param.UserName = GetUserName();
             if (string.IsNullOrEmpty(param.UserName) == true)
@@ -133,6 +141,7 @@ namespace TestClient1
             {
                 throw new Exception(result.ErrorInfo);
             }
+#endif
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -1056,9 +1065,11 @@ string strHtml)
                         text.Append("User.duty=" + record.User.duty + "\r\n");
 
                     if (string.IsNullOrEmpty(record.LibraryUID) == false)
-                        text.Append("PropertyList=" + record.LibraryUID + "\r\n");
+                        text.Append("LibraryUID=" + record.LibraryUID + "\r\n");
                     if (string.IsNullOrEmpty(record.LibraryName) == false)
-                        text.Append("PropertyList=" + record.LibraryName + "\r\n");
+                        text.Append("LibraryName=" + record.LibraryName + "\r\n");
+                    if (string.IsNullOrEmpty(record.LibraryUserName) == false)
+                        text.Append("LibraryUserName=" + record.LibraryUserName + "\r\n");
 
                     if (string.IsNullOrEmpty(record.PropertyList) == false)
                         text.Append("PropertyList=" + record.PropertyList + "\r\n");
@@ -1196,7 +1207,7 @@ string strHtml)
         {
             if (this.webBrowser_message.InvokeRequired)
             {
-                this.webBrowser_message.Invoke(new Action<long, long, IList<MessageRecord>, string, string >(FillMessage),
+                this.webBrowser_message.Invoke(new Action<long, long, IList<MessageRecord>, string, string>(FillMessage),
                     totalCount, start, records, errorInfo, errorCode);
                 return;
             }
@@ -1290,7 +1301,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     strGroupName, // "" 表示默认群组
                     "",
                     "",
-                    0, 
+                    0,
                     -1);
                 try
                 {
@@ -1325,6 +1336,27 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             }
         ERROR1:
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+        }
+
+        // 将当前正在使用的通道切断。迫使后面重新连接
+        private void textBox_config_messageServerUrl_TextChanged(object sender, EventArgs e)
+        {
+            this._channels.Clear();
+#if NO
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+        this.textBox_config_messageServerUrl.Text,
+        this.textBox_search_remoteUserName.Text,
+        false).Result;
+                if (connection != null)
+                    connection.CloseConnection();
+            }
+            catch
+            {
+
+            }
+#endif
         }
 
     }

@@ -54,8 +54,9 @@ namespace dp2Capo
 
             this.MessageConnection.UserName = this.dp2mserver.UserName;
             this.MessageConnection.Password = this.dp2mserver.Password;
+            this.MessageConnection.Parameters = ""; // library uid
 
-            this.MessageConnection.InitialAsync();
+            this.MessageConnection.InitialAsync(); 
         }
 
         public void CloseConnection()
