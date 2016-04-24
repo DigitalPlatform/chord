@@ -17,6 +17,7 @@ namespace DigitalPlatform.Message
 
         public string group { get; set; }   // 组名 或 组id。消息所从属的组
         public string creator { get; set; } // 创建消息的人。也就是发送消息的用户名或 id
+        public string userName { get; set; } // 创建消息的人的用户名
         public string data { get; set; }  // 消息数据体
         public string format { get; set; } // 消息格式。格式是从存储格式角度来说的
         public string type { get; set; }    // 消息类型。类型是从用途角度来说的

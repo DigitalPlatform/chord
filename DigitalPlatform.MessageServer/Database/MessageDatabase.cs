@@ -45,8 +45,18 @@ int count,
             IMongoCollection<MessageItem> collection = this._collection;
 
             // List<MessageItem> results = new List<MessageItem>();
+            FilterDefinition<MessageItem> filter = null;
+#if NO
+            if (string.IsNullOrEmpty(groupName))
+            {
+                filter = Builders<MessageItem>.Filter.Or(
+                    Builders<MessageItem>.Filter.Eq("group", ""),
+                    Builders<MessageItem>.Filter.Eq("group", (string)null));
+            }
+            else
+#endif
+                filter = Builders<MessageItem>.Filter.Eq("group", groupName);
 
-            var filter = Builders<MessageItem>.Filter.Eq("group", groupName);
             var index = 0;
             using (var cursor = await collection.FindAsync(
                 groupName == "*" ? new BsonDocument() : filter
@@ -141,6 +151,12 @@ int count,
             if (string.IsNullOrEmpty(item.creator) == true)
                 throw new Exception("creator 不能为空");
 
+            // 规范化数据
+
+            // group 的空实际上代表一个群组
+            if (item.group == null)
+                item.group = "";
+
             IMongoCollection<MessageItem> collection = this._collection;
 
             //item.publishTime = DateTime.Now;
@@ -163,6 +179,7 @@ int count,
             var update = Builders<MessageItem>.Update
                 .Set("group", item.group)
                 .Set("creator", item.creator)
+                .Set("userName", item.userName)
                 .Set("data", item.data)
                 .Set("format", item.format)
                 .Set("type", item.type)
@@ -199,12 +216,12 @@ int count,
             this.id = id;
         }
 
-        [BsonId]
-        // [BsonRepresentation(BsonType.ObjectId)]
+        [BsonId]    // 允许 GUID
         public string id { get; private set; }  // 消息的 id
 
         public string group { get; set; }   // 组名 或 组id。消息所从属的组
-        public string creator { get; set; } // 创建消息的人。也就是发送消息的用户名或 id
+        public string creator { get; set; } // 创建消息的人的id
+        public string userName { get; set; } // 创建消息的人的用户名
         public string data { get; set; }  // 消息数据体
         public string format { get; set; } // 消息格式。格式是从存储格式角度来说的
         public string type { get; set; }    // 消息类型。类型是从用途角度来说的

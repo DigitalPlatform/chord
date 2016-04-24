@@ -167,6 +167,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         item.publishTime = DateTime.Now;
                         // item.expireTime = new DateTime(0);  // 表示永远不失效
                         item.creator = BuildMessageUserID(info);
+                        item.userName = info.UserName;
                         item.SetID(Guid.NewGuid().ToString());  // 确保 id 字段有值。是否可以允许前端指定这个 ID 呢？如果要进行查重就麻烦了
                         ServerInfo.MessageDatabase.Add(item).Wait();
                         saved_items.Add(item);
@@ -326,6 +327,9 @@ ex.GetType().ToString());
         {
             if (string.IsNullOrEmpty(info.UserID) == false)
                 return info.UserID;
+            if (string.IsNullOrEmpty(info.LibraryName) == false)
+                return "~" + info.LibraryUserName + "@" + info.LibraryName;
+
             return "~" + info.LibraryUserName + "@" + info.LibraryUID;
         }
 
@@ -364,6 +368,7 @@ ex.GetType().ToString());
             item.SetID(record.id);
             item.group = record.group;
             item.creator = record.creator;
+            item.userName = record.userName;
             item.data = record.data;
             item.format = record.format;
             item.type = record.type;
@@ -380,6 +385,7 @@ ex.GetType().ToString());
             record.id = item.id;
             record.group = item.group;
             record.creator = item.creator;
+            record.userName = item.userName;
             record.data = item.data;
             record.format = item.format;
             record.type = item.type;
@@ -394,6 +400,13 @@ ex.GetType().ToString());
 
         #region GetMessage() API
 
+        static bool Include(string [] array, string one)
+        {
+            if (array == null && string.IsNullOrEmpty(one) == true)
+                return true;
+            return Array.IndexOf(array, one) != -1;
+        }
+
         public MessageResult RequestGetMessage(GetMessageRequest param)
         {
             if (param.Count == 0)
@@ -404,9 +417,28 @@ ex.GetType().ToString());
             ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
 result,
 "RequestGetMessage()",
-true);
+false);
             if (connection_info == null)
                 return result;
+
+            if (string.IsNullOrEmpty(connection_info.UserName))
+            {
+                if (string.IsNullOrEmpty(param.GroupCondition) == false)
+                {
+                    result.Value = -1;
+                    result.String = "Denied";
+                    result.ErrorInfo = "未登录的用户只能查看 默认 群组的消息，不能查看群组 '"+param.GroupCondition+"' 的消息";
+                    return result;
+                }
+            }
+
+            if (Include(connection_info.Groups, param.GroupCondition) == false )
+            {
+                result.Value = -1;
+                result.String = "Denied";
+                result.ErrorInfo = "当前用户不能查看群组 '" + param.GroupCondition + "' 的消息";
+                return result;
+            }
 
             SearchInfo search_info = null;
             try

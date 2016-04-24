@@ -470,6 +470,16 @@ namespace DigitalPlatform.MessageServer
                 return this.UserItem.comment;
             }
         }
+
+        public string [] Groups
+        {
+            get
+            {
+                if (this.UserItem == null)
+                    return null;
+                return this.UserItem.groups;
+            }
+        }
     }
 
 }
