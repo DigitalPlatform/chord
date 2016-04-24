@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDB.Driver;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,10 +23,18 @@ namespace DigitalPlatform.MessageServer
         // 用户数据库
         public static UserDatabase UserDatabase = new UserDatabase();
 
+        // 消息数据库
+        public static MessageDatabase MessageDatabase = new MessageDatabase();
+
+        // 组数据库
+        public static GroupDatabase GroupDatabase = new GroupDatabase();
+
+        static MongoClient _mongoClient = null;
+
         public static void Initial(string strDataDir)
         {
             if (Directory.Exists(strDataDir) == false)
-                throw new Exception("数据目录 '"+strDataDir+"' 尚未创建");
+                throw new Exception("数据目录 '" + strDataDir + "' 尚未创建");
 
             string strCfgFileName = Path.Combine(strDataDir, "config.xml");
             ConfigDom.Load(strCfgFileName);
@@ -37,7 +46,12 @@ namespace DigitalPlatform.MessageServer
             {
                 string strMongoDbConnStr = node.GetAttribute("connectionString");
                 string strMongoDbInstancePrefix = node.GetAttribute("instancePrefix");
-                UserDatabase.Open(strMongoDbConnStr, strMongoDbInstancePrefix);
+
+                _mongoClient = new MongoClient(strMongoDbConnStr);
+
+                UserDatabase.Open(_mongoClient, strMongoDbInstancePrefix, "user");
+                MessageDatabase.Open(_mongoClient, strMongoDbInstancePrefix, "message");
+                GroupDatabase.Open(_mongoClient, strMongoDbInstancePrefix, "group");
             }
             else
                 throw new Exception("config.xml 中尚未配置 mongoDB 元素");

@@ -38,7 +38,9 @@ namespace DigitalPlatform.MessageServer
 
         // TODO: 限制集合的最大元素数。防止被攻击
         // 新增一个 SearchInfo 对象
-        public SearchInfo AddSearch(string strConnectionID,
+        // parameters:
+        //      strRequestConnectionID  发起检索一方的 connection id
+        public SearchInfo AddSearch(string strRequestConnectionID,
             string strSearchID = "",
             long returnStart = 0,
             long returnCount = -1)
@@ -60,7 +62,7 @@ namespace DigitalPlatform.MessageServer
                 else
                     info.UID = strSearchID;
 
-                info.RequestConnectionID = strConnectionID;
+                info.RequestConnectionID = strRequestConnectionID;
                 info.ReturnStart = returnStart;
                 info.ReturnCount = returnCount;
                 this[info.UID] = info;
@@ -162,7 +164,27 @@ namespace DigitalPlatform.MessageServer
         public long ReturnStart = 0;    // 结果集中要返回部分的开始位置。从 0 开始计数
         public long ReturnCount = -1;   // 结果集中要返回部分的记录个数。-1 表示尽可能多
 
-        public List<string> TargetIDs = new List<string>(); // 检索目标的 connection id 集合
+        private static readonly Object _syncRoot = new Object();
+        List<string> _targetIDs = new List<string>(); // 检索目标的 connection id 集合
+
+        public void SetTargetIDs(List<string> ids)
+        {
+            lock (_syncRoot)
+            {
+                this._targetIDs = ids;
+            }
+        }
+
+        // 获得 TargetIDs 的复制品。这样就不怕并发修改同时发生
+        public List<string> GetSafeTargetIDs()
+        {
+            List<string> results = new List<string>();
+            lock (_syncRoot)
+            {
+                results.AddRange(this._targetIDs);
+            }
+            return results;
+        }
 
         public bool IsTimeout()
         {
@@ -177,10 +199,13 @@ namespace DigitalPlatform.MessageServer
         //      true    全部目标都已经完成
         public bool CompleteTarget(string strConnectionID)
         {
-            this.TargetIDs.Remove(strConnectionID);
-            if (this.TargetIDs.Count == 0)
-                return true;
-            return false;
+            lock (_syncRoot)
+            {
+                this._targetIDs.Remove(strConnectionID);
+                if (this._targetIDs.Count == 0)
+                    return true;
+                return false;
+            }
         }
     }
 

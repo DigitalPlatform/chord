@@ -391,6 +391,9 @@ namespace DigitalPlatform.MessageServer
 
         // public string UserName = "";    // 用户名
         public string PropertyList = "";    // 属性值列表 biblio_search
+
+        public string LibraryUserName = ""; // 用户在本馆所用的用户名
+
         public string LibraryUID = "";      // 用户所属图书馆的 UID。用它可以避免给若干同属一个图书馆的连接发送检索请求，因为这样势必会得到完全重复的命中结果
         public string LibraryName = "";     // 图书馆名
 
@@ -425,6 +428,16 @@ namespace DigitalPlatform.MessageServer
                 if (this.UserItem == null)
                     return "";
                 return this.UserItem.duty;
+            }
+        }
+
+        public string UserID
+        {
+            get
+            {
+                if (this.UserItem == null)
+                    return "";
+                return this.UserItem.id;
             }
         }
     }

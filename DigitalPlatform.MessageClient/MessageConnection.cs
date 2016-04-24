@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections;
+using System.Diagnostics;
 
 using Microsoft.AspNet.SignalR.Client;
 
 using DigitalPlatform.Message;
-using System.Diagnostics;
 
 namespace DigitalPlatform.MessageClient
 {
@@ -159,9 +159,9 @@ namespace DigitalPlatform.MessageClient
 
             HubProxy = Connection.CreateHubProxy("MyHub");
 
-            HubProxy.On<string, string>("AddMessage",
-                (name, message) =>
-                OnAddMessageRecieved(name, message)
+            HubProxy.On<string, IList<MessageRecord>>("addMessage",
+                (name, messages) =>
+                OnAddMessageRecieved(name, messages)
                 );
 
             // *** search
@@ -285,10 +285,128 @@ errorInfo)
             AddErrorLine(obj.ToString());
         }
 
-        public virtual void OnAddMessageRecieved(string strName, string strContent)
+        public virtual void OnAddMessageRecieved(string action,
+            IList<MessageRecord> messages)
         {
-
+            AddMessageEventArgs e = new AddMessageEventArgs();
+            e.Action = action;
+            e.Records = new List<MessageRecord>();
+            e.Records.AddRange(messages);
+            this.Container.TriggerAddMessage(this, e);
         }
+
+        public delegate void Delegate_addMessage(string action, List<MessageRecord> records);
+
+        // 加入一个消息接收处理函数
+        public IDisposable AddMessageHandler(Delegate_addMessage handler)
+        {
+            return HubProxy.On<string, List<MessageRecord>>("addMessage",
+    (action, messages) =>
+    handler(action, messages)
+    );
+        }
+
+        #region GetMessage() API
+
+        public delegate void Delegate_outputMessage(long totalCount,
+            long start,
+            IList<MessageRecord> records,
+            string errorInfo,
+            string errorCode);
+
+        public Task<MessageResult> GetMessageAsync(
+            GetMessageRequest request,
+            Delegate_outputMessage proc,
+            TimeSpan timeout,
+            CancellationToken token)
+        {
+            return Task.Factory.StartNew<MessageResult>(
+                () =>
+                {
+                    MessageResult result = new MessageResult();
+
+                    if (string.IsNullOrEmpty(request.TaskID) == true)
+                        request.TaskID = Guid.NewGuid().ToString();
+
+                    long recieved = 0;
+
+                    using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+                    {
+                        using (var handler = HubProxy.On<
+                            string, long, long, IList<MessageRecord>, string, string>(
+                            "responseGetMessage",
+                            (taskID, resultCount, start, records, errorInfo, errorCode) =>
+                            {
+                                if (taskID != request.TaskID)
+                                    return;
+
+                                if (resultCount == -1 && start == -1)
+                                {
+                                    if (start == -1)
+                                    {
+                                        // 表示发送响应过程已经结束。只是起到通知的作用，不携带任何信息
+                                        // result.Finished = true;
+                                    }
+                                    else
+                                    {
+                                        result.Value = resultCount;
+                                        result.ErrorInfo = errorInfo;
+                                        result.String = errorCode;
+                                    }
+                                    wait_events.finish_event.Set();
+                                    return;
+                                }
+
+                                proc(resultCount,
+                                    start,
+                                    records,
+                                    errorInfo,
+                                    errorCode);
+
+                                if (records != null)
+                                    recieved += records.Count;
+
+                                if (IsComplete(request.Start, request.Count, resultCount, recieved) == true)
+                                    wait_events.finish_event.Set();
+                                else
+                                    wait_events.active_event.Set();
+                            }))
+                        {
+                            MessageResult temp = HubProxy.Invoke<MessageResult>(
+"RequestGetMessage",
+request).Result;
+                            if (temp.Value == -1 || temp.Value == 0)
+                                return temp;
+
+                            // result.String 里面是返回的 taskID
+
+                            Wait(
+            request.TaskID,
+            wait_events,
+            timeout,
+            token);
+                            return result;
+                        }
+                    }
+                },
+            token);
+        }
+
+        #endregion
+
+        #region SetMessage() API
+
+        public Task<SetMessageResult> SetMessageAsync(
+            string action,
+            List<MessageRecord> messages)
+        {
+            return HubProxy.Invoke<SetMessageResult>(
+ "SetMessage",
+ action,
+ messages);
+        }
+
+        #endregion
 
         #region GetConnectionInfo() API
 
@@ -945,7 +1063,6 @@ token);
 #endif
 
         #endregion
-
 
         #region Circulation() API
 
@@ -1632,18 +1749,24 @@ errorCode);
 
         // 调用 server 端 Login
         public Task<MessageResult> LoginAsync(
+#if NO
             string userName,
             string password,
             string libraryUID,
             string libraryName,
-            string propertyList)
+            string propertyList
+#endif
+LoginRequest param)
         {
             return HubProxy.Invoke<MessageResult>("Login",
+#if NO
                 userName,
                 password,
                 libraryUID,
                 libraryName,
-                propertyList);
+                propertyList
+#endif
+ param);
         }
 
         #endregion

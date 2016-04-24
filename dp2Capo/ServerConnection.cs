@@ -1348,13 +1348,11 @@ strErrorCode);
         // 连接成功后被调用，执行登录功能。重载时要调用 Login(...) 向 server 发送 login 消息
         public override void TriggerLogin()
         {
-            LoginAsync(
-            this.UserName,
-            this.Password,
-            "", // string libraryUID,
-            "", // string libraryName,
-            "" // string propertyList
-            )
+            LoginRequest param = new LoginRequest();
+            param.UserName = this.UserName;
+            param.Password = this.Password;
+
+            LoginAsync(param)
             .ContinueWith((antecendent) =>
                     {
                         if (antecendent.IsFaulted == true)

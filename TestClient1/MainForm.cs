@@ -32,7 +32,68 @@ namespace TestClient1
         private void MainForm_Load(object sender, EventArgs e)
         {
             _channels.Login += _channels_Login;
+            _channels.AddMessage += _channels_AddMessage;
+
+            ClearForPureTextOutputing(this.webBrowser_message);
+
             LoadSettings();
+        }
+
+        void _channels_AddMessage(object sender, AddMessageEventArgs e)
+        {
+            this.BeginInvoke(new Action<AddMessageEventArgs>(DisplayMessage), e);
+        }
+
+        void DisplayMessage(AddMessageEventArgs e)
+        {
+            StringBuilder text = new StringBuilder();
+            foreach (MessageRecord record in e.Records)
+            {
+                text.Append("***\r\n");
+                text.Append("action=" + e.Action + "\r\n");
+                text.Append("id=" + record.id + "\r\n");
+                text.Append("data=" + record.data + "\r\n");
+                text.Append("group=" + record.group + "\r\n");
+                text.Append("creator=" + record.creator + "\r\n");
+
+                text.Append("format=" + record.format + "\r\n");
+                text.Append("type=" + record.type + "\r\n");
+                text.Append("thread=" + record.thread + "\r\n");
+
+                text.Append("publishTime=" + record.publishTime + "\r\n");
+                text.Append("expireTime=" + record.expireTime + "\r\n");
+            }
+
+            AppendHtml(this.webBrowser_message, text.ToString());
+        }
+
+        public void AppendHtml(WebBrowser webBrowser, string strText)
+        {
+            WriteHtml(webBrowser,
+                strText);
+
+            // 因为HTML元素总是没有收尾，其他有些方法可能不奏效
+            webBrowser.Document.Window.ScrollTo(0,
+                webBrowser.Document.Body.ScrollRectangle.Height);
+        }
+
+        // 不支持异步调用
+        public static void WriteHtml(WebBrowser webBrowser,
+    string strHtml)
+        {
+            HtmlDocument doc = webBrowser.Document;
+
+            if (doc == null)
+            {
+                webBrowser.Navigate("about:blank");
+                doc = webBrowser.Document;
+            }
+
+            // doc = doc.OpenNew(true);
+            doc.Write(strHtml);
+
+            // 保持末行可见
+            // ScrollToEnd(webBrowser);
         }
 
         string GetUserName()
@@ -60,17 +121,14 @@ namespace TestClient1
         {
             MessageConnection connection = sender as MessageConnection;
 
-            string strUserName = GetUserName();
-            string strPassword = GetPassword();
-            if (string.IsNullOrEmpty(strUserName) == true)
+
+            LoginRequest param = new LoginRequest();
+            param.UserName = GetUserName();
+            if (string.IsNullOrEmpty(param.UserName) == true)
                 throw new Exception("尚未指定用户名，无法进行登录");
 
-            MessageResult result = connection.LoginAsync(
-                strUserName,
-                strPassword,
-                "",
-                "",
-                "property").Result;
+            param.Password = GetPassword();
+            MessageResult result = connection.LoginAsync(param).Result;
             if (result.Value == -1)
             {
                 throw new Exception(result.ErrorInfo);
@@ -803,6 +861,37 @@ string strHtml)
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 #endif
+        static string ToString(MessageResult result)
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("ResultValue=" + result.Value + "\r\n");
+            text.Append("ErrorInfo=" + result.ErrorInfo + "\r\n");
+            text.Append("String=" + result.String + "\r\n");
+            return text.ToString();
+        }
+
+        static string ToString(SetMessageResult result)
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("ResultValue=" + result.Value + "\r\n");
+            text.Append("ErrorInfo=" + result.ErrorInfo + "\r\n");
+            text.Append("String=" + result.String + "\r\n");
+            if (result.Results != null)
+            {
+                text.Append("Results.Count=" + result.Results.Count + "\r\n");
+                int i = 0;
+                foreach (MessageRecord record in result.Results)
+                {
+                    text.Append((i + 1).ToString() + ") ===");
+                    text.Append("id=" + record.id + "\r\n");
+                    text.Append("creator=" + record.creator + "\r\n");
+                    text.Append("publishTime=" + record.publishTime + "\r\n");
+                    text.Append("expireTime=" + record.expireTime + "\r\n");
+                }
+            }
+            return text.ToString();
+        }
+
         static string ToString(CirculationResult result)
         {
             StringBuilder text = new StringBuilder();
@@ -1025,5 +1114,218 @@ string strHtml)
             else
                 this.checkBox_getInfo_getSubEntities.Enabled = false;
         }
+
+        private void button_message_send_Click(object sender, EventArgs e)
+        {
+            DoSendMessage(this.textBox_message_text.Text);
+        }
+
+        async void DoSendMessage(string strText)
+        {
+            string strError = "";
+
+            if (string.IsNullOrEmpty(strText) == true)
+            {
+                strError = "尚未输入文本";
+                goto ERROR1;
+            }
+
+            SetTextString(this.webBrowser1, "");
+
+            List<MessageRecord> records = new List<MessageRecord>();
+            MessageRecord record = new MessageRecord();
+            record.group = "";
+            record.creator = "";    // 服务器会自己填写
+            record.data = strText;
+            record.format = "text";
+            record.type = "message";
+            record.thread = "";
+            record.expireTime = new DateTime(0);    // 表示永远不失效
+            records.Add(record);
+
+            EnableControls(false);
+            try
+            {
+                // CancellationToken cancel_token = new CancellationToken();
+
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        this.textBox_search_remoteUserName.Text);
+                    SetMessageResult result = await connection.SetMessageAsync(
+                        "create",
+                        records);
+
+                    this.Invoke(new Action(() =>
+                    {
+                        SetTextString(this.webBrowser1, ToString(result));
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+        }
+
+        // 装载以前的所有消息
+        private void button_message_load_Click(object sender, EventArgs e)
+        {
+            DoLoadMessage("");
+        }
+
+        void FillMessage(long totalCount,
+            long start,
+            IList<MessageRecord> records,
+            string errorInfo,
+            string errorCode)
+        {
+            if (this.webBrowser_message.InvokeRequired)
+            {
+                this.webBrowser_message.Invoke(new Action<long, long, IList<MessageRecord>, string, string >(FillMessage),
+                    totalCount, start, records, errorInfo, errorCode);
+                return;
+            }
+
+            if (records != null)
+            {
+                foreach (MessageRecord record in records)
+                {
+                    StringBuilder text = new StringBuilder();
+                    text.Append("***\r\n");
+                    text.Append("id=" + record.id + "\r\n");
+                    text.Append("data=" + record.data + "\r\n");
+                    text.Append("group=" + record.group + "\r\n");
+                    text.Append("creator=" + record.creator + "\r\n");
+
+                    text.Append("format=" + record.format + "\r\n");
+                    text.Append("type=" + record.type + "\r\n");
+                    text.Append("thread=" + record.thread + "\r\n");
+
+                    text.Append("publishTime=" + record.publishTime + "\r\n");
+                    text.Append("expireTime=" + record.expireTime + "\r\n");
+                    AppendHtml(this.webBrowser_message, text.ToString());
+                }
+            }
+        }
+
+        public static void ClearForPureTextOutputing(WebBrowser webBrowser)
+        {
+            HtmlDocument doc = webBrowser.Document;
+
+            if (doc == null)
+            {
+                // webBrowser.Navigate("about:blank");
+                Navigate(webBrowser, "about:blank");  // 2015/7/28
+                doc = webBrowser.Document;
+            }
+
+            doc = doc.OpenNew(true);
+            doc.Write("<pre>");
+        }
+
+        // 2015/7/28 
+        // 能处理异常的 Navigate
+        internal static void Navigate(WebBrowser webBrowser, string urlString)
+        {
+            int nRedoCount = 0;
+        REDO:
+            try
+            {
+                webBrowser.Navigate(urlString);
+            }
+            catch (System.Runtime.InteropServices.COMException ex)
+            {
+                /*
+System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使用中。 (异常来自 HRESULT:0x800700AA)
+   在 System.Windows.Forms.UnsafeNativeMethods.IWebBrowser2.Navigate2(Object& URL, Object& flags, Object& targetFrameName, Object& postData, Object& headers)
+   在 System.Windows.Forms.WebBrowser.PerformNavigate2(Object& URL, Object& flags, Object& targetFrameName, Object& postData, Object& headers)
+   在 System.Windows.Forms.WebBrowser.Navigate(String urlString)
+   在 dp2Circulation.QuickChargingForm._setReaderRenderString(String strText) 位置 F:\cs4.0\dp2Circulation\Charging\QuickChargingForm.cs:行号 394
+                 * */
+                if ((uint)ex.ErrorCode == 0x800700AA)
+                {
+                    nRedoCount++;
+                    if (nRedoCount < 5)
+                    {
+                        Application.DoEvents(); // 2015/8/13
+                        Thread.Sleep(200);
+                        goto REDO;
+                    }
+                }
+
+                throw ex;
+            }
+        }
+
+
+        async void DoLoadMessage(string strGroupName)
+        {
+            string strError = "";
+
+            ClearForPureTextOutputing(this.webBrowser_message);
+            SetTextString(this.webBrowser1, "");
+
+            EnableControls(false);
+            try
+            {
+                CancellationToken cancel_token = new CancellationToken();
+
+                string id = Guid.NewGuid().ToString();
+                GetMessageRequest request = new GetMessageRequest(id,
+                    strGroupName, // "" 表示默认群组
+                    "",
+                    "",
+                    0, 
+                    -1);
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        this.textBox_search_remoteUserName.Text);
+                    MessageResult result = await connection.GetMessageAsync(
+                        request,
+                        FillMessage,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+                    this.Invoke(new Action(() =>
+                    {
+                        SetTextString(this.webBrowser1, ToString(result));
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+        }
+
     }
 }
