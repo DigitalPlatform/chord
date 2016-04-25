@@ -542,7 +542,7 @@ namespace dp2weixin
             }
             catch (Exception ex)
             {
-                string error = dp2BaseCommandService.GetExceptionMessage(ex);
+                 string error = dp2BaseCommandService.GetExceptionMessage(ex);
                 this.CmdService.WriteErrorLog(error);
                 CustomApi.SendText(accessToken, this.WeixinOpenId, ex.Message);
             }
