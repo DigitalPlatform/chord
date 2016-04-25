@@ -94,7 +94,7 @@ namespace DigitalPlatform.MessageServer
             {
                 result.Value = -1;
                 result.String = "_notLogin";
-                result.ErrorInfo = "尚未登录，无法使用 " + strFunctionName + " 功能";
+                result.ErrorInfo = "未注册用户无法使用 " + strFunctionName + " 功能";
                 return null;
             }
 
@@ -103,22 +103,204 @@ namespace DigitalPlatform.MessageServer
 
         #endregion
 
+        #region GetGroup() API
+
+        public MessageResult RequestGetGroup(GetGroupRequest param)
+        {
+            // param.Count 为 0 和 -1 意义不同。前者可用于只探索条数，不获取数据。比如在界面上显示有多少条新的信息
+
+            MessageResult result = new MessageResult();
+
+            // 检查参数
+            if (string.IsNullOrEmpty(param.GroupCondition) == true)
+            {
+                result.Value = -1;
+                result.String = "InvalidParam";
+                result.ErrorInfo = "param 成员 GroupCondition 不应为空";
+                return result;
+            }
+
+            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+result,
+"RequestGetGroup()",
+false);
+            if (connection_info == null)
+                return result;
+
+            bool bSupervisor = (StringUtil.Contains(connection_info.Rights, "supervisor"));
+            if (bSupervisor == false)
+            {
+                if (string.IsNullOrEmpty(connection_info.UserName))
+                {
+                    if (IsDefaultGroupName(param.GroupCondition) == false)
+                    {
+                        result.Value = -1;
+                        result.String = "Denied";
+                        result.ErrorInfo = "未注册的用户只允许查看 <default> 群组的消息，不允许查看群组 '" + param.GroupCondition + "' 的消息";
+                        return result;
+                    }
+                }
+
+                if (IncludeGroup(connection_info.Groups, param.GroupCondition) == false)
+                {
+                    result.Value = -1;
+                    result.String = "Denied";
+                    result.ErrorInfo = "当前用户不能查看群组 '" + param.GroupCondition + "' 的消息";
+                    return result;
+                }
+            }
+
+            SearchInfo search_info = null;
+            try
+            {
+                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                    param.TaskID,
+                    param.Start,
+                    param.Count);
+            }
+            catch (ArgumentException)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
+                return result;
+            }
+
+            result.String = search_info.UID;   // 返回检索请求的 UID
+
+            // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
+            // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
+            // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
+            Task.Factory.StartNew(() => SearchGroupAndResponse(param));
+
+            result.Value = 1;   // 成功
+            return result;
+        }
+
+        void SearchGroupAndResponse(
+            GetGroupRequest param)
+        {
+            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID);
+            if (search_info == null)
+                return;
+
+            try
+            {
+                int batch_size = 10;    // 100? 或者根据 data 尺寸动态计算每批的个数
+                int send_count = 0;
+
+                List<GroupRecord> records = new List<GroupRecord>();
+
+                ServerInfo.GroupDatabase.GetGroups(param.GroupCondition,
+                    (int)param.Start,
+                    (int)param.Count,
+                    (totalCount, item) =>
+                    {
+                        if (item != null)
+                            records.Add(BuildGroupRecord(item));
+                        // 集中发送一次
+                        if (records.Count >= batch_size || item == null)
+                        {
+                            // 让前端获得检索结果
+                            try
+                            {
+                                Clients.Client(search_info.RequestConnectionID).responseGetGroup(
+                                    param.TaskID,
+                                    (long)totalCount, // resultCount,
+                                    (long)send_count,
+                                    records,
+                                    "", // errorInfo,
+                                    "" // errorCode
+                                    );
+                                send_count += records.Count;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("中心向前端分发 responseGetGroup() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                                return false;
+                            }
+                            records.Clear();
+                        }
+
+                        return true;
+                    }).Wait();
+            }
+            finally
+            {
+                // 主动清除已经完成的检索对象
+                ServerInfo.SearchTable.RemoveSearch(param.TaskID);
+            }
+        }
+
+        static GroupItem BuildGroupItem(GroupRecord record)
+        {
+            GroupItem item = new GroupItem();
+            item.SetID(record.id);
+            item.name = record.name;
+            item.creator = record.creator;
+            item.manager = record.manager;
+            item.comment = record.comment;
+            item.type = record.type;
+
+            item.createTime = record.createTime;
+            item.expireTime = record.expireTime;
+            return item;
+        }
+
+        static GroupRecord BuildGroupRecord(GroupItem item)
+        {
+            GroupRecord record = new GroupRecord();
+            record.id = item.id;
+            record.name = item.name;
+            record.creator = item.creator;
+            record.manager = item.manager;
+            record.comment = item.comment;
+            record.type = item.type;
+
+            record.createTime = item.createTime;
+            record.expireTime = item.expireTime;
+            return record;
+        }
+
+
+        #endregion
+
+
         #region SetMessage() API
+
+        // 判断一个组名是否为默认的组名
+        static bool IsDefaultGroupName(string groupName)
+        {
+            if (groupName == "<default>")
+                return true;
+            return false;
+        }
 
         // 返回 MessageRecord 数组，因为有些字段是服务器给设定的，例如 PublishTime, ID
         // 但如果让前端知道哪条是哪条呢？方法是返回的数组和请求的数组大小顺序一样
         // 前端得到这些内容的好处是，可以自己在本地刷新显示，不必等服务器发过来通知
         // 在中途出错的情况下，数组中的元素可能少于请求的数目，但顺序是和请求是一致的
-        public SetMessageResult SetMessage(string action,
-            List<MessageRecord> messages)
+        public SetMessageResult SetMessage(
+#if NO
+            string action,
+            List<MessageRecord> messages
+#endif
+SetMessageRequest param
+            )
         {
             SetMessageResult result = new SetMessageResult();
             List<MessageItem> saved_items = new List<MessageItem>();
             List<MessageItem> items = new List<MessageItem>();
 
             // 转换类型
-            foreach (MessageRecord record in messages)
+            foreach (MessageRecord record in param.Records)
             {
+                if (string.IsNullOrEmpty(record.group))
+                {
+                    result.String = "InvalidData";
+                    result.Value = -1;
+                    result.ErrorInfo = "messages 中包含不合法的 MessageRecord 记录，group 成员不允许为空(可以使用 '<defallt>' 作为默认群组的名字)";
+                    return result;
+                }
                 items.Add(BuildMessageItem(record));
             }
 
@@ -131,10 +313,11 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                 if (info == null)
                     return result;
 
-                if (action == "create")
+                bool bSupervisor = (StringUtil.Contains(info.Rights, "supervisor"));
+
+                if (param.Action == "create")
                 {
-                    // 超级用户可以在任何群组发布消息
-                    bool bSupervisor = (StringUtil.Contains(info.Rights, "supervisor"));
+                    // 注: 超级用户可以在任何群组发布消息
 
                     foreach (MessageItem item in items)
                     {
@@ -142,19 +325,17 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         {
                             if (info.UserItem == null)
                             {
-                                if (string.IsNullOrEmpty(item.group) == false)
+                                if (IsDefaultGroupName(item.group) == false)
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
-                                    result.ErrorInfo = "当前用户只能在 默认 组创建消息";
+                                    result.ErrorInfo = "当前用户(未注册用户)只能在 <default> 组创建消息";
                                     return result;
                                 }
                             }
                             else
                             {
-                                if (string.IsNullOrEmpty(item.group) == false
-                                    && info.UserItem.groups != null
-                                    && Array.IndexOf(info.UserItem.groups, item.group) == -1)
+                                if (IncludeGroup(info.Groups, item.group) == false)
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
@@ -173,10 +354,10 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         saved_items.Add(item);
                     }
                 }
-                else if (action == "change")
+                else if (param.Action == "change")
                 {
-                    // 超级用户可以修改任何消息
-                    bool bSupervisor = (StringUtil.Contains(info.Rights, "supervisor"));
+                    // 注: 超级用户可以修改任何消息
+                    // 其他人只能修改自己原先创建的消息
 
                     foreach (MessageItem item in items)
                     {
@@ -184,19 +365,17 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         {
                             if (info.UserItem == null)
                             {
-                                if (string.IsNullOrEmpty(item.group) == false)
+                                if (IsDefaultGroupName(item.group) == false)
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
-                                    result.ErrorInfo = "当前用户只能修改 默认 组内的消息";
+                                    result.ErrorInfo = "当前用户(未注册用户)只能修改 <default> 组内自己发布的消息";
                                     return result;
                                 }
                             }
                             else
                             {
-                                if (string.IsNullOrEmpty(item.group) == false
-                                    && info.UserItem.groups != null
-                                    && Array.IndexOf(info.UserItem.groups, item.group) == -1)
+                                if (IncludeGroup(info.Groups, item.group) == false)
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
@@ -212,29 +391,30 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             {
                                 result.String = "NotFound";
                                 result.Value = -1;
-                                result.ErrorInfo = "id 为 '" + item.id + "' 的消息不存在";
+                                result.ErrorInfo = "id 为 '" + item.id + "' 的消息记录不存在";
                                 return result;
                             }
 
                             MessageItem exist = results[0];
-                            if (exist.creator != info.UserID)
+                            string creator_string = BuildMessageUserID(info);
+
+                            if (exist.creator != creator_string)
                             {
                                 result.String = "Denied";
                                 result.Value = -1;
-                                result.ErrorInfo = "id 为 '" + item.id + "' 的消息不是当前用户创建的，修改操作被拒绝";
+                                result.ErrorInfo = "因 id 为 '" + item.id + "' 的消息记录原先不是当前用户创建的，修改操作被拒绝";
                                 return result;
                             }
                         }
 
-                        // 其他人只能修改自己的消息
                         ServerInfo.MessageDatabase.Update(item).Wait();
                         saved_items.Add(item);
                     }
                 }
-                else if (action == "delete")
+                else if (param.Action == "delete")
                 {
-                    // 超级用户可以删除任何消息
-                    bool bSupervisor = (StringUtil.Contains(info.Rights, "supervisor"));
+                    // 注: 超级用户可以删除任何消息
+                    // 其他人只能删除自己原先创建的消息
 
                     foreach (MessageItem item in items)
                     {
@@ -242,19 +422,17 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         {
                             if (info.UserItem == null)
                             {
-                                if (string.IsNullOrEmpty(item.group) == false)
+                                if (IsDefaultGroupName(item.group) == false)
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
-                                    result.ErrorInfo = "当前用户只能删除 默认 组内的消息";
+                                    result.ErrorInfo = "当前用户(未注册用户)只能删除 <default> 组内自己创建的消息";
                                     return result;
                                 }
                             }
                             else
                             {
-                                if (string.IsNullOrEmpty(item.group) == false
-                                    && info.UserItem.groups != null
-                                    && Array.IndexOf(info.UserItem.groups, item.group) == -1)
+                                if (IncludeGroup(info.Groups, item.group) == false)
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
@@ -275,16 +453,17 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             }
 
                             MessageItem exist = results[0];
-                            if (exist.creator != info.UserID)
+                            string creator_string = BuildMessageUserID(info);
+
+                            if (exist.creator != creator_string)
                             {
                                 result.String = "Denied";
                                 result.Value = -1;
-                                result.ErrorInfo = "id 为 '" + item.id + "' 的消息不是当前用户创建的，删除操作被拒绝";
+                                result.ErrorInfo = "因 id 为 '" + item.id + "' 的消息不是当前用户创建的，删除操作被拒绝";
                                 return result;
                             }
                         }
 
-                        // 其他人只能删除自己创建的消息
                         ServerInfo.MessageDatabase.DeleteByID(item.id).Wait();
                         saved_items.Add(item);
                     }
@@ -293,9 +472,8 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                 {
                     result.String = "ActionError";
                     result.Value = -1;
-                    result.ErrorInfo = "无法识别的 action 参数值 '" + action + "'";
+                    result.ErrorInfo = "无法识别的 action 参数值 '" + param.Action + "'";
                 }
-
             }
             catch (Exception ex)
             {
@@ -314,9 +492,19 @@ ex.GetType().ToString());
                     record.data = null;
                     result.Results.Add(record);
                 }
+
+                string[] excludeConnectionIds = null;
+                // 通知消息的时候，排除掉请求者自己
+                if (StringUtil.IsInList("excludeMe", param.Style) == true)
+                {
+                    excludeConnectionIds = new string[1];
+                    excludeConnectionIds[0] = Context.ConnectionId;
+                }
                 // 即便遇到抛出异常的情况，先前保存成功的部分消息也可以发送出去
                 // 启动一个任务，向相关的前端推送消息，以便它们在界面上显示消息或者变化(比如删除或者修改以后的效果)
-                Task.Factory.StartNew(() => PushMessageToClient(action, saved_items));
+                Task.Factory.StartNew(() => PushMessageToClient(param.Action,
+                    excludeConnectionIds,
+                    saved_items));
             }
 
             return result;
@@ -333,7 +521,9 @@ ex.GetType().ToString());
             return "~" + info.LibraryUserName + "@" + info.LibraryUID;
         }
 
-        void PushMessageToClient(string action, List<MessageItem> messages)
+        void PushMessageToClient(string action,
+            string[] excludeConnectionIds,
+            List<MessageItem> messages)
         {
             // 按照 Group 名字，分为若干个 List
             Hashtable table = new Hashtable();  // groupName --> List<MessageItem>
@@ -343,7 +533,14 @@ ex.GetType().ToString());
 
                 string groupName = item.group;
                 if (string.IsNullOrEmpty(groupName) == true)
-                    groupName = "<default>";
+                {
+                    throw new ArgumentException("MessageItem 对象的 gourp 成员不应为空");
+                }
+#if NO
+                if (string.IsNullOrEmpty(groupName) == true)
+                    groupName = "<default>";    // 需要在各个环节正规化组的名字
+#endif
+
                 List<MessageRecord> records = (List<MessageRecord>)table[groupName];
                 if (records == null)
                 {
@@ -358,7 +555,10 @@ ex.GetType().ToString());
                 List<MessageRecord> records = (List<MessageRecord>)table[groupName];
                 Debug.Assert(records != null, "");
                 Debug.Assert(records.Count != 0, "");
-                Clients.Group(groupName).addMessage(action, records);
+                if (excludeConnectionIds == null)
+                    Clients.Group(groupName).addMessage(action, records);
+                else
+                    Clients.Group(groupName, excludeConnectionIds).addMessage(action, records);
             }
         }
 
@@ -400,19 +600,31 @@ ex.GetType().ToString());
 
         #region GetMessage() API
 
-        static bool Include(string [] array, string one)
+        static bool IncludeGroup(string[] array, string one)
         {
-            if (array == null && string.IsNullOrEmpty(one) == true)
-                return true;
+            if (array == null)
+            {
+                if (IsDefaultGroupName(one) == true)
+                    return true;
+                return false;
+            }
             return Array.IndexOf(array, one) != -1;
         }
 
         public MessageResult RequestGetMessage(GetMessageRequest param)
         {
-            if (param.Count == 0)
-                param.Count = -1;
+            // param.Count 为 0 和 -1 意义不同。前者可用于只探索条数，不获取数据。比如在界面上显示有多少条新的信息
 
             MessageResult result = new MessageResult();
+
+            // 检查参数
+            if (string.IsNullOrEmpty(param.GroupCondition) == true)
+            {
+                result.Value = -1;
+                result.String = "InvalidParam";
+                result.ErrorInfo = "param 成员 GroupCondition 不应为空";
+                return result;
+            }
 
             ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
 result,
@@ -421,23 +633,27 @@ false);
             if (connection_info == null)
                 return result;
 
-            if (string.IsNullOrEmpty(connection_info.UserName))
+            bool bSupervisor = (StringUtil.Contains(connection_info.Rights, "supervisor"));
+            if (bSupervisor == false)
             {
-                if (string.IsNullOrEmpty(param.GroupCondition) == false)
+                if (string.IsNullOrEmpty(connection_info.UserName))
+                {
+                    if (IsDefaultGroupName(param.GroupCondition) == false)
+                    {
+                        result.Value = -1;
+                        result.String = "Denied";
+                        result.ErrorInfo = "未注册的用户只允许查看 <default> 群组的消息，不允许查看群组 '" + param.GroupCondition + "' 的消息";
+                        return result;
+                    }
+                }
+
+                if (IncludeGroup(connection_info.Groups, param.GroupCondition) == false)
                 {
                     result.Value = -1;
                     result.String = "Denied";
-                    result.ErrorInfo = "未登录的用户只能查看 默认 群组的消息，不能查看群组 '"+param.GroupCondition+"' 的消息";
+                    result.ErrorInfo = "当前用户不能查看群组 '" + param.GroupCondition + "' 的消息";
                     return result;
                 }
-            }
-
-            if (Include(connection_info.Groups, param.GroupCondition) == false )
-            {
-                result.Value = -1;
-                result.String = "Denied";
-                result.ErrorInfo = "当前用户不能查看群组 '" + param.GroupCondition + "' 的消息";
-                return result;
             }
 
             SearchInfo search_info = null;
@@ -488,7 +704,7 @@ false);
                         if (item != null)
                             records.Add(BuildMessageRecord(item));
                         // 集中发送一次
-                        if (records.Count >= batch_size || (records.Count > 0 && item == null))
+                        if (records.Count >= batch_size || item == null)
                         {
                             // 让前端获得检索结果
                             try
@@ -897,7 +1113,10 @@ false);
                         Groups.Add(Context.ConnectionId, group);
                     }
                 }
-                Groups.Add(Context.ConnectionId, "<default>");
+                foreach (string group in default_groups)
+                {
+                    Groups.Add(Context.ConnectionId, group);
+                }
 
                 connection_info.PropertyList = param.PropertyList;
                 connection_info.LibraryUID = param.LibraryUID;
@@ -956,7 +1175,11 @@ false);
                         Groups.Remove(Context.ConnectionId, group);
                     }
                 }
-                Groups.Remove(Context.ConnectionId, "<default>");
+
+                foreach (string group in default_groups)
+                {
+                    Groups.Remove(Context.ConnectionId, group);
+                }
 
             }
             catch (Exception ex)
@@ -1987,6 +2210,13 @@ true);
 
         #region 几个事件
 
+        public static string[] default_groups = new string[] {
+            "<default>",
+            "<dp2circulation>",
+            "<dp2catalog>",
+            "<dp2opac>",
+        };
+
         void AddConnection()
         {
             ConnectionInfo connection_info = ServerInfo.ConnectionTable.AddConnection(Context.ConnectionId);
@@ -2014,7 +2244,11 @@ true);
                     Groups.Add(Context.ConnectionId, group);
                 }
             }
-            Groups.Add(Context.ConnectionId, "<default>");
+
+            foreach (string group in default_groups)
+            {
+                Groups.Add(Context.ConnectionId, group);
+            }
         }
 
         public override Task OnConnected()

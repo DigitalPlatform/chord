@@ -17,6 +17,8 @@ using DigitalPlatform.MessageClient;
 using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
 using DigitalPlatform;
+using System.Xml;
+using System.Messaging;
 
 namespace TestClient1
 {
@@ -197,6 +199,8 @@ namespace TestClient1
             this.textBox_circulation_patronFormatList.Text = Settings.Default.circulation_patronFormatList;
             this.textBox_circulation_itemFormatList.Text = Settings.Default.circulation_itemFormatList;
             this.textBox_circulation_biblioFormatList.Text = Settings.Default.circulation_biblioFormatList;
+
+            this.textBox_message_groupName.Text = Settings.Default.message_groupName;
         }
 
         void SaveSettings()
@@ -241,6 +245,8 @@ namespace TestClient1
             Settings.Default.circulation_patronFormatList = this.textBox_circulation_patronFormatList.Text;
             Settings.Default.circulation_itemFormatList = this.textBox_circulation_itemFormatList.Text;
             Settings.Default.circulation_biblioFormatList = this.textBox_circulation_biblioFormatList.Text;
+
+            Settings.Default.message_groupName = this.textBox_message_groupName.Text;
 
             Settings.Default.Save();
         }
@@ -1128,10 +1134,11 @@ string strHtml)
 
         private void button_message_send_Click(object sender, EventArgs e)
         {
-            DoSendMessage(this.textBox_message_text.Text);
+            DoSendMessage(this.textBox_message_groupName.Text,
+                this.textBox_message_text.Text);
         }
 
-        async void DoSendMessage(string strText)
+        async void DoSendMessage(string strGroupName, string strText)
         {
             string strError = "";
 
@@ -1145,7 +1152,7 @@ string strHtml)
 
             List<MessageRecord> records = new List<MessageRecord>();
             MessageRecord record = new MessageRecord();
-            record.group = "";
+            record.group = strGroupName;
             record.creator = "";    // 服务器会自己填写
             record.data = strText;
             record.format = "text";
@@ -1164,9 +1171,11 @@ string strHtml)
                     MessageConnection connection = await this._channels.GetConnectionAsync(
                         this.textBox_config_messageServerUrl.Text,
                         this.textBox_search_remoteUserName.Text);
-                    SetMessageResult result = await connection.SetMessageAsync(
-                        "create",
+                    SetMessageRequest param = new SetMessageRequest("create",
+                        "",
                         records);
+
+                    SetMessageResult result = await connection.SetMessageAsync(param);
 
                     this.Invoke(new Action(() =>
                     {
@@ -1196,7 +1205,7 @@ string strHtml)
         // 装载以前的所有消息
         private void button_message_load_Click(object sender, EventArgs e)
         {
-            DoLoadMessage("");
+            DoLoadMessage(this.textBox_message_groupName.Text);
         }
 
         void FillMessage(long totalCount,
@@ -1357,6 +1366,41 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
             }
 #endif
+        }
+
+        private void MenuItem_writeToMSMQ_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+
+            string strQueuePath = ".\\private$\\myQueue";
+            string strRecipient = Guid.NewGuid().ToString();
+            string strBody = "adfasdfasdfasdfasdfasdfasdf";
+
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml("<root />");
+            DomUtil.SetElementText(dom.DocumentElement, "type", "patronNotify");
+            DomUtil.SetElementText(dom.DocumentElement, "recipient", strRecipient);
+            DomUtil.SetElementText(dom.DocumentElement, "body", strBody);
+            DomUtil.SetElementText(dom.DocumentElement, "mime", "text");
+
+            try
+            {
+                MessageQueue myQueue = new MessageQueue(strQueuePath);
+
+                System.Messaging.Message myMessage = new System.Messaging.Message();
+                myMessage.Body = dom.DocumentElement.OuterXml;
+                myMessage.Formatter = new XmlMessageFormatter(new Type[] { typeof(string) });
+                myQueue.Send(myMessage);
+            }
+            catch (Exception ex)
+            {
+                strError = "发送消息到 MQ 失败: " + ex.Message;
+                goto ERROR1;
+            }
+
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
         }
 
     }

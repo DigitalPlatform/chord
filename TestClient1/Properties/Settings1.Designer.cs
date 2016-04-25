@@ -442,5 +442,17 @@ namespace TestClient1.Properties {
                 this["circulation_biblioFormatList"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string message_groupName {
+            get {
+                return ((string)(this["message_groupName"]));
+            }
+            set {
+                this["message_groupName"] = value;
+            }
+        }
     }
 }

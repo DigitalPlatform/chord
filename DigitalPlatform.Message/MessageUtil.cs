@@ -11,6 +11,73 @@ namespace DigitalPlatform.Message
 
     }
 
+    // 通用的 API 返回值结构
+    public class MessageResult
+    {
+        public string String { get; set; }  // 字符串类型的返回值
+        public long Value { get; set; }      // 整数类型的返回值
+        public string ErrorInfo { get; set; }   // 出错信息
+
+        public void SetError(string errorInfo, string errorCode)
+        {
+            this.ErrorInfo = errorInfo;
+            this.String = errorCode;
+            this.Value = -1;
+        }
+    }
+
+    #region Group 有关
+
+    public class GetGroupRequest
+    {
+        public string TaskID { get; set; }    // 本次检索的任务 ID。由于一个 Connection 可以用于同时进行若干检索操作，本参数用于区分不同的检索操作
+
+        public string GroupCondition { get; set; }
+        public string UserCondition { get; set; }
+        public string TimeCondition { get; set; }
+
+        public long Start { get; set; }
+        public long Count { get; set; }
+
+        public GetGroupRequest(string taskID,
+            string groupCondition,
+            string userCondition,
+            string timeCondition,
+            long start,
+            long count)
+        {
+            this.TaskID = taskID;
+            this.GroupCondition = groupCondition;
+            this.UserCondition = userCondition;
+            this.TimeCondition = timeCondition;
+            this.Start = start;
+            this.Count = count;
+        }
+    }
+
+    public class GetGroupResult : MessageResult
+    {
+        public List<GroupRecord> Results { get; set; }
+    }
+
+    public class GroupRecord
+    {
+        public string id { get; set; }  // 组的 id
+
+        public string name { get; set; }   // 组名。表意的名称
+        public string creator { get; set; } // 创建组的人。用户名或 id
+        public string[] manager { get; set; }   // 管理员
+        public string comment { get; set; }  // 注释
+        public string type { get; set; }    // 组类型。类型是从用途角度来说的
+
+        public DateTime createTime { get; set; } // 创建时间
+        public DateTime expireTime { get; set; } // 组失效时间
+    }
+
+    #endregion
+
+    #region Message 有关
+
     public class MessageRecord
     {
         public string id { get; set; }  // 消息的 id
@@ -25,16 +92,6 @@ namespace DigitalPlatform.Message
 
         public DateTime publishTime { get; set; } // 消息发布时间
         public DateTime expireTime { get; set; } // 消息失效时间
-    }
-
-
-    public class Record
-    {
-        // 记录路径。可能是本地路径，例如 “图书总库/1”；也可能是全局路径，例如“图书总库@xxxxxxx”
-        public string RecPath { get; set; }
-        public string Format { get; set; }
-        public string Data { get; set; }
-        public string Timestamp { get; set; }
     }
 
 #if NO
@@ -59,17 +116,19 @@ namespace DigitalPlatform.Message
     }
 #endif
 
-    public class MessageResult
+    public class SetMessageRequest
     {
-        public string String { get; set; }  // 字符串类型的返回值
-        public long Value { get; set; }      // 整数类型的返回值
-        public string ErrorInfo { get; set; }   // 出错信息
+        public string Action { get; set; }
+        public string Style { get; set; }
+        public List<MessageRecord> Records { get; set; }
 
-        public void SetError(string errorInfo, string errorCode)
+        public SetMessageRequest(string action,
+            string style,
+            List<MessageRecord> records)
         {
-            this.ErrorInfo = errorInfo;
-            this.String = errorCode;
-            this.Value = -1;
+            this.Action = action;
+            this.Style = style;
+            this.Records = records;
         }
     }
 
@@ -89,7 +148,7 @@ namespace DigitalPlatform.Message
         public long Start { get; set; }
         public long Count { get; set; }
 
-        public GetMessageRequest(string taskID, 
+        public GetMessageRequest(string taskID,
             string groupCondition,
             string userCondition,
             string timeCondition,
@@ -110,6 +169,10 @@ namespace DigitalPlatform.Message
         public List<MessageRecord> Results { get; set; }
     }
 
+    #endregion
+
+    #region Login() 有关
+
     public class LoginRequest
     {
         public string UserName { get; set; }
@@ -120,6 +183,8 @@ namespace DigitalPlatform.Message
         public string LibraryName { get; set; }
         public string PropertyList { get; set; }
     }
+
+    #endregion
 
     public class GetUserResult : MessageResult
     {
@@ -132,6 +197,18 @@ namespace DigitalPlatform.Message
         public List<string> Results { get; set; }
 
         public string RecPath { get; set; }
+        public string Timestamp { get; set; }
+    }
+
+
+    #region Search() 有关
+
+    public class Record
+    {
+        // 记录路径。可能是本地路径，例如 “图书总库/1”；也可能是全局路径，例如“图书总库@xxxxxxx”
+        public string RecPath { get; set; }
+        public string Format { get; set; }
+        public string Data { get; set; }
         public string Timestamp { get; set; }
     }
 
@@ -174,6 +251,10 @@ namespace DigitalPlatform.Message
             this.Count = count;
         }
     }
+
+    #endregion
+
+    #region Connection 有关
 
     public class User
     {
@@ -254,6 +335,10 @@ namespace DigitalPlatform.Message
         }
     }
 
+    #endregion
+
+    #region SetInfo() 有关
+
     public class SetInfoRequest
     {
         public string TaskID { get; set; }    // 任务 ID。由于一个 Connection 可以用于同时执行多个任务，本参数用于区分不同的任务
@@ -296,6 +381,10 @@ namespace DigitalPlatform.Message
         public string ErrorCode { get; set; }   // 出错码（表示属于何种类型的错误）
     }
 
+    #endregion
+
+    #region BindPatron() 有关
+
     public class BindPatronRequest
     {
         public string TaskID { get; set; }    // 任务 ID。由于一个 Connection 可以用于同时执行多个任务，本参数用于区分不同的任务
@@ -334,6 +423,10 @@ namespace DigitalPlatform.Message
         public string RecPath { get; set; }
         public string Timestamp { get; set; }
     }
+
+    #endregion
+
+    #region Circulation() 有关
 
     public class CirculationRequest
     {
@@ -427,5 +520,7 @@ namespace DigitalPlatform.Message
         /// </summary>
         public string Location { get; set; }
     }
+
+    #endregion
 
 }

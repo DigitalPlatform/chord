@@ -77,10 +77,10 @@ int count,
                         }
                         index++;
                     }
+                    proc(totalCount, null); // 表示结束
                 }
             }
 
-            proc(-1, null); // 表示结束
         }
 
         public async Task<List<MessageItem>> GetMessages(string groupName,

@@ -39,6 +39,7 @@
     <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Messaging" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml.Linq" />
@@ -55,6 +56,7 @@
       <DependentUpon>Installer1.cs</DependentUpon>
     </Compile>
     <Compile Include="Instance.cs" />
+    <Compile Include="NotifyThread.cs" />
     <Compile Include="Program.cs">
       <SubType>Component</SubType>
     </Compile>

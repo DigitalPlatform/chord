@@ -27,18 +27,75 @@ namespace DigitalPlatform.MessageServer
 
         }
 
+        // return:
+        //      true    表示后面要继续处理
+        //      false 表示后面要中断处理
+        public delegate bool Delegate_outputGroup(long totalCount, GroupItem item);
+
+        public async Task GetGroups(string groupName,
+int start,
+int count,
+            Delegate_outputGroup proc)
+        {
+            IMongoCollection<GroupItem> collection = this._collection;
+
+            // List<MessageItem> results = new List<MessageItem>();
+            FilterDefinition<GroupItem> filter = null;
+#if NO
+            if (string.IsNullOrEmpty(groupName))
+            {
+                filter = Builders<MessageItem>.Filter.Or(
+                    Builders<MessageItem>.Filter.Eq("group", ""),
+                    Builders<MessageItem>.Filter.Eq("group", (string)null));
+            }
+            else
+#endif
+            filter = Builders<GroupItem>.Filter.Eq("group", groupName);
+
+            var index = 0;
+            using (var cursor = await collection.FindAsync(
+                groupName == "*" ? new BsonDocument() : filter
+                ))
+            {
+                while (await cursor.MoveNextAsync())
+                {
+                    var batch = cursor.Current;
+                    long totalCount = batch.Count<GroupItem>();
+                    foreach (var document in batch)
+                    {
+                        if (count != -1 && index - start >= count)
+                            break;
+                        if (index >= start)
+                        {
+                            if (proc(totalCount, document) == false)
+                                return;
+                        }
+                        index++;
+                    }
+                    proc(totalCount, null); // 表示结束
+                }
+            }
+        }
+
+
+
     }
 
     public class GroupItem
     {
+        public void SetID(string id)
+        {
+            this.id = id;
+        }
+
         [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
+        // [BsonRepresentation(BsonType.ObjectId)]
         public string id { get; private set; }  // 组的 id
 
         public string name { get; set; }   // 组名。表意的名称
         public string creator { get; set; } // 创建组的人。用户名或 id
         public string[] manager { get; set; }   // 管理员
-        public string data { get; set; }  // 消息数据体
+        public string comment { get; set; }  // 注释
         public string type { get; set; }    // 组类型。类型是从用途角度来说的
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
