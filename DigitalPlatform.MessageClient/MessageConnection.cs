@@ -172,6 +172,9 @@ namespace DigitalPlatform.MessageClient
             // string strServerUrl
             )
         {
+            // 一直到真正连接前才触发登录事件
+            this.Container.TriggerLogin(this);
+
             AddInfoLine("正在连接服务器 " + this.ServerUrl + " ...");
             Connection = new HubConnection(this.ServerUrl);
 
