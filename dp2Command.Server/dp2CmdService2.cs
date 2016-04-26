@@ -51,11 +51,6 @@ namespace dp2Command.Server
         public string userName = "";
         public string password = "";
 
-
-
-
-
-
         public void Init(string dp2MServerUrl,
             string userName,
             string password,
@@ -80,19 +75,23 @@ namespace dp2Command.Server
         {
             MessageConnection connection = sender as MessageConnection;
 
-            if (string.IsNullOrEmpty(this.userName) == true)
+            e.UserName = GetUserName();
+            if (string.IsNullOrEmpty(e.UserName) == true)
                 throw new Exception("尚未指定用户名，无法进行登录");
 
-            MessageResult result = connection.LoginAsync(
-                this.userName,
-                this.password,
-                "",
-                "",
-                "property").Result;
-            if (result.Value == -1)
-            {
-                throw new Exception(result.ErrorInfo);
-            }
+            e.Password = GetPassword();
+            e.Parameters = "";
+
+            // TODO: 登录如果失败，界面会有提示么?
+        }
+
+        string GetUserName()
+        {
+            return this.userName;
+        }
+        string GetPassword()
+        {
+            return this.password;
         }
 
 
@@ -534,6 +533,7 @@ namespace dp2Command.Server
             //strBiblioInfo += strName + "\n";
 
             int nRet = 0;
+
 
             //2个任务并行
             string strInfo = "";

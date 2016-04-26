@@ -1,25 +1,23 @@
 ﻿var senparc = {};
 var maxSubMenuCount = 5;
 var menuState;
-senparc.menu = {
+senparc.menu ={
     token: '',
     init: function () {
         menuState = $('#menuState');
         $('#buttonDetails').hide();
         $('#menuEditor').hide();
 
-
         // 自动获取accessToken
         $.getJSON('/Menu/GetToken?t=' + Math.random(), { appId: 'wx57aa3682c59d16c2', appSecret: '61ac93be56e3f7f42d0861bf073427e6' },
-    function (json) {
-        if (json.access_token) {
-            senparc.menu.setToken(json.access_token);
-        } else {
-            alert(json.error || '执行过程有错误，请检查！');
-        }
-    });
 
-       
+        function (json) {
+            if (json.access_token) {
+                senparc.menu.setToken(json.access_token);
+            } else {
+                alert(json.error || '执行过程有错误，请检查！');
+            }
+        });       
 
         $("#buttonDetails_type").change(senparc.menu.typeChanged);
 
@@ -133,7 +131,7 @@ senparc.menu = {
             });
         });
 
-        $('#submitMenu').click(function () {
+        $('#submitMenu').click(function (){
             if (!confirm('确定要提交吗？此操作无法撤销！')) {
                 return;
             }
