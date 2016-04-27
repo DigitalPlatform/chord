@@ -19,6 +19,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -122,10 +123,6 @@
     <ProjectReference Include="..\dp2Command.Server\dp2Command.Service.csproj">
       <Project>{a77b8a4a-3ae8-4bd7-b09a-bf8d92fe802d}</Project>
       <Name>dp2Command.Service</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\dp2weixin.service\dp2weixin.service.csproj">
-      <Project>{8085b933-f69e-4a89-97eb-0a61d115c69f}</Project>
-      <Name>dp2weixin.service</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2MServer", "dp2MServer\dp2MServer.csproj", "{946F6F11-C4F6-4370-894B-4907D5A2008F}"
 EndProject
@@ -52,8 +52,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.ServiceProcess", "DigitalPlatform.ServiceProcess\DigitalPlatform.ServiceProcess.csproj", "{696B2B7F-D5F6-47AE-8113-C0CD27FAD21E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2weixinP2P", "dp2weixinP2P\dp2weixinP2P.csproj", "{95CB7353-995B-4B82-8DFF-41C0133FFF78}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2weixin.service", "dp2weixin.service\dp2weixin.service.csproj", "{8085B933-F69E-4A89-97EB-0A61D115C69F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -217,12 +215,6 @@ Global
 		{95CB7353-995B-4B82-8DFF-41C0133FFF78}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95CB7353-995B-4B82-8DFF-41C0133FFF78}.Release|Any CPU.Build.0 = Release|Any CPU
 		{95CB7353-995B-4B82-8DFF-41C0133FFF78}.Release|x86.ActiveCfg = Release|Any CPU
-		{8085B933-F69E-4A89-97EB-0A61D115C69F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8085B933-F69E-4A89-97EB-0A61D115C69F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8085B933-F69E-4A89-97EB-0A61D115C69F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{8085B933-F69E-4A89-97EB-0A61D115C69F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8085B933-F69E-4A89-97EB-0A61D115C69F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8085B933-F69E-4A89-97EB-0A61D115C69F}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
