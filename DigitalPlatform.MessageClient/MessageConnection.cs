@@ -172,6 +172,9 @@ namespace DigitalPlatform.MessageClient
             // string strServerUrl
             )
         {
+            // 一直到真正连接前才触发登录事件
+            this.Container.TriggerLogin(this);
+
             AddInfoLine("正在连接服务器 " + this.ServerUrl + " ...");
             Connection = new HubConnection(this.ServerUrl);
 
@@ -254,7 +257,7 @@ errorInfo)
                 return Connection.Start()
                     .ContinueWith<MessageResult>((antecendent) =>
                     {
-                            MessageResult result = new MessageResult();
+                        MessageResult result = new MessageResult();
                         if (antecendent.IsFaulted == true)
                         {
 #if NO
@@ -326,11 +329,14 @@ errorInfo)
         public virtual void OnAddMessageRecieved(string action,
             IList<MessageRecord> messages)
         {
-            AddMessageEventArgs e = new AddMessageEventArgs();
-            e.Action = action;
-            e.Records = new List<MessageRecord>();
-            e.Records.AddRange(messages);
-            this.Container.TriggerAddMessage(this, e);
+            if (this.Container != null)
+            {
+                AddMessageEventArgs e = new AddMessageEventArgs();
+                e.Action = action;
+                e.Records = new List<MessageRecord>();
+                e.Records.AddRange(messages);
+                this.Container.TriggerAddMessage(this, e);
+            }
         }
 
         public delegate void Delegate_addMessage(string action, List<MessageRecord> records);
@@ -434,14 +440,11 @@ request).Result;
 
         #region SetMessage() API
 
-        public Task<SetMessageResult> SetMessageAsync(
-            string action,
-            List<MessageRecord> messages)
+        public Task<SetMessageResult> SetMessageAsync(SetMessageRequest param)
         {
             return HubProxy.Invoke<SetMessageResult>(
  "SetMessage",
- action,
- messages);
+ param);
         }
 
         #endregion

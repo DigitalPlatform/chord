@@ -9,6 +9,7 @@ namespace DigitalPlatform.MessageClient
 {
     /// <summary>
     /// MessageConnection 的集合
+    /// 对于每一个 strName，集合维持一个连接对象。由于连接对象不怕并发使用，所以集合没有对正在使用的集合提供锁定排斥机制。
     /// </summary>
     public class MessageConnectionCollection : IDisposable
     {
@@ -41,12 +42,13 @@ namespace DigitalPlatform.MessageClient
 
 
         FOUND:
+#if NO
             LoginEventArgs e = new LoginEventArgs();
             e.ServerUrl = url;
             e.Name = strName;
             LoginEventHandler handler = this.Login;
             if (handler != null)
-                handler(connection, e);
+                handler(connection, e); // TODO: 是否在真正连接前再触发?
 
             if (string.IsNullOrEmpty(e.ErrorInfo) == false)
                 throw new Exception(e.ErrorInfo);
@@ -54,6 +56,7 @@ namespace DigitalPlatform.MessageClient
             connection.UserName = e.UserName;
             connection.Password = e.Password;
             connection.Parameters = e.Parameters;
+#endif
 
             if (autoConnect && connection.IsConnected == false)
             {
@@ -138,7 +141,6 @@ namespace DigitalPlatform.MessageClient
             this.Clear();
         }
 
-#if NO
         // 触发登录事件
         public virtual void TriggerLogin(MessageConnection connection)
         {
@@ -146,10 +148,18 @@ namespace DigitalPlatform.MessageClient
             if (handler != null)
             {
                 LoginEventArgs e = new LoginEventArgs();
+                // 注: 在触发事件以前, MessageConnection 对象的 ServerUrl 和 Name 成员已经准备好了，可以利用
+                //e.ServerUrl = connection.ServerUrl;
+                //e.Name = connection.Name;
                 handler(connection, e);
+                if (string.IsNullOrEmpty(e.ErrorInfo) == false)
+                    throw new Exception(e.ErrorInfo);
+
+                connection.UserName = e.UserName;
+                connection.Password = e.Password;
+                connection.Parameters = e.Parameters;
             }
         }
-#endif
 
         // 触发消息通知事件
         public virtual void TriggerAddMessage(MessageConnection connection,
@@ -176,8 +186,9 @@ namespace DigitalPlatform.MessageClient
     /// </summary>
     public class LoginEventArgs : EventArgs
     {
-        public string ServerUrl = "";   // [in]
-        public string Name = "";        // [in]
+        // 注: 在触发事件以前, MessageConnection 对象的 ServerUrl 和 Name 成员已经准备好了，可以利用
+        //public string ServerUrl = "";   // [in]
+        //public string Name = "";        // [in]
 
         public string UserName = "";    // [out]
         public string Password = "";    // [out]

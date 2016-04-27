@@ -112,16 +112,21 @@
             this.label34 = new System.Windows.Forms.Label();
             this.textBox_circulation_remoteUserName = new System.Windows.Forms.TextBox();
             this.label35 = new System.Windows.Forms.Label();
+            this.tabPage_message = new System.Windows.Forms.TabPage();
+            this.button_message_load = new System.Windows.Forms.Button();
+            this.button_message_send = new System.Windows.Forms.Button();
+            this.textBox_message_text = new System.Windows.Forms.TextBox();
+            this.label37 = new System.Windows.Forms.Label();
+            this.webBrowser_message = new System.Windows.Forms.WebBrowser();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.tabPage_message = new System.Windows.Forms.TabPage();
-            this.webBrowser_message = new System.Windows.Forms.WebBrowser();
-            this.label37 = new System.Windows.Forms.Label();
-            this.textBox_message_text = new System.Windows.Forms.TextBox();
-            this.button_message_send = new System.Windows.Forms.Button();
-            this.button_message_load = new System.Windows.Forms.Button();
+            this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_writeToMSMQ = new System.Windows.Forms.ToolStripMenuItem();
+            this.label38 = new System.Windows.Forms.Label();
+            this.textBox_message_groupName = new System.Windows.Forms.TextBox();
+            this.menuStrip1.SuspendLayout();
             this.tabControl_main.SuspendLayout();
             this.tabPage_config.SuspendLayout();
             this.tabPage_getInfo.SuspendLayout();
@@ -129,19 +134,21 @@
             this.tabPage_bindPatron.SuspendLayout();
             this.tabPage_setInfo.SuspendLayout();
             this.tabPage_circulation.SuspendLayout();
+            this.tabPage_message.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_main)).BeginInit();
             this.splitContainer_main.Panel1.SuspendLayout();
             this.splitContainer_main.Panel2.SuspendLayout();
             this.splitContainer_main.SuspendLayout();
-            this.tabPage_message.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
             // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.testToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(728, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(728, 25);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -166,7 +173,7 @@
             this.tabControl_main.Location = new System.Drawing.Point(0, 0);
             this.tabControl_main.Name = "tabControl_main";
             this.tabControl_main.SelectedIndex = 0;
-            this.tabControl_main.Size = new System.Drawing.Size(341, 298);
+            this.tabControl_main.Size = new System.Drawing.Size(341, 297);
             this.tabControl_main.TabIndex = 2;
             // 
             // tabPage_config
@@ -179,7 +186,7 @@
             this.tabPage_config.Controls.Add(this.label1);
             this.tabPage_config.Location = new System.Drawing.Point(4, 22);
             this.tabPage_config.Name = "tabPage_config";
-            this.tabPage_config.Size = new System.Drawing.Size(333, 272);
+            this.tabPage_config.Size = new System.Drawing.Size(333, 271);
             this.tabPage_config.TabIndex = 2;
             this.tabPage_config.Text = "Config";
             this.tabPage_config.UseVisualStyleBackColor = true;
@@ -813,7 +820,7 @@
             this.tabPage_circulation.Controls.Add(this.label35);
             this.tabPage_circulation.Location = new System.Drawing.Point(4, 22);
             this.tabPage_circulation.Name = "tabPage_circulation";
-            this.tabPage_circulation.Size = new System.Drawing.Size(333, 272);
+            this.tabPage_circulation.Size = new System.Drawing.Size(333, 271);
             this.tabPage_circulation.TabIndex = 5;
             this.tabPage_circulation.Text = "Circulation";
             this.tabPage_circulation.UseVisualStyleBackColor = true;
@@ -960,11 +967,77 @@
             this.label35.TabIndex = 37;
             this.label35.Text = "Remote User Name:";
             // 
+            // tabPage_message
+            // 
+            this.tabPage_message.Controls.Add(this.textBox_message_groupName);
+            this.tabPage_message.Controls.Add(this.label38);
+            this.tabPage_message.Controls.Add(this.button_message_load);
+            this.tabPage_message.Controls.Add(this.button_message_send);
+            this.tabPage_message.Controls.Add(this.textBox_message_text);
+            this.tabPage_message.Controls.Add(this.label37);
+            this.tabPage_message.Controls.Add(this.webBrowser_message);
+            this.tabPage_message.Location = new System.Drawing.Point(4, 22);
+            this.tabPage_message.Name = "tabPage_message";
+            this.tabPage_message.Size = new System.Drawing.Size(333, 271);
+            this.tabPage_message.TabIndex = 6;
+            this.tabPage_message.Text = "Message";
+            this.tabPage_message.UseVisualStyleBackColor = true;
+            // 
+            // button_message_load
+            // 
+            this.button_message_load.Location = new System.Drawing.Point(9, 49);
+            this.button_message_load.Name = "button_message_load";
+            this.button_message_load.Size = new System.Drawing.Size(47, 23);
+            this.button_message_load.TabIndex = 5;
+            this.button_message_load.Text = "Load";
+            this.button_message_load.UseVisualStyleBackColor = true;
+            this.button_message_load.Click += new System.EventHandler(this.button_message_load_Click);
+            // 
+            // button_message_send
+            // 
+            this.button_message_send.Location = new System.Drawing.Point(9, 72);
+            this.button_message_send.Name = "button_message_send";
+            this.button_message_send.Size = new System.Drawing.Size(47, 23);
+            this.button_message_send.TabIndex = 4;
+            this.button_message_send.Text = "Send";
+            this.button_message_send.UseVisualStyleBackColor = true;
+            this.button_message_send.Click += new System.EventHandler(this.button_message_send_Click);
+            // 
+            // textBox_message_text
+            // 
+            this.textBox_message_text.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_message_text.Location = new System.Drawing.Point(63, 34);
+            this.textBox_message_text.Multiline = true;
+            this.textBox_message_text.Name = "textBox_message_text";
+            this.textBox_message_text.Size = new System.Drawing.Size(267, 62);
+            this.textBox_message_text.TabIndex = 3;
+            // 
+            // label37
+            // 
+            this.label37.AutoSize = true;
+            this.label37.Location = new System.Drawing.Point(9, 34);
+            this.label37.Name = "label37";
+            this.label37.Size = new System.Drawing.Size(35, 12);
+            this.label37.TabIndex = 2;
+            this.label37.Text = "Text:";
+            // 
+            // webBrowser_message
+            // 
+            this.webBrowser_message.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.webBrowser_message.Location = new System.Drawing.Point(3, 102);
+            this.webBrowser_message.MinimumSize = new System.Drawing.Size(20, 20);
+            this.webBrowser_message.Name = "webBrowser_message";
+            this.webBrowser_message.Size = new System.Drawing.Size(327, 166);
+            this.webBrowser_message.TabIndex = 1;
+            // 
             // toolStrip1
             // 
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripButton_begin});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 24);
+            this.toolStrip1.Location = new System.Drawing.Point(0, 25);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(728, 25);
             this.toolStrip1.TabIndex = 1;
@@ -983,7 +1056,7 @@
             // splitContainer_main
             // 
             this.splitContainer_main.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer_main.Location = new System.Drawing.Point(0, 49);
+            this.splitContainer_main.Location = new System.Drawing.Point(0, 50);
             this.splitContainer_main.Name = "splitContainer_main";
             // 
             // splitContainer_main.Panel1
@@ -993,7 +1066,7 @@
             // splitContainer_main.Panel2
             // 
             this.splitContainer_main.Panel2.Controls.Add(this.webBrowser1);
-            this.splitContainer_main.Size = new System.Drawing.Size(728, 298);
+            this.splitContainer_main.Size = new System.Drawing.Size(728, 297);
             this.splitContainer_main.SplitterDistance = 341;
             this.splitContainer_main.SplitterWidth = 8;
             this.splitContainer_main.TabIndex = 3;
@@ -1004,72 +1077,41 @@
             this.webBrowser1.Location = new System.Drawing.Point(0, 0);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(379, 298);
+            this.webBrowser1.Size = new System.Drawing.Size(379, 297);
             this.webBrowser1.TabIndex = 0;
             // 
-            // tabPage_message
+            // testToolStripMenuItem
             // 
-            this.tabPage_message.Controls.Add(this.button_message_load);
-            this.tabPage_message.Controls.Add(this.button_message_send);
-            this.tabPage_message.Controls.Add(this.textBox_message_text);
-            this.tabPage_message.Controls.Add(this.label37);
-            this.tabPage_message.Controls.Add(this.webBrowser_message);
-            this.tabPage_message.Location = new System.Drawing.Point(4, 22);
-            this.tabPage_message.Name = "tabPage_message";
-            this.tabPage_message.Size = new System.Drawing.Size(333, 272);
-            this.tabPage_message.TabIndex = 6;
-            this.tabPage_message.Text = "Message";
-            this.tabPage_message.UseVisualStyleBackColor = true;
+            this.testToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.MenuItem_writeToMSMQ});
+            this.testToolStripMenuItem.Name = "testToolStripMenuItem";
+            this.testToolStripMenuItem.Size = new System.Drawing.Size(41, 21);
+            this.testToolStripMenuItem.Text = "test";
             // 
-            // webBrowser_message
+            // MenuItem_writeToMSMQ
             // 
-            this.webBrowser_message.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.MenuItem_writeToMSMQ.Name = "MenuItem_writeToMSMQ";
+            this.MenuItem_writeToMSMQ.Size = new System.Drawing.Size(168, 22);
+            this.MenuItem_writeToMSMQ.Text = "Write to MSMQ";
+            this.MenuItem_writeToMSMQ.Click += new System.EventHandler(this.MenuItem_writeToMSMQ_Click);
+            // 
+            // label38
+            // 
+            this.label38.AutoSize = true;
+            this.label38.Location = new System.Drawing.Point(9, 11);
+            this.label38.Name = "label38";
+            this.label38.Size = new System.Drawing.Size(71, 12);
+            this.label38.TabIndex = 6;
+            this.label38.Text = "Group Name:";
+            // 
+            // textBox_message_groupName
+            // 
+            this.textBox_message_groupName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.webBrowser_message.Location = new System.Drawing.Point(3, 82);
-            this.webBrowser_message.MinimumSize = new System.Drawing.Size(20, 20);
-            this.webBrowser_message.Name = "webBrowser_message";
-            this.webBrowser_message.Size = new System.Drawing.Size(327, 187);
-            this.webBrowser_message.TabIndex = 1;
-            // 
-            // label37
-            // 
-            this.label37.AutoSize = true;
-            this.label37.Location = new System.Drawing.Point(9, 14);
-            this.label37.Name = "label37";
-            this.label37.Size = new System.Drawing.Size(47, 12);
-            this.label37.TabIndex = 2;
-            this.label37.Text = "label37";
-            // 
-            // textBox_message_text
-            // 
-            this.textBox_message_text.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_message_text.Location = new System.Drawing.Point(63, 14);
-            this.textBox_message_text.Multiline = true;
-            this.textBox_message_text.Name = "textBox_message_text";
-            this.textBox_message_text.Size = new System.Drawing.Size(267, 62);
-            this.textBox_message_text.TabIndex = 3;
-            // 
-            // button_message_send
-            // 
-            this.button_message_send.Location = new System.Drawing.Point(9, 52);
-            this.button_message_send.Name = "button_message_send";
-            this.button_message_send.Size = new System.Drawing.Size(47, 23);
-            this.button_message_send.TabIndex = 4;
-            this.button_message_send.Text = "Send";
-            this.button_message_send.UseVisualStyleBackColor = true;
-            this.button_message_send.Click += new System.EventHandler(this.button_message_send_Click);
-            // 
-            // button_message_load
-            // 
-            this.button_message_load.Location = new System.Drawing.Point(9, 29);
-            this.button_message_load.Name = "button_message_load";
-            this.button_message_load.Size = new System.Drawing.Size(47, 23);
-            this.button_message_load.TabIndex = 5;
-            this.button_message_load.Text = "Load";
-            this.button_message_load.UseVisualStyleBackColor = true;
-            this.button_message_load.Click += new System.EventHandler(this.button_message_load_Click);
+            this.textBox_message_groupName.Location = new System.Drawing.Point(86, 7);
+            this.textBox_message_groupName.Name = "textBox_message_groupName";
+            this.textBox_message_groupName.Size = new System.Drawing.Size(244, 21);
+            this.textBox_message_groupName.TabIndex = 39;
             // 
             // MainForm
             // 
@@ -1086,6 +1128,8 @@
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.tabControl_main.ResumeLayout(false);
             this.tabPage_config.ResumeLayout(false);
             this.tabPage_config.PerformLayout();
@@ -1099,14 +1143,14 @@
             this.tabPage_setInfo.PerformLayout();
             this.tabPage_circulation.ResumeLayout(false);
             this.tabPage_circulation.PerformLayout();
+            this.tabPage_message.ResumeLayout(false);
+            this.tabPage_message.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.splitContainer_main.Panel1.ResumeLayout(false);
             this.splitContainer_main.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_main)).EndInit();
             this.splitContainer_main.ResumeLayout(false);
-            this.tabPage_message.ResumeLayout(false);
-            this.tabPage_message.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1207,6 +1251,10 @@
         private System.Windows.Forms.Label label37;
         private System.Windows.Forms.Button button_message_send;
         private System.Windows.Forms.Button button_message_load;
+        private System.Windows.Forms.ToolStripMenuItem testToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_writeToMSMQ;
+        private System.Windows.Forms.TextBox textBox_message_groupName;
+        private System.Windows.Forms.Label label38;
     }
 }
 

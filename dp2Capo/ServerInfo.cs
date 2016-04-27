@@ -31,6 +31,7 @@ namespace dp2Capo
             {
                 instance.BeginConnnect();
             }
+
         }
 
         // 运用控制台显示方式，设置一个实例的基本参数
@@ -70,6 +71,7 @@ namespace dp2Capo
             }
 
         }
+
         // 准备退出
         public static void Exit()
         {
@@ -80,6 +82,7 @@ namespace dp2Capo
             {
                 instance.CloseConnection();
             }
+
         }
     }
 }
