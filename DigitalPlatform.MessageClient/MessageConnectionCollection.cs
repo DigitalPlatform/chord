@@ -1,9 +1,11 @@
-﻿using DigitalPlatform.Message;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+
+using DigitalPlatform.Message;
 
 namespace DigitalPlatform.MessageClient
 {
@@ -13,8 +15,11 @@ namespace DigitalPlatform.MessageClient
     /// </summary>
     public class MessageConnectionCollection : IDisposable
     {
+        internal ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
         List<MessageConnection> _connections = new List<MessageConnection>();
 
+        public event ConnectionCreatedEventHandler ConnectionCreated = null;
+        public event ConnectionClosingEventHandler ConnectionClosing = null;
         public event LoginEventHandler Login = null;
         public event AddMessageEventHandler AddMessage = null;
 
@@ -25,21 +30,39 @@ namespace DigitalPlatform.MessageClient
     bool autoConnect = true)
         {
             MessageConnection connection = null;
-            foreach (MessageConnection current_connection in _connections)
+            this._lock.EnterUpgradeableReadLock();
+            try
             {
-                if (current_connection.ServerUrl == url && current_connection.Name == strName)
+                foreach (MessageConnection current_connection in _connections)
                 {
-                    connection = current_connection;
-                    goto FOUND;
+                    if (current_connection.ServerUrl == url && current_connection.Name == strName)
+                    {
+                        connection = current_connection;
+                        goto FOUND;
+                    }
+                }
+
+                connection = new MessageConnection();
+                connection.ServerUrl = url;
+                connection.Name = strName;
+                connection.Container = this;
+                this._lock.EnterWriteLock();
+                try
+                {
+                    this._connections.Add(connection);
+                }
+                finally
+                {
+                    this._lock.ExitWriteLock();
                 }
             }
+            finally
+            {
+                this._lock.ExitUpgradeableReadLock();
+            }
 
-            connection = new MessageConnection();
-            connection.ServerUrl = url;
-            connection.Name = strName;
-            connection.Container = this;
-            this._connections.Add(connection);
-
+            // 触发 Created 事件
+            this.TriggerCreated(connection, new ConnectionCreatedEventArgs());
 
         FOUND:
 #if NO
@@ -121,19 +144,42 @@ namespace DigitalPlatform.MessageClient
         }
 #endif
 
-        public void DeleteConnection(MessageConnection channel)
+        public void RemoveConnection(MessageConnection connection)
         {
-            this._connections.Remove(channel);
+            // 触发 Closing 事件
+            TriggerClosing(connection, new ConnectionClosingEventArgs());
+            connection.CloseConnection();
+
+            this._lock.ExitWriteLock();
+            try
+            {
+                this._connections.Remove(connection);
+            }
+            finally
+            {
+                this._lock.ExitWriteLock();
+            }
         }
 
         public void Clear()
         {
-            foreach (MessageConnection channel in this._connections)
+            foreach (MessageConnection connection in this._connections)
             {
-                channel.CloseConnection();
+                // 触发 Closing 事件
+                TriggerClosing(connection, new ConnectionClosingEventArgs());
+
+                connection.CloseConnection();
             }
 
-            this._connections.Clear();
+            this._lock.ExitWriteLock();
+            try
+            {
+                this._connections.Clear();
+            }
+            finally
+            {
+                this._lock.ExitWriteLock();
+            }
         }
 
         public void Dispose()
@@ -171,6 +217,56 @@ namespace DigitalPlatform.MessageClient
                 handler(connection, e);
             }
         }
+
+        public virtual void TriggerCreated(MessageConnection connection,
+            ConnectionCreatedEventArgs e)
+        {
+            ConnectionCreatedEventHandler handler = this.ConnectionCreated;
+            if (handler != null)
+            {
+                handler(connection, e);
+            }
+        }
+
+        public virtual void TriggerClosing(MessageConnection connection,
+    ConnectionClosingEventArgs e)
+        {
+            ConnectionClosingEventHandler handler = this.ConnectionClosing;
+            if (handler != null)
+            {
+                handler(connection, e);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 通道创建成功事件
+    /// </summary>
+    /// <param name="sender">发送者</param>
+    /// <param name="e">事件参数</param>
+    public delegate void ConnectionCreatedEventHandler(object sender,
+    ConnectionCreatedEventArgs e);
+
+    /// <summary>
+    /// 通道创建成功事件的参数
+    /// </summary>
+    public class ConnectionCreatedEventArgs : EventArgs
+    {
+    }
+
+    /// <summary>
+    /// 通道即将关闭事件
+    /// </summary>
+    /// <param name="sender">发送者</param>
+    /// <param name="e">事件参数</param>
+    public delegate void ConnectionClosingEventHandler(object sender,
+    ConnectionClosingEventArgs e);
+
+    /// <summary>
+    /// 通道即将关闭事件的参数
+    /// </summary>
+    public class ConnectionClosingEventArgs : EventArgs
+    {
     }
 
     /// <summary>

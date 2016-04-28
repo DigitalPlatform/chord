@@ -84,7 +84,6 @@ namespace DigitalPlatform.MessageClient
             set;
         }
 
-
         public MessageConnection()
         {
             _timer.Interval = 1000 * 30;
@@ -173,7 +172,8 @@ namespace DigitalPlatform.MessageClient
             )
         {
             // 一直到真正连接前才触发登录事件
-            this.Container.TriggerLogin(this);
+            if (this.Container != null)
+                this.Container.TriggerLogin(this);
 
             AddInfoLine("正在连接服务器 " + this.ServerUrl + " ...");
             Connection = new HubConnection(this.ServerUrl);
