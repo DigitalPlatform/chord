@@ -1,7 +1,6 @@
 ﻿using DigitalPlatform;
 using DigitalPlatform.IO;
 using DigitalPlatform.Text;
-using DigitalPlatform.Xml;
 using DigitalPlatform.LibraryRestClient;
 using System;
 using System.Collections.Generic;
@@ -12,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using DigitalPlatform.Xml;
 
 namespace dp2Command.Service
 {

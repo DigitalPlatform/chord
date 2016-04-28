@@ -124,6 +124,10 @@
       <Project>{a77b8a4a-3ae8-4bd7-b09a-bf8d92fe802d}</Project>
       <Name>dp2Command.Service</Name>
     </ProjectReference>
+    <ProjectReference Include="..\dp2weixin.service\dp2weixin.service.csproj">
+      <Project>{50e36c13-a3de-4638-be87-e5e254eec386}</Project>
+      <Name>dp2weixin.service</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

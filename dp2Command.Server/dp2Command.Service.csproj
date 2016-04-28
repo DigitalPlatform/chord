@@ -97,7 +97,7 @@
       <Name>DigitalPlatform.Text</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.Xml\DigitalPlatform.Xml.csproj">
-      <Project>{e6489e89-1349-4ee7-a00b-ac96b9912587}</Project>
+      <Project>{a62f763a-96ee-43ad-80c5-9ce57ecfeaf4}</Project>
       <Name>DigitalPlatform.Xml</Name>
     </ProjectReference>
   </ItemGroup>
