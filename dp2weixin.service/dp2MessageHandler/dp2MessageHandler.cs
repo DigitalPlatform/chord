@@ -16,13 +16,12 @@ using DigitalPlatform.IO;
 using System.Diagnostics;
 using DigitalPlatform;
 using DigitalPlatform.Text;
-using dp2Command.Service;
 using DigitalPlatform.LibraryRestClient;
 using Senparc.Weixin.MP.AdvancedAPIs;
 using Senparc.Weixin.MP.CommonAPIs;
 using System.Web.Mvc.Async;
 using System.Threading.Tasks;
-
+using dp2Command.Service;
 
 namespace dp2weixin
 {
