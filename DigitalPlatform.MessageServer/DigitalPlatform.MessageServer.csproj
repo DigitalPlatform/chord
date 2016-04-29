@@ -99,6 +99,7 @@
     <Compile Include="Global.cs" />
     <Compile Include="Database\GroupDatabase.cs" />
     <Compile Include="Database\MessageDatabase.cs" />
+    <Compile Include="GroupDefinition.cs" />
     <Compile Include="MyHub.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchTable.cs" />

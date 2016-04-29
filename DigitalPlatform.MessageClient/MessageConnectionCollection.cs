@@ -150,7 +150,7 @@ namespace DigitalPlatform.MessageClient
             TriggerClosing(connection, new ConnectionClosingEventArgs());
             connection.CloseConnection();
 
-            this._lock.ExitWriteLock();
+            this._lock.EnterWriteLock();
             try
             {
                 this._connections.Remove(connection);
@@ -171,7 +171,7 @@ namespace DigitalPlatform.MessageClient
                 connection.CloseConnection();
             }
 
-            this._lock.ExitWriteLock();
+            this._lock.EnterWriteLock();
             try
             {
                 this._connections.Clear();
