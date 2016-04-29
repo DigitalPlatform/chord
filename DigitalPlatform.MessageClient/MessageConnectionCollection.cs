@@ -22,6 +22,7 @@ namespace DigitalPlatform.MessageClient
         public event ConnectionClosingEventHandler ConnectionClosing = null;
         public event LoginEventHandler Login = null;
         public event AddMessageEventHandler AddMessage = null;
+        public event ConnectionEventHandler ConnectionStateChange = null;
 
         // parameters:
         //      strName 连接的名字。如果要针对同一 dp2mserver 使用多根连接，可以用名字区分它们。如果不想区分，可以使用空
@@ -237,6 +238,18 @@ namespace DigitalPlatform.MessageClient
                 handler(connection, e);
             }
         }
+
+        public virtual void TriggerConnectionStateChange(MessageConnection connection,
+            string strAction)
+        {
+            ConnectionEventHandler handler = this.ConnectionStateChange;
+            if (handler != null)
+            {
+                ConnectionEventArgs e = new ConnectionEventArgs();
+                e.Action = strAction;
+                handler(connection, e);
+            }
+        }
     }
 
     /// <summary>
@@ -308,5 +321,21 @@ namespace DigitalPlatform.MessageClient
     {
         public string Action = "";
         public List<MessageRecord> Records = null;
+    }
+
+    /// <summary>
+    /// 连接状态变化事件
+    /// </summary>
+    /// <param name="sender">发送者</param>
+    /// <param name="e">事件参数</param>
+    public delegate void ConnectionEventHandler(object sender,
+        ConnectionEventArgs e);
+
+    /// <summary>
+    /// 连接状态变化事件的参数
+    /// </summary>
+    public class ConnectionEventArgs : EventArgs
+    {
+        public string Action = "";
     }
 }

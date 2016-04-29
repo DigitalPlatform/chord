@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Collections;
 using System.Diagnostics;
+using System.Net;
 
 using Microsoft.AspNet.SignalR.Client;
 
 using DigitalPlatform.Message;
-using System.Net;
 
 namespace DigitalPlatform.MessageClient
 {
@@ -20,6 +20,8 @@ namespace DigitalPlatform.MessageClient
     /// </summary>
     public class MessageConnection
     {
+        public event ConnectionEventHandler ConnectionStateChange = null;
+
         /// <summary>
         /// 连接的名字。用于分辨(针对同一 dp2mserver的)不同用途的连接
         /// </summary>
@@ -272,6 +274,8 @@ errorInfo)
                         _timer.Stop();
                         AddInfoLine("成功连接到 " + this.ServerUrl);
                         // TriggerLogin();
+                        TriggerConnectionStateChange("Connected");
+
                         return result;
                     });
             }
@@ -290,11 +294,28 @@ errorInfo)
         }
 #endif
 
+        public virtual void TriggerConnectionStateChange(string strAction)
+        {
+            // 先触发通道的事件
+            ConnectionEventHandler handler = this.ConnectionStateChange;
+            if (handler != null)
+            {
+                ConnectionEventArgs e = new ConnectionEventArgs();
+                e.Action = strAction;
+                handler(this, e);
+            }
+
+            // 然后触发集合的事件
+            this.Container.TriggerConnectionStateChange(this, strAction);
+        }
+
         void Connection_Reconnecting()
         {
             // tryingToReconnect = true;
 
             // Connection.Headers 里面还保留着已经设置好的内容
+
+            TriggerConnectionStateChange("Reconnecting");
         }
 
         void Connection_Reconnected()
@@ -304,6 +325,8 @@ errorInfo)
             AddInfoLine("Connection_Reconnected");
 
             // Task.Factory.StartNew(() => { Thread.Sleep(1000); this.TriggerLogin(); });
+
+            TriggerConnectionStateChange("Reconnected");
         }
 
         void Connection_Closed()
@@ -313,6 +336,8 @@ errorInfo)
                 AddInfoLine("开启 Timer");
                 _timer.Start();
             }
+
+            TriggerConnectionStateChange("Closed");
 #if NO
             this.Invoke((Action)(() => panelChat.Visible = false));
             this.Invoke((Action)(() => buttonSend.Enabled = false));
