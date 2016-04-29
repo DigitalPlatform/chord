@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace DigitalPlatform.MessageServer
 {
-    // 管理 群名字:-n-m
+    // 管理群名定义字符串
+    // 群名字:-n-m
     public class GroupDefinition
     {
         public string GroupName = "";

@@ -4,7 +4,7 @@
 
     <!-- derive from Light or Dark theme-->
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/FirstFloor.ModernUI;component/Assets/ModernUI.Dark.xaml" />
+        <ResourceDictionary Source="/FirstFloor.ModernUI;component/Assets/ModernUI.Light.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <!-- specify the accent color (optional) -->

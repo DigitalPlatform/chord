@@ -11,6 +11,8 @@
             <mui:LinkGroup.Links>
                 <mui:Link DisplayName="开始" Source="/Pages/Home.xaml" />
                 <mui:Link DisplayName="书目" Source="/Pages/BiblioPage.xaml" />
+                <mui:Link DisplayName="群管理" Source="/Pages/GroupPage.xaml" />
+                <mui:Link DisplayName="Chord 账户" Source="/Pages/ChordAccountPage.xaml" />
 
             </mui:LinkGroup.Links>
         </mui:LinkGroup>

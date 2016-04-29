@@ -384,7 +384,7 @@ errorInfo)
                                 if (taskID != request.TaskID)
                                     return;
 
-                                if (resultCount == -1 && start == -1)
+                                if (resultCount == -1 || start == -1)
                                 {
                                     if (start == -1)
                                     {
@@ -477,7 +477,7 @@ request).Result;
                                     return;
 
                                 // 装载命中结果
-                                if (resultCount == -1 && start == -1)
+                                if (resultCount == -1 || start == -1)
                                 {
                                     if (start == -1)
                                     {
@@ -573,7 +573,7 @@ request).Result;
                                 // start_time = DateTime.Now;  // 重新计算超时
 
                                 // 装载命中结果
-                                if (resultCount == -1 && start == -1)
+                                if (resultCount == -1 || start == -1)
                                 {
                                     if (start == -1)
                                     {

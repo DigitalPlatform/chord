@@ -191,7 +191,7 @@ namespace dp2Capo
                         List<MessageRecord> records = new List<MessageRecord> { record };
 
                         SetMessageRequest param = new SetMessageRequest("create",
-                            "excludeMe",
+                            "dontNotifyMe",
                             records);
                         SetMessageResult result = this.MessageConnection.SetMessageAsync(param).Result;
                         if (result.Value == -1)

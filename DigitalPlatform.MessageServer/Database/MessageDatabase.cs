@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using DigitalPlatform.Text;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -37,7 +38,51 @@ new CreateIndexOptions() { Unique = false });
         //      false 表示后面要中断处理
         public delegate bool Delegate_outputMessage(long totalCount, MessageItem item);
 
+        FilterDefinition<MessageItem> BuildQuery(string groupName,
+            string timeRange)
+        {
+            string strStart = "";
+            string strEnd = "";
+            StringUtil.ParseTwoPart(timeRange, "~", out strStart, out strEnd);
+            DateTime startTime;
+            DateTime endTime;
+            try
+            {
+                startTime = string.IsNullOrEmpty(strStart) ? new DateTime(0) : DateTime.Parse(strStart);
+                endTime = string.IsNullOrEmpty(strEnd) ? new DateTime(0) : DateTime.Parse(strEnd);
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("时间范围字符串 '" + timeRange + "' 不合法", "timeRange");
+            }
+
+            FilterDefinition<MessageItem> time_filter = null;
+            if (startTime == new DateTime(0) && endTime == new DateTime(0))
+                time_filter = null;  // Builders<MessageItem>.Filter.Gte("publishTime", startTime);
+            else if (startTime == new DateTime(0))
+                time_filter = Builders<MessageItem>.Filter.Lt("publishTime", endTime);
+            else if (endTime == new DateTime(0))
+                time_filter = Builders<MessageItem>.Filter.Gte("publishTime", startTime);
+            else
+            {
+                time_filter = Builders<MessageItem>.Filter.And(
+Builders<MessageItem>.Filter.Gte("publishTime", startTime),
+Builders<MessageItem>.Filter.Lt("publishTime", endTime));
+            }
+
+            var name_filter = Builders<MessageItem>.Filter.Eq("group", groupName);
+
+            if (time_filter == null)
+                return name_filter;
+
+            return time_filter = Builders<MessageItem>.Filter.And(time_filter,
+                name_filter);
+        }
+
+        // parameters:
+        //      timeRange   时间范围
         public async Task GetMessages(string groupName,
+            string timeRange,
 int start,
 int count,
             Delegate_outputMessage proc)
@@ -45,7 +90,7 @@ int count,
             IMongoCollection<MessageItem> collection = this._collection;
 
             // List<MessageItem> results = new List<MessageItem>();
-            FilterDefinition<MessageItem> filter = null;
+            FilterDefinition<MessageItem> filter = BuildQuery(groupName, timeRange);
 #if NO
             if (string.IsNullOrEmpty(groupName))
             {
@@ -55,7 +100,7 @@ int count,
             }
             else
 #endif
-                filter = Builders<MessageItem>.Filter.Eq("group", groupName);
+            // filter = Builders<MessageItem>.Filter.Eq("group", groupName);
 
             var index = 0;
             using (var cursor = await collection.FindAsync(

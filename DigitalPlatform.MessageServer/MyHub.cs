@@ -105,6 +105,7 @@ namespace DigitalPlatform.MessageServer
 
         #region GetGroup() API
 
+        // 获得 GroupDatabase 中的群记录
         public MessageResult RequestGetGroup(GetGroupRequest param)
         {
             // param.Count 为 0 和 -1 意义不同。前者可用于只探索条数，不获取数据。比如在界面上显示有多少条新的信息
@@ -489,7 +490,7 @@ ex.GetType().ToString());
 
                 string[] excludeConnectionIds = null;
                 // 通知消息的时候，排除掉请求者自己
-                if (StringUtil.IsInList("excludeMe", param.Style) == true)
+                if (StringUtil.IsInList("dontNotifyMe", param.Style) == true)
                 {
                     excludeConnectionIds = new string[1];
                     excludeConnectionIds[0] = Context.ConnectionId;
@@ -601,68 +602,78 @@ ex.GetType().ToString());
 
             MessageResult result = new MessageResult();
 
-            // 检查参数
-            if (string.IsNullOrEmpty(param.GroupCondition) == true)
+            try
             {
-                result.Value = -1;
-                result.String = "InvalidParam";
-                result.ErrorInfo = "param 成员 GroupCondition 不应为空";
-                return result;
-            }
-
-            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
-result,
-"RequestGetMessage()",
-false);
-            if (connection_info == null)
-                return result;
-
-            bool bSupervisor = (StringUtil.Contains(connection_info.Rights, "supervisor"));
-            if (bSupervisor == false)
-            {
-                if (string.IsNullOrEmpty(connection_info.UserName))
+                // 检查参数
+                if (string.IsNullOrEmpty(param.GroupCondition) == true)
                 {
-                    if (GroupDefinition.IsDefaultGroupName(param.GroupCondition) == false)
+                    result.Value = -1;
+                    result.String = "InvalidParam";
+                    result.ErrorInfo = "param 成员 GroupCondition 不应为空";
+                    return result;
+                }
+
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+    result,
+    "RequestGetMessage()",
+    false);
+                if (connection_info == null)
+                    return result;
+
+                bool bSupervisor = (StringUtil.Contains(connection_info.Rights, "supervisor"));
+                if (bSupervisor == false)
+                {
+                    if (string.IsNullOrEmpty(connection_info.UserName))
+                    {
+                        if (GroupDefinition.IsDefaultGroupName(param.GroupCondition) == false)
+                        {
+                            result.Value = -1;
+                            result.String = "Denied";
+                            result.ErrorInfo = "未注册的用户只允许查看 <default> 群组的消息，不允许查看群组 '" + param.GroupCondition + "' 的消息";
+                            return result;
+                        }
+                    }
+
+                    if (GroupDefinition.IncludeGroup(connection_info.Groups, param.GroupCondition) == false)
                     {
                         result.Value = -1;
                         result.String = "Denied";
-                        result.ErrorInfo = "未注册的用户只允许查看 <default> 群组的消息，不允许查看群组 '" + param.GroupCondition + "' 的消息";
+                        result.ErrorInfo = "当前用户不能查看群组 '" + param.GroupCondition + "' 的消息";
                         return result;
                     }
                 }
 
-                if (GroupDefinition.IncludeGroup(connection_info.Groups, param.GroupCondition) == false)
+                SearchInfo search_info = null;
+                try
+                {
+                    search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                        param.TaskID,
+                        param.Start,
+                        param.Count);
+                }
+                catch (ArgumentException)
                 {
                     result.Value = -1;
-                    result.String = "Denied";
-                    result.ErrorInfo = "当前用户不能查看群组 '" + param.GroupCondition + "' 的消息";
+                    result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
                     return result;
                 }
-            }
 
-            SearchInfo search_info = null;
-            try
+                result.String = search_info.UID;   // 返回检索请求的 UID
+
+                // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
+                // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
+                // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
+                Task.Factory.StartNew(() => SearchMessageAndResponse(param));
+
+                result.Value = 1;   // 成功
+            }
+            catch (Exception ex)
             {
-                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
-                    param.TaskID,
-                    param.Start,
-                    param.Count);
-            }
-            catch (ArgumentException)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
-                return result;
+                result.SetError("RequestGetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                Console.WriteLine(result.ErrorInfo);
             }
 
-            result.String = search_info.UID;   // 返回检索请求的 UID
-
-            // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
-            // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
-            // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
-            Task.Factory.StartNew(() => SearchMessageAndResponse(param));
-
-            result.Value = 1;   // 成功
             return result;
         }
 
@@ -681,6 +692,7 @@ false);
                 List<MessageRecord> records = new List<MessageRecord>();
 
                 ServerInfo.MessageDatabase.GetMessages(param.GroupCondition,
+                    param.TimeCondition,
                     (int)param.Start,
                     (int)param.Count,
                     (totalCount, item) =>
@@ -713,6 +725,19 @@ false);
 
                         return true;
                     }).Wait();
+            }
+            catch (Exception ex)
+            {
+#if NO
+                Clients.Client(search_info.RequestConnectionID).responseGetMessage(
+    param.TaskID,
+    -1, // resultCount,
+    0,
+    null,
+    ExceptionUtil.GetExceptionText(ex), // errorInfo,
+    "_sendExeption" // errorCode
+    );
+#endif
             }
             finally
             {
