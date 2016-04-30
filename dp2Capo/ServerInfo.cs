@@ -9,14 +9,18 @@ namespace dp2Capo
 {
     public static class ServerInfo
     {
+        // 实例集合
         public static List<Instance> _instances = new List<Instance>();
+
+        // 管理线程
+        public static DefaultThread _defaultThread = new DefaultThread();
 
         // 从数据目录装载全部实例定义，并连接服务器
         public static void Initial(string strDataDir)
         {
             DirectoryInfo root = new DirectoryInfo(strDataDir);
             var dis = root.GetDirectories();
-            foreach(DirectoryInfo di in dis)
+            foreach (DirectoryInfo di in dis)
             {
                 string strXmlFileName = Path.Combine(di.FullName, "capo.xml");
                 if (File.Exists(strXmlFileName) == false)
@@ -26,12 +30,15 @@ namespace dp2Capo
                 _instances.Add(instance);
             }
 
+#if NO
             // 连接服务器，如果暂时连接失败，后面会不断自动重试连接
-            foreach(Instance instance in _instances)
+            foreach (Instance instance in _instances)
             {
                 instance.BeginConnnect();
             }
+#endif
 
+            _defaultThread.BeginThread();
         }
 
         // 运用控制台显示方式，设置一个实例的基本参数
@@ -45,8 +52,8 @@ namespace dp2Capo
             foreach (DirectoryInfo di in dis)
             {
                 string strXmlFileName = Path.Combine(di.FullName, "capo.xml");
-                
-                if ( i == index)
+
+                if (i == index)
                 {
                     Instance.ChangeSettings(strXmlFileName);
                     return;
@@ -57,7 +64,7 @@ namespace dp2Capo
             // throw new Exception("下标 "+index.ToString()+" 超过了当前实际存在的实例数");
 
             // 创建足够多的新实例子目录
-            for (; i<=index;i++ )
+            for (; i <= index; i++)
             {
                 string strName = Guid.NewGuid().ToString();
                 string strInstanceDir = Path.Combine(strDataDir, strName);
@@ -69,7 +76,6 @@ namespace dp2Capo
                     return;
                 }
             }
-
         }
 
         // 准备退出
@@ -83,6 +89,27 @@ namespace dp2Capo
                 instance.CloseConnection();
             }
 
+        }
+
+        // 执行一些后台管理任务
+        public static void BackgroundWork()
+        {
+            foreach (Instance instance in _instances)
+            {
+                string strError = "";
+                // 利用 dp2library API 获取一些配置信息
+                if (string.IsNullOrEmpty(instance.dp2library.LibraryUID) == true)
+                {
+                    int nRet = instance.MessageConnection.GetConfigInfo(out strError);
+                    if (nRet == -1)
+                    {
+                        // 写入实例的日志?
+                        Program.WriteWindowsLog(strError);
+                    }
+                    else
+                        instance.BeginConnnect();   // 在获得了图书馆 UID 以后再发起 SignalR 连接
+                }
+            }
         }
     }
 }

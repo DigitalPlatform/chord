@@ -306,7 +306,8 @@ errorInfo)
             }
 
             // 然后触发集合的事件
-            this.Container.TriggerConnectionStateChange(this, strAction);
+            if (this.Container != null)
+                this.Container.TriggerConnectionStateChange(this, strAction);
         }
 
         void Connection_Reconnecting()
