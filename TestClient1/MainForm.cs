@@ -201,6 +201,7 @@ namespace TestClient1
             this.textBox_circulation_biblioFormatList.Text = Settings.Default.circulation_biblioFormatList;
 
             this.textBox_message_groupName.Text = Settings.Default.message_groupName;
+            this.textBox_message_timeRange.Text = Settings.Default.message_timeRange;
         }
 
         void SaveSettings()
@@ -247,6 +248,7 @@ namespace TestClient1
             Settings.Default.circulation_biblioFormatList = this.textBox_circulation_biblioFormatList.Text;
 
             Settings.Default.message_groupName = this.textBox_message_groupName.Text;
+            Settings.Default.message_timeRange = this.textBox_message_timeRange.Text;
 
             Settings.Default.Save();
         }
@@ -1205,7 +1207,8 @@ string strHtml)
         // 装载以前的所有消息
         private void button_message_load_Click(object sender, EventArgs e)
         {
-            DoLoadMessage(this.textBox_message_groupName.Text);
+            DoLoadMessage(this.textBox_message_groupName.Text, 
+                this.textBox_message_timeRange.Text);
         }
 
         void FillMessage(long totalCount,
@@ -1219,6 +1222,17 @@ string strHtml)
                 this.webBrowser_message.Invoke(new Action<long, long, IList<MessageRecord>, string, string>(FillMessage),
                     totalCount, start, records, errorInfo, errorCode);
                 return;
+            }
+
+            if (totalCount == -1)
+            {
+                StringBuilder text = new StringBuilder();
+                text.Append("***\r\n");
+                text.Append("totalCount=" + totalCount + "\r\n");
+                text.Append("errorInfo=" + errorInfo + "\r\n");
+                text.Append("errorCode=" + errorCode + "\r\n");
+
+                AppendHtml(this.webBrowser_message, text.ToString());
             }
 
             if (records != null)
@@ -1236,7 +1250,7 @@ string strHtml)
                     text.Append("type=" + record.type + "\r\n");
                     text.Append("thread=" + record.thread + "\r\n");
 
-                    text.Append("publishTime=" + record.publishTime + "\r\n");
+                    text.Append("publishTime=" + record.publishTime.ToString("G") + "\r\n");
                     text.Append("expireTime=" + record.expireTime + "\r\n");
                     AppendHtml(this.webBrowser_message, text.ToString());
                 }
@@ -1293,7 +1307,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         }
 
 
-        async void DoLoadMessage(string strGroupName)
+        async void DoLoadMessage(string strGroupName, string strTimeRange)
         {
             string strError = "";
 
@@ -1309,7 +1323,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 GetMessageRequest request = new GetMessageRequest(id,
                     strGroupName, // "" 表示默认群组
                     "",
-                    "",
+                    strTimeRange,
                     0,
                     -1);
                 try

@@ -24,7 +24,7 @@ namespace dp2Capo
         public string Password { get; set; }
 #endif
 
-        public HostInfo dp2library { get; set; }
+        public LibraryHostInfo dp2library { get; set; }
         internal LibraryChannelPool _channelPool = new LibraryChannelPool();
 
         public ServerConnection()
@@ -69,6 +69,69 @@ namespace dp2Capo
 
             return this._channelPool.GetChannel(strServerUrl, strUserName);
         }
+
+        #region 针对 dp2library 服务器的一些功能
+
+        // 利用 dp2library API 获取一些配置信息
+        public int GetConfigInfo(out string strError)
+        {
+            strError = "";
+            long lRet = 0;
+
+            LibraryChannel channel = GetChannel();
+            try
+            {
+                {
+                    string strVersion = "";
+                    string strUID = "";
+                    lRet = channel.GetVersion(
+        out strVersion,
+        out strUID,
+        out strError);
+                    if (lRet == -1)
+                        return -1;
+
+                    this.dp2library.LibraryUID = strUID;
+
+                    // 检查 dp2library 版本
+                    if (string.IsNullOrEmpty(strVersion) == true)
+                        strVersion = "2.0";
+
+                    string base_version = "2.71";
+                    if (StringUtil.CompareVersion(strVersion, base_version) < 0)   // 2.12
+                    {
+                        strError = "dp2Capo 所所连接的 dp2library 服务器 '" + channel.Url + "' 其版本必须升级为 " + base_version + " 以上时才能使用 (当前 dp2library 版本为 " + strVersion + ")\r\n\r\n请立即升级 dp2Library 到最新版本";
+                        return -1;
+                    }
+                }
+
+                {
+                    string strValue = "";
+                    lRet = channel.GetSystemParameter(
+                        "library",
+                        "name",
+                        out strValue,
+                        out strError);
+                    if (lRet == -1)
+                        return -1;
+
+                    this.dp2library.LibraryName = strValue;
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                strError = "GetConfigInfo() 出现异常: " + ExceptionUtil.GetExceptionText(ex);
+                return -1;
+            }
+            finally
+            {
+                this._channelPool.ReturnChannel(channel);
+            }
+        }
+
+        #endregion
 
         #region Circulation() API
 
@@ -1121,6 +1184,18 @@ strError,
 strErrorCode);
         }
 
+        static void ConnonicalizeFormats(string [] formats)
+        {
+            // 规整一下，outputpath/path/recpath 都可用
+            int index = Array.IndexOf(formats, "path");
+            if (index != -1)
+                formats[index] = "outputpath";
+
+            index = Array.IndexOf(formats, "recpath");
+            if (index != -1)
+                formats[index] = "outputpath";
+        }
+
         // searchParam.UseList 里面提供 strBiblioXml 参数，即，前端提供给服务器，希望服务器加工处理的书目XML内容
         void GetBiblioInfo(SearchRequest searchParam)
         {
@@ -1138,6 +1213,13 @@ strErrorCode);
             try
             {
                 string[] formats = searchParam.FormatList.Split(new char[] { ',' });
+                int nPathFormatIndex = -1;  // formats 中 “outputpath” 元素的下标
+                if (formats.Length > 0)
+                {
+                    ConnonicalizeFormats(formats);
+
+                    nPathFormatIndex = Array.IndexOf(formats, "outputpath");
+                }
 
                 string[] results = null;
                 // string strRecPath = "";
@@ -1178,7 +1260,7 @@ strErrorCode);
                 {
                     DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
 
-                    // 注：可以在 formatlist 中包含 recpath 要求获得记录路径，这时记录路径会返回在对应元素的 Data 成员中
+                    // 注：可以在 formatlist 中包含 outputpath(recpath) 要求获得记录路径，这时记录路径会返回在对应元素的 Data 成员中
                     biblio.RecPath = "";
                     biblio.Data = result;
 
@@ -1189,6 +1271,20 @@ strErrorCode);
 
                     records.Add(biblio);
                     i++;
+                }
+
+
+                // 为每个元素的 RecPath 填充值，如果 formats 中出现过 outputpath 的话
+                if (nPathFormatIndex != -1)
+                {
+                    for (int j = 0; j < records.Count / formats.Length; j++)
+                    {
+                        string path = records[j * formats.Length + nPathFormatIndex].Data;
+                        for (int k = 0; k < formats.Length; k++)
+                        {
+                            records[j * formats.Length + k].RecPath = path;
+                        }
+                    }
                 }
 
 #if NO

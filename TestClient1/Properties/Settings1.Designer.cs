@@ -454,5 +454,17 @@ namespace TestClient1.Properties {
                 this["message_groupName"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string message_timeRange {
+            get {
+                return ((string)(this["message_timeRange"]));
+            }
+            set {
+                this["message_timeRange"] = value;
+            }
+        }
     }
 }

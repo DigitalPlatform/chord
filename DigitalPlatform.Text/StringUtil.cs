@@ -13,6 +13,75 @@ namespace DigitalPlatform.Text
     /// </summary>
     public static class StringUtil
     {
+        // 将权限列表字符串切割为单个元素构成的数组
+        public static List<string> SplitRights(string strList)
+        {
+            List<string> results = new List<string>();
+            if (string.IsNullOrEmpty(strList))
+                return results;
+
+            StringBuilder one = new StringBuilder();
+            foreach (char ch in strList)
+            {
+                if (ch == '+' || ch == '-')
+                {
+                    if (one.Length > 0)
+                    {
+                        results.Add(one.ToString());
+                        one.Clear();
+                    }
+                }
+
+                one.Append(ch);
+            }
+
+            if (one.Length > 0)
+            {
+                results.Add(one.ToString());
+                one.Clear();
+            }
+
+            return results;
+        }
+
+        // 检测权限 strRight 是否包含在列表字符串 strList 中
+        // parameters:
+        //      strRight  要检测的单个权限。单个权限形态为 'a'
+        //      strList 列表字符串。形态为 +a-b-b
+        public static bool ContainsRight(string strList, string strRight)
+        {
+            List<string> rights = SplitRights(strList);
+            bool bOn = false;
+            foreach(string one in rights)
+            {
+                char ch = one[0];
+                if (one.Substring(1) == strRight)
+                {
+                    if (ch == '+')
+                        bOn = true;
+                    else
+                    {
+                        if (ch != '-')
+                            throw new ArgumentException("单个权限值 '"+one+"' 在列表中 '"+strList+"' 不合法");
+                        bOn = false;
+                    }
+                }
+            }
+
+            return bOn;
+        }
+
+        public static List<string> ParseTwoPart(string strText, string strSep)
+        {
+            string strLeft = "";
+            string strRight = "";
+            ParseTwoPart(strText, strSep, out strLeft, out strRight);
+            List<string> results = new List<string>();
+            results.Add(strLeft);
+            results.Add(strRight);
+            return results;
+        }
+
         /// <summary>
         /// 通用的，切割两个部分的函数
         /// </summary>

@@ -141,9 +141,9 @@ namespace DigitalPlatform.Message
     {
         public string TaskID { get; set; }    // 本次检索的任务 ID。由于一个 Connection 可以用于同时进行若干检索操作，本参数用于区分不同的检索操作
 
-        public string GroupCondition { get; set; }
+        public string GroupCondition { get; set; }  // 群组名或者 ID
         public string UserCondition { get; set; }
-        public string TimeCondition { get; set; }
+        public string TimeCondition { get; set; }   // 时间范围。xxxx~xxxx。DateTime.ToString("G") 格式。
 
         public long Start { get; set; }
         public long Count { get; set; }

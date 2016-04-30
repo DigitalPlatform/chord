@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections;
+using System.Security.Claims;
 
 using Microsoft.AspNet.SignalR;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
-using System.Security.Claims;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -105,6 +105,7 @@ namespace DigitalPlatform.MessageServer
 
         #region GetGroup() API
 
+        // 获得 GroupDatabase 中的群记录
         public MessageResult RequestGetGroup(GetGroupRequest param)
         {
             // param.Count 为 0 和 -1 意义不同。前者可用于只探索条数，不获取数据。比如在界面上显示有多少条新的信息
@@ -132,7 +133,7 @@ false);
             {
                 if (string.IsNullOrEmpty(connection_info.UserName))
                 {
-                    if (IsDefaultGroupName(param.GroupCondition) == false)
+                    if (GroupDefinition.IsDefaultGroupName(param.GroupCondition) == false)
                     {
                         result.Value = -1;
                         result.String = "Denied";
@@ -141,7 +142,7 @@ false);
                     }
                 }
 
-                if (IncludeGroup(connection_info.Groups, param.GroupCondition) == false)
+                if (GroupDefinition.IncludeGroup(connection_info.Groups, param.GroupCondition) == false)
                 {
                     result.Value = -1;
                     result.String = "Denied";
@@ -267,13 +268,7 @@ false);
 
         #region SetMessage() API
 
-        // 判断一个组名是否为默认的组名
-        static bool IsDefaultGroupName(string groupName)
-        {
-            if (groupName == "<default>")
-                return true;
-            return false;
-        }
+
 
         // 返回 MessageRecord 数组，因为有些字段是服务器给设定的，例如 PublishTime, ID
         // 但如果让前端知道哪条是哪条呢？方法是返回的数组和请求的数组大小顺序一样
@@ -306,14 +301,14 @@ SetMessageRequest param
 
             try
             {
-                ConnectionInfo info = GetConnection(Context.ConnectionId,
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
 result,
 "SetMessage()",
 false); // 没有以用户名登录的 connection 也可以在默认群发出消息
-                if (info == null)
+                if (connection_info == null)
                     return result;
 
-                bool bSupervisor = (StringUtil.Contains(info.Rights, "supervisor"));
+                bool bSupervisor = (StringUtil.Contains(connection_info.Rights, "supervisor"));
 
                 if (param.Action == "create")
                 {
@@ -323,9 +318,9 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                     {
                         if (bSupervisor == false)
                         {
-                            if (info.UserItem == null)
+                            if (connection_info.UserItem == null)
                             {
-                                if (IsDefaultGroupName(item.group) == false)
+                                if (GroupDefinition.IsDefaultGroupName(item.group) == false)
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
@@ -335,7 +330,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             }
                             else
                             {
-                                if (IncludeGroup(info.Groups, item.group) == false)
+                                if (GroupDefinition.IncludeGroup(connection_info.Groups, item.group) == false)
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
@@ -347,8 +342,8 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
 
                         item.publishTime = DateTime.Now;
                         // item.expireTime = new DateTime(0);  // 表示永远不失效
-                        item.creator = BuildMessageUserID(info);
-                        item.userName = info.UserName;
+                        item.creator = BuildMessageUserID(connection_info);
+                        item.userName = connection_info.UserName;
                         item.SetID(Guid.NewGuid().ToString());  // 确保 id 字段有值。是否可以允许前端指定这个 ID 呢？如果要进行查重就麻烦了
                         ServerInfo.MessageDatabase.Add(item).Wait();
                         saved_items.Add(item);
@@ -363,9 +358,9 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                     {
                         if (bSupervisor == false)
                         {
-                            if (info.UserItem == null)
+                            if (connection_info.UserItem == null)
                             {
-                                if (IsDefaultGroupName(item.group) == false)
+                                if (GroupDefinition.IsDefaultGroupName(item.group) == false)
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
@@ -375,7 +370,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             }
                             else
                             {
-                                if (IncludeGroup(info.Groups, item.group) == false)
+                                if (GroupDefinition.IncludeGroup(connection_info.Groups, item.group) == false)
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
@@ -396,7 +391,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             }
 
                             MessageItem exist = results[0];
-                            string creator_string = BuildMessageUserID(info);
+                            string creator_string = BuildMessageUserID(connection_info);
 
                             if (exist.creator != creator_string)
                             {
@@ -420,9 +415,9 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                     {
                         if (bSupervisor == false)
                         {
-                            if (info.UserItem == null)
+                            if (connection_info.UserItem == null)
                             {
-                                if (IsDefaultGroupName(item.group) == false)
+                                if (GroupDefinition.IsDefaultGroupName(item.group) == false)
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
@@ -432,7 +427,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             }
                             else
                             {
-                                if (IncludeGroup(info.Groups, item.group) == false)
+                                if (GroupDefinition.IncludeGroup(connection_info.Groups, item.group) == false)
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
@@ -453,7 +448,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             }
 
                             MessageItem exist = results[0];
-                            string creator_string = BuildMessageUserID(info);
+                            string creator_string = BuildMessageUserID(connection_info);
 
                             if (exist.creator != creator_string)
                             {
@@ -495,7 +490,7 @@ ex.GetType().ToString());
 
                 string[] excludeConnectionIds = null;
                 // 通知消息的时候，排除掉请求者自己
-                if (StringUtil.IsInList("excludeMe", param.Style) == true)
+                if (StringUtil.IsInList("dontNotifyMe", param.Style) == true)
                 {
                     excludeConnectionIds = new string[1];
                     excludeConnectionIds[0] = Context.ConnectionId;
@@ -600,16 +595,6 @@ ex.GetType().ToString());
 
         #region GetMessage() API
 
-        static bool IncludeGroup(string[] array, string one)
-        {
-            if (array == null)
-            {
-                if (IsDefaultGroupName(one) == true)
-                    return true;
-                return false;
-            }
-            return Array.IndexOf(array, one) != -1;
-        }
 
         public MessageResult RequestGetMessage(GetMessageRequest param)
         {
@@ -617,68 +602,78 @@ ex.GetType().ToString());
 
             MessageResult result = new MessageResult();
 
-            // 检查参数
-            if (string.IsNullOrEmpty(param.GroupCondition) == true)
+            try
             {
-                result.Value = -1;
-                result.String = "InvalidParam";
-                result.ErrorInfo = "param 成员 GroupCondition 不应为空";
-                return result;
-            }
-
-            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
-result,
-"RequestGetMessage()",
-false);
-            if (connection_info == null)
-                return result;
-
-            bool bSupervisor = (StringUtil.Contains(connection_info.Rights, "supervisor"));
-            if (bSupervisor == false)
-            {
-                if (string.IsNullOrEmpty(connection_info.UserName))
+                // 检查参数
+                if (string.IsNullOrEmpty(param.GroupCondition) == true)
                 {
-                    if (IsDefaultGroupName(param.GroupCondition) == false)
+                    result.Value = -1;
+                    result.String = "InvalidParam";
+                    result.ErrorInfo = "param 成员 GroupCondition 不应为空";
+                    return result;
+                }
+
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+    result,
+    "RequestGetMessage()",
+    false);
+                if (connection_info == null)
+                    return result;
+
+                bool bSupervisor = (StringUtil.Contains(connection_info.Rights, "supervisor"));
+                if (bSupervisor == false)
+                {
+                    if (string.IsNullOrEmpty(connection_info.UserName))
+                    {
+                        if (GroupDefinition.IsDefaultGroupName(param.GroupCondition) == false)
+                        {
+                            result.Value = -1;
+                            result.String = "Denied";
+                            result.ErrorInfo = "未注册的用户只允许查看 <default> 群组的消息，不允许查看群组 '" + param.GroupCondition + "' 的消息";
+                            return result;
+                        }
+                    }
+
+                    if (GroupDefinition.IncludeGroup(connection_info.Groups, param.GroupCondition) == false)
                     {
                         result.Value = -1;
                         result.String = "Denied";
-                        result.ErrorInfo = "未注册的用户只允许查看 <default> 群组的消息，不允许查看群组 '" + param.GroupCondition + "' 的消息";
+                        result.ErrorInfo = "当前用户不能查看群组 '" + param.GroupCondition + "' 的消息";
                         return result;
                     }
                 }
 
-                if (IncludeGroup(connection_info.Groups, param.GroupCondition) == false)
+                SearchInfo search_info = null;
+                try
+                {
+                    search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                        param.TaskID,
+                        param.Start,
+                        param.Count);
+                }
+                catch (ArgumentException)
                 {
                     result.Value = -1;
-                    result.String = "Denied";
-                    result.ErrorInfo = "当前用户不能查看群组 '" + param.GroupCondition + "' 的消息";
+                    result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
                     return result;
                 }
-            }
 
-            SearchInfo search_info = null;
-            try
+                result.String = search_info.UID;   // 返回检索请求的 UID
+
+                // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
+                // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
+                // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
+                Task.Factory.StartNew(() => SearchMessageAndResponse(param));
+
+                result.Value = 1;   // 成功
+            }
+            catch (Exception ex)
             {
-                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
-                    param.TaskID,
-                    param.Start,
-                    param.Count);
-            }
-            catch (ArgumentException)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
-                return result;
+                result.SetError("RequestGetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                Console.WriteLine(result.ErrorInfo);
             }
 
-            result.String = search_info.UID;   // 返回检索请求的 UID
-
-            // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
-            // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
-            // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
-            Task.Factory.StartNew(() => SearchMessageAndResponse(param));
-
-            result.Value = 1;   // 成功
             return result;
         }
 
@@ -697,6 +692,7 @@ false);
                 List<MessageRecord> records = new List<MessageRecord>();
 
                 ServerInfo.MessageDatabase.GetMessages(param.GroupCondition,
+                    param.TimeCondition,
                     (int)param.Start,
                     (int)param.Count,
                     (totalCount, item) =>
@@ -729,6 +725,19 @@ false);
 
                         return true;
                     }).Wait();
+            }
+            catch (Exception ex)
+            {
+#if NO
+                Clients.Client(search_info.RequestConnectionID).responseGetMessage(
+    param.TaskID,
+    -1, // resultCount,
+    0,
+    null,
+    ExceptionUtil.GetExceptionText(ex), // errorInfo,
+    "_sendExeption" // errorCode
+    );
+#endif
             }
             finally
             {
@@ -2217,40 +2226,6 @@ true);
             "<dp2opac>",
         };
 
-        void AddConnection()
-        {
-            ConnectionInfo connection_info = ServerInfo.ConnectionTable.AddConnection(Context.ConnectionId);
-
-            if (Context.Request.Environment.ContainsKey(USERITEM_KEY))
-            {
-                UserItem useritem = (UserItem)Context.Request.Environment[USERITEM_KEY];
-                connection_info.UserItem = useritem;
-            }
-
-            string strParameters = Context.Request.Headers["parameters"];
-
-            Hashtable table = StringUtil.ParseParameters(strParameters, ',', '=', "url");
-            connection_info.PropertyList = (string)table["propertyList"];
-            connection_info.LibraryUID = (string)table["libraryUID"];
-            connection_info.LibraryName = (string)table["libraryName"];
-            connection_info.LibraryUserName = (string)table["libraryUserName"];
-
-            // 加入 SignalR 的 group
-            if (connection_info.UserItem != null
-                && connection_info.UserItem.groups != null)
-            {
-                foreach (string group in connection_info.UserItem.groups)
-                {
-                    Groups.Add(Context.ConnectionId, group);
-                }
-            }
-
-            foreach (string group in default_groups)
-            {
-                Groups.Add(Context.ConnectionId, group);
-            }
-        }
-
         public override Task OnConnected()
         {
 #if NO
@@ -2283,6 +2258,64 @@ true);
 
             //Program.WriteToConsole("Client connected: " + Context.ConnectionId);
             return base.OnConnected();
+        }
+
+        void AddConnection()
+        {
+            ConnectionInfo connection_info = ServerInfo.ConnectionTable.AddConnection(Context.ConnectionId);
+
+            if (Context.Request.Environment.ContainsKey(USERITEM_KEY))
+            {
+                UserItem useritem = (UserItem)Context.Request.Environment[USERITEM_KEY];
+                connection_info.UserItem = useritem;
+            }
+
+            string strParameters = Context.Request.Headers["parameters"];
+
+            Hashtable table = StringUtil.ParseParameters(strParameters, ',', '=', "url");
+            connection_info.PropertyList = (string)table["propertyList"];
+            connection_info.LibraryUID = (string)table["libraryUID"];
+            connection_info.LibraryName = (string)table["libraryName"];
+            connection_info.LibraryUserName = (string)table["libraryUserName"];
+
+            AddToSignalRGroup(connection_info, true);
+        }
+
+        void AddToSignalRGroup(ConnectionInfo connection_info, bool add = true)
+        {
+            // 默认的几个群组
+            List<string> defaults = new List<string>();
+            defaults.AddRange(default_groups);
+
+            // 加入 SignalR 的 group
+            if (connection_info.Groups != null)
+            {
+                foreach (string s in connection_info.Groups)
+                {
+                    GroupDefinition def = GroupDefinition.Build(s);
+
+                    // 如果定义了不希望获得通知
+                    if (string.IsNullOrEmpty(def.Definition) == false
+                        && StringUtil.ContainsRight(def.Definition, "n") == false)
+                        goto CONTINUE;
+
+                    if (add)
+                        Groups.Add(connection_info.ConnectionID, def.GroupName);
+                    else
+                        Groups.Remove(connection_info.ConnectionID, def.GroupName);
+
+                CONTINUE:
+                    defaults.Remove(def.GroupName);
+                }
+            }
+
+            foreach (string group in defaults)
+            {
+                if (add)
+                    Groups.Add(connection_info.ConnectionID, group);
+                else
+                    Groups.Remove(connection_info.ConnectionID, group);
+            }
         }
 
         public override Task OnReconnected()
@@ -2335,7 +2368,9 @@ true);
         //     A System.Threading.Tasks.Task
         public override Task OnDisconnected(bool stopCalled)
         {
-            ServerInfo.ConnectionTable.RemoveConnection(Context.ConnectionId);
+            ConnectionInfo connection_info = ServerInfo.ConnectionTable.RemoveConnection(Context.ConnectionId);
+
+            AddToSignalRGroup(connection_info, false);
 
             //Program.WriteToConsole("Client disconnected: " + Context.ConnectionId);
             return base.OnDisconnected(stopCalled);
@@ -2429,11 +2464,4 @@ true);
         }
     }
 
-    public class AuthenticatedConnection : PersistentConnection
-    {
-        protected override bool AuthorizeRequest(IRequest request)
-        {
-            return request.User.Identity.IsAuthenticated;
-        }
-    }
 }

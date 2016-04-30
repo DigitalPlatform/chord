@@ -9,6 +9,8 @@ using System.Messaging;
 
 using DigitalPlatform.Text;
 using DigitalPlatform.Message;
+using DigitalPlatform;
+using System.Collections;
 
 namespace dp2Capo
 {
@@ -20,9 +22,11 @@ namespace dp2Capo
         public LibraryHostInfo dp2library { get; set; }
         public HostInfo dp2mserver { get; set; }
 
+        // 没有用 MessageConnectionCollectoin 管理
         public ServerConnection MessageConnection = new ServerConnection();
 
-        public NotifyThread NotifyThread = new NotifyThread();
+        NotifyThread _notifyThread = null;
+        MessageQueue _queue = null;
 
         public void Initial(string strXmlFileName)
         {
@@ -45,10 +49,19 @@ namespace dp2Capo
                 this.dp2mserver = new HostInfo();
                 this.dp2mserver.Initial(element);
 
-                this.MessageConnection.dp2library = dp2library;
+                this.MessageConnection.dp2library = this.dp2library;
 
-                this.NotifyThread.Container = this;
-                this.NotifyThread.BeginThread();    // TODO: 应该在 MessageConnection 第一次连接成功以后，再启动这个线程比较好
+                if (string.IsNullOrEmpty(this.dp2library.DefaultQueue) == false)
+                {
+                    _queue = new MessageQueue(this.dp2library.DefaultQueue);    // TODO: 不知道当 Queue 尚未创建的时候，这个语句是否可能抛出异常?
+                    _queue.Formatter = new XmlMessageFormatter(new Type[] { typeof(string) });
+                    _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
+
+                    this._notifyThread = new NotifyThread();
+                    this._notifyThread.Container = this;
+                    this._notifyThread.BeginThread();    // TODO: 应该在 MessageConnection 第一次连接成功以后，再启动这个线程比较好
+                }
+
             }
             catch (Exception ex)
             {
@@ -62,14 +75,25 @@ namespace dp2Capo
 
             this.MessageConnection.UserName = this.dp2mserver.UserName;
             this.MessageConnection.Password = this.dp2mserver.Password;
-            this.MessageConnection.Parameters = ""; // library uid
+            this.MessageConnection.Parameters = GetParameters();
 
             this.MessageConnection.InitialAsync();
         }
 
+        string GetParameters()
+        {
+            Hashtable table = new Hashtable();
+            table["libraryUID"] = this.dp2library.LibraryUID;
+            table["libraryName"] = this.dp2library.LibraryName;
+            // table["propertyList"] = (this.ShareBiblio ? "biblio_search" : "");
+            table["libraryUserName"] = "dp2Capo";
+            return StringUtil.BuildParameterString(table, ',', '=', "url");
+        }
+
         public void CloseConnection()
         {
-            NotifyThread.StopThread(true);
+            if (this._notifyThread != null)
+                _notifyThread.StopThread(true);
 
             this.MessageConnection.CloseConnection();
         }
@@ -150,18 +174,40 @@ namespace dp2Capo
             dom.Save(strXmlFileName);
         }
 
+        private void OnMessageAdded(IAsyncResult ar)
+        {
+            if (this._queue != null)
+            {
+                try
+                {
+                    if (_queue.EndPeek(ar) != null)
+                        this._notifyThread.Activate();
+
+                    _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
+                }
+                catch (MessageQueueException ex)
+                {
+                    if (ex.MessageQueueErrorCode == MessageQueueErrorCode.IOTimeout)
+                        _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
+                    else
+                        Program.WriteWindowsLog("针对 '" + this.dp2library.DefaultQueue + "' OnMessageAdded() 出现异常: " + ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    Program.WriteWindowsLog("针对 '" + this.dp2library.DefaultQueue + "' OnMessageAdded() 出现异常: " + ex.Message);
+                }
+            }
+        }
+
         public void Notify()
         {
             // 进行通知处理
-            if (string.IsNullOrEmpty(this.dp2library.DefaultQueue) == false
+            if (_queue != null
                 && this.MessageConnection.IsConnected)
             {
-                //连接到本地队列
-                MessageQueue queue = new MessageQueue(this.dp2library.DefaultQueue);
-                queue.Formatter = new XmlMessageFormatter(new Type[] { typeof(string) });
                 try
                 {
-                    MessageEnumerator iterator = queue.GetMessageEnumerator2();
+                    MessageEnumerator iterator = _queue.GetMessageEnumerator2();
                     while (iterator.MoveNext())
                     {
                         Message message = iterator.Current;
@@ -173,7 +219,7 @@ namespace dp2Capo
                         List<MessageRecord> records = new List<MessageRecord> { record };
 
                         SetMessageRequest param = new SetMessageRequest("create",
-                            "excludeMe",
+                            "dontNotifyMe",
                             records);
                         SetMessageResult result = this.MessageConnection.SetMessageAsync(param).Result;
                         if (result.Value == -1)
@@ -185,17 +231,21 @@ namespace dp2Capo
                         iterator.RemoveCurrent();
                     }
                 }
-                catch (MessageQueueException e)
+                catch (MessageQueueException ex)
                 {
                     // 记入错误日志
+                    Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                 }
-                catch (InvalidCastException e)
+                catch (InvalidCastException ex)
                 {
                     // 记入错误日志
+                    Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                 }
                 catch (Exception ex)
                 {
                     // 记入错误日志
+                    // 记入错误日志
+                    Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                 }
 
             }
@@ -204,7 +254,26 @@ namespace dp2Capo
 
     public class LibraryHostInfo : HostInfo
     {
-        public string DefaultQueue = "";
+        // 默认的 MSMQ 队列路径
+        public string DefaultQueue
+        {
+            get;
+            set;
+        }
+
+        // 图书馆 UID。从 dp2library 用 API 获取
+        public string LibraryUID
+        {
+            get;
+            set;
+        }
+
+        // 图书馆名。从 dp2library 用 API 获取
+        public string LibraryName
+        {
+            get;
+            set;
+        }
 
         public override void Initial(XmlElement element)
         {
@@ -216,6 +285,8 @@ namespace dp2Capo
                 throw new Exception("元素 " + element.Name + " 尚未定义 defaultQueue 属性");
 #endif
         }
+
+
     }
 
     public class HostInfo
