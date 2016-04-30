@@ -4,6 +4,7 @@ using DigitalPlatform.MessageClient;
 using DigitalPlatform.Xml;
 using dp2Command.Service;
 using Senparc.Weixin.MP.AdvancedAPIs;
+using Senparc.Weixin.MP.AdvancedAPIs.TemplateMessage;
 using Senparc.Weixin.MP.CommonAPIs;
 using System;
 using System.Collections.Generic;
@@ -50,6 +51,9 @@ namespace dp2Command.Server
         public string dp2MServerUrl = "";
         public string userName = "";
         public string password = "";
+        
+        public string AppID { get; set; }
+        public string AppSecret { get; set; }
 
         public void Init(string dp2MServerUrl,
             string userName,
@@ -65,11 +69,128 @@ namespace dp2Command.Server
             this.weiXinUrl = weiXinUrl;
             this.weiXinDataDir = weiXinDataDir;
 
-            _channels.Login += _channels_Login;
-
             // 使用mongodb存储微信用户与读者绑定关系
             WxUserDatabase.Current.Open(mongoDbConnStr, instancePrefix);
+
+            //全局只需注册一次
+            AccessTokenContainer.Register(this.AppID, this.AppSecret);
+
+            _channels.Login += _channels_Login;
+            _channels.AddMessage += _channels_AddMessage;
+
+            // 启一个线程取消息
+            Task.Factory.StartNew(() => DoLoadMessage("<default>"));
+
         }
+
+        async void DoLoadMessage(string strGroupName)
+        {
+            string strError = "";
+            string openId = " o4xvUviTxj2HbRqbQb9W2nMl4fGg ";
+            //if (AccessTokenContainer.CheckRegistered(this.AppID)== false)
+           // AccessTokenContainer.Register(this.AppID,this.
+            var accessToken = AccessTokenContainer.GetAccessToken(this.AppID);
+
+            CancellationToken cancel_token = new CancellationToken();
+
+            string id = Guid.NewGuid().ToString();
+            GetMessageRequest request = new GetMessageRequest(id,
+                strGroupName, // "" 表示默认群组
+                "",
+                "",
+                0,
+                -1);
+            try
+            {
+                MessageConnection connection = await this._channels.GetConnectionAsync(
+                    this.dp2MServerUrl,
+                    this.remoteUserName);  //todo这里用本方还是远方的账号，好像都可以，主要是确定在patronNotify
+                MessageResult result = await connection.GetMessageAsync(
+                        request,
+                        FillMessage,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+
+                // todo 这里应该写在日志里，应该不知道错误信息不能发给用户
+                CustomApi.SendText(accessToken, openId, ToString(result));
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+            return;
+
+            ERROR1:
+            CustomApi.SendText(accessToken, openId, strError);
+        }
+
+        static string ToString(MessageResult result)
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("ResultValue=" + result.Value + "\r\n");
+            text.Append("ErrorInfo=" + result.ErrorInfo + "\r\n");
+            text.Append("String=" + result.String + "\r\n");
+            return text.ToString();
+        }
+
+        void FillMessage(long totalCount,
+    long start,
+    IList<MessageRecord> records,
+    string errorInfo,
+    string errorCode)
+        {
+
+
+            if (records != null)
+            {
+                SendCaoQiMessage(records);
+            }
+        }
+
+        public void SendCaoQiMessage(IList<MessageRecord> records)
+        {
+            foreach (MessageRecord record in records)
+            {
+                StringBuilder text = new StringBuilder();
+                text.Append("***\r\n");
+                text.Append("id=" + record.id + "\r\n");
+                text.Append("data=" + record.data + "\r\n");
+                text.Append("group=" + record.group + "\r\n");
+                text.Append("creator=" + record.creator + "\r\n");
+
+                text.Append("format=" + record.format + "\r\n");
+                text.Append("type=" + record.type + "\r\n");
+                text.Append("thread=" + record.thread + "\r\n");
+
+                text.Append("publishTime=" + record.publishTime + "\r\n");
+                text.Append("expireTime=" + record.expireTime + "\r\n");
+
+                //todo 将来data为xml，这里解析出微信用户id,解析出模板需要的字段
+                string openId = "o4xvUviTxj2HbRqbQb9W2nMl4fGg";
+                var templateId = "QcS3LoLHk37Jh0rgKJId2o93IZjulr5XxgshzlW5VkY";//换成已经在微信后台添加的模板Id
+                var accessToken = AccessTokenContainer.GetAccessToken(this.AppID);
+                var testData = new CaoQiTemplateData()
+                {
+                    first = new TemplateDataItem("您借阅的图书已超期，请尽快归还！\n", "#000000"),
+                    keyword1 = new TemplateDataItem(record.data, "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                    keyword2 = new TemplateDataItem("2016-05-01", "#000000"),
+                    keyword3 = new TemplateDataItem("1天", "#000000"),
+                    remark = new TemplateDataItem("\n点击[详情]查看个人详细信息", "#CCCCCC")
+                };
+                var result = TemplateApi.SendTemplateMessage(accessToken, openId, templateId, "#FF0000", "dp2003.com", testData);
+
+
+                // todo 发送完成，要删除一条消息
+
+            }
+        }
+
 
         void _channels_Login(object sender, LoginEventArgs e)
         {
@@ -83,6 +204,26 @@ namespace dp2Command.Server
             e.Parameters = "";
 
             // TODO: 登录如果失败，界面会有提示么?
+        }
+
+        void _channels_AddMessage(object sender, AddMessageEventArgs e)
+        {
+            //this.BeginInvoke(new Action<AddMessageEventArgs>(DisplayMessage), e);
+
+           
+
+
+            //AppendHtml(this.webBrowser_message, text.ToString());
+        }
+
+        public class CaoQiTemplateData
+        {
+            public TemplateDataItem first { get; set; }
+            public TemplateDataItem keyword1 { get; set; }
+            public TemplateDataItem keyword2 { get; set; }
+            public TemplateDataItem keyword3 { get; set; }
+            public TemplateDataItem remark { get; set; }
+
         }
 
         string GetUserName()

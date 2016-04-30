@@ -40,7 +40,7 @@ namespace dp2weixin
         // 是否需要选择图书馆
         private bool IsNeedSelectLib = false;
 
-        private string AppId = "";
+        public string AppId = "";
         private string EncodingAESKey = "";
         private string Token = "";
 
