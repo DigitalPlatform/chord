@@ -52,7 +52,7 @@ namespace dp2Capo
             PathUtil.CreateDirIfNeed(this.LogDir);
             // TODO: 可以验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
 
-            this.WriteErrorLog("*** 开始启动实例 " + this.Name);
+            this.DetectWriteErrorLog("*** 开始启动实例 " + this.Name);
 
             XmlDocument dom = new XmlDocument();
             dom.Load(strXmlFileName);
@@ -141,7 +141,7 @@ namespace dp2Capo
 
                 this.MessageConnection.InitialAsync();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 this.WriteErrorLog("BeginConnect() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
             }
@@ -326,33 +326,66 @@ namespace dp2Capo
             }
         }
 
-        // 写入实例的错误日志文件
-        public void WriteErrorLog(string strText)
+        #region 日志
+
+        bool _errorLogError = false;    // 写入实例的日志文件是否发生过错误
+
+        void _writeErrorLog(string strText)
         {
+            lock (this.LogDir)
+            {
+                DateTime now = DateTime.Now;
+                // 每天一个日志文件
+                string strFilename = Path.Combine(this.LogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
+                string strTime = now.ToString();
+                FileUtil.WriteText(strFilename,
+                    strTime + " " + strText + "\r\n");
+            }
+        }
+
+        // 尝试写入实例的错误日志文件
+        // return:
+        //      false   失败
+        //      true    成功
+        public bool DetectWriteErrorLog(string strText)
+        {
+            _errorLogError = false;
             try
             {
-                lock (this.LogDir)
-                {
-                    DateTime now = DateTime.Now;
-                    // 每天一个日志文件
-                    string strFilename = Path.Combine(this.LogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
-                    string strTime = now.ToString();
-                    FileUtil.WriteText(strFilename,
-                        strTime + " " + strText + "\r\n");
-                }
+                _writeErrorLog(strText);
             }
             catch (Exception ex)
             {
-#if NO
-                EventLog Log = new EventLog();
-                Log.Source = "dp2library";
-                Log.WriteEntry("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入Windows系统日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
-                Log.WriteEntry(strText, EventLogEntryType.Error);
-#endif
-                Program.WriteWindowsLog("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入Windows系统日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
-                Program.WriteWindowsLog(strText, EventLogEntryType.Error);
+                Program.WriteWindowsLog("尝试写入实例 " + this.Name + " 的日志文件发生异常， 后面将改为写入Windows系统日志。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                _errorLogError = true;
+                return false;
+            }
+
+            Program.WriteWindowsLog("实例日志文件检测正常。从此开始关于实例 " + this.Name + " 的日志会写入目录 " + this.LogDir + " 中当天的日志文件",
+                EventLogEntryType.Information);
+            return true;
+        }
+
+        // 写入实例的错误日志文件
+        public void WriteErrorLog(string strText)
+        {
+            if (_errorLogError == true) // 先前写入实例的日志文件发生过错误，所以改为写入 Windows 日志。会加上实例名前缀字符串
+                Program.WriteWindowsLog("实例 " + this.Name + ": " + strText, EventLogEntryType.Error);
+            else
+            {
+                try
+                {
+                    _writeErrorLog(strText);
+                }
+                catch (Exception ex)
+                {
+                    Program.WriteWindowsLog("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入Windows系统日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                    Program.WriteWindowsLog(strText, EventLogEntryType.Error);
+                }
             }
         }
+
+        #endregion
 
     }
 
