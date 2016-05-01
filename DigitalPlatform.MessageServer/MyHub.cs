@@ -728,7 +728,6 @@ ex.GetType().ToString());
             }
             catch (Exception ex)
             {
-#if NO
                 Clients.Client(search_info.RequestConnectionID).responseGetMessage(
     param.TaskID,
     -1, // resultCount,
@@ -737,7 +736,6 @@ ex.GetType().ToString());
     ExceptionUtil.GetExceptionText(ex), // errorInfo,
     "_sendExeption" // errorCode
     );
-#endif
             }
             finally
             {

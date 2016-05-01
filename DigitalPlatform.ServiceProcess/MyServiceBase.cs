@@ -20,13 +20,13 @@ namespace DigitalPlatform.ServiceProcess
             set;
         }
 
-        // 写入Windows系统日志
+        // 写入 Windows 日志
         public static void WriteWindowsLog(string strText)
         {
             WriteWindowsLog(strText, EventLogEntryType.Error);
         }
 
-        // 写入Windows系统日志
+        // 写入 Windows 日志
         public static void WriteWindowsLog(string strText,
             EventLogEntryType type)
         {

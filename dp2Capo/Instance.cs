@@ -44,15 +44,16 @@ namespace dp2Capo
 
         public void Initial(string strXmlFileName)
         {
+            Console.WriteLine();
             Console.WriteLine("*** 初始化实例: " + strXmlFileName);
 
             this.Name = Path.GetDirectoryName(strXmlFileName);
 
             this.LogDir = Path.Combine(Path.GetDirectoryName(strXmlFileName), "log");
             PathUtil.CreateDirIfNeed(this.LogDir);
-            // TODO: 可以验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
 
-            this.DetectWriteErrorLog("*** 开始启动实例 " + this.Name);
+            // 验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
+            this.DetectWriteErrorLog("*** 实例 " + this.Name + " 开始启动");
 
             XmlDocument dom = new XmlDocument();
             dom.Load(strXmlFileName);
@@ -157,12 +158,14 @@ namespace dp2Capo
             return StringUtil.BuildParameterString(table, ',', '=', "url");
         }
 
-        public void CloseConnection()
+        public void Close()
         {
             if (this._notifyThread != null)
                 _notifyThread.StopThread(true);
 
             this.MessageConnection.CloseConnection();
+
+            this.WriteErrorLog("*** 实例 " + this.Name + " 成功降落。");
         }
 
         // 运用控制台显示方式，设置一个实例的基本参数
@@ -356,7 +359,7 @@ namespace dp2Capo
             }
             catch (Exception ex)
             {
-                Program.WriteWindowsLog("尝试写入实例 " + this.Name + " 的日志文件发生异常， 后面将改为写入Windows系统日志。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                Program.WriteWindowsLog("尝试写入实例 " + this.Name + " 的日志文件发生异常， 后面将改为写入 Windows 日志。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
                 _errorLogError = true;
                 return false;
             }
@@ -379,7 +382,7 @@ namespace dp2Capo
                 }
                 catch (Exception ex)
                 {
-                    Program.WriteWindowsLog("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入Windows系统日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                    Program.WriteWindowsLog("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入 Windows 日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
                     Program.WriteWindowsLog(strText, EventLogEntryType.Error);
                 }
             }
@@ -418,7 +421,7 @@ namespace dp2Capo
 
             this.DefaultQueue = element.GetAttribute("defaultQueue");
 
-            Console.WriteLine("defaultQueue=" + this.DefaultQueue);
+            Console.WriteLine(element.Name + " defaultQueue=" + this.DefaultQueue);
 #if NO
             if (string.IsNullOrEmpty(this.DefaultQueue) == true)
                 throw new Exception("元素 " + element.Name + " 尚未定义 defaultQueue 属性");
@@ -442,13 +445,13 @@ namespace dp2Capo
             if (string.IsNullOrEmpty(this.Url) == true)
                 throw new Exception("元素 " + element.Name + " 尚未定义 url 属性");
 
-            Console.WriteLine("url=" + this.Url);
+            Console.WriteLine(element.Name + " url=" + this.Url);
 
             this.UserName = element.GetAttribute("userName");
             if (string.IsNullOrEmpty(this.UserName) == true)
                 throw new Exception("元素 " + element.Name + " 尚未定义 userName 属性");
 
-            Console.WriteLine("userName=" + this.UserName);
+            Console.WriteLine(element.Name + " userName=" + this.UserName);
 
             this.Password = Cryptography.Decrypt(element.GetAttribute("password"), EncryptKey);
         }

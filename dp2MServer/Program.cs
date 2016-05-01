@@ -217,13 +217,13 @@ namespace dp2MServer
         }
 
 #if NO
-        // 写入Windows系统日志
+        // 写入 Windows 日志
         public static void WriteWindowsLog(string strText)
         {
             WriteWindowsLog(strText, EventLogEntryType.Error);
         }
 
-        // 写入Windows系统日志
+        // 写入 Windows 日志
         public static void WriteWindowsLog(string strText,
             EventLogEntryType type)
         {
@@ -304,6 +304,8 @@ namespace dp2MServer
         protected override void OnStop()
         {
             this.Close();
+
+            // 因为这里 ServerInfo 并没有调用 Exit() 所以后来的 OnStart() 不用重新初始化 ServerInfo
         }
 
         public override void Close()

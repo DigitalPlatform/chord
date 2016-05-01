@@ -53,7 +53,7 @@ namespace dp2Capo
                     ServiceUtil.StopService("dp2CapoService", TimeSpan.FromMinutes(2));
                     Console.WriteLine("服务已停止。");
                 }
-                catch(Exception ex)
+                catch//(Exception ex)
                 {
                     // Console.WriteLine("停止服务时发生异常: " + ExceptionUtil.GetExceptionText(ex));
                 }
@@ -89,6 +89,7 @@ namespace dp2Capo
                 if (Initial() == false)
                     return;
                 new Program().ConsoleRun();
+                return;
             }
             else
             {

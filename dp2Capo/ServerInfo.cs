@@ -81,14 +81,16 @@ namespace dp2Capo
         // 准备退出
         public static void Exit()
         {
+            _defaultThread.StopThread(false);
+            _defaultThread.Dispose();
+
             // 保存配置
 
             // 切断连接
             foreach (Instance instance in _instances)
             {
-                instance.CloseConnection();
+                instance.Close();
             }
-
         }
 
         // 执行一些后台管理任务
