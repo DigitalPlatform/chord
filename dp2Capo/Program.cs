@@ -44,21 +44,33 @@ namespace dp2Capo
                 string strExePath = Assembly.GetExecutingAssembly().Location;
                 Console.WriteLine((bInstall ? "注册" : "注销") + " Windows Service ...");
 
+                try
+                {
+                    Console.WriteLine("停止服务 ...");
+                    ServiceUtil.StopService("dp2CapoService", TimeSpan.FromMinutes(2));
+                    Console.WriteLine("服务已停止。");
+                }
+                catch(Exception ex)
+                {
+                    // Console.WriteLine("停止服务时发生异常: " + ExceptionUtil.GetExceptionText(ex));
+                }
+
+                if (bInstall == true)
+                {
+                    // 创建事件日志目录
+                    // 注: 创建事件日志目录应该在 InstallService 以前。因为 InstallService 过程中涉及到启动服务，可能要写入日志
+                    if (!EventLog.SourceExists(ServiceShortName))   // "dp2Capo"
+                    {
+                        EventLog.CreateEventSource(ServiceShortName, "DigitalPlatform");
+                    }
+                }
+
                 string strError = "";
                 int nRet = ServiceUtil.InstallService(strExePath,
         bInstall,
         out strError);
                 if (nRet == -1)
                     Console.WriteLine("error: " + strError);
-
-                if (bInstall == true)
-                {
-                    // 创建事件日志目录
-                    if (!EventLog.SourceExists(ServiceShortName))   // "dp2Capo"
-                    {
-                        EventLog.CreateEventSource(ServiceShortName, "DigitalPlatform");
-                    }
-                }
 
                 Console.WriteLine();
                 Console.WriteLine("(按回车键返回)");

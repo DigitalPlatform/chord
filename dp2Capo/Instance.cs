@@ -5,12 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Collections;
 using System.Messaging;
 
 using DigitalPlatform.Text;
 using DigitalPlatform.Message;
 using DigitalPlatform;
-using System.Collections;
+using System.Diagnostics;
 
 namespace dp2Capo
 {
@@ -28,10 +29,20 @@ namespace dp2Capo
         NotifyThread _notifyThread = null;
         MessageQueue _queue = null;
 
+        public string Name
+        {
+            get;
+            set;
+        }
+
         public void Initial(string strXmlFileName)
         {
+            Console.WriteLine("*** 初始化实例: " + strXmlFileName);
+            this.Name = Path.GetDirectoryName(strXmlFileName);
+
             XmlDocument dom = new XmlDocument();
             dom.Load(strXmlFileName);
+
 
             XmlElement element = dom.DocumentElement.SelectSingleNode("dp2library") as XmlElement;
             if (element == null)
@@ -50,7 +61,23 @@ namespace dp2Capo
                 this.dp2mserver.Initial(element);
 
                 this.MessageConnection.dp2library = this.dp2library;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("配置文件 " + strXmlFileName + " 格式错误: " + ex.Message);
+            }
 
+            // 只要定义了队列就启动这个线程
+            if (string.IsNullOrEmpty(this.dp2library.DefaultQueue) == false)
+            {
+                this._notifyThread = new NotifyThread();
+                this._notifyThread.Container = this;
+                this._notifyThread.BeginThread();    // TODO: 应该在 MessageConnection 第一次连接成功以后，再启动这个线程比较好
+            }
+
+#if NO
+            try
+            {
                 if (string.IsNullOrEmpty(this.dp2library.DefaultQueue) == false)
                 {
                     _queue = new MessageQueue(this.dp2library.DefaultQueue);    // TODO: 不知道当 Queue 尚未创建的时候，这个语句是否可能抛出异常?
@@ -61,11 +88,39 @@ namespace dp2Capo
                     this._notifyThread.Container = this;
                     this._notifyThread.BeginThread();    // TODO: 应该在 MessageConnection 第一次连接成功以后，再启动这个线程比较好
                 }
-
             }
             catch (Exception ex)
             {
-                throw new Exception("配置文件 " + strXmlFileName + " 格式错误: " + ex.Message);
+                throw new Exception("启动实例 " + strXmlFileName + " 的 Queue '" + this.dp2library.DefaultQueue + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
+#endif
+            InitialQueue(true);
+        }
+
+        // parameters:
+        //      bFirst  是否首次启动。首次启动和重试启动，写入日志的方式不同。
+        void InitialQueue(bool bFirst)
+        {
+            try
+            {
+                if (_queue == null
+                    && string.IsNullOrEmpty(this.dp2library.DefaultQueue) == false)
+                {
+                    _queue = new MessageQueue(this.dp2library.DefaultQueue);    // TODO: 不知道当 Queue 尚未创建的时候，这个语句是否可能抛出异常?
+                    _queue.Formatter = new XmlMessageFormatter(new Type[] { typeof(string) });
+                    _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
+
+                    if (bFirst == false)
+                        Program.WriteWindowsLog("重试启动实例 " + this.Name + " 的 Queue '" + this.dp2library.DefaultQueue + "' 成功",
+                            EventLogEntryType.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (bFirst)
+                    Program.WriteWindowsLog("启动实例 " + this.Name + " 的 Queue '" + this.dp2library.DefaultQueue + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+
+                // throw new Exception("启动实例 " + strXmlFileName + " 的 Queue '" + this.dp2library.DefaultQueue + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
             }
         }
 
@@ -201,6 +256,9 @@ namespace dp2Capo
 
         public void Notify()
         {
+            // 如果第一次初始化 Queue 没有成功，这里再试探初始化
+            InitialQueue(false);
+
             // 进行通知处理
             if (_queue != null
                 && this.MessageConnection.IsConnected)
@@ -280,6 +338,8 @@ namespace dp2Capo
             base.Initial(element);
 
             this.DefaultQueue = element.GetAttribute("defaultQueue");
+
+            Console.WriteLine("defaultQueue=" + this.DefaultQueue);
 #if NO
             if (string.IsNullOrEmpty(this.DefaultQueue) == true)
                 throw new Exception("元素 " + element.Name + " 尚未定义 defaultQueue 属性");
@@ -305,9 +365,13 @@ namespace dp2Capo
             if (string.IsNullOrEmpty(this.Url) == true)
                 throw new Exception("元素 " + element.Name + " 尚未定义 url 属性");
 
+            Console.WriteLine("url=" + this.Url);
+
             this.UserName = element.GetAttribute("userName");
             if (string.IsNullOrEmpty(this.UserName) == true)
                 throw new Exception("元素 " + element.Name + " 尚未定义 userName 属性");
+
+            Console.WriteLine("userName=" + this.UserName);
 
             this.Password = Cryptography.Decrypt(element.GetAttribute("password"), EncryptKey);
         }
