@@ -103,8 +103,8 @@ namespace dp2Capo
                     int nRet = instance.MessageConnection.GetConfigInfo(out strError);
                     if (nRet == -1)
                     {
-                        // 写入实例的日志?
-                        Program.WriteWindowsLog(strError);
+                        // Program.WriteWindowsLog(strError);
+                        instance.WriteErrorLog("获得 dp2library 配置时出错: " + strError);
                     }
                     else
                         instance.BeginConnnect();   // 在获得了图书馆 UID 以后再发起 SignalR 连接

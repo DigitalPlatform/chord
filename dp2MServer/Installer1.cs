@@ -66,6 +66,7 @@ namespace dp2MServer
         {
             base.Commit(savedState);
 
+#if NO
             // 创建事件日志目录
             if (!EventLog.SourceExists("dp2MServer"))
             {
@@ -75,6 +76,9 @@ namespace dp2MServer
             Log.Source = "dp2MServer";
 
             Log.WriteEntry("dp2MServer 安装成功。", EventLogEntryType.Information);
+#endif
+            EventLog.WriteEntry(this.serviceInstaller1.ServiceName,
+"dp2MServer 安装成功。", EventLogEntryType.Information);
         }
 
     }

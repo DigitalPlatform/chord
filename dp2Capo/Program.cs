@@ -18,11 +18,14 @@ namespace dp2Capo
         static Program()
         {
             // this.ServiceName = "dp2 Capo Service";
-            ServiceShortName = "dp2Capo";
+            // ServiceShortName = "dp2Capo";
+            ServiceShortName = "dp2CapoService";
         }
 
         static void Main(string[] args)
         {
+            ServiceShortName = "dp2CapoService";
+
             // 修改配置
             if (args.Length >= 1 && args[0].Equals("setting"))
             {
@@ -54,6 +57,7 @@ namespace dp2Capo
                 {
                     // Console.WriteLine("停止服务时发生异常: " + ExceptionUtil.GetExceptionText(ex));
                 }
+#if NO
 
                 if (bInstall == true)
                 {
@@ -64,6 +68,7 @@ namespace dp2Capo
                         EventLog.CreateEventSource(ServiceShortName, "DigitalPlatform");
                     }
                 }
+#endif
 
                 string strError = "";
                 int nRet = ServiceUtil.InstallService(strExePath,

@@ -29,12 +29,14 @@ namespace dp2MServer
 
         public Program()
         {
-            this.ServiceName = "dp2 Message Service";
-            ServiceShortName = "dp2mserver";
+            //this.ServiceName = "dp2 Message Service";
+            //ServiceShortName = "dp2mserver";
+            ServiceShortName = "dp2MessageService";
         }
 
         static void Main(string[] args)
         {
+            ServiceShortName = "dp2MessageService";
 #if NO
             // Task.Run(() => StartServer());
             StartServer();

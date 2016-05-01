@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Collections;
 using System.Messaging;
+using System.Diagnostics;
 
 using DigitalPlatform.Text;
 using DigitalPlatform.Message;
 using DigitalPlatform;
-using System.Diagnostics;
+using DigitalPlatform.IO;
 
 namespace dp2Capo
 {
@@ -35,18 +36,33 @@ namespace dp2Capo
             set;
         }
 
+        public string LogDir
+        {
+            get;
+            set;
+        }
+
         public void Initial(string strXmlFileName)
         {
             Console.WriteLine("*** 初始化实例: " + strXmlFileName);
+
             this.Name = Path.GetDirectoryName(strXmlFileName);
+
+            this.LogDir = Path.Combine(Path.GetDirectoryName(strXmlFileName), "log");
+            PathUtil.CreateDirIfNeed(this.LogDir);
+            // TODO: 可以验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
+
+            this.WriteErrorLog("*** 开始启动实例 " + this.Name);
 
             XmlDocument dom = new XmlDocument();
             dom.Load(strXmlFileName);
 
-
             XmlElement element = dom.DocumentElement.SelectSingleNode("dp2library") as XmlElement;
             if (element == null)
-                throw new Exception("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2library 元素");
+            {
+                // throw new Exception("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2library 元素");
+                this.WriteErrorLog("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2library 元素");
+            }
 
             try
             {
@@ -55,7 +71,10 @@ namespace dp2Capo
 
                 element = dom.DocumentElement.SelectSingleNode("dp2mserver") as XmlElement;
                 if (element == null)
-                    throw new Exception("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2mserver 元素");
+                {
+                    // throw new Exception("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2mserver 元素");
+                    this.WriteErrorLog("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2mserver 元素");
+                }
 
                 this.dp2mserver = new HostInfo();
                 this.dp2mserver.Initial(element);
@@ -64,7 +83,8 @@ namespace dp2Capo
             }
             catch (Exception ex)
             {
-                throw new Exception("配置文件 " + strXmlFileName + " 格式错误: " + ex.Message);
+                // throw new Exception("配置文件 " + strXmlFileName + " 格式错误: " + ex.Message);
+                this.WriteErrorLog("配置文件 " + strXmlFileName + " 格式错误: " + ex.Message);
             }
 
             // 只要定义了队列就启动这个线程
@@ -75,25 +95,6 @@ namespace dp2Capo
                 this._notifyThread.BeginThread();    // TODO: 应该在 MessageConnection 第一次连接成功以后，再启动这个线程比较好
             }
 
-#if NO
-            try
-            {
-                if (string.IsNullOrEmpty(this.dp2library.DefaultQueue) == false)
-                {
-                    _queue = new MessageQueue(this.dp2library.DefaultQueue);    // TODO: 不知道当 Queue 尚未创建的时候，这个语句是否可能抛出异常?
-                    _queue.Formatter = new XmlMessageFormatter(new Type[] { typeof(string) });
-                    _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
-
-                    this._notifyThread = new NotifyThread();
-                    this._notifyThread.Container = this;
-                    this._notifyThread.BeginThread();    // TODO: 应该在 MessageConnection 第一次连接成功以后，再启动这个线程比较好
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("启动实例 " + strXmlFileName + " 的 Queue '" + this.dp2library.DefaultQueue + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
-            }
-#endif
             InitialQueue(true);
         }
 
@@ -111,28 +112,39 @@ namespace dp2Capo
                     _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
 
                     if (bFirst == false)
-                        Program.WriteWindowsLog("重试启动实例 " + this.Name + " 的 Queue '" + this.dp2library.DefaultQueue + "' 成功",
-                            EventLogEntryType.Information);
+                    {
+                        //Program.WriteWindowsLog("重试启动实例 " + this.Name + " 的 Queue '" + this.dp2library.DefaultQueue + "' 成功",
+                        //    EventLogEntryType.Information);
+                        this.WriteErrorLog("重试启动队列 '" + this.dp2library.DefaultQueue + "' 成功");
+                    }
                 }
             }
             catch (Exception ex)
             {
                 if (bFirst)
-                    Program.WriteWindowsLog("启动实例 " + this.Name + " 的 Queue '" + this.dp2library.DefaultQueue + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
-
-                // throw new Exception("启动实例 " + strXmlFileName + " 的 Queue '" + this.dp2library.DefaultQueue + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                {
+                    // Program.WriteWindowsLog("启动实例 " + this.Name + " 的 Queue '" + this.dp2library.DefaultQueue + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                    this.WriteErrorLog("首次启动队列 '" + this.dp2library.DefaultQueue + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                }
             }
         }
 
         public void BeginConnnect()
         {
-            this.MessageConnection.ServerUrl = this.dp2mserver.Url;
+            try
+            {
+                this.MessageConnection.ServerUrl = this.dp2mserver.Url;
 
-            this.MessageConnection.UserName = this.dp2mserver.UserName;
-            this.MessageConnection.Password = this.dp2mserver.Password;
-            this.MessageConnection.Parameters = GetParameters();
+                this.MessageConnection.UserName = this.dp2mserver.UserName;
+                this.MessageConnection.Password = this.dp2mserver.Password;
+                this.MessageConnection.Parameters = GetParameters();
 
-            this.MessageConnection.InitialAsync();
+                this.MessageConnection.InitialAsync();
+            }
+            catch(Exception ex)
+            {
+                this.WriteErrorLog("BeginConnect() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
         }
 
         string GetParameters()
@@ -245,11 +257,15 @@ namespace dp2Capo
                     if (ex.MessageQueueErrorCode == MessageQueueErrorCode.IOTimeout)
                         _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
                     else
-                        Program.WriteWindowsLog("针对 '" + this.dp2library.DefaultQueue + "' OnMessageAdded() 出现异常: " + ex.Message);
+                    {
+                        // Program.WriteWindowsLog("针对 '" + this.dp2library.DefaultQueue + "' OnMessageAdded() 出现异常: " + ex.Message);
+                        this.WriteErrorLog("针对 '" + this.dp2library.DefaultQueue + "' 的 OnMessageAdded() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Program.WriteWindowsLog("针对 '" + this.dp2library.DefaultQueue + "' OnMessageAdded() 出现异常: " + ex.Message);
+                    // Program.WriteWindowsLog("针对 '" + this.dp2library.DefaultQueue + "' OnMessageAdded() 出现异常: " + ex.Message);
+                    this.WriteErrorLog("针对 '" + this.dp2library.DefaultQueue + "' 的 OnMessageAdded() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
                 }
             }
         }
@@ -282,7 +298,7 @@ namespace dp2Capo
                         SetMessageResult result = this.MessageConnection.SetMessageAsync(param).Result;
                         if (result.Value == -1)
                         {
-                            // 记入错误日志
+                            this.WriteErrorLog("Instance.Notify() 中 SetMessageAsync() 出错: " + result.ErrorInfo);
                             return;
                         }
 
@@ -292,22 +308,52 @@ namespace dp2Capo
                 catch (MessageQueueException ex)
                 {
                     // 记入错误日志
-                    Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
+                    // Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
+                    this.WriteErrorLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                 }
                 catch (InvalidCastException ex)
                 {
                     // 记入错误日志
-                    Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
+                    // Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
+                    this.WriteErrorLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                 }
                 catch (Exception ex)
                 {
                     // 记入错误日志
-                    // 记入错误日志
-                    Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
+                    // Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
+                    this.WriteErrorLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                 }
-
             }
         }
+
+        // 写入实例的错误日志文件
+        public void WriteErrorLog(string strText)
+        {
+            try
+            {
+                lock (this.LogDir)
+                {
+                    DateTime now = DateTime.Now;
+                    // 每天一个日志文件
+                    string strFilename = Path.Combine(this.LogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
+                    string strTime = now.ToString();
+                    FileUtil.WriteText(strFilename,
+                        strTime + " " + strText + "\r\n");
+                }
+            }
+            catch (Exception ex)
+            {
+#if NO
+                EventLog Log = new EventLog();
+                Log.Source = "dp2library";
+                Log.WriteEntry("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入Windows系统日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                Log.WriteEntry(strText, EventLogEntryType.Error);
+#endif
+                Program.WriteWindowsLog("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入Windows系统日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                Program.WriteWindowsLog(strText, EventLogEntryType.Error);
+            }
+        }
+
     }
 
     public class LibraryHostInfo : HostInfo
@@ -345,8 +391,6 @@ namespace dp2Capo
                 throw new Exception("元素 " + element.Name + " 尚未定义 defaultQueue 属性");
 #endif
         }
-
-
     }
 
     public class HostInfo

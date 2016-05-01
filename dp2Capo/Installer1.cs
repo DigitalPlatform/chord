@@ -65,15 +65,20 @@ namespace dp2Capo
         {
             base.Commit(savedState);
 
+#if NO
             // 创建事件日志目录
             if (!EventLog.SourceExists("dp2Capo"))
             {
                 EventLog.CreateEventSource("dp2Capo", "DigitalPlatform");
             }
+
             EventLog Log = new EventLog();
             Log.Source = "dp2Capo";
 
             Log.WriteEntry("dp2Capo 安装成功。", EventLogEntryType.Information);
+#endif
+            EventLog.WriteEntry(this.serviceInstaller1.ServiceName,
+                "dp2Capo 安装成功。", EventLogEntryType.Information);
         }
     }
 }
