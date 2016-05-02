@@ -1,11 +1,16 @@
-﻿using MongoDB.Driver;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Threading;
+
+using MongoDB.Driver;
+
+using DigitalPlatform.IO;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -31,39 +36,212 @@ namespace DigitalPlatform.MessageServer
 
         static MongoClient _mongoClient = null;
 
+        static BackThread BackThread = new BackThread();
+
+        public static string DataDir
+        {
+            get;
+            set;
+        }
+
+        static string LogDir
+        {
+            get;
+            set;
+        }
+
         public static void Initial(string strDataDir)
         {
             if (Directory.Exists(strDataDir) == false)
-                throw new Exception("数据目录 '" + strDataDir + "' 尚未创建");
+            {
+                // throw new Exception("数据目录 '" + strDataDir + "' 尚未创建");
+                WriteWindowsLog("数据目录 '" + strDataDir + "' 尚未创建");
+            }
+
+            DataDir = strDataDir;
+            LogDir = Path.Combine(strDataDir, "log");   // 日志目录
+            PathUtil.CreateDirIfNeed(LogDir);
+
+            // 验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
+            DetectWriteErrorLog("*** dp2MServer 开始启动");
 
             string strCfgFileName = Path.Combine(strDataDir, "config.xml");
-            ConfigDom.Load(strCfgFileName);
-
-            // 元素 <mongoDB>
-            // 属性 connectionString / instancePrefix
-            XmlElement node = ConfigDom.DocumentElement.SelectSingleNode("mongoDB") as XmlElement;
-            if (node != null)
+            try
             {
-                string strMongoDbConnStr = node.GetAttribute("connectionString");
-                string strMongoDbInstancePrefix = node.GetAttribute("instancePrefix");
+                ConfigDom.Load(strCfgFileName);
 
-                _mongoClient = new MongoClient(strMongoDbConnStr);
-
-                UserDatabase.Open(_mongoClient, strMongoDbInstancePrefix, "user");
-                MessageDatabase.Open(_mongoClient, strMongoDbInstancePrefix, "message");
-                GroupDatabase.Open(_mongoClient, strMongoDbInstancePrefix, "group");
+                // 元素 <mongoDB>
+                // 属性 connectionString / instancePrefix
+                XmlElement node = ConfigDom.DocumentElement.SelectSingleNode("mongoDB") as XmlElement;
+                if (node != null)
+                {
+                    strMongoDbConnStr = node.GetAttribute("connectionString");
+                    strMongoDbInstancePrefix = node.GetAttribute("instancePrefix");
+                }
+                else
+                    throw new Exception("尚未配置 mongoDB 元素");
             }
-            else
-                throw new Exception("config.xml 中尚未配置 mongoDB 元素");
+            catch (Exception ex)
+            {
+                WriteErrorLog("装载配置文件 '" + strCfgFileName + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
 
+            BackThread.BeginThread();
+        }
+
+        static string strMongoDbConnStr = "";
+        static string strMongoDbInstancePrefix = "";
+
+        static CancellationTokenSource _cancel = new CancellationTokenSource();
+
+        public static void InitialMongoDb(bool bFirst)
+        {
+            string strError = "";
+            if (_mongoClient == null)
+            {
+                try
+                {
+                    Console.WriteLine("正在初始化 MongoDB 数据库 ...");
+
+                    _mongoClient = new MongoClient(strMongoDbConnStr);
+
+                    UserDatabase.Open(_mongoClient, strMongoDbInstancePrefix, "user", _cancel.Token);
+                    MessageDatabase.Open(_mongoClient, strMongoDbInstancePrefix, "message", _cancel.Token);
+                    GroupDatabase.Open(_mongoClient, strMongoDbInstancePrefix, "group", _cancel.Token);
+
+                    if (bFirst == false)
+                    {
+                        strError = "重试初始化 MongoDB 数据库成功";
+                        WriteErrorLog(strError);
+                        Console.WriteLine(strError);
+                    }
+                    else
+                        Console.WriteLine("初始化 MongoDB 数据库成功。");
+                }
+                catch (Exception ex)
+                {
+                    _mongoClient = null;
+
+                    if (bFirst)
+                    {
+                        strError = "首次初始化 MongoDB 数据库时出现异常(稍后会自动重试初始化): " + ExceptionUtil.GetExceptionText(ex);
+                        WriteErrorLog(strError);
+                        Console.WriteLine(strError);
+                    }
+                }
+            }
         }
 
         // 准备退出
         public static void Exit()
         {
+            _cancel.Cancel();
+
+            BackThread.StopThread(false);
+            BackThread.Dispose();
+
             SearchTable.Exit();
             SearchTable.Dispose();
+
+            WriteErrorLog("*** dp2MServer 降落成功");
         }
+
+        #region 日志
+
+        static bool _errorLogError = false;    // 写入实例的日志文件是否发生过错误
+
+        static void _writeErrorLog(string strText)
+        {
+            lock (LogDir)
+            {
+                DateTime now = DateTime.Now;
+                // 每天一个日志文件
+                string strFilename = Path.Combine(LogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
+                string strTime = now.ToString();
+                FileUtil.WriteText(strFilename,
+                    strTime + " " + strText + "\r\n");
+            }
+        }
+
+        // 尝试写入实例的错误日志文件
+        // return:
+        //      false   失败
+        //      true    成功
+        public static bool DetectWriteErrorLog(string strText)
+        {
+            _errorLogError = false;
+            try
+            {
+                _writeErrorLog(strText);
+            }
+            catch (Exception ex)
+            {
+                WriteWindowsLog("尝试写入目录 " + LogDir + " 的日志文件发生异常， 后面将改为写入 Windows 日志。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                _errorLogError = true;
+                return false;
+            }
+
+            WriteWindowsLog("日志文件检测正常。从此开始关于 dpMServer 的日志会写入目录 " + LogDir + " 中当天的日志文件",
+                EventLogEntryType.Information);
+            return true;
+        }
+
+        // 写入实例的错误日志文件
+        public static void WriteErrorLog(string strText)
+        {
+            if (_errorLogError == true) // 先前写入实例的日志文件发生过错误，所以改为写入 Windows 日志。会加上实例名前缀字符串
+                WriteWindowsLog(strText, EventLogEntryType.Error);
+            else
+            {
+                try
+                {
+                    _writeErrorLog(strText);
+                }
+                catch (Exception ex)
+                {
+                    WriteWindowsLog("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入 Windows 日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                    WriteWindowsLog(strText, EventLogEntryType.Error);
+                }
+            }
+        }
+
+        // 写入 Windows 日志
+        public static void WriteWindowsLog(string strText)
+        {
+            WriteWindowsLog(strText, EventLogEntryType.Error);
+        }
+
+        // 写入 Windows 日志
+        public static void WriteWindowsLog(string strText,
+            EventLogEntryType type)
+        {
+            EventLog Log = new EventLog();
+            Log.Source = "dp2MessageService";
+            Log.WriteEntry(strText, type);
+        }
+
+        #endregion
+
     }
 
+    // 负责重试创建一些对象
+    class BackThread : ThreadBase
+    {
+        public BackThread()
+        {
+            this.PerTime = 60 * 1000;
+        }
+
+        bool _first = true;
+
+        // 工作线程每一轮循环的实质性工作
+        public override void Worker()
+        {
+            if (this.Stopped == true)
+                return;
+
+            ServerInfo.InitialMongoDb(_first);
+            _first = false;
+        }
+    }
 }

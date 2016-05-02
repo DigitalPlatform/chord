@@ -376,7 +376,7 @@ namespace dp2Command.Service
             {
                 EventLog Log = new EventLog();
                 Log.Source = "dp2weixin";
-                Log.WriteEntry("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入Windows系统日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                Log.WriteEntry("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入 Windows 日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
                 Log.WriteEntry(strText, EventLogEntryType.Error);
             }
         }
@@ -404,7 +404,7 @@ namespace dp2Command.Service
             {
                 EventLog Log = new EventLog();
                 Log.Source = "dp2weixin";
-                Log.WriteEntry("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入Windows系统日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                Log.WriteEntry("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入 Windows 日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
                 Log.WriteEntry(strText, EventLogEntryType.Error);
             }
         }

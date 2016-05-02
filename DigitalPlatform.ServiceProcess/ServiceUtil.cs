@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration.Install;
 using System.Linq;
+using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,6 +29,15 @@ out string strError)
                 isolated.Dispose();
             }
         }
+
+        public static void StopService(string strServiceName,
+            TimeSpan timeout)
+        {
+            ServiceController service = new ServiceController(strServiceName);
+            //     = TimeSpan.FromMinutes(2);
+            service.Stop();
+            service.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
+        }
     }
 
     /// <summary>
@@ -47,9 +57,11 @@ out string strError)
                         // strRootDirParam, 
                         parameters.ExePath });
                 else
+                {
                     ManagedInstallerClass.InstallHelper(new[] { "/u", 
                         // strRootDirParam, 
                         parameters.ExePath });
+                }
             }
             catch (Exception ex)
             {
@@ -62,6 +74,6 @@ out string strError)
 
             return null;
         }
-    } 
+    }
 
 }

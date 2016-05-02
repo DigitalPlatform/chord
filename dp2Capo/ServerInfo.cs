@@ -81,14 +81,16 @@ namespace dp2Capo
         // 准备退出
         public static void Exit()
         {
+            _defaultThread.StopThread(false);
+            _defaultThread.Dispose();
+
             // 保存配置
 
             // 切断连接
             foreach (Instance instance in _instances)
             {
-                instance.CloseConnection();
+                instance.Close();
             }
-
         }
 
         // 执行一些后台管理任务
@@ -103,8 +105,8 @@ namespace dp2Capo
                     int nRet = instance.MessageConnection.GetConfigInfo(out strError);
                     if (nRet == -1)
                     {
-                        // 写入实例的日志?
-                        Program.WriteWindowsLog(strError);
+                        // Program.WriteWindowsLog(strError);
+                        instance.WriteErrorLog("获得 dp2library 配置时出错: " + strError);
                     }
                     else
                         instance.BeginConnnect();   // 在获得了图书馆 UID 以后再发起 SignalR 连接

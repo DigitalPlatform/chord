@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using MongoDB.Driver;
 using MongoDB.Bson;
+using System.Threading;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -44,9 +45,10 @@ namespace DigitalPlatform.MessageServer
         // 默认的初始化函数，只初始化一个 collection
         // parameters:
         //      strDatabaseName 数据库名。实际上要加上 prefix 部分才构成真正使用的数据库名
-        public virtual async void Open(MongoClient mongoClient,
+        public virtual void Open(MongoClient mongoClient,
             string instancePrefix,
-            string pureDatabaseName)
+            string pureDatabaseName,
+            CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(instancePrefix) == false)
                 instancePrefix = instancePrefix + "_";
@@ -66,7 +68,7 @@ namespace DigitalPlatform.MessageServer
 
                 bool bExist = false;
                 // collection.Indexes.ListAsync().Result.ToListAsync().Result 
-                var indexes = _collection.Indexes.ListAsync().Result.ToListAsync().Result;
+                var indexes = _collection.Indexes.ListAsync(cancellationToken).Result.ToListAsync().Result;
                 foreach (BsonDocument doc in indexes)
                 {
 
@@ -79,7 +81,7 @@ namespace DigitalPlatform.MessageServer
                     _logCollection.CreateIndex(new IndexKeysBuilder().Ascending("OperTime"),
                         IndexOptions.SetUnique(false));
 #endif
-                    await CreateIndex();
+                    CreateIndex().Wait(cancellationToken);
                 }
             }
         }

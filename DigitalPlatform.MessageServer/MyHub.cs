@@ -510,10 +510,7 @@ ex.GetType().ToString());
         {
             if (string.IsNullOrEmpty(info.UserID) == false)
                 return info.UserID;
-            if (string.IsNullOrEmpty(info.LibraryName) == false)
-                return "~" + info.LibraryUserName + "@" + info.LibraryName;
-
-            return "~" + info.LibraryUserName + "@" + info.LibraryUID;
+            return "~" + info.LibraryUserName + "@" + info.LibraryName + "|" + info.LibraryUID;
         }
 
         void PushMessageToClient(string action,
@@ -728,7 +725,6 @@ ex.GetType().ToString());
             }
             catch (Exception ex)
             {
-#if NO
                 Clients.Client(search_info.RequestConnectionID).responseGetMessage(
     param.TaskID,
     -1, // resultCount,
@@ -737,7 +733,6 @@ ex.GetType().ToString());
     ExceptionUtil.GetExceptionText(ex), // errorInfo,
     "_sendExeption" // errorCode
     );
-#endif
             }
             finally
             {

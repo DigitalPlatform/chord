@@ -72,6 +72,7 @@ namespace dp2Capo
 
         #region 针对 dp2library 服务器的一些功能
 
+        // TODO: 可以返回 -2 表示为致命错误，永远不再重试
         // 利用 dp2library API 获取一些配置信息
         public int GetConfigInfo(out string strError)
         {
@@ -90,6 +91,12 @@ namespace dp2Capo
         out strError);
                     if (lRet == -1)
                         return -1;
+
+                    if (string.IsNullOrEmpty(strUID) == true)
+                    {
+                        strError = "dp2Capo 所所连接的 dp2library 服务器 '" + channel.Url + "' 没有配置 图书馆 UID，无法被 dp2Capo 正常使用。请为 dp2library 增配 图书馆 UID";
+                        return -1;
+                    }
 
                     this.dp2library.LibraryUID = strUID;
 
