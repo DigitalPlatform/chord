@@ -510,10 +510,7 @@ ex.GetType().ToString());
         {
             if (string.IsNullOrEmpty(info.UserID) == false)
                 return info.UserID;
-            if (string.IsNullOrEmpty(info.LibraryName) == false)
-                return "~" + info.LibraryUserName + "@" + info.LibraryName;
-
-            return "~" + info.LibraryUserName + "@" + info.LibraryUID;
+            return "~" + info.LibraryUserName + "@" + info.LibraryName + "|" + info.LibraryUID;
         }
 
         void PushMessageToClient(string action,
