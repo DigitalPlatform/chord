@@ -10,7 +10,7 @@ using System.Web.Http;
 using System.Web.Configuration;
 using dp2Command.Service;
 using DigitalPlatform.IO;
-using dp2Command.Server;
+using dp2Command.Service;
 using DigitalPlatform.Text;
 using dp2weixin;
 

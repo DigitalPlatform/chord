@@ -15,7 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace dp2Command.Server
+namespace dp2Command.Service
 {
     public class dp2CmdService2:dp2BaseCommandService
     {
@@ -55,6 +55,8 @@ namespace dp2Command.Server
         public string AppID { get; set; }
         public string AppSecret { get; set; }
 
+        WxMsgThread _wxMsgThread = null;
+
         public void Init(string dp2MServerUrl,
             string userName,
             string password,
@@ -79,20 +81,23 @@ namespace dp2Command.Server
             _channels.AddMessage += _channels_AddMessage;
 
             // 启一个线程取消息
-            Task.Factory.StartNew(() => DoLoadMessage("<default>"));
+            this._wxMsgThread = new WxMsgThread();
+            this._wxMsgThread.Container = this;
+            this._wxMsgThread.BeginThread();    // TODO: 应该在 MessageConnection 第一次连接成功以后，再启动这个线程比较好
+
+            //Task.Factory.StartNew(() => DoLoadMessage("<default>"));
 
         }
 
-        async void DoLoadMessage(string strGroupName)
+        public async void DoLoadMessage()
         {
+            string strGroupName = "<default>";
+
             string strError = "";
-            string openId = " o4xvUviTxj2HbRqbQb9W2nMl4fGg ";
-            //if (AccessTokenContainer.CheckRegistered(this.AppID)== false)
-           // AccessTokenContainer.Register(this.AppID,this.
+            string openId = "o4xvUviTxj2HbRqbQb9W2nMl4fGg";
             var accessToken = AccessTokenContainer.GetAccessToken(this.AppID);
 
             CancellationToken cancel_token = new CancellationToken();
-
             string id = Guid.NewGuid().ToString();
             GetMessageRequest request = new GetMessageRequest(id,
                 strGroupName, // "" 表示默认群组
@@ -110,9 +115,6 @@ namespace dp2Command.Server
                         FillMessage,
                         new TimeSpan(0, 1, 0),
                         cancel_token);
-
-                // todo 这里应该写在日志里，应该不知道错误信息不能发给用户
-                CustomApi.SendText(accessToken, openId, ToString(result));
             }
             catch (AggregateException ex)
             {
@@ -126,8 +128,17 @@ namespace dp2Command.Server
             }
             return;
 
-            ERROR1:
-            CustomApi.SendText(accessToken, openId, strError);
+        ERROR1:
+
+            this.WriteErrorLog(strError);
+            //CustomApi.SendText(accessToken, openId, "error");
+
+        }
+
+        public void SendCustomerMsg(string openId, string text)
+        {
+            var accessToken = AccessTokenContainer.GetAccessToken(this.AppID);
+            CustomApi.SendText(accessToken, openId, "error");
         }
 
         static string ToString(MessageResult result)
@@ -155,8 +166,11 @@ namespace dp2Command.Server
 
         public void SendCaoQiMessage(IList<MessageRecord> records)
         {
+            int i = 0;
             foreach (MessageRecord record in records)
             {
+                i++;
+
                 StringBuilder text = new StringBuilder();
                 text.Append("***\r\n");
                 text.Append("id=" + record.id + "\r\n");
@@ -184,7 +198,9 @@ namespace dp2Command.Server
                     remark = new TemplateDataItem("\n点击[详情]查看个人详细信息", "#CCCCCC")
                 };
                 var result = TemplateApi.SendTemplateMessage(accessToken, openId, templateId, "#FF0000", "dp2003.com", testData);
-
+                // 测试
+                if (i == 3)
+                    return;
 
                 // todo 发送完成，要删除一条消息
 
@@ -208,12 +224,12 @@ namespace dp2Command.Server
 
         void _channels_AddMessage(object sender, AddMessageEventArgs e)
         {
-            //this.BeginInvoke(new Action<AddMessageEventArgs>(DisplayMessage), e);
+            // 只处理_patronNotify郡里的消息
 
-           
-
-
-            //AppendHtml(this.webBrowser_message, text.ToString());
+            if (e.Records != null)
+            {
+                SendCaoQiMessage(e.Records);
+            }
         }
 
         public class CaoQiTemplateData
