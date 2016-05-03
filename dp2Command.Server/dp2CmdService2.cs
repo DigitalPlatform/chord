@@ -91,7 +91,7 @@ namespace dp2Command.Service
 
         public async void DoLoadMessage()
         {
-            string strGroupName = "<default>";
+            string strGroupName = "_patronNotify";//"<default>";
 
             string strError = "";
             string openId = "o4xvUviTxj2HbRqbQb9W2nMl4fGg";
@@ -160,11 +160,11 @@ namespace dp2Command.Service
 
             if (records != null)
             {
-                SendCaoQiMessage(records);
+                SendMessageToWxUser(records);
             }
         }
 
-        public void SendCaoQiMessage(IList<MessageRecord> records)
+        public void SendMessageToWxUser(IList<MessageRecord> records)
         {
             int i = 0;
             foreach (MessageRecord record in records)
@@ -224,11 +224,11 @@ namespace dp2Command.Service
 
         void _channels_AddMessage(object sender, AddMessageEventArgs e)
         {
-            // 只处理_patronNotify郡里的消息
+            // todo只处理_patronNotify郡里的消息
 
             if (e.Records != null)
             {
-                SendCaoQiMessage(e.Records);
+                SendMessageToWxUser(e.Records);
             }
         }
 
