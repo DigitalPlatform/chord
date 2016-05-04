@@ -29,7 +29,9 @@ namespace dp2Capo
             // 修改配置
             if (args.Length >= 1 && args[0].Equals("setting"))
             {
+
                 ChangeSettings(args.Length > 1 ? args[1] : "");
+
                 return;
             }
 
@@ -123,7 +125,10 @@ namespace dp2Capo
         {
             try
             {
-                ServerInfo.Initial(Settings.Default.DataDir);
+                InitialConfig();
+                Program.WriteWindowsLog("dump config: " + Config.Dump(), EventLogEntryType.Information);
+
+                ServerInfo.Initial(DataDir);
                 return true;
             }
             catch (Exception ex)
@@ -134,7 +139,27 @@ namespace dp2Capo
             }
         }
 
-        static void SetOneParameter(string strPromptName, Settings obj, string strFieldName)
+        static string DataDir
+        {
+            get
+            {
+#if NO
+                string strServerURI = Settings.Default.ServerURI;
+                if (string.IsNullOrEmpty(strServerURI) == true)
+                    strServerURI = "http://*:8083";
+
+                return strServerURI;
+#endif
+                return Config.Get("default", "data_dir", "c:\\capo_data");
+            }
+            set
+            {
+                Config.Set("default", "data_dir", value);
+            }
+        }
+
+#if NO
+        static void SetOneParameter(string strPromptName, object obj, string strFieldName)
         {
             PropertyInfo info = obj.GetType().GetProperty(strFieldName);
             string value = (string)info.GetValue(obj, null);
@@ -143,6 +168,7 @@ namespace dp2Capo
             if (string.IsNullOrEmpty(strNewValue) == false)
                 info.SetValue(obj, strNewValue, null);
         }
+#endif
 
         // 修改配置
         // parameters:
@@ -153,9 +179,17 @@ namespace dp2Capo
 
             if (string.IsNullOrEmpty(strInstanceIndex) == true)
             {
-                SetOneParameter("数据目录", Settings.Default, "DataDir");
+                InitialConfig();
 
-                Settings.Default.Save();
+                // SetOneParameter("数据目录", (object)Program, "DataDir");
+
+                // Settings.Default.Save();
+                Console.WriteLine("请输入数据目录: (当前值为 " + DataDir + ")");
+                string strValue = Console.ReadLine();
+                if (string.IsNullOrEmpty(strValue) == false)
+                    DataDir = strValue;
+
+                SaveConfig();
             }
             else
             {
@@ -174,7 +208,7 @@ namespace dp2Capo
         //      index   实例子目录下标。从 0 开始计数
         static void ChangeInstanceSettings(int index)
         {
-            ServerInfo.ChangeInstanceSettings(Settings.Default.DataDir, index);
+            ServerInfo.ChangeInstanceSettings(DataDir, index);
         }
 
         protected override void OnStart(string[] args)

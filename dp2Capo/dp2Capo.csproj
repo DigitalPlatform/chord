@@ -78,6 +78,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="deleted.txt" />
     <Content Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>

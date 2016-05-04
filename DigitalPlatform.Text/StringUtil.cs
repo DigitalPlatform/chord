@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -13,6 +14,20 @@ namespace DigitalPlatform.Text
     /// </summary>
     public static class StringUtil
     {
+        public static string GetMd5(string strText)
+        {
+            MD5 hasher = MD5.Create();
+            byte[] buffer = Encoding.UTF8.GetBytes(strText);
+            byte[] target = hasher.ComputeHash(buffer);
+            StringBuilder sb = new StringBuilder();
+            foreach (byte b in target)
+            {
+                sb.Append(b.ToString("x2").ToLower());
+            }
+
+            return sb.ToString();
+        }
+
         // 将权限列表字符串切割为单个元素构成的数组
         public static List<string> SplitRights(string strList)
         {

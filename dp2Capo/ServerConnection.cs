@@ -538,11 +538,10 @@ strError);
             string strError = "";
             string strErrorCode = "";
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
-            long batch_size = -1;
 
             string strResultSetName = searchParam.ResultSetName;
             if (string.IsNullOrEmpty(strResultSetName) == true)
-                strResultSetName = "default";
+                strResultSetName = "#" + searchParam.TaskID;    // "default";
             else
                 strResultSetName = "#" + strResultSetName;  // 如果请求方指定了结果集名，则在 dp2library 中处理为全局结果集名
 
@@ -630,94 +629,10 @@ strErrorCode);
                         return;
                     }
 
-                    long lStart = searchParam.Start;
-                    long lPerCount = searchParam.Count; // 本次拟返回的个数
 
-                    if (lHitCount != -1)
-                    {
-                        if (lPerCount == -1)
-                            lPerCount = lHitCount - lStart;
-                        else
-                            lPerCount = Math.Min(lPerCount, lHitCount - lStart);
-
-                        if (lPerCount <= 0)
-                        {
-                            strError = "命中结果总数为 " + lHitCount + "，取结果开始位置为 " + lStart + "，它已超出结果集范围";
-                            goto ERROR1;
-                        }
-                    }
-
-                    DigitalPlatform.LibraryClient.localhost.Record[] searchresults = null;
-
-                    // 装入浏览格式
-                    for (; ; )
-                    {
-                        string strBrowseStyle = searchParam.FormatList; // "id,xml";
-
-                        lRet = channel.GetSearchResult(
-                            // null,
-            strResultSetName,
-            lStart,
-            lPerCount,
-            strBrowseStyle,
-            "zh", // this.Lang,
-            out searchresults,
-            out strError);
-                        strErrorCode = channel.ErrorCode.ToString();
-                        if (lRet == -1)
-                            goto ERROR1;
-
-                        if (searchresults.Length == 0)
-                        {
-                            strError = "GetSearchResult() searchResult empty";
-                            goto ERROR1;
-                        }
-
-                        if (lHitCount == -1)
-                            lHitCount = lRet;   // 延迟得到命中总数
-
-                        records.Clear();
-                        foreach (DigitalPlatform.LibraryClient.localhost.Record record in searchresults)
-                        {
-#if NO
-                            DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
-                            biblio.RecPath = record.Path;
-                            biblio.Data = record.RecordBody.Xml;
-                            records.Add(biblio);
-#endif
-                            DigitalPlatform.Message.Record biblio = FillBiblio(record);
-                            records.Add(biblio);
-                        }
-
-#if NO
-                        ResponseSearch(
-                            searchParam.TaskID,
-                            lHitCount,
-                            lStart,
-                            records,
-                            "",
-                            strErrorCode);
-#endif
-                        bool bRet = TryResponseSearch(
-        searchParam.TaskID,
-        lHitCount,
-        lStart,
-        records,
-        "",
-        strErrorCode,
-        ref batch_size);
-                        Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
-                        if (bRet == false)
-                            return;
-
-                        lStart += searchresults.Length;
-
-                        if (lPerCount != -1)
-                            lPerCount -= searchresults.Length;
-
-                        if (lStart >= lHitCount || (lPerCount <= 0 && lPerCount != -1))
-                            break;
-                    }
+                    Task.Factory.StartNew(() => SendResults(searchParam,
+                    strResultSetName,
+                    lHitCount));
                 }
             }
             catch (Exception ex)
@@ -732,6 +647,125 @@ strErrorCode);
             }
 
             this.AddInfoLine("search and response end");
+            return;
+        ERROR1:
+            // 报错
+            ResponseSearch(
+searchParam.TaskID,
+-1,
+0,
+records,
+strError,
+strErrorCode);
+        }
+
+        void SendResults(SearchRequest searchParam,
+            string strResultSetName,
+            long lHitCount)
+        {
+            string strError = "";
+            string strErrorCode = "";
+
+            IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
+            long batch_size = 100;
+
+            long lStart = searchParam.Start;
+            long lPerCount = searchParam.Count; // 本次拟返回的个数
+
+            if (lHitCount != -1)
+            {
+                if (lPerCount == -1)
+                    lPerCount = lHitCount - lStart;
+                else
+                    lPerCount = Math.Min(lPerCount, lHitCount - lStart);
+
+                if (lPerCount <= 0)
+                {
+                    strError = "命中结果总数为 " + lHitCount + "，取结果开始位置为 " + lStart + "，它已超出结果集范围";
+                    goto ERROR1;
+                }
+            }
+
+            LibraryChannel channel = GetChannel();
+            try
+            {
+                DigitalPlatform.LibraryClient.localhost.Record[] searchresults = null;
+
+                // 装入浏览格式
+                for (; ; )
+                {
+                    string strBrowseStyle = searchParam.FormatList; // "id,xml";
+
+                    long lRet = channel.GetSearchResult(
+                        // null,
+        strResultSetName,
+        lStart,
+        lPerCount,
+        strBrowseStyle,
+        "zh", // this.Lang,
+        out searchresults,
+        out strError);
+                    strErrorCode = channel.ErrorCode.ToString();
+                    if (lRet == -1)
+                        goto ERROR1;
+
+                    if (searchresults.Length == 0)
+                    {
+                        strError = "GetSearchResult() searchResult empty";
+                        goto ERROR1;
+                    }
+
+                    if (lHitCount == -1)
+                        lHitCount = lRet;   // 延迟得到命中总数
+
+                    records.Clear();
+                    foreach (DigitalPlatform.LibraryClient.localhost.Record record in searchresults)
+                    {
+#if NO
+                            DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
+                            biblio.RecPath = record.Path;
+                            biblio.Data = record.RecordBody.Xml;
+                            records.Add(biblio);
+#endif
+                        DigitalPlatform.Message.Record biblio = FillBiblio(record);
+                        records.Add(biblio);
+                    }
+
+#if NO
+                        ResponseSearch(
+                            searchParam.TaskID,
+                            lHitCount,
+                            lStart,
+                            records,
+                            "",
+                            strErrorCode);
+#endif
+                    bool bRet = TryResponseSearch(
+    searchParam.TaskID,
+    lHitCount,
+    lStart,
+    records,
+    "",
+    strErrorCode,
+    ref batch_size);
+                    Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                    if (bRet == false)
+                        return;
+
+                    lStart += searchresults.Length;
+
+                    if (lPerCount != -1)
+                        lPerCount -= searchresults.Length;
+
+                    if (lStart >= lHitCount || (lPerCount <= 0 && lPerCount != -1))
+                        break;
+                }
+            }
+            finally
+            {
+                this._channelPool.ReturnChannel(channel);
+            }
+
             return;
         ERROR1:
             // 报错
@@ -901,6 +935,9 @@ strErrorCode);
             }
 
             biblio.Data = dom.DocumentElement.OuterXml;
+
+            biblio.MD5 = StringUtil.GetMd5(biblio.Data);
+
             return biblio;
         }
 
@@ -1191,7 +1228,7 @@ strError,
 strErrorCode);
         }
 
-        static void ConnonicalizeFormats(string [] formats)
+        static void ConnonicalizeFormats(string[] formats)
         {
             // 规整一下，outputpath/path/recpath 都可用
             int index = Array.IndexOf(formats, "path");

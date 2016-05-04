@@ -6,11 +6,17 @@ using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
+using System.Configuration;
+using DigitalPlatform.Xml;
+using System.Reflection;
+using System.IO;
 
 namespace DigitalPlatform.ServiceProcess
 {
     public class MyServiceBase : ServiceBase
     {
+
+
         /// <summary>
         /// 服务的短名称。例如 "dp2mserver"。用作 Windows Event Log 名称
         /// </summary>
@@ -34,6 +40,36 @@ namespace DigitalPlatform.ServiceProcess
             Debug.Assert(string.IsNullOrEmpty(ServiceShortName) == false, "");
             Log.Source = ServiceShortName;
             Log.WriteEntry(strText, type);
+        }
+
+        static ConfigSetting _config = null;
+
+        public static ConfigSetting Config
+        {
+            get
+            {
+                return _config;
+            }
+        }
+
+        public static void InitialConfig()
+        {
+            string strExePath = Assembly.GetExecutingAssembly().Location;
+
+            string filename = Path.Combine(Path.GetDirectoryName(strExePath), "settings.xml");
+            Console.WriteLine(filename);
+
+            _config = ConfigSetting.Open(filename, true);
+        }
+
+        public static void SaveConfig()
+        {
+            // Save the configuration file.
+            if (_config != null)
+            {
+                _config.Save();
+                _config = null;
+            }
         }
 
         #region 控制台方式运行
