@@ -147,7 +147,7 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\OAuth2Controller.cs" />
@@ -159,6 +159,7 @@
     <Compile Include="MessageHandlers\CustomMessageHandler\CustomMessageContext.cs" />
     <Compile Include="MessageHandlers\CustomMessageHandler\CustomMessageHandler.cs" />
     <Compile Include="MessageHandlers\CustomMessageHandler\CustomMessageHandler_Events.cs" />
+    <Compile Include="Models\LoginModel.cs" />
     <Compile Include="Models\MessageModel.cs" />
     <Compile Include="Models\SettingModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -183,6 +184,7 @@
     <Content Include="Views\OAuth2\Index.cshtml" />
     <Content Include="Views\OAuth2\UserInfoCallback.cshtml" />
     <Content Include="Views\Menu\Index.cshtml" />
+    <Content Include="Views\Account\Login.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
