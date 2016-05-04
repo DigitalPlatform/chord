@@ -1758,7 +1758,7 @@ false);
                     }
 
                     // 强行覆盖
-                    responseParam.LibraryUID = connection_info.LibraryUID;
+                    responseParam.LibraryUID = connection_info.LibraryName + "|" + connection_info.LibraryUID;
 
 #if NO
                     string strLongPostfix = connection_info.LibraryName + "|" + connection_info.LibraryUID;
