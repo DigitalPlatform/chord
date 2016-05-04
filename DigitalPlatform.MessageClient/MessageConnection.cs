@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Net;
 
 using Microsoft.AspNet.SignalR.Client;
+using Microsoft.AspNet.SignalR.Client.Transports;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
@@ -257,7 +258,7 @@ errorInfo)
 
             try
             {
-                return Connection.Start()
+                return Connection.Start()    // new ServerSentEventsTransport()
                     .ContinueWith<MessageResult>((antecendent) =>
                     {
                         MessageResult result = new MessageResult();
@@ -579,6 +580,9 @@ request).Result;
                 () =>
                 {
                     // DateTime start_time = DateTime.Now;
+                    ResultManager manager = new ResultManager();
+                    List<string> errors = new List<string>();
+                    List<string> codes = new List<string>();
 
                     SearchResult result = new SearchResult();
                     if (result.Records == null)
@@ -589,55 +593,79 @@ request).Result;
 
                     using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
                     {
-                        using (var handler = HubProxy.On<
-                            string, long, long, IList<Record>, string, string>(
+                        using (var handler = HubProxy.On<SearchResponse>(
                             "responseSearch",
-                            (taskID, resultCount, start, records, errorInfo, errorCode) =>
+                            (responseParam
+                                // taskID, resultCount, start, records, errorInfo, errorCode
+                                ) =>
                             {
-                                if (taskID != request.TaskID)
+                                if (responseParam.TaskID != request.TaskID)
                                     return;
 
-                                if (records != null)
+#if NO
+                                if (responseParam.Records != null)
                                 {
-                                    foreach (Record record in records)
+                                    foreach (Record record in responseParam.Records)
                                     {
                                         // 校验一下 MD5
                                         if (string.IsNullOrEmpty(record.MD5) == false)
                                         {
                                             string strMD5 = StringUtil.GetMd5(record.Data);
                                             if (record.MD5 != strMD5)
-                                                throw new Exception("testclient1 : 记录 '" + record.RecPath + "' Data 的 MD5 校验出现异常");
+                                            {
+                                                record.RecPath = "testclient1 : 记录 '" + record.RecPath + "' Data 的 MD5 校验出现异常";
+                                                // throw new Exception("testclient1 : 记录 '" + record.RecPath + "' Data 的 MD5 校验出现异常");
+                                            }
                                         }
+
+                                        record.Data = "";   // testing
                                     }
                                 }
+#endif
 
                                 // start_time = DateTime.Now;  // 重新计算超时
 
                                 // 装载命中结果
-                                if (resultCount == -1 || start == -1)
+                                if (responseParam.ResultCount == -1 || responseParam.Start == -1)
                                 {
-                                    if (start == -1)
-                                    {
-                                        // 表示发送响应过程已经结束。只是起到通知的作用，不携带任何信息
-                                        // result.Finished = true;
-                                    }
-                                    else
-                                    {
-                                        result.ResultCount = resultCount;
-                                        result.ErrorInfo = errorInfo;
-                                        result.ErrorCode = errorCode;
-                                    }
+
+                                    result.ResultCount = manager.GetTotalCount();
+                                    //result.ErrorInfo = responseParam.ErrorInfo;
+                                    //result.ErrorCode = responseParam.ErrorCode;
+                                    result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                    result.ErrorCode = StringUtil.MakePathList(codes, ",");
+
                                     wait_events.finish_event.Set();
                                     return;
                                 }
 
-                                result.ResultCount = resultCount;
                                 // TODO: 似乎应该关注 start 位置
-                                result.Records.AddRange(records);
-                                result.ErrorInfo = errorInfo;
-                                result.ErrorCode = errorCode;
+                                result.Records.AddRange(responseParam.Records);
+                                if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
+                                    && errors.IndexOf(responseParam.ErrorInfo) == -1)
+                                {
+                                    errors.Add(responseParam.ErrorInfo);
+                                    result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                }
+                                if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
+                                    && codes.IndexOf(responseParam.ErrorCode) == -1)
+                                {
+                                    codes.Add(responseParam.ErrorCode);
+                                    result.ErrorCode = StringUtil.MakePathList(codes, ",");
+                                }
 
-                                if (IsComplete(request.Start, request.Count, resultCount, result.Records.Count) == true)
+                                // 标记结束一个检索目标
+                                // return:
+                                //      0   尚未结束
+                                //      1   结束
+                                //      2   全部结束
+                                int nRet = manager.CompleteTarget(responseParam.LibraryUID,
+                                    responseParam.ResultCount,
+                                    responseParam.Records == null ? 0 : responseParam.Records.Count);
+
+                                result.ResultCount = manager.GetTotalCount();
+
+                                if (nRet == 2)
                                     wait_events.finish_event.Set();
                                 else
                                     wait_events.active_event.Set();
@@ -654,13 +682,31 @@ request).Result;
                                 return result;
                             }
 
+                            if (manager.SetTargetCount(message.Value) == true)
+                                return result;
+
                             // start_time = DateTime.Now;
 
-                            Wait(
-            request.TaskID,
-            wait_events,
-            timeout,
-            token);
+                            try
+                            {
+                                Wait(
+                request.TaskID,
+                wait_events,
+                timeout,
+                token);
+                            }
+                            catch(TimeoutException)
+                            {
+                                // 超时的时候实际上有结果了
+                                if (result.Records != null
+                                    && result.Records.Count > 0)
+                                {
+                                    result.ErrorCode += ",_timeout";    // 附加一个错误码，表示虽然返回了结果，但是已经超时
+                                    return result;
+                                }
+                                throw;
+                            }
+
                             return result;
                         }
                     }
@@ -1650,9 +1696,11 @@ circulation_result);
         // return:
         //      true    成功
         //      false   失败
-        public bool TryResponseSearch(string taskID,
+        public bool TryResponseSearch(
+            string taskID,
             long resultCount,
             long start,
+            string libraryUID,
             IList<Record> records,
             string errorInfo,
             string errorCode,
@@ -1684,12 +1732,14 @@ circulation_result);
                     Wait(new TimeSpan(0, 0, 0, 0, 50)); // 50
 
                     MessageResult result = ResponseSearchAsync(
+                        new SearchResponse(
                         taskID,
                         resultCount,
                         start + send,
+                        libraryUID,
                         current,
                         errorInfo,
-                        errorCode).Result;
+                        errorCode)).Result;
                     _lastTime = DateTime.Now;
                     if (result.Value == -1)
                         return false;   // 可能因为服务器端已经中断此 taskID，或者执行 ReponseSearch() 时出错
@@ -1720,7 +1770,7 @@ circulation_result);
                     goto ERROR1;
                 }
 
-                Console.WriteLine("成功发送 " + current.Count.ToString());
+                Console.WriteLine("成功发送 offset=" + (start + send) + " " + current.Count.ToString());
 
                 send += current.Count;
                 current.Clear();
@@ -1743,41 +1793,52 @@ circulation_result);
         ERROR1:
             // 报错
             ResponseSearch(
+                new SearchResponse(
 taskID,
 -1,
 0,
+libraryUID,
 new List<Record>(),
 strError,
-"_sendResponseSearchError");    // 消息层面发生的错误(表示不是 dp2library 层面的错误)，错误码为 _ 开头
+"_sendResponseSearchError"));    // 消息层面发生的错误(表示不是 dp2library 层面的错误)，错误码为 _ 开头
             return false;
         }
 
         // 调用 server 端 ResponseSearchBiblio
         public Task<MessageResult> ResponseSearchAsync(
+#if NO
             string taskID,
             long resultCount,
             long start,
             IList<Record> records,
             string errorInfo,
-            string errorCode)
+            string errorCode
+#endif
+SearchResponse responseParam)
         {
             return HubProxy.Invoke<MessageResult>("ResponseSearch",
+#if NO
 taskID,
 resultCount,
 start,
 records,
 errorInfo,
-errorCode);
+errorCode
+#endif
+ responseParam);
         }
 
         // 调用 server 端 ResponseSearchBiblio
         public async void ResponseSearch(
+#if NO
             string taskID,
             long resultCount,
             long start,
             IList<Record> records,
             string errorInfo,
-            string errorCode)
+            string errorCode
+#endif
+SearchResponse responseParam)
         {
             // TODO: 等待执行完成。如果有异常要当时处理。比如减小尺寸重发。
             int nRedoCount = 0;
@@ -1785,12 +1846,15 @@ errorCode);
             try
             {
                 MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSearch",
-    taskID,
+#if NO
+                    taskID,
     resultCount,
     start,
     records,
     errorInfo,
-    errorCode);
+    errorCode
+#endif
+ responseParam);
                 if (result.Value == -1)
                 {
                     AddErrorLine(result.ErrorInfo);

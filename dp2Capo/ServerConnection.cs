@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Diagnostics;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
@@ -600,12 +601,14 @@ strError);
                         {
                             // 没有命中
                             ResponseSearch(
+                                new SearchResponse(
     searchParam.TaskID,
     0,
     0,
+    this.dp2library.LibraryUID,
     records,
     strError,  // 出错信息大概为 not found。
-    strErrorCode);
+    strErrorCode));
                             return;
                         }
                         goto ERROR1;
@@ -620,12 +623,14 @@ strError);
                     {
                         // 返回命中数
                         ResponseSearch(
+                            new SearchResponse(
                             searchParam.TaskID,
                             lHitCount,
 0,
+this.dp2library.LibraryUID,
 records,
 "本次没有返回任何记录",
-strErrorCode);
+strErrorCode));
                         return;
                     }
 
@@ -651,12 +656,15 @@ strErrorCode);
         ERROR1:
             // 报错
             ResponseSearch(
+                                                new SearchResponse(
+
 searchParam.TaskID,
 -1,
 0,
+this.dp2library.LibraryUID,
 records,
 strError,
-strErrorCode);
+strErrorCode));
         }
 
         void SendResults(SearchRequest searchParam,
@@ -744,6 +752,7 @@ strErrorCode);
     searchParam.TaskID,
     lHitCount,
     lStart,
+    this.dp2library.LibraryUID, // libraryUID,
     records,
     "",
     strErrorCode,
@@ -751,6 +760,8 @@ strErrorCode);
                     Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
                     if (bRet == false)
                         return;
+
+                    Debug.Assert(searchresults.Length == records.Count, "");
 
                     lStart += searchresults.Length;
 
@@ -770,12 +781,14 @@ strErrorCode);
         ERROR1:
             // 报错
             ResponseSearch(
+                                                new SearchResponse(
 searchParam.TaskID,
 -1,
 0,
+this.dp2library.LibraryUID,
 records,
 strError,
-strErrorCode);
+strErrorCode));
         }
 
         void GetBrowseRecords(SearchRequest searchParam)
@@ -803,12 +816,14 @@ strErrorCode);
                     {
                         // 没有命中
                         ResponseSearch(
+                                                            new SearchResponse(
 searchParam.TaskID,
 0,
 0,
+this.dp2library.LibraryUID,
 records,
 strError,   // 出错信息大概为 not found。
-strErrorCode);
+strErrorCode));
                         return;
                     }
                     goto ERROR1;
@@ -838,6 +853,7 @@ strErrorCode);
 searchParam.TaskID,
 records.Count,
 0,
+this.dp2library.LibraryUID,
 records,
 "",
 strErrorCode,
@@ -862,12 +878,14 @@ ref batch_size);
         ERROR1:
             // 报错
             ResponseSearch(
+                                                new SearchResponse(
 searchParam.TaskID,
 -1,
 0,
+this.dp2library.LibraryUID,
 records,
 strError,
-strErrorCode);
+strErrorCode));
         }
 
         static DigitalPlatform.Message.Record FillBiblio(DigitalPlatform.LibraryClient.localhost.Record record)
@@ -1019,12 +1037,14 @@ strErrorCode);
                     {
                         // 没有命中
                         ResponseSearch(
+                                                            new SearchResponse(
 searchParam.TaskID,
 0,
 0,
+this.dp2library.LibraryUID,
 records,
 strError,  // 出错信息大概为 not found。
-strErrorCode);
+strErrorCode));
                         return;
                     }
                     // TODO: 如何返回 channel.ErrorCode ?
@@ -1057,6 +1077,7 @@ strErrorCode);
                         searchParam.TaskID,
                         lHitCount,
                         searchParam.Start, // lStart,
+                        this.dp2library.LibraryUID,
                         records,
                         "",
                         strErrorCode,
@@ -1099,12 +1120,14 @@ strErrorCode);
         ERROR1:
             // 报错
             ResponseSearch(
+                                                new SearchResponse(
 searchParam.TaskID,
 -1,
 0,
+this.dp2library.LibraryUID,
 records,
 strError,
-strErrorCode);
+strErrorCode));
         }
 
         /*
@@ -1161,12 +1184,14 @@ strErrorCode);
                     {
                         // 没有命中
                         ResponseSearch(
+                                                            new SearchResponse(
 searchParam.TaskID,
 0,
 0,
+this.dp2library.LibraryUID,
 records,
 strError,   // 出错信息大概为 not found。
-strErrorCode);
+strErrorCode));
                         return;
                     }
                     goto ERROR1;
@@ -1196,6 +1221,7 @@ strErrorCode);
 searchParam.TaskID,
 records.Count,
 0,
+this.dp2library.LibraryUID,
 records,
 "",
 strErrorCode,
@@ -1220,12 +1246,15 @@ ref batch_size);
         ERROR1:
             // 报错
             ResponseSearch(
+                                                new SearchResponse(
+
 searchParam.TaskID,
 -1,
 0,
+this.dp2library.LibraryUID,
 records,
 strError,
-strErrorCode);
+strErrorCode));
         }
 
         static void ConnonicalizeFormats(string[] formats)
@@ -1284,12 +1313,15 @@ strErrorCode);
                     {
                         // 没有命中
                         ResponseSearch(
+                                                            new SearchResponse(
+
 searchParam.TaskID,
 0,
 0,
+this.dp2library.LibraryUID,
 records,
 strError,  // 出错信息大概为 not found。
-strErrorCode);
+strErrorCode));
                         return;
                     }
                     goto ERROR1;
@@ -1345,8 +1377,9 @@ strErrorCode);
 searchParam.TaskID,
 records.Count,
 0,
+this.dp2library.LibraryUID,
 records,
-"",
+strError,
 strErrorCode,
 ref batch_size);
                 Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
@@ -1369,12 +1402,14 @@ ref batch_size);
         ERROR1:
             // 报错
             ResponseSearch(
+                                                new SearchResponse(
 searchParam.TaskID,
 -1,
 0,
+this.dp2library.LibraryUID,
 records,
 strError,
-strErrorCode);
+strErrorCode));
         }
 
         void GetPatronInfo(SearchRequest searchParam)
@@ -1411,12 +1446,14 @@ strErrorCode);
                     {
                         // 没有命中
                         ResponseSearch(
+                                                            new SearchResponse(
 searchParam.TaskID,
 0,
 0,
+this.dp2library.LibraryUID,
 records,
 strError,  // 出错信息大概为 not found。
-strErrorCode);
+strErrorCode));
                         return;
                     }
                     goto ERROR1;
@@ -1452,6 +1489,7 @@ strErrorCode);
 searchParam.TaskID,
 records.Count,
 0,
+this.dp2library.LibraryUID,
 records,
 "",
 strErrorCode,
@@ -1476,12 +1514,14 @@ ref batch_size);
         ERROR1:
             // 报错
             ResponseSearch(
+                                                new SearchResponse(
 searchParam.TaskID,
 -1,
 0,
+this.dp2library.LibraryUID,
 records,
 strError,
-strErrorCode);
+strErrorCode));
         }
 
         #endregion

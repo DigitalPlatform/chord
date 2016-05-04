@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using DigitalPlatform;
+using System.Collections;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -43,7 +44,8 @@ namespace DigitalPlatform.MessageServer
         public SearchInfo AddSearch(string strRequestConnectionID,
             string strSearchID = "",
             long returnStart = 0,
-            long returnCount = -1)
+            long returnCount = -1,
+            string serverPushEncoding = "")
         {
             this._lock.EnterWriteLock();
             try
@@ -65,6 +67,7 @@ namespace DigitalPlatform.MessageServer
                 info.RequestConnectionID = strRequestConnectionID;
                 info.ReturnStart = returnStart;
                 info.ReturnCount = returnCount;
+                info.ServerPushEncoding = serverPushEncoding;
                 this[info.UID] = info;
                 return info;
             }
@@ -154,9 +157,18 @@ namespace DigitalPlatform.MessageServer
         }
     }
 
+    // 一次检索命中的信息
+    public class HitInfo
+    {
+        public long TotalResults = 0;   // 总的命中数量。-1 表示已出错
+        public long Recieved = 0;   // 已经收到的数量
+    }
+
     // 一个检索请求的相关信息
     public class SearchInfo
     {
+        public string ServerPushEncoding = "";  // dp2mserver 推送消息给前端时候所使用的 encoding。主要是用来避免 .NET 4.0 的前端出现乱码
+
         public string UID = "";
         public DateTime CreateTime; // 请求的时刻
         public string RequestConnectionID = "";    // 请求者的 connection ID
@@ -166,6 +178,8 @@ namespace DigitalPlatform.MessageServer
 
         private static readonly Object _syncRoot = new Object();
         List<string> _targetIDs = new List<string>(); // 检索目标的 connection id 集合
+
+        Hashtable _targetTable = new Hashtable();   // target id --> HitInfo
 
         public void SetTargetIDs(List<string> ids)
         {
@@ -197,7 +211,7 @@ namespace DigitalPlatform.MessageServer
         // return:
         //      false   尚余某些目标没有完成
         //      true    全部目标都已经完成
-        public bool CompleteTarget(string strConnectionID)
+        bool CompleteTarget(string strConnectionID)
         {
             lock (_syncRoot)
             {
@@ -207,6 +221,41 @@ namespace DigitalPlatform.MessageServer
                 return false;
             }
         }
+
+        // 标记结束一个检索目标
+        // return:
+        //      0   尚未结束
+        //      1   结束
+        //      2   全部结束
+        public int CompleteTarget(string strConnectionID, long total_count, long this_count)
+        {
+            if (total_count == -1)
+            {
+                if (CompleteTarget(strConnectionID) == true)
+                    return 2;
+                return 0;
+            }
+
+            HitInfo info = _targetTable[strConnectionID] as HitInfo;
+            if (info == null)
+            {
+                info = new HitInfo();
+                info.TotalResults = total_count;
+                _targetTable[strConnectionID] = info;
+            }
+            info.Recieved += this_count;
+            if (info.TotalResults <= info.Recieved)
+            {
+                if (CompleteTarget(strConnectionID) == true)
+                    return 2;
+                return 1;
+            }
+            return 0;
+        }
+
+        // TODO: 为每个目标单独记载 range、总命中数。这样就可以判断是否全部已经到来
+        // ? 中途不清除记载的信息，因为需要用它获得加起来的总命中数
+
     }
 
     class CleanThread : ThreadBase

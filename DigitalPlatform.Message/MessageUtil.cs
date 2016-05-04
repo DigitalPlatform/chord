@@ -227,6 +227,7 @@ namespace DigitalPlatform.Message
         public long MaxResults { get; set; }    // 本次检索最多命中的记录数。-1 表示不限制
         public long Start { get; set; } // 本次获得结果的开始位置
         public long Count { get; set; } // 本次获得结果的个数。 -1表示尽可能多
+        public string ServerPushEncoding { get; set; }
 
         public SearchRequest(string taskID,
             string operation,
@@ -238,7 +239,8 @@ namespace DigitalPlatform.Message
             string formatList,
             long maxResults,
             long start,
-            long count)
+            long count,
+            string serverPushEncoding = "")
         {
             this.TaskID = taskID;
             this.Operation = operation;
@@ -251,6 +253,35 @@ namespace DigitalPlatform.Message
             this.MaxResults = maxResults;
             this.Start = start;
             this.Count = count;
+            this.ServerPushEncoding = serverPushEncoding;
+        }
+    }
+
+    public class SearchResponse
+    {
+        public string TaskID { get; set; }    // 本次检索的任务 ID。由于一个 Connection 可以用于同时进行若干检索操作，本参数用于区分不同的检索操作
+        public long ResultCount { get; set; }
+        public long Start { get; set; }    // 本次响应的偏移
+        public string LibraryUID { get; set; }  // 响应者的 UID。这样 Record.RecPath 中就记载短路径即可
+        public IList<Record> Records { get; set; }
+        public string ErrorInfo { get; set; }
+        public string ErrorCode { get; set; }
+
+        public SearchResponse(string taskID,
+            long resultCount,
+            long start,
+            string libraryUID,
+            IList<Record> records,
+            string errorInfo,
+            string errorCode)
+        {
+            this.TaskID = taskID;
+            this.ResultCount = resultCount;
+            this.Start = start;
+            this.LibraryUID = libraryUID;
+            this.Records = records;
+            this.ErrorInfo = errorInfo;
+            this.ErrorCode = errorCode;
         }
     }
 
