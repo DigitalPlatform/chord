@@ -40,7 +40,7 @@ namespace dp2weixin
         // 是否需要选择图书馆
         private bool IsNeedSelectLib = false;
 
-        private string AppId = "";
+        public string AppId = "";
         private string EncodingAESKey = "";
         private string Token = "";
 
@@ -525,13 +525,15 @@ namespace dp2weixin
                 strResult = strBiblioInfo;
             }
             // 发送客服消息
-            this.SendCustomeMessage(strResult);
+            ((dp2CmdService2)this.CmdService).SendCustomerMsg(this.WeixinOpenId, strResult);
+            //this.SendCustomeMessage(strResult);
         }
 
+        /*
         // 消息处理
         public void SendCustomeMessage(string strText)
         {
-            string sec = "61ac93be56e3f7f42d0861bf073427e6 ";
+            string sec = "61ac93be56e3f7f42d0861bf073427e6";
             AccessTokenContainer.Register(this.AppId, sec);
             var accessToken = AccessTokenContainer.GetAccessToken(this.AppId);
 
@@ -546,7 +548,7 @@ namespace dp2weixin
                 CustomApi.SendText(accessToken, this.WeixinOpenId, ex.Message);
             }
         }
-        
+        */
 
         /// <summary>
         /// 绑定
