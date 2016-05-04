@@ -29,9 +29,7 @@ namespace dp2Capo
             // 修改配置
             if (args.Length >= 1 && args[0].Equals("setting"))
             {
-
                 ChangeSettings(args.Length > 1 ? args[1] : "");
-
                 return;
             }
 
@@ -177,10 +175,10 @@ namespace dp2Capo
         {
             Console.WriteLine("(直接回车表示不修改当前值)");
 
+            InitialConfig();
+
             if (string.IsNullOrEmpty(strInstanceIndex) == true)
             {
-                InitialConfig();
-
                 // SetOneParameter("数据目录", (object)Program, "DataDir");
 
                 // Settings.Default.Save();
@@ -188,14 +186,14 @@ namespace dp2Capo
                 string strValue = Console.ReadLine();
                 if (string.IsNullOrEmpty(strValue) == false)
                     DataDir = strValue;
-
-                SaveConfig();
             }
             else
             {
                 int index = Int32.Parse(strInstanceIndex) - 1;
                 ChangeInstanceSettings(index);
             }
+
+            SaveConfig();
 
             Console.WriteLine();
             Console.WriteLine("注：修改将在服务重启以后生效");
