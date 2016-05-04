@@ -22,41 +22,5 @@ namespace dp2MServer.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://*:8083")]
-        public string ServerURI {
-            get {
-                return ((string)(this["ServerURI"]));
-            }
-            set {
-                this["ServerURI"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("/dp2MServer")]
-        public string ServerPath {
-            get {
-                return ((string)(this["ServerPath"]));
-            }
-            set {
-                this["ServerPath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("c:\\mserver_data")]
-        public string DataDir {
-            get {
-                return ((string)(this["DataDir"]));
-            }
-            set {
-                this["DataDir"] = value;
-            }
-        }
     }
 }

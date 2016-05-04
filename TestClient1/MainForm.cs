@@ -128,7 +128,7 @@ namespace TestClient1
                 throw new Exception("尚未指定用户名，无法进行登录");
 
             e.Password = GetPassword();
-            e.Parameters = "";
+            e.Parameters = "propertyList=biblio_search,libraryUID=xxx";
 
             // TODO: 登录如果失败，界面会有提示么?
 #if NO

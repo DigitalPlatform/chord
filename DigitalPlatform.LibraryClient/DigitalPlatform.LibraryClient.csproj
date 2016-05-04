@@ -434,6 +434,12 @@
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.RepairBorrowInfoResponse1.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
+    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse1.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ReturnInfo.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>

@@ -11,6 +11,7 @@ using Microsoft.AspNet.SignalR;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
+using System.Threading;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -1676,18 +1677,12 @@ false);
             result.String = search_info.UID;   // 返回检索请求的 UID
             search_info.SetTargetIDs(connectionIds);
 
-            Clients.Clients(connectionIds).search(// "searchBiblio",
+            Task.Factory.StartNew(() => SendSearch(connectionIds, searchParam));
+
 #if NO
-                search_info.UID,   // 检索请求的 UID
-                operation,
-                dbNameList,
-                queryWord,
-                fromList,
-                matchStyle,
-                formatList,
-                maxResults
-#endif
+            Clients.Clients(connectionIds).search(
                 searchParam);
+#endif
 
             result.Value = 1;   // 表示已经成功发起了检索
             return result;
@@ -1706,6 +1701,12 @@ false);
                 maxResults);
             return info.UID;
 #endif
+        }
+
+        void SendSearch(List<string> connectionIds, SearchRequest searchParam)
+        {
+            Clients.Clients(connectionIds).search(
+    searchParam);
         }
 
         // object _lock = new object();
@@ -1750,57 +1751,37 @@ false);
                         result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。回传检索结果失败";
                         return result;
                     }
-                    string strPostfix = connection_info.LibraryUID;
-                    if (string.IsNullOrEmpty(strPostfix) == true)
-                        strPostfix = connection_info.LibraryName;
 
+                    string strLongPostfix = connection_info.LibraryName + "|" + connection_info.LibraryUID;
+                    string strShortPostfix = "|" + connection_info.LibraryUID;
+
+                    // 第一条记录是长的后缀，其他记录是短的后缀。这样可以节约不少空间
+                    int i = 0;
                     foreach (Record record in records)
                     {
-                        record.RecPath = record.RecPath + "@" + strPostfix;
+                        record.RecPath = record.RecPath + "@"
+                            + (i == 0 ? strLongPostfix : strShortPostfix);
+
+                        // 校验一下 MD5
+                        if (string.IsNullOrEmpty(record.MD5) == false)
+                        {
+                            string strMD5 = StringUtil.GetMd5(record.Data);
+                            if (record.MD5 != strMD5)
+                                throw new Exception("dp2MServer : 记录 '" + record.RecPath + "' Data 的 MD5 校验出现异常");
+                        }
+
+                        i++;
                     }
                 }
 
-                // 让前端获得检索结果
-                try
-                {
-                    Clients.Client(search_info.RequestConnectionID).responseSearch(
-                        taskID,
-                        resultCount,
-                        start,
-                        records,
-                        errorInfo,
-                        errorCode);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("中心向前端分发 responseSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
-                }
-
-                // 判断响应是否为最后一个响应
-                bool bRet = IsComplete(resultCount,
-                    search_info.ReturnStart,
-                    search_info.ReturnCount,
-                    start,
-                    records);
-                if (bRet == true)
-                {
-                    bool bAllComplete = search_info.CompleteTarget(Context.ConnectionId);
-                    if (bAllComplete)
-                    {
-                        // 追加一个消息，表示检索响应已经全部完成
-                        Clients.Client(search_info.RequestConnectionID).responseSearch(
-        taskID,
-        -1,
-        -1,
-        null,
-        "",
-        "");
-                        // 主动清除已经完成的检索对象
-                        ServerInfo.SearchTable.RemoveSearch(taskID);
-                        Console.WriteLine("complete");
-                    }
-                }
-
+                Task.Factory.StartNew(() =>
+                SendResponse(// string taskID,
+    search_info,
+    resultCount,
+    start,
+    records,
+    errorInfo,
+    errorCode));
             }
             catch (Exception ex)
             {
@@ -1809,6 +1790,57 @@ ex.GetType().ToString());
                 Console.WriteLine(result.ErrorInfo);
             }
             return result;
+        }
+
+        void SendResponse(// string taskID,
+            SearchInfo search_info,
+            long resultCount,
+            long start,
+            IList<Record> records,
+            string errorInfo,
+            string errorCode)
+        {
+            // Thread.Sleep(500);
+            // 让前端获得检索结果
+            try
+            {
+                Clients.Client(search_info.RequestConnectionID).responseSearch(
+                    search_info.UID,    // taskID
+                    resultCount,
+                    start,
+                    records,
+                    errorInfo,
+                    errorCode);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("中心向前端分发 responseSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
+
+            // 判断响应是否为最后一个响应
+            bool bRet = IsComplete(resultCount,
+                search_info.ReturnStart,
+                search_info.ReturnCount,
+                start,
+                records);
+            if (bRet == true)
+            {
+                bool bAllComplete = search_info.CompleteTarget(Context.ConnectionId);
+                if (bAllComplete)
+                {
+                    // 追加一个消息，表示检索响应已经全部完成
+                    Clients.Client(search_info.RequestConnectionID).responseSearch(
+    search_info.UID,    // taskID,
+    -1,
+    -1,
+    null,
+    "",
+    "");
+                    // 主动清除已经完成的检索对象
+                    ServerInfo.SearchTable.RemoveSearch(search_info.UID);  // taskID
+                    Console.WriteLine("complete");
+                }
+            }
         }
 
         #endregion

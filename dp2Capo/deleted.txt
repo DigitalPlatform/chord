@@ -1,0 +1,245 @@
+﻿
+
+        // TODO: 本函数最好放在一个工作线程内执行
+        // Form Close 的时候要及时中断工作线程
+        // getPatronInfo getBiblioInfo getBiblioSummary searchBiblio searchPatron
+        void SearchAndResponse(SearchRequest searchParam)
+        {
+            if (searchParam.Operation == "getPatronInfo")
+            {
+                GetPatronInfo(searchParam);
+                return;
+            }
+
+            if (searchParam.Operation == "getBiblioInfo")
+            {
+                GetBiblioInfo(searchParam);
+                return;
+            }
+
+            if (searchParam.Operation == "getBiblioSummary")
+            {
+                GetBiblioSummary(searchParam);
+                return;
+            }
+
+            if (searchParam.Operation == "getItemInfo")
+            {
+                GetItemInfo(searchParam);
+                return;
+            }
+
+            if (searchParam.Operation == "getBrowseRecords")
+            {
+                GetBrowseRecords(searchParam);
+                return;
+            }
+
+            string strError = "";
+            string strErrorCode = "";
+            IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
+            long batch_size = 5;
+
+            string strResultSetName = searchParam.ResultSetName;
+            if (string.IsNullOrEmpty(strResultSetName) == true)
+                strResultSetName = "default";
+            else
+                strResultSetName = "#" + strResultSetName;  // 如果请求方指定了结果集名，则在 dp2library 中处理为全局结果集名
+
+            LibraryChannel channel = GetChannel();
+            try
+            {
+                string strQueryXml = "";
+                long lRet = 0;
+
+                if (searchParam.QueryWord == "!getResult")
+                {
+                    lRet = -1;
+                }
+                else
+                {
+                    if (searchParam.Operation == "searchBiblio")
+                    {
+                        lRet = channel.SearchBiblio(// null,
+                             searchParam.DbNameList,
+                             searchParam.QueryWord,
+                             (int)searchParam.MaxResults,
+                             searchParam.UseList,
+                             searchParam.MatchStyle,
+                             "zh",
+                             strResultSetName,
+                             "", // strSearchStyle
+                             "", // strOutputStyle
+                             out strQueryXml,
+                             out strError);
+                    }
+                    else if (searchParam.Operation == "searchPatron")
+                    {
+                        lRet = channel.SearchReader(// null,
+                            searchParam.DbNameList,
+                            searchParam.QueryWord,
+                            (int)searchParam.MaxResults,
+                            searchParam.UseList,
+                            searchParam.MatchStyle,
+                            "zh",
+                            strResultSetName,
+                            "",
+                            out strError);
+                    }
+                    else
+                    {
+                        lRet = -1;
+                        strError = "无法识别的 Operation 值 '" + searchParam.Operation + "'";
+                    }
+
+                    strErrorCode = channel.ErrorCode.ToString();
+
+                    if (lRet == -1 || lRet == 0)
+                    {
+                        if (lRet == 0
+                            || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                        {
+                            // 没有命中
+                            ResponseSearch(
+    searchParam.TaskID,
+    0,
+    0,
+    records,
+    strError,  // 出错信息大概为 not found。
+    strErrorCode);
+                            return;
+                        }
+                        goto ERROR1;
+                    }
+                }
+
+
+                {
+                    long lHitCount = lRet;
+
+                    if (searchParam.Count == 0)
+                    {
+                        // 返回命中数
+                        ResponseSearch(
+                            searchParam.TaskID,
+                            lHitCount,
+0,
+records,
+"本次没有返回任何记录",
+strErrorCode);
+                        return;
+                    }
+
+                    long lStart = searchParam.Start;
+                    long lPerCount = searchParam.Count; // 本次拟返回的个数
+
+                    if (lHitCount != -1)
+                    {
+                        if (lPerCount == -1)
+                            lPerCount = lHitCount - lStart;
+                        else
+                            lPerCount = Math.Min(lPerCount, lHitCount - lStart);
+
+                        if (lPerCount <= 0)
+                        {
+                            strError = "命中结果总数为 " + lHitCount + "，取结果开始位置为 " + lStart + "，它已超出结果集范围";
+                            goto ERROR1;
+                        }
+                    }
+
+                    DigitalPlatform.LibraryClient.localhost.Record[] searchresults = null;
+
+                    // 装入浏览格式
+                    for (; ; )
+                    {
+                        string strBrowseStyle = searchParam.FormatList; // "id,xml";
+
+                        lRet = channel.GetSearchResult(
+                            // null,
+            strResultSetName,
+            lStart,
+            lPerCount,
+            strBrowseStyle,
+            "zh", // this.Lang,
+            out searchresults,
+            out strError);
+                        strErrorCode = channel.ErrorCode.ToString();
+                        if (lRet == -1)
+                            goto ERROR1;
+
+                        if (searchresults.Length == 0)
+                        {
+                            strError = "GetSearchResult() searchResult empty";
+                            goto ERROR1;
+                        }
+
+                        if (lHitCount == -1)
+                            lHitCount = lRet;   // 延迟得到命中总数
+
+                        records.Clear();
+                        foreach (DigitalPlatform.LibraryClient.localhost.Record record in searchresults)
+                        {
+#if NO
+                            DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
+                            biblio.RecPath = record.Path;
+                            biblio.Data = record.RecordBody.Xml;
+                            records.Add(biblio);
+#endif
+                            DigitalPlatform.Message.Record biblio = FillBiblio(record);
+                            records.Add(biblio);
+                        }
+
+#if NO
+                        ResponseSearch(
+                            searchParam.TaskID,
+                            lHitCount,
+                            lStart,
+                            records,
+                            "",
+                            strErrorCode);
+#endif
+                        bool bRet = TryResponseSearch(
+        searchParam.TaskID,
+        lHitCount,
+        lStart,
+        records,
+        "",
+        strErrorCode,
+        ref batch_size);
+                        Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                        if (bRet == false)
+                            return;
+
+                        lStart += searchresults.Length;
+
+                        if (lPerCount != -1)
+                            lPerCount -= searchresults.Length;
+
+                        if (lStart >= lHitCount || (lPerCount <= 0 && lPerCount != -1))
+                            break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AddErrorLine("SearchAndResponse() 出现异常: " + ex.Message);
+                strError = ex.Message;
+                goto ERROR1;
+            }
+            finally
+            {
+                this._channelPool.ReturnChannel(channel);
+            }
+
+            this.AddInfoLine("search and response end");
+            return;
+        ERROR1:
+            // 报错
+            ResponseSearch(
+searchParam.TaskID,
+-1,
+0,
+records,
+strError,
+strErrorCode);
+        }

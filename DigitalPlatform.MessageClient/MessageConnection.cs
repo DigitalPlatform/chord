@@ -11,6 +11,7 @@ using System.Net;
 using Microsoft.AspNet.SignalR.Client;
 
 using DigitalPlatform.Message;
+using DigitalPlatform.Text;
 
 namespace DigitalPlatform.MessageClient
 {
@@ -595,6 +596,20 @@ request).Result;
                             {
                                 if (taskID != request.TaskID)
                                     return;
+
+                                if (records != null)
+                                {
+                                    foreach (Record record in records)
+                                    {
+                                        // 校验一下 MD5
+                                        if (string.IsNullOrEmpty(record.MD5) == false)
+                                        {
+                                            string strMD5 = StringUtil.GetMd5(record.Data);
+                                            if (record.MD5 != strMD5)
+                                                throw new Exception("testclient1 : 记录 '" + record.RecPath + "' Data 的 MD5 校验出现异常");
+                                        }
+                                    }
+                                }
 
                                 // start_time = DateTime.Now;  // 重新计算超时
 
@@ -1666,7 +1681,7 @@ circulation_result);
             {
                 try
                 {
-                    Wait(new TimeSpan(0, 0, 0, 0, 50));
+                    Wait(new TimeSpan(0, 0, 0, 0, 50)); // 50
 
                     MessageResult result = ResponseSearchAsync(
                         taskID,

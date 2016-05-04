@@ -3154,6 +3154,7 @@ out strError);
         /// <param name="stop"></param>
         /// <param name="strParameters">参数字符串。内容为 tel=?????,barcode=?????,name=????? 或 email=?????,barcode=??????,name=?????? 或 librarycode=????</param>
         /// <param name="strMessageTemplate">消息文字模板。其中可以使用 %name% %barcode% %temppassword% %expiretime% %period% 等宏</param>
+        /// <param name="strMessage">返回拟发送给读者的消息</param>
         /// <param name="strError">返回出错信息</param>
         /// <returns>
         /// <para>-1:   出错</para>
@@ -3164,15 +3165,18 @@ out strError);
             // DigitalPlatform.Stop stop,
             string strParameters,
             string strMessageTemplate,
+            out string strMessage,
             out string strError)
         {
             strError = "";
+            strMessage = "";
 
         REDO:
             try
             {
                 LibraryServerResult result = this.ws.ResetPassword(                    strParameters,
-                    strMessageTemplate);
+                    strMessageTemplate,
+                    out strMessage);
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)

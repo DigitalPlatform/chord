@@ -3579,10 +3579,11 @@ namespace DigitalPlatform.LibraryClient.localhost {
         System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.GetClockResponse> GetClockAsync(DigitalPlatform.LibraryClient.localhost.GetClockRequest request);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/rest/dp2libraryREST/ResetPassword", ReplyAction="http://dp2003.com/dp2library/rest/dp2libraryREST/ResetPasswordResponse")]
-        DigitalPlatform.LibraryClient.localhost.LibraryServerResult ResetPassword(string strParameters, string strMessageTemplate);
+        DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse ResetPassword(DigitalPlatform.LibraryClient.localhost.ResetPasswordRequest request);
         
+        // CODEGEN: 正在生成消息协定，应为该操作具有多个返回值。
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/rest/dp2libraryREST/ResetPassword", ReplyAction="http://dp2003.com/dp2library/rest/dp2libraryREST/ResetPasswordResponse")]
-        System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.LibraryServerResult> ResetPasswordAsync(string strParameters, string strMessageTemplate);
+        System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse> ResetPasswordAsync(DigitalPlatform.LibraryClient.localhost.ResetPasswordRequest request);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/rest/dp2libraryREST/GetValueTable", ReplyAction="http://dp2003.com/dp2library/rest/dp2libraryREST/GetValueTableResponse")]
         DigitalPlatform.LibraryClient.localhost.GetValueTableResponse GetValueTable(DigitalPlatform.LibraryClient.localhost.GetValueTableRequest request);
@@ -6128,6 +6129,46 @@ namespace DigitalPlatform.LibraryClient.localhost {
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="ResetPassword", WrapperNamespace="http://dp2003.com/dp2library/rest", IsWrapped=true)]
+    public partial class ResetPasswordRequest {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=0)]
+        public string strParameters;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=1)]
+        public string strMessageTemplate;
+        
+        public ResetPasswordRequest() {
+        }
+        
+        public ResetPasswordRequest(string strParameters, string strMessageTemplate) {
+            this.strParameters = strParameters;
+            this.strMessageTemplate = strMessageTemplate;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="ResetPasswordResponse", WrapperNamespace="http://dp2003.com/dp2library/rest", IsWrapped=true)]
+    public partial class ResetPasswordResponse {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=0)]
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult ResetPasswordResult;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=1)]
+        public string strMessage;
+        
+        public ResetPasswordResponse() {
+        }
+        
+        public ResetPasswordResponse(DigitalPlatform.LibraryClient.localhost.LibraryServerResult ResetPasswordResult, string strMessage) {
+            this.ResetPasswordResult = ResetPasswordResult;
+            this.strMessage = strMessage;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetValueTable", WrapperNamespace="http://dp2003.com/dp2library/rest", IsWrapped=true)]
     public partial class GetValueTableRequest {
         
@@ -8636,12 +8677,22 @@ namespace DigitalPlatform.LibraryClient.localhost {
             return base.Channel.GetClockAsync(request);
         }
         
-        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult ResetPassword(string strParameters, string strMessageTemplate) {
-            return base.Channel.ResetPassword(strParameters, strMessageTemplate);
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse DigitalPlatform.LibraryClient.localhost.dp2libraryREST.ResetPassword(DigitalPlatform.LibraryClient.localhost.ResetPasswordRequest request) {
+            return base.Channel.ResetPassword(request);
         }
         
-        public System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.LibraryServerResult> ResetPasswordAsync(string strParameters, string strMessageTemplate) {
-            return base.Channel.ResetPasswordAsync(strParameters, strMessageTemplate);
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult ResetPassword(string strParameters, string strMessageTemplate, out string strMessage) {
+            DigitalPlatform.LibraryClient.localhost.ResetPasswordRequest inValue = new DigitalPlatform.LibraryClient.localhost.ResetPasswordRequest();
+            inValue.strParameters = strParameters;
+            inValue.strMessageTemplate = strMessageTemplate;
+            DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse retVal = ((DigitalPlatform.LibraryClient.localhost.dp2libraryREST)(this)).ResetPassword(inValue);
+            strMessage = retVal.strMessage;
+            return retVal.ResetPasswordResult;
+        }
+        
+        public System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse> ResetPasswordAsync(DigitalPlatform.LibraryClient.localhost.ResetPasswordRequest request) {
+            return base.Channel.ResetPasswordAsync(request);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
@@ -9713,10 +9764,11 @@ namespace DigitalPlatform.LibraryClient.localhost {
         System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.GetClockResponse1> GetClockAsync(DigitalPlatform.LibraryClient.localhost.GetClockRequest1 request);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/dp2library/ResetPassword", ReplyAction="http://dp2003.com/dp2library/dp2library/ResetPasswordResponse")]
-        DigitalPlatform.LibraryClient.localhost.LibraryServerResult ResetPassword(string strParameters, string strMessageTemplate);
+        DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse1 ResetPassword(DigitalPlatform.LibraryClient.localhost.ResetPasswordRequest1 request);
         
+        // CODEGEN: 正在生成消息协定，应为该操作具有多个返回值。
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/dp2library/ResetPassword", ReplyAction="http://dp2003.com/dp2library/dp2library/ResetPasswordResponse")]
-        System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.LibraryServerResult> ResetPasswordAsync(string strParameters, string strMessageTemplate);
+        System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse1> ResetPasswordAsync(DigitalPlatform.LibraryClient.localhost.ResetPasswordRequest1 request);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/dp2library/GetValueTable", ReplyAction="http://dp2003.com/dp2library/dp2library/GetValueTableResponse")]
         DigitalPlatform.LibraryClient.localhost.GetValueTableResponse1 GetValueTable(DigitalPlatform.LibraryClient.localhost.GetValueTableRequest1 request);
@@ -12256,6 +12308,46 @@ namespace DigitalPlatform.LibraryClient.localhost {
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="ResetPassword", WrapperNamespace="http://dp2003.com/dp2library/", IsWrapped=true)]
+    public partial class ResetPasswordRequest1 {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=0)]
+        public string strParameters;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=1)]
+        public string strMessageTemplate;
+        
+        public ResetPasswordRequest1() {
+        }
+        
+        public ResetPasswordRequest1(string strParameters, string strMessageTemplate) {
+            this.strParameters = strParameters;
+            this.strMessageTemplate = strMessageTemplate;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="ResetPasswordResponse", WrapperNamespace="http://dp2003.com/dp2library/", IsWrapped=true)]
+    public partial class ResetPasswordResponse1 {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=0)]
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult ResetPasswordResult;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=1)]
+        public string strMessage;
+        
+        public ResetPasswordResponse1() {
+        }
+        
+        public ResetPasswordResponse1(DigitalPlatform.LibraryClient.localhost.LibraryServerResult ResetPasswordResult, string strMessage) {
+            this.ResetPasswordResult = ResetPasswordResult;
+            this.strMessage = strMessage;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetValueTable", WrapperNamespace="http://dp2003.com/dp2library/", IsWrapped=true)]
     public partial class GetValueTableRequest1 {
         
@@ -14764,12 +14856,22 @@ namespace DigitalPlatform.LibraryClient.localhost {
             return base.Channel.GetClockAsync(request);
         }
         
-        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult ResetPassword(string strParameters, string strMessageTemplate) {
-            return base.Channel.ResetPassword(strParameters, strMessageTemplate);
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse1 DigitalPlatform.LibraryClient.localhost.dp2library.ResetPassword(DigitalPlatform.LibraryClient.localhost.ResetPasswordRequest1 request) {
+            return base.Channel.ResetPassword(request);
         }
         
-        public System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.LibraryServerResult> ResetPasswordAsync(string strParameters, string strMessageTemplate) {
-            return base.Channel.ResetPasswordAsync(strParameters, strMessageTemplate);
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult ResetPassword(string strParameters, string strMessageTemplate, out string strMessage) {
+            DigitalPlatform.LibraryClient.localhost.ResetPasswordRequest1 inValue = new DigitalPlatform.LibraryClient.localhost.ResetPasswordRequest1();
+            inValue.strParameters = strParameters;
+            inValue.strMessageTemplate = strMessageTemplate;
+            DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse1 retVal = ((DigitalPlatform.LibraryClient.localhost.dp2library)(this)).ResetPassword(inValue);
+            strMessage = retVal.strMessage;
+            return retVal.ResetPasswordResult;
+        }
+        
+        public System.Threading.Tasks.Task<DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse1> ResetPasswordAsync(DigitalPlatform.LibraryClient.localhost.ResetPasswordRequest1 request) {
+            return base.Channel.ResetPasswordAsync(request);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]

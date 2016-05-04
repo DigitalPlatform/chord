@@ -210,6 +210,8 @@ namespace DigitalPlatform.Message
         public string Format { get; set; }
         public string Data { get; set; }
         public string Timestamp { get; set; }
+
+        public string MD5 { get; set; } // Data 的 MD5 hash
     }
 
     public class SearchRequest

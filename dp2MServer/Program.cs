@@ -19,6 +19,9 @@ using dp2MServer.Properties;
 
 using DigitalPlatform.MessageServer;
 using DigitalPlatform.ServiceProcess;
+using System.Configuration;
+using System.IO;
+using DigitalPlatform.Xml;
 
 namespace dp2MServer
 {
@@ -65,6 +68,28 @@ namespace dp2MServer
             // 修改配置
             if (args.Length == 1 && args[0].Equals("setting"))
             {
+
+                InitialConfig();
+                // config.AppSettings.Settings.Add(newKey, newValue);
+
+                Console.WriteLine("(直接回车表示不修改当前值)");
+                Console.WriteLine("请输入服务器 URI: (当前值为 " + ServerURI + ")");
+                string strValue = Console.ReadLine();
+                if (string.IsNullOrEmpty(strValue) == false)
+                    ServerURI = strValue;
+
+                Console.WriteLine("请输入服务器路径: (当前值为 " + ServerPath + ")");
+                strValue = Console.ReadLine();
+                if (string.IsNullOrEmpty(strValue) == false)
+                    ServerPath = strValue;
+
+                Console.WriteLine("请输入数据目录: (当前值为 " + DataDir + ")");
+                strValue = Console.ReadLine();
+                if (string.IsNullOrEmpty(strValue) == false)
+                    DataDir = strValue;
+
+                SaveConfig();
+#if NO
                 Console.WriteLine("(直接回车表示不修改当前值)");
                 Console.WriteLine("请输入服务器 URI: (当前值为 " + Settings.Default.ServerURI + ")");
                 string strValue = Console.ReadLine();
@@ -82,6 +107,7 @@ namespace dp2MServer
                     Settings.Default.DataDir = strValue;
 
                 Settings.Default.Save();
+#endif
 
                 Console.WriteLine();
                 Console.WriteLine("注：修改将在服务重启以后生效");
@@ -205,7 +231,11 @@ namespace dp2MServer
         {
             try
             {
-                ServerInfo.Initial(Settings.Default.DataDir);
+                InitialConfig();
+                Program.WriteWindowsLog("dump config: " + Config.Dump(), EventLogEntryType.Information);
+
+                ServerInfo.Initial(DataDir);
+
                 return true;
             }
             catch (Exception ex)
@@ -331,15 +361,41 @@ namespace dp2MServer
             base.Dispose(disposing);
         }
 
-        static string ServerURI
+        static string DataDir
         {
             get
             {
+#if NO
                 string strServerURI = Settings.Default.ServerURI;
                 if (string.IsNullOrEmpty(strServerURI) == true)
                     strServerURI = "http://*:8083";
 
                 return strServerURI;
+#endif
+                return Config.Get("default", "data_dir", "c:\\mserver_data");
+            }
+            set
+            {
+                Config.Set("default", "data_dir", value);
+            }
+        }
+
+        static string ServerURI
+        {
+            get
+            {
+#if NO
+                string strServerURI = Settings.Default.ServerURI;
+                if (string.IsNullOrEmpty(strServerURI) == true)
+                    strServerURI = "http://*:8083";
+
+                return strServerURI;
+#endif
+                return Config.Get("default", "server_uri", "http://*:8083");
+            }
+            set
+            {
+                Config.Set("default", "server_uri", value);
             }
         }
 
@@ -347,10 +403,17 @@ namespace dp2MServer
         {
             get
             {
+#if NO
                 string strServerPath = Settings.Default.ServerPath;
                 if (string.IsNullOrEmpty(strServerPath) == true)
                     strServerPath = "/dp2MServer";
                 return strServerPath;
+#endif
+                return Config.Get("default", "server_path", "/dp2MServer");
+            }
+            set
+            {
+                Config.Get("default", "server_path", value);
             }
         }
 
@@ -406,4 +469,6 @@ InvalidOperationException : "Connection started reconnecting before invocation r
             GlobalHost.Configuration.MaxIncomingWebSocketMessageSize = 128 * 1024;  // 默认为 64K
         }
     }
+
+
 }
