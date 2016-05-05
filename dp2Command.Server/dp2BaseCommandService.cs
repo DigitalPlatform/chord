@@ -59,12 +59,13 @@ namespace dp2Command.Service
 
         #region 根据微信id从远程库中查找对应读者
 
-        public virtual long SearchPatronByWeiXinId(string strWeiXinId,
+        public virtual long SearchOnePatronByWeiXinId(string strWeiXinId,
             out string strBarcode,
             out string strError)
         {
             strError = "未实现";
             strBarcode = "";
+
 
             return -1;
         }

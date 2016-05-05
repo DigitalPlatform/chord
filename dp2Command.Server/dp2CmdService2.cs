@@ -47,6 +47,7 @@ namespace dp2Command.Service
         //===========
 
 
+
         // dp2服务器地址与代理账号
         public string dp2MServerUrl = "";
         public string userName = "";
@@ -89,12 +90,38 @@ namespace dp2Command.Service
 
         }
 
+        #region 本方账号登录
+        void _channels_Login(object sender, LoginEventArgs e)
+        {
+            MessageConnection connection = sender as MessageConnection;
+
+            e.UserName = GetUserName();
+            if (string.IsNullOrEmpty(e.UserName) == true)
+                throw new Exception("尚未指定用户名，无法进行登录");
+
+            e.Password = GetPassword();
+            e.Parameters = "";
+
+            // TODO: 登录如果失败，界面会有提示么?
+        }
+
+        string GetUserName()
+        {
+            return this.userName;
+        }
+        string GetPassword()
+        {
+            return this.password;
+        }
+
+        #endregion
+
+        #region 消息处理
         public async void DoLoadMessage()
         {
             string strGroupName = "_patronNotify";//"<default>";
 
             string strError = "";
-            string openId = "o4xvUviTxj2HbRqbQb9W2nMl4fGg";
             var accessToken = AccessTokenContainer.GetAccessToken(this.AppID);
 
             CancellationToken cancel_token = new CancellationToken();
@@ -208,19 +235,7 @@ namespace dp2Command.Service
         }
 
 
-        void _channels_Login(object sender, LoginEventArgs e)
-        {
-            MessageConnection connection = sender as MessageConnection;
 
-            e.UserName = GetUserName();
-            if (string.IsNullOrEmpty(e.UserName) == true)
-                throw new Exception("尚未指定用户名，无法进行登录");
-
-            e.Password = GetPassword();
-            e.Parameters = "";
-
-            // TODO: 登录如果失败，界面会有提示么?
-        }
 
         void _channels_AddMessage(object sender, AddMessageEventArgs e)
         {
@@ -232,28 +247,20 @@ namespace dp2Command.Service
             }
         }
 
-        public class CaoQiTemplateData
-        {
-            public TemplateDataItem first { get; set; }
-            public TemplateDataItem keyword1 { get; set; }
-            public TemplateDataItem keyword2 { get; set; }
-            public TemplateDataItem keyword3 { get; set; }
-            public TemplateDataItem remark { get; set; }
-
-        }
-
-        string GetUserName()
-        {
-            return this.userName;
-        }
-        string GetPassword()
-        {
-            return this.password;
-        }
-
-
+        #endregion
 
         #region 绑定解绑
+
+        public List<WxUserItem> GetBindInfo(string weixinId)
+        {
+            List<WxUserItem> list = new List<WxUserItem>();
+
+            // 目前只支持从数据库中查找
+            list= WxUserDatabase.Current.GetByWeixinId(weixinId);
+
+
+            return list;
+        }
 
 
         /// <summary>
@@ -439,7 +446,7 @@ namespace dp2Command.Service
             return -1;
         }
 
-        public override long SearchPatronByWeiXinId(string strWeiXinId,
+        public override long SearchOnePatronByWeiXinId(string strWeiXinId,
             out string strBarcode,
             out string strError)
         {
@@ -496,7 +503,6 @@ namespace dp2Command.Service
                     return 0;
 
                 // 找到对应的读者记录
-                string fristBarcode = "";
                 if (result.ResultCount > 0)
                 {
                     for (int i = 0; i < result.ResultCount; i++)
@@ -1339,6 +1345,16 @@ cancel_token);
         ERROR1:
             return -1;
         }
+
+    }
+
+    public class CaoQiTemplateData
+    {
+        public TemplateDataItem first { get; set; }
+        public TemplateDataItem keyword1 { get; set; }
+        public TemplateDataItem keyword2 { get; set; }
+        public TemplateDataItem keyword3 { get; set; }
+        public TemplateDataItem remark { get; set; }
 
     }
 }

@@ -81,6 +81,8 @@
     <Compile Include="dp2MessageHandler\dp2MessageHandler.cs" />
     <Compile Include="dp2MessageHandler\dp2MessageHandler_Events.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WeiXinConst.cs" />
+    <Compile Include="WeixinService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

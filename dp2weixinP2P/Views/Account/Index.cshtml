@@ -1,0 +1,232 @@
+﻿@model List<dp2Command.Service.WxUserItem>
+@{
+    ViewBag.Title = "绑定管理";
+}
+
+@section Scripts {
+    <script>
+
+        var model = {
+            wxUsers: ko.observableArray(),
+            editor: {
+                lib: ko.observable(""),
+                from: ko.observable(""),
+                userName: ko.observable(""),
+                password: ko.observable("")
+            },
+            displayList: ko.observable(true)
+        }
+
+
+        //用于所有微信用户
+        function getBindList(weixinId) {
+            //显示等待图层
+            var index = loadLayer();
+
+            // 先删除可观察数组中的已有数据
+            model.wxUsers.removeAll();
+
+            // 调web api
+            var url = "/api/wxuser?weixinId=" + weixinId;
+            sendAjaxRequest(url, "GET", function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    model.wxUsers.push(data[i]);
+                }
+
+                // 关闭等待层
+                layer.close(index);
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        // 删除一项
+        function removeUser(item) {
+            //alert("remove-"+item.libId);
+            var url = "/api/wxuser/" + item.id;
+            sendAjaxRequest(url, "DELETE", function () {
+                //getAllLib();
+                for (var i = 0; i < model.wxUsers().length; i++) {
+                    if (model.wxUsers()[i].id == item.id) {
+                        model.wxUsers.remove(model.wxUsers()[i]);
+                        break;
+                    }
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+        }
+
+        // 设为默认
+        function activeUser(item) {
+            //alert("remove-"+item.libId);
+            var url = "/api/wxuser?weixinId=" + item.id+"&id=" + item.id;
+            sendAjaxRequest(url, "PUT", function () {
+                this.getBindList();
+
+            }, function (xhq, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+        }
+
+
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 获取所有的操作命令
+            var weixinId = $("#weixinId").text();
+            //alert(weixinId);
+
+            getBindList(weixinId);
+            ko.applyBindings(model);
+        })
+
+
+        // 新增一项
+        function bind() {
+
+            var libCode = model.editor.lib().trim();
+            if (libCode == "") {
+                alert("尚未输入图书馆代码!");
+                return;
+            }
+            var from = model.editor.from().trim();
+            if (from == "") {
+                alert("尚未输入绑定途径!");
+                return;
+            }
+            var userName = model.editor.userName().trim();
+            if (userName == "") {
+                alert("尚未输入用户名!");
+                return;
+            }
+
+            var password = model.editor.password().trim();
+            if (password == "") {
+                alert("尚未输入密码!");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/wxuser";
+            sendAjaxRequest(url, "POST",
+                function (newItem) {
+                    alert(newItem);
+                    model.wxUsers.push(newItem);
+                    model.displayList(true);
+
+                    //清空编辑界面信息
+                    model.editor.lib("");
+                    model.editor.from("");
+                    model.editor.userName("");
+                    model.editor.password("");
+
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    libCode:libCode,
+                    inputLib: libCode,
+                    inputFrom: from,
+                    inputWord: userName,
+                    inputPassword: password
+                }
+            );
+        }
+
+        // 点击新增图书馆按钮
+        function handleCreateClick() {
+            model.displayList(false);
+        }
+
+        // 在新增图书馆，点击取消
+        function handleCancelClick() {
+            model.displayList(true);
+        }
+
+    </script>
+}
+<span id="weixinId">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<div class="col-md-12" data-bind="if: model.displayList">
+    <h3>您已绑定了下列图书馆</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr><th>馆代码</th><th>馆账号</th><th>证条码号</th><th>姓名</th><th>refID</th><th>创建时间</th><th>更新时间</th><th>操作</th></tr>
+        </thead>
+        <tbody data-bind="foreach:model.wxUsers">
+            <tr data-bind="style: {'background-color': isActive==1 ? 'darkgreen' : 'white ' }">
+                <td data-bind="text:libCode"></td>
+                <td data-bind="text:libUserName"></td>
+                <td data-bind="text:readerBarcode"></td>
+                <td data-bind="text:readerName"></td>
+                <td data-bind="text:refID"></td>
+                <td data-bind="text:createTime"></td>
+                <td data-bind="text:updateTime"></td>
+                <td>
+                    <button class="btn btn-xs btn-default" data-bind="click: removeUser">X</button>
+                    <button class="btn btn-xs btn-default" data-bind="click: activeUser">设为默认</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button class="btn btn-default btn-lg" data-bind="click: handleCreateClick">
+        新增绑定
+    </button>
+</div>
+
+
+<div class="col-md-12" data-bind="ifnot: model.displayList">
+    <center><h3>绑定读者</h3></center>
+    <br />
+    <div class="form-horizontal">
+        <div class="form-group form-group-lg">
+            <label class="col-sm-2 control-label" style="color:gray">馆代码</label>
+            <div class="col-sm-10">
+                <input class="form-control" placeholder="图书馆代码" data-bind="value:model.editor.lib">
+            </div>
+        </div>
+        <div class="form-group form-group-lg">
+            <label class="col-sm-2 control-label" style="color:gray">绑定途径</label>
+            <div class="col-sm-10">
+                <input class="form-control" placeholder="绑定途径" data-bind="value:model.editor.from">
+            </div>
+        </div>
+        <div class="form-group form-group-lg">
+            <label class="col-sm-2 control-label" style="color:gray">用户名</label>
+            <div class="col-sm-10">
+                <input class="form-control" placeholder="用户名" data-bind="value:model.editor.userName">
+            </div>
+        </div>
+        <div class="form-group form-group-lg">
+            <label class="col-sm-2 control-label" style="color:gray">密码</label>
+            <div class="col-sm-10">
+                <textarea class="form-control" placeholder="密码" data-bind="value:model.editor.password"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button class="btn btn-default btn-lg" data-bind="click: bind">绑定</button>
+                &nbsp;&nbsp;
+                <button class="btn btn-default btn-lg" data-bind="click: handleCancelClick">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+

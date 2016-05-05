@@ -20,7 +20,7 @@ using Senparc.Weixin.MP.Entities.Menu;
 
 namespace Senparc.Weixin.MP.Sample.Controllers
 {
-    public class MenuController : BaseController
+    public class MenuController : Controller
     {
         //
         // GET: /Menu/
@@ -51,7 +51,7 @@ namespace Senparc.Weixin.MP.Sample.Controllers
                 //{
                 //    AccessTokenContainer.Register(appId, appSecret);
                 //}
-                var result = CommonAPIs.CommonApi.GetToken(appId, appSecret);//AccessTokenContainer.GetTokenResult(appId);
+                var result = Senparc.Weixin.MP.CommonAPIs.CommonApi.GetToken(appId, appSecret);//AccessTokenContainer.GetTokenResult(appId);
 
                 //也可以直接一步到位：
                 //var result = AccessTokenContainer.TryGetAccessToken(appId, appSecret);
