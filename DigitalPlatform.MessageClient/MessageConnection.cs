@@ -565,6 +565,16 @@ request).Result;
         #endregion
 
         #region Search() API
+
+        static void AddLibraryUID(IList<Record> records, string libraryUID)
+        {
+            if (records == null)
+                return;
+            foreach(Record record in records)
+            {
+                record.RecPath += "@" + libraryUID;
+            }
+        }
         // 
         // 当 server 发来检索请求的时候被调用。重载的时候要进行检索，并调用 Response 把检索结果发送给 server
         public virtual void OnSearchRecieved(SearchRequest param)
@@ -642,6 +652,9 @@ request).Result;
                                 }
 
                                 // TODO: 似乎应该关注 start 位置
+                                if (responseParam.Records != null)
+                                    AddLibraryUID(responseParam.Records, responseParam.LibraryUID);
+
                                 result.Records.AddRange(responseParam.Records);
                                 if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
                                     && errors.IndexOf(responseParam.ErrorInfo) == -1)
