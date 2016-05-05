@@ -3,13 +3,12 @@
 }
 
 @section Scripts {
-
     <script>
         var model = {
             wxUsers: ko.observableArray()
         }
 
-        //用于获取图书馆
+        //用于所有微信用户
         function getAllUsers() {
             //显示等待图层
             var index = loadLayer();
@@ -66,40 +65,7 @@
             ko.applyBindings(model);
         })
 
-        // 显示等待图层
-        function loadLayer() {
-            return layer.open({
-                type: 2,
-                shadeClose: false
-            });
-        }
-
-        // 得到虚拟目录路径
-        function getRootPath() {
-            var pathName = window.location.pathname.substring(1);
-            var webName = pathName == '' ? '' : pathName.substring(0, pathName.indexOf('/'));
-            var rootPath = window.location.protocol + '//' + window.location.host;//+ '/' + webName;
-            return rootPath;
-        }
-
-        // ajax请求
-        function sendAjaxRequest(url, httpMethod, successCallback, errorCallback, mydata, myasync) {
-
-            var apiFullPath = getRootPath() + url;
-            //alert(rootPath +url);
-            $.ajax(apiFullPath, {
-                type: httpMethod,
-                success: successCallback,
-                error: errorCallback,
-                data: mydata,
-                async: myasync
-            });
-        }
-
-
-
     </script>
-
 }
 
 
@@ -109,8 +75,7 @@
         <thead>
             <tr><th>active</th><th>微信id</th><th>馆代码</th><th>馆账号</th><th>证条码号</th><th>姓名</th><th>refID</th><th>创建时间</th><th>更新时间</th><th>操作</th></tr>
         </thead>
-        <tbody data-bind="foreach:model.wxUsers">
-        
+        <tbody data-bind="foreach:model.wxUsers">        
             <tr data-bind="style: {'background-color': isActive==1 ? 'darkgreen' : 'white ' }">
 
                 <td data-bind="text:isActive"></td>

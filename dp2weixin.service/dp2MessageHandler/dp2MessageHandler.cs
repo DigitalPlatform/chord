@@ -867,7 +867,7 @@ namespace dp2weixin
             {
                 // 根据openid检索绑定的读者
                 string strBarcode = "";
-                long lRet = this.CmdService.SearchPatronByWeiXinId(this.CurrentMessageContext.UserName,
+                long lRet = this.CmdService.SearchOnePatronByWeiXinId(this.CurrentMessageContext.UserName,
                     out strBarcode,
                     out strError);
                 if (lRet == -1)

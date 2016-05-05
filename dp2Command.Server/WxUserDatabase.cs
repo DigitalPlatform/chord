@@ -232,6 +232,9 @@ namespace dp2Command.Service
         /// <param name="item"></param>
         public void Delete(String id)
         {
+            if (string.IsNullOrEmpty(id) == true)
+                return;
+
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
 
             var filter = Builders<WxUserItem>.Filter.Eq("id", id);
@@ -241,17 +244,22 @@ namespace dp2Command.Service
 
         public void SetActive(WxUserItem item)
         {
+            this.SetActive(item.weixinId, item.id);
+        }
+
+        public void SetActive(string weixinId,string id)
+        {
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
 
             // 先将该微信用户的所有绑定读者都设为非活动
-            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", item.weixinId);
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId);
             var update = Builders<WxUserItem>.Update
                 .Set("isActive", 0)
                 .Set("updateTime", DateTimeUtil.DateTimeToString(DateTime.Now));
             UpdateResult ret = collection.UpdateMany(filter, update);
 
             // 再将参数传入的记录设为活动状态
-            filter = Builders<WxUserItem>.Filter.Eq("id", item.id);
+            filter = Builders<WxUserItem>.Filter.Eq("id",id);
             update = Builders<WxUserItem>.Update
                 .Set("isActive", 1)
                 .Set("updateTime", DateTimeUtil.DateTimeToString(DateTime.Now));
@@ -301,6 +309,11 @@ namespace dp2Command.Service
 
         public int isActive = 0;
 
+
+        public string inputLib="";
+        public string inputFrom = "";
+        public string inputWord = "";
+        public string inputPassword = "";
     }
 
 

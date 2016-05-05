@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace dp2weixin.service
 {
-    public class WeixinService
+    public class WeiXinConst
     {
-
+        public const string C_Session_CurPatronInfo = "curPatronInfo";
+        public const string C_Session_WeiXinId = "weiXinId";
     }
 }

@@ -507,7 +507,7 @@ namespace dp2ConsoleToWeiXin
             {
                 // 根据openid检索绑定的读者
                 string strBarcode = "";
-                long lRet = dp2CommandService.Instance.SearchPatronByWeiXinId(this.WeiXinId,
+                long lRet = dp2CommandService.Instance.SearchOnePatronByWeiXinId(this.WeiXinId,
                     out strBarcode,
                     out strError);
                 if (lRet == -1)

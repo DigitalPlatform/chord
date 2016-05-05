@@ -546,7 +546,7 @@ out string strError)
         /// <param name="strXml"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public override long SearchPatronByWeiXinId(string strWeiXinId,
+        public override long SearchOnePatronByWeiXinId(string strWeiXinId,
             out string strBarcode,
             out string strError)
         {

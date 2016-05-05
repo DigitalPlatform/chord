@@ -10,13 +10,19 @@ namespace dp2weixinP2P.ApiControllers
 {
     public class WxUserController : ApiController
     {
-        //private LibraryRespository repo = LibraryRespository.Current;
         private WxUserDatabase repo = WxUserDatabase.Current;
 
         // GET api/<controller>
         public IEnumerable<WxUserItem> Get()
         {
             List<WxUserItem> list = repo.GetUsers();//"*", 0, -1).Result;
+            return list;
+        }
+
+        // GET api/<controller>
+        public IEnumerable<WxUserItem> Get(string weixinId)
+        {
+            List<WxUserItem> list = repo.GetByWeixinId(weixinId);//.GetUsers();//"*", 0, -1).Result;
             return list;
         }
 
@@ -31,13 +37,16 @@ namespace dp2weixinP2P.ApiControllers
         // POST api/<controller>
         public WxUserItem Post(WxUserItem item)
         {
-            return repo.Add(item);
+            string test = "";
+
+            return item;// repo.Add(item);
         }
 
         // PUT api/<controller>/5
-        public long Put(WxUserItem item)
+        [HttpPut]
+        public void ActivePatron(string weixinId,string id)
         {
-            return repo.Update(item);
+             repo.SetActive(weixinId,id);// repo.Update(item);
         }
 
         // DELETE api/<controller>/5
