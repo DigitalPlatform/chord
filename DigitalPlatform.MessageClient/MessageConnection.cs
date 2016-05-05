@@ -106,9 +106,11 @@ namespace DigitalPlatform.MessageClient
 
         void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            AddInfoLine("tick connection state = " + this.Connection.State.ToString());
+            if (this.Connection != null)
+                AddInfoLine("tick connection state = " + this.Connection.State.ToString());
 
-            if (this.Connection.State == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
+            if (this.Connection == null ||
+                this.Connection.State == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
             {
                 AddInfoLine("自动重新连接 ...");
                 this.EnsureConnect();
@@ -695,7 +697,7 @@ request).Result;
                 timeout,
                 token);
                             }
-                            catch(TimeoutException)
+                            catch (TimeoutException)
                             {
                                 // 超时的时候实际上有结果了
                                 if (result.Records != null
