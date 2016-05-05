@@ -68,7 +68,6 @@ namespace dp2MServer
             // 修改配置
             if (args.Length == 1 && args[0].Equals("setting"))
             {
-
                 InitialConfig();
                 // config.AppSettings.Settings.Add(newKey, newValue);
 

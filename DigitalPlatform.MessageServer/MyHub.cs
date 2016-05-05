@@ -1551,7 +1551,7 @@ ex.GetType().ToString());
 
 
         // return:
-        //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
+        //      result.Value    -1 出错; 0 没有任何检索目标; >0 成功发起检索，数字代表给多少个目标发出了请求
         public MessageResult RequestSearch(
             string userNameList,
             SearchRequest searchParam
@@ -1665,7 +1665,8 @@ false);
                 search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
                     searchParam.TaskID,
                     searchParam.Start,
-                    searchParam.Count);
+                    searchParam.Count,
+                    searchParam.ServerPushEncoding);
             }
             catch (ArgumentException)
             {
@@ -1684,7 +1685,7 @@ false);
                 searchParam);
 #endif
 
-            result.Value = 1;   // 表示已经成功发起了检索
+            result.Value = connectionIds.Count;   // 表示已经成功发起了检索
             return result;
 #if NO
             SearchInfo info = ServerInfo.AddSearch(Context.ConnectionId);
@@ -1716,33 +1717,37 @@ false);
         //                      这个值实际上是表示全部命中结果的数目，可能比 records 中的元素要多
         //      start  records 参数中的第一个元素，在总的命中结果集中的偏移
         //      errorInfo   错误信息
-        public MessageResult ResponseSearch(string taskID,
+        public MessageResult ResponseSearch(
+#if NO
+            string taskID,
             long resultCount,
             long start,
             IList<Record> records,
             string errorInfo,
-            string errorCode)
+            string errorCode
+#endif
+            SearchResponse responseParam)
         {
             // Thread.Sleep(1000 * 60 * 2);
             MessageResult result = new MessageResult();
             try
             {
-                Console.WriteLine("ResponseSearch start=" + start
-                    + ", records.Count=" + (records == null ? "null" : records.Count.ToString())
-                    + ", errorInfo=" + errorInfo
-                    + ", errorCode=" + errorCode);
+                Console.WriteLine("ResponseSearch start=" + responseParam.Start
+                    + ", records.Count=" + (responseParam.Records == null ? "null" : responseParam.Records.Count.ToString())
+                    + ", errorInfo=" + responseParam.ErrorInfo
+                    + ", errorCode=" + responseParam.ErrorCode);
 
-                SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
+                SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(responseParam.TaskID);
                 if (search_info == null)
                 {
-                    result.ErrorInfo = "ID 为 '" + taskID + "' 的检索对象无法找到";
+                    result.ErrorInfo = "ID 为 '" + responseParam.TaskID + "' 的检索对象无法找到";
                     result.Value = -1;
                     result.String = "_notFound";
                     return result;
                 }
 
                 // 给 RecPath 加上 @ 部分
-                if (records != null)
+                if (responseParam.Records != null)
                 {
                     ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
                     if (connection_info == null)
@@ -1752,15 +1757,26 @@ false);
                         return result;
                     }
 
+                    // 强行覆盖
+                    responseParam.LibraryUID = connection_info.LibraryName + "|" + connection_info.LibraryUID;
+
+#if NO
                     string strLongPostfix = connection_info.LibraryName + "|" + connection_info.LibraryUID;
                     string strShortPostfix = "|" + connection_info.LibraryUID;
+#endif
+
+                    Encoding encoding = null;
+                    if (string.IsNullOrEmpty(search_info.ServerPushEncoding) == false)
+                        encoding = Encoding.GetEncoding(search_info.ServerPushEncoding);
 
                     // 第一条记录是长的后缀，其他记录是短的后缀。这样可以节约不少空间
                     int i = 0;
-                    foreach (Record record in records)
+                    foreach (Record record in responseParam.Records)
                     {
+#if NO
                         record.RecPath = record.RecPath + "@"
                             + (i == 0 ? strLongPostfix : strShortPostfix);
+#endif
 
                         // 校验一下 MD5
                         if (string.IsNullOrEmpty(record.MD5) == false)
@@ -1770,6 +1786,12 @@ false);
                                 throw new Exception("dp2MServer : 记录 '" + record.RecPath + "' Data 的 MD5 校验出现异常");
                         }
 
+                        if (encoding != null)
+                        {
+                            record.Data = EncodeString(record.Data, encoding);
+                            record.RecPath = EncodeString(record.RecPath, encoding);
+                        }
+
                         i++;
                     }
                 }
@@ -1777,11 +1799,7 @@ false);
                 Task.Factory.StartNew(() =>
                 SendResponse(// string taskID,
     search_info,
-    resultCount,
-    start,
-    records,
-    errorInfo,
-    errorCode));
+    responseParam));
             }
             catch (Exception ex)
             {
@@ -1792,37 +1810,54 @@ ex.GetType().ToString());
             return result;
         }
 
+        static string EncodeString(string strText, Encoding encoding)
+        {
+            if (string.IsNullOrEmpty(strText))
+                return strText;
+            return GetString(encoding.GetBytes(strText));
+        }
+
+        // 将每个 byte 翻译为 char，构成字符串
+        static string GetString(byte[] bytes)
+        {
+            StringBuilder text = new StringBuilder();
+            foreach (byte b in bytes)
+            {
+                text.Append((char)b);
+            }
+            return text.ToString();
+        }
+
         void SendResponse(// string taskID,
             SearchInfo search_info,
+#if NO
             long resultCount,
             long start,
             IList<Record> records,
             string errorInfo,
-            string errorCode)
+            string errorCode
+#endif
+            SearchResponse responseParam)
         {
             // Thread.Sleep(500);
             // 让前端获得检索结果
             try
             {
                 Clients.Client(search_info.RequestConnectionID).responseSearch(
-                    search_info.UID,    // taskID
-                    resultCount,
-                    start,
-                    records,
-                    errorInfo,
-                    errorCode);
+                    responseParam);
             }
             catch (Exception ex)
             {
                 Console.WriteLine("中心向前端分发 responseSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
             }
 
+#if NO
             // 判断响应是否为最后一个响应
-            bool bRet = IsComplete(resultCount,
+            bool bRet = IsComplete(responseParam.ResultCount,
                 search_info.ReturnStart,
                 search_info.ReturnCount,
-                start,
-                records);
+                responseParam.Start,
+                responseParam.Records);
             if (bRet == true)
             {
                 bool bAllComplete = search_info.CompleteTarget(Context.ConnectionId);
@@ -1830,16 +1865,43 @@ ex.GetType().ToString());
                 {
                     // 追加一个消息，表示检索响应已经全部完成
                     Clients.Client(search_info.RequestConnectionID).responseSearch(
-    search_info.UID,    // taskID,
+    new SearchResponse(
+        "",
     -1,
     -1,
+    "", // libraryUID,
     null,
     "",
-    "");
+    ""));
                     // 主动清除已经完成的检索对象
                     ServerInfo.SearchTable.RemoveSearch(search_info.UID);  // taskID
                     Console.WriteLine("complete");
                 }
+            }
+#endif
+            // 标记结束一个检索目标
+            // return:
+            //      0   尚未结束
+            //      1   结束
+            //      2   全部结束
+            int nRet = search_info.CompleteTarget(Context.ConnectionId, 
+                responseParam.ResultCount,
+                responseParam.Records == null? 0 : responseParam.Records.Count);
+            if (nRet == 2)
+            {
+                // 追加一个消息，表示检索响应已经全部完成
+                Clients.Client(search_info.RequestConnectionID).responseSearch(
+new SearchResponse(
+    "",
+-1,
+-1,
+"", // libraryUID,
+null,
+"",
+""));
+                // 主动清除已经完成的检索对象
+                ServerInfo.SearchTable.RemoveSearch(search_info.UID);  // taskID
+                Console.WriteLine("complete");
             }
         }
 
@@ -2299,7 +2361,7 @@ true);
 
             string strParameters = Context.Request.Headers["parameters"];
 
-            Hashtable table = StringUtil.ParseParameters(strParameters, ',', '=', "url");
+            Hashtable table = StringUtil.ParseParameters(strParameters, ',', '=', "url");  // "url"
             connection_info.PropertyList = (string)table["propertyList"];
             connection_info.LibraryUID = (string)table["libraryUID"];
             connection_info.LibraryName = (string)table["libraryName"];

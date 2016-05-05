@@ -76,6 +76,9 @@ namespace DigitalPlatform.Xml
             if (element == null)
                 return default_value;
 
+            if (element.GetAttributeNode(entry) == null)
+                return default_value;
+
             return element.GetAttribute(entry);
         }
 
