@@ -232,7 +232,7 @@ namespace dp2Command.Service
         /// <param name="item"></param>
         public void Delete(String id)
         {
-            if (string.IsNullOrEmpty(id) == true)
+            if (string.IsNullOrEmpty(id) == true || id=="null")
                 return;
 
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
@@ -249,6 +249,12 @@ namespace dp2Command.Service
 
         public void SetActive(string weixinId,string id)
         {
+            if (string.IsNullOrEmpty(weixinId) == true || weixinId=="null")
+                return;
+
+            if (string.IsNullOrEmpty(weixinId) == true || id=="null")
+                return;
+
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
 
             // 先将该微信用户的所有绑定读者都设为非活动

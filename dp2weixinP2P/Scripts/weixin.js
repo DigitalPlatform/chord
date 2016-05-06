@@ -24,7 +24,7 @@ function sendAjaxRequest(url,
     myasync) {
 
     var apiFullPath = getRootPath() + url;
-    //alert(rootPath +url);
+    //alert(apiFullPath);
     $.ajax(apiFullPath, {
         type: httpMethod,
         success: successCallback,

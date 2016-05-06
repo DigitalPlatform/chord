@@ -37,13 +37,37 @@ namespace dp2weixinP2P.Controllers
             return View(userList);
         }
 
+        // GET: Bind 绑定主界面‘
+        public ActionResult Index2(string weiXinId)
+        {
+            // todo 如果未传入微信id，该怎么处理，这里先报错吧
+            if (String.IsNullOrEmpty(weiXinId) == true)
+            {
+                return Content("未传入weinxinId参数。");
+            }
+
+            // 记下微信id
+            Session[WeiXinConst.C_Session_WeiXinId] = weiXinId;
+
+            //先检查一下，微信用户是否已经绑定的读者，
+            //如未绑定，到新增绑定界面
+            //如果已经绑定，则显示绑定列表页面
+            List<WxUserItem> userList = dp2CmdService2.Instance.GetBindInfo(weiXinId);
+            if (userList == null || userList.Count == 0)
+            {
+
+            }
+
+            return View(userList);
+        }
+
         /// <summary>
         /// 通过OAuth2.0方式重定向过来
         /// </summary>
         /// <param name="code"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public ActionResult Index2(string code, string state)
+        public ActionResult Index3(string code, string state)
         {
             if (string.IsNullOrEmpty(code))
             {
