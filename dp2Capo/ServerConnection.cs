@@ -542,7 +542,7 @@ strError);
 
             string strResultSetName = searchParam.ResultSetName;
             if (string.IsNullOrEmpty(strResultSetName) == true)
-                strResultSetName = "#" + searchParam.TaskID;    // "default";
+                strResultSetName = "default";  // "#" + searchParam.TaskID;    // "default";
             else
                 strResultSetName = "#" + strResultSetName;  // 如果请求方指定了结果集名，则在 dp2library 中处理为全局结果集名
 
@@ -634,8 +634,11 @@ strErrorCode));
                         return;
                     }
 
-
-                    Task.Factory.StartNew(() => SendResults(searchParam,
+                    LibraryChannel temp_channel = channel;
+                    channel = null;
+                    Task.Factory.StartNew(() => SendResults(
+                        temp_channel,
+                        searchParam,
                     strResultSetName,
                     lHitCount));
                 }
@@ -648,7 +651,8 @@ strErrorCode));
             }
             finally
             {
-                this._channelPool.ReturnChannel(channel);
+                if (channel != null)
+                    this._channelPool.ReturnChannel(channel);
             }
 
             this.AddInfoLine("search and response end");
@@ -667,36 +671,39 @@ strError,
 strErrorCode));
         }
 
-        void SendResults(SearchRequest searchParam,
+        void SendResults(
+            LibraryChannel channel,
+            SearchRequest searchParam,
             string strResultSetName,
             long lHitCount)
         {
             string strError = "";
             string strErrorCode = "";
-
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
-            long batch_size = 100;
 
-            long lStart = searchParam.Start;
-            long lPerCount = searchParam.Count; // 本次拟返回的个数
-
-            if (lHitCount != -1)
-            {
-                if (lPerCount == -1)
-                    lPerCount = lHitCount - lStart;
-                else
-                    lPerCount = Math.Min(lPerCount, lHitCount - lStart);
-
-                if (lPerCount <= 0)
-                {
-                    strError = "命中结果总数为 " + lHitCount + "，取结果开始位置为 " + lStart + "，它已超出结果集范围";
-                    goto ERROR1;
-                }
-            }
-
-            LibraryChannel channel = GetChannel();
+            // LibraryChannel channel = GetChannel();
             try
             {
+                long batch_size = 100;
+
+                long lStart = searchParam.Start;
+                long lPerCount = searchParam.Count; // 本次拟返回的个数
+
+                if (lHitCount != -1)
+                {
+                    if (lPerCount == -1)
+                        lPerCount = lHitCount - lStart;
+                    else
+                        lPerCount = Math.Min(lPerCount, lHitCount - lStart);
+
+                    if (lPerCount <= 0)
+                    {
+                        strError = "命中结果总数为 " + lHitCount + "，取结果开始位置为 " + lStart + "，它已超出结果集范围";
+                        goto ERROR1;
+                    }
+                }
+
+
                 DigitalPlatform.LibraryClient.localhost.Record[] searchresults = null;
 
                 // 装入浏览格式
@@ -781,7 +788,7 @@ strErrorCode));
         ERROR1:
             // 报错
             ResponseSearch(
-                                                new SearchResponse(
+new SearchResponse(
 searchParam.TaskID,
 -1,
 0,

@@ -892,6 +892,21 @@ out strError);
                 return 0;
             }
 
+            // 2016/5/5
+            if (ex0 is System.ServiceModel.CommunicationException
+    && ex0.InnerException is System.IO.PipeException)
+            {
+                this.ErrorCode = ErrorCode.RequestError;	// 一般错误
+                this.AbortIt();
+                strError = GetExceptionMessage(ex0);
+                if (this.m_nRedoCount == 0)
+                {
+                    this.m_nRedoCount++;
+                    return 1;   // 重做
+                }
+                return 0;
+            }
+
             /*
             if (ex0 is CommunicationException)
             {
@@ -2371,7 +2386,7 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SearchBiblio(
-                                        strBiblioDbNames,
+                    strBiblioDbNames,
                     strQueryWord,
                     nPerMax,
                     strFromStyle,

@@ -106,9 +106,11 @@ namespace DigitalPlatform.MessageClient
 
         void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            AddInfoLine("tick connection state = " + this.Connection.State.ToString());
+            if (this.Connection != null)
+                AddInfoLine("tick connection state = " + this.Connection.State.ToString());
 
-            if (this.Connection.State == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
+            if (this.Connection == null ||
+                this.Connection.State == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
             {
                 AddInfoLine("自动重新连接 ...");
                 this.EnsureConnect();
@@ -563,6 +565,16 @@ request).Result;
         #endregion
 
         #region Search() API
+
+        static void AddLibraryUID(IList<Record> records, string libraryUID)
+        {
+            if (records == null)
+                return;
+            foreach(Record record in records)
+            {
+                record.RecPath += "@" + libraryUID;
+            }
+        }
         // 
         // 当 server 发来检索请求的时候被调用。重载的时候要进行检索，并调用 Response 把检索结果发送给 server
         public virtual void OnSearchRecieved(SearchRequest param)
@@ -640,6 +652,9 @@ request).Result;
                                 }
 
                                 // TODO: 似乎应该关注 start 位置
+                                if (responseParam.Records != null)
+                                    AddLibraryUID(responseParam.Records, responseParam.LibraryUID);
+
                                 result.Records.AddRange(responseParam.Records);
                                 if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
                                     && errors.IndexOf(responseParam.ErrorInfo) == -1)
@@ -695,7 +710,7 @@ request).Result;
                 timeout,
                 token);
                             }
-                            catch(TimeoutException)
+                            catch (TimeoutException)
                             {
                                 // 超时的时候实际上有结果了
                                 if (result.Records != null
