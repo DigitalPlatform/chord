@@ -37,6 +37,21 @@ namespace dp2MServer
             ServiceShortName = "dp2MessageService";
         }
 
+        static void PrintLogo()
+        {
+            Console.WriteLine(@"
+     _      ___   __  __   _____                          
+    | |    |__ \ |  \/  | / ____|                         
+  __| |_ __   )  | \  / |  (___   ___ _ ____   _____ _ __ 
+ / _` | '_ \ / / | |\/| | \___ \ / _ \ '__\ \ / / _ \ '__|
+| (_| | |_) / /_ | |  | | ____) |  __/ |   \ V /  __/ |   
+ \__,_| .__/____ |_|  |_| _____/ \___|_|    \_/ \___|_|   
+      | |                                               
+      |_|  Chord 项目的通讯服务器
+
+");
+        }
+
         static void Main(string[] args)
         {
             ServiceShortName = "dp2MessageService";
@@ -65,6 +80,8 @@ namespace dp2MServer
                 SignalR = null;
             }
 #endif
+            PrintLogo();
+
             // 修改配置
             if (args.Length == 1 && args[0].Equals("setting"))
             {

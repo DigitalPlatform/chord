@@ -2197,21 +2197,7 @@ true);
                 result.ErrorInfo = "RequestCirculation() 不允许 userNameList 参数值为 '" + userNameList + "'";
                 return result;
             }
-#if NO
-            ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
-            if (connection_info == null)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。请求检索书目失败";
-                return result;
-            }
 
-            if (connection_info.UserItem == null)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "尚未登录，无法使用 RequestCirculation() 功能";
-            }
-#endif
             ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
 result,
 "RequestCirculation()",
@@ -2392,6 +2378,9 @@ true);
 
         void AddToSignalRGroup(ConnectionInfo connection_info, bool add = true)
         {
+            if (connection_info == null)
+                throw new ArgumentException("connection_info 参数值不应为空", "connection_info");
+            
             // 默认的几个群组
             List<string> defaults = new List<string>();
             defaults.AddRange(default_groups);
@@ -2479,7 +2468,8 @@ true);
         {
             ConnectionInfo connection_info = ServerInfo.ConnectionTable.RemoveConnection(Context.ConnectionId);
 
-            AddToSignalRGroup(connection_info, false);
+            if (connection_info != null)
+                AddToSignalRGroup(connection_info, false);
 
             //Program.WriteToConsole("Client disconnected: " + Context.ConnectionId);
             return base.OnDisconnected(stopCalled);
