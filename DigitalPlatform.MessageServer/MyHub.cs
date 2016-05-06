@@ -2190,6 +2190,13 @@ true);
         {
             MessageResult result = new MessageResult();
 
+            // 检查参数
+            if (userNameList == "*")
+            {
+                result.Value = -1;
+                result.ErrorInfo = "RequestCirculation() 不允许 userNameList 参数值为 '" + userNameList + "'";
+                return result;
+            }
 #if NO
             ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
             if (connection_info == null)
@@ -2240,6 +2247,14 @@ true);
             {
                 result.Value = 0;
                 result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
+                return result;
+            }
+
+            // 流通操作不允许广播式进行
+            if (connectionIds.Count > 1)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "当前符合条件的操作目标多于 1 个。操作被拒绝";
                 return result;
             }
 
@@ -2300,6 +2315,11 @@ true);
                 result.SetError("ResponseCirculation() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
     ex.GetType().ToString());
                 Console.WriteLine(result.ErrorInfo);
+            }
+            finally
+            {
+                // 主动清除已经完成的检索对象
+                ServerInfo.SearchTable.RemoveSearch(taskID);
             }
             return result;
         }

@@ -1248,6 +1248,7 @@ token);
                         if (message.Value == -1
                             || message.Value == 0)
                         {
+                            // -1 表示请求失败；0 表示没有找到调用目标。1 才是成功发起了操作
                             result.ErrorInfo = message.ErrorInfo;
                             result.Value = -1;
                             return result;

@@ -269,6 +269,13 @@ namespace dp2Capo
                         param.Item,
                         out strError);
                 }
+                else if (param.Operation == "resetPassword")
+                {
+                    lRet = channel.ResetPassword(param.Patron,  // strPatameters
+                        param.Item, // strMessageTemplate
+                        out strOutputReaderBarcode,
+                        out strError);
+                }
                 else
                 {
                     strError = "无法识别的 Operation 值 '" + param.Operation + "'";
