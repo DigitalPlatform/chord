@@ -22,9 +22,26 @@ namespace dp2Capo
             ServiceShortName = "dp2CapoService";
         }
 
+        static void PrintLogo()
+        {
+            Console.WriteLine(@"
+      dP          d8888b.  a88888b.                            
+      88              `88 d8'   `88                            
+.d888b88 88d888b. .aaadP' 88        .d8888b. 88d888b. .d8888b. 
+88'  `88 88'  `88 88'     88        88'  `88 88'  `88 88'  `88 
+88.  .88 88.  .88 88.     Y8.   .88 88.  .88 88.  .88 88.  .88 
+`88888P8 88Y888P' Y88888P  Y88888P' `88888P8 88Y888P' `88888P' 
+         88                                  88                
+         dP  -dp2 V2 和 Chord 之间的桥接器-  dP                 
+");
+        }
+
         static void Main(string[] args)
         {
             ServiceShortName = "dp2CapoService";
+
+
+            PrintLogo();
 
             // 修改配置
             if (args.Length >= 1 && args[0].Equals("setting"))

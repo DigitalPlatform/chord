@@ -330,11 +330,11 @@ namespace TestClient1
                 {
                     MessageConnection connection = await this._channels.GetConnectionAsync(
                         this.textBox_config_messageServerUrl.Text,
-                        this.textBox_search_remoteUserName.Text);
+                        "");
                     CirculationResult result = await connection.CirculationAsync(
-                        this.textBox_search_remoteUserName.Text,
+                        this.textBox_circulation_remoteUserName.Text,
                         request,
-                        new TimeSpan(0, 0, 10), // 10 秒
+                        new TimeSpan(0, 1, 10), // 10 秒
                         cancel_token);
 
                     this.Invoke(new Action(() =>
@@ -394,9 +394,9 @@ namespace TestClient1
                 {
                     MessageConnection connection = await this._channels.GetConnectionAsync(
                         this.textBox_config_messageServerUrl.Text,
-                        this.textBox_search_remoteUserName.Text);
+                        "");
                     SetInfoResult result = await connection.SetInfoAsync(
-                        this.textBox_search_remoteUserName.Text,
+                        this.textBox_setInfo_remoteUserName.Text,
                         request,
                         new TimeSpan(0, 1, 0),
                         cancel_token);
@@ -458,9 +458,9 @@ namespace TestClient1
                 {
                     MessageConnection connection = await this._channels.GetConnectionAsync(
                         this.textBox_config_messageServerUrl.Text,
-                        this.textBox_search_remoteUserName.Text);
+                        "");
                     BindPatronResult result = await connection.BindPatronAsync(
-                        this.textBox_search_remoteUserName.Text,
+                        this.textBox_bindPatron_remoteUserName.Text,
                         request,
                         new TimeSpan(0, 1, 0),
                         cancel_token);
@@ -522,7 +522,7 @@ namespace TestClient1
                 {
                     MessageConnection connection = await this._channels.GetConnectionAsync(
                         this.textBox_config_messageServerUrl.Text,
-                        this.textBox_search_remoteUserName.Text);
+                        "");
                     GetConnectionInfoResult result = await connection.GetConnectionInfoAsync(
                         request,
                         new TimeSpan(0, 1, 0),
@@ -592,7 +592,7 @@ namespace TestClient1
                 {
                     MessageConnection connection = await this._channels.GetConnectionAsync(
                         this.textBox_config_messageServerUrl.Text,
-                        this.textBox_search_remoteUserName.Text);
+                        "");
                     SearchResult result = await connection.SearchAsync(
                         this.textBox_search_remoteUserName.Text,
                         request,
@@ -675,7 +675,7 @@ namespace TestClient1
                 {
                     MessageConnection connection = await this._channels.GetConnectionAsync(
                         this.textBox_config_messageServerUrl.Text,
-                        this.textBox_getInfo_remoteUserName.Text);
+                        "");
 
                     Task<SearchResult> task1 = connection.SearchAsync(
                         this.textBox_getInfo_remoteUserName.Text,
@@ -759,7 +759,7 @@ namespace TestClient1
                 {
                     MessageConnection connection = await this._channels.GetConnectionAsync(
                         this.textBox_config_messageServerUrl.Text,
-                        this.textBox_getInfo_remoteUserName.Text);
+                        "");
 
                     SearchResult result = await connection.SearchAsync(
                         this.textBox_getInfo_remoteUserName.Text,
@@ -834,7 +834,7 @@ string strHtml)
                 {
                     Task<MessageConnection> task = this._channels.GetConnectionAsync(
                         this.textBox_config_messageServerUrl.Text,
-                        this.textBox_getReaderInfo_remoteUserName.Text);
+                        "");
                     SearchResult result =
                     task.ContinueWith<SearchResult>((antecendent) =>
                     {
@@ -915,6 +915,7 @@ string strHtml)
             text.Append("ResultValue=" + result.Value + "\r\n");
             text.Append("ErrorInfo=" + result.ErrorInfo + "\r\n");
             text.Append("String=" + result.String + "\r\n");
+            text.Append("PatronBarcode=" + result.PatronBarcode + "\r\n");
             if (result.PatronResults != null)
             {
                 text.Append("PatronResults.Count=" + result.PatronResults.Count + "\r\n");
@@ -1172,7 +1173,7 @@ string strHtml)
                 {
                     MessageConnection connection = await this._channels.GetConnectionAsync(
                         this.textBox_config_messageServerUrl.Text,
-                        this.textBox_search_remoteUserName.Text);
+                        "");
                     SetMessageRequest param = new SetMessageRequest("create",
                         "",
                         records);
@@ -1329,7 +1330,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 {
                     MessageConnection connection = await this._channels.GetConnectionAsync(
                         this.textBox_config_messageServerUrl.Text,
-                        this.textBox_search_remoteUserName.Text);
+                        "");
                     MessageResult result = await connection.GetMessageAsync(
                         request,
                         FillMessage,
@@ -1369,7 +1370,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             {
                 MessageConnection connection = this._channels.GetConnectionAsync(
         this.textBox_config_messageServerUrl.Text,
-        this.textBox_search_remoteUserName.Text,
+        "",
         false).Result;
                 if (connection != null)
                     connection.CloseConnection();

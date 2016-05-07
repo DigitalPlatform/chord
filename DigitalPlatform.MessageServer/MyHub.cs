@@ -2190,21 +2190,14 @@ true);
         {
             MessageResult result = new MessageResult();
 
-#if NO
-            ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
-            if (connection_info == null)
+            // 检查参数
+            if (userNameList == "*")
             {
                 result.Value = -1;
-                result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。请求检索书目失败";
+                result.ErrorInfo = "RequestCirculation() 不允许 userNameList 参数值为 '" + userNameList + "'";
                 return result;
             }
 
-            if (connection_info.UserItem == null)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "尚未登录，无法使用 RequestCirculation() 功能";
-            }
-#endif
             ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
 result,
 "RequestCirculation()",
@@ -2240,6 +2233,14 @@ true);
             {
                 result.Value = 0;
                 result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
+                return result;
+            }
+
+            // 流通操作不允许广播式进行
+            if (connectionIds.Count > 1)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "当前符合条件的操作目标多于 1 个。操作被拒绝";
                 return result;
             }
 
@@ -2300,6 +2301,11 @@ true);
                 result.SetError("ResponseCirculation() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
     ex.GetType().ToString());
                 Console.WriteLine(result.ErrorInfo);
+            }
+            finally
+            {
+                // 主动清除已经完成的检索对象
+                ServerInfo.SearchTable.RemoveSearch(taskID);
             }
             return result;
         }
@@ -2372,6 +2378,9 @@ true);
 
         void AddToSignalRGroup(ConnectionInfo connection_info, bool add = true)
         {
+            if (connection_info == null)
+                throw new ArgumentException("connection_info 参数值不应为空", "connection_info");
+            
             // 默认的几个群组
             List<string> defaults = new List<string>();
             defaults.AddRange(default_groups);
@@ -2459,7 +2468,8 @@ true);
         {
             ConnectionInfo connection_info = ServerInfo.ConnectionTable.RemoveConnection(Context.ConnectionId);
 
-            AddToSignalRGroup(connection_info, false);
+            if (connection_info != null)
+                AddToSignalRGroup(connection_info, false);
 
             //Program.WriteToConsole("Client disconnected: " + Context.ConnectionId);
             return base.OnDisconnected(stopCalled);
