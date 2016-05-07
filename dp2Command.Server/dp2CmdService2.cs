@@ -58,6 +58,9 @@ namespace dp2Command.Service
 
         WxMsgThread _wxMsgThread = null;
 
+        // 背景图管理器
+        public string TodayUrl = "";
+
         public void Init(string dp2MServerUrl,
             string userName,
             string password,
@@ -88,6 +91,12 @@ namespace dp2Command.Service
 
             //Task.Factory.StartNew(() => DoLoadMessage("<default>"));
 
+
+            // 初始img manager
+            string imgFile = this.weiXinDataDir + "\\" + "image.xml";
+            ImgManager imgManager = new ImgManager(imgFile);
+            string todayNo = DateTime.Now.Day.ToString();
+            TodayUrl = imgManager.GetImgUrl(todayNo);
         }
 
         #region 本方账号登录

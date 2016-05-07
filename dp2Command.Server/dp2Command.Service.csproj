@@ -64,6 +64,7 @@
     <Compile Include="dp2BaseCommandService.cs" />
     <Compile Include="dp2CommandService.cs" />
     <Compile Include="dp2CmdService2.cs" />
+    <Compile Include="ImgManager.cs" />
     <Compile Include="WxMsgThread.cs" />
     <Compile Include="WxUserDatabase.cs" />
     <Compile Include="LibDatabase.cs" />

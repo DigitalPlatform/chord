@@ -29,71 +29,69 @@
     @RenderSection("scripts", required: false)
     @RenderSection("HeaderContent", false)
 </head>
-<body >
 
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-        <div class="container">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="~/home/index">我爱图书馆公众号</a>
+    <body style="background-image:url(' @dp2Command.Service.dp2CmdService2.Instance.TodayUrl ');-moz-background-size:cover;-webkit-background-size:cover;-o-background-size:cover;background-size:cover;">
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="~/home/index">我爱图书馆公众号</a>
+                </div>
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav navbar-left">
+                        <li>
+                            <a class="active" href="~/home/LibraryM">图书馆账号管理</a>
+                        </li>
+                        <li>
+                            <a class="active" href="~/home/WeixinUser">微信用户管理</a>
+                        </li>
+                        <li>
+                            <a class="active" href="~/home/WeixinMessage">微信消息</a>
+                        </li>
+                        <li>
+                            <a class="active" href="~/Menu/Index">微信菜单</a>
+                        </li>
+                        <li>
+                            <a class="active" href="~/Weixin/Index">公众号接口url</a>
+                        </li>
+                        <li>
+                            <a class="active" href="~/home/Setting">参数设置</a>
+                        </li>
+                        <li>
+                            <a class="active" href="~/Account/Index2?weixinId=o4xvUviTxj2HbRqbQb9W2nMl4fGg">绑定</a>
+                        </li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="~/Home/About">关于</a>
+                        </li>
+                        <li>
+                            <a href="~/Home/Contact">联系我们</a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- /.navbar-collapse -->
             </div>
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav navbar-left">
-                    <li>
-                        <a class="active" href="~/home/LibraryM">图书馆账号管理</a>
-                    </li>
-                    <li>
-                        <a class="active" href="~/home/WeixinUser">微信用户管理</a>
-                    </li>
-                    <li>
-                        <a class="active" href="~/home/WeixinMessage">微信消息</a>
-                    </li>
-                    <li>
-                        <a class="active" href="~/Menu/Index">微信菜单</a>
-                    </li>
-                    <li>
-                        <a class="active" href="~/Weixin/Index">公众号接口url</a>
-                    </li>
-                    <li>
-                        <a class="active" href="~/home/Setting">参数设置</a>
-                    </li>
-                    <li>
-                        <a class="active" href="~/Account/Index2?weixinId=o4xvUviTxj2HbRqbQb9W2nMl4fGg">绑定</a>
-                    </li>
-                </ul>
-                <ul class="nav navbar-nav navbar-right">
-                    <li>
-                        <a href="~/Home/About">关于</a>
-                    </li>
-                    <li>
-                        <a href="~/Home/Contact">联系我们</a>
-                    </li>
-                </ul>
-            </div>
-            <!-- /.navbar-collapse -->
-        </div>
-        <!-- /.container -->
-    </nav>
-
-    <!-- Begin page content -->
-    <div class="container">
-        <!--部分页占位符 -->
-        @RenderBody()
-    </div>
-    <footer class="footer">
+            <!-- /.container -->
+        </nav>
+        <!-- Begin page content -->
         <div class="container">
-            <p class="text-muted" style="text-align:center">
-                <a href="https://github.com/DigitalPlatform/chord">开源的云图书馆项目 chord</a>
-            </p>
+            <!--部分页占位符 -->
+            @RenderBody()
         </div>
-    </footer>
-
-</body>
+        <footer class="footer">
+            <div class="container">
+                <p class="text-muted" style="text-align:center">
+                    <a href="https://github.com/DigitalPlatform/chord">开源的云图书馆项目 chord</a>
+                </p>
+            </div>
+        </footer>
+    </body>
 </html>
