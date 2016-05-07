@@ -80,7 +80,7 @@ namespace dp2weixinP2P.Controllers
             }
 
             //用code换取access_token
-            var result = OAuthApi.GetAccessToken(dp2CmdService2.Instance.AppID, dp2CmdService2.Instance.AppSecret, code);
+            var result = OAuthApi.GetAccessToken(dp2CmdService2.Instance.weiXinAppId, dp2CmdService2.Instance.weiXinSecret, code);
             if (result.errcode != ReturnCode.请求成功)
             {
                 return Content("错误：" + result.errmsg);

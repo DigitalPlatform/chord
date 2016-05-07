@@ -21,6 +21,18 @@ namespace dp2Command.Service
     {
         MessageConnectionCollection _channels = new MessageConnectionCollection();
 
+        // dp2服务器地址与代理账号
+        public string dp2MServerUrl = "";
+        public string userName = "";
+        public string password = "";
+
+        public string weiXinAppId { get; set; }
+        public string weiXinSecret { get; set; }
+
+        // 背景图管理器
+        public string TodayUrl = "";
+
+        WxMsgThread _wxMsgThread = null;
 
         //=================
         // 设为单一实例
@@ -46,22 +58,9 @@ namespace dp2Command.Service
         }
         //===========
 
-
-
-        // dp2服务器地址与代理账号
-        public string dp2MServerUrl = "";
-        public string userName = "";
-        public string password = "";
-        
-        public string AppID { get; set; }
-        public string AppSecret { get; set; }
-
-        WxMsgThread _wxMsgThread = null;
-
-        // 背景图管理器
-        public string TodayUrl = "";
-
-        public void Init(string dp2MServerUrl,
+        public void Init(string weiXinAppId,
+            string weiXinSecret,
+            string dp2MServerUrl,
             string userName,
             string password,
             string weiXinUrl,
@@ -69,6 +68,8 @@ namespace dp2Command.Service
             string mongoDbConnStr,
             string instancePrefix)
         {
+            this.weiXinAppId = weiXinAppId;
+            this.weiXinSecret = weiXinSecret;
             this.dp2MServerUrl = dp2MServerUrl;
             this.userName = userName;
             this.password = password;
@@ -79,7 +80,7 @@ namespace dp2Command.Service
             WxUserDatabase.Current.Open(mongoDbConnStr, instancePrefix);
 
             //全局只需注册一次
-            AccessTokenContainer.Register(this.AppID, this.AppSecret);
+            AccessTokenContainer.Register(this.weiXinAppId, this.weiXinSecret);
 
             _channels.Login += _channels_Login;
             _channels.AddMessage += _channels_AddMessage;
@@ -131,7 +132,7 @@ namespace dp2Command.Service
             string strGroupName = "_patronNotify";//"<default>";
 
             string strError = "";
-            var accessToken = AccessTokenContainer.GetAccessToken(this.AppID);
+            var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -145,7 +146,7 @@ namespace dp2Command.Service
             {
                 MessageConnection connection = await this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    this.remoteUserName);  //todo这里用本方还是远方的账号，好像都可以，主要是确定在patronNotify
+                    this.userName);  //todo这里用本方还是远方的账号，好像都可以，主要是确定在patronNotify
                 MessageResult result = await connection.GetMessageAsync(
                         request,
                         FillMessage,
@@ -173,7 +174,7 @@ namespace dp2Command.Service
 
         public void SendCustomerMsg(string openId, string text)
         {
-            var accessToken = AccessTokenContainer.GetAccessToken(this.AppID);
+            var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
             CustomApi.SendText(accessToken, openId, "error");
         }
 
@@ -224,7 +225,7 @@ namespace dp2Command.Service
                 //todo 将来data为xml，这里解析出微信用户id,解析出模板需要的字段
                 string openId = "o4xvUviTxj2HbRqbQb9W2nMl4fGg";
                 var templateId = "QcS3LoLHk37Jh0rgKJId2o93IZjulr5XxgshzlW5VkY";//换成已经在微信后台添加的模板Id
-                var accessToken = AccessTokenContainer.GetAccessToken(this.AppID);
+                var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
                 var testData = new CaoQiTemplateData()
                 {
                     first = new TemplateDataItem("您借阅的图书已超期，请尽快归还！\n", "#000000"),
@@ -282,12 +283,16 @@ namespace dp2Command.Service
         /// -1 出错
         /// 0 成功
         /// </returns>
-        public override int Binding(string strBarcode,
+        public override int Binding(string remoteUserName,
+            string libCode,
+            string strFullWord,
             string strPassword,
             string strWeiXinId,
+            out WxUserItem userItem,
             out string strReaderBarcode,
             out string strError)
         {
+            userItem = null;
             strError = "";
             strReaderBarcode = "";
             long lRet = -1;
@@ -299,7 +304,7 @@ namespace dp2Command.Service
             string id = Guid.NewGuid().ToString();
             BindPatronRequest request = new BindPatronRequest(id,
                 "bind",
-                strBarcode,
+                strFullWord,
                 strPassword,
                 fullWeixinId,
                "multiple",//single
@@ -309,11 +314,11 @@ namespace dp2Command.Service
             {
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    this.remoteUserName).Result;
+                    remoteUserName).Result;
 
 
                 BindPatronResult result = connection.BindPatronAsync(
-                     this.remoteUserName,
+                     remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -342,30 +347,34 @@ namespace dp2Command.Service
                     refID = DomUtil.GetNodeText(node);
 
                 // 找到库中对应的记录
-                WxUserItem userItem = WxUserDatabase.Current.GetOneOrEmptyPatron(strWeiXinId, this.libCode, strBarcode);
+                userItem = WxUserDatabase.Current.GetOneOrEmptyPatron(strWeiXinId, libCode, strReaderBarcode);
                 if (userItem == null)
                 {
                     userItem = new WxUserItem();
                     userItem.weixinId = strWeiXinId;
-                    userItem.libCode = this.libCode;
-                    userItem.libUserName = this.remoteUserName;
-                    userItem.readerBarcode = strBarcode;
+                    userItem.libCode = libCode;
+                    userItem.libUserName = remoteUserName;
+                    userItem.readerBarcode = strReaderBarcode;
                     userItem.readerName = name;
                     userItem.xml = xml;
                     userItem.refID = refID;
                     userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
                     userItem.updateTime = userItem.createTime;
                     userItem.isActive = 1;
+                    userItem.fullWord = strFullWord;
+                    userItem.password = strPassword;
                     WxUserDatabase.Current.Add(userItem);
                 }
                 else
                 {
-                    userItem.readerBarcode = strBarcode;
+                    userItem.readerBarcode = strReaderBarcode;
                     userItem.readerName = name;
                     userItem.xml = xml;
                     userItem.refID = refID;
                     userItem.updateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
                     userItem.isActive = 1;
+                    userItem.fullWord = strFullWord;
+                    userItem.password = strPassword;
                     lRet = WxUserDatabase.Current.Update(userItem);
                 }
                 // 置为活动状态
@@ -398,14 +407,16 @@ namespace dp2Command.Service
         /// -1 出错
         /// 0   成功
         /// </returns>
-        public override int Unbinding1(string strBarcode,
+        public override int Unbinding(string remoteUserName,
+            string libCode,
+            string strBarcode,
             string strWeiXinId,
              out string strError)
         {
             strError = "";
 
             // 从mongodb删除
-            long nCount = WxUserDatabase.Current.Delete(strWeiXinId, strBarcode,this.libCode);
+            long nCount = WxUserDatabase.Current.Delete(strWeiXinId, strBarcode,libCode);
 
 
             // 调点对点解绑接口
@@ -424,11 +435,11 @@ namespace dp2Command.Service
                 // 得到连接
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    this.remoteUserName).Result;
+                    remoteUserName).Result;
 
                 // 调绑定函数，todo为啥await没反应
                 BindPatronResult result = connection.BindPatronAsync(
-                     this.remoteUserName,
+                     remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -455,7 +466,9 @@ namespace dp2Command.Service
             return -1;
         }
 
-        public override long SearchOnePatronByWeiXinId(string strWeiXinId,
+        public override long SearchOnePatronByWeiXinId(string remoteUserName,
+            string libCode, 
+            string strWeiXinId,
             out string strBarcode,
             out string strError)
         {
@@ -463,7 +476,7 @@ namespace dp2Command.Service
             strBarcode = "";
 
             // 从mongodb中检查是否绑定了用户
-            WxUserItem userItem = WxUserDatabase.Current.GetActiveOrFirst(strWeiXinId, this.libCode);
+            WxUserItem userItem = WxUserDatabase.Current.GetActiveOrFirst(strWeiXinId, libCode);
             if (userItem == null)
             {
                 strError = "异常的情况，未怎么图书馆时不应走到SearchPatronByWeiXinId函数。";
@@ -496,10 +509,10 @@ namespace dp2Command.Service
             {
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    this.remoteUserName).Result;
+                    remoteUserName).Result;
 
                 SearchResult result = connection.SearchAsync(
-                    this.remoteUserName,
+                    remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -549,8 +562,8 @@ namespace dp2Command.Service
                         {
                             userItem = new WxUserItem();
                             userItem.weixinId = strWeiXinId;
-                            userItem.libCode = this.libCode;
-                            userItem.libUserName = this.remoteUserName;
+                            userItem.libCode = libCode;
+                            userItem.libUserName = remoteUserName;
                             userItem.readerBarcode = strTempBarcode;
                             userItem.readerName = name;
                             userItem.xml = strXml;
@@ -584,7 +597,8 @@ namespace dp2Command.Service
 
         #region 检索书目
 
-        public override long SearchBiblio(string strWord,
+        public override long SearchBiblio(string remoteUserName, 
+            string strWord,
             SearchCommand searchCmd,
             out string strFirstPage,
             out string strError)
@@ -609,10 +623,10 @@ namespace dp2Command.Service
             {
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    this.remoteUserName).Result;
+                    remoteUserName).Result;
 
                 SearchResult result = connection.SearchAsync(
-                    this.remoteUserName,
+                    remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -673,7 +687,8 @@ namespace dp2Command.Service
 
 
 
-        public override int GetDetailBiblioInfo(SearchCommand searchCmd,
+        public override int GetDetailBiblioInfo(string remoteUserName, 
+            SearchCommand searchCmd,
             int nIndex,
             out string strBiblioInfo,
             out string strError)
@@ -709,7 +724,8 @@ namespace dp2Command.Service
 
             //2个任务并行
             string strInfo = "";
-            nRet = this.GetBiblioAndSub(strPath,  //GetBiblioAndSub
+            nRet = this.GetBiblioAndSub(remoteUserName,
+                strPath,  //GetBiblioAndSub
                 out strInfo,
                 out strError);
             if (nRet == -1 || nRet == 0)
@@ -755,7 +771,8 @@ namespace dp2Command.Service
             return 1;
         }
 
-        private int GetBiblioSummary(string biblioPath,
+        private int GetBiblioSummary(string remoteUserName, 
+            string biblioPath,
             out string summary,
             out string strError)
         {
@@ -779,10 +796,10 @@ namespace dp2Command.Service
             {
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    this.remoteUserName).Result;
+                    remoteUserName).Result;
 
                 SearchResult result = connection.SearchAsync(
-                    this.remoteUserName,
+                    remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -817,7 +834,8 @@ namespace dp2Command.Service
         }
 
 
-        private long GetItemInfo(string biblioPath,
+        private long GetItemInfo(string remoteUserName, 
+            string biblioPath,
             out string itemInfo,
             out string strError)
         {
@@ -841,10 +859,10 @@ namespace dp2Command.Service
             {
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    this.remoteUserName).Result;
+                    remoteUserName).Result;
 
                 SearchResult result = connection.SearchAsync(
-                    this.remoteUserName,
+                    remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -937,7 +955,8 @@ namespace dp2Command.Service
         }
 
 
-        private int GetBiblioAndSub(string biblioPath,
+        private int GetBiblioAndSub(string remoteUserName, 
+            string biblioPath,
             out string strInfo,
             out string strError)
         {
@@ -980,16 +999,16 @@ namespace dp2Command.Service
                 {
                     MessageConnection connection = this._channels.GetConnectionAsync(
     this.dp2MServerUrl,
-    this.remoteUserName).Result;
+    remoteUserName).Result;
 
 
                     Task<SearchResult> task1 = connection.SearchAsync(
-    this.remoteUserName,
+    remoteUserName,
     request1,
     new TimeSpan(0, 1, 0),
     cancel_token);
                     Task<SearchResult> task2 = connection.SearchAsync(
-                         this.remoteUserName,
+                         remoteUserName,
                         request2,
                         new TimeSpan(0, 1, 0),
                         cancel_token);
@@ -1109,103 +1128,6 @@ namespace dp2Command.Service
 
         }
 
-        private int Test2Api(string biblioPath,
-            out string strInfo,
-            out string strError)
-        {
-            strError = "";
-            strInfo = "";
-
-
-            DateTime start_time = DateTime.Now;
-
-            CancellationToken cancel_token = new CancellationToken();
-
-            // 获取书目记录
-            string id1 = Guid.NewGuid().ToString();
-            SearchRequest request1 = new SearchRequest(id1,
-                "getBiblioInfo",
-                "<全部>",
-                biblioPath,
-                "",
-                "",
-                "",
-                "summary",
-                1,
-                0,
-                -1);
-            // 获取下属记录
-            string id2 = Guid.NewGuid().ToString();
-            SearchRequest request2 = new SearchRequest(id2,
-                "getBiblioInfo",
-                "<全部>",
-                biblioPath,
-                "",
-                "",
-                "",
-                "summary",
-                1,
-                0,
-                -1);
-
-            try
-            {
-                MessageConnection connection = this._channels.GetConnectionAsync(
-this.dp2MServerUrl,
-this.remoteUserName).Result;
-
-
-                Task<SearchResult> task1 = connection.SearchAsync(
-this.remoteUserName,
-request1,
-new TimeSpan(0, 1, 0),
-cancel_token);
-                Task<SearchResult> task2 = connection.SearchAsync(
-                     this.remoteUserName,
-                    request2,
-                    new TimeSpan(0, 1, 0),
-                    cancel_token);
-
-                Task<SearchResult>[] tasks = new Task<SearchResult>[2];
-                tasks[0] = task1;
-                tasks[1] = task2;
-                Task.WaitAll(tasks);
-
-
-                if (task1.Result.ResultCount == -1)
-                {
-                    strError = "获取摘要出错：" + task1.Result.ErrorInfo;
-                    return -1;
-                }
-                if (task1.Result.ResultCount == 0)
-                {
-                    strError = "未命中";
-                    return 0;
-                }
-                strInfo = task1.Result.Records[0].Data+"\n";
-
-                // api 2
-                strInfo += task2.Result.Records[0].Data;
-
-
-                return (int)task2.Result.ResultCount;
-
-            }
-            catch (AggregateException ex)
-            {
-                strError = MessageConnection.GetExceptionText(ex);
-                goto ERROR1;
-            }
-            catch (Exception ex)
-            {
-                strError = ex.Message;
-                goto ERROR1;
-            }
-
-        ERROR1:
-            return -1;
-
-        }
         #endregion
 
         /// <returns>
@@ -1213,7 +1135,8 @@ cancel_token);
         /// 0   未查到对应记录
         /// 1  成功
         /// </returns>
-        public override int GetMyInfo(string strReaderBarcode,
+        public override int GetMyInfo(string remoteUserName, 
+            string strReaderBarcode,
             out string strMyInfo,
             out string strError)
         {
@@ -1224,7 +1147,8 @@ cancel_token);
 
             // 得到高级xml
             string strXml = "";
-            int nRet = this.GetPatronInfo(strReaderBarcode,
+            int nRet = this.GetPatronInfo(remoteUserName, 
+                strReaderBarcode,
                 "xml",
                 out strXml,
                 out strError);
@@ -1269,7 +1193,8 @@ cancel_token);
         /// 0   未找到读者记录
         /// 1   成功
         /// </returns>
-        public override int GetBorrowInfo(string strReaderBarcode, 
+        public override int GetBorrowInfo(string remoteUserName, 
+            string strReaderBarcode, 
             out string strBorrowInfo, 
             out string strError)
         {
@@ -1279,7 +1204,8 @@ cancel_token);
 
             // 得到高级xml
             string strXml = "";
-            long lRet = this.GetPatronInfo(strReaderBarcode,
+            long lRet = this.GetPatronInfo(remoteUserName,
+                strReaderBarcode,
                 "advancexml,advancexml_borrow_bibliosummary",
                 out strXml,
                 out strError);
@@ -1297,7 +1223,8 @@ cancel_token);
         }
 
 
-        public int GetPatronInfo(string strReaderBarocde,  //todo refID
+        public int GetPatronInfo(string remoteUserName, 
+            string strReaderBarocde,  //todo refID
             string strFormat,
             out string xml,
             out string strError)
@@ -1324,10 +1251,10 @@ cancel_token);
             {
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    this.remoteUserName).Result;
+                    remoteUserName).Result;
 
                 SearchResult result = connection.SearchAsync(
-                    this.remoteUserName,
+                    remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;

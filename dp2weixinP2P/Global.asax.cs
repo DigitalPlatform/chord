@@ -46,15 +46,14 @@ namespace dp2weixinP2P
             //PathUtil.CreateDirIfNeed(weiXinDataDir);	// 确保目录创建
 
             string weiXinDataDir=Server.MapPath(string.Format("~/App_Data"));
-
             string weiXinUrl = WebConfigurationManager.AppSettings["weiXinUrl"];
-            string appId=WebConfigurationManager.AppSettings["WeixinAppId"];
-            string secret = WebConfigurationManager.AppSettings["WeixinSecret"];
-            //todo,是否把参数数统一放在init
-            dp2CmdService2.Instance.AppID = appId;
-            dp2CmdService2.Instance.AppSecret = secret;
+            string weiXinAppId = WebConfigurationManager.AppSettings["weiXinAppId"];
+            string weiXinSecret = WebConfigurationManager.AppSettings["weiXinSecret"];
+
             // 初始化命令服务类
-            dp2CmdService2.Instance.Init(dp2MServerUrl,
+            dp2CmdService2.Instance.Init(weiXinAppId,
+                weiXinSecret,
+                dp2MServerUrl,
                 userName,
                 password,
                 weiXinUrl,

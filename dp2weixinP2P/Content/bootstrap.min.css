@@ -2744,7 +2744,7 @@ th {
     }
 
     .table > tbody + tbody {
-        /*border-top: 2px solid #ffffff;*/
+        border-top: 2px solid #ffffff;
         padding-top:1em;
     }
 

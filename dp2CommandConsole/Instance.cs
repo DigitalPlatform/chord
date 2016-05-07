@@ -195,10 +195,12 @@ namespace dp2ConsoleToWeiXin
 
             string strReaderBarcode = "";
             string strError = "";
+            WxUserItem userItem = null;
             long lRet = dp2CommandService.Instance.
-                Binding(bindingCmd.ReaderBarcode,
+                Binding("","",bindingCmd.ReaderBarcode,
                 bindingCmd.Password,
                 this.WeiXinId,
+                out userItem,
                 out strReaderBarcode,
                 out strError);
             if (lRet == -1)
@@ -244,7 +246,7 @@ namespace dp2ConsoleToWeiXin
             }
 
             // 解除绑定
-            lRet = dp2CommandService.Instance.Unbinding1(this.ReaderBarcode, 
+            lRet = dp2CommandService.Instance.Unbinding("","",this.ReaderBarcode, 
                 this.WeiXinId,
                  out strError);
             if (lRet == -1 )
@@ -287,7 +289,8 @@ namespace dp2ConsoleToWeiXin
 
             // 获取读者信息
             string strMyInfo = "";
-            lRet = dp2CommandService.Instance.GetMyInfo(this.ReaderBarcode, out strMyInfo,
+            lRet = dp2CommandService.Instance.GetMyInfo("",
+                this.ReaderBarcode, out strMyInfo,
                 out strError);
             if (lRet == -1 || lRet == 0)
             {
@@ -326,7 +329,8 @@ namespace dp2ConsoleToWeiXin
             }
 
             string strBorrowInfo = "";
-            lRet = dp2CommandService.Instance.GetBorrowInfo(this.ReaderBarcode, out strBorrowInfo,
+            lRet = dp2CommandService.Instance.GetBorrowInfo("",
+                this.ReaderBarcode, out strBorrowInfo,
                 out strError);
             if (lRet == -1)
             {
@@ -369,7 +373,8 @@ namespace dp2ConsoleToWeiXin
             if (strParam == "" || strParam == "view")
             {
                 string strBorrowInfo = "";
-                lRet = dp2CommandService.Instance.GetBorrowInfo(this.ReaderBarcode, out strBorrowInfo,
+                lRet = dp2CommandService.Instance.GetBorrowInfo("",
+                    this.ReaderBarcode, out strBorrowInfo,
                     out strError);
                 if (lRet == -1)
                 {
@@ -392,7 +397,7 @@ namespace dp2ConsoleToWeiXin
 
             // 认作册条码
             BorrowInfo borrowInfo = null;
-            lRet = dp2CommandService.Instance.Renew(this.ReaderBarcode,
+            lRet = dp2CommandService.Instance.Renew("",this.ReaderBarcode,
                 strParam,
                 out borrowInfo,
                 out strError);
@@ -457,7 +462,8 @@ namespace dp2ConsoleToWeiXin
                 if (nBiblioIndex >= 1)
                 {
                     string strBiblioInfo = "";
-                    lRet = dp2CommandService.Instance.GetDetailBiblioInfo(searchCmd, nBiblioIndex,
+                    lRet = dp2CommandService.Instance.GetDetailBiblioInfo("",
+                        searchCmd, nBiblioIndex,
                         out strBiblioInfo,
                         out strError);
                     if (lRet == -1)
@@ -474,7 +480,8 @@ namespace dp2ConsoleToWeiXin
 
             // 检索
             string strFirstPage = "";
-            lRet = dp2CommandService.Instance.SearchBiblio(strParam, searchCmd,
+            lRet = dp2CommandService.Instance.SearchBiblio("",
+                strParam, searchCmd,
                 out strFirstPage,
                 out strError);
             if (lRet == -1)
@@ -507,7 +514,7 @@ namespace dp2ConsoleToWeiXin
             {
                 // 根据openid检索绑定的读者
                 string strBarcode = "";
-                long lRet = dp2CommandService.Instance.SearchOnePatronByWeiXinId(this.WeiXinId,
+                long lRet = dp2CommandService.Instance.SearchOnePatronByWeiXinId("","",this.WeiXinId,
                     out strBarcode,
                     out strError);
                 if (lRet == -1)
