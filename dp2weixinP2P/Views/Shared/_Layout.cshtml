@@ -41,11 +41,15 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="~/home/index">我爱图书馆公众号</a>
+                    <a class="navbar-brand" href="~/home/index">我爱图书馆</a>
                 </div>
+
                 <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                     <ul class="nav navbar-nav navbar-left">
+@if (Session["userType"]=="admin")
+                {
+
                         <li>
                             <a class="active" href="~/home/LibraryM">图书馆账号管理</a>
                         </li>
@@ -65,17 +69,32 @@
                             <a class="active" href="~/home/Setting">参数设置</a>
                         </li>
                         <li>
-                            <a class="active" href="~/Account/Index2?weixinId=o4xvUviTxj2HbRqbQb9W2nMl4fGg">绑定</a>
+                            <a class="active" href="~/Account/Index?weixinId=o4xvUvnLTg6NnflbYdcS-sxJCGFo">绑定(任延华)</a>
+                        </li>    
+}
+                        <li>
+                            <a class="active" href="~/Account/Index">绑定</a>
+                        </li>
+                        <li>
+                            <a class="active" href="~/Patron/Index">我的信息</a>
+                        </li>
+                        <li>
+                            <a class="active" href="~/Biblio/Index">书目查询</a>
                         </li>
                     </ul>
+
                     <ul class="nav navbar-nav navbar-right">
+
+
                         <li>
                             <a href="~/Home/About">关于</a>
                         </li>
                         <li>
                             <a href="~/Home/Contact">联系我们</a>
                         </li>
+
                     </ul>
+
                 </div>
                 <!-- /.navbar-collapse -->
             </div>
@@ -83,9 +102,11 @@
         </nav>
         <!-- Begin page content -->
         <div class="container" >
-            <!--部分页占位符 -->
-            @RenderBody()
-        </div>
+            <div style="background-color: rgba(255,255,255,0.5);padding-bottom:5px;padding-top:2px">
+                <!--部分页占位符 -->
+                @RenderBody()
+                </div>
+            </div>
         <footer class="footer">
             <div class="container">
                 <p class="text-muted" style="text-align:center">

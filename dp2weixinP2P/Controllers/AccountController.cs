@@ -13,6 +13,46 @@ namespace dp2weixinP2P.Controllers
 {
     public class AccountController : Controller
     {
+        /// <summary>
+        /// 可通过OAuth2.0方式重定向过来
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public ActionResult Index(string code, string state, string weiXinId)
+        {
+            // 从微信进入的
+            if (string.IsNullOrEmpty(code) == false)
+            {     
+                //可以传一个state用于校验
+                if (state != "dp2weixin")
+                {
+                    return Content("验证失败！请从正规途径进入！");
+                }
+
+                string strError = "";
+                int nRet = dp2CmdService2.Instance.GetWeiXinId(code, out weiXinId, out strError);
+                if (nRet == -1)
+                    return Content(strError);
+            }
+
+            if (String.IsNullOrEmpty(weiXinId) == false)
+            {
+                // 记下微信id
+                Session[WeiXinConst.C_Session_WeiXinId] = weiXinId;
+            }
+
+            if (Session[WeiXinConst.C_Session_WeiXinId] == null
+                || (String)Session[WeiXinConst.C_Session_WeiXinId] == "")
+            {
+                return Content("非正规途径，未传入微信id。");
+            }
+
+            return View();
+        }
+
+        #region del
+        /*
         // GET: Bind 绑定主界面‘
         public ActionResult Index(string weiXinId)
         {
@@ -61,41 +101,6 @@ namespace dp2weixinP2P.Controllers
             return View(userList);
         }
 
-        /// <summary>
-        /// 通过OAuth2.0方式重定向过来
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
-        public ActionResult Index3(string code, string state)
-        {
-            if (string.IsNullOrEmpty(code))
-            {
-                return Content("您拒绝了授权！");
-            }
-
-            if (state != "dp2weixin")
-            {
-                return Content("验证失败！请从正规途径进入！");
-            }
-
-            //用code换取access_token
-            var result = OAuthApi.GetAccessToken(dp2CmdService2.Instance.weiXinAppId, dp2CmdService2.Instance.weiXinSecret, code);
-            if (result.errcode != ReturnCode.请求成功)
-            {
-                return Content("错误：" + result.errmsg);
-            }
-
-            //下面2个数据也可以自己封装成一个类，储存在数据库中（建议结合缓存）
-            //如果可以确保安全，可以将access_token存入用户的cookie中，每一个人的access_token是不一样的
-            //Session["OAuthAccessTokenStartTime"] = DateTime.Now;
-            //Session["OAuthAccessToken"] = result;            
-
-            // 取出微信id
-            string weixinId = result.openid;
-            return this.Index(weixinId);
-        }
-
 
 
         public ActionResult Bind(string weixinId)
@@ -139,7 +144,7 @@ namespace dp2weixinP2P.Controllers
 
             string strError = "";
             string strRight = "";
-            /*
+           
             //登录dp2library服务器
             SessionInfo sessionInfo = ilovelibraryServer.Instance.Login(userName,
                 model.Password,
@@ -165,7 +170,7 @@ namespace dp2weixinP2P.Controllers
                     return Redirect(returnUrl);
                 }                
             }
-            */
+            
 
             // 如果我们进行到这一步时某个地方出错，则重新显示表单
             ModelState.AddModelError("", strError);//"提供的用户名或密码不正确。");
@@ -183,6 +188,7 @@ namespace dp2weixinP2P.Controllers
 
             return RedirectToAction("Main", "Charging");
         }
-
+                */
+        #endregion
     }
 }

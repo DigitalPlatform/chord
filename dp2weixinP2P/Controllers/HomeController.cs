@@ -22,8 +22,18 @@ namespace dp2weixinP2P.Controllers
         /// </summary>
         //public CookieContainer Cookies = new System.Net.CookieContainer();
 
-        public ActionResult Index()
+        public ActionResult Index(string admin)
         {
+            if (String.IsNullOrEmpty(admin) == false && admin == "1")
+            {
+                Session["userType"] = "admin";
+            }
+
+            if (String.IsNullOrEmpty(admin) == false && admin == "0")
+            {
+                Session["userType"] = null;
+            }
+
             return View();
         }
 

@@ -3,6 +3,7 @@ using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.Xml;
 using dp2Command.Service;
+using Senparc.Weixin;
 using Senparc.Weixin.MP.AdvancedAPIs;
 using Senparc.Weixin.MP.AdvancedAPIs.TemplateMessage;
 using Senparc.Weixin.MP.CommonAPIs;
@@ -1282,6 +1283,30 @@ namespace dp2Command.Service
             return -1;
         }
 
+
+        public int GetWeiXinId(string code, out string weiXinId,
+            out string strError)
+        {
+            strError = "";
+            weiXinId = "";
+
+            //用code换取access_token
+            var result = OAuthApi.GetAccessToken(this.weiXinAppId,this.weiXinSecret, code);
+            if (result.errcode != ReturnCode.请求成功)
+            {
+                strError="获取微信id出错：" + result.errmsg;
+                return -1;
+            }
+
+            //下面2个数据也可以自己封装成一个类，储存在数据库中（建议结合缓存）
+            //如果可以确保安全，可以将access_token存入用户的cookie中，每一个人的access_token是不一样的
+            //Session["OAuthAccessTokenStartTime"] = DateTime.Now;
+            //Session["OAuthAccessToken"] = result;            
+
+            // 取出微信id
+            weiXinId = result.openid;
+            return 0;
+        }
     }
 
     public class CaoQiTemplateData

@@ -139,6 +139,7 @@
     <Content Include="Scripts\jquery-1.9.1.js" />
     <Content Include="Scripts\jquery-ui-1.8.24.js" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
+    <Content Include="Scripts\jquery.form.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
@@ -157,9 +158,11 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\BiblioController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\OAuth2Controller.cs" />
+    <Compile Include="Controllers\PatronController.cs" />
     <Compile Include="Controllers\WeixinController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -193,9 +196,11 @@
     <Content Include="Views\OAuth2\Index.cshtml" />
     <Content Include="Views\OAuth2\UserInfoCallback.cshtml" />
     <Content Include="Views\Menu\Index.cshtml" />
-    <Content Include="Views\Account\Login.cshtml" />
+    <Content Include="Views\Account\Login.cshtml.txt" />
+    <Content Include="Views\Account\Index2.cshtml.txt" />
     <Content Include="Views\Account\Index.cshtml" />
-    <Content Include="Views\Account\Index2.cshtml" />
+    <Content Include="Views\Patron\Index.cshtml" />
+    <Content Include="Views\Biblio\Index.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
