@@ -344,8 +344,14 @@
             }
 
             .form-signin select {
-                border: none;
+                /*border: none;*/
             }
+
+             .lookLikeAButton{
+appearance:menulist;
+-moz-appearance:listbox; /* Firefox */
+-webkit-appearance:menulist; /* Safari and Chrome */
+ }
 
     </style>
 }
@@ -406,7 +412,7 @@
     </div>
 
 
-    <div data-bind="if: model.displayPage()==2">
+    <div data-bind="if: model.displayPage()==2" style="background-color:white;padding-top:2px">
         <center><h3>绑定图书馆账号</h3></center>
         <br />
         <div class="form-group-lg form-signin">
@@ -425,10 +431,10 @@
                 </table>
             </div>
             <div>
-                <select class="form-control" id="selPrefix" name="selPrefix"  onchange="prefixChange()" data-bind="value:model.editor.prefix">
+                <select class="form-control lookLikeAButton" style="border:0px;border-color:transparent"  id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.editor.prefix">
                     <option value="-1">请选择绑定方式</option>
                     <option value="NB">姓名</option>
-                    <option value="">证条码号</option>                    
+                    <option value="">证条码号</option>
                     <option value="EM">email</option>
                     <option value="TP">电话号码</option>
                     <option value="ID">身份证号</option>
