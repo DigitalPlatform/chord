@@ -21,7 +21,8 @@ namespace dp2weixin
         /// <returns></returns>
         public override IResponseMessageBase OnEvent_SubscribeRequest(RequestMessageEvent_Subscribe requestMessage)
         {
-            string strMessage = "您好，欢迎关注数字平台公众号！您可以回复：\n"
+            string strMessage = "您好，欢迎关注我爱图书馆公众号:-)";
+            /*您可以回复：\n"
                + "search:检索" + "\n"
                + "binding:绑定读者账号" + "\n"
                + "unbinding:解除绑定" + "\n"
@@ -29,7 +30,7 @@ namespace dp2weixin
                + "borrowinfo:借阅信息" + "\n"
                + "renew:续借" + "\n"
                + "bookrecommend:新书推荐" + "\n"
-               + "notice:最新公告";
+               + "notice:最新公告";*/
             return this.CreateTextResponseMessage(strMessage,false);
         }
 

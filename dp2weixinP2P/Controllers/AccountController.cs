@@ -51,6 +51,15 @@ namespace dp2weixinP2P.Controllers
             return View();
         }
 
+
+        //找回密码
+        public ActionResult RetrievePassword()
+        {
+
+            return View();
+        }
+
+
         #region del
         /*
         // GET: Bind 绑定主界面‘

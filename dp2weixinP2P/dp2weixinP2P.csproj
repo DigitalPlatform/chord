@@ -128,6 +128,8 @@
     <Content Include="Global.asax" />
     <Content Include="img\emptyBind.png" />
     <Content Include="img\library.jpg" />
+    <Content Include="img\nonePhoto.png" />
+    <Content Include="img\wait2.gif" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
@@ -201,6 +203,7 @@
     <Content Include="Views\Account\Index.cshtml" />
     <Content Include="Views\Patron\Index.cshtml" />
     <Content Include="Views\Biblio\Index.cshtml" />
+    <Content Include="Views\Account\RetrievePassword.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

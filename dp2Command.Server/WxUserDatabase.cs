@@ -253,18 +253,19 @@ namespace dp2Command.Service
 
             // 检查一下是否被删除读者是否为默认读者，如果是，把自动将默认值设了第一个读者上。
             List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
-            WxUserItem userItem = null;
+            string weixinId = "";
             if (list.Count > 0)
-                userItem= list[0];
-            if (userItem != null)
             {
-                WxUserItem newUserItem = this.GetOneByWeixinId(userItem.weixinId);
-                if (newUserItem != null)
-                    this.SetActive(newUserItem);
+                weixinId = list[0].weixinId;
             }
 
-            // 删除
+            // 先删除
             collection.DeleteOne(filter);
+
+            // 自动将第一个设为默认的
+            WxUserItem newUserItem = this.GetOneByWeixinId(weixinId);
+            if (newUserItem != null)
+                this.SetActive(newUserItem);
         }
 
         public void SetActive(WxUserItem item)
