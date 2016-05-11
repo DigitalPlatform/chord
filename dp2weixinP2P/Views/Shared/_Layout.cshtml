@@ -15,7 +15,6 @@
     <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
     <script src="@Url.Content("~/Scripts/layer.js")"></script>
     <script src="@Url.Content("~/Scripts/weixin.js")"></script>
-
     <script>
 
         // 高亮显示当前的菜单
@@ -28,91 +27,169 @@
     @RenderSection("style", required: false)
     @RenderSection("scripts", required: false)
     @RenderSection("HeaderContent", false)
+
+    <style type="text/css">
+
+    .container .navbar-header,
+    .container .navbar-collapse {
+    margin-right: 0;
+    margin-left: 0;
+    }
+
+    /* Always float the navbar header */
+    .navbar-header {
+    float: left;
+    }
+
+    .navbar-brand {
+    margin-left: -15px;
+    }
+
+    /* Always apply the floated nav */
+    .navbar-nav {
+    float: left;
+    margin: 0;
+    }
+    .navbar-nav > li {
+    float: left;
+    }
+    .navbar-nav > li > a {
+    padding: 15px;
+    }
+
+    /* Redeclare since we override the float above */
+    .navbar-nav.navbar-right {
+    float: right;
+    }
+
+    /* Undo custom dropdowns */
+    .navbar .navbar-nav .open .dropdown-menu {
+    position: absolute;
+    float: left;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-width: 0 1px 1px;
+    border-radius: 0 0 4px 4px;
+    -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
+    }
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a {
+    color: #333;
+    }
+    .navbar .navbar-nav .open .dropdown-menu > li > a:hover,
+    .navbar .navbar-nav .open .dropdown-menu > li > a:focus,
+    .navbar .navbar-nav .open .dropdown-menu > .active > a,
+    .navbar .navbar-nav .open .dropdown-menu > .active > a:hover,
+    .navbar .navbar-nav .open .dropdown-menu > .active > a:focus {
+    color: #fff !important;
+    background-color: #428bca !important;
+    }
+    .navbar .navbar-nav .open .dropdown-menu > .disabled > a,
+    .navbar .navbar-nav .open .dropdown-menu > .disabled > a:hover,
+    .navbar .navbar-nav .open .dropdown-menu > .disabled > a:focus {
+    color: #999 !important;
+    background-color: transparent !important;
+    }
+    </style>
+
 </head>
+<body>
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
 
-    <body style="background-image:url(' @dp2Command.Service.dp2CmdService2.Instance.TodayUrl ');-moz-background-size:cover;-webkit-background-size:cover;-o-background-size:cover;background-size:cover;">
-        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-            <div class="container">
-                <!-- Brand and toggle get grouped for better mobile display -->
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="~/home/index">我爱图书馆</a>
-                </div>
-
-                <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <ul class="nav navbar-nav navbar-left">
-@if (Session["userType"]=="admin")
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <!--
+            <div class="navbar-header">
+                <a class="navbar-brand" href="~/home/index">我爱图书馆</a>
+            </div>
+        -->
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div>
+            <ul class="nav navbar-nav navbar-left">
+                @if (Session["userType"] == "admin")
                 {
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            系统管理
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
 
+                            <li>
+                                <a class="active" href="~/home/LibraryM">图书馆账号管理</a>
+                            </li>
+                            <li>
+                                <a href="~/home/WeixinUser">微信用户管理</a>
+                            </li>
+                            <li>
+                                <a href="~/home/WeixinMessage">微信消息</a>
+                            </li>
+                            <li>
+                                <a href="~/Menu/Index">微信菜单</a>
+                            </li>
+                            <li>
+                                <a href="~/Weixin/Index">公众号接口url</a>
+                            </li>
+                            <li>
+                                <a href="~/home/Setting">参数设置</a>
+                            </li>
+                            <li>
+                                <a href="~/Account/Index?weixinId=o4xvUvnLTg6NnflbYdcS-sxJCGFo">绑定(任延华)</a>
+                            </li>
+                        </ul>
+                    </li>
+                }
+
+                <li>
+                    <a href="~/Biblio/Index">书目查询</a>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        我的图书馆
+                        <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
                         <li>
-                            <a class="active" href="~/home/LibraryM">图书馆账号管理</a>
+                            <a href="~/Account/Index">绑定账号</a>
                         </li>
                         <li>
-                            <a class="active" href="~/home/WeixinUser">微信用户管理</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/home/WeixinMessage">微信消息</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/Menu/Index">微信菜单</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/Weixin/Index">公众号接口url</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/home/Setting">参数设置</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/Account/Index?weixinId=o4xvUvnLTg6NnflbYdcS-sxJCGFo">绑定(任延华)</a>
-                        </li>    
-}
-                        <li>
-                            <a class="active" href="~/Account/Index">绑定图书馆账号</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/Patron/Index">我的信息</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/Biblio/Index">书目查询</a>
+                            <a href="~/Patron/Index">我的信息</a>
                         </li>
                     </ul>
+                </li>
+            </ul>
 
-                    <ul class="nav navbar-nav navbar-right">
-
-
-                        <li>
-                            <a href="~/Home/About">关于</a>
-                        </li>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        更多
+                        <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
                         <li>
                             <a href="~/Home/Contact">联系我们</a>
                         </li>
-
                     </ul>
+                </li>
+            </ul>
 
-                </div>
-                <!-- /.navbar-collapse -->
-            </div>
-            <!-- /.container -->
-        </nav>
-        <!-- Begin page content -->
-        <div class="container" >
-            <div style="background-color: rgba(255,255,255,0.5);padding-bottom:5px;">
-                <!--部分页占位符 -->
-                @RenderBody()
-                </div>
-            </div>
-        <footer class="footer">
-            <div class="container">
-                <p class="text-muted" style="text-align:center">
-                    <a href="https://github.com/DigitalPlatform/chord">开源的云图书馆项目 chord</a>
-                </p>
-            </div>
-        </footer>
-    </body>
+        </div>
+        <!-- /.navbar-collapse -->
+        <!-- /.container -->
+    </nav>
+    <!-- Begin page content -->
+    <div style="padding-top:50px">
+        <div style="background-color: rgba(255,255,255,0.8);">
+            <!--部分页占位符 -->
+            @RenderBody()
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container">
+            <p class="text-muted" style="text-align:center">
+                <a href="https://github.com/DigitalPlatform/chord">开源的云图书馆项目 chord</a>
+            </p>
+        </div>
+    </footer>
+</body>
 </html>

@@ -65,6 +65,8 @@
     <Compile Include="dp2CommandService.cs" />
     <Compile Include="dp2CmdService2.cs" />
     <Compile Include="ImgManager.cs" />
+    <Compile Include="Interface\MessageInterface.cs" />
+    <Compile Include="Interface\ScriptManager.cs" />
     <Compile Include="WxMsgThread.cs" />
     <Compile Include="WxUserDatabase.cs" />
     <Compile Include="LibDatabase.cs" />
@@ -77,6 +79,10 @@
     <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj">
       <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
       <Name>DigitalPlatform.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.Interfaces\DigitalPlatform.Interfaces.csproj">
+      <Project>{3c4f8133-8652-40b6-b37b-200b25c2b043}</Project>
+      <Name>DigitalPlatform.Interfaces</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj">
       <Project>{441cb814-af78-4503-91ef-dce5f3269502}</Project>

@@ -52,12 +52,7 @@ namespace dp2weixinP2P.Controllers
         }
 
 
-        //找回密码
-        public ActionResult RetrievePassword()
-        {
 
-            return View();
-        }
 
 
         #region del

@@ -13,6 +13,7 @@ using DigitalPlatform.IO;
 using dp2Command.Service;
 using DigitalPlatform.Text;
 using dp2weixin;
+using System.IO;
 
 namespace dp2weixinP2P
 {
@@ -25,41 +26,23 @@ namespace dp2weixinP2P
             GlobalConfiguration.Configure(WebApiConfig.Register);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
-            // 从web config中取出mongoDb地址
-            string mongoDbConnStr = WebConfigurationManager.AppSettings["mongoDbConnStr"];
-            if (String.IsNullOrEmpty(mongoDbConnStr) == true)
+            // 从web config中取出数据目录
+            string dataDir = WebConfigurationManager.AppSettings["DataDir"];
+            if (String.IsNullOrEmpty(dataDir)== true)
             {
-                throw new Exception("尚未配置mongodb连接字符串");
+                throw new Exception("尚未在Web.config文件中设置DataDir参数");
             }
-            string instancePrefix = WebConfigurationManager.AppSettings["instancePrefix"];
-            LibDatabase.Current.Open(mongoDbConnStr, instancePrefix);
 
-            // 从web config中取出mserver服务器地址，微信自己的账号
-            string dp2MServerUrl = WebConfigurationManager.AppSettings["dp2MServerUrl"];
-            string userName = WebConfigurationManager.AppSettings["userName"];
-            string password = WebConfigurationManager.AppSettings["password"];
-            if (string.IsNullOrEmpty(password) == false)// 解密
-                password = Cryptography.Decrypt(password, WeiXinClientUtil.EncryptKey);
+            if (dataDir.Substring(0, 1) == "~")
+                dataDir = Server.MapPath(string.Format(dataDir));//"~/App_Data"
 
-            // 数据目录
-            //string weiXinDataDir = WebConfigurationManager.AppSettings["weiXinDataDir"];
-            //PathUtil.CreateDirIfNeed(weiXinDataDir);	// 确保目录创建
-
-            string weiXinDataDir=Server.MapPath(string.Format("~/App_Data"));
-            string weiXinUrl = WebConfigurationManager.AppSettings["weiXinUrl"];
-            string weiXinAppId = WebConfigurationManager.AppSettings["weiXinAppId"];
-            string weiXinSecret = WebConfigurationManager.AppSettings["weiXinSecret"];
+            if (Directory.Exists(dataDir) == false)
+            {
+                throw new Exception("微信数据目录"+dataDir+"不存在。");
+            }
 
             // 初始化命令服务类
-            dp2CmdService2.Instance.Init(weiXinAppId,
-                weiXinSecret,
-                dp2MServerUrl,
-                userName,
-                password,
-                weiXinUrl,
-                weiXinDataDir,
-                mongoDbConnStr,
-                instancePrefix);
+            dp2CmdService2.Instance.Init(dataDir);
         }
     }
 }

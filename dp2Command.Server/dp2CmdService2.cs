@@ -1,8 +1,9 @@
-﻿using DigitalPlatform.IO;
+﻿using DigitalPlatform.Interfaces;
+using DigitalPlatform.IO;
 using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
+using DigitalPlatform.Text;
 using DigitalPlatform.Xml;
-using dp2Command.Service;
 using Senparc.Weixin;
 using Senparc.Weixin.MP.AdvancedAPIs;
 using Senparc.Weixin.MP.AdvancedAPIs.TemplateMessage;
@@ -10,7 +11,9 @@ using Senparc.Weixin.MP.CommonAPIs;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,13 +23,19 @@ namespace dp2Command.Service
 {
     public class dp2CmdService2:dp2BaseCommandService
     {
+        public static string EncryptKey = "dp2weixinPassword";
+
         MessageConnectionCollection _channels = new MessageConnectionCollection();
+
+        // 配置文件
+        public string _cfgFile = "";
 
         // dp2服务器地址与代理账号
         public string dp2MServerUrl = "";
         public string userName = "";
         public string password = "";
 
+        // 微信信息
         public string weiXinAppId { get; set; }
         public string weiXinSecret { get; set; }
 
@@ -59,26 +68,52 @@ namespace dp2Command.Service
         }
         //===========
 
-        public void Init(string weiXinAppId,
-            string weiXinSecret,
-            string dp2MServerUrl,
-            string userName,
-            string password,
-            string weiXinUrl,
-            string weiXinDataDir,
-            string mongoDbConnStr,
-            string instancePrefix)
+        public void Init(string dataDir)
         {
-            this.weiXinAppId = weiXinAppId;
-            this.weiXinSecret = weiXinSecret;
-            this.dp2MServerUrl = dp2MServerUrl;
-            this.userName = userName;
-            this.password = password;
-            this.weiXinUrl = weiXinUrl;
             this.weiXinDataDir = weiXinDataDir;
 
-            // 使用mongodb存储微信用户与读者绑定关系
-            WxUserDatabase.Current.Open(mongoDbConnStr, instancePrefix);
+            this._cfgFile=dataDir + "\\" + "weixin.xml";
+            if (File.Exists(this._cfgFile) == false)
+            {
+                throw new Exception("配置文件"+this._cfgFile+"不存在。");
+            }
+
+            XmlDocument dom = new XmlDocument();
+            dom.Load(this._cfgFile);
+            XmlNode root= dom.DocumentElement;
+
+            // 取出mserver服务器配置信息
+            XmlNode nodeDp2mserver = root.SelectSingleNode("dp2mserver");
+            this.dp2MServerUrl = DomUtil.GetAttr(nodeDp2mserver, "url");// WebConfigurationManager.AppSettings["dp2MServerUrl"];
+            this.userName= DomUtil.GetAttr(nodeDp2mserver, "username");//WebConfigurationManager.AppSettings["userName"];
+            this.password = DomUtil.GetAttr(nodeDp2mserver, "password");//WebConfigurationManager.AppSettings["password"];
+            if (string.IsNullOrEmpty(this.password) == false)// 解密
+                this.password = Cryptography.Decrypt(this.password, dp2CmdService2.EncryptKey);
+
+            // 取出微信配置信息
+            XmlNode nodeDp2weixin = root.SelectSingleNode("dp2weixin");
+            this.weiXinUrl = DomUtil.GetAttr(nodeDp2weixin, "url"); //WebConfigurationManager.AppSettings["weiXinUrl"];
+            this.weiXinAppId = DomUtil.GetAttr(nodeDp2weixin, "AppId"); //WebConfigurationManager.AppSettings["weiXinAppId"];
+            this.weiXinSecret = DomUtil.GetAttr(nodeDp2weixin, "Secret"); //WebConfigurationManager.AppSettings["weiXinSecret"];
+
+            // mongo配置
+            XmlNode nodeMongoDB = root.SelectSingleNode("mongoDB");
+            string connectionString = DomUtil.GetAttr(nodeMongoDB, "connectionString");
+            if (String.IsNullOrEmpty(connectionString) == true)
+            {
+                throw new Exception("尚未配置mongoDB节点的connectionString属性");
+            }
+            string instancePrefix = DomUtil.GetAttr(nodeMongoDB, "instancePrefix");
+            // 打开图书馆账号库与用户库
+            WxUserDatabase.Current.Open(connectionString, instancePrefix);
+            LibDatabase.Current.Open(connectionString, instancePrefix);
+
+            // 初始化接口类
+            string strError = "";
+            int nRet = this.InitialExternalMessageInterfaces(dom, out strError);
+            if (nRet == -1)
+                throw new Exception("初始化接口配置信息出错："+strError);
+
 
             //全局只需注册一次
             AccessTokenContainer.Register(this.weiXinAppId, this.weiXinSecret);
@@ -93,12 +128,110 @@ namespace dp2Command.Service
 
             //Task.Factory.StartNew(() => DoLoadMessage("<default>"));
 
-
+            /*
             // 初始img manager
             string imgFile = this.weiXinDataDir + "\\" + "image.xml";
             ImgManager imgManager = new ImgManager(imgFile);
             string todayNo = DateTime.Now.Day.ToString();
             TodayUrl = imgManager.GetImgUrl(todayNo);
+             */
+        }
+
+
+        public List<MessageInterface> m_externalMessageInterfaces = null;
+
+        // 初始化扩展的消息接口
+        /*
+    <externalMessageInterface>
+        <interface type="sms" assemblyName="chchdxmessageinterface"/>
+    </externalMessageInterface>
+         */
+        // parameters:
+        // return:
+        //      -1  出错
+        //      0   当前没有配置任何扩展消息接口
+        //      1   成功初始化
+        public int InitialExternalMessageInterfaces(XmlDocument dom, out string strError)
+        {
+            strError = "";
+
+            this.m_externalMessageInterfaces = null;
+            XmlNode root = dom.DocumentElement.SelectSingleNode("externalMessageInterface");
+            if (root == null)
+            {
+                strError = "在weixin.xml中没有找到<externalMessageInterface>元素";
+                return 0;
+            }
+
+            this.m_externalMessageInterfaces = new List<MessageInterface>();
+
+            XmlNodeList nodes = root.SelectNodes("interface");
+            foreach (XmlNode node in nodes)
+            {
+                string strType = DomUtil.GetAttr(node, "type");
+                if (String.IsNullOrEmpty(strType) == true)
+                {
+                    strError = "<interface>元素未配置type属性值";
+                    return -1;
+                }
+
+                string strAssemblyName = DomUtil.GetAttr(node, "assemblyName");
+                if (String.IsNullOrEmpty(strAssemblyName) == true)
+                {
+                    strError = "<interface>元素未配置assemblyName属性值";
+                    return -1;
+                }
+
+                MessageInterface message_interface = new MessageInterface();
+                message_interface.Type = strType;
+                message_interface.Assembly = Assembly.Load(strAssemblyName);
+                if (message_interface.Assembly == null)
+                {
+                    strError = "名字为 '" + strAssemblyName + "' 的Assembly加载失败...";
+                    return -1;
+                }
+
+                Type hostEntryClassType = ScriptManager.GetDerivedClassType(
+        message_interface.Assembly,
+        "DigitalPlatform.Interfaces.ExternalMessageHost");
+                if (hostEntryClassType == null)
+                {
+                    strError = "名字为 '" + strAssemblyName + "' 的Assembly中未找到 DigitalPlatform.Interfaces.ExternalMessageHost类的派生类，初始化扩展消息接口失败...";
+                    return -1;
+                }
+
+                message_interface.HostObj = (ExternalMessageHost)hostEntryClassType.InvokeMember(null,
+        BindingFlags.DeclaredOnly |
+        BindingFlags.Public | BindingFlags.NonPublic |
+        BindingFlags.Instance | BindingFlags.CreateInstance, null, null,
+        null);
+                if (message_interface.HostObj == null)
+                {
+                    strError = "创建 type 为 '" + strType + "' 的 DigitalPlatform.Interfaces.ExternalMessageHost 类的派生类的对象（构造函数）失败，初始化扩展消息接口失败...";
+                    return -1;
+                }
+
+                message_interface.HostObj.App = this;
+
+                this.m_externalMessageInterfaces.Add(message_interface);
+            }
+
+            return 1;
+        }
+
+        public MessageInterface GetMessageInterface(string strType)
+        {
+            // 2012/3/29
+            if (this.m_externalMessageInterfaces == null)
+                return null;
+
+            foreach (MessageInterface message_interface in this.m_externalMessageInterfaces)
+            {
+                if (message_interface.Type == strType)
+                    return message_interface;
+            }
+
+            return null;
         }
 
         #region 本方账号登录
@@ -271,6 +404,168 @@ namespace dp2Command.Service
 
 
             return list;
+        }
+
+        public int ResetPassword(string remoteUserName, 
+            string strLibraryCode,
+            string name, 
+            string tel,
+            out string strError)
+        {
+            strError = "";
+            string resultXml = "";
+            string patronParam = "style=returnMessage,"
+                + "queryword=NB:" + name + "|,"
+                + "tel=" + tel + ","
+                + "name=" + name;
+            CancellationToken cancel_token = new CancellationToken();
+
+            string id = Guid.NewGuid().ToString();
+            CirculationRequest request = new CirculationRequest(id,
+                "resetPassword",
+                patronParam,
+                "",//this.textBox_circulation_item.Text,
+                "",//this.textBox_circulation_style.Text,
+                "",//this.textBox_circulation_patronFormatList.Text,
+                "",//this.textBox_circulation_itemFormatList.Text,
+                "");//this.textBox_circulation_biblioFormatList.Text);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                    this.dp2MServerUrl,
+                    "").Result;
+                CirculationResult result = connection.CirculationAsync(
+                    remoteUserName,
+                    request,
+                    new TimeSpan(0, 1, 10), // 10 秒
+                    cancel_token).Result;
+                if (result.Value == -1)
+                {
+                    strError = "出错："+result.ErrorInfo;
+                    return -1;
+                }
+
+                if (result.Value == 0)
+                {
+                    strError = "操作未成功："+result.ErrorInfo;
+                    return 0;
+                }
+
+                resultXml = result.PatronBarcode;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+
+            // 发送短信
+            string strMessageTemplate = "";
+            MessageInterface external_interface = this.GetMessageInterface("sms");
+            if (string.IsNullOrEmpty(strMessageTemplate) == true)
+                strMessageTemplate = "%name% 您好！\n您的读者帐户(证条码号为 %barcode%)已设临时密码 %temppassword%，在 %period% 内登录会成为正式密码";
+
+            /*
+                                    DomUtil.SetElementText(node, "tel", strTelParam);
+                                    DomUtil.SetElementText(node, "barcode", strBarcode);
+                                    DomUtil.SetElementText(node, "name", strName);
+                                    DomUtil.SetElementText(node, "tempPassword", strReaderTempPassword);
+                                    DomUtil.SetElementText(node, "expireTime", expire.ToLongTimeString());
+                                    DomUtil.SetElementText(node, "period", "一小时");
+                                    DomUtil.SetElementText(node, "refID", strRefID); 
+             */
+            /*
+<root>
+  <patron>
+    <tel>13862157150</tel>
+    <barcode>R00001</barcode>
+    <name>任延华</name>
+    <tempPassword>586284</tempPassword>
+    <expireTime>13:24:57</expireTime>
+    <period>一小时</period>
+    <refID>63aeb890-8936-4471-bfc5-8e72d5c7fe94</refID>
+  </patron>
+</root>             
+             */
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(resultXml);
+            XmlNode nodePatron = dom.DocumentElement.SelectSingleNode("patron");
+            string strRefID = DomUtil.GetNodeText(nodePatron.SelectSingleNode("refID"));
+
+            string strBarcode = DomUtil.GetNodeText(nodePatron.SelectSingleNode("barcode"));
+            string strName = DomUtil.GetNodeText(nodePatron.SelectSingleNode("name"));
+            string strReaderTempPassword = DomUtil.GetNodeText(nodePatron.SelectSingleNode("tempPassword"));
+            string expireTime = DomUtil.GetNodeText(nodePatron.SelectSingleNode("expireTime"));
+            string period = DomUtil.GetNodeText(nodePatron.SelectSingleNode("period")); 
+
+            string strBody = strMessageTemplate.Replace("%barcode%", strBarcode)
+                .Replace("%name%", strName)
+                .Replace("%temppassword%", strReaderTempPassword)
+                .Replace("%expiretime%", expireTime)
+                .Replace("%period%", period);
+            // string strBody = "读者(证条码号) " + strBarcode + " 的帐户密码已经被重设为 " + strReaderNewPassword + "";
+            int nRet = 0;
+            // 向手机号码发送短信
+            {
+                // 得到高级xml
+                string strXml = "";
+                nRet = this.GetPatronInfo(remoteUserName,
+                    strName,//"@refID:" + strRefID,
+                    "xml",
+                    out strXml,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+                if (nRet == 0)
+                {
+                    strError = "从dp2library未找到refID为'" + strRefID + "'的记录"; //todo refID
+                    return 0;
+                }
+
+                // 发送消息
+                try
+                {
+
+                    // 发送一条消息
+                    // parameters:
+                    //      strPatronBarcode    读者证条码号
+                    //      strPatronXml    读者记录XML字符串。如果需要除证条码号以外的某些字段来确定消息发送地址，可以从XML记录中取
+                    //      strMessageText  消息文字
+                    //      strError    [out]返回错误字符串
+                    // return:
+                    //      -1  发送失败
+                    //      0   没有必要发送
+                    //      >=1   发送成功，返回实际发送的消息条数
+                    nRet = external_interface.HostObj.SendMessage(
+                        strBarcode,
+                        strXml,
+                        strBody,
+                        strLibraryCode,
+                        out strError);
+                }
+                catch (Exception ex)
+                {
+                    strError = external_interface.Type + " 类型的外部消息接口Assembly中SendMessage()函数抛出异常: " + ex.Message;
+                    nRet = -1;
+                }
+                if (nRet == -1)
+                {
+                    strError = "向读者 '" + strBarcode + "' 发送" + external_interface.Type + " message时出错: " + strError;
+                    
+                    this.WriteErrorLog(strError);
+                    return -1;
+                }
+            }
+
+            return 1;
+
+        ERROR1:
+            return -1;
         }
 
 

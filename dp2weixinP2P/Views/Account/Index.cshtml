@@ -18,7 +18,8 @@
             displayPage: ko.observable(1),
 
             // 图书馆
-            librarys: ko.observableArray()
+            librarys: ko.observableArray(),
+            libFrom: ko.observable("")
         }
 
 
@@ -63,6 +64,13 @@
             // 调web api
             var url = "/api/wxuser?weixinId=" + weixinId;
             sendAjaxRequest(url, "GET", function (data) {
+
+                //$("#id").css('display', 'none');
+                //$("#id").css('display', 'block');
+                if (data.length == 0)
+                    $("#divNoBind").css('display', 'block');
+                else
+                    $("#divNoBind").css('display', 'none');
                 for (var i = 0; i < data.length; i++) {
                     //遍历从服务器得到的结果，以push方法对该数组填充新数据
                     model.wxUsers.push(data[i]);
@@ -122,12 +130,12 @@
 
             // 获取所有的操作命令
             var weixinId = $("#weixinId").text();
-            
+
             getAllLib();
-            getBindList(weixinId);            
+            getBindList(weixinId);
             $("#selPrefix option").eq(1).attr("selected", "selected");//prop("checked", true);
 
-            
+
             ko.applyBindings(model);
         })
 
@@ -148,7 +156,7 @@
                 return;
             }
 
-            
+
             // 不需判断为空
             var prefix = model.editor.prefix().trim();
             if (prefix == "-1") {
@@ -160,7 +168,7 @@
             var curText = $('#selPrefix option:checked').text();
             var word = model.editor.word().trim();
             if (word == "") {
-                alert("您尚未输入"+curText+"。");
+                alert("您尚未输入" + curText + "。");
                 return;
             }
             //alert("word[" + word + "]");
@@ -181,9 +189,8 @@
                 //遍历从服务器得到的结果，以push方法对该数组填充新数据
                 var item = model.wxUsers()[i];
 
-                if (item.libCode == libCode && item.fullWord == fullWord)
-                {
-                    alert("您已绑定图书馆[" +item.libCode+"]的读者[" +word+"]，请不要重复绑定。");
+                if (item.libCode == libCode && item.fullWord == fullWord) {
+                    alert("您已绑定图书馆[" + item.libCode + "]的读者[" + word + "]，请不要重复绑定。");
                     return;
                 }
             }
@@ -230,10 +237,10 @@
                     layer.close(index);
                 },
                 {
-                    weixinId:weixinId,
+                    weixinId: weixinId,
                     prefix: prefix,
                     word: word,
-                    password:password,
+                    password: password,
                     libCode: libCode,
                     libUserName: libUserName
                 }
@@ -254,13 +261,77 @@
             model.displayPage(2);
         }
 
+
+
+        // 点击找回密码
+        function handleRetrievePassword() {
+            model.displayPage(4);
+        }
+
+        function getTempPassword() {
+
+            var libUserName = model.editor.libUserName().trim();
+            if (libUserName == "") {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+            var libCode = model.editor.libCode().trim();
+
+            var userName1 = $("#userName1").val();
+            if (userName1 == "") {
+                alert("您尚未输入姓名。");
+                return;
+            }
+            var tel1 = $("#tel1").val();
+            if (tel1 == "") {
+                alert("您尚未输入手机号码。");
+                return;
+            }
+            //alert(userName1 + "-" + tel1);
+
+            //显示等待图层
+            var index = loadLayer();
+
+            // 调web api获取临时密码
+            var url = "/api/wxuser?libUserName=" + libUserName + "&libCode="+libCode+"&name=" + encodeURIComponent(userName1) + "&tel=" + tel1;
+            sendAjaxRequest(url, "POST", function (result) {
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1 || result.errorCode==0) {
+                    openMsg(result.errorInfo);
+
+                    return;
+                }
+
+                alert("临时密码已通过短信方式发送到手机 " + tel1 + "。请按照手机短信提示进行操作");//todo
+
+                //清空输入框，注意这里没清除选择的图书馆
+                $("#userName1").val("");
+                $("#tel1").val("");
+
+                // 到达绑定界面
+                model.displayPage(2);
+
+                // 给密码下面加一行红色的文字
+                $("#passWarn").html("(请输入您手机短信中的密码。）" );
+
+            }, function (xhq, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+
+
+
+        }
+
         // 在新增图书馆，点击取消
         function handleCancelClick() {
             model.displayPage(1);
         }
 
-        function selectLib()
-        {
+        function selectLib(libFrom) {
+
+            model.libFrom = libFrom;
             model.displayPage(3);
         }
 
@@ -314,7 +385,10 @@
             $("#prefix").focus();
 
             // 回到绑定界面
-            model.displayPage(2);
+            if (model.libFrom == "resetPassword")
+                model.displayPage(4);
+            else
+                model.displayPage(2);
         }
 
 
@@ -327,8 +401,7 @@
 
         }
 
-        function prefixChange()
-        {
+        function prefixChange() {
             var curText = $('#selPrefix option:checked').text();
             if (curText == "请选择绑定方式")
                 curText = "";
@@ -339,151 +412,183 @@
 }
 @section style {
     <style type="text/css">
-            .form-signin input{
-                border: none;
-            }
+        .form-signin input {
+            border-bottom:1px solid #cccccc;
+            border-top: none;
+            border-left:none;
+            border-right:none;
+        }
 
-            .form-signin select {
-                /*border: none;*/
-            }
+        .form-signin select {
+            /*border: none;*/
+        }
 
-             .lookLikeAButton{
-appearance:menulist;
--moz-appearance:listbox; /* Firefox */
--webkit-appearance:menulist; /* Safari and Chrome */
- }
-
+        .lookLikeAButton {
+            appearance: menulist;
+            -moz-appearance: listbox; /* Firefox */
+            -webkit-appearance: menulist; /* Safari and Chrome */
+        }
     </style>
 }
 
 
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 
 
-    <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<div data-bind="visible: model.displayPage()==1" id="divBindList" style="display:none;font-size:20px">
+    <div id="divNoBind" style="display:none;">
+        <center>
+            <img src='../img/emptyBind.png' width='100' height='100' style=" padding-top:5px" />
+            <div>您尚未绑定读者。</div>
+        </center>
+    </div>
+    <table class="table table-striped" style="background-color:#ffffff">
+        <tbody data-bind=" foreach:model.wxUsers">
+            <tr>
+                <td>
+                    <div>
+                        <div style="float:left;width:80px">读者：</div>
+                        <span data-bind="text:readerName"></span>
+                        <span data-bind="text:readerBarcode"></span>
+                    </div>
+                    <div>
+                        <div style="float:left;width:80px">图书馆：</div>
+                        <span data-bind="text:libCode"></span>
+                        <span data-bind="text:libUserName"></span>
+                    </div>
+                    <div>
+                        <table width="100%">
+                            <tr>
+                                <td>
+                                    <span data-bind="if: isActive==1"><font color='red'>*&nbsp;默认地址</font></span>
+                                    <span data-bind="ifnot: isActive==1"><button class="btn btn-lg btn-default " data-bind="click: activeUser">设为默认</button></span>
 
-    <div data-bind="if: model.displayPage()==1" style="font-size:20px">
-        <div data-bind="visible: model.wxUsers().length==0">
-            <center>
-                <img src='../img/emptyBind.png' width='100' height='100' />
-                <p>您尚未绑定读者。</p>
-            </center>
-        </div>
-        <table class="table table-striped" style="background-color:#ffffff">
-            <tbody data-bind=" foreach:model.wxUsers">
+                                </td>
+                                <td width="50%" align="right">
+                                    <button type="button" class="btn ;btn-default btn-lg" data-bind="click: removeUser">
+                                        X&nbsp;删除
+                                    </button>
+
+                                </td>
+                            </tr>
+                        </table>
+
+
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button class="btn btn-primary btn-block  btn-lg" data-bind="click: handleCreateClick">
+        新增绑定
+    </button>
+</div>
+
+<div data-bind="visible: model.displayPage()==2" id="divBind" style="display:none;vertical-align:top">
+    <center><span style="font-size:20px;font-weight:500;padding-top:10px">绑定图书馆账号</span></center>
+    <div class="form-group-lg form-signin">
+        <div>
+            <table>
                 <tr>
+                    <td width="100%">
+                        <input class="form-control" id="txtLib" readonly="readonly" placeholder="请点击右侧按钮选择图书馆" data-bind="value:model.editor.lib">
+                    </td>
                     <td>
-                        <div><div style="float:left;width:80px">读者：</div>
-                            <span data-bind="text:readerName"></span>
-                            <span data-bind="text:readerBarcode"></span>
-                        </div>
-                        <div>
-                            <div style="float:left;width:80px">图书馆：</div>
-                            <span data-bind="text:libCode"></span>
-                            <span data-bind="text:libUserName"></span>
-                        </div>
-                        <div>
-                            <table width="100%">
-                                <tr>
-                                    <td>
-                                        <span data-bind="if: isActive==1"><font color='red'>*&nbsp;默认地址</font></span>
-                                        <span data-bind="ifnot: isActive==1"><button class="btn btn-lg btn-default " data-bind="click: activeUser">设为默认</button></span>
-
-                                    </td>
-                                    <td width="50%" align="right">
-                                        <button type="button" class="btn btn-default btn-lg" data-bind="click: removeUser">
-                                            X&nbsp;删除
-                                        </button>
-
-                                    </td>
-                                </tr>
-                            </table>
-
-
-
-                        </div>
+                        <button class="btn btn-primary btn-lg" id="btnSelectLib" onclick="selectLib()">
+                            <span class="glyphicon glyphicon-globe"></span>
+                        </button>
                     </td>
                 </tr>
-            </tbody>
-        </table>
-
-        <button class="btn btn-primary btn-block  btn-lg" data-bind="click: handleCreateClick">
-            新增绑定
-        </button>
-    </div>
-
-
-    <div data-bind="if: model.displayPage()==2" style="background-color:white;padding-top:2px">
-        <center><h3>绑定图书馆账号</h3></center>
-        <br />
-        <div class="form-group-lg form-signin">
-            <div>
-                <table>
-                    <tr>
-                        <td width="100%">
-                            <input class="form-control" id="txtLib" readonly="readonly" placeholder="请点击右侧按钮选择图书馆" data-bind="value:model.editor.lib">
-                        </td>
-                        <td>
-                            <button class="btn btn-primary btn-lg" id="btnSelectLib" onclick="selectLib()">
-                                <span class="glyphicon glyphicon-globe"></span>
-                            </button>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <div>
-                <select class="form-control lookLikeAButton" style="border:0px;border-color:transparent"  id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.editor.prefix">
-                    <option value="-1">请选择绑定方式</option>
-                    <option value="NB">姓名</option>
-                    <option value="">证条码号</option>
-                    <option value="EM">email</option>
-                    <option value="TP">电话号码</option>
-                    <option value="ID">身份证号</option>
-                    <option value="CN">证号</option>
-                </select>
-            </div>
-            <div>
-                <input class="form-control" id="userName" placeholder="请输入 " data-bind="value:model.editor.word">
-            </div>
-            <div>
-                <input class="form-control" placeholder="请输入 密码" data-bind="value:model.editor.password">
-            </div>
-            <div>
-                <table width="100%">
-                    <tr>
-                        <td width="50%"><button class="btn btn-primary  btn-lg btn-block" data-bind="click: bind">绑定</button></td>
-                        <td><button class="btn btn-primary  btn-lg btn-block" data-bind="click: handleCancelClick">取消</button></td>
-                    </tr>
-                </table>
-            </div>
-            <div>
-                <a href="RetrievePassword" style="color:red;font-size:18px">找回密码</a></div>
+            </table>
+        </div>
+        <div>
+            <select class="form-control lookLikeAButton" style="border:0px;border-color:transparent" id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.editor.prefix">
+                <option value="-1">请选择绑定方式</option>
+                <option value="NB">姓名</option>
+                <option value="">证条码号</option>
+                <option value="EM">email</option>
+                <option value="TP">电话号码</option>
+                <option value="ID">身份证号</option>
+                <option value="CN">证号</option>
+            </select>
+        </div>
+        <div>
+            <input class="form-control" id="userName" placeholder="请输入 " data-bind="value:model.editor.word">
+        </div>
+        <div>
+            <input class="form-control" placeholder="请输入 密码" data-bind="value:model.editor.password">
+            <span id="passWarn" style="padding-left:15px; font-size:12px;color:red" />
+        </div>
+        <div>
+            <table width="100%">
+                <tr>
+                    <td width="50%"><button class="btn btn-primary  btn-lg btn-block" data-bind="click: bind">绑定</button></td>
+                    <td><button class="btn btn-primary  btn-lg btn-block" data-bind="click: handleCancelClick">取消</button></td>
+                </tr>
+            </table>
+        </div>
+        <div style="text-align:right">
+            <a href="JavaScript:void(0)" onclick="handleRetrievePassword()" style="font-size:20px;cursor:pointer">找回密码</a>&nbsp;&nbsp;
         </div>
     </div>
+</div>
 
 
-    <div data-bind="if: model.displayPage()==3">
-        <center><h3>选择图书馆</h3></center>
-        <table class="table table-striped" style="background-color:#ffffff">
-            <tbody data-bind="foreach:model.librarys">
+<div data-bind="visible: model.displayPage()==3" id="divSelLib" style="display:none">
+    <center><span style="font-size:20px;font-weight:500;padding-top:10px">选择图书馆</span></center>
+
+    <table class="table table-striped" style="background-color:#ffffff">
+        <tbody data-bind="foreach:model.librarys">
+            <tr>
+                <td>
+                    <a href="javascript:void(0)" onclick="okSelectLibLayer($(this))" style="font-size:20px">
+                        <table>
+                            <tr>
+                                <td><img src='../img/library.jpg' width='60' height='60' /></td>
+                                <td width="100%">
+                                    <span class="ctrl-libCode" data-bind="text:libCode"></span>
+                                    <span class="ctrl-libName" data-bind="text:libName"></span>
+                                    <div class="ctrl-libUserName" data-bind="text:libUserName"></div>
+                                </td>
+                            </tr>
+                        </table>
+                    </a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <button class="btn btn-primary btn-block btn-lg" onclick="cancelSelectLib()">取消</button>
+
+</div>
+
+<div data-bind="visible: model.displayPage()==4" id="divRetrievePassword" style="display:none;">
+    <center><span style="font-size:20px;font-weight:500;padding-top:10px">找回密码</span></center>
+    <div class="form-group-lg form-signin">
+        <div>
+            <table>
                 <tr>
+                    <td width="100%">
+                        <input class="form-control" id="txtLib1" readonly="readonly" placeholder="请点击右侧按钮选择图书馆" data-bind="value:model.editor.lib">
+                    </td>
                     <td>
-                        <a href="javascript:void(0)" onclick="okSelectLibLayer($(this))" style="font-size:20px">
-                            <table>
-                                <tr>
-                                    <td><img src='../img/library.jpg' width='60' height='60' /></td>
-                                    <td width="100%">
-                                        <span class="ctrl-libCode" data-bind="text:libCode"></span>
-                                        <span class="ctrl-libName" data-bind="text:libName"></span>
-                                        <div class ="ctrl-libUserName" data-bind="text:libUserName"></div>
-                                    </td>
-                                </tr>
-                            </table>
-                        </a>
+                        <button class="btn btn-primary btn-lg" id="btnSelectLib1" onclick="selectLib('resetPassword')">
+                            <span class="glyphicon glyphicon-globe"></span>
+                        </button>
                     </td>
                 </tr>
-            </tbody>
-        </table>
-
-        <button class="btn btn-primary btn-block btn-lg" onclick="cancelSelectLib()">取消</button>
-
+            </table>
+        </div>
+        <input class="form-control" id="userName1" placeholder="请输入 姓名" />
+        <input class="form-control" id="tel1" placeholder="请输入 手机号码" />
     </div>
+    <div>
+        <table width="100%">
+            <tr>
+                <td width="50%"><button class="btn btn-primary  btn-lg btn-block" data-bind="click: getTempPassword">获取临时密码</button></td>
+                <td><button class="btn btn-primary  btn-lg btn-block" data-bind="click: cancelSelectLib">取消</button></td>
+            </tr>
+        </table>
+    </div>
+</div>
