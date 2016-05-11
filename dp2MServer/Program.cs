@@ -39,6 +39,7 @@ namespace dp2MServer
 
         static void PrintLogo()
         {
+            // http://www.network-science.de/ascii/
             Console.WriteLine(@"
      _      ___   __  __   _____                          
     | |    |__ \ |  \/  | / ____|                         

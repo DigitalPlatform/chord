@@ -82,7 +82,7 @@ namespace DigitalPlatform.Message
     {
         public string id { get; set; }  // 消息的 id
 
-        public string group { get; set; }   // 组名 或 组id。消息所从属的组
+        public string [] groups { get; set; }   // 组名 或 组id。消息所从属的组
         public string creator { get; set; } // 创建消息的人。也就是发送消息的用户名或 id
         public string userName { get; set; } // 创建消息的人的用户名
         public string data { get; set; }  // 消息数据体
@@ -141,6 +141,8 @@ namespace DigitalPlatform.Message
     {
         public string TaskID { get; set; }    // 本次检索的任务 ID。由于一个 Connection 可以用于同时进行若干检索操作，本参数用于区分不同的检索操作
 
+        public string Action { get; set; }  // 动作。空/getGroupName
+
         public string GroupCondition { get; set; }  // 群组名或者 ID
         public string UserCondition { get; set; }
         public string TimeCondition { get; set; }   // 时间范围。xxxx~xxxx。DateTime.ToString("G") 格式。
@@ -149,6 +151,7 @@ namespace DigitalPlatform.Message
         public long Count { get; set; }
 
         public GetMessageRequest(string taskID,
+            string action,
             string groupCondition,
             string userCondition,
             string timeCondition,
@@ -156,6 +159,7 @@ namespace DigitalPlatform.Message
             long count)
         {
             this.TaskID = taskID;
+            this.Action = action;
             this.GroupCondition = groupCondition;
             this.UserCondition = userCondition;
             this.TimeCondition = timeCondition;

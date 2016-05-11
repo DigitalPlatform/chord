@@ -108,6 +108,38 @@ namespace DigitalPlatform.MessageServer
         }
 #endif
 
+        // 根据用户 ID 检索用户
+        public async Task<List<UserItem>> GetUsersByID(string id,
+            int start,
+            int count)
+        {
+            IMongoCollection<UserItem> collection = this._collection;
+
+            List<UserItem> results = new List<UserItem>();
+
+            var filter = Builders<UserItem>.Filter.Eq("id", id);
+            var index = 0;
+            using (var cursor = await collection.FindAsync(
+                id == "*" ? new BsonDocument() : filter
+                ))
+            {
+                while (await cursor.MoveNextAsync())
+                {
+                    var batch = cursor.Current;
+                    foreach (var document in batch)
+                    {
+                        if (count != -1 && index - start >= count)
+                            break;
+                        if (index >= start)
+                            results.Add(document);
+                        index++;
+                    }
+                }
+            }
+
+            return results;
+        }
+
         // 根据用户名检索用户
         public async Task<List<UserItem>> GetUsersByName(string userName,
             int start,

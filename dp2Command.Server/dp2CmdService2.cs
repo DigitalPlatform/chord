@@ -346,7 +346,7 @@ namespace dp2Command.Service
                 text.Append("***\r\n");
                 text.Append("id=" + record.id + "\r\n");
                 text.Append("data=" + record.data + "\r\n");
-                text.Append("group=" + record.group + "\r\n");
+                text.Append("group=" + record.groups + "\r\n");
                 text.Append("creator=" + record.creator + "\r\n");
 
                 text.Append("format=" + record.format + "\r\n");

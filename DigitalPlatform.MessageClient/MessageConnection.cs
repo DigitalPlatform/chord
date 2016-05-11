@@ -449,7 +449,7 @@ errorInfo)
                             MessageResult temp = HubProxy.Invoke<MessageResult>(
 "RequestGetMessage",
 request).Result;
-                            if (temp.Value == -1 || temp.Value == 0)
+                            if (temp.Value == -1 || temp.Value == 0 || temp.Value == 2)
                                 return temp;
 
                             // result.String 里面是返回的 taskID
@@ -570,7 +570,7 @@ request).Result;
         {
             if (records == null)
                 return;
-            foreach(Record record in records)
+            foreach (Record record in records)
             {
                 record.RecPath += "@" + libraryUID;
             }
@@ -638,10 +638,10 @@ request).Result;
                                 // start_time = DateTime.Now;  // 重新计算超时
 
                                 // 装载命中结果
-                                if (responseParam.ResultCount == -1 || responseParam.Start == -1)
+                                if (responseParam.ResultCount == -1 && responseParam.Start == -1)
                                 {
-
-                                    result.ResultCount = manager.GetTotalCount();
+                                    if (result.ResultCount != -1)
+                                        result.ResultCount = manager.GetTotalCount();
                                     //result.ErrorInfo = responseParam.ErrorInfo;
                                     //result.ErrorCode = responseParam.ErrorCode;
                                     result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
@@ -678,7 +678,10 @@ request).Result;
                                     responseParam.ResultCount,
                                     responseParam.Records == null ? 0 : responseParam.Records.Count);
 
-                                result.ResultCount = manager.GetTotalCount();
+                                if (responseParam.ResultCount == -1)
+                                    result.ResultCount = -1;
+                                else
+                                    result.ResultCount = manager.GetTotalCount();
 
                                 if (nRet == 2)
                                     wait_events.finish_event.Set();

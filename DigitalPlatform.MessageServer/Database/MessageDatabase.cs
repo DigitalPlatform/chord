@@ -8,6 +8,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using DigitalPlatform.Text;
+using System.Collections;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -26,7 +27,7 @@ namespace DigitalPlatform.MessageServer
     Builders<MessageItem>.IndexKeys.Ascending("creator"),
     new CreateIndexOptions() { Unique = false });
             await _collection.Indexes.CreateOneAsync(
-Builders<MessageItem>.IndexKeys.Ascending("group"),
+Builders<MessageItem>.IndexKeys.Ascending("groups"),
 new CreateIndexOptions() { Unique = false });
             await _collection.Indexes.CreateOneAsync(
 Builders<MessageItem>.IndexKeys.Ascending("thread"),
@@ -38,7 +39,8 @@ new CreateIndexOptions() { Unique = false });
         //      false 表示后面要中断处理
         public delegate bool Delegate_outputMessage(long totalCount, MessageItem item);
 
-        FilterDefinition<MessageItem> BuildQuery(string groupName,
+        // 返回空表示任意匹配
+        FilterDefinition<MessageItem> BuildQuery(GroupQuery group_query,
             string timeRange)
         {
             string strStart = "";
@@ -70,18 +72,20 @@ Builders<MessageItem>.Filter.Gte("publishTime", startTime),
 Builders<MessageItem>.Filter.Lt("publishTime", endTime));
             }
 
-            var name_filter = Builders<MessageItem>.Filter.Eq("group", groupName);
+            // 构造一个 AND 运算的检索式
+            FilterDefinition<MessageItem> group_filter = group_query.BuildMongoQuery();
 
             if (time_filter == null)
-                return name_filter;
+                return group_filter;
 
             return time_filter = Builders<MessageItem>.Filter.And(time_filter,
-                name_filter);
+                group_filter);
         }
 
         // parameters:
         //      timeRange   时间范围
-        public async Task GetMessages(string groupName,
+        public async Task GetMessages(// string groupName,
+            GroupQuery group_query,
             string timeRange,
 int start,
 int count,
@@ -90,7 +94,9 @@ int count,
             IMongoCollection<MessageItem> collection = this._collection;
 
             // List<MessageItem> results = new List<MessageItem>();
-            FilterDefinition<MessageItem> filter = BuildQuery(groupName, timeRange);
+            FilterDefinition<MessageItem> filter = BuildQuery(// groupName,
+                group_query,
+                timeRange);
 #if NO
             if (string.IsNullOrEmpty(groupName))
             {
@@ -104,7 +110,7 @@ int count,
 
             var index = 0;
             using (var cursor = await collection.FindAsync(
-                groupName == "*" ? new BsonDocument() : filter
+                filter == null ? new BsonDocument() : filter
                 ))
             {
                 while (await cursor.MoveNextAsync())
@@ -188,6 +194,253 @@ int count,
             return results;
         }
 
+#if NO
+        // 检索出指定范围的 群名类型
+        public async Task GetGroups(
+    GroupQuery group_query,
+    string timeRange,
+int start,
+int count,
+    Delegate_outputMessage proc)
+        {
+            IMongoCollection<MessageItem> collection = this._collection;
+
+            // List<MessageItem> results = new List<MessageItem>();
+            FilterDefinition<MessageItem> filter = BuildQuery(// groupName,
+                group_query,
+                timeRange);
+
+            var myresults = await collection.Aggregate()
+.Group(new BsonDocument("_id", "$groups"))
+.ToListAsync();
+
+#if NO
+            BsonArray array = new BsonArray();
+            array.ToArray<string>();
+#endif
+            long totalCount = myresults.Count;
+            foreach (BsonDocument doc in myresults)
+            {
+                MessageItem item = new MessageItem();
+                BsonArray array = (doc.GetValue("_id") as BsonArray);
+                item.groups = GetStringArray(array);
+                // var groups = doc.GetValue("_id");
+
+                if (proc(totalCount, item) == false)
+                    return;
+            }
+
+            proc(totalCount, null); // 表示结束
+        }
+
+#endif
+
+#if NO
+        // 检索出指定范围的 群名类型
+        public async Task GetGroups(
+    GroupQuery group_query,
+    string timeRange,
+int start,
+int count,
+    Delegate_outputMessage proc)
+        {
+            IMongoCollection<MessageItem> collection = this._collection;
+
+            // List<MessageItem> results = new List<MessageItem>();
+            FilterDefinition<MessageItem> filter = BuildQuery(// groupName,
+                group_query,
+                timeRange);
+
+            var results = await collection                
+                .Find(
+                filter == null ? new BsonDocument() : filter
+                )
+                .Project(Builders<MessageItem>.Projection.Include("groups")).ToListAsync();
+
+            List<string> keys = new List<string>();
+            Hashtable table = new Hashtable();  // groups --> true 
+            foreach (BsonDocument doc in results)
+            {
+                string strText = ToString(doc.GetValue("groups") as BsonArray);
+                if (strText == null)
+                    continue;
+                if (table.ContainsKey(strText))
+                    continue;
+                table[strText] = true;
+                keys.Add(strText);
+            }
+
+            long totalCount = keys.Count;
+            foreach(string key in keys)
+            {
+                MessageItem item = new MessageItem();
+                item.groups = key.Split(new char [] {','});
+                // var groups = doc.GetValue("_id");
+
+                if (proc(totalCount, item) == false)
+                    return;
+            }
+
+            proc(totalCount, null); // 表示结束
+
+#if NO
+            var myresults = await collection.Aggregate()
+.Group(new BsonDocument("_id", "$groups"))
+.ToListAsync();
+
+            long totalCount = myresults.Count;
+            foreach (BsonDocument doc in myresults)
+            {
+                MessageItem item = new MessageItem();
+                BsonArray array = (doc.GetValue("_id") as BsonArray);
+                item.groups = GetStringArray(array);
+                // var groups = doc.GetValue("_id");
+
+                if (proc(totalCount, item) == false)
+                    return;
+            }
+
+            proc(totalCount, null); // 表示结束
+#endif
+        }
+
+#endif
+
+        // 这个版本速度最快。因为 Group 操作是在 mongodb 数据库内执行的
+        // 检索出指定范围的 群名类型
+        // Aggregate() 如何与 filter 一起使用
+        // http://stackoverflow.com/questions/29804225/mongodb-driver-2-0-c-sharp-filter-and-aggregate
+        public async Task GetGroupsFieldAggragate(
+    GroupQuery group_query,
+    string timeRange,
+int start,
+int count,
+    Delegate_outputMessage proc)
+        {
+            IMongoCollection<MessageItem> collection = this._collection;
+
+            FilterDefinition<MessageItem> filter = BuildQuery(// groupName,
+                group_query,
+                timeRange);
+
+            var myresults = await collection.Aggregate().Match(filter)
+.Group(new BsonDocument("_id", "$groups"))
+.ToListAsync();
+
+            long totalCount = myresults.Count;
+            var index = 0;
+            foreach (BsonDocument doc in myresults)
+            {
+                if (count != -1 && index - start >= count)
+                    break;
+                if (index >= start)
+                {
+                    MessageItem item = new MessageItem();
+                    BsonArray array = (doc.GetValue("_id") as BsonArray);
+                    item.groups = GetStringArray(array);
+
+                    if (proc(totalCount, item) == false)
+                        return;
+                }
+
+                index++;
+            }
+
+            proc(totalCount, null); // 表示结束
+        }
+
+        // 这个版本资源耗费厉害
+        // 按照条件检索出 MessageItem 中的 group 字段，并归并去重
+        // 相当于 Group by 的效果
+        public async Task GetGroupsField(
+    GroupQuery group_query,
+    string timeRange,
+int start,
+int count,
+    Delegate_outputMessage proc)
+        {
+            IMongoCollection<MessageItem> collection = this._collection;
+
+            // List<MessageItem> results = new List<MessageItem>();
+            FilterDefinition<MessageItem> filter = BuildQuery(// groupName,
+                group_query,
+                timeRange);
+
+            // 在遍历过程中，只接收 groups 字段
+            // http://stackoverflow.com/questions/32938656/c-sharp-mongo-2-0-reduce-traffic-of-findasync
+            var projection = Builders<MessageItem>.Projection
+    .Include(b => b.groups)
+    .Exclude("_id"); // _id is special and needs to be explicitly excluded if not needed
+            var options = new FindOptions<MessageItem, MessageItem> { Projection = projection };
+
+            List<string> keys = new List<string>();
+            Hashtable table = new Hashtable();  // groups --> true 
+
+            using (var cursor = await collection.FindAsync(filter, options))
+            {
+                while (await cursor.MoveNextAsync())
+                {
+                    var batch = cursor.Current;
+                    foreach (var document in batch)
+                    {
+                        if (document.groups == null)
+                            continue;
+                        string strText = string.Join(",", document.groups);
+                        if (table.ContainsKey(strText))
+                            continue;
+                        table[strText] = true;
+                        keys.Add(strText);
+                    }
+                }
+            }
+
+            long totalCount = keys.Count;
+            var index = 0;
+            foreach (string key in keys)
+            {
+                if (count != -1 && index - start >= count)
+                    break;
+                if (index >= start)
+                {
+                    MessageItem item = new MessageItem();
+                    item.groups = key.Split(new char[] { ',' });
+                    if (proc(totalCount, item) == false)
+                        return;
+                }
+                index++;
+            }
+
+            proc(totalCount, null); // 表示结束
+        }
+
+        static string ToString(BsonArray array)
+        {
+            if (array == null)
+                return null;
+
+            StringBuilder text = new StringBuilder();
+            foreach (BsonValue v in array)
+            {
+                if (text.Length > 0)
+                    text.Append(",");
+                text.Append(v.ToString());
+            }
+            return text.ToString();
+        }
+
+        static string[] GetStringArray(BsonArray array)
+        {
+            if (array == null)
+                return null;
+
+            List<string> results = new List<string>();
+            foreach (BsonValue v in array)
+            {
+                results.Add(v.ToString());
+            }
+            return results.ToArray();
+        }
+
         // parameters:
         //      item    要加入的消息事项
         public async Task Add(MessageItem item)
@@ -199,8 +452,10 @@ int count,
             // 规范化数据
 
             // group 的空实际上代表一个群组
-            if (item.group == null)
-                item.group = "";
+            if (item.groups == null)
+                item.groups = new string[1] { "" };
+            else
+                Array.Sort(item.groups);    // 排序后确保名字规范，将来用起来(比如构造为逗号间隔的字符串时)可以少一次排序
 
             IMongoCollection<MessageItem> collection = this._collection;
 
@@ -210,7 +465,7 @@ int count,
             await collection.InsertOneAsync(item);
         }
 
-        // 更新 id 以外的全部字段
+        // 更新 id,groups 以外的全部字段
         public async Task Update(MessageItem item)
         {
             // 检查 item
@@ -222,7 +477,7 @@ int count,
             // var filter = Builders<UserItem>.Filter.Eq("id", item.id);
             var filter = Builders<MessageItem>.Filter.Eq("id", item.id);
             var update = Builders<MessageItem>.Update
-                .Set("group", item.group)
+                // .Set("groups", item.groups)
                 .Set("creator", item.creator)
                 .Set("userName", item.userName)
                 .Set("data", item.data)
@@ -264,7 +519,7 @@ int count,
         [BsonId]    // 允许 GUID
         public string id { get; private set; }  // 消息的 id
 
-        public string group { get; set; }   // 组名 或 组id。消息所从属的组
+        public string[] groups { get; set; }   // 组名 或 组id。消息所从属的组
         public string creator { get; set; } // 创建消息的人的id
         public string userName { get; set; } // 创建消息的人的用户名
         public string data { get; set; }  // 消息数据体

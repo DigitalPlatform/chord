@@ -55,8 +55,10 @@ namespace TestClient1
                 text.Append("action=" + e.Action + "\r\n");
                 text.Append("id=" + record.id + "\r\n");
                 text.Append("data=" + record.data + "\r\n");
-                text.Append("group=" + record.group + "\r\n");
+                if (record.groups != null)
+                    text.Append("groups=" + HttpUtility.HtmlEncode(string.Join(",", record.groups)) + "\r\n");
                 text.Append("creator=" + record.creator + "\r\n");
+                text.Append("userName=" + record.userName + "\r\n");
 
                 text.Append("format=" + record.format + "\r\n");
                 text.Append("type=" + record.type + "\r\n");
@@ -901,7 +903,10 @@ string strHtml)
                 {
                     text.Append((i + 1).ToString() + ") ===");
                     text.Append("id=" + record.id + "\r\n");
+                    if (record.groups != null)
+                        text.Append("groups=" + HttpUtility.HtmlEncode(string.Join(",", record.groups)) + "\r\n");
                     text.Append("creator=" + record.creator + "\r\n");
+                    text.Append("userName=" + record.userName + "\r\n");
                     text.Append("publishTime=" + record.publishTime + "\r\n");
                     text.Append("expireTime=" + record.expireTime + "\r\n");
                 }
@@ -1155,7 +1160,7 @@ string strHtml)
 
             List<MessageRecord> records = new List<MessageRecord>();
             MessageRecord record = new MessageRecord();
-            record.group = strGroupName;
+            record.groups = strGroupName.Split(new char[] { ',' });
             record.creator = "";    // 服务器会自己填写
             record.data = strText;
             record.format = "text";
@@ -1208,7 +1213,7 @@ string strHtml)
         // 装载以前的所有消息
         private void button_message_load_Click(object sender, EventArgs e)
         {
-            DoLoadMessage(this.textBox_message_groupName.Text, 
+            DoLoadMessage(this.textBox_message_groupName.Text,
                 this.textBox_message_timeRange.Text);
         }
 
@@ -1244,8 +1249,10 @@ string strHtml)
                     text.Append("***\r\n");
                     text.Append("id=" + record.id + "\r\n");
                     text.Append("data=" + record.data + "\r\n");
-                    text.Append("group=" + record.group + "\r\n");
+                    if (record.groups != null)
+                        text.Append("groups=" + HttpUtility.HtmlEncode(string.Join(",", record.groups)) + "\r\n");
                     text.Append("creator=" + record.creator + "\r\n");
+                    text.Append("userName=" + record.userName + "\r\n");
 
                     text.Append("format=" + record.format + "\r\n");
                     text.Append("type=" + record.type + "\r\n");
@@ -1307,7 +1314,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             }
         }
 
-        async void DoLoadMessage(string strGroupName, string strTimeRange)
+        async void DoLoadMessage(string strGroupCondition, string strTimeRange)
         {
             string strError = "";
 
@@ -1321,7 +1328,8 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
                 string id = Guid.NewGuid().ToString();
                 GetMessageRequest request = new GetMessageRequest(id,
-                    strGroupName, // "" 表示默认群组
+                    "",
+                    strGroupCondition, // "" 表示默认群组
                     "",
                     strTimeRange,
                     0,
@@ -1415,6 +1423,82 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             return;
         ERROR1:
             MessageBox.Show(this, strError);
+        }
+
+        private void button_message_transGroupName_Click(object sender, EventArgs e)
+        {
+            DoGetGroupName(this.textBox_message_groupName.Text,
+                "transGroupName");
+        }
+
+        // parameters:
+        //      strAction   getGroupName/getGroupNameQuick
+        async void DoGetGroupName(string strGroupCondition,
+            string strAction)
+        {
+            string strError = "";
+
+            ClearForPureTextOutputing(this.webBrowser_message);
+            SetTextString(this.webBrowser1, "");
+
+            EnableControls(false);
+            try
+            {
+                CancellationToken cancel_token = new CancellationToken();
+
+                string id = Guid.NewGuid().ToString();
+                GetMessageRequest request = new GetMessageRequest(id,
+                    strAction,
+                    strGroupCondition, //
+                    "",
+                    "",
+                    0,
+                    -1);
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        "");
+                    MessageResult result = await connection.GetMessageAsync(
+                        request,
+                        FillMessage,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+                    this.Invoke(new Action(() =>
+                    {
+                        SetTextString(this.webBrowser1, ToString(result));
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+        }
+
+        private void button_message_getGroupNameQuick_Click(object sender, EventArgs e)
+        {
+            DoGetGroupName(this.textBox_message_groupName.Text,
+    "transGroupNameQuick");
+        }
+
+        private void button_message_enumGroupName_Click(object sender, EventArgs e)
+        {
+            DoGetGroupName(this.textBox_message_groupName.Text,
+"enumGroupName");
         }
 
     }

@@ -24,6 +24,7 @@ namespace dp2Capo
 
         static void PrintLogo()
         {
+            // http://www.network-science.de/ascii/
             Console.WriteLine(@"
       dP          d8888b.  a88888b.                            
       88              `88 d8'   `88                            

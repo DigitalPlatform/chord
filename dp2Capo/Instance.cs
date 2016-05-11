@@ -290,7 +290,7 @@ namespace dp2Capo
                         Message message = iterator.Current;
 
                         MessageRecord record = new MessageRecord();
-                        record.group = "_patronNotify";
+                        record.groups = new string[1]{"gn:_patronNotify"};  // gn 表示 group name
                         record.data = (string)message.Body;
                         record.format = "xml";
                         List<MessageRecord> records = new List<MessageRecord> { record };

@@ -366,6 +366,37 @@ namespace DigitalPlatform.MessageServer
             return 0;
         }
 
+        // 根据 user id 列表，获得当前在线的 connection id 列表
+        public List<string> GetConnectionIds(string [] groups)
+        {
+            List<string> results = new List<string>();
+            foreach (string name in groups)
+            {
+                string id = GetConnectionId(name);
+                if (id != null)
+                    results.Add(id);
+            }
+
+            return results;
+        }
+
+        // 根据用户的 un ui 获得当前在线的 connection id
+        public string GetConnectionId(string name_or_id)
+        {
+            GroupName name = new GroupName(name_or_id);
+            foreach (string key in this.Keys)
+            {
+                ConnectionInfo info = this[key];
+                if (name.Type == "un" && info.UserName == name.Text)
+                    return info.ConnectionID;
+                else if (name.Type == "ui" && info.UserID == name.Text)
+                    return info.ConnectionID;
+                else if (name.Type != "un" && name.Type != "ui")
+                    throw new ArgumentException("不支持的名字类型 '" + name.Type + "' (应使用 un 或 ui)");
+            }
+
+            return null;
+        }
     }
 
     // Connection 查找表的一个事项

@@ -39,18 +39,8 @@ int count,
         {
             IMongoCollection<GroupItem> collection = this._collection;
 
-            // List<MessageItem> results = new List<MessageItem>();
             FilterDefinition<GroupItem> filter = null;
-#if NO
-            if (string.IsNullOrEmpty(groupName))
-            {
-                filter = Builders<MessageItem>.Filter.Or(
-                    Builders<MessageItem>.Filter.Eq("group", ""),
-                    Builders<MessageItem>.Filter.Eq("group", (string)null));
-            }
-            else
-#endif
-            filter = Builders<GroupItem>.Filter.Eq("group", groupName);
+            filter = Builders<GroupItem>.Filter.Eq("name", groupName);
 
             var index = 0;
             using (var cursor = await collection.FindAsync(
@@ -77,8 +67,73 @@ int count,
             }
         }
 
+        public async Task<List<GroupItem>> GetGroupsByName(string groupName,
+int start,
+int count)
+        {
+            IMongoCollection<GroupItem> collection = this._collection;
 
+            FilterDefinition<GroupItem> filter = null;
 
+            filter = Builders<GroupItem>.Filter.Eq("name", groupName);
+
+            List<GroupItem> results = new List<GroupItem>();
+
+            var index = 0;
+            using (var cursor = await collection.FindAsync(
+                groupName == "*" ? new BsonDocument() : filter
+                ))
+            {
+                while (await cursor.MoveNextAsync())
+                {
+                    var batch = cursor.Current;
+                    foreach (var document in batch)
+                    {
+                        if (count != -1 && index - start >= count)
+                            break;
+                        if (index >= start)
+                            results.Add(document);
+                        index++;
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        public async Task<List<GroupItem>> GetGroupsByID(string id,
+int start,
+int count)
+        {
+            IMongoCollection<GroupItem> collection = this._collection;
+
+            FilterDefinition<GroupItem> filter = null;
+
+            filter = Builders<GroupItem>.Filter.Eq("id", id);
+
+            List<GroupItem> results = new List<GroupItem>();
+
+            var index = 0;
+            using (var cursor = await collection.FindAsync(
+                id == "*" ? new BsonDocument() : filter
+                ))
+            {
+                while (await cursor.MoveNextAsync())
+                {
+                    var batch = cursor.Current;
+                    foreach (var document in batch)
+                    {
+                        if (count != -1 && index - start >= count)
+                            break;
+                        if (index >= start)
+                            results.Add(document);
+                        index++;
+                    }
+                }
+            }
+
+            return results;
+        }
     }
 
     public class GroupItem
