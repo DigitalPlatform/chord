@@ -297,3 +297,58 @@
         public DateTime OperTime { get; set; } // 操作时间
 #endif
     }
+
+
+
+	~~~~
+
+	        // parameters:
+        //      groupCondition   ui:xxx,ui:xxx;gn:xxxx;(un:xxx,un:xxx)
+        FilterDefinition<MessageItem> BuildGroupQuery(string groupCondition)
+        {
+            // 首先切割为一个一个段落
+            string[] segments = groupCondition.Split(new char []{';'});
+
+            // 若干个需要 OR 的单独检索式
+            List<FilterDefinition<MessageItem>> querys = new List<FilterDefinition<MessageItem>>();
+
+            foreach(string segment in segments)
+            {
+
+                // 切割为
+            }
+
+            string word = "";
+            string matchStyle = "";
+
+            List<string> array = StringUtil.ParseTwoPart(groupCondition, ":");
+            word = array[0];
+            matchStyle = array[1];
+
+            string[] names = groupCondition.Split(new char[] { ',' });
+
+            if (matchStyle == "exact" 
+                || matchStyle == "e"
+                || string.IsNullOrEmpty(matchStyle) == true)
+            {
+                // 精确匹配
+                return Builders<MessageItem>.Filter.Eq("groups", names);
+            }
+            else if (matchStyle == "include"
+                || matchStyle == "i")
+            {
+                if (names.Length == 1)
+                    return Builders<MessageItem>.Filter.Eq("groups", names[0]);
+
+                // 包含
+                // 构造一个 AND 运算的检索式
+                List<FilterDefinition<MessageItem>> subs = new List<FilterDefinition<MessageItem>>();
+                foreach (string name in names)
+                {
+                    subs.Add(Builders<MessageItem>.Filter.Eq("groups", name));
+                }
+                return Builders<MessageItem>.Filter.And(subs);
+            }
+
+            throw new ArgumentException("未知的匹配方式 '" + matchStyle + "'", "groupNameCondition");
+        }

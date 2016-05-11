@@ -115,20 +115,23 @@
             this.textBox_circulation_remoteUserName = new System.Windows.Forms.TextBox();
             this.label35 = new System.Windows.Forms.Label();
             this.tabPage_message = new System.Windows.Forms.TabPage();
-            this.textBox_message_groupName = new System.Windows.Forms.TextBox();
-            this.label38 = new System.Windows.Forms.Label();
-            this.button_message_load = new System.Windows.Forms.Button();
-            this.button_message_send = new System.Windows.Forms.Button();
+            this.splitContainer_message = new System.Windows.Forms.SplitContainer();
+            this.button_message_transGroupName = new System.Windows.Forms.Button();
+            this.textBox_message_timeRange = new System.Windows.Forms.TextBox();
+            this.label39 = new System.Windows.Forms.Label();
             this.textBox_message_text = new System.Windows.Forms.TextBox();
+            this.textBox_message_groupName = new System.Windows.Forms.TextBox();
             this.label37 = new System.Windows.Forms.Label();
+            this.label38 = new System.Windows.Forms.Label();
+            this.button_message_send = new System.Windows.Forms.Button();
+            this.button_message_load = new System.Windows.Forms.Button();
             this.webBrowser_message = new System.Windows.Forms.WebBrowser();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.splitContainer_message = new System.Windows.Forms.SplitContainer();
-            this.textBox_message_timeRange = new System.Windows.Forms.TextBox();
-            this.label39 = new System.Windows.Forms.Label();
+            this.button_message_getGroupNameQuick = new System.Windows.Forms.Button();
+            this.button_message_enumGroupName = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.tabControl_main.SuspendLayout();
             this.tabPage_config.SuspendLayout();
@@ -138,15 +141,15 @@
             this.tabPage_setInfo.SuspendLayout();
             this.tabPage_circulation.SuspendLayout();
             this.tabPage_message.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer_message)).BeginInit();
+            this.splitContainer_message.Panel1.SuspendLayout();
+            this.splitContainer_message.Panel2.SuspendLayout();
+            this.splitContainer_message.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_main)).BeginInit();
             this.splitContainer_main.Panel1.SuspendLayout();
             this.splitContainer_main.Panel2.SuspendLayout();
             this.splitContainer_main.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer_message)).BeginInit();
-            this.splitContainer_message.Panel1.SuspendLayout();
-            this.splitContainer_message.Panel2.SuspendLayout();
-            this.splitContainer_message.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -999,43 +1002,63 @@
             this.tabPage_message.Text = "Message";
             this.tabPage_message.UseVisualStyleBackColor = true;
             // 
-            // textBox_message_groupName
+            // splitContainer_message
             // 
-            this.textBox_message_groupName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.splitContainer_message.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer_message.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer_message.Name = "splitContainer_message";
+            this.splitContainer_message.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer_message.Panel1
+            // 
+            this.splitContainer_message.Panel1.AutoScroll = true;
+            this.splitContainer_message.Panel1.Controls.Add(this.button_message_enumGroupName);
+            this.splitContainer_message.Panel1.Controls.Add(this.button_message_getGroupNameQuick);
+            this.splitContainer_message.Panel1.Controls.Add(this.button_message_transGroupName);
+            this.splitContainer_message.Panel1.Controls.Add(this.textBox_message_timeRange);
+            this.splitContainer_message.Panel1.Controls.Add(this.label39);
+            this.splitContainer_message.Panel1.Controls.Add(this.textBox_message_text);
+            this.splitContainer_message.Panel1.Controls.Add(this.textBox_message_groupName);
+            this.splitContainer_message.Panel1.Controls.Add(this.label37);
+            this.splitContainer_message.Panel1.Controls.Add(this.label38);
+            this.splitContainer_message.Panel1.Controls.Add(this.button_message_send);
+            this.splitContainer_message.Panel1.Controls.Add(this.button_message_load);
+            // 
+            // splitContainer_message.Panel2
+            // 
+            this.splitContainer_message.Panel2.Controls.Add(this.webBrowser_message);
+            this.splitContainer_message.Size = new System.Drawing.Size(333, 271);
+            this.splitContainer_message.SplitterDistance = 159;
+            this.splitContainer_message.SplitterWidth = 8;
+            this.splitContainer_message.TabIndex = 40;
+            // 
+            // button_message_transGroupName
+            // 
+            this.button_message_transGroupName.Location = new System.Drawing.Point(0, 132);
+            this.button_message_transGroupName.Name = "button_message_transGroupName";
+            this.button_message_transGroupName.Size = new System.Drawing.Size(119, 23);
+            this.button_message_transGroupName.TabIndex = 42;
+            this.button_message_transGroupName.Text = "Get Group Name";
+            this.button_message_transGroupName.UseVisualStyleBackColor = true;
+            this.button_message_transGroupName.Click += new System.EventHandler(this.button_message_transGroupName_Click);
+            // 
+            // textBox_message_timeRange
+            // 
+            this.textBox_message_timeRange.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_message_groupName.Location = new System.Drawing.Point(77, 11);
-            this.textBox_message_groupName.Name = "textBox_message_groupName";
-            this.textBox_message_groupName.Size = new System.Drawing.Size(256, 21);
-            this.textBox_message_groupName.TabIndex = 39;
+            this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 38);
+            this.textBox_message_timeRange.Name = "textBox_message_timeRange";
+            this.textBox_message_timeRange.Size = new System.Drawing.Size(256, 21);
+            this.textBox_message_timeRange.TabIndex = 41;
             // 
-            // label38
+            // label39
             // 
-            this.label38.AutoSize = true;
-            this.label38.Location = new System.Drawing.Point(0, 15);
-            this.label38.Name = "label38";
-            this.label38.Size = new System.Drawing.Size(71, 12);
-            this.label38.TabIndex = 6;
-            this.label38.Text = "Group Name:";
-            // 
-            // button_message_load
-            // 
-            this.button_message_load.Location = new System.Drawing.Point(0, 80);
-            this.button_message_load.Name = "button_message_load";
-            this.button_message_load.Size = new System.Drawing.Size(47, 23);
-            this.button_message_load.TabIndex = 5;
-            this.button_message_load.Text = "Load";
-            this.button_message_load.UseVisualStyleBackColor = true;
-            this.button_message_load.Click += new System.EventHandler(this.button_message_load_Click);
-            // 
-            // button_message_send
-            // 
-            this.button_message_send.Location = new System.Drawing.Point(0, 103);
-            this.button_message_send.Name = "button_message_send";
-            this.button_message_send.Size = new System.Drawing.Size(47, 23);
-            this.button_message_send.TabIndex = 4;
-            this.button_message_send.Text = "Send";
-            this.button_message_send.UseVisualStyleBackColor = true;
-            this.button_message_send.Click += new System.EventHandler(this.button_message_send_Click);
+            this.label39.AutoSize = true;
+            this.label39.Location = new System.Drawing.Point(0, 42);
+            this.label39.Name = "label39";
+            this.label39.Size = new System.Drawing.Size(71, 12);
+            this.label39.TabIndex = 40;
+            this.label39.Text = "Time Range:";
             // 
             // textBox_message_text
             // 
@@ -1047,6 +1070,15 @@
             this.textBox_message_text.Size = new System.Drawing.Size(279, 62);
             this.textBox_message_text.TabIndex = 3;
             // 
+            // textBox_message_groupName
+            // 
+            this.textBox_message_groupName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_message_groupName.Location = new System.Drawing.Point(77, 11);
+            this.textBox_message_groupName.Name = "textBox_message_groupName";
+            this.textBox_message_groupName.Size = new System.Drawing.Size(256, 21);
+            this.textBox_message_groupName.TabIndex = 39;
+            // 
             // label37
             // 
             this.label37.AutoSize = true;
@@ -1056,13 +1088,42 @@
             this.label37.TabIndex = 2;
             this.label37.Text = "Text:";
             // 
+            // label38
+            // 
+            this.label38.AutoSize = true;
+            this.label38.Location = new System.Drawing.Point(0, 15);
+            this.label38.Name = "label38";
+            this.label38.Size = new System.Drawing.Size(71, 12);
+            this.label38.TabIndex = 6;
+            this.label38.Text = "Group Name:";
+            // 
+            // button_message_send
+            // 
+            this.button_message_send.Location = new System.Drawing.Point(0, 103);
+            this.button_message_send.Name = "button_message_send";
+            this.button_message_send.Size = new System.Drawing.Size(47, 23);
+            this.button_message_send.TabIndex = 4;
+            this.button_message_send.Text = "Send";
+            this.button_message_send.UseVisualStyleBackColor = true;
+            this.button_message_send.Click += new System.EventHandler(this.button_message_send_Click);
+            // 
+            // button_message_load
+            // 
+            this.button_message_load.Location = new System.Drawing.Point(0, 80);
+            this.button_message_load.Name = "button_message_load";
+            this.button_message_load.Size = new System.Drawing.Size(47, 23);
+            this.button_message_load.TabIndex = 5;
+            this.button_message_load.Text = "Load";
+            this.button_message_load.UseVisualStyleBackColor = true;
+            this.button_message_load.Click += new System.EventHandler(this.button_message_load_Click);
+            // 
             // webBrowser_message
             // 
             this.webBrowser_message.Dock = System.Windows.Forms.DockStyle.Fill;
             this.webBrowser_message.Location = new System.Drawing.Point(0, 0);
             this.webBrowser_message.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser_message.Name = "webBrowser_message";
-            this.webBrowser_message.Size = new System.Drawing.Size(333, 119);
+            this.webBrowser_message.Size = new System.Drawing.Size(333, 104);
             this.webBrowser_message.TabIndex = 1;
             // 
             // toolStrip1
@@ -1112,50 +1173,25 @@
             this.webBrowser1.Size = new System.Drawing.Size(379, 297);
             this.webBrowser1.TabIndex = 0;
             // 
-            // splitContainer_message
+            // button_message_getGroupNameQuick
             // 
-            this.splitContainer_message.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer_message.Location = new System.Drawing.Point(0, 0);
-            this.splitContainer_message.Name = "splitContainer_message";
-            this.splitContainer_message.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.button_message_getGroupNameQuick.Location = new System.Drawing.Point(125, 132);
+            this.button_message_getGroupNameQuick.Name = "button_message_getGroupNameQuick";
+            this.button_message_getGroupNameQuick.Size = new System.Drawing.Size(155, 23);
+            this.button_message_getGroupNameQuick.TabIndex = 43;
+            this.button_message_getGroupNameQuick.Text = "Get Group Name Quick";
+            this.button_message_getGroupNameQuick.UseVisualStyleBackColor = true;
+            this.button_message_getGroupNameQuick.Click += new System.EventHandler(this.button_message_getGroupNameQuick_Click);
             // 
-            // splitContainer_message.Panel1
+            // button_message_enumGroupName
             // 
-            this.splitContainer_message.Panel1.AutoScroll = true;
-            this.splitContainer_message.Panel1.Controls.Add(this.textBox_message_timeRange);
-            this.splitContainer_message.Panel1.Controls.Add(this.label39);
-            this.splitContainer_message.Panel1.Controls.Add(this.textBox_message_text);
-            this.splitContainer_message.Panel1.Controls.Add(this.textBox_message_groupName);
-            this.splitContainer_message.Panel1.Controls.Add(this.label37);
-            this.splitContainer_message.Panel1.Controls.Add(this.label38);
-            this.splitContainer_message.Panel1.Controls.Add(this.button_message_send);
-            this.splitContainer_message.Panel1.Controls.Add(this.button_message_load);
-            // 
-            // splitContainer_message.Panel2
-            // 
-            this.splitContainer_message.Panel2.Controls.Add(this.webBrowser_message);
-            this.splitContainer_message.Size = new System.Drawing.Size(333, 271);
-            this.splitContainer_message.SplitterDistance = 144;
-            this.splitContainer_message.SplitterWidth = 8;
-            this.splitContainer_message.TabIndex = 40;
-            // 
-            // textBox_message_timeRange
-            // 
-            this.textBox_message_timeRange.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 38);
-            this.textBox_message_timeRange.Name = "textBox_message_timeRange";
-            this.textBox_message_timeRange.Size = new System.Drawing.Size(256, 21);
-            this.textBox_message_timeRange.TabIndex = 41;
-            // 
-            // label39
-            // 
-            this.label39.AutoSize = true;
-            this.label39.Location = new System.Drawing.Point(0, 42);
-            this.label39.Name = "label39";
-            this.label39.Size = new System.Drawing.Size(71, 12);
-            this.label39.TabIndex = 40;
-            this.label39.Text = "Time Range:";
+            this.button_message_enumGroupName.Location = new System.Drawing.Point(283, 132);
+            this.button_message_enumGroupName.Name = "button_message_enumGroupName";
+            this.button_message_enumGroupName.Size = new System.Drawing.Size(47, 23);
+            this.button_message_enumGroupName.TabIndex = 44;
+            this.button_message_enumGroupName.Text = "enum";
+            this.button_message_enumGroupName.UseVisualStyleBackColor = true;
+            this.button_message_enumGroupName.Click += new System.EventHandler(this.button_message_enumGroupName_Click);
             // 
             // MainForm
             // 
@@ -1188,17 +1224,17 @@
             this.tabPage_circulation.ResumeLayout(false);
             this.tabPage_circulation.PerformLayout();
             this.tabPage_message.ResumeLayout(false);
+            this.splitContainer_message.Panel1.ResumeLayout(false);
+            this.splitContainer_message.Panel1.PerformLayout();
+            this.splitContainer_message.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer_message)).EndInit();
+            this.splitContainer_message.ResumeLayout(false);
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.splitContainer_main.Panel1.ResumeLayout(false);
             this.splitContainer_main.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_main)).EndInit();
             this.splitContainer_main.ResumeLayout(false);
-            this.splitContainer_message.Panel1.ResumeLayout(false);
-            this.splitContainer_message.Panel1.PerformLayout();
-            this.splitContainer_message.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer_message)).EndInit();
-            this.splitContainer_message.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1306,6 +1342,9 @@
         private System.Windows.Forms.SplitContainer splitContainer_message;
         private System.Windows.Forms.TextBox textBox_message_timeRange;
         private System.Windows.Forms.Label label39;
+        private System.Windows.Forms.Button button_message_transGroupName;
+        private System.Windows.Forms.Button button_message_getGroupNameQuick;
+        private System.Windows.Forms.Button button_message_enumGroupName;
     }
 }
 

@@ -14,6 +14,38 @@ namespace DigitalPlatform.Text
     /// </summary>
     public static class StringUtil
     {
+        // 去掉外围括住的符号
+        // parameters:
+        //      pairs   若干对打算去除的符号。例如 "%%" "()" "[](){}"。如果包含多对符号，则从左到右匹配，用上前面的就用它处理然后返回了，后面的若干对就不发生作用了
+        public static string Unquote(string strValue, string pairs)
+        {
+            if (string.IsNullOrEmpty(pairs))
+                throw new ArgumentException("pairs 参数值不应为空", "pairs");
+
+            if ((pairs.Length % 2) != 0)
+                throw new ArgumentException("pairs 参数值的字符个数应为偶数", "pairs");
+
+            if (string.IsNullOrEmpty(strValue) == true)
+                return "";
+
+            for (int i = 0; i < pairs.Length / 2; i++)
+            {
+                char left = pairs[i * 2];
+                if (strValue[0] == left)
+                {
+                    strValue = strValue.Substring(1);
+                    if (strValue.Length == 0)
+                        return "";
+
+                    char right = pairs[(i * 2) + 1];
+                    if (strValue[strValue.Length - 1] == right)
+                        return strValue.Substring(0, strValue.Length - 1);
+                }
+            }
+
+            return strValue;
+        }
+
         public static string GetMd5(string strText)
         {
             MD5 hasher = MD5.Create();
@@ -276,9 +308,12 @@ namespace DigitalPlatform.Text
                 return new List<string>();
 
             string[] parts = strText.Split(new char[] { ',' });
+            return parts.ToList();
+            /*
             List<string> results = new List<string>();
             results.AddRange(parts);
             return results;
+             * */
         }
 
         // 检测一个字符串的头部
