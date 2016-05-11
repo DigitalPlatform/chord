@@ -1,0 +1,356 @@
+﻿@model dp2weixin.service.PatronInfo
+
+@section style {
+    <style type="text/css">
+        /*所有需要后面填充内容的元素样式*/
+        .pending {
+            /*设为背景图影响效果太大了，还是元素里面加个img吧*/
+            /*background-image:url("img/wait.gif");*/
+        }
+
+        /*错误提示样式*/
+        .errorspan {
+            color: red;
+        }
+
+        /*input 去掉边框*/
+        .input-group input[type="text"] {
+            border: none;
+        }
+
+
+
+        .label-default {
+            background-color: #ffffff;
+            color: #dddddd;
+        }
+
+        .reader-barcode {
+            font-size: 20px;
+            font-weight: bold;
+            color: green;
+        }
+
+        .reader-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: black;
+        }
+
+        .td-right {
+            text-align: right;
+            color: #CCCCCC;
+            padding: 0.1cm;
+            width: 32%;
+        }
+
+        .td-left {
+            text-align: left;
+            padding: 0.1cm;
+        }
+
+        .warning {
+            vertical-align: top;
+            text-align: center;
+        }
+
+        .amerce .number {
+            background-color: #bbbb00;
+        }
+
+        .amerce .text {
+            background-color: #ffff00;
+        }
+
+        DIV.warning .number {
+            font-size: 16pt;
+            font-weight: bolder;
+            /*width: 100%;*/
+            color: White;
+        }
+
+        DIV.warning .text {
+            font-size: 8pt;
+            /*width: 100%;*/
+        }
+
+        .overdue .number {
+            background-color: #990000;
+        }
+
+        .overdue .text {
+            background-color: #ff9999;
+        }
+
+        .arrive .number {
+            background-color: #009900;
+        }
+
+        .arrive .text {
+            background-color: #99ff99;
+        }
+
+        .deleted {
+            text-decoration: line-through;
+        }
+
+        .borrowinfo-overdue {
+            /*font-size: 8pt;*/
+            background-color: #ffcccc;
+        }
+
+        .borrowinfo-active {
+            font-size: 10pt;
+            background-color: cornsilk;
+        }
+
+        .reservation-active {
+            background-color: #99ff99;
+        }
+
+
+
+        .text-warning {
+            color: red;
+            font-size: 28px;
+        }
+
+    </style>
+}
+@{
+    ViewBag.Title = "我的信息";
+    
+    string text ="";
+    if (ViewBag.bindFlag == 0)
+    {
+        text = "您尚未绑定读者，点击<a href='/acount/index'>这里</a>绑定读者。";
+    }
+    else if (ViewBag.bindFlag == 1)
+    {
+        text = "您尚未设置默认读者，点击<a href='/acount/index'>这里</a>设置默认读者。";         
+    }   
+}
+@if(text !="")
+{ 
+@Html.Raw(text)
+}
+
+@if (Model != null)
+{
+    string strBackColor="background-color:white";
+    string strClass = "";
+    if(Model.patron.isWarning==1)
+    {
+        strBackColor = "background-color:yellow";
+        strClass = " text-warning ";
+    }
+    
+        
+    <div  id="divPatron" style="@strBackColor">
+        <h3><span class="label label-default">读者信息</span></h3>      
+            <div id="readerTable" style="border:1px solid #dddddd;border-radius: 6px;">
+                <div class="col-md-2" style="padding:0.2cm">
+                    <table style="width:100%">
+                        <tr>
+                            <td>
+                                <img id='cardphoto' src='~/img/nonePhoto.png' alt='读者照片' />
+                            </td>
+                            <td class='warning' id='insertpoint'>@Html.Raw(Model.patron.warningText)</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-5" style="padding:0.2cm">
+                    <table style="background-color:white;width:100%">
+                        <tr><td colspan="2"><span class="reader-barcode" style="padding: 0.1cm;" >@Model.patron.barcode</span></td></tr>
+                        <tr>
+                            <td colspan="2">
+                                <span class="reader-name" style="padding: 0.1cm;">@Model.patron.name</span>
+                                （<span>@Model.patron.department</span>）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="td-right" style="text-align:left">读者类别</td>
+                            <td class="td-left">@Model.patron.readerType</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-5" style="padding:0.2cm">
+                    <table id="readerStateTable" style="background-color:white;width:100%;table-layout:fixed">
+                        <tr>
+                            <td class="td-right">证状态</td>
+                            <td class="td-left @strClass">@Model.patron.state &nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td class="td-right">失效日期</td>
+                            <td class="td-left @strClass">@Model.patron.expireDate</td>
+                        </tr>
+                        <tr>
+                            <td class="td-right">注释</td>
+                            <td class="td-left" title="@Model.patron.comment"  style='white-space:nowrap;overflow:hidden; text-overflow:ellipsis;'>@Model.patron.comment</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        
+        @if (Model.overdueList != null && Model.overdueList.Count >0)
+        {
+        <div id="divOverdue">
+            <h3><span class="label label-default">违约/交费信息</span></h3>
+            <table class="table" style="background-color:white">                          
+                @foreach (dp2weixin.service.OverdueInfo item in Model.overdueList)
+                {
+                    <tr style="background-color:yellow;border-bottom:1px solid #cccccc">
+                        <td>
+                            <table>
+                                <tr>
+                                    <td class="td-right">册条码号</td>
+                                    <td class="td-left" style="color:green;font-size:14.8px;font-weight:bold">
+                                        <a href="@item.barcodeUrl" target="_blank">
+                                            <span>@item.barcode</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="td-right">说明</td>
+                                    <td class="td-left">@item.reason</td>
+                                </tr>
+                                <tr>
+                                    <td class="td-right">金额</td>
+                                    <td class="td-left">@item.price</td>
+                                </tr>
+                                <tr>
+                                    <td class="td-right">附注</td>
+                                    <td class="td-left">@item.pauseInfo</td>
+                                </tr>
+                                <tr>
+                                    <td class="td-right">起点日期</td>
+                                    <td class="td-left">@item.borrowDate</td>
+                                </tr>
+                                <tr>
+                                    <td class="td-right">期限</td>
+                                    <td class="td-left">@item.borrowPeriod</td>
+                                </tr>
+                                <tr>
+                                    <td class="td-right">终点日期</td>
+                                    <td class="td-left">@item.returnDate</td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+            }                
+            </table>
+        </div>
+        }
+        
+        <h3><span class="label label-default" style="text-align:left">在借册</span></h3>
+        <table id="borrowTable" class="table" style="background-color:white">
+            <tr>
+                <td colspan="2" align="right" style="background-color:#eeeeee">
+                    <span>@Model.patron.maxBorrowCount</span>&nbsp;
+                    <span>@Model.patron.curBorrowCount</span>
+                </td>
+            </tr>
+            @if (Model.borrowList != null && Model.borrowList.Count > 0)
+            { 
+                foreach (dp2weixin.service.BorrowInfo item in Model.borrowList)
+                {
+                    <tr class="@item.rowCss" style="border-bottom:1px solid #cccccc">
+                        <td>
+                            <table>
+                                <tr>
+                                    <td class="td-right">册条码号</td>
+                                    <td class="td-left"><a href="@item.barcodeUrl" target="_blank"><span>@item.barcode</span></a></td>
+                                </tr>
+                                <tr>
+                                    <td class="td-right">续借次</td>
+                                    <td class="td-left">@item.renewNo</td>
+                                </tr>
+                                <tr>
+                                    <td class="td-right">借阅日期</td>
+                                    <td class="td-left">@item.borrowDate</td>
+                                </tr>
+                                <tr>
+                                    <td class="td-right">期限</td>
+                                    <td class="td-left">@item.period</td>
+                                </tr>
+                                <tr>
+                                    <td class="td-right">操作者</td>
+                                    <td class="td-left">@item.borrowOperator</td>
+                                </tr>
+                                <tr>
+                                    <td class="td-right">应还日期</td>
+                                    <td class="td-left">@item.returnDate</td>
+                                </tr>
+                                <tr>
+                                    <td class="td-right">摘要</td>
+                                    <td class="td-left">
+                                        <label style="display:inline">
+                                            @if (item.barcode != "")
+                                            {
+                                                @Html.Raw("bs-" + item.barcode);
+                                            }
+                                        </label>
+                                        <img src="~/img/wait2.gif" height="10" width="10" />
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+            }
+            }
+        </table>
+
+        @if (Model.reservationList !=null && Model.reservationList.Count >0)
+        { 
+        <h3><span class="label label-default">预约请求</span></h3>
+        <table id="reservationTable" class="table " style="background-color:white">
+            @foreach (dp2weixin.service.ReservationInfo item in Model.reservationList)
+            {
+                string tempFullBarCode = item.fullBarcodes;
+                if (tempFullBarCode != "")
+                {
+                    tempFullBarCode = "ms-" + tempFullBarCode;
+                }
+                string myclass = "";
+                if (item.state == "arrived")
+                {
+                    myclass = " reservation-active  ";
+                }
+                <tr class="@myclass">
+                    <td>
+                        <table width="100%">
+                            <tr>
+                                <td class="td-right">册条码号</td>
+                                <td class="td-left">@Html.Raw(item.barcodes)</td>
+                            </tr>
+                            <tr>
+                                <td class="td-right">请求日期</td>
+                                <td class="td-left">@item.requestdate</td>
+                            </tr>
+                            <tr>
+                                <td class="td-right">操作者</td>
+                                <td class="td-left">@item.operatorAccount</td>
+                            </tr>
+                            <tr>
+                                <td class="td-right">到达情况</td>
+                                <td class="td-left">@item.stateText</td>
+                            </tr>
+                            <tr>
+                                <td class="td-right">摘要</td>
+                                <td class="td-left">
+                                    <span class="pending">
+                                        <label style="display:inline">@tempFullBarCode</label>
+                                        <img src="~/img/wait2.gif" height="10" width="10" />
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            }
+        </table>
+        }
+    </div>
+}

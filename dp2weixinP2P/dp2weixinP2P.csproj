@@ -124,14 +124,24 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\layer.m.css" />
     <Content Include="Content\sticky-footer-navbar.css" />
+    <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
+    <Content Include="img\emptyBind.png" />
+    <Content Include="img\library.jpg" />
+    <Content Include="img\nonePhoto.png" />
+    <Content Include="img\wait2.gif" />
     <Content Include="Scripts\bootstrap.js" />
+    <Content Include="fonts\glyphicons-halflings-regular.eot" />
+    <Content Include="fonts\glyphicons-halflings-regular.ttf" />
+    <Content Include="fonts\glyphicons-halflings-regular.woff" />
+    <Content Include="fonts\glyphicons-halflings-regular.woff2" />
     <None Include="Scripts\jquery-1.6.4-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.4.js" />
     <Content Include="Scripts\jquery-1.6.4.min.js" />
     <Content Include="Scripts\jquery-1.9.1.js" />
     <Content Include="Scripts\jquery-ui-1.8.24.js" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
+    <Content Include="Scripts\jquery.form.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
@@ -140,6 +150,7 @@
     <Content Include="Scripts\layer.js" />
     <Content Include="Scripts\senparc.menu.js" />
     <Content Include="Scripts\weixin.js" />
+    <Content Include="Views\Account\delete.txt" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -149,9 +160,11 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\BiblioController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\OAuth2Controller.cs" />
+    <Compile Include="Controllers\PatronController.cs" />
     <Compile Include="Controllers\WeixinController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -185,8 +198,12 @@
     <Content Include="Views\OAuth2\Index.cshtml" />
     <Content Include="Views\OAuth2\UserInfoCallback.cshtml" />
     <Content Include="Views\Menu\Index.cshtml" />
-    <Content Include="Views\Account\Login.cshtml" />
+    <Content Include="Views\Account\Login.cshtml.txt" />
+    <Content Include="Views\Account\Index2.cshtml.txt" />
     <Content Include="Views\Account\Index.cshtml" />
+    <Content Include="Views\Patron\Index.cshtml" />
+    <Content Include="Views\Biblio\Index.cshtml" />
+    <Content Include="Views\Account\RetrievePassword.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -24,18 +24,19 @@ namespace dp2Command.Service
         // 微信目录
         public string weiXinDataDir = "";
 
-        // 访问的目标图书馆
-        public string libCode = "";
-        public string remoteUserName = "";
 
         #region 绑定解绑
 
-        public virtual int Binding(string strBarcode,
+        public virtual int Binding(string remoteUserName,
+            string libCode,
+            string strFullWord,
             string strPassword,
             string strWeiXinId,
+            out WxUserItem userItem,
             out string strReaderBarcode,
             out string strError)
         {
+            userItem = null;
             strReaderBarcode = "";
             strError = "未实现";
             return -1;
@@ -46,7 +47,9 @@ namespace dp2Command.Service
         /// -1 出错
         /// 0   成功
         /// </returns>
-        public virtual int Unbinding1(string strrBarcode,
+        public virtual int Unbinding(string remoteUserName,
+            string libCode, 
+            string strrBarcode,
             string strWeiXinId,
              out string strError)
         {
@@ -59,7 +62,9 @@ namespace dp2Command.Service
 
         #region 根据微信id从远程库中查找对应读者
 
-        public virtual long SearchOnePatronByWeiXinId(string strWeiXinId,
+        public virtual long SearchOnePatronByWeiXinId(string remoteUserName,
+            string libCode, 
+            string strWeiXinId,
             out string strBarcode,
             out string strError)
         {
@@ -80,7 +85,8 @@ namespace dp2Command.Service
         /// </summary>
         /// <param name="strWord"></param>
         /// <returns></returns>
-        public virtual long SearchBiblio(string strWord,
+        public virtual long SearchBiblio(string remoteUserName, 
+            string strWord,
             SearchCommand searchCmd,
             out string strFirstPage,
             out string strError)
@@ -91,7 +97,8 @@ namespace dp2Command.Service
             return -1;
         }
 
-        public virtual int GetDetailBiblioInfo(SearchCommand searchCmd,
+        public virtual int GetDetailBiblioInfo(string remoteUserName, 
+            SearchCommand searchCmd,
             int nIndex,
             out string strBiblioInfo,
             out string strError)
@@ -111,7 +118,8 @@ namespace dp2Command.Service
         /// 0   未找到读者记录
         /// 1   成功
         /// </returns>
-        public virtual int GetBorrowInfo(string strReaderBarcode, 
+        public virtual int GetBorrowInfo(string remoteUserName, 
+            string strReaderBarcode, 
             out string strBorrowInfo, 
             out string strError)
         {
@@ -127,7 +135,8 @@ namespace dp2Command.Service
         /// 0   未绑定
         /// 1   成功
         /// </returns>
-        public virtual int GetMyInfo(string strReaderBarcode,
+        public virtual int GetMyInfo(string remoteUserName, 
+            string strReaderBarcode,
             out string strMyInfo,
             out string strError)
         {
@@ -167,7 +176,8 @@ namespace dp2Command.Service
         /// </summary>
         /// <param name="strItemBarcode">册条码号</param>
         /// <returns></returns>
-        public virtual int Renew(string strReaderBarcode,
+        public virtual int Renew(string remoteUserName, 
+            string strReaderBarcode,
             string strItemBarcode,
             out BorrowInfo borrowInfo,
             out string strError)
@@ -302,8 +312,8 @@ namespace dp2Command.Service
                 return null;
 
             //记下来，以便点对点方便访问该图书馆
-            this.libCode = userItem.libCode;
-            this.remoteUserName = userItem.libUserName;
+            //this.libCode = userItem.libCode;
+            //this.remoteUserName = userItem.libUserName;
 
             return userItem;
         }
@@ -335,8 +345,8 @@ namespace dp2Command.Service
             WxUserDatabase.Current.SetActive(userItem);
 
             //记下来，以便点对点方便访问该图书馆
-            this.libCode = libCode;
-            this.remoteUserName = libUserName;
+            //this.libCode = libCode;
+            //this.remoteUserName = libUserName;
 
             return userItem;
         }

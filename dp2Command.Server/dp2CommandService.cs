@@ -57,6 +57,7 @@ namespace dp2Command.Service
         private bool IsUseMongoDb = false;
 
 
+
         /// <summary>
         /// 
         /// </summary>
@@ -127,7 +128,8 @@ namespace dp2Command.Service
         /// </summary>
         /// <param name="strWord"></param>
         /// <returns></returns>
-        public override long SearchBiblio(string strWord,
+        public override long SearchBiblio(string remoteUserName, 
+            string strWord,
             SearchCommand searchCmd,
             out string strFirstPage,
             out string strError)
@@ -243,7 +245,8 @@ namespace dp2Command.Service
         /// <param name="strInfo"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public override int GetDetailBiblioInfo(SearchCommand searchCmd,
+        public override int GetDetailBiblioInfo(string remoteUserName, 
+            SearchCommand searchCmd,
             int nIndex,
             out string strBiblioInfo,
             out string strError)
@@ -421,12 +424,16 @@ out string strError)
         /// 0 读者证条码号或密码不正确
         /// 1 成功
         /// </returns>
-        public override int Binding(string strBarcode,
+        public override int Binding(string remoteUserName,
+            string libCode,
+            string strFullWord,
             string strPassword,
             string strWeiXinId,
+            out WxUserItem userItem,
             out string strReaderBarcode,
             out string strError)
         {
+            userItem = null;
             strError = "";
             strReaderBarcode = "";
 
@@ -435,7 +442,7 @@ out string strError)
             try
             {
                 // 检验用户名与密码                
-                long lRet = channel.VerifyReaderPassword(strBarcode,
+                long lRet = channel.VerifyReaderPassword(strFullWord,
                    strPassword,
                     out strError);
                 if (lRet == -1)
@@ -454,7 +461,7 @@ out string strError)
                 {
                     // 进行绑定
                     // 先根据barcode检索出来,得到原记录与时间戳
-                    GetReaderInfoResponse response = channel.GetReaderInfo(strBarcode,
+                    GetReaderInfoResponse response = channel.GetReaderInfo(strFullWord,
                         "xml");
                     if (response.GetReaderInfoResult.Value != 1)
                     {
@@ -500,7 +507,7 @@ out string strError)
                         if (node != null)
                             name = DomUtil.GetNodeText(node);
 
-                        WxUserItem userItem = WxUserDatabase.Current.GetActiveOrFirst(strWeiXinId,this.libCode);
+                        userItem = WxUserDatabase.Current.GetActiveOrFirst(strWeiXinId,libCode);
                         if (userItem == null)
                         {
                             userItem = new WxUserItem();
@@ -546,7 +553,9 @@ out string strError)
         /// <param name="strXml"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public override long SearchOnePatronByWeiXinId(string strWeiXinId,
+        public override long SearchOnePatronByWeiXinId(string remoteUserName,
+            string libCode, 
+            string strWeiXinId,
             out string strBarcode,
             out string strError)
         {
@@ -658,7 +667,9 @@ out string strError)
         /// -1 出错
         /// 0   成功
         /// </returns>
-        public override int Unbinding1(string strBarcode,
+        public override int Unbinding(string remoteUserName,
+            string libCode, 
+            string strBarcode,
             string strWeiXinId,
             out string strError)
         {
@@ -725,7 +736,7 @@ out string strError)
                 // 从mongodb删除
                 if (this.IsUseMongoDb == true)
                 {
-                    long nCount = WxUserDatabase.Current.Delete(strWeiXinId, strBarcode,this.libCode);
+                    long nCount = WxUserDatabase.Current.Delete(strWeiXinId, strBarcode,libCode);
                 }
 
                 return 0;
@@ -748,7 +759,8 @@ out string strError)
         /// </summary>
         /// <param name="strItemBarcode">册条码号</param>
         /// <returns></returns>
-        public override int Renew(string strReaderBarcode, 
+        public override int Renew(string remoteUserName, 
+            string strReaderBarcode, 
             string strItemBarcode, 
             out BorrowInfo borrowInfo, 
             out string strError)
@@ -822,7 +834,8 @@ out string strError)
         /// 0   未找到读者记录
         /// 1   成功
         /// </returns>
-        public override int GetMyInfo(string strReaderBarcode,
+        public override int GetMyInfo(string remoteUserName, 
+            string strReaderBarcode,
             out string strMyInfo, 
             out string strError)
         {
@@ -877,7 +890,8 @@ out string strError)
         /// 0   未找到读者记录
         /// 1   成功
         /// </returns>
-        public override int GetBorrowInfo(string strReaderBarcode, out string strBorrowInfo, out string strError)
+        public override int GetBorrowInfo(string remoteUserName, 
+            string strReaderBarcode, out string strBorrowInfo, out string strError)
         {
             strError = "";
             strBorrowInfo = "";

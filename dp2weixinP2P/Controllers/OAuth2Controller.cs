@@ -32,7 +32,7 @@ namespace Senparc.Weixin.MP.Sample.Controllers
         {
             //此页面引导用户点击授权
             ViewData["UrlUserInfo"] = OAuthApi.GetAuthorizeUrl(appId, "http://dp2003.com/dp2weixin/oauth2/UserInfoCallback", "JeffreySu", OAuthScope.snsapi_userinfo);
-            ViewData["UrlBase"] = OAuthApi.GetAuthorizeUrl(appId, "http://dp2003.com/dp2weixin/oauth2/BaseCallback", "JeffreySu", OAuthScope.snsapi_base);
+            ViewData["UrlBase"] = OAuthApi.GetAuthorizeUrl(appId, "http://www.dp2003.com/dp2weixin/Account/IndexOAuth", "dp2weixin", OAuthScope.snsapi_base);
             return View();
         }
 

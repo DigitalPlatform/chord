@@ -147,65 +147,62 @@
 }
 
 
-<div class="col-md-12" data-bind="if: model.displaySummary">
-    <center><h3>图书馆列表</h3></center>
-    <table class="table table-striped">
-        <thead>
-            <tr><th>馆代码</th><th>馆名称</th><th>点对点账号</th><th>备注</th><th>操作</th></tr>
-        </thead>
-        <tbody data-bind="foreach:model.librarys">
-            <tr>
-                <td data-bind="text:libCode"></td>
-                <td data-bind="text:libName"></td>
-                <td data-bind="text:libUserName"></td>
-                <td data-bind="text:comment"></td>
-                <td>
-                    <button class="btn btn-xs btn-default" data-bind="click: removeLib">X</button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <button class="btn btn-default btn-lg" data-bind="click: handleCreateClick">
-        新增图书馆
-    </button>
-</div>
-
-<div class="col-md-12" data-bind="ifnot: model.displaySummary">
-    <center><h3>新增图书馆</h3></center>
-    <br />
-    <div class="form-horizontal">
-        <div class="form-group form-group-lg">
-            <label class="col-sm-2 control-label" style="color:gray">馆代码</label>
-            <div class="col-sm-10">
-                <input class="form-control" placeholder="图书馆代码" data-bind="value:model.editor.libCode">
-            </div>
-        </div>
-        <div class="form-group form-group-lg">
-            <label class="col-sm-2 control-label" style="color:gray">馆名称</label>
-            <div class="col-sm-10">
-                <input class="form-control" placeholder="图书馆名称" data-bind="value:model.editor.libName">
-            </div>
-        </div>
-        <div class="form-group form-group-lg">
-            <label class="col-sm-2 control-label" style="color:gray">点对点帐号</label>
-            <div class="col-sm-10">
-                <input class="form-control" placeholder="图书馆点对点帐号" data-bind="value:model.editor.libUserName">
-            </div>
-        </div>
-        <div class="form-group form-group-lg">
-            <label class="col-sm-2 control-label" style="color:gray">备注</label>
-            <div class="col-sm-10">
-                <textarea class="form-control" rows="3" data-bind="value:model.editor.comment"></textarea>
-            </div>
-        </div>
-        <div class="form-group">
-            <div class="col-sm-offset-2 col-sm-10">
-                <button class="btn btn-default btn-lg" data-bind="click: addLib">保存</button>
-                &nbsp;&nbsp;
-                <button class="btn btn-default btn-lg" data-bind="click: handleCancelClick">取消</button>
-            </div>
-        </div>
-
+    <div data-bind="if: model.displaySummary">
+        <center><h3>图书馆列表</h3></center>
+        <table class="table ">
+            <thead>
+                <tr><th>馆代码</th><th>馆名称</th><th>点对点账号</th><th>备注</th><th>操作</th></tr>
+            </thead>
+            <tbody data-bind="foreach:model.librarys">
+                <tr>
+                    <td data-bind="text:libCode"></td>
+                    <td data-bind="text:libName"></td>
+                    <td data-bind="text:libUserName"></td>
+                    <td data-bind="text:comment"></td>
+                    <td>
+                        <button class="btn btn-xs btn-default" data-bind="click: removeLib">X</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="btn btn-default btn-lg" data-bind="click: handleCreateClick">
+            新增图书馆
+        </button>
     </div>
-</div>
-
+    <div data-bind="ifnot: model.displaySummary">
+        <center><h3>新增图书馆</h3></center>
+        <br />
+        <div class="form-horizontal">
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label" style="color:gray">馆代码</label>
+                <div class="col-sm-10">
+                    <input class="form-control" placeholder="图书馆代码" data-bind="value:model.editor.libCode">
+                </div>
+            </div>
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label" style="color:gray">馆名称</label>
+                <div class="col-sm-10">
+                    <input class="form-control" placeholder="图书馆名称" data-bind="value:model.editor.libName">
+                </div>
+            </div>
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label" style="color:gray">点对点帐号</label>
+                <div class="col-sm-10">
+                    <input class="form-control" placeholder="图书馆点对点帐号" data-bind="value:model.editor.libUserName">
+                </div>
+            </div>
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label" style="color:gray">备注</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" rows="3" data-bind="value:model.editor.comment"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button class="btn btn-default btn-lg" data-bind="click: addLib">保存</button>
+                    &nbsp;&nbsp;
+                    <button class="btn btn-default btn-lg" data-bind="click: handleCancelClick">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>

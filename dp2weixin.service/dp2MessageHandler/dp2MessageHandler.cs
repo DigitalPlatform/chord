@@ -283,8 +283,8 @@ namespace dp2weixin
             this.CurrentMessageContext.LibCode1 = user.libCode;
             this.CurrentMessageContext.LibUserName = user.libUserName;
 
-            this.CmdService.libCode = user.libCode;
-            this.CmdService.remoteUserName = user.libUserName;
+            //this.CmdService.libCode = user.libCode;
+            //this.CmdService.remoteUserName = user.libUserName;
             
             WxUserDatabase.Current.SetActive(user);
             return this.CreateTextResponseMessage("您成功切换当前读者为[" + user.readerBarcode+"("+user.readerName+")" + "]");
@@ -490,7 +490,9 @@ namespace dp2weixin
 
             // 检索
             string strFirstPage = "";
-            lRet = this.CmdService.SearchBiblio(strParam, searchCmd,
+            lRet = this.CmdService.SearchBiblio(this.CurrentMessageContext.LibUserName, 
+                strParam, 
+                searchCmd,
                 out strFirstPage,
                 out strError);
             if (lRet == -1)
@@ -513,7 +515,9 @@ namespace dp2weixin
             string strResult = "";
             string strError = "";
             string strBiblioInfo = "";
-            int lRet = this.CmdService.GetDetailBiblioInfo(searchCmd, nBiblioIndex,
+            int lRet = this.CmdService.GetDetailBiblioInfo(this.CurrentMessageContext.LibUserName, 
+                searchCmd, 
+                nBiblioIndex,
                 out strBiblioInfo,
                 out strError);
             if (lRet == -1 || lRet == 0)
@@ -593,9 +597,13 @@ namespace dp2weixin
 
             string strReaderBarcode = "";
             string strError = "";
-            long lRet = this.CmdService.Binding(bindingCmd.ReaderBarcode,
+            WxUserItem userItem = null;
+            long lRet = this.CmdService.Binding(this.CurrentMessageContext.LibUserName,
+                this.CurrentMessageContext.LibCode1,
+                bindingCmd.ReaderBarcode,
                 bindingCmd.Password,
                 this.CurrentMessageContext.UserName, //.WeiXinId
+                out userItem,
                 out strReaderBarcode,
                 out strError);
             if (lRet == -1)
@@ -637,7 +645,9 @@ namespace dp2weixin
             }
 
             // 解除绑定
-            lRet = this.CmdService.Unbinding1(this.CurrentMessageContext.ReaderBarcode, 
+            lRet = this.CmdService.Unbinding(this.CurrentMessageContext.LibUserName,
+                this.CurrentMessageContext.LibCode1,
+                this.CurrentMessageContext.ReaderBarcode, 
                 this.CurrentMessageContext.UserName,
                  out strError);
             if (lRet == -1)
@@ -676,7 +686,8 @@ namespace dp2weixin
 
             // 获取读者信息
             string strMyInfo = "";
-            lRet = this.CmdService.GetMyInfo(this.CurrentMessageContext.ReaderBarcode, out strMyInfo,
+            lRet = this.CmdService.GetMyInfo(this.CurrentMessageContext.LibUserName, 
+                this.CurrentMessageContext.ReaderBarcode, out strMyInfo,
                 out strError);
             if (lRet == -1 || lRet == 0)
             {
@@ -712,7 +723,9 @@ namespace dp2weixin
             }
 
             string strBorrowInfo = "";
-            lRet = this.CmdService.GetBorrowInfo(this.CurrentMessageContext.ReaderBarcode, out strBorrowInfo,
+            lRet = this.CmdService.GetBorrowInfo(this.CurrentMessageContext.LibUserName,
+                this.CurrentMessageContext.ReaderBarcode,
+                out strBorrowInfo,
                 out strError);
             if (lRet == -1)
             {
@@ -752,7 +765,9 @@ namespace dp2weixin
             if (strParam == "" || strParam == "view")
             {
                 string strBorrowInfo = "";
-                lRet = this.CmdService.GetBorrowInfo(this.CurrentMessageContext.ReaderBarcode, out strBorrowInfo,
+                lRet = this.CmdService.GetBorrowInfo(this.CurrentMessageContext.LibUserName, 
+                    this.CurrentMessageContext.ReaderBarcode,
+                    out strBorrowInfo,
                     out strError);
                 if (lRet == -1 || lRet == 0)
                 {
@@ -768,7 +783,8 @@ namespace dp2weixin
 
             // 目前只认作册条码，todo支持序号
             BorrowInfo borrowInfo = null;
-            lRet = this.CmdService.Renew(this.CurrentMessageContext.ReaderBarcode,
+            lRet = this.CmdService.Renew(this.CurrentMessageContext.LibUserName, 
+                this.CurrentMessageContext.ReaderBarcode,
                 strParam,
                 out borrowInfo,
                 out strError);
@@ -867,7 +883,9 @@ namespace dp2weixin
             {
                 // 根据openid检索绑定的读者
                 string strBarcode = "";
-                long lRet = this.CmdService.SearchOnePatronByWeiXinId(this.CurrentMessageContext.UserName,
+                long lRet = this.CmdService.SearchOnePatronByWeiXinId(this.CurrentMessageContext.LibUserName,
+                    this.CurrentMessageContext.LibCode1,
+                    this.CurrentMessageContext.UserName,
                     out strBarcode,
                     out strError);
                 if (lRet == -1)

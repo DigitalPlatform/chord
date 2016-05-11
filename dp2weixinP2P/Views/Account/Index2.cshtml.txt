@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "绑定图书馆账号";
+    ViewBag.Title = "绑定读者";
 }
 
 @section Scripts {
@@ -11,7 +11,7 @@
                 lib: ko.observable(""),
                 libCode: ko.observable(""),
                 libUserName: ko.observable(""),
-                prefix: ko.observable("-1"),
+                prefix: ko.observable(""),
                 word: ko.observable(""),
                 password: ko.observable("")
             },
@@ -151,10 +151,6 @@
             
             // 不需判断为空
             var prefix = model.editor.prefix().trim();
-            if (prefix == "-1") {
-                alert("您尚未选择绑定方式。");
-                return;
-            }
             //alert("prefix[" + prefix + "]");
 
             var curText = $('#selPrefix option:checked').text();
@@ -202,8 +198,6 @@
 
                     if (result.apiResult.errorCode == -1) {
                         openMsg(result.apiResult.errorInfo);
-
-                        return;
                     }
 
                     //加到列表中
@@ -214,10 +208,10 @@
                     //显示列表页
                     model.displayPage(1);
 
-                    //清空编辑界面信息,前三项可以不清除
-                    //model.editor.libCode("");
-                    //model.editor.libUserName("");
-                    //model.editor.prefix("-1");
+                    //清空编辑界面信息
+                    model.editor.libCode("");
+                    model.editor.libUserName("");
+                    model.editor.prefix("");
                     model.editor.word("");
                     model.editor.password("");
 
@@ -330,8 +324,6 @@
         function prefixChange()
         {
             var curText = $('#selPrefix option:checked').text();
-            if (curText == "请选择绑定方式")
-                curText = "";
             $('#userName').prop("placeholder", "请输入 " + curText);
         }
 
@@ -344,14 +336,8 @@
             }
 
             .form-signin select {
-                /*border: none;*/
+                border: none;
             }
-
-             .lookLikeAButton{
-appearance:menulist;
--moz-appearance:listbox; /* Firefox */
--webkit-appearance:menulist; /* Safari and Chrome */
- }
 
     </style>
 }
@@ -412,8 +398,8 @@ appearance:menulist;
     </div>
 
 
-    <div data-bind="if: model.displayPage()==2" style="background-color:white;padding-top:2px">
-        <center><h3>绑定图书馆账号</h3></center>
+    <div data-bind="if: model.displayPage()==2">
+        <center><h3>绑定读者</h3></center>
         <br />
         <div class="form-group-lg form-signin">
             <div>
@@ -431,10 +417,9 @@ appearance:menulist;
                 </table>
             </div>
             <div>
-                <select class="form-control lookLikeAButton" style="border:0px;border-color:transparent"  id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.editor.prefix">
-                    <option value="-1">请选择绑定方式</option>
-                    <option value="NB">姓名</option>
+                <select class="form-control" id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.editor.prefix">
                     <option value="">证条码号</option>
+                    <option value="NB">姓名</option>
                     <option value="EM">email</option>
                     <option value="TP">电话号码</option>
                     <option value="ID">身份证号</option>
@@ -442,7 +427,7 @@ appearance:menulist;
                 </select>
             </div>
             <div>
-                <input class="form-control" id="userName" placeholder="请输入 " data-bind="value:model.editor.word">
+                <input class="form-control" id="userName" placeholder="请输入 证条码号" data-bind="value:model.editor.word">
             </div>
             <div>
                 <input class="form-control" placeholder="请输入 密码" data-bind="value:model.editor.password">
@@ -455,15 +440,13 @@ appearance:menulist;
                     </tr>
                 </table>
             </div>
-            <div>
-                <a href="RetrievePassword" style="color:red;font-size:18px">找回密码</a></div>
         </div>
     </div>
 
 
     <div data-bind="if: model.displayPage()==3">
         <center><h3>选择图书馆</h3></center>
-        <table class="table table-striped" style="background-color:#ffffff">
+        <table class="table">
             <tbody data-bind="foreach:model.librarys">
                 <tr>
                     <td>
@@ -474,7 +457,7 @@ appearance:menulist;
                                     <td width="100%">
                                         <span class="ctrl-libCode" data-bind="text:libCode"></span>
                                         <span class="ctrl-libName" data-bind="text:libName"></span>
-                                        <div class ="ctrl-libUserName" data-bind="text:libUserName"></div>
+                                        <div class ="ctrl-libUserName" data-bind="text:libUserName"></divclass>
                                     </td>
                                 </tr>
                             </table>

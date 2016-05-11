@@ -1,0 +1,536 @@
+﻿@model List<dp2Command.Service.WxUserItem>
+@{
+    ViewBag.Title = "绑定管理";
+}
+
+@section Scripts {
+    <script>
+
+        var model = {
+            wxUsers: ko.observableArray(),
+            editor: {
+                lib: ko.observable(""),
+                from: ko.observable(""),
+                userName: ko.observable(""),
+                password: ko.observable("")
+            },
+            displayList: ko.observable(true)
+        }
+
+
+        //用于所有微信用户
+        function getBindList(weixinId) {
+            //显示等待图层
+            var index = loadLayer();
+
+            // 先删除可观察数组中的已有数据
+            model.wxUsers.removeAll();
+
+            // 调web api
+            var url = "/api/wxuser?weixinId=" + weixinId;
+            sendAjaxRequest(url, "GET", function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    model.wxUsers.push(data[i]);
+                }
+
+                // 关闭等待层
+                layer.close(index);
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        // 删除一项
+        function removeUser(item) {
+            //alert("remove-"+item.libId);
+            var url = "/api/wxuser/" + item.id;
+            sendAjaxRequest(url, "DELETE", function () {
+                //getAllLib();
+                for (var i = 0; i < model.wxUsers().length; i++) {
+                    if (model.wxUsers()[i].id == item.id) {
+                        model.wxUsers.remove(model.wxUsers()[i]);
+                        break;
+                    }
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+        }
+
+        // 设为默认
+        function activeUser(item) {
+            //alert("remove-"+item.libId);
+            var url = "/api/wxuser?weixinId=" + item.id+"&id=" + item.id;
+            sendAjaxRequest(url, "PUT", function () {
+                this.getBindList();
+
+            }, function (xhq, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+        }
+
+
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 获取所有的操作命令
+            var weixinId = $("#weixinId").text();
+            //alert(weixinId);
+
+            getBindList(weixinId);
+            ko.applyBindings(model);
+
+            // 键盘按任意键，消掉图层
+            $(document).keydown(function (event) {
+                if (selectLibLayerOpened == true) {
+                    if (event.keyCode == "13") {
+                        var isWordFocus = $("#txtWord").is(":focus");
+                        var isBtnFocus = $("#btnSearchItem").is(":focus");
+                        if (isWordFocus == false && isBtnFocus == false) {
+                            //alert("关闭图层");
+                            okSelectLibLayer(null);
+                        }
+
+                    }
+                    else if (event.keyCode == 38) {
+                        var selectedItem = $(".item-selected-bg").first();
+                        if (selectedItem == null || selectedItem.length == 0) {
+                            $(".item-tr").first().click();
+                        }
+                        else {
+                            //移到上一个
+                            selectedItem.prev().click();
+                        }
+                    } else if (event.keyCode == 40) {
+                        //alert("下");
+                        var selectedItem = $(".item-selected-bg").first();
+                        if (selectedItem == null || selectedItem.length == 0) {
+                            //alert("未选中册记录");
+                            $(".item-tr").first().click();
+                        }
+                        else {
+                            //alert("2-"+selectedItem);
+                            // alert(selectedItem.html());
+                            //移到下一个
+                            selectedItem.next().click();
+                        }
+                    }
+                    return;
+                }
+                else {
+                    layer.closeAll();
+                }
+            });
+        })
+
+
+        // 新增一项
+        function bind() {
+
+            var libCode = model.editor.lib().trim();
+            if (libCode == "") {
+                alert("尚未输入图书馆代码!");
+                return;
+            }
+            var from = model.editor.from().trim();
+            if (from == "") {
+                alert("尚未输入绑定途径!");
+                return;
+            }
+            var userName = model.editor.userName().trim();
+            if (userName == "") {
+                alert("尚未输入用户名!");
+                return;
+            }
+
+            var password = model.editor.password().trim();
+            if (password == "") {
+                alert("尚未输入密码!");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/wxuser";
+            sendAjaxRequest(url, "POST",
+                function (newItem) {
+                    alert(newItem);
+                    model.wxUsers.push(newItem);
+                    model.displayList(true);
+
+                    //清空编辑界面信息
+                    model.editor.lib("");
+                    model.editor.from("");
+                    model.editor.userName("");
+                    model.editor.password("");
+
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    libCode:libCode,
+                    inputLib: libCode,
+                    inputFrom: from,
+                    inputWord: userName,
+                    inputPassword: password
+                }
+            );
+        }
+
+        // 点击新增图书馆按钮
+        function handleCreateClick() {
+            model.displayList(false);
+        }
+
+        // 在新增图书馆，点击取消
+        function handleCancelClick() {
+            model.displayList(true);
+        }
+
+        // 是否打开了选择读者对话框
+        var selectLibLayerOpened = false;
+        function openSelectLibLayer(libCode) {
+            //alert("openSelectLibLayer");
+            selectLibLayerOpened = true;
+
+            // 册对话框图层
+            var myHtml = "<div id='selItemDiv' >"
+                 + "<table style='width:100%; ' align='center'>"
+                 + "    <tr>"
+                 + "        <td style='width:20%;padding-left:5px' align='center'>"
+                 + "           <select class='form-control' id='selFrom'>"
+                 + "                <option value='<all>'>全部</option>"
+                 + "                <option value='libCode' selected>馆代码</option>"
+                 + "                <option value='libName'>馆名称</option>"
+                 + "            </select>"
+                 + "        </td>"
+                 + "        <td style='width:70%;padding-left:5px' align='center'>"
+                 + "            <input type='text' class='form-control' id='txtWord'  placeholder='请输入检索词' onkeydown='wordEnter(event)' value='" + libCode + "' />"
+                 + "        </td>"
+                 + "        <td style='width:10%' align='center'>"
+                 + "            <button type='button' class='btn btn-default' id='btnSearchItem' onclick='doSearchLib()'>检索</button>"
+                 + "        </td>"
+                 + "    </tr>"
+                 + "</table>"
+                 + "<table id='selItemTable' class='table itemTable' align='center' style='width: 100%;height:100%;'>"
+                 + "   <tbody id='itemsBody'></tbody>"
+                 + "</table>"
+             + "</div>";
+
+
+            //让焦点失效
+            $("#btnSelectLib").blur();
+
+            var title = "请选择图书馆";
+
+            var dw = $(document).width();
+            var dh = $(document).height();
+            var top = dh * 0.1 / 2;
+            var left = (dw - 600) / 2;
+            //alert(left+"-"+top);
+            var myStyle = "";
+            if (dw >= 800) {
+                myStyle = "width:600px;overflow:none;height:500px;position:relative; ";
+            }
+            else {
+                myStyle = "border:none;overflow:none;position:fixed; left:0; top:0; width:100%; height:100%;";
+            }
+
+            //页面层
+            var index1 = layer.open({
+                style: myStyle,// 'border:none;overflow:auto;position:fixed; left:0; top:0; width:100%; height:100%;',
+                type: 1,
+                title: title,
+                content: myHtml,
+                btn: ['确定', '取消'],
+                closeBtn: 1,
+                yes: function (index, layero) {
+                    // 确定
+                    okSelectLibLayer(null);
+                },
+                no: function (index) {
+                    //alert("no");
+                    // 关闭
+                    $("#btnSelectLib").focus();
+                    //alert("已取消选择册记录。注意操作并未执行");
+                },
+                cancel: function (index) {
+                    //alert("cancel");
+                    // 取消
+                    $("#btnSelectLib").focus();
+                    //alert("已取消选择册记录。注意操作并未执行");
+                },
+
+                end: function () {
+                    //alert("end");
+                    //图层消毁时，设置开关变量为false
+                    selectLibLayerOpened = false;
+                }
+            });
+
+            // 调检索函数
+            doSearchItem();
+        }
+
+        // 选择读者图层点击ok时
+        function okSelectLibLayer(row) {
+
+            if (row == null)
+                row = $(".item-selected-bg").first();
+
+            if (row == null || row.length == 0) {
+                alert("请选择一个图书馆！");
+                return false;
+            }
+
+            var itemBarcode = row.find(".itemBarcode-td").first().text();//.html();
+            if (itemBarcode == null || itemBarcode == "") {
+                alert("该图书馆代码为空！");
+                return false;
+            }
+
+            //alert("ok-" + itemBarcode);
+            //layer.close(index1);
+            layer.closeAll();
+
+            //设到界面的证条码框
+            //$("#txtItemBarcode").val(itemBarcode);
+            model.editor.lib(itemBarcode);
+            $("#inputFrom").focus();
+            
+        }
+
+        function wordEnter(e) {
+            if (e.keyCode == 13) {
+                doSearchItem();
+            }
+        }
+        //检索
+        function doSearchItem() {
+
+            alert("doSearchItem");
+
+            $("#itemsBody").html("");
+
+            /*
+            var strFrom = $("#selFrom").val().trim();
+            if (strFrom == "") {
+                alert("尚未选中检索途径");
+                return;
+            }
+
+            var strWord = $("#txtWord").val().trim();
+            if (strWord == "") {
+                alert("尚未输入检索词");
+                return;
+            }
+
+
+            // 拼成检索字符串
+            var searchText = strFrom + "::" + strWord;
+            //alert(searchText);
+
+            //调检索的api
+            var functionType = cmdModel.editor.type();
+            var url = "/api/biblio?action=search&searchText=" + encodeURIComponent(searchText) + "&functionType=" + functionType;
+                        */
+
+            var url = "/api/library";
+            // 调api
+            sendAjaxRequest(url, "GET", function (data) {
+
+                    var myhtml = "";
+                    var availableCount = 0;
+                    for (var i = 0; i < data.length; i++) {
+                        var item = data[i];
+                        var myClass = "";
+
+                        // todo 选中原来已选择的
+                        // 选中第一个可用行
+                        if (i == 1)
+                            myClass += " item-selected-bg";
+
+                        myhtml += "<tr class='item-tr " + myClass + "' >"
+                            + "<td>"
+                            + "<table style='width:100%;table-layout:fixed;'>"
+                                + "<tr>"
+                                + "<td class='itemLeftTd'>馆代码</td>"
+                                + "<td class='itemBarcode-td itemRightTd' >" + item.libCode + "</td>"
+                                + "</tr>"
+                                + "<tr>" //+ strTypeIconTd
+                                + "<td class='itemLeftTd'>馆名称</td>"
+                                + "<td class='pending itemRightTd' >" + item.libName + "</td>"
+                                + "</tr>"
+                            + "</table>"
+                            + "</td></tr>";
+                    }
+
+                    // 显示命中的册记录
+                    $("#itemsBody").html(myhtml);
+
+
+                    //单击选中每一行
+                    $(".item-tr").click(function () {
+                        $(".item-tr").removeClass("item-selected-bg");
+                        //$(".item-tr").find(".itemLeftTd").css("background-color", "#eeeeee");
+
+                        $(this).addClass("item-selected-bg");
+                        //$(this).find(".itemLeftTd").css("background-color", "#278DF3");
+
+                    });
+
+                    // 双击行
+                    $(".item-tr").dblclick(function () {
+
+                        okSelectLibLayer($(this));
+                    });
+
+             
+
+
+            }, function (xhq, textStatus, errorThrown) {
+                alertServerError(errorThrown);
+            });
+
+
+        }
+
+        // 显示服务器错误
+        function alertServerError(info) {
+
+            alert("服务器返回错误：" + info);
+
+            //layer.alert("服务器返回错误：" + errorThrown, { icon: 2 });
+
+        }
+
+ </script>
+}
+
+@section style {
+    <style type="text/css">
+        .item-tr {
+        }
+
+        .item-tr-over {
+            cursor: pointer;
+            background: #E0EEF5;
+        }
+
+        .item-selected-bg {
+            color: white;
+            background: #278DF3;
+        }
+
+        .item-gray {
+            color: #cccccc;
+        }
+    </style>
+}
+<span id="weixinId">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<div class="col-md-12" data-bind="if: model.displayList">
+    <h3>您已绑定了下列图书馆</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr><th>馆代码</th><th>馆账号</th><th>证条码号</th><th>姓名</th><th>refID</th><th>创建时间</th><th>更新时间</th><th>操作</th></tr>
+        </thead>
+        <tbody data-bind="foreach:model.wxUsers">
+            <tr data-bind="style: {'background-color': isActive==1 ? 'darkgreen' : 'white ' }">
+                <td data-bind="text:libCode"></td>
+                <td data-bind="text:libUserName"></td>
+                <td data-bind="text:readerBarcode"></td>
+                <td data-bind="text:readerName"></td>
+                <td data-bind="text:refID"></td>
+                <td data-bind="text:createTime"></td>
+                <td data-bind="text:updateTime"></td>
+                <td>
+                    <button class="btn btn-xs btn-default" data-bind="click: removeUser">X</button>
+                    <button class="btn btn-xs btn-default" data-bind="click: activeUser">设为默认</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button class="btn btn-default btn-lg" data-bind="click: handleCreateClick">
+        新增绑定
+    </button>
+</div>
+
+
+<div class="col-md-12" data-bind="ifnot: model.displayList">
+    <center><h3>绑定读者</h3></center>
+    <br />
+    <div class="form-horizontal">
+        <div class="form-group form-group-lg">
+            <div class="col-sm-8">
+                <input class="form-control" placeholder="图书馆代码" data-bind="value:model.editor.lib">
+            </div>
+            <div class="col-sm-4">
+                <button class="btn btn-default btn-lg" id="btnSelectLib" onclick="openSelectLibLayer()">选择图书馆</button>
+
+            </div>
+        <div class="form-group form-group-lg">
+            <div class="col-sm-12">
+                <input class="form-control" id="inputFrom" placeholder="绑定途径" data-bind="value:model.editor.from">
+            </div>
+        </div>
+        <div class="form-group form-group-lg">
+            <div class="col-sm-12">
+                <input class="form-control" placeholder="用户名" data-bind="value:model.editor.userName">
+            </div>
+        </div>
+        <div class="form-group form-group-lg">
+            <div class="col-sm-12">
+                <textarea class="form-control" placeholder="密码" data-bind="value:model.editor.password"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-12">
+                <button class="btn btn-default btn-lg" data-bind="click: bind">绑定</button>
+                &nbsp;&nbsp;
+                <button class="btn btn-default btn-lg" data-bind="click: handleCancelClick">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+====
+
+                myhtml += "<div class='row'>";
+                    var availableCount = 0;
+                    for (var i = 0; i < data.length;i++) {
+                        var item = data[i];
+                        var myClass = "";
+
+                        // todo 选中原来已选择的
+                        // 选中第一个可用行
+                        if (i == 1)
+                            myClass += " item-selected-bg";
+
+
+
+                        // 第一个
+                        myhtml += "<div class='col-xs-6 item-tr " + myClass + "' >"
+                            + "<h4 class='itemBarcode-td'>" + data[i].libCode + "</h4>"
+                            + "<p>" + data[i].libName + "</p>"
+                            + "</div>";
+
+
+
+                    }
+                    myhtml += "</div>";

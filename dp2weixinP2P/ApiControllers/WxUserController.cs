@@ -1,4 +1,5 @@
 ﻿using dp2Command.Service;
+using dp2weixin.service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,11 +36,36 @@ namespace dp2weixinP2P.ApiControllers
          */
 
         // POST api/<controller>
-        public WxUserItem Post(WxUserItem item)
+        [HttpPost]
+        public WxUserResult Bind(WxUserItem item)
         {
-            string test = "";
+            // 返回对象
+            WxUserResult result = new WxUserResult();
+            result.userItem = null;
+            result.apiResult = new ApiResult();
 
-            return item;// repo.Add(item);
+            WxUserItem userItem = null;
+            string readerBarcode="";
+            string strError="";
+            string fullWord = item.word;
+            if (string.IsNullOrEmpty(item.prefix) == false && item.prefix != "null")
+                fullWord = item.prefix + ":" + item.word;
+            int nRet= dp2CmdService2.Instance.Binding(item.libUserName,
+                item.libCode,
+                fullWord,
+                item.password,
+                item.weixinId,
+                out userItem,
+                out readerBarcode,
+                out strError);
+            if (nRet == -1)
+            {
+                result.apiResult.errorCode = -1;
+                result.apiResult.errorInfo = strError;
+            }
+            result.userItem = userItem;
+
+            return result;// repo.Add(item);
         }
 
         // PUT api/<controller>/5

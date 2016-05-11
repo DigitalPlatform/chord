@@ -179,6 +179,17 @@ namespace dp2Command.Service
             return this.wxUserCollection.Find(filter).ToList();//.ToListAsync().Result;
         }
 
+        public WxUserItem GetOneByWeixinId(string weixinId)
+        {
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId);
+
+            List<WxUserItem>list= this.wxUserCollection.Find(filter).ToList();//.ToListAsync().Result;
+            if (list.Count > 0)
+                return list[0];
+
+            return null;
+        }
+
         /// <summary>
         /// 查找所有用户
         /// </summary>
@@ -232,14 +243,29 @@ namespace dp2Command.Service
         /// <param name="item"></param>
         public void Delete(String id)
         {
-            if (string.IsNullOrEmpty(id) == true)
+            if (string.IsNullOrEmpty(id) == true || id=="null")
                 return;
 
-            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
+            
 
+            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
             var filter = Builders<WxUserItem>.Filter.Eq("id", id);
 
+            // 检查一下是否被删除读者是否为默认读者，如果是，把自动将默认值设了第一个读者上。
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+            string weixinId = "";
+            if (list.Count > 0)
+            {
+                weixinId = list[0].weixinId;
+            }
+
+            // 先删除
             collection.DeleteOne(filter);
+
+            // 自动将第一个设为默认的
+            WxUserItem newUserItem = this.GetOneByWeixinId(weixinId);
+            if (newUserItem != null)
+                this.SetActive(newUserItem);
         }
 
         public void SetActive(WxUserItem item)
@@ -249,6 +275,12 @@ namespace dp2Command.Service
 
         public void SetActive(string weixinId,string id)
         {
+            if (string.IsNullOrEmpty(weixinId) == true || weixinId=="null")
+                return;
+
+            if (string.IsNullOrEmpty(weixinId) == true || id=="null")
+                return;
+
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
 
             // 先将该微信用户的所有绑定读者都设为非活动
@@ -291,13 +323,12 @@ namespace dp2Command.Service
         [BsonRepresentation(BsonType.ObjectId)]
         public string id { get; private set; }
 
-        public string weixinId { get; set; }
+        public string weixinId { get; set; } // 绑定必备
         public string readerBarcode { get; set; }
-
         public string readerName { get; set; }
 
-        public string libCode { get; set; }
-        public string libUserName { get; set; }
+        public string libCode { get; set; } // 绑定必备
+        public string libUserName { get; set; }// 绑定必备
         
 
         public string createTime { get; set; } // 创建时间
@@ -310,10 +341,12 @@ namespace dp2Command.Service
         public int isActive = 0;
 
 
-        public string inputLib="";
-        public string inputFrom = "";
-        public string inputWord = "";
-        public string inputPassword = "";
+        // 绑定必备
+        public string prefix { get; set; }  //必须设为属性，才能在前端传值。
+        public string word  { get; set; }
+        public string password  { get; set; }
+
+        public string fullWord { get; set; } // 服务器用fullWord将strPrefix:strWord存在一起
     }
 
 
