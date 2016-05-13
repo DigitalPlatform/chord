@@ -577,6 +577,7 @@ strError);
                              strResultSetName,
                              "", // strSearchStyle
                              "", // strOutputStyle
+                             "",
                              out strQueryXml,
                              out strError);
                     }

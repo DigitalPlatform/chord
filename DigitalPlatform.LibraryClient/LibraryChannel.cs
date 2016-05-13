@@ -2375,6 +2375,7 @@ out strError);
             string strResultSetName,
             string strSearchStyle,
             string strOutputStyle,
+            string strLocationFilter,
             out string strQueryXml,
             out string strError)
         {
@@ -2395,6 +2396,7 @@ out strError);
                     strResultSetName,
                     strSearchStyle,
                     strOutputStyle,
+                    strLocationFilter,
                     out strQueryXml);
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {

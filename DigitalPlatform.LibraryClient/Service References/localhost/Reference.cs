@@ -4962,10 +4962,13 @@ namespace DigitalPlatform.LibraryClient.localhost {
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=8)]
         public string strOutputStyle;
         
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/rest", Order=9)]
+        public string strLocationFilter;
+        
         public SearchBiblioRequest() {
         }
         
-        public SearchBiblioRequest(string strBiblioDbNames, string strQueryWord, int nPerMax, string strFromStyle, string strMatchStyle, string strLang, string strResultSetName, string strSearchStyle, string strOutputStyle) {
+        public SearchBiblioRequest(string strBiblioDbNames, string strQueryWord, int nPerMax, string strFromStyle, string strMatchStyle, string strLang, string strResultSetName, string strSearchStyle, string strOutputStyle, string strLocationFilter) {
             this.strBiblioDbNames = strBiblioDbNames;
             this.strQueryWord = strQueryWord;
             this.nPerMax = nPerMax;
@@ -4975,6 +4978,7 @@ namespace DigitalPlatform.LibraryClient.localhost {
             this.strResultSetName = strResultSetName;
             this.strSearchStyle = strSearchStyle;
             this.strOutputStyle = strOutputStyle;
+            this.strLocationFilter = strLocationFilter;
         }
     }
     
@@ -8150,7 +8154,7 @@ namespace DigitalPlatform.LibraryClient.localhost {
             return base.Channel.SearchBiblio(request);
         }
         
-        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult SearchBiblio(string strBiblioDbNames, string strQueryWord, int nPerMax, string strFromStyle, string strMatchStyle, string strLang, string strResultSetName, string strSearchStyle, string strOutputStyle, out string strQueryXml) {
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult SearchBiblio(string strBiblioDbNames, string strQueryWord, int nPerMax, string strFromStyle, string strMatchStyle, string strLang, string strResultSetName, string strSearchStyle, string strOutputStyle, string strLocationFilter, out string strQueryXml) {
             DigitalPlatform.LibraryClient.localhost.SearchBiblioRequest inValue = new DigitalPlatform.LibraryClient.localhost.SearchBiblioRequest();
             inValue.strBiblioDbNames = strBiblioDbNames;
             inValue.strQueryWord = strQueryWord;
@@ -8161,6 +8165,7 @@ namespace DigitalPlatform.LibraryClient.localhost {
             inValue.strResultSetName = strResultSetName;
             inValue.strSearchStyle = strSearchStyle;
             inValue.strOutputStyle = strOutputStyle;
+            inValue.strLocationFilter = strLocationFilter;
             DigitalPlatform.LibraryClient.localhost.SearchBiblioResponse retVal = ((DigitalPlatform.LibraryClient.localhost.dp2libraryREST)(this)).SearchBiblio(inValue);
             strQueryXml = retVal.strQueryXml;
             return retVal.SearchBiblioResult;
@@ -11141,10 +11146,13 @@ namespace DigitalPlatform.LibraryClient.localhost {
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=8)]
         public string strOutputStyle;
         
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://dp2003.com/dp2library/", Order=9)]
+        public string strLocationFilter;
+        
         public SearchBiblioRequest1() {
         }
         
-        public SearchBiblioRequest1(string strBiblioDbNames, string strQueryWord, int nPerMax, string strFromStyle, string strMatchStyle, string strLang, string strResultSetName, string strSearchStyle, string strOutputStyle) {
+        public SearchBiblioRequest1(string strBiblioDbNames, string strQueryWord, int nPerMax, string strFromStyle, string strMatchStyle, string strLang, string strResultSetName, string strSearchStyle, string strOutputStyle, string strLocationFilter) {
             this.strBiblioDbNames = strBiblioDbNames;
             this.strQueryWord = strQueryWord;
             this.nPerMax = nPerMax;
@@ -11154,6 +11162,7 @@ namespace DigitalPlatform.LibraryClient.localhost {
             this.strResultSetName = strResultSetName;
             this.strSearchStyle = strSearchStyle;
             this.strOutputStyle = strOutputStyle;
+            this.strLocationFilter = strLocationFilter;
         }
     }
     
@@ -14329,7 +14338,7 @@ namespace DigitalPlatform.LibraryClient.localhost {
             return base.Channel.SearchBiblio(request);
         }
         
-        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult SearchBiblio(string strBiblioDbNames, string strQueryWord, int nPerMax, string strFromStyle, string strMatchStyle, string strLang, string strResultSetName, string strSearchStyle, string strOutputStyle, out string strQueryXml) {
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult SearchBiblio(string strBiblioDbNames, string strQueryWord, int nPerMax, string strFromStyle, string strMatchStyle, string strLang, string strResultSetName, string strSearchStyle, string strOutputStyle, string strLocationFilter, out string strQueryXml) {
             DigitalPlatform.LibraryClient.localhost.SearchBiblioRequest1 inValue = new DigitalPlatform.LibraryClient.localhost.SearchBiblioRequest1();
             inValue.strBiblioDbNames = strBiblioDbNames;
             inValue.strQueryWord = strQueryWord;
@@ -14340,6 +14349,7 @@ namespace DigitalPlatform.LibraryClient.localhost {
             inValue.strResultSetName = strResultSetName;
             inValue.strSearchStyle = strSearchStyle;
             inValue.strOutputStyle = strOutputStyle;
+            inValue.strLocationFilter = strLocationFilter;
             DigitalPlatform.LibraryClient.localhost.SearchBiblioResponse1 retVal = ((DigitalPlatform.LibraryClient.localhost.dp2library)(this)).SearchBiblio(inValue);
             strQueryXml = retVal.strQueryXml;
             return retVal.SearchBiblioResult;

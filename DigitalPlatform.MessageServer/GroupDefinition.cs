@@ -79,7 +79,7 @@ namespace DigitalPlatform.MessageServer
 
             var def = GroupDefinition.Build(names[0]);
 
-            return (def.GroupNames.IndexOf("<default>") != -1);
+            return (def.GroupNames.IndexOf("gn:<default>") != -1);
         }
 
         // 判断一个组名是否为默认的组名
@@ -91,7 +91,7 @@ namespace DigitalPlatform.MessageServer
 
             var def = GroupDefinition.Build(names[0]);
 
-            return (def.GroupNames.IndexOf("<default>") != -1);
+            return (def.GroupNames.IndexOf("gn:<default>") != -1);
         }
 
         // 探测 one 是否包含在 array 列表中。
