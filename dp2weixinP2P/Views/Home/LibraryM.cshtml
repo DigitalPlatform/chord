@@ -3,6 +3,7 @@
     ViewBag.Title = "LibraryM";
 }
 
+
 @section Scripts {
 
 <script>
@@ -146,6 +147,11 @@
 
 }
 
+@section header {
+    <header class="mui-bar mui-bar-nav">
+        <h1 class="mui-title">图书馆管理</h1>
+    </header>
+}
 
     <div data-bind="if: model.displaySummary">
         <center><h3>图书馆列表</h3></center>

@@ -50,6 +50,7 @@ namespace dp2weixinP2P.Controllers
             if (userList.Count == 0)
             {
                 ViewBag.bindFlag = 0; //未绑定
+                return RedirectToAction("Bind", "Account");
             }
             else
             {
@@ -66,6 +67,7 @@ namespace dp2weixinP2P.Controllers
                 if (activeUserItem == null)
                 {
                     ViewBag.bindFlag = 1;//未设默认值
+                    return RedirectToAction("Index", "Account");
                 }
                 else
                 {

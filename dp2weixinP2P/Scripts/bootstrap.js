@@ -810,6 +810,7 @@ if (typeof jQuery === 'undefined') {
     clearMenus()
 
     if (!isActive) {
+        /*
       if ('ontouchstart' in document.documentElement && !$parent.closest('.navbar-nav').length) {
         // if mobile we use a backdrop because click events don't delegate
         $(document.createElement('div'))
@@ -817,6 +818,7 @@ if (typeof jQuery === 'undefined') {
           .insertAfter($(this))
           .on('click', clearMenus)
       }
+      */
 
       var relatedTarget = { relatedTarget: this }
       $parent.trigger(e = $.Event('show.bs.dropdown', relatedTarget))
@@ -825,7 +827,7 @@ if (typeof jQuery === 'undefined') {
 
       $this
         .trigger('focus')
-        .attr('aria-expanded', 'true')
+        //.attr('aria-expanded', 'true')
 
       $parent
         .toggleClass('open')

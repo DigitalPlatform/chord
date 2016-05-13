@@ -51,14 +51,70 @@ namespace dp2weixinP2P.Controllers
             return View();
         }
 
-
-        //找回密码
-        public ActionResult RetrievePassword()
+        public ActionResult Bind(string code, string state, string weiXinId, string returnUrl)
         {
+            ViewBag.ReturnUrl = returnUrl;
+            // 从微信进入的
+            if (string.IsNullOrEmpty(code) == false)
+            {
+                //可以传一个state用于校验
+                if (state != "dp2weixin")
+                {
+                    return Content("验证失败！请从正规途径进入！");
+                }
+
+                string strError = "";
+                int nRet = dp2CmdService2.Instance.GetWeiXinId(code, out weiXinId, out strError);
+                if (nRet == -1)
+                    return Content(strError);
+            }
+
+            if (String.IsNullOrEmpty(weiXinId) == false)
+            {
+                // 记下微信id
+                Session[WeiXinConst.C_Session_WeiXinId] = weiXinId;
+            }
+
+            if (Session[WeiXinConst.C_Session_WeiXinId] == null
+                || (String)Session[WeiXinConst.C_Session_WeiXinId] == "")
+            {
+                return Content("非正规途径，未传入微信id。");
+            }
 
             return View();
         }
 
+        public ActionResult ResetPassword(string code, string state, string weiXinId)
+        {
+            // 从微信进入的
+            if (string.IsNullOrEmpty(code) == false)
+            {
+                //可以传一个state用于校验
+                if (state != "dp2weixin")
+                {
+                    return Content("验证失败！请从正规途径进入！");
+                }
+
+                string strError = "";
+                int nRet = dp2CmdService2.Instance.GetWeiXinId(code, out weiXinId, out strError);
+                if (nRet == -1)
+                    return Content(strError);
+            }
+
+            if (String.IsNullOrEmpty(weiXinId) == false)
+            {
+                // 记下微信id
+                Session[WeiXinConst.C_Session_WeiXinId] = weiXinId;
+            }
+
+            if (Session[WeiXinConst.C_Session_WeiXinId] == null
+                || (String)Session[WeiXinConst.C_Session_WeiXinId] == "")
+            {
+                return Content("非正规途径，未传入微信id。");
+            }
+
+            return View();
+        }
 
         #region del
         /*
@@ -112,10 +168,7 @@ namespace dp2weixinP2P.Controllers
 
 
 
-        public ActionResult Bind(string weixinId)
-        {
-            return View();
-        }
+
 
 
 

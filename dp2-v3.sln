@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2MServer", "dp2MServer\dp2MServer.csproj", "{946F6F11-C4F6-4370-894B-4907D5A2008F}"
 EndProject
@@ -56,6 +56,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2weixin.service", "dp2weixin.service\dp2weixin.service.csproj", "{50E36C13-A3DE-4638-BE87-E5E254EEC386}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2Messenger", "dp2Messenger\dp2Messenger.csproj", "{B77F9A60-ECD4-46AE-9444-49CC654A173A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.Interfaces", "DigitalPlatform.Interfaces\DigitalPlatform.Interfaces.csproj", "{3C4F8133-8652-40B6-B37B-200B25C2B043}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -233,6 +235,12 @@ Global
 		{B77F9A60-ECD4-46AE-9444-49CC654A173A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B77F9A60-ECD4-46AE-9444-49CC654A173A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B77F9A60-ECD4-46AE-9444-49CC654A173A}.Release|x86.ActiveCfg = Release|Any CPU
+		{3C4F8133-8652-40B6-B37B-200B25C2B043}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C4F8133-8652-40B6-B37B-200B25C2B043}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C4F8133-8652-40B6-B37B-200B25C2B043}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3C4F8133-8652-40B6-B37B-200B25C2B043}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C4F8133-8652-40B6-B37B-200B25C2B043}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C4F8133-8652-40B6-B37B-200B25C2B043}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

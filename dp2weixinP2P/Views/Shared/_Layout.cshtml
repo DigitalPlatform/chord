@@ -4,115 +4,106 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href=@Url.Content("~/favicon.ico")>
-    <title>@ViewBag.Title - 我爱图书馆</title>
-    <!-- Bootstrap core CSS -->
-    <link href="@Url.Content("~/Content/bootstrap.min.css")" rel="stylesheet">
-    <link href="@Url.Content("~/Content/sticky-footer-navbar.css")" rel="stylesheet">
+    <title>我爱图书馆</title>
+    <!--CSS -->
+    <link href="@Url.Content("~/Content/mui.min.css")" rel="stylesheet">
+    <script src="~/Scripts/mui.min.js"></script>
+
     <link href="@Url.Content("~/Content/layer.m.css")" type="text/css" rel="stylesheet" />
+    <script src="@Url.Content("~/Scripts/layer.js")"></script>
+
     <script src='@Url.Content("~/Scripts/jquery-1.9.1.js")'></script>
     <script src='@Url.Content("~/Scripts/jquery-ui-1.8.24.js")'></script>
-    <script src="@Url.Content("~/Scripts/bootstrap.js")"></script>
-    <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
-    <script src="@Url.Content("~/Scripts/layer.js")"></script>
+
+    <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>    
     <script src="@Url.Content("~/Scripts/weixin.js")"></script>
 
-    <script>
-
-        // 高亮显示当前的菜单
-        $(document).ready(function () {
-            // 当前菜单高亮显示
-            $('ul.nav.navbar-nav').find('a[href="' + location.pathname + '"]')
-                .closest('li').addClass('active');
-        });
-    </script>
     @RenderSection("style", required: false)
     @RenderSection("scripts", required: false)
     @RenderSection("HeaderContent", false)
+
+
 </head>
+<body>
+    @RenderSection("header", required: false)
 
-    <body style="background-image:url(' @dp2Command.Service.dp2CmdService2.Instance.TodayUrl ');-moz-background-size:cover;-webkit-background-size:cover;-o-background-size:cover;background-size:cover;">
-        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-            <div class="container">
-                <!-- Brand and toggle get grouped for better mobile display -->
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="~/home/index">我爱图书馆</a>
-                </div>
-
-                <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <ul class="nav navbar-nav navbar-left">
-@if (Session["userType"]=="admin")
-                {
-
-                        <li>
-                            <a class="active" href="~/home/LibraryM">图书馆账号管理</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/home/WeixinUser">微信用户管理</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/home/WeixinMessage">微信消息</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/Menu/Index">微信菜单</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/Weixin/Index">公众号接口url</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/home/Setting">参数设置</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/Account/Index?weixinId=o4xvUvnLTg6NnflbYdcS-sxJCGFo">绑定(任延华)</a>
-                        </li>    
+    <nav class="mui-bar mui-bar-tab ">
+        <a class="mui-tab-item" href="#Popover_0">资源</a>
+        <a class="mui-tab-item" href="#Popover_1">我的图书馆</a>
+        <a class="mui-tab-item" href="#Popover_2">更多</a>
+@if (Session["userType"] == "admin")
+{
+        <a class="mui-tab-item" href="#Popover_3">系统</a>
 }
-                        <li>
-                            <a class="active" href="~/Account/Index">绑定图书馆账号</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/Patron/Index">我的信息</a>
-                        </li>
-                        <li>
-                            <a class="active" href="~/Biblio/Index">书目查询</a>
-                        </li>
-                    </ul>
+    </nav>
+    <div id="Popover_0" class="mui-popover mui-bar-popover">
+        <div class="mui-popover-arrow"></div>
+        <ul class="mui-table-view">
+            <li class="mui-table-view-cell">
+                <a href="~/Biblio/Index">书目查询</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/Home/Index">新书上架</a>
+            </li>
+        </ul>
+    </div>
+    <div id="Popover_1" class="mui-popover mui-bar-popover">
+        <div class="mui-popover-arrow"></div>
+        <ul class="mui-table-view">
+            <li class="mui-table-view-cell">
+                <a href="~/Patron/Index">我的信息</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/Account/Bind">绑定账号</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/Account/Index">账号管理</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/Account/ResetPassword">找回密码</a>
+            </li>
+        </ul>
+    </div>
+    <div id="Popover_2" class="mui-popover mui-bar-popover">
+        <div class="mui-popover-arrow"></div>
+        <ul class="mui-table-view">
+            <li class="mui-table-view-cell">
+                <a href="~/Home/Index">最新公告</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/Home/Contact">联系我们</a>
+            </li>
+        </ul>
+    </div>
+    <div id="Popover_3" class="mui-popover mui-bar-popover">
+        <div class="mui-popover-arrow"></div>
+        <ul class="mui-table-view">
+            <li class="mui-table-view-cell">
+                <a href="~/home/LibraryM" >图书馆账号管理</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/home/WeixinUser">微信用户管理</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/home/WeixinMessage">微信消息</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/Menu/Index">微信菜单</a>
+            </li>
 
-                    <ul class="nav navbar-nav navbar-right">
+            <li class="mui-table-view-cell">
+                <a href="~/home/Setting">参数设置</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/Account/Index?weixinId=o4xvUvnLTg6NnflbYdcS-sxJCGFo">绑定(任延华)</a>
+            </li>                                              
+        </ul>
+    </div>
 
-
-                        <li>
-                            <a href="~/Home/About">关于</a>
-                        </li>
-                        <li>
-                            <a href="~/Home/Contact">联系我们</a>
-                        </li>
-
-                    </ul>
-
-                </div>
-                <!-- /.navbar-collapse -->
-            </div>
-            <!-- /.container -->
-        </nav>
-        <!-- Begin page content -->
-        <div class="container" >
-            <div style="background-color: rgba(255,255,255,0.5);padding-bottom:5px;">
+    <div class="mui-content">
                 <!--部分页占位符 -->
                 @RenderBody()
-                </div>
-            </div>
-        <footer class="footer">
-            <div class="container">
-                <p class="text-muted" style="text-align:center">
-                    <a href="https://github.com/DigitalPlatform/chord">开源的云图书馆项目 chord</a>
-                </p>
-            </div>
-        </footer>
-    </body>
+     </div>
+
+</body>
 </html>

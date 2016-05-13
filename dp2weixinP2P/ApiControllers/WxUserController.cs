@@ -27,13 +27,7 @@ namespace dp2weixinP2P.ApiControllers
             return list;
         }
 
-        /*
-        // GET api/<controller>/5
-        public WxUserItem Get(string id)
-        {
-            return repo.GetOneByWeixinId(id);
-        }
-         */
+
 
         // POST api/<controller>
         [HttpPost]
@@ -68,6 +62,27 @@ namespace dp2weixinP2P.ApiControllers
             return result;// repo.Add(item);
         }
 
+
+        // POST api/<controller>
+        [HttpPost]
+        public ApiResult ResetPassword(string libUserName,
+            string libCode,
+            string name,string tel)
+        {
+            ApiResult result = new ApiResult();
+            
+            string strError="";
+            int nRet = dp2CmdService2.Instance.ResetPassword(libUserName,
+                libCode,
+                name,
+                tel,
+                out strError);
+            result.errorCode = nRet;
+            result.errorInfo = strError;
+
+            return result;// repo.Add(item);
+        }
+
         // PUT api/<controller>/5
         [HttpPut]
         public void ActivePatron(string weixinId,string id)
@@ -75,11 +90,16 @@ namespace dp2weixinP2P.ApiControllers
              repo.SetActive(weixinId,id);// repo.Update(item);
         }
 
+
+
         // DELETE api/<controller>/5
         [HttpDelete]
         public void Delete(string id)
         {
             repo.Delete(id);
         }
+
+
+
     }
 }

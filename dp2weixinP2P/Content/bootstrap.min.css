@@ -4331,7 +4331,7 @@ select[multiple].input-group-sm > .form-control, select[multiple].input-group-sm
     }
 
 .nav-tabs {
-    border-bottom: 1px solid #ddd;
+    /*border-bottom: 1px solid #ddd;*/
 }
 
     .nav-tabs > li {
@@ -4342,7 +4342,7 @@ select[multiple].input-group-sm > .form-control, select[multiple].input-group-sm
         .nav-tabs > li > a {
             margin-right: 2px;
             line-height: 1.42857143;
-            border: 1px solid transparent;
+            /*border: 1px solid transparent;*/
             border-radius: 4px 4px 0 0;
         }
 
@@ -4354,7 +4354,7 @@ select[multiple].input-group-sm > .form-control, select[multiple].input-group-sm
             color: #555;
             cursor: default;
             background-color: #fff;
-            border: 1px solid #ddd;
+            /*border: 1px solid #ddd;*/
             border-bottom-color: transparent;
         }
 
@@ -4394,12 +4394,12 @@ select[multiple].input-group-sm > .form-control, select[multiple].input-group-sm
 }
 
 .nav-tabs.nav-justified > .active > a, .nav-tabs.nav-justified > .active > a:focus, .nav-tabs.nav-justified > .active > a:hover {
-    border: 1px solid #ddd;
+    /*border: 1px solid #ddd;*/
 }
 
 @media (min-width:768px) {
     .nav-tabs.nav-justified > li > a {
-        border-bottom: 1px solid #ddd;
+        /*border-bottom: 1px solid #ddd;*/
         border-radius: 4px 4px 0 0;
     }
 
@@ -4478,7 +4478,7 @@ select[multiple].input-group-sm > .form-control, select[multiple].input-group-sm
 
 @media (min-width:768px) {
     .nav-tabs-justified > li > a {
-        border-bottom: 1px solid #ddd;
+        /*border-bottom: 1px solid #ddd;*/
         border-radius: 4px 4px 0 0;
     }
 

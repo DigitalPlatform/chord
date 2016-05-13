@@ -1,10 +1,23 @@
-﻿
+﻿function openMsg(msg, endCallback) {
+    layer.open({
+        //title:'提示信息',
+        content: msg,
+        end: endCallback
+    });
+}
 // 显示等待图层
 function loadLayer() {
     return layer.open({
         type: 2,
         shadeClose: false
     });
+}
+
+
+// 显示服务器错误
+function alertServerError(info) {
+    alert("服务器返回错误：" + info);
+    //layer.alert("服务器返回错误：" + errorThrown, { icon: 2 });
 }
 
 // 得到虚拟目录路径

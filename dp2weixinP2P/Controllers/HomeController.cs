@@ -1,5 +1,6 @@
 ﻿using DigitalPlatform.LibraryRestClient;
 using DigitalPlatform.Text;
+using dp2Command.Service;
 using dp2weixin;
 using dp2weixinP2P.Models;
 using System;
@@ -47,7 +48,7 @@ namespace dp2weixinP2P.Controllers
             string userName = WebConfigurationManager.AppSettings["userName"];            
             string password = WebConfigurationManager.AppSettings["password"];
             if (string.IsNullOrEmpty(password)==false)// 解密
-                password = Cryptography.Decrypt(password, WeiXinClientUtil.EncryptKey);
+                password = Cryptography.Decrypt(password, dp2CmdService2.EncryptKey);
 
             SettingModel model = new SettingModel();
             model.dp2MserverUrl = dp2MServerUrl;
@@ -74,7 +75,7 @@ namespace dp2weixinP2P.Controllers
             appSection.Settings.Add("userName", model.userName);
 
             appSection.Settings.Remove("password");
-            string password = Cryptography.Encrypt(model.password, WeiXinClientUtil.EncryptKey);
+            string password = Cryptography.Encrypt(model.password, dp2CmdService2.EncryptKey);
             appSection.Settings.Add("password", password);
 
             config.Save();
