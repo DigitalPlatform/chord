@@ -271,6 +271,7 @@ namespace dp2Command.Service
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             GetMessageRequest request = new GetMessageRequest(id,
+                "",
                 strGroupName, // "" 表示默认群组
                 "",
                 "",
@@ -496,6 +497,7 @@ namespace dp2Command.Service
             dom.LoadXml(resultXml);
             XmlNode nodePatron = dom.DocumentElement.SelectSingleNode("patron");
             string strRefID = DomUtil.GetNodeText(nodePatron.SelectSingleNode("refID"));
+            string strTel = DomUtil.GetNodeText(nodePatron.SelectSingleNode("tel"));
 
             string strBarcode = DomUtil.GetNodeText(nodePatron.SelectSingleNode("barcode"));
             string strName = DomUtil.GetNodeText(nodePatron.SelectSingleNode("name"));
@@ -513,20 +515,7 @@ namespace dp2Command.Service
             // 向手机号码发送短信
             {
                 // 得到高级xml
-                string strXml = "";
-                nRet = this.GetPatronInfo(remoteUserName,
-                    strName,//"@refID:" + strRefID,
-                    "xml",
-                    out strXml,
-                    out strError);
-                if (nRet == -1)
-                    return -1;
-                if (nRet == 0)
-                {
-                    strError = "从dp2library未找到refID为'" + strRefID + "'的记录"; //todo refID
-                    return 0;
-                }
-
+                string strXml = "<root><tel>" + strTel + "</tel></root>";
                 // 发送消息
                 try
                 {
@@ -1585,22 +1574,32 @@ namespace dp2Command.Service
             strError = "";
             weiXinId = "";
 
-            //用code换取access_token
-            var result = OAuthApi.GetAccessToken(this.weiXinAppId,this.weiXinSecret, code);
-            if (result.errcode != ReturnCode.请求成功)
+            try
             {
-                strError="获取微信id出错：" + result.errmsg;
-                return -1;
+
+                //用code换取access_token
+                var result = OAuthApi.GetAccessToken(this.weiXinAppId, this.weiXinSecret, code);
+                if (result.errcode != ReturnCode.请求成功)
+                {
+                    strError = "获取微信id出错：" + result.errmsg;
+                    return -1;
+                }
+
+                //下面2个数据也可以自己封装成一个类，储存在数据库中（建议结合缓存）
+                //如果可以确保安全，可以将access_token存入用户的cookie中，每一个人的access_token是不一样的
+                //Session["OAuthAccessTokenStartTime"] = DateTime.Now;
+                //Session["OAuthAccessToken"] = result;            
+
+                // 取出微信id
+                weiXinId = result.openid;
+                return 0;
             }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
 
-            //下面2个数据也可以自己封装成一个类，储存在数据库中（建议结合缓存）
-            //如果可以确保安全，可以将access_token存入用户的cookie中，每一个人的access_token是不一样的
-            //Session["OAuthAccessTokenStartTime"] = DateTime.Now;
-            //Session["OAuthAccessToken"] = result;            
-
-            // 取出微信id
-            weiXinId = result.openid;
-            return 0;
+            }
         }
     }
 

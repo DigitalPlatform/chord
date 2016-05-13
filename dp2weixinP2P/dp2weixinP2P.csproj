@@ -124,6 +124,7 @@
     <Content Include="App_Data\weixin_data\weixin.xml" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\layer.m.css" />
+    <Content Include="Content\mui.min.css" />
     <Content Include="Content\sticky-footer-navbar.css" />
     <Content Include="DongshifangMessageInterface.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -142,6 +143,7 @@
     <Content Include="DongshifangMessageInterface.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="fonts\mui.ttf" />
     <None Include="Scripts\jquery-1.6.4-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.4.js" />
     <Content Include="Scripts\jquery-1.6.4.min.js" />
@@ -155,9 +157,9 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\knockout-2.2.0.js" />
     <Content Include="Scripts\layer.js" />
+    <Content Include="Scripts\mui.min.js" />
     <Content Include="Scripts\senparc.menu.js" />
     <Content Include="Scripts\weixin.js" />
-    <Content Include="Views\Account\delete.txt" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -205,11 +207,12 @@
     <Content Include="Views\OAuth2\Index.cshtml" />
     <Content Include="Views\OAuth2\UserInfoCallback.cshtml" />
     <Content Include="Views\Menu\Index.cshtml" />
-    <Content Include="Views\Account\Login.cshtml.txt" />
-    <Content Include="Views\Account\Index2.cshtml.txt" />
     <Content Include="Views\Account\Index.cshtml" />
     <Content Include="Views\Patron\Index.cshtml" />
     <Content Include="Views\Biblio\Index.cshtml" />
+    <Content Include="Views\Account\Bind.cshtml" />
+    <Content Include="Views\Account\Index.txt" />
+    <Content Include="Views\Account\ResetPassword.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
