@@ -106,6 +106,15 @@ namespace dp2Command.Service
 
             return null;
         }
+        public LibItem GetLibByLibCode(string libCode)
+        {
+            var filter = Builders<LibItem>.Filter.Eq("libCode", libCode);
+            List<LibItem> list = this.LibCollection.Find(filter).ToList();
+            if (list.Count > 0)
+                return list[0];
+
+            return null;
+        }
 
         public List<LibItem> GetLibs()
         {
