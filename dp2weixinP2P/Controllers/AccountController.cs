@@ -21,13 +21,20 @@ namespace dp2weixinP2P.Controllers
         /// <returns></returns>
         public ActionResult Index(string code, string state)
         {
-
-
             // 检查是否从微信入口进来
             string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
                 return Content(strError);
+
+
+            // 如果没有绑定一个账号，进入到账号绑定界面
+            string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            // 检查微信id是否已经绑定的读者
+            List<WxUserItem> userList = WxUserDatabase.Current.GetByWeixinId(weiXinId);
+            if (userList == null || userList.Count == 0)
+                return RedirectToAction("Bind");
+
 
             return View();
         }

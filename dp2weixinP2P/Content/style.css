@@ -1,11 +1,5 @@
-html,body,p,h1,h2,h3,h4,h5,h6,form,input,textarea,select,button,fieldset,legend,img,ul,ol,li,dl,dt,dd,th,td,pre,blockquote{margin:0;padding:0}
-html{height:100%;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;-webkit-font-smoothing:antialiased}
-body{background: #f0f0f0;color:#000;}
-body,button,input,select,textarea,h2,h3,h4,h5,h6{font:14px 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', '宋体', \5b8b\4f53, Tahoma, Arial}
-img,fieldset{border:0;vertical-align:middle}
-input{padding:0;margin:0;outline:none;}
-a{text-decoration:none;color:#4c4c4c;}
-a:hover{text-decoration:none;}
+
+
 ul,li,ol{list-style:none}
 img{max-width:100%;}
 .clear{clear:both;height:0;line-height:0;font-size:0;visibility:hidden;overflow:hidden}
@@ -34,7 +28,7 @@ img{max-width:100%;}
 .new-sub{position:absolute;
       bottom:60px;
       z-index:10;
-      width:100%;
+      width:180px;
       padding: 0px 10px;
       background: #fff;
       box-sizing:border-box;

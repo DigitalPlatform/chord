@@ -536,6 +536,8 @@ namespace dp2Command.Service
                         strBody,
                         strLibraryCode,
                         out strError);
+                    if (nRet == -1 || nRet == 0)
+                        return nRet;
                 }
                 catch (Exception ex)
                 {
@@ -1551,9 +1553,17 @@ namespace dp2Command.Service
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
 
+                if (result.ResultCount == -1)
+                {
+                    strError = result.ErrorInfo;
+                    return -1;
+                }
 
                 if (result.ResultCount == 0)
-                    return 0;
+                {
+                    strError = result.ErrorInfo;
+                    return -1;
+                }
 
                 xml = result.Records[0].Data;
                 return 1;

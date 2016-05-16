@@ -45,6 +45,12 @@
 
         // 删除一项
         function removeUser(item) {
+
+            var gnl = confirm("你确定要删除账号[" +item.readerName+ "]吗?");
+            if (gnl == false) {
+                return false;
+            }
+
             //alert("remove-"+item.libId);
             var url = "/api/wxuser/" + item.id;
             sendAjaxRequest(url, "DELETE", function () {
@@ -78,12 +84,13 @@
         // 跳转到新增绑定
         function goToBind()
         {
-            //window.location="/account/bind";
             var myUrl = getRootPath() + '/account/bind?returnUrl=' + encodeURIComponent("/account/index");
-            mui.openWindow({
-                url: myUrl,
-                id: 'info'
-            });
+            //mui.openWindow({
+            //    url: myUrl,
+            //    id: 'info'
+            //});
+            window.location = myUrl;//"/account/bind";
+
         }
 
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
@@ -113,7 +120,7 @@
 <div class="mui-content-padded" id="divNoBind" style="display:none;">
     <center>
         <img src='../img/emptyBind.png' width='100' height='100' style=" padding-top:5px" />
-        <div>您尚未绑定读者。</div>
+        <div>您尚未绑定账号。</div>
     </center>
 </div>
 
@@ -137,12 +144,12 @@
         <table style="width:100%">
             <tr>
                 <td>
-                    <span data-bind="if: isActive==1"><font color='red'>*&nbsp;默认地址</font></span>
-                    <span data-bind="ifnot: isActive==1"><button class="btn btn-lg btn-default " data-bind="click: activeUser">设为默认</button></span>
+                    <span data-bind="if: isActive==1"><font color='darkgreen'>*&nbsp;默认地址</font></span>
+                    <span data-bind="ifnot: isActive==1"><button class="mui-btn mui-btn-primary " data-bind="click: activeUser">设为默认</button></span>
 
                 </td>
                 <td width="50%" align="right">
-                    <button type="button" class="btn ;btn-default btn-lg" data-bind="click: removeUser">
+                    <button type="button" class="mui-btn mui-btn-danger" data-bind="click: removeUser">
                         X&nbsp;删除
                     </button>
                 </td>

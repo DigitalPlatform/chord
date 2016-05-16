@@ -1,11 +1,87 @@
 ﻿
-@{
-    ViewBag.Title = "书目查询";
-}
+@section Scripts {
+    <script>
+        // 检索
+        function search() {
+
+            // 检索检索接口
+
+            var table = $('.mui-table-view');
+            for (var i = 0, len = i + 5; i < len; i++) {
+                var li = "<li class='mui-table-view-cell'>"
+                    +"<a class='mui-navigate-right'>Item" + (i + 1) + "</a>"
+                    +"</li>";
+                table.append(li);
+
+
+
+                
+            }
+            // 如果还有值，加下方出现一个继续加载的按钮
+            var li1 = "<li class='mui-table-view-cell'  id='more'>"
+                + "<center><a href='javascript:void(0)' onclick='getMore()''>点击加载更多</a></center>"
+    + "</li>";
+            table.append(li1);
+            //alert("tst2");
+
+        }
+
+        // 获取更多
+        function getMore() {
+
+            // 先删除more
+           // alert($("#more"));
+            $("#more").remove();
+            //alert("test");
+
+            
+            var table = $('.mui-table-view');
+            for (var i = 0, len = i + 10; i < len; i++) {
+                var li = "<li class='mui-table-view-cell'>"
+                    + "<a class='mui-navigate-right'>Item" + (i + 1) + "</a>"
+                    + "</li>";
+                table.append(li);
+
+            }
+
+            // 如果还有值，加下方出现一个继续加载的按钮
+            // 如果还有值，加下方出现一个继续加载的按钮
+            var li1 = "<li class='mui-table-view-cell'  id='more'>"
+                + "<center><a href='javascript:void(0)' onclick='getMore()''>点击加载更多</a></center>"
+    + "</li>";
+            table.append(li1);
+            
+        }
+    </script>
+    }
 
 @section header {
-    <header class="mui-bar mui-bar-nav">
-        <h1 class="mui-title">书目查询</h1>
-    </header>
-}
+        <header class="mui-bar mui-bar-nav">
+            <h1 class="mui-title">书目查询</h1>
+        </header>
+    }
+<div id="divForm">
+    <form id='login-form' class="mui-input-group">
+        <div class="mui-input-row ">
+            <label>检索途径</label>
+            <select id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.prefix">
+                <option value="">全部</option>
+                <option value="title">题名</option>
+                <option value="ISBN">ISBN</option>
+            </select>
+        </div>
+        <div class="mui-input-row">
+            <label id="lblAccount">检索词</label>
+            <input type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词" data-bind="value:model.word">
+        </div>
+    </form>
+    <div class="mui-content-padded">
+        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search()">检索</button>
+    </div>
+</div>
 
+<div id="divResult">
+            <!--数据列表-->
+            <ul class="mui-table-view mui-table-view-chevron"></ul>
+
+</div>
