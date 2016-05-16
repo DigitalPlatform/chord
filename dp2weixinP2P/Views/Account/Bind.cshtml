@@ -156,9 +156,10 @@
         function prefixChange() {
             var curText = $('#selPrefix option:checked').text();
             if (curText == "请选择绑定方式")
-                curText = "";
-            $('#userName').prop("placeholder", "请输入 " + curText);
-        }
+                curText = "账号";
+            $('#account').prop("placeholder", "请输入 " + curText);
+            $('#lblAccount').html(curText)
+        } s
 
     </script>
 }
@@ -193,7 +194,7 @@
         </select>
     </div>
     <div class="mui-input-row ">
-        <label>账号</label>
+        <label id="lblAccount">账号</label>
         <input id='account' type="text" class="mui-input mui-input-clear" placeholder="请输入账号" data-bind="value:model.word">
     </div>
     <div class="mui-input-row">

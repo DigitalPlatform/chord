@@ -635,10 +635,14 @@ namespace dp2Command.Service
                 userItem = WxUserDatabase.Current.GetOneOrEmptyPatron(strWeiXinId, libCode, strReaderBarcode);
                 if (userItem == null)
                 {
+                   LibItem lib=  LibDatabase.Current.GetLibByLibCode(libCode);
+
+
                     userItem = new WxUserItem();
                     userItem.weixinId = strWeiXinId;
                     userItem.libCode = libCode;
                     userItem.libUserName = remoteUserName;
+                    userItem.libName = lib.libName;
                     userItem.readerBarcode = strReaderBarcode;
                     userItem.readerName = name;
                     userItem.xml = xml;
@@ -812,6 +816,8 @@ namespace dp2Command.Service
                 // 找到对应的读者记录
                 if (result.ResultCount > 0)
                 {
+                    LibItem libItem=LibDatabase.Current.GetLibByLibCode(libCode);
+                    string libName = libItem.libName;
                     for (int i = 0; i < result.ResultCount; i++)
                     {
                         // 可能会检索出多笔记录，先取第一笔 todo
@@ -849,6 +855,7 @@ namespace dp2Command.Service
                             userItem.weixinId = strWeiXinId;
                             userItem.libCode = libCode;
                             userItem.libUserName = remoteUserName;
+                            userItem.libName = libName;
                             userItem.readerBarcode = strTempBarcode;
                             userItem.readerName = name;
                             userItem.xml = strXml;
@@ -1568,7 +1575,7 @@ namespace dp2Command.Service
         }
 
 
-        public int GetWeiXinId(string code, out string weiXinId,
+        public int GetWeiXinId(string code,string state, out string weiXinId,
             out string strError)
         {
             strError = "";
@@ -1576,6 +1583,12 @@ namespace dp2Command.Service
 
             try
             {
+                //可以传一个state用于校验
+                if (state != "dp2weixin")
+                {
+                    strError="验证失败！请从正规途径进入！";
+                    return -1;
+                }
 
                 //用code换取access_token
                 var result = OAuthApi.GetAccessToken(this.weiXinAppId, this.weiXinSecret, code);

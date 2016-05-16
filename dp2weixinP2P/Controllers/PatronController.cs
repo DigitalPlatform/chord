@@ -8,41 +8,20 @@ using System.Web.Mvc;
 
 namespace dp2weixinP2P.Controllers
 {
-    public class PatronController : Controller
+    public class PatronController : BaseController
     {
         // GET: Patron
-        public ActionResult Index(string code, string state, string weiXinId)
+        public ActionResult Index(string code, string state)
         {
-            // 从微信进入的
-            if (string.IsNullOrEmpty(code) == false)
-            {
-                //可以传一个state用于校验
-                if (state != "dp2weixin")
-                {
-                    return Content("验证失败！请从正规途径进入！");
-                }
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
 
-                string strError = "";
-                int nRet = dp2CmdService2.Instance.GetWeiXinId(code, out weiXinId, out strError);
-                if (nRet == -1)
-                    return Content(strError);
-            }
 
-            if (String.IsNullOrEmpty(weiXinId) == false)
-            {
-                // 记下微信id
-                Session[WeiXinConst.C_Session_WeiXinId] = weiXinId;
-            }
+           string weiXinId =(string)Session[WeiXinConst.C_Session_WeiXinId];
 
-            if (Session[WeiXinConst.C_Session_WeiXinId] == null
-                || (String)Session[WeiXinConst.C_Session_WeiXinId] == "")
-            {
-                return Content("非正规途径，未传入微信id。");
-            }
-            else
-            {
-                weiXinId =(string)Session[WeiXinConst.C_Session_WeiXinId];
-            }
 
             PatronInfo patronInfo = null;
             // 检查微信id是否已经绑定的读者，是否设置了默认值
@@ -76,8 +55,7 @@ namespace dp2weixinP2P.Controllers
 
                     
                     string xml = "";
-                    string strError = "";
-                    int nRet = dp2CmdService2.Instance.GetPatronInfo(activeUserItem.libUserName,
+                    nRet = dp2CmdService2.Instance.GetPatronInfo(activeUserItem.libUserName,
                         activeUserItem.readerBarcode,
                         "advancexml,advancexml_borrow_bibliosummary",
                         out xml,

@@ -1,6 +1,7 @@
 ﻿using DigitalPlatform.IO;
 using DigitalPlatform.Text;
 using DigitalPlatform.Xml;
+using dp2Command.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;

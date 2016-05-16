@@ -2,6 +2,7 @@
 using DigitalPlatform.Text;
 using dp2Command.Service;
 using dp2weixin;
+using dp2weixin.service;
 using dp2weixinP2P.Models;
 using System;
 using System.Collections.Generic;
@@ -15,15 +16,10 @@ using System.Web.Mvc;
 
 namespace dp2weixinP2P.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
-        string url = "http://localhost:15794/weixin/index";
-        /// <summary>
-        /// 通道所使用的 HTTP Cookies
-        /// </summary>
-        //public CookieContainer Cookies = new System.Net.CookieContainer();
 
-        public ActionResult Index(string admin)
+        public ActionResult Index(string code, string state, string admin, string weiXinId)
         {
             if (String.IsNullOrEmpty(admin) == false && admin == "1")
             {
@@ -34,6 +30,19 @@ namespace dp2weixinP2P.Controllers
             {
                 Session["userType"] = null;
             }
+
+            // 用于测试，如果传了一个weixin id参数，则存到session里
+            if (String.IsNullOrEmpty(weiXinId) == false)
+            {
+                // 记下微信id
+                Session[WeiXinConst.C_Session_WeiXinId] = weiXinId;
+            }
+
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
 
             return View();
         }
@@ -117,7 +126,8 @@ namespace dp2weixinP2P.Controllers
                 client.Headers["Content-type"] = "application/xml; charset=utf-8";
                 string xml = WeiXinClientUtil.GetPostXmlToWeiXinGZH(msgSend);
                 byte[] baData = Encoding.UTF8.GetBytes(xml);
-                byte[] result = client.UploadData(this.url,
+                string url = "http://localhost:15794/weixin/index";
+                byte[] result = client.UploadData(url,
                     "POST",
                     baData);
                 string strResult = Encoding.UTF8.GetString(result);
@@ -139,14 +149,26 @@ namespace dp2weixinP2P.Controllers
         }
 
 
-        public ActionResult About()
+        public ActionResult About(string code, string state)
         {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
             return View();
         }
 
 
-        public ActionResult Contact()
+        public ActionResult Contact(string code, string state)
         {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
             return View();
         }
 	}

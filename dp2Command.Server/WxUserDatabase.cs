@@ -226,6 +226,7 @@ namespace dp2Command.Service
                 .Set("readerName", item.readerName)
                 .Set("libCode", item.libCode)
                 .Set("libUserName", item.libUserName)
+                .Set("libName", item.libName)
                 .Set("createTime", item.createTime)
                 .Set("updateTime", item.updateTime)
                 .Set("xml", item.xml)
@@ -329,7 +330,7 @@ namespace dp2Command.Service
 
         public string libCode { get; set; } // 绑定必备
         public string libUserName { get; set; }// 绑定必备
-        
+        public string libName { get; set; }// 绑定必备        
 
         public string createTime { get; set; } // 创建时间
         public string updateTime { get; set; } // 更校报时间

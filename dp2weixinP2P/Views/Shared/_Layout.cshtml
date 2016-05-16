@@ -7,15 +7,15 @@
     <title>我爱图书馆</title>
     <!--CSS -->
     <link href="@Url.Content("~/Content/mui.min.css")" rel="stylesheet">
-    <script src="~/Scripts/mui.min.js"></script>
+    <script src="@Url.Content("~/Scripts/mui.min.js")"></script>
 
-    <link href="@Url.Content("~/Content/layer.m.css")" type="text/css" rel="stylesheet" />
+<link href="@Url.Content("~/Content/layer.m.css")" type="text/css" rel="stylesheet" />
     <script src="@Url.Content("~/Scripts/layer.js")"></script>
 
     <script src='@Url.Content("~/Scripts/jquery-1.9.1.js")'></script>
     <script src='@Url.Content("~/Scripts/jquery-ui-1.8.24.js")'></script>
 
-    <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>    
+    <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
     <script src="@Url.Content("~/Scripts/weixin.js")"></script>
 
     @RenderSection("style", required: false)
@@ -33,7 +33,7 @@
         <a class="mui-tab-item" href="#Popover_2">更多</a>
 @if (Session["userType"] == "admin")
 {
-        <a class="mui-tab-item" href="#Popover_3">系统</a>
+        <a class="mui-tab-item" href="#Popover_3">系统管理</a>
 }
     </nav>
     <div id="Popover_0" class="mui-popover mui-bar-popover">
@@ -93,10 +93,7 @@
 
             <li class="mui-table-view-cell">
                 <a href="~/home/Setting">参数设置</a>
-            </li>
-            <li class="mui-table-view-cell">
-                <a href="~/Account/Index?weixinId=o4xvUvnLTg6NnflbYdcS-sxJCGFo">绑定(任延华)</a>
-            </li>                                              
+            </li>                                            
         </ul>
     </div>
 
@@ -104,6 +101,11 @@
                 <!--部分页占位符 -->
                 @RenderBody()
      </div>
-
+    <script>
+        			(function ($, doc) {
+        			    $.init();
+        			});
+    
+    </script>
 </body>
 </html>
