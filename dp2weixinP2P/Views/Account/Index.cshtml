@@ -105,6 +105,8 @@
             ko.applyBindings(model);
         });
 
+
+
     </script>
 }
 @section style {
@@ -112,9 +114,7 @@
 }
 
 @section header {
-<header class="mui-bar mui-bar-nav">
     <h1 class="mui-title">账号管理</h1>
-</header>
 }
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 <div class="mui-content-padded" id="divNoBind" style="display:none;">
@@ -124,37 +124,42 @@
     </center>
 </div>
 
-<ul class="mui-table-view mui-table-view-striped mui-table-view-condensed" data-bind=" foreach:model.wxUsers">
-    <li class="mui-table-view-cell" >
-        <table>
+<ul class="mui-table-view " data-bind=" foreach:model.wxUsers" style="padding-left:0px;text-align:left">
+    <li class="mui-table-view-cell" style="padding-left:10px;text-align:left">
+        <table style="width:100%;padding:10px">
             <tr>
-                <td>读者：</td>
-                <td>
-                    <span data-bind="text:readerName"></span>
-                    <span data-bind="text:readerBarcode"></span>
+                <td style="min-width:80px;text-align:right"><span data-bind="if: isActive==1" style="color:red;font-weight:bold;padding-left:0px">√</span><span style="color:#CCCCCC;padding-left:0px"> 读者：</span></td>
+                <td style="text-align:left;width:80%">
+                    <span data-bind="text:readerName" style="font-size:22px"></span>
+                    <span data-bind="text:readerBarcode" style="color:darkgreen;font-weight:bold;font-size:24px"></span>
                 </td>
             </tr>
             <tr>
-                <td>图书馆：</td>
-                <td>
-                    <span data-bind="text:libName"></span>(<span data-bind="text:libCode"></span>)
+                <td style="color:#CCCCCC;padding-top:5px;min-width:80px;text-align:right">图书馆：</td>
+                <td style="text-align:left">
+                    <span data-bind="text:libName"></span>
                 </td>
             </tr>
-        </table>
-        <table style="width:100%">
             <tr>
-                <td>
-                    <span data-bind="if: isActive==1"><font color='darkgreen'>*&nbsp;默认地址</font></span>
-                    <span data-bind="ifnot: isActive==1"><button class="mui-btn mui-btn-primary " data-bind="click: activeUser">设为默认</button></span>
+                <td colspan="2" style="width:100%;padding-top:5px">
 
-                </td>
-                <td width="50%" align="right">
-                    <button type="button" class="mui-btn mui-btn-danger" data-bind="click: removeUser">
-                        X&nbsp;删除
-                    </button>
+                    <table style="width:100%;">
+                        <tr>
+                            <td style="min-width:70px;text-align:right">
+                                <span data-bind="ifnot: isActive==1"><button class="mui-btn  " data-bind="click: activeUser">设为默认账号</button></span>
+                            </td>
+                            <td width="100%" align="right">
+                                <button type="button" class="mui-btn mui-btn-danger" data-bind="click: removeUser">
+                                    X&nbsp;删除
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
         </table>
+        <br />
+
     </li>
 </ul>
 <div class="mui-content-padded">

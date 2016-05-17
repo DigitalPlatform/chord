@@ -469,8 +469,10 @@ namespace dp2Command.Service
             string strMessageTemplate = "";
             MessageInterface external_interface = this.GetMessageInterface("sms");
             if (string.IsNullOrEmpty(strMessageTemplate) == true)
-                strMessageTemplate = "%name% 您好！\n您的读者帐户(证条码号为 %barcode%)已设临时密码 %temppassword%，在 %period% 内登录会成为正式密码";
-
+            {
+                //strMessageTemplate = "%name% 您好！\n您的读者帐户(证条码号为 %barcode%)已设临时密码 %temppassword%，在 %period% 内登录会成为正式密码";
+                strMessageTemplate = "%name% 您好！密码为 %temppassword%。一小时内有效。";
+            }
             /*
                                     DomUtil.SetElementText(node, "tel", strTelParam);
                                     DomUtil.SetElementText(node, "barcode", strBarcode);
@@ -670,6 +672,20 @@ namespace dp2Command.Service
                 }
                 // 置为活动状态
                 WxUserDatabase.Current.SetActive(userItem);
+
+                // 发送绑定成功的客服消息
+                
+                var templateId = "hFmNH7on2FqSOAiYPZVJN-FcXBv4xpVLBvHsfpLLQKU";//换成已经在微信后台添加的模板Id
+                var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+                var testData = new BindTemplateData()
+                {
+                    first = new TemplateDataItem("你已成功绑定图书馆[" +userItem.libName+"]的帐号。", "#000000"),
+                    keyword1 = new TemplateDataItem(userItem.readerName+"("+userItem.readerBarcode+")", "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                    keyword2 = new TemplateDataItem("你可以直接使用该微信访问图书馆信息", "#000000"),
+                    remark = new TemplateDataItem("如需解绑，请在“账户管理”菜单操作。", "#CCCCCC")
+                };
+                var result1 = TemplateApi.SendTemplateMessage(accessToken, strWeiXinId, templateId, "#FF0000", "dp2003.com/dp2weixin/patron/index", testData);
+
                 return 0;
             }
             catch (AggregateException ex)
@@ -1632,6 +1648,15 @@ namespace dp2Command.Service
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
+        public TemplateDataItem remark { get; set; }
+
+    }
+
+    public class BindTemplateData
+    {
+        public TemplateDataItem first { get; set; }
+        public TemplateDataItem keyword1 { get; set; }
+        public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem remark { get; set; }
 
     }

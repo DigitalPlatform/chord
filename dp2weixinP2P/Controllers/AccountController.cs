@@ -53,13 +53,21 @@ namespace dp2weixinP2P.Controllers
             return View();
         }
 
-        public ActionResult ResetPassword(string code, string state)
+        public ActionResult ResetPassword(string code, string state,
+            string libCode,
+            string readerName)
         {
             // 检查是否从微信入口进来
             string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
                 return Content(strError);
+
+            if (string.IsNullOrEmpty(libCode) == false && libCode != "undefined")
+                ViewBag.LibCode = libCode;// "lib_local*mycapo";
+
+            if (string.IsNullOrEmpty(readerName) == false && readerName != "undefined")
+                ViewBag.ReaderName = readerName;// "test";
 
             return View();
         }

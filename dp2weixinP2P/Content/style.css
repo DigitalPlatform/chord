@@ -1,6 +1,6 @@
 
 
-ul,li,ol{list-style:none}
+ul,li,ol{list-style:none;margin:0px;padding:0px}
 img{max-width:100%;}
 .clear{clear:both;height:0;line-height:0;font-size:0;visibility:hidden;overflow:hidden}
 .clearfix:after{visibility: hidden;display: block;font-size: 0;content: " ";clear: both;height: 0;zoom:1;}
@@ -28,7 +28,10 @@ img{max-width:100%;}
 .new-sub{position:absolute;
       bottom:60px;
       z-index:10;
-      width:180px;
+      min-width:120px;
+      left:10px;
+      background-color:red;
+      width:100%;
       padding: 0px 10px;
       background: #fff;
       box-sizing:border-box;
@@ -37,7 +40,7 @@ img{max-width:100%;}
       border-radius: 5px;
       display:none;}
 .new-sub li{width: 100%;
-        background:#fff;
+        background-color:green;/*#fff;*/
         float:none;
         box-sizing:border-box;
         -webkit-box-sizing:border-box;

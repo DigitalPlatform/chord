@@ -49,6 +49,17 @@
 
             //绑定观察模块
             ko.applyBindings(model);
+
+            // 密码框打回车时，进行绑定
+            $('#password').bind('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+                    model.password($('#password').val());
+                    bind();
+                }
+            });
+
+
         })
 
         // 绑定账号
@@ -157,36 +168,55 @@
         // 绑定方式变化，账号提示信息跟着变化
         function prefixChange() {
             var curText = $('#selPrefix option:checked').text();
-            if (curText == "请选择绑定方式")
+            if (curText == "请选择 绑定方式")
                 curText = "账号";
             $('#account').prop("placeholder", "请输入 " + curText);
             $('#lblAccount').html(curText)
-        } 
+        }
+
+        // 跳转到新增绑定
+        function gotoResetPassword() {
+
+            var name = "";
+            if (model.prefix() == "NB")
+                name = model.word();
+
+            var lib = "";
+            if (model.selectedLib() != null && model.selectedLib() != "")
+                lib = model.selectedLib();
+
+            var myUrl = getRootPath()
+                + '/Account/ResetPassword?libCode=' + encodeURIComponent(lib) + "&readerName=" + encodeURIComponent(name);
+
+            //alert(myUrl);
+            //mui.openWindow({
+            //    url: myUrl,
+            //    id: 'info'
+            //});
+            window.location = myUrl;//"/account/bind";
+
+        }
 
     </script>
 }
 
 @section header {
-    <header class="mui-bar mui-bar-nav">
         <h1 class="mui-title">绑定账号</h1>
-    </header>
 }
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 <span id="returnUrl" style="display:none">@ViewBag.ReturnUrl</span>
 
-<form id='login-form' class="mui-input-group">
+<div class="mui-input-group">
     <div class="mui-input-row ">
-        <label>图书馆</label>
-
-        <select style="padding-left: 0px;width: 65%" data-bind="options:librarys,optionsText:function(item) {
+        <label style="color:#cccccc">图书馆</label>
+        <select id="selLib" style="padding-left: 0px;width: 65%" data-bind="options:librarys,optionsText:function(item) {
                        return  item.libName; },optionsValue:function(item) {
-                       return item.libCode + '*' + item.libUserName; },optionsCaption:'请选择图书馆',value:selectedLib"></select>
+                       return item.libCode + '*' + item.libUserName; },optionsCaption:'请选择 图书馆',value:selectedLib"></select>
 
     </div>
     <div class="mui-input-row ">
-        <label>绑定方式</label>
+        <label style="color:#cccccc">绑定方式</label>
         <select id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.prefix">
-            <option value="-1">请选择绑定方式</option>
             <option value="NB">姓名</option>
             <option value="">证条码号</option>
             <option value="EM">email</option>
@@ -196,17 +226,17 @@
         </select>
     </div>
     <div class="mui-input-row ">
-        <label id="lblAccount">账号</label>
-        <input id='account' type="text" class="mui-input mui-input-clear" placeholder="请输入账号" data-bind="value:model.word">
+        <label id="lblAccount" style="color:#cccccc">账号</label>
+        <input id='account' type="text" class="mui-input mui-input-clear" placeholder="请输入 账号" data-bind="value:model.word">
     </div>
     <div class="mui-input-row">
-        <label>密码</label>
-        <input id="password" type="password" class="mui-input-password" placeholder="请输入密码" data-bind="value:model.password">
+        <label style="color:#cccccc">密码</label>
+        <input id="password" type="password" class="mui-input-password" placeholder="请输入 密码" data-bind="value:model.password">
     </div>
-</form>
+</div>
 <div class="mui-content-padded">
     <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="bind()">绑定</button>
     <div class="link-area">
-        <center><a href="~/Account/ResetPassword">找回密码</a></center>
+        <center><a href="JavaScript:void(0)" onclick="gotoResetPassword()">找回密码</a></center>
     </div>
 </div>
