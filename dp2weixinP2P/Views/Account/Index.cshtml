@@ -84,7 +84,7 @@
         // 跳转到新增绑定
         function goToBind()
         {
-            var myUrl = getRootPath() + '/account/bind?returnUrl=' + encodeURIComponent("/account/index");
+            var myUrl = getRootPath() + "/account/bind";
             //mui.openWindow({
             //    url: myUrl,
             //    id: 'info'
@@ -117,6 +117,9 @@
     <h1 class="mui-title">账号管理</h1>
 }
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<div class="mui-content-padded">
+    您可以绑定多个图书馆账号，前方有红色勾号的表示默认账号，您可以通过删除账号解除绑定关系。
+</div>
 <div class="mui-content-padded" id="divNoBind" style="display:none;">
     <center>
         <img src='../img/emptyBind.png' width='100' height='100' style=" padding-top:5px" />

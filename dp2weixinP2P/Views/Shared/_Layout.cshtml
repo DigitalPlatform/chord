@@ -26,7 +26,7 @@
 </head>
 <body style="padding-bottom:50px;font-family: 'Microsoft YaHei',微软雅黑!important">
     <header class="mui-bar mui-bar-nav" id="myheader">
-        @RenderSection("header", required: true)
+        @RenderSection("header", required: false)
     </header>
 
     <div class="btn3 clearfix" id="divBottonTab">
@@ -68,6 +68,9 @@
                 <ul>
                     <li>
                         <a href="~/Home/Index">最新公告</a>
+                    </li>
+                    <li>
+                        <a href="~/Home/Index">图书馆主页</a>
                     </li>
                     <li>
                         <a href="~/Home/Contact">联系我们</a>
@@ -122,8 +125,10 @@
                 if (menuText == "更多") {
                     var dw = $(document).width();
                     var myval = dw / 3 - 120;
-                    //alert(myval);
-                    $(this).children(".new-sub").css("left", myval + "px");
+                    if (myval < 0) {
+                        //alert(myval);
+                        $(this).children(".new-sub").css("left", myval + "px");
+                    }
                 }
                 $(this).children(".new-sub").slideDown("fast"); //展示当前的二级菜单
             }
@@ -170,13 +175,16 @@
                     showTopBottom(true);
                 });
             }
+            else {
+                // 非iphone时，浏览器窗口变矮时，隐藏头尾栏
+                $(window).resize(function () {
+                    adjust();
+                });
+            }
         });
 
         
-        // 浏览器窗口变化
-        $(window).resize(function () {
-            adjust();
-        });
+
 
         function adjust(obj) {
             // var w = $(document).width();

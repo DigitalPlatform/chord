@@ -186,6 +186,7 @@
     <Compile Include="MessageHandlers\CustomMessageHandler\CustomMessageContext.cs" />
     <Compile Include="MessageHandlers\CustomMessageHandler\CustomMessageHandler.cs" />
     <Compile Include="MessageHandlers\CustomMessageHandler\CustomMessageHandler_Events.cs" />
+    <Compile Include="Models\LibInfoModel.cs" />
     <Compile Include="Models\LoginModel.cs" />
     <Compile Include="Models\MessageModel.cs" />
     <Compile Include="Models\SettingModel.cs" />

@@ -44,7 +44,21 @@ namespace dp2weixinP2P.Controllers
             if (nRet == -1)
                 return Content(strError);
 
-            return View();
+            weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            WxUserItem userItem= WxUserDatabase.Current.GetActive(weiXinId);
+
+            LibInfoModel libInfo = null;
+            if (userItem!=null)
+            {
+                string libName = userItem.libName;
+                libInfo = new LibInfoModel();
+                libInfo.Title = libName+" 主页";
+                libInfo.Content = @"<div class='mui-content-padded'>"
+    +"欢迎访问”"+libName+"“图书馆"
+    +"</div>";
+            }
+
+            return View(libInfo);
         }
 
         // 系统设置

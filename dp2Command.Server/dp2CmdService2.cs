@@ -25,6 +25,10 @@ namespace dp2Command.Service
     {
         public static string EncryptKey = "dp2weixinPassword";
 
+        // 模板消息ID
+        public const string C_Template_Bind = "hFmNH7on2FqSOAiYPZVJN-FcXBv4xpVLBvHsfpLLQKU";//换成已经在微信后台添加的模板Id
+
+
         MessageConnectionCollection _channels = new MessageConnectionCollection();
 
         // 配置文件
@@ -70,13 +74,21 @@ namespace dp2Command.Service
 
         public void Init(string dataDir)
         {
-            this.weiXinDataDir = weiXinDataDir;
+            this.weiXinDataDir = dataDir;
 
-            this._cfgFile=dataDir + "\\" + "weixin.xml";
+            this._cfgFile = this.weiXinDataDir + "\\" + "weixin.xml";
             if (File.Exists(this._cfgFile) == false)
             {
                 throw new Exception("配置文件"+this._cfgFile+"不存在。");
             }
+
+            // 日志目录
+            this.weiXinLogDir = this.weiXinDataDir + "/log";
+            if (!Directory.Exists(weiXinLogDir))
+            {
+                Directory.CreateDirectory(weiXinLogDir);
+            }
+
 
             XmlDocument dom = new XmlDocument();
             dom.Load(this._cfgFile);
@@ -673,18 +685,25 @@ namespace dp2Command.Service
                 // 置为活动状态
                 WxUserDatabase.Current.SetActive(userItem);
 
-                // 发送绑定成功的客服消息
-                
-                var templateId = "hFmNH7on2FqSOAiYPZVJN-FcXBv4xpVLBvHsfpLLQKU";//换成已经在微信后台添加的模板Id
-                var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+                // 发送绑定成功的客服消息                
+                string accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
                 var testData = new BindTemplateData()
                 {
-                    first = new TemplateDataItem("你已成功绑定图书馆[" +userItem.libName+"]的帐号。", "#000000"),
-                    keyword1 = new TemplateDataItem(userItem.readerName+"("+userItem.readerBarcode+")", "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                    keyword2 = new TemplateDataItem("你可以直接使用该微信访问图书馆信息", "#000000"),
-                    remark = new TemplateDataItem("如需解绑，请在“账户管理”菜单操作。", "#CCCCCC")
+                    first = new TemplateDataItem("恭喜您！您已成功绑定图书馆账号。", "#000000"),
+                    keyword1 = new TemplateDataItem(userItem.readerName + "(" + userItem.readerBarcode + ")" , "#000000"),
+                    keyword2 = new TemplateDataItem("图书馆[" + userItem.libName + "]", "#000000"),
+                    remark = new TemplateDataItem("您可以直接通过微信公众号访问图书馆，进行信息查询，预约续借等功能。如需解绑，请在“绑定账号”菜单操作。", "#CCCCCC")
                 };
-                var result1 = TemplateApi.SendTemplateMessage(accessToken, strWeiXinId, templateId, "#FF0000", "dp2003.com/dp2weixin/patron/index", testData);
+
+                // 详细转到账户管理界面
+                string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+
+                var result1 = TemplateApi.SendTemplateMessage(accessToken, 
+                    strWeiXinId, 
+                    dp2CmdService2.C_Template_Bind,
+                    "#FF0000", 
+                    detailUrl,//k"dp2003.com/dp2weixin/patron/index", // todo注意这里是否需要oauth接口，想着消息既然是从web发过来了，立即点进去还有session信息存在，但时间长了session失效就没有信息了
+                    testData);
 
                 return 0;
             }

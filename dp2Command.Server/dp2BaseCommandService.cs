@@ -23,6 +23,7 @@ namespace dp2Command.Service
         public string weiXinUrl = "";
         // 微信目录
         public string weiXinDataDir = "";
+        public string weiXinLogDir = "";
 
 
         #region 绑定解绑
@@ -370,11 +371,7 @@ namespace dp2Command.Service
             {
                 lock (logSyncRoot)
                 {
-                    var logDir = this.weiXinDataDir + "/log";//Server.MapPath(string.Format("~/App_Data/log"));
-                    if (!Directory.Exists(logDir))
-                    {
-                        Directory.CreateDirectory(logDir);
-                    }
+                    var logDir = this.weiXinLogDir;
 
                     DateTime now = DateTime.Now;
                     // 每天一个日志文件
@@ -398,11 +395,7 @@ namespace dp2Command.Service
             {
                 lock (logSyncRoot)
                 {
-                    var logDir = this.weiXinDataDir + "/log";//Server.MapPath(string.Format("~/App_Data/log"));
-                    if (!Directory.Exists(logDir))
-                    {
-                        Directory.CreateDirectory(logDir);
-                    }
+                    var logDir = this.weiXinLogDir;
 
                     DateTime now = DateTime.Now;
                     // 每天一个日志文件
