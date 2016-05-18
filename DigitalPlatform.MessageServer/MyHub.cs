@@ -318,7 +318,7 @@ SetMessageRequest param
                 {
                     result.String = "InvalidData";
                     result.Value = -1;
-                    result.ErrorInfo = "messages 中包含不合法的 MessageRecord 记录，group 成员不允许为空(可以使用 '<defallt>' 作为默认群组的名字)";
+                    result.ErrorInfo = "messages 中包含不合法的 MessageRecord 记录，groups 成员不允许为空(可以使用 '<default>' 作为默认群组的名字)";
                     return result;
                 }
                 items.Add(BuildMessageItem(record));
