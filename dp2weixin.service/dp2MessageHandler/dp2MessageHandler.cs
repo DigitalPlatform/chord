@@ -598,7 +598,7 @@ namespace dp2weixin
             string strReaderBarcode = "";
             string strError = "";
             WxUserItem userItem = null;
-            long lRet = this.CmdService.Binding(this.CurrentMessageContext.LibUserName,
+            long lRet = this.CmdService.Bind(this.CurrentMessageContext.LibUserName,
                 this.CurrentMessageContext.LibCode1,
                 bindingCmd.ReaderBarcode,
                 bindingCmd.Password,
@@ -645,7 +645,7 @@ namespace dp2weixin
             }
 
             // 解除绑定
-            lRet = this.CmdService.Unbinding(this.CurrentMessageContext.LibUserName,
+            lRet = this.CmdService.Unbind(this.CurrentMessageContext.LibUserName,
                 this.CurrentMessageContext.LibCode1,
                 this.CurrentMessageContext.ReaderBarcode, 
                 this.CurrentMessageContext.UserName,

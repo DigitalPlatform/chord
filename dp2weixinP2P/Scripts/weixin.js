@@ -1,9 +1,12 @@
 ﻿function openMsg(msg, endCallback) {
+    alert(msg);
+    /*
     layer.open({
         //title:'提示信息',
         content: msg,
         end: endCallback
     });
+    */
 }
 // 显示等待图层
 function loadLayer() {

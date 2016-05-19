@@ -237,6 +237,20 @@ namespace dp2Command.Service
             return ret.ModifiedCount;
         }
 
+        public WxUserItem GetById(String id)
+        {
+            if (string.IsNullOrEmpty(id) == true || id == "null")
+                return null;
+            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
+            var filter = Builders<WxUserItem>.Filter.Eq("id", id);
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+            if (list.Count > 0)
+            {
+                return list[0];
+            }
+            return null;
+        }
+
 
         /// <summary>
         /// 删除
@@ -299,21 +313,7 @@ namespace dp2Command.Service
             ret = collection.UpdateMany(filter, update);
         }
 
-        /// <summary>
-        /// 删除绑定
-        /// </summary>
-        /// <param name="weixinId"></param>
-        /// <param name="readerBarcode"></param>
-        public long Delete(String weixinId, string readerBarcode,string libCode)
-        {
-            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
-            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
-                & Builders<WxUserItem>.Filter.Eq("readerBarcode", readerBarcode)
-                & Builders<WxUserItem>.Filter.Eq("libCode", libCode);
-            DeleteResult ret = collection.DeleteOne(filter);
 
-            return ret.DeletedCount;
-        }
 
 
 

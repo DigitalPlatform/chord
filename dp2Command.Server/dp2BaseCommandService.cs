@@ -28,7 +28,7 @@ namespace dp2Command.Service
 
         #region 绑定解绑
 
-        public virtual int Binding(string remoteUserName,
+        public virtual int Bind(string remoteUserName,
             string libCode,
             string strFullWord,
             string strPassword,
@@ -48,7 +48,7 @@ namespace dp2Command.Service
         /// -1 出错
         /// 0   成功
         /// </returns>
-        public virtual int Unbinding(string remoteUserName,
+        public virtual int Unbind(string remoteUserName,
             string libCode, 
             string strrBarcode,
             string strWeiXinId,
@@ -56,6 +56,13 @@ namespace dp2Command.Service
         {
             strError = "未实现";
 
+            return -1;
+        }
+
+        public virtual int Unbind(string userId,
+             out string strError)
+        {
+            strError = "未实现";
             return -1;
         }
 

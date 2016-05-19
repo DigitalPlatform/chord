@@ -44,7 +44,7 @@ namespace dp2weixinP2P.ApiControllers
             string fullWord = item.word;
             if (string.IsNullOrEmpty(item.prefix) == false && item.prefix != "null")
                 fullWord = item.prefix + ":" + item.word;
-            int nRet= dp2CmdService2.Instance.Binding(item.libUserName,
+            int nRet= dp2CmdService2.Instance.Bind(item.libUserName,
                 item.libCode,
                 fullWord,
                 item.password,
@@ -94,9 +94,18 @@ namespace dp2weixinP2P.ApiControllers
 
         // DELETE api/<controller>/5
         [HttpDelete]
-        public void Delete(string id)
+        public ApiResult Delete(string id)
         {
-            repo.Delete(id);
+            ApiResult result = new ApiResult();
+            string strError = "";
+            int nRet = dp2CmdService2.Instance.Unbind(id, out strError);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+            }
+
+            return result;
         }
 
 
