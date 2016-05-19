@@ -95,27 +95,31 @@ namespace DigitalPlatform.Text
         // parameters:
         //      strRight  要检测的单个权限。单个权限形态为 'a'
         //      strList 列表字符串。形态为 +a-b-b
-        public static bool ContainsRight(string strList, string strRight)
+        // return:
+        //      -1  包含了 -
+        //      0   + - 都没有出现过
+        //      1   包含了 +
+        public static int ContainsRight(string strList, string strRight)
         {
             List<string> rights = SplitRights(strList);
-            bool bOn = false;
+            int on = 0;
             foreach(string one in rights)
             {
                 char ch = one[0];
                 if (one.Substring(1) == strRight)
                 {
                     if (ch == '+')
-                        bOn = true;
+                        on = 1;
                     else
                     {
                         if (ch != '-')
                             throw new ArgumentException("单个权限值 '"+one+"' 在列表中 '"+strList+"' 不合法");
-                        bOn = false;
+                        on = -1;
                     }
                 }
             }
 
-            return bOn;
+            return on;
         }
 
         public static List<string> ParseTwoPart(string strText, string strSep)

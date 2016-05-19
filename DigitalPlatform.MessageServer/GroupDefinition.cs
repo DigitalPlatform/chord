@@ -119,6 +119,24 @@ namespace DigitalPlatform.MessageServer
             return false;
         }
 
+        // 从 array 中找到匹配 one 名字的群的定义参数
+        // one -- MessageItem 里面的 groups 成员
+        public static string FindGroupDefinition(string[] array, string[] one)
+        {
+            if (array == null)
+                return "";
+
+            var def_one = GroupDefinition.Build(string.Join(",", one));
+
+            foreach (string s in array)
+            {
+                var def = GroupDefinition.Build(s);
+                if (Equal(def.GroupNames, def_one.GroupNames))
+                    return def.Definition;
+            }
+            return "";
+        }
+
         // one -- MessageItem 里面的 groups 成员
         public static bool IncludeGroup(string[] array, string [] one)
         {

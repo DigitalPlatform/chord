@@ -1501,5 +1501,76 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 "enumGroupName");
         }
 
+        private void button_message_delete_Click(object sender, EventArgs e)
+        {
+            DoDeleteMessage(this.textBox_message_groupName.Text,
+    this.textBox_message_text.Text);
+
+        }
+
+        async void DoDeleteMessage(string strGroupName, string strMessageIDList)
+        {
+            string strError = "";
+
+            if (string.IsNullOrEmpty(strMessageIDList) == true)
+            {
+                strError = "尚未输入要删除的消息 ID";
+                goto ERROR1;
+            }
+
+            SetTextString(this.webBrowser1, "");
+
+            string[] ids = strMessageIDList.Replace("\r\n", ",").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            List<MessageRecord> records = new List<MessageRecord>();
+            foreach (string id in ids)
+            {
+                MessageRecord record = new MessageRecord();
+                record.groups = strGroupName.Split(new char[] { ',' });
+                record.id = id;
+                records.Add(record);
+            }
+
+            EnableControls(false);
+            try
+            {
+                // CancellationToken cancel_token = new CancellationToken();
+
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        "");
+                    SetMessageRequest param = new SetMessageRequest("delete",
+                        "",
+                        records);
+
+                    SetMessageResult result = await connection.SetMessageAsync(param);
+
+                    this.Invoke(new Action(() =>
+                    {
+                        SetTextString(this.webBrowser1, ToString(result));
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+        }
+
     }
 }
