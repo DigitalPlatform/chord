@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections;
 using System.Security.Claims;
+using System.Threading;
 
 using Microsoft.AspNet.SignalR;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
-using System.Threading;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -269,6 +269,8 @@ false);
 
         #region SetMessage() API
 
+
+
         void CanonicalizeMessageItemGroups(MessageItem item, ConnectionInfo connection_info)
         {
             // 正规化组名
@@ -390,25 +392,34 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
 
                         if (bSupervisor == false)
                         {
-                            if (connection_info.UserItem == null)
+                            string strParameters = GroupDefinition.FindGroupDefinition(connection_info.Groups, item.groups);
+                            if (string.IsNullOrEmpty(strParameters) == false
+    && StringUtil.ContainsRight(strParameters, "ca") == 1)
                             {
-                                if (GroupDefinition.IsDefaultGroupName(item.groups) == false)
-                                {
-                                    result.String = "Denied";
-                                    result.Value = -1;
-                                    result.ErrorInfo = "当前用户(未注册用户)只能修改 <default> 组内自己发布的消息";
-                                    return result;
-                                }
+                                // 特殊许可了修改全部消息
                             }
                             else
                             {
-                                if (item.groups.Length == 1 &&  // 多个 id 联合的情况暂时不检查
-                                    GroupDefinition.IncludeGroup(connection_info.Groups, item.groups) == false)
+                                if (connection_info.UserItem == null)
                                 {
-                                    result.String = "Denied";
-                                    result.Value = -1;
-                                    result.ErrorInfo = "当前用户没有加入群组 '" + string.Join(",", item.groups) + "'，因此无法修改其中的消息";
-                                    return result;
+                                    if (GroupDefinition.IsDefaultGroupName(item.groups) == false)
+                                    {
+                                        result.String = "Denied";
+                                        result.Value = -1;
+                                        result.ErrorInfo = "当前用户(未注册用户)只能修改 <default> 组内自己发布的消息";
+                                        return result;
+                                    }
+                                }
+                                else
+                                {
+                                    if (item.groups.Length == 1 &&  // 多个 id 联合的情况暂时不检查
+                                        GroupDefinition.IncludeGroup(connection_info.Groups, item.groups) == false)
+                                    {
+                                        result.String = "Denied";
+                                        result.Value = -1;
+                                        result.ErrorInfo = "当前用户没有加入群组 '" + string.Join(",", item.groups) + "'，因此无法修改其中的消息";
+                                        return result;
+                                    }
                                 }
                             }
 
@@ -450,27 +461,38 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         // 正规化组名
                         CanonicalizeMessageItemGroups(item, connection_info);
 
+                        bool bDeleteAllRights = false;
                         if (bSupervisor == false)
                         {
-                            if (connection_info.UserItem == null)
+                            string strParameters = GroupDefinition.FindGroupDefinition(connection_info.Groups, item.groups);
+                            if (string.IsNullOrEmpty(strParameters) == false
+    && StringUtil.ContainsRight(strParameters, "da") == 1)
                             {
-                                if (GroupDefinition.IsDefaultGroupName(item.groups) == false)
-                                {
-                                    result.String = "Denied";
-                                    result.Value = -1;
-                                    result.ErrorInfo = "当前用户(未注册用户)只能删除 <default> 组内自己创建的消息";
-                                    return result;
-                                }
+                                // 特殊许可了删除全部消息
+                                bDeleteAllRights = true;
                             }
                             else
                             {
-                                if (item.groups.Length == 1 &&  // 多个 id 联合的情况暂时不检查
-                                    GroupDefinition.IncludeGroup(connection_info.Groups, item.groups) == false)
+                                if (connection_info.UserItem == null)
                                 {
-                                    result.String = "Denied";
-                                    result.Value = -1;
-                                    result.ErrorInfo = "当前用户没有加入群组 '" + string.Join(",", item.groups) + "'，因此无法删除其中的消息";
-                                    return result;
+                                    if (GroupDefinition.IsDefaultGroupName(item.groups) == false)
+                                    {
+                                        result.String = "Denied";
+                                        result.Value = -1;
+                                        result.ErrorInfo = "当前用户(未注册用户)只能删除 <default> 组内自己创建的消息";
+                                        return result;
+                                    }
+                                }
+                                else
+                                {
+                                    if (item.groups.Length == 1 &&  // 多个 id 联合的情况暂时不检查
+                                        GroupDefinition.IncludeGroup(connection_info.Groups, item.groups) == false)
+                                    {
+                                        result.String = "Denied";
+                                        result.Value = -1;
+                                        result.ErrorInfo = "当前用户没有加入群组 '" + string.Join(",", item.groups) + "'，因此无法删除其中的消息";
+                                        return result;
+                                    }
                                 }
                             }
 
@@ -488,7 +510,8 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             MessageItem exist = results[0];
                             string creator_string = BuildMessageUserID(connection_info);
 
-                            if (exist.creator != creator_string)
+                            if (bDeleteAllRights == false 
+                                && exist.creator != creator_string)
                             {
                                 result.String = "Denied";
                                 result.Value = -1;
@@ -565,7 +588,7 @@ ex.GetType().ToString());
                 {
                     Debug.Assert(string.IsNullOrEmpty(item.id) == false, "");
 
-                    string groupName = string.Join(",", item.groups);
+                    string groupName = string.Join(",", item.groups).ToLower(); // 注意标准化以后的群名都是小写的
                     if (string.IsNullOrEmpty(groupName) == true)
                     {
                         throw new ArgumentException("MessageItem 对象的 groups 成员不应为空");
@@ -598,6 +621,7 @@ ex.GetType().ToString());
                     List<MessageRecord> records = (List<MessageRecord>)group_table[groupName];
                     Debug.Assert(records != null, "");
                     Debug.Assert(records.Count != 0, "");
+                    Console.WriteLine("Push to group '"+groupName+"'");
                     if (excludeConnectionIds == null)
                         Clients.Group(groupName).addMessage(action, records);
                     else
@@ -736,7 +760,7 @@ ex.GetType().ToString());
                 GroupQuery group_query = new GroupQuery(param.GroupCondition);
                 if (param.Action == "transGroupNameQuick")
                 {
-                // 将组名翻译为可读的形态
+                    // 将组名翻译为可读的形态
                     DisplaylizeGroupQuery(group_query, connection_info);
                     // 立即返回
                     result.String = group_query.ToStringUnQuote();
@@ -2715,13 +2739,22 @@ true);
 
                     // 如果定义了不希望获得通知
                     if (string.IsNullOrEmpty(def.Definition) == false
-                        && StringUtil.ContainsRight(def.Definition, "n") == false)
+                        && StringUtil.ContainsRight(def.Definition, "n") == -1)
+                    {
+                        Console.WriteLine("Skip join or un-join SignalR group '"+def.GroupNameString+"'");
                         goto CONTINUE;
+                    }
 
                     if (add)
+                    {
+                        Console.WriteLine("Join SignalR group '" + def.GroupNameString + "'");
                         Groups.Add(connection_info.ConnectionID, def.GroupNameString);
+                    }
                     else
+                    {
+                        Console.WriteLine("Un-Join SignalR group '" + def.GroupNameString + "'");
                         Groups.Remove(connection_info.ConnectionID, def.GroupNameString);
+                    }
 
                 CONTINUE:
                     defaults.Remove(def.GroupNameString);
@@ -2841,6 +2874,33 @@ true);
             return AuthenticateUser(request);
         }
 
+        static string[] CanonicalizeGroups(string[] groups_param)
+        {
+            if (groups_param == null || groups_param.Length == 0)
+                return groups_param;
+
+            // 正规化组名
+            return GroupSegment.Canonicalize(groups_param, (name) =>
+            {
+                // 需要进行检索
+                if (name.Type == "un")
+                {
+                    List<UserItem> users = ServerInfo.UserDatabase.GetUsersByName(name.Text, 0, 1).Result;
+                    if (users == null || users.Count == 0)
+                        throw new Exception("未知的用户名 '" + name.Text + "'");
+                    return new GroupName("ui", users[0].id);
+                }
+                if (name.Type == "gn")
+                {
+                    List<GroupItem> groups = ServerInfo.GroupDatabase.GetGroupsByName(name.Text, 0, 1).Result;
+                    if (groups == null || groups.Count == 0)
+                        throw new Exception("未知的组名 '" + name.Text + "'");
+                    return new GroupName("gi", groups[0].id);
+                }
+                return name;
+            }, false);
+        }
+
         private static bool AuthenticateUser(
             IRequest request
             // string credentials
@@ -2868,6 +2928,9 @@ true);
 
             // 需要把 UserItem.groups 正规化
             // 可以规定，在保存账户信息阶段正规化。这样每次使用的时候就省心了
+
+            // user.Groups 定义正规化
+            user.groups = CanonicalizeGroups(user.groups);
 
             request.Environment[MyHub.USERITEM_KEY] = user;
             return true;

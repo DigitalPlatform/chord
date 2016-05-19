@@ -235,7 +235,8 @@ namespace DigitalPlatform.MessageServer
 
         // 变换为适于保存到数据库中 MessageItem.groups 的形态
         public static string[] Canonicalize(string[] names,
-            Delegate_replaceName proc_replace)
+            Delegate_replaceName proc_replace,
+            bool bCheckUnion = true)
         {
             GroupSegment segment = new GroupSegment(names, "");
 
@@ -252,9 +253,11 @@ namespace DigitalPlatform.MessageServer
                 }
             }
 
-            segment.SortNames();
-
-            segment.CheckGroupNameUnion();
+            if (bCheckUnion)
+            {
+                segment.SortNames();
+                segment.CheckGroupNameUnion();
+            }
 
             return segment.ToStringArray();
         }
