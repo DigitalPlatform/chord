@@ -1,214 +1,213 @@
 ﻿
-@{
-    ViewBag.Title = "LibraryM";
-}
-
 
 @section Scripts {
+    <script>
+        var model = {
+            librarys: ko.observableArray(),
+            editor: {
+                libCode: ko.observable(""),
+                libName: ko.observable(""),
+                libUserName: ko.observable(""),
+                comment: ko.observable("")
+            },
+            displaySummary: ko.observable(true)
 
-<script>
-    var model = {
-        librarys: ko.observableArray(),
-        editor: {
-            libCode: ko.observable(""),
-            libName: ko.observable(""),
-            libUserName: ko.observable(""),
-            comment: ko.observable("")
-        },
-        displaySummary: ko.observable(true)
+        }
 
-    }
+        //用于获取图书馆
+        function getAllLib() {
+            //显示等待图层
+            var index = loadLayer();
 
-    //用于获取图书馆
-    function getAllLib() {
-        //显示等待图层
-        var index = loadLayer();
+            //alert("getAllLib");
 
-        //alert("getAllLib");
+            // 先删除可观察数组中的已有数据
+            model.librarys.removeAll();
 
-        // 先删除可观察数组中的已有数据
-        model.librarys.removeAll();
-
-        // 调web api
-        var url = "/api/library";
-        sendAjaxRequest(url, "GET", function (data) {
-            for (var i = 0; i < data.length; i++) {
-                //遍历从服务器得到的结果，以push方法对该数组填充新数据
-                model.librarys.push(data[i]);
-            }
-
-            // 关闭等待层
-            layer.close(index);
-
-        }, function (xhq, textStatus, errorThrown) {
-
-            alert(errorThrown);
-            // 关闭等待层
-            layer.close(index);
-        });
-    }
-
-    // 删除一项
-    function removeLib(item) {
-        //alert("remove-"+item.libId);
-        var url = "/api/library/" + item.id;
-        sendAjaxRequest(url, "DELETE", function () {
-            //getAllLib();
-
-            for (var i = 0; i < model.librarys().length; i++) {
-                if (model.librarys()[i].id == item.id) {
-                    model.librarys.remove(model.librarys()[i]);
-                    break;
+            // 调web api
+            var url = "/api/library";
+            sendAjaxRequest(url, "GET", function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    model.librarys.push(data[i]);
                 }
-            }
-
-
-        }, function (xhq, textStatus, errorThrown) {
-            alert(errorThrown);
-        });
-    }
-
-    // 新增一项
-    function addLib() {
-
-        var libCode = model.editor.libCode().trim();
-        if (libCode == "") {
-            alert("尚未输入图书馆代码!");
-            return;
-        }
-        var libName = model.editor.libName().trim();
-        if (libName == "") {
-            alert("尚未输入图书馆名称!");
-            return;
-        }
-        var libUserName = model.editor.libUserName().trim();
-        if (libUserName == "") {
-            alert("尚未输入图书馆点对点账号!");
-            return;
-        }
-
-        var comment = model.editor.comment().trim();
-
-        //显示等待图层
-        var index = loadLayer();
-
-        var url = "/api/library";
-        sendAjaxRequest(url, "POST",
-            function (newItem) {
-                model.librarys.push(newItem);
-                model.displaySummary(true);
-
-                //清空编辑界面信息
-                model.editor.libCode("");
-                model.editor.libName("");
-                model.editor.libUserName("");
-                model.editor.comment("");
 
                 // 关闭等待层
                 layer.close(index);
-            },
-            function (xhq, textStatus, errorThrown) {
+
+            }, function (xhq, textStatus, errorThrown) {
+
                 alert(errorThrown);
                 // 关闭等待层
                 layer.close(index);
-            },
-            {
-                libCode: libCode,
-                libName: libName,
-                libUserName: libUserName,
-                comment: comment
+            });
+        }
+
+        // 删除一项
+        function removeLib(item) {
+
+            var gnl = confirm("你确定要删除账号[" + item.libName + "]吗?");
+            if (gnl == false) {
+                return false;
             }
-        );
-    }
 
-    // 点击新增图书馆按钮
-    function handleCreateClick() {
-        model.displaySummary(false);
-    }
+            //alert("remove-"+item.libId);
+            var url = "/api/library/" + item.id;
+            sendAjaxRequest(url, "DELETE", function () {
+                //getAllLib();
 
-    // 在新增图书馆，点击取消
-    function handleCancelClick() {
-        model.displaySummary(true);
-    }
+                for (var i = 0; i < model.librarys().length; i++) {
+                    if (model.librarys()[i].id == item.id) {
+                        model.librarys.remove(model.librarys()[i]);
+                        break;
+                    }
+                }
+
+
+            }, function (xhq, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+        }
+
+        // 新增一项
+        function addLib() {
+
+            var libCode = model.editor.libCode().trim();
+            if (libCode == "") {
+                alert("尚未输入图书馆代码!");
+                return;
+            }
+            var libName = model.editor.libName().trim();
+            if (libName == "") {
+                alert("尚未输入图书馆名称!");
+                return;
+            }
+            var libUserName = model.editor.libUserName().trim();
+            if (libUserName == "") {
+                alert("尚未输入图书馆点对点账号!");
+                return;
+            }
+
+            var comment = model.editor.comment().trim();
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/library";
+            sendAjaxRequest(url, "POST",
+                function (newItem) {
+                    model.librarys.push(newItem);
+                    model.displaySummary(true);
+
+                    //清空编辑界面信息
+                    model.editor.libCode("");
+                    model.editor.libName("");
+                    model.editor.libUserName("");
+                    model.editor.comment("");
+
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    libCode: libCode,
+                    libName: libName,
+                    libUserName: libUserName,
+                    comment: comment
+                }
+            );
+        }
+
+        // 点击新增图书馆按钮
+        function handleCreateClick() {
+            model.displaySummary(false);
+        }
+
+        // 在新增图书馆，点击取消
+        function handleCancelClick() {
+            model.displaySummary(true);
+        }
 
 
 
-    //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
-    //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
-    $(document).ready(function () {
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
 
-        // 获取所有的操作命令
-        getAllLib();
-        ko.applyBindings(model);
-    })
-    
+            // 获取所有的操作命令
+            getAllLib();
+            ko.applyBindings(model);
+        })
 
-</script>
 
+    </script>
 }
-
 @section header {
-    <header class="mui-bar mui-bar-nav">
         <h1 class="mui-title">图书馆管理</h1>
-    </header>
 }
 
-    <div data-bind="if: model.displaySummary">
-        <center><h3>图书馆列表</h3></center>
-        <table class="table ">
-            <thead>
-                <tr><th>馆代码</th><th>馆名称</th><th>点对点账号</th><th>备注</th><th>操作</th></tr>
-            </thead>
-            <tbody data-bind="foreach:model.librarys">
+<div data-bind="if: model.displaySummary">
+    <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed" data-bind=" foreach:model.librarys">
+        <li class="mui-table-view-cell">
+
+            <table>
                 <tr>
+                    <td style="color:#CCCCCC">馆代码</td>
                     <td data-bind="text:libCode"></td>
-                    <td data-bind="text:libName"></td>
-                    <td data-bind="text:libUserName"></td>
-                    <td data-bind="text:comment"></td>
-                    <td>
-                        <button class="btn btn-xs btn-default" data-bind="click: removeLib">X</button>
-                    </td>
                 </tr>
-            </tbody>
-        </table>
-        <button class="btn btn-default btn-lg" data-bind="click: handleCreateClick">
-            新增图书馆
-        </button>
-    </div>
-    <div data-bind="ifnot: model.displaySummary">
-        <center><h3>新增图书馆</h3></center>
-        <br />
-        <div class="form-horizontal">
-            <div class="form-group form-group-lg">
-                <label class="col-sm-2 control-label" style="color:gray">馆代码</label>
-                <div class="col-sm-10">
-                    <input class="form-control" placeholder="图书馆代码" data-bind="value:model.editor.libCode">
-                </div>
-            </div>
-            <div class="form-group form-group-lg">
-                <label class="col-sm-2 control-label" style="color:gray">馆名称</label>
-                <div class="col-sm-10">
-                    <input class="form-control" placeholder="图书馆名称" data-bind="value:model.editor.libName">
-                </div>
-            </div>
-            <div class="form-group form-group-lg">
-                <label class="col-sm-2 control-label" style="color:gray">点对点帐号</label>
-                <div class="col-sm-10">
-                    <input class="form-control" placeholder="图书馆点对点帐号" data-bind="value:model.editor.libUserName">
-                </div>
-            </div>
-            <div class="form-group form-group-lg">
-                <label class="col-sm-2 control-label" style="color:gray">备注</label>
-                <div class="col-sm-10">
-                    <textarea class="form-control" rows="3" data-bind="value:model.editor.comment"></textarea>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="col-sm-offset-2 col-sm-10">
-                    <button class="btn btn-default btn-lg" data-bind="click: addLib">保存</button>
-                    &nbsp;&nbsp;
-                    <button class="btn btn-default btn-lg" data-bind="click: handleCancelClick">取消</button>
-                </div>
-            </div>
+                <tr>
+                    <td style="color:#CCCCCC">馆名称</td>
+                    <td data-bind="text:libName"></td>
+                </tr>
+                <tr>
+                    <td style="color:#CCCCCC">dp2mserver账号</td>
+                    <td data-bind="text:libUserName"></td>
+                 </tr>
+                <tr>
+                    <td style="color:#CCCCCC">备注</td>
+                    <td data-bind="text:comment"></td>
+                    </tr>
+                  <tr>
+                      <td>&nbsp;</td>
+                    <td>
+                        <button class="mui-btn mui-btn-danger" data-bind="click: removeLib">X&nbsp;删除</button>
+                    </td>
+                            
+                </tr>
+            </table>
+        </li>
+    </ul>
+    <button class="mui-btn mui-btn-block mui-btn-primary" data-bind="click: handleCreateClick">
+        新增图书馆
+    </button>
+</div>
+<div data-bind="ifnot: model.displaySummary">
+    <center><h3>新增图书馆</h3></center>
+
+    <form class="mui-input-group">
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">馆代码</label>
+            <input type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆代码" data-bind="value:model.editor.libCode">
         </div>
-    </div>
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">馆名称</label>
+            <input type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆名称" data-bind="value:model.editor.libName">
+        </div>
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">馆dp2mserver帐号</label>
+            <input type="text" class="mui-input mui-input-clear" placeholder="请输入  dp2mserver帐号" data-bind="value:model.editor.libUserName">
+        </div>
+        <div class="mui-input-row">
+            <label style="color:#cccccc">备注</label>
+            <textarea  rows="5" data-bind="value:model.editor.comment"></textarea>
+        </div>
+        <div class="mui-button-row">
+            <button class="mui-btn  mui-btn-primary" data-bind="click: addLib">绑定</button>
+            <button class="mui-btn " data-bind="click: handleCancelClick">取消</button>
+        </div>
+    </form>
+</div>

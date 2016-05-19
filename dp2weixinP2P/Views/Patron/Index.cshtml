@@ -123,22 +123,6 @@
     </header>
 }
 
-@{
-
-    string text = "";
-    if (ViewBag.bindFlag == 0)
-    {
-        text = "您尚未绑定读者，点击<a href='/acount/index'>这里</a>绑定读者。";
-    }
-    else if (ViewBag.bindFlag == 1)
-    {
-        text = "您尚未设置默认读者，点击<a href='/acount/index'>这里</a>设置默认读者。";
-    }
-}
-@if (text != "")
-{
-    @Html.Raw(text)
-}
 
 @if (Model != null)
 {
@@ -299,7 +283,7 @@
                         <tr>
                             <td>&nbsp;</td>
                             <td>
-                                <button type="button" class="mui-btn  mui-btn-primary" onclick="alert('未完成')">
+                                <button type="button" class="mui-btn  mui-btn-primary" onclick="alert('功能正在开发中')">
                                     续借
                                 </button>
                             </td>

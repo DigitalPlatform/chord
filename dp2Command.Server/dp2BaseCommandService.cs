@@ -23,11 +23,12 @@ namespace dp2Command.Service
         public string weiXinUrl = "";
         // 微信目录
         public string weiXinDataDir = "";
+        public string weiXinLogDir = "";
 
 
         #region 绑定解绑
 
-        public virtual int Binding(string remoteUserName,
+        public virtual int Bind(string remoteUserName,
             string libCode,
             string strFullWord,
             string strPassword,
@@ -47,7 +48,7 @@ namespace dp2Command.Service
         /// -1 出错
         /// 0   成功
         /// </returns>
-        public virtual int Unbinding(string remoteUserName,
+        public virtual int Unbind(string remoteUserName,
             string libCode, 
             string strrBarcode,
             string strWeiXinId,
@@ -55,6 +56,13 @@ namespace dp2Command.Service
         {
             strError = "未实现";
 
+            return -1;
+        }
+
+        public virtual int Unbind(string userId,
+             out string strError)
+        {
+            strError = "未实现";
             return -1;
         }
 
@@ -370,11 +378,7 @@ namespace dp2Command.Service
             {
                 lock (logSyncRoot)
                 {
-                    var logDir = this.weiXinDataDir + "/log";//Server.MapPath(string.Format("~/App_Data/log"));
-                    if (!Directory.Exists(logDir))
-                    {
-                        Directory.CreateDirectory(logDir);
-                    }
+                    var logDir = this.weiXinLogDir;
 
                     DateTime now = DateTime.Now;
                     // 每天一个日志文件
@@ -398,11 +402,7 @@ namespace dp2Command.Service
             {
                 lock (logSyncRoot)
                 {
-                    var logDir = this.weiXinDataDir + "/log";//Server.MapPath(string.Format("~/App_Data/log"));
-                    if (!Directory.Exists(logDir))
-                    {
-                        Directory.CreateDirectory(logDir);
-                    }
+                    var logDir = this.weiXinLogDir;
 
                     DateTime now = DateTime.Now;
                     // 每天一个日志文件

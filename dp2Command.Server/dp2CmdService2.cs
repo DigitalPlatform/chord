@@ -21,9 +21,17 @@ using System.Xml;
 
 namespace dp2Command.Service
 {
-    public class dp2CmdService2:dp2BaseCommandService
+    public class dp2CmdService2 : dp2BaseCommandService
     {
         public static string EncryptKey = "dp2weixinPassword";
+
+        // 模板消息ID
+        public const string C_Template_Bind = "hFmNH7on2FqSOAiYPZVJN-FcXBv4xpVLBvHsfpLLQKU";
+        public const string C_Template_UnBind = "1riAKkt2W0AOtkx5rx-Lwa0RKRydDTHaMjSoUBGuHog";
+        public const string C_Template_Arrived = "Wm-7-0HJay4yloWEgGG9HXq9eOF5cL8Qm2aAUy-isoM";
+        public const string C_Template_CaoQi = "QcS3LoLHk37Jh0rgKJId2o93IZjulr5XxgshzlW5VkY";
+
+
 
         MessageConnectionCollection _channels = new MessageConnectionCollection();
 
@@ -70,22 +78,30 @@ namespace dp2Command.Service
 
         public void Init(string dataDir)
         {
-            this.weiXinDataDir = weiXinDataDir;
+            this.weiXinDataDir = dataDir;
 
-            this._cfgFile=dataDir + "\\" + "weixin.xml";
+            this._cfgFile = this.weiXinDataDir + "\\" + "weixin.xml";
             if (File.Exists(this._cfgFile) == false)
             {
-                throw new Exception("配置文件"+this._cfgFile+"不存在。");
+                throw new Exception("配置文件" + this._cfgFile + "不存在。");
             }
+
+            // 日志目录
+            this.weiXinLogDir = this.weiXinDataDir + "/log";
+            if (!Directory.Exists(weiXinLogDir))
+            {
+                Directory.CreateDirectory(weiXinLogDir);
+            }
+
 
             XmlDocument dom = new XmlDocument();
             dom.Load(this._cfgFile);
-            XmlNode root= dom.DocumentElement;
+            XmlNode root = dom.DocumentElement;
 
             // 取出mserver服务器配置信息
             XmlNode nodeDp2mserver = root.SelectSingleNode("dp2mserver");
             this.dp2MServerUrl = DomUtil.GetAttr(nodeDp2mserver, "url");// WebConfigurationManager.AppSettings["dp2MServerUrl"];
-            this.userName= DomUtil.GetAttr(nodeDp2mserver, "username");//WebConfigurationManager.AppSettings["userName"];
+            this.userName = DomUtil.GetAttr(nodeDp2mserver, "username");//WebConfigurationManager.AppSettings["userName"];
             this.password = DomUtil.GetAttr(nodeDp2mserver, "password");//WebConfigurationManager.AppSettings["password"];
             if (string.IsNullOrEmpty(this.password) == false)// 解密
                 this.password = Cryptography.Decrypt(this.password, dp2CmdService2.EncryptKey);
@@ -112,7 +128,7 @@ namespace dp2Command.Service
             string strError = "";
             int nRet = this.InitialExternalMessageInterfaces(dom, out strError);
             if (nRet == -1)
-                throw new Exception("初始化接口配置信息出错："+strError);
+                throw new Exception("初始化接口配置信息出错：" + strError);
 
 
             //全局只需注册一次
@@ -124,19 +140,10 @@ namespace dp2Command.Service
             // 启一个线程取消息
             this._wxMsgThread = new WxMsgThread();
             this._wxMsgThread.Container = this;
-            this._wxMsgThread.BeginThread();    // TODO: 应该在 MessageConnection 第一次连接成功以后，再启动这个线程比较好
-
-            //Task.Factory.StartNew(() => DoLoadMessage("<default>"));
-
-            /*
-            // 初始img manager
-            string imgFile = this.weiXinDataDir + "\\" + "image.xml";
-            ImgManager imgManager = new ImgManager(imgFile);
-            string todayNo = DateTime.Now.Day.ToString();
-            TodayUrl = imgManager.GetImgUrl(todayNo);
-             */
+            this._wxMsgThread.BeginThread();    // TODO: 应该在 MessagWorkereConnection 第一次连接成功以后，再启动这个线程比较好
         }
 
+        #region 短信接口
 
         public List<MessageInterface> m_externalMessageInterfaces = null;
 
@@ -234,6 +241,8 @@ namespace dp2Command.Service
             return null;
         }
 
+        #endregion
+
         #region 本方账号登录
         void _channels_Login(object sender, LoginEventArgs e)
         {
@@ -261,6 +270,8 @@ namespace dp2Command.Service
         #endregion
 
         #region 消息处理
+
+        // 被1分钟轮循一次的工作线程调用
         public async void DoLoadMessage()
         {
             string strGroupName = "_patronNotify";//"<default>";
@@ -284,7 +295,7 @@ namespace dp2Command.Service
                     this.userName);  //todo这里用本方还是远方的账号，好像都可以，主要是确定在patronNotify
                 MessageResult result = await connection.GetMessageAsync(
                         request,
-                        FillMessage,
+                        OutputMessage,
                         new TimeSpan(0, 1, 0),
                         cancel_token);
             }
@@ -307,88 +318,442 @@ namespace dp2Command.Service
 
         }
 
-        public void SendCustomerMsg(string openId, string text)
+        void OutputMessage(long totalCount,
+            long start,
+            IList<MessageRecord> records,
+            string errorInfo,
+            string errorCode)
         {
-            var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
-            CustomApi.SendText(accessToken, openId, "error");
-        }
-
-        static string ToString(MessageResult result)
-        {
-            StringBuilder text = new StringBuilder();
-            text.Append("ResultValue=" + result.Value + "\r\n");
-            text.Append("ErrorInfo=" + result.ErrorInfo + "\r\n");
-            text.Append("String=" + result.String + "\r\n");
-            return text.ToString();
-        }
-
-        void FillMessage(long totalCount,
-    long start,
-    IList<MessageRecord> records,
-    string errorInfo,
-    string errorCode)
-        {
-
-
-            if (records != null)
+            // todo 什么情况下-1
+            if (totalCount == -1)
             {
-                SendMessageToWxUser(records);
-            }
-        }
-
-        public void SendMessageToWxUser(IList<MessageRecord> records)
-        {
-            int i = 0;
-            foreach (MessageRecord record in records)
-            {
-                i++;
-
                 StringBuilder text = new StringBuilder();
                 text.Append("***\r\n");
-                text.Append("id=" + record.id + "\r\n");
-                text.Append("data=" + record.data + "\r\n");
-                text.Append("group=" + record.groups + "\r\n");
-                text.Append("creator=" + record.creator + "\r\n");
+                text.Append("totalCount=" + totalCount + "\r\n");
+                text.Append("errorInfo=" + errorInfo + "\r\n");
+                text.Append("errorCode=" + errorCode + "\r\n");
+                this.WriteErrorLog(text.ToString());
+                return;
+            }
 
-                text.Append("format=" + record.format + "\r\n");
-                text.Append("type=" + record.type + "\r\n");
-                text.Append("thread=" + record.thread + "\r\n");
-
-                text.Append("publishTime=" + record.publishTime + "\r\n");
-                text.Append("expireTime=" + record.expireTime + "\r\n");
-
-                //todo 将来data为xml，这里解析出微信用户id,解析出模板需要的字段
-                string openId = "o4xvUviTxj2HbRqbQb9W2nMl4fGg";
-                var templateId = "QcS3LoLHk37Jh0rgKJId2o93IZjulr5XxgshzlW5VkY";//换成已经在微信后台添加的模板Id
-                var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
-                var testData = new CaoQiTemplateData()
-                {
-                    first = new TemplateDataItem("您借阅的图书已超期，请尽快归还！\n", "#000000"),
-                    keyword1 = new TemplateDataItem(record.data, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                    keyword2 = new TemplateDataItem("2016-05-01", "#000000"),
-                    keyword3 = new TemplateDataItem("1天", "#000000"),
-                    remark = new TemplateDataItem("\n点击[详情]查看个人详细信息", "#CCCCCC")
-                };
-                var result = TemplateApi.SendTemplateMessage(accessToken, openId, templateId, "#FF0000", "dp2003.com", testData);
-                // 测试
-                if (i == 3)
-                    return;
-
-                // todo 发送完成，要删除一条消息
-
+            if (records != null && records != null)
+            {
+                DoMessage(records);
             }
         }
 
 
+        /// <summary>
+        /// 实际处理通知消息
+        /// </summary>
+        /// <param name="records"></param>
+        private void DoMessage(IList<MessageRecord> records)
+        {
+            try
+            {
+                if (records == null || records.Count == 0)
+                    return;
+
+                List<string> delIds = new List<string>();
+                foreach (MessageRecord record in records)
+                {
+                    bool bPatronNotifyGroup = this.CheckIsNotifyGroup(record.groups);
+                    if (bPatronNotifyGroup == false)
+                        continue;
 
 
+                    string id = record.id;
+                    string data = record.data;
+                    string[] group = record.groups;
+                    string create = record.creator;
+
+
+                    //<root>
+                    //    <type>patronNotify</type>
+                    //    <recipient>R0000001@LUID:62637a12-1965-4876-af3a-fc1d3009af8a</recipient>
+                    //    <mime>xml</mime>
+                    //    <body>...</body>
+                    //</root>
+                    XmlDocument dataDom = new XmlDocument();
+                    try
+                    {
+                        dataDom.LoadXml(data);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("加载消息返回的data到xml出错:" + ex.Message);
+                    }
+
+                    XmlNode nodeType = dataDom.DocumentElement.SelectSingleNode("type");
+                    if (nodeType == null)
+                        continue;
+
+                    string type = DomUtil.GetNodeText(nodeType);
+                    if (type != "patronNotify") //只处理通知消息
+                        continue;
+
+                    XmlNode nodeBody = dataDom.DocumentElement.SelectSingleNode("body");
+                    if (nodeBody == null)
+                        throw new Exception("返回的data中不存在body节点");
+
+                    /*
+                    body元素里面是预约到书通知记录(注意这是一个字符串，需要另行装入一个XmlDocument解析)，其格式如下：
+                    <?xml version="1.0" encoding="utf-8"?>
+                    <root>
+                        <type>预约到书通知</type>
+                        <itemBarcode>0000001</itemBarcode>
+                        <refID> </refID>
+                        <opacURL>/book.aspx?barcode=0000001</opacURL>
+                        <reserveTime>2天</reserveTime>
+                        <today>2016/5/17 10:10:59</today>
+                        <summary>船舶柴油机 / 聂云超主编. -- ISBN 7-...</summary>
+                        <patronName>张三</patronName>
+                        <patronRecord>
+                            <barcode>R0000001</barcode>
+                            <readerType>本科生</readerType>
+                            <name>张三</name>
+                            <refID>be13ecc5-6a9c-4400-9453-a072c50cede1</refID>
+                            <department>数学系</department>
+                            <address>address</address>
+                            <cardNumber>C12345</cardNumber>
+                            <refid>8aa41a9a-fb42-48c0-b9b9-9d6656dbeb76</refid>
+                            <email>email:xietao@dp2003.com,weixinid:testwx2</email>
+                            <tel>13641016400</tel>
+                            <idCardNumber>1234567890123</idCardNumber>
+                        </patronRecord>
+                    </root
+                    */
+                    XmlDocument bodyDom = new XmlDocument();
+                    try
+                    {
+                        bodyDom.LoadXml(nodeBody.InnerText);//.InnerXml); 
+
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("加载消息返回的data中的body到xml出错:" + ex.Message);
+                    }
+                    XmlNode root = bodyDom.DocumentElement;
+                    XmlNode typeNode = root.SelectSingleNode("type");
+                    if (typeNode == null)
+                        throw new Exception("消息data的body中未定义type节点");
+                    string strType = DomUtil.GetNodeText(typeNode);
+
+                    // 目前只处理这两种消息
+                    if (strType != "预约到书通知" && strType != "超期通知")
+                        continue;
+
+                    // 根据类型发送不同的模板消息
+                    if (strType == "预约到书通知")
+                    {
+                        this.SendArrived(bodyDom);
+                    }
+                    else if (strType == "超期通知")
+                    {
+                        this.SendCaoQi(bodyDom);
+
+                    }
+
+                    // 加到删除列表
+                    delIds.Add(id);
+                }
+
+                //删除处理过的消息
+                if (delIds.Count > 0)
+                {
+                    string strError = "";
+                    int nRet = this.DeleteMessage(delIds, out strError);
+                    if (nRet == -1)
+                        throw new Exception(strError);
+                }
+            }
+            catch (Exception ex)
+            {
+                this.WriteErrorLog(ex.Message);
+            }
+
+        }
+
+        /// <summary>
+        /// 检查是否属于通知组的消息
+        /// </summary>
+        /// <param name="array"></param>
+        /// <returns></returns>
+        private bool CheckIsNotifyGroup(string[] array)
+        {
+            foreach (string s in array)
+            {
+                if (s == "_patronNotify" || s == "gn:_patronNotify")
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 删除消息
+        /// </summary>
+        /// <param name="idList"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        int DeleteMessage(List<string> idList, out string strError)
+        {
+            strError = "";
+            if (idList.Count == 0)
+                return 0;
+
+            string strGroupName = "gn:_patronNotify";
+
+            List<MessageRecord> records = new List<MessageRecord>();
+            for (int i = 0; i < idList.Count; i++)
+            {
+                if (idList[i].Trim() == "")
+                    continue;
+
+                MessageRecord record = new MessageRecord();
+                record.groups = strGroupName.Split(new char[] { ',' });
+                record.id = idList[i].Trim();
+                records.Add(record);
+            }
+
+            SetMessageRequest param = new SetMessageRequest("delete",
+                "",
+                records);
+
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                    this.dp2MServerUrl,
+                    "").Result;
+
+                SetMessageResult result = connection.SetMessageAsync(param).Result;
+                if (result.Value == -1)
+                {
+                    strError = result.ErrorInfo;
+                    return -1;
+                }
+
+                return 0;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+
+        ERROR1:
+            return -1;
+        }
+
+        /// <summary>
+        /// 发送预约通知
+        /// </summary>
+        /// <param name="bodyDom"></param>
+        public void SendArrived(XmlDocument bodyDom)
+        {
+            /*
+           body元素里面是预约到书通知记录(注意这是一个字符串，需要另行装入一个XmlDocument解析)，其格式如下：
+           <?xml version="1.0" encoding="utf-8"?>
+           <root>
+               <type>预约到书通知</type>
+               <itemBarcode>0000001</itemBarcode>
+               <refID> </refID>
+               <opacURL>/book.aspx?barcode=0000001</opacURL>
+               <reserveTime>2天</reserveTime>
+               <today>2016/5/17 10:10:59</today>
+               <summary>船舶柴油机 / 聂云超主编. -- ISBN 7-...</summary>
+               <patronName>张三</patronName>
+               <patronRecord>
+                   <barcode>R0000001</barcode>
+                   <readerType>本科生</readerType>
+                   <name>张三</name>
+                   <refID>be13ecc5-6a9c-4400-9453-a072c50cede1</refID>
+                   <department>数学系</department>
+                   <address>address</address>
+                   <cardNumber>C12345</cardNumber>
+                   <refid>8aa41a9a-fb42-48c0-b9b9-9d6656dbeb76</refid>
+                   <email>email:xietao@dp2003.com,weixinid:testwx2</email>
+                   <tel>13641016400</tel>
+                   <idCardNumber>1234567890123</idCardNumber>
+               </patronRecord>
+           </root
+           */
+
+            XmlNode root = bodyDom.DocumentElement;
+
+            // <reserveTime>2天</reserveTime>
+            // <today>2016/5/17 10:10:59</today>
+            // 取出预约消息
+            XmlNode nodeSummary = root.SelectSingleNode("summary");
+            if (nodeSummary == null)
+                throw new Exception("尚未定义<summary>节点");
+            string summary = DomUtil.GetNodeText(nodeSummary);
+
+            XmlNode nodeReserveTime = root.SelectSingleNode("reserveTime");
+            if (nodeReserveTime == null)
+                throw new Exception("尚未定义<reserveTime>节点");
+            string reserveTime = DomUtil.GetNodeText(nodeReserveTime);
+
+            XmlNode nodeToday = root.SelectSingleNode("today");
+            if (nodeToday == null)
+                throw new Exception("尚未定义<today>节点");
+            string today = DomUtil.GetNodeText(nodeToday);
+
+            string patronName = "";
+            List<string> weiXinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            foreach (string weiXinId in weiXinIdList)
+            {
+                var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                //{{first.DATA}}
+                //图书书名：{{keyword1.DATA}}
+                //到书日期：{{keyword2.DATA}}
+                //保留期限：{{keyword3.DATA}}
+                //{{remark.DATA}}
+                var msgData = new ArrivedTemplateData()
+                {
+                    first = new TemplateDataItem("尊敬的读者：您预约的图书已经到书，请尽快来图书馆办理借书手续。", "#000000"),
+                    keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                    keyword2 = new TemplateDataItem(today, "#000000"),
+                    keyword3 = new TemplateDataItem("保留" + reserveTime, "#000000"),
+                    remark = new TemplateDataItem("\n如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。", "#CCCCCC")
+                };
+
+                // 发送预约模板消息
+                //string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+                var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                    weiXinId,
+                    dp2CmdService2.C_Template_Arrived,
+                    "#FF0000",
+                    "",//不出现详细了
+                    msgData);
+            }
+        }
+
+        /// <summary>
+        /// 发送超期通知
+        /// </summary>
+        /// <param name="bodyDom"></param>
+        public void SendCaoQi(XmlDocument bodyDom)
+        {
+            /*
+<root>
+    <type>超期通知</type>
+    <items overdueCount="1" normalCount="0">
+        <item summary="船舶柴油机 / 聂云超主编. -- ISBN 7-..." timeReturning="2016/5/18" overdue="已超期 31 天" overdueType="overdue" />
+    </items>
+    <text>您借阅的下列书刊：
+船舶柴油机 / 聂云超主编. -- ISBN 7-... 应还日期: 2016/5/18 已超期 31 天
+</text>
+    <patronRecord>...
+    </patronRecord>
+</root>
+
+           */
+
+            // 得到绑定的微信id
+            string patronName = "";
+            List<string> weiXinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            if (weiXinIdList.Count == 0)
+                return;
+
+            XmlNode root = bodyDom.DocumentElement;
+
+            // 取出册列表
+            XmlNode nodeItems = root.SelectSingleNode("items");
+            string overdueCount = DomUtil.GetAttr(nodeItems, "overdueCount");
+
+            XmlNodeList nodeList = nodeItems.SelectNodes("item");
+            // 一册一个通知
+            foreach (XmlNode item in nodeList)
+            {
+                string summary = DomUtil.GetAttr(item, "summary");
+                string timeReturning = DomUtil.GetAttr(item, "timeReturning");
+                string overdue = DomUtil.GetAttr(item, "overdue");
+
+
+                foreach (string weiXinId in weiXinIdList)
+                {
+                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                    //{{first.DATA}}
+                    //图书书名：{{keyword1.DATA}}
+                    //应还日期：{{keyword2.DATA}}
+                    //超期天数：{{keyword3.DATA}}
+                    //{{remark.DATA}}
+                    var msgData = new ArrivedTemplateData()
+                    {
+                        first = new TemplateDataItem("尊敬的" + patronName + " 您好！您借阅的图书已超期，请尽快归还。", "#000000"),
+                        keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                        keyword2 = new TemplateDataItem(timeReturning, "#000000"),
+                        keyword3 = new TemplateDataItem(overdue, "#000000"),
+                        remark = new TemplateDataItem("\n点击下方”详情“查看个人详细信息。", "#CCCCCC")
+                    };
+
+                    string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weiXinId,
+                        dp2CmdService2.C_Template_CaoQi,
+                        "#FF0000",
+                        detailUrl,//不出现详细了
+                        msgData);
+                    if (result1.errcode != 0)
+                        throw new Exception(result1.errmsg);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获取读者记录中绑定的微信id,返回数组
+        /// </summary>
+        /// <param name="bodyDom"></param>
+        /// <param name="patronName"></param>
+        /// <returns></returns>
+        public List<string> GetWeiXinIds(XmlDocument bodyDom, out string patronName)
+        {
+            patronName = "";
+
+            XmlNode root = bodyDom.DocumentElement;
+            XmlNode patronRecordNode = root.SelectSingleNode("patronRecord");
+            if (patronRecordNode == null)
+                throw new Exception("尚未定义<patronRecordNode>节点");
+            patronName = DomUtil.GetNodeText(patronRecordNode.SelectSingleNode("name"));
+            XmlNode emailNode = patronRecordNode.SelectSingleNode("email");
+            if (emailNode == null)
+                throw new Exception("尚未定义<email>节点");
+            string email = DomUtil.GetNodeText(emailNode);
+            //<email>test@163.com,123,weixinid:o4xvUviTxj2HbRqbQb9W2nMl4fGg,weixinid:o4xvUvnLTg6NnflbYdcS-sxJCGFo,weixinid:testid</email>
+            string[] emailList = email.Split(new char[] { ',' });
+            List<string> weiXinIdList = new List<string>();
+            for (int i = 0; i < emailList.Length; i++)
+            {
+                string oneEmail = emailList[i].Trim();
+                if (oneEmail.Length > 9 && oneEmail.Substring(0, 9) == dp2CommandUtility.C_WeiXinIdPrefix)
+                {
+                    string weiwinId = oneEmail.Substring(9).Trim();
+                    if (weiwinId != "")
+                        weiXinIdList.Add(weiwinId);
+                }
+            }
+            return weiXinIdList;
+        }
+
+
+        /// <summary>
+        /// 绑定的消息事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void _channels_AddMessage(object sender, AddMessageEventArgs e)
         {
-            // todo只处理_patronNotify郡里的消息
-
             if (e.Records != null)
             {
-                SendMessageToWxUser(e.Records);
+                DoMessage(e.Records);
             }
         }
 
@@ -401,15 +766,15 @@ namespace dp2Command.Service
             List<WxUserItem> list = new List<WxUserItem>();
 
             // 目前只支持从数据库中查找
-            list= WxUserDatabase.Current.GetByWeixinId(weixinId);
+            list = WxUserDatabase.Current.GetByWeixinId(weixinId);
 
 
             return list;
         }
 
-        public int ResetPassword(string remoteUserName, 
+        public int ResetPassword(string remoteUserName,
             string strLibraryCode,
-            string name, 
+            string name,
             string tel,
             out string strError)
         {
@@ -442,13 +807,21 @@ namespace dp2Command.Service
                     cancel_token).Result;
                 if (result.Value == -1)
                 {
-                    strError = "出错："+result.ErrorInfo;
+                    strError = "出错：" + result.ErrorInfo;
                     return -1;
                 }
 
                 if (result.Value == 0)
                 {
-                    strError = "操作未成功："+result.ErrorInfo;
+                    if (result.String == "NotFound")
+                    {
+                        strError = "操作未成功：读者 " + name + " 尚未在图书馆账户中注册过手机号码，因此无法找回密码。请先去图书馆出纳台请工作人员帮助注册一下手机号码。";
+                    }
+                    else
+                    {
+                        strError = "操作未成功：" + result.ErrorInfo;
+                    }
+
                     return 0;
                 }
 
@@ -469,8 +842,10 @@ namespace dp2Command.Service
             string strMessageTemplate = "";
             MessageInterface external_interface = this.GetMessageInterface("sms");
             if (string.IsNullOrEmpty(strMessageTemplate) == true)
-                strMessageTemplate = "%name% 您好！\n您的读者帐户(证条码号为 %barcode%)已设临时密码 %temppassword%，在 %period% 内登录会成为正式密码";
-
+            {
+                //strMessageTemplate = "%name% 您好！\n您的读者帐户(证条码号为 %barcode%)已设临时密码 %temppassword%，在 %period% 内登录会成为正式密码";
+                strMessageTemplate = "%name% 您好！密码为 %temppassword%。一小时内有效。";
+            }
             /*
                                     DomUtil.SetElementText(node, "tel", strTelParam);
                                     DomUtil.SetElementText(node, "barcode", strBarcode);
@@ -503,7 +878,7 @@ namespace dp2Command.Service
             string strName = DomUtil.GetNodeText(nodePatron.SelectSingleNode("name"));
             string strReaderTempPassword = DomUtil.GetNodeText(nodePatron.SelectSingleNode("tempPassword"));
             string expireTime = DomUtil.GetNodeText(nodePatron.SelectSingleNode("expireTime"));
-            string period = DomUtil.GetNodeText(nodePatron.SelectSingleNode("period")); 
+            string period = DomUtil.GetNodeText(nodePatron.SelectSingleNode("period"));
 
             string strBody = strMessageTemplate.Replace("%barcode%", strBarcode)
                 .Replace("%name%", strName)
@@ -536,6 +911,8 @@ namespace dp2Command.Service
                         strBody,
                         strLibraryCode,
                         out strError);
+                    if (nRet == -1 || nRet == 0)
+                        return nRet;
                 }
                 catch (Exception ex)
                 {
@@ -545,7 +922,7 @@ namespace dp2Command.Service
                 if (nRet == -1)
                 {
                     strError = "向读者 '" + strBarcode + "' 发送" + external_interface.Type + " message时出错: " + strError;
-                    
+
                     this.WriteErrorLog(strError);
                     return -1;
                 }
@@ -568,7 +945,7 @@ namespace dp2Command.Service
         /// -1 出错
         /// 0 成功
         /// </returns>
-        public override int Binding(string remoteUserName,
+        public override int Bind(string remoteUserName,
             string libCode,
             string strFullWord,
             string strPassword,
@@ -635,7 +1012,7 @@ namespace dp2Command.Service
                 userItem = WxUserDatabase.Current.GetOneOrEmptyPatron(strWeiXinId, libCode, strReaderBarcode);
                 if (userItem == null)
                 {
-                   LibItem lib=  LibDatabase.Current.GetLibByLibCode(libCode);
+                    LibItem lib = LibDatabase.Current.GetLibByLibCode(libCode);
 
 
                     userItem = new WxUserItem();
@@ -668,73 +1045,28 @@ namespace dp2Command.Service
                 }
                 // 置为活动状态
                 WxUserDatabase.Current.SetActive(userItem);
-                return 0;
-            }
-            catch (AggregateException ex)
-            {
-                strError = MessageConnection.GetExceptionText(ex);
-                goto ERROR1;
-            }
-            catch (Exception ex)
-            {
-                strError = ex.Message;
-                goto ERROR1;
-            }
 
-        ERROR1:
-            return -1;
-        }
-
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="weiXinId"></param>
-        /// <param name="strError"></param>
-        /// <returns>
-        /// -1 出错
-        /// 0   成功
-        /// </returns>
-        public override int Unbinding(string remoteUserName,
-            string libCode,
-            string strBarcode,
-            string strWeiXinId,
-             out string strError)
-        {
-            strError = "";
-
-            // 从mongodb删除
-            long nCount = WxUserDatabase.Current.Delete(strWeiXinId, strBarcode,libCode);
-
-
-            // 调点对点解绑接口
-            string fullWeixinId = dp2CommandUtility.C_WeiXinIdPrefix + strWeiXinId;
-            CancellationToken cancel_token = new CancellationToken();
-            string id = Guid.NewGuid().ToString();
-            BindPatronRequest request = new BindPatronRequest(id,
-                "unbind",
-                strBarcode,
-                "",//password  todo
-                fullWeixinId,
-               "multiple,null_password",
-                "xml");
-            try
-            {
-                // 得到连接
-                MessageConnection connection = this._channels.GetConnectionAsync(
-                    this.dp2MServerUrl,
-                    remoteUserName).Result;
-
-                // 调绑定函数，todo为啥await没反应
-                BindPatronResult result = connection.BindPatronAsync(
-                     remoteUserName,
-                    request,
-                    new TimeSpan(0, 1, 0),
-                    cancel_token).Result;
-                if (result.Value == -1)
+                // 发送绑定成功的客服消息                
+                string accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+                var testData = new BindTemplateData()
                 {
-                    strError = result.ErrorInfo;
+                    first = new TemplateDataItem("恭喜您！您已成功绑定图书馆账号。", "#000000"),
+                    keyword1 = new TemplateDataItem(userItem.readerName + "(" + userItem.readerBarcode + ")", "#000000"),
+                    keyword2 = new TemplateDataItem("图书馆[" + userItem.libName + "]", "#000000"),
+                    remark = new TemplateDataItem("您可以直接通过微信公众号访问图书馆，进行信息查询，预约续借等功能。如需解绑，请在“绑定账号”菜单操作。", "#CCCCCC")
+                };
+
+                // 详细转到账户管理界面
+                string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+                var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                    strWeiXinId,
+                    dp2CmdService2.C_Template_Bind,
+                    "#FF0000",
+                    detailUrl,//k"dp2003.com/dp2weixin/patron/index", // todo注意这里是否需要oauth接口，想着消息既然是从web发过来了，立即点进去还有session信息存在，但时间长了session失效就没有信息了
+                    testData);
+                if (result1.errcode != 0)
+                {
+                    strError = result1.errmsg;
                     return -1;
                 }
 
@@ -755,8 +1087,107 @@ namespace dp2Command.Service
             return -1;
         }
 
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="weiXinId"></param>
+        /// <param name="strError"></param>
+        /// <returns>
+        /// -1 出错
+        /// 0   成功
+        /// </returns>
+        public override int Unbind(string userId,
+             out string strError)
+        {
+            strError = "";
+
+            //string remoteUserName,
+            //    string libCode,
+            //    string strBarcode,
+            //    string strWeiXinId,
+
+            WxUserItem userItem = WxUserDatabase.Current.GetById(userId);
+            if (userItem == null)
+            {
+                strError = "绑定账号未找到";
+                return -1;
+            }
+
+
+            // 调点对点解绑接口
+            string fullWeixinId = dp2CommandUtility.C_WeiXinIdPrefix + userItem.weixinId;
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            BindPatronRequest request = new BindPatronRequest(id,
+                "unbind",
+                userItem.readerBarcode,
+                "",//password  todo
+                fullWeixinId,
+               "multiple,null_password",
+                "xml");
+            try
+            {
+                // 得到连接
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                    this.dp2MServerUrl,
+                    userItem.libUserName).Result;
+
+                BindPatronResult result = connection.BindPatronAsync(
+                     userItem.libUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.Value == -1)
+                {
+                    strError = result.ErrorInfo;
+                    return -1;
+                }
+
+                // 删除mongodb库的记录
+                WxUserDatabase.Current.Delete(userId);
+
+                // 发送解绑消息            
+                string accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+                var data = new UnBindTemplateData()
+                {
+                    first = new TemplateDataItem("您已成功对图书馆账号解除绑定。", "#000000"),
+                    keyword1 = new TemplateDataItem(userItem.readerName + "(" + userItem.readerBarcode + ")", "#000000"),
+                    keyword2 = new TemplateDataItem("图书馆[" + userItem.libName + "]", "#000000"),
+                    remark = new TemplateDataItem("\n您现在不能访问该图书馆信息了，如需访问，请重新绑定。", "#CCCCCC")
+                };
+                SendTemplateMessageResult result1 = TemplateApi.SendTemplateMessage(accessToken,
+                    userItem.weixinId,
+                    dp2CmdService2.C_Template_UnBind,
+                    "#FF0000",
+                    "",//k"dp2003.com/dp2weixin/patron/index", // todo注意这里是否需要oauth接口，想着消息既然是从web发过来了，立即点进去还有session信息存在，但时间长了session失效就没有信息了
+                    data);
+                if (result1.errcode != 0)
+                {
+                    strError = result1.errmsg;
+                    return -1;
+                }
+                return 0;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+
+        ERROR1:
+            return -1;
+        }
+
         public override long SearchOnePatronByWeiXinId(string remoteUserName,
-            string libCode, 
+            string libCode,
             string strWeiXinId,
             out string strBarcode,
             out string strError)
@@ -773,7 +1204,7 @@ namespace dp2Command.Service
             }
 
             // mongodb存在
-            if ( String.IsNullOrEmpty(userItem.readerBarcode)==false)
+            if (String.IsNullOrEmpty(userItem.readerBarcode) == false)
             {
                 strBarcode = userItem.readerBarcode;
                 return 1;
@@ -816,7 +1247,7 @@ namespace dp2Command.Service
                 // 找到对应的读者记录
                 if (result.ResultCount > 0)
                 {
-                    LibItem libItem=LibDatabase.Current.GetLibByLibCode(libCode);
+                    LibItem libItem = LibDatabase.Current.GetLibByLibCode(libCode);
                     string libName = libItem.libName;
                     for (int i = 0; i < result.ResultCount; i++)
                     {
@@ -889,12 +1320,12 @@ namespace dp2Command.Service
 
         #region 检索书目
 
-        public override long SearchBiblio(string remoteUserName, 
+        public override long SearchBiblio(string remoteUserName,
             string strWord,
             SearchCommand searchCmd,
             out string strFirstPage,
             out string strError)
-        {            
+        {
             strFirstPage = "";
             strError = "";
 
@@ -946,7 +1377,7 @@ namespace dp2Command.Service
                         path = path.Substring(0, index);
 
                     string name = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("col"));
-                    resultPathList.Add( path+ "*" + name);
+                    resultPathList.Add(path + "*" + name);
                 }
 
                 // 将检索结果信息保存到检索命令中
@@ -979,7 +1410,7 @@ namespace dp2Command.Service
 
 
 
-        public override int GetDetailBiblioInfo(string remoteUserName, 
+        public override int GetDetailBiblioInfo(string remoteUserName,
             SearchCommand searchCmd,
             int nIndex,
             out string strBiblioInfo,
@@ -1023,7 +1454,7 @@ namespace dp2Command.Service
             if (nRet == -1 || nRet == 0)
                 return nRet;
             strBiblioInfo += strInfo + "\n";
-            
+
 
             /*
             try
@@ -1058,12 +1489,12 @@ namespace dp2Command.Service
             strBiblioInfo = "time span: " + time_length.TotalSeconds.ToString() + " secs" + "\n"
                 + strBiblioInfo;
 
-            
-             
+
+
             return 1;
         }
 
-        private int GetBiblioSummary(string remoteUserName, 
+        private int GetBiblioSummary(string remoteUserName,
             string biblioPath,
             out string summary,
             out string strError)
@@ -1126,7 +1557,7 @@ namespace dp2Command.Service
         }
 
 
-        private long GetItemInfo(string remoteUserName, 
+        private long GetItemInfo(string remoteUserName,
             string biblioPath,
             out string itemInfo,
             out string strError)
@@ -1202,7 +1633,7 @@ namespace dp2Command.Service
                     string strComment = DomUtil.GetElementText(dom.DocumentElement, "comment");
 
                     // 借阅情况
-                    string strBorrowInfo ="借阅情况:在架";
+                    string strBorrowInfo = "借阅情况:在架";
                     /*
                      <borrower>R00001</borrower>
     <borrowerReaderType>教职工</borrowerReaderType>
@@ -1215,7 +1646,7 @@ namespace dp2Command.Service
                     string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
     "borrowDate"), "yyyy/MM/dd");
                     string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
-                    if (string.IsNullOrEmpty(strBorrower)==false)
+                    if (string.IsNullOrEmpty(strBorrower) == false)
                         strBorrowInfo = "借阅者:*** 借阅时间:" + borrowDate + " 借期:" + borrowPeriod;
 
                     itemInfo += "序号:" + (i + 1).ToString() + "\n"
@@ -1226,7 +1657,7 @@ namespace dp2Command.Service
                         + "出版日期:" + strPublishTime + "\n"
                         + "价格:" + strPrice + "\n"
                         + "注释:" + strComment + "\n"
-                        + strBorrowInfo + "\n";                    
+                        + strBorrowInfo + "\n";
                 }
 
 
@@ -1247,176 +1678,176 @@ namespace dp2Command.Service
         }
 
 
-        private int GetBiblioAndSub(string remoteUserName, 
+        private int GetBiblioAndSub(string remoteUserName,
             string biblioPath,
             out string strInfo,
             out string strError)
         {
-             strError = "";
-             strInfo = "";
+            strError = "";
+            strInfo = "";
 
 
-                DateTime start_time = DateTime.Now;
+            DateTime start_time = DateTime.Now;
 
-                CancellationToken cancel_token = new CancellationToken();
+            CancellationToken cancel_token = new CancellationToken();
 
-                // 获取书目记录
-                string id1 = Guid.NewGuid().ToString();
-                SearchRequest request1 = new SearchRequest(id1,
-                    "getBiblioInfo",
-                    "<全部>",
-                    biblioPath,
-                    "",
-                    "",
-                    "",
-                    "summary",
-                    1,
-                    0,
-                    -1);
-                // 获取下属记录
-                string id2 = Guid.NewGuid().ToString();
-                SearchRequest request2 = new SearchRequest(id2,
-                    "getItemInfo",
-                    "entity",
-                    biblioPath,
-                    "",
-                    "",
-                    "",
-                    "opac",
-                    1000,
-                    0,
-                    10);
+            // 获取书目记录
+            string id1 = Guid.NewGuid().ToString();
+            SearchRequest request1 = new SearchRequest(id1,
+                "getBiblioInfo",
+                "<全部>",
+                biblioPath,
+                "",
+                "",
+                "",
+                "summary",
+                1,
+                0,
+                -1);
+            // 获取下属记录
+            string id2 = Guid.NewGuid().ToString();
+            SearchRequest request2 = new SearchRequest(id2,
+                "getItemInfo",
+                "entity",
+                biblioPath,
+                "",
+                "",
+                "",
+                "opac",
+                1000,
+                0,
+                10);
 
-                try
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+this.dp2MServerUrl,
+remoteUserName).Result;
+
+
+                Task<SearchResult> task1 = connection.SearchAsync(
+remoteUserName,
+request1,
+new TimeSpan(0, 1, 0),
+cancel_token);
+                Task<SearchResult> task2 = connection.SearchAsync(
+                     remoteUserName,
+                    request2,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token);
+
+                Task<SearchResult>[] tasks = new Task<SearchResult>[2];
+                tasks[0] = task1;
+                tasks[1] = task2;
+                Task.WaitAll(tasks);
+
+
+                if (task1.Result.ResultCount == -1)
                 {
-                    MessageConnection connection = this._channels.GetConnectionAsync(
-    this.dp2MServerUrl,
-    remoteUserName).Result;
+                    strError = "获取摘要出错：" + task1.Result.ErrorInfo;
+                    return -1;
+                }
+                if (task1.Result.ResultCount == 0)
+                {
+                    strError = "未命中";
+                    return 0;
+                }
 
+                strInfo = task1.Result.Records[0].Data;
 
-                    Task<SearchResult> task1 = connection.SearchAsync(
-    remoteUserName,
-    request1,
-    new TimeSpan(0, 1, 0),
-    cancel_token);
-                    Task<SearchResult> task2 = connection.SearchAsync(
-                         remoteUserName,
-                        request2,
-                        new TimeSpan(0, 1, 0),
-                        cancel_token);
+                if (task2.Result.ResultCount == -1)
+                {
+                    strError = "获取册出错：" + task2.Result.ErrorInfo;
+                    return -1;
+                }
+                if (task2.Result.ResultCount == 0)
+                {
+                    strError = "未命中";
+                    return 0;
+                }
 
-                    Task<SearchResult>[] tasks = new Task<SearchResult>[2];
-                    tasks[0] = task1;
-                    tasks[1] = task2;
-                    Task.WaitAll(tasks);
-
-
-                    if (task1.Result.ResultCount == -1)
-                    {
-                        strError = "获取摘要出错：" + task1.Result.ErrorInfo;
-                        return -1;
-                    }
-                    if (task1.Result.ResultCount == 0)
-                    {
-                        strError = "未命中";
-                        return 0;
-                    }
-
-                    strInfo = task1.Result.Records[0].Data;
-
-                    if (task2.Result.ResultCount == -1)
-                    {
-                        strError = "获取册出错：" + task2.Result.ErrorInfo;
-                        return -1;
-                    }
-                    if (task2.Result.ResultCount == 0)
-                    {
-                        strError = "未命中";
-                        return 0;
-                    }
-
-                    string itemInfo = "";
-                    for (int i = 0; i < task2.Result.Records.Count; i++)
-                    {
-                        if (itemInfo != "")
-                            itemInfo += "===========\n";
-
-                        string xml = task2.Result.Records[i].Data;
-                        XmlDocument dom = new XmlDocument();
-                        dom.LoadXml(xml);
-
-                        string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
-                        string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
-                        // 册条码号
-                        string strViewBarcode = "";
-                        if (string.IsNullOrEmpty(strBarcode) == false)
-                            strViewBarcode = strBarcode;
-                        else
-                            strViewBarcode = "refID:" + strRefID;  //"@refID:"
-                        //状态
-                        string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
-                        // 馆藏地
-                        string strLocation = DomUtil.GetElementText(dom.DocumentElement, "location");
-                        // 索引号
-                        string strAccessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
-
-                        // 出版日期
-                        string strPublishTime = DomUtil.GetElementText(dom.DocumentElement, "publishTime");
-                        // 价格
-                        string strPrice = DomUtil.GetElementText(dom.DocumentElement, "price");
-                        // 注释
-                        string strComment = DomUtil.GetElementText(dom.DocumentElement, "comment");
-
-                        // 借阅情况
-                        string strBorrowInfo = "借阅情况:在架";
-                        /*
-                         <borrower>R00001</borrower>
-        <borrowerReaderType>教职工</borrowerReaderType>
-        <borrowerRecPath>读者/1</borrowerRecPath>
-        <borrowDate>Sun, 17 Apr 2016 23:57:40 +0800</borrowDate>
-        <borrowPeriod>31day</borrowPeriod>
-        <returningDate>Wed, 18 May 2016 12:00:00 +0800</returningDate>
-                         */
-                        string strBorrower = DomUtil.GetElementText(dom.DocumentElement, "borrower");
-                        string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
-        "borrowDate"), "yyyy/MM/dd");
-                        string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
-                        if (string.IsNullOrEmpty(strBorrower) == false)
-                            strBorrowInfo = "借阅者:*** 借阅时间:" + borrowDate + " 借期:" + borrowPeriod;
-
-                        itemInfo += "序号:" + (i + 1).ToString() + "\n"
-                            + "册条码号:" + strViewBarcode + "\n"
-                            + "状态:" + strState + "\n"
-                            + "馆藏地:" + strLocation + "\n"
-                            + "索引号:" + strAccessNo + "\n"
-                            + "出版日期:" + strPublishTime + "\n"
-                            + "价格:" + strPrice + "\n"
-                            + "注释:" + strComment + "\n"
-                            + strBorrowInfo + "\n";
-                    }
-
+                string itemInfo = "";
+                for (int i = 0; i < task2.Result.Records.Count; i++)
+                {
                     if (itemInfo != "")
-                    {
-                        strInfo += "===========\n";
-                        strInfo += itemInfo;
-                    }
+                        itemInfo += "===========\n";
 
-                    return (int)task2.Result.ResultCount;
+                    string xml = task2.Result.Records[i].Data;
+                    XmlDocument dom = new XmlDocument();
+                    dom.LoadXml(xml);
 
+                    string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
+                    string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
+                    // 册条码号
+                    string strViewBarcode = "";
+                    if (string.IsNullOrEmpty(strBarcode) == false)
+                        strViewBarcode = strBarcode;
+                    else
+                        strViewBarcode = "refID:" + strRefID;  //"@refID:"
+                    //状态
+                    string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+                    // 馆藏地
+                    string strLocation = DomUtil.GetElementText(dom.DocumentElement, "location");
+                    // 索引号
+                    string strAccessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
+
+                    // 出版日期
+                    string strPublishTime = DomUtil.GetElementText(dom.DocumentElement, "publishTime");
+                    // 价格
+                    string strPrice = DomUtil.GetElementText(dom.DocumentElement, "price");
+                    // 注释
+                    string strComment = DomUtil.GetElementText(dom.DocumentElement, "comment");
+
+                    // 借阅情况
+                    string strBorrowInfo = "借阅情况:在架";
+                    /*
+                     <borrower>R00001</borrower>
+    <borrowerReaderType>教职工</borrowerReaderType>
+    <borrowerRecPath>读者/1</borrowerRecPath>
+    <borrowDate>Sun, 17 Apr 2016 23:57:40 +0800</borrowDate>
+    <borrowPeriod>31day</borrowPeriod>
+    <returningDate>Wed, 18 May 2016 12:00:00 +0800</returningDate>
+                     */
+                    string strBorrower = DomUtil.GetElementText(dom.DocumentElement, "borrower");
+                    string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
+    "borrowDate"), "yyyy/MM/dd");
+                    string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
+                    if (string.IsNullOrEmpty(strBorrower) == false)
+                        strBorrowInfo = "借阅者:*** 借阅时间:" + borrowDate + " 借期:" + borrowPeriod;
+
+                    itemInfo += "序号:" + (i + 1).ToString() + "\n"
+                        + "册条码号:" + strViewBarcode + "\n"
+                        + "状态:" + strState + "\n"
+                        + "馆藏地:" + strLocation + "\n"
+                        + "索引号:" + strAccessNo + "\n"
+                        + "出版日期:" + strPublishTime + "\n"
+                        + "价格:" + strPrice + "\n"
+                        + "注释:" + strComment + "\n"
+                        + strBorrowInfo + "\n";
                 }
-                catch (AggregateException ex)
+
+                if (itemInfo != "")
                 {
-                    strError = MessageConnection.GetExceptionText(ex);
-                    goto ERROR1;
-                }
-                catch (Exception ex)
-                {
-                    strError = ex.Message;
-                    goto ERROR1;
+                    strInfo += "===========\n";
+                    strInfo += itemInfo;
                 }
 
-            ERROR1:
-                return -1;
+                return (int)task2.Result.ResultCount;
+
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+
+        ERROR1:
+            return -1;
 
         }
 
@@ -1427,7 +1858,7 @@ namespace dp2Command.Service
         /// 0   未查到对应记录
         /// 1  成功
         /// </returns>
-        public override int GetMyInfo(string remoteUserName, 
+        public override int GetMyInfo(string remoteUserName,
             string strReaderBarcode,
             out string strMyInfo,
             out string strError)
@@ -1439,16 +1870,16 @@ namespace dp2Command.Service
 
             // 得到高级xml
             string strXml = "";
-            int nRet = this.GetPatronInfo(remoteUserName, 
+            int nRet = this.GetPatronInfo(remoteUserName,
                 strReaderBarcode,
                 "xml",
                 out strXml,
                 out strError);
-            if (nRet ==-1)
+            if (nRet == -1)
                 return -1;
             if (nRet == 0)
             {
-                strError = "从dp2library未找到证条码号为'" + strReaderBarcode+ "'的记录"; //todo refID
+                strError = "从dp2library未找到证条码号为'" + strReaderBarcode + "'的记录"; //todo refID
                 return 0;
             }
 
@@ -1485,9 +1916,9 @@ namespace dp2Command.Service
         /// 0   未找到读者记录
         /// 1   成功
         /// </returns>
-        public override int GetBorrowInfo(string remoteUserName, 
-            string strReaderBarcode, 
-            out string strBorrowInfo, 
+        public override int GetBorrowInfo(string remoteUserName,
+            string strReaderBarcode,
+            out string strBorrowInfo,
             out string strError)
         {
             strError = "";
@@ -1514,8 +1945,16 @@ namespace dp2Command.Service
 
         }
 
-
-        public int GetPatronInfo(string remoteUserName, 
+        /// <summary>
+        /// 获取读者信息
+        /// </summary>
+        /// <param name="remoteUserName"></param>
+        /// <param name="strReaderBarocde"></param>
+        /// <param name="strFormat"></param>
+        /// <param name="xml"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public int GetPatronInfo(string remoteUserName,
             string strReaderBarocde,  //todo refID
             string strFormat,
             out string xml,
@@ -1551,9 +1990,17 @@ namespace dp2Command.Service
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
 
+                if (result.ResultCount == -1)
+                {
+                    strError = result.ErrorInfo;
+                    return -1;
+                }
 
                 if (result.ResultCount == 0)
-                    return 0;
+                {
+                    strError = result.ErrorInfo;
+                    return -1;
+                }
 
                 xml = result.Records[0].Data;
                 return 1;
@@ -1575,7 +2022,15 @@ namespace dp2Command.Service
         }
 
 
-        public int GetWeiXinId(string code,string state, out string weiXinId,
+        /// <summary>
+        /// 根据code获取微信id
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <param name="weiXinId"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public int GetWeiXinId(string code, string state, out string weiXinId,
             out string strError)
         {
             strError = "";
@@ -1586,7 +2041,7 @@ namespace dp2Command.Service
                 //可以传一个state用于校验
                 if (state != "dp2weixin")
                 {
-                    strError="验证失败！请从正规途径进入！";
+                    strError = "验证失败！请从正规途径进入！";
                     return -1;
                 }
 
@@ -1614,15 +2069,17 @@ namespace dp2Command.Service
 
             }
         }
+
+        /// <summary>
+        /// 发送客服消息
+        /// </summary>
+        /// <param name="openId"></param>
+        /// <param name="text"></param>
+        public void SendCustomerMsg(string openId, string text)
+        {
+            var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+            CustomApi.SendText(accessToken, openId, "error");
+        }
     }
 
-    public class CaoQiTemplateData
-    {
-        public TemplateDataItem first { get; set; }
-        public TemplateDataItem keyword1 { get; set; }
-        public TemplateDataItem keyword2 { get; set; }
-        public TemplateDataItem keyword3 { get; set; }
-        public TemplateDataItem remark { get; set; }
-
-    }
 }

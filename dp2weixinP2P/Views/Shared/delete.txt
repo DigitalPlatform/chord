@@ -1,0 +1,69 @@
+﻿    <nav class="mui-bar mui-bar-tab ">
+        <a class="mui-tab-item" href="#Popover_0">资源</a>
+        <a class="mui-tab-item" href="#Popover_1">我的图书馆</a>
+        <a class="mui-tab-item" href="#Popover_2">更多</a>
+@if (Session["userType"] == "admin")
+{
+        <a class="mui-tab-item" href="#Popover_3">系统管理</a>
+}
+    </nav>
+    <div id="Popover_0" class="mui-popover mui-bar-popover">
+        <div class="mui-popover-arrow"></div>
+        <ul class="mui-table-view">
+            <li class="mui-table-view-cell">
+                <a href="~/Biblio/Index">书目查询</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/Home/Index">新书上架</a>
+            </li>
+        </ul>
+    </div>
+    <div id="Popover_1" class="mui-popover mui-bar-popover">
+        <div class="mui-popover-arrow"></div>
+        <ul class="mui-table-view">
+            <li class="mui-table-view-cell">
+                <a href="~/Patron/Index">我的信息</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/Account/Bind">绑定账号</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/Account/Index">账号管理</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/Account/ResetPassword">找回密码</a>
+            </li>
+        </ul>
+    </div>
+    <div id="Popover_2" class="mui-popover mui-bar-popover">
+        <div class="mui-popover-arrow"></div>
+        <ul class="mui-table-view">
+            <li class="mui-table-view-cell">
+                <a href="~/Home/Index">最新公告</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/Home/Contact">联系我们</a>
+            </li>
+        </ul>
+    </div>
+    <div id="Popover_3" class="mui-popover mui-bar-popover">
+        <div class="mui-popover-arrow"></div>
+        <ul class="mui-table-view">
+            <li class="mui-table-view-cell">
+                <a href="~/home/LibraryM" >图书馆账号管理</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/home/WeixinUser">微信用户管理</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/home/WeixinMessage">微信消息</a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a href="~/Menu/Index">微信菜单</a>
+            </li>
+
+            <li class="mui-table-view-cell">
+                <a href="~/home/Setting">参数设置</a>
+            </li>                                            
+        </ul>
+    </div>

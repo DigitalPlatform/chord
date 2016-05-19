@@ -7,13 +7,13 @@
     <title>我爱图书馆</title>
     <!--CSS -->
     <link href="@Url.Content("~/Content/mui.min.css")" rel="stylesheet">
-    <script src="@Url.Content("~/Scripts/mui.min.js")"></script>
+    <link href="@Url.Content("~/Content/style.css")" rel="stylesheet" type="text/css" />
 
-<link href="@Url.Content("~/Content/layer.m.css")" type="text/css" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/layer.m.css")" type="text/css" rel="stylesheet" />
     <script src="@Url.Content("~/Scripts/layer.js")"></script>
 
-    <script src='@Url.Content("~/Scripts/jquery-1.9.1.js")'></script>
-    <script src='@Url.Content("~/Scripts/jquery-ui-1.8.24.js")'></script>
+    <script src='@Url.Content("~/Scripts/jquery-2.2.3.js")'></script>
+    <script src='@Url.Content("~/Scripts/jquery-ui-1.11.4.js")'></script>
 
     <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
     <script src="@Url.Content("~/Scripts/weixin.js")"></script>
@@ -24,88 +24,199 @@
 
 
 </head>
-<body>
-    @RenderSection("header", required: false)
+<body style="padding-bottom:50px;font-family: 'Microsoft YaHei',微软雅黑!important">
+    <header class="mui-bar mui-bar-nav" id="myheader">
+        @RenderSection("header", required: false)
+    </header>
 
-    <nav class="mui-bar mui-bar-tab ">
-        <a class="mui-tab-item" href="#Popover_0">资源</a>
-        <a class="mui-tab-item" href="#Popover_1">我的图书馆</a>
-        <a class="mui-tab-item" href="#Popover_2">更多</a>
-@if (Session["userType"] == "admin")
-{
-        <a class="mui-tab-item" href="#Popover_3">系统管理</a>
-}
-    </nav>
-    <div id="Popover_0" class="mui-popover mui-bar-popover">
-        <div class="mui-popover-arrow"></div>
-        <ul class="mui-table-view">
-            <li class="mui-table-view-cell">
-                <a href="~/Biblio/Index">书目查询</a>
-            </li>
-            <li class="mui-table-view-cell">
-                <a href="~/Home/Index">新书上架</a>
-            </li>
-        </ul>
-    </div>
-    <div id="Popover_1" class="mui-popover mui-bar-popover">
-        <div class="mui-popover-arrow"></div>
-        <ul class="mui-table-view">
-            <li class="mui-table-view-cell">
-                <a href="~/Patron/Index">我的信息</a>
-            </li>
-            <li class="mui-table-view-cell">
-                <a href="~/Account/Bind">绑定账号</a>
-            </li>
-            <li class="mui-table-view-cell">
-                <a href="~/Account/Index">账号管理</a>
-            </li>
-            <li class="mui-table-view-cell">
-                <a href="~/Account/ResetPassword">找回密码</a>
-            </li>
-        </ul>
-    </div>
-    <div id="Popover_2" class="mui-popover mui-bar-popover">
-        <div class="mui-popover-arrow"></div>
-        <ul class="mui-table-view">
-            <li class="mui-table-view-cell">
-                <a href="~/Home/Index">最新公告</a>
-            </li>
-            <li class="mui-table-view-cell">
-                <a href="~/Home/Contact">联系我们</a>
-            </li>
-        </ul>
-    </div>
-    <div id="Popover_3" class="mui-popover mui-bar-popover">
-        <div class="mui-popover-arrow"></div>
-        <ul class="mui-table-view">
-            <li class="mui-table-view-cell">
-                <a href="~/home/LibraryM" >图书馆账号管理</a>
-            </li>
-            <li class="mui-table-view-cell">
-                <a href="~/home/WeixinUser">微信用户管理</a>
-            </li>
-            <li class="mui-table-view-cell">
-                <a href="~/home/WeixinMessage">微信消息</a>
-            </li>
-            <li class="mui-table-view-cell">
-                <a href="~/Menu/Index">微信菜单</a>
-            </li>
+    <div class="btn3 clearfix" id="divBottonTab">
+        <div class="menu">
+            <div class="bt-name">资源</div>
+            <div class="new-sub">
+                <ul>
+                    <li><a href="~/Biblio/Index">书目查询</a></li>
+                    <li><a href="~/Home/Index">新书上架</a></li>
+                </ul>
+                <div class="tiggle"></div>
+                <div class="innertiggle"></div>
+            </div>
+        </div><!--menu-->
+        <div class="menu">
+            <div class="bt-name">我的图书馆</div>
+            <div class="new-sub">
+                <ul>
+                    <li><a href="~/Patron/Index">我的信息</a></li>
+                    @if (Session[dp2weixin.service.WeiXinConst.C_Session_IsBind] != null && (int)Session[dp2weixin.service.WeiXinConst.C_Session_IsBind] == 1)
+                    {
+                        <li><a href="~/Account/Index">账号管理</a></li>
+                    }
+                    else
+                    {
+                        <li><a href="~/Account/Bind">绑定账号</a></li>
+                    }
 
-            <li class="mui-table-view-cell">
-                <a href="~/home/Setting">参数设置</a>
-            </li>                                            
-        </ul>
+                    <li><a href="~/Account/ResetPassword">找回密码</a>
+                </ul>
+                <div class="tiggle"></div>
+                <div class="innertiggle"></div>
+            </div>
+        </div><!--menu-->
+
+        <div class="menu">
+            <div class="bt-name">更多</div>
+            <div class="new-sub">
+                <ul>
+                    <li>
+                        <a href="~/Home/Index">最新公告</a>
+                    </li>
+                    <li>
+                        <a href="~/Home/Index">图书馆主页</a>
+                    </li>
+                    <li>
+                        <a href="~/Home/Contact">联系我们</a>
+                    </li>
+                    @if (Session["userType"] == "admin")
+                    {
+                        <li>
+                            <a href="~/home/LibraryM">图书馆管理</a>
+                        </li>
+                        <li>
+                            <a href="~/home/WeixinUser">用户管理</a>
+                        </li>
+                        <li>
+                            <a href="~/home/WeixinMessage">微信消息</a>
+                        </li>
+                        <li>
+                            <a href="~/Menu/Index">微信菜单</a>
+                        </li>
+
+                        <li>
+                            <a href="~/home/Setting">参数设置</a>
+                        </li>
+                    }
+                </ul>
+                <div class="tiggle"></div>
+                <div class="innertiggle"></div>
+            </div>
+        </div><!--menu-->
+
     </div>
 
     <div class="mui-content">
-                <!--部分页占位符 -->
-                @RenderBody()
-     </div>
+        <span id="idTest"  style="display:none"></span>
+        <!--部分页占位符 -->
+        @RenderBody()
+    </div>
     <script>
-        			(function ($, doc) {
-        			    $.init();
-        			});
-    
+
+
+
+        //弹出垂直菜单
+        $(".menu").click(function () {
+            if ($(this).hasClass("cura")) {
+                $(this).children(".new-sub").hide(); //当前菜单下的二级菜单隐藏
+                $(".menu").removeClass("cura"); //同一级的菜单项
+            } else {
+                $(".menu").removeClass("cura"); //移除所有的样式
+                $(this).addClass("cura"); //给当前菜单添加特定样式
+                $(".menu").children(".new-sub").slideUp("fast"); //隐藏所有的二级菜单
+                //class="bt-name"
+                var menuText = $(this).children(".bt-name").html();
+                if (menuText == "更多") {
+                    var dw = $(document).width();
+                    var myval = dw / 3 - 120;
+                    if (myval < 0) {
+                        //alert(myval);
+                        $(this).children(".new-sub").css("left", myval + "px");
+                    }
+                }
+                $(this).children(".new-sub").slideDown("fast"); //展示当前的二级菜单
+            }
+        });
+
+
+        var browser = {
+            versions: function () {
+                var u = navigator.userAgent, app = navigator.appVersion;
+                return {         //移动终端浏览器版本信息
+                    trident: u.indexOf('Trident') > -1, //IE内核
+                    presto: u.indexOf('Presto') > -1, //opera内核
+                    webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+                    gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+                    mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+                    ios: !!u.match("/\\(i[^;]+;( U;)? CPU.+Mac OS X/"), //ios终端
+                    android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或uc浏览器
+                    iPhone: u.indexOf('iPhone') > -1, //是否为iPhone或者QQHD浏览器
+                    iPad: u.indexOf('iPad') > -1, //是否iPad
+                    webApp: u.indexOf('Safari') == -1, //是否web应该程序，没有头部与底部
+                    weixin: u.indexOf('MicroMessenger') > -1, //是否微信 （2015-01-22新增）
+                    qq: u.match(/\\sQQ/i) == " qq" //是否QQ
+                };
+            }(),
+            language: (navigator.browserLanguage || navigator.language).toLowerCase()
+        };
+
+        $(document).ready(function () {
+
+            //$("#idTest").html(" 是否为iPhone: " + browser.versions.iPhone);
+
+            if (browser.versions.iPhone == true) {
+                $("input").focus(function () {
+                    showTopBottom(false);
+                });
+                $("input").blur(function () {
+                    showTopBottom(true);
+                });
+
+                $("select").focus(function () {
+                    showTopBottom(false);
+                });
+                $("select").blur(function () {
+                    showTopBottom(true);
+                });
+            }
+            else {
+                // 非iphone时，浏览器窗口变矮时，隐藏头尾栏
+                $(window).resize(function () {
+                    adjust();
+                });
+            }
+        });
+
+        
+
+
+        function adjust(obj) {
+            // var w = $(document).width();
+            // var h = $(document).height();
+            // $("#idTest").html("[" + w + "]-[" + h + "]");
+            var h = $(window).height();            
+            if (h <= 150) {
+                showTopBottom(false);
+            }
+            else{
+                showTopBottom(true);
+            }
+        }
+        
+        function showTopBottom(bShow)
+        {
+            if (bShow == true)
+            {
+                $("#divBottonTab").css('display', 'block');
+                $("#myheader").css('display', 'block');
+            }
+            else
+            {
+                //var h = $(window).height();
+                ////$("#idTest").html(h);
+                //if (h > 960)
+                //    return;
+                $("#divBottonTab").css('display', 'none');
+                $("#myheader").css('display', 'none');
+            }
+        }
+
     </script>
 </body>
 </html>

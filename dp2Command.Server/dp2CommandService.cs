@@ -424,7 +424,7 @@ out string strError)
         /// 0 读者证条码号或密码不正确
         /// 1 成功
         /// </returns>
-        public override int Binding(string remoteUserName,
+        public override int Bind(string remoteUserName,
             string libCode,
             string strFullWord,
             string strPassword,
@@ -667,7 +667,7 @@ out string strError)
         /// -1 出错
         /// 0   成功
         /// </returns>
-        public override int Unbinding(string remoteUserName,
+        public override int Unbind(string remoteUserName,
             string libCode, 
             string strBarcode,
             string strWeiXinId,
@@ -736,7 +736,8 @@ out string strError)
                 // 从mongodb删除
                 if (this.IsUseMongoDb == true)
                 {
-                    long nCount = WxUserDatabase.Current.Delete(strWeiXinId, strBarcode,libCode);
+                    //todo
+                    //long nCount = WxUserDatabase.Current.Delete(strWeiXinId, strBarcode,libCode);
                 }
 
                 return 0;

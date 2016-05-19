@@ -5,7 +5,7 @@
  */ /*! normalize.css v3.0.1 | MIT License | git.io/normalize */
 
 html {
-    font-family: sans-serif;
+    font-family: 'Microsoft YaHei',Î¢ÈíÑÅºÚ;
     -webkit-text-size-adjust: 100%;
 }
 
@@ -183,7 +183,7 @@ td, th {
 }
 
 body {
-    font-family: 'Helvetica Neue',Helvetica,sans-serif;
+    font-family: 'Microsoft YaHei',Î¢ÈíÑÅºÚ;
     font-size: 17px;
     line-height: 21px;
     color: #000;
@@ -2067,7 +2067,7 @@ p {
     }
 
 input, select, textarea {
-    font-family: 'Helvetica Neue',Helvetica,sans-serif;
+    font-family: 'Microsoft YaHei',Î¢ÈíÑÅºÚ;
     font-size: 17px;
     -webkit-tap-highlight-color: transparent;
     -webkit-tap-highlight-color: transparent;
@@ -2210,7 +2210,7 @@ select {
     }
 
 .mui-input-row label {
-    font-family: 'Helvetica Neue',Helvetica,sans-serif;
+    font-family: 'Microsoft YaHei',Î¢ÈíÑÅºÚ;
     line-height: 1.1;
     float: left;
     width: 35%;
@@ -2226,7 +2226,7 @@ select {
     }
 
 .mui-input-row .mui-btn {
-    font-family: 'Helvetica Neue',Helvetica,sans-serif;
+    font-family: 'Microsoft YaHei',Î¢ÈíÑÅºÚ;
     line-height: 1.1;
     float: right;
     width: 15%;

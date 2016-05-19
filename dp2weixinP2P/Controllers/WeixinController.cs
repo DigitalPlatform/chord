@@ -96,17 +96,14 @@ namespace dp2weixinP2P.Controllers
             var maxRecordCount = 10;
 
             // 日志总目录,使用前请确保App_Data文件夹存在，且有读写权限。
-            var logDir = dp2CmdService2.Instance.weiXinDataDir+"/log";//Server.MapPath(string.Format("~/App_Data/log"));
-            if (!Directory.Exists(logDir))
-            {
-                Directory.CreateDirectory(logDir);
-            }
-            // 当日日志目录，用于详细输出消息
-            var logToday =string.Format(logDir + "/{0}/", DateTime.Now.ToString("yyyy-MM-dd"));
-            if (!Directory.Exists(logToday))
-            {
-                Directory.CreateDirectory(logToday);
-            }
+            var logDir = dp2CmdService2.Instance.weiXinLogDir;
+
+            //// 当日日志目录，用于详细输出消息
+            //var logToday =string.Format(logDir + "/{0}/", DateTime.Now.ToString("yyyy-MM-dd"));
+            //if (!Directory.Exists(logToday))
+            //{
+            //    Directory.CreateDirectory(logToday);
+            //}
 
             //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
             var messageHandler = new dp2MessageHandler(dp2CmdService2.Instance,
