@@ -336,7 +336,7 @@ namespace dp2Command.Service
                 return;
             }
 
-            if (records != null && records != null)
+            if (records != null && records.Count>0)
             {
                 DoMessage(records);
             }
@@ -751,6 +751,11 @@ namespace dp2Command.Service
         /// <param name="e"></param>
         void _channels_AddMessage(object sender, AddMessageEventArgs e)
         {
+            if (e.Action != "create")
+            {
+                return;
+            }
+
             if (e.Records != null)
             {
                 DoMessage(e.Records);
