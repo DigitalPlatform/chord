@@ -449,7 +449,10 @@ namespace dp2Command.Service
                         XmlNode root = bodyDom.DocumentElement;
                         XmlNode typeNode = root.SelectSingleNode("type");
                         if (typeNode == null)
-                            throw new Exception("消息data的body中未定义type节点");
+                        {
+                            //throw new Exception("消息data的body中未定义type节点");
+                            continue;//todo
+                        }
                         string strType = DomUtil.GetNodeText(typeNode);
 
                         // 目前只处理这两种消息

@@ -1,4 +1,5 @@
-﻿using DigitalPlatform.LibraryRestClient;
+﻿using DigitalPlatform.IO;
+using DigitalPlatform.LibraryRestClient;
 using DigitalPlatform.Text;
 using dp2Command.Service;
 using dp2weixin;
@@ -7,6 +8,7 @@ using dp2weixinP2P.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -53,9 +55,48 @@ namespace dp2weixinP2P.Controllers
                 string libName = userItem.libName;
                 libInfo = new LibInfoModel();
                 libInfo.Title = libName+" 主页";
-                libInfo.Content = @"<div class='mui-content-padded'>"
-    +"欢迎访问”"+libName+"“图书馆"
-    +"</div>";
+
+                string htmlFile = dp2CmdService2.Instance.weiXinDataDir + "/lib/" + userItem.libCode+"/index.html";
+                if (System.IO.File.Exists(htmlFile) == false)
+                {
+                    // 先缺省html文件
+                    htmlFile = dp2CmdService2.Instance.weiXinDataDir + "/lib/index.html";
+                }
+
+                string strHtml = "";
+                // 文件存在，取出文件 的内容
+                if (System.IO.File.Exists(htmlFile) == true)
+                {
+                    Encoding encoding;
+                    // 能自动识别文件内容的编码方式的读入文本文件内容模块
+                    // parameters:
+                    //      lMaxLength  装入的最大长度。如果超过，则超过的部分不装入。如果为-1，表示不限制装入长度
+                    // return:
+                    //      -1  出错 strError中有返回值
+                    //      0   文件不存在 strError中有返回值
+                    //      1   文件存在
+                    //      2   读入的内容不是全部
+                    nRet = FileUtil.ReadTextFileContent(htmlFile,
+                        -1,
+                        out strHtml,
+                        out encoding,
+                        out strError);
+                    if (nRet == -1 || nRet == 0)
+                        throw new Exception(strError);
+                    if (nRet == 2)
+                        throw new Exception("FileUtil.ReadTextFileContent() error");
+
+                    // 替换关键词
+                    strHtml = strHtml.Replace("%libName%", userItem.libName);
+                }
+                else
+                {
+                    strHtml=@"<div class='mui-content-padded'>"
+                        +"欢迎访问 "+libName+" 图书馆"
+                        +"</div>";
+                }
+
+                libInfo.Content = strHtml;
             }
 
             return View(libInfo);
