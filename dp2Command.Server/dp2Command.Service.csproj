@@ -67,6 +67,7 @@
     <Compile Include="ImgManager.cs" />
     <Compile Include="Interface\MessageInterface.cs" />
     <Compile Include="Interface\ScriptManager.cs" />
+    <Compile Include="MsgQueue.cs" />
     <Compile Include="TemplateData.cs" />
     <Compile Include="WxMsgThread.cs" />
     <Compile Include="WxUserDatabase.cs" />

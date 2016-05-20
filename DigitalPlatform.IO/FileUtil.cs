@@ -26,5 +26,19 @@ FileShare.ReadWrite))
                 sw.Write(strText);
             }
         }
+
+        // 功能:文件到字符串，使用直接读到尾的方法
+        // strFileName: 文件名
+        public static string File2StringE(string strFileName)
+        {
+            if (strFileName == null
+                || strFileName == "")
+                return "";
+            using (StreamReader sr = new StreamReader(strFileName, true))
+            {
+                string strText = sr.ReadToEnd();
+                return strText;
+            }
+        }
     }
 }
