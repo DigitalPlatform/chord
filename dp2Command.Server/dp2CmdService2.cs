@@ -9,6 +9,7 @@ using Senparc.Weixin.MP.AdvancedAPIs;
 using Senparc.Weixin.MP.AdvancedAPIs.TemplateMessage;
 using Senparc.Weixin.MP.CommonAPIs;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -324,8 +325,7 @@ namespace dp2Command.Service
             string errorInfo,
             string errorCode)
         {
-            // todo 什么情况下-1
-            if (totalCount == -1)
+            if (totalCount == -1) // todo 什么情况下-1
             {
                 StringBuilder text = new StringBuilder();
                 text.Append("***\r\n");
@@ -336,12 +336,17 @@ namespace dp2Command.Service
                 return;
             }
 
-            if (records != null && records != null)
+            if (records != null && records.Count>0)
             {
                 DoMessage(records);
             }
         }
 
+        //已处理过的消息队列
+        MsgQueue msgQueue = new MsgQueue();
+
+        // 处理消息锁
+        private object msgLocker = new object();
 
         /// <summary>
         /// 实际处理通知消息
@@ -349,127 +354,142 @@ namespace dp2Command.Service
         /// <param name="records"></param>
         private void DoMessage(IList<MessageRecord> records)
         {
-            try
+            // getMessage与addMessage得到消息，都会走到处理消息的里，加锁让2个线程排队
+            lock (msgLocker)
             {
-                if (records == null || records.Count == 0)
-                    return;
-
-                List<string> delIds = new List<string>();
-                foreach (MessageRecord record in records)
+                try
                 {
-                    bool bPatronNotifyGroup = this.CheckIsNotifyGroup(record.groups);
-                    if (bPatronNotifyGroup == false)
-                        continue;
+                    if (records == null || records.Count == 0)
+                        return;
 
-
-                    string id = record.id;
-                    string data = record.data;
-                    string[] group = record.groups;
-                    string create = record.creator;
-
-
-                    //<root>
-                    //    <type>patronNotify</type>
-                    //    <recipient>R0000001@LUID:62637a12-1965-4876-af3a-fc1d3009af8a</recipient>
-                    //    <mime>xml</mime>
-                    //    <body>...</body>
-                    //</root>
-                    XmlDocument dataDom = new XmlDocument();
-                    try
+                    List<string> delIds = new List<string>();
+                    foreach (MessageRecord record in records)
                     {
-                        dataDom.LoadXml(data);
+                        // 从已处理消息队列里查重，如果是前面处理过的，则不再处理
+                        bool bSended = this.msgQueue.Contains(record.id);
+                        if (bSended == true)
+                            continue;
+
+                        bool bPatronNotifyGroup = this.CheckIsNotifyGroup(record.groups);
+                        if (bPatronNotifyGroup == false)
+                            continue;
+
+
+                        string id = record.id;
+                        string data = record.data;
+                        string[] group = record.groups;
+                        string create = record.creator;
+
+
+                        //<root>
+                        //    <type>patronNotify</type>
+                        //    <recipient>R0000001@LUID:62637a12-1965-4876-af3a-fc1d3009af8a</recipient>
+                        //    <mime>xml</mime>
+                        //    <body>...</body>
+                        //</root>
+                        XmlDocument dataDom = new XmlDocument();
+                        try
+                        {
+                            dataDom.LoadXml(data);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception("加载消息返回的data到xml出错:" + ex.Message);
+                        }
+
+                        XmlNode nodeType = dataDom.DocumentElement.SelectSingleNode("type");
+                        if (nodeType == null)
+                            continue;
+
+                        string type = DomUtil.GetNodeText(nodeType);
+                        if (type != "patronNotify") //只处理通知消息
+                            continue;
+
+                        XmlNode nodeBody = dataDom.DocumentElement.SelectSingleNode("body");
+                        if (nodeBody == null)
+                            throw new Exception("返回的data中不存在body节点");
+
+                        /*
+                        body元素里面是预约到书通知记录(注意这是一个字符串，需要另行装入一个XmlDocument解析)，其格式如下：
+                        <?xml version="1.0" encoding="utf-8"?>
+                        <root>
+                            <type>预约到书通知</type>
+                            <itemBarcode>0000001</itemBarcode>
+                            <refID> </refID>
+                            <opacURL>/book.aspx?barcode=0000001</opacURL>
+                            <reserveTime>2天</reserveTime>
+                            <today>2016/5/17 10:10:59</today>
+                            <summary>船舶柴油机 / 聂云超主编. -- ISBN 7-...</summary>
+                            <patronName>张三</patronName>
+                            <patronRecord>
+                                <barcode>R0000001</barcode>
+                                <readerType>本科生</readerType>
+                                <name>张三</name>
+                                <refID>be13ecc5-6a9c-4400-9453-a072c50cede1</refID>
+                                <department>数学系</department>
+                                <address>address</address>
+                                <cardNumber>C12345</cardNumber>
+                                <refid>8aa41a9a-fb42-48c0-b9b9-9d6656dbeb76</refid>
+                                <email>email:xietao@dp2003.com,weixinid:testwx2</email>
+                                <tel>13641016400</tel>
+                                <idCardNumber>1234567890123</idCardNumber>
+                            </patronRecord>
+                        </root
+                        */
+                        XmlDocument bodyDom = new XmlDocument();
+                        try
+                        {
+                            bodyDom.LoadXml(nodeBody.InnerText);//.InnerXml); 
+
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception("加载消息返回的data中的body到xml出错:" + ex.Message);
+                        }
+                        XmlNode root = bodyDom.DocumentElement;
+                        XmlNode typeNode = root.SelectSingleNode("type");
+                        if (typeNode == null)
+                        {
+                            //throw new Exception("消息data的body中未定义type节点");
+                            continue;//todo
+                        }
+                        string strType = DomUtil.GetNodeText(typeNode);
+
+                        // 目前只处理这两种消息
+                        if (strType != "预约到书通知" && strType != "超期通知")
+                            continue;
+
+                        // 根据类型发送不同的模板消息
+                        if (strType == "预约到书通知")
+                        {
+                            this.SendArrived(bodyDom);
+                        }
+                        else if (strType == "超期通知")
+                        {
+                            this.SendCaoQi(bodyDom);
+
+                        }
+
+                        // 加到已处理消息队列里
+                        this.msgQueue.AddMsgToQueue(record.id);
+
+                        // 加到删除列表
+                        delIds.Add(id);
                     }
-                    catch (Exception ex)
+
+                    //删除处理过的消息
+                    if (delIds.Count > 0)
                     {
-                        throw new Exception("加载消息返回的data到xml出错:" + ex.Message);
+                        string strError = "";
+                        int nRet = this.DeleteMessage(delIds, out strError);
+                        if (nRet == -1)
+                            throw new Exception(strError);
                     }
-
-                    XmlNode nodeType = dataDom.DocumentElement.SelectSingleNode("type");
-                    if (nodeType == null)
-                        continue;
-
-                    string type = DomUtil.GetNodeText(nodeType);
-                    if (type != "patronNotify") //只处理通知消息
-                        continue;
-
-                    XmlNode nodeBody = dataDom.DocumentElement.SelectSingleNode("body");
-                    if (nodeBody == null)
-                        throw new Exception("返回的data中不存在body节点");
-
-                    /*
-                    body元素里面是预约到书通知记录(注意这是一个字符串，需要另行装入一个XmlDocument解析)，其格式如下：
-                    <?xml version="1.0" encoding="utf-8"?>
-                    <root>
-                        <type>预约到书通知</type>
-                        <itemBarcode>0000001</itemBarcode>
-                        <refID> </refID>
-                        <opacURL>/book.aspx?barcode=0000001</opacURL>
-                        <reserveTime>2天</reserveTime>
-                        <today>2016/5/17 10:10:59</today>
-                        <summary>船舶柴油机 / 聂云超主编. -- ISBN 7-...</summary>
-                        <patronName>张三</patronName>
-                        <patronRecord>
-                            <barcode>R0000001</barcode>
-                            <readerType>本科生</readerType>
-                            <name>张三</name>
-                            <refID>be13ecc5-6a9c-4400-9453-a072c50cede1</refID>
-                            <department>数学系</department>
-                            <address>address</address>
-                            <cardNumber>C12345</cardNumber>
-                            <refid>8aa41a9a-fb42-48c0-b9b9-9d6656dbeb76</refid>
-                            <email>email:xietao@dp2003.com,weixinid:testwx2</email>
-                            <tel>13641016400</tel>
-                            <idCardNumber>1234567890123</idCardNumber>
-                        </patronRecord>
-                    </root
-                    */
-                    XmlDocument bodyDom = new XmlDocument();
-                    try
-                    {
-                        bodyDom.LoadXml(nodeBody.InnerText);//.InnerXml); 
-
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("加载消息返回的data中的body到xml出错:" + ex.Message);
-                    }
-                    XmlNode root = bodyDom.DocumentElement;
-                    XmlNode typeNode = root.SelectSingleNode("type");
-                    if (typeNode == null)
-                        throw new Exception("消息data的body中未定义type节点");
-                    string strType = DomUtil.GetNodeText(typeNode);
-
-                    // 目前只处理这两种消息
-                    if (strType != "预约到书通知" && strType != "超期通知")
-                        continue;
-
-                    // 根据类型发送不同的模板消息
-                    if (strType == "预约到书通知")
-                    {
-                        this.SendArrived(bodyDom);
-                    }
-                    else if (strType == "超期通知")
-                    {
-                        this.SendCaoQi(bodyDom);
-
-                    }
-
-                    // 加到删除列表
-                    delIds.Add(id);
                 }
-
-                //删除处理过的消息
-                if (delIds.Count > 0)
+                catch (Exception ex)
                 {
-                    string strError = "";
-                    int nRet = this.DeleteMessage(delIds, out strError);
-                    if (nRet == -1)
-                        throw new Exception(strError);
+                    this.WriteErrorLog(ex.Message);
                 }
-            }
-            catch (Exception ex)
-            {
-                this.WriteErrorLog(ex.Message);
             }
 
         }
@@ -751,6 +771,11 @@ namespace dp2Command.Service
         /// <param name="e"></param>
         void _channels_AddMessage(object sender, AddMessageEventArgs e)
         {
+            if (e.Action != "create")
+            {
+                return;
+            }
+
             if (e.Records != null)
             {
                 DoMessage(e.Records);
