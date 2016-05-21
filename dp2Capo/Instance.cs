@@ -284,13 +284,23 @@ namespace dp2Capo
             {
                 try
                 {
+                    ServerInfo._recordLocks.LockForWrite(this._queue.Path);
+                }
+                catch(ApplicationException)
+                {
+                    // 超时了
+                    return;
+                }
+
+                try
+                {
                     MessageEnumerator iterator = _queue.GetMessageEnumerator2();
                     while (iterator.MoveNext())
                     {
                         Message message = iterator.Current;
 
                         MessageRecord record = new MessageRecord();
-                        record.groups = new string[1]{"gn:_patronNotify"};  // gn 表示 group name
+                        record.groups = new string[1] { "gn:_patronNotify" };  // gn 表示 group name
                         record.data = (string)message.Body;
                         record.format = "xml";
                         List<MessageRecord> records = new List<MessageRecord> { record };
@@ -325,6 +335,10 @@ namespace dp2Capo
                     // 记入错误日志
                     // Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                     this.WriteErrorLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
+                }
+                finally
+                {
+                    ServerInfo._recordLocks.UnlockForWrite(this._queue.Path);
                 }
             }
         }
