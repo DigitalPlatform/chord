@@ -12,7 +12,7 @@ namespace ilovelibrary.ApiControllers
     public class BiblioController : ApiController
     {
         /// <summary>
-        /// 获得读者的借阅信息
+        /// 获得summary
         /// </summary>
         /// <param name="id"></param>
         /// <param name="format"></param>

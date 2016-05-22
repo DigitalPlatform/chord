@@ -22,7 +22,7 @@ namespace dp2weixin
     /// <summary>
     /// 用户上下文
     /// </summary>
-    public class dp2MessageContext : MessageContext<IRequestMessageBase,IResponseMessageBase>
+    public class dp2weixinMessageContext : MessageContext<IRequestMessageBase,IResponseMessageBase>
     {
         /// <summary>
         /// 读者证条码号，如果未绑定则为空
@@ -44,7 +44,7 @@ namespace dp2weixin
         /// <summary>
         /// 构造函数
         /// </summary>
-        public dp2MessageContext():base()
+        public dp2weixinMessageContext():base()
         {
             base.MessageContextRemoved += CustomMessageContext_MessageContextRemoved;
 
@@ -63,7 +63,7 @@ namespace dp2weixin
              * 为了提高效率，根据WeixinContext中的算法，这里的过期消息会在过期后下一条请求执行之前被清除
              */
 
-            var messageContext = e.MessageContext as dp2MessageContext;
+            var messageContext = e.MessageContext as dp2weixinMessageContext;
             if (messageContext == null)
             {
                 return;//如果是正常的调用，messageContext不会为null

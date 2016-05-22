@@ -106,7 +106,7 @@ namespace dp2weixinP2P.Controllers
             //}
 
             //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
-            var messageHandler = new dp2MessageHandler(dp2CmdService2.Instance,
+            var messageHandler = new dp2weixinMessageHandler(dp2CmdService2.Instance,
                 Request.InputStream, postModel, maxRecordCount);
             messageHandler.Init(Server.MapPath("~"), true, true);
             // 把appid传入CmdService，用于发送消息。

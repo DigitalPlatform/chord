@@ -13,7 +13,7 @@ namespace dp2weixin
     /// <summary>
     /// 自定义MessageHandler
     /// </summary>
-    public partial class dp2MessageHandler : MessageHandler<dp2MessageContext>
+    public partial class dp2weixinMessageHandler : MessageHandler<dp2weixinMessageContext>
     {
         /// <summary>
         /// 订阅（关注）事件

@@ -56,6 +56,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiResult.cs" />
     <Compile Include="Command\BindingCommand.cs" />
     <Compile Include="Command\SearchCommand.cs" />
     <Compile Include="Command\BaseCommand.cs" />
@@ -64,12 +65,11 @@
     <Compile Include="dp2BaseCommandService.cs" />
     <Compile Include="dp2CommandService.cs" />
     <Compile Include="dp2CmdService2.cs" />
+    <Compile Include="dp2MsgHandler.cs" />
     <Compile Include="ImgManager.cs" />
     <Compile Include="Interface\MessageInterface.cs" />
     <Compile Include="Interface\ScriptManager.cs" />
-    <Compile Include="MsgQueue.cs" />
     <Compile Include="TemplateData.cs" />
-    <Compile Include="WxMsgThread.cs" />
     <Compile Include="WxUserDatabase.cs" />
     <Compile Include="LibDatabase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -110,6 +110,9 @@
       <Project>{a62f763a-96ee-43ad-80c5-9ce57ecfeaf4}</Project>
       <Name>DigitalPlatform.Xml</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="delete.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
