@@ -116,6 +116,7 @@
             this.label35 = new System.Windows.Forms.Label();
             this.tabPage_message = new System.Windows.Forms.TabPage();
             this.splitContainer_message = new System.Windows.Forms.SplitContainer();
+            this.button_message_delete = new System.Windows.Forms.Button();
             this.button_message_enumGroupName = new System.Windows.Forms.Button();
             this.button_message_getGroupNameQuick = new System.Windows.Forms.Button();
             this.button_message_transGroupName = new System.Windows.Forms.Button();
@@ -132,7 +133,6 @@
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.button_message_delete = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.tabControl_main.SuspendLayout();
             this.tabPage_config.SuspendLayout();
@@ -159,7 +159,7 @@
             this.testToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(728, 25);
+            this.menuStrip1.Size = new System.Drawing.Size(733, 25);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -182,7 +182,7 @@
             // 
             this.statusStrip1.Location = new System.Drawing.Point(0, 347);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(728, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(733, 22);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -199,7 +199,7 @@
             this.tabControl_main.Location = new System.Drawing.Point(0, 0);
             this.tabControl_main.Name = "tabControl_main";
             this.tabControl_main.SelectedIndex = 0;
-            this.tabControl_main.Size = new System.Drawing.Size(389, 297);
+            this.tabControl_main.Size = new System.Drawing.Size(391, 297);
             this.tabControl_main.TabIndex = 2;
             // 
             // tabPage_config
@@ -212,7 +212,7 @@
             this.tabPage_config.Controls.Add(this.label1);
             this.tabPage_config.Location = new System.Drawing.Point(4, 22);
             this.tabPage_config.Name = "tabPage_config";
-            this.tabPage_config.Size = new System.Drawing.Size(333, 271);
+            this.tabPage_config.Size = new System.Drawing.Size(383, 271);
             this.tabPage_config.TabIndex = 2;
             this.tabPage_config.Text = "Config";
             this.tabPage_config.UseVisualStyleBackColor = true;
@@ -258,7 +258,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_config_messageServerUrl.Location = new System.Drawing.Point(11, 36);
             this.textBox_config_messageServerUrl.Name = "textBox_config_messageServerUrl";
-            this.textBox_config_messageServerUrl.Size = new System.Drawing.Size(314, 21);
+            this.textBox_config_messageServerUrl.Size = new System.Drawing.Size(364, 21);
             this.textBox_config_messageServerUrl.TabIndex = 1;
             this.textBox_config_messageServerUrl.TextChanged += new System.EventHandler(this.textBox_config_messageServerUrl_TextChanged);
             // 
@@ -286,7 +286,7 @@
             this.tabPage_getInfo.Location = new System.Drawing.Point(4, 22);
             this.tabPage_getInfo.Name = "tabPage_getInfo";
             this.tabPage_getInfo.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_getInfo.Size = new System.Drawing.Size(333, 271);
+            this.tabPage_getInfo.Size = new System.Drawing.Size(383, 271);
             this.tabPage_getInfo.TabIndex = 0;
             this.tabPage_getInfo.Text = "GetXXXInfo";
             this.tabPage_getInfo.UseVisualStyleBackColor = true;
@@ -330,7 +330,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_getInfo_formatList.Location = new System.Drawing.Point(132, 91);
             this.textBox_getInfo_formatList.Name = "textBox_getInfo_formatList";
-            this.textBox_getInfo_formatList.Size = new System.Drawing.Size(239, 21);
+            this.textBox_getInfo_formatList.Size = new System.Drawing.Size(289, 21);
             this.textBox_getInfo_formatList.TabIndex = 7;
             // 
             // label6
@@ -398,7 +398,7 @@
             this.tabPage_search.Location = new System.Drawing.Point(4, 22);
             this.tabPage_search.Name = "tabPage_search";
             this.tabPage_search.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_search.Size = new System.Drawing.Size(333, 271);
+            this.tabPage_search.Size = new System.Drawing.Size(383, 271);
             this.tabPage_search.TabIndex = 1;
             this.tabPage_search.Text = "SearchXXX";
             this.tabPage_search.UseVisualStyleBackColor = true;
@@ -515,7 +515,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_search_formatList.Location = new System.Drawing.Point(130, 177);
             this.textBox_search_formatList.Name = "textBox_search_formatList";
-            this.textBox_search_formatList.Size = new System.Drawing.Size(213, 21);
+            this.textBox_search_formatList.Size = new System.Drawing.Size(263, 21);
             this.textBox_search_formatList.TabIndex = 13;
             // 
             // label9
@@ -577,7 +577,7 @@
             this.tabPage_bindPatron.Controls.Add(this.label7);
             this.tabPage_bindPatron.Location = new System.Drawing.Point(4, 22);
             this.tabPage_bindPatron.Name = "tabPage_bindPatron";
-            this.tabPage_bindPatron.Size = new System.Drawing.Size(333, 271);
+            this.tabPage_bindPatron.Size = new System.Drawing.Size(383, 271);
             this.tabPage_bindPatron.TabIndex = 3;
             this.tabPage_bindPatron.Text = "BindPatron";
             this.tabPage_bindPatron.UseVisualStyleBackColor = true;
@@ -656,7 +656,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_bindPatron_resultTypeList.Location = new System.Drawing.Point(131, 185);
             this.textBox_bindPatron_resultTypeList.Name = "textBox_bindPatron_resultTypeList";
-            this.textBox_bindPatron_resultTypeList.Size = new System.Drawing.Size(213, 21);
+            this.textBox_bindPatron_resultTypeList.Size = new System.Drawing.Size(263, 21);
             this.textBox_bindPatron_resultTypeList.TabIndex = 30;
             // 
             // label23
@@ -716,7 +716,7 @@
             this.tabPage_setInfo.Controls.Add(this.button_testPaste);
             this.tabPage_setInfo.Location = new System.Drawing.Point(4, 22);
             this.tabPage_setInfo.Name = "tabPage_setInfo";
-            this.tabPage_setInfo.Size = new System.Drawing.Size(333, 271);
+            this.tabPage_setInfo.Size = new System.Drawing.Size(381, 271);
             this.tabPage_setInfo.TabIndex = 4;
             this.tabPage_setInfo.Text = "SetXXXInfo";
             this.tabPage_setInfo.UseVisualStyleBackColor = true;
@@ -750,7 +750,7 @@
             this.webBrowser_setInfo_entities.Location = new System.Drawing.Point(9, 156);
             this.webBrowser_setInfo_entities.MinimumSize = new System.Drawing.Size(20, 100);
             this.webBrowser_setInfo_entities.Name = "webBrowser_setInfo_entities";
-            this.webBrowser_setInfo_entities.Size = new System.Drawing.Size(304, 100);
+            this.webBrowser_setInfo_entities.Size = new System.Drawing.Size(352, 100);
             this.webBrowser_setInfo_entities.TabIndex = 15;
             // 
             // comboBox_setInfo_method
@@ -846,7 +846,7 @@
             this.tabPage_circulation.Controls.Add(this.label35);
             this.tabPage_circulation.Location = new System.Drawing.Point(4, 22);
             this.tabPage_circulation.Name = "tabPage_circulation";
-            this.tabPage_circulation.Size = new System.Drawing.Size(333, 271);
+            this.tabPage_circulation.Size = new System.Drawing.Size(383, 271);
             this.tabPage_circulation.TabIndex = 5;
             this.tabPage_circulation.Text = "Circulation";
             this.tabPage_circulation.UseVisualStyleBackColor = true;
@@ -857,7 +857,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_circulation_biblioFormatList.Location = new System.Drawing.Point(130, 211);
             this.textBox_circulation_biblioFormatList.Name = "textBox_circulation_biblioFormatList";
-            this.textBox_circulation_biblioFormatList.Size = new System.Drawing.Size(200, 21);
+            this.textBox_circulation_biblioFormatList.Size = new System.Drawing.Size(250, 21);
             this.textBox_circulation_biblioFormatList.TabIndex = 52;
             // 
             // label36
@@ -915,7 +915,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_circulation_patronFormatList.Location = new System.Drawing.Point(130, 157);
             this.textBox_circulation_patronFormatList.Name = "textBox_circulation_patronFormatList";
-            this.textBox_circulation_patronFormatList.Size = new System.Drawing.Size(200, 21);
+            this.textBox_circulation_patronFormatList.Size = new System.Drawing.Size(250, 21);
             this.textBox_circulation_patronFormatList.TabIndex = 46;
             // 
             // label31
@@ -949,7 +949,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_circulation_itemFormatList.Location = new System.Drawing.Point(130, 184);
             this.textBox_circulation_itemFormatList.Name = "textBox_circulation_itemFormatList";
-            this.textBox_circulation_itemFormatList.Size = new System.Drawing.Size(200, 21);
+            this.textBox_circulation_itemFormatList.Size = new System.Drawing.Size(250, 21);
             this.textBox_circulation_itemFormatList.TabIndex = 48;
             // 
             // label33
@@ -998,7 +998,7 @@
             this.tabPage_message.Controls.Add(this.splitContainer_message);
             this.tabPage_message.Location = new System.Drawing.Point(4, 22);
             this.tabPage_message.Name = "tabPage_message";
-            this.tabPage_message.Size = new System.Drawing.Size(381, 271);
+            this.tabPage_message.Size = new System.Drawing.Size(383, 271);
             this.tabPage_message.TabIndex = 6;
             this.tabPage_message.Text = "Message";
             this.tabPage_message.UseVisualStyleBackColor = true;
@@ -1029,10 +1029,20 @@
             // splitContainer_message.Panel2
             // 
             this.splitContainer_message.Panel2.Controls.Add(this.webBrowser_message);
-            this.splitContainer_message.Size = new System.Drawing.Size(381, 271);
+            this.splitContainer_message.Size = new System.Drawing.Size(383, 271);
             this.splitContainer_message.SplitterDistance = 159;
             this.splitContainer_message.SplitterWidth = 8;
             this.splitContainer_message.TabIndex = 40;
+            // 
+            // button_message_delete
+            // 
+            this.button_message_delete.Location = new System.Drawing.Point(331, 132);
+            this.button_message_delete.Name = "button_message_delete";
+            this.button_message_delete.Size = new System.Drawing.Size(56, 23);
+            this.button_message_delete.TabIndex = 45;
+            this.button_message_delete.Text = "delete";
+            this.button_message_delete.UseVisualStyleBackColor = true;
+            this.button_message_delete.Click += new System.EventHandler(this.button_message_delete_Click);
             // 
             // button_message_enumGroupName
             // 
@@ -1070,7 +1080,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 38);
             this.textBox_message_timeRange.Name = "textBox_message_timeRange";
-            this.textBox_message_timeRange.Size = new System.Drawing.Size(310, 21);
+            this.textBox_message_timeRange.Size = new System.Drawing.Size(316, 21);
             this.textBox_message_timeRange.TabIndex = 41;
             // 
             // label39
@@ -1089,7 +1099,7 @@
             this.textBox_message_text.Location = new System.Drawing.Point(54, 65);
             this.textBox_message_text.Multiline = true;
             this.textBox_message_text.Name = "textBox_message_text";
-            this.textBox_message_text.Size = new System.Drawing.Size(333, 62);
+            this.textBox_message_text.Size = new System.Drawing.Size(339, 62);
             this.textBox_message_text.TabIndex = 3;
             // 
             // textBox_message_groupName
@@ -1098,7 +1108,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_groupName.Location = new System.Drawing.Point(77, 11);
             this.textBox_message_groupName.Name = "textBox_message_groupName";
-            this.textBox_message_groupName.Size = new System.Drawing.Size(310, 21);
+            this.textBox_message_groupName.Size = new System.Drawing.Size(316, 21);
             this.textBox_message_groupName.TabIndex = 39;
             // 
             // label37
@@ -1145,7 +1155,7 @@
             this.webBrowser_message.Location = new System.Drawing.Point(0, 0);
             this.webBrowser_message.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser_message.Name = "webBrowser_message";
-            this.webBrowser_message.Size = new System.Drawing.Size(381, 104);
+            this.webBrowser_message.Size = new System.Drawing.Size(383, 104);
             this.webBrowser_message.TabIndex = 1;
             // 
             // toolStrip1
@@ -1154,7 +1164,7 @@
             this.toolStripButton_begin});
             this.toolStrip1.Location = new System.Drawing.Point(0, 25);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(728, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(733, 25);
             this.toolStrip1.TabIndex = 1;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -1181,8 +1191,8 @@
             // splitContainer_main.Panel2
             // 
             this.splitContainer_main.Panel2.Controls.Add(this.webBrowser1);
-            this.splitContainer_main.Size = new System.Drawing.Size(728, 297);
-            this.splitContainer_main.SplitterDistance = 389;
+            this.splitContainer_main.Size = new System.Drawing.Size(733, 297);
+            this.splitContainer_main.SplitterDistance = 391;
             this.splitContainer_main.SplitterWidth = 8;
             this.splitContainer_main.TabIndex = 3;
             // 
@@ -1192,24 +1202,14 @@
             this.webBrowser1.Location = new System.Drawing.Point(0, 0);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(331, 297);
+            this.webBrowser1.Size = new System.Drawing.Size(334, 297);
             this.webBrowser1.TabIndex = 0;
-            // 
-            // button_message_delete
-            // 
-            this.button_message_delete.Location = new System.Drawing.Point(331, 132);
-            this.button_message_delete.Name = "button_message_delete";
-            this.button_message_delete.Size = new System.Drawing.Size(56, 23);
-            this.button_message_delete.TabIndex = 45;
-            this.button_message_delete.Text = "delete";
-            this.button_message_delete.UseVisualStyleBackColor = true;
-            this.button_message_delete.Click += new System.EventHandler(this.button_message_delete_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(728, 369);
+            this.ClientSize = new System.Drawing.Size(733, 369);
             this.Controls.Add(this.splitContainer_main);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);

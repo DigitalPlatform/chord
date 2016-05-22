@@ -145,7 +145,10 @@ namespace dp2Command.Service
             _channels.Login += _channels_Login;
 
             // dp2消息处理类
-            this._dp2MsgHandler = new dp2MsgHandler(this._channels, this.dp2MServerUrl, this.weiXinAppId);
+            this._dp2MsgHandler = new dp2MsgHandler(this._channels, 
+                this.dp2MServerUrl,
+                this.weiXinAppId,
+                this.weiXinLogDir);
 
         }
 

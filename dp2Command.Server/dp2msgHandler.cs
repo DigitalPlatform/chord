@@ -1,13 +1,16 @@
 ﻿using DigitalPlatform;
+using DigitalPlatform.IO;
 using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.Xml;
+using Microsoft.Win32;
 using Senparc.Weixin.MP.AdvancedAPIs;
 using Senparc.Weixin.MP.AdvancedAPIs.TemplateMessage;
 using Senparc.Weixin.MP.CommonAPIs;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -21,6 +24,7 @@ namespace dp2Command.Service
         MessageConnectionCollection _channels = null;
         private string _dp2mserverUrl = "";
         private string _weiXinAppId = "";
+        private string _logDir = "";
         
 
         // 轮循线程
@@ -28,20 +32,48 @@ namespace dp2Command.Service
 
         public dp2MsgHandler(MessageConnectionCollection channels,
             string dp2mserverUrl,
-            string weiXinAppId)
+            string weiXinAppId,
+            string logDir)
         {
             this._channels = channels;
             this._dp2mserverUrl = dp2mserverUrl;
             this._weiXinAppId = weiXinAppId;
+            this._logDir = "";
 
             // 接管消息事件
             this._channels.AddMessage += _channels_AddMessage;
+            this._channels.ConnectionStateChange += _channels_ConnectionStateChange;
+            SystemEvents.PowerModeChanged += SystemEvents_PowerModeChanged;
 
             // 启一个轮循线程获取消息
             this._wxMsgThread = new WxMsgThread();
             this._wxMsgThread.Container = this;
             this._wxMsgThread.BeginThread();    // TODO: 应该在 MessagWorkereConnection 第一次连接成功以后，再启动这个线程比较好
  
+        }
+
+        int _inGetMessage = 0;  // 防止因为 ConnectionStateChange 事件导致重入
+        void _channels_ConnectionStateChange(object sender, ConnectionEventArgs e)
+        {
+            if (_inGetMessage > 0)
+                return;
+
+            if (e.Action == "Reconnected"
+                || e.Action == "Connected")
+            {
+                FillDeltaMessage();
+            }
+        }
+
+        void SystemEvents_PowerModeChanged(object sender, PowerModeChangedEventArgs e)
+        {
+            if (e.Mode == PowerModes.Resume)
+                FillDeltaMessage();
+        }
+
+        void FillDeltaMessage()
+        {
+            Task.Factory.StartNew(() => DoLoadMessage());
         }
 
         /// <summary>
@@ -65,45 +97,56 @@ namespace dp2Command.Service
         // 被1分钟轮循一次的工作线程调用
         public async void DoLoadMessage()
         {
-            string strGroupName = "_patronNotify";//"<default>";
+            if (_inGetMessage > 0)
+                return;
 
-            string strError = "";
-            var accessToken = AccessTokenContainer.GetAccessToken(this._weiXinAppId);
-
-            CancellationToken cancel_token = new CancellationToken();
-            string id = Guid.NewGuid().ToString();
-            GetMessageRequest request = new GetMessageRequest(id,
-                "",
-                strGroupName, // "" 表示默认群组
-                "",
-                "",
-                0,
-                -1);
+            _inGetMessage++;
             try
             {
-                MessageConnection connection = await this._channels.GetConnectionAsync(
-                    this._dp2mserverUrl,
-                    "");  //todo 这里用空可以吗？
-                MessageResult result = await connection.GetMessageAsync(
-                        request,
-                        OutputMessage,
-                        new TimeSpan(0, 1, 0),
-                        cancel_token);
-            }
-            catch (AggregateException ex)
-            {
-                strError = MessageConnection.GetExceptionText(ex);
-                goto ERROR1;
-            }
-            catch (Exception ex)
-            {
-                strError = ex.Message;
-                goto ERROR1;
-            }
-            return;
+                string strGroupName = "_patronNotify";//"<default>";
 
-        ERROR1:
-            dp2CmdService2.Instance.WriteErrorLog(strError);
+                string strError = "";
+                var accessToken = AccessTokenContainer.GetAccessToken(this._weiXinAppId);
+
+                CancellationToken cancel_token = new CancellationToken();
+                string id = Guid.NewGuid().ToString();
+                GetMessageRequest request = new GetMessageRequest(id,
+                    "",
+                    strGroupName, // "" 表示默认群组
+                    "",
+                    "",
+                    0,
+                    -1);
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this._dp2mserverUrl,
+                        "");  //todo 这里用空可以吗？
+                    MessageResult result = await connection.GetMessageAsync(
+                            request,
+                            OutputMessage,
+                            new TimeSpan(0, 1, 0),
+                            cancel_token);
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+
+            ERROR1:
+                dp2CmdService2.Instance.WriteErrorLog(strError);
+            }
+            finally
+            {
+                _inGetMessage--;
+            }
         }
 
         void OutputMessage(long totalCount,
@@ -157,30 +200,32 @@ namespace dp2Command.Service
         /// <param name="records"></param>
         private void DoMessage(IList<MessageRecord> records)
         {
-            // getMessage与addMessage得到消息，都会走到处理消息的里，加锁让2个线程排队
-            lock (msgLocker)
+
+
+            try
             {
-                try
+                if (records == null || records.Count == 0)
+                    return;
+
+                List<string> delIds = new List<string>();
+                foreach (MessageRecord record in records)
                 {
-                    if (records == null || records.Count == 0)
-                        return;
-
-                    List<string> delIds = new List<string>();
-                    foreach (MessageRecord record in records)
+                    // 先检查一下是不是_patronNotify组消息，因为addMessage会得到账户配置的所有组的消息，getMessage没关系只获取_patronNotify群消息
+                    bool bPatronNotifyGroup = this.CheckIsNotifyGroup(record.groups);
+                    if (bPatronNotifyGroup == false)
                     {
-                        // 先检查一下是不是_patronNotify组消息，因为addMessage会得到账户配置的所有组的消息，getMessage没关系只获取_patronNotify群消息
-                        bool bPatronNotifyGroup = this.CheckIsNotifyGroup(record.groups);
-                        if (bPatronNotifyGroup == false)
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
 
+                    // getMessage与addMessage处理消息都会走到这里，对这段代码加锁，以保证不会重发消息。
+                    lock (msgLocker)
+                    {
                         // 从已处理消息队列里查重，如果是前面处理过的，则不再处理
                         bool bSended = this.checkMsgIsDone(record.id);
                         if (bSended == true)
                             continue;
 
-                        string strError="";
+                        string strError = "";
                         /// <returns>
                         /// -1 不符合条件，不处理
                         /// 0 未绑定微信id，未处理
@@ -196,26 +241,27 @@ namespace dp2Command.Service
 
                         // 加到已处理消息队列里
                         this.AddMsgToHashTable(record.id);
-
-                        // 加到删除列表
-                        delIds.Add(record.id);
                     }
 
-                    //删除处理过的消息
-                    if (delIds.Count > 0)
-                    {
-                        string strError = "";
-                        int nRet = this.DeleteMessage(delIds, out strError);
-                        if (nRet == -1)
-                            throw new Exception(strError);
-                    }
+                    // 加到删除列表
+                    delIds.Add(record.id);
                 }
-                catch (Exception ex)
+
+                //删除处理过的消息
+                if (delIds.Count > 0)
                 {
-                    dp2CmdService2.Instance.WriteErrorLog(ex.Message);
+                    string strError = "";
+                    int nRet = this.DeleteMessage(delIds, out strError);
+                    if (nRet == -1)
+                        throw new Exception(strError);
                 }
             }
+            catch (Exception ex)
+            {
+                dp2CmdService2.Instance.WriteErrorLog(ex.Message);
+            }
         }
+        
 
         /// <summary>
         /// 内部处理消息
@@ -653,6 +699,12 @@ namespace dp2Command.Service
                 }
             }
             return weiXinIdList;
+        }
+
+        public void WriteErrorLog(string strText)
+        {
+            string strFilename = Path.Combine(this._logDir, "error.txt");
+            FileUtil.WriteLog(strFilename, strText, "dp2weixin");
         }
 
     }
