@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalPlatform.Common;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,8 @@ namespace dp2Capo
 
         // 管理线程
         public static DefaultThread _defaultThread = new DefaultThread();
+
+        public static RecordLockCollection _recordLocks = new RecordLockCollection();
 
         // 从数据目录装载全部实例定义，并连接服务器
         public static void Initial(string strDataDir)

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace dp2weixin.service
+namespace dp2Command.Service
 {
     // API返回结果
     public class ApiResult

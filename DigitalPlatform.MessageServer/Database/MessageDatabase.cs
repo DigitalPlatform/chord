@@ -108,28 +108,35 @@ int count,
 #endif
             // filter = Builders<MessageItem>.Filter.Eq("group", groupName);
 
+            var sort = Builders<MessageItem>.Sort.Ascending("publishTime");
+            var options = new FindOptions<MessageItem, MessageItem> { Sort = sort };
+
+            long totalCount = 0;
             var index = 0;
             using (var cursor = await collection.FindAsync(
                 filter == null ? new BsonDocument() : filter
-                ))
+                ,options))
             {
+                
                 while (await cursor.MoveNextAsync())
                 {
                     var batch = cursor.Current;
-                    long totalCount = batch.Count<MessageItem>();
+                    int batch_count = batch.Count<MessageItem>();
+                    Console.WriteLine("batch.Count=" + totalCount);
                     foreach (var document in batch)
                     {
                         if (count != -1 && index - start >= count)
                             break;
                         if (index >= start)
                         {
-                            if (proc(totalCount, document) == false)
+                            if (proc(-2, document) == false)    // -2 表示总记录数暂时未知。发送全部结束的时候会单独一次发出总记录数
                                 return;
                         }
                         index++;
                     }
-                    proc(totalCount, null); // 表示结束
+                    totalCount += batch_count;
                 }
+                proc(totalCount, null); // 表示结束
             }
 
         }

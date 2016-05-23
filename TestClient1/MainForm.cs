@@ -909,6 +909,7 @@ string strHtml)
                     text.Append("userName=" + record.userName + "\r\n");
                     text.Append("publishTime=" + record.publishTime + "\r\n");
                     text.Append("expireTime=" + record.expireTime + "\r\n");
+                    i++;
                 }
             }
             return text.ToString();
@@ -1159,15 +1160,33 @@ string strHtml)
             SetTextString(this.webBrowser1, "");
 
             List<MessageRecord> records = new List<MessageRecord>();
-            MessageRecord record = new MessageRecord();
-            record.groups = strGroupName.Split(new char[] { ',' });
-            record.creator = "";    // 服务器会自己填写
-            record.data = strText;
-            record.format = "text";
-            record.type = "message";
-            record.thread = "";
-            record.expireTime = new DateTime(0);    // 表示永远不失效
-            records.Add(record);
+            if (strText == "*")
+            {
+                for(int i=0;i<400;i++)
+                {
+                    MessageRecord record = new MessageRecord();
+                    record.groups = strGroupName.Split(new char[] { ',' });
+                    record.creator = "";    // 服务器会自己填写
+                    record.data = i.ToString();
+                    record.format = "text";
+                    record.type = "message";
+                    record.thread = "";
+                    record.expireTime = new DateTime(0);    // 表示永远不失效
+                    records.Add(record);
+                }
+            }
+            else
+            {
+                MessageRecord record = new MessageRecord();
+                record.groups = strGroupName.Split(new char[] { ',' });
+                record.creator = "";    // 服务器会自己填写
+                record.data = strText;
+                record.format = "text";
+                record.type = "message";
+                record.thread = "";
+                record.expireTime = new DateTime(0);    // 表示永远不失效
+                records.Add(record);
+            }
 
             EnableControls(false);
             try
@@ -1508,6 +1527,72 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
         }
 
+        List<string> GetAllMessageID(string strGroupCondition)
+        {
+            string strError = "";
+
+            List<string> results = new List<string>();
+
+            EnableControls(false);
+            try
+            {
+                CancellationToken cancel_token = new CancellationToken();
+
+                string id = Guid.NewGuid().ToString();
+                GetMessageRequest request = new GetMessageRequest(id,
+                    "",
+                    strGroupCondition,
+                    "",
+                    "", // strTimeRange,
+                    0,
+                    -1);
+                try
+                {
+                    MessageConnection connection = this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        "").Result;
+                    MessageResult result = connection.GetMessageAsync(
+                        request,
+                        (totalCount,
+            start,
+            records,
+            errorInfo,
+            errorCode) => { 
+                            foreach(MessageRecord record in records)
+                            {
+                                results.Add(record.id);
+                            }
+                        },
+                        new TimeSpan(0, 1, 0),
+                        cancel_token).Result;
+                    this.Invoke(new Action(() =>
+                    {
+                        SetTextString(this.webBrowser1, ToString(result));
+                    }));
+                    return results;
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return results;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+            return results;
+        }
+
+
         async void DoDeleteMessage(string strGroupName, string strMessageIDList)
         {
             string strError = "";
@@ -1518,9 +1603,18 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 goto ERROR1;
             }
 
-            SetTextString(this.webBrowser1, "");
+            string[] ids = null;
+            if (strMessageIDList == "*")
+            {
+                // 表示希望全部删除
+                ids = GetAllMessageID(strGroupName).ToArray();
+            }
+            else
+            {
+                SetTextString(this.webBrowser1, "");
 
-            string[] ids = strMessageIDList.Replace("\r\n", ",").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                ids = strMessageIDList.Replace("\r\n", ",").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            }
 
             List<MessageRecord> records = new List<MessageRecord>();
             foreach (string id in ids)

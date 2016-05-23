@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A77B8A4A-3AE8-4BD7-B09A-BF8D92FE802D}</ProjectGuid>
+    <ProjectGuid>{70A550F4-022B-49CF-A2B1-A5EF345DE891}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>dp2Command.Service</RootNamespace>
-    <AssemblyName>dp2Command.Service</AssemblyName>
+    <RootNamespace>dp2Message</RootNamespace>
+    <AssemblyName>dp2Message</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,25 +30,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MongoDB.Bson">
-      <HintPath>..\packages\MongoDB.Bson.2.2.3\lib\net45\MongoDB.Bson.dll</HintPath>
-    </Reference>
-    <Reference Include="MongoDB.Driver">
-      <HintPath>..\packages\MongoDB.Driver.2.2.3\lib\net45\MongoDB.Driver.dll</HintPath>
-    </Reference>
-    <Reference Include="MongoDB.Driver.Core">
-      <HintPath>..\packages\MongoDB.Driver.Core.2.2.3\lib\net45\MongoDB.Driver.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Senparc.Weixin">
-      <HintPath>..\packages\Senparc.Weixin.4.5.1\lib\net45\Senparc.Weixin.dll</HintPath>
-    </Reference>
-    <Reference Include="Senparc.Weixin.MP">
-      <HintPath>..\packages\Senparc.Weixin.MP.13.4.4\lib\net45\Senparc.Weixin.MP.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -56,43 +39,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApiResult.cs" />
-    <Compile Include="Command\BindingCommand.cs" />
-    <Compile Include="Command\SearchCommand.cs" />
-    <Compile Include="Command\BaseCommand.cs" />
-    <Compile Include="Command\CommandContainer.cs" />
-    <Compile Include="Command\dp2CommandUtility.cs" />
-    <Compile Include="dp2BaseCommandService.cs" />
-    <Compile Include="dp2CommandService.cs" />
-    <Compile Include="dp2CmdService2.cs" />
-    <Compile Include="dp2MsgHandler.cs" />
-    <Compile Include="ImgManager.cs" />
-    <Compile Include="Interface\MessageInterface.cs" />
-    <Compile Include="Interface\ScriptManager.cs" />
-    <Compile Include="TemplateData.cs" />
-    <Compile Include="WxUserDatabase.cs" />
-    <Compile Include="LibDatabase.cs" />
+    <Compile Include="BaseMsgHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj">
       <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
       <Name>DigitalPlatform.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DigitalPlatform.Interfaces\DigitalPlatform.Interfaces.csproj">
-      <Project>{3c4f8133-8652-40b6-b37b-200b25c2b043}</Project>
-      <Name>DigitalPlatform.Interfaces</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj">
       <Project>{441cb814-af78-4503-91ef-dce5f3269502}</Project>
       <Name>DigitalPlatform.IO</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DigitalPlatform.LibraryRestClient\DigitalPlatform.LibraryRestClient.csproj">
-      <Project>{1b74d69a-530f-4275-845b-8ca6d1463bdd}</Project>
-      <Name>DigitalPlatform.LibraryRestClient</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.MessageClient\DigitalPlatform.MessageClient.csproj">
       <Project>{e4b339d9-4843-40f1-a404-33043adcd6a3}</Project>
@@ -102,17 +59,10 @@
       <Project>{2fbb1294-0814-447d-b8c6-77e206417231}</Project>
       <Name>DigitalPlatform.Message</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DigitalPlatform.Text\DigitalPlatform.Text.csproj">
-      <Project>{26f96cc3-a4a9-4bc4-a10a-bc7e25581ff6}</Project>
-      <Name>DigitalPlatform.Text</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.Xml\DigitalPlatform.Xml.csproj">
       <Project>{a62f763a-96ee-43ad-80c5-9ce57ecfeaf4}</Project>
       <Name>DigitalPlatform.Xml</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="delete.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
