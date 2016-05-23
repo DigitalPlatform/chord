@@ -21,6 +21,7 @@ namespace dp2Command.Service
 
     public class BiblioRecord
     {
+        public string no = "";
         public string recPath = "";
         public string name = "";
     }

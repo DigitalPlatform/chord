@@ -949,6 +949,7 @@ namespace dp2Command.Service
                     BiblioRecord record = new BiblioRecord();
                     record.recPath = path;
                     record.name = name;
+                    record.no = (i + 1).ToString();//todo 注意下一页的时候
                     searchRet.records.Add(record);
                 }
 
