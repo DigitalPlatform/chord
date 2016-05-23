@@ -363,62 +363,21 @@ namespace dp2Command.Service
 
         #region 错误日志
 
-        /// <summary>
-        /// 日志锁
-        /// </summary>
-        static object logSyncRoot = new object();
-
-        /// <summary>
-        /// 写错误日志
-        /// </summary>
-        /// <param name="strText"></param>
         public void WriteErrorLog(string strText)
         {
-            try
-            {
-                lock (logSyncRoot)
-                {
-                    var logDir = this.weiXinLogDir;
+            var logDir = this.weiXinLogDir;
+            string strFilename = Path.Combine(logDir, "error.txt");
 
-                    DateTime now = DateTime.Now;
-                    // 每天一个日志文件
-                    string strFilename = Path.Combine(logDir, "error.txt");
-                    string strTime = now.ToString();
-                    FileUtil.WriteText(strFilename, strTime + " " + strText + "\r\n");
-                }
-            }
-            catch (Exception ex)
-            {
-                EventLog Log = new EventLog();
-                Log.Source = "dp2weixin";
-                Log.WriteEntry("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入 Windows 日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
-                Log.WriteEntry(strText, EventLogEntryType.Error);
-            }
+            FileUtil.WriteLog(strFilename, strText,"dp2weixin");
         }
 
         public void WriteInfoLog(string strText)
         {
-            try
-            {
-                lock (logSyncRoot)
-                {
-                    var logDir = this.weiXinLogDir;
-
-                    DateTime now = DateTime.Now;
-                    // 每天一个日志文件
-                    string strFilename = Path.Combine(logDir, "info.txt");
-                    string strTime = now.ToString();
-                    FileUtil.WriteText(strFilename, strTime + " " + strText + "\r\n");
-                }
-            }
-            catch (Exception ex)
-            {
-                EventLog Log = new EventLog();
-                Log.Source = "dp2weixin";
-                Log.WriteEntry("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入 Windows 日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
-                Log.WriteEntry(strText, EventLogEntryType.Error);
-            }
+            var logDir = this.weiXinLogDir;
+            string strFilename = Path.Combine(logDir, "info.txt");
+            FileUtil.WriteLog(strFilename, strText,"dp2weixin");
         }
+
 
         /// <summary>
         /// 获得异常信息

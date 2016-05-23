@@ -29,7 +29,7 @@ namespace dp2weixin
     /// 自定义MessageHandler
     /// 把MessageHandler作为基类，重写对应请求的处理方法
     /// </summary>
-    public partial class dp2MessageHandler : MessageHandler<dp2MessageContext>
+    public partial class dp2weixinMessageHandler : MessageHandler<dp2weixinMessageContext>
     {
         // 由外面传进来的CommandServer
         private dp2BaseCommandService CmdService = null;
@@ -49,7 +49,7 @@ namespace dp2weixin
         /// </summary>
         /// <param name="inputStream"></param>
         /// <param name="maxRecordCount"></param>
-        public dp2MessageHandler(dp2BaseCommandService cmdServer,
+        public dp2weixinMessageHandler(dp2BaseCommandService cmdServer,
             Stream inputStream, PostModel postModel, int maxRecordCount = 0)
             : base(inputStream, postModel, maxRecordCount)
         {
