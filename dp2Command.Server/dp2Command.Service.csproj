@@ -69,6 +69,7 @@
     <Compile Include="ImgManager.cs" />
     <Compile Include="Interface\MessageInterface.cs" />
     <Compile Include="Interface\ScriptManager.cs" />
+    <Compile Include="SearchBiblioResult.cs" />
     <Compile Include="TemplateData.cs" />
     <Compile Include="WxUserDatabase.cs" />
     <Compile Include="LibDatabase.cs" />
