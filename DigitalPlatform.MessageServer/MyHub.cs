@@ -510,7 +510,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             MessageItem exist = results[0];
                             string creator_string = BuildMessageUserID(connection_info);
 
-                            if (bDeleteAllRights == false 
+                            if (bDeleteAllRights == false
                                 && exist.creator != creator_string)
                             {
                                 result.String = "Denied";
@@ -621,7 +621,7 @@ ex.GetType().ToString());
                     List<MessageRecord> records = (List<MessageRecord>)group_table[groupName];
                     Debug.Assert(records != null, "");
                     Debug.Assert(records.Count != 0, "");
-                    Console.WriteLine("Push to group '"+groupName+"'");
+                    Console.WriteLine("Push to group '" + groupName + "'");
                     if (excludeConnectionIds == null)
                         Clients.Group(groupName).addMessage(action, records);
                     else
@@ -704,7 +704,6 @@ ex.GetType().ToString());
             });
         }
 
-
         bool CanonicalizeGroupQuery(GroupQuery query, ConnectionInfo connection_info)
         {
             // 正规化组名
@@ -773,7 +772,6 @@ ex.GetType().ToString());
                 }
                 else
                 {
-
                     CanonicalizeGroupQuery(group_query, connection_info);
 
                     bool bSupervisor = (StringUtil.Contains(connection_info.Rights, "supervisor"));
@@ -1004,25 +1002,58 @@ ex.GetType().ToString());
                         // 集中发送一次
                         if (records.Count >= batch_size || item == null)
                         {
-                            // 让前端获得检索结果
-                            try
+                            Console.WriteLine("send message totalCount=" + totalCount + " send_count=" + send_count + " records.Count=" + records.Count);
+
+                            string errorCode = "";
+                            // 把残余的结果推送出去
+                            if (records.Count > 0)
                             {
-                                Clients.Client(search_info.RequestConnectionID).responseGetMessage(
-                                    param.TaskID,
-                                    (long)totalCount, // resultCount,
-                                    (long)send_count,
-                                    records,
-                                    "", // errorInfo,
-                                    "" // errorCode
-                                    );
-                                send_count += records.Count;
+                                if (item == null)
+                                    errorCode = "_complete";
+
+                                // 让前端获得检索结果
+                                try
+                                {
+                                    Clients.Client(search_info.RequestConnectionID).responseGetMessage(
+                                        param.TaskID,
+                                        (long)totalCount, // resultCount,
+                                        (long)send_count,
+                                        records,
+                                        "", // errorInfo,
+                                        errorCode
+                                        );
+                                    send_count += records.Count;
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine("中心向前端分发 responseGetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                                    return false;
+                                }
+                                records.Clear();
                             }
-                            catch (Exception ex)
+
+                            // 发送结束信号
+                            if (item == null && string.IsNullOrEmpty(errorCode) == true)
                             {
-                                Console.WriteLine("中心向前端分发 responseGetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
-                                return false;
+                                Debug.WriteLine("专门发出一次结束信号");
+                                try
+                                {
+                                    Clients.Client(search_info.RequestConnectionID).responseGetMessage(
+                                        param.TaskID,
+                                        (long)totalCount, // resultCount,
+                                        (long)send_count,
+                                        records,
+                                        "", // errorInfo,
+                                        "_complete" // errorCode
+                                        );
+                                    send_count += records.Count;
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine("中心向前端分发 responseGetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                                    return false;
+                                }
                             }
-                            records.Clear();
                         }
 
                         return true;
@@ -1030,6 +1061,7 @@ ex.GetType().ToString());
             }
             catch (Exception ex)
             {
+                Console.WriteLine("send message exception: " + ExceptionUtil.GetExceptionText(ex));
                 Clients.Client(search_info.RequestConnectionID).responseGetMessage(
     param.TaskID,
     -1, // resultCount,
@@ -2741,7 +2773,7 @@ true);
                     if (string.IsNullOrEmpty(def.Definition) == false
                         && StringUtil.ContainsRight(def.Definition, "n") == -1)
                     {
-                        Console.WriteLine("Skip join or un-join SignalR group '"+def.GroupNameString+"'");
+                        Console.WriteLine("Skip join or un-join SignalR group '" + def.GroupNameString + "'");
                         goto CONTINUE;
                     }
 

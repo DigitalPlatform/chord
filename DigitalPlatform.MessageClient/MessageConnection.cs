@@ -440,7 +440,15 @@ errorInfo)
                                 if (records != null)
                                     recieved += records.Count;
 
-                                if (IsComplete(request.Start, request.Count, resultCount, recieved) == true)
+                                if (result.String == "_complete")
+                                {
+                                    result.Value = resultCount;
+                                    wait_events.finish_event.Set();
+                                    return;
+                                }
+
+                                if (resultCount >= 0 &&
+                                    IsComplete(request.Start, request.Count, resultCount, recieved) == true)
                                     wait_events.finish_event.Set();
                                 else
                                     wait_events.active_event.Set();
