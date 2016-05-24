@@ -985,7 +985,7 @@ ex.GetType().ToString());
 
             try
             {
-                int batch_size = 10;    // 100? 或者根据 data 尺寸动态计算每批的个数
+                int batch_size = 10;    // 100? 或者根据 data 尺寸动态计算每批的个数。主要是 data 成员的长度差异很大
                 int send_count = 0;
 
                 List<MessageRecord> records = new List<MessageRecord>();
