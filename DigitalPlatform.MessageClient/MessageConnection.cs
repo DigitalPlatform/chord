@@ -382,6 +382,33 @@ errorInfo)
 
         #region GetMessage() API
 
+        // 包装后的同步函数。注意 request.Count 的使用，要避免一次调用获得的记录太多而导致内存放不下
+        public GetMessageResult GetMessage(GetMessageRequest request,
+            TimeSpan timeout,
+            CancellationToken cancel_token)
+        {
+            List<MessageRecord> results = new List<MessageRecord>();
+            MessageResult result = this.GetMessageAsync(
+    request,
+    (totalCount,
+start,
+records,
+errorInfo,
+errorCode) =>
+    {
+        if (records != null)
+        {
+            foreach (MessageRecord record in records)
+            {
+                results.Add(record);
+            }
+        }
+    },
+    timeout,
+    cancel_token).Result;
+            return new GetMessageResult(result, results);
+        }
+
         public delegate void Delegate_outputMessage(long totalCount,
             long start,
             IList<MessageRecord> records,
