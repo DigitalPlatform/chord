@@ -105,7 +105,7 @@ namespace dp2Message
 多次调用只是为了避免突破内存空间问题，脑子里要清楚这个原则。
                  */
                 int batchNo = 1;//用于输出，看结果对不对
-                long totalCount = -1;//用于输出，看结果对不对 -1表示未赋值
+                long totalCount = -1;//用于输出，看结果对不对 -1表示未赋过值
 
                 int start = 0;
                 int count = 10;
@@ -128,10 +128,6 @@ namespace dp2Message
                 {
                     goto ERROR1;
                 }
-                if (result.Value == 0)
-                {
-                    goto END1;
-                }
 
                 // 用于测试，第一次返回的记为总记录数
                 if (totalCount == -1)
@@ -140,21 +136,16 @@ namespace dp2Message
                 // 做事，发送消息给微信，里面用了expire,所以下次的start位置不变
                 if (result.Results != null && result.Results.Count > 0)
                 {
+                    // 处理消息
                     this.DoMessage(result.Results, "getMessage");
-                }
 
-                // 继续获取消息
-                if (result.Results != null && result.Results.Count > 0
-                    && result.Value > result.Results.Count)
-                {
-                    //start += result.Results.Count;
-
+                    // 继续获取消息
                     batchNo++; //用于输出，测试
                     goto REDO;
                 }
 
-            END1:
-                // 输出一次分批获取的情况
+               
+                // 输出分批获取的情况
                 this.WriteErrorLog("总记录数[" + totalCount + "],分为[" + batchNo + "]批获取完:)");
             }
             catch (AggregateException ex)
@@ -352,7 +343,7 @@ namespace dp2Message
             }
 
             SetMessageRequest param = new SetMessageRequest("expire",  //delete
-                "dontNotifyMe",
+                "",  //dontNotifyMe
                 records);
 
             try
