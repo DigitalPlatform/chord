@@ -889,6 +889,40 @@ string strHtml)
             return text.ToString();
         }
 
+        static string ToString(GetMessageResult result)
+        {
+            StringBuilder text = new StringBuilder();
+
+            text.Append(ToString(result as MessageResult));
+
+            if (result.Results != null)
+            {
+                int i = 0;
+                foreach (MessageRecord record in result.Results)
+                {
+                    text.Append("*** "+(i+1)+"\r\n");
+                    text.Append("id=" + record.id + "\r\n");
+                    text.Append("data=" + record.data + "\r\n");
+                    if (record.groups != null)
+                        text.Append("groups=" + HttpUtility.HtmlEncode(string.Join(",", record.groups)) + "\r\n");
+                    text.Append("creator=" + record.creator + "\r\n");
+                    text.Append("userName=" + record.userName + "\r\n");
+
+                    text.Append("format=" + record.format + "\r\n");
+                    text.Append("type=" + record.type + "\r\n");
+                    text.Append("thread=" + record.thread + "\r\n");
+
+                    text.Append("publishTime=" + record.publishTime.ToString("G") + "\r\n");
+                    text.Append("expireTime=" + record.expireTime + "\r\n");
+
+                    i++;
+                }
+            }
+
+            return text.ToString();
+        }
+
+
         static string ToString(SetMessageResult result)
         {
             StringBuilder text = new StringBuilder();
@@ -1162,7 +1196,7 @@ string strHtml)
             List<MessageRecord> records = new List<MessageRecord>();
             if (strText == "*")
             {
-                for(int i=0;i<400;i++)
+                for (int i = 0; i < 400; i++)
                 {
                     MessageRecord record = new MessageRecord();
                     record.groups = strGroupName.Split(new char[] { ',' });
@@ -1232,8 +1266,13 @@ string strHtml)
         // 装载以前的所有消息
         private void button_message_load_Click(object sender, EventArgs e)
         {
-            DoLoadMessage(this.textBox_message_groupName.Text,
+            bool bControl = Control.ModifierKeys == Keys.Control;
+            if (bControl)
+                DoLoadMessage2(this.textBox_message_groupName.Text,
                 this.textBox_message_timeRange.Text);
+            else
+                DoLoadMessage(this.textBox_message_groupName.Text,
+                    this.textBox_message_timeRange.Text);
         }
 
         void FillMessage(long totalCount,
@@ -1361,6 +1400,115 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     MessageResult result = await connection.GetMessageAsync(
                         request,
                         FillMessage,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+                    this.Invoke(new Action(() =>
+                    {
+                        SetTextString(this.webBrowser1, ToString(result));
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+        }
+
+        // 同步阻塞版本
+        void DoLoadMessage1(string strGroupCondition, string strTimeRange)
+        {
+            string strError = "";
+
+            ClearForPureTextOutputing(this.webBrowser_message);
+            SetTextString(this.webBrowser1, "");
+
+            EnableControls(false);
+            try
+            {
+                CancellationToken cancel_token = new CancellationToken();
+
+                string id = Guid.NewGuid().ToString();
+                GetMessageRequest request = new GetMessageRequest(id,
+                    "",
+                    strGroupCondition, // "" 表示默认群组
+                    "",
+                    strTimeRange,
+                    0,
+                    -1);
+                try
+                {
+                    MessageConnection connection = this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        "").Result;
+                    GetMessageResult result = connection.GetMessage(
+                        request,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+                    this.Invoke(new Action(() =>
+                    {
+                        SetTextString(this.webBrowser1, ToString(result));
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+        }
+
+        async void DoLoadMessage2(string strGroupCondition, string strTimeRange)
+        {
+            string strError = "";
+
+            ClearForPureTextOutputing(this.webBrowser_message);
+            SetTextString(this.webBrowser1, "");
+
+            EnableControls(false);
+            try
+            {
+                CancellationToken cancel_token = new CancellationToken();
+
+                string id = Guid.NewGuid().ToString();
+                GetMessageRequest request = new GetMessageRequest(id,
+                    "",
+                    strGroupCondition, // "" 表示默认群组
+                    "",
+                    strTimeRange,
+                    0,
+                    -1);
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        "");
+                    GetMessageResult result = await connection.GetMessageAsync(
+                        request,
                         new TimeSpan(0, 1, 0),
                         cancel_token);
                     this.Invoke(new Action(() =>
@@ -1559,8 +1707,9 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             start,
             records,
             errorInfo,
-            errorCode) => { 
-                            foreach(MessageRecord record in records)
+            errorCode) =>
+                        {
+                            foreach (MessageRecord record in records)
                             {
                                 results.Add(record.id);
                             }
