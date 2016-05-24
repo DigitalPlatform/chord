@@ -171,6 +171,15 @@ namespace DigitalPlatform.Message
     public class GetMessageResult : MessageResult
     {
         public List<MessageRecord> Results { get; set; }
+
+        public GetMessageResult(MessageResult result, List<MessageRecord> results)
+        {
+            this.String = result.String;
+            this.Value = result.Value;
+            this.ErrorInfo = result.ErrorInfo;
+
+            this.Results = results;
+        }
     }
 
     #endregion
