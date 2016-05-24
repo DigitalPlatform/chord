@@ -448,11 +448,17 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
 
                         // TODO: groups 字段不允许修改
                         ServerInfo.MessageDatabase.Update(item).Wait();
-                        saved_items.Add(item);
+                        saved_items.Add(item);  // TODO: 应该返回修改后的记录内容
                     }
                 }
-                else if (param.Action == "delete")
+                else if (param.Action == "delete" || param.Action == "expire")
                 {
+                    // TODO: 可否在遇到不能操作的 item 的时候，先跳过这些 item 把能操作的全部操作了? 不过报错信息就会很长了
+
+                    string strActionName = "删除";
+                    if (param.Action == "expire")
+                        strActionName = "失效";
+
                     // 注: 超级用户可以删除任何消息
                     // 其他人只能删除自己原先创建的消息
 
@@ -479,7 +485,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                                     {
                                         result.String = "Denied";
                                         result.Value = -1;
-                                        result.ErrorInfo = "当前用户(未注册用户)只能删除 <default> 组内自己创建的消息";
+                                        result.ErrorInfo = "当前用户(未注册用户)只能" + strActionName + " <default> 组内自己创建的消息";
                                         return result;
                                     }
                                 }
@@ -490,7 +496,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                                     {
                                         result.String = "Denied";
                                         result.Value = -1;
-                                        result.ErrorInfo = "当前用户没有加入群组 '" + string.Join(",", item.groups) + "'，因此无法删除其中的消息";
+                                        result.ErrorInfo = "当前用户没有加入群组 '" + string.Join(",", item.groups) + "'，因此无法" + strActionName + "其中的消息";
                                         return result;
                                     }
                                 }
@@ -515,12 +521,19 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             {
                                 result.String = "Denied";
                                 result.Value = -1;
-                                result.ErrorInfo = "因 id 为 '" + item.id + "' 的消息不是当前用户创建的，删除操作被拒绝";
+                                result.ErrorInfo = "因 id 为 '" + item.id + "' 的消息不是当前用户创建的，" + strActionName + "操作被拒绝";
                                 return result;
                             }
                         }
 
-                        ServerInfo.MessageDatabase.DeleteByID(item.id).Wait();
+                        if (param.Action == "delete")
+                            ServerInfo.MessageDatabase.DeleteByID(item.id).Wait();
+                        else
+                        {
+                            DateTime now = DateTime.Now;
+                            ServerInfo.MessageDatabase.ExpireByID(item.id, now).Wait();
+                            item.expireTime = now;
+                        }
                         saved_items.Add(item);
                     }
                 }
@@ -985,7 +998,7 @@ ex.GetType().ToString());
 
             try
             {
-                int batch_size = 10;    // 100? 或者根据 data 尺寸动态计算每批的个数
+                int batch_size = 10;    // 100? 或者根据 data 尺寸动态计算每批的个数。主要是 data 成员的长度差异很大
                 int send_count = 0;
 
                 List<MessageRecord> records = new List<MessageRecord>();

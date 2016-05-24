@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+
 using DigitalPlatform.Text;
-using System.Collections;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -72,13 +73,19 @@ Builders<MessageItem>.Filter.Gte("publishTime", startTime),
 Builders<MessageItem>.Filter.Lt("publishTime", endTime));
             }
 
+            FilterDefinition<MessageItem> expire_filter = Builders<MessageItem>.Filter.Or(
+Builders<MessageItem>.Filter.Eq("expireTime", new DateTime(0)),
+Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
+
             // 构造一个 AND 运算的检索式
             FilterDefinition<MessageItem> group_filter = group_query.BuildMongoQuery();
 
             if (time_filter == null)
-                return group_filter;
+                return Builders<MessageItem>.Filter.And(expire_filter,
+                group_filter);
 
             return time_filter = Builders<MessageItem>.Filter.And(time_filter,
+                expire_filter,
                 group_filter);
         }
 
@@ -115,9 +122,9 @@ int count,
             var index = 0;
             using (var cursor = await collection.FindAsync(
                 filter == null ? new BsonDocument() : filter
-                ,options))
+                , options))
             {
-                
+
                 while (await cursor.MoveNextAsync())
                 {
                     var batch = cursor.Current;
@@ -141,6 +148,7 @@ int count,
 
         }
 
+        // 注意，失效的消息也返回了
         public async Task<List<MessageItem>> GetMessages(string groupName,
     int start,
     int count)
@@ -472,7 +480,7 @@ int count,
             await collection.InsertOneAsync(item);
         }
 
-        // 更新 id,groups 以外的全部字段
+        // 更新 id,groups,expireTime 以外的全部字段
         public async Task Update(MessageItem item)
         {
             // 检查 item
@@ -506,6 +514,21 @@ int count,
             await collection.DeleteOneAsync(filter);
         }
 
+        // 根据一个字段的特征，立即失效匹配的事项
+        // parameters:
+        //      now 用于修改 expireTime 字段的时间
+        public async Task Expire(string field, string value, DateTime now)
+        {
+            IMongoCollection<MessageItem> collection = this._collection;
+
+            var filter = Builders<MessageItem>.Filter.Eq(field, value);
+
+            var update = Builders<MessageItem>.Update
+                .Set("expireTime", now);
+
+            await collection.UpdateOneAsync(filter, update);
+        }
+
         public async Task DeleteByID(string id)
         {
             // 检查 id
@@ -513,6 +536,15 @@ int count,
                 throw new ArgumentException("id 不能为空");
 
             await Delete("id", id);
+        }
+
+        public async Task ExpireByID(string id, DateTime now)
+        {
+            // 检查 id
+            if (string.IsNullOrEmpty(id) == true)
+                throw new ArgumentException("id 不能为空");
+
+            await Expire("id", id, now);
         }
     }
 
