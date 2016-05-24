@@ -22,8 +22,6 @@ namespace dp2Message
         private string _dp2mserverUrl = "";
         private string _logDir = "";
 
-
-
         // 轮循线程
         WxMsgThread _wxMsgThread = null;
 
@@ -31,21 +29,27 @@ namespace dp2Message
             string dp2mserverUrl,
             string logDir)
         {
-            this._channels = channels;
-
             this._dp2mserverUrl = dp2mserverUrl;
-            this._logDir = "";
+            this._logDir = logDir;
+
+            //todo 现在MessageConnectionCollection是传进来的。
+            this._channels = channels;
 
             // 接管消息事件
             this._channels.AddMessage += _channels_AddMessage;
             this._channels.ConnectionStateChange += _channels_ConnectionStateChange;
-            SystemEvents.PowerModeChanged += SystemEvents_PowerModeChanged;
+            try
+            {
+                // web 项目不支持这个事件
+                SystemEvents.PowerModeChanged += SystemEvents_PowerModeChanged;
+            }
+            catch
+            { }
 
             // 启一个轮循线程获取消息
             this._wxMsgThread = new WxMsgThread();
             this._wxMsgThread.Container = this;
-            this._wxMsgThread.BeginThread();    // TODO: 应该在 MessagWorkereConnection 第一次连接成功以后，再启动这个线程比较好
- 
+            this._wxMsgThread.BeginThread();
         }
 
 
@@ -87,7 +91,7 @@ namespace dp2Message
 
             if (e.Records != null)
             {
-                DoMessage(e.Records);
+                DoMessage(e.Records,"addMessage");
             }
         }
 
@@ -117,7 +121,7 @@ namespace dp2Message
                 {
                     MessageConnection connection = await this._channels.GetConnectionAsync(
                         this._dp2mserverUrl,
-                        "");  //todo 这里用空可以吗？
+                        "");  
                     MessageResult result = await connection.GetMessageAsync(
                             request,
                             OutputMessage,
@@ -159,12 +163,12 @@ namespace dp2Message
                 text.Append("errorInfo=" + errorInfo + "\r\n");
                 text.Append("errorCode=" + errorCode + "\r\n");
                 this.WriteErrorLog(text.ToString());
-                return;
+                //return;
             }
 
             if (records != null && records.Count > 0)
             {
-                DoMessage(records);
+                DoMessage(records,"getMessage");
             }
         }
 
@@ -194,10 +198,8 @@ namespace dp2Message
         /// 实际处理通知消息
         /// </summary>
         /// <param name="records"></param>
-        private void DoMessage(IList<MessageRecord> records)
+        private void DoMessage(IList<MessageRecord> records,string from)
         {
-
-
             try
             {
                 if (records == null || records.Count == 0)
@@ -216,6 +218,8 @@ namespace dp2Message
                     // getMessage与addMessage处理消息都会走到这里，对这段代码加锁，以保证不会重发消息。
                     lock (msgLocker)
                     {
+                        this.WriteErrorLog("这次是["+from+"]传过来的消息。");
+
                         // 从已处理消息队列里查重，如果是前面处理过的，则不再处理
                         bool bSended = this.checkMsgIsDone(record.id);
                         if (bSended == true)
@@ -230,10 +234,9 @@ namespace dp2Message
                         int nRet = this.InternalDoMessage(record, out strError);
                         if (nRet == -1)
                         {
-                            this.WriteErrorLog(strError);
+                            this.WriteErrorLog("[" + record.id + "]出错:" + strError);
                             // todo,对于这些消息是否删除？，现在是统统删除
                         }
-
 
                         // 加到已处理消息队列里
                         this.AddMsgToHashTable(record.id);
@@ -257,7 +260,7 @@ namespace dp2Message
                 this.WriteErrorLog(ex.Message);
             }
         }
-        
+
 
         /// <summary>
         /// 内部处理消息
@@ -269,7 +272,7 @@ namespace dp2Message
         /// 0 未绑定微信id，未处理
         /// 1 成功
         /// </returns>
-        public virtual int InternalDoMessage(MessageRecord record,out string strError)
+        public virtual int InternalDoMessage(MessageRecord record, out string strError)
         {
             strError = "";
             return 1;
@@ -347,6 +350,7 @@ namespace dp2Message
             }
 
         ERROR1:
+            this.WriteErrorLog(strError);
             return -1;
         }
 

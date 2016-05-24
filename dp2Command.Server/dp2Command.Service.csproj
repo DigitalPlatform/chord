@@ -69,6 +69,7 @@
     <Compile Include="ImgManager.cs" />
     <Compile Include="Interface\MessageInterface.cs" />
     <Compile Include="Interface\ScriptManager.cs" />
+    <Compile Include="SearchBiblioResult.cs" />
     <Compile Include="TemplateData.cs" />
     <Compile Include="WxUserDatabase.cs" />
     <Compile Include="LibDatabase.cs" />
@@ -109,6 +110,10 @@
     <ProjectReference Include="..\DigitalPlatform.Xml\DigitalPlatform.Xml.csproj">
       <Project>{a62f763a-96ee-43ad-80c5-9ce57ecfeaf4}</Project>
       <Name>DigitalPlatform.Xml</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\dp2Message\dp2Message.csproj">
+      <Project>{70a550f4-022b-49cf-a2b1-a5ef345de891}</Project>
+      <Name>dp2Message</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

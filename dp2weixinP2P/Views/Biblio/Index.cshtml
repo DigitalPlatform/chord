@@ -1,85 +1,212 @@
-﻿
-@section Scripts {
+﻿@section Scripts {
     <script>
-        // 检索
-        function search() {
 
-            // 检索检索接口
-
-            var table = $('.mui-table-view');
-            for (var i = 0, len = i + 5; i < len; i++) {
-                var li = "<li class='mui-table-view-cell'>"
-                    +"<a class='mui-navigate-right'>Item" + (i + 1) + "</a>"
-                    +"</li>";
-                table.append(li);
-
-
-
-                
-            }
-            // 如果还有值，加下方出现一个继续加载的按钮
-            var li1 = "<li class='mui-table-view-cell'  id='more'>"
-                + "<center><a href='javascript:void(0)' onclick='getMore()''>点击加载更多</a></center>"
-    + "</li>";
-            table.append(li1);
-            //alert("tst2");
-
+        //观察模型
+        var model = {
+            // 图书馆列表
+            librarys: ko.observableArray(),
+            selectedLib: ko.observable(),
         }
 
-        // 获取更多
-        function getMore() {
+        //用于获取图书馆
+        function getAllLib() {
+            //显示等待图层
+            var index = loadLayer();
+
+            // 先删除观察数组中的已有数据
+            model.librarys.removeAll();
+
+            // 调web api
+            var url = "/api/library";
+            sendAjaxRequest(url, "GET", function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    model.librarys.push(data[i]);
+                }
+
+                // 设上传进来的libcode
+                var libCode = $("#spanLibCode").text();
+                if (libCode != null && libCode != "") {
+                    $("#selLib option[value='" + libCode + "']").attr("selected", "selected");
+                    model.selectedLib(libCode);
+                }
+
+                // 关闭等待层
+                layer.close(index);
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            //获取图书馆列表
+            getAllLib();
+
+            //绑定观察模块
+            ko.applyBindings(model);
+
+            // 密码框打回车时，进行绑定
+            $('#txtWord').bind('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+                    search();
+                }
+            });
+
+
+        });
+
+        // 检索
+        function search(bNext) {
 
             // 先删除more
-           // alert($("#more"));
             $("#more").remove();
-            //alert("test");
 
-            
-            var table = $('.mui-table-view');
-            for (var i = 0, len = i + 10; i < len; i++) {
-                var li = "<li class='mui-table-view-cell'>"
-                    + "<a class='mui-navigate-right'>Item" + (i + 1) + "</a>"
-                    + "</li>";
-                table.append(li);
+            var libUserName = "";
+            var from = "";
+            var word = "";
+
+            if (bNext == 'true') {
+                word = "_N";
+            }
+            else {
+                // 图书馆
+                var lib = model.selectedLib();
+                if (lib == "" || lib == null) {
+                    alert("您尚未选择图书馆。");
+                    return;
+                }
+                //alert(lib);
+                var nIndex = lib.indexOf("*");
+                var libCode = lib.substr(0, nIndex);
+                var libUserName = lib.substr(nIndex + 1);
+
+                // 检查是否选择的检索途径
+                from = $("#selFrom").val();
+                if (from == "") {
+                    alert("您尚未选择检索途径。");
+                    return;
+                }
+
+                // 检查检索词
+                word = $("#txtWord").val();
+                if (word == "") {
+                    alert("您尚未输入检索词。");
+                    return;
+                }
+                //alert("[" + from + "]-[" + word + "]");
+
+                var table = $("#ulResult");//$('.mui-table-view');
+                table.html("");
 
             }
 
-            // 如果还有值，加下方出现一个继续加载的按钮
-            // 如果还有值，加下方出现一个继续加载的按钮
-            var li1 = "<li class='mui-table-view-cell'  id='more'>"
-                + "<center><a href='javascript:void(0)' onclick='getMore()''>点击加载更多</a></center>"
-    + "</li>";
-            table.append(li1);
-            
+            // 调检索接口
+            //显示等待图层
+            var index = loadLayer();
+
+            // 调web api
+            var url = "/api/biblio?libUserName=" + encodeURIComponent(libUserName) + "&from=" + encodeURIComponent(from) + "&word=" + encodeURIComponent(word);
+            sendAjaxRequest(url, "GET",
+                function (result) {
+
+                    // 关闭等待层
+                    layer.close(index);
+
+                    // 出错或未命中
+                    if (result.apiResult.errorCode == -1 || result.apiResult.errorCode == 0) {
+                        openMsg(result.apiResult.errorInfo);
+                        return;
+                    }
+
+                    //alert("1");
+
+                    var table = $("#ulResult");//$('.mui-table-view');
+                    for (var i = 0; i < result.records.length; i++) {
+                        var record = result.records[i];
+                        var li = "<li class='mui-table-view-cell'>"
+                            + "<a class='mui-navigate-right'>" +record.no+" "+ record.name + "</a>"
+                            + "</li>";
+                        table.append(li);
+                    }
+
+                    //alert("2");
+
+
+                    //有下页的情况
+                    if (result.isCanNext == true) {
+                        var li1 = "<li class='mui-table-view-cell'  id='more'>"
+                            + "<center><a href='javascript:void(0)' onclick='searchN()'>点击加载更多</a></center>"
+                            + "</li>";
+                        table.append(li1);
+                    }
+
+                    //alert("3");
+
+
+                    // 关闭等待层
+                    //layer.close(index);
+
+                }, function (xhq, textStatus, errorThrown) {
+
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                });
+
         }
+
+        function searchN() {
+            search("true");
+        }
+
     </script>
-    }
+}
 
 @section header {
-            <h1 class="mui-title">书目查询</h1>
-    }
+    <h1 class="mui-title">书目查询</h1>
+}
+<span id="spanLibCode" style="display:none">@ViewBag.LibCode</span>
 <div id="divForm">
-    <form id='login-form' class="mui-input-group">
+    <div class="mui-input-group">
+
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">图书馆</label>
+            <select id="selLib" style="padding-left: 0px;width: 65%" data-bind="options:librarys,optionsText:function(item) {
+                       return  item.libName; },optionsValue:function(item) {
+                       return item.libCode + '*' + item.libUserName; },optionsCaption:'请选择 图书馆',value:selectedLib"></select>
+        </div>
+
         <div class="mui-input-row ">
             <label>检索途径</label>
-            <select id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.prefix">
-                <option value="">全部</option>
-                <option value="title">题名</option>
+            <select id="selFrom" name="selFrom" onchange="prefixChange()">
+                <option value="title" selected>题名</option>
                 <option value="ISBN">ISBN</option>
             </select>
         </div>
         <div class="mui-input-row">
-            <label id="lblAccount">检索词</label>
-            <input type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词" data-bind="value:model.word">
+            <label>检索词</label>
+            <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
         </div>
-    </form>
+    </div>
     <div class="mui-content-padded">
-        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search()">检索</button>
+        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
+
+
     </div>
 </div>
 
 <div id="divResult">
-            <!--数据列表-->
-            <ul class="mui-table-view mui-table-view-chevron"></ul>
+    <!--数据列表-->
+    <ul id="ulResult" class="mui-table-view mui-table-view-chevron"></ul>
+
 
 </div>
