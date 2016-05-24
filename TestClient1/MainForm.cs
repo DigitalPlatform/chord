@@ -1522,9 +1522,11 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
         private void button_message_delete_Click(object sender, EventArgs e)
         {
-            DoDeleteMessage(this.textBox_message_groupName.Text,
-    this.textBox_message_text.Text);
+            bool bControl = Control.ModifierKeys == Keys.Control;
 
+            DoDeleteMessage(bControl ? "expire" : "delete",
+                this.textBox_message_groupName.Text,
+                this.textBox_message_text.Text);
         }
 
         List<string> GetAllMessageID(string strGroupCondition)
@@ -1593,7 +1595,10 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         }
 
 
-        async void DoDeleteMessage(string strGroupName, string strMessageIDList)
+        async void DoDeleteMessage(
+            string strAction,
+            string strGroupName,
+            string strMessageIDList)
         {
             string strError = "";
 
@@ -1635,7 +1640,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     MessageConnection connection = await this._channels.GetConnectionAsync(
                         this.textBox_config_messageServerUrl.Text,
                         "");
-                    SetMessageRequest param = new SetMessageRequest("delete",
+                    SetMessageRequest param = new SetMessageRequest(strAction,  // "delete",
                         "",
                         records);
 
