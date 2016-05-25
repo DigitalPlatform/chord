@@ -57,7 +57,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiResult.cs" />
-    <Compile Include="BaseMsgHandler.cs" />
     <Compile Include="Command\BindingCommand.cs" />
     <Compile Include="Command\SearchCommand.cs" />
     <Compile Include="Command\BaseCommand.cs" />
@@ -66,11 +65,10 @@
     <Compile Include="dp2BaseCommandService.cs" />
     <Compile Include="dp2CommandService.cs" />
     <Compile Include="dp2CmdService2.cs" />
-    <Compile Include="dp2MsgHandler.cs" />
     <Compile Include="ImgManager.cs" />
     <Compile Include="Interface\MessageInterface.cs" />
     <Compile Include="Interface\ScriptManager.cs" />
-    <Compile Include="Router.cs" />
+    <Compile Include="MsgRouter.cs" />
     <Compile Include="SearchBiblioResult.cs" />
     <Compile Include="TemplateData.cs" />
     <Compile Include="WxUserDatabase.cs" />

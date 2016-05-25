@@ -26,19 +26,19 @@ namespace dp2Command.Service
         {
             //Thread.Sleep(100); //假设多线程的时候因某种原因阻塞100毫秒
         }
-        static object myObject = new object();
+        static object _lock = new object();
         static public dp2CommandService Instance
         {
             get
             {
-                lock (myObject)
+                lock (_lock)
                 {
                     if (null == _instance)
                     {
                         _instance = new dp2CommandService();
                     }
-                    return _instance;
                 }
+                return _instance;
             }
         }
         //===========
