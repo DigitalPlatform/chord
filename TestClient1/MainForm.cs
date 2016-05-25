@@ -9,6 +9,8 @@ using System.Windows.Forms;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Web;
+using System.Xml;
+using System.Messaging;
 
 using TestClient1.Properties;
 
@@ -17,8 +19,6 @@ using DigitalPlatform.MessageClient;
 using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
 using DigitalPlatform;
-using System.Xml;
-using System.Messaging;
 
 namespace TestClient1
 {

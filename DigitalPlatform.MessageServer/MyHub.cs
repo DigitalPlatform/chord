@@ -610,7 +610,7 @@ ex.GetType().ToString());
                 if (string.IsNullOrEmpty(groupName) == true)
                     groupName = "<default>";    // 需要在各个环节正规化组的名字
 #endif
-                    // 二人或者三人小组，没有必要采用 SignalR 的 group 机制，用 connection id 一个一个发送
+                    // 二人或者三人小组，没有必要采用 SignalR 的 group 机制，而用 connection id 一个一个发送
                     if (item.groups.Length > 1)
                     {
                         List<string> ids = ServerInfo.ConnectionTable.GetConnectionIds(item.groups);
@@ -629,16 +629,39 @@ ex.GetType().ToString());
                     }
                 }
 
+                int batch_size = 10;
+
                 foreach (string groupName in group_table.Keys)
                 {
                     List<MessageRecord> records = (List<MessageRecord>)group_table[groupName];
                     Debug.Assert(records != null, "");
                     Debug.Assert(records.Count != 0, "");
                     Console.WriteLine("Push to group '" + groupName + "'");
+
+                    // 如果 records 包含数量太多，需要分批发送
+                    List<MessageRecord> batch = new List<MessageRecord>();
+                    int i = 0;
+                    foreach(MessageRecord record in records)
+                    {
+                        batch.Add(record);
+                        if (batch.Count >= batch_size 
+                            || (i == records.Count - 1 && batch.Count > 0))
+                        {
+                            if (excludeConnectionIds == null)
+                                Clients.Group(groupName).addMessage(action, batch);
+                            else
+                                Clients.Group(groupName, excludeConnectionIds).addMessage(action, batch);
+                            batch.Clear();
+                        }
+                        i++;
+                    }
+
+#if NO
                     if (excludeConnectionIds == null)
                         Clients.Group(groupName).addMessage(action, records);
                     else
                         Clients.Group(groupName, excludeConnectionIds).addMessage(action, records);
+#endif
                 }
             }
             catch (Exception ex)
