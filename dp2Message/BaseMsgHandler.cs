@@ -52,29 +52,22 @@ namespace dp2Message
             this._wxMsgThread.BeginThread();
         }
 
-
-        int _inGetMessage = 0;  // 防止因为 ConnectionStateChange 事件导致重入
         void _channels_ConnectionStateChange(object sender, ConnectionEventArgs e)
         {
-            if (_inGetMessage > 0)
-                return;
-
             if (e.Action == "Reconnected"
                 || e.Action == "Connected")
             {
-                FillDeltaMessage();
+                this._wxMsgThread.Activate();
+                //this._wxMsgThread.Worker();
             }
         }
 
         void SystemEvents_PowerModeChanged(object sender, PowerModeChangedEventArgs e)
         {
             if (e.Mode == PowerModes.Resume)
-                FillDeltaMessage();
-        }
-
-        void FillDeltaMessage()
-        {
-            Task.Factory.StartNew(() => DoLoadMessage());
+            {
+                this._wxMsgThread.Activate();
+            }
         }
 
         /// <summary>
@@ -96,98 +89,80 @@ namespace dp2Message
         }
 
         // 被1分钟轮循一次的工作线程调用
-        public async void DoLoadMessage()
+        public void DoLoadMessage()
         {
-            if (_inGetMessage > 0)
-                return;
-            _inGetMessage++;
+          string strGroupName = "_patronNotify";//"<default>";
+            string strError = "";
             try
             {
-                string strGroupName = "_patronNotify";//"<default>";
-                string strError = "";
-                try
-                {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
-                        this._dp2mserverUrl,
-                        "");
-                    /*
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                    this._dp2mserverUrl,
+                    "").Result;
+                /*
 我提前说一下：小批循环获取，如果按照一个条件，不在中途删除服务器端的消息，应该是这样循环：start=0,count=100; start=101,count=100,...
 如果你每次中途都主动删除(或者失效)刚处理的这小批消息，循环就是这样了：start=0,count=100; start=0,count=100;... 明白么？分号位置是要做删除调用的
 当然如果请求的条件发生变化了，就不算同一批了
 多次调用只是为了避免突破内存空间问题，脑子里要清楚这个原则。
-                     */
-                    int batchNo = 1;//用于输出，看结果对不对
-                    long totalCount = -1;//用于输出，看结果对不对 -1表示未赋值
+                 */
+                int batchNo = 1;//用于输出，看结果对不对
+                long totalCount = -1;//用于输出，看结果对不对 -1表示未赋过值
 
-                    int start = 0;
-                    int count = 10;
-                REDO:
-                    CancellationToken cancel_token = new CancellationToken();
-                    string id = Guid.NewGuid().ToString();
-                    GetMessageRequest request = new GetMessageRequest(id,
-                        "",
-                        strGroupName, // "" 表示默认群组
-                        "",
-                        "",
-                        start,
-                        count);
+                int start = 0;
+                int count = 10;
+            REDO:
+                CancellationToken cancel_token = new CancellationToken();
+                string id = Guid.NewGuid().ToString();
+                GetMessageRequest request = new GetMessageRequest(id,
+                    "",
+                    strGroupName, // "" 表示默认群组
+                    "",
+                    "",
+                    start,
+                    count);
 
-                    // 改为同步小批循环获取。原来回调函数方案删除或失效有问题，也占响应时间
-                    GetMessageResult result = connection.GetMessage(request,
-                        new TimeSpan(0, 1, 0),
-                        cancel_token);
-                    if (result.Value == -1)
-                    {
-                        goto ERROR1;
-                    }
-                    if (result.Value == 0)
-                    {
-                        goto END1;
-                    }
+                // 改为同步小批循环获取。原来回调函数方案删除或失效有问题，也占响应时间
+                GetMessageResult result = connection.GetMessage(request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token);
+                if (result.Value == -1)
+                {
+                    goto ERROR1;
+                }
 
-                    // 用于测试，第一次返回的记为总记录数
-                    if (totalCount == -1)
-                        totalCount = result.Value;
+                // 用于测试，第一次返回的记为总记录数
+                if (totalCount == -1)
+                    totalCount = result.Value;
 
-                    // 做事，发送消息给微信，里面用了expire,所以下次的start位置不变
-                    if (result.Results != null && result.Results.Count > 0)
-                    {
-                        this.DoMessage(result.Results, "getMessage");
-                    }
+                // 做事，发送消息给微信，里面用了expire,所以下次的start位置不变
+                if (result.Results != null && result.Results.Count > 0)
+                {
+                    // 处理消息
+                    this.DoMessage(result.Results, "getMessage");
 
                     // 继续获取消息
-                    if (result.Results != null && result.Results.Count > 0
-                        && result.Value > result.Results.Count)
-                    {
-                        //start += result.Results.Count;
-
-                        batchNo++; //用于输出，测试
-                        goto REDO;
-                    }
-
-                END1:
-                    // 输出一次分批获取的情况
-                    this.WriteErrorLog("总记录数[" + totalCount + "],分为[" + batchNo + "]批获取完:)");
+                    batchNo++; //用于输出，测试
+                    goto REDO;
                 }
-                catch (AggregateException ex)
-                {
-                    strError = MessageConnection.GetExceptionText(ex);
-                    goto ERROR1;
-                }
-                catch (Exception ex)
-                {
-                    strError = ex.Message;
-                    goto ERROR1;
-                }
-                return;
 
-            ERROR1:
-                this.WriteErrorLog(strError);
+               
+                // 输出分批获取的情况
+                this.WriteErrorLog("总记录数[" + totalCount + "],分为[" + batchNo + "]批获取完:)");
             }
-            finally
+            catch (AggregateException ex)
             {
-                _inGetMessage--;
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
             }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+            return;
+
+        ERROR1:
+            this.WriteErrorLog(strError);
+
         }
 
         void OutputMessage(long totalCount,
@@ -241,67 +216,72 @@ namespace dp2Message
         /// <param name="records"></param>
         private void DoMessage(IList<MessageRecord> records, string from)
         {
-            lock (msgLocker)
+
+            //lock (msgLocker)
+            //{
+            try
             {
-                try
+                if (records == null || records.Count == 0)
+                    return;
+
+                List<string> delIds = new List<string>();
+                foreach (MessageRecord record in records)
                 {
-                    if (records == null || records.Count == 0)
-                        return;
-
-                    List<string> delIds = new List<string>();
-                    foreach (MessageRecord record in records)
+                    // 先检查一下是不是_patronNotify组消息，因为addMessage会得到账户配置的所有组的消息，getMessage没关系只获取_patronNotify群消息
+                    bool bPatronNotifyGroup = this.CheckIsNotifyGroup(record.groups);
+                    if (bPatronNotifyGroup == false)
                     {
-                        // 先检查一下是不是_patronNotify组消息，因为addMessage会得到账户配置的所有组的消息，getMessage没关系只获取_patronNotify群消息
-                        bool bPatronNotifyGroup = this.CheckIsNotifyGroup(record.groups);
-                        if (bPatronNotifyGroup == false)
-                        {
-                            continue;
-                        }
-
-                        // getMessage与addMessage处理消息都会走到这里，对这段代码加锁，以保证不会重发消息。
-
-                        this.WriteErrorLog("这次是[" + from + "]传过来的消息。");
-
-                        // 从已处理消息队列里查重，如果是前面处理过的，则不再处理
-                        bool bSended = this.checkMsgIsDone(record.id);
-                        if (bSended == true)
-                            continue;
-
-                        string strError = "";
-                        /// <returns>
-                        /// -1 不符合条件，不处理
-                        /// 0 未绑定微信id，未处理
-                        /// 1 成功
-                        /// </returns>
-                        int nRet = this.InternalDoMessage(record, out strError);
-                        if (nRet == -1)
-                        {
-                            this.WriteErrorLog("[" + record.id + "]出错:" + strError);
-                            // todo,对于这些消息是否删除？，现在是统统删除
-                        }
-
-                        // 加到已处理消息队列里
-                        this.AddMsgToHashTable(record.id);
-
-
-                        // 加到删除列表
-                        delIds.Add(record.id);
+                        continue;
                     }
 
-                    //删除处理过的消息
-                    if (delIds.Count > 0)
+                    // getMessage与addMessage处理消息都会走到这里，对这段代码加锁，以保证不会重发消息。
+
+                    this.WriteErrorLog("这次是[" + from + "]传过来的消息。");
+
+                    // 从已处理消息队列里查重，如果是前面处理过的，则不再处理
+                    bool bSended = this.checkMsgIsDone(record.id);
+                    if (bSended == true)
                     {
-                        string strError = "";
-                        int nRet = this.DeleteMessage(delIds, out strError);
-                        if (nRet == -1)
-                            throw new Exception(strError);
+                        this.WriteErrorLog("["+ record.id+"]在hashtable里已存在。");
+                        continue;
                     }
+
+                    string strError = "";
+                    /// <returns>
+                    /// -1 不符合条件，不处理
+                    /// 0 未绑定微信id，未处理
+                    /// 1 成功
+                    /// </returns>
+                    int nRet = this.InternalDoMessage(record, out strError);
+                    if (nRet == -1)
+                    {
+                        this.WriteErrorLog("[" + record.id + "]出错:" + strError);
+                        // todo,对于这些消息是否删除？，现在是统统删除
+                    }
+
+                    // 加到已处理消息队列里
+                    this.AddMsgToHashTable(record.id);
+
+
+                    // 加到删除列表
+                    delIds.Add(record.id);
                 }
-                catch (Exception ex)
+
+                //删除处理过的消息
+                if (delIds.Count > 0)
                 {
-                    this.WriteErrorLog(ex.Message);
+                    string strError = "";
+                    int nRet = this.DeleteMessage(delIds, out strError);
+                    if (nRet == -1)
+                        throw new Exception(strError);
                 }
             }
+            catch (Exception ex)
+            {
+                this.WriteErrorLog(ex.Message);
+            }
+            //}
+
         }
 
 
@@ -317,8 +297,8 @@ namespace dp2Message
         /// </returns>
         public virtual int InternalDoMessage(MessageRecord record, out string strError)
         {
-            strError = "";
-            return 1;
+            strError = "未处理";
+            return -1;
         }
         /// <summary>
         /// 检查是否属于通知组的消息
@@ -363,7 +343,7 @@ namespace dp2Message
             }
 
             SetMessageRequest param = new SetMessageRequest("expire",  //delete
-                "",
+                "",  //dontNotifyMe
                 records);
 
             try

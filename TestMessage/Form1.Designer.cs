@@ -30,7 +30,6 @@
         {
             this.textBox_message_groupName = new System.Windows.Forms.TextBox();
             this.label38 = new System.Windows.Forms.Label();
-            this.button_message_send = new System.Windows.Forms.Button();
             this.textBox_config_password = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.textBox_config_userName = new System.Windows.Forms.TextBox();
@@ -58,16 +57,6 @@
             this.label38.Size = new System.Drawing.Size(71, 12);
             this.label38.TabIndex = 40;
             this.label38.Text = "Group Name:";
-            // 
-            // button_message_send
-            // 
-            this.button_message_send.Location = new System.Drawing.Point(23, 123);
-            this.button_message_send.Name = "button_message_send";
-            this.button_message_send.Size = new System.Drawing.Size(145, 23);
-            this.button_message_send.TabIndex = 42;
-            this.button_message_send.Text = "Send 100条message";
-            this.button_message_send.UseVisualStyleBackColor = true;
-            this.button_message_send.Click += new System.EventHandler(this.button_message_send_Click);
             // 
             // textBox_config_password
             // 
@@ -164,12 +153,10 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.textBox_config_messageServerUrl);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.button_message_send);
             this.Controls.Add(this.textBox_message_groupName);
             this.Controls.Add(this.label38);
             this.Name = "Form1";
             this.Text = "Form1";
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -179,7 +166,6 @@
 
         private System.Windows.Forms.TextBox textBox_message_groupName;
         private System.Windows.Forms.Label label38;
-        private System.Windows.Forms.Button button_message_send;
         private System.Windows.Forms.TextBox textBox_config_password;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox textBox_config_userName;
