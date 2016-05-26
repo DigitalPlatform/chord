@@ -9,9 +9,9 @@ using DigitalPlatform;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.Message;
 
-namespace TestRouter
+namespace dp2Command.Service
 {
-    public class Router : ThreadBase
+    public class MsgRouter : ThreadBase
     {
         public event SendMessageEventHandler SendMessageEvent = null;
 
@@ -20,8 +20,6 @@ namespace TestRouter
 
         public string Url { get; set; }
         public string GroupName { get; set; }
-        public string UserName { get; set; }
-        public string Password { get; set; }
 
         // 存储从 AddMessage() 得到的消息
         List<MessageRecord> _messageList = new List<MessageRecord>();
@@ -30,43 +28,44 @@ namespace TestRouter
         // 记忆已经发送过的消息，避免重复发送
         Hashtable _sendedTable = new Hashtable();
 
-        public Router()
+        public MsgRouter()
         {
             this.PerTime = 60 * 1000;   // 60 * 1000
         }
 
-        public void Start(
-            MessageConnectionCollection channels,
+        public void Start(MessageConnectionCollection channels,
             string url,
-            string groupName,
-            string userName,
-            string password)
+            string groupName)
         {
             this.Url = url;
-            this.UserName = userName;
-            this.Password = password;
             this.GroupName = groupName;
-
             this.Channels = channels;
 
-            Channels.Login += _channels_Login;
+            //Channels.Login += _channels_Login;
+            Channels.AddMessage -= _channels_AddMessage;
             Channels.AddMessage += _channels_AddMessage;
+
+            Channels.ConnectionStateChange -= _channels_ConnectionStateChange;
+            Channels.ConnectionStateChange += _channels_ConnectionStateChange;
 
             this.BeginThread();
         }
 
         public void Stop()
         {
+            Channels.AddMessage -= _channels_AddMessage;
+            Channels.ConnectionStateChange -= _channels_ConnectionStateChange;
+
             this.StopThread(false);
         }
 
-        void _channels_Login(object sender, LoginEventArgs e)
+        void _channels_ConnectionStateChange(object sender, ConnectionEventArgs e)
         {
-            MessageConnection connection = sender as MessageConnection;
-
-            e.UserName = this.UserName;
-            e.Password = this.Password;
-            e.Parameters = "propertyList=biblio_search,libraryUID=xxx";
+            if (e.Action == "Reconnected"
+                || e.Action == "Connected")
+            {
+                this.Activate();//激活线程
+            }
         }
 
         void _channels_AddMessage(object sender, AddMessageEventArgs e)

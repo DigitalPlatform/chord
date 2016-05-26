@@ -13,9 +13,9 @@ namespace dp2Command.Service
     /// <summary>
     /// 用户数据库
     /// </summary>
-    public class WxUserDatabase
+    public sealed class WxUserDatabase
     {
-        private static WxUserDatabase _db = new WxUserDatabase();
+        private static readonly WxUserDatabase _db = new WxUserDatabase();
         public static WxUserDatabase Current
         {
             get

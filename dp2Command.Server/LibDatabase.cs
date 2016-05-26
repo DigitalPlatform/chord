@@ -14,9 +14,10 @@ namespace dp2Command.Service
     /// <summary>
     /// 用户数据库
     /// </summary>
-    public class LibDatabase
+    public sealed class LibDatabase
     {
-        private static LibDatabase repo = new LibDatabase();
+        // 饿汉模式
+        private static readonly LibDatabase repo = new LibDatabase();
         public static LibDatabase Current
         {
             get
@@ -24,6 +25,7 @@ namespace dp2Command.Service
                 return repo;
             }
         }
+
 
         MongoClient _mongoClient = null;
         IMongoDatabase _database = null;
