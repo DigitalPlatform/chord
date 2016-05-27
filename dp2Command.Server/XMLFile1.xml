@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root>
+  <type>以停代金到期</type>
+  <libraryCode></libraryCode>
+  <operation>amerce</operation>
+  <action>expire</action>
+  <readerBarcode>R00001</readerBarcode>
+  <expiredOverdues></expiredOverdues>
+  <operator>#readersMonitor</operator>
+  <operTime>Sat, 30 Jul 2016 21:40:47 +0800</operTime>
+  <version>1.02</version>
+  <patronRecord>
+    <barcode>R00001</barcode>
+    <readerType>教职工</readerType>
+    <name>任1</name>
+    <refID>63aeb890-8936-4471-bfc5-8e72d5c7fe94</refID>
+    <borrows></borrows>
+    <email>renyh1013@163.com,weixinid:o4xvUviTxj2HbRqbQb9W2nMl4fGg</email>
+    <hire expireDate="" period=""></hire>
+    <createDate>Fri, 01 Apr 2016 00:00:00 +0800</createDate>
+    <expireDate>Thu, 30 Jun 2016 00:00:00 +0800</expireDate>
+    <department>宣明学校</department>
+    <overdues></overdues>
+    <reservations></reservations>
+    <tel>13862157151</tel>
+    <libraryCode></libraryCode>
+  </patronRecord>
+  <items />
+</root>
