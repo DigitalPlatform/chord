@@ -362,6 +362,9 @@ namespace dp2Command.Service
             return nRet;
         }
 
+        private string _msgFirstLeft = "尊敬的读者：您好，";
+        private string _msgRemark = "\n如有疑问，请联系系统管理员。";
+
         /// <returns>
         /// -1 出错，格式出错或者发送模板消息出错
         /// 0 未绑定微信id
@@ -417,7 +420,7 @@ namespace dp2Command.Service
                 }
             }
 
-            string strText = barcodes + "项以停代金事项到期，";
+            string strText = "您有["+barcodes + "]项违约以停代金到期了，";
             XmlNodeList listOverdue1 = root.SelectNodes("patronRecord/overdues/overdue");
             if (listOverdue1.Count > 0)
             {
@@ -440,11 +443,11 @@ namespace dp2Command.Service
                 //{{remark.DATA}}
                 var msgData = new BorrowTemplateData()
                 {
-                    first = new TemplateDataItem("您好，您的停借期限到期了。", "#000000"),
+                    first = new TemplateDataItem(this._msgFirstLeft+"您的停借期限到期了。", "#000000"),
                     keyword1 = new TemplateDataItem("以停代金到期", "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                    keyword2 = new TemplateDataItem(strText, "#000000"),
-                    keyword3 = new TemplateDataItem(operTime, "#000000"),
-                    remark = new TemplateDataItem("\n如有疑问，请联系系统管理员。", "#CCCCCC")
+                    keyword2 = new TemplateDataItem(operTime, "#000000"),
+                    keyword3 = new TemplateDataItem(strText, "#000000"),                    
+                    remark = new TemplateDataItem(this._msgRemark, "#CCCCCC")
                 };
 
                 // 发送模板消息
@@ -556,10 +559,10 @@ namespace dp2Command.Service
                 //{{remark.DATA}}
                 var msgData = new ReturnPayTemplateData()
                 {
-                    first = new TemplateDataItem("您好，撤消缴费成功！", "#000000"),
-                    reason = new TemplateDataItem("撤消" + barcodes + "缴费", "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                    first = new TemplateDataItem(this._msgFirstLeft + "撤消交费成功！", "#000000"),
+                    reason = new TemplateDataItem("撤消[" + barcodes + "]交费。", "#000000"),//text.ToString()),// "请让我慢慢长大"),
                     refund = new TemplateDataItem("CNY" + totalPrice, "#000000"),
-                    remark = new TemplateDataItem("\n如有疑问，请联系系统管理员。", "#CCCCCC")
+                    remark = new TemplateDataItem(this._msgRemark, "#CCCCCC")
                 };
 
                 // 发送模板消息
@@ -684,13 +687,13 @@ namespace dp2Command.Service
                 //如有疑问，请联系学校管理员，感谢您的使用！、
                 var msgData = new PayTemplateData()
                 {
-                    first = new TemplateDataItem("您好，您已缴费成功！", "#000000"),
+                    first = new TemplateDataItem(this._msgFirstLeft+"您已交费成功！", "#000000"),
                     keyword1 = new TemplateDataItem(barcodes, "#000000"),//text.ToString()),// "请让我慢慢长大"),
                     keyword2 = new TemplateDataItem(patronName, "#000000"),
                     keyword3 = new TemplateDataItem("CNY"+totalPrice, "#000000"),
                     keyword4 = new TemplateDataItem(reasons, "#000000"),
                     keyword5 = new TemplateDataItem(operTime, "#000000"),
-                    remark = new TemplateDataItem("\n如有疑问，请联系系统管理员。", "#CCCCCC")
+                    remark = new TemplateDataItem(this._msgRemark, "#CCCCCC")
                 };
 
                 // 发送模板消息
@@ -808,7 +811,7 @@ namespace dp2Command.Service
 
             // 检查是否有超期信息
             string remark = "\n欢迎继续借书。";
-            XmlNodeList listOverdue = root.SelectNodes("/overdues/overdue");
+            XmlNodeList listOverdue = root.SelectNodes("patronRecord/overdues/overdue");
             if (listOverdue.Count > 0)
             {
                 remark = "\n您有" +listOverdue.Count+"笔超期违约记录，请尽快交费。";
@@ -831,7 +834,7 @@ namespace dp2Command.Service
                 //欢迎继续借书!
                 var msgData = new ReturnTemplateData()
                 {
-                    first = new TemplateDataItem("您好，您借阅的图书已确认归还。", "#000000"),
+                    first = new TemplateDataItem(this._msgFirstLeft+"您借出的图书已确认归还。", "#000000"),
                     keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
                     keyword2 = new TemplateDataItem(operTime, "#000000"),
                     keyword3 = new TemplateDataItem(patronName, "#000000"),
@@ -989,7 +992,7 @@ namespace dp2Command.Service
                 //祝您阅读愉快，欢迎再借。
                 var msgData = new BorrowTemplateData()
                 {
-                    first = new TemplateDataItem("尊敬的"+patronName+"，恭喜您借书成功。", "#000000"),
+                    first = new TemplateDataItem(this._msgFirstLeft+"恭喜您借书成功。", "#000000"),
                     keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
                     keyword2 = new TemplateDataItem(itemBarcode, "#000000"),
                     keyword3 = new TemplateDataItem(borrowDate, "#000000"),
@@ -1037,29 +1040,31 @@ namespace dp2Command.Service
             /*
            body元素里面是预约到书通知记录(注意这是一个字符串，需要另行装入一个XmlDocument解析)，其格式如下：
            <?xml version="1.0" encoding="utf-8"?>
-           <root>
-               <type>预约到书通知</type>
-               <itemBarcode>0000001</itemBarcode>
-               <refID> </refID>
-               <opacURL>/book.aspx?barcode=0000001</opacURL>
-               <reserveTime>2天</reserveTime>
-               <today>2016/5/17 10:10:59</today>
-               <summary>船舶柴油机 / 聂云超主编. -- ISBN 7-...</summary>
-               <patronName>张三</patronName>
-               <patronRecord>
-                   <barcode>R0000001</barcode>
-                   <readerType>本科生</readerType>
-                   <name>张三</name>
-                   <refID>be13ecc5-6a9c-4400-9453-a072c50cede1</refID>
-                   <department>数学系</department>
-                   <address>address</address>
-                   <cardNumber>C12345</cardNumber>
-                   <refid>8aa41a9a-fb42-48c0-b9b9-9d6656dbeb76</refid>
-                   <email>email:xietao@dp2003.com,weixinid:testwx2</email>
-                   <tel>13641016400</tel>
-                   <idCardNumber>1234567890123</idCardNumber>
-               </patronRecord>
-           </root
+ <root>
+	<type>预约到书通知</type>
+    <itemBarcode>0000001</itemBarcode>
+<refID> </refID>
+<onShelf>false</onShelf>
+    <opacURL>/book.aspx?barcode=0000001</opacURL>
+    <reserveTime>2天</reserveTime>
+    <today>2016/5/17 10:10:59</today>
+    <summary>船舶柴油机 / 聂云超主编. -- ISBN 7-...</summary>
+    <patronName>张三</patronName>
+    <patronRecord>
+        <barcode>R0000001</barcode>
+        <readerType>本科生</readerType>
+        <name>张三</name>
+        <refID>be13ecc5-6a9c-4400-9453-a072c50cede1</refID>
+        <department>数学系</department>
+        <address>address</address>
+        <cardNumber>C12345</cardNumber>
+        <refid>8aa41a9a-fb42-48c0-b9b9-9d6656dbeb76</refid>
+        <email>email:xietao@dp2003.com,weixinid:testwx2</email>
+        <tel>13641016400</tel>
+        <idCardNumber>1234567890123</idCardNumber>
+    </patronRecord>
+</root>
+
            */
 
             string patronName = "";
@@ -1071,6 +1076,7 @@ namespace dp2Command.Service
             }
 
             XmlNode root = bodyDom.DocumentElement;
+            //<onShelf>false</onShelf>
             // <reserveTime>2天</reserveTime>
             // <today>2016/5/17 10:10:59</today>
             // 取出预约消息
@@ -1098,7 +1104,26 @@ namespace dp2Command.Service
             }
             string today = DomUtil.GetNodeText(nodeToday);
 
+            // 是否在架
+            XmlNode nodeOnShelf = root.SelectSingleNode("onShelf");
+            if (nodeOnShelf == null)
+            {
+                strError = "尚未定义<onShelf>节点";
+                return -1;
+            }
+            string onShelf = DomUtil.GetNodeText(nodeOnShelf);
+            bool bOnShelf = false;
+            if (onShelf == "true")
+                bOnShelf = true;
 
+            string first = this._msgFirstLeft+"我们很高兴地通知您，您预约的下列图书到了，请尽快来图书馆办理借书手续。";
+            string end = "\n如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
+            if (bOnShelf == true)
+            {
+                first = this._msgFirstLeft + "我们很高兴地通知您，您预约的图书已经在架上，请尽快来图书馆办理借书手续。";
+                end = "\n如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或允许其他读者借阅。";
+            }
+            
             foreach (string weiXinId in weiXinIdList)
             {
                 var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
@@ -1110,11 +1135,11 @@ namespace dp2Command.Service
                 //{{remark.DATA}}
                 var msgData = new ArrivedTemplateData()
                 {
-                    first = new TemplateDataItem("尊敬的读者：您预约的图书已经到书，请尽快来图书馆办理借书手续。", "#000000"),
+                    first = new TemplateDataItem(first, "#000000"),
                     keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
                     keyword2 = new TemplateDataItem(today, "#000000"),
                     keyword3 = new TemplateDataItem("保留" + reserveTime, "#000000"),
-                    remark = new TemplateDataItem("\n如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。", "#CCCCCC")
+                    remark = new TemplateDataItem(end, "#CCCCCC")
                 };
 
                 // 发送预约模板消息
@@ -1190,12 +1215,12 @@ namespace dp2Command.Service
                 if (overdueType == "overdue")
                 {
                     templateId = dp2CmdService2.C_Template_CaoQi;
-                    first = "尊敬的" + patronName + " 您好！您借阅的图书已超期，请尽快归还。";
+                    first = this._msgFirstLeft+"您借出的图书已超期，请尽快归还。";
                 }
                 else if (overdueType == "warning")
                 {
                     templateId = dp2CmdService2.C_Template_DaoQi;
-                    first = "尊敬的" + patronName + " 您好！您借阅的图书即将到期，请注意不要超期，留意归还。";
+                    first = this._msgFirstLeft+"您借出的图书即将到期，请注意不要超期，留意归还。";
                 }
                 else 
                 {
