@@ -44,7 +44,9 @@ namespace dp2weixinP2P
             dp2CmdService2.Instance.Init(dataDir);
 
             // 注册一缓存条目在5分钟内到期,到期后模拟点击网站网页  
-            this.RegisterCacheEntry();
+            //this.RegisterCacheEntry();
+            HttpContext.Current.Cache.Remove(DummyCacheItemKey);
+
         }
 
         void Application_End(object sender, EventArgs e)
@@ -53,46 +55,46 @@ namespace dp2weixinP2P
         }
 
 
-        //防止程序无访问时，停掉 http://blog.csdn.net/a497785609/article/details/5941283
-        //http://www.codeproject.com/Articles/12117/Simulate-a-Windows-Service-using-ASP-NET-to-run-sc
-        private const string DummyPageUrl = "http://dp2003.com/dp2weixin/home/index";
+        ////防止程序无访问时，停掉 http://blog.csdn.net/a497785609/article/details/5941283
+        ////http://www.codeproject.com/Articles/12117/Simulate-a-Windows-Service-using-ASP-NET-to-run-sc
+        //private const string DummyPageUrl = "http://dp2003.com/dp2weixin/home/index";
         private const string DummyCacheItemKey = "dp2weixin-index";
-        // 注册一缓存条目在5分钟内到期，到期后触发的调事件  
-        private void RegisterCacheEntry()
-        {
-            if (null != HttpContext.Current.Cache[DummyCacheItemKey])
-                return;
+        //// 注册一缓存条目在5分钟内到期，到期后触发的调事件  
+        //private void RegisterCacheEntry()
+        //{
+        //    if (null != HttpContext.Current.Cache[DummyCacheItemKey])
+        //        return;
 
-            HttpContext.Current.Cache.Add(DummyCacheItemKey,
-                "Test",
-                null,
-                DateTime.MaxValue,
-                TimeSpan.FromMinutes(5),
-                CacheItemPriority.NotRemovable,
-                new CacheItemRemovedCallback(CacheItemRemovedCallback));
+        //    HttpContext.Current.Cache.Add(DummyCacheItemKey,
+        //        "Test",
+        //        null,
+        //        DateTime.MaxValue,
+        //        TimeSpan.FromMinutes(5),
+        //        CacheItemPriority.NotRemovable,
+        //        new CacheItemRemovedCallback(CacheItemRemovedCallback));
 
-            dp2CmdService2.Instance.WriteInfoLog("注册一缓存条目在5分钟内到期");
-        }
+        //    dp2CmdService2.Instance.WriteInfoLog("注册一缓存条目在5分钟内到期");
+        //}
 
-        // 缓存项过期时程序模拟点击页面，阻止应用程序结束  
-        public void CacheItemRemovedCallback(string key, object value, CacheItemRemovedReason reason)
-        {
-            HitPage();
-        }
+        //// 缓存项过期时程序模拟点击页面，阻止应用程序结束  
+        //public void CacheItemRemovedCallback(string key, object value, CacheItemRemovedReason reason)
+        //{
+        //    HitPage();
+        //}
 
-        // 模拟点击网站网页  
-        private void HitPage()
-        {
-            System.Net.WebClient client = new System.Net.WebClient();
-            client.DownloadData(DummyPageUrl);
-        }
-        protected void Application_BeginRequest(Object sender, EventArgs e)
-        {
-            if (HttpContext.Current.Request.Url.ToString() == DummyPageUrl)
-            {
-                RegisterCacheEntry();
-            }
-        }
+        //// 模拟点击网站网页  
+        //private void HitPage()
+        //{
+        //    System.Net.WebClient client = new System.Net.WebClient();
+        //    client.DownloadData(DummyPageUrl);
+        //}
+        //protected void Application_BeginRequest(Object sender, EventArgs e)
+        //{
+        //    if (HttpContext.Current.Request.Url.ToString() == DummyPageUrl)
+        //    {
+        //        RegisterCacheEntry();
+        //    }
+        //}
 
 
     }

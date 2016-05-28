@@ -199,24 +199,34 @@ namespace dp2Command.Service
                 return;
             }
 
-            string strError = "";
-            /// <returns>
-            /// -1 不符合条件，不处理
-            /// 0 未绑定微信id，未处理
-            /// 1 成功
-            /// </returns>
-            int nRet = this.InternalDoMessage(record, out strError);
-            if (nRet == -1)
+            //this.WriteErrorLog("走进_msgRouter_SendMessageEvent");
+
+            try
             {
-                this.WriteErrorLog("[" + record.id + "]未发送成功:" + strError);
+                string strError = "";
+                /// <returns>
+                /// -1 不符合条件，不处理
+                /// 0 未绑定微信id，未处理
+                /// 1 成功
+                /// </returns>
+                int nRet = this.InternalDoMessage(record, out strError);
+                if (nRet == -1)
+                {
+                    this.WriteErrorLog("[" + record.id + "]未发送成功:" + strError);
+                }
+                else if (nRet == 0)
+                {
+                    this.WriteErrorLog("[" + record.id + "]未发送成功：未绑定微信id。");
+                }
+                else
+                {
+                    this.WriteErrorLog("[" + record.id + "]发送成功。");
+                }
             }
-            else if (nRet == 0)
+            catch (Exception ex)
             {
-                this.WriteErrorLog("[" + record.id + "]未发送成功：未绑定微信id。");
-            }
-            else
-            {           
-                this.WriteErrorLog("[" + record.id + "]发送成功。");
+                this.WriteErrorLog("[" + record.id + "]异常："+ex.Message);
+
             }
         }
 
@@ -434,33 +444,40 @@ namespace dp2Command.Service
 
             foreach (string weiXinId in weiXinIdList)
             {
-                var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
-
-                //{{first.DATA}}
-                //标题：{{keyword1.DATA}}
-                //时间：{{keyword2.DATA}}
-                //内容：{{keyword3.DATA}}
-                //{{remark.DATA}}
-                var msgData = new BorrowTemplateData()
+                try
                 {
-                    first = new TemplateDataItem(this._msgFirstLeft+"您的停借期限到期了。", "#000000"),
-                    keyword1 = new TemplateDataItem("以停代金到期", "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                    keyword2 = new TemplateDataItem(operTime, "#000000"),
-                    keyword3 = new TemplateDataItem(strText, "#000000"),                    
-                    remark = new TemplateDataItem(this._msgRemark, "#CCCCCC")
-                };
+                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
-                // 发送模板消息
-                var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                    weiXinId,
-                    dp2CmdService2.C_Template_Message,
-                    "#FF0000",
-                    "",//不出现详细了
-                    msgData);
-                if (result1.errcode != 0)
+                    //{{first.DATA}}
+                    //标题：{{keyword1.DATA}}
+                    //时间：{{keyword2.DATA}}
+                    //内容：{{keyword3.DATA}}
+                    //{{remark.DATA}}
+                    var msgData = new BorrowTemplateData()
+                    {
+                        first = new TemplateDataItem("〓〓〓〓〓〓〓〓〓〓〓〓〓〓〓", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
+                        keyword1 = new TemplateDataItem("以停代金到期", "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                        keyword2 = new TemplateDataItem(operTime, "#000000"),
+                        keyword3 = new TemplateDataItem(strText, "#000000"),
+                        remark = new TemplateDataItem(this._msgRemark, "#CCCCCC")
+                    };
+
+                    // 发送模板消息
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weiXinId,
+                        dp2CmdService2.C_Template_Message,
+                        "#FF0000",
+                        "",//不出现详细了
+                        msgData);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
+                }
+                catch (Exception ex)
                 {
-                    strError = result1.errmsg;
-                    return -1;
+                    this.WriteErrorLog("给读者" + patronName + "发送'以停代金到期'通知异常：" + ex.Message);
                 }
             }
 
@@ -551,6 +568,8 @@ namespace dp2Command.Service
 
             foreach (string weiXinId in weiXinIdList)
             {
+                try
+                { 
                 var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
                 //{{first.DATA}}
@@ -559,7 +578,7 @@ namespace dp2Command.Service
                 //{{remark.DATA}}
                 var msgData = new ReturnPayTemplateData()
                 {
-                    first = new TemplateDataItem(this._msgFirstLeft + "撤消交费成功！", "#000000"),
+                    first = new TemplateDataItem("☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆", "#B8860B"),  // 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
                     reason = new TemplateDataItem("撤消[" + barcodes + "]交费。", "#000000"),//text.ToString()),// "请让我慢慢长大"),
                     refund = new TemplateDataItem("CNY" + totalPrice, "#000000"),
                     remark = new TemplateDataItem(this._msgRemark, "#CCCCCC")
@@ -576,6 +595,11 @@ namespace dp2Command.Service
                 {
                     strError = result1.errmsg;
                     return -1;
+                }
+                }
+                catch (Exception ex)
+                {
+                    this.WriteErrorLog("给读者" + patronName + "发送'撤消交费成功'通知异常：" + ex.Message);
                 }
             }
 
@@ -669,44 +693,52 @@ namespace dp2Command.Service
 
             foreach (string weiXinId in weiXinIdList)
             {
-                var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
-                //{{first.DATA}}
-                //订单号：{{keyword1.DATA}}
-                //缴费人：{{keyword2.DATA}}
-                //缴费金额：{{keyword3.DATA}}
-                //费用类型：{{keyword4.DATA}}
-                //缴费时间：{{keyword5.DATA}}
-                //{{remark.DATA}}
-                //您好，您已缴费成功！
-                //订单号：书名（册条码号）
-                //缴费人：张三
-                //缴费金额：￥100.00
-                //费用类型：违约
-                //缴费时间：2015-12-27 13:15
-                //如有疑问，请联系学校管理员，感谢您的使用！、
-                var msgData = new PayTemplateData()
+                try
                 {
-                    first = new TemplateDataItem(this._msgFirstLeft+"您已交费成功！", "#000000"),
-                    keyword1 = new TemplateDataItem(barcodes, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                    keyword2 = new TemplateDataItem(patronName, "#000000"),
-                    keyword3 = new TemplateDataItem("CNY"+totalPrice, "#000000"),
-                    keyword4 = new TemplateDataItem(reasons, "#000000"),
-                    keyword5 = new TemplateDataItem(operTime, "#000000"),
-                    remark = new TemplateDataItem(this._msgRemark, "#CCCCCC")
-                };
+                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
-                // 发送模板消息
-                var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                    weiXinId,
-                    dp2CmdService2.C_Template_Pay,
-                    "#FF0000",
-                    "",//不出现详细了
-                    msgData);
-                if (result1.errcode != 0)
+                    //{{first.DATA}}
+                    //订单号：{{keyword1.DATA}}
+                    //缴费人：{{keyword2.DATA}}
+                    //缴费金额：{{keyword3.DATA}}
+                    //费用类型：{{keyword4.DATA}}
+                    //缴费时间：{{keyword5.DATA}}
+                    //{{remark.DATA}}
+                    //您好，您已缴费成功！
+                    //订单号：书名（册条码号）
+                    //缴费人：张三
+                    //缴费金额：￥100.00
+                    //费用类型：违约
+                    //缴费时间：2015-12-27 13:15
+                    //如有疑问，请联系学校管理员，感谢您的使用！、
+                    var msgData = new PayTemplateData()
+                    {
+                        first = new TemplateDataItem("★★★★★★★★★★★★★★★", "#556B2F"),//dark olive green//this._msgFirstLeft+"您已交费成功！"
+                        keyword1 = new TemplateDataItem(barcodes, "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                        keyword2 = new TemplateDataItem(patronName, "#000000"),
+                        keyword3 = new TemplateDataItem("CNY" + totalPrice, "#000000"),
+                        keyword4 = new TemplateDataItem(reasons, "#000000"),
+                        keyword5 = new TemplateDataItem(operTime, "#000000"),
+                        remark = new TemplateDataItem(this._msgRemark, "#CCCCCC")
+                    };
+
+                    // 发送模板消息
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weiXinId,
+                        dp2CmdService2.C_Template_Pay,
+                        "#FF0000",
+                        "",//不出现详细了
+                        msgData);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
+                }
+                catch (Exception ex)
                 {
-                    strError = result1.errmsg;
-                    return -1;
+                    this.WriteErrorLog("给读者" + patronName + "发送交费成功通知异常：" + ex.Message);
                 }
             }
 
@@ -814,44 +846,51 @@ namespace dp2Command.Service
             XmlNodeList listOverdue = root.SelectNodes("patronRecord/overdues/overdue");
             if (listOverdue.Count > 0)
             {
-                remark = "\n您有" +listOverdue.Count+"笔超期违约记录，请尽快交费。";
+                remark = "\n您有" + listOverdue.Count + "笔超期违约记录，请履行超期手续。";
             }
 
 
             foreach (string weiXinId in weiXinIdList)
             {
-                var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
-
-                //{{first.DATA}}
-                //书名：{{keyword1.DATA}}
-                //归还时间：{{keyword2.DATA}}
-                //借阅人：{{keyword3.DATA}}
-                //{{remark.DATA}}    
-                //您好,你借阅的图书已确认归还.
-                //书名：算法导论
-                //归还时间：2015-10-10 12:14
-                //借阅人：李明
-                //欢迎继续借书!
-                var msgData = new ReturnTemplateData()
+                try
                 {
-                    first = new TemplateDataItem(this._msgFirstLeft+"您借出的图书已确认归还。", "#000000"),
-                    keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                    keyword2 = new TemplateDataItem(operTime, "#000000"),
-                    keyword3 = new TemplateDataItem(patronName, "#000000"),
-                    remark = new TemplateDataItem(remark, "#CCCCCC")
-                };
+                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
-                // 发送模板消息
-                var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                    weiXinId,
-                    dp2CmdService2.C_Template_Return,
-                    "#FF0000",
-                    "",//不出现详细了
-                    msgData);
-                if (result1.errcode != 0)
+                    //{{first.DATA}}
+                    //书名：{{keyword1.DATA}}
+                    //归还时间：{{keyword2.DATA}}
+                    //借阅人：{{keyword3.DATA}}
+                    //{{remark.DATA}}    
+                    //您好,你借阅的图书已确认归还.
+                    //书名：算法导论
+                    //归还时间：2015-10-10 12:14
+                    //借阅人：李明
+                    //欢迎继续借书!
+                    var msgData = new ReturnTemplateData()
+                    {
+                        first = new TemplateDataItem("┅┅┅┅┅┅┅┅┅┅┅┅", "#00008B"),  // 	dark blue//this._msgFirstLeft + "您借出的图书已确认归还。"
+                        keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                        keyword2 = new TemplateDataItem(operTime, "#000000"),
+                        keyword3 = new TemplateDataItem(patronName, "#000000"),
+                        remark = new TemplateDataItem(remark, "#CCCCCC")
+                    };
+
+                    // 发送模板消息
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weiXinId,
+                        dp2CmdService2.C_Template_Return,
+                        "#00008B",
+                        "",//不出现详细了
+                        msgData);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
+                }
+                catch (Exception ex)
                 {
-                    strError = result1.errmsg;
-                    return -1;
+                    this.WriteErrorLog("给读者" + patronName + "发送还书成功通知异常：" + ex.Message);
                 }
             }
 
@@ -981,38 +1020,46 @@ namespace dp2Command.Service
 
             foreach (string weiXinId in weiXinIdList)
             {
-                var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
-
-                //尊敬的XXX，恭喜您借书成功。
-                //图书书名：C#开发教程
-                //册条码号：C0000001
-                //借阅日期：2016-5-27
-                //借阅期限：31
-                //应还日期：2016-6-27
-                //祝您阅读愉快，欢迎再借。
-                var msgData = new BorrowTemplateData()
+                try
                 {
-                    first = new TemplateDataItem(this._msgFirstLeft+"恭喜您借书成功。", "#000000"),
-                    keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                    keyword2 = new TemplateDataItem(itemBarcode, "#000000"),
-                    keyword3 = new TemplateDataItem(borrowDate, "#000000"),
-                    keyword4 = new TemplateDataItem(borrowPeriod, "#000000"),
-                    keyword5 = new TemplateDataItem(returningDate, "#000000"),
-                    remark = new TemplateDataItem("\n祝您阅读愉快，欢迎再借。", "#CCCCCC")
-                };
+                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
-                // 发送模板消息
-                var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                    weiXinId,
-                    dp2CmdService2.C_Template_Borrow,
-                    "#FF0000",
-                    "",//不出现详细了
-                    msgData);
-                if (result1.errcode != 0)
-                {
-                    strError = result1.errmsg;
-                    return -1;
+                    //尊敬的XXX，恭喜您借书成功。
+                    //图书书名：C#开发教程
+                    //册条码号：C0000001
+                    //借阅日期：2016-5-27
+                    //借阅期限：31
+                    //应还日期：2016-6-27
+                    //祝您阅读愉快，欢迎再借。
+                    var msgData = new BorrowTemplateData()
+                    {
+                        first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#006400"), // 	dark green //this._msgFirstLeft + "恭喜您借书成功。"
+                        keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                        keyword2 = new TemplateDataItem(itemBarcode, "#000000"),
+                        keyword3 = new TemplateDataItem(borrowDate, "#000000"),
+                        keyword4 = new TemplateDataItem(borrowPeriod, "#000000"),
+                        keyword5 = new TemplateDataItem(returningDate, "#000000"),
+                        remark = new TemplateDataItem("\n祝您阅读愉快，欢迎再借。", "#CCCCCC")
+                    };
+
+                    // 发送模板消息
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weiXinId,
+                        dp2CmdService2.C_Template_Borrow,
+                        "#006400",  //FF0000
+                        "",//不出现详细了
+                        msgData);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
                 }
+                catch (Exception ex)
+                {
+                    this.WriteErrorLog("给读者" + patronName + "发送借书成功通知异常：" + ex.Message);
+                }
+
             }
 
 
@@ -1123,37 +1170,44 @@ namespace dp2Command.Service
                 first = this._msgFirstLeft + "我们很高兴地通知您，您预约的图书已经在架上，请尽快来图书馆办理借书手续。";
                 end = "\n如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或允许其他读者借阅。";
             }
-            
+
             foreach (string weiXinId in weiXinIdList)
             {
-                var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
-
-                //{{first.DATA}}
-                //图书书名：{{keyword1.DATA}}
-                //到书日期：{{keyword2.DATA}}
-                //保留期限：{{keyword3.DATA}}
-                //{{remark.DATA}}
-                var msgData = new ArrivedTemplateData()
+                try
                 {
-                    first = new TemplateDataItem(first, "#000000"),
-                    keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                    keyword2 = new TemplateDataItem(today, "#000000"),
-                    keyword3 = new TemplateDataItem("保留" + reserveTime, "#000000"),
-                    remark = new TemplateDataItem(end, "#CCCCCC")
-                };
+                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
-                // 发送预约模板消息
-                //string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
-                var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                    weiXinId,
-                    dp2CmdService2.C_Template_Arrived,
-                    "#FF0000",
-                    "",//不出现详细了
-                    msgData);
-                if (result1.errcode != 0)
+                    //{{first.DATA}}
+                    //图书书名：{{keyword1.DATA}}
+                    //到书日期：{{keyword2.DATA}}
+                    //保留期限：{{keyword3.DATA}}
+                    //{{remark.DATA}}
+                    var msgData = new ArrivedTemplateData()
+                    {
+                        first = new TemplateDataItem("▇▆▅▇▆▅▇▆▅▇▆▅▇▆▅", "#FF8C00"),//  dark orange   	yellow 	#FFFF00
+                        keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                        keyword2 = new TemplateDataItem(today, "#000000"),
+                        keyword3 = new TemplateDataItem("保留" + reserveTime, "#000000"),
+                        remark = new TemplateDataItem(end, "#CCCCCC")
+                    };
+
+                    // 发送预约模板消息
+                    //string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weiXinId,
+                        dp2CmdService2.C_Template_Arrived,
+                        "#FF0000",
+                        "",//不出现详细了
+                        msgData);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
+                }
+                catch (Exception ex)
                 {
-                    strError = result1.errmsg;
-                    return -1;
+                    this.WriteErrorLog("给读者" + patronName + "发送预约到书通知异常：" + ex.Message);
                 }
             }
 
@@ -1212,15 +1266,18 @@ namespace dp2Command.Service
                 string templateId = "";
                 string overdueType = DomUtil.GetAttr(item, "overdueType");
                 string first = "";
+                string end = "";
                 if (overdueType == "overdue")
                 {
                     templateId = dp2CmdService2.C_Template_CaoQi;
                     first = this._msgFirstLeft+"您借出的图书已超期，请尽快归还。";
+                    end = "\n您借出的图书已超期，请尽快归还。";
                 }
                 else if (overdueType == "warning")
                 {
                     templateId = dp2CmdService2.C_Template_DaoQi;
                     first = this._msgFirstLeft+"您借出的图书即将到期，请注意不要超期，留意归还。";
+                    end = "\n您借出的图书即将到期，请注意不要超期，留意归还。";
                 }
                 else 
                 {
@@ -1230,41 +1287,48 @@ namespace dp2Command.Service
 
                 foreach (string weiXinId in weiXinIdList)
                 {
-                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
-
-                    //{{first.DATA}}
-                    //图书书名：{{keyword1.DATA}}
-                    //应还日期：{{keyword2.DATA}}
-                    //超期天数：{{keyword3.DATA}}
-                    //{{remark.DATA}}
-
-//{{first.DATA}}
-//图书书名：{{keyword1.DATA}}
-//归还日期：{{keyword2.DATA}}
-//剩余天数：{{keyword3.DATA}}
-//{{remark.DATA}}
-                    //超期和到期格式一样，就不用再建一个TemplateData类了
-                    var msgData = new ArrivedTemplateData()
+                    try
                     {
-                        first = new TemplateDataItem(first, "#000000"),
+                        var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
-                        keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                        keyword2 = new TemplateDataItem(timeReturning, "#000000"),
-                        keyword3 = new TemplateDataItem(overdue, "#000000"),
-                        remark = new TemplateDataItem("\n点击下方”详情“查看个人详细信息。", "#CCCCCC")
-                    };
+                        //{{first.DATA}}
+                        //图书书名：{{keyword1.DATA}}
+                        //应还日期：{{keyword2.DATA}}
+                        //超期天数：{{keyword3.DATA}}
+                        //{{remark.DATA}}
 
-                    string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
-                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                        weiXinId,
-                        templateId,
-                        "#FF0000",
-                        detailUrl,//不出现详细了
-                        msgData);
-                    if (result1.errcode != 0)
+                        //{{first.DATA}}
+                        //图书书名：{{keyword1.DATA}}
+                        //归还日期：{{keyword2.DATA}}
+                        //剩余天数：{{keyword3.DATA}}
+                        //{{remark.DATA}}
+                        //超期和到期格式一样，就不用再建一个TemplateData类了
+                        var msgData = new ArrivedTemplateData()
+                        {
+                            first = new TemplateDataItem("▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉", "#FFFF00"), //yellow 	#
+
+                            keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                            keyword2 = new TemplateDataItem(timeReturning, "#000000"),
+                            keyword3 = new TemplateDataItem(overdue, "#000000"),
+                            remark = new TemplateDataItem(end, "#CCCCCC")//"\n点击下方”详情“查看个人详细信息。"
+                        };
+
+                        string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+                        var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                            weiXinId,
+                            templateId,
+                            "#FF0000",
+                            detailUrl,//不出现详细了
+                            msgData);
+                        if (result1.errcode != 0)
+                        {
+                            strError = result1.errmsg;
+                            return -1;
+                        }
+                    }
+                    catch (Exception ex)
                     {
-                        strError = result1.errmsg;
-                        return -1;
+                        this.WriteErrorLog("给读者"+patronName+"发送超期通知异常："+ex.Message);
                     }
                 }
             }

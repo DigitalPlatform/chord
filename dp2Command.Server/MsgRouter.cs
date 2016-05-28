@@ -85,6 +85,7 @@ namespace dp2Command.Service
         // 工作线程每一轮循环的实质性工作
         public override void Worker()
         {
+            //this.WriteErrorLog("走到worker1");
             List<MessageRecord> records = GetMessage();
             if (records.Count > 0)
             {
@@ -93,6 +94,8 @@ namespace dp2Command.Service
                     this._messageList.AddRange(records);
                 }
             }
+
+            //this.WriteErrorLog("走到worker2:" +records.Count);
 
             if (this._messageList.Count > 0)
             {
@@ -112,11 +115,17 @@ namespace dp2Command.Service
                     this._messageList.RemoveRange(0, temp_records.Count);
                 }
 
+                //this.WriteErrorLog("走到worker3:" + temp_records.Count);
+
                 // 发送消息给下游模块
                 SendMessage(temp_records);
 
+                //this.WriteErrorLog("走到worker4:");
+
                 // 从 dp2mserver 中删除这些消息
                 DeleteMessage(temp_records, this.GroupName);
+
+                //this.WriteErrorLog("走到worker5:");
             }
 
             // 如果本轮主动获得过消息，就要连续激活线程，让线程下次继续处理。只有本轮发现没有新消息了，才会进入休眠期
@@ -136,6 +145,8 @@ namespace dp2Command.Service
                 if (this._sendedTable.ContainsKey(record.id))
                     continue;
 
+                this.WriteErrorLog("开始处理:" + record.id);
+
                 // 发送
                 if (handler != null)
                 {
@@ -143,6 +154,8 @@ namespace dp2Command.Service
                     e.Message = record;
                     handler(this, e);
                 }
+
+                this.WriteErrorLog("处理结束:" + record.id);
 
                 this._sendedTable[record.id] = DateTime.Now;
             }
@@ -169,11 +182,12 @@ namespace dp2Command.Service
 
         void WriteErrorLog(string strText)
         {
-            MessageRecord record = new MessageRecord();
-            record.data = "*** error *** " + strText;
-            SendMessageEventArgs e = new SendMessageEventArgs();
-            e.Message = record;
-            this.SendMessageEvent(this, e);
+            dp2CmdService2.Instance.WriteErrorLog(strText);
+            //MessageRecord record = new MessageRecord();
+            //record.data = "*** error *** " + strText;
+            //SendMessageEventArgs e = new SendMessageEventArgs();
+            //e.Message = record;
+            //this.SendMessageEvent(this, e);
         }
 
         // 从 dp2mserver 获得消息
