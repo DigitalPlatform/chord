@@ -29,14 +29,14 @@ namespace ilovelibrary.Server
         {
             get
             {
-                lock (myObject)
+                if (null == _instance)
                 {
-                    if (null == _instance)
+                    lock (myObject)
                     {
                         _instance = new ilovelibraryServer();
                     }
-                    return _instance;
                 }
+                return _instance;
             }
         }
         //===========

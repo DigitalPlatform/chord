@@ -49,6 +49,14 @@ namespace dp2weixinP2P
 
         }
 
+
+        public override void Init()
+        {
+            // 对web api启用session，主要用于检索下一页
+            this.PostAuthenticateRequest += (sender, e) => HttpContext.Current.SetSessionStateBehavior(SessionStateBehavior.Required);
+            base.Init();
+        }
+
         void Application_End(object sender, EventArgs e)
         {
             dp2CmdService2.Instance.Close();

@@ -75,7 +75,8 @@
             var word = "";
 
             if (bNext == 'true') {
-                word = "_N";
+                from = "_N";
+                word = $("#maxNo").text();
             }
             else {
                 // 图书馆
@@ -121,6 +122,22 @@
                     // 关闭等待层
                     layer.close(index);
 
+                    //alert("2");
+                    if (result.apiResult.errorCode == -1) {
+                        $("#searchInfo").text("检索出错:" + result.apiResult.errorInfo);
+                        $("#searchInfo").css("color", "red");  //设置p元素的样式颜色为红色
+                    }
+                    else if (result.apiResult.errorCode == 0) {
+                        $("#searchInfo").text("未命中");
+                        $("#searchInfo").css("color", "red");  //设置p元素的样式颜色为红色
+                    }
+                    else {
+                        $("#searchInfo").text("命中" + result.apiResult.errorCode + "条记录。");
+                        $("#searchInfo").css("color", "darkgreen");  //设置p元素的样式颜色为红色
+                    }
+
+
+
                     // 出错或未命中
                     if (result.apiResult.errorCode == -1 || result.apiResult.errorCode == 0) {
                         openMsg(result.apiResult.errorInfo);
@@ -136,9 +153,13 @@
                             + "<a class='mui-navigate-right'>" +record.no+" "+ record.name + "</a>"
                             + "</li>";
                         table.append(li);
+
+                        if (i == result.records.length - 1) {
+                            $("#maxNo").text(record.no);
+                        }
                     }
 
-                    //alert("2");
+                    
 
 
                     //有下页的情况
@@ -175,6 +196,7 @@
     <h1 class="mui-title">书目查询</h1>
 }
 <span id="spanLibCode" style="display:none">@ViewBag.LibCode</span>
+<span id="maxNo" style="display:none"></span>
 <div id="divForm">
     <div class="mui-input-group">
 
@@ -186,15 +208,15 @@
         </div>
 
         <div class="mui-input-row ">
-            <label>检索途径</label>
-            <select id="selFrom" name="selFrom" onchange="prefixChange()">
+            <label style="color:#cccccc">检索途径</label>
+            <select id="selFrom" name="selFrom" >
                 <option value="title" selected>书名</option>
                 <option value="ISBN">ISBN</option>
-                <option value="title" selected>作者</option>
+                <option value="contributor">作者</option>
             </select>
         </div>
         <div class="mui-input-row">
-            <label>检索词</label>
+            <label style="color:#cccccc">检索词</label>
             <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
         </div>
     </div>
@@ -207,6 +229,7 @@
 
 <div id="divResult">
     <!--数据列表-->
+    <span style="padding-left:10px" id="searchInfo"></span>
     <ul id="ulResult" class="mui-table-view mui-table-view-chevron"></ul>
 
 

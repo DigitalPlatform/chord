@@ -84,7 +84,6 @@ namespace dp2Command.Service
         static dp2CmdService2 _instance;
         private dp2CmdService2()
         {
-            //Thread.Sleep(100); //假设多线程的时候因某种原因阻塞100毫秒
         }
         private static object _lock = new object();
         static public dp2CmdService2 Instance
@@ -2070,40 +2069,15 @@ namespace dp2Command.Service
         /// <param name="strFrom"></param>
         /// <param name="strWord"></param>
         /// <returns></returns>
-        public SearchBiblioResult SearchBiblio(string remoteUserName,
+        public long SearchBiblio(string remoteUserName,
             string strFrom,
-            string strWord)
+            string strWord,
+            out List<BiblioRecord> records,
+            out string strError)
         {
-            SearchBiblioResult searchRet = new SearchBiblioResult();
-            searchRet.apiResult = new ApiResult();
-            searchRet.apiResult.errorCode = 0;
-            searchRet.apiResult.errorInfo = "";
-            searchRet.records = new List<BiblioRecord>();
-            searchRet.isCanNext = false;
+            strError = "";
+            records = new List<BiblioRecord>();
 
-            // 取下一页的情况
-            if (strWord == "_N")
-            {
-                searchRet.apiResult.errorCode = -1;
-                searchRet.apiResult.errorInfo = "尚未完成";
-                return searchRet;
-            }
-
-            // 未传入word
-            if (string.IsNullOrEmpty(strWord) == true)
-            {
-                searchRet.apiResult.errorCode = -1;
-                searchRet.apiResult.errorInfo = "尚未传入检索词";
-                return searchRet;
-            }
-
-            // 未传入检索途径
-            if (string.IsNullOrEmpty(strFrom) == true)
-            {
-                searchRet.apiResult.errorCode = -1;
-                searchRet.apiResult.errorInfo = "尚未传入检索途径";
-                return searchRet;
-            }
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -2131,79 +2105,46 @@ namespace dp2Command.Service
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    searchRet.apiResult.errorCode = -1;
-                    searchRet.apiResult.errorInfo = "检索出错：" + result.ErrorInfo;
-                    return searchRet;
+                    strError = "检索出错：" + result.ErrorInfo;
+                    return -1;
                 }
                 if (result.ResultCount == 0)
                 {
-                    searchRet.apiResult.errorCode = 0;
-                    searchRet.apiResult.errorInfo = "未命中";
-                    return searchRet;
+                    strError = "未命中";
+                    return 0;
                 }
 
-                // 记下命令的结果数量
-                searchRet.resultCount = result.ResultCount;
 
                 List<string> resultPathList = new List<string>();
                 for (int i = 0; i < result.ResultCount; i++)
                 {
-                    if (i == 10)
-                    {
-                        searchRet.isCanNext = true;
-                        break;
-                    }
-
                     string xml = result.Records[i].Data;
                     /*<root><col>请让我慢慢长大</col><col>吴蓓著</col><col>天津教育出版社</col><col>2009</col><col>G61-53</col><col>儿童教育儿童教育</col><col></col><col>978-7-5309-5335-8</col></root>*/
                     XmlDocument dom = new XmlDocument();
                     dom.LoadXml(xml);
                     string name = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("col"));
-
                     string path = result.Records[i].RecPath;
-                    //int index = path.IndexOf("@");
-                    //if (index >= 0)
-                    //    path = path.Substring(0, index);
-
 
                     // todo，改为分批返回
                     BiblioRecord record = new BiblioRecord();
                     record.recPath = path;
                     record.name = name;
                     record.no = (i + 1).ToString();//todo 注意下一页的时候
-                    searchRet.records.Add(record);
+                    records.Add(record);
                 }
 
-
-
-                //// 将检索结果信息保存到检索命令中
-                //searchCmd.BiblioResultPathList = resultPathList;
-                //searchCmd.ResultNextStart = 0;
-                //searchCmd.IsCanNextPage = true;
-
-                //// 获得第一页检索结果
-                //bool bRet = searchCmd.GetNextPage(out strFirstPage, out strError);
-                //if (bRet == false)
-                //{
-                //    return -1;
-                //}
-                searchRet.apiResult.errorCode = 1;
-                return searchRet;
+                return result.ResultCount;
             }
             catch (AggregateException ex)
             {
-                searchRet.apiResult.errorCode = -1;
-                searchRet.apiResult.errorInfo = MessageConnection.GetExceptionText(ex); ;
-                return searchRet;
+                strError = ex.Message;
+                return -1;
             }
             catch (Exception ex)
             {
-                searchRet.apiResult.errorCode = -1;
-                searchRet.apiResult.errorInfo = ex.Message; ;
-                return searchRet;
+                strError = ex.Message;
+                return -1;
             }
-
-
         }
 
         public override long SearchBiblio(string remoteUserName,
