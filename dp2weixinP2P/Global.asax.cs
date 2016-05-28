@@ -30,7 +30,7 @@ namespace dp2weixinP2P
 
             // 从web config中取出数据目录
             string dataDir = WebConfigurationManager.AppSettings["DataDir"];
-            if (String.IsNullOrEmpty(dataDir)== true)
+            if (String.IsNullOrEmpty(dataDir) == true)
             {
                 throw new Exception("尚未在Web.config文件中设置DataDir参数");
             }
@@ -38,7 +38,7 @@ namespace dp2weixinP2P
                 dataDir = Server.MapPath(string.Format(dataDir));//"~/App_Data"
             if (Directory.Exists(dataDir) == false)
             {
-                throw new Exception("微信数据目录"+dataDir+"不存在。");
+                throw new Exception("微信数据目录" + dataDir + "不存在。");
             }
             // 初始化命令服务类
             dp2CmdService2.Instance.Init(dataDir);
@@ -55,12 +55,12 @@ namespace dp2weixinP2P
 
         //防止程序无访问时，停掉 http://blog.csdn.net/a497785609/article/details/5941283
         //http://www.codeproject.com/Articles/12117/Simulate-a-Windows-Service-using-ASP-NET-to-run-sc
-        private const string DummyPageUrl = "http:/dp2003.com/dp2weixin/home/index";
+        private const string DummyPageUrl = "http://dp2003.com/dp2weixin/home/index";
         private const string DummyCacheItemKey = "dp2weixin-index";
         // 注册一缓存条目在5分钟内到期，到期后触发的调事件  
         private void RegisterCacheEntry()
         {
-            if (null != HttpContext.Current.Cache[DummyCacheItemKey]) 
+            if (null != HttpContext.Current.Cache[DummyCacheItemKey])
                 return;
 
             HttpContext.Current.Cache.Add(DummyCacheItemKey,
@@ -92,7 +92,7 @@ namespace dp2weixinP2P
             {
                 RegisterCacheEntry();
             }
-        }  
+        }
 
 
     }

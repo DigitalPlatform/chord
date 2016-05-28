@@ -114,6 +114,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="delete.txt" />
+    <Content Include="XMLFile1.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
