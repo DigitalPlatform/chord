@@ -51,9 +51,16 @@
                 return false;
             }
 
+            //显示等待图层
+            var index = loadLayer();
+
             //alert("remove-"+item.libId);
             var url = "/api/wxuser/" + item.id;
             sendAjaxRequest(url, "DELETE", function () {
+
+                // 关闭等待层
+                layer.close(index);
+
                 getBindList(item.weixinId);
 
                 /*
@@ -65,6 +72,9 @@
                 }
                 */
             }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                layer.close(index);
                 alert(errorThrown);
             });
         }

@@ -11,6 +11,7 @@ namespace dp2weixin.service
         public const string C_Session_CurPatronInfo = "curPatronInfo";
         public const string C_Session_WeiXinId = "weiXinId";
         public const string C_Session_Code = "code";
+        public const string C_Session_SearchResult = "searchResult";
 
         public const string C_Session_IsBind = "isBind";
     }

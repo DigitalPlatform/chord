@@ -17,7 +17,8 @@ namespace dp2Command.Service
     public class dp2BaseCommandService
     {
         // 检索限制最大命中数常量
-        public const int C_Search_MaxCount = 100;
+        public const int C_Search_MaxCount = 200;
+        public const int C_OnePage_Count = 10;
 
         // 微信web程序url
         public string weiXinUrl = "";

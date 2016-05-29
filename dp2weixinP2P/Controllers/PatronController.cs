@@ -19,6 +19,8 @@ namespace dp2weixinP2P.Controllers
             if (nRet == -1)
                 return Content(strError);
 
+            string test = "test";
+
 
            string weiXinId =(string)Session[WeiXinConst.C_Session_WeiXinId];
 

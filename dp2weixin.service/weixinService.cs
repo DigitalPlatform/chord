@@ -13,6 +13,114 @@ namespace dp2weixin.service
 {
     public class WeixinService
     {
+        //=================
+        // 设为单一实例
+        static WeixinService _instance;
+        private WeixinService()
+        {
+        }
+        private static object _lock = new object();
+        static public WeixinService Instance
+        {
+            get
+            {
+                if (null == _instance)
+                {
+                    lock (_lock)  //线程安全的
+                    {
+                        _instance = new WeixinService();
+                    }
+                }
+                return _instance;
+            }
+        }
+        //===========
+
+        /// <summary>
+        /// 检索书目，word如果传_N表示取下一页
+        /// </summary>
+        /// <param name="remoteUserName"></param>
+        /// <param name="strFrom"></param>
+        /// <param name="strWord"></param>
+        /// <returns></returns>
+        public SearchBiblioResult SearchBiblio(string remoteUserName,
+            string strFrom,
+            string strWord,
+            out List<BiblioRecord> totalRecords)
+        {
+            SearchBiblioResult searchRet = new SearchBiblioResult();
+            searchRet.apiResult = new ApiResult();
+            searchRet.apiResult.errorCode = 0;
+            searchRet.apiResult.errorInfo = "";
+            searchRet.records = new List<BiblioRecord>();
+            searchRet.isCanNext = false;
+
+            totalRecords = new List<BiblioRecord>();
+
+
+
+            // 未传入word
+            if (string.IsNullOrEmpty(strWord) == true)
+            {
+                searchRet.apiResult.errorCode = -1;
+                searchRet.apiResult.errorInfo = "尚未传入检索词";
+                return searchRet;
+            }
+
+            // 未传入检索途径
+            if (string.IsNullOrEmpty(strFrom) == true)
+            {
+                searchRet.apiResult.errorCode = -1;
+                searchRet.apiResult.errorInfo = "尚未传入检索途径";
+                return searchRet;
+            }
+
+            string strError = "";
+            long lRet = dp2CmdService2.Instance.SearchBiblio(remoteUserName,
+                strFrom,
+                strWord,
+                out totalRecords,
+                out strError);
+            if (lRet == -1 || lRet == 0)
+            {
+                searchRet.apiResult.errorCode = (int)lRet;
+                searchRet.apiResult.errorInfo = strError;
+                return searchRet;
+            }
+
+            searchRet.resultCount = totalRecords.Count;
+
+            //取出第一页
+            bool bNext = false;
+            searchRet.records=this.getOnePage(totalRecords, 
+                0, dp2CmdService2.C_OnePage_Count, out bNext);
+            searchRet.isCanNext = bNext;
+            searchRet.apiResult.errorCode = totalRecords.Count;
+                          
+            return searchRet;
+        }
+
+        public List<BiblioRecord> getOnePage(List<BiblioRecord> totalRecords, int start, int count,out bool bNext)
+        {
+            bNext = false;
+            List<BiblioRecord> records = new List<BiblioRecord>();
+            if (start >= totalRecords.Count)
+                return records;
+
+            for (int i = start; i < start + count; i++)
+            {
+                if (i >= totalRecords.Count)
+                    break;
+                records.Add(totalRecords[i]);
+            }
+
+
+            // 还有数据没获取完
+            if (start + count < totalRecords.Count)
+                bNext = true;
+
+            return records;
+        }
 
         public static PatronInfo ParseReaderXml(string strXml)
         {
