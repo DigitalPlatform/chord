@@ -11,6 +11,7 @@ using System.Threading;
 using MongoDB.Driver;
 
 using DigitalPlatform.IO;
+using System.Net;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -50,22 +51,30 @@ namespace DigitalPlatform.MessageServer
             set;
         }
 
-        public static void Initial(string strDataDir)
+        static string AutoTriggerUrl
         {
-            if (Directory.Exists(strDataDir) == false)
+            get;
+            set;
+        }
+
+        public static void Initial(InitialParam param)
+        {
+            AutoTriggerUrl = param.AutoTriggerUrl;
+
+            if (Directory.Exists(param.DataDir) == false)
             {
                 // throw new Exception("数据目录 '" + strDataDir + "' 尚未创建");
-                WriteWindowsLog("数据目录 '" + strDataDir + "' 尚未创建");
+                WriteWindowsLog("数据目录 '" + param.DataDir + "' 尚未创建");
             }
 
-            DataDir = strDataDir;
-            LogDir = Path.Combine(strDataDir, "log");   // 日志目录
+            DataDir = param.DataDir;
+            LogDir = Path.Combine(param.DataDir, "log");   // 日志目录
             PathUtil.CreateDirIfNeed(LogDir);
 
             // 验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
             DetectWriteErrorLog("*** dp2MServer 开始启动");
 
-            string strCfgFileName = Path.Combine(strDataDir, "config.xml");
+            string strCfgFileName = Path.Combine(param.DataDir, "config.xml");
             try
             {
                 ConfigDom.Load(strCfgFileName);
@@ -129,6 +138,23 @@ namespace DigitalPlatform.MessageServer
                         Console.WriteLine(strError);
                     }
                 }
+            }
+        }
+
+        public static void TriggerUrl()
+        {
+            if (string.IsNullOrEmpty(AutoTriggerUrl))
+                return;
+
+            try
+            {
+                WebRequest request = WebRequest.Create(AutoTriggerUrl);
+                request.Timeout = 1000;
+                request.GetResponse();
+            }
+            catch
+            {
+
             }
         }
 
@@ -242,6 +268,14 @@ namespace DigitalPlatform.MessageServer
 
             ServerInfo.InitialMongoDb(_first);
             _first = false;
+
+            ServerInfo.TriggerUrl();
         }
+    }
+
+    public class InitialParam
+    {
+        public string DataDir { get; set; }
+        public string AutoTriggerUrl { get; set; }
     }
 }

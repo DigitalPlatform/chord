@@ -9,6 +9,8 @@ using System.ServiceProcess;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Security.Principal;
+// using System.Configuration;
+using System.IO;
 
 using Owin;
 using Microsoft.Owin.Cors;
@@ -19,8 +21,6 @@ using dp2MServer.Properties;
 
 using DigitalPlatform.MessageServer;
 using DigitalPlatform.ServiceProcess;
-using System.Configuration;
-using System.IO;
 using DigitalPlatform.Xml;
 
 namespace dp2MServer
@@ -104,6 +104,16 @@ namespace dp2MServer
                 strValue = Console.ReadLine();
                 if (string.IsNullOrEmpty(strValue) == false)
                     DataDir = strValue;
+
+                Console.WriteLine("请输入自动触发 URL: (当前值为 " + AutoTriggerUrl + ") [输入 空 表示希望设置为空]");
+                strValue = Console.ReadLine();
+                if (string.IsNullOrEmpty(strValue) == false)
+                {
+                    if (strValue == "空" || strValue == "[null]")
+                        AutoTriggerUrl = "";
+                    else
+                        AutoTriggerUrl = strValue;
+                }
 
                 SaveConfig();
 #if NO
@@ -251,7 +261,10 @@ namespace dp2MServer
                 InitialConfig();
                 Program.WriteWindowsLog("dump config: " + Config.Dump(), EventLogEntryType.Information);
 
-                ServerInfo.Initial(DataDir);
+                InitialParam param = new InitialParam();
+                param.DataDir = DataDir;
+                param.AutoTriggerUrl = AutoTriggerUrl;
+                ServerInfo.Initial(param);
 
                 return true;
             }
@@ -430,7 +443,21 @@ namespace dp2MServer
             }
             set
             {
-                Config.Get("default", "server_path", value);
+                Config.Set("default", "server_path", value);
+            }
+        }
+
+        // 2016/5/29
+        // 自动定时触发访问的 URL
+        internal static string AutoTriggerUrl
+        {
+            get
+            {
+                return Config.Get("default", "auto_trigger_url", "");
+            }
+            set
+            {
+                Config.Set("default", "auto_trigger_url", value);
             }
         }
 
