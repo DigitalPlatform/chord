@@ -141,6 +141,21 @@ namespace DigitalPlatform.MessageServer
             }
         }
 
+        public static void CleanExpiredMessage()
+        {
+            try
+            {
+                // 删除 1 天以前失效的消息
+                MessageDatabase.DeleteExpired(DateTime.Now - new TimeSpan(1, 0, 0, 0)).Wait();
+                // 删除一年前发布的消息
+                MessageDatabase.DeleteByPublishTime(DateTime.Now - new TimeSpan(365,0,0,0)).Wait();
+            }
+            catch(Exception ex)
+            {
+                WriteErrorLog("清理失效消息时出现异常: " + ExceptionUtil.GetDebugText(ex));
+            }
+        }
+
         public static void TriggerUrl()
         {
             if (string.IsNullOrEmpty(AutoTriggerUrl))
@@ -276,6 +291,8 @@ namespace DigitalPlatform.MessageServer
             _first = false;
 
             ServerInfo.TriggerUrl();
+
+            ServerInfo.CleanExpiredMessage();
         }
     }
 
