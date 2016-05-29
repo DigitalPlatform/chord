@@ -148,9 +148,15 @@ namespace DigitalPlatform.MessageServer
 
             try
             {
-                WebRequest request = WebRequest.Create(AutoTriggerUrl);
+                WebRequest request = WebRequest.Create(
+                    AutoTriggerUrl
+                    );
                 request.Timeout = 1000;
-                request.GetResponse();
+                using (var stream = request.GetResponse().GetResponseStream())
+                using (var reader = new StreamReader(stream))
+                {
+                    reader.ReadToEnd();
+                }
             }
             catch
             {
