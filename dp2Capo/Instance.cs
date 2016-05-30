@@ -13,6 +13,7 @@ using DigitalPlatform.Text;
 using DigitalPlatform.Message;
 using DigitalPlatform;
 using DigitalPlatform.IO;
+using DigitalPlatform.LibraryClient.localhost;
 
 namespace dp2Capo
 {
@@ -100,9 +101,12 @@ namespace dp2Capo
         }
 
         // parameters:
-        //      bFirst  是否首次启动。首次启动和重试启动，写入日志的方式不同。
+        //      bFirst  是否首次启动。首次启动和重试启动，若发生错误写入日志的方式不同。
         void InitialQueue(bool bFirst)
         {
+            // 若使用 dp2library GetMessage() API 来获得消息
+            if (this.dp2library.DefaultQueue == "!api")
+                return;
             try
             {
                 if (_queue == null
@@ -275,6 +279,64 @@ namespace dp2Capo
 
         public void Notify()
         {
+            if (this.dp2library.DefaultQueue == "!api")
+            {
+                try
+                {
+                    if (this.MessageConnection.IsConnected == false)
+                        return;
+
+                    MessageData[] messages = null;
+                    string strError = "";
+                    int nRet = this.MessageConnection.GetMsmqMessage(
+                out messages,
+                out strError);
+                    if (nRet == -1)
+                    {
+                        this.WriteErrorLog("Instance.Notify() 中 GetMsmqMessage() 出错: " + strError);
+                        return;
+                    }
+                    if (messages != null)
+                    {
+                        foreach (MessageData data in messages)
+                        {
+                            MessageRecord record = new MessageRecord();
+                            record.groups = new string[1] { "gn:_patronNotify" };  // gn 表示 group name
+                            record.data = (string)data.strBody;
+                            record.format = "xml";
+                            List<MessageRecord> records = new List<MessageRecord> { record };
+
+                            DigitalPlatform.Message.SetMessageRequest param =
+                                new DigitalPlatform.Message.SetMessageRequest("create",
+                                "dontNotifyMe",
+                                records);
+                            SetMessageResult result = this.MessageConnection.SetMessageAsync(param).Result;
+                            if (result.Value == -1)
+                            {
+                                this.WriteErrorLog("Instance.Notify() 中 SetMessageAsync() 出错: " + result.ErrorInfo);
+                                return;
+                            }
+                        }
+
+                        nRet = this.MessageConnection.RemoveMsmqMessage(
+                            messages.Length,
+                            out strError);
+                        if (nRet == -1)
+                        {
+                            this.WriteErrorLog("Instance.Notify() 中 RemoveMsmqMessage() 出错: " + strError);
+                            return;
+                        }
+                    }
+
+                    this._notifyThread.Activate();
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    this.WriteErrorLog("Instance.Notify() 出现异常1: " + ExceptionUtil.GetDebugText(ex));
+                }
+            }
+
             // 如果第一次初始化 Queue 没有成功，这里再试探初始化
             InitialQueue(false);
 
@@ -286,7 +348,7 @@ namespace dp2Capo
                 {
                     ServerInfo._recordLocks.LockForWrite(this._queue.Path);
                 }
-                catch(ApplicationException)
+                catch (ApplicationException)
                 {
                     // 超时了
                     return;
@@ -305,7 +367,8 @@ namespace dp2Capo
                         record.format = "xml";
                         List<MessageRecord> records = new List<MessageRecord> { record };
 
-                        SetMessageRequest param = new SetMessageRequest("create",
+                        DigitalPlatform.Message.SetMessageRequest param =
+                            new DigitalPlatform.Message.SetMessageRequest("create",
                             "dontNotifyMe",
                             records);
                         SetMessageResult result = this.MessageConnection.SetMessageAsync(param).Result;

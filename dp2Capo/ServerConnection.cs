@@ -12,6 +12,8 @@ using DigitalPlatform;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
+using DigitalPlatform.LibraryClient.localhost;
+using System.Collections;
 
 namespace dp2Capo
 {
@@ -105,7 +107,7 @@ namespace dp2Capo
                     if (string.IsNullOrEmpty(strVersion) == true)
                         strVersion = "2.0";
 
-                    string base_version = "2.71";
+                    string base_version = "2.75";   // 2.75 允许用 GetMessage() API 获取 MSMQ 消息
                     if (StringUtil.CompareVersion(strVersion, base_version) < 0)   // 2.12
                     {
                         strError = "dp2Capo 所所连接的 dp2library 服务器 '" + channel.Url + "' 其版本必须升级为 " + base_version + " 以上时才能使用 (当前 dp2library 版本为 " + strVersion + ")\r\n\r\n请立即升级 dp2Library 到最新版本";
@@ -131,6 +133,84 @@ namespace dp2Capo
             catch (Exception ex)
             {
                 strError = "GetConfigInfo() 出现异常: " + ExceptionUtil.GetExceptionText(ex);
+                return -1;
+            }
+            finally
+            {
+                this._channelPool.ReturnChannel(channel);
+            }
+        }
+
+        public int GetMsmqMessage(
+            out MessageData [] messages,
+            out string strError)
+        {
+            messages = null;
+            strError = "";
+            long lRet = 0;
+
+            LibraryChannel channel = GetChannel();
+            TimeSpan old_timeout = channel.Timeout;
+            channel.Timeout = new TimeSpan(0, 2, 0);    // dp2library 服务器这个 API 是最多等待一分钟
+            try
+            {
+                Hashtable table = new Hashtable();
+                table["action"] = "get";
+                table["count"] = "1";
+                string strParameters = StringUtil.BuildParameterString(table);
+                string[] message_ids = new string[] { "!msmq" , strParameters};
+                lRet = channel.GetMessage(message_ids,
+                    MessageLevel.Full,
+                    out messages,
+                    out strError);
+                if (lRet == -1)
+                    return -1;
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                strError = "GetMsmqMessage() 出现异常: " + ExceptionUtil.GetExceptionText(ex);
+                return -1;
+            }
+            finally
+            {
+                channel.Timeout = old_timeout;
+                this._channelPool.ReturnChannel(channel);
+            }
+        }
+
+        public int RemoveMsmqMessage(int nCount,
+    out string strError)
+        {
+            strError = "";
+            long lRet = 0;
+
+            if (nCount == 0)
+                return 0;
+
+            LibraryChannel channel = GetChannel();
+            try
+            {
+                Hashtable table = new Hashtable();
+                table["action"] = "remove";
+                table["count"] = nCount.ToString();
+                string strParameters = StringUtil.BuildParameterString(table);
+                string[] message_ids = new string[] { "!msmq", strParameters };
+
+                MessageData[] messages = null;
+                lRet = channel.GetMessage(message_ids,
+                    MessageLevel.Full,
+                    out messages,
+                    out strError);
+                if (lRet == -1)
+                    return -1;
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                strError = "RemoveMsmqMessage() 出现异常: " + ExceptionUtil.GetExceptionText(ex);
                 return -1;
             }
             finally
@@ -165,11 +245,11 @@ namespace dp2Capo
             return strRight;
         }
 
-        static BorrowInfo BuildBorrowInfo(DigitalPlatform.LibraryClient.localhost.BorrowInfo borrow_info)
+        static DigitalPlatform.Message.BorrowInfo BuildBorrowInfo(DigitalPlatform.LibraryClient.localhost.BorrowInfo borrow_info)
         {
             if (borrow_info == null)
                 return null;
-            BorrowInfo info = new BorrowInfo();
+            DigitalPlatform.Message.BorrowInfo info = new DigitalPlatform.Message.BorrowInfo();
             info.LatestReturnTime = borrow_info.LatestReturnTime;
             info.Period = borrow_info.Period;
             info.BorrowCount = borrow_info.BorrowCount;
@@ -177,11 +257,11 @@ namespace dp2Capo
             return info;
         }
 
-        static ReturnInfo BuildReturnInfo(DigitalPlatform.LibraryClient.localhost.ReturnInfo return_info)
+        static DigitalPlatform.Message.ReturnInfo BuildReturnInfo(DigitalPlatform.LibraryClient.localhost.ReturnInfo return_info)
         {
             if (return_info == null)
                 return null;
-            ReturnInfo info = new ReturnInfo();
+            DigitalPlatform.Message.ReturnInfo info = new DigitalPlatform.Message.ReturnInfo();
             info.BorrowTime = return_info.BorrowTime;
             info.LatestReturnTime = return_info.LatestReturnTime;
             info.Period = return_info.Period;
@@ -368,12 +448,12 @@ namespace dp2Capo
             entity.Action = info.Action;
             entity.RefID = info.RefID;
 
-            entity.OldRecord = new Record();
+            entity.OldRecord = new DigitalPlatform.Message.Record();
             entity.OldRecord.Data = info.OldRecord;
             entity.OldRecord.RecPath = info.OldRecPath;
             entity.OldRecord.Timestamp = ByteArray.GetHexTimeStampString(info.OldTimestamp);
 
-            entity.NewRecord = new Record();
+            entity.NewRecord = new DigitalPlatform.Message.Record();
             entity.NewRecord.Data = info.NewRecord;
             entity.NewRecord.RecPath = info.NewRecPath;
             entity.NewRecord.Timestamp = ByteArray.GetHexTimeStampString(info.NewTimestamp);
@@ -440,13 +520,13 @@ strError);
 
         #region BindPatron() API
 
-        public override void OnBindPatronRecieved(BindPatronRequest param)
+        public override void OnBindPatronRecieved(DigitalPlatform.Message.BindPatronRequest param)
         {
             // 单独给一个线程来执行
             Task.Factory.StartNew(() => BindPatronAndResponse(param));
         }
 
-        void BindPatronAndResponse(BindPatronRequest param)
+        void BindPatronAndResponse(DigitalPlatform.Message.BindPatronRequest param)
         {
             string strError = "";
             IList<string> results = new List<string>();
