@@ -511,8 +511,9 @@ int count,
 Builders<MessageItem>.Filter.Gt("expireTime", new DateTime(0)),
 Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
 
-            DeleteResult result = await collection.DeleteManyAsync(expire_filter);
-            long i = result.DeletedCount;
+            // DeleteResult result = 
+            await collection.DeleteManyAsync(expire_filter);
+            // long i = result.DeletedCount;
         }
 
         public async Task DeleteByPublishTime(DateTime publish_end_time)
@@ -521,8 +522,9 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
 
             FilterDefinition<MessageItem> filter = Builders<MessageItem>.Filter.Lt("publishTime", publish_end_time);
 
-            DeleteResult result = await collection.DeleteManyAsync(filter);
-            long i = result.DeletedCount;
+            // DeleteResult result = 
+            await collection.DeleteManyAsync(filter);
+            // long i = result.DeletedCount;
         }
 
         // 根据一个字段的特征删除匹配的事项

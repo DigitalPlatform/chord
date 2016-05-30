@@ -52,20 +52,20 @@ namespace TestClient1
             foreach (MessageRecord record in e.Records)
             {
                 text.Append("***\r\n");
-                text.Append("action=" + e.Action + "\r\n");
-                text.Append("id=" + record.id + "\r\n");
-                text.Append("data=" + record.data + "\r\n");
+                text.Append("action=" + HttpUtility.HtmlEncode(e.Action) + "\r\n");
+                text.Append("id=" + HttpUtility.HtmlEncode(record.id) + "\r\n");
+                text.Append("data=" + HttpUtility.HtmlEncode(record.data) + "\r\n");
                 if (record.groups != null)
                     text.Append("groups=" + HttpUtility.HtmlEncode(string.Join(",", record.groups)) + "\r\n");
-                text.Append("creator=" + record.creator + "\r\n");
-                text.Append("userName=" + record.userName + "\r\n");
+                text.Append("creator=" + HttpUtility.HtmlEncode(record.creator) + "\r\n");
+                text.Append("userName=" + HttpUtility.HtmlEncode(record.userName) + "\r\n");
 
-                text.Append("format=" + record.format + "\r\n");
-                text.Append("type=" + record.type + "\r\n");
-                text.Append("thread=" + record.thread + "\r\n");
+                text.Append("format=" + HttpUtility.HtmlEncode(record.format) + "\r\n");
+                text.Append("type=" + HttpUtility.HtmlEncode(record.type) + "\r\n");
+                text.Append("thread=" + HttpUtility.HtmlEncode(record.thread) + "\r\n");
 
-                text.Append("publishTime=" + record.publishTime + "\r\n");
-                text.Append("expireTime=" + record.expireTime + "\r\n");
+                text.Append("publishTime=" + HttpUtility.HtmlEncode(record.publishTime) + "\r\n");
+                text.Append("expireTime=" + HttpUtility.HtmlEncode(record.expireTime) + "\r\n");
             }
 
             AppendHtml(this.webBrowser_message, text.ToString());
@@ -1305,19 +1305,19 @@ string strHtml)
                 {
                     StringBuilder text = new StringBuilder();
                     text.Append("***\r\n");
-                    text.Append("id=" + record.id + "\r\n");
-                    text.Append("data=" + record.data + "\r\n");
+                    text.Append("id=" + HttpUtility.HtmlEncode(record.id) + "\r\n");
+                    text.Append("data=" + HttpUtility.HtmlEncode(record.data) + "\r\n");
                     if (record.groups != null)
                         text.Append("groups=" + HttpUtility.HtmlEncode(string.Join(",", record.groups)) + "\r\n");
-                    text.Append("creator=" + record.creator + "\r\n");
-                    text.Append("userName=" + record.userName + "\r\n");
+                    text.Append("creator=" + HttpUtility.HtmlEncode(record.creator) + "\r\n");
+                    text.Append("userName=" + HttpUtility.HtmlEncode(record.userName) + "\r\n");
 
-                    text.Append("format=" + record.format + "\r\n");
-                    text.Append("type=" + record.type + "\r\n");
-                    text.Append("thread=" + record.thread + "\r\n");
+                    text.Append("format=" + HttpUtility.HtmlEncode(record.format) + "\r\n");
+                    text.Append("type=" + HttpUtility.HtmlEncode(record.type) + "\r\n");
+                    text.Append("thread=" + HttpUtility.HtmlEncode(record.thread) + "\r\n");
 
-                    text.Append("publishTime=" + record.publishTime.ToString("G") + "\r\n");
-                    text.Append("expireTime=" + record.expireTime + "\r\n");
+                    text.Append("publishTime=" + HttpUtility.HtmlEncode(record.publishTime.ToString("G")) + "\r\n");
+                    text.Append("expireTime=" + HttpUtility.HtmlEncode(record.expireTime) + "\r\n");
                     AppendHtml(this.webBrowser_message, text.ToString());
                 }
             }
