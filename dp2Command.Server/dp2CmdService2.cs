@@ -183,7 +183,7 @@ namespace dp2Command.Service
                 this.Channels.Login -= _channels_Login;
             }
 
-            this.WriteInfoLog("走到close()");
+            this.WriteLog("走到close()");
         }
 
         #region 消息处理
@@ -577,7 +577,7 @@ namespace dp2Command.Service
                 //{{remark.DATA}}
                 var msgData = new ReturnPayTemplateData()
                 {
-                    first = new TemplateDataItem("☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆", "#B8860B"),  // 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
+                    first = new TemplateDataItem("━━━━━━$━━━━━━", "#B8860B"),  // ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
                     reason = new TemplateDataItem("撤消[" + barcodes + "]交费。", "#000000"),//text.ToString()),// "请让我慢慢长大"),
                     refund = new TemplateDataItem("CNY" + totalPrice, "#000000"),
                     remark = new TemplateDataItem(this._msgRemark, "#CCCCCC")
@@ -713,7 +713,7 @@ namespace dp2Command.Service
                     //如有疑问，请联系学校管理员，感谢您的使用！、
                     var msgData = new PayTemplateData()
                     {
-                        first = new TemplateDataItem("★★★★★★★★★★★★★★★", "#556B2F"),//dark olive green//this._msgFirstLeft+"您已交费成功！"
+                        first = new TemplateDataItem("〸〸〸〸〸〸$〸〸〸〸〸〸", "#556B2F"),//★★★★★★★★★★★★★★★ dark olive green//this._msgFirstLeft+"您已交费成功！"
                         keyword1 = new TemplateDataItem(barcodes, "#000000"),//text.ToString()),// "请让我慢慢长大"),
                         keyword2 = new TemplateDataItem(patronName, "#000000"),
                         keyword3 = new TemplateDataItem("CNY" + totalPrice, "#000000"),
@@ -867,7 +867,7 @@ namespace dp2Command.Service
                     //欢迎继续借书!
                     var msgData = new ReturnTemplateData()
                     {
-                        first = new TemplateDataItem("┅┅┅┅┅┅┅┅┅┅┅┅", "#00008B"),  // 	dark blue//this._msgFirstLeft + "您借出的图书已确认归还。"
+                        first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#00008B"),  // 	dark blue//this._msgFirstLeft + "您借出的图书已确认归还。"
                         keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
                         keyword2 = new TemplateDataItem(operTime, "#000000"),
                         keyword3 = new TemplateDataItem(patronName, "#000000"),
@@ -1032,13 +1032,13 @@ namespace dp2Command.Service
                     //祝您阅读愉快，欢迎再借。
                     var msgData = new BorrowTemplateData()
                     {
-                        first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#006400"), // 	dark green //this._msgFirstLeft + "恭喜您借书成功。"
+                        first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎\n读者姓名："+patronName, "#006400"), // 	dark green //this._msgFirstLeft + "恭喜您借书成功。"
                         keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
                         keyword2 = new TemplateDataItem(itemBarcode, "#000000"),
                         keyword3 = new TemplateDataItem(borrowDate, "#000000"),
                         keyword4 = new TemplateDataItem(borrowPeriod, "#000000"),
                         keyword5 = new TemplateDataItem(returningDate, "#000000"),
-                        remark = new TemplateDataItem("\n祝您阅读愉快，欢迎再借。", "#CCCCCC")
+                        remark = new TemplateDataItem("读者姓名："+patronName+"\n\n祝您阅读愉快，欢迎再借。", "#CCCCCC")
                     };
 
                     // 发送模板消息
@@ -1183,7 +1183,7 @@ namespace dp2Command.Service
                     //{{remark.DATA}}
                     var msgData = new ArrivedTemplateData()
                     {
-                        first = new TemplateDataItem("▇▆▅▇▆▅▇▆▅▇▆▅▇▆▅", "#FF8C00"),//  dark orange   	yellow 	#FFFF00
+                        first = new TemplateDataItem("▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉", "#FF8C00"),//  dark orange   	yellow 	#FFFF00
                         keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
                         keyword2 = new TemplateDataItem(today, "#000000"),
                         keyword3 = new TemplateDataItem("保留" + reserveTime, "#000000"),
@@ -2063,7 +2063,7 @@ namespace dp2Command.Service
         #region 检索书目
 
         /// <summary>
-        /// 检索书目，word如果传_N表示取下一页
+        /// 检索书目
         /// </summary>
         /// <param name="remoteUserName"></param>
         /// <param name="strFrom"></param>
@@ -2119,17 +2119,28 @@ namespace dp2Command.Service
                 for (int i = 0; i < result.ResultCount; i++)
                 {
                     string xml = result.Records[i].Data;
-                    /*<root><col>请让我慢慢长大</col><col>吴蓓著</col><col>天津教育出版社</col><col>2009</col><col>G61-53</col><col>儿童教育儿童教育</col><col></col><col>978-7-5309-5335-8</col></root>*/
+                    /*<root><col>请让我慢慢长大</col>
+                     * <col>吴蓓著</col>
+                     * <col>天津教育出版社</col>
+                     * <col>2009</col>
+                     * <col>G61-53</col>
+                     * <col>儿童教育儿童教育</col>
+                     * <col></col>
+                     * <col>978-7-5309-5335-8</col></root>*/
                     XmlDocument dom = new XmlDocument();
                     dom.LoadXml(xml);
                     string name = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("col"));
                     string path = result.Records[i].RecPath;
+                    int nIndex = path.IndexOf("@");
+                    path = path.Substring(0, nIndex);
+                       
 
                     // todo，改为分批返回
                     BiblioRecord record = new BiblioRecord();
                     record.recPath = path;
                     record.name = name;
                     record.no = (i + 1).ToString();//todo 注意下一页的时候
+                    record.libUserName = remoteUserName;
                     records.Add(record);
                 }
 
@@ -2145,6 +2156,168 @@ namespace dp2Command.Service
                 strError = ex.Message;
                 return -1;
             }
+        }
+
+        public BiblioRecordResult GetBiblioDetail(string remoteUserName,
+            string biblioPath)
+        {
+            BiblioRecordResult result = new BiblioRecordResult();
+            result.errorCode = 0;
+            result.biblioPath = biblioPath;
+
+            DateTime start_time = DateTime.Now;
+            string strError = "";
+            CancellationToken cancel_token = new CancellationToken();
+            // 获取书目记录
+            string id1 = Guid.NewGuid().ToString();
+            SearchRequest request1 = new SearchRequest(id1,
+                "getBiblioInfo",
+                "<全部>",
+                biblioPath,
+                "",
+                "",
+                "",
+                "summary",
+                1,
+                0,
+                -1);
+            // 获取下属记录
+            string id2 = Guid.NewGuid().ToString();
+            SearchRequest request2 = new SearchRequest(id2,
+                "getItemInfo",
+                "entity",
+                biblioPath,
+                "",
+                "",
+                "",
+                "opac",
+                50,
+                0,
+                10);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                    this.dp2MServerUrl,
+                    remoteUserName).Result;
+
+                Task<SearchResult> task1 = connection.SearchAsync(
+                    remoteUserName,
+                    request1,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token);
+
+                Task<SearchResult> task2 = connection.SearchAsync(
+                     remoteUserName,
+                    request2,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token);
+
+                Task<SearchResult>[] tasks = new Task<SearchResult>[2];
+                tasks[0] = task1;
+                tasks[1] = task2;
+                Task.WaitAll(tasks);
+
+                if (task1.Result.ResultCount == -1)
+                {
+                    strError = "获取摘要出错：" + task1.Result.ErrorInfo;
+                    goto ERROR1;
+                }
+                if (task1.Result.ResultCount == 0)
+                {
+                    result.errorCode = 0;
+                    result.errorInfo = "获取Summary时未命中";
+                    return result;
+                }
+                result.summary = task1.Result.Records[0].Data;
+
+                if (task2.Result.ResultCount == -1)
+                {
+                    strError = "获取册出错：" + task2.Result.ErrorInfo;
+                    goto ERROR1;
+                }
+                // 没有册的情况，不算出错
+                //if (task2.Result.ResultCount == 0)
+                //{
+                //    result.errorCode = 0;
+                //    result.errorInfo = "获取册时未命中";
+                //    return result;
+                //}
+
+                result.itemList = new List<BiblioItem>();
+                for (int i = 0; i < task2.Result.Records.Count; i++)
+                {
+                    BiblioItem item = new BiblioItem();
+
+                    string xml = task2.Result.Records[i].Data;
+                    XmlDocument dom = new XmlDocument();
+                    dom.LoadXml(xml);
+
+                    string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
+                    string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
+                    // 册条码号
+                    string strViewBarcode = "";
+                    if (string.IsNullOrEmpty(strBarcode) == false)
+                        strViewBarcode = strBarcode;
+                    else
+                        strViewBarcode = "refID:" + strRefID;  //"@refID:"
+                    item.barcode = strViewBarcode;
+
+                    //状态
+                    item.state = DomUtil.GetElementText(dom.DocumentElement, "state");
+                    // 馆藏地
+                    item.location = DomUtil.GetElementText(dom.DocumentElement, "location");
+                    // 索引号
+                    item.accessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
+
+                    // 出版日期
+                    item.publishTime = DomUtil.GetElementText(dom.DocumentElement, "publishTime");
+                    // 价格
+                    item.price= DomUtil.GetElementText(dom.DocumentElement, "price");
+                    // 注释
+                    item.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");
+
+                    // 借阅情况
+                    string strBorrowInfo = "借阅情况:在架";
+                    /*
+                     <borrower>R00001</borrower>
+    <borrowerReaderType>教职工</borrowerReaderType>
+    <borrowerRecPath>读者/1</borrowerRecPath>
+    <borrowDate>Sun, 17 Apr 2016 23:57:40 +0800</borrowDate>
+    <borrowPeriod>31day</borrowPeriod>
+    <returningDate>Wed, 18 May 2016 12:00:00 +0800</returningDate>
+                     */
+                    string strBorrower = DomUtil.GetElementText(dom.DocumentElement, "borrower");
+                    string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
+                                                "borrowDate"), "yyyy/MM/dd");
+                    string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
+                    if (string.IsNullOrEmpty(strBorrower) == false)
+                        strBorrowInfo = "借阅者:*** 借阅时间:" + borrowDate + " 借期:" + borrowPeriod;
+                    item.borrowInfo = strBorrower;
+
+                    // 加到集合里
+                    result.itemList.Add(item);
+                }
+
+                result.errorCode = 1;
+
+                return result;
+
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+
+        ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = strError;
+            return result;
         }
 
         public override long SearchBiblio(string remoteUserName,
@@ -2908,7 +3081,4 @@ cancel_token);
             CustomApi.SendText(accessToken, openId, "error");
         }
     }
-
-
-
 }

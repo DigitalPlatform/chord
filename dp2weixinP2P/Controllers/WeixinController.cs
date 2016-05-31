@@ -158,7 +158,7 @@ namespace dp2weixinP2P.Controllers
                 {
                     info="请求超时:"+info;
                 }
-                dp2CmdService2.Instance.WriteInfoLog(info);
+                dp2CmdService2.Instance.WriteLog(info);
 
                 // 发送客服消息
                 //messageHandler.SendCustomeMessage(info);

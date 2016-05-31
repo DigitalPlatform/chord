@@ -85,7 +85,7 @@ namespace dp2Command.Service
         // 工作线程每一轮循环的实质性工作
         public override void Worker()
         {
-            //this.WriteErrorLog("走到worker1");
+            this.WriteLog("走到worker1");
             List<MessageRecord> records = GetMessage();
             if (records.Count > 0)
             {
@@ -145,7 +145,7 @@ namespace dp2Command.Service
                 if (this._sendedTable.ContainsKey(record.id))
                     continue;
 
-                this.WriteErrorLog("开始处理:" + record.id);
+                this.WriteLog("开始处理:" + record.id);
 
                 // 发送
                 if (handler != null)
@@ -155,7 +155,7 @@ namespace dp2Command.Service
                     handler(this, e);
                 }
 
-                this.WriteErrorLog("处理结束:" + record.id);
+                this.WriteLog("处理结束:" + record.id);
 
                 this._sendedTable[record.id] = DateTime.Now;
             }
@@ -180,9 +180,9 @@ namespace dp2Command.Service
             }
         }
 
-        void WriteErrorLog(string strText)
+        void WriteLog(string strText)
         {
-            dp2CmdService2.Instance.WriteErrorLog(strText);
+            dp2CmdService2.Instance.WriteLog(strText);
             //MessageRecord record = new MessageRecord();
             //record.data = "*** error *** " + strText;
             //SendMessageEventArgs e = new SendMessageEventArgs();
@@ -229,7 +229,7 @@ namespace dp2Command.Service
                 goto ERROR1;
             }
         ERROR1:
-            WriteErrorLog("GetMessage() error: " + strError);
+            this.WriteLog("GetMessage() error: " + strError);
             return new List<MessageRecord>();
         }
 
@@ -275,7 +275,7 @@ namespace dp2Command.Service
             }
             return;
         ERROR1:
-            WriteErrorLog("DeleteMessage() error : " + strError);
+            this.WriteLog("DeleteMessage() error : " + strError);
         }
     }
 

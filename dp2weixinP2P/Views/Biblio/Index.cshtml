@@ -61,8 +61,12 @@
                 }
             });
 
+            // 设一下style
+            $("#myheader").css("position", "absolute");  //设置p元素的样式颜色为红色
 
         });
+
+
 
         // 检索
         function search(bNext) {
@@ -149,8 +153,14 @@
                     var table = $("#ulResult");//$('.mui-table-view');
                     for (var i = 0; i < result.records.length; i++) {
                         var record = result.records[i];
-                        var li = "<li class='mui-table-view-cell'>"
-                            + "<a class='mui-navigate-right'>" +record.no+" "+ record.name + "</a>"
+                        var li = "<li class='mui-table-view-cell mui-collapse'  onclick='expand(this)'>"
+                            + "<a class='mui-navigate-right' href='javascript:void(0)'>" + record.no + " " + record.name + "</a>"
+                            + "<div class='mui-collapse-content' style='display:none;'>"
+                                + "<span class='pending' >"
+                                    + "<label>"+record.libUserName+"|"+record.recPath+"</label>"
+                                    + "<img src='../img/wait2.gif' />"
+                                + "</span>"
+                            + "</div>"
                             + "</li>";
                         table.append(li);
 
@@ -159,7 +169,10 @@
                         }
                     }
 
-                    
+                    //<li class="mui-table-view-cell mui-collapse">
+                    //<a class="mui-navigate-right" href="#">表单</a>
+                    //<div class="mui-collapse-content">
+
 
 
                     //有下页的情况
@@ -170,8 +183,7 @@
                         table.append(li1);
                     }
 
-                    //alert("3");
-
+                    //adjust();
 
                     // 关闭等待层
                     //layer.close(index);
@@ -182,21 +194,166 @@
                     // 关闭等待层
                     layer.close(index);
                 });
-
         }
+
+        function expand(obj)
+        {
+            // 如果自己是展开状态，则收缩
+            var  state=$(obj).find(".mui-collapse-content").first().css("display");
+            if (state == "block") { //自己本来是展开状态，要关闭                
+                $(obj).find(".mui-collapse-content").css("display", "none");
+                $(obj).removeClass("mui-active");
+            }
+            else {
+                //其它收缩
+                $(".mui-collapse-content").css("display", "none");
+                $(".mui-collapse").removeClass("mui-active");
+
+                //自己展开
+                $(obj).find(".mui-collapse-content").css("display", "block");
+                $(obj).addClass("mui-active");
+
+
+                //检查是否已经加载过了
+                var o = $(obj).find(".pending:first");
+                if (o.length == 0) {
+                    // 没有pending类型元素则返回
+                    return;
+                }
+                else {
+                    getDetail(o);
+                }
+            }
+        }
+
+        function getDetail(o) {
+            // 找到下级的标签，里面存储的线索
+            var mylable = o.children("label");
+            // 如果没有定义标签label，则去掉pending状态，继续下一个pending
+            if (mylable.length == 0) {
+                //alert("fillPending1-2");
+                o.html("没找到存放线索信息的lable标签");
+                o.removeClass("pending");
+                return;
+            }
+
+            // 取出label设置的线索信息
+            var keyword = mylable.text();
+            // 未给label设值，去掉pending状态，继续下一个pending
+            if (keyword.length == 0) {
+                o.html("线索信息为空");
+                o.removeClass("pending");
+                return;
+            }
+
+            // 取出图书馆账号与记录路径
+            var nIndex = keyword.indexOf('|');
+            var libUserName = keyword.substring(0, nIndex);
+            var biblioPath = keyword.substring(nIndex + 1);
+            //alert("type[" + mytype + "]-value[" + myvalue + "]");
+            if (libUserName == "" || biblioPath == "") {
+                o.html("记录路径值[" + keyword + "]不对，格式应该为[图书馆账号|记录路径]");
+                o.removeClass("pending");
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
+
+            var url = "/api/biblio?libUserName=" + encodeURIComponent(libUserName) + "&biblioPath=" + encodeURIComponent(biblioPath);
+
+            //alert(url);
+
+            // 调api
+            sendAjaxRequest(url, "GET", function (result) {
+                // 出错或未命中
+                if (result.errorCode == -1 || result.errorCode == 0) {
+                    o.html(result.errorInfo);
+                    $(o).css("color", "red");  //设置p元素的样式颜色为红色
+                    o.removeClass("pending");
+                    return;
+                }
+
+
+                // todo 册信息
+                //册条码
+                //状态         
+                //卷册
+                //馆藏地
+                //价格
+                //在借情况
+                var itemTables = "";
+                if (result.itemList.length == 0)
+                    itemTables="该书没有下级册信息。"
+
+                for (var i = 0; i < result.itemList.length; i++) {
+                    var record = result.itemList[i];
+
+                    itemTables += "<table style='width:100%;padding:10px;text-align:left'>"
+                    +"<tr>"
+                    +   "<td style='min-width:80px;text-align:right;color:#CCCCCC;padding-left:0px'>册条码：</td>"
+                    +    "<td style='text-align:left;width:80%'>" + record.barcode + "</td>"
+                    +"</tr>"
+                    +"<tr>"
+                    +    "<td style='min-width:80px;text-align:right;color:#CCCCCC;'>状态：</td>"
+                    + "<td style='text-align:left'>" + record.state + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td style='min-width:80px;text-align:right;color:#CCCCCC;'>卷册：</td>"
+                    + "<td style='text-align:left'>" + record.volumn + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td style='min-width:80px;text-align:right;color:#CCCCCC;'>馆藏地：</td>"
+                    + "<td style='text-align:left'>" + record.location + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td style='min-width:80px;text-align:right;color:#CCCCCC;'>价格：</td>"
+                    + "<td style='text-align:left'>" + record.price + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td style='min-width:100px;text-align:right;color:#CCCCCC;'>在借情况：</td>"
+                    + "<td style='text-align:left'>" + record.borrowInfo + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td>&nbsp;</td><td>"
+                    +"<button class='mui-btn mui-btn-primary' onclick='alert(\"todo\")'>预约</button>"
+                    +"</td>"
+                    + "</tr>"
+                    +"</table>";
+                }
+
+                //换成实际的值，去掉pending状态，
+                var myHtml = "<span>" + result.summary + "</span>" + itemTables;
+                o.html(myHtml);
+
+                o.removeClass("pending");
+            }, function (xhq, textStatus, errorThrown) {
+                //换成实际的值，去掉pending状态，继续下一个pending
+                o.html("访问服务器出错：" + errorThrown);
+                o.removeClass("pending");
+            });
+
+
+            return;
+        }
+
 
         function searchN() {
             search("true");
         }
+
+        $(function () {
+            $("#accordion").accordion();
+        });
 
     </script>
 }
 
 @section header {
     <h1 class="mui-title">书目查询</h1>
-}
+    }
 <span id="spanLibCode" style="display:none">@ViewBag.LibCode</span>
 <span id="maxNo" style="display:none"></span>
+
+
 <div id="divForm">
     <div class="mui-input-group">
 
@@ -230,7 +387,9 @@
 <div id="divResult">
     <!--数据列表-->
     <span style="padding-left:10px" id="searchInfo"></span>
-    <ul id="ulResult" class="mui-table-view mui-table-view-chevron"></ul>
+    <ul id="ulResult" class="mui-table-view mui-table-view-chevron">
+
+    </ul>
 
 
 </div>

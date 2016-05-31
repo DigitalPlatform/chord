@@ -10,7 +10,6 @@ using System.Web.Http;
 using System.Web.Configuration;
 using dp2Command.Service;
 using DigitalPlatform.IO;
-using dp2Command.Service;
 using DigitalPlatform.Text;
 using dp2weixin;
 using System.IO;
@@ -45,8 +44,9 @@ namespace dp2weixinP2P
 
             // 注册一缓存条目在5分钟内到期,到期后模拟点击网站网页  
             //this.RegisterCacheEntry();
-            HttpContext.Current.Cache.Remove(DummyCacheItemKey);
+            //HttpContext.Current.Cache.Remove(DummyCacheItemKey);
 
+            dp2CmdService2.Instance.WriteLog("走进Application_Start");
         }
 
 
@@ -60,6 +60,8 @@ namespace dp2weixinP2P
         void Application_End(object sender, EventArgs e)
         {
             dp2CmdService2.Instance.Close();
+
+            dp2CmdService2.Instance.WriteLog("走进Application_End");
         }
 
 

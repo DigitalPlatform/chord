@@ -1104,7 +1104,7 @@ p {
     }
 
 .mui-bar {
-    position: fixed;
+    position:fixed;
     z-index: 10;
     right: 0;
     left: 0;
@@ -1905,7 +1905,7 @@ p {
     -webkit-transition: height .35s ease;
     -o-transition: height .35s ease;
     transition: height .35s ease;
-    background: #fff;
+    /*background: #fff;*/
 }
 
     .mui-table-view-cell.mui-collapse .mui-collapse-content > .mui-input-group, .mui-table-view-cell.mui-collapse .mui-collapse-content > .mui-slider {

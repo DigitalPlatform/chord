@@ -123,6 +123,7 @@
   <ItemGroup>
     <Content Include="App_Data\weixin_data\weixin.xml" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\jquery-ui.css" />
     <Content Include="Content\layer.m.css" />
     <Content Include="Content\mui.min.css" />
     <Content Include="Content\sticky-footer-navbar.css" />

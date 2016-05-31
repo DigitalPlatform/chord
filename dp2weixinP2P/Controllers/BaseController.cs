@@ -27,11 +27,11 @@ namespace dp2weixinP2P.Controllers
                 // 如果session中的code与传进入的code相同，则不再获取weixinid
                 if (sessionCode == code)
                 {
-                    dp2CmdService2.Instance.WriteInfoLog("传进来的code["+code+"]与session中保存的code相同，不再获取weixinid了。");
+                    dp2CmdService2.Instance.WriteLog("传进来的code["+code+"]与session中保存的code相同，不再获取weixinid了。");
                 }
                 else
                 {
-                    dp2CmdService2.Instance.WriteInfoLog("传进来的code[" + code + "]与session中保存的code["+sessionCode+"]不同，重新获取weixinid了。");
+                    dp2CmdService2.Instance.WriteLog("传进来的code[" + code + "]与session中保存的code["+sessionCode+"]不同，重新获取weixinid了。");
 
                     string weiXinIdTemp = "";
                     int nRet = dp2CmdService2.Instance.GetWeiXinId(code, state, out weiXinIdTemp, out strError);
