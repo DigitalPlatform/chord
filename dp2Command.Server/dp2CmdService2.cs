@@ -2166,6 +2166,60 @@ namespace dp2Command.Service
             result.biblioPath = biblioPath;
 
             DateTime start_time = DateTime.Now;
+
+            try
+            {
+                string strError="";
+
+                this.WriteLog("开始获取summary");
+
+                // 取出summary
+                string strSummary = "";
+                int nRet = this.GetBiblioSummary(remoteUserName,biblioPath, out strSummary, out strError);
+                if (nRet == -1 || nRet == 0)
+                {
+                    result.errorCode = -1;
+                    result.errorInfo = strError;
+                    return result;
+                }
+                result.summary = strSummary;
+                TimeSpan time_length = DateTime.Now - start_time;
+                string info = "获取[" + biblioPath + "]的summary信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
+                this.WriteLog(info);
+
+
+                this.WriteLog("开始获取items");
+
+                // 取item
+                List<BiblioItem> itemList = null;
+                nRet = (int)this.GetItemInfo(remoteUserName, biblioPath, out itemList, out strError);
+                if (nRet == -1) //0的情况表示没有册，不是错误
+                {
+                    result.errorCode = -1;
+                    result.errorInfo = strError;
+                    return result;
+                }
+
+                // 计算用了多少时间
+                time_length = DateTime.Now - start_time;
+                info = "获取[" + biblioPath + "]的item信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
+                this.WriteLog(info);
+
+                result.itemList = itemList;
+                result.errorCode = 1;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.errorCode = -1;
+                result.errorInfo = ex.Message;
+                return result;
+            }
+
+
+
+            #region delete
+            /*
             string strError = "";
             CancellationToken cancel_token = new CancellationToken();
             // 获取书目记录
@@ -2278,14 +2332,14 @@ namespace dp2Command.Service
 
                     // 借阅情况
                     string strBorrowInfo = "借阅情况:在架";
-                    /*
-                     <borrower>R00001</borrower>
-    <borrowerReaderType>教职工</borrowerReaderType>
-    <borrowerRecPath>读者/1</borrowerRecPath>
-    <borrowDate>Sun, 17 Apr 2016 23:57:40 +0800</borrowDate>
-    <borrowPeriod>31day</borrowPeriod>
-    <returningDate>Wed, 18 May 2016 12:00:00 +0800</returningDate>
-                     */
+                    
+    //                 <borrower>R00001</borrower>
+    //<borrowerReaderType>教职工</borrowerReaderType>
+    //<borrowerRecPath>读者/1</borrowerRecPath>
+    //<borrowDate>Sun, 17 Apr 2016 23:57:40 +0800</borrowDate>
+    //<borrowPeriod>31day</borrowPeriod>
+    //<returningDate>Wed, 18 May 2016 12:00:00 +0800</returningDate>
+                     
                     string strBorrower = DomUtil.GetElementText(dom.DocumentElement, "borrower");
                     string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
                                                 "borrowDate"), "yyyy/MM/dd");
@@ -2318,6 +2372,9 @@ namespace dp2Command.Service
             result.errorCode = -1;
             result.errorInfo = strError;
             return result;
+             */
+
+            #endregion
         }
 
         public override long SearchBiblio(string remoteUserName,
@@ -2559,10 +2616,10 @@ namespace dp2Command.Service
 
         private long GetItemInfo(string remoteUserName,
             string biblioPath,
-            out string itemInfo,
+            out List<BiblioItem> itemList,
             out string strError)
         {
-            itemInfo = "";
+            itemList = new List<BiblioItem>();
             strError = "";
 
             CancellationToken cancel_token = new CancellationToken();
@@ -2575,20 +2632,25 @@ namespace dp2Command.Service
                 "",
                 "",
                 "opac",
-                1,
+                10,
                 0,
                 -1);
             try
             {
+                this.WriteLog("GetItemInfo1");
+
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
                     remoteUserName).Result;
+                this.WriteLog("GetItemInfo2");
 
                 SearchResult result = connection.SearchAsync(
                     remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
+
+                this.WriteLog("GetItemInfo3");
                 if (result.ResultCount == -1)
                 {
                     strError = "检索出错：" + result.ErrorInfo;
@@ -2600,11 +2662,10 @@ namespace dp2Command.Service
                     return 0;
                 }
 
-
+                this.WriteLog("GetItemInfo4");
                 for (int i = 0; i < result.ResultCount; i++)
                 {
-                    if (itemInfo != "")
-                        itemInfo += "===========\n";
+                    BiblioItem item = new BiblioItem();
 
                     string xml = result.Records[i].Data;
                     XmlDocument dom = new XmlDocument();
@@ -2618,19 +2679,21 @@ namespace dp2Command.Service
                         strViewBarcode = strBarcode;
                     else
                         strViewBarcode = "refID:" + strRefID;  //"@refID:"
+                    item.barcode = strViewBarcode;
+
                     //状态
-                    string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+                    item.state = DomUtil.GetElementText(dom.DocumentElement, "state");
                     // 馆藏地
-                    string strLocation = DomUtil.GetElementText(dom.DocumentElement, "location");
+                    item.location = DomUtil.GetElementText(dom.DocumentElement, "location");
                     // 索引号
-                    string strAccessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
+                    item.accessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
 
                     // 出版日期
-                    string strPublishTime = DomUtil.GetElementText(dom.DocumentElement, "publishTime");
+                    item.publishTime= DomUtil.GetElementText(dom.DocumentElement, "publishTime");
                     // 价格
-                    string strPrice = DomUtil.GetElementText(dom.DocumentElement, "price");
+                    item.price = DomUtil.GetElementText(dom.DocumentElement, "price");
                     // 注释
-                    string strComment = DomUtil.GetElementText(dom.DocumentElement, "comment");
+                    item.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");
 
                     // 借阅情况
                     string strBorrowInfo = "借阅情况:在架";
@@ -2648,19 +2711,12 @@ namespace dp2Command.Service
                     string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
                     if (string.IsNullOrEmpty(strBorrower) == false)
                         strBorrowInfo = "借阅者:*** 借阅时间:" + borrowDate + " 借期:" + borrowPeriod;
+                    item.borrowInfo = strBorrowInfo;
 
-                    itemInfo += "序号:" + (i + 1).ToString() + "\n"
-                        + "册条码号:" + strViewBarcode + "\n"
-                        + "状态:" + strState + "\n"
-                        + "馆藏地:" + strLocation + "\n"
-                        + "索引号:" + strAccessNo + "\n"
-                        + "出版日期:" + strPublishTime + "\n"
-                        + "价格:" + strPrice + "\n"
-                        + "注释:" + strComment + "\n"
-                        + strBorrowInfo + "\n";
+                    itemList.Add(item);
                 }
 
-
+                this.WriteLog("GetItemInfo5");
                 return result.ResultCount;
             }
             catch (AggregateException ex)

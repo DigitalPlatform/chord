@@ -85,7 +85,7 @@ namespace dp2Command.Service
         // 工作线程每一轮循环的实质性工作
         public override void Worker()
         {
-            this.WriteLog("走到worker1");
+            //this.WriteLog("走到worker1");
             List<MessageRecord> records = GetMessage();
             if (records.Count > 0)
             {
@@ -94,7 +94,6 @@ namespace dp2Command.Service
                     this._messageList.AddRange(records);
                 }
             }
-
             //this.WriteErrorLog("走到worker2:" +records.Count);
 
             if (this._messageList.Count > 0)

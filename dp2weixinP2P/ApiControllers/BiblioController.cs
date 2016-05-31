@@ -86,6 +86,7 @@ namespace dp2weixinP2P.ApiControllers
         /// <returns></returns>
         public BiblioRecordResult Get(string libUserName, string biblioPath)
         {
+            dp2CmdService2.Instance.WriteLog("走进get() libUserName["+libUserName+"],biblioPath["+biblioPath+"]");
             BiblioRecordResult result = dp2CmdService2.Instance.GetBiblioDetail(libUserName,
                 biblioPath);
             return result;
