@@ -78,7 +78,19 @@ namespace dp2weixinP2P.ApiControllers
 
         }
 
-
+        /// <summary>
+        /// 获取书目详细信息
+        /// </summary>
+        /// <param name="libUserName"></param>
+        /// <param name="biblioPath"></param>
+        /// <returns></returns>
+        public BiblioRecordResult Get(string libUserName, string biblioPath)
+        {
+            dp2CmdService2.Instance.WriteLog("走进get() libUserName["+libUserName+"],biblioPath["+biblioPath+"]");
+            BiblioRecordResult result = dp2CmdService2.Instance.GetBiblioDetail(libUserName,
+                biblioPath);
+            return result;
+        }
 
     }
 }

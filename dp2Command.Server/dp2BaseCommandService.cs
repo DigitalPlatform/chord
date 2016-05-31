@@ -366,17 +366,22 @@ namespace dp2Command.Service
 
         public void WriteErrorLog(string strText)
         {
-            var logDir = this.weiXinLogDir;
-            string strFilename = Path.Combine(logDir, "error.txt");
-
-            FileUtil.WriteLog(strFilename, strText,"dp2weixin");
+            this.WriteLog("ERROR:" + strText);
         }
 
-        public void WriteInfoLog(string strText)
+        public void WriteLog(string strText)
         {
+            // todo 有空比对下谢老师写日志的代码
+            //DateTime now = DateTime.Now;
+            //// 每天一个日志文件
+            //string strFilename = Path.Combine(this.LogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
+            //string strTime = now.ToString();
+            //FileUtil.WriteText(strFilename,
+            //    strTime + " " + strText + "\r\n");
+
             var logDir = this.weiXinLogDir;
-            string strFilename = Path.Combine(logDir, "info.txt");
-            FileUtil.WriteLog(strFilename, strText,"dp2weixin");
+            string strFilename = string.Format(logDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
+            FileUtil.WriteLog(strFilename, strText, "dp2weixin");
         }
 
 

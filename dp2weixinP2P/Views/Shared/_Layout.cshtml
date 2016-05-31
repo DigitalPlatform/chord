@@ -12,6 +12,8 @@
     <link href="@Url.Content("~/Content/layer.m.css")" type="text/css" rel="stylesheet" />
     <script src="@Url.Content("~/Scripts/layer.js")"></script>
 
+    <link href="@Url.Content("~/Content/jquery-ui.css")" rel="stylesheet">
+
     <script src='@Url.Content("~/Scripts/jquery-2.2.3.js")'></script>
     <script src='@Url.Content("~/Scripts/jquery-ui-1.11.4.js")'></script>
 
@@ -165,20 +167,24 @@
                     showTopBottom(false);
                 });
                 $("input").blur(function () {
-                    showTopBottom(true);
+                    window.setTimeout("showTopBottom(true)", 1);
+                    //showTopBottom(true);
                 });
 
                 $("select").focus(function () {
                     showTopBottom(false);
                 });
                 $("select").blur(function () {
-                    showTopBottom(true);
+                    window.setTimeout("showTopBottom(true)", 1);
+                    //showTopBottom(true);
                 });
             }
             else {
                 // 非iphone时，浏览器窗口变矮时，隐藏头尾栏
                 $(window).resize(function () {
-                    adjust();
+
+                    window.setTimeout("adjust()", 1);
+                    //adjust();
                 });
             }
         });
@@ -186,7 +192,7 @@
         
 
 
-        function adjust(obj) {
+        function adjust() {
             // var w = $(document).width();
             // var h = $(document).height();
             // $("#idTest").html("[" + w + "]-[" + h + "]");
