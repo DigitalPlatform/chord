@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections;
 
 using DigitalPlatform;
-using System.Collections;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -173,8 +173,8 @@ namespace DigitalPlatform.MessageServer
         public DateTime CreateTime; // 请求的时刻
         public string RequestConnectionID = "";    // 请求者的 connection ID
 
-        public long ReturnStart = 0;    // 结果集中要返回部分的开始位置。从 0 开始计数
-        public long ReturnCount = -1;   // 结果集中要返回部分的记录个数。-1 表示尽可能多
+        public long ReturnStart = 0;    // 检索请求中，结果集中要返回部分的开始位置。从 0 开始计数
+        public long ReturnCount = -1;   // 检索请求中，结果集中要返回部分的记录个数。-1 表示尽可能多
 
         private static readonly Object _syncRoot = new Object();
         List<string> _targetIDs = new List<string>(); // 检索目标的 connection id 集合
@@ -227,7 +227,9 @@ namespace DigitalPlatform.MessageServer
         //      0   尚未结束
         //      1   结束
         //      2   全部结束
-        public int CompleteTarget(string strConnectionID, long total_count, long this_count)
+        public int CompleteTarget(string strConnectionID, 
+            long total_count,
+            long this_count)
         {
             if (total_count == -1)
             {
@@ -240,7 +242,8 @@ namespace DigitalPlatform.MessageServer
             if (info == null)
             {
                 info = new HitInfo();
-                info.TotalResults = total_count;
+                // 2016/6/1 巩固
+                info.TotalResults = this.ReturnCount == -1 ? total_count - this.ReturnStart : Math.Min(total_count - this.ReturnStart, this.ReturnCount);
                 _targetTable[strConnectionID] = info;
             }
             info.Recieved += this_count;

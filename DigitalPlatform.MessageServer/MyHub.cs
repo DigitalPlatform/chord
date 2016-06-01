@@ -172,7 +172,7 @@ false);
             // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
             // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
             // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
-            Task.Factory.StartNew(() => SearchGroupAndResponse(param));
+            Task.Run(() => SearchGroupAndResponse(param));
 
             result.Value = 1;   // 成功
             return result;
@@ -571,7 +571,7 @@ ex.GetType().ToString());
                 }
                 // 即便遇到抛出异常的情况，先前保存成功的部分消息也可以发送出去
                 // 启动一个任务，向相关的前端推送消息，以便它们在界面上显示消息或者变化(比如删除或者修改以后的效果)
-                Task.Factory.StartNew(() => PushMessageToClient(param.Action,
+                Task.Run(() => PushMessageToClient(param.Action,
                     excludeConnectionIds,
                     saved_items));
             }
@@ -855,14 +855,14 @@ ex.GetType().ToString());
                 result.String = search_info.UID;   // 返回检索请求的 UID
 
                 if (param.Action == "transGroupName")
-                    Task.Factory.StartNew(() => ResponseGroupName(param, group_query));
+                    Task.Run(() => ResponseGroupName(param, group_query));
                 else if (param.Action == "enumGroupName")
-                    Task.Factory.StartNew(() => EnumGroupNameAndResponse(param, group_query));
+                    Task.Run(() => EnumGroupNameAndResponse(param, group_query));
                 else
                     // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
                     // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
                     // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
-                    Task.Factory.StartNew(() => SearchMessageAndResponse(param, group_query));
+                    Task.Run(() => SearchMessageAndResponse(param, group_query));
 
                 result.Value = 1;   // 成功
             }
@@ -1371,7 +1371,7 @@ true);
                 }
 
                 // 启动一个任务，刷新已经登录的连接中保持在内存的账户信息
-                Task.Factory.StartNew(() => RefreshUserInfo(action, users));
+                Task.Run(() => RefreshUserInfo(action, users));
             }
             catch (Exception ex)
             {
@@ -1752,7 +1752,7 @@ true);
             // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
             // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
             // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
-            Task.Factory.StartNew(() => SearchConnectionInfoAndResponse(param));
+            Task.Run(() => SearchConnectionInfoAndResponse(param));
 
             result.Value = 1;   // 成功
             return result;
@@ -2091,7 +2091,7 @@ false);
             result.String = search_info.UID;   // 返回检索请求的 UID
             search_info.SetTargetIDs(connectionIds);
 
-            Task.Factory.StartNew(() => SendSearch(connectionIds, searchParam));
+            Task.Run(() => SendSearch(connectionIds, searchParam));
 
 #if NO
             Clients.Clients(connectionIds).search(
@@ -2209,7 +2209,7 @@ SearchResponse responseParam)
                     }
                 }
 
-                Task.Factory.StartNew(() =>
+                Task.Run(() =>
                 SendResponse(// string taskID,
     search_info,
     responseParam));

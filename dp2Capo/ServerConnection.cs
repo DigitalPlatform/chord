@@ -226,7 +226,7 @@ namespace dp2Capo
         public override void OnCirculationRecieved(CirculationRequest param)
         {
             // 单独给一个线程来执行
-            Task.Factory.StartNew(() => CirculationAndResponse(param));
+            Task.Run(() => CirculationAndResponse(param));
         }
 
         static string GetItemBarcode(string strText)
@@ -410,7 +410,7 @@ namespace dp2Capo
         public override void OnSetInfoRecieved(SetInfoRequest param)
         {
             // 单独给一个线程来执行
-            Task.Factory.StartNew(() => SetInfoAndResponse(param));
+            Task.Run(() => SetInfoAndResponse(param));
         }
 
         DigitalPlatform.LibraryClient.localhost.EntityInfo BuildEntityInfo(Entity entity)
@@ -523,7 +523,7 @@ strError);
         public override void OnBindPatronRecieved(DigitalPlatform.Message.BindPatronRequest param)
         {
             // 单独给一个线程来执行
-            Task.Factory.StartNew(() => BindPatronAndResponse(param));
+            Task.Run(() => BindPatronAndResponse(param));
         }
 
         void BindPatronAndResponse(DigitalPlatform.Message.BindPatronRequest param)
@@ -585,7 +585,8 @@ strError);
         public override void OnSearchRecieved(SearchRequest param)
         {
             // 单独给一个线程来执行
-            Task.Factory.StartNew(() => SearchAndResponse(param));
+            // Task.Factory.StartNew(() => SearchAndResponse(param));
+            Task.Run(() => SearchAndResponse(param));
         }
 
         // TODO: 本函数最好放在一个工作线程内执行
@@ -724,7 +725,7 @@ strErrorCode));
 
                     LibraryChannel temp_channel = channel;
                     channel = null;
-                    Task.Factory.StartNew(() => SendResults(
+                    Task.Run(() => SendResults(
                         temp_channel,
                         searchParam,
                     strResultSetName,
@@ -1060,14 +1061,8 @@ strErrorCode));
             string strError = "";
             string strErrorCode = "";
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
-            long batch_size = -1;   // 50 比较合适
-#if NO
-            if (string.IsNullOrEmpty(searchParam.FormatList) == true)
-            {
-                strError = "FormatList 不应为空";
-                goto ERROR1;
-            }
-#endif
+            // long batch_size = -1;   // 50 比较合适
+            long batch_size = 10;   // 50 比较合适
 
             LibraryChannel channel = GetChannel();
             try
@@ -1078,7 +1073,6 @@ strErrorCode));
                 DigitalPlatform.LibraryClient.localhost.EntityInfo[] entities = null;
 
                 long lRet = 0;
-
 
                 if (searchParam.DbNameList == "entity")
                     lRet = channel.GetEntities(
