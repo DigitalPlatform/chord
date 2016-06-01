@@ -448,7 +448,7 @@ errorCode) =>
             TimeSpan timeout,
             CancellationToken token)
         {
-            return Task.Factory.StartNew<MessageResult>(
+            return Task.Run<MessageResult>(
                 () =>
                 {
                     MessageResult result = new MessageResult();
@@ -548,7 +548,7 @@ request).Result;
     TimeSpan timeout,
     CancellationToken token)
         {
-            return Task.Factory.StartNew<GetConnectionInfoResult>(
+            return Task.Run<GetConnectionInfoResult>(
                 () =>
                 {
                     GetConnectionInfoResult result = new GetConnectionInfoResult();
@@ -650,7 +650,7 @@ request).Result;
     TimeSpan timeout,
     CancellationToken token)
         {
-            return Task.Factory.StartNew<SearchResult>(
+            return Task.Run<SearchResult>(
                 () =>
                 {
                     // DateTime start_time = DateTime.Now;
@@ -1010,7 +1010,7 @@ request).Result;
     TimeSpan timeout,
     CancellationToken token)
         {
-            return Task.Factory.StartNew<SetInfoResult>(() =>
+            return Task.Run<SetInfoResult>(() =>
             {
                 SetInfoResult result = new SetInfoResult();
                 if (result.Entities == null)
@@ -1107,7 +1107,7 @@ request).Result;
     TimeSpan timeout,
     CancellationToken token)
         {
-            return Task.Factory.StartNew<BindPatronResult>(() =>
+            return Task.Run<BindPatronResult>(() =>
             {
                 BindPatronResult result = new BindPatronResult();
                 if (result.Results == null)
@@ -1284,7 +1284,7 @@ token);
     TimeSpan timeout,
     CancellationToken token)
         {
-            return Task.Factory.StartNew<CirculationResult>(() =>
+            return Task.Run<CirculationResult>(() =>
             {
                 CirculationResult result = new CirculationResult();
 
