@@ -268,6 +268,24 @@ namespace DigitalPlatform.Message
             this.Count = count;
             this.ServerPushEncoding = serverPushEncoding;
         }
+
+        public string Dump()
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("TaskID=" + this.TaskID + "\r\n");
+            text.Append("Operation=" + this.Operation + "\r\n");
+            text.Append("DbNameList=" + this.DbNameList + "\r\n");
+            text.Append("QueryWord=" + this.QueryWord + "\r\n");
+            text.Append("UseList=" + this.UseList + "\r\n");
+            text.Append("MatchStyle=" + this.MatchStyle + "\r\n");
+            text.Append("ResultSetName=" + this.ResultSetName + "\r\n");
+            text.Append("FormatList=" + this.FormatList + "\r\n");
+            text.Append("MaxResults=" + this.MaxResults + "\r\n");
+            text.Append("Start=" + this.Start + "\r\n");
+            text.Append("Count=" + this.Count + "\r\n");
+            text.Append("ServerPushEncoding=" + this.ServerPushEncoding + "\r\n");
+            return text.ToString();
+        }
     }
 
     public class SearchResponse
@@ -295,6 +313,38 @@ namespace DigitalPlatform.Message
             this.Records = records;
             this.ErrorInfo = errorInfo;
             this.ErrorCode = errorCode;
+        }
+
+        public string Dump()
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("TaskID=" + this.TaskID + "\r\n");
+            text.Append("ResultCount=" + this.ResultCount + "\r\n");
+            text.Append("Start=" + this.Start + "\r\n");
+            text.Append("LibraryUID=" + this.LibraryUID + "\r\n");
+            text.Append("Records:\r\n" + this.DumpRecords() + "\r\n");
+            text.Append("ErrorInfo=" + this.ErrorInfo + "\r\n");
+            text.Append("ErrorCode=" + this.ErrorCode + "\r\n");
+            return text.ToString();
+        }
+
+        public string DumpRecords()
+        {
+            StringBuilder text = new StringBuilder();
+            int i = 0;
+            foreach (Record record in this.Records)
+            {
+                text.Append((i+1).ToString() + ")\r\n");
+
+                text.Append("RecPath=" + record.RecPath + "\r\n");
+                text.Append("Format=" + record.Format + "\r\n");
+                text.Append("Data=" + record.Data + "\r\n");
+                text.Append("Timestamp=" + record.Timestamp + "\r\n");
+                text.Append("MD5=" + record.MD5 + "\r\n");
+
+                i++;
+            }
+            return text.ToString();
         }
     }
 
