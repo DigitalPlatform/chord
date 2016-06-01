@@ -236,6 +236,8 @@ namespace DigitalPlatform.MessageServer
         // 写入实例的错误日志文件
         public static void WriteErrorLog(string strText)
         {
+            Console.WriteLine(strText);
+
             if (_errorLogError == true) // 先前写入实例的日志文件发生过错误，所以改为写入 Windows 日志。会加上实例名前缀字符串
                 WriteWindowsLog(strText, EventLogEntryType.Error);
             else

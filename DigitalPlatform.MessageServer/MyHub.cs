@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define LOG
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -548,7 +550,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
             {
                 result.SetError("SetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
 ex.GetType().ToString());
-                Console.WriteLine(result.ErrorInfo);
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
             finally
             {
@@ -641,10 +643,10 @@ ex.GetType().ToString());
                     // 如果 records 包含数量太多，需要分批发送
                     List<MessageRecord> batch = new List<MessageRecord>();
                     int i = 0;
-                    foreach(MessageRecord record in records)
+                    foreach (MessageRecord record in records)
                     {
                         batch.Add(record);
-                        if (batch.Count >= batch_size 
+                        if (batch.Count >= batch_size
                             || (i == records.Count - 1 && batch.Count > 0))
                         {
                             if (excludeConnectionIds == null)
@@ -870,7 +872,7 @@ ex.GetType().ToString());
             {
                 result.SetError("RequestGetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
 ex.GetType().ToString());
-                Console.WriteLine(result.ErrorInfo);
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
 
             return result;
@@ -1377,7 +1379,7 @@ true);
             {
                 result.SetError("SetUsers() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
 ex.GetType().ToString());
-                Console.WriteLine(result.ErrorInfo);
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
 
 #if NO
                 result.String = "Exception";
@@ -1545,7 +1547,7 @@ false);
             {
                 result.SetError("Login() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
 ex.GetType().ToString());
-                Console.WriteLine(result.ErrorInfo);
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
             return result;
         }
@@ -1604,7 +1606,7 @@ false);
             {
                 result.SetError("Login() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
 ex.GetType().ToString());
-                Console.WriteLine(result.ErrorInfo);
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
             return result;
         }
@@ -1915,7 +1917,7 @@ true);
             {
                 result.SetError("ResponseGetConnectionInfo() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
 ex.GetType().ToString());
-                Console.WriteLine(result.ErrorInfo);
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
             return result;
         }
@@ -1953,7 +1955,7 @@ true);
             {
                 result.SetError("CancelSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
 ex.GetType().ToString());
-                Console.WriteLine(result.ErrorInfo);
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
             return result;
         }
@@ -1962,6 +1964,10 @@ ex.GetType().ToString());
 
         #region Search() API
 
+        void writeDebug(string strText)
+        {
+            ServerInfo.WriteErrorLog("debug: " + strText);
+        }
 
         // return:
         //      result.Value    -1 出错; 0 没有任何检索目标; >0 成功发起检索，数字代表给多少个目标发出了请求
@@ -1972,149 +1978,145 @@ ex.GetType().ToString());
         {
             if (searchParam.Count == 0)
                 searchParam.Count = -1;
-
+#if LOG
+            writeDebug("RequestSearch.1 userNameList=" + userNameList
+                + ", searchParam=" + searchParam.Dump());
+#endif
             MessageResult result = new MessageResult();
 
-#if NO
-            ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
-            if (connection_info == null)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。请求检索书目失败";
-                return result;
-            }
-
-            if (connection_info.UserItem == null)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "尚未登录，无法使用 RequestSearch() 功能";
-            }
-#endif
-            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
-result,
-"RequestSearch()",
-false);
-            if (connection_info == null)
-                return result;
-
-            if (searchParam.Operation == "searchBiblio"
-                && userNameList == "*"
-                && StringUtil.Contains(connection_info.PropertyList, "biblio_search") == false)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "当前连接未开通书目检索功能";
-                return result;
-            }
-
-            // 检查请求者是否具备操作的权限
-            if (searchParam.Operation == "searchBiblio"
-    && userNameList == "*"
-    && StringUtil.Contains(connection_info.PropertyList, "biblio_search") == true)
-            {
-                // 请求者具有共享检索资格
-            }
-            else
-            {
-                if (StringUtil.Contains(connection_info.Rights, searchParam.Operation) == false)
-                {
-                    result.Value = -1;
-                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + searchParam.Operation + "' 操作的权限";
-                    return result;
-                }
-            }
-
-            List<string> connectionIds = null;
-            string strError = "";
-
-            if (searchParam.Operation == "searchBiblio"
-    && userNameList == "*")
-            {
-                // 获得书目检索的目标 connection 的 id 集合
-                // parameters:
-                //      strRequestLibraryUID    发起检索的人所在的图书馆的 UID。本函数要在返回结果中排除这个 UID 的图书馆的连接
-                // return:
-                //      -1  出错
-                //      0   成功
-                int nRet = ServerInfo.ConnectionTable.GetBiblioSearchTargets(
-                    connection_info.LibraryUID,
-                    false,
-                    out connectionIds,
-                    out strError);
-                if (nRet == -1)
-                {
-                    result.Value = -1;
-                    result.ErrorInfo = strError;
-                    return result;
-                }
-            }
-            else
-            {
-                int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
-                    userNameList,
-                    connection_info.UserName,
-                    searchParam.Operation,
-                    "all",
-                    out connectionIds,
-                    out strError);
-                if (nRet == -1)
-                {
-                    result.Value = -1;
-                    result.ErrorInfo = strError;
-                    return result;
-                }
-            }
-
-            if (connectionIds == null || connectionIds.Count == 0)
-            {
-                result.Value = 0;
-                // result.ErrorInfo = "当前没有任何可检索的目标 (目标用户名 '"+userNameList+"'; 操作 '"+searchParam.Operation+"')";
-                result.ErrorInfo = "当前没有发现可检索的目标 (详情 '" + strError + "')";
-                return result;
-            }
-
-            SearchInfo search_info = null;
             try
             {
-                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
-                    searchParam.TaskID,
-                    searchParam.Start,
-                    searchParam.Count,
-                    searchParam.ServerPushEncoding);
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+    result,
+    "RequestSearch()",
+    false);
+                if (connection_info == null)
+                    return result;
+
+                if (searchParam.Operation == "searchBiblio"
+                    && userNameList == "*"
+                    && StringUtil.Contains(connection_info.PropertyList, "biblio_search") == false)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "当前连接未开通书目检索功能";
+                    return result;
+                }
+
+#if LOG
+                writeDebug("RequestSearch.2");
+#endif
+
+                // 检查请求者是否具备操作的权限
+                if (searchParam.Operation == "searchBiblio"
+        && userNameList == "*"
+        && StringUtil.Contains(connection_info.PropertyList, "biblio_search") == true)
+                {
+                    // 请求者具有共享检索资格
+                }
+                else
+                {
+                    if (StringUtil.Contains(connection_info.Rights, searchParam.Operation) == false)
+                    {
+                        result.Value = -1;
+                        result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + searchParam.Operation + "' 操作的权限";
+                        return result;
+                    }
+                }
+
+#if LOG
+                writeDebug("RequestSearch.3");
+#endif
+
+                List<string> connectionIds = null;
+                string strError = "";
+
+                if (searchParam.Operation == "searchBiblio"
+        && userNameList == "*")
+                {
+                    // 获得书目检索的目标 connection 的 id 集合
+                    // parameters:
+                    //      strRequestLibraryUID    发起检索的人所在的图书馆的 UID。本函数要在返回结果中排除这个 UID 的图书馆的连接
+                    // return:
+                    //      -1  出错
+                    //      0   成功
+                    int nRet = ServerInfo.ConnectionTable.GetBiblioSearchTargets(
+                        connection_info.LibraryUID,
+                        false,
+                        out connectionIds,
+                        out strError);
+                    if (nRet == -1)
+                    {
+                        result.Value = -1;
+                        result.ErrorInfo = strError;
+                        return result;
+                    }
+                }
+                else
+                {
+                    int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
+                        userNameList,
+                        connection_info.UserName,
+                        searchParam.Operation,
+                        "all",
+                        out connectionIds,
+                        out strError);
+                    if (nRet == -1)
+                    {
+                        result.Value = -1;
+                        result.ErrorInfo = strError;
+                        return result;
+                    }
+                }
+
+#if LOG
+                writeDebug("RequestSearch.4");
+#endif
+
+                if (connectionIds == null || connectionIds.Count == 0)
+                {
+                    result.Value = 0;
+                    // result.ErrorInfo = "当前没有任何可检索的目标 (目标用户名 '"+userNameList+"'; 操作 '"+searchParam.Operation+"')";
+                    result.ErrorInfo = "当前没有发现可检索的目标 (详情 '" + strError + "')";
+                    return result;
+                }
+#if LOG
+                writeDebug("RequestSearch.5");
+#endif
+
+
+                SearchInfo search_info = null;
+                try
+                {
+                    search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                        searchParam.TaskID,
+                        searchParam.Start,
+                        searchParam.Count,
+                        searchParam.ServerPushEncoding);
+                }
+                catch (ArgumentException)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "TaskID '" + searchParam.TaskID + "' 已经存在了，不允许重复使用";
+                    return result;
+                }
+
+                result.String = search_info.UID;   // 返回检索请求的 UID
+                search_info.SetTargetIDs(connectionIds);
+
+#if LOG
+                writeDebug("RequestSearch.6 sendSearch connectionIds=" + StringUtil.MakePathList(connectionIds.ToList<string>()));
+#endif
+                Task.Run(() => SendSearch(connectionIds, searchParam));
+
+                result.Value = connectionIds.Count;   // 表示已经成功发起了检索
             }
-            catch (ArgumentException)
+            catch (Exception ex)
             {
-                result.Value = -1;
-                result.ErrorInfo = "TaskID '" + searchParam.TaskID + "' 已经存在了，不允许重复使用";
-                return result;
+                result.SetError("RequestSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
-
-            result.String = search_info.UID;   // 返回检索请求的 UID
-            search_info.SetTargetIDs(connectionIds);
-
-            Task.Run(() => SendSearch(connectionIds, searchParam));
-
-#if NO
-            Clients.Clients(connectionIds).search(
-                searchParam);
-#endif
-
-            result.Value = connectionIds.Count;   // 表示已经成功发起了检索
             return result;
-#if NO
-            SearchInfo info = ServerInfo.AddSearch(Context.ConnectionId);
-
-            // TODO: 筛选目标，只发给那些具有可检索属性的目标
-            // 或者用 group 机制
-            Clients.All.searchBiblio("searchBiblio",
-                info.UID,   // 检索请求的 UID
-                dbNameList,
-                queryWord,
-                fromList,
-                macthStyle,
-                formatList,
-                maxResults);
-            return info.UID;
-#endif
         }
 
         void SendSearch(List<string> connectionIds, SearchRequest searchParam)
@@ -2130,18 +2132,11 @@ false);
         //                      这个值实际上是表示全部命中结果的数目，可能比 records 中的元素要多
         //      start  records 参数中的第一个元素，在总的命中结果集中的偏移
         //      errorInfo   错误信息
-        public MessageResult ResponseSearch(
-#if NO
-            string taskID,
-            long resultCount,
-            long start,
-            IList<Record> records,
-            string errorInfo,
-            string errorCode
-#endif
-SearchResponse responseParam)
+        public MessageResult ResponseSearch(SearchResponse responseParam)
         {
-            // Thread.Sleep(1000 * 60 * 2);
+#if LOG
+            writeDebug("ResponseSearch.1 responseParam=" + responseParam.Dump());
+#endif
             MessageResult result = new MessageResult();
             try
             {
@@ -2158,6 +2153,10 @@ SearchResponse responseParam)
                     result.String = "_notFound";
                     return result;
                 }
+
+#if LOG
+                writeDebug("ResponseSearch.2");
+#endif
 
                 // 给 RecPath 加上 @ 部分
                 if (responseParam.Records != null)
@@ -2209,6 +2208,9 @@ SearchResponse responseParam)
                     }
                 }
 
+#if LOG
+                writeDebug("ResponseSearch.3 SendResponse");
+#endif
                 Task.Run(() =>
                 SendResponse(// string taskID,
     search_info,
@@ -2218,7 +2220,7 @@ SearchResponse responseParam)
             {
                 result.SetError("ResponseSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
 ex.GetType().ToString());
-                Console.WriteLine(result.ErrorInfo);
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
             return result;
         }
@@ -2243,43 +2245,37 @@ ex.GetType().ToString());
 
         void SendResponse(// string taskID,
             SearchInfo search_info,
-#if NO
-            long resultCount,
-            long start,
-            IList<Record> records,
-            string errorInfo,
-            string errorCode
-#endif
- SearchResponse responseParam)
+            SearchResponse responseParam)
         {
+#if LOG
+            writeDebug("SendResponse.1");
+#endif
+
             // Thread.Sleep(500);
             // 让前端获得检索结果
             try
             {
                 Clients.Client(search_info.RequestConnectionID).responseSearch(
                     responseParam);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("中心向前端分发 responseSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
-            }
 
-#if NO
-            // 判断响应是否为最后一个响应
-            bool bRet = IsComplete(responseParam.ResultCount,
-                search_info.ReturnStart,
-                search_info.ReturnCount,
-                responseParam.Start,
-                responseParam.Records);
-            if (bRet == true)
-            {
-                bool bAllComplete = search_info.CompleteTarget(Context.ConnectionId);
-                if (bAllComplete)
+#if LOG
+                writeDebug("SendResponse.2");
+#endif
+
+                // 标记结束一个检索目标
+                // return:
+                //      0   尚未结束
+                //      1   结束
+                //      2   全部结束
+                int nRet = search_info.CompleteTarget(Context.ConnectionId,
+                    responseParam.ResultCount,
+                    responseParam.Records == null ? 0 : responseParam.Records.Count);
+                if (nRet == 2)
                 {
                     // 追加一个消息，表示检索响应已经全部完成
                     Clients.Client(search_info.RequestConnectionID).responseSearch(
     new SearchResponse(
-        "",
+        search_info.UID,
     -1,
     -1,
     "", // libraryUID,
@@ -2291,31 +2287,14 @@ ex.GetType().ToString());
                     Console.WriteLine("complete");
                 }
             }
-#endif
-            // 标记结束一个检索目标
-            // return:
-            //      0   尚未结束
-            //      1   结束
-            //      2   全部结束
-            int nRet = search_info.CompleteTarget(Context.ConnectionId,
-                responseParam.ResultCount,
-                responseParam.Records == null ? 0 : responseParam.Records.Count);
-            if (nRet == 2)
+            catch (Exception ex)
             {
-                // 追加一个消息，表示检索响应已经全部完成
-                Clients.Client(search_info.RequestConnectionID).responseSearch(
-new SearchResponse(
-    search_info.UID,
--1,
--1,
-"", // libraryUID,
-null,
-"",
-""));
-                // 主动清除已经完成的检索对象
-                ServerInfo.SearchTable.RemoveSearch(search_info.UID);  // taskID
-                Console.WriteLine("complete");
+                ServerInfo.WriteErrorLog("中心向前端分发 responseSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
             }
+
+#if LOG
+            writeDebug("SendResponse.3");
+#endif
         }
 
         #endregion
@@ -2462,7 +2441,7 @@ true);
             {
                 result.SetError("ResponseSetInfo() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
 ex.GetType().ToString());
-                Console.WriteLine(result.ErrorInfo);
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
             return result;
         }
@@ -2586,7 +2565,7 @@ true);
             {
                 result.SetError("ResponseBindPatron() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
                     ex.GetType().ToString());
-                Console.WriteLine(result.ErrorInfo);
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
             return result;
         }
@@ -2713,7 +2692,7 @@ true);
             {
                 result.SetError("ResponseCirculation() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
     ex.GetType().ToString());
-                Console.WriteLine(result.ErrorInfo);
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
             finally
             {
