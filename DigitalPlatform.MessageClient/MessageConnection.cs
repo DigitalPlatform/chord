@@ -7,6 +7,7 @@ using System.Threading;
 using System.Collections;
 using System.Diagnostics;
 using System.Net;
+using System.IO;
 
 using Microsoft.AspNet.SignalR.Client;
 using Microsoft.AspNet.SignalR.Client.Transports;
@@ -22,6 +23,21 @@ namespace DigitalPlatform.MessageClient
     /// </summary>
     public class MessageConnection
     {
+#if NO
+        string _debugFileName = "";
+        public string DebugFileName
+        {
+            get
+            {
+                return this._debugFileName;
+            }
+            set
+            {
+                this._debugFileName = value;
+            }
+        }
+#endif
+
         public event ConnectionEventHandler ConnectionStateChange = null;
 
         /// <summary>
@@ -189,6 +205,9 @@ namespace DigitalPlatform.MessageClient
             Connection.Reconnected += Connection_Reconnected;
             // Connection.Error += Connection_Error;
 
+            if (this.Container != null && this.Container.TraceWriter != null)
+                Connection.TraceWriter = this.Container.TraceWriter; 
+
             // Connection.Credentials = new NetworkCredential("testusername", "testpassword");
             Connection.Headers.Add("username", this.UserName);
             Connection.Headers.Add("password", this.Password);
@@ -257,10 +276,9 @@ errorInfo)
                 (param) => OnCirculationRecieved(param)
                 );
 
-
             try
             {
-                return Connection.Start()    // new ServerSentEventsTransport()
+                return Connection.Start()    // new ServerSentEventsTransport() new LongPollingTransport()
                     .ContinueWith<MessageResult>((antecendent) =>
                     {
                         MessageResult result = new MessageResult();
@@ -643,6 +661,154 @@ request).Result;
         {
         }
 
+#if NO
+        public class SearchTask
+        {
+            public ResultManager manager = new ResultManager();
+            public List<string> errors = new List<string>();
+            public List<string> codes = new List<string>();
+
+            public string id = "";
+            internal WaitEvents wait_events = new WaitEvents();
+            public IDisposable handler = null;
+            public SearchResult result = new SearchResult();
+        }
+
+        public SearchTask BeginSearch(string taskID)
+        {
+            SearchTask task = new SearchTask();
+            task.id = taskID;
+            if (task.result.Records == null)
+                task.result.Records = new List<Record>();
+
+            task.handler = HubProxy.On<SearchResponse>(
+                    "responseSearch",
+                    (responseParam
+                        // taskID, resultCount, start, records, errorInfo, errorCode
+                        ) =>
+                    {
+                        if (responseParam.TaskID != task.id)
+                            return;
+
+                        // 装载命中结果
+                        if (responseParam.ResultCount == -1 && responseParam.Start == -1)
+                        {
+                            if (task.result.ResultCount != -1)
+                                task.result.ResultCount = task.manager.GetTotalCount();
+                            task.result.ErrorInfo = StringUtil.MakePathList(task.errors, "; ");
+                            task.result.ErrorCode = StringUtil.MakePathList(task.codes, ",");
+
+                            task.wait_events.finish_event.Set();
+                            return;
+                        }
+
+                        // TODO: 似乎应该关注 start 位置
+                        if (responseParam.Records != null)
+                            AddLibraryUID(responseParam.Records, responseParam.LibraryUID);
+
+                        task.result.Records.AddRange(responseParam.Records);
+                        if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
+                            && task.errors.IndexOf(responseParam.ErrorInfo) == -1)
+                        {
+                            task.errors.Add(responseParam.ErrorInfo);
+                            task.result.ErrorInfo = StringUtil.MakePathList(task.errors, "; ");
+                        }
+                        if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
+                            && task.codes.IndexOf(responseParam.ErrorCode) == -1)
+                        {
+                            task.codes.Add(responseParam.ErrorCode);
+                            task.result.ErrorCode = StringUtil.MakePathList(task.codes, ",");
+                        }
+
+                        // 标记结束一个检索目标
+                        // return:
+                        //      0   尚未结束
+                        //      1   结束
+                        //      2   全部结束
+                        int nRet = task.manager.CompleteTarget(responseParam.LibraryUID,
+                            responseParam.ResultCount,
+                            responseParam.Records == null ? 0 : responseParam.Records.Count);
+
+                        if (responseParam.ResultCount == -1)
+                            task.result.ResultCount = -1;
+                        else
+                            task.result.ResultCount = task.manager.GetTotalCount();
+
+                        if (nRet == 2)
+                            task.wait_events.finish_event.Set();
+                        else
+                            task.wait_events.active_event.Set();
+                    });
+
+            return task;
+        }
+
+        public void EndSearch(SearchTask task)
+        {
+            task.wait_events.Dispose();
+            task.handler.Dispose();
+        }
+
+        // await 版本
+        public async Task<SearchResult> Search(
+            SearchTask task,
+    string strRemoteUserName,
+    SearchRequest request,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            if (string.IsNullOrEmpty(request.TaskID) == true)
+                throw new ArgumentException("request.TaskID 不应为空");
+
+            try
+            {
+                MessageResult message = HubProxy.Invoke<MessageResult>(
+    "RequestSearch",
+    strRemoteUserName,
+    request).Result;
+                if (message.Value == -1 || message.Value == 0)
+                {
+                    task.result.ErrorInfo = message.ErrorInfo;
+                    task.result.ResultCount = -1;
+                    return task.result;
+                }
+
+                if (task.manager.SetTargetCount(message.Value) == true)
+                    return task.result;
+            }
+            catch(Exception ex)
+            {
+                task.result.ErrorInfo = ExceptionUtil.GetDebugText(ex);
+                task.result.ResultCount = -1;
+                return task.result;
+            }
+
+            // start_time = DateTime.Now;
+
+            try
+            {
+                Wait(
+request.TaskID,
+task.wait_events,
+timeout,
+token);
+            }
+            catch (TimeoutException)
+            {
+                // 超时的时候实际上有结果了
+                if (task.result.Records != null
+                    && task.result.Records.Count > 0)
+                {
+                    task.result.ErrorCode += ",_timeout";    // 附加一个错误码，表示虽然返回了结果，但是已经超时
+                    return task.result;
+                }
+                throw;
+            }
+
+            return task.result;
+        }
+#endif
+
         // 新版 API，测试中
         public Task<SearchResult> SearchAsync(
     string strRemoteUserName,
@@ -794,7 +960,7 @@ request).Result;
             token);
         }
 
-        class WaitEvents : IDisposable
+        internal class WaitEvents : IDisposable
         {
             public ManualResetEvent finish_event = new ManualResetEvent(false);    // 表示数据全部到来
             public AutoResetEvent active_event = new AutoResetEvent(false);    // 表示中途数据到来
@@ -833,7 +999,7 @@ request).Result;
             {
                 int index = WaitHandle.WaitAny(events,
                     timeout,
-                    false);
+                    true); // false
 
                 if (index == 0) // 正常完成
                     return; //  result;

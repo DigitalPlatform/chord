@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
 
 using DigitalPlatform.Message;
 
@@ -15,6 +16,8 @@ namespace DigitalPlatform.MessageClient
     /// </summary>
     public class MessageConnectionCollection : IDisposable
     {
+        public TextWriter TraceWriter { get; set; }
+
         internal ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
         List<MessageConnection> _connections = new List<MessageConnection>();
 

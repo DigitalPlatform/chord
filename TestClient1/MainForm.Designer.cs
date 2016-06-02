@@ -133,6 +133,7 @@
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.menuItem_getSummaryAndItems = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.tabControl_main.SuspendLayout();
             this.tabPage_config.SuspendLayout();
@@ -166,7 +167,8 @@
             // testToolStripMenuItem
             // 
             this.testToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.MenuItem_writeToMSMQ});
+            this.MenuItem_writeToMSMQ,
+            this.menuItem_getSummaryAndItems});
             this.testToolStripMenuItem.Name = "testToolStripMenuItem";
             this.testToolStripMenuItem.Size = new System.Drawing.Size(41, 21);
             this.testToolStripMenuItem.Text = "test";
@@ -174,7 +176,7 @@
             // MenuItem_writeToMSMQ
             // 
             this.MenuItem_writeToMSMQ.Name = "MenuItem_writeToMSMQ";
-            this.MenuItem_writeToMSMQ.Size = new System.Drawing.Size(168, 22);
+            this.MenuItem_writeToMSMQ.Size = new System.Drawing.Size(205, 22);
             this.MenuItem_writeToMSMQ.Text = "Write to MSMQ";
             this.MenuItem_writeToMSMQ.Click += new System.EventHandler(this.MenuItem_writeToMSMQ_Click);
             // 
@@ -716,7 +718,7 @@
             this.tabPage_setInfo.Controls.Add(this.button_testPaste);
             this.tabPage_setInfo.Location = new System.Drawing.Point(4, 22);
             this.tabPage_setInfo.Name = "tabPage_setInfo";
-            this.tabPage_setInfo.Size = new System.Drawing.Size(381, 271);
+            this.tabPage_setInfo.Size = new System.Drawing.Size(383, 271);
             this.tabPage_setInfo.TabIndex = 4;
             this.tabPage_setInfo.Text = "SetXXXInfo";
             this.tabPage_setInfo.UseVisualStyleBackColor = true;
@@ -750,7 +752,7 @@
             this.webBrowser_setInfo_entities.Location = new System.Drawing.Point(9, 156);
             this.webBrowser_setInfo_entities.MinimumSize = new System.Drawing.Size(20, 100);
             this.webBrowser_setInfo_entities.Name = "webBrowser_setInfo_entities";
-            this.webBrowser_setInfo_entities.Size = new System.Drawing.Size(352, 100);
+            this.webBrowser_setInfo_entities.Size = new System.Drawing.Size(354, 100);
             this.webBrowser_setInfo_entities.TabIndex = 15;
             // 
             // comboBox_setInfo_method
@@ -1080,7 +1082,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 38);
             this.textBox_message_timeRange.Name = "textBox_message_timeRange";
-            this.textBox_message_timeRange.Size = new System.Drawing.Size(316, 21);
+            this.textBox_message_timeRange.Size = new System.Drawing.Size(320, 21);
             this.textBox_message_timeRange.TabIndex = 41;
             // 
             // label39
@@ -1099,7 +1101,7 @@
             this.textBox_message_text.Location = new System.Drawing.Point(54, 65);
             this.textBox_message_text.Multiline = true;
             this.textBox_message_text.Name = "textBox_message_text";
-            this.textBox_message_text.Size = new System.Drawing.Size(339, 62);
+            this.textBox_message_text.Size = new System.Drawing.Size(343, 62);
             this.textBox_message_text.TabIndex = 3;
             // 
             // textBox_message_groupName
@@ -1108,7 +1110,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_groupName.Location = new System.Drawing.Point(77, 11);
             this.textBox_message_groupName.Name = "textBox_message_groupName";
-            this.textBox_message_groupName.Size = new System.Drawing.Size(316, 21);
+            this.textBox_message_groupName.Size = new System.Drawing.Size(320, 21);
             this.textBox_message_groupName.TabIndex = 39;
             // 
             // label37
@@ -1204,6 +1206,13 @@
             this.webBrowser1.Name = "webBrowser1";
             this.webBrowser1.Size = new System.Drawing.Size(334, 297);
             this.webBrowser1.TabIndex = 0;
+            // 
+            // menuItem_getSummaryAndItems
+            // 
+            this.menuItem_getSummaryAndItems.Name = "menuItem_getSummaryAndItems";
+            this.menuItem_getSummaryAndItems.Size = new System.Drawing.Size(205, 22);
+            this.menuItem_getSummaryAndItems.Text = "GetSummaryAndItems";
+            this.menuItem_getSummaryAndItems.Click += new System.EventHandler(this.menuItem_getSummaryAndItems_Click);
             // 
             // MainForm
             // 
@@ -1358,6 +1367,7 @@
         private System.Windows.Forms.Button button_message_getGroupNameQuick;
         private System.Windows.Forms.Button button_message_enumGroupName;
         private System.Windows.Forms.Button button_message_delete;
+        private System.Windows.Forms.ToolStripMenuItem menuItem_getSummaryAndItems;
     }
 }
 

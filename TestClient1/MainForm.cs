@@ -19,6 +19,8 @@ using DigitalPlatform.MessageClient;
 using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
 using DigitalPlatform;
+using System.Net;
+using System.IO;
 
 namespace TestClient1
 {
@@ -35,10 +37,15 @@ namespace TestClient1
         {
             _channels.Login += _channels_Login;
             _channels.AddMessage += _channels_AddMessage;
+            StreamWriter sw = new StreamWriter(Path.Combine(Environment.CurrentDirectory, "trace.txt"));
+            sw.AutoFlush = true;
+            _channels.TraceWriter = sw;
 
             ClearForPureTextOutputing(this.webBrowser_message);
 
             LoadSettings();
+
+            // ServicePointManager.DefaultConnectionLimit = 10;
         }
 
         void _channels_AddMessage(object sender, AddMessageEventArgs e)
@@ -157,6 +164,7 @@ namespace TestClient1
         {
             SaveSettings();
             _channels.Login -= _channels_Login;
+            _channels.TraceWriter.Close();
         }
 
         void LoadSettings()
@@ -900,7 +908,7 @@ string strHtml)
                 int i = 0;
                 foreach (MessageRecord record in result.Results)
                 {
-                    text.Append("*** "+(i+1)+"\r\n");
+                    text.Append("*** " + (i + 1) + "\r\n");
                     text.Append("id=" + record.id + "\r\n");
                     text.Append("data=" + record.data + "\r\n");
                     if (record.groups != null)
@@ -1818,6 +1826,220 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             }
         ERROR1:
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+        }
+
+        #region 任延华测试代码
+
+        private long GetSummaryAndItems(string dp2mserverUrl,
+    string remoteUserName,
+    string biblioPath,
+    out string info,
+    out string strError)
+        {
+            strError = "";
+            info = "";
+
+            // 取出summary
+            string strSummary = "";
+            int nRet = this.GetBiblioSummary(this.textBox_config_messageServerUrl.Text,
+                this.textBox_getInfo_remoteUserName.Text,
+                this.textBox_getInfo_queryWord.Text,
+                out strSummary, out strError);
+            if (nRet == -1 || nRet == 0)
+            {
+                return nRet;
+            }
+
+            // 取item
+            string itemList = "";
+            nRet = (int)this.GetItemInfo(this.textBox_config_messageServerUrl.Text,
+                this.textBox_getInfo_remoteUserName.Text,
+                this.textBox_getInfo_queryWord.Text, out itemList, out strError);
+            if (nRet == -1) //0的情况表示没有册，不是错误
+            {
+                return -1;
+            }
+
+            info = " summary:[" + strSummary + "]\r\nitems:[" + itemList + "]";
+
+            return 1;
+        }
+
+        private int GetBiblioSummary(string dp2mserverUrl,
+            string remoteUserName,
+            string biblioPath,
+            out string summary,
+            out string strError)
+        {
+            summary = "";
+            strError = "";
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            SearchRequest request = new SearchRequest(id,
+                "getBiblioInfo",
+                "<全部>",
+                biblioPath,
+                "",
+                "",
+                "",
+                "summary",
+                1,
+                0,
+                -1);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                   dp2mserverUrl,
+                    remoteUserName).Result;
+
+
+                SearchResult result = connection.SearchAsync(
+                    remoteUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.ResultCount == -1)
+                {
+                    strError = "检索出错：" + result.ErrorInfo;
+                    return -1;
+                }
+                if (result.ResultCount == 0)
+                {
+                    strError = "未命中";
+                    return 0;
+                }
+
+                summary = result.Records[0].Data;
+                return 1;
+
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+        ERROR1:
+            return -1;
+        }
+
+        private long GetItemInfo(string dp2mserverUrl,
+            string remoteUserName,
+            string biblioPath,
+            out string itemList,
+            out string strError)
+        {
+            itemList = "";
+            strError = "";
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            SearchRequest request = new SearchRequest(id,
+                "getItemInfo",
+                "entity",
+                biblioPath,
+                "",
+                "",
+                "",
+                "opac",
+                10,
+                0,
+                -1);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                    dp2mserverUrl,
+                    remoteUserName).Result;
+
+                SearchResult result = null;
+                try
+                {
+                    result = connection.SearchAsync(
+                       remoteUserName,
+                       request,
+                       new TimeSpan(0, 1, 0),
+                       cancel_token).Result;
+                }
+                catch (Exception ex)
+                {
+                    strError = "检索出错：[SearchAsync异常]" + ex.Message;
+                    return -1;
+                }
+
+                if (result.ResultCount == -1)
+                {
+                    strError = "检索出错：" + result.ErrorInfo;
+                    return -1;
+                }
+                if (result.ResultCount == 0)
+                {
+                    strError = "未命中";
+                    return 0;
+                }
+
+                for (int i = 0; i < result.Records.Count; i++)
+                {
+                    string xml = result.Records[i].Data;
+                    XmlDocument dom = new XmlDocument();
+                    dom.LoadXml(xml);
+
+                    string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
+                    string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
+                    // 册条码号
+                    string strViewBarcode = "";
+                    if (string.IsNullOrEmpty(strBarcode) == false)
+                        strViewBarcode = strBarcode;
+                    else
+                        strViewBarcode = "refID:" + strRefID;  //"@refID:"
+                    itemList += strViewBarcode + "\n";
+
+                }
+
+                return result.Records.Count;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+        ERROR1:
+            return -1;
+        }
+
+        #endregion
+
+        private void menuItem_getSummaryAndItems_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+            string strList = "";
+
+            this.tabControl_main.SelectedTab = this.tabPage_getInfo;
+
+            for (int i = 0; i < 1; i++)
+            {
+                long nRet = GetSummaryAndItems(this.textBox_config_messageServerUrl.Text,
+                    this.textBox_getInfo_remoteUserName.Text,
+                    this.textBox_getInfo_queryWord.Text,    // string biblioPath,
+        out strList,
+        out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+            }
+            MessageBox.Show(this, "list:" + strList);
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
+
         }
 
     }
