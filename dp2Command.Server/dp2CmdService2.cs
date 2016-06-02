@@ -713,7 +713,7 @@ namespace dp2Command.Service
                     //如有疑问，请联系学校管理员，感谢您的使用！、
                     var msgData = new PayTemplateData()
                     {
-                        first = new TemplateDataItem("〸〸〸〸〸〸$〸〸〸〸〸〸", "#556B2F"),//★★★★★★★★★★★★★★★ dark olive green//this._msgFirstLeft+"您已交费成功！"
+                        first = new TemplateDataItem("++++++$++++++", "#556B2F"),//★★★★★★★★★★★★★★★ dark olive green//this._msgFirstLeft+"您已交费成功！"
                         keyword1 = new TemplateDataItem(barcodes, "#000000"),//text.ToString()),// "请让我慢慢长大"),
                         keyword2 = new TemplateDataItem(patronName, "#000000"),
                         keyword3 = new TemplateDataItem("CNY" + totalPrice, "#000000"),
@@ -841,11 +841,11 @@ namespace dp2Command.Service
             string summary = DomUtil.GetNodeText(nodeSummary);
 
             // 检查是否有超期信息
-            string remark = "\n欢迎继续借书。";
+            string remark = "\n" + patronName + "，感谢及时归还，欢迎继续借书。";
             XmlNodeList listOverdue = root.SelectNodes("patronRecord/overdues/overdue");
             if (listOverdue.Count > 0)
             {
-                remark = "\n您有" + listOverdue.Count + "笔超期违约记录，请履行超期手续。";
+                remark = "\n"+patronName+"，您有" + listOverdue.Count + "笔超期违约记录，请履行超期手续。";
             }
 
 
@@ -1032,13 +1032,13 @@ namespace dp2Command.Service
                     //祝您阅读愉快，欢迎再借。
                     var msgData = new BorrowTemplateData()
                     {
-                        first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎\n读者姓名："+patronName, "#006400"), // 	dark green //this._msgFirstLeft + "恭喜您借书成功。"
+                        first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#006400"), // 	dark green //this._msgFirstLeft + "恭喜您借书成功。"
                         keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
                         keyword2 = new TemplateDataItem(itemBarcode, "#000000"),
                         keyword3 = new TemplateDataItem(borrowDate, "#000000"),
                         keyword4 = new TemplateDataItem(borrowPeriod, "#000000"),
                         keyword5 = new TemplateDataItem(returningDate, "#000000"),
-                        remark = new TemplateDataItem("读者姓名："+patronName+"\n\n祝您阅读愉快，欢迎再借。", "#CCCCCC")
+                        remark = new TemplateDataItem("\n"+patronName+"，祝您阅读愉快，欢迎再借。", "#CCCCCC")
                     };
 
                     // 发送模板消息
@@ -1058,10 +1058,7 @@ namespace dp2Command.Service
                 {
                     this.WriteErrorLog("给读者" + patronName + "发送借书成功通知异常：" + ex.Message);
                 }
-
             }
-
-
             return 1;
         }
 
@@ -1162,12 +1159,12 @@ namespace dp2Command.Service
             if (onShelf == "true")
                 bOnShelf = true;
 
-            string first = this._msgFirstLeft+"我们很高兴地通知您，您预约的下列图书到了，请尽快来图书馆办理借书手续。";
-            string end = "\n如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
+            //string first = this._msgFirstLeft+"我们很高兴地通知您，您预约的图书到了，请尽快来图书馆办理借书手续。";
+            string end = "\n" + patronName + "，您预约的图书到了，请尽快来图书馆办理借书手续，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
             if (bOnShelf == true)
             {
-                first = this._msgFirstLeft + "我们很高兴地通知您，您预约的图书已经在架上，请尽快来图书馆办理借书手续。";
-                end = "\n如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或允许其他读者借阅。";
+                //first = this._msgFirstLeft + "我们很高兴地通知您，您预约的图书已经在架上，请尽快来图书馆办理借书手续。";
+                end = "\n" + patronName + "，您预约的图书已经在架上，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或允许其他读者借阅。";
             }
 
             foreach (string weiXinId in weiXinIdList)
@@ -1264,19 +1261,19 @@ namespace dp2Command.Service
                 //overdueType是超期类型，overdue表示超期，warning表示即将超期。
                 string templateId = "";
                 string overdueType = DomUtil.GetAttr(item, "overdueType");
-                string first = "";
+                //string first = "";
                 string end = "";
                 if (overdueType == "overdue")
                 {
                     templateId = dp2CmdService2.C_Template_CaoQi;
-                    first = this._msgFirstLeft+"您借出的图书已超期，请尽快归还。";
-                    end = "\n您借出的图书已超期，请尽快归还。";
+                    //first = this._msgFirstLeft+"您借出的图书已超期，请尽快归还。";
+                    end = "\n"+patronName+"，您借出的图书已超期，请尽快归还。";
                 }
                 else if (overdueType == "warning")
                 {
                     templateId = dp2CmdService2.C_Template_DaoQi;
-                    first = this._msgFirstLeft+"您借出的图书即将到期，请注意不要超期，留意归还。";
-                    end = "\n您借出的图书即将到期，请注意不要超期，留意归还。";
+                    // first = this._msgFirstLeft+"您借出的图书即将到期，请注意不要超期，留意归还。";
+                    end = "\n" + patronName + "，您借出的图书即将到期，请注意不要超期，留意归还。";
                 }
                 else 
                 {
@@ -2091,13 +2088,15 @@ namespace dp2Command.Service
                 "id,cols",
                 C_Search_MaxCount,  //todo这个值一般多少
                 0,
-                -1); //todo 这个值设多少
+                10); //todo 这个值设多少
             try
             {
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
                     remoteUserName).Result;
 
+                //string strFilename = string.Format(this.weiXinLogDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
+                //connection.logFileName = strFilename;
                 SearchResult result = connection.SearchAsync(
                     remoteUserName,
                     request,
@@ -2116,7 +2115,7 @@ namespace dp2Command.Service
 
 
                 List<string> resultPathList = new List<string>();
-                for (int i = 0; i < result.ResultCount; i++)
+                for (int i = 0; i < result.Records.Count; i++)
                 {
                     string xml = result.Records[i].Data;
                     /*<root><col>请让我慢慢长大</col>
@@ -2170,12 +2169,14 @@ namespace dp2Command.Service
             try
             {
                 string strError="";
-
-                this.WriteLog("开始获取summary");
+                int nRet = 0;
+                TimeSpan time_length = DateTime.Now - start_time;
+                string logInfo = "";
 
                 // 取出summary
+                this.WriteLog("开始获取summary");
                 string strSummary = "";
-                int nRet = this.GetBiblioSummary(remoteUserName,biblioPath, out strSummary, out strError);
+                nRet = this.GetBiblioSummary(remoteUserName, biblioPath, out strSummary, out strError);
                 if (nRet == -1 || nRet == 0)
                 {
                     result.errorCode = -1;
@@ -2183,14 +2184,12 @@ namespace dp2Command.Service
                     return result;
                 }
                 result.summary = strSummary;
-                TimeSpan time_length = DateTime.Now - start_time;
+                time_length = DateTime.Now - start_time;
                 string info = "获取[" + biblioPath + "]的summary信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
                 this.WriteLog(info);
-
-
-                this.WriteLog("开始获取items");
-
+                
                 // 取item
+                this.WriteLog("开始获取items");
                 List<BiblioItem> itemList = null;
                 nRet = (int)this.GetItemInfo(remoteUserName, biblioPath, out itemList, out strError);
                 if (nRet == -1) //0的情况表示没有册，不是错误
@@ -2202,8 +2201,8 @@ namespace dp2Command.Service
 
                 // 计算用了多少时间
                 time_length = DateTime.Now - start_time;
-                info = "获取[" + biblioPath + "]的item信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
-                this.WriteLog(info);
+                logInfo = "获取[" + biblioPath + "]的item信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
+                this.WriteLog(logInfo);
 
                 result.itemList = itemList;
                 result.errorCode = 1;
@@ -2377,184 +2376,10 @@ namespace dp2Command.Service
             #endregion
         }
 
-        public override long SearchBiblio(string remoteUserName,
-            string strWord,
-            SearchCommand searchCmd,
-            out string strFirstPage,
-            out string strError)
-        {
-            strFirstPage = "";
-            strError = "";
-
-            CancellationToken cancel_token = new CancellationToken();
-            string id = Guid.NewGuid().ToString();
-            SearchRequest request = new SearchRequest(id,
-                "searchBiblio",
-                "<全部>",
-                strWord,
-                "title",
-                "middle",
-                "test",
-                "id,cols",
-                C_Search_MaxCount,
-                0,
-                -1);
-            try
-            {
-                MessageConnection connection = this._channels.GetConnectionAsync(
-                    this.dp2MServerUrl,
-                    remoteUserName).Result;
-
-                SearchResult result = connection.SearchAsync(
-                    remoteUserName,
-                    request,
-                    new TimeSpan(0, 1, 0),
-                    cancel_token).Result;
-                if (result.ResultCount == -1)
-                {
-                    strError = "检索出错：" + result.ErrorInfo;
-                    return -1;
-                }
-                if (result.ResultCount == 0)
-                {
-                    strError = "未命中";
-                    return 0;
-                }
-
-                List<string> resultPathList = new List<string>();
-                for (int i = 0; i < result.ResultCount; i++)
-                {
-                    string xml = result.Records[i].Data;
-                    /*<root><col>请让我慢慢长大</col><col>吴蓓著</col><col>天津教育出版社</col><col>2009</col><col>G61-53</col><col>儿童教育儿童教育</col><col></col><col>978-7-5309-5335-8</col></root>*/
-                    XmlDocument dom = new XmlDocument();
-                    dom.LoadXml(xml);
-                    string path = result.Records[i].RecPath;
-                    int index = path.IndexOf("@");
-                    if (index >= 0)
-                        path = path.Substring(0, index);
-
-                    string name = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("col"));
-                    resultPathList.Add(path + "*" + name);
-                }
-
-                // 将检索结果信息保存到检索命令中
-                searchCmd.BiblioResultPathList = resultPathList;
-                searchCmd.ResultNextStart = 0;
-                searchCmd.IsCanNextPage = true;
-
-                // 获得第一页检索结果
-                bool bRet = searchCmd.GetNextPage(out strFirstPage, out strError);
-                if (bRet == false)
-                {
-                    return -1;
-                }
-
-                return result.ResultCount;
-            }
-            catch (AggregateException ex)
-            {
-                strError = MessageConnection.GetExceptionText(ex);
-                goto ERROR1;
-            }
-            catch (Exception ex)
-            {
-                strError = ex.Message;
-                goto ERROR1;
-            }
-        ERROR1:
-            return -1;
-        }
-
-
-
-        public override int GetDetailBiblioInfo(string remoteUserName,
-            SearchCommand searchCmd,
-            int nIndex,
-            out string strBiblioInfo,
-            out string strError)
-        {
-            strBiblioInfo = "";
-            strError = "未实现";
-            Debug.Assert(searchCmd != null);
-
-            // 开始时间
-            DateTime start_time = DateTime.Now;
-
-            //检查有无超过数组界面
-            if (nIndex <= 0 || searchCmd.BiblioResultPathList.Count < nIndex)
-            {
-                strError = "您输入的书目序号[" + nIndex.ToString() + "]越出范围。";
-                return -1;
-            }
-
-            // 获取路径，注意要截取
-            string strPath = searchCmd.BiblioResultPathList[nIndex - 1];
-            string strName = "";
-            int index = strPath.IndexOf("*");
-            if (index > 0)
-            {
-                strName = strPath.Substring(index + 1);
-                strPath = strPath.Substring(0, index);
-
-            }
-            //strBiblioInfo += strName + "\n";
-
-            int nRet = 0;
-
-
-            //2个任务并行
-            string strInfo = "";
-            nRet = this.GetBiblioAndSub(remoteUserName,
-                strPath,  //GetBiblioAndSub
-                out strInfo,
-                out strError);
-            if (nRet == -1 || nRet == 0)
-                return nRet;
-            strBiblioInfo += strInfo + "\n";
-
-
-            /*
-            try
-            {
-                // 取出summary
-                string strSummary = "";
-                nRet = this.GetBiblioSummary(strPath, out strSummary, out strError);
-                if (nRet == -1 || nRet == 0)
-                    return nRet;
-                strBiblioInfo += strSummary + "\n";
-
-
-                // 取item
-                string strItemInfo = "";
-                nRet = (int)this.GetItemInfo(strPath, out strItemInfo, out strError);
-                if (nRet == -1 || nRet == 0)
-                    return nRet;
-                if (strItemInfo != "")
-                {
-                    strBiblioInfo += "===========\n";
-                    strBiblioInfo += strItemInfo;
-                }
-            }
-            catch (Exception ex)
-            {
-                strError = ex.Message;
-                return -1;
-            }
-            */
-            // 计算用了多少时间
-            TimeSpan time_length = DateTime.Now - start_time;
-            strBiblioInfo = "time span: " + time_length.TotalSeconds.ToString() + " secs" + "\n"
-                + strBiblioInfo;
-
-
-
-            return 1;
-        }
-
         private int GetBiblioSummary(string remoteUserName,
-            string biblioPath,
-            out string summary,
-            out string strError)
+    string biblioPath,
+    out string summary,
+    out string strError)
         {
             summary = "";
             strError = "";
@@ -2644,11 +2469,22 @@ namespace dp2Command.Service
                     remoteUserName).Result;
                 this.WriteLog("GetItemInfo2");
 
-                SearchResult result = connection.SearchAsync(
-                    remoteUserName,
-                    request,
-                    new TimeSpan(0, 1, 0),
-                    cancel_token).Result;
+                //string strFilename = string.Format(this.weiXinLogDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
+                //connection.logFileName = strFilename;
+                SearchResult result = null;
+                try
+                {
+                    result = connection.SearchAsync(
+                       remoteUserName,
+                       request,
+                       new TimeSpan(0, 1, 0),
+                       cancel_token).Result;
+                }
+                catch (Exception ex)
+                {
+                    strError = "检索出错：[SearchAsync异常]" + ex.Message;
+                    return -1;
+                }
 
                 this.WriteLog("GetItemInfo3");
                 if (result.ResultCount == -1)
@@ -2663,7 +2499,7 @@ namespace dp2Command.Service
                 }
 
                 this.WriteLog("GetItemInfo4");
-                for (int i = 0; i < result.ResultCount; i++)
+                for (int i = 0; i < result.Records.Count; i++)
                 {
                     BiblioItem item = new BiblioItem();
 
@@ -2689,7 +2525,7 @@ namespace dp2Command.Service
                     item.accessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
 
                     // 出版日期
-                    item.publishTime= DomUtil.GetElementText(dom.DocumentElement, "publishTime");
+                    item.publishTime = DomUtil.GetElementText(dom.DocumentElement, "publishTime");
                     // 价格
                     item.price = DomUtil.GetElementText(dom.DocumentElement, "price");
                     // 注释
@@ -2717,6 +2553,96 @@ namespace dp2Command.Service
                 }
 
                 this.WriteLog("GetItemInfo5");
+                return result.Records.Count;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+        ERROR1:
+            return -1;
+        }
+
+        #region old search
+
+        public override long SearchBiblio(string remoteUserName,
+    string strWord,
+    SearchCommand searchCmd,
+    out string strFirstPage,
+    out string strError)
+        {
+            strFirstPage = "";
+            strError = "";
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            SearchRequest request = new SearchRequest(id,
+                "searchBiblio",
+                "<全部>",
+                strWord,
+                "title",
+                "middle",
+                "test",
+                "id,cols",
+                C_Search_MaxCount,
+                0,
+                -1);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                    this.dp2MServerUrl,
+                    remoteUserName).Result;
+
+                SearchResult result = connection.SearchAsync(
+                    remoteUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.ResultCount == -1)
+                {
+                    strError = "检索出错：" + result.ErrorInfo;
+                    return -1;
+                }
+                if (result.ResultCount == 0)
+                {
+                    strError = "未命中";
+                    return 0;
+                }
+
+                List<string> resultPathList = new List<string>();
+                for (int i = 0; i < result.ResultCount; i++)
+                {
+                    string xml = result.Records[i].Data;
+                    /*<root><col>请让我慢慢长大</col><col>吴蓓著</col><col>天津教育出版社</col><col>2009</col><col>G61-53</col><col>儿童教育儿童教育</col><col></col><col>978-7-5309-5335-8</col></root>*/
+                    XmlDocument dom = new XmlDocument();
+                    dom.LoadXml(xml);
+                    string path = result.Records[i].RecPath;
+                    int index = path.IndexOf("@");
+                    if (index >= 0)
+                        path = path.Substring(0, index);
+
+                    string name = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("col"));
+                    resultPathList.Add(path + "*" + name);
+                }
+
+                // 将检索结果信息保存到检索命令中
+                searchCmd.BiblioResultPathList = resultPathList;
+                searchCmd.ResultNextStart = 0;
+                searchCmd.IsCanNextPage = true;
+
+                // 获得第一页检索结果
+                bool bRet = searchCmd.GetNextPage(out strFirstPage, out strError);
+                if (bRet == false)
+                {
+                    return -1;
+                }
+
                 return result.ResultCount;
             }
             catch (AggregateException ex)
@@ -2732,6 +2658,91 @@ namespace dp2Command.Service
         ERROR1:
             return -1;
         }
+        public override int GetDetailBiblioInfo(string remoteUserName,
+            SearchCommand searchCmd,
+            int nIndex,
+            out string strBiblioInfo,
+            out string strError)
+        {
+            strBiblioInfo = "";
+            strError = "未实现";
+            Debug.Assert(searchCmd != null);
+
+            // 开始时间
+            DateTime start_time = DateTime.Now;
+
+            //检查有无超过数组界面
+            if (nIndex <= 0 || searchCmd.BiblioResultPathList.Count < nIndex)
+            {
+                strError = "您输入的书目序号[" + nIndex.ToString() + "]越出范围。";
+                return -1;
+            }
+
+            // 获取路径，注意要截取
+            string strPath = searchCmd.BiblioResultPathList[nIndex - 1];
+            string strName = "";
+            int index = strPath.IndexOf("*");
+            if (index > 0)
+            {
+                strName = strPath.Substring(index + 1);
+                strPath = strPath.Substring(0, index);
+
+            }
+            //strBiblioInfo += strName + "\n";
+
+            int nRet = 0;
+
+
+            //2个任务并行
+            string strInfo = "";
+            nRet = this.GetBiblioAndSub(remoteUserName,
+                strPath,  //GetBiblioAndSub
+                out strInfo,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+                return nRet;
+            strBiblioInfo += strInfo + "\n";
+
+
+            /*
+            try
+            {
+                // 取出summary
+                string strSummary = "";
+                nRet = this.GetBiblioSummary(strPath, out strSummary, out strError);
+                if (nRet == -1 || nRet == 0)
+                    return nRet;
+                strBiblioInfo += strSummary + "\n";
+
+
+                // 取item
+                string strItemInfo = "";
+                nRet = (int)this.GetItemInfo(strPath, out strItemInfo, out strError);
+                if (nRet == -1 || nRet == 0)
+                    return nRet;
+                if (strItemInfo != "")
+                {
+                    strBiblioInfo += "===========\n";
+                    strBiblioInfo += strItemInfo;
+                }
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+            */
+            // 计算用了多少时间
+            TimeSpan time_length = DateTime.Now - start_time;
+            strBiblioInfo = "time span: " + time_length.TotalSeconds.ToString() + " secs" + "\n"
+                + strBiblioInfo;
+
+
+
+            return 1;
+        }
+
+
 
 
         private int GetBiblioAndSub(string remoteUserName,
@@ -2906,6 +2917,8 @@ cancel_token);
             return -1;
 
         }
+
+        #endregion
 
         #endregion
 

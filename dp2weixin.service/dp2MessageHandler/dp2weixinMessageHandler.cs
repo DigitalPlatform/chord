@@ -459,8 +459,8 @@ namespace dp2weixin
                     
                     //异步操作 使用客服消息接口回复用户
                     AsyncManager m = new AsyncManager();
-                    m.OutstandingOperations.Increment(3);//AsyncManager.OutstandingOperations.Increment();                    
-                    var task = Task.Factory.StartNew(() => this.SendBiblioDetail(searchCmd,nBiblioIndex));
+                    m.OutstandingOperations.Increment();//AsyncManager.OutstandingOperations.Increment();                    
+                    var task = Task.Run(() => this.SendBiblioDetail(searchCmd,nBiblioIndex));
                     task.ContinueWith(t =>
                     {
                           m.OutstandingOperations.Decrement(); //AsyncManager.OutstandingOperations.Decrement();

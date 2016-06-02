@@ -20,7 +20,10 @@ namespace dp2weixinP2P.Controllers
 {
     public class HomeController : BaseController
     {
-
+        public ActionResult Test()
+        {
+            return View();
+        }
         public ActionResult Index(string code, string state, string admin, string weiXinId)
         {
             if (String.IsNullOrEmpty(admin) == false && admin == "1")

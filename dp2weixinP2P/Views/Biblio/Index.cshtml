@@ -332,7 +332,7 @@
                 o.removeClass("pending");
             }, function (xhq, textStatus, errorThrown) {
                 //换成实际的值，去掉pending状态，继续下一个pending
-                o.html("访问服务器出错：" + errorThrown);
+                o.html("访问服务器出错：[" + errorThrown+"]");
                 o.removeClass("pending");
             });
 

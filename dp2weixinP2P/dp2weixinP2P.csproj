@@ -221,6 +221,7 @@
     <Content Include="Views\Account\Index.txt" />
     <Content Include="Views\Account\ResetPassword.cshtml" />
     <Content Include="Scripts\jquery-2.2.3.min.map" />
+    <Content Include="Views\Home\Test.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
