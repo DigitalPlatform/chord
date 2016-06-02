@@ -64,6 +64,8 @@ namespace dp2weixinP2P
             dp2CmdService2.Instance.WriteLog("走进Application_End");
         }
 
+        
+
 
         ////防止程序无访问时，停掉 http://blog.csdn.net/a497785609/article/details/5941283
         ////http://www.codeproject.com/Articles/12117/Simulate-a-Windows-Service-using-ASP-NET-to-run-sc

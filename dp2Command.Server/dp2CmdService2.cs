@@ -159,8 +159,13 @@ namespace dp2Command.Service
 
             //全局只需注册一次
             AccessTokenContainer.Register(this.weiXinAppId, this.weiXinSecret);
+           
+            
             _channels.Login -= _channels_Login;
             _channels.Login += _channels_Login;
+            StreamWriter sw = new StreamWriter(Path.Combine(this.weiXinDataDir, "trace.txt"));
+            sw.AutoFlush = true;
+            _channels.TraceWriter = sw;
 
             // 消息处理类
             this._msgRouter.SendMessageEvent -= _msgRouter_SendMessageEvent;
@@ -181,6 +186,7 @@ namespace dp2Command.Service
             if (this.Channels != null)
             {
                 this.Channels.Login -= _channels_Login;
+                this.Channels.TraceWriter.Close();
             }
 
             this.WriteLog("走到close()");
@@ -2075,28 +2081,30 @@ namespace dp2Command.Service
             strError = "";
             records = new List<BiblioRecord>();
 
-
-            CancellationToken cancel_token = new CancellationToken();
-            string id = Guid.NewGuid().ToString();
-            SearchRequest request = new SearchRequest(id,
-                "searchBiblio",
-                "",
-                strWord,
-                strFrom,
-                "middle",
-                "weixin",
-                "id,cols",
-                C_Search_MaxCount,  //todo这个值一般多少
-                0,
-                10); //todo 这个值设多少
+            long start = 0;
+            long count = 10;
             try
             {
+
+            REDO1:
+                CancellationToken cancel_token = new CancellationToken();
+                string id = Guid.NewGuid().ToString();
+                SearchRequest request = new SearchRequest(id,
+                    "searchBiblio",
+                    "",
+                    strWord,
+                    strFrom,
+                    "middle",
+                    "weixin",
+                    "id,cols",
+                    C_Search_MaxCount,  //最大数量
+                    start,  //每次获取范围
+                    count); 
+
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    remoteUserName).Result;
+                    remoteUserName + id).Result;
 
-                //string strFilename = string.Format(this.weiXinLogDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
-                //connection.logFileName = strFilename;
                 SearchResult result = connection.SearchAsync(
                     remoteUserName,
                     request,
@@ -2133,17 +2141,21 @@ namespace dp2Command.Service
                     int nIndex = path.IndexOf("@");
                     path = path.Substring(0, nIndex);
                        
-
-                    // todo，改为分批返回
                     BiblioRecord record = new BiblioRecord();
                     record.recPath = path;
                     record.name = name;
-                    record.no = (i + 1).ToString();//todo 注意下一页的时候
+                    record.no = (i+start + 1).ToString();//todo 注意下一页的时候
                     record.libUserName = remoteUserName;
                     records.Add(record);
                 }
 
-                return result.ResultCount;
+                if (result.Records.Count > 0 && start+result.Records.Count < result.ResultCount)
+                {
+                    start += result.Records.Count;
+                    goto REDO1;
+                }
+
+                return records.Count;
             }
             catch (AggregateException ex)
             {
@@ -2155,6 +2167,7 @@ namespace dp2Command.Service
                 strError = ex.Message;
                 return -1;
             }
+
         }
 
         public BiblioRecordResult GetBiblioDetail(string remoteUserName,
@@ -2187,6 +2200,8 @@ namespace dp2Command.Service
                 time_length = DateTime.Now - start_time;
                 string info = "获取[" + biblioPath + "]的summary信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
                 this.WriteLog(info);
+
+                //Thread.Sleep(1000);
                 
                 // 取item
                 this.WriteLog("开始获取items");
@@ -2385,7 +2400,7 @@ namespace dp2Command.Service
             strError = "";
 
             CancellationToken cancel_token = new CancellationToken();
-            string id = Guid.NewGuid().ToString();
+            string id = "1-summary";//Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
                 "getBiblioInfo",
                 "<全部>",
@@ -2401,7 +2416,7 @@ namespace dp2Command.Service
             {
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    remoteUserName).Result;
+                    remoteUserName + "-1").Result;
 
                 SearchResult result = connection.SearchAsync(
                     remoteUserName,
@@ -2448,7 +2463,7 @@ namespace dp2Command.Service
             strError = "";
 
             CancellationToken cancel_token = new CancellationToken();
-            string id = Guid.NewGuid().ToString();
+            string id = "2-item";//Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
                 "getItemInfo",
                 "entity",
@@ -2466,7 +2481,7 @@ namespace dp2Command.Service
 
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    remoteUserName).Result;
+                    remoteUserName+"-2").Result;
                 this.WriteLog("GetItemInfo2");
 
                 //string strFilename = string.Format(this.weiXinLogDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));

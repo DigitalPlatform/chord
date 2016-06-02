@@ -260,14 +260,11 @@
 
             var url = "/api/biblio?libUserName=" + encodeURIComponent(libUserName) + "&biblioPath=" + encodeURIComponent(biblioPath);
 
-            alert(url);
+            //alert(url);
 
             // 调api
             sendAjaxRequest(url, "GET", function (result) {
-                alert("回来");
-
-                alert(result.errorCode);
-
+                //alert("回来[" + result.errorCode + "]");
 
                 // 出错或未命中
                 if (result.errorCode == -1 || result.errorCode == 0) {
