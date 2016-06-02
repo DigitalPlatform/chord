@@ -216,7 +216,7 @@ UTF-32 little-endian byte order: FF FE 00 00
         {
             try
             {
-                lock (logSyncRoot)
+                //lock (logSyncRoot)
                 {
                     string strTime = DateTime.Now.ToString();
                     FileUtil.WriteText(strFilename, strTime + " " + strText + "\r\n");
