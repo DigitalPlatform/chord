@@ -206,7 +206,7 @@ namespace DigitalPlatform.MessageClient
             // Connection.Error += Connection_Error;
 
             if (this.Container != null && this.Container.TraceWriter != null)
-                Connection.TraceWriter = this.Container.TraceWriter; 
+                Connection.TraceWriter = this.Container.TraceWriter;
 
             // Connection.Credentials = new NetworkCredential("testusername", "testpassword");
             Connection.Headers.Add("username", this.UserName);
@@ -839,82 +839,72 @@ token);
                                 // taskID, resultCount, start, records, errorInfo, errorCode
                                 ) =>
                             {
-                                if (responseParam.TaskID != request.TaskID)
-                                    return;
-
-#if NO
-                                if (responseParam.Records != null)
-                                {
-                                    foreach (Record record in responseParam.Records)
+                                Task.Run(() =>
                                     {
-                                        // 校验一下 MD5
-                                        if (string.IsNullOrEmpty(record.MD5) == false)
+                                        try
                                         {
-                                            string strMD5 = StringUtil.GetMd5(record.Data);
-                                            if (record.MD5 != strMD5)
+                                            if (responseParam.TaskID != request.TaskID)
+                                                return;
+
+                                            // 装载命中结果
+                                            if (responseParam.ResultCount == -1 && responseParam.Start == -1)
                                             {
-                                                record.RecPath = "testclient1 : 记录 '" + record.RecPath + "' Data 的 MD5 校验出现异常";
-                                                // throw new Exception("testclient1 : 记录 '" + record.RecPath + "' Data 的 MD5 校验出现异常");
+                                                if (result.ResultCount != -1)
+                                                    result.ResultCount = manager.GetTotalCount();
+                                                //result.ErrorInfo = responseParam.ErrorInfo;
+                                                //result.ErrorCode = responseParam.ErrorCode;
+                                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                                result.ErrorCode = StringUtil.MakePathList(codes, ",");
+
+                                                wait_events.finish_event.Set();
+                                                return;
                                             }
+
+                                            // TODO: 似乎应该关注 start 位置
+                                            if (responseParam.Records != null)
+                                                AddLibraryUID(responseParam.Records, responseParam.LibraryUID);
+
+                                            result.Records.AddRange(responseParam.Records);
+                                            if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
+                                                && errors.IndexOf(responseParam.ErrorInfo) == -1)
+                                            {
+                                                errors.Add(responseParam.ErrorInfo);
+                                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                            }
+                                            if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
+                                                && codes.IndexOf(responseParam.ErrorCode) == -1)
+                                            {
+                                                codes.Add(responseParam.ErrorCode);
+                                                result.ErrorCode = StringUtil.MakePathList(codes, ",");
+                                            }
+
+                                            // 标记结束一个检索目标
+                                            // return:
+                                            //      0   尚未结束
+                                            //      1   结束
+                                            //      2   全部结束
+                                            int nRet = manager.CompleteTarget(responseParam.LibraryUID,
+                                                responseParam.ResultCount,
+                                                responseParam.Records == null ? 0 : responseParam.Records.Count);
+
+                                            if (responseParam.ResultCount == -1)
+                                                result.ResultCount = -1;
+                                            else
+                                                result.ResultCount = manager.GetTotalCount();
+
+                                            if (nRet == 2)
+                                                wait_events.finish_event.Set();
+                                            else
+                                                wait_events.active_event.Set();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            errors.Add("SearchAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
+                                            result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                            wait_events.finish_event.Set();
                                         }
 
-                                        record.Data = "";   // testing
-                                    }
-                                }
-#endif
-
-                                // start_time = DateTime.Now;  // 重新计算超时
-
-                                // 装载命中结果
-                                if (responseParam.ResultCount == -1 && responseParam.Start == -1)
-                                {
-                                    if (result.ResultCount != -1)
-                                        result.ResultCount = manager.GetTotalCount();
-                                    //result.ErrorInfo = responseParam.ErrorInfo;
-                                    //result.ErrorCode = responseParam.ErrorCode;
-                                    result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                    result.ErrorCode = StringUtil.MakePathList(codes, ",");
-
-                                    wait_events.finish_event.Set();
-                                    return;
-                                }
-
-                                // TODO: 似乎应该关注 start 位置
-                                if (responseParam.Records != null)
-                                    AddLibraryUID(responseParam.Records, responseParam.LibraryUID);
-
-                                result.Records.AddRange(responseParam.Records);
-                                if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
-                                    && errors.IndexOf(responseParam.ErrorInfo) == -1)
-                                {
-                                    errors.Add(responseParam.ErrorInfo);
-                                    result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                }
-                                if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
-                                    && codes.IndexOf(responseParam.ErrorCode) == -1)
-                                {
-                                    codes.Add(responseParam.ErrorCode);
-                                    result.ErrorCode = StringUtil.MakePathList(codes, ",");
-                                }
-
-                                // 标记结束一个检索目标
-                                // return:
-                                //      0   尚未结束
-                                //      1   结束
-                                //      2   全部结束
-                                int nRet = manager.CompleteTarget(responseParam.LibraryUID,
-                                    responseParam.ResultCount,
-                                    responseParam.Records == null ? 0 : responseParam.Records.Count);
-
-                                if (responseParam.ResultCount == -1)
-                                    result.ResultCount = -1;
-                                else
-                                    result.ResultCount = manager.GetTotalCount();
-
-                                if (nRet == 2)
-                                    wait_events.finish_event.Set();
-                                else
-                                    wait_events.active_event.Set();
+                                    });
                             }))
                         {
                             MessageResult message = HubProxy.Invoke<MessageResult>(
