@@ -72,6 +72,7 @@ namespace dp2Command.Service
         // 微信信息
         public string weiXinAppId { get; set; }
         public string weiXinSecret { get; set; }
+        public bool bTrace = false;
 
         // 背景图管理器
         public string TodayUrl = "";
@@ -137,6 +138,10 @@ namespace dp2Command.Service
             this.weiXinUrl = DomUtil.GetAttr(nodeDp2weixin, "url"); //WebConfigurationManager.AppSettings["weiXinUrl"];
             this.weiXinAppId = DomUtil.GetAttr(nodeDp2weixin, "AppId"); //WebConfigurationManager.AppSettings["weiXinAppId"];
             this.weiXinSecret = DomUtil.GetAttr(nodeDp2weixin, "Secret"); //WebConfigurationManager.AppSettings["weiXinSecret"];
+            string trace = DomUtil.GetAttr(nodeDp2weixin, "trace");
+            if (trace.ToLower() == "true")
+                this.bTrace = true;
+
 
             // mongo配置
             XmlNode nodeMongoDB = root.SelectSingleNode("mongoDB");
@@ -163,9 +168,15 @@ namespace dp2Command.Service
             
             _channels.Login -= _channels_Login;
             _channels.Login += _channels_Login;
-            StreamWriter sw = new StreamWriter(Path.Combine(this.weiXinDataDir, "trace.txt"));
-            sw.AutoFlush = true;
-            _channels.TraceWriter = sw;
+
+            if (bTrace == true)
+            {
+                if (this.Channels.TraceWriter != null)
+                    this.Channels.TraceWriter.Close();
+                StreamWriter sw = new StreamWriter(Path.Combine(this.weiXinDataDir, "trace.txt"));
+                sw.AutoFlush = true;
+                _channels.TraceWriter = sw;
+            }
 
             // 消息处理类
             this._msgRouter.SendMessageEvent -= _msgRouter_SendMessageEvent;
@@ -186,10 +197,62 @@ namespace dp2Command.Service
             if (this.Channels != null)
             {
                 this.Channels.Login -= _channels_Login;
-                this.Channels.TraceWriter.Close();
+                if (this.Channels.TraceWriter != null)
+                    this.Channels.TraceWriter.Close();
             }
 
             this.WriteLog("走到close()");
+        }
+
+        public void SetDp2mserverInfo(string dp2mserverUrl,
+            string userName,
+            string password)
+        {
+            XmlDocument dom = new XmlDocument();
+            dom.Load(this._cfgFile);
+            XmlNode root = dom.DocumentElement;
+
+            // 设置mserver服务器配置信息
+            XmlNode nodeDp2mserver = root.SelectSingleNode("dp2mserver");
+            if (nodeDp2mserver == null)
+            {
+                nodeDp2mserver = dom.CreateElement("dp2mserver");
+                root.AppendChild(nodeDp2mserver);
+            }
+            DomUtil.SetAttr(nodeDp2mserver, "url", dp2mserverUrl);
+            DomUtil.SetAttr(nodeDp2mserver, "username", userName);        
+            string encryptPassword = Cryptography.Encrypt(password, dp2CmdService2.EncryptKey);
+            DomUtil.SetAttr(nodeDp2mserver, "password", encryptPassword);
+            dom.Save(this._cfgFile);
+
+            // 更新内存的信息
+            this.dp2MServerUrl = dp2mserverUrl;
+            this.userName = userName;
+            this.password = password;
+        }
+
+        public void GetDp2mserverInfo(out string dp2mserverUrl,
+            out string userName,
+            out string password)
+        {
+            dp2mserverUrl = "";
+            userName = "";
+            password = "";
+
+            XmlDocument dom = new XmlDocument();
+            dom.Load(this._cfgFile);
+            XmlNode root = dom.DocumentElement;
+
+            // 设置mserver服务器配置信息
+            XmlNode nodeDp2mserver = root.SelectSingleNode("dp2mserver");
+            if (nodeDp2mserver != null)
+            {
+                dp2mserverUrl = DomUtil.GetAttr(nodeDp2mserver, "url");
+                userName = DomUtil.GetAttr(nodeDp2mserver, "username");
+                password = DomUtil.GetAttr(nodeDp2mserver, "password");
+                if (string.IsNullOrEmpty(password) == false)// 解密
+                    password = Cryptography.Decrypt(this.password, dp2CmdService2.EncryptKey);
+            }
         }
 
         #region 消息处理
@@ -2083,10 +2146,12 @@ namespace dp2Command.Service
 
             long start = 0;
             long count = 10;
+            int connIndex = 0;
             try
             {
 
             REDO1:
+
                 CancellationToken cancel_token = new CancellationToken();
                 string id = Guid.NewGuid().ToString();
                 SearchRequest request = new SearchRequest(id,
@@ -2099,11 +2164,15 @@ namespace dp2Command.Service
                     "id,cols",
                     C_Search_MaxCount,  //最大数量
                     start,  //每次获取范围
-                    count); 
+                    count);
+
+                int tempNo = connIndex;// connIndex % 2;
 
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    remoteUserName + id).Result;
+                    remoteUserName + tempNo).Result;
+
+                connIndex++;
 
                 SearchResult result = connection.SearchAsync(
                     remoteUserName,

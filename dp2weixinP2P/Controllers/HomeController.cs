@@ -128,25 +128,25 @@ namespace dp2weixinP2P.Controllers
         {
             ViewBag.success = false;  
 
-            Configuration config = WebConfigurationManager.OpenWebConfiguration("~");
-            //获取appSettings节点
-            AppSettingsSection appSection = (AppSettingsSection)config.GetSection("appSettings");
+            //Configuration config = WebConfigurationManager.OpenWebConfiguration("~");
+            ////获取appSettings节点
+            //AppSettingsSection appSection = (AppSettingsSection)config.GetSection("appSettings");
 
 
-            //在appSettings节点中添加元素Add方法，多次添加的值会以逗号分隔，所以要先remove，再add
-            //appSection.Settings["dp2mServerUrl"].Value = model.dp2MserverUrl;
-            appSection.Settings.Remove("dp2mServerUrl");
-            appSection.Settings.Add("dp2mServerUrl", model.dp2MserverUrl);
+            ////在appSettings节点中添加元素Add方法，多次添加的值会以逗号分隔，所以要先remove，再add
+            ////appSection.Settings["dp2mServerUrl"].Value = model.dp2MserverUrl;
+            //appSection.Settings.Remove("dp2mServerUrl");
+            //appSection.Settings.Add("dp2mServerUrl", model.dp2MserverUrl);
 
-            appSection.Settings.Remove("userName");
-            appSection.Settings.Add("userName", model.userName);
+            //appSection.Settings.Remove("userName");
+            //appSection.Settings.Add("userName", model.userName);
 
-            appSection.Settings.Remove("password");
-            string password = Cryptography.Encrypt(model.password, dp2CmdService2.EncryptKey);
-            appSection.Settings.Add("password", password);
+            //appSection.Settings.Remove("password");
+            //string password = Cryptography.Encrypt(model.password, dp2CmdService2.EncryptKey);
+            //appSection.Settings.Add("password", password);
 
-            config.Save();
-            //Response.Write("保存成功");
+            //config.Save();
+            ////Response.Write("保存成功");
 
             //Response.Write("<script>alert('配置信息保存成功');</script>");
             ViewBag.success = true;  
