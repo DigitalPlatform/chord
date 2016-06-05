@@ -220,7 +220,7 @@ namespace dp2Command.Service
                 root.AppendChild(nodeDp2mserver);
             }
             DomUtil.SetAttr(nodeDp2mserver, "url", dp2mserverUrl);
-            DomUtil.SetAttr(nodeDp2mserver, "username", userName);        
+            DomUtil.SetAttr(nodeDp2mserver, "username", userName);
             string encryptPassword = Cryptography.Encrypt(password, dp2CmdService2.EncryptKey);
             DomUtil.SetAttr(nodeDp2mserver, "password", encryptPassword);
             dom.Save(this._cfgFile);
@@ -2150,8 +2150,6 @@ namespace dp2Command.Service
             try
             {
 
-            REDO1:
-
                 CancellationToken cancel_token = new CancellationToken();
                 string id = Guid.NewGuid().ToString();
                 SearchRequest request = new SearchRequest(id,
@@ -2167,11 +2165,9 @@ namespace dp2Command.Service
                     count);
 
                 int tempNo = connIndex;// connIndex % 2;
-
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    remoteUserName + tempNo).Result;
-
+                    remoteUserName).Result;  //+ tempNo todo
                 connIndex++;
 
                 SearchResult result = connection.SearchAsync(
@@ -2221,7 +2217,7 @@ namespace dp2Command.Service
                 if (result.Records.Count > 0 && start+result.Records.Count < result.ResultCount)
                 {
                     start += result.Records.Count;
-                    goto REDO1;
+                    //goto REDO1;
                 }
 
                 return records.Count;
