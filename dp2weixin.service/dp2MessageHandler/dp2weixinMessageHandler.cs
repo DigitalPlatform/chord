@@ -21,6 +21,7 @@ using Senparc.Weixin.MP.AdvancedAPIs;
 using Senparc.Weixin.MP.CommonAPIs;
 using System.Web.Mvc.Async;
 using System.Threading.Tasks;
+using dp2weixin.service;
 using dp2Command.Service;
 
 namespace dp2weixin
@@ -32,7 +33,7 @@ namespace dp2weixin
     public partial class dp2weixinMessageHandler : MessageHandler<dp2weixinMessageContext>
     {
         // 由外面传进来的CommandServer
-        private dp2BaseCommandService CmdService = null;
+        private dp2WeiXinService CmdService = null;
         // 公众号程序目录，用于获取新书推荐与公告配置文件的路径
         private string Dp2WeiXinAppDir = "";
         // 是否显示消息路径
@@ -49,7 +50,7 @@ namespace dp2weixin
         /// </summary>
         /// <param name="inputStream"></param>
         /// <param name="maxRecordCount"></param>
-        public dp2weixinMessageHandler(dp2BaseCommandService cmdServer,
+        public dp2weixinMessageHandler(dp2WeiXinService cmdServer,
             Stream inputStream, PostModel postModel, int maxRecordCount = 0)
             : base(inputStream, postModel, maxRecordCount)
         {
@@ -308,6 +309,8 @@ namespace dp2weixin
 
         private IResponseMessageBase DoSelectLib(string strParam)
         {
+            return this.CreateTextResponseMessage("未实现");
+            /*
             // 设置当前命令
             this.CurrentMessageContext.CurrentCmdName = dp2CommandUtility.C_Command_SelectLib;
             long lRet = 0;
@@ -375,6 +378,7 @@ namespace dp2weixin
             this.CurrentMessageContext.LibUserName = userItem.libUserName;
 
             return this.CreateTextResponseMessage("您成功选择了图书馆[" + libCode + "]");
+             */
         }
 
         public string getLibList()
@@ -401,6 +405,8 @@ namespace dp2weixin
         /// <returns></returns>
         private IResponseMessageBase DoSearch(string strParam)
         {
+            return this.CreateTextResponseMessage("未实现");
+            /*
             // 设置当前命令
             this.CurrentMessageContext.CurrentCmdName = dp2CommandUtility.C_Command_Search;
 
@@ -469,23 +475,10 @@ namespace dp2weixin
                     // 返回空
                     var responseMessage = CreateResponseMessage<ResponseMessageText>();
                     responseMessage.Content = "";
-                    return responseMessage;
+                    return responseMessage;                   
                     
-                    
-                    /*
-                    string strBiblioInfo = "";
-                    lRet = this.CmdService.GetDetailBiblioInfo(searchCmd, nBiblioIndex,
-                        out strBiblioInfo,
-                        out strError);
-                    if (lRet == -1 || lRet==0)
-                    {
-                        return this.CreateTextResponseMessage(strError);
-                    }
-
-                    // 输出详细信息
-                    return this.CreateTextResponseMessage(strBiblioInfo);
-                     */
                 }
+             
             }
 
             // 检索
@@ -507,8 +500,10 @@ namespace dp2weixin
             {
                 return this.CreateTextResponseMessage(strFirstPage);
             }
+             */
         }
 
+          /*  
         // 消息处理
         public void SendBiblioDetail(SearchCommand searchCmd, int nBiblioIndex)
         {
@@ -532,7 +527,7 @@ namespace dp2weixin
             ((dp2CmdService2)this.CmdService).SendCustomerMsg(this.WeixinOpenId, strResult);
             //this.SendCustomeMessage(strResult);
         }
-
+        */
         /*
         // 消息处理
         public void SendCustomeMessage(string strText)
@@ -561,8 +556,8 @@ namespace dp2weixin
         /// <returns></returns>
         private IResponseMessageBase DoBinding(string strParam)
         {
-
-            
+            return this.CreateTextResponseMessage("目前不支持该命令!");
+            /*
             // 设置当前命令
             this.CurrentMessageContext.CurrentCmdName = dp2CommandUtility.C_Command_Binding;
 
@@ -618,6 +613,7 @@ namespace dp2weixin
             // 设到当前读者变量上
             this.CurrentMessageContext.ReaderBarcode = strReaderBarcode;
             return this.CreateTextResponseMessage("绑定成功!");
+             */
         }
 
         /// <summary>
@@ -626,6 +622,8 @@ namespace dp2weixin
         /// <returns></returns>
         private IResponseMessageBase DoUnbinding()
         {
+            return this.CreateTextResponseMessage("不支持。");
+            /*
             // 设置当前命令
             this.CurrentMessageContext.CurrentCmdName = "";
 
@@ -658,6 +656,7 @@ namespace dp2weixin
             // 置空当前读者变量上
             this.CurrentMessageContext.ReaderBarcode = "";
             return this.CreateTextResponseMessage("解除绑定成功。");
+             */
         }
 
         /// <summary>
@@ -782,8 +781,8 @@ namespace dp2weixin
 
 
             // 目前只认作册条码，todo支持序号
-            BorrowInfo borrowInfo = null;
-            lRet = this.CmdService.Renew(this.CurrentMessageContext.LibUserName, 
+            BorrowInfo2 borrowInfo = null;
+            lRet = this.CmdService.Renew(this.CurrentMessageContext.LibUserName,
                 this.CurrentMessageContext.ReaderBarcode,
                 strParam,
                 out borrowInfo,
@@ -794,7 +793,7 @@ namespace dp2weixin
             }
 
             // 显示续借成功信息信息
-            string returnTime = DateTimeUtil.ToLocalTime(borrowInfo.LatestReturnTime, "yyyy/MM/dd");
+            string returnTime = DateTimeUtil.ToLocalTime(borrowInfo.returnDate, "yyyy/MM/dd");
             string strText = strParam + "续借成功,还书日期为：" + returnTime + "。";
             return this.CreateTextResponseMessage(strText);
         }
@@ -852,6 +851,8 @@ namespace dp2weixin
         /// <returns></returns>
         private bool CheckIsSelectLib()
         {
+            return false;
+            /*
             if (String.IsNullOrEmpty(this.CurrentMessageContext.LibCode1) == true)
             {
                 // 从mongodb中查
@@ -865,6 +866,7 @@ namespace dp2weixin
             }
 
             return true;
+             */
         }
 
         /// <summary>

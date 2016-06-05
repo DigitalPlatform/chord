@@ -160,7 +160,7 @@ namespace dp2Command.Service
         /// </summary>
         /// <param name="dom"></param>
         /// <returns></returns>
-        public string GetContactString(XmlDocument dom)
+        public static string GetContactString(XmlDocument dom)
         {
             string strTel = DomUtil.GetElementText(dom.DocumentElement, "tel");
             string strEmail = DomUtil.GetElementText(dom.DocumentElement, "email");

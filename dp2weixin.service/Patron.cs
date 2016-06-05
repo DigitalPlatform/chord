@@ -12,7 +12,7 @@ namespace dp2weixin.service
         public Patron patron { get; set; }
 
         // 在借册
-        public List<BorrowInfo> borrowList { get; set; }
+        public List<BorrowInfo2> borrowList { get; set; }
 
         // 违约/交费信息
         public List<OverdueInfo> overdueList { get; set; }
@@ -79,7 +79,7 @@ namespace dp2weixin.service
     }
 
 
-    public class BorrowInfo
+    public class BorrowInfo2
     {
         public string barcode { get; set; }
         public string renewNo { get; set; }

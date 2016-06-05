@@ -4,7 +4,7 @@ using DigitalPlatform.Text;
 using dp2Command.Service;
 using dp2weixin;
 using dp2weixin.service;
-using dp2weixinP2P.Models;
+using dp2weixinWeb.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -16,7 +16,7 @@ using System.Web;
 using System.Web.Configuration;
 using System.Web.Mvc;
 
-namespace dp2weixinP2P.Controllers
+namespace dp2weixinWeb.Controllers
 {
     public class HomeController : BaseController
     {
@@ -59,11 +59,11 @@ namespace dp2weixinP2P.Controllers
                 libInfo = new LibInfoModel();
                 libInfo.Title = libName+" 主页";
 
-                string htmlFile = dp2CmdService2.Instance.weiXinDataDir + "/lib/" + userItem.libCode+"/index.html";
+                string htmlFile = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + userItem.libCode+"/index.html";
                 if (System.IO.File.Exists(htmlFile) == false)
                 {
                     // 先缺省html文件
-                    htmlFile = dp2CmdService2.Instance.weiXinDataDir + "/lib/index.html";
+                    htmlFile = dp2WeiXinService.Instance.weiXinDataDir + "/lib/index.html";
                 }
 
                 string strHtml = "";
@@ -115,7 +115,7 @@ namespace dp2weixinP2P.Controllers
             string userName = WebConfigurationManager.AppSettings["userName"];            
             string password = WebConfigurationManager.AppSettings["password"];
             if (string.IsNullOrEmpty(password)==false)// 解密
-                password = Cryptography.Decrypt(password, dp2CmdService2.EncryptKey);
+                password = Cryptography.Decrypt(password, dp2WeiXinService.EncryptKey);
 
             SettingModel model = new SettingModel();
             model.dp2MserverUrl = dp2MServerUrl;

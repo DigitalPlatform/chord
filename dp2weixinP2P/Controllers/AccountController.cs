@@ -1,6 +1,5 @@
-﻿using dp2Command.Service;
-using dp2weixin.service;
-using dp2weixinP2P.Models;
+﻿using dp2weixin.service;
+using dp2weixinWeb.Models;
 using Senparc.Weixin;
 using Senparc.Weixin.MP.AdvancedAPIs;
 using System;
@@ -9,7 +8,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
-namespace dp2weixinP2P.Controllers
+namespace dp2weixinWeb.Controllers
 {
     public class AccountController : BaseController
     {

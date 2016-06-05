@@ -14,8 +14,9 @@ using DigitalPlatform.Text;
 using dp2weixin;
 using System.IO;
 using System.Web.Caching;
+using dp2weixin.service;
 
-namespace dp2weixinP2P
+namespace dp2weixinWeb
 {
     public class Global : HttpApplication
     {
@@ -40,13 +41,13 @@ namespace dp2weixinP2P
                 throw new Exception("微信数据目录" + dataDir + "不存在。");
             }
             // 初始化命令服务类
-            dp2CmdService2.Instance.Init(dataDir);
+            dp2WeiXinService.Instance.Init(dataDir);
 
             // 注册一缓存条目在5分钟内到期,到期后模拟点击网站网页  
             //this.RegisterCacheEntry();
             //HttpContext.Current.Cache.Remove(DummyCacheItemKey);
 
-            dp2CmdService2.Instance.WriteLog("走进Application_Start");
+            dp2WeiXinService.Instance.WriteLog("走进Application_Start");
         }
 
 
@@ -59,9 +60,9 @@ namespace dp2weixinP2P
 
         void Application_End(object sender, EventArgs e)
         {
-            dp2CmdService2.Instance.Close();
+            dp2WeiXinService.Instance.Close();
 
-            dp2CmdService2.Instance.WriteLog("走进Application_End");
+            dp2WeiXinService.Instance.WriteLog("走进Application_End");
         }
 
         

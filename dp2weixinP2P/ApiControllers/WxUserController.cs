@@ -1,5 +1,4 @@
-﻿using dp2Command.Service;
-using dp2weixin.service;
+﻿using dp2weixin.service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 
-namespace dp2weixinP2P.ApiControllers
+namespace dp2weixinWeb.ApiControllers
 {
     public class WxUserController : ApiController
     {
@@ -44,7 +43,7 @@ namespace dp2weixinP2P.ApiControllers
             string fullWord = item.word;
             if (string.IsNullOrEmpty(item.prefix) == false && item.prefix != "null")
                 fullWord = item.prefix + ":" + item.word;
-            int nRet= dp2CmdService2.Instance.Bind(item.libUserName,
+            int nRet= dp2WeiXinService.Instance.Bind(item.libUserName,
                 item.libCode,
                 fullWord,
                 item.password,
@@ -72,7 +71,7 @@ namespace dp2weixinP2P.ApiControllers
             ApiResult result = new ApiResult();
             
             string strError="";
-            int nRet = dp2CmdService2.Instance.ResetPassword(libUserName,
+            int nRet = dp2WeiXinService.Instance.ResetPassword(libUserName,
                 libCode,
                 name,
                 tel,
@@ -98,7 +97,7 @@ namespace dp2weixinP2P.ApiControllers
         {
             ApiResult result = new ApiResult();
             string strError = "";
-            int nRet = dp2CmdService2.Instance.Unbind(id, out strError);
+            int nRet = dp2WeiXinService.Instance.Unbind(id, out strError);
             if (nRet == -1)
             {
                 result.errorCode = -1;
