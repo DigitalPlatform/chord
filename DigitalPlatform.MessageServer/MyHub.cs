@@ -2057,7 +2057,7 @@ ex.GetType().ToString());
                         userNameList,
                         connection_info.UserName,
                         searchParam.Operation,
-                        "all",
+                        "strict_one", // "all",
                         out connectionIds,
                         out strError);
                     if (nRet == -1)

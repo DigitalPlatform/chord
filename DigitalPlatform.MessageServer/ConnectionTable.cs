@@ -256,7 +256,7 @@ namespace DigitalPlatform.MessageServer
         // parameters:
         //      strTargetUserNameList    被操作一方的用户名列表。本函数要搜索这些用户的连接
         //      strRequestUserName  发起操作一方的用户名。本函数要判断被操作方是否同意发起方进行操作
-        //      strStyle            获取 id 集合的方式。first/all 之一
+        //      strStyle            获取 id 集合的方式。first/all/strict_one 之一
         // return:
         //      -1  出错
         //      0   成功
@@ -331,6 +331,20 @@ namespace DigitalPlatform.MessageServer
                     strError = "没有匹配上任何目标用户名 '" + strTargetUserNameList + "'";
                 else
                     strError = "匹配的用户名 '" + StringUtil.MakePathList(matched_usernames) + "' 中没有找到满足操作 '" + strOperation + "' 的用户";
+                return 0;
+            }
+
+            if (strStyle == "strict_one")
+            {
+                if (infos.Count > 1)
+                {
+                    strError = "匹配的目标通道超过一个，为 " + infos.Count + " 个，这是一个严重错误，请检查目标账户是否被多次用于登录了";
+                    return -1;
+                }
+                // 选择遇到的第一个，也是唯一的一个
+                ConnectionInfo info = infos[0];
+                connectionIds.Add(info.ConnectionID);
+                info.SearchCount++;
                 return 0;
             }
 
