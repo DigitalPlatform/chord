@@ -10,16 +10,16 @@ using System.Xml;
 
 namespace dp2weixin.service
 {
-    public class WeixinService
+    public class WeiXinService
     {
         //=================
         // 设为单一实例
-        static WeixinService _instance;
-        private WeixinService()
+        static WeiXinService _instance;
+        private WeiXinService()
         {
         }
         private static object _lock = new object();
-        static public WeixinService Instance
+        static public WeiXinService Instance
         {
             get
             {
@@ -27,7 +27,7 @@ namespace dp2weixin.service
                 {
                     lock (_lock)  //线程安全的
                     {
-                        _instance = new WeixinService();
+                        _instance = new WeiXinService();
                     }
                 }
                 return _instance;
@@ -91,8 +91,8 @@ namespace dp2weixin.service
 
             //取出第一页
             bool bNext = false;
-            searchRet.records=this.getOnePage(totalRecords, 
-                0, dp2WeiXinService.C_OnePage_Count, out bNext);
+            searchRet.records=this.getOnePage(totalRecords,
+                0, WeiXinConst.C_OnePage_Count, out bNext);
             searchRet.isCanNext = bNext;
             searchRet.apiResult.errorCode = totalRecords.Count;
                           

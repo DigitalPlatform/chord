@@ -22,58 +22,14 @@ using System.Xml;
 
 namespace dp2weixin.service
 {
-    public class dp2WeiXinService 
+    public class dp2WeiXinService
     {
-        public static string EncryptKey = "dp2weixinPassword";
-        public const String C_WeiXinIdPrefix = "weixinid:";
+        #region 成员变量
 
-        // 检索限制最大命中数常量
-        public const int C_Search_MaxCount = 200;
-        public const int C_OnePage_Count = 10;
-
-        // 微信web程序url
-        public string weiXinUrl = "";
-        // 微信目录
+        // 微信数据目录
         public string weiXinDataDir = "";
         public string weiXinLogDir = "";
-
-        #region 模板消息
-
-        //微信绑定通知
-        public const string C_Template_Bind = "hFmNH7on2FqSOAiYPZVJN-FcXBv4xpVLBvHsfpLLQKU";
-        // 微信解绑通知 overdues
-        public const string C_Template_UnBind = "1riAKkt2W0AOtkx5rx-Lwa0RKRydDTHaMjSoUBGuHog";
-        //预约到书通知 
-        public const string C_Template_Arrived = "Wm-7-0HJay4yloWEgGG9HXq9eOF5cL8Qm2aAUy-isoM";
-        //图书超期提醒 
-        public const string C_Template_CaoQi = "QcS3LoLHk37Jh0rgKJId2o93IZjulr5XxgshzlW5VkY";
-        //图书到期提醒
-        public const string C_Template_DaoQi = "Q6O3UFPxPnq0rSz82r9P9be41tqEPaJVPD3U0PU8XOU";
-
-        //借阅成功通知
-        public const string C_Template_Borrow = "_F9kVyDWhunqM5ijvcwm6HwzVCnwbkeZl6GV6awB_fc";
-        //图书归还通知 
-        public const string C_Template_Return = "86Ee0NevuLIVGZE4Xu0uzDdmg0T3xnRMOJ5tREIEG_w";
-        //缴费成功通知
-        public const string C_Template_Pay = "4HNhEfLcroEMdX0Pr6aFo_n7_aHuvAzD8_6lzABHkiM";
-        //退款通知
-        public const string C_Template_ReturnPay = "sIzSJJ-VRbFUFrDHszxCqwiIYjr9IyyqEqLr95iJVTs";
-        //个人消息通知 
-        public const string C_Template_Message = "rtAx0BoUAwZ3npbNIO8Y9eIbdWO-weLGE2iOacGqN_s";
-
-        #endregion
-
-        MessageConnectionCollection _channels = new MessageConnectionCollection();
-         public MessageConnectionCollection Channels
-         {
-             get
-             {
-                 return this._channels;
-             }
-         }
-
-        // 配置文件
-        public string _cfgFile = "";
+        public string _cfgFile = "";      // 配置文件
 
         // dp2服务器地址与代理账号
         public string dp2MServerUrl = "";
@@ -85,14 +41,27 @@ namespace dp2weixin.service
         public string weiXinSecret { get; set; }
         public bool bTrace = false;
 
-        // 背景图管理器
-        public string TodayUrl = "";
+        // 微信web程序url
+        public string weiXinUrl = "";
+
 
         // dp2消息处理类
         MsgRouter _msgRouter = new MsgRouter();
 
-        //=================
-        // 设为单一实例
+
+        MessageConnectionCollection _channels = new MessageConnectionCollection();
+         public MessageConnectionCollection Channels
+         {
+             get
+             {
+                 return this._channels;
+             }
+         }
+
+        #endregion
+
+        #region 单一实例
+
         static dp2WeiXinService _instance;
         private dp2WeiXinService()
         {
@@ -112,7 +81,9 @@ namespace dp2weixin.service
                 return _instance;
             }
         }
-        //===========
+        #endregion
+
+        #region 初始化
 
         public void Init(string dataDir)
         {
@@ -142,7 +113,7 @@ namespace dp2weixin.service
             this.userName = DomUtil.GetAttr(nodeDp2mserver, "username");//WebConfigurationManager.AppSettings["userName"];
             this.password = DomUtil.GetAttr(nodeDp2mserver, "password");//WebConfigurationManager.AppSettings["password"];
             if (string.IsNullOrEmpty(this.password) == false)// 解密
-                this.password = Cryptography.Decrypt(this.password, dp2WeiXinService.EncryptKey);
+                this.password = Cryptography.Decrypt(this.password, WeiXinConst.EncryptKey);
 
             // 取出微信配置信息
             XmlNode nodeDp2weixin = root.SelectSingleNode("dp2weixin");
@@ -215,6 +186,10 @@ namespace dp2weixin.service
             this.WriteLog("走到close()");
         }
 
+        #endregion
+
+        #region 设置dp2mserver信息
+
         public void SetDp2mserverInfo(string dp2mserverUrl,
             string userName,
             string password)
@@ -232,7 +207,7 @@ namespace dp2weixin.service
             }
             DomUtil.SetAttr(nodeDp2mserver, "url", dp2mserverUrl);
             DomUtil.SetAttr(nodeDp2mserver, "username", userName);
-            string encryptPassword = Cryptography.Encrypt(password, dp2WeiXinService.EncryptKey);
+            string encryptPassword = Cryptography.Encrypt(password, WeiXinConst.EncryptKey);
             DomUtil.SetAttr(nodeDp2mserver, "password", encryptPassword);
             dom.Save(this._cfgFile);
 
@@ -262,9 +237,11 @@ namespace dp2weixin.service
                 userName = DomUtil.GetAttr(nodeDp2mserver, "username");
                 password = DomUtil.GetAttr(nodeDp2mserver, "password");
                 if (string.IsNullOrEmpty(password) == false)// 解密
-                    password = Cryptography.Decrypt(this.password, dp2WeiXinService.EncryptKey);
+                    password = Cryptography.Decrypt(this.password, WeiXinConst.EncryptKey);
             }
         }
+
+        #endregion
 
         #region 消息处理
 
@@ -544,7 +521,7 @@ namespace dp2weixin.service
                     // 发送模板消息
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
                         weiXinId,
-                        dp2WeiXinService.C_Template_Message,
+                        WeiXinConst.C_Template_Message,
                         "#FF0000",
                         "",//不出现详细了
                         msgData);
@@ -666,7 +643,7 @@ namespace dp2weixin.service
                 // 发送模板消息
                 var result1 = TemplateApi.SendTemplateMessage(accessToken,
                     weiXinId,
-                    dp2WeiXinService.C_Template_ReturnPay,
+                    WeiXinConst.C_Template_ReturnPay,
                     "#FF0000",
                     "",//不出现详细了
                     msgData);
@@ -805,7 +782,7 @@ namespace dp2weixin.service
                     // 发送模板消息
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
                         weiXinId,
-                        dp2WeiXinService.C_Template_Pay,
+                        WeiXinConst.C_Template_Pay,
                         "#FF0000",
                         "",//不出现详细了
                         msgData);
@@ -957,7 +934,7 @@ namespace dp2weixin.service
                     // 发送模板消息
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
                         weiXinId,
-                        dp2WeiXinService.C_Template_Return,
+                        WeiXinConst.C_Template_Return,
                         "#00008B",
                         "",//不出现详细了
                         msgData);
@@ -1124,7 +1101,7 @@ namespace dp2weixin.service
                     // 发送模板消息
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
                         weiXinId,
-                        dp2WeiXinService.C_Template_Borrow,
+                        WeiXinConst.C_Template_Borrow,
                         "#006400",  //FF0000
                         "",//不出现详细了
                         msgData);
@@ -1271,7 +1248,7 @@ namespace dp2weixin.service
                     //string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
                         weiXinId,
-                        dp2WeiXinService.C_Template_Arrived,
+                        WeiXinConst.C_Template_Arrived,
                         "#FF0000",
                         "",//不出现详细了
                         msgData);
@@ -1345,13 +1322,13 @@ namespace dp2weixin.service
                 string end = "";
                 if (overdueType == "overdue")
                 {
-                    templateId = dp2WeiXinService.C_Template_CaoQi;
+                    templateId = WeiXinConst.C_Template_CaoQi;
                     //first = this._msgFirstLeft+"您借出的图书已超期，请尽快归还。";
                     end = "\n"+patronName+"，您借出的图书已超期，请尽快归还。";
                 }
                 else if (overdueType == "warning")
                 {
-                    templateId = dp2WeiXinService.C_Template_DaoQi;
+                    templateId = WeiXinConst.C_Template_DaoQi;
                     // first = this._msgFirstLeft+"您借出的图书即将到期，请注意不要超期，留意归还。";
                     end = "\n" + patronName + "，您借出的图书即将到期，请注意不要超期，留意归还。";
                 }
@@ -1438,7 +1415,7 @@ namespace dp2weixin.service
             for (int i = 0; i < emailList.Length; i++)
             {
                 string oneEmail = emailList[i].Trim();
-                if (oneEmail.Length > 9 && oneEmail.Substring(0, 9) == dp2WeiXinService.C_WeiXinIdPrefix)
+                if (oneEmail.Length > 9 && oneEmail.Substring(0, 9) == WeiXinConst.C_WeiXinIdPrefix)
                 {
                     string weiwinId = oneEmail.Substring(9).Trim();
                     if (weiwinId != "")
@@ -1575,8 +1552,6 @@ namespace dp2weixin.service
         }
 
         #endregion
-
-
 
         #region 绑定解绑
 
@@ -1781,7 +1756,7 @@ namespace dp2weixin.service
 
             CancellationToken cancel_token = new CancellationToken();
 
-            string fullWeixinId = dp2WeiXinService.C_WeiXinIdPrefix + strWeiXinId;
+            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + strWeiXinId;
             string id = Guid.NewGuid().ToString();
             BindPatronRequest request = new BindPatronRequest(id,
                 "bind",
@@ -1879,7 +1854,7 @@ namespace dp2weixin.service
                 string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
                 var result1 = TemplateApi.SendTemplateMessage(accessToken,
                     strWeiXinId,
-                    dp2WeiXinService.C_Template_Bind,
+                    WeiXinConst.C_Template_Bind,
                     "#FF0000",
                     detailUrl,//k"dp2003.com/dp2weixin/patron/index", // todo注意这里是否需要oauth接口，想着消息既然是从web发过来了，立即点进去还有session信息存在，但时间长了session失效就没有信息了
                     testData);
@@ -1937,7 +1912,7 @@ namespace dp2weixin.service
 
 
             // 调点对点解绑接口
-            string fullWeixinId = dp2WeiXinService.C_WeiXinIdPrefix + userItem.weixinId;
+            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + userItem.weixinId;
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             BindPatronRequest request = new BindPatronRequest(id,
@@ -1979,7 +1954,7 @@ namespace dp2weixin.service
                 };
                 SendTemplateMessageResult result1 = TemplateApi.SendTemplateMessage(accessToken,
                     userItem.weixinId,
-                    dp2WeiXinService.C_Template_UnBind,
+                    WeiXinConst.C_Template_UnBind,
                     "#FF0000",
                     "",//k"dp2003.com/dp2weixin/patron/index", // todo注意这里是否需要oauth接口，想着消息既然是从web发过来了，立即点进去还有session信息存在，但时间长了session失效就没有信息了
                     data);
@@ -2030,7 +2005,7 @@ namespace dp2weixin.service
             }
 
             // 从远程dp2library中查
-            string strWord = dp2WeiXinService.C_WeiXinIdPrefix + strWeiXinId;
+            string strWord = WeiXinConst.C_WeiXinIdPrefix + strWeiXinId;
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
@@ -2043,7 +2018,7 @@ namespace dp2weixin.service
                 "id,cols",
                 1000,
                 0,
-                C_Search_MaxCount);
+                WeiXinConst.C_Search_MaxCount);
             try
             {
                 MessageConnection connection = this._channels.GetConnectionAsync(
@@ -2171,7 +2146,7 @@ namespace dp2weixin.service
                     "middle",
                     "weixin",
                     "id,cols",
-                    C_Search_MaxCount,  //最大数量
+                    WeiXinConst.C_Search_MaxCount,  //最大数量
                     start,  //每次获取范围
                     count);
 
@@ -2663,6 +2638,8 @@ namespace dp2weixin.service
 
         #endregion
 
+        #region 个人信息
+
         /// <returns>
         /// -1  出错
         /// 0   未查到对应记录
@@ -3035,6 +3012,9 @@ namespace dp2weixin.service
 
             return -1;
         }
+
+        #endregion
+
         #region 错误日志
 
         public void WriteErrorLog(string strText)

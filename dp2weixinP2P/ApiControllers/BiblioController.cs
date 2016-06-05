@@ -51,7 +51,7 @@ namespace dp2weixinWeb.ApiControllers
 
                 List<BiblioRecord> totalRecords = (List<BiblioRecord>)HttpContext.Current.Session[WeiXinConst.C_Session_SearchResult];
                 bool bNext = false;
-                List<BiblioRecord> records = WeixinService.Instance.getOnePage(totalRecords, nStart, dp2WeiXinService.C_OnePage_Count,
+                List<BiblioRecord> records = WeiXinService.Instance.getOnePage(totalRecords, nStart, WeiXinConst.C_OnePage_Count,
                      out bNext);
                 searchRet.resultCount = totalRecords.Count;
                 searchRet.records = records;
@@ -63,7 +63,7 @@ namespace dp2weixinWeb.ApiControllers
             {
 
                 List<BiblioRecord> totalRecords = null;
-                SearchBiblioResult result = WeixinService.Instance.SearchBiblio(libUserName,
+                SearchBiblioResult result = WeiXinService.Instance.SearchBiblio(libUserName,
                      from,
                      word,
                      out totalRecords);

@@ -110,17 +110,19 @@ namespace dp2weixinWeb.Controllers
         {
             ViewBag.success = false;
 
+            /*
             // 从web config中取出mserver服务器地址，微信自己的账号
             string dp2MServerUrl = WebConfigurationManager.AppSettings["dp2MServerUrl"];
             string userName = WebConfigurationManager.AppSettings["userName"];            
             string password = WebConfigurationManager.AppSettings["password"];
             if (string.IsNullOrEmpty(password)==false)// 解密
                 password = Cryptography.Decrypt(password, dp2WeiXinService.EncryptKey);
-
+             */
             SettingModel model = new SettingModel();
-            model.dp2MserverUrl = dp2MServerUrl;
-            model.userName = userName;
-            model.password = password;
+            model.dp2MserverUrl = "";// dp2MServerUrl;
+            model.userName = "";//userName;
+            model.password = "";//password;
+
             return View(model);
         }
         [HttpPost]

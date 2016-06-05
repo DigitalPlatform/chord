@@ -71,7 +71,7 @@ namespace dp2weixinWeb.Controllers
                         return Content( "从dp2library未找到证条码号为'" + activeUserItem.readerBarcode + "'的记录"); //todo refID
                     }
 
-                    patronInfo = WeixinService.ParseReaderXml(xml);
+                    patronInfo = WeiXinService.ParseReaderXml(xml);
                    
 
                 }

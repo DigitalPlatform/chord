@@ -95,7 +95,7 @@
     <Compile Include="Command\CommandContainer.cs" />
     <Compile Include="Command\dp2CommandUtility.cs" />
     <Compile Include="Command\SearchCommand.cs" />
-    <Compile Include="dp2CmdService2.cs" />
+    <Compile Include="dp2WeiXinService.cs" />
     <Compile Include="dp2MessageHandler\dp2weixinMessageContext.cs" />
     <Compile Include="dp2MessageHandler\dp2weixinMessageHandler.cs" />
     <Compile Include="dp2MessageHandler\dp2weixinMessageHandler_Events.cs" />
@@ -108,7 +108,7 @@
     <Compile Include="SearchBiblioResult.cs" />
     <Compile Include="TemplateData.cs" />
     <Compile Include="WeiXinConst.cs" />
-    <Compile Include="WeixinService.cs" />
+    <Compile Include="WeiXinService.cs" />
     <Compile Include="WxUserDatabase.cs" />
   </ItemGroup>
   <ItemGroup>
