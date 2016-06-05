@@ -2120,19 +2120,23 @@ namespace dp2weixin.service
         /// <param name="remoteUserName"></param>
         /// <param name="strFrom"></param>
         /// <param name="strWord"></param>
+        /// <param name="records">第一批的10条</param>
+        /// <param name="strError"></param>
         /// <returns></returns>
         public long SearchBiblio(string remoteUserName,
             string strFrom,
             string strWord,
+            long start,
             out List<BiblioRecord> records,
+            out bool bNext,
             out string strError)
         {
             strError = "";
             records = new List<BiblioRecord>();
+            bNext = false;
 
-            long start = 0;
+            //long start = 0;
             long count = 10;
-            int connIndex = 0;
             try
             {
 
@@ -2150,11 +2154,9 @@ namespace dp2weixin.service
                     start,  //每次获取范围
                     count);
 
-                int tempNo = connIndex;// connIndex % 2;
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    remoteUserName).Result;  //+ tempNo todo
-                connIndex++;
+                    remoteUserName).Result;  
 
                 SearchResult result = connection.SearchAsync(
                     remoteUserName,
@@ -2200,13 +2202,11 @@ namespace dp2weixin.service
                     records.Add(record);
                 }
 
-                if (result.Records.Count > 0 && start+result.Records.Count < result.ResultCount)
-                {
-                    start += result.Records.Count;
-                    //goto REDO1;
-                }
+                // 检查是否有下页
+                if (start + records.Count < result.ResultCount)
+                    bNext = true;
 
-                return records.Count;
+                return result.ResultCount;// records.Count;
             }
             catch (AggregateException ex)
             {

@@ -44,8 +44,7 @@ namespace dp2weixin.service
         /// <returns></returns>
         public SearchBiblioResult SearchBiblio(string remoteUserName,
             string strFrom,
-            string strWord,
-            out List<BiblioRecord> totalRecords)
+            string strWord)
         {
             SearchBiblioResult searchRet = new SearchBiblioResult();
             searchRet.apiResult = new ApiResult();
@@ -53,9 +52,6 @@ namespace dp2weixin.service
             searchRet.apiResult.errorInfo = "";
             searchRet.records = new List<BiblioRecord>();
             searchRet.isCanNext = false;
-
-            totalRecords = new List<BiblioRecord>();
-
 
 
             // 未传入word
@@ -75,10 +71,15 @@ namespace dp2weixin.service
             }
 
             string strError = "";
+            // 这里的records是第一页的记录
+            List<BiblioRecord> records = null;
+            bool bNext = false;
             long lRet = dp2WeiXinService.Instance.SearchBiblio(remoteUserName,
                 strFrom,
                 strWord,
-                out totalRecords,
+                0,
+                out records,
+                out bNext,
                 out strError);
             if (lRet == -1 || lRet == 0)
             {
@@ -87,38 +88,63 @@ namespace dp2weixin.service
                 return searchRet;
             }
 
-            searchRet.resultCount = totalRecords.Count;
-
-            //取出第一页
-            bool bNext = false;
-            searchRet.records=this.getOnePage(totalRecords,
-                0, WeiXinConst.C_OnePage_Count, out bNext);
+            searchRet.records = records;
+            searchRet.resultCount = records.Count;
             searchRet.isCanNext = bNext;
-            searchRet.apiResult.errorCode = totalRecords.Count;
-                          
+            searchRet.apiResult.errorCode = lRet;
+
             return searchRet;
         }
 
-        public List<BiblioRecord> getOnePage(List<BiblioRecord> totalRecords, int start, int count,out bool bNext)
+        public SearchBiblioResult getOnePage(string remoteUserName, string start)
         {
-            bNext = false;
-            List<BiblioRecord> records = new List<BiblioRecord>();
-            if (start >= totalRecords.Count)
-                return records;
 
-            for (int i = start; i < start + count; i++)
+            SearchBiblioResult searchRet = new SearchBiblioResult();
+            searchRet.apiResult = new ApiResult();
+            searchRet.apiResult.errorCode = 0;
+            searchRet.apiResult.errorInfo = "";
+            searchRet.records = new List<BiblioRecord>();
+            searchRet.isCanNext = false;
+
+            int nStart = 0;
+            try
             {
-                if (i >= totalRecords.Count)
-                    break;
-                records.Add(totalRecords[i]);
+                nStart = Convert.ToInt32(start);
+                if (nStart < 0)
+                {
+                    searchRet.apiResult.errorCode = -1;
+                    searchRet.apiResult.errorInfo = "传出的起始位置[" + start + "]格式不正确，必须是>=0。";
+                    return searchRet;
+                }
+            }
+            catch
+            {
+                searchRet.apiResult.errorCode = -1;
+                searchRet.apiResult.errorInfo = "传出的起始位置[" + start + "]格式不正确，必须是数值。";
+                return searchRet;
             }
 
-
-            // 还有数据没获取完
-            if (start + count < totalRecords.Count)
-                bNext = true;
-
-            return records;
+            string strError = "";
+            List<BiblioRecord> records = null;
+            bool bNext = false;
+            long lRet = dp2WeiXinService.Instance.SearchBiblio(remoteUserName,
+                 "",
+                 "!getResult",
+                 nStart,
+                 out records,
+                 out bNext,
+                 out strError);
+            if (lRet == -1 || lRet == 0)
+            {
+                searchRet.apiResult.errorCode = (int)lRet;
+                searchRet.apiResult.errorInfo = strError;
+                return searchRet;
+            }
+            searchRet.resultCount = records.Count;
+            searchRet.records = records;
+            searchRet.isCanNext = bNext;
+            searchRet.apiResult.errorCode = lRet;
+            return searchRet;
         }
 
         public static PatronInfo ParseReaderXml(string strXml)

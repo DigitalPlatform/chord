@@ -78,21 +78,22 @@
             var from = "";
             var word = "";
 
+            // 图书馆
+            var lib = model.selectedLib();
+            if (lib == "" || lib == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+            //alert(lib);
+            var nIndex = lib.indexOf("*");
+            var libCode = lib.substr(0, nIndex);
+            var libUserName = lib.substr(nIndex + 1);
+
             if (bNext == 'true') {
                 from = "_N";
                 word = $("#maxNo").text();
             }
             else {
-                // 图书馆
-                var lib = model.selectedLib();
-                if (lib == "" || lib == null) {
-                    alert("您尚未选择图书馆。");
-                    return;
-                }
-                //alert(lib);
-                var nIndex = lib.indexOf("*");
-                var libCode = lib.substr(0, nIndex);
-                var libUserName = lib.substr(nIndex + 1);
 
                 // 检查是否选择的检索途径
                 from = $("#selFrom").val();
