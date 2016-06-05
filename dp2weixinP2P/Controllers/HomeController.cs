@@ -4,7 +4,7 @@ using DigitalPlatform.Text;
 using dp2Command.Service;
 using dp2weixin;
 using dp2weixin.service;
-using dp2weixinP2P.Models;
+using dp2weixinWeb.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -16,7 +16,7 @@ using System.Web;
 using System.Web.Configuration;
 using System.Web.Mvc;
 
-namespace dp2weixinP2P.Controllers
+namespace dp2weixinWeb.Controllers
 {
     public class HomeController : BaseController
     {
@@ -59,11 +59,11 @@ namespace dp2weixinP2P.Controllers
                 libInfo = new LibInfoModel();
                 libInfo.Title = libName+" 主页";
 
-                string htmlFile = dp2CmdService2.Instance.weiXinDataDir + "/lib/" + userItem.libCode+"/index.html";
+                string htmlFile = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + userItem.libCode+"/index.html";
                 if (System.IO.File.Exists(htmlFile) == false)
                 {
                     // 先缺省html文件
-                    htmlFile = dp2CmdService2.Instance.weiXinDataDir + "/lib/index.html";
+                    htmlFile = dp2WeiXinService.Instance.weiXinDataDir + "/lib/index.html";
                 }
 
                 string strHtml = "";
@@ -110,17 +110,19 @@ namespace dp2weixinP2P.Controllers
         {
             ViewBag.success = false;
 
+            /*
             // 从web config中取出mserver服务器地址，微信自己的账号
             string dp2MServerUrl = WebConfigurationManager.AppSettings["dp2MServerUrl"];
             string userName = WebConfigurationManager.AppSettings["userName"];            
             string password = WebConfigurationManager.AppSettings["password"];
             if (string.IsNullOrEmpty(password)==false)// 解密
-                password = Cryptography.Decrypt(password, dp2CmdService2.EncryptKey);
-
+                password = Cryptography.Decrypt(password, dp2WeiXinService.EncryptKey);
+             */
             SettingModel model = new SettingModel();
-            model.dp2MserverUrl = dp2MServerUrl;
-            model.userName = userName;
-            model.password = password;
+            model.dp2MserverUrl = "";// dp2MServerUrl;
+            model.userName = "";//userName;
+            model.password = "";//password;
+
             return View(model);
         }
         [HttpPost]
@@ -128,25 +130,25 @@ namespace dp2weixinP2P.Controllers
         {
             ViewBag.success = false;  
 
-            Configuration config = WebConfigurationManager.OpenWebConfiguration("~");
-            //获取appSettings节点
-            AppSettingsSection appSection = (AppSettingsSection)config.GetSection("appSettings");
+            //Configuration config = WebConfigurationManager.OpenWebConfiguration("~");
+            ////获取appSettings节点
+            //AppSettingsSection appSection = (AppSettingsSection)config.GetSection("appSettings");
 
 
-            //在appSettings节点中添加元素Add方法，多次添加的值会以逗号分隔，所以要先remove，再add
-            //appSection.Settings["dp2mServerUrl"].Value = model.dp2MserverUrl;
-            appSection.Settings.Remove("dp2mServerUrl");
-            appSection.Settings.Add("dp2mServerUrl", model.dp2MserverUrl);
+            ////在appSettings节点中添加元素Add方法，多次添加的值会以逗号分隔，所以要先remove，再add
+            ////appSection.Settings["dp2mServerUrl"].Value = model.dp2MserverUrl;
+            //appSection.Settings.Remove("dp2mServerUrl");
+            //appSection.Settings.Add("dp2mServerUrl", model.dp2MserverUrl);
 
-            appSection.Settings.Remove("userName");
-            appSection.Settings.Add("userName", model.userName);
+            //appSection.Settings.Remove("userName");
+            //appSection.Settings.Add("userName", model.userName);
 
-            appSection.Settings.Remove("password");
-            string password = Cryptography.Encrypt(model.password, dp2CmdService2.EncryptKey);
-            appSection.Settings.Add("password", password);
+            //appSection.Settings.Remove("password");
+            //string password = Cryptography.Encrypt(model.password, dp2CmdService2.EncryptKey);
+            //appSection.Settings.Add("password", password);
 
-            config.Save();
-            //Response.Write("保存成功");
+            //config.Save();
+            ////Response.Write("保存成功");
 
             //Response.Write("<script>alert('配置信息保存成功');</script>");
             ViewBag.success = true;  

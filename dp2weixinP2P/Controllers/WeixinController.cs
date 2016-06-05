@@ -31,8 +31,9 @@ using Senparc.Weixin.MP.MvcExtension;
 using Senparc.Weixin.MP;
 using dp2weixin;
 using dp2Command.Service;
+using dp2weixin.service;
 
-namespace dp2weixinP2P.Controllers
+namespace dp2weixinWeb.Controllers
 {
 
 
@@ -96,7 +97,7 @@ namespace dp2weixinP2P.Controllers
             var maxRecordCount = 10;
 
             // 日志总目录,使用前请确保App_Data文件夹存在，且有读写权限。
-            var logDir = dp2CmdService2.Instance.weiXinLogDir;
+            var logDir = dp2WeiXinService.Instance.weiXinLogDir;
 
             //// 当日日志目录，用于详细输出消息
             //var logToday =string.Format(logDir + "/{0}/", DateTime.Now.ToString("yyyy-MM-dd"));
@@ -106,7 +107,7 @@ namespace dp2weixinP2P.Controllers
             //}
 
             //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
-            var messageHandler = new dp2weixinMessageHandler(dp2CmdService2.Instance,
+            var messageHandler = new dp2weixinMessageHandler(dp2WeiXinService.Instance,
                 Request.InputStream, postModel, maxRecordCount);
             messageHandler.Init(Server.MapPath("~"), true, true);
             // 把appid传入CmdService，用于发送消息。
@@ -158,7 +159,7 @@ namespace dp2weixinP2P.Controllers
                 {
                     info="请求超时:"+info;
                 }
-                dp2CmdService2.Instance.WriteLog(info);
+                dp2WeiXinService.Instance.WriteLog(info);
 
                 // 发送客服消息
                 //messageHandler.SendCustomeMessage(info);
@@ -191,7 +192,7 @@ namespace dp2weixinP2P.Controllers
                 }
 
                 //将程序运行中发生的错误记录到日志
-                dp2CommandService.Instance.WriteErrorLog(error);
+                dp2WeiXinService.Instance.WriteErrorLog(error);
 
                 // 返回error信息
                 return new WeixinResult(error);

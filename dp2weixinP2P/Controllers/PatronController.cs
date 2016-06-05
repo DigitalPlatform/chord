@@ -6,7 +6,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
-namespace dp2weixinP2P.Controllers
+namespace dp2weixinWeb.Controllers
 {
     public class PatronController : BaseController
     {
@@ -57,7 +57,7 @@ namespace dp2weixinP2P.Controllers
 
                     
                     string xml = "";
-                    nRet = dp2CmdService2.Instance.GetPatronInfo(activeUserItem.libUserName,
+                    nRet = dp2WeiXinService.Instance.GetPatronInfo(activeUserItem.libUserName,
                         activeUserItem.readerBarcode,
                         "advancexml,advancexml_borrow_bibliosummary",
                         out xml,
@@ -71,7 +71,7 @@ namespace dp2weixinP2P.Controllers
                         return Content( "从dp2library未找到证条码号为'" + activeUserItem.readerBarcode + "'的记录"); //todo refID
                     }
 
-                    patronInfo = WeixinService.ParseReaderXml(xml);
+                    patronInfo = WeiXinService.ParseReaderXml(xml);
                    
 
                 }

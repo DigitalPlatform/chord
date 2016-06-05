@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
-namespace dp2weixinP2P.Models
+namespace dp2weixinWeb.Models
 {
     public class MessageModel
     {

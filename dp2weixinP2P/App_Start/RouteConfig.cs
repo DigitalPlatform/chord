@@ -5,7 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 
-namespace dp2weixinP2P
+namespace dp2weixinWeb
 {
     public class RouteConfig
     {

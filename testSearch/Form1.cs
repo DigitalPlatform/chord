@@ -73,17 +73,7 @@ namespace testSearch
         {
             strError = "";
             info = "";
-
-            // 取出summary
-            string strSummary = "";
-            int nRet = this.GetBiblioSummary(dp2mserverUrl,
-                remoteUserName,
-                biblioPath,
-                out strSummary, out strError);
-            if (nRet == -1 || nRet == 0)
-            {
-                return nRet;
-            }
+            int nRet = 0;
 
             // 取item
             string itemList = "";
@@ -94,6 +84,21 @@ namespace testSearch
             {
                 return -1;
             }
+
+            // 取出summary
+            string strSummary = "";
+            //nRet = this.GetBiblioSummary(dp2mserverUrl,
+            //    remoteUserName,
+            //    biblioPath,
+            //    out strSummary, out strError);
+            //if (nRet == -1 || nRet == 0)
+            //{
+            //    return nRet;
+            //}
+
+            //Thread.Sleep(1000);
+
+
 
             info = " summary:[" + strSummary + "]\r\nitems:[" + itemList + "]";
 
@@ -172,7 +177,7 @@ namespace testSearch
             strError = "";
 
             CancellationToken cancel_token = new CancellationToken();
-            string id = Guid.NewGuid().ToString();
+            string id = "2-item";// Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
                 "getItemInfo",
                 "entity",

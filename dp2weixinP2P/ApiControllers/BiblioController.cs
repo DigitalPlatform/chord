@@ -8,7 +8,7 @@ using System.Net.Http;
 using System.Web;
 using System.Web.Http;
 
-namespace dp2weixinP2P.ApiControllers
+namespace dp2weixinWeb.ApiControllers
 {
     public class BiblioController : ApiController
     {
@@ -51,7 +51,7 @@ namespace dp2weixinP2P.ApiControllers
 
                 List<BiblioRecord> totalRecords = (List<BiblioRecord>)HttpContext.Current.Session[WeiXinConst.C_Session_SearchResult];
                 bool bNext = false;
-                List<BiblioRecord> records = WeixinService.Instance.getOnePage(totalRecords, nStart, dp2CmdService2.C_OnePage_Count,
+                List<BiblioRecord> records = WeiXinService.Instance.getOnePage(totalRecords, nStart, WeiXinConst.C_OnePage_Count,
                      out bNext);
                 searchRet.resultCount = totalRecords.Count;
                 searchRet.records = records;
@@ -63,7 +63,7 @@ namespace dp2weixinP2P.ApiControllers
             {
 
                 List<BiblioRecord> totalRecords = null;
-                SearchBiblioResult result = WeixinService.Instance.SearchBiblio(libUserName,
+                SearchBiblioResult result = WeiXinService.Instance.SearchBiblio(libUserName,
                      from,
                      word,
                      out totalRecords);
@@ -86,8 +86,8 @@ namespace dp2weixinP2P.ApiControllers
         /// <returns></returns>
         public BiblioRecordResult Get(string libUserName, string biblioPath)
         {
-            dp2CmdService2.Instance.WriteLog("走进get() libUserName["+libUserName+"],biblioPath["+biblioPath+"]");
-            BiblioRecordResult result = dp2CmdService2.Instance.GetBiblioDetail(libUserName,
+            dp2WeiXinService.Instance.WriteLog("走进get() libUserName["+libUserName+"],biblioPath["+biblioPath+"]");
+            BiblioRecordResult result = dp2WeiXinService.Instance.GetBiblioDetail(libUserName,
                 biblioPath);
             return result;
         }

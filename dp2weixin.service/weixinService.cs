@@ -1,7 +1,6 @@
 ﻿using DigitalPlatform.IO;
 using DigitalPlatform.Text;
 using DigitalPlatform.Xml;
-using dp2Command.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,16 +10,16 @@ using System.Xml;
 
 namespace dp2weixin.service
 {
-    public class WeixinService
+    public class WeiXinService
     {
         //=================
         // 设为单一实例
-        static WeixinService _instance;
-        private WeixinService()
+        static WeiXinService _instance;
+        private WeiXinService()
         {
         }
         private static object _lock = new object();
-        static public WeixinService Instance
+        static public WeiXinService Instance
         {
             get
             {
@@ -28,7 +27,7 @@ namespace dp2weixin.service
                 {
                     lock (_lock)  //线程安全的
                     {
-                        _instance = new WeixinService();
+                        _instance = new WeiXinService();
                     }
                 }
                 return _instance;
@@ -76,7 +75,7 @@ namespace dp2weixin.service
             }
 
             string strError = "";
-            long lRet = dp2CmdService2.Instance.SearchBiblio(remoteUserName,
+            long lRet = dp2WeiXinService.Instance.SearchBiblio(remoteUserName,
                 strFrom,
                 strWord,
                 out totalRecords,
@@ -92,8 +91,8 @@ namespace dp2weixin.service
 
             //取出第一页
             bool bNext = false;
-            searchRet.records=this.getOnePage(totalRecords, 
-                0, dp2CmdService2.C_OnePage_Count, out bNext);
+            searchRet.records=this.getOnePage(totalRecords,
+                0, WeiXinConst.C_OnePage_Count, out bNext);
             searchRet.isCanNext = bNext;
             searchRet.apiResult.errorCode = totalRecords.Count;
                           
@@ -247,7 +246,7 @@ namespace dp2weixin.service
               </borrows>
             */
             int nOverdueCount = 0;
-            List<BorrowInfo> borrowList = new List<BorrowInfo>();
+            List<BorrowInfo2> borrowList = new List<BorrowInfo2>();
             for (int i = 0; i < nodes.Count; i++)
             {
                 XmlNode node = nodes[i];
@@ -279,7 +278,7 @@ namespace dp2weixin.service
                 }
 
                 // 创建 borrowinfo对象，加到集合里
-                BorrowInfo borrowInfo = new BorrowInfo();
+                BorrowInfo2 borrowInfo = new BorrowInfo2();
                 borrowInfo.barcode = strBarcode;
                 borrowInfo.renewNo = strRenewNo;
                 borrowInfo.borrowDate = strBorrowDate;

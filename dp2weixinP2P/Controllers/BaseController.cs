@@ -1,12 +1,11 @@
-﻿using dp2Command.Service;
-using dp2weixin.service;
+﻿using dp2weixin.service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
-namespace dp2weixinP2P.Controllers
+namespace dp2weixinWeb.Controllers
 {
     public class BaseController : Controller
     {
@@ -27,14 +26,14 @@ namespace dp2weixinP2P.Controllers
                 // 如果session中的code与传进入的code相同，则不再获取weixinid
                 if (sessionCode == code)
                 {
-                    dp2CmdService2.Instance.WriteLog("传进来的code["+code+"]与session中保存的code相同，不再获取weixinid了。");
+                    dp2WeiXinService.Instance.WriteLog("传进来的code["+code+"]与session中保存的code相同，不再获取weixinid了。");
                 }
                 else
                 {
-                    dp2CmdService2.Instance.WriteLog("传进来的code[" + code + "]与session中保存的code["+sessionCode+"]不同，重新获取weixinid了。");
+                    dp2WeiXinService.Instance.WriteLog("传进来的code[" + code + "]与session中保存的code["+sessionCode+"]不同，重新获取weixinid了。");
 
                     string weiXinIdTemp = "";
-                    int nRet = dp2CmdService2.Instance.GetWeiXinId(code, state, out weiXinIdTemp, out strError);
+                    int nRet = dp2WeiXinService.Instance.GetWeiXinId(code, state, out weiXinIdTemp, out strError);
                     if (nRet == -1)
                     { return -1; }
 

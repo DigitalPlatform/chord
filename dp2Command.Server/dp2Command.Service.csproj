@@ -65,7 +65,6 @@
     <Compile Include="dp2BaseCommandService.cs" />
     <Compile Include="dp2CommandService.cs" />
     <Compile Include="dp2CmdService2.cs" />
-    <Compile Include="ImgManager.cs" />
     <Compile Include="Interface\MessageInterface.cs" />
     <Compile Include="Interface\ScriptManager.cs" />
     <Compile Include="MsgRouter.cs" />
@@ -114,7 +113,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="delete.txt" />
-    <Content Include="XMLFile1.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
