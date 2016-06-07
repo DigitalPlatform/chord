@@ -22,4 +22,11 @@ namespace dp2weixin.service
         public WxUserItem userItem { get; set; }
         public ApiResult apiResult { get; set; }
     }
+
+    public class ReservationResult:ApiResult
+    {
+        // 在借册
+        public List<ReservationInfo> reservations { get; set; }
+
+    }
 }

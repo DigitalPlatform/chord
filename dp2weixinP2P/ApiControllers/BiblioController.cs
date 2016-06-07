@@ -18,16 +18,14 @@ namespace dp2weixinWeb.ApiControllers
             // 取下一页的情况
             if (from == "_N")
             {
-                return WeiXinService.Instance.getOnePage(libUserName, word);
+                return dp2WeiXinService.Instance.getOnePage(libUserName, word);
             }
             else
             {
-                return WeiXinService.Instance.SearchBiblio(libUserName,
+                return dp2WeiXinService.Instance.SearchBiblio(libUserName,
                      from,
                      word);
             }
-
-
         }
 
         /// <summary>
@@ -43,6 +41,8 @@ namespace dp2weixinWeb.ApiControllers
                 biblioPath);
             return result;
         }
+
+
 
     }
 }

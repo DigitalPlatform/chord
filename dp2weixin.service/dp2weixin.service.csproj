@@ -108,7 +108,6 @@
     <Compile Include="SearchBiblioResult.cs" />
     <Compile Include="TemplateData.cs" />
     <Compile Include="WeiXinConst.cs" />
-    <Compile Include="WeiXinService.cs" />
     <Compile Include="WxUserDatabase.cs" />
   </ItemGroup>
   <ItemGroup>
