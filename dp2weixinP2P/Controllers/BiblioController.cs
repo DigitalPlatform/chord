@@ -23,6 +23,7 @@ namespace dp2weixinWeb.Controllers
             if (userItem != null)
             {
                 ViewBag.LibCode = userItem.libCode+"*"+userItem.libUserName;// "lib_local*mycapo";
+                ViewBag.PatronBarcode = userItem.readerBarcode;
             }
 
             return View();

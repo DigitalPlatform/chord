@@ -1,0 +1,65 @@
+﻿=====checkbox========
+    <ul id="ulResult" class="mui-table-view mui-table-view-chevron">
+        <li class='mui-table-view-cell mui-collapse' >
+
+
+                <table style='width:100%;padding:10px;text-align:left'>
+                    <tr>
+                        <td style="width:100px;text-align:right; ">
+                            <div class="mui-input-row mui-checkbox mui-left">
+                                <label style="padding-left:30px;padding-right:0px">册条码：</label>
+                                <input name="checkbox" value="Item 1" type="checkbox" style="left:0px;">
+                            </div>
+                        </td>
+                        <td>aaaa</td>
+                    </tr>
+                    <tr>
+                        <td style="width:100px;text-align:right; ">
+                            状态：
+                        </td>
+                        <td>bbbbbbbb</td>
+                    </tr>
+                </table>
+
+
+
+
+                <table style='width:100%;padding:10px;text-align:left'>
+                    <tr>
+                        <td style="width:100px;text-align:right; ">
+                            <div class="mui-input-row mui-checkbox mui-left">
+                                <label style="padding-left:30px;padding-right:0px">册条码：</label>
+                                <input name="checkbox" value="Item 1" type="checkbox" style="left:0px;">
+                            </div>
+                        </td>
+                        <td>aaaa</td>
+                    </tr>
+                    <tr>
+                        <td style="width:100px;text-align:right; ">
+                            状态：
+                        </td>
+                        <td>bbbbbbbb</td>
+                    </tr>
+                </table>
+
+
+
+                <table style='width:100%;padding:10px;text-align:left'>
+                    <tr>
+                        <td style="width:100px;text-align:right; ">
+                            <div class="mui-input-row mui-checkbox mui-left mui-disabled">
+                                <label style="padding-left:30px;padding-right:0px">册条码：</label>
+                                <input name="checkbox" value="Item 1" type="checkbox" style="left:0px;" disabled="disabled">
+                            </div>
+                        </td>
+                        <td>aaaa</td>
+                    </tr>
+                    <tr>
+                        <td style="width:100px;text-align:right; ">
+                            状态：
+                        </td>
+                        <td>bbbbbbbb</td>
+                    </tr>
+                </table>
+                </li>
+</ul>

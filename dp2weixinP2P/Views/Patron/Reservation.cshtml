@@ -1,0 +1,78 @@
+﻿@model dp2weixin.service.WxUserItem
+@section Scripts {
+    <script>
+
+        //观察模型
+        var model = {
+            reservations: ko.observableArray()
+        }
+
+
+        //用于所有微信用户
+        function getReservations(weixinId) {
+            //显示等待图层
+            var index = loadLayer();
+
+            // 先删除可观察数组中的已有数据
+            model.reservations.removeAll();
+
+            var libUserName = $("#libUserName").text();;
+            var patronBarcode = $("#patronBarcode").text();;
+
+            // 调web api
+            var url = "/api/PatronReservation?libUserName=" + encodeURIComponent(libUserName)
+                + "&patronBarcode=" + encodeURIComponent(patronBarcode) ;
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                // 出错或未命中
+                if (result.errorCode == -1 || result.errorCode == 0) {
+                    openMsg(result.errorInfo);
+                    return;
+                }
+
+                for (var i = 0; i < result.reservations.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    model.reservations.push(result.reservations[i]);
+                }
+                alert(model.reservations().length);
+
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        // 删除一项
+        function remove(item) {
+
+        }
+
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 获取预约请求
+            getReservations();
+
+            ko.applyBindings(model);
+        });
+
+
+
+    </script>
+}
+@section style {
+}
+@section header {
+    <h1 class="mui-title">账号管理</h1>
+}
+<span id="libUserName" style="display:block">@Model.libUserName</span>
+<span id="patronBarcode" style="display:block">@Model.readerBarcode</span>
