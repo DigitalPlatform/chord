@@ -221,7 +221,6 @@
     <Content Include="Views\Patron\Index.cshtml" />
     <Content Include="Views\Biblio\Index.cshtml" />
     <Content Include="Views\Account\Bind.cshtml" />
-    <Content Include="Views\Account\Index.txt" />
     <Content Include="Views\Account\ResetPassword.cshtml" />
     <Content Include="Scripts\jquery-2.2.3.min.map" />
     <Content Include="Views\Home\Test.cshtml" />
