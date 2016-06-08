@@ -1232,6 +1232,13 @@ ex.GetType().ToString());
         // groups 的每一个元素，都是一个完整的群名定义
         void CanonicalizeUserItemGroups(UserItem item)
         {
+            if (item.groups != null && item.groups.Length == 1
+                && string.IsNullOrEmpty(item.groups[0]))
+            {
+                item.groups = null;
+                return;
+            }
+
             for (int i = 0; i < item.groups.Length; i++)
             {
                 string strGroupString = item.groups[i];
@@ -2927,6 +2934,9 @@ true);
         {
             if (groups_param == null || groups_param.Length == 0)
                 return groups_param;
+
+            if (groups_param.Length == 1 && string.IsNullOrEmpty(groups_param[0]))
+                return null;
 
             // 正规化组名
             return GroupSegment.Canonicalize(groups_param, (name) =>
