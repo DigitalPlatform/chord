@@ -52,7 +52,7 @@ function fillPending() {
     }
 
     if (mytype == "bs-") {
-        alert("bs-"+keyword);
+        //alert("bs-"+keyword);
         var libUserName = o.children("span").text();
         var url = "/api/biblio?id=" + encodeURIComponent(myvalue) + "&format=summary"
             + "&libUserName=" + encodeURIComponent(libUserName);

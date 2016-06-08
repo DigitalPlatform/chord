@@ -129,7 +129,67 @@
             window.setTimeout("fillPending()", 1);
         });
 
+        function renew(btn,itemBarcode) {
 
+            if (itemBarcode == "") {
+                alert("尚未传入册条码号。");
+                return;
+            }
+
+            var libUserName = $("#libUserName").text();;
+            var patronBarcode = $("#patronBarcode").text();
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/Borrow?libUserName=" + encodeURIComponent(libUserName)
+                + "&action=renew"
+                + "&patron=" + encodeURIComponent(patronBarcode)
+                + "&item=" + encodeURIComponent(itemBarcode)
+            // 调api
+            sendAjaxRequest(url, "POST", function (result) {
+
+
+                // 关闭等待层
+                layer.close(index);
+
+                // 显示预约结果
+                var infoDiv = $(btn).parent().children("div");
+                //alert(infoDiv);
+                var info = result.errorInfo;
+
+
+                // 出错
+                if (result.errorCode == -1) {
+                    $(infoDiv).text(info);
+                    $(infoDiv).css("color", "red");  //设为红色
+
+                    alert(result.errorInfo);
+                    return;
+                }
+
+
+                if (info == "")
+                    info = "续借成功";
+
+                $(infoDiv).text(info);
+                $(infoDiv).css("color", "darkgreen");  //设为绿色
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                // 显示预约结果
+                var info = "访问服务器出错：[" + errorThrown + "]";
+                alert(info);
+
+                 var infoDiv = $(btn).parent.children("div");
+
+                $(infoDiv).text(info);
+                $(infoDiv).css("color", "red");  //设为红色                
+            });
+        }
 
     </script>
 }
@@ -151,7 +211,8 @@
         strClass = " text-warning ";
     }
 
-
+<span id="libUserName" style="display:none">@ViewBag.LibUserName</span>
+<span id="patronBarcode" style="display:none">@Model.patron.barcode</span>
     <div id="readerTable" style="border:1px solid #dddddd;border-radius: 6px;padding-top:5px">
         <div class="col-md-2" style="padding:0.2cm">
             <table style="width:100%">
@@ -303,9 +364,10 @@
                         <tr>
                             <td>&nbsp;</td>
                             <td>
-                                <button type="button" class="mui-btn  mui-btn-primary" onclick="alert('功能正在开发中')">
+                                <button type="button" class="mui-btn  mui-btn-default" onclick="renew(this,'@item.barcode')">
                                     续借
                                 </button>
+                                <div></div>
                             </td>
                         </tr>
 

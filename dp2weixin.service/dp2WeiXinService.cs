@@ -2192,14 +2192,14 @@ namespace dp2weixin.service
                 if (nStart < 0)
                 {
                     searchRet.apiResult.errorCode = -1;
-                    searchRet.apiResult.errorInfo = "传出的起始位置[" + start + "]格式不正确，必须是>=0。";
+                    searchRet.apiResult.errorInfo = "传入的起始位置[" + start + "]格式不正确，必须是>=0。";
                     return searchRet;
                 }
             }
             catch
             {
                 searchRet.apiResult.errorCode = -1;
-                searchRet.apiResult.errorInfo = "传出的起始位置[" + start + "]格式不正确，必须是数值。";
+                searchRet.apiResult.errorInfo = "传入的起始位置[" + start + "]格式不正确，必须是数值。";
                 return searchRet;
             }
 
@@ -3170,6 +3170,7 @@ namespace dp2weixin.service
                      + (nBarcodesCount > 1 ? " 之一" : "");
 
                     ReservationInfo reservationInfo = new ReservationInfo();
+                    reservationInfo.pureBarcodes = strBarcodes;
                     reservationInfo.barcodes = strBarcodesHtml;
                     reservationInfo.state = strState;
                     reservationInfo.stateText = strStateText;
@@ -3687,6 +3688,51 @@ namespace dp2weixin.service
         #endregion
 
         #region 续借
+
+        public int Renew(string remoteUserName,
+            //string patron,
+            string item,
+            out string strError)
+        {
+            strError = "";
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            CirculationRequest request = new CirculationRequest(id,
+                "renew",
+                "",
+                item,
+                "",
+                "",
+                "",
+                "");
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                    this.dp2MServerUrl,
+                    "").Result;
+
+                CirculationResult result = connection.CirculationAsync(
+                    remoteUserName,
+                    request,
+                    new TimeSpan(0, 1, 10), // 10 秒
+                    cancel_token).Result;
+
+                strError = result.ErrorInfo;
+                return (int)result.Value;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                return -1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+        }
+
         public int Renew(string remoteUserName,
             string strReaderBarcode,
             string strItemBarcode,
