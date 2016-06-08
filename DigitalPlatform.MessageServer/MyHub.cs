@@ -1235,6 +1235,8 @@ ex.GetType().ToString());
             for (int i = 0; i < item.groups.Length; i++)
             {
                 string strGroupString = item.groups[i];
+                if (string.IsNullOrEmpty(strGroupString))
+                    continue;
 
                 GroupSegment segment = new GroupSegment(strGroupString);
 
