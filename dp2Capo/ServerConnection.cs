@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define LOG
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,6 +28,7 @@ namespace dp2Capo
         public string UserName { get; set; }
         public string Password { get; set; }
 #endif
+        public Instance Instance { get; set; }  // 方便访问 Instance
 
         public LibraryHostInfo dp2library { get; set; }
         internal LibraryChannelPool _channelPool = new LibraryChannelPool();
@@ -589,11 +592,20 @@ strError);
             Task.Run(() => SearchAndResponse(param));
         }
 
+        void writeDebug(string strText)
+        {
+            this.Instance.WriteErrorLog("debug: " + strText);
+        }
+
         // TODO: 本函数最好放在一个工作线程内执行
         // Form Close 的时候要及时中断工作线程
         // getPatronInfo getBiblioInfo getBiblioSummary searchBiblio searchPatron
         void SearchAndResponse(SearchRequest searchParam)
         {
+#if LOG
+            writeDebug("searchParam=" + searchParam.Dump());
+#endif
+
             if (searchParam.Operation == "getPatronInfo")
             {
                 GetPatronInfo(searchParam);
@@ -661,6 +673,10 @@ strError);
                              "",
                              out strQueryXml,
                              out strError);
+                        writeDebug("searchBiblio() lRet=" + lRet 
+                            + ", strQueryXml=" + strQueryXml 
+                            + ", strError=" + strError 
+                            + ",errorcode=" + channel.ErrorCode.ToString());
                     }
                     else if (searchParam.Operation == "searchPatron")
                     {
@@ -810,6 +826,13 @@ strErrorCode));
         out searchresults,
         out strError);
                     strErrorCode = channel.ErrorCode.ToString();
+                    writeDebug("GetSearchResult lRet=" + lRet + ", strResultSetName=" + strResultSetName 
+                        + ",lStart=" + lStart 
+                        + ",lPerCount=" + lPerCount
+                        + ",strBrowseStyle=" + strBrowseStyle
+                        + ", strError=" + strError
+                        + ",errorcode=" + strErrorCode);
+
                     if (lRet == -1)
                         goto ERROR1;
 

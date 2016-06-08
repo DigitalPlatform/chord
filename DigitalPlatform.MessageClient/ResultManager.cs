@@ -99,7 +99,7 @@ namespace DigitalPlatform.MessageClient
                 _targetTable[strLibraryUID] = info;
             }
             info.Recieved += this_count;
-            Debug.WriteLine(strLibraryUID + "\r\n" + info.Dump());
+            Debug.WriteLine("CompleteTarget() " + strLibraryUID + "\r\n" + info.Dump());
             if (info.Recieved >= info.TotalResults)
             {
                 if (IsAllCompleted())

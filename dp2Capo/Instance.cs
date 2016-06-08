@@ -81,6 +81,7 @@ namespace dp2Capo
                 this.dp2mserver = new HostInfo();
                 this.dp2mserver.Initial(element);
 
+                this.MessageConnection.Instance = this;
                 this.MessageConnection.dp2library = this.dp2library;
             }
             catch (Exception ex)

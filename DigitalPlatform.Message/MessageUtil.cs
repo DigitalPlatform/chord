@@ -330,6 +330,8 @@ namespace DigitalPlatform.Message
 
         public string DumpRecords()
         {
+            if (this.Records == null)
+                return "{null}";
             StringBuilder text = new StringBuilder();
             int i = 0;
             foreach (Record record in this.Records)
