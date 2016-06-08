@@ -42,7 +42,7 @@ namespace dp2weixin.service
         public bool bTrace = false;
 
         // 微信web程序url
-        public string weiXinUrl = "";
+        public string opacUrl = "";
 
 
         // dp2消息处理类
@@ -117,7 +117,7 @@ namespace dp2weixin.service
 
             // 取出微信配置信息
             XmlNode nodeDp2weixin = root.SelectSingleNode("dp2weixin");
-            this.weiXinUrl = DomUtil.GetAttr(nodeDp2weixin, "url"); //WebConfigurationManager.AppSettings["weiXinUrl"];
+            this.opacUrl = DomUtil.GetAttr(nodeDp2weixin, "opacUrl"); //WebConfigurationManager.AppSettings["weiXinUrl"];
             this.weiXinAppId = DomUtil.GetAttr(nodeDp2weixin, "AppId"); //WebConfigurationManager.AppSettings["weiXinAppId"];
             this.weiXinSecret = DomUtil.GetAttr(nodeDp2weixin, "Secret"); //WebConfigurationManager.AppSettings["weiXinSecret"];
             string trace = DomUtil.GetAttr(nodeDp2weixin, "trace");
@@ -2192,14 +2192,14 @@ namespace dp2weixin.service
                 if (nStart < 0)
                 {
                     searchRet.apiResult.errorCode = -1;
-                    searchRet.apiResult.errorInfo = "传出的起始位置[" + start + "]格式不正确，必须是>=0。";
+                    searchRet.apiResult.errorInfo = "传入的起始位置[" + start + "]格式不正确，必须是>=0。";
                     return searchRet;
                 }
             }
             catch
             {
                 searchRet.apiResult.errorCode = -1;
-                searchRet.apiResult.errorInfo = "传出的起始位置[" + start + "]格式不正确，必须是数值。";
+                searchRet.apiResult.errorInfo = "传入的起始位置[" + start + "]格式不正确，必须是数值。";
                 return searchRet;
             }
 
@@ -2352,7 +2352,9 @@ namespace dp2weixin.service
                 // 取出summary
                 this.WriteLog("开始获取summary");
                 string strSummary = "";
-                nRet = this.GetBiblioSummary(remoteUserName, biblioPath, out strSummary, out strError);
+                string tempPath = "@bibliorecpath:" + biblioPath;
+                string strOutputRecPath = "";
+                nRet = this.GetBiblioSummary(remoteUserName, tempPath, "",out strSummary, out strOutputRecPath,out strError);
                 if (nRet == -1 || nRet == 0)
                 {
                     result.errorCode = -1;
@@ -2554,16 +2556,28 @@ namespace dp2weixin.service
             #endregion
         }
 
-        private int GetBiblioSummary(string remoteUserName,
-    string biblioPath,
-    out string summary,
-    out string strError)
+        /// <summary>
+        /// 获取summary
+        /// </summary>
+        /// <param name="remoteUserName"></param>
+        /// <param name="word"></param>
+        /// <param name="strBiblioRecPathExclude">排除的书目路径</param>
+        /// <param name="summary"></param>
+        /// <param name="strRecPath"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public int GetBiblioSummary(string remoteUserName,
+            string word,
+            string strBiblioRecPathExclude,
+            out string summary,
+            out string strRecPath,
+            out string strError)
         {
             summary = "";
             strError = "";
+            strRecPath = "";
 
-            CancellationToken cancel_token = new CancellationToken();
-            string id = "1-summary";//Guid.NewGuid().ToString();
+            /*
             SearchRequest request = new SearchRequest(id,
                 "getBiblioInfo",
                 "<全部>",
@@ -2572,6 +2586,21 @@ namespace dp2weixin.service
                 "",
                 "",
                 "summary",
+                1,
+                0,
+                -1);             
+             */
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = "1-summary";//Guid.NewGuid().ToString();
+            SearchRequest request = new SearchRequest(id,
+                "getBiblioSummary",
+                "<全部>",
+                word,
+                "",
+                strBiblioRecPathExclude,
+                "",
+                "",
                 1,
                 0,
                 -1);
@@ -2598,6 +2627,7 @@ namespace dp2weixin.service
                 }
 
                 summary = result.Records[0].Data;
+                strRecPath = result.Records[0].RecPath;
 
 
                 return 1;
@@ -2748,6 +2778,82 @@ namespace dp2weixin.service
         }
 
 
+        // 获取多个item的summary
+        public string GetBarcodesSummary(string remoteUserName,
+            string strBarcodes)
+        {
+            string strSummary = "";
+            string strArrivedItemBarcode = "";
+            int nIndex = strBarcodes.IndexOf("*");
+            if (nIndex > 0)
+            {
+                string tempBarcodes = strBarcodes.Substring(0, nIndex);
+                strArrivedItemBarcode = strBarcodes.Substring(nIndex + 1);
+                strBarcodes = tempBarcodes;
+            }
+
+            string strDisableClass = "";
+            if (string.IsNullOrEmpty(strArrivedItemBarcode) == false)
+                strDisableClass = "deleted";
+
+            string strPrevBiblioRecPath = "";
+            string[] barcodes = strBarcodes.Split(new char[] { ',' });
+            for (int j = 0; j < barcodes.Length; j++)
+            {
+                string strBarcode = barcodes[j];
+                if (String.IsNullOrEmpty(strBarcode) == true)
+                    continue;
+
+                // 获得摘要
+                string strOneSummary = "";
+                string strBiblioRecPath = "";
+
+
+                //    GetBiblioSummaryResponse result = channel.GetBiblioSummary(strBarcode, strPrevBiblioRecPath);
+                string strError = "";
+                int nRet = this.GetBiblioSummary(remoteUserName,
+                    strBarcode,
+                    strPrevBiblioRecPath,
+                    out strOneSummary,
+                    out strBiblioRecPath,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                    strOneSummary = strError;
+
+                int tempIndex = strBiblioRecPath.IndexOf("@");
+                if (tempIndex>0)
+                    strBiblioRecPath = strBiblioRecPath.Substring(0, tempIndex);
+
+                if (strOneSummary == "" && strPrevBiblioRecPath == strBiblioRecPath)
+                {
+                    strOneSummary = "(同上)";
+                }
+
+                string strClass = "";
+                if (string.IsNullOrEmpty(strDisableClass) == false && strBarcode != strArrivedItemBarcode)
+                    strClass = " class='" + strDisableClass + "' ";
+
+                string strBarcodeLink = "<a " + strClass
+                    + " href='" + this.opacUrl + "/book.aspx?barcode=" + strBarcode + "'   target='_blank' " + ">" + strBarcode + "</a>";
+
+                strSummary += "<div>" + strBarcodeLink + strOneSummary + "</div>";
+
+                //var strOneSummaryOverflow = "<div style='width:100%;white-space:nowrap;overflow:hidden; text-overflow:ellipsis;'  title='" + strOneSummary + "'>"
+                //   + strOneSummary
+                //   + "</div>";
+
+                //strSummary += "<table style='width:100%;table-layout:fixed;'>"
+                //    + "<tr>"
+                //    + "<td width='10%;vertical-align:middle'>" + strBarcodeLink + "</td>"
+                //    + "<td>" + strOneSummaryOverflow + "</td>"
+                //    + "</tr></table>";
+
+                strPrevBiblioRecPath = strBiblioRecPath;
+            }
+            return strSummary;
+        }
+
+
         #endregion
 
         #region 个人信息
@@ -2780,7 +2886,7 @@ namespace dp2weixin.service
                 strError = "从dp2library未找到证条码号为'" + readerBarcode + "'的记录";
                 return 0;
             }
-            patronInfo = dp2WeiXinService.ParseReaderXml(xml);
+            patronInfo = this.ParseReaderXml(xml);
 
             return 1;
         }
@@ -2823,7 +2929,7 @@ namespace dp2weixin.service
             return 1;
         }
 
-        public static PatronInfo ParseReaderXml(string strXml)
+        public PatronInfo ParseReaderXml(string strXml)
         {
             PatronInfo patronResult = new PatronInfo();
 
@@ -2989,10 +3095,10 @@ namespace dp2weixin.service
                 borrowInfo.renewComment = strRenewComment;
                 borrowInfo.overdue = strOverdueInfo;
                 borrowInfo.returnDate = strTimeReturning;
-                //if (string.IsNullOrEmpty(this.dp2OpacUrl) == false)
-                //    borrowInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode;
-                //else
-                //    borrowInfo.barcodeUrl = "";
+                if (string.IsNullOrEmpty(this.opacUrl) == false)
+                    borrowInfo.barcodeUrl = this.opacUrl + "/book.aspx?barcode=" + strBarcode;
+                else
+                    borrowInfo.barcodeUrl = "";
                 borrowInfo.rowCss = rowCss;
                 borrowList.Add(borrowInfo);
 
@@ -3018,7 +3124,7 @@ namespace dp2weixin.service
         }
 
 
-        public static List<ReservationInfo> GetReservations(string strXml, out string strWarningText)
+        public List<ReservationInfo> GetReservations(string strXml, out string strWarningText)
         {
             strWarningText = "";
             List<ReservationInfo> reservationList = new List<ReservationInfo>();
@@ -3064,6 +3170,7 @@ namespace dp2weixin.service
                      + (nBarcodesCount > 1 ? " 之一" : "");
 
                     ReservationInfo reservationInfo = new ReservationInfo();
+                    reservationInfo.pureBarcodes = strBarcodes;
                     reservationInfo.barcodes = strBarcodesHtml;
                     reservationInfo.state = strState;
                     reservationInfo.stateText = strStateText;
@@ -3081,14 +3188,14 @@ namespace dp2weixin.service
 
             return reservationList;
         }
-        static int GetBarcodesCount(string strBarcodes)
+        int GetBarcodesCount(string strBarcodes)
         {
             string[] barcodes = strBarcodes.Split(new char[] { ',' });
 
             return barcodes.Length;
         }
 
-        static string MakeBarcodeListHyperLink(string strBarcodes,
+        string MakeBarcodeListHyperLink(string strBarcodes,
             string strArrivedItemBarcode,
             string strSep)
         {
@@ -3107,7 +3214,7 @@ namespace dp2weixin.service
                     strResult += strSep;
                 strResult += "<a "
                     + (string.IsNullOrEmpty(strDisableClass) == false && strBarcode != strArrivedItemBarcode ? "class='" + strDisableClass + "'" : "")
-                    + " href='#'  target='_blank' " + ">" + strBarcode + "</a>";  //" + this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode + " todo改为实际的地址
+                    + " href='"+this.opacUrl+ "/book.aspx?barcode=" + strBarcode+"'  target='_blank' " + ">" + strBarcode + "</a>";  //" +  + " todo改为实际的地址
             }
 
             return strResult;
@@ -3441,7 +3548,7 @@ namespace dp2weixin.service
                 if (result.ResultCount == 0)
                 {
                     strError = result.ErrorInfo;
-                    return -1;
+                    return 0;
                 }
 
                 xml = result.Records[0].Data;
@@ -3581,6 +3688,51 @@ namespace dp2weixin.service
         #endregion
 
         #region 续借
+
+        public int Renew(string remoteUserName,
+            //string patron,
+            string item,
+            out string strError)
+        {
+            strError = "";
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            CirculationRequest request = new CirculationRequest(id,
+                "renew",
+                "",
+                item,
+                "",
+                "",
+                "",
+                "");
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                    this.dp2MServerUrl,
+                    "").Result;
+
+                CirculationResult result = connection.CirculationAsync(
+                    remoteUserName,
+                    request,
+                    new TimeSpan(0, 1, 10), // 10 秒
+                    cancel_token).Result;
+
+                strError = result.ErrorInfo;
+                return (int)result.Value;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                return -1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+        }
+
         public int Renew(string remoteUserName,
             string strReaderBarcode,
             string strItemBarcode,

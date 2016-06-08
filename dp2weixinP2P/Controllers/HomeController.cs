@@ -119,9 +119,9 @@ namespace dp2weixinWeb.Controllers
                 password = Cryptography.Decrypt(password, dp2WeiXinService.EncryptKey);
              */
             SettingModel model = new SettingModel();
-            model.dp2MserverUrl = "";// dp2MServerUrl;
-            model.userName = "";//userName;
-            model.password = "";//password;
+            model.dp2MserverUrl = dp2WeiXinService.Instance.dp2MServerUrl;// "";// dp2MServerUrl;
+            model.userName = dp2WeiXinService.Instance.userName;// "";//userName;
+            model.password = dp2WeiXinService.Instance.password;// "";//password;
 
             return View(model);
         }
@@ -130,27 +130,10 @@ namespace dp2weixinWeb.Controllers
         {
             ViewBag.success = false;  
 
-            //Configuration config = WebConfigurationManager.OpenWebConfiguration("~");
-            ////获取appSettings节点
-            //AppSettingsSection appSection = (AppSettingsSection)config.GetSection("appSettings");
+            dp2WeiXinService.Instance.SetDp2mserverInfo(model.dp2MserverUrl,
+                model.userName,
+                model.password); //函数里面会将密码加密
 
-
-            ////在appSettings节点中添加元素Add方法，多次添加的值会以逗号分隔，所以要先remove，再add
-            ////appSection.Settings["dp2mServerUrl"].Value = model.dp2MserverUrl;
-            //appSection.Settings.Remove("dp2mServerUrl");
-            //appSection.Settings.Add("dp2mServerUrl", model.dp2MserverUrl);
-
-            //appSection.Settings.Remove("userName");
-            //appSection.Settings.Add("userName", model.userName);
-
-            //appSection.Settings.Remove("password");
-            //string password = Cryptography.Encrypt(model.password, dp2CmdService2.EncryptKey);
-            //appSection.Settings.Add("password", password);
-
-            //config.Save();
-            ////Response.Write("保存成功");
-
-            //Response.Write("<script>alert('配置信息保存成功');</script>");
             ViewBag.success = true;  
             return View(model);
         }

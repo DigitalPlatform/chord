@@ -28,6 +28,35 @@ namespace dp2weixinWeb.ApiControllers
             }
         }
 
+        public string GetBiblio(string id, [FromUri] string format, string libUserName)
+        {
+            string strSummary = "未实现";    
+
+            if (id == "more")
+            {
+                strSummary = dp2WeiXinService.Instance.GetBarcodesSummary(libUserName, format);
+                return strSummary;
+            }
+
+            if (format == "summary") //todo 将summary字符串改为常量
+            {
+                string strRecPath = "";
+                string strError = "";
+                int nRet = dp2WeiXinService.Instance.GetBiblioSummary(libUserName,id,
+                    "",
+                    out strSummary,
+                    out strRecPath,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                    strSummary = strError;
+
+                return strSummary;
+            }
+            
+
+            return "未实现的风格:" + format;
+        }
+
         /// <summary>
         /// 获取书目详细信息
         /// </summary>

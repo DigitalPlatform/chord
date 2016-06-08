@@ -54,7 +54,7 @@ namespace dp2weixinWeb.Controllers
             {
                 return Content(strError);
             }
-
+            ViewBag.LibUserName = activeUserItem.libUserName;
             return View(patronInfo);
         }
 

@@ -8,7 +8,7 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class PatronReservationController : ApiController
+    public class ReservationController : ApiController
     {
         // GET api/<controller>
         public ReservationResult GetReservations(string libUserName, 
@@ -32,7 +32,26 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+        // POST api/<controller>
+        [HttpPost]
+        public ApiResult Post(string libUserName,
+            string patron,
+            string items,
+            string style)
+        {
+            ApiResult result = new ApiResult();
 
+            string strError = "";
+            int nRet = dp2WeiXinService.Instance.Reservation(libUserName,
+                patron,
+                items,
+                style,
+                out strError);
+            result.errorCode = nRet;
+            result.errorInfo = strError;
+
+            return result;
+        }
         
     }
 }

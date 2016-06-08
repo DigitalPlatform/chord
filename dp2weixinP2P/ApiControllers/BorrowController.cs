@@ -8,25 +8,26 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class CirculationController : ApiController
+    public class BorrowController : ApiController
     {
         // POST api/<controller>
         [HttpPost]
-        public ApiResult Reservation(string libUserName,
+        public ApiResult Post(string libUserName,
+            string action,
             string patron,
-            string items,
-            string style)
+            string item)
         {
             ApiResult result = new ApiResult();
 
+            if (action == "renew")
+            { 
             string strError = "";
-            int nRet = dp2WeiXinService.Instance.Reservation(libUserName,
-                patron,
-                items,
-                style,
+            int nRet = dp2WeiXinService.Instance.Renew(libUserName,
+                item,
                 out strError);
             result.errorCode = nRet;
             result.errorInfo = strError;
+        }
 
             return result;
         }

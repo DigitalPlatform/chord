@@ -169,9 +169,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiControllers\BiblioController.cs" />
-    <Compile Include="ApiControllers\CirculationController.cs" />
+    <Compile Include="ApiControllers\BorrowController.cs" />
     <Compile Include="ApiControllers\LibraryController.cs" />
-    <Compile Include="ApiControllers\PatronReservationController.cs" />
+    <Compile Include="ApiControllers\ReservationController.cs" />
     <Compile Include="ApiControllers\WxUserController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
@@ -221,7 +221,6 @@
     <Content Include="Views\Patron\Index.cshtml" />
     <Content Include="Views\Biblio\Index.cshtml" />
     <Content Include="Views\Account\Bind.cshtml" />
-    <Content Include="Views\Account\Index.txt" />
     <Content Include="Views\Account\ResetPassword.cshtml" />
     <Content Include="Scripts\jquery-2.2.3.min.map" />
     <Content Include="Views\Home\Test.cshtml" />

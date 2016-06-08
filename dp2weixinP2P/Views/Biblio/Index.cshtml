@@ -159,7 +159,7 @@
                         var li = "<li class='mui-table-view-cell mui-collapse' > "
                             + "<a class='mui-navigate-right' href='javascript:void(0)' onclick='expand(this)'>" + record.no + " " + record.name + "</a>"
                             + "<div class='mui-collapse-content' style='display:none;'>"
-                                + "<span class='pending' >"
+                                + "<span class='pendingDetail' >"
                                     + "<label>"+record.libUserName+"|"+record.recPath+"</label>"
                                     + "<img src='../img/wait2.gif' />"
                                 + "</span>"
@@ -240,7 +240,7 @@
             //显示等待图层
             var index = loadLayer();
 
-            var url = "/api/Circulation?libUserName=" + encodeURIComponent(libUserName)
+            var url = "/api/Reservation?libUserName=" + encodeURIComponent(libUserName)
                 + "&patron=" + encodeURIComponent(patron)
                 + "&items=" + encodeURIComponent(items)
                 + "&style=new";//创建一个预约请求
@@ -309,9 +309,8 @@
 
 
                 //检查是否已经加载过了
-                var o = $(obj).find(".pending:first");
+                var o = $(obj).find(".pendingDetail:first");
                 if (o.length == 0) {
-                    // 没有pending类型元素则返回
                     return;
                 }
                 else {
@@ -323,20 +322,20 @@
         function getDetail(o) {
             // 找到下级的标签，里面存储的线索
             var mylable = o.children("label");
-            // 如果没有定义标签label，则去掉pending状态，继续下一个pending
+
+            // pendingDetail没有定义标签label,去掉pendingDetail状态
             if (mylable.length == 0) {
-                //alert("fillPending1-2");
                 o.html("没找到存放线索信息的lable标签");
-                o.removeClass("pending");
+                o.removeClass("pendingDetail");
                 return;
             }
 
             // 取出label设置的线索信息
             var keyword = mylable.text();
-            // 未给label设值，去掉pending状态，继续下一个pending
+            // 未给label设值，去掉pendingDetail状态
             if (keyword.length == 0) {
                 o.html("线索信息为空");
-                o.removeClass("pending");
+                o.removeClass("pendingDetail");
                 return;
             }
 
@@ -347,39 +346,25 @@
             //alert("type[" + mytype + "]-value[" + myvalue + "]");
             if (libUserName == "" || biblioPath == "") {
                 o.html("记录路径值[" + keyword + "]不对，格式应该为[图书馆账号|记录路径]");
-                o.removeClass("pending");
-                window.setTimeout("fillPending()", 1);
+                o.removeClass("pendingDetail");
                 return;
             }
 
-            var url = "/api/biblio?libUserName=" + encodeURIComponent(libUserName) + "&biblioPath=" + encodeURIComponent(biblioPath);
-
-            //alert(url);
-
             // 调api
+            var url = "/api/biblio?libUserName=" + encodeURIComponent(libUserName) + "&biblioPath=" + encodeURIComponent(biblioPath);
             sendAjaxRequest(url, "GET", function (result) {
-                //alert("回来[" + result.errorCode + "]");
 
                 // 出错或未命中
                 if (result.errorCode == -1 || result.errorCode == 0) {
                     o.html(result.errorInfo);
                     $(o).css("color", "red");  //设置p元素的样式颜色为红色
-                    o.removeClass("pending");
+                    o.removeClass("pendingDetail");
                     return;
                 }
 
-
-                // todo 册信息
-                //册条码
-                //状态         
-                //卷册
-                //馆藏地
-                //价格
-                //在借情况
                 var itemTables = "";
                 if (result.itemList.length == 0)
                     itemTables="<div>该书没有下级册信息。</div>"
-
 
                 var selLib = model.selectedLib();
                 var myLib = $("#spanLibCode").text();
@@ -429,22 +414,21 @@
                     +"</table>";
                 }
 
-                //换成实际的值，去掉pending状态，
                 var myHtml = "<span>" + result.summary + "</span>" + itemTables;
-
                 if (result.itemList.length >0) {
                     myHtml += "<div class='mui-content-padded'>"
                         + "<button class='mui-btn  mui-btn-default' style='color:blue' " + disabledAttr + " onclick='reservation(this)'>加入预约列表</button>"
                         + "<div class='reservationInfo'>"+info+"</div>"
                         + "</div>";
                 }
-                o.html(myHtml);
 
-                o.removeClass("pending");
+                //换成实际的值，去掉pendingDetail状态，
+                o.html(myHtml);
+                o.removeClass("pendingDetail");
             }, function (xhq, textStatus, errorThrown) {
-                //换成实际的值，去掉pending状态，继续下一个pending
+                //出错，去掉pendingDetail状态
                 o.html("访问服务器出错：[" + errorThrown+"]");
-                o.removeClass("pending");
+                o.removeClass("pendingDetail");
             });
 
             return;
