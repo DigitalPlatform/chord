@@ -22,6 +22,7 @@ using dp2MServer.Properties;
 using DigitalPlatform.MessageServer;
 using DigitalPlatform.ServiceProcess;
 using DigitalPlatform.Xml;
+using Microsoft.Owin;
 
 namespace dp2MServer
 {
@@ -493,7 +494,8 @@ namespace dp2MServer
     {
         public void Configuration(IAppBuilder app)
         {
-            app.UseCors(CorsOptions.AllowAll);
+            app.Use<CustomExceptionMiddleware>().UseCors(CorsOptions.AllowAll);
+            // app.UseCors(CorsOptions.AllowAll);
             // app.MapSignalR();
 
             {
@@ -514,5 +516,22 @@ InvalidOperationException : "Connection started reconnecting before invocation r
         }
     }
 
+    public class CustomExceptionMiddleware : OwinMiddleware
+    {
+        public CustomExceptionMiddleware(OwinMiddleware next)
+            : base(next)
+        { }
 
+        public override async Task Invoke(IOwinContext context)
+        {
+            try
+            {
+                await Next.Invoke(context);
+            }
+            catch (Exception ex)
+            {
+                ServerInfo.WriteErrorLog("unhandled exception("+ex.GetType().ToString()+"): " + ex.Message + "\r\n" + ex.StackTrace.ToString());
+            }
+        }
+    }
 }

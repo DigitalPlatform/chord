@@ -1985,6 +1985,8 @@ ex.GetType().ToString());
             SearchRequest searchParam
             )
         {
+            // throw new Exception("test exception");
+
             if (searchParam.Count == 0)
                 searchParam.Count = -1;
 #if LOG
@@ -2965,34 +2967,42 @@ true);
             // string credentials
             )
         {
-            if (request.Environment.ContainsKey(MyHub.USERITEM_KEY) == true)
+            try
+            {
+                if (request.Environment.ContainsKey(MyHub.USERITEM_KEY) == true)
+                    return true;
+
+                string userName = request.Headers["username"];
+
+                if (string.IsNullOrEmpty(userName) == true)
+                    return true;    // 也算授权成功，但 request.Environment 里面没有用户对象
+
+                string password = request.Headers["password"];
+
+                // 获得用户信息
+                var results = ServerInfo.UserDatabase.GetUsersByName(userName, 0, 1).Result;
+                if (results.Count != 1)
+                    return false;
+                var user = results[0];
+                string strHashed = Cryptography.GetSHA1(password);
+
+                if (user.password != strHashed)
+                    return false;
+
+                // 需要把 UserItem.groups 正规化
+                // 可以规定，在保存账户信息阶段正规化。这样每次使用的时候就省心了
+
+                // user.Groups 定义正规化
+                user.groups = CanonicalizeGroups(user.groups);
+
+                request.Environment[MyHub.USERITEM_KEY] = user;
                 return true;
-
-            string userName = request.Headers["username"];
-
-            if (string.IsNullOrEmpty(userName) == true)
-                return true;    // 也算授权成功，但 request.Environment 里面没有用户对象
-
-            string password = request.Headers["password"];
-
-            // 获得用户信息
-            var results = ServerInfo.UserDatabase.GetUsersByName(userName, 0, 1).Result;
-            if (results.Count != 1)
+            }
+            catch(Exception ex)
+            {
+                ServerInfo.WriteErrorLog("AuthenticateUser() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                 return false;
-            var user = results[0];
-            string strHashed = Cryptography.GetSHA1(password);
-
-            if (user.password != strHashed)
-                return false;
-
-            // 需要把 UserItem.groups 正规化
-            // 可以规定，在保存账户信息阶段正规化。这样每次使用的时候就省心了
-
-            // user.Groups 定义正规化
-            user.groups = CanonicalizeGroups(user.groups);
-
-            request.Environment[MyHub.USERITEM_KEY] = user;
-            return true;
+            }
         }
 
 #if NO

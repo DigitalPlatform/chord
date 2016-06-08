@@ -99,6 +99,7 @@ namespace DigitalPlatform.MessageClient
                 return task;
             }
 
+#if NO
             {
                 var task = new Task<MessageConnection>(() =>
                 {
@@ -107,6 +108,11 @@ namespace DigitalPlatform.MessageClient
                 task.Start();
                 return task;
             }
+#endif
+        return Task.Run(() =>
+        {
+            return connection;
+        });
         }
 
 #if NO

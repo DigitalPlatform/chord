@@ -920,10 +920,26 @@ CancellationToken token)
 
                         try
                         {
+                            // https://github.com/SignalR/SignalR/issues/2153
+                            ManualResetEventSlim ok = new ManualResetEventSlim();
+                            MessageResult message = null;
+                            new Thread(() =>
+                            {
+                                // do work here
+                                message = HubProxy.Invoke<MessageResult>(
+                 "RequestSearch",
+                 strRemoteUserName,
+                 request).Result;
+                                ok.Set();
+                            }).Start();
+
+                            ok.Wait();
+#if NO
                             MessageResult message = HubProxy.Invoke<MessageResult>(
                 "RequestSearch",
                 strRemoteUserName,
                 request).Result;
+#endif
                             if (message.Value == -1 || message.Value == 0)
                             {
                                 result.ErrorInfo = message.ErrorInfo;
@@ -962,6 +978,12 @@ CancellationToken token)
                             }
 
                             Debug.WriteLine("return pos 4");
+                            return result;
+                        }
+                        catch (Exception ex)
+                        {
+                            result.ResultCount = -1;
+                            result.ErrorInfo = "exception: " + ExceptionUtil.GetExceptionText(ex);
                             return result;
                         }
                         finally
