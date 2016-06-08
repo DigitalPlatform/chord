@@ -835,67 +835,67 @@ token);
                     using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
                     {
                         Debug.WriteLine("using handle");
-                        using (var handler = HubProxy.On<SearchResponse>(
+                        var handler = HubProxy.On<SearchResponse>(
                             "responseSearch",
                             (responseParam
                                 // taskID, resultCount, start, records, errorInfo, errorCode
                                 ) =>
                             {
                                 //Task.Run(() =>
+                                {
+                                    try
                                     {
-                                        try
+                                        if (responseParam.TaskID != request.TaskID)
+                                            return;
+
+                                        Debug.WriteLine("handler called. responseParam\r\n***\r\n" + responseParam.Dump() + "***\r\n");
+
+                                        // 装载命中结果
+                                        if (responseParam.ResultCount == -1 && responseParam.Start == -1)
                                         {
-                                            if (responseParam.TaskID != request.TaskID)
-                                                return;
-
-                                            Debug.WriteLine("handler called. responseParam\r\n***\r\n" + responseParam.Dump() + "***\r\n");
-
-                                            // 装载命中结果
-                                            if (responseParam.ResultCount == -1 && responseParam.Start == -1)
-                                            {
-                                                if (result.ResultCount != -1)
-                                                    result.ResultCount = manager.GetTotalCount();
-                                                //result.ErrorInfo = responseParam.ErrorInfo;
-                                                //result.ErrorCode = responseParam.ErrorCode;
-                                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                                result.ErrorCode = StringUtil.MakePathList(codes, ",");
-
-                                                Debug.WriteLine("finish_event.Set() 1");
-                                                wait_events.finish_event.Set();
-                                                return;
-                                            }
-
-                                            // TODO: 似乎应该关注 start 位置
-                                            if (responseParam.Records != null)
-                                                AddLibraryUID(responseParam.Records, responseParam.LibraryUID);
-
-                                            result.Records.AddRange(responseParam.Records);
-                                            if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
-                                                && errors.IndexOf(responseParam.ErrorInfo) == -1)
-                                            {
-                                                errors.Add(responseParam.ErrorInfo);
-                                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                            }
-                                            if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
-                                                && codes.IndexOf(responseParam.ErrorCode) == -1)
-                                            {
-                                                codes.Add(responseParam.ErrorCode);
-                                                result.ErrorCode = StringUtil.MakePathList(codes, ",");
-                                            }
-
-                                            // 标记结束一个检索目标
-                                            // return:
-                                            //      0   尚未结束
-                                            //      1   结束
-                                            //      2   全部结束
-                                            int nRet = manager.CompleteTarget(responseParam.LibraryUID,
-                                                responseParam.ResultCount,
-                                                responseParam.Records == null ? 0 : responseParam.Records.Count);
-
-                                            if (responseParam.ResultCount == -1)
-                                                result.ResultCount = -1;
-                                            else
+                                            if (result.ResultCount != -1)
                                                 result.ResultCount = manager.GetTotalCount();
+                                            //result.ErrorInfo = responseParam.ErrorInfo;
+                                            //result.ErrorCode = responseParam.ErrorCode;
+                                            result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                            result.ErrorCode = StringUtil.MakePathList(codes, ",");
+
+                                            Debug.WriteLine("finish_event.Set() 1");
+                                            wait_events.finish_event.Set();
+                                            return;
+                                        }
+
+                                        // TODO: 似乎应该关注 start 位置
+                                        if (responseParam.Records != null)
+                                            AddLibraryUID(responseParam.Records, responseParam.LibraryUID);
+
+                                        result.Records.AddRange(responseParam.Records);
+                                        if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
+                                            && errors.IndexOf(responseParam.ErrorInfo) == -1)
+                                        {
+                                            errors.Add(responseParam.ErrorInfo);
+                                            result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                        }
+                                        if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
+                                            && codes.IndexOf(responseParam.ErrorCode) == -1)
+                                        {
+                                            codes.Add(responseParam.ErrorCode);
+                                            result.ErrorCode = StringUtil.MakePathList(codes, ",");
+                                        }
+
+                                        // 标记结束一个检索目标
+                                        // return:
+                                        //      0   尚未结束
+                                        //      1   结束
+                                        //      2   全部结束
+                                        int nRet = manager.CompleteTarget(responseParam.LibraryUID,
+                                            responseParam.ResultCount,
+                                            responseParam.Records == null ? 0 : responseParam.Records.Count);
+
+                                        if (responseParam.ResultCount == -1)
+                                            result.ResultCount = -1;
+                                        else
+                                            result.ResultCount = manager.GetTotalCount();
 
 #if NO
                                             if (nRet == 2)
@@ -906,19 +906,20 @@ token);
                                             else
                                                 wait_events.active_event.Set();
 #endif
-                                            wait_events.active_event.Set();
+                                        wait_events.active_event.Set();
 
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            errors.Add("SearchAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
-                                            result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                            if (!(ex is ObjectDisposedException))
-                                                wait_events.finish_event.Set();
-                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        errors.Add("SearchAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
+                                        result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                        if (!(ex is ObjectDisposedException))
+                                            wait_events.finish_event.Set();
+                                    }
 
-                                    }//);
-                            }))
+                                }//);
+                            });
+                        try
                         {
                             MessageResult message = HubProxy.Invoke<MessageResult>(
                 "RequestSearch",
@@ -963,6 +964,11 @@ token);
 
                             Debug.WriteLine("return pos 4");
                             return result;
+                        }
+                        finally
+                        {
+                            handler.Dispose();
+                            GC.Collect();
                         }
                     }
                 },
