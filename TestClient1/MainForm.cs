@@ -609,10 +609,11 @@ namespace TestClient1
                         new TimeSpan(0, 1, 0),
                         cancel_token);
 
+                    Thread.Sleep(1000);
                     this.Invoke(new Action(() =>
                     {
                         if (result.ResultCount == 0)
-                            SetTextString(this.webBrowser1, "没有找到");
+                            SetTextString(this.webBrowser1, "没有找到\r\n" + ToString(result));
                         else
                             SetTextString(this.webBrowser1, ToString(result));
                     }));

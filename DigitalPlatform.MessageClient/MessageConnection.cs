@@ -831,20 +831,24 @@ token);
                     if (string.IsNullOrEmpty(request.TaskID) == true)
                         request.TaskID = Guid.NewGuid().ToString();
 
+                    Debug.WriteLine("using wait_events");
                     using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
                     {
+                        Debug.WriteLine("using handle");
                         using (var handler = HubProxy.On<SearchResponse>(
                             "responseSearch",
                             (responseParam
                                 // taskID, resultCount, start, records, errorInfo, errorCode
                                 ) =>
                             {
-                                Task.Run(() =>
+                                //Task.Run(() =>
                                     {
                                         try
                                         {
                                             if (responseParam.TaskID != request.TaskID)
                                                 return;
+
+                                            Debug.WriteLine("handler called. responseParam\r\n***\r\n" + responseParam.Dump() + "***\r\n");
 
                                             // 装载命中结果
                                             if (responseParam.ResultCount == -1 && responseParam.Start == -1)
@@ -856,6 +860,7 @@ token);
                                                 result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
                                                 result.ErrorCode = StringUtil.MakePathList(codes, ",");
 
+                                                Debug.WriteLine("finish_event.Set() 1");
                                                 wait_events.finish_event.Set();
                                                 return;
                                             }
@@ -892,19 +897,27 @@ token);
                                             else
                                                 result.ResultCount = manager.GetTotalCount();
 
+#if NO
                                             if (nRet == 2)
+                                            {
+                                                Debug.WriteLine("finish_event.Set() 2");
                                                 wait_events.finish_event.Set();
+                                            }
                                             else
                                                 wait_events.active_event.Set();
+#endif
+                                            wait_events.active_event.Set();
+
                                         }
                                         catch (Exception ex)
                                         {
                                             errors.Add("SearchAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
                                             result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                            wait_events.finish_event.Set();
+                                            if (!(ex is ObjectDisposedException))
+                                                wait_events.finish_event.Set();
                                         }
 
-                                    });
+                                    }//);
                             }))
                         {
                             MessageResult message = HubProxy.Invoke<MessageResult>(
@@ -915,11 +928,15 @@ token);
                             {
                                 result.ErrorInfo = message.ErrorInfo;
                                 result.ResultCount = -1;
+                                Debug.WriteLine("return pos 1");
                                 return result;
                             }
 
                             if (manager.SetTargetCount(message.Value) == true)
+                            {
+                                Debug.WriteLine("return pos 2");
                                 return result;
+                            }
 
                             // start_time = DateTime.Now;
 
@@ -938,11 +955,13 @@ token);
                                     && result.Records.Count > 0)
                                 {
                                     result.ErrorCode += ",_timeout";    // 附加一个错误码，表示虽然返回了结果，但是已经超时
+                                    Debug.WriteLine("return pos 3");
                                     return result;
                                 }
                                 throw;
                             }
 
+                            Debug.WriteLine("return pos 4");
                             return result;
                         }
                     }
