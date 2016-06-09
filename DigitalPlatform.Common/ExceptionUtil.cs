@@ -71,7 +71,8 @@ namespace DigitalPlatform
             if (ex is AggregateException)
                 return GetAggregateExceptionText(ex as AggregateException);
 
-            return ex.GetType().ToString() + ":" + ex.Message;
+            return ex.GetType().ToString() + ":" + ex.Message + "\r\n"
+                + ex.StackTrace;
         }
 
         public static string GetAggregateExceptionText(AggregateException exception)
