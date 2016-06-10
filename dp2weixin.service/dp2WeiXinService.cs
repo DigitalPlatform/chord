@@ -2592,7 +2592,7 @@ namespace dp2weixin.service
              */
 
             CancellationToken cancel_token = new CancellationToken();
-            string id = "1-summary";//Guid.NewGuid().ToString();
+            string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
                 "getBiblioSummary",
                 "<全部>",
@@ -2608,7 +2608,7 @@ namespace dp2weixin.service
             {
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    remoteUserName + "-1").Result;
+                    remoteUserName).Result;  //+ "-1"
 
                 SearchResult result = connection.SearchAsync(
                     remoteUserName,
@@ -2656,7 +2656,7 @@ namespace dp2weixin.service
             strError = "";
 
             CancellationToken cancel_token = new CancellationToken();
-            string id = "2-item";//Guid.NewGuid().ToString();
+            string id = Guid.NewGuid().ToString(); // "2-item";//
             SearchRequest request = new SearchRequest(id,
                 "getItemInfo",
                 "entity",
@@ -2674,7 +2674,7 @@ namespace dp2weixin.service
 
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    remoteUserName+"-2").Result;
+                    remoteUserName).Result;  //+"-2"
                 this.WriteLog("GetItemInfo2");
 
                 //string strFilename = string.Format(this.weiXinLogDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
