@@ -9,7 +9,7 @@
 
 
         //用于所有微信用户
-        function getReservations(weixinId) {
+        function getReservations() {
             //显示等待图层
             var index = loadLayer();
 
@@ -32,6 +32,11 @@
                     openMsg(result.errorInfo);
                     return;
                 }
+
+                if (result.reservations.length == 0)
+                    $("#divNo").css('display', 'block');
+                else
+                    $("#divNo").css('display', 'none');
 
                 for (var i = 0; i < result.reservations.length; i++) {
                     //遍历从服务器得到的结果，以push方法对该数组填充新数据
@@ -172,13 +177,18 @@
 }
 <span id="libUserName" style="display:none">@Model.libUserName</span>
 <span id="patronBarcode" style="display:none">@Model.readerBarcode</span>
-
+<div class="mui-content-padded" id="divNo" style="display:none;">
+    <center>
+        <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+        <div>您目前没有预约记录。</div>
+    </center>
+</div>
 <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed" data-bind=" foreach:model.reservations">
     <li class="mui-table-view-cell" data-bind="css: {'reservation-active': state=='arrived'}">
         <table style="width:100%">
             <tr>
                 <td class="td-right" style="width:100pt">
-                    <div class='mui-input-row mui-checkbox mui-left'>
+                    <div class='mui-input-row mui-checkbox mui-left' style="border-bottom:0px;">
                         <label style='padding-left:30px;padding-right:0px'>册条码号</label>
                         <input name='ckbBarcode' data-bind="value:pureBarcodes" type='checkbox' style='left:0px;' />
                     </div>

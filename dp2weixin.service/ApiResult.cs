@@ -29,4 +29,16 @@ namespace dp2weixin.service
         public List<ReservationInfo> reservations { get; set; }
 
     }
+
+
+    public class BorrowInfoResult : ApiResult
+    {
+        // 在借册
+        public List<BorrowInfo2> borrowInfos { get; set; }
+
+        public string maxBorrowCount { get; set; }
+
+        public string curBorrowCount { get; set; }
+
+    }
 }

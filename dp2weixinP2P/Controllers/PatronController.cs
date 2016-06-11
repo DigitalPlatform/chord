@@ -14,6 +14,8 @@ namespace dp2weixinWeb.Controllers
 {
     public class PatronController : BaseController
     {
+
+        #region del
         // GET: Patron
         public ActionResult Index(string code, string state)
         {
@@ -48,18 +50,14 @@ namespace dp2weixinWeb.Controllers
             return View(patronInfo);
         }
 
-        /// <summary>
-        /// 预约入口
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
-        public ActionResult Reservation(string code, string state)
+        #endregion
+
+        public ActionResult PersonalInfo(string code, string state)
         {
             string strError = "";
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "xml",out activeUserItem, out strXml);
+            int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml);
             if (nRet == -1 || nRet == 0)
                 return Content(strError);
 
@@ -73,7 +71,8 @@ namespace dp2weixinWeb.Controllers
                 return RedirectToAction("Index", "Account");
             }
 
-            return View(activeUserItem);
+            PersonalInfoModel model = this.ParseXml(strXml);
+            return View(model);
         }
 
         //违约交费信息
@@ -96,16 +95,24 @@ namespace dp2weixinWeb.Controllers
                 return RedirectToAction("Index", "Account");
             }
 
-            return View();
+            string strWarningText = "";
+            List<OverdueInfo> overdueList= dp2WeiXinService.Instance.GetOverdueInfo(strXml, out strWarningText);
+
+            return View(overdueList);
         }
 
-        //BorrowInfo
-        public ActionResult BorrowInfo(string code, string state)
+        /// <summary>
+        /// 预约入口
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public ActionResult Reservation(string code, string state)
         {
             string strError = "";
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "xml", out activeUserItem, out strXml);
+            int nRet = this.GetReaderXml(code, state, "",out activeUserItem, out strXml);
             if (nRet == -1 || nRet == 0)
                 return Content(strError);
 
@@ -119,7 +126,32 @@ namespace dp2weixinWeb.Controllers
                 return RedirectToAction("Index", "Account");
             }
 
-            return View();
+            return View(activeUserItem);
+        }
+
+
+
+        //BorrowInfo
+        public ActionResult BorrowInfo(string code, string state)
+        {
+            string strError = "";
+            string strXml = "";
+            WxUserItem activeUserItem = null;
+            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
+            if (nRet == -1 || nRet == 0)
+                return Content(strError);
+
+            if (nRet == -2)// 未绑定的情况，转到绑定界面
+            {
+                return RedirectToAction("Bind", "Account");
+            }
+            // 没有设置默认账户，转到帐户管理界面
+            if (nRet == -3)
+            {
+                return RedirectToAction("Index", "Account");
+            }
+
+            return View(activeUserItem);
         }
 
         /// <summary>
@@ -182,28 +214,7 @@ namespace dp2weixinWeb.Controllers
             return 1;
         }
 
-        public ActionResult PersonalInfo(string code, string state)
-        {
-            string strError = "";
-            string strXml="";
-            WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "xml", out activeUserItem, out strXml);
-            if (nRet == -1 || nRet ==0)
-                return Content(strError);
 
-            if (nRet==-2)// 未绑定的情况，转到绑定界面
-            {
-                return RedirectToAction("Bind", "Account");
-            }
-            // 没有设置默认账户，转到帐户管理界面
-            if (nRet == -3)
-            {
-                return RedirectToAction("Index", "Account");
-            }
-
-            PersonalInfoModel model = this.ParseXml(strXml);
-            return View(model);
-        }
 
         private PersonalInfoModel ParseXml(string strXml)
         {
@@ -365,7 +376,7 @@ namespace dp2weixinWeb.Controllers
             {
                 XmlNode node = nodes[i];
                 string state = DomUtil.GetAttr(node, "state");
-                if (strState == "arrived")
+                if (state == "arrived")
                 {
                     daoQiCount++;
                 }

@@ -135,9 +135,12 @@
     </Content>
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
+    <Content Include="img\empty3.png" />
+    <Content Include="img\empty.jpg" />
     <Content Include="img\emptyBind.png" />
     <Content Include="img\library.jpg" />
     <Content Include="img\nonePhoto.png" />
+    <Content Include="img\empty2.jpg" />
     <Content Include="img\wait2.gif" />
     <None Include="Scripts\jquery-2.2.3.intellisense.js" />
     <Content Include="Scripts\jquery-2.2.3.js" />
@@ -169,7 +172,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiControllers\BiblioController.cs" />
-    <Compile Include="ApiControllers\BorrowController.cs" />
+    <Compile Include="ApiControllers\BorrowInfoController.cs" />
     <Compile Include="ApiControllers\LibraryController.cs" />
     <Compile Include="ApiControllers\ReservationController.cs" />
     <Compile Include="ApiControllers\WxUserController.cs" />
@@ -219,7 +222,6 @@
     <Content Include="Views\OAuth2\UserInfoCallback.cshtml" />
     <Content Include="Views\Menu\Index.cshtml" />
     <Content Include="Views\Account\Index.cshtml" />
-    <Content Include="Views\Patron\Index.cshtml" />
     <Content Include="Views\Biblio\Index.cshtml" />
     <Content Include="Views\Account\Bind.cshtml" />
     <Content Include="Views\Account\ResetPassword.cshtml" />
