@@ -463,7 +463,6 @@
 
 <div id="divForm">
     <div class="mui-input-group">
-
         <div class="mui-input-row ">
             <label style="color:#cccccc;">图书馆</label>
             <select id="selLib" style="padding-left: 0px;width: 65%" data-bind="options:librarys,optionsText:function(item) {
@@ -473,7 +472,7 @@
 
         <div class="mui-input-row ">
             <label style="color:#cccccc">检索途径</label>
-            <select id="selFrom" name="selFrom" >
+            <select id="selFrom" name="selFrom">
                 <option value="title" selected>书名</option>
                 <option value="ISBN">ISBN</option>
                 <option value="contributor">作者</option>
@@ -484,6 +483,7 @@
             <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
         </div>
     </div>
+
     <div class="mui-content-padded">
         <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
 
@@ -494,7 +494,7 @@
 <div id="divResult">
     <!--数据列表-->
     <span style="padding-left:10px" id="searchInfo"></span>
-    <ul id="ulResult" class="mui-table-view mui-table-view-chevron">
+    <ul id="ulResult" class="mui-table-view ">
 
     </ul>
 

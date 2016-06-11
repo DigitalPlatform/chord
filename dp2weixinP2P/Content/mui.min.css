@@ -184,7 +184,7 @@ td, th {
 
 body {
     font-family: 'Microsoft YaHei',Î¢ÈíÑÅºÚ;
-    font-size: 17px;
+    font-size: 16px;
     line-height: 21px;
     color: #000;
     background-color: #efeff4;
@@ -1444,7 +1444,7 @@ p {
 
 .mui-card {
     overflow: hidden;
-    margin: 0 15px;
+    margin: 0 10px;
     border: 1px solid #ddd;
     border-radius: 6px;
     background-color: #fff;
@@ -1452,7 +1452,7 @@ p {
 }
 
 .mui-content > .mui-card:first-child {
-    margin-top: 15px;
+    margin-top: 10px;
 }
 
 .mui-card .mui-input-group .mui-input-row:last-child:after, .mui-card .mui-input-group .mui-input-row:last-child:before, .mui-card .mui-input-group:after, .mui-card .mui-input-group:before {
@@ -1603,8 +1603,9 @@ p {
     overflow: hidden;
     padding: 11px 15px;
     -webkit-touch-callout: none;
+    border-bottom:1px solid #eee;
 }
-
+/*
     .mui-table-view-cell:after {
         position: absolute;
         right: 0;
@@ -1614,9 +1615,9 @@ p {
         content: '';
         -webkit-transform: scaleY(.5);
         transform: scaleY(.5);
-        background-color: #c8c7cc;
+        background-color: #eeeeee;
     }
-
+    */
     .mui-table-view-cell.mui-checkbox input[type=checkbox], .mui-table-view-cell.mui-radio input[type=radio] {
         top: 8px;
     }
@@ -2181,6 +2182,7 @@ select {
 .mui-input-row {
     clear: left;
     overflow: hidden;
+    border-bottom:1px solid #eee;
 }
 
     .mui-input-row select {
@@ -2196,7 +2198,7 @@ select {
 .mui-input-group .mui-input-row {
     height: 40px;
 }
-
+/*
     .mui-input-group .mui-input-row:after {
         position: absolute;
         right: 0;
@@ -2206,9 +2208,9 @@ select {
         content: '';
         -webkit-transform: scaleY(.5);
         transform: scaleY(.5);
-        background-color: #c8c7cc;
+        background-color: #eeeeee;
     }
-
+*/
 .mui-input-row label {
     font-family: 'Microsoft YaHei',Î¢ÈíÑÅºÚ;
     line-height: 1.1;
@@ -2747,7 +2749,7 @@ select {
                 transform: scaleY(.5);
                 background-color: #c8c7cc;
             }
-
+          
             .mui-popover.mui-popover-action .mui-table-view small {
                 font-weight: 400;
                 line-height: 1.3;

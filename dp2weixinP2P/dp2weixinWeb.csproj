@@ -162,7 +162,6 @@
     <Content Include="fonts\mui.ttf" />
     <Content Include="Scripts\knockout-2.2.0.js" />
     <Content Include="Scripts\layer.js" />
-    <Content Include="Scripts\mui.min.js" />
     <Content Include="Scripts\senparc.menu.js" />
     <Content Include="Scripts\weixin.js" />
     <Content Include="Views\Shared\delete.txt" />
@@ -195,6 +194,7 @@
     <Compile Include="Models\LibInfoModel.cs" />
     <Compile Include="Models\LoginModel.cs" />
     <Compile Include="Models\MessageModel.cs" />
+    <Compile Include="Models\PersonalInfoModel.cs" />
     <Compile Include="Models\SettingModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Results\WeixinResult.cs" />
@@ -226,6 +226,9 @@
     <Content Include="Scripts\jquery-2.2.3.min.map" />
     <Content Include="Views\Home\Test.cshtml" />
     <Content Include="Views\Patron\Reservation.cshtml" />
+    <Content Include="Views\Patron\PersonalInfo.cshtml" />
+    <Content Include="Views\Patron\OverdueInfo.cshtml" />
+    <Content Include="Views\Patron\BorrowInfo.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
