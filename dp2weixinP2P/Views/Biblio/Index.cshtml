@@ -381,46 +381,42 @@
                 for (var i = 0; i < result.itemList.length; i++) {
                     var record = result.itemList[i];
 
-                    itemTables += "<table style='width:100%;padding:10px;text-align:left'>"
+                    itemTables += "<table class='itemTable'>"
                     +"<tr>"
-                    + "<td style='min-width:80px;text-align:right;color:#CCCCCC;padding-left:0px'>"
-                    +"        <div class='mui-input-row mui-checkbox mui-left'>"
-                    +"            <label style='padding-left:30px;padding-right:0px'>册条码：</label>"
-                    + "            <input name='ckbBarcode' " + disabledAttr + "  value='" + record.barcode + "' type='checkbox' style='left:0px;' />"
-                    +"        </div>"
+                    + "<td class='label'>册条码："
                     +"</td>"
-                    +    "<td style='text-align:left;width:80%'>" + record.barcode + "</td>"
+                    +    "<td class='value'>" + record.barcode + "</td>"
                     +"</tr>"
                     +"<tr>"
-                    +    "<td style='min-width:80px;text-align:right;color:#CCCCCC;'>状态：</td>"
-                    + "<td style='text-align:left'>" + record.state + "</td>"
+                    + "<td class='label'>状态：</td>"
+                    + "<td class='value'>" + record.state + "</td>"
                     + "</tr>"
                     + "<tr>"
-                    + "<td style='min-width:80px;text-align:right;color:#CCCCCC;'>卷册：</td>"
-                    + "<td style='text-align:left'>" + record.volumn + "</td>"
+                    + "<td class='label'>卷册：</td>"
+                    + "<td class='value'>" + record.volumn + "</td>"
                     + "</tr>"
                     + "<tr>"
-                    + "<td style='min-width:80px;text-align:right;color:#CCCCCC;'>馆藏地：</td>"
-                    + "<td style='text-align:left'>" + record.location + "</td>"
+                    + "<td class='label'>馆藏地：</td>"
+                    + "<td class='value'>" + record.location + "</td>"
                     + "</tr>"
                     + "<tr>"
-                    + "<td style='min-width:80px;text-align:right;color:#CCCCCC;'>价格：</td>"
-                    + "<td style='text-align:left'>" + record.price + "</td>"
+                    + "<td class='label'>价格：</td>"
+                    + "<td class='value'>" + record.price + "</td>"
                     + "</tr>"
                     + "<tr>"
-                    + "<td style='min-width:100px;text-align:right;color:#CCCCCC;'>在借情况：</td>"
-                    + "<td style='text-align:left'>" + record.borrowInfo + "</td>"
+                    + "<td class='label'>在借情况：</td>"
+                    + "<td class='value'>" + record.borrowInfo + "</td>"
                     + "</tr>"
                     +"</table>";
                 }
 
                 var myHtml = "<span>" + result.summary + "</span>" + itemTables;
-                if (result.itemList.length >0) {
-                    myHtml += "<div class='mui-content-padded'>"
-                        + "<button class='mui-btn  mui-btn-default' style='color:blue' " + disabledAttr + " onclick='reservation(this)'>加入预约列表</button>"
-                        + "<div class='reservationInfo'>"+info+"</div>"
-                        + "</div>";
-                }
+                //if (result.itemList.length >0) {
+                //    myHtml += "<div class='mui-content-padded'>"
+                //        + "<button class='mui-btn  mui-btn-default' style='color:blue' " + disabledAttr + " onclick='reservation(this)'>加入预约列表</button>"
+                //        + "<div class='reservationInfo'>"+info+"</div>"
+                //        + "</div>";
+                //}
 
                 //换成实际的值，去掉pendingDetail状态，
                 o.html(myHtml);
@@ -446,6 +442,40 @@
 
 @section style {
 <style type="text/css">
+
+        TABLE.itemTable {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+       margin-top:10px;
+        }
+
+    TABLE.itemTable TR TD {
+        border-width: 0px;
+        border-top-width: 1px;
+        border-color: #dddddd;
+        border-style: dotted;
+        padding: 2px;
+    }
+
+        TABLE.itemTable TR TD.value {
+            /*border-left-width: 2px;*/
+            border-left:1px solid #dddddd;
+            padding-left:4px;
+        }
+
+        TABLE.itemTable TR TD.arrived {
+            font-weight: bolder;
+                        border-left:1px solid #dddddd;
+                        padding-left:4px;
+        }
+
+        TABLE.itemTable TR TD.label {
+           width:80px;
+           background-color:#ffffff;
+           color:#999999;
+           padding-left:4px;
+        }
         
         .reservationInfo {
             /*显示预约结果的span*/

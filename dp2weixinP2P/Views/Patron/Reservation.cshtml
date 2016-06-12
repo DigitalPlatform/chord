@@ -161,15 +161,50 @@
     </script>
 }
 @section style {
-    <style type="text/css">
-        .reservation-active {
-            background-color: #99ff99;
+<style type="text/css">
+    .reservation-active {
+        /*background-color: #99ff99;*/
+    }
+
+    .deleted {
+        text-decoration: line-through;
+    }
+
+        TABLE.borderTable {
+            text-align: left;
+            background-color: white;
+            width: 100%;
         }
 
-        .deleted {
-            text-decoration: line-through;
+    TABLE.borderTable TR TD {
+        border-width: 0px;
+        border-top-width: 1px;
+        border-color: #dddddd;
+        border-style: dotted;
+        padding: 2px;
+    }
+
+        TABLE.borderTable TR TD.value {
+            /*border-left-width: 2px;*/
+            border-left:1px solid #CCCCCC;
+            padding-left:5px;
         }
-    </style>
+
+        TABLE.borderTable TR TD.arrived {
+            font-weight: bolder;
+                        border-left:1px solid #CCCCCC;
+                        padding-left:5px;
+        }
+
+        TABLE.borderTable TR TD.label {
+           width: 100px;
+           background-color:#eeeeee;
+           color:#999999;
+           padding-left:5px;
+        }
+</style>
+
+
 
 }
 @section header {
@@ -183,33 +218,33 @@
         <div>您目前没有预约记录。</div>
     </center>
 </div>
-<ul class="mui-table-view mui-table-view-striped mui-table-view-condensed" data-bind=" foreach:model.reservations">
-    <li class="mui-table-view-cell" data-bind="css: {'reservation-active': state=='arrived'}">
-        <table style="width:100%">
+<ul class="mui-table-view" data-bind=" foreach:model.reservations" >
+    <li class="mui-table-view-cell" data-bind="css: {'reservation-active': state=='arrived'}" style="border-bottom:0px;">
+        <table class="borderTable">
             <tr>
-                <td class="td-right" style="width:100pt">
+                <td class="label">
                     <div class='mui-input-row mui-checkbox mui-left' style="border-bottom:0px;">
                         <label style='padding-left:30px;padding-right:0px'>册条码号</label>
                         <input name='ckbBarcode' data-bind="value:pureBarcodes" type='checkbox' style='left:0px;' />
                     </div>
                 </td>
-                <td class="td-left"><span data-bind="html: barcodes"></span></td>
+                <td class="value"><span data-bind="html: barcodes"></span></td>
             </tr>
             <tr>
-                <td class="td-right">请求日期</td>
-                <td class="td-left" data-bind="text:requestdate"></td>
+                <td class="label">请求日期</td>
+                <td class="value" data-bind="text:requestdate"></td>
             </tr>
             <tr>
-                <td class="td-right">操作者</td>
-                <td class="td-left" data-bind="text:operatorAccount"></td>
+                <td class="label">操作者</td>
+                <td class="value" data-bind="text:operatorAccount"></td>
             </tr>
             <tr>
-                <td class="td-right">到达情况</td>
-                <td class="td-left" data-bind="text:stateText"></td>
+                <td class="label">到达情况</td>
+                <td class="arrived" data-bind="text:stateText"></td>
             </tr>
             <tr>
-                <td class="td-right">摘要</td>
-                <td class="td-left">
+                <td class="label">摘要</td>
+                <td class="value">
                     <span class="pending">
                         <label style="display:inline" data-bind="text:fullBarcodes=='' ? '' : 'ms-'+fullBarcodes"></label>
                         <img src="~/img/wait2.gif" height="10" width="10" />
@@ -217,6 +252,7 @@
                     </span>
                 </td>
             </tr>
+
         </table>
     </li>
 </ul>
