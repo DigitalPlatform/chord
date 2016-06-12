@@ -1216,12 +1216,21 @@ namespace dp2weixin.service
             if (onShelf == "true")
                 bOnShelf = true;
 
+            // 册条码
+            XmlNode nodeItemBarcode = root.SelectSingleNode("itemBarcode");
+            if (nodeItemBarcode == null)
+            {
+                strError = "尚未定义<itemBarcode>节点";
+                return -1;
+            }
+            string itemBarcode = DomUtil.GetNodeText(nodeItemBarcode);
+
             //string first = this._msgFirstLeft+"我们很高兴地通知您，您预约的图书到了，请尽快来图书馆办理借书手续。";
-            string end = "\n" + patronName + "，您预约的图书到了，请尽快来图书馆办理借书手续，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
+            string end = "\n" + patronName + "，您预约的图书["+itemBarcode+"]到了，请尽快来图书馆办理借书手续，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
             if (bOnShelf == true)
             {
                 //first = this._msgFirstLeft + "我们很高兴地通知您，您预约的图书已经在架上，请尽快来图书馆办理借书手续。";
-                end = "\n" + patronName + "，您预约的图书已经在架上，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或允许其他读者借阅。";
+                end = "\n" + patronName + "，您预约的图书[" + itemBarcode + "]已经在架上，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或允许其他读者借阅。";
             }
 
             foreach (string weiXinId in weiXinIdList)
