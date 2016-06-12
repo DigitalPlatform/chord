@@ -95,7 +95,7 @@ namespace dp2weixin.service
                 }
             }
             //this.WriteErrorLog("走到worker2:" +records.Count);
-
+            bool bDeleteOk = false;
             if (this._messageList.Count > 0)
             {
                 // 取出前面 100 个加以处理
@@ -122,15 +122,28 @@ namespace dp2weixin.service
                 //this.WriteErrorLog("走到worker4:");
 
                 // 从 dp2mserver 中删除这些消息
-                DeleteMessage(temp_records, this.GroupName);
+               bDeleteOk= DeleteMessage(temp_records, this.GroupName);
 
                 //this.WriteErrorLog("走到worker5:");
             }
 
-            // 如果本轮主动获得过消息，就要连续激活线程，让线程下次继续处理。只有本轮发现没有新消息了，才会进入休眠期
+            // 如果本轮主动获得过消息，就要连续激活线程，让线程下次继续处理。
+            // 只有本轮发现没有新消息了，才会进入休眠期
+            // 如果发现删除出错，不再进行 Activate()。这样工作线程等几分钟才会过来重试。
+            if (records.Count > 0 && bDeleteOk==true)
+            {
+                /* 光 2016/6/9 1:25:16
+在你的router类中，当
+DeleteMessage(temp_records, this.GroupName);
+里面出错后，(原因是 当前用户账户没有配置 groups 为 _patronNotify，所以 expire 失效总会失败，请你模拟一下这种情况）
+但后面：
             if (records.Count > 0)
                 this.Activate();
-
+马上又激活了线程(因为records里面总有内容)。导致线程快速反复循环，始终失效不了任何消息，耗费大量资源。也许错误日志也会被迅速填满呢。
+应当考虑在出错后，增加一些判断，此时不要进行 Activate()。这样工作线程等几分钟才会过来重试。
+                */
+                this.Activate();
+            }
             CleanSendedTable(); // TODO: 可以改进为判断间隔至少 5 分钟才做一次
         }
 
@@ -232,7 +245,16 @@ namespace dp2weixin.service
             return new List<MessageRecord>();
         }
 
-        void DeleteMessage(List<MessageRecord> records,
+        /// <summary>
+        /// 删除消息
+        /// </summary>
+        /// <param name="records"></param>
+        /// <param name="strGroupName"></param>
+        /// <returns>
+        /// true    成功
+        /// false   失败
+        /// </returns>
+        bool DeleteMessage(List<MessageRecord> records,
             string strGroupName)
         {
             List<MessageRecord> delete_records = new List<MessageRecord>();
@@ -256,7 +278,7 @@ namespace dp2weixin.service
                     "").Result;
                 SetMessageRequest param = new SetMessageRequest("expire",
                     "dontNotifyMe",
-                    records);
+                    delete_records);//records);这里应该用delete_records吧，用records好像也没错
 
                 SetMessageResult result = connection.SetMessageAsync(param).Result;
                 if (result.Value == -1)
@@ -272,9 +294,12 @@ namespace dp2weixin.service
                 strError = ex.Message;
                 goto ERROR1;
             }
-            return;
+            return true;
+
+
         ERROR1:
             this.WriteLog("DeleteMessage() error : " + strError);
+            return false;
         }
     }
 

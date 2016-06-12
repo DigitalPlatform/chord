@@ -3173,6 +3173,7 @@ namespace dp2weixin.service
                     string strBarcode = DomUtil.GetAttr(node, "barcode");
                     string strOver = DomUtil.GetAttr(node, "reason");
                     string strBorrowPeriod = DomUtil.GetAttr(node, "borrowPeriod");
+                    strBorrowPeriod = dp2WeiXinService.GetDisplayTimePeriodStringEx(strBorrowPeriod);
                     string strBorrowDate = LocalDateOrTime(DomUtil.GetAttr(node, "borrowDate"), strBorrowPeriod);
                     string strReturnDate = LocalDateOrTime(DomUtil.GetAttr(node, "returnDate"), strBorrowPeriod);
                     string strID = DomUtil.GetAttr(node, "id");
@@ -3188,10 +3189,10 @@ namespace dp2weixin.service
 
                     OverdueInfo overdueInfo = new OverdueInfo();
                     overdueInfo.barcode = strBarcode;
-                    //if (string.IsNullOrEmpty(this.dp2OpacUrl) == false)
-                    //    overdueInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode;
-                    //else
-                    //    overdueInfo.barcodeUrl = "";
+                    if (string.IsNullOrEmpty(this.opacUrl) == false)
+                        overdueInfo.barcodeUrl = this.opacUrl + "/book.aspx?barcode=" + strBarcode;
+                    else
+                        overdueInfo.barcodeUrl = "";
                     overdueInfo.reason = strOver;
                     overdueInfo.price = strPrice;
                     overdueInfo.pauseInfo = strPauseInfo;
@@ -3817,17 +3818,6 @@ namespace dp2weixin.service
             }
         }
 
-        public int Renew(string remoteUserName,
-            string strReaderBarcode,
-            string strItemBarcode,
-            out BorrowInfo2 borrowInfo,
-            out string strError)
-        {
-            borrowInfo = null;
-            strError = "未实现";
-
-            return -1;
-        }
 
         #endregion
 
@@ -3878,14 +3868,6 @@ namespace dp2weixin.service
             }
         }
 
-        public int GetReservations(string remoteUserName,
-            string patronBarcode,
-            out string strError)
-        {
-            strError = "";
-
-            return 0;
-        }
 
         #endregion
 
@@ -3893,6 +3875,15 @@ namespace dp2weixin.service
 
 
         #region 静态函数
+
+        // 把整个字符串中的时间单位变换为可读的形态
+        public static string GetDisplayTimePeriodStringEx(string strText)
+        {
+            if (string.IsNullOrEmpty(strText) == true)
+                return "";
+            strText = strText.Replace("day", "天");
+            return strText.Replace("hour", "小时");
+        }
 
         // 根据strPeriod中的时间单位(day/hour)，返回本地日期或者时间字符串
         // parameters:

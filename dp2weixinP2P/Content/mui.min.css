@@ -1489,7 +1489,7 @@ p {
     list-style: none;
     background-color: #fff;
 }
-
+/*
     .mui-table-view:after {
         position: absolute;
         right: 0;
@@ -1501,7 +1501,8 @@ p {
         transform: scaleY(.5);
         background-color: #c8c7cc;
     }
-
+    */
+    /*
     .mui-table-view:before {
         position: absolute;
         right: 0;
@@ -1513,6 +1514,7 @@ p {
         background-color: #c8c7cc;
         top: -1px;
     }
+    */
 
 .mui-table-view-icon .mui-table-view-cell .mui-navigate-right .mui-icon {
     font-size: 20px;

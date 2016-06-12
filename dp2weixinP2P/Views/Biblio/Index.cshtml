@@ -6,7 +6,10 @@
             // 图书馆列表
             librarys: ko.observableArray(),
             selectedLib: ko.observable(),
+            reservations: ko.observableArray()    //预约列表
         }
+
+
 
         //用于获取图书馆
         function getAllLib() {
@@ -42,6 +45,95 @@
             });
         }
 
+        //获取预约列表
+        function getReservations(checkBarcode,obj,info,bWarn) {
+
+            // 先删除可观察数组中的已有数据
+            model.reservations.removeAll();                     
+
+            var libUserName = $("#libUserName").text();
+            if (libUserName == "") //未绑定
+                return;
+
+            var patronBarcode = $("#patronBarcode").text();
+
+            //显示等待图层
+            var index = loadLayer();
+
+            // 调web api
+            var url = "/api/Reservation?libUserName=" + encodeURIComponent(libUserName)
+                + "&patronBarcode=" + encodeURIComponent(patronBarcode);
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                // 出错或未命中
+                if (result.errorCode == -1 || result.errorCode == 0) {
+                    openMsg(result.errorInfo);
+                    return;
+                }
+
+                for (var i = 0; i < result.reservations.length; i++) {
+                    //加到观察数组中
+                    model.reservations.push(result.reservations[i]);
+                }
+
+                if (checkBarcode != null && checkBarcode != "") {
+                    var myhtml = getReservationHtml(checkBarcode)
+                    $(obj)[0].innerHTML = myhtml;  // 不能直接设html
+                    //$("#responsediv")[0].innerHTML = msg就可以获得这个Dom对象使用innerHTML。
+
+                    var infoDiv = $(obj).parent().find(".resultInfo").first();
+                    //alert(infoDiv);
+                   // alert("["+info+"]");
+
+                    $(infoDiv)[0].innerHTML=info;//.text(info);
+                    if (bWarn==true)
+                        $(infoDiv).css("background-color", "yellow");  //设为绿色
+                    else
+                        $(infoDiv).css("color", "darkgreen");  //设为绿色
+
+                    //alert($(infoDiv).attr('id'));
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        function getReservationState(barcode)
+        {
+            //alert("getReservationState1");
+            if (model.reservations().length == 0)
+                return "未预约";
+
+            //alert("getReservationState2");
+
+            for (var i = 0; i < model.reservations().length; i++) {
+
+                //alert("getReservationState3-"+i);
+                var oneReservation = model.reservations()[i];
+                var barcodeList = oneReservation.pureBarcodes;
+                var arrivedBarcode = oneReservation.arrivedBarcode;
+                var nIndex = barcodeList.indexOf(barcode);
+
+                //alert(barcodeList + "-" + arrivedBarcode);
+                if (nIndex>=0)
+                {
+                    if (barcode== arrivedBarcode)
+                        return "已到书";
+                    else
+                        return "已预约";
+                }                
+            }
+
+            return "未预约";
+        }
+
 
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
@@ -51,8 +143,14 @@
             //获取图书馆列表
             getAllLib();
 
+            // 获取预约列表
+            getReservations();
+
             //绑定观察模块
             ko.applyBindings(model);
+
+            // test
+            //getReservationState();
 
             // 密码框打回车时，进行绑定
             $('#txtWord').bind('keypress', function (event) {
@@ -202,7 +300,7 @@
 
 
         //预约
-        function reservation(obj) {
+        function reservation(obj, barcode, style) {
             //alert($("input[name='ckbBarcode']:checked").length);
 
             var selLib = model.selectedLib();
@@ -218,19 +316,19 @@
             var libUserName = myLib.substr(nIndex + 1);
 
 
-            var patron = $("#patronBarcode").text();//todo 初始页面时，把绑定的patron的隐藏在一个span里
+            var patron = $("#patronBarcode").text();
             if (patron == "")
             {
                 alert("您尚未绑定图书馆账户，请先绑定账户。");
                 return;
             }
 
-            var items="";     
-            $("input[name='ckbBarcode']:checked").each(function () {                
-                if (items != "")
-                    items += ",";
-                items += $(this).val();
-            });
+            var items = barcode;//"";
+            //$("input[name='ckbBarcode']:checked").each(function () {                
+            //    if (items != "")
+            //        items += ",";
+            //    items += $(this).val();
+            //});
             if (items == "") {
                 alert("您尚未选择要预约的册记录。");
                 return;
@@ -243,7 +341,7 @@
             var url = "/api/Reservation?libUserName=" + encodeURIComponent(libUserName)
                 + "&patron=" + encodeURIComponent(patron)
                 + "&items=" + encodeURIComponent(items)
-                + "&style=new";//创建一个预约请求
+                + "&style=" + style;//new 创建一个预约请求,delete删除
             // 调api
             sendAjaxRequest(url, "POST", function (result) {
 
@@ -252,7 +350,7 @@
                 layer.close(index);
 
                 // 显示预约结果
-                var infoDiv = $(obj).parent().find(".reservationInfo").first();
+                var infoDiv = $(obj).parent().parent().parent().find(".resultInfo").first();
                 //alert(infoDiv);
                 var info = result.errorInfo;
 
@@ -267,11 +365,21 @@
                     return;
                 }
 
-                if (info == "")
-                    info = "提交预约申请成功";
+                var bWarn = true;
+                if (info == "") {
+                    info = $(obj).html() + " 操作成功。";
+                    bWarn = false;
+                }
+                else {
+                    info = $(obj).html() + " 操作成功。<br>"+info;
+                }
 
-                $(infoDiv).text(info);
-                $(infoDiv).css("color", "darkgreen");  //设为绿色
+                alert(info.replace("<br>","\r\n"));
+
+                // 更新列表
+                var div = $(obj).parent().parent();
+                getReservations(barcode, div, info, bWarn);
+
 
             }, function (xhq, textStatus, errorThrown) {
 
@@ -279,7 +387,7 @@
                 layer.close(index);
 
                 // 显示预约结果
-                var infoDiv = $(obj).parent().find("reservationInfo").first();
+                var infoDiv = $(obj).parent().parent().parent().find(".resultInfo").first();
                 var info = "访问服务器出错：[" + errorThrown + "]";
                 alert(info);
 
@@ -317,6 +425,27 @@
                     getDetail(o);
                 }
             }
+        }
+
+        function getReservationHtml(barcode)
+        {
+            myReserHtml = "";
+            var reservationState = getReservationState(barcode);
+            //alert("[" + reservationState + "]");
+            var btn = "";
+            if (reservationState == "未预约") {
+                btn = "<button class='mui-btn  mui-btn-primary'  onclick=\"reservation(this,'" + barcode + "','new')\">预约该册</button>";
+            }
+            else if (reservationState == "已预约") {
+                btn = "<button class='mui-btn  mui-btn-primary'  onclick=\"reservation(this,'" + barcode + "','delete')\">取消预约</button>";
+            }
+            else if (reservationState == "已到书") {
+                btn = "<button class='mui-btn  mui-btn-primary'  onclick=\"reservation(this,'" + barcode + "','delete')\">放弃取书</button>";
+            }
+            if (reservationState != "") {
+                myReserHtml = "<span style='vertical-align:middle;font-weight:bold''>" + reservationState + "&nbsp;&nbsp;</span><span style='vertical-align:middle'>" + btn + "</span>";
+            }
+            return myReserHtml;
         }
 
         function getDetail(o) {
@@ -369,54 +498,57 @@
                 var selLib = model.selectedLib();
                 var myLib = $("#spanLibCode").text();
                 var bCanReservation = false;
-                var disabledAttr = " disabled='disabled' ";
-                var info ="<span style='color:#cccccc;font-size:9pt'>（您尚未绑定当前选择的图书馆的账户，不能进行预约。）</span>"
-                if (myLib != "" && selLib == myLib) //应该不会走到这里，因为当前选择的图书馆不是绑定对应的图书馆的时候，不会走到这里
+                var info = "<span style='color:blue;font-weight:normal'>您尚未绑定当前选择图书馆的账户，不能看到预约信息。</span>"
+                if (myLib != "" && selLib == myLib) 
                 {
                     bCanReservation = true;
-                    disabledAttr = "";
                     info = "";
                 }
+                //alert(info);
 
                 for (var i = 0; i < result.itemList.length; i++) {
                     var record = result.itemList[i];
+                    var myReserHtml = info;
+                    if (bCanReservation == true)
+                        myReserHtml = "<div>"+getReservationHtml(record.barcode) + "</div><div class='resultInfo'></div>";
+
 
                     itemTables += "<table class='itemTable'>"
                     +"<tr>"
-                    + "<td class='label'>册条码："
+                    + "<td class='label'>册条码号"
                     +"</td>"
                     +    "<td class='value'>" + record.barcode + "</td>"
                     +"</tr>"
                     +"<tr>"
-                    + "<td class='label'>状态：</td>"
+                    + "<td class='label'>状态</td>"
                     + "<td class='value'>" + record.state + "</td>"
                     + "</tr>"
                     + "<tr>"
-                    + "<td class='label'>卷册：</td>"
+                    + "<td class='label'>卷册</td>"
                     + "<td class='value'>" + record.volumn + "</td>"
                     + "</tr>"
                     + "<tr>"
-                    + "<td class='label'>馆藏地：</td>"
+                    + "<td class='label'>馆藏地</td>"
                     + "<td class='value'>" + record.location + "</td>"
                     + "</tr>"
                     + "<tr>"
-                    + "<td class='label'>价格：</td>"
+                    + "<td class='label'>价格</td>"
                     + "<td class='value'>" + record.price + "</td>"
                     + "</tr>"
                     + "<tr>"
-                    + "<td class='label'>在借情况：</td>"
+                    + "<td class='label'>在借情况</td>"
                     + "<td class='value'>" + record.borrowInfo + "</td>"
                     + "</tr>"
-                    +"</table>";
+                    + "<tr>"
+                    + "<td class='label'>预约信息</td>"
+                    + "<td class='reservation' >" + myReserHtml + "</td>"
+                    + "</tr>"
+                    //
+                    + "</table>";
                 }
 
                 var myHtml = "<span>" + result.summary + "</span>" + itemTables;
-                //if (result.itemList.length >0) {
-                //    myHtml += "<div class='mui-content-padded'>"
-                //        + "<button class='mui-btn  mui-btn-default' style='color:blue' " + disabledAttr + " onclick='reservation(this)'>加入预约列表</button>"
-                //        + "<div class='reservationInfo'>"+info+"</div>"
-                //        + "</div>";
-                //}
+
 
                 //换成实际的值，去掉pendingDetail状态，
                 o.html(myHtml);
@@ -444,7 +576,7 @@
 <style type="text/css">
 
         TABLE.itemTable {
-            text-align: left;
+            text-align: left;            
             background-color: white;
             width: 100%;
        margin-top:10px;
@@ -464,8 +596,8 @@
             padding-left:4px;
         }
 
-        TABLE.itemTable TR TD.arrived {
-            font-weight: bolder;
+        TABLE.itemTable TR TD.reservation {
+            font-weight:normal; /*bolder;*/
                         border-left:1px solid #dddddd;
                         padding-left:4px;
         }
@@ -477,7 +609,7 @@
            padding-left:4px;
         }
         
-        .reservationInfo {
+        .resultInfo {
             /*显示预约结果的span*/
         }
     </style>
@@ -489,44 +621,43 @@
 <span id="spanLibCode" style="display:none">@ViewBag.LibCode</span>
 <span id="maxNo" style="display:none"></span>
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
+<span id="libUserName" style="display:none">@ViewBag.LibUserName</span>
 
 
-<div id="divForm">
-    <div class="mui-input-group">
-        <div class="mui-input-row ">
-            <label style="color:#cccccc;">图书馆</label>
-            <select id="selLib" style="padding-left: 0px;width: 65%" data-bind="options:librarys,optionsText:function(item) {
+    <div id="divForm">
+        <div class="mui-input-group">
+            <div class="mui-input-row ">
+                <label style="color:#cccccc;">图书馆</label>
+                <select id="selLib" style="padding-left: 0px;width: 65%" data-bind="options:librarys,optionsText:function(item) {
                        return  item.libName; },optionsValue:function(item) {
                        return item.libCode + '*' + item.libUserName; },optionsCaption:'请选择 图书馆',value:selectedLib"></select>
+            </div>
+
+            <div class="mui-input-row ">
+                <label style="color:#cccccc">检索途径</label>
+                <select id="selFrom" name="selFrom">
+                    <option value="title" selected>书名</option>
+                    <option value="ISBN">ISBN</option>
+                    <option value="contributor">作者</option>
+                </select>
+            </div>
+            <div class="mui-input-row">
+                <label style="color:#cccccc">检索词</label>
+                <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
+            </div>
         </div>
 
-        <div class="mui-input-row ">
-            <label style="color:#cccccc">检索途径</label>
-            <select id="selFrom" name="selFrom">
-                <option value="title" selected>书名</option>
-                <option value="ISBN">ISBN</option>
-                <option value="contributor">作者</option>
-            </select>
-        </div>
-        <div class="mui-input-row">
-            <label style="color:#cccccc">检索词</label>
-            <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
+        <div class="mui-content-padded">
+            <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
+
+
         </div>
     </div>
 
-    <div class="mui-content-padded">
-        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
+    <div id="divResult">
+        <!--数据列表-->
+        <span style="padding-left:10px" id="searchInfo"></span>
+        <ul id="ulResult" class="mui-table-view "></ul>
 
 
     </div>
-</div>
-
-<div id="divResult">
-    <!--数据列表-->
-    <span style="padding-left:10px" id="searchInfo"></span>
-    <ul id="ulResult" class="mui-table-view ">
-
-    </ul>
-
-
-</div>

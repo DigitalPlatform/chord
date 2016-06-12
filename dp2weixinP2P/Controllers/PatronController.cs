@@ -329,7 +329,7 @@ namespace dp2weixinWeb.Controllers
                 strHirePeriod = DomUtil.GetAttr(nodeHire, "period");
 
                 strHireExpireDate = DateTimeUtil.LocalDate(strHireExpireDate);
-                strHirePeriod = this.GetDisplayTimePeriodStringEx(strHirePeriod);
+                strHirePeriod = dp2WeiXinService.GetDisplayTimePeriodStringEx(strHirePeriod);
 
                 strHire = "周期" + ": " + strHirePeriod + "; "
                 + "失效期" + ": " + strHireExpireDate;
@@ -410,13 +410,6 @@ namespace dp2weixinWeb.Controllers
             return clearEmail;
         }
 
-        // 把整个字符串中的时间单位变换为可读的形态
-        public string GetDisplayTimePeriodStringEx(string strText)
-        {
-            if (string.IsNullOrEmpty(strText) == true)
-                return "";
-            strText = strText.Replace("day", "天");
-            return strText.Replace("hour", "小时");
-        }
+
     }
 }

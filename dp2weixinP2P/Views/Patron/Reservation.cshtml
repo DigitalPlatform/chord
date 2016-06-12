@@ -8,7 +8,7 @@
         }
 
 
-        //用于所有微信用户
+        //获取预约列表
         function getReservations() {
             //显示等待图层
             var index = loadLayer();
@@ -16,12 +16,12 @@
             // 先删除可观察数组中的已有数据
             model.reservations.removeAll();
 
-            var libUserName = $("#libUserName").text();;
-            var patronBarcode = $("#patronBarcode").text();;
+            var libUserName = $("#libUserName").text();
+            var patronBarcode = $("#patronBarcode").text();
 
             // 调web api
             var url = "/api/Reservation?libUserName=" + encodeURIComponent(libUserName)
-                + "&patronBarcode=" + encodeURIComponent(patronBarcode) ;
+                + "&patronBarcode=" + encodeURIComponent(patronBarcode);
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
@@ -33,10 +33,14 @@
                     return;
                 }
 
-                if (result.reservations.length == 0)
+                if (result.reservations.length == 0) {
                     $("#divNo").css('display', 'block');
-                else
+                    $("#divMerge").css('display', 'none');
+                }
+                else {
                     $("#divNo").css('display', 'none');
+                    $("#divMerge").css('display', 'block');
+                }
 
                 for (var i = 0; i < result.reservations.length; i++) {
                     //遍历从服务器得到的结果，以push方法对该数组填充新数据
@@ -53,28 +57,20 @@
             });
         }
 
-        function doThing(style)
-        {
-            if (style == "")
-            {
+        function doThing(style, items) {
+            if (style == "") {
                 alert("未传入style参数。");
                 return;
             }
 
-            var libUserName = $("#libUserName").text();;
+            var libUserName = $("#libUserName").text();
             var patronBarcode = $("#patronBarcode").text();
 
-            var items = "";
-            $("input[name='ckbBarcode']:checked").each(function () {
-                if (items != "")
-                    items += ",";
-                items += $(this).val();
-            });
             if (items == "") {
                 alert("您尚未选择要预约的册记录。");
                 return;
             }
-            alert(items);
+            //alert(items);
 
             //显示等待图层
             var index = loadLayer();
@@ -82,7 +78,7 @@
             var url = "/api/Reservation?libUserName=" + encodeURIComponent(libUserName)
                 + "&patron=" + encodeURIComponent(patronBarcode)
                 + "&items=" + encodeURIComponent(items)
-                + "&style="+style;//创建一个预约请求
+                + "&style=" + style;//创建一个预约请求
             // 调api
             sendAjaxRequest(url, "POST", function (result) {
 
@@ -108,8 +104,13 @@
                 if (info == "")
                     info = "操作成功";
 
-                $(infoDiv).text(info);
-                $(infoDiv).css("color", "darkgreen");  //设为绿色
+                //$(infoDiv).text(info);
+                //$(infoDiv).css("color", "darkgreen");  //设为绿色
+
+                alert(info);
+
+                //刷新界面
+                getReservations();
 
             }, function (xhq, textStatus, errorThrown) {
 
@@ -123,25 +124,66 @@
                 var infoDiv = $("#info");
 
                 $(infoDiv).text(info);
-                $(infoDiv).css("color", "red");  //设为红色                
+                $(infoDiv).css("color", "red");  //设为红色
             });
         }
 
         // 删除
-        function deleteReservation() {
-            doThing("delete");
+        function deleteReservation(obj) {
+
+            var items = $(obj).parent().children("span").text();
+            //alert(items);
+
+            doThing("delete", items);
         }
 
         // 合并
-        function mergeReservation()
-        {
-            doThing("merge");
+        function mergeReservation() {
+            var items = "";
+            $("input[name='ckbBarcode']:checked").each(function () {
+                if (items != "")
+                    items += ",";
+                items += $(this).val();
+            });
+
+            //alert(items);
+
+            doThing("merge", items);
         }
 
         // 拆散
-        function splitReservation() {
-            doThing("split");
+        function splitReservation(obj) {
 
+            var items = $(obj).parent().children("span").text();
+            //alert(items);
+
+            doThing("split", items);
+
+        }
+
+        // 选择项改变
+        function changeBarcord() {
+            var count = 0;
+            $("input[name='ckbBarcode']:checked").each(function () {
+                count++
+            });
+
+            var btn = $("#btnMerge");
+            if (count == 0) {
+                $(btn).html("合并预约，请勾选需要合并的预约项。");
+                // 设不可用
+                $(btn).attr('disabled', "true"); //添加disabled属性
+            }
+            else if(count ==1) {
+                $(btn).html("合并预约(" + count + ") 请继续选择，多于1项才能合并。");
+                // 设不可用
+                $(btn).attr('disabled', "true"); //添加disabled属性
+            }  
+            else {
+                $(btn).html("合并预约(" + count + ")");
+                $(btn).removeAttr("disabled"); //移除disabled属性
+            }           
+            
         }
 
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
@@ -161,14 +203,14 @@
     </script>
 }
 @section style {
-<style type="text/css">
-    .reservation-active {
-        /*background-color: #99ff99;*/
-    }
+    <style type="text/css">
+        .reservation-active {
+            /*background-color: #99ff99;*/
+        }
 
-    .deleted {
-        text-decoration: line-through;
-    }
+        .deleted {
+            text-decoration: line-through;
+        }
 
         TABLE.borderTable {
             text-align: left;
@@ -176,36 +218,33 @@
             width: 100%;
         }
 
-    TABLE.borderTable TR TD {
-        border-width: 0px;
-        border-top-width: 1px;
-        border-color: #dddddd;
-        border-style: dotted;
-        padding: 2px;
-    }
+            TABLE.borderTable TR TD {
+                border-width: 0px;
+                border-top-width: 1px;
+                border-color: #dddddd;
+                border-style: dotted;
+                padding: 2px;
+            }
 
-        TABLE.borderTable TR TD.value {
-            /*border-left-width: 2px;*/
-            border-left:1px solid #CCCCCC;
-            padding-left:5px;
-        }
+                TABLE.borderTable TR TD.value {
+                    /*border-left-width: 2px;*/
+                    border-left: 1px solid #CCCCCC;
+                    padding-left: 5px;
+                }
 
-        TABLE.borderTable TR TD.arrived {
-            font-weight: bolder;
-                        border-left:1px solid #CCCCCC;
-                        padding-left:5px;
-        }
+                TABLE.borderTable TR TD.arrived {
+                    font-weight: bolder;
+                    border-left: 1px solid #CCCCCC;
+                    padding-left: 5px;
+                }
 
-        TABLE.borderTable TR TD.label {
-           width: 100px;
-           background-color:#eeeeee;
-           color:#999999;
-           padding-left:5px;
-        }
-</style>
-
-
-
+                TABLE.borderTable TR TD.label {
+                    width: 100px;
+                    background-color: #eeeeee;
+                    color: #999999;
+                    padding-left: 5px;
+                }
+    </style>
 }
 @section header {
     <h1 class="mui-title">预约请求</h1>
@@ -218,14 +257,14 @@
         <div>您目前没有预约记录。</div>
     </center>
 </div>
-<ul class="mui-table-view" data-bind=" foreach:model.reservations" >
+<ul class="mui-table-view" data-bind=" foreach:model.reservations">
     <li class="mui-table-view-cell" data-bind="css: {'reservation-active': state=='arrived'}" style="border-bottom:0px;">
         <table class="borderTable">
             <tr>
                 <td class="label">
                     <div class='mui-input-row mui-checkbox mui-left' style="border-bottom:0px;">
                         <label style='padding-left:30px;padding-right:0px'>册条码号</label>
-                        <input name='ckbBarcode' data-bind="value:pureBarcodes" type='checkbox' style='left:0px;' />
+                        <input name='ckbBarcode' data-bind="value:pureBarcodes,enable: state==''" type='checkbox' style='left:0px;' onchange="changeBarcord()" />
                     </div>
                 </td>
                 <td class="value"><span data-bind="html: barcodes"></span></td>
@@ -252,17 +291,21 @@
                     </span>
                 </td>
             </tr>
-
+            <tr>
+                <td class="label">操作</td>
+                <td class="value">
+                    <button class='mui-btn  mui-btn-primary' onclick="deleteReservation(this)" data-bind="text:stateText=='' ? '取消预约' : '放弃取书' "></button>
+                    <button class='mui-btn  mui-btn-primary' onclick='splitReservation(this)' data-bind="visible:stateText == '' && pureBarcodes.indexOf(',')>0">拆散预约</button>
+                    <span style="display:none" data-bind="text:pureBarcodes" />
+                </td>
+            </tr>
         </table>
     </li>
 </ul>
 
-<div class='mui-content-padded'>
-    <div style="font-size:10pt;border:2px dotted red;margin-bottom:5px;padding:5px">(注：删除状态为“已到书”的行表示读者放弃取书。如果要去图书馆正常取书，请一定不要删除这样的行，待取书完成后软件会自动删除)</div>
+<div class='mui-content-padded' id="divMerge" style="display:none;">
     <div>
-        <button class='mui-btn  mui-btn-default' onclick='deleteReservation()'>删除</button>&nbsp;&nbsp;
-        <button class='mui-btn  mui-btn-default' onclick='mergeReservation()'>合并</button>&nbsp;&nbsp;
-        <button class='mui-btn  mui-btn-default' onclick='splitReservation()'>拆散</button>
+        <button id="btnMerge" class='mui-btn  mui-btn-primary' onclick='mergeReservation()' disabled="disabled">合并预约，请勾选需要合并的预约项。</button>
     </div>
-    <div id="info" ></div>
+    <div id="info"></div>
 </div>
