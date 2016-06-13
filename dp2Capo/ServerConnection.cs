@@ -1,4 +1,4 @@
-﻿#define LOG
+﻿// #define LOG
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Diagnostics;
+using System.Collections;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
@@ -15,7 +16,6 @@ using DigitalPlatform.LibraryClient;
 using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
 using DigitalPlatform.LibraryClient.localhost;
-using System.Collections;
 
 namespace dp2Capo
 {
@@ -110,7 +110,7 @@ namespace dp2Capo
                     if (string.IsNullOrEmpty(strVersion) == true)
                         strVersion = "2.0";
 
-                    string base_version = "2.75";   // 2.75 允许用 GetMessage() API 获取 MSMQ 消息
+                    string base_version = "2.80";   // 2.80 ChangeReaderPassword() API 做了修改 // 2.75 允许用 GetMessage() API 获取 MSMQ 消息
                     if (StringUtil.CompareVersion(strVersion, base_version) < 0)   // 2.12
                     {
                         strError = "dp2Capo 所所连接的 dp2library 服务器 '" + channel.Url + "' 其版本必须升级为 " + base_version + " 以上时才能使用 (当前 dp2library 版本为 " + strVersion + ")\r\n\r\n请立即升级 dp2Library 到最新版本";
@@ -357,6 +357,20 @@ namespace dp2Capo
                     lRet = channel.ResetPassword(param.Patron,  // strPatameters
                         param.Item, // strMessageTemplate
                         out strOutputReaderBarcode,
+                        out strError);
+                }
+                else if (param.Operation == "changePassword")
+                {
+                    Hashtable table = StringUtil.ParseParameters(param.Item, ',', '=', "url");
+                    lRet = channel.ChangeReaderPassword(param.Patron,  // strPatameters
+                        (string)table["old"],
+                        (string)table["new"],
+                        out strError);
+                }
+                else if (param.Operation == "verifyPassword")
+                {
+                    lRet = channel.VerifyReaderPassword(param.Patron,
+                        param.Item,
                         out strError);
                 }
                 else
