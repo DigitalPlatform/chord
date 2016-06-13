@@ -1216,12 +1216,21 @@ namespace dp2weixin.service
             if (onShelf == "true")
                 bOnShelf = true;
 
+            // 册条码
+            XmlNode nodeItemBarcode = root.SelectSingleNode("itemBarcode");
+            if (nodeItemBarcode == null)
+            {
+                strError = "尚未定义<itemBarcode>节点";
+                return -1;
+            }
+            string itemBarcode = DomUtil.GetNodeText(nodeItemBarcode);
+
             //string first = this._msgFirstLeft+"我们很高兴地通知您，您预约的图书到了，请尽快来图书馆办理借书手续。";
-            string end = "\n" + patronName + "，您预约的图书到了，请尽快来图书馆办理借书手续，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
+            string end = "\n" + patronName + "，您预约的图书["+itemBarcode+"]到了，请尽快来图书馆办理借书手续，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
             if (bOnShelf == true)
             {
                 //first = this._msgFirstLeft + "我们很高兴地通知您，您预约的图书已经在架上，请尽快来图书馆办理借书手续。";
-                end = "\n" + patronName + "，您预约的图书已经在架上，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或允许其他读者借阅。";
+                end = "\n" + patronName + "，您预约的图书[" + itemBarcode + "]已经在架上，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或允许其他读者借阅。";
             }
 
             foreach (string weiXinId in weiXinIdList)
@@ -2592,7 +2601,7 @@ namespace dp2weixin.service
              */
 
             CancellationToken cancel_token = new CancellationToken();
-            string id = "1-summary";//Guid.NewGuid().ToString();
+            string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
                 "getBiblioSummary",
                 "<全部>",
@@ -2608,7 +2617,7 @@ namespace dp2weixin.service
             {
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    remoteUserName + "-1").Result;
+                    remoteUserName).Result;  //+ "-1"
 
                 SearchResult result = connection.SearchAsync(
                     remoteUserName,
@@ -2656,7 +2665,7 @@ namespace dp2weixin.service
             strError = "";
 
             CancellationToken cancel_token = new CancellationToken();
-            string id = "2-item";//Guid.NewGuid().ToString();
+            string id = Guid.NewGuid().ToString(); // "2-item";//
             SearchRequest request = new SearchRequest(id,
                 "getItemInfo",
                 "entity",
@@ -2674,7 +2683,7 @@ namespace dp2weixin.service
 
                 MessageConnection connection = this._channels.GetConnectionAsync(
                     this.dp2MServerUrl,
-                    remoteUserName+"-2").Result;
+                    remoteUserName).Result;  //+"-2"
                 this.WriteLog("GetItemInfo2");
 
                 //string strFilename = string.Format(this.weiXinLogDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
@@ -2929,6 +2938,50 @@ namespace dp2weixin.service
             return 1;
         }
 
+        public BorrowInfoResult GetPatronBorrowInfos(string remoteUserName,
+            string readerBarcode)
+        {
+            BorrowInfoResult result = new BorrowInfoResult();
+            result.errorCode = 0;
+            result.errorInfo = "";
+
+
+            string strError = "";
+
+            string xml = "";
+            int nRet = dp2WeiXinService.Instance.GetPatronXml(remoteUserName,
+                readerBarcode,
+                "advancexml",
+                out xml,
+                out strError);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+                return result;
+            }
+
+            if (nRet == 0)
+            {
+                result.errorCode = 0;
+                result.errorInfo = "从dp2library未找到证条码号为'" + readerBarcode + "'的记录";
+                return result;
+            }
+
+
+            //在借册
+            string strBorrowWarningText = "";
+            string maxBorrowCountString = "";
+            string curBorrowCountString = "";
+            List<BorrowInfo2> borrowList = GetBorrowInfo(xml, out strBorrowWarningText, out maxBorrowCountString, out curBorrowCountString);
+            result.borrowInfos = borrowList;
+            result.maxBorrowCount = maxBorrowCountString;
+            result.curBorrowCount = curBorrowCountString;
+            result.errorCode = 1;
+
+            return result;
+        }
+
         public PatronInfo ParseReaderXml(string strXml)
         {
             PatronInfo patronResult = new PatronInfo();
@@ -2960,53 +3013,53 @@ namespace dp2weixin.service
 
             // ***
             // 违约/交费信息
-            List<OverdueInfo> overdueLit = new List<OverdueInfo>();
-            XmlNodeList nodes = dom.DocumentElement.SelectNodes("overdues/overdue");
-            if (nodes.Count > 0)
-            {
-                for (int i = 0; i < nodes.Count; i++)
-                {
-                    XmlNode node = nodes[i];
-                    string strBarcode = DomUtil.GetAttr(node, "barcode");
-                    string strOver = DomUtil.GetAttr(node, "reason");
-                    string strBorrowPeriod = DomUtil.GetAttr(node, "borrowPeriod");
-                    string strBorrowDate = LocalDateOrTime(DomUtil.GetAttr(node, "borrowDate"), strBorrowPeriod);
-                    string strReturnDate = LocalDateOrTime(DomUtil.GetAttr(node, "returnDate"), strBorrowPeriod);
-                    string strID = DomUtil.GetAttr(node, "id");
-                    string strPrice = DomUtil.GetAttr(node, "price");
-                    string strOverduePeriod = DomUtil.GetAttr(node, "overduePeriod");
-                    string strComment = DomUtil.GetAttr(node, "comment");
-                    if (String.IsNullOrEmpty(strComment) == true)
-                        strComment = "&nbsp;";
-                    string strPauseInfo = "";
-                    // 把一行文字变为两行显示
-                    //strBorrowDate = strBorrowDate.Replace(" ", "<br/>");
-                    //strReturnDate = strReturnDate.Replace(" ", "<br/>");
+            string strOverdueWarningText = "";
+            List<OverdueInfo> overdueList = GetOverdueInfo(strXml, out strOverdueWarningText);
+            if (strOverdueWarningText != "")
+                strWarningText += strOverdueWarningText;
+            patronResult.overdueList = overdueList;
 
-                    OverdueInfo overdueInfo = new OverdueInfo();
-                    overdueInfo.barcode = strBarcode;
-                    //if (string.IsNullOrEmpty(this.dp2OpacUrl) == false)
-                    //    overdueInfo.barcodeUrl = this.dp2OpacUrl + "/book.aspx?barcode=" + strBarcode;
-                    //else
-                    //    overdueInfo.barcodeUrl = "";
-                    overdueInfo.reason = strOver;
-                    overdueInfo.price = strPrice;
-                    overdueInfo.pauseInfo = strPauseInfo;
-                    overdueInfo.borrowDate = strBorrowDate;
-                    overdueInfo.borrowPeriod = strBorrowPeriod;
-                    overdueInfo.returnDate = strReturnDate;
-                    overdueInfo.comment = strComment;
-                    overdueLit.Add(overdueInfo);
-                }
 
-                strWarningText += "<div class='warning amerce'><div class='number'>" + nodes.Count.ToString() + "</div><div class='text'>待交费</div></div>";
-            }
-            // 赋到返回对象上
-            patronResult.overdueList = overdueLit;
+            //在借册
+            string strBorrowWarningText = "";
+            string maxBorrowCountString = "";
+            string curBorrowCountString = "";
+            List<BorrowInfo2> borrowList = GetBorrowInfo(strXml, out strBorrowWarningText, out maxBorrowCountString, out curBorrowCountString);
+            if (strBorrowWarningText != "")
+                strWarningText += strBorrowWarningText;
+            patronResult.borrowList = borrowList;
+            patron.maxBorrowCount = maxBorrowCountString;
+            patron.curBorrowCount = curBorrowCountString;
 
+
+            // 预约请求
+            string strReservationWarningText = "";
+            List<ReservationInfo> reservationList = GetReservations(strXml, out strReservationWarningText);
+            if (strReservationWarningText!="")
+                strWarningText += strReservationWarningText;
+            patronResult.reservationList = reservationList;
+
+
+            //提醒 信息
+            patronResult.patron.warningText = strWarningText;
+
+            return patronResult;
+        }
+
+        public List<BorrowInfo2> GetBorrowInfo(string strXml, out string strWarningText,
+            out string maxBorrowCountString,
+            out string curBorrowCountString)
+        {
+            strWarningText = "";
+            maxBorrowCountString = "";
+            curBorrowCountString = "";
+            List<BorrowInfo2> borrowList = new List<BorrowInfo2>();
+
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(strXml);
             // ***
             // 在借册
-            nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
+            XmlNodeList nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
             int nBorrowCount = nodes.Count;
             /*
 <info>
@@ -3020,26 +3073,26 @@ namespace dp2weixin.service
             XmlNode nodeMax = dom.DocumentElement.SelectSingleNode("info/item[@name='可借总册数']");
             if (nodeMax == null)
             {
-                patron.maxBorrowCount = "获取当前读者可借总册数出错：未找到对应节点。";
+                maxBorrowCountString = "获取当前读者可借总册数出错：未找到对应节点。";
             }
             else
             {
                 string maxCount = DomUtil.GetAttr(nodeMax, "value");
                 if (maxCount == "")
                 {
-                    patron.maxBorrowCount = "获取当前读者可借总册数出错：未设置对应值。";
+                    maxBorrowCountString = "获取当前读者可借总册数出错：未设置对应值。";
                 }
                 else
                 {
-                    patron.maxBorrowCount = "最多可借:" + maxCount; ;
+                    maxBorrowCountString = "最多可借:" + maxCount; ;
                     XmlNode nodeCurrent = dom.DocumentElement.SelectSingleNode("info/item[@name='当前还可借']");
                     if (nodeCurrent == null)
                     {
-                        patron.curBorrowCount = "获取当前还可借出错：未找到对应节点。";
+                        curBorrowCountString = "获取当前还可借出错：未找到对应节点。";
                     }
                     else
                     {
-                        patron.curBorrowCount = "当前可借:" + DomUtil.GetAttr(nodeCurrent, "value");
+                        curBorrowCountString = "当前可借:" + DomUtil.GetAttr(nodeCurrent, "value");
                     }
                 }
             }
@@ -3054,7 +3107,6 @@ namespace dp2weixin.service
               </borrows>
             */
             int nOverdueCount = 0;
-            List<BorrowInfo2> borrowList = new List<BorrowInfo2>();
             for (int i = 0; i < nodes.Count; i++)
             {
                 XmlNode node = nodes[i];
@@ -3105,24 +3157,66 @@ namespace dp2weixin.service
             }
             if (nOverdueCount > 0)
                 strWarningText += "<div class='warning overdue'><div class='number'>" + nOverdueCount.ToString() + "</div><div class='text'>已超期</div></div>";
-            // 赋给返回对象
-            patronResult.borrowList = borrowList;
-
-
-            // 预约请求
-            string strReservationWarningText = "";
-            List<ReservationInfo> reservationList = GetReservations(strXml, out strReservationWarningText);
-            if (strReservationWarningText!="")
-                strWarningText += strReservationWarningText;
-            patronResult.reservationList = reservationList;
-
-
-            //提醒 信息
-            patronResult.patron.warningText = strWarningText;
-
-            return patronResult;
+            
+            return borrowList;
         }
 
+
+        public List<OverdueInfo> GetOverdueInfo(string strXml, out string strWarningText)
+        {
+            strWarningText = "";
+            List<OverdueInfo> overdueList = new List<OverdueInfo>();
+
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(strXml);
+
+            // ***
+            // 违约/交费信息
+            List<OverdueInfo> overdueLit = new List<OverdueInfo>();
+            XmlNodeList nodes = dom.DocumentElement.SelectNodes("overdues/overdue");
+            if (nodes.Count > 0)
+            {
+                for (int i = 0; i < nodes.Count; i++)
+                {
+                    XmlNode node = nodes[i];
+                    string strBarcode = DomUtil.GetAttr(node, "barcode");
+                    string strOver = DomUtil.GetAttr(node, "reason");
+                    string strBorrowPeriod = DomUtil.GetAttr(node, "borrowPeriod");
+                    strBorrowPeriod = dp2WeiXinService.GetDisplayTimePeriodStringEx(strBorrowPeriod);
+                    string strBorrowDate = LocalDateOrTime(DomUtil.GetAttr(node, "borrowDate"), strBorrowPeriod);
+                    string strReturnDate = LocalDateOrTime(DomUtil.GetAttr(node, "returnDate"), strBorrowPeriod);
+                    string strID = DomUtil.GetAttr(node, "id");
+                    string strPrice = DomUtil.GetAttr(node, "price");
+                    string strOverduePeriod = DomUtil.GetAttr(node, "overduePeriod");
+                    string strComment = DomUtil.GetAttr(node, "comment");
+                    if (String.IsNullOrEmpty(strComment) == true)
+                        strComment = "&nbsp;";
+                    string strPauseInfo = "";
+                    // 把一行文字变为两行显示
+                    //strBorrowDate = strBorrowDate.Replace(" ", "<br/>");
+                    //strReturnDate = strReturnDate.Replace(" ", "<br/>");
+
+                    OverdueInfo overdueInfo = new OverdueInfo();
+                    overdueInfo.barcode = strBarcode;
+                    if (string.IsNullOrEmpty(this.opacUrl) == false)
+                        overdueInfo.barcodeUrl = this.opacUrl + "/book.aspx?barcode=" + strBarcode;
+                    else
+                        overdueInfo.barcodeUrl = "";
+                    overdueInfo.reason = strOver;
+                    overdueInfo.price = strPrice;
+                    overdueInfo.pauseInfo = strPauseInfo;
+                    overdueInfo.borrowDate = strBorrowDate;
+                    overdueInfo.borrowPeriod = strBorrowPeriod;
+                    overdueInfo.returnDate = strReturnDate;
+                    overdueInfo.comment = strComment;
+                    overdueLit.Add(overdueInfo);
+                }
+
+                strWarningText += "<div class='warning amerce'><div class='number'>" + nodes.Count.ToString() + "</div><div class='text'>待交费</div></div>";
+            }
+            
+            return overdueLit;
+        }
 
         public List<ReservationInfo> GetReservations(string strXml, out string strWarningText)
         {
@@ -3733,17 +3827,6 @@ namespace dp2weixin.service
             }
         }
 
-        public int Renew(string remoteUserName,
-            string strReaderBarcode,
-            string strItemBarcode,
-            out BorrowInfo2 borrowInfo,
-            out string strError)
-        {
-            borrowInfo = null;
-            strError = "未实现";
-
-            return -1;
-        }
 
         #endregion
 
@@ -3794,14 +3877,6 @@ namespace dp2weixin.service
             }
         }
 
-        public int GetReservations(string remoteUserName,
-            string patronBarcode,
-            out string strError)
-        {
-            strError = "";
-
-            return 0;
-        }
 
         #endregion
 
@@ -3809,6 +3884,15 @@ namespace dp2weixin.service
 
 
         #region 静态函数
+
+        // 把整个字符串中的时间单位变换为可读的形态
+        public static string GetDisplayTimePeriodStringEx(string strText)
+        {
+            if (string.IsNullOrEmpty(strText) == true)
+                return "";
+            strText = strText.Replace("day", "天");
+            return strText.Replace("hour", "小时");
+        }
 
         // 根据strPeriod中的时间单位(day/hour)，返回本地日期或者时间字符串
         // parameters:

@@ -1,0 +1,151 @@
+﻿@model dp2weixinWeb.Models.PersonalInfoModel
+@section style {
+    <style type="text/css">
+        TABLE.personalinfo {
+            font-size: 14px;
+            text-align: left;
+            background-color: white;
+            border-style: solid;
+            /*border-top-width: 18px;
+            border-bottom-width: 18px;*/
+            border-left-width: 8px;
+            border-right-width: 8px;
+            border-color: white;
+            width: 100%;
+        }
+
+
+
+            TABLE.personalinfo TR TD {
+                border-width: 0px;
+                border-top-width: 1px;
+                border-color: #dddddd;
+                border-style: dotted;
+                padding:2px;
+            }
+
+                TABLE.personalinfo TR TD.value {
+                    border-left-width: 2px;
+                }
+
+
+
+            TABLE.personalinfo TD.summary {
+                font-size: 10px;
+            }
+
+            TABLE.personalinfo TR.person_name TD {
+                min-width: 80pt;
+                font-weight: bolder;
+            }
+
+            TABLE.personalinfo TD.value {
+                /*width: 80%;*/
+                /*font-weight: bolder;*/
+                font-size: 14px;
+            }
+
+            TABLE.personalinfo TR.barcode TD {
+                font-weight: bolder;
+            }
+
+                TABLE.personalinfo TR.barcode TD.value {
+                    font-weight: bolder;
+                    font-size: 14px;
+                }
+
+            TABLE.personalinfo TR.debugline {
+                font-size: 14px;
+                background-color: yellow;
+            }
+
+    </style>
+}
+
+@section header {
+    <h1 class="mui-title">个人信息</h1>
+}
+
+
+    <ul class="mui-table-view">
+        <li class="mui-table-view-cell">
+            <a class="mui-navigate-right" href="./OverdueInfo">
+                @if (Model.OverdueCount>0)
+                {<span class="mui-badge mui-badge-danger">@Model.OverdueCount</span>}
+                您有<span>@Model.OverdueCount</span>条违约待交费记录。
+            </a>
+        </li>
+        <li class="mui-table-view-cell">
+            <a class="mui-navigate-right" href="./BorrowInfo">
+                <table style="width:100%;vertical-align:central">
+                    <tr>
+                        <td style="text-align:left"><span>您有</span>@Model.BorrowCount<span>本在借册</span>，@Model.CaoQiCount<span>本超期。</span></td>
+                        <td style="text-align:right;padding-right:20px">
+@if (Model.CaoQiCount > 0)
+{ 
+                            <span class="mui-badge mui-badge-warning">@Model.CaoQiCount</span>
+                            <span style="color:#cccccc;font-weight:bold">/</span>
+}
+@if (Model.BorrowCount > 0)
+{
+                            <span class="mui-badge" style="background-color:#CCCCCC;color:#333333">@Model.BorrowCount</span>
+}
+                        </td>
+                    </tr>
+                </table> 
+            </a>
+        </li>
+        <li class="mui-table-view-cell">
+            <a class="mui-navigate-right" href="./Reservation">
+                <table style="width:100%;vertical-align:central">
+                    <tr>
+                        <td style="text-align:left"><span>您有</span>@Model.ReservationCount<span>条预约请求</span>，@Model.DaoQiCount<span>条到书</span>。</td>
+                        <td style="text-align:right;padding-right:20px">
+@if (Model.DaoQiCount > 0)
+{
+                            <span class="mui-badge mui-badge-primary">@Model.DaoQiCount</span>
+                            <span style="color:#cccccc;font-weight:bold">/</span>
+}
+@if (Model.ReservationCount > 0)
+{
+                            <span class="mui-badge" style="background-color:#CCCCCC;color:#333333">@Model.ReservationCount</span>
+}
+                        </td>
+                    </tr>
+                </table>            
+            </a>
+        </li>
+    </ul>
+
+<br />
+
+    <table class='personalinfo'>
+        <tr class='person_name'> <td class='name'>姓名</td> <td class='value'>@Model.name</td> </tr>
+        <tr class='gender'> <td class='name'>性别</td> <td class='value'>@Model.gender</td> </tr>
+        <tr class='dateOfBirth'> <td class='name'>出生日期</td> <td class='value'>@Model.dateOfBirth</td> </tr>
+        <tr class='cardnumber'> <td class='name'>证号</td> <td class='value'>@Model.cardNumber</td> </tr>
+        <tr class='idcardnumber'> <td class='name'>身份证号</td> <td class='value'>@Model.idCardNumber</td> </tr>
+        <tr class='department'> <td class='name'>单位</td> <td class='value'>@Model.department</td> </tr>
+        <tr class='post'> <td class='name'>职务</td> <td class='value'>@Model.post</td> </tr>
+        <tr class='address'> <td class='name'>地址</td> <td class='value'>@Model.address</td> </tr>
+        <tr class='tel'> <td class='name'>电话</td> <td class='value'>@Model.tel</td> </tr>
+        <tr class='email'> <td class='name'>Email</td> <td class='value'>@Model.email</td> </tr>
+        <tr class='barcode'> <td class='name'>证条码号</td> <td class='value'>@Model.barcode</td> </tr>
+        <tr class='readertype'> <td class='name'>读者类型</td> <td class='value'>@Model.readerType</td> </tr>
+        <tr class='state'> <td class='name'> 证状态</td> <td class='value'>@Model.state</td> </tr>
+        <tr class='createdate'> <td class='name'>发证日期</td> <td class='value'>@Model.createDate</td> </tr>
+        <tr class='expiredate'> <td class='name'>证失效期</td> <td class='value'>@Model.expireDate</td> </tr>
+        <tr class='hire'> <td class='name'>租金</td> <td class='value'>@Model.hire</td> </tr>
+        <tr class='photo'>
+            <td class='name'>头像</td>
+            <td class='value'>
+                <img id="PersonalInfoControl1_photo" src="@Model.imageUrl" style="height:64px;width:64px;" />
+            </td>
+        </tr>
+    </table>
+<div class="mui-content-padded">
+    <center>
+        <img id="qrcode" src="@Model.qrcodeUrl" alt='QRCode image' />
+        <div style="font-size:9pt">(不要把二维码展示和提供给无关人员，以免账号被窃。)</div>
+    </center>
+</div>

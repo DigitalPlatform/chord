@@ -24,6 +24,25 @@ namespace dp2weixinWeb.Controllers
             {
                 ViewBag.LibCode = userItem.libCode+"*"+userItem.libUserName;// "lib_local*mycapo";
                 ViewBag.PatronBarcode = userItem.readerBarcode;
+                ViewBag.LibUserName = userItem.libUserName;
+
+                /*
+                // 获取一下预约列表
+                List<ReservationInfo> reservations = new List<ReservationInfo>();
+                nRet = dp2WeiXinService.Instance.GetPatronReservation(userItem.libUserName,
+                    userItem.readerBarcode,
+                    out reservations,
+                    out strError);
+                if (nRet == -1)
+                    return Content(strError);
+                string reserverationString = "";
+                foreach (ReservationInfo entity in reservations)
+                {
+                    if (reserverationString != "")
+                        reserverationString += ",";
+                    reserverationString += entity.barcodes;
+                }
+                 */
             }
 
             return View();

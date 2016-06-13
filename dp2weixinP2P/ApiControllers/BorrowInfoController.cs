@@ -8,8 +8,18 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class BorrowController : ApiController
+    public class BorrowInfoController : ApiController
     {
+
+        // GET api/<controller>
+        public BorrowInfoResult GetBorrowInfos(string libUserName,
+            string patronBarcode)
+        {
+
+            return  dp2WeiXinService.Instance.GetPatronBorrowInfos(libUserName,
+                 patronBarcode);
+        }
+
         // POST api/<controller>
         [HttpPost]
         public ApiResult Post(string libUserName,
@@ -31,5 +41,8 @@ namespace dp2weixinWeb.ApiControllers
 
             return result;
         }
+
+
+
     }
 }

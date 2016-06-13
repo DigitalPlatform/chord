@@ -1,0 +1,314 @@
+﻿@model dp2weixin.service.WxUserItem
+@section header {
+    <h1 class="mui-title">在借续借</h1>
+}
+@section style {
+    <style type="text/css">
+        /*所有需要后面填充内容的元素样式*/
+        .pending {
+            /*设为背景图影响效果太大了，还是元素里面加个img吧*/
+            /*background-image:url("img/wait.gif");*/
+        }
+
+        /*错误提示样式*/
+        .errorspan {
+            color: red;
+        }
+
+
+        .td-right {
+            text-align: right;
+            color: #CCCCCC;
+            padding: 0.1cm;
+            width: 32%;
+        }
+
+        .td-left {
+            text-align: left;
+            padding: 0.1cm;
+        }
+
+        .warning {
+            vertical-align: top;
+            text-align: center;
+        }
+
+        DIV.warning .number {
+            font-size: 16pt;
+            font-weight: bolder;
+            /*width: 100%;*/
+            color: White;
+        }
+
+        DIV.warning .text {
+            font-size: 8pt;
+            /*width: 100%;*/
+        }
+
+        .deleted {
+            text-decoration: line-through;
+        }
+
+        .borrowinfo-overdue {
+            /*font-size: 8pt;*/
+            background-color:yellow;/* #ffcccc;*/
+        }
+
+        .borrowinfo-active {
+            font-size: 10pt;
+            background-color: cornsilk;
+        }
+
+        .reservation-active {
+            background-color: #99ff99;
+        }
+
+        .text-warning {
+            color: red;
+            font-size: 28px;
+        }
+
+
+        TABLE.borrowTable {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+        }
+
+    TABLE.borrowTable TR TD {
+        border-width: 0px;
+        border-top-width: 1px;
+        border-color: #dddddd;
+        border-style: dotted;
+        padding: 2px;
+    }
+
+        TABLE.borrowTable TR TD.value {
+            /*border-left-width: 2px;*/
+            border-left:1px solid #CCCCCC;
+            padding-left:5px;
+        }
+
+        TABLE.borrowTable TR TD.returnDate {
+            font-weight: bolder;
+                        border-left:1px solid #CCCCCC;
+                        padding-left:5px;
+        }
+
+        TABLE.borrowTable TR TD.label {
+           width: 80px;
+           background-color:#eeeeee;
+           color:#999999;
+           padding-left:5px;
+        }
+
+    </style>
+}
+@section Scripts {
+    <script>
+
+        //观察模型
+        var model = {
+            maxBorrowCount: ko.observable(""),
+            curBorrowCount: ko.observable(""),
+            borrowInfos: ko.observableArray()
+        }
+
+
+        //用于所有微信用户
+        function getBorrowInfos() {
+            //显示等待图层
+            var index = loadLayer();
+
+            // 先删除可观察数组中的已有数据
+            model.borrowInfos.removeAll();
+
+            var libUserName = $("#libUserName").text();;
+            var patronBarcode = $("#patronBarcode").text();;
+
+            // 调web api
+            var url = "/api/BorrowInfo?libUserName=" + encodeURIComponent(libUserName)
+                + "&patronBarcode=" + encodeURIComponent(patronBarcode);
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                // 出错或未命中
+                if (result.errorCode == -1 || result.errorCode == 0) {
+                    openMsg(result.errorInfo);
+                    return;
+                }
+
+                if (result.borrowInfos.length == 0)
+                    $("#divNo").css('display', 'block');
+                else
+                    $("#divNo").css('display', 'none');
+
+                //
+                model.maxBorrowCount(result.maxBorrowCount);
+                model.curBorrowCount(result.curBorrowCount);
+
+                //
+                for (var i = 0; i < result.borrowInfos.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    model.borrowInfos.push(result.borrowInfos[i]);
+                }
+
+                window.setTimeout("fillPending()", 1);
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        function renew(btn) {
+
+            var barcordSpan = $(btn).parent().children("span");
+            var itemBarcode = barcordSpan.text();
+            if (itemBarcode == "") {
+                alert("尚未传入册条码号。");
+                return;
+            }
+
+            var libUserName = $("#libUserName").text();;
+            var patronBarcode = $("#patronBarcode").text();
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/BorrowInfo?libUserName=" + encodeURIComponent(libUserName)
+                + "&action=renew"
+                + "&patron=" + encodeURIComponent(patronBarcode)
+                + "&item=" + encodeURIComponent(itemBarcode)
+            // 调api
+            sendAjaxRequest(url, "POST", function (result) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                // 显示续借结果
+                var infoDiv = $(btn).parent().children("div");
+                var info = result.errorInfo;
+
+
+                // 出错
+                if (result.errorCode == -1) {
+                    $(infoDiv).text(info);
+                    $(infoDiv).css("color", "red");  //设为红色
+
+                    alert(result.errorInfo);
+                    return;
+                }
+
+
+                if (info == "")
+                    info = "续借成功";
+
+                $(infoDiv).text(info);
+                $(infoDiv).css("color", "darkgreen");  //设为绿色
+
+                // 更新列表
+                getBorrowInfos();
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                // 显示预约结果
+                var info = "访问服务器出错：[" + errorThrown + "]";
+                alert(info);
+
+                var infoDiv = $(btn).parent.children("div");
+
+                $(infoDiv).text(info);
+                $(infoDiv).css("color", "red");  //设为红色                
+            });
+        }
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 获取在借册
+            getBorrowInfos();
+
+            ko.applyBindings(model);
+
+        });
+
+
+
+    </script>
+}
+<span id="libUserName" style="display:none">@Model.libUserName</span>
+<span id="patronBarcode" style="display:none">@Model.readerBarcode</span>
+
+<div class="mui-content-padded" style="text-align:right">
+    <span data-bind="text:model.maxBorrowCount"></span>&nbsp;
+    <span data-bind="text:model.curBorrowCount"></span>&nbsp;&nbsp;
+    </div>
+
+    <div class="mui-content-padded" id="divNo" style="display:none;">
+        <center>
+            <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+            <div>您目前没有借书记录。</div>
+        </center>
+    </div>
+    <ul class="mui-table-view" data-bind=" foreach:model.borrowInfos">
+        <li class="mui-table-view-cell" style="border-bottom:0px;">
+            <table class="borrowTable">
+                <tr>
+                    <td class="label">册条码号</td>
+                    <td class="value"><a data-bind="attr: { href: barcodeUrl}" target="_blank"><span data-bind="text: barcode"></span></a></td>
+                </tr>
+                <tr>
+                    <td class="label">续借次</td>
+                    <td class="value" data-bind="text:renewNo"></td>
+                </tr>
+                <tr>
+                    <td class="label">借阅日期</td>
+                    <td class="value" data-bind="text:borrowDate"></td>
+                </tr>
+                <tr>
+                    <td class="label">期限</td>
+                    <td class="value" data-bind="text:period"></td>
+                </tr>
+                <tr>
+                    <td class="label">操作者</td>
+                    <td class="value" data-bind="text:borrowOperator"></td>
+                </tr>
+                <tr>
+                    <td class="label">应还日期</td>
+                    <td class="returnDate" data-bind="text:returnDate"></td>
+                </tr>
+                <tr>
+                    <td class="label">摘要</td>
+                    <td class="value">
+                        <span class="pending">
+                            <label style="display:inline" data-bind="text:barcode=='' ? '' : 'bs-'+barcode">
+                            </label>
+                            <img src="~/img/wait2.gif" height="10" width="10" />
+                            <span>@Model.libUserName</span>
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">操作</td>
+                    <td class="value">
+                        <button type="button" class="mui-btn  mui-btn-primary" onclick="renew(this)">
+                            续借
+                        </button>
+                        <span style="display:none" data-bind="text: barcode"></span>
+                        <div></div>
+                    </td>
+                </tr>
+
+            </table>
+        </li>
+    </ul>
+

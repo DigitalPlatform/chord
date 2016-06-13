@@ -742,6 +742,8 @@ namespace dp2weixin
         /// <returns></returns>
         private IResponseMessageBase DoRenew(string strParam)
         {
+            return this.CreateTextResponseMessage("不支持");
+            /*
             // 设置当前命令
             this.CurrentMessageContext.CurrentCmdName = dp2CommandUtility.C_Command_Renew;
 
@@ -796,6 +798,7 @@ namespace dp2weixin
             string returnTime = DateTimeUtil.ToLocalTime(borrowInfo.returnDate, "yyyy/MM/dd");
             string strText = strParam + "续借成功,还书日期为：" + returnTime + "。";
             return this.CreateTextResponseMessage(strText);
+             */
         }
 
 
