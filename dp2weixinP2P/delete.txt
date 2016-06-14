@@ -1,4 +1,91 @@
 ﻿
+        $(document).ready(function () {
+
+            //$("#idTest").html(" 是否为iPhone: " + browser.versions.iPhone);
+
+            //$(window).scroll(function () {
+            //    alert("scroll");
+            //    /*
+            //    //获取滚动条的滑动距离
+            //    var scroH = $(this).scrollTop();
+            //    //滚动条的滑动距离大于等于定位元素距离浏览器顶部的距离，就固定，反之就不固定
+            //    if (scroH >= navH) {
+            //        $(".nav").css({ "position": "fixed", "top": 0 });
+
+            //    } else if (scroH < navH) {
+            //        $(".nav").css({ "position": "static" });
+            //    }
+            //    */
+            //});
+
+            $(window).resize(function () {
+
+                var h = $(window).height();
+                $("#idTest").text(h);
+            });
+
+            if (browser.versions.iPhone == true) {
+                $("input").focus(function () {
+                    showTopBottom(false);
+                    // window.setTimeout("showTopBottom(false)", 1);
+                });
+                $("input").blur(function () {                   
+
+                    window.setTimeout("showTopBottom(true)", 1);
+                    //showTopBottom(true);
+                });
+
+                $("select").focus(function () {
+                    showTopBottom(false);
+                    //window.setTimeout("showTopBottom(false)", 1);
+                });
+                $("select").blur(function () {
+                    window.setTimeout("showTopBottom(true)", 1);
+                    //showTopBottom(true);
+                });
+            }
+            else {
+                //// 非iphone时，浏览器窗口变矮时，隐藏头尾栏
+                //$(window).resize(function () {
+
+                //    window.setTimeout("adjust()", 1);
+                //    //adjust();
+                //});
+            }
+        });
+
+
+
+
+        function adjust() {
+            // var w = $(document).width();
+            // var h = $(document).height();
+            // $("#idTest").html("[" + w + "]-[" + h + "]");
+            var h = $(window).height();
+            if (h <= 150) {
+                showTopBottom(false);
+            }
+            else {
+                showTopBottom(true);
+            }
+        }
+
+        function showTopBottom(bShow) {
+            if (bShow == true) {
+                $("#divBottonTab").css('display', 'block');
+                $("#myheader").css('display', 'block');
+            }
+            else {
+                //var h = $(window).height();
+                ////$("#idTest").html(h);
+                //if (h > 960)
+                //    return;
+                $("#divBottonTab").css('display', 'none');
+                $("#myheader").css('display', 'none');
+            }
+        }
+
+=====
     <ul class="mui-table-view">
         <li class="mui-table-view-cell">
             <a class="mui-navigate-right" href="./OverdueInfo">

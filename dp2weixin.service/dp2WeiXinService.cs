@@ -1575,6 +1575,15 @@ namespace dp2weixin.service
             return list;
         }
 
+        /// <summary>
+        /// 找回密码
+        /// </summary>
+        /// <param name="remoteUserName"></param>
+        /// <param name="strLibraryCode"></param>
+        /// <param name="name"></param>
+        /// <param name="tel"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
         public int ResetPassword(string remoteUserName,
             string strLibraryCode,
             string name,
@@ -1737,6 +1746,84 @@ namespace dp2weixin.service
             return -1;
         }
 
+
+
+
+        /// <summary>
+        /// 修改密码
+        /// </summary>
+        /// <param name="remoteUserName"></param>
+        /// <param name="patron"></param>
+        /// <param name="oldPassword"></param>
+        /// <param name="newPassword"></param>
+        /// <param name="strError"></param>
+        /// <returns>
+        /// -1  出错
+        /// 0   未成功
+        /// 1   成功
+        /// </returns>
+        public int ChangePassword(string remoteUserName,
+            string patron,
+            string oldPassword,
+            string newPassword,
+            out string strError)
+        {
+            strError = "";
+
+            // 注意新旧两个密码参数即便为空，也应该是 "" 而不应该是 null。
+            // 所以在使用 Item 参数的时候，old 和 new 两个子参数的任何一个都不该被省略。
+            // 省略子参数的用法是有意义的，但不该被用在这个修改读者密码的场合。
+            string item = "old=" + oldPassword + ",new=" + newPassword;
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            CirculationRequest request = new CirculationRequest(id,
+                "changePassword",
+                patron,
+                item,
+                "",//this.textBox_circulation_style.Text,
+                "",//this.textBox_circulation_patronFormatList.Text,
+                "",//this.textBox_circulation_itemFormatList.Text,
+                "");//this.textBox_circulation_biblioFormatList.Text);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                    this.dp2MServerUrl,
+                    remoteUserName).Result;
+                CirculationResult result = connection.CirculationAsync(
+                    remoteUserName,
+                    request,
+                    new TimeSpan(0, 1, 10), // 10 秒
+                    cancel_token).Result;
+                if (result.Value == -1)
+                {
+                    strError = "出错：" + result.ErrorInfo;
+                    return -1;
+                }
+
+                if (result.Value == 0)
+                {
+                    strError = result.ErrorInfo;
+                    return 0;
+                }
+
+                return (int)result.Value;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+
+
+        ERROR1:
+            return -1;
+        }
 
         /// <summary>
         /// 

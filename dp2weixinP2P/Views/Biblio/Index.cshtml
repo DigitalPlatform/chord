@@ -168,6 +168,7 @@
 
             // 设顶部菜单不固定
             $("#myheader").css("position", "absolute");
+            $("#divBottonTab").css('position', 'absolute');
 
 
             // 当按浏览器返回按钮时，要显示原来的数据
@@ -651,7 +652,7 @@
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
 <span id="libUserName" style="display:none">@ViewBag.LibUserName</span>
 <input id="maxNo" type="hidden" >
-<input id="resultSet" type="text" value="" disabled="disabled">
+<input id="resultSet" type="hidden" value="" disabled="disabled">
 
     <div id="divForm">
         <div class="mui-input-group">

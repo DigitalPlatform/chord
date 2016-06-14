@@ -79,7 +79,7 @@ namespace dp2weixinWeb.ApiControllers
             result.errorCode = nRet;
             result.errorInfo = strError;
 
-            return result;// repo.Add(item);
+            return result;
         }
 
         // 修改密码
@@ -91,16 +91,16 @@ namespace dp2weixinWeb.ApiControllers
         {
             ApiResult result = new ApiResult();
 
-            //string strError = "";
-            //int nRet = dp2WeiXinService.Instance.ResetPassword(libUserName,
-            //    libCode,
-            //    name,
-            //    tel,
-            //    out strError);
-            //result.errorCode = nRet;
-            //result.errorInfo = strError;
+            string strError = "";
+            int nRet = dp2WeiXinService.Instance.ChangePassword(libUserName,
+                patron,
+                oldPassword,
+                newPassword,
+                out strError);
+            result.errorCode = nRet;
+            result.errorInfo = strError;
 
-            return result;// repo.Add(item);
+            return result;
         }
 
 

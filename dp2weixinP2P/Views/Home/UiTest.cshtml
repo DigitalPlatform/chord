@@ -73,7 +73,35 @@
     </style>
 }
 
+@section Scripts {
+    <script>
+        $(document).ready(function () {
 
+            $("#input1").focus(function () {
+                alert("input1=focus");
+            });
+
+            $("#input1").blur(function () {
+                alert("input1=blur");
+            });
+
+            $("#input2").focus(function () {
+                alert("input2=focus");
+            });
+
+            $("#input2").blur(function () {
+                alert("input2=blur");
+            });
+        });
+    </script>
+}
+<div>
+
+    <input id="input1" type="password" class="mui-input-password" placeholder="">
+    <input id="input2" type="password" class="mui-input-password" placeholder="">
+    <button id='login' class="mui-btn mui-btn-block mui-btn-primary" >检索</button>
+
+</div>
 <ul class="mui-table-view">
     <li class="mui-table-view-cell">
         <a class="mui-navigate-right" href="./OverdueInfo">
@@ -136,7 +164,7 @@
                         </div>
                     </td>
                 </tr>
-            </table>            
+            </table>
         </a>
     </li>
     <li class="mui-table-view-cell">
@@ -151,7 +179,7 @@
                         </div>
                     </td>
                 </tr>
-            </table> 
+            </table>
         </a>
     </li>
     <li class="mui-table-view-cell">
@@ -180,7 +208,7 @@
                     <td style="text-align:left">交费</td>
                     <td style="text-align:right;padding-right:20px">
                         <span class="mui-badge" style="background-color:#bbbb00;color:white">3</span>
-                        <span style="border:2px dotted #ffff00; color:#555555">待交费</span>                        
+                        <span style="border:2px dotted #ffff00; color:#555555">待交费</span>
                     </td>
                 </tr>
             </table>
@@ -193,7 +221,7 @@
                     <td style="text-align:left">在借(5)</td>
                     <td style="text-align:right;padding-right:20px">
                         <span class="mui-badge" style="background-color:#990000;color:white">1</span>
-                        <span style="border:2px dotted #ff9999; color:#555555">已超期</span>                        
+                        <span style="border:2px dotted #ff9999; color:#555555">已超期</span>
                     </td>
                 </tr>
             </table>
