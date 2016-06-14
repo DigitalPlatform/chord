@@ -72,6 +72,19 @@ namespace dp2weixinWeb.Controllers
         }
 
 
+        public ActionResult ChangePassword(string code, string state)
+        {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
+            string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            WxUserItem userItem = WxUserDatabase.Current.GetActive(weiXinId);
+
+            return View(userItem);
+        }
 
 
     }

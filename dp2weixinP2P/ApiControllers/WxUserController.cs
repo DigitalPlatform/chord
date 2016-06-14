@@ -82,6 +82,28 @@ namespace dp2weixinWeb.ApiControllers
             return result;// repo.Add(item);
         }
 
+        // 修改密码
+        [HttpPost]
+        public ApiResult ChangePassword(string libUserName,
+            string patron,
+            string oldPassword,
+            string newPassword)
+        {
+            ApiResult result = new ApiResult();
+
+            //string strError = "";
+            //int nRet = dp2WeiXinService.Instance.ResetPassword(libUserName,
+            //    libCode,
+            //    name,
+            //    tel,
+            //    out strError);
+            //result.errorCode = nRet;
+            //result.errorInfo = strError;
+
+            return result;// repo.Add(item);
+        }
+
+
         // PUT api/<controller>/5
         [HttpPut]
         public void ActivePatron(string weixinId,string id)

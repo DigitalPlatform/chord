@@ -232,6 +232,7 @@
     <Content Include="Views\Patron\OverdueInfo.cshtml" />
     <Content Include="Views\Patron\BorrowInfo.cshtml" />
     <Content Include="Views\Home\UiTest.cshtml" />
+    <Content Include="Views\Account\ChangePassword.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
