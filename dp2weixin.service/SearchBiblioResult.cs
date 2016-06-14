@@ -16,6 +16,8 @@ namespace dp2weixin.service
         public long resultCount = 0;
 
         public bool isCanNext { get; set; }
+
+        public string resultSetName { get; set; }
     }
 
     public class BiblioRecord

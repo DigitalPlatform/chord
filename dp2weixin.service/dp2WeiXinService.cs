@@ -2132,7 +2132,8 @@ namespace dp2weixin.service
         /// <returns></returns>
         public SearchBiblioResult SearchBiblio(string remoteUserName,
             string strFrom,
-            string strWord)
+            string strWord,
+            string resultSet)
         {
             SearchBiblioResult searchRet = new SearchBiblioResult();
             searchRet.apiResult = new ApiResult();
@@ -2165,7 +2166,9 @@ namespace dp2weixin.service
             long lRet =this.SearchBiblio(remoteUserName,
                 strFrom,
                 strWord,
+                resultSet,
                 0,
+                WeiXinConst.C_OnePage_Count,
                 out records,
                 out bNext,
                 out strError);
@@ -2184,7 +2187,7 @@ namespace dp2weixin.service
             return searchRet;
         }
 
-        public SearchBiblioResult getOnePage(string remoteUserName, string start)
+        public SearchBiblioResult getFromResultSet(string remoteUserName, string resultSet,long start,long count)
         {
 
             SearchBiblioResult searchRet = new SearchBiblioResult();
@@ -2194,23 +2197,6 @@ namespace dp2weixin.service
             searchRet.records = new List<BiblioRecord>();
             searchRet.isCanNext = false;
 
-            int nStart = 0;
-            try
-            {
-                nStart = Convert.ToInt32(start);
-                if (nStart < 0)
-                {
-                    searchRet.apiResult.errorCode = -1;
-                    searchRet.apiResult.errorInfo = "传入的起始位置[" + start + "]格式不正确，必须是>=0。";
-                    return searchRet;
-                }
-            }
-            catch
-            {
-                searchRet.apiResult.errorCode = -1;
-                searchRet.apiResult.errorInfo = "传入的起始位置[" + start + "]格式不正确，必须是数值。";
-                return searchRet;
-            }
 
             string strError = "";
             List<BiblioRecord> records = null;
@@ -2218,7 +2204,9 @@ namespace dp2weixin.service
             long lRet = this.SearchBiblio(remoteUserName,
                  "",
                  "!getResult",
-                 nStart,
+                 resultSet,
+                 start,
+                 count,
                  out records,
                  out bNext,
                  out strError);
@@ -2247,7 +2235,9 @@ namespace dp2weixin.service
         public long SearchBiblio(string remoteUserName,
             string strFrom,
             string strWord,
+            string resultSet,
             long start,
+            long count,
             out List<BiblioRecord> records,
             out bool bNext,
             out string strError)
@@ -2257,7 +2247,7 @@ namespace dp2weixin.service
             bNext = false;
 
             //long start = 0;
-            long count = 10;
+            //long count = 10;
             try
             {
 
@@ -2269,7 +2259,7 @@ namespace dp2weixin.service
                     strWord,
                     strFrom,
                     "middle",
-                    "weixin",
+                    resultSet,//"weixin",
                     "id,cols",
                     WeiXinConst.C_Search_MaxCount,  //最大数量
                     start,  //每次获取范围

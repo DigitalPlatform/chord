@@ -13,6 +13,7 @@
 
         //用于获取图书馆
         function getAllLib() {
+
             //显示等待图层
             var index = loadLayer();
 
@@ -140,17 +141,21 @@
         $(document).ready(function () {
 
             //alert("ready");
+            //var isFirst1 = $("#isFirst1").val();
+            //if (isFirst1 == "1") {
+            //    $("#isFirst1").val("0");
+            //    alert("isFirst1");
+            //}
+
+            // 为了记住上次选择的图书馆，这里不能
             //获取图书馆列表
-            getAllLib();
+            //getAllLib();
 
             // 获取预约列表
             getReservations();
 
             //绑定观察模块
             ko.applyBindings(model);
-
-            // test
-            //getReservationState();
 
             // 密码框打回车时，进行绑定
             $('#txtWord').bind('keypress', function (event) {
@@ -161,9 +166,16 @@
                 }
             });
 
-            // 设一下style
-            $("#myheader").css("position", "absolute");  //设置p元素的样式颜色为红色
+            // 设顶部菜单不固定
+            $("#myheader").css("position", "absolute");
 
+
+            // 当按浏览器返回按钮时，要显示原来的数据
+            var word = $('#txtWord').val();
+            if (word != "") {
+                //alert("maxNo=" + $("#maxNo").val());
+                search("_ReView");
+            }
         });
 
 
@@ -191,7 +203,11 @@
 
             if (bNext == 'true') {
                 from = "_N";
-                word = $("#maxNo").text();
+                word = $("#maxNo").val();
+            }
+            else if (bNext == '_ReView') {
+                from = "_ReView";
+                word = $("#maxNo").val();
             }
             else {
 
@@ -215,12 +231,24 @@
 
             }
 
+            //resultSet
+            var resultSet = $("#resultSet").val();  //如果为空，服务器生成一个
+            //if (resultSet == "")
+            //{
+            //    alert("异常情况：结果集值为空。");
+            //    return;
+            //}
+
+
             // 调检索接口
             //显示等待图层
             var index = loadLayer();
 
             // 调web api
-            var url = "/api/biblio?libUserName=" + encodeURIComponent(libUserName) + "&from=" + encodeURIComponent(from) + "&word=" + encodeURIComponent(word);
+            var url = "/api/biblio?libUserName=" + encodeURIComponent(libUserName)
+                + "&from=" + encodeURIComponent(from)
+                + "&word=" + encodeURIComponent(word)
+                + "&resultSet=" + encodeURIComponent(resultSet);
             sendAjaxRequest(url, "GET",
                 function (result) {
 
@@ -266,7 +294,8 @@
                         table.append(li);
 
                         if (i == result.records.length - 1) {
-                            $("#maxNo").text(record.no);
+                            $("#maxNo").val(record.no);
+                            $("#resultSet").val(result.resultSetName);
                         }
                     }
 
@@ -434,13 +463,13 @@
             //alert("[" + reservationState + "]");
             var btn = "";
             if (reservationState == "未预约") {
-                btn = "<button class='mui-btn  mui-btn-primary'  onclick=\"reservation(this,'" + barcode + "','new')\">预约该册</button>";
+                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','new')\">预约该册</button>";
             }
             else if (reservationState == "已预约") {
-                btn = "<button class='mui-btn  mui-btn-primary'  onclick=\"reservation(this,'" + barcode + "','delete')\">取消预约</button>";
+                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','delete')\">取消预约</button>";
             }
             else if (reservationState == "已到书") {
-                btn = "<button class='mui-btn  mui-btn-primary'  onclick=\"reservation(this,'" + barcode + "','delete')\">放弃取书</button>";
+                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','delete')\">放弃取书</button>";
             }
             if (reservationState != "") {
                 myReserHtml = "<span style='vertical-align:middle;font-weight:bold''>" + reservationState + "&nbsp;&nbsp;</span><span style='vertical-align:middle'>" + btn + "</span>";
@@ -619,18 +648,21 @@
     <h1 class="mui-title">书目查询</h1>
     }
 <span id="spanLibCode" style="display:none">@ViewBag.LibCode</span>
-<span id="maxNo" style="display:none"></span>
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
 <span id="libUserName" style="display:none">@ViewBag.LibUserName</span>
-
+<input id="maxNo" type="hidden" >
+<input id="resultSet" type="hidden" value="" disabled="disabled">
 
     <div id="divForm">
         <div class="mui-input-group">
             <div class="mui-input-row ">
                 <label style="color:#cccccc;">图书馆</label>
+                @Html.Raw(ViewBag.LibHtml)
+                <!--
                 <select id="selLib" style="padding-left: 0px;width: 65%" data-bind="options:librarys,optionsText:function(item) {
                        return  item.libName; },optionsValue:function(item) {
                        return item.libCode + '*' + item.libUserName; },optionsCaption:'请选择 图书馆',value:selectedLib"></select>
+                -->
             </div>
 
             <div class="mui-input-row ">

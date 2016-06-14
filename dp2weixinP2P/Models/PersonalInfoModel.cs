@@ -72,10 +72,12 @@ namespace dp2weixinWeb.Models
         //在借 超期数量
         public int BorrowCount { get; set; }
         public int CaoQiCount { get; set; }
+        public string BorrowCountHtml { get; set; }
 
         //在借 超期数量
         public int ReservationCount { get; set; }
         public int DaoQiCount { get; set; }
+        public string ReservationCountHtml { get; set; }
     }
 
 

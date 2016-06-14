@@ -356,6 +356,7 @@ namespace dp2weixinWeb.Controllers
             // 在借
             nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
             model.BorrowCount = nodes.Count;
+            model.BorrowCountHtml = ConvertToString(model.BorrowCount);
             int caoQiCount = 0;
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -371,6 +372,7 @@ namespace dp2weixinWeb.Controllers
             // 预约
             nodes = dom.DocumentElement.SelectNodes("reservations/request");
             model.ReservationCount = nodes.Count;
+            model.ReservationCountHtml = ConvertToString(model.ReservationCount);
             int daoQiCount = 0;
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -385,6 +387,20 @@ namespace dp2weixinWeb.Controllers
 
             // 返回读者信息对象
             return model;
+        }
+
+        public string ConvertToString(int num)
+        {
+            string text = "";
+            if (num > 0 && num <= 5)
+            {
+                text = "<span class='leftNum'>" + "▪".PadRight(num, '▪') + "</span>";
+            }
+            else
+            {
+                text = num.ToString();
+            }
+            return text;
         }
 
         private string RemoveWeiXinId(string email)

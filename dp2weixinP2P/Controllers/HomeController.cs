@@ -214,5 +214,13 @@ namespace dp2weixinWeb.Controllers
 
             return View();
         }
+
+
+        //UiTest
+        public ActionResult UiTest()
+        {
+            return View();
+        }
+
 	}
 }

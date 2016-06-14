@@ -44,6 +44,21 @@ namespace dp2weixinWeb.Controllers
                 }
                  */
             }
+            //ViewBag.IsFirst = "1";
+            ViewBag.ResultSetName = "weixin-" + Guid.NewGuid().ToString();
+
+            List<LibItem> list = LibDatabase.Current.GetLibs();//"*", 0, -1).Result;
+            var opt = "<option value=''>请选择 图书馆</option>";
+            for (var i = 0; i < list.Count; i++)
+            {var item = list[i];
+                string selectedString = "";
+                if (userItem != null && userItem.libUserName==item.libUserName)
+                {
+                    selectedString = " selected='selected' ";
+                }                
+                opt += "<option value='" + item.libCode + '*' + item.libUserName + "' "+selectedString+">" + item.libName + "</option>";
+            }
+            ViewBag.LibHtml = "<select id='selLib' style='padding-left: 0px;width: 65%' data-bind=\"optionsCaption:'请选择 图书馆',value:selectedLib\">" + opt + "</select>";
 
             return View();
         }

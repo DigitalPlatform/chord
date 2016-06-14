@@ -231,6 +231,7 @@
     <Content Include="Views\Patron\PersonalInfo.cshtml" />
     <Content Include="Views\Patron\OverdueInfo.cshtml" />
     <Content Include="Views\Patron\BorrowInfo.cshtml" />
+    <Content Include="Views\Home\UiTest.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

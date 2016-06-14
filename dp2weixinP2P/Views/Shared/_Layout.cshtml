@@ -100,6 +100,9 @@
                         <li>
                             <a href="~/home/Setting">参数设置</a>
                         </li>
+                        <li>
+                            <a href="~/home/UiTest">参数设置</a>
+                        </li>                        
                     }
                 </ul>
                 <div class="tiggle"></div>
@@ -167,6 +170,21 @@
 
             //$("#idTest").html(" 是否为iPhone: " + browser.versions.iPhone);
 
+            //$(window).scroll(function () {
+            //    alert("scroll");
+            //    /*
+            //    //获取滚动条的滑动距离
+            //    var scroH = $(this).scrollTop();
+            //    //滚动条的滑动距离大于等于定位元素距离浏览器顶部的距离，就固定，反之就不固定
+            //    if (scroH >= navH) {
+            //        $(".nav").css({ "position": "fixed", "top": 0 });
+
+            //    } else if (scroH < navH) {
+            //        $(".nav").css({ "position": "static" });
+            //    }
+            //    */
+            //});
+
             if (browser.versions.iPhone == true) {
                 $("input").focus(function () {
                     showTopBottom(false);
@@ -183,6 +201,11 @@
                     window.setTimeout("showTopBottom(true)", 1);
                     //showTopBottom(true);
                 });
+
+
+
+
+
             }
             else {
                 // 非iphone时，浏览器窗口变矮时，隐藏头尾栏

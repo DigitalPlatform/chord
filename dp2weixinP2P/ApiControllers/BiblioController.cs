@@ -13,19 +13,69 @@ namespace dp2weixinWeb.ApiControllers
     public class BiblioController : ApiController
     {
         // GET api/<controller>
-        public SearchBiblioResult Get(string libUserName, string from, string word)
+        public SearchBiblioResult Get(string libUserName, string from, string word, string resultSet)
         {
+            SearchBiblioResult searchRet = new SearchBiblioResult();
+            if (String.IsNullOrEmpty(resultSet) == true)
+                resultSet = "weixin-" + Guid.NewGuid();
+
             // 取下一页的情况
-            if (from == "_N")
+            if (from == "_N" || from == "_ReView")
             {
-                return dp2WeiXinService.Instance.getOnePage(libUserName, word);
+                searchRet.apiResult = new ApiResult();
+                long num = 0;
+                try
+                {
+                    num = Convert.ToInt32(word);
+                    if (num < 0)
+                    {
+                        searchRet.apiResult.errorCode = -1;
+                        searchRet.apiResult.errorInfo = "传入的word值[" + word + "]格式不正确，必须是>=0。";
+                        goto END1;
+                    }
+                }
+                catch
+                {
+                    searchRet.apiResult.errorCode = -1;
+                    searchRet.apiResult.errorInfo = "传入的word值[" + word + "]格式不正确，必须是数值。";
+                    goto END1;
+                }
+
+                if (from == "_N")
+                {
+                    //word值表示起始位置
+                    searchRet= dp2WeiXinService.Instance.getFromResultSet(libUserName, resultSet, num, WeiXinConst.C_OnePage_Count);
+                    goto END1;
+                }
+                else if (from == "_ReView")
+                {
+                    if (resultSet.Substring(0, 1) == "#")
+                        resultSet = resultSet.Substring(1);
+
+                    // 重新显示，此时word代表数量
+                    searchRet= dp2WeiXinService.Instance.getFromResultSet(libUserName, resultSet, 0, num);
+                    goto END1;
+
+                }
+                else
+                {
+                    searchRet.apiResult.errorCode = -1;
+                    searchRet.apiResult.errorInfo = "不支持的from[" + from + "]";
+                    goto END1;
+                }
             }
             else
             {
-                return dp2WeiXinService.Instance.SearchBiblio(libUserName,
+                searchRet= dp2WeiXinService.Instance.SearchBiblio(libUserName,
                      from,
-                     word);
+                     word,
+                     resultSet);
+                goto END1;
             }
+
+        END1:
+            searchRet.resultSetName = resultSet;
+            return searchRet;
         }
 
         public string GetBiblio(string id, [FromUri] string format, string libUserName)
