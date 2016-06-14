@@ -120,6 +120,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
     </Reference>
+    <Reference Include="zxing, Version=1.0.4727.18517, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ZXing.2.1.1\lib\net20\zxing.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\weixin_data\weixin.xml" />
@@ -138,6 +142,7 @@
     <Content Include="img\empty3.png" />
     <Content Include="img\empty.jpg" />
     <Content Include="img\emptyBind.png" />
+    <Content Include="img\error.jpg" />
     <Content Include="img\library.jpg" />
     <Content Include="img\nonePhoto.png" />
     <Content Include="img\empty2.jpg" />
@@ -233,6 +238,7 @@
     <Content Include="Views\Patron\BorrowInfo.cshtml" />
     <Content Include="Views\Home\UiTest.cshtml" />
     <Content Include="Views\Account\ChangePassword.cshtml" />
+    <Content Include="Views\Patron\QRcode.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

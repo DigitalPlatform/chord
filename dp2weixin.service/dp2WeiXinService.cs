@@ -42,7 +42,7 @@ namespace dp2weixin.service
         public bool bTrace = false;
 
         // 微信web程序url
-        public string opacUrl = "";
+        //public string opacUrl = "";
 
 
         // dp2消息处理类
@@ -117,7 +117,7 @@ namespace dp2weixin.service
 
             // 取出微信配置信息
             XmlNode nodeDp2weixin = root.SelectSingleNode("dp2weixin");
-            this.opacUrl = DomUtil.GetAttr(nodeDp2weixin, "opacUrl"); //WebConfigurationManager.AppSettings["weiXinUrl"];
+            //this.opacUrl = DomUtil.GetAttr(nodeDp2weixin, "opacUrl"); //WebConfigurationManager.AppSettings["weiXinUrl"];
             this.weiXinAppId = DomUtil.GetAttr(nodeDp2weixin, "AppId"); //WebConfigurationManager.AppSettings["weiXinAppId"];
             this.weiXinSecret = DomUtil.GetAttr(nodeDp2weixin, "Secret"); //WebConfigurationManager.AppSettings["weiXinSecret"];
             string trace = DomUtil.GetAttr(nodeDp2weixin, "trace");
@@ -1769,7 +1769,6 @@ namespace dp2weixin.service
             out string strError)
         {
             strError = "";
-
             // 注意新旧两个密码参数即便为空，也应该是 "" 而不应该是 null。
             // 所以在使用 Item 参数的时候，old 和 new 两个子参数的任何一个都不该被省略。
             // 省略子参数的用法是有意义的，但不该被用在这个修改读者密码的场合。
@@ -1807,6 +1806,68 @@ namespace dp2weixin.service
                     return 0;
                 }
 
+                return (int)result.Value;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+
+
+        ERROR1:
+            return -1;
+        }
+
+        public int GetQRcode(string remoteUserName,
+            string patronBarcode,
+            out string code,
+            out string strError)
+        {
+            strError = "";
+            code = "";
+
+            //Operation:verifyPassword
+            //Patron: !getpatrontempid:R0000001
+            //Item:
+            //ResultValue返回1表示成功，-1或0表示不成功。
+            //成功的情况下，ErrorInfo成员里面返回了二维码字符串，形如” PQR:R0000001@00JDURE5FT1JEOOWGJV0R1JXMYI”
+
+            string patron = "!getpatrontempid:" + patronBarcode;
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            CirculationRequest request = new CirculationRequest(id,
+                "verifyPassword",
+                patron,
+                "",
+                "",//this.textBox_circulation_style.Text,
+                "",//this.textBox_circulation_patronFormatList.Text,
+                "",//this.textBox_circulation_itemFormatList.Text,
+                "");//this.textBox_circulation_biblioFormatList.Text);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                    this.dp2MServerUrl,
+                    remoteUserName).Result;
+                CirculationResult result = connection.CirculationAsync(
+                    remoteUserName,
+                    request,
+                    new TimeSpan(0, 1, 10), // 10 秒
+                    cancel_token).Result;
+                if (result.Value == -1 || result.Value == 0)
+                {
+                    strError = "出错：" + result.ErrorInfo;
+                    return (int)result.Value;
+                }
+
+                // 成功
+                code = result.ErrorInfo;
                 return (int)result.Value;
             }
             catch (AggregateException ex)
@@ -2919,9 +2980,10 @@ namespace dp2weixin.service
                 if (string.IsNullOrEmpty(strDisableClass) == false && strBarcode != strArrivedItemBarcode)
                     strClass = " class='" + strDisableClass + "' ";
 
-                string strBarcodeLink = "<a " + strClass
-                    + " href='" + this.opacUrl + "/book.aspx?barcode=" + strBarcode + "'   target='_blank' " + ">" + strBarcode + "</a>";
+                //string strBarcodeLink = "<a " + strClass
+                //    + " href='" + this.opacUrl + "/book.aspx?barcode=" + strBarcode + "'   target='_blank' " + ">" + strBarcode + "</a>";
 
+                string strBarcodeLink = strBarcode;
                 strSummary += "<div>" + strBarcodeLink + strOneSummary + "</div>";
 
                 //var strOneSummaryOverflow = "<div style='width:100%;white-space:nowrap;overflow:hidden; text-overflow:ellipsis;'  title='" + strOneSummary + "'>"
@@ -3224,10 +3286,11 @@ namespace dp2weixin.service
                 borrowInfo.renewComment = strRenewComment;
                 borrowInfo.overdue = strOverdueInfo;
                 borrowInfo.returnDate = strTimeReturning;
-                if (string.IsNullOrEmpty(this.opacUrl) == false)
-                    borrowInfo.barcodeUrl = this.opacUrl + "/book.aspx?barcode=" + strBarcode;
-                else
-                    borrowInfo.barcodeUrl = "";
+                //if (string.IsNullOrEmpty(this.opacUrl) == false)
+                //    borrowInfo.barcodeUrl = this.opacUrl + "/book.aspx?barcode=" + strBarcode;
+                //else
+                //    borrowInfo.barcodeUrl = "";
+                borrowInfo.barcodeUrl = "";
                 borrowInfo.rowCss = rowCss;
                 borrowList.Add(borrowInfo);
 
@@ -3275,10 +3338,11 @@ namespace dp2weixin.service
 
                     OverdueInfo overdueInfo = new OverdueInfo();
                     overdueInfo.barcode = strBarcode;
-                    if (string.IsNullOrEmpty(this.opacUrl) == false)
-                        overdueInfo.barcodeUrl = this.opacUrl + "/book.aspx?barcode=" + strBarcode;
-                    else
-                        overdueInfo.barcodeUrl = "";
+                    //if (string.IsNullOrEmpty(this.opacUrl) == false)
+                    //    overdueInfo.barcodeUrl = this.opacUrl + "/book.aspx?barcode=" + strBarcode;
+                    //else
+                    //    overdueInfo.barcodeUrl = "";
+                    overdueInfo.barcodeUrl = "";
                     overdueInfo.reason = strOver;
                     overdueInfo.price = strPrice;
                     overdueInfo.pauseInfo = strPauseInfo;
@@ -3383,9 +3447,15 @@ namespace dp2weixin.service
 
                 if (strResult != "")
                     strResult += strSep;
+
+                //strResult += "<a "
+                //    + (string.IsNullOrEmpty(strDisableClass) == false && strBarcode != strArrivedItemBarcode ? "class='" + strDisableClass + "'" : "")
+                //    + " href='"+this.opacUrl+ "/book.aspx?barcode=" + strBarcode+"'  target='_blank' " + ">" + strBarcode + "</a>";  
+
                 strResult += "<a "
-                    + (string.IsNullOrEmpty(strDisableClass) == false && strBarcode != strArrivedItemBarcode ? "class='" + strDisableClass + "'" : "")
-                    + " href='"+this.opacUrl+ "/book.aspx?barcode=" + strBarcode+"'  target='_blank' " + ">" + strBarcode + "</a>";  //" +  + " todo改为实际的地址
+    + (string.IsNullOrEmpty(strDisableClass) == false && strBarcode != strArrivedItemBarcode ? "class='" + strDisableClass + "'" : "")
+    + " href='#" + ">" + strBarcode + "</a>";  
+
             }
 
             return strResult;

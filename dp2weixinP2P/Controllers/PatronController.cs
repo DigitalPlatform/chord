@@ -1,11 +1,17 @@
-﻿using DigitalPlatform.IO;
+﻿using com.google.zxing;
+using com.google.zxing.common;
+using DigitalPlatform.IO;
 using DigitalPlatform.Xml;
 using dp2Command.Service;
 using dp2weixin.service;
 using dp2weixinWeb.Models;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using System.Xml;
@@ -52,6 +58,150 @@ namespace dp2weixinWeb.Controllers
 
         #endregion
 
+        public MemoryStream GetErrorImg(string strError)
+        {
+            Bitmap bmp = new Bitmap(210, 110);
+            Graphics g = Graphics.FromImage(bmp);
+            g.Clear(Color.White);
+
+
+            Font font = SystemFonts.DefaultFont;
+            Brush fontBrush = Brushes.Red;// SystemBrushes.ControlText;
+            StringFormat sf = new StringFormat();
+            sf.Alignment = StringAlignment.Center;
+            sf.LineAlignment = StringAlignment.Center;
+            Rectangle rect = new Rectangle(2, 2, 200, 100);
+            g.DrawString(strError, font, fontBrush, rect, sf);
+
+            //g.FillRectangle(Brushes.Red, 2, 2, 100, 100);
+            //g.DrawString(strError, new Font("微软雅黑", 10f), Brushes.Black, new PointF(5f, 5f));
+
+            MemoryStream ms = new MemoryStream();
+            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+            g.Dispose();
+            bmp.Dispose();
+
+            return ms;
+        }
+
+        public ActionResult GetPhoto(string libUserName, string type, string barcode)
+        {
+            MemoryStream ms = null;
+            string strError = "";
+
+            string strWidth = Request.QueryString["width"];
+            string strHeight = Request.QueryString["height"];
+            int nWidth = 0;
+            if (string.IsNullOrEmpty(strWidth) == false)
+            {
+                if (Int32.TryParse(strWidth, out nWidth) == false)
+                {
+                    strError = "width 参数 '" + strWidth + "' 格式不合法";
+                    goto ERROR1;
+                }
+            }
+            int nHeight = 0;
+            if (string.IsNullOrEmpty(strHeight) == false)
+            {
+                if (Int32.TryParse(strHeight, out nHeight) == false)
+                {
+                    strError = "height 参数 '" + strHeight + "' 格式不合法";
+                    goto ERROR1;
+                }
+            }
+
+            if (type == "pqri")
+            {
+                // 读者证号二维码
+                string strCode = "";
+                // 获得读者证号二维码字符串
+                int nRet = dp2WeiXinService.Instance.GetQRcode(libUserName,
+                    barcode,
+                    out strCode,
+                    out strError);
+                if (nRet == -1 || nRet==0)
+                    goto ERROR1;    // 把出错信息作为图像返回
+
+
+
+
+                ms = this.GetQrImage(strCode,
+                    nWidth,
+                    nHeight,
+                    out strError);
+                if (strError != "")
+                    goto ERROR1;
+
+                return File(ms.ToArray(), "image/jpeg");  
+            }
+
+            ms = this.GetErrorImg("不支持");
+            return File(ms.ToArray(), "image/jpeg");  
+
+        ERROR1:
+
+            ms = this.GetErrorImg(strError);
+            return File(ms.ToArray(), "image/jpeg");              
+        }
+
+        public MemoryStream GetQrImage(
+            string strCode,
+            int nWidth,
+            int nHeight,
+            out string strError)
+        {
+            strError = "";
+            try
+            {
+                if (nWidth <= 0)
+                    nWidth = 300;
+                if (nHeight <= 0)
+                    nHeight = 300;
+
+                MultiFormatWriter writer = new MultiFormatWriter(); //BarcodeWriter
+                ByteMatrix bm = writer.encode(strCode, BarcodeFormat.QR_CODE, nWidth, nHeight);// 300, 300);
+                using (Bitmap img = bm.ToBitmap())
+                {
+                    MemoryStream ms = new MemoryStream();
+                    img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    return ms;
+                }
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return null;
+            }
+        }
+        
+        //qrcode
+        public ActionResult QRcode(string code, string state)
+        {          
+            string strError = "";
+            string strXml = "";
+            WxUserItem activeUserItem = null;
+            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
+            if (nRet == -1 || nRet == 0)
+                return Content(strError);
+
+            if (nRet == -2)// 未绑定的情况，转到绑定界面
+            {
+                return RedirectToAction("Bind", "Account");
+            }
+            // 没有设置默认账户，转到帐户管理界面
+            if (nRet == -3)
+            {
+                return RedirectToAction("Index", "Account");
+            }
+
+            string qrcodeUrl = "./getphoto?libUserName=" + HttpUtility.UrlEncode(activeUserItem.libUserName)
+                + "&type=pqri"
+                + "&barcode=" + HttpUtility.UrlEncode(activeUserItem.readerBarcode)
+                + "&width=400&height=400";
+            ViewBag.qrcodeUrl = qrcodeUrl;
+            return View(activeUserItem);
+        }
+
         public ActionResult PersonalInfo(string code, string state)
         {
             string strError = "";
@@ -71,7 +221,7 @@ namespace dp2weixinWeb.Controllers
                 return RedirectToAction("Index", "Account");
             }
 
-            PersonalInfoModel model = this.ParseXml(strXml);
+            PersonalInfoModel model = this.ParseXml(activeUserItem.libUserName,strXml);
             return View(model);
         }
 
@@ -216,7 +366,7 @@ namespace dp2weixinWeb.Controllers
 
 
 
-        private PersonalInfoModel ParseXml(string strXml)
+        private PersonalInfoModel ParseXml(string libUserName,string strXml)
         {
             PersonalInfoModel model = new PersonalInfoModel();
             XmlDocument dom = new XmlDocument();
@@ -234,10 +384,9 @@ namespace dp2weixinWeb.Controllers
             model.displayName = strDisplayName;
 
             // 二维码
-            string opacUrl =dp2WeiXinService.Instance.opacUrl;
-            string qrcodeUrl = "";
-            if (String.IsNullOrEmpty(opacUrl) == false)
-                qrcodeUrl = opacUrl + "/getphoto.aspx?action=pqri&barcode=" + HttpUtility.UrlEncode(strBarcode);
+            string qrcodeUrl = "./getphoto?libUserName=" + HttpUtility.UrlEncode(libUserName)
+                + "&type=pqri"
+                + "&barcode=" + HttpUtility.UrlEncode(strBarcode);
             model.qrcodeUrl = qrcodeUrl;
 
             // 姓名
@@ -343,8 +492,8 @@ namespace dp2weixinWeb.Controllers
 
             //头像
             string imageUrl = "";
-            if (String.IsNullOrEmpty(opacUrl) == false)
-                imageUrl=opacUrl+ "/getphoto.aspx?barcode=" + strBarcode;
+            //if (String.IsNullOrEmpty(opacUrl) == false)
+            //    imageUrl=opacUrl+ "/getphoto.aspx?barcode=" + strBarcode;
             model.imageUrl = imageUrl;
 
 

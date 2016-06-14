@@ -941,7 +941,7 @@ namespace dp2weixin
                 {
                     Title = DomUtil.GetNodeText(node.SelectSingleNode("Title")),
                     Description = DomUtil.GetNodeText(node.SelectSingleNode("Description")),
-                    PicUrl = this.CmdService.opacUrl + DomUtil.GetNodeText(node.SelectSingleNode("PicUrl")),
+                    PicUrl = DomUtil.GetNodeText(node.SelectSingleNode("PicUrl")),//this.CmdService.opacUrl + DomUtil.GetNodeText(node.SelectSingleNode("PicUrl")),
                     Url = DomUtil.GetNodeText(node.SelectSingleNode("Url"))
                 });
             }
@@ -979,7 +979,7 @@ namespace dp2weixin
                 article.Description = DomUtil.GetNodeText(node.SelectSingleNode("Description"));
                 string picUrl = DomUtil.GetNodeText(node.SelectSingleNode("PicUrl"));
                 if (String.IsNullOrEmpty(picUrl) == false)
-                    article.PicUrl = this.CmdService.opacUrl + picUrl;
+                    article.PicUrl = picUrl; //this.CmdService.opacUrl + picUrl;
                 article.Url = DomUtil.GetNodeText(node.SelectSingleNode("Url"));
                 responseMessage.Articles.Add(article);
             }
