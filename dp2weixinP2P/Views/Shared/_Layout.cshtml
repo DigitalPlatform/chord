@@ -25,13 +25,6 @@
         @RenderSection("header", required: false)
     </header>
 
-
-
-    <div class="mui-content" style="padding-top:50px">
-        <span id="idTest" style="display:block"></span>
-        <!--部分页占位符 -->
-        @RenderBody()
-    </div>
     <div class="btn3 clearfix" id="divBottonTab">
         <div class="menu">
             <div class="bt-name">资源</div>
@@ -57,11 +50,11 @@
                     -->
                     @if (Session[dp2weixin.service.WeiXinConst.C_Session_IsBind] != null && (int)Session[dp2weixin.service.WeiXinConst.C_Session_IsBind] == 1)
                     {
-                    <li><a href="~/Account/Index">账号管理</a></li>
+                        <li><a href="~/Account/Index">账号管理</a></li>
                     }
                     else
                     {
-                    <li><a href="~/Account/Bind">绑定账号</a></li>
+                        <li><a href="~/Account/Bind">绑定账号</a></li>
                     }
                     <li><a href="~/Account/ResetPassword">找回密码</a></li>
                     <li><a href="~/Patron/QRcode">二维码</a></li>
@@ -86,24 +79,24 @@
                     </li>
                     @if (Session["userType"] == "admin")
                     {
-                    <li>
-                        <a href="~/home/LibraryM">图书馆管理</a>
-                    </li>
-                    <li>
-                        <a href="~/home/WeixinUser">用户管理</a>
-                    </li>
-                    <li>
-                        <a href="~/home/WeixinMessage">微信消息</a>
-                    </li>
-                    <li>
-                        <a href="~/Menu/Index">微信菜单</a>
-                    </li>
-                    <li>
-                        <a href="~/home/Setting">参数设置</a>
-                    </li>
-                    <li>
-                        <a href="~/home/UiTest">UI 测试</a>
-                    </li>
+                        <li>
+                            <a href="~/home/LibraryM">图书馆管理</a>
+                        </li>
+                        <li>
+                            <a href="~/home/WeixinUser">用户管理</a>
+                        </li>
+                        <li>
+                            <a href="~/home/WeixinMessage">微信消息</a>
+                        </li>
+                        <li>
+                            <a href="~/Menu/Index">微信菜单</a>
+                        </li>
+                        <li>
+                            <a href="~/home/Setting">参数设置</a>
+                        </li>
+                        <li>
+                            <a href="~/home/UiTest">UI 测试</a>
+                        </li>
                     }
                 </ul>
                 <div class="tiggle"></div>
@@ -112,6 +105,13 @@
 
         </div>
     </div>
+
+    <div class="mui-content" style="padding-top:50px">
+        <span id="idTest" style="display:block"></span>
+        <!--部分页占位符 -->
+        @RenderBody()
+    </div>
+
     <script>
         //弹出垂直菜单
         $(".menu").click(function () {
@@ -164,26 +164,21 @@
             //browser.versions.iPhone
             if (browser.versions.iPhone == true) {
                 $("input").focus(function () {
-                    bShowTopBottom = false;
-                    //showTopBottom(false);
+                    setShowValue(false);
                     window.setTimeout("showTopBottom()", 1);
                 });
                 $("input").blur(function () {                   
-                    bShowTopBottom = true;
+                    setShowValue(true);
                     window.setTimeout("showTopBottom()", 1);
-                    //showTopBottom(true);
                 });
 
                 $("select").focus(function () {
-                    bShowTopBottom = false;
-
-                    //showTopBottom(false);
+                    setShowValue(false);
                     window.setTimeout("showTopBottom()", 1);
                 });
                 $("select").blur(function () {
-                    bShowTopBottom = true;
+                    setShowValue(true);
                     window.setTimeout("showTopBottom(true)", 1);
-                    //showTopBottom(true);
                 });
             }
             else {
@@ -209,10 +204,21 @@
             }
         }
 
+        // 设置是否显示头尾参数的值，同时改变背景
+        function setShowValue(value)
+        {
+            bShowTopBottom = value;
+            if (bShowTopBottom == true) {
+                $('body').css('background-color', 'green');
+            }
+            else {
+                $('body').css('background-color', 'red');
+            }
+        }
+
+        // 真正做事，隐藏或显示头尾菜单
         var bShowTopBottom = true;
         function showTopBottom() {
-
-
             if (bShowTopBottom == true) {
                 $("#divBottonTab").css('display', 'block');
                 $("#myheader").css('display', 'block');
