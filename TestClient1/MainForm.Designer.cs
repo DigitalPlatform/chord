@@ -130,6 +130,19 @@
             this.button_message_send = new System.Windows.Forms.Button();
             this.button_message_load = new System.Windows.Forms.Button();
             this.webBrowser_message = new System.Windows.Forms.WebBrowser();
+            this.tabPage_getRes = new System.Windows.Forms.TabPage();
+            this.comboBox_getRes_operation = new System.Windows.Forms.ComboBox();
+            this.label42 = new System.Windows.Forms.Label();
+            this.textBox_getRes_remoteUserName = new System.Windows.Forms.TextBox();
+            this.label48 = new System.Windows.Forms.Label();
+            this.textBox_getRes_path = new System.Windows.Forms.TextBox();
+            this.label43 = new System.Windows.Forms.Label();
+            this.textBox_getRes_style = new System.Windows.Forms.TextBox();
+            this.label44 = new System.Windows.Forms.Label();
+            this.textBox_getRes_length = new System.Windows.Forms.TextBox();
+            this.label45 = new System.Windows.Forms.Label();
+            this.textBox_getRes_start = new System.Windows.Forms.TextBox();
+            this.label47 = new System.Windows.Forms.Label();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
@@ -147,6 +160,7 @@
             this.splitContainer_message.Panel1.SuspendLayout();
             this.splitContainer_message.Panel2.SuspendLayout();
             this.splitContainer_message.SuspendLayout();
+            this.tabPage_getRes.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_main)).BeginInit();
             this.splitContainer_main.Panel1.SuspendLayout();
@@ -204,6 +218,7 @@
             this.tabControl_main.Controls.Add(this.tabPage_setInfo);
             this.tabControl_main.Controls.Add(this.tabPage_circulation);
             this.tabControl_main.Controls.Add(this.tabPage_message);
+            this.tabControl_main.Controls.Add(this.tabPage_getRes);
             this.tabControl_main.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl_main.Location = new System.Drawing.Point(0, 0);
             this.tabControl_main.Name = "tabControl_main";
@@ -317,7 +332,8 @@
             "getPatronInfo",
             "getBiblioInfo",
             "getItemInfo",
-            "getBrowseRecords"});
+            "getBrowseRecords",
+            "getUserInfo"});
             this.comboBox_getInfo_method.Location = new System.Drawing.Point(132, 10);
             this.comboBox_getInfo_method.Name = "comboBox_getInfo_method";
             this.comboBox_getInfo_method.Size = new System.Drawing.Size(161, 20);
@@ -455,6 +471,7 @@
             "getBiblioSummary",
             "getItemInfo",
             "getBrowseRecords",
+            "getUserInfo",
             "GetConnectionInfo"});
             this.comboBox_search_method.Location = new System.Drawing.Point(130, 6);
             this.comboBox_search_method.Name = "comboBox_search_method";
@@ -1092,7 +1109,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 38);
             this.textBox_message_timeRange.Name = "textBox_message_timeRange";
-            this.textBox_message_timeRange.Size = new System.Drawing.Size(324, 21);
+            this.textBox_message_timeRange.Size = new System.Drawing.Size(332, 21);
             this.textBox_message_timeRange.TabIndex = 41;
             // 
             // label39
@@ -1111,7 +1128,7 @@
             this.textBox_message_text.Location = new System.Drawing.Point(54, 65);
             this.textBox_message_text.Multiline = true;
             this.textBox_message_text.Name = "textBox_message_text";
-            this.textBox_message_text.Size = new System.Drawing.Size(347, 62);
+            this.textBox_message_text.Size = new System.Drawing.Size(355, 62);
             this.textBox_message_text.TabIndex = 3;
             // 
             // textBox_message_groupName
@@ -1120,7 +1137,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_groupName.Location = new System.Drawing.Point(77, 11);
             this.textBox_message_groupName.Name = "textBox_message_groupName";
-            this.textBox_message_groupName.Size = new System.Drawing.Size(324, 21);
+            this.textBox_message_groupName.Size = new System.Drawing.Size(332, 21);
             this.textBox_message_groupName.TabIndex = 39;
             // 
             // label37
@@ -1169,6 +1186,134 @@
             this.webBrowser_message.Name = "webBrowser_message";
             this.webBrowser_message.Size = new System.Drawing.Size(383, 104);
             this.webBrowser_message.TabIndex = 1;
+            // 
+            // tabPage_getRes
+            // 
+            this.tabPage_getRes.Controls.Add(this.comboBox_getRes_operation);
+            this.tabPage_getRes.Controls.Add(this.label42);
+            this.tabPage_getRes.Controls.Add(this.textBox_getRes_remoteUserName);
+            this.tabPage_getRes.Controls.Add(this.label48);
+            this.tabPage_getRes.Controls.Add(this.textBox_getRes_path);
+            this.tabPage_getRes.Controls.Add(this.label43);
+            this.tabPage_getRes.Controls.Add(this.textBox_getRes_style);
+            this.tabPage_getRes.Controls.Add(this.label44);
+            this.tabPage_getRes.Controls.Add(this.textBox_getRes_length);
+            this.tabPage_getRes.Controls.Add(this.label45);
+            this.tabPage_getRes.Controls.Add(this.textBox_getRes_start);
+            this.tabPage_getRes.Controls.Add(this.label47);
+            this.tabPage_getRes.Location = new System.Drawing.Point(4, 22);
+            this.tabPage_getRes.Name = "tabPage_getRes";
+            this.tabPage_getRes.Size = new System.Drawing.Size(383, 271);
+            this.tabPage_getRes.TabIndex = 7;
+            this.tabPage_getRes.Text = "GetRes";
+            this.tabPage_getRes.UseVisualStyleBackColor = true;
+            // 
+            // comboBox_getRes_operation
+            // 
+            this.comboBox_getRes_operation.FormattingEnabled = true;
+            this.comboBox_getRes_operation.Items.AddRange(new object[] {
+            "borrow",
+            "renew",
+            "return",
+            "lost",
+            "read",
+            "reservation",
+            "resetPassword",
+            "changePassword",
+            "verifyPassword"});
+            this.comboBox_getRes_operation.Location = new System.Drawing.Point(130, 40);
+            this.comboBox_getRes_operation.Name = "comboBox_getRes_operation";
+            this.comboBox_getRes_operation.Size = new System.Drawing.Size(161, 20);
+            this.comboBox_getRes_operation.TabIndex = 54;
+            // 
+            // label42
+            // 
+            this.label42.AutoSize = true;
+            this.label42.Location = new System.Drawing.Point(8, 43);
+            this.label42.Name = "label42";
+            this.label42.Size = new System.Drawing.Size(65, 12);
+            this.label42.TabIndex = 53;
+            this.label42.Text = "Operation:";
+            // 
+            // textBox_getRes_remoteUserName
+            // 
+            this.textBox_getRes_remoteUserName.Location = new System.Drawing.Point(130, 13);
+            this.textBox_getRes_remoteUserName.Name = "textBox_getRes_remoteUserName";
+            this.textBox_getRes_remoteUserName.Size = new System.Drawing.Size(161, 21);
+            this.textBox_getRes_remoteUserName.TabIndex = 52;
+            // 
+            // label48
+            // 
+            this.label48.AutoSize = true;
+            this.label48.Location = new System.Drawing.Point(8, 16);
+            this.label48.Name = "label48";
+            this.label48.Size = new System.Drawing.Size(107, 12);
+            this.label48.TabIndex = 51;
+            this.label48.Text = "Remote User Name:";
+            // 
+            // textBox_getRes_path
+            // 
+            this.textBox_getRes_path.Location = new System.Drawing.Point(130, 66);
+            this.textBox_getRes_path.Name = "textBox_getRes_path";
+            this.textBox_getRes_path.Size = new System.Drawing.Size(161, 21);
+            this.textBox_getRes_path.TabIndex = 25;
+            // 
+            // label43
+            // 
+            this.label43.AutoSize = true;
+            this.label43.Location = new System.Drawing.Point(7, 69);
+            this.label43.Name = "label43";
+            this.label43.Size = new System.Drawing.Size(35, 12);
+            this.label43.TabIndex = 24;
+            this.label43.Text = "Path:";
+            // 
+            // textBox_getRes_style
+            // 
+            this.textBox_getRes_style.Location = new System.Drawing.Point(130, 154);
+            this.textBox_getRes_style.Name = "textBox_getRes_style";
+            this.textBox_getRes_style.Size = new System.Drawing.Size(161, 21);
+            this.textBox_getRes_style.TabIndex = 31;
+            // 
+            // label44
+            // 
+            this.label44.AutoSize = true;
+            this.label44.Location = new System.Drawing.Point(7, 157);
+            this.label44.Name = "label44";
+            this.label44.Size = new System.Drawing.Size(41, 12);
+            this.label44.TabIndex = 30;
+            this.label44.Text = "Style:";
+            // 
+            // textBox_getRes_length
+            // 
+            this.textBox_getRes_length.Location = new System.Drawing.Point(130, 127);
+            this.textBox_getRes_length.Name = "textBox_getRes_length";
+            this.textBox_getRes_length.Size = new System.Drawing.Size(161, 21);
+            this.textBox_getRes_length.TabIndex = 29;
+            // 
+            // label45
+            // 
+            this.label45.AutoSize = true;
+            this.label45.Location = new System.Drawing.Point(7, 130);
+            this.label45.Name = "label45";
+            this.label45.Size = new System.Drawing.Size(47, 12);
+            this.label45.TabIndex = 28;
+            this.label45.Text = "Length:";
+            // 
+            // textBox_getRes_start
+            // 
+            this.textBox_getRes_start.Location = new System.Drawing.Point(130, 100);
+            this.textBox_getRes_start.Name = "textBox_getRes_start";
+            this.textBox_getRes_start.Size = new System.Drawing.Size(161, 21);
+            this.textBox_getRes_start.TabIndex = 27;
+            // 
+            // label47
+            // 
+            this.label47.AutoSize = true;
+            this.label47.Location = new System.Drawing.Point(7, 103);
+            this.label47.Name = "label47";
+            this.label47.Size = new System.Drawing.Size(41, 12);
+            this.label47.TabIndex = 26;
+            this.label47.Text = "Start:";
             // 
             // toolStrip1
             // 
@@ -1253,6 +1398,8 @@
             this.splitContainer_message.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_message)).EndInit();
             this.splitContainer_message.ResumeLayout(false);
+            this.tabPage_getRes.ResumeLayout(false);
+            this.tabPage_getRes.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.splitContainer_main.Panel1.ResumeLayout(false);
@@ -1371,6 +1518,19 @@
         private System.Windows.Forms.Button button_message_enumGroupName;
         private System.Windows.Forms.Button button_message_delete;
         private System.Windows.Forms.ToolStripMenuItem menuItem_getSummaryAndItems;
+        private System.Windows.Forms.TabPage tabPage_getRes;
+        private System.Windows.Forms.TextBox textBox_getRes_path;
+        private System.Windows.Forms.Label label43;
+        private System.Windows.Forms.TextBox textBox_getRes_style;
+        private System.Windows.Forms.Label label44;
+        private System.Windows.Forms.TextBox textBox_getRes_length;
+        private System.Windows.Forms.Label label45;
+        private System.Windows.Forms.TextBox textBox_getRes_start;
+        private System.Windows.Forms.Label label47;
+        private System.Windows.Forms.ComboBox comboBox_getRes_operation;
+        private System.Windows.Forms.Label label42;
+        private System.Windows.Forms.TextBox textBox_getRes_remoteUserName;
+        private System.Windows.Forms.Label label48;
     }
 }
 

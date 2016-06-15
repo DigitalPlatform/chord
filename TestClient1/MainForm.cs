@@ -212,6 +212,13 @@ namespace TestClient1
 
             this.textBox_message_groupName.Text = Settings.Default.message_groupName;
             this.textBox_message_timeRange.Text = Settings.Default.message_timeRange;
+
+            this.textBox_getInfo_remoteUserName.Text = Settings.Default.getRes_remoteUserName;
+            this.comboBox_getRes_operation.Text = Settings.Default.getRes_operation;
+            this.textBox_getRes_path.Text = Settings.Default.getRes_path;
+            this.textBox_getRes_start.Text = Settings.Default.getRes_start;
+            this.textBox_getRes_length.Text = Settings.Default.getRes_length;
+            this.textBox_getRes_style.Text = Settings.Default.getRes_style;
         }
 
         void SaveSettings()
@@ -259,6 +266,13 @@ namespace TestClient1
 
             Settings.Default.message_groupName = this.textBox_message_groupName.Text;
             Settings.Default.message_timeRange = this.textBox_message_timeRange.Text;
+
+            Settings.Default.getRes_remoteUserName = this.textBox_getInfo_remoteUserName.Text;
+            Settings.Default.getRes_operation = this.comboBox_getRes_operation.Text;
+            Settings.Default.getRes_path = this.textBox_getRes_path.Text;
+            Settings.Default.getRes_start = this.textBox_getRes_start.Text;
+            Settings.Default.getRes_length = this.textBox_getRes_length.Text;
+            Settings.Default.getRes_style = this.textBox_getRes_style.Text;
 
             Settings.Default.Save();
         }

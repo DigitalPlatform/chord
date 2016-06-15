@@ -466,5 +466,77 @@ namespace TestClient1.Properties {
                 this["message_timeRange"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string getRes_remoteUserName {
+            get {
+                return ((string)(this["getRes_remoteUserName"]));
+            }
+            set {
+                this["getRes_remoteUserName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string getRes_operation {
+            get {
+                return ((string)(this["getRes_operation"]));
+            }
+            set {
+                this["getRes_operation"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string getRes_path {
+            get {
+                return ((string)(this["getRes_path"]));
+            }
+            set {
+                this["getRes_path"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string getRes_start {
+            get {
+                return ((string)(this["getRes_start"]));
+            }
+            set {
+                this["getRes_start"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string getRes_length {
+            get {
+                return ((string)(this["getRes_length"]));
+            }
+            set {
+                this["getRes_length"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string getRes_style {
+            get {
+                return ((string)(this["getRes_style"]));
+            }
+            set {
+                this["getRes_style"] = value;
+            }
+        }
     }
 }
