@@ -106,7 +106,6 @@ namespace DigitalPlatform
 				nCount);
 		}
 
-
 		// 比较两个byte[]数组是否相等。
 		// parameter:
 		//		timestamp1: 第一个byte[]数组
@@ -158,7 +157,6 @@ namespace DigitalPlatform
 			return 0;
 		}
 
-
 		public static int IndexOf(byte [] source,
 			byte v,
 			int nStartPos)
@@ -170,6 +168,7 @@ namespace DigitalPlatform
 			}
 			return -1;
 		}
+
 		// 确保数组尺寸足够
 		public static byte [] EnsureSize(byte [] source,
 			int nSize)

@@ -262,6 +262,11 @@ errorInfo)
                 (param) => OnCirculationRecieved(param)
                 );
 
+            // *** getRes
+            HubProxy.On<GetResRequest>("getRes",
+                (param) => OnGetResRecieved(param)
+                );
+
             try
             {
                 return Connection.Start()    // new ServerSentEventsTransport() new LongPollingTransport()
@@ -1735,6 +1740,144 @@ token);
 
         #endregion
 
+
+        #region GetRes() API
+
+        public virtual void OnGetResRecieved(GetResRequest param)
+        {
+        }
+
+        public Task<GetResResponse> GetResAsync(
+string strRemoteUserName,
+GetResRequest request,
+TimeSpan timeout,
+CancellationToken token)
+        {
+            return Task.Run<GetResResponse>(
+                () =>
+                {
+                    // ResultManager manager = new ResultManager();
+                    long lTail = -1;    // -1 表示尚未使用
+                    List<string> errors = new List<string>();
+                    List<string> codes = new List<string>();
+
+                    GetResResponse result = new GetResResponse();
+                    if (result.Data == null)
+                        result.Data = new byte[0];
+
+                    if (string.IsNullOrEmpty(request.TaskID) == true)
+                        request.TaskID = Guid.NewGuid().ToString();
+
+                    Debug.WriteLine("using wait_events");
+                    using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+                    {
+                        Debug.WriteLine("using handle");
+                        var handler = HubProxy.On<GetResResponse>(
+                            "responseGetRes",
+                            (responseParam) =>
+                            {
+                                try
+                                {
+                                    if (responseParam.TaskID != request.TaskID)
+                                        return;
+
+                                    Debug.WriteLine("handler called. responseParam\r\n***\r\n" + responseParam.Dump() + "***\r\n");
+
+                                    // 装载命中结果
+                                    if (responseParam.TotalLength == -1 && responseParam.Start == -1)
+                                    {
+                                        result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                        result.ErrorCode = StringUtil.MakePathList(codes, ",");
+
+                                        Debug.WriteLine("finish_event.Set() 1");
+                                        wait_events.finish_event.Set();
+                                        return;
+                                    }
+
+                                    // TODO: 检查一下和上次的最后位置是否连续
+                                    if (lTail != -1 && responseParam.Start != lTail)
+                                    {
+                                        errors.Add("GetResAsync 接收数据过程出现不连续的批次 lTail="+lTail+" param.Start=" + responseParam.Start);
+                                        wait_events.finish_event.Set();
+                                        return;
+                                    }
+                                    result.Data = ByteArray.Add(result.Data, responseParam.Data);
+                                    lTail = responseParam.Start + responseParam.Data.Length;
+
+                                    if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
+                                        && errors.IndexOf(responseParam.ErrorInfo) == -1)
+                                    {
+                                        errors.Add(responseParam.ErrorInfo);
+                                        result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                    }
+                                    if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
+                                        && codes.IndexOf(responseParam.ErrorCode) == -1)
+                                    {
+                                        codes.Add(responseParam.ErrorCode);
+                                        result.ErrorCode = StringUtil.MakePathList(codes, ",");
+                                    }
+
+                                    wait_events.active_event.Set();
+                                }
+                                catch (Exception ex)
+                                {
+                                    errors.Add("GetResAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
+                                    result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                    if (!(ex is ObjectDisposedException))
+                                        wait_events.finish_event.Set();
+                                }
+
+                            });
+                        try
+                        {
+                            MessageResult message = HubProxy.Invoke<MessageResult>(
+                "RequestGetRes",
+                strRemoteUserName,
+                request).Result;
+                            if (message.Value == -1 || message.Value == 0)
+                            {
+                                result.ErrorInfo = message.ErrorInfo;
+                                result.TotalLength = -1;
+                                Debug.WriteLine("return pos 1");
+                                return result;
+                            }
+
+                            try
+                            {
+                                Wait(
+                request.TaskID,
+                wait_events,
+                timeout,
+                token);
+                            }
+                            catch (TimeoutException)
+                            {
+                                // 超时的时候实际上有结果了
+                                if (result.Data != null
+                                    && result.Data.Length > 0)
+                                {
+                                    result.ErrorCode += ",_timeout";    // 附加一个错误码，表示虽然返回了结果，但是已经超时
+                                    Debug.WriteLine("return pos 3");
+                                    return result;
+                                }
+                                throw;
+                            }
+
+                            Debug.WriteLine("return pos 4");
+                            return result;
+                        }
+                        finally
+                        {
+                            handler.Dispose();
+                            GC.Collect();
+                        }
+                    }
+                },
+            token);
+        }
+
+        #endregion
+
 #if NO
         Hashtable _resultTable = new Hashtable();   // taskID --> SearchResult 
 
@@ -2255,40 +2398,128 @@ strError,
             return false;
         }
 
+        // parameters:
+        //      batch_size  建议的最佳一次发送数目。-1 表示不限制
+        // return:
+        //      true    成功
+        //      false   失败
+        public bool TryResponseGetRes(
+            GetResResponse param,
+            ref long batch_size)
+        {
+            string strError = "";
+
+            List<byte> rest = new List<byte>(); // 等待发送的
+            List<byte> current = new List<byte>();  // 当前正在发送的
+            if (batch_size == -1)
+                current.AddRange(param.Data);
+            else
+            {
+                rest.AddRange(param.Data);
+
+                // 将最多 batch_size 个元素从 rest 中移动到 current 中
+                for (int i = 0; i < batch_size && rest.Count > 0; i++)
+                {
+                    current.Add(rest[0]);
+                    rest.RemoveAt(0);
+                }
+            }
+
+            long send = 0;  // 已经发送过的元素数
+            while (current.Count > 0)
+            {
+                try
+                {
+                    Wait(new TimeSpan(0, 0, 0, 0, 50)); // 50
+
+                    MessageResult result = HubProxy.Invoke<MessageResult>("ResponseSearch",
+                        new DigitalPlatform.Message.GetResResponse(
+                        param.TaskID,
+                        param.TotalLength,
+                        param.Start + send,
+                        current.ToArray(),
+                        param.Metadata,
+                        param.Timestamp,
+                        param.ErrorInfo,
+                        param.ErrorCode)).Result;
+                    _lastTime = DateTime.Now;
+                    if (result.Value == -1)
+                        return false;   // 可能因为服务器端已经中断此 taskID，或者执行 ReponseSearch() 时出错
+                }
+                catch (Exception ex)
+                {
+                    if (ex.InnerException is InvalidOperationException)
+                    {
+                        if (current.Count == 1)
+                        {
+                            strError = "向中心发送 ResponseGetRes 消息时出现异常(连一个元素也发送不出去): " + ex.InnerException.Message;
+                            goto ERROR1;
+                        }
+                        // 减少一半元素发送
+                        int half = Math.Max(1, current.Count / 2);
+                        int offs = current.Count - half;
+                        for (int i = 0; current.Count > offs; i++)
+                        {
+                            byte record = current[offs];
+                            rest.Insert(i, record);
+                            current.RemoveAt(offs);
+                        }
+                        batch_size = half;
+                        continue;
+                    }
+
+                    strError = "向中心发送 ResponseGetRes 消息时出现异常: " + ExceptionUtil.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+
+                Console.WriteLine("成功发送 offset=" + (param.Start + send) + " " + current.Count.ToString());
+
+                send += current.Count;
+                current.Clear();
+                if (batch_size == -1)
+                    current.AddRange(rest);
+                else
+                {
+                    // 将最多 batch_size 个元素从 rest 中移动到 current 中
+                    for (int i = 0; i < batch_size && rest.Count > 0; i++)
+                    {
+                        current.Add(rest[0]);
+                        rest.RemoveAt(0);
+                    }
+                }
+            }
+
+            Debug.Assert(rest.Count == 0, "");
+            Debug.Assert(current.Count == 0, "");
+            return true;
+        ERROR1:
+            // 报错
+            {
+                MessageResult result = HubProxy.Invoke<MessageResult>("ResponseSearch",
+        new DigitalPlatform.Message.GetResResponse(
+        param.TaskID,
+        -1, // param.TotalLength,
+        param.Start + send,
+        current.ToArray(),
+        param.Metadata,
+        param.Timestamp,
+        strError,
+        "_sendResponseGetResError")).Result;
+                // 消息层面发生的错误(表示不是 dp2library 层面的错误)，错误码为 _ 开头
+            }
+            return false;
+        }
+
         // 调用 server 端 ResponseSearchBiblio
         public Task<MessageResult> ResponseSearchAsync(
-#if NO
-            string taskID,
-            long resultCount,
-            long start,
-            IList<Record> records,
-            string errorInfo,
-            string errorCode
-#endif
 SearchResponse responseParam)
         {
             return HubProxy.Invoke<MessageResult>("ResponseSearch",
-#if NO
-taskID,
-resultCount,
-start,
-records,
-errorInfo,
-errorCode
-#endif
  responseParam);
         }
 
         // 调用 server 端 ResponseSearchBiblio
         public async void ResponseSearch(
-#if NO
-            string taskID,
-            long resultCount,
-            long start,
-            IList<Record> records,
-            string errorInfo,
-            string errorCode
-#endif
 SearchResponse responseParam)
         {
             // TODO: 等待执行完成。如果有异常要当时处理。比如减小尺寸重发。
@@ -2297,14 +2528,6 @@ SearchResponse responseParam)
             try
             {
                 MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSearch",
-#if NO
-                    taskID,
-    resultCount,
-    start,
-    records,
-    errorInfo,
-    errorCode
-#endif
  responseParam);
                 if (result.Value == -1)
                 {

@@ -2223,7 +2223,7 @@ ex.GetType().ToString());
                 writeDebug("ResponseSearch.3 SendResponse");
 #endif
                 Task.Run(() =>
-                SendResponse(// string taskID,
+                SendSearchResponse(// string taskID,
     search_info,
     responseParam));
             }
@@ -2254,7 +2254,7 @@ ex.GetType().ToString());
             return text.ToString();
         }
 
-        void SendResponse(// string taskID,
+        void SendSearchResponse(// string taskID,
             SearchInfo search_info,
             SearchResponse responseParam)
         {
@@ -2715,6 +2715,191 @@ true);
 
         #endregion
 
+        #region GetRes() API
+
+        public MessageResult RequestGetRes(
+            string userNameList,
+            GetResRequest param)
+        {
+#if LOG
+            writeDebug("RequestGetRes.1 userNameList=" + userNameList
+                + ", param=" + param.Dump());
+#endif
+            MessageResult result = new MessageResult();
+
+            try
+            {
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+    result,
+    "RequestSearch()",
+    false);
+                if (connection_info == null)
+                    return result;
+
+                if (StringUtil.Contains(connection_info.Rights, param.Operation) == false)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + param.Operation + "' 操作的权限";
+                    return result;
+                }
+
+                List<string> connectionIds = null;
+                string strError = "";
+
+                int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
+    userNameList,
+    connection_info.UserName,
+    param.Operation,
+    "strict_one", // "all",
+    out connectionIds,
+    out strError);
+                if (nRet == -1)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = strError;
+                    return result;
+                }
+
+                if (connectionIds == null || connectionIds.Count == 0)
+                {
+                    result.Value = 0;
+                    // result.ErrorInfo = "当前没有任何可检索的目标 (目标用户名 '"+userNameList+"'; 操作 '"+searchParam.Operation+"')";
+                    result.ErrorInfo = "当前没有发现可检索的目标 (详情 '" + strError + "')";
+                    return result;
+                }
+
+                SearchInfo search_info = null;
+                try
+                {
+                    search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                        param.TaskID,
+                        param.Start,
+                        param.Length,
+                        "" //param.ServerPushEncoding
+                        );
+                }
+                catch (ArgumentException)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
+                    return result;
+                }
+
+                result.String = search_info.UID;   // 返回检索请求的 UID
+                search_info.SetTargetIDs(connectionIds);
+
+                Task.Run(() => SendGetRes(connectionIds, param));
+
+                result.Value = connectionIds.Count;   // 表示已经成功发起了检索
+            }
+            catch (Exception ex)
+            {
+                result.SetError("RequestSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
+            }
+            return result;
+        }
+
+        void SendGetRes(List<string> connectionIds, GetResRequest param)
+        {
+            Clients.Clients(connectionIds).getRes(param);
+        }
+
+        public MessageResult ResponseGetRes(GetResResponse responseParam)
+        {
+#if LOG
+            writeDebug("ResponseGetRes.1 responseParam=" + responseParam.Dump());
+#endif
+            MessageResult result = new MessageResult();
+            try
+            {
+                Console.WriteLine("ResponseGetRes start=" + responseParam.Start
+                    + ", data.Count=" + (responseParam.Data == null ? "null" : responseParam.Data.Length.ToString())
+                    + ", errorInfo=" + responseParam.ErrorInfo
+                    + ", errorCode=" + responseParam.ErrorCode);
+
+                SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(responseParam.TaskID);
+                if (search_info == null)
+                {
+                    result.ErrorInfo = "ID 为 '" + responseParam.TaskID + "' 的检索对象无法找到";
+                    result.Value = -1;
+                    result.String = "_notFound";
+                    return result;
+                }
+
+#if LOG
+                writeDebug("ResponseGetRes.3 SendResponse");
+#endif
+                Task.Run(() =>
+                SendGetResResponse(// string taskID,
+    search_info,
+    responseParam));
+            }
+            catch (Exception ex)
+            {
+                result.SetError("ResponseGetRes() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
+            }
+            return result;
+        }
+
+        void SendGetResResponse(// string taskID,
+    SearchInfo search_info,
+    GetResResponse responseParam)
+        {
+#if LOG
+            writeDebug("SendGetResResponse.1");
+#endif
+            try
+            {
+                Clients.Client(search_info.RequestConnectionID).responseGetRes(
+                    responseParam);
+
+#if LOG
+                writeDebug("SendGetResResponse.2");
+#endif
+
+                // 标记结束一个检索目标
+                // return:
+                //      0   尚未结束
+                //      1   结束
+                //      2   全部结束
+                int nRet = search_info.CompleteTarget(Context.ConnectionId,
+                    responseParam.TotalLength,
+                    responseParam.Data == null ? 0 : responseParam.Data.Length);
+                if (nRet == 2)
+                {
+                    // 追加一个消息，表示检索响应已经全部完成
+                    Clients.Client(search_info.RequestConnectionID).responseGetRes(
+    new GetResResponse(
+        search_info.UID,
+    -1,
+    -1,
+    null,
+    "",
+    "",
+    "",
+    ""));
+                    // 主动清除已经完成的检索对象
+                    ServerInfo.SearchTable.RemoveSearch(search_info.UID);  // taskID
+                    Console.WriteLine("complete");
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerInfo.WriteErrorLog("中心向前端分发 responseGetRes() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
+
+#if LOG
+            writeDebug("SendGetResResponse.3");
+#endif
+        }
+
+
+        #endregion
+
         #region 几个事件
 
         public static string[] default_groups = new string[] {
@@ -2998,7 +3183,7 @@ true);
                 request.Environment[MyHub.USERITEM_KEY] = user;
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ServerInfo.WriteErrorLog("AuthenticateUser() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                 return false;

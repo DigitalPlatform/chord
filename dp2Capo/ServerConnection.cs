@@ -224,6 +224,89 @@ namespace dp2Capo
 
         #endregion
 
+        #region GetRes() API
+
+        public override void OnGetResRecieved(DigitalPlatform.Message.GetResRequest param)
+        {
+            Task.Run(() => GetResAndResponse(param));
+        }
+
+        void GetResAndResponse(DigitalPlatform.Message.GetResRequest param)
+        {
+            string strError = "";
+            IList<string> results = new List<string>();
+            long batch_size = 10 * 1024;    // 10K
+
+            LibraryChannel channel = GetChannel();
+            try
+            {
+                long lRet = 0;
+                    byte [] baContent = null;
+                    string strMetadata = "";
+                    string strOutputResPath = "";
+                    byte [] baOutputTimestamp = null;
+
+                if (param.Operation == "getRes")
+                {
+                    lRet = channel.GetRes(param.Path,
+                        param.Start,
+                        (int)param.Length,
+                        param.Style,
+            out baContent,
+            out strMetadata,
+            out strOutputResPath,
+            out  baOutputTimestamp,
+                        out strError);
+                }
+                else
+                {
+                    strError = "无法识别的 Operation 值 '" + param.Operation + "'";
+                    goto ERROR1;
+                }
+
+                DigitalPlatform.Message.GetResResponse result = new DigitalPlatform.Message.GetResResponse();
+                result.TaskID = param.TaskID;
+                result.TotalLength = lRet;
+                result.Start = param.Start;
+                result.Path = strOutputResPath;
+                result.Data = baContent;
+                result.Metadata = strMetadata;
+                result.Timestamp = ByteArray.GetHexTimeStampString(baOutputTimestamp);
+                result.ErrorInfo = strError;
+                result.ErrorCode = channel.ErrorCode.ToString();
+
+                TryResponseGetRes(result,
+    ref batch_size);
+                return;
+            }
+            catch (Exception ex)
+            {
+                AddErrorLine("GetResAndResponse() 出现异常: " + ex.Message);
+                strError = ex.Message;
+                goto ERROR1;
+            }
+            finally
+            {
+                this._channelPool.ReturnChannel(channel);
+            }
+
+        ERROR1:
+            {
+                // 报错
+                DigitalPlatform.Message.GetResResponse result = new DigitalPlatform.Message.GetResResponse();
+                result.TotalLength = -1;
+                result.ErrorInfo = strError;
+                result.ErrorCode = channel.ErrorCode.ToString();
+
+                TryResponseGetRes(
+    result,
+    ref batch_size);
+            }
+        }
+
+
+        #endregion
+
         #region Circulation() API
 
         public override void OnCirculationRecieved(CirculationRequest param)
@@ -613,7 +696,7 @@ strError);
 
         // TODO: 本函数最好放在一个工作线程内执行
         // Form Close 的时候要及时中断工作线程
-        // getPatronInfo getBiblioInfo getBiblioSummary searchBiblio searchPatron
+        // getUserInfo getPatronInfo getBiblioInfo getBiblioSummary searchBiblio searchPatron
         void SearchAndResponse(SearchRequest searchParam)
         {
 #if LOG
@@ -623,6 +706,12 @@ strError);
             if (searchParam.Operation == "getPatronInfo")
             {
                 GetPatronInfo(searchParam);
+                return;
+            }
+
+            if (searchParam.Operation == "getUserInfo")
+            {
+                GetUserInfo(searchParam);
                 return;
             }
 
@@ -1628,6 +1717,130 @@ ref batch_size);
             {
                 AddErrorLine("GetPatronInfo() 出现异常: " + ex.Message);
                 strError = "GetPatronInfo() 异常：" + ExceptionUtil.GetDebugText(ex);
+                goto ERROR1;
+            }
+            finally
+            {
+                this._channelPool.ReturnChannel(channel);
+            }
+
+            this.AddInfoLine("search and response end");
+            return;
+        ERROR1:
+            // 报错
+            ResponseSearch(
+                                                new SearchResponse(
+searchParam.TaskID,
+-1,
+0,
+this.dp2library.LibraryUID,
+records,
+strError,
+strErrorCode));
+        }
+
+        static void SetUserXml(UserInfo userinfo, XmlElement nodeAccount)
+        {
+            DomUtil.SetAttr(nodeAccount, "name", userinfo.UserName);
+
+            if (String.IsNullOrEmpty(userinfo.Type) == false)
+                DomUtil.SetAttr(nodeAccount, "type", userinfo.Type);
+
+            DomUtil.SetAttr(nodeAccount, "rights", userinfo.Rights);
+
+            DomUtil.SetAttr(nodeAccount, "libraryCode", userinfo.LibraryCode);
+
+            DomUtil.SetAttr(nodeAccount, "access", userinfo.Access);
+
+            DomUtil.SetAttr(nodeAccount, "comment", userinfo.Comment);
+
+            DomUtil.SetAttr(nodeAccount, "binding", userinfo.Binding);
+        }
+
+        void GetUserInfo(SearchRequest searchParam)
+        {
+            string strError = "";
+            string strErrorCode = "";
+            IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
+
+#if NO
+            if (string.IsNullOrEmpty(searchParam.FormatList) == true)
+            {
+                strError = "FormatList 不应为空";
+                goto ERROR1;
+            }
+#endif
+
+            LibraryChannel channel = GetChannel();
+            try
+            {
+                UserInfo [] results = null;
+
+                long lRet = channel.GetUser(// null,
+                    "",
+                    searchParam.QueryWord,
+                    (int)searchParam.Start,
+                    (int)searchParam.Count,
+                    out results,
+                    out strError);
+                strErrorCode = channel.ErrorCode.ToString();
+                if (lRet == -1 || lRet == 0)
+                {
+                    if (lRet == 0
+                        || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                    {
+                        // 没有命中
+                        ResponseSearch(
+                                                            new SearchResponse(
+searchParam.TaskID,
+0,
+0,
+this.dp2library.LibraryUID,
+records,
+strError,  // 出错信息大概为 not found。
+strErrorCode));
+                        return;
+                    }
+                    goto ERROR1;
+                }
+
+                if (results == null)
+                    results = new UserInfo[0];
+
+                records.Clear();
+                int i = 0;
+                foreach (UserInfo userinfo in results)
+                {
+                    XmlDocument dom = new XmlDocument();
+                    dom.LoadXml("<account />");
+                    SetUserXml(userinfo, dom.DocumentElement);
+
+                    DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
+                    biblio.RecPath = "";
+                    biblio.Data = dom.DocumentElement.OuterXml;
+                    biblio.Format = "xml";
+                    records.Add(biblio);
+                    i++;
+                }
+
+                long batch_size = 10;
+                bool bRet = TryResponseSearch(
+searchParam.TaskID,
+records.Count,
+0,
+this.dp2library.LibraryUID,
+records,
+"",
+strErrorCode,
+ref batch_size);
+                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                if (bRet == false)
+                    return;
+            }
+            catch (Exception ex)
+            {
+                AddErrorLine("GetUserInfo() 出现异常: " + ex.Message);
+                strError = "GetUserInfo() 异常：" + ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
             }
             finally
