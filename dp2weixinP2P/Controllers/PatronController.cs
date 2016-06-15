@@ -58,32 +58,37 @@ namespace dp2weixinWeb.Controllers
 
         #endregion
 
-        public MemoryStream GetErrorImg(string strError)
+        #region 二维码 图片
+
+        // 二维码
+        public ActionResult QRcode(string code, string state)
         {
-            Bitmap bmp = new Bitmap(210, 110);
-            Graphics g = Graphics.FromImage(bmp);
-            g.Clear(Color.White);
+            string strError = "";
+            string strXml = "";
+            WxUserItem activeUserItem = null;
+            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
+            if (nRet == -1 || nRet == 0)
+                return Content(strError);
 
+            if (nRet == -2)// 未绑定的情况，转到绑定界面
+            {
+                return RedirectToAction("Bind", "Account");
+            }
+            // 没有设置默认账户，转到帐户管理界面
+            if (nRet == -3)
+            {
+                return RedirectToAction("Index", "Account");
+            }
 
-            Font font = SystemFonts.DefaultFont;
-            Brush fontBrush = Brushes.Red;// SystemBrushes.ControlText;
-            StringFormat sf = new StringFormat();
-            sf.Alignment = StringAlignment.Center;
-            sf.LineAlignment = StringAlignment.Center;
-            Rectangle rect = new Rectangle(2, 2, 200, 100);
-            g.DrawString(strError, font, fontBrush, rect, sf);
-
-            //g.FillRectangle(Brushes.Red, 2, 2, 100, 100);
-            //g.DrawString(strError, new Font("微软雅黑", 10f), Brushes.Black, new PointF(5f, 5f));
-
-            MemoryStream ms = new MemoryStream();
-            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
-            g.Dispose();
-            bmp.Dispose();
-
-            return ms;
+            string qrcodeUrl = "./getphoto?libUserName=" + HttpUtility.UrlEncode(activeUserItem.libUserName)
+                + "&type=pqri"
+                + "&barcode=" + HttpUtility.UrlEncode(activeUserItem.readerBarcode)
+                + "&width=400&height=400";
+            ViewBag.qrcodeUrl = qrcodeUrl;
+            return View(activeUserItem);
         }
 
+        // 图片
         public ActionResult GetPhoto(string libUserName, string type, string barcode)
         {
             MemoryStream ms = null;
@@ -144,7 +149,33 @@ namespace dp2weixinWeb.Controllers
             return File(ms.ToArray(), "image/jpeg");              
         }
 
-        public MemoryStream GetQrImage(
+        private MemoryStream GetErrorImg(string strError)
+        {
+            Bitmap bmp = new Bitmap(210, 110);
+            Graphics g = Graphics.FromImage(bmp);
+            g.Clear(Color.White);
+
+
+            Font font = SystemFonts.DefaultFont;
+            Brush fontBrush = Brushes.Red;// SystemBrushes.ControlText;
+            StringFormat sf = new StringFormat();
+            sf.Alignment = StringAlignment.Center;
+            sf.LineAlignment = StringAlignment.Center;
+            Rectangle rect = new Rectangle(2, 2, 200, 100);
+            g.DrawString(strError, font, fontBrush, rect, sf);
+
+            //g.FillRectangle(Brushes.Red, 2, 2, 100, 100);
+            //g.DrawString(strError, new Font("微软雅黑", 10f), Brushes.Black, new PointF(5f, 5f));
+
+            MemoryStream ms = new MemoryStream();
+            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+            g.Dispose();
+            bmp.Dispose();
+
+            return ms;
+        }
+
+        private MemoryStream GetQrImage(
             string strCode,
             int nWidth,
             int nHeight,
@@ -173,34 +204,8 @@ namespace dp2weixinWeb.Controllers
                 return null;
             }
         }
-        
-        //qrcode
-        public ActionResult QRcode(string code, string state)
-        {          
-            string strError = "";
-            string strXml = "";
-            WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
-            if (nRet == -1 || nRet == 0)
-                return Content(strError);
 
-            if (nRet == -2)// 未绑定的情况，转到绑定界面
-            {
-                return RedirectToAction("Bind", "Account");
-            }
-            // 没有设置默认账户，转到帐户管理界面
-            if (nRet == -3)
-            {
-                return RedirectToAction("Index", "Account");
-            }
-
-            string qrcodeUrl = "./getphoto?libUserName=" + HttpUtility.UrlEncode(activeUserItem.libUserName)
-                + "&type=pqri"
-                + "&barcode=" + HttpUtility.UrlEncode(activeUserItem.readerBarcode)
-                + "&width=400&height=400";
-            ViewBag.qrcodeUrl = qrcodeUrl;
-            return View(activeUserItem);
-        }
+        #endregion
 
         public ActionResult PersonalInfo(string code, string state)
         {
@@ -330,8 +335,8 @@ namespace dp2weixinWeb.Controllers
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
 
             // 检查微信用户是否已经绑定的读者
-            List<WxUserItem> userList = WxUserDatabase.Current.GetByWeixinId(weiXinId);
-            if (userList.Count == 0)// 未绑定的情况，转到绑定界面
+            List<WxUserItem> userList = WxUserDatabase.Current.GetPatronsByWeixinId(weiXinId);
+            if (userList.Count == 0)// 未绑定读者的情况，转到绑定界面
                 return -2;
 
 

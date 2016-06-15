@@ -58,7 +58,7 @@ namespace dp2weixinWeb.Controllers
 
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             // 检查微信id是否已经绑定的读者
-            List<WxUserItem> userList = WxUserDatabase.Current.GetByWeixinId(weiXinId);
+            List<WxUserItem> userList = WxUserDatabase.Current.GetAllByWeixinId(weiXinId);
             if (userList !=null && userList.Count >0)
                 Session[WeiXinConst.C_Session_IsBind] = 1;
             else

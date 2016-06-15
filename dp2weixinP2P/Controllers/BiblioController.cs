@@ -19,7 +19,7 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            WxUserItem userItem= WxUserDatabase.Current.GetActive(weiXinId);
+            WxUserItem userItem= WxUserDatabase.Current.GetActivePatron(weiXinId);
             if (userItem != null)
             {
                 ViewBag.LibCode = userItem.libCode+"*"+userItem.libUserName;// "lib_local*mycapo";

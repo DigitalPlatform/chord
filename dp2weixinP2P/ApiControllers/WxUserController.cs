@@ -12,20 +12,13 @@ namespace dp2weixinWeb.ApiControllers
     {
         private WxUserDatabase repo = WxUserDatabase.Current;
 
-        // GET api/<controller>
+        // 获取全部绑定账户，包括读者与工作人员
+        [HttpGet]
         public IEnumerable<WxUserItem> Get()
         {
             List<WxUserItem> list = repo.GetUsers();//"*", 0, -1).Result;
             return list;
         }
-
-        // GET api/<controller>
-        public IEnumerable<WxUserItem> Get(string weixinId)
-        {
-            List<WxUserItem> list = repo.GetByWeixinId(weixinId);//.GetUsers();//"*", 0, -1).Result;
-            return list;
-        }
-
 
 
         // POST api/<controller>
@@ -111,7 +104,12 @@ namespace dp2weixinWeb.ApiControllers
         [HttpPut]
         public void ActivePatron(string weixinId,string id)
         {
-             repo.SetActive(weixinId,id);// repo.Update(item);
+            if (weixinId == "null")
+                weixinId = "";
+
+            if (id == "null")
+                id = "";
+            repo.SetPatronActive(weixinId, id);// repo.Update(item);
         }
 
 

@@ -1562,18 +1562,8 @@ namespace dp2weixin.service
 
         #endregion
 
-        #region 绑定解绑
 
-        public List<WxUserItem> GetBindInfo(string weixinId)
-        {
-            List<WxUserItem> list = new List<WxUserItem>();
-
-            // 目前只支持从数据库中查找
-            list = WxUserDatabase.Current.GetByWeixinId(weixinId);
-
-
-            return list;
-        }
+        #region 找回密码，修改密码，二维码
 
         /// <summary>
         /// 找回密码
@@ -1886,6 +1876,9 @@ namespace dp2weixin.service
             return -1;
         }
 
+        #endregion
+
+        #region 绑定解绑
         /// <summary>
         /// 
         /// </summary>
@@ -1995,7 +1988,7 @@ namespace dp2weixin.service
                 if (type == 0)
                     userItem = WxUserDatabase.Current.GetPatronAccount(strWeiXinId, libCode, readerBarcode);
                 else
-                    userItem = WxUserDatabase.Current.GetUserAccount(strWeiXinId, libCode);
+                    userItem = WxUserDatabase.Current.GetWorkerAccount(strWeiXinId, libCode);
 
                 // 是否新增，对于工作人员账户，一个图书馆只绑一个工作人员，所以有update的情况
                 bool bNew = false;
@@ -2019,7 +2012,7 @@ namespace dp2weixin.service
                 userItem.refID = refID;
                 userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
                 userItem.updateTime = userItem.createTime;
-                userItem.isActive = 1;
+                userItem.isActive = 0; // isActive只针对读者，后面会激活读者，工作人员时均为0
 
                 userItem.prefix = strPrefix;
                 userItem.word = strWord;
@@ -2029,24 +2022,30 @@ namespace dp2weixin.service
                 userItem.libraryCode = libraryCode;
                 userItem.type = type;
                 userItem.userName = userName;
+                userItem.isActiveAccount = 0;//是否是激活的工作人员账户，读者时均为0
 
                 if (bNew == true)
                     WxUserDatabase.Current.Add(userItem);
                 else
                     lRet = WxUserDatabase.Current.Update(userItem);
 
-                // 置为活动状态
-                WxUserDatabase.Current.SetActive(userItem);
+                if (type == 0)
+                {
+                    // 置为活动状态
+                    WxUserDatabase.Current.SetPatronActive(userItem.weixinId,userItem.id);
+                }
 
 
 
                 // 发送绑定成功的客服消息    
                 string strFirst = "恭喜您！您已成功绑定图书馆读者账号。";
                 string strAccount = userItem.readerName + "(" + userItem.readerBarcode + ")";
+                string strRemark = "您可以直接通过微信公众号访问图书馆，进行信息查询，预约续借等功能。如需解绑，请通过“绑定账号”菜单操作。";
                 if (type == 1)
                 {
                     strFirst = "恭喜您！您已成功绑定图书馆工作人员账号。";
                     strAccount=userItem.userName;
+                    strRemark = "欢迎您使用微信公众号管理图书馆业务，如需解绑，请通过“绑定账号”菜单操作。";
                 }
 
                 string accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
@@ -2055,7 +2054,7 @@ namespace dp2weixin.service
                     first = new TemplateDataItem(strFirst, "#000000"),
                     keyword1 = new TemplateDataItem(strAccount, "#000000"),
                     keyword2 = new TemplateDataItem("图书馆[" + userItem.libName + "]", "#000000"),
-                    remark = new TemplateDataItem("您可以直接通过微信公众号访问图书馆，进行信息查询，预约续借等功能。如需解绑，请在“绑定账号”菜单操作。", "#CCCCCC")
+                    remark = new TemplateDataItem(strRemark, "#CCCCCC")
                 };
                 // 详细转到账户管理界面
                 string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
@@ -2105,11 +2104,6 @@ namespace dp2weixin.service
         {
             strError = "";
 
-            //string remoteUserName,
-            //    string libCode,
-            //    string strBarcode,
-            //    string strWeiXinId,
-
             WxUserItem userItem = WxUserDatabase.Current.GetById(userId);
             if (userItem == null)
             {
@@ -2150,14 +2144,25 @@ namespace dp2weixin.service
                 // 删除mongodb库的记录
                 WxUserDatabase.Current.Delete(userId);
 
-                // 发送解绑消息            
+                // 发送解绑消息    
+                string strFirst = "您已成功对图书馆读者账号解除绑定。";
+                string strAccount = userItem.readerName + "(" + userItem.readerBarcode + ")";
+                string strRemark="\n您现在不能管理该图书馆的个人信息了，如需访问，请重新绑定。";
+                if (userItem.type == WxUserDatabase.C_Type_Worker)
+                {
+                    strFirst="您已成功对图书馆工作人员账号解除绑定。";
+                    strAccount=userItem.userName;
+                    strRemark="\n您现在不能对该图书馆进行管理工作了，如需访问，请重新绑定。";
+                }
+
+                        
                 string accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
                 var data = new UnBindTemplateData()
                 {
-                    first = new TemplateDataItem("您已成功对图书馆账号解除绑定。", "#000000"),
-                    keyword1 = new TemplateDataItem(userItem.readerName + "(" + userItem.readerBarcode + ")", "#000000"),
+                    first = new TemplateDataItem(strFirst, "#000000"),
+                    keyword1 = new TemplateDataItem(strAccount, "#000000"),
                     keyword2 = new TemplateDataItem("图书馆[" + userItem.libName + "]", "#000000"),
-                    remark = new TemplateDataItem("\n您现在不能访问该图书馆信息了，如需访问，请重新绑定。", "#CCCCCC")
+                    remark = new TemplateDataItem(strRemark, "#CCCCCC")
                 };
                 SendTemplateMessageResult result1 = TemplateApi.SendTemplateMessage(accessToken,
                     userItem.weixinId,
@@ -2187,6 +2192,9 @@ namespace dp2weixin.service
             return -1;
         }
 
+        #region 不再使用
+
+        /*
         public  long SearchOnePatronByWeiXinId(string remoteUserName,
             string libCode,
             string strWeiXinId,
@@ -2315,7 +2323,8 @@ namespace dp2weixin.service
         ERROR1:
             return -1;
         }
-
+        */
+        #endregion
 
         #endregion
 

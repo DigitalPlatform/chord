@@ -26,13 +26,11 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
-
-            // 如果没有绑定一个账号，进入到账号绑定界面
-            string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            // 检查微信id是否已经绑定的读者
-            List<WxUserItem> userList = WxUserDatabase.Current.GetByWeixinId(weiXinId);
-            if (userList == null || userList.Count == 0)
+            // 未账户任何账户时，自动转到绑定界面            
+            if (Session[WeiXinConst.C_Session_IsBind] == null || (int)Session[WeiXinConst.C_Session_IsBind] == 0)
+            {
                 return RedirectToAction("Bind");
+            }              
 
 
             return View();
@@ -81,7 +79,7 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            WxUserItem userItem = WxUserDatabase.Current.GetActive(weiXinId);
+            WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
 
             return View(userItem);
         }

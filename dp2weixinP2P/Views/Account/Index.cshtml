@@ -3,7 +3,8 @@
 
         //观察模型
         var model = {
-            wxUsers: ko.observableArray()        
+            wxPatrons: ko.observableArray(),
+            //wxPatrons: ko.observableArray(),
         }
 
 
@@ -13,7 +14,7 @@
             var index = loadLayer();
            
             // 先删除可观察数组中的已有数据
-            model.wxUsers.removeAll();
+            model.wxPatrons.removeAll();
 
             // 调web api
             var url = "/api/wxuser?weixinId=" + weixinId;
@@ -26,8 +27,10 @@
                 else
                     $("#divNoBind").css('display', 'none');
                 for (var i = 0; i < data.length; i++) {
+
+
                     //遍历从服务器得到的结果，以push方法对该数组填充新数据
-                    model.wxUsers.push(data[i]);
+                    model.wxPatrons.push(data[i]);
 
                     //alert(data[i].libCode);
                 }
@@ -61,16 +64,9 @@
                 // 关闭等待层
                 layer.close(index);
 
+                // 刷新绑定列表
                 getBindList(item.weixinId);
 
-                /*
-                for (var i = 0; i < model.wxUsers().length; i++) {
-                    if (model.wxUsers()[i].id == item.id) {
-                        model.wxUsers.remove(model.wxUsers()[i]);
-                        break;
-                    }
-                }
-                */
             }, function (xhq, textStatus, errorThrown) {
 
                 // 关闭等待层
@@ -137,7 +133,7 @@
     </center>
 </div>
 
-<ul class="mui-table-view " data-bind=" foreach:model.wxUsers" style="padding-left:0px;text-align:left">
+<ul class="mui-table-view " data-bind=" foreach:model.wxPatrons" style="padding-left:0px;text-align:left">
     <li class="mui-table-view-cell" style="padding-left:10px;text-align:left">
         <table style="width:100%;padding:10px">
             <tr>
