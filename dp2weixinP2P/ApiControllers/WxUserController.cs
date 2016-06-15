@@ -37,19 +37,22 @@ namespace dp2weixinWeb.ApiControllers
             result.userItem = null;
             result.apiResult = new ApiResult();
 
+            // 前端有时传上来是这个值
+            if (item.prefix == "null")
+                item.prefix = "";
+
             WxUserItem userItem = null;
-            string readerBarcode="";
             string strError="";
-            string fullWord = item.word;
-            if (string.IsNullOrEmpty(item.prefix) == false && item.prefix != "null")
-                fullWord = item.prefix + ":" + item.word;
+            //string fullWord = item.word;
+            //if (string.IsNullOrEmpty(item.prefix) == false && item.prefix != "null")
+            //    fullWord = item.prefix + ":" + item.word;
             int nRet= dp2WeiXinService.Instance.Bind(item.libUserName,
                 item.libCode,
-                fullWord,
+                item.prefix,
+                item.word,
                 item.password,
                 item.weixinId,
                 out userItem,
-                out readerBarcode,
                 out strError);
             if (nRet == -1)
             {

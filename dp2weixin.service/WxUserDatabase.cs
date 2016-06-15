@@ -135,7 +135,14 @@ namespace dp2weixin.service
             return null;
         }
 
-        public WxUserItem GetOneOrEmptyPatron(string weixinId, string libCode,string readerBarcode)
+        /// <summary>
+        /// 获取读者账户
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="libCode"></param>
+        /// <param name="readerBarcode"></param>
+        /// <returns></returns>
+        public WxUserItem GetPatronAccount(string weixinId, string libCode,string readerBarcode)
         {
             // 先查到weixinId+libCode+readerBarcode唯一的记录
             var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
@@ -145,6 +152,7 @@ namespace dp2weixin.service
             if (list.Count >= 1)
                 return list[0];
 
+            // 兼容之前微信消息方法，单独选择图书馆的情况
             // 未找到查weixinId+libCode，readerBarcoe为空的记录
             filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
                 & Builders<WxUserItem>.Filter.Eq("libCode", libCode)
@@ -153,6 +161,25 @@ namespace dp2weixin.service
             if (list.Count >= 1)
                 return list[0];
 
+
+            return null;
+        }
+
+        /// <summary>
+        /// 获取工作人员账户，目前设计是：针对一个图书馆只绑定一个账户
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="libCode"></param>
+        /// <returns></returns>
+        public WxUserItem GetUserAccount(string weixinId, string libCode)
+        {
+            // 先查到weixinId+libCode+readerBarcode唯一的记录
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("libCode", libCode)
+                & Builders<WxUserItem>.Filter.Eq("type", 1);
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+            if (list.Count >= 1)
+                return list[0];
 
             return null;
         }
@@ -325,29 +352,39 @@ namespace dp2weixin.service
         public string id { get; private set; }
 
         public string weixinId { get; set; } // 绑定必备
-        public string readerBarcode { get; set; }
-        public string readerName { get; set; }
-
         public string libCode { get; set; } // 绑定必备
         public string libUserName { get; set; }// 绑定必备
-        public string libName { get; set; }// 绑定必备        
+        public string libName { get; set; }// 绑定必备   
 
+        public string readerBarcode { get; set; }
+        public string readerName { get; set; }
+        public string department { get; set; } //部门，二维码下方显示 // 2016-6-16 新增
+        public string xml { get; set; }
+
+        public string refID { get; set; }
         public string createTime { get; set; } // 创建时间
         public string updateTime { get; set; } // 更校报时间
-
-
-        public string xml { get; set; }
-        public string refID { get; set; }
-
+        //是否激活
         public int isActive = 0;
 
 
         // 绑定必备
         public string prefix { get; set; }  //必须设为属性，才能在前端传值。
         public string word  { get; set; }
-        public string password  { get; set; }
-
         public string fullWord { get; set; } // 服务器用fullWord将strPrefix:strWord存在一起
+        public string password { get; set; }
+
+        public string libraryCode { get; set; } //分馆代码，读者与工作人员都有该字段，注意与libCode区分，libCode是微信端定义的绑定的图书馆代码 // 2016-6-16 新增
+        public int type = 0;//账户类型：0表示读者 1表示工作人员 // 2016-6-16 新增
+        public string userName { get; set; } //当type=2时，表示工作人员账户名称，其它时候为空// 2016-6-16 新增
+
+        /*
+        在后面编写各种管理功能的时候，需要检查工作人员账号的 rights 字符串，看看权限是不是足够。
+        虽然刚才提到，绑定工作人员账号时就可以通过返回的 XML 字符串得到这个账号的 rights 字符串，
+        但我觉得不应该在你的 mongodb 数据库中记忆这个字符串。因为dp2library里面随时可以修改这个账户的权限，
+        如果没有良好的同步机制，那么公众号模块不如每次需要的时候去临时获取这个字符串。
+         */
+        //public string right { get; set; }//没有很好的缓存机制，先不加权限字段
     }
 
 
