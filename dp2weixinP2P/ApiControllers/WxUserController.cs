@@ -20,6 +20,11 @@ namespace dp2weixinWeb.ApiControllers
             return list;
         }
 
+        public IEnumerable<WxUserItem> Get(string weixinId)
+        {
+            List<WxUserItem> list = repo.GetAllByWeixinId(weixinId);//.GetUsers();//"*", 0, -1).Result;
+            return list;
+        }
 
         // POST api/<controller>
         [HttpPost]

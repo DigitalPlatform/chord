@@ -143,7 +143,7 @@
                 }
 
                 TABLE.accountTable TR TD.label {
-                    width: 80px;
+                    width: 70px;
                     /*background-color:#eeeeee;*/
                     color: #999999;
                     padding-left: 5px;
@@ -168,7 +168,7 @@
 
 <div id="divPatron" data-bind="visible: model.wxPatrons().length>0">
     <div class="title">
-        读者账户
+        读者账号
     </div>
     <div class="mui-card">
         <ul class="mui-table-view " data-bind=" foreach:model.wxPatrons">
@@ -206,7 +206,7 @@
 
 <div id="divWorker" data-bind="visible: model.wxWorkers().length>0">
     <div class="title">
-        工作人员账户
+        工作人员账号
     </div>
     <div class="mui-card">
         <ul class="mui-table-view " data-bind=" foreach:model.wxWorkers">
@@ -215,7 +215,7 @@
                     <tr>
                         <td class="label">
                             <span data-bind="if: isActiveWorker==1" style="color:red;font-weight:bold;padding-left:0px">√</span>
-                            <span> 账户名</span>
+                            <span> 账号名</span>
                         </td>
                         <td class="value">
                             <span data-bind="text:userName" style="font-size:22px"></span>

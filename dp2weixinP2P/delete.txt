@@ -1,4 +1,258 @@
-﻿<div class="mui-card">
+﻿
+
+@section Scripts {
+    <script>
+
+        //观察模型
+        var model = {
+            // 图书馆列表
+            librarys: ko.observableArray(),
+            selectedLib: ko.observable(),
+            // 界面输入值
+            prefix: ko.observable("-1"),
+            word: ko.observable(""),
+            password: ko.observable("")
+        }
+
+        //用于获取图书馆
+        function getAllLib() {
+            //显示等待图层
+            var index = loadLayer();
+
+            // 先删除观察数组中的已有数据
+            model.librarys.removeAll();
+
+            // 调web api
+            var url = "/api/library";
+            sendAjaxRequest(url, "GET", function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    model.librarys.push(data[i]);
+                }
+
+                // 默认选中激活帐号的图书馆
+                var libCode = $("#spanLibCode").text();
+                if (libCode != null && libCode != "") {
+                    $("#selLib option[value='" + libCode + "']").attr("selected", "selected");
+                }
+
+                // 关闭等待层
+                layer.close(index);
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            //绑定观察模块
+            ko.applyBindings(model);
+            //获取图书馆列表
+            getAllLib();
+
+
+
+            // 密码框打回车时，进行绑定
+            $('#password').bind('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+                    model.password($('#password').val());
+                    bind();
+                }
+            });
+
+
+        })
+
+        // 绑定账号
+        function bind() {
+
+            // 图书馆
+            var lib = model.selectedLib();
+            if (lib == "" || lib==null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+            //alert(lib);
+            var nIndex = lib.indexOf("*");
+            var libCode = lib.substr(0, nIndex);
+            var libUserName = lib.substr(nIndex + 1);
+            //alert("libcode:["+libCode+"] libUserName:[" + libUserName+"]");        
+
+            // 绑定方式
+            var prefix = model.prefix().trim();
+            if (prefix == "-1") {
+                alert("您尚未选择绑定方式。");
+                return;
+            }
+
+            //账号
+            //alert("prefix[" + prefix + "]");
+            var curText = $('#selPrefix option:checked').text();
+            var word = model.word().trim();
+            if (word == "") {
+                alert("您尚未输入" + curText + "。");
+                return;
+            }
+            //alert("word[" + word + "]");
+
+            //密码
+            var password = model.password().trim();
+            if (password == "") {
+                alert("您尚未输入密码。");
+                return;
+            }
+            //alert("password[" + password + "]");
+
+            // 微信id
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "") {
+                alert("weixinId不能为空。");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/wxuser";
+            sendAjaxRequest(url, "POST",
+                function (result) {
+
+                    // 关闭等待层
+                    layer.close(index);
+
+                    if (result.apiResult.errorCode == -1) {
+                        openMsg(result.apiResult.errorInfo);
+                        return;
+                    }                    
+
+                    //清空编辑界面信息,前两项可以不清除
+                    //model.selectedLib("");
+                    //model.prefix("-1");
+                    model.word("");
+                    model.password("");
+
+                    //openMsg("绑定成功");
+                    //mui.alert('绑定成功', 'ILoveLibrary');
+
+                    alert("绑定成功");
+                   
+                    //2016-5-17改为统一返回账号管理界面
+                    returnUrl = "/Home/Index"; 
+                    var myUrl = getRootPath() + returnUrl;
+                    //mui.openWindow({
+                    //    url: myUrl,
+                    //    id: 'info'
+                    //});
+                    window.location = myUrl;
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    weixinId: weixinId,
+                    prefix: prefix,
+                    word: word,
+                    password: password,
+                    libCode: libCode,
+                    libUserName: libUserName
+                }
+            );
+        }
+
+        // 绑定方式变化，账号提示信息跟着变化
+        function prefixChange() {
+            var curText = $('#selPrefix option:checked').text();
+            if (curText == "请选择 绑定方式")
+                curText = "账号";
+
+            if (curText == "工作人员账户")
+                curText = "账户名";
+
+            $('#account').prop("placeholder", "请输入 " + curText);
+            $('#lblAccount').html(curText)
+        }
+
+        // 跳转到新增绑定
+        function gotoResetPassword() {
+
+            var name = "";
+            if (model.prefix() == "NB")
+                name = model.word();
+
+            var lib = "";
+            if (model.selectedLib() != null && model.selectedLib() != "")
+                lib = model.selectedLib();
+
+            var myUrl = getRootPath()
+                + '/Account/ResetPassword?libCode=' + encodeURIComponent(lib) + "&readerName=" + encodeURIComponent(name);
+
+            //alert(myUrl);
+            //mui.openWindow({
+            //    url: myUrl,
+            //    id: 'info'
+            //});
+            window.location = myUrl;//"/account/bind";
+
+        }
+
+    </script>
+}
+
+@section header {
+        <h1 class="mui-title">绑定账号</h1>
+}
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="returnUrl" style="display:none">@ViewBag.ReturnUrl</span>
+<span id="spanLibCode" style="display:block">@ViewBag.LibCode</span>
+
+    <div class="mui-input-group">
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">图书馆</label>
+            <select id="selLib" style="padding-left: 0px;width: 65%" data-bind="options:librarys,optionsText:function(item) {
+                       return  item.libName; },optionsValue:function(item) {
+                       return item.libCode + '*' + item.libUserName; },optionsCaption:'请选择 图书馆',value:selectedLib"></select>
+        </div>
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">绑定方式</label>
+            <select id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.prefix">
+                <option value="NB">姓名</option>
+                <option value="">证条码号</option>
+                <option value="EM">email</option>
+                <option value="TP">电话号码</option>
+                <option value="ID">身份证号</option>
+                <option value="CN">证号</option>
+                <option value="UN">工作人员账户</option>
+            </select>
+        </div>
+        <div class="mui-input-row ">
+            <label id="lblAccount" style="color:#cccccc">账号</label>
+            <input id='account' type="text" class="mui-input mui-input-clear" placeholder="请输入 账号" data-bind="value:model.word">
+        </div>
+        <div class="mui-input-row">
+            <label style="color:#cccccc">密码</label>
+            <input id="password" type="password" class="mui-input-password" placeholder="请输入 密码" data-bind="value:model.password">
+        </div>
+    </div>
+
+    <div class="mui-content-padded">
+        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="bind()">绑定</button>
+        <div class="link-area">
+            <center><a href="JavaScript:void(0)" onclick="gotoResetPassword()">找回密码</a></center>
+        </div>
+    </div>
+
+=======
+<div class="mui-card">
     <ul class="mui-table-view " data-bind=" foreach:model.wxPatrons" style="padding-left:0px;text-align:left">
         <li class="mui-table-view-cell" style="padding-left:10px;text-align:left">
             <table style="width:100%;padding:10px">
