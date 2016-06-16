@@ -231,19 +231,59 @@ namespace dp2weixin.service
         {
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
 
+            /*
+                userItem.weixinId = strWeiXinId;
+                userItem.libCode = libCode;
+                userItem.libUserName = remoteUserName;
+                userItem.libName = lib.libName;
+
+                userItem.readerBarcode = readerBarcode;
+                userItem.readerName = readerName;
+                userItem.department = department;
+                userItem.xml = xml;
+
+                userItem.refID = refID;
+                userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                userItem.updateTime = userItem.createTime;
+                userItem.isActive = 0; // isActive只针对读者，后面会激活读者，工作人员时均为0
+
+                userItem.prefix = strPrefix;
+                userItem.word = strWord;
+                userItem.fullWord = strFullWord;
+                userItem.password = strPassword;
+
+                userItem.libraryCode = libraryCode;
+                userItem.type = type;
+                userItem.userName = userName;
+                userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0             
+             */
             var filter = Builders<WxUserItem>.Filter.Eq("id", item.id);
             var update = Builders<WxUserItem>.Update
                 .Set("weixinId", item.weixinId)
-                .Set("readerBarcode", item.readerBarcode)
-                .Set("readerName", item.readerName)
                 .Set("libCode", item.libCode)
                 .Set("libUserName", item.libUserName)
                 .Set("libName", item.libName)
+
+                .Set("readerBarcode", item.readerBarcode)
+                .Set("readerName", item.readerName)
+                .Set("department", item.department)
+                .Set("xml", item.xml)
+                
+                .Set("refID", item.refID)
                 .Set("createTime", item.createTime)
                 .Set("updateTime", item.updateTime)
-                .Set("xml", item.xml)
-                .Set("refID", item.refID)
-                .Set("isActive", item.isActive);
+                .Set("isActive", item.isActive)
+
+                .Set("prefix", item.prefix)
+                .Set("word", item.word)
+                .Set("fullWord", item.fullWord)
+                .Set("password", item.password)
+
+                .Set("libraryCode", item.libraryCode)
+                .Set("type", item.type)
+                .Set("userName", item.userName)
+                .Set("isActiveWorker", item.isActiveWorker)
+                ;
 
             UpdateResult ret = collection.UpdateOne(filter, update);
             return ret.ModifiedCount;
@@ -373,7 +413,7 @@ namespace dp2weixin.service
         public int type = 0;//账户类型：0表示读者 1表示工作人员 // 2016-6-16 新增
         public string userName { get; set; } //当type=2时，表示工作人员账户名称，其它时候为空// 2016-6-16 新增
         //是否就当前激活工作人员账户，注意该字段对读者账户无意义（均为0）
-        public int isActiveAccount = 0;
+        public int isActiveWorker= 0;
 
         /*
         在后面编写各种管理功能的时候，需要检查工作人员账号的 rights 字符串，看看权限是不是足够。

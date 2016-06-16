@@ -1,4 +1,45 @@
-﻿
+﻿<div class="mui-card">
+    <ul class="mui-table-view " data-bind=" foreach:model.wxPatrons" style="padding-left:0px;text-align:left">
+        <li class="mui-table-view-cell" style="padding-left:10px;text-align:left">
+            <table style="width:100%;padding:10px">
+                <tr>
+                    <td style="min-width:80px;text-align:right">
+                    <span data-bind="if: isActive==1" style="color:red;font-weight:bold;padding-left:0px">√</span>
+                    <span style="color:#CCCCCC;padding-left:0px"> 读者：</span>
+                    </td>
+                    <td style="text-align:left;width:80%">
+                        <span data-bind="text:readerName" style="font-size:22px"></span>
+                        <span data-bind="text:readerBarcode" style="color:darkgreen;font-weight:bold;font-size:24px"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color:#CCCCCC;padding-top:5px;min-width:80px;text-align:right">图书馆：</td>
+                    <td style="text-align:left">
+                        <span data-bind="text:libName"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="width:100%;padding-top:5px">
+                        <table style="width:100%;">
+                            <tr>
+                                <td style="min-width:70px;text-align:right">
+                                    <span data-bind="ifnot: isActive==1"><button class="mui-btn  " data-bind="click: activeUser">设为默认账号</button></span>
+                                </td>
+                                <td width="100%" align="right">
+                                    <button type="button" class="mui-btn mui-btn-danger" data-bind="click: removeUser">
+                                        X&nbsp;删除
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <br />
+        </li>
+    </ul>
+</div>
+===============
         $(document).ready(function () {
 
             //$("#idTest").html(" 是否为iPhone: " + browser.versions.iPhone);

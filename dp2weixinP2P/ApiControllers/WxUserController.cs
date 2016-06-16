@@ -109,7 +109,7 @@ namespace dp2weixinWeb.ApiControllers
 
             if (id == "null")
                 id = "";
-            repo.SetPatronActive(weixinId, id);// repo.Update(item);
+            repo.SetPatronActive(weixinId, id);
         }
 
 

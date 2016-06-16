@@ -2022,7 +2022,7 @@ namespace dp2weixin.service
                 userItem.libraryCode = libraryCode;
                 userItem.type = type;
                 userItem.userName = userName;
-                userItem.isActiveAccount = 0;//是否是激活的工作人员账户，读者时均为0
+                userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0
 
                 if (bNew == true)
                     WxUserDatabase.Current.Add(userItem);
