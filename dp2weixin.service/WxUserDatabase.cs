@@ -20,7 +20,7 @@ namespace dp2weixin.service
         public const int C_Type_Worker = 1;
 
         /// <summary>
-        /// 单一静态实例
+        /// 单一静态实例,饿汉模式
         /// </summary>
         private static readonly WxUserDatabase _db = new WxUserDatabase();
         public static WxUserDatabase Current

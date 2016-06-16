@@ -1,6 +1,4 @@
-﻿using com.google.zxing;
-using com.google.zxing.common;
-using DigitalPlatform.IO;
+﻿using DigitalPlatform.IO;
 using DigitalPlatform.Xml;
 using dp2Command.Service;
 using dp2weixin.service;
@@ -134,10 +132,8 @@ namespace dp2weixinWeb.Controllers
                 if (nRet == -1 || nRet==0)
                     goto ERROR1;    // 把出错信息作为图像返回
 
-
-
-
-                ms = this.GetQrImage(strCode,
+                // 获得二维码图片
+                ms = dp2WeiXinService.Instance.GetQrImage(strCode,
                     nWidth,
                     nHeight,
                     out strError);
@@ -147,70 +143,16 @@ namespace dp2weixinWeb.Controllers
                 return File(ms.ToArray(), "image/jpeg");  
             }
 
-            ms = this.GetErrorImg("不支持");
+            ms = dp2WeiXinService.Instance.GetErrorImg("不支持");
             return File(ms.ToArray(), "image/jpeg");  
 
         ERROR1:
 
-            ms = this.GetErrorImg(strError);
+            ms = dp2WeiXinService.Instance.GetErrorImg(strError);
             return File(ms.ToArray(), "image/jpeg");              
         }
 
-        private MemoryStream GetErrorImg(string strError)
-        {
-            Bitmap bmp = new Bitmap(210, 110);
-            Graphics g = Graphics.FromImage(bmp);
-            g.Clear(Color.White);
 
-
-            Font font = SystemFonts.DefaultFont;
-            Brush fontBrush = Brushes.Red;// SystemBrushes.ControlText;
-            StringFormat sf = new StringFormat();
-            sf.Alignment = StringAlignment.Center;
-            sf.LineAlignment = StringAlignment.Center;
-            Rectangle rect = new Rectangle(2, 2, 200, 100);
-            g.DrawString(strError, font, fontBrush, rect, sf);
-
-            //g.FillRectangle(Brushes.Red, 2, 2, 100, 100);
-            //g.DrawString(strError, new Font("微软雅黑", 10f), Brushes.Black, new PointF(5f, 5f));
-
-            MemoryStream ms = new MemoryStream();
-            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
-            g.Dispose();
-            bmp.Dispose();
-
-            return ms;
-        }
-
-        private MemoryStream GetQrImage(
-            string strCode,
-            int nWidth,
-            int nHeight,
-            out string strError)
-        {
-            strError = "";
-            try
-            {
-                if (nWidth <= 0)
-                    nWidth = 300;
-                if (nHeight <= 0)
-                    nHeight = 300;
-
-                MultiFormatWriter writer = new MultiFormatWriter(); //BarcodeWriter
-                ByteMatrix bm = writer.encode(strCode, BarcodeFormat.QR_CODE, nWidth, nHeight);// 300, 300);
-                using (Bitmap img = bm.ToBitmap())
-                {
-                    MemoryStream ms = new MemoryStream();
-                    img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
-                    return ms;
-                }
-            }
-            catch (Exception ex)
-            {
-                strError = ex.Message;
-                return null;
-            }
-        }
 
         #endregion
 

@@ -1,4 +1,6 @@
-﻿using DigitalPlatform.Interfaces;
+﻿using com.google.zxing;
+using com.google.zxing.common;
+using DigitalPlatform.Interfaces;
 using DigitalPlatform.IO;
 using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
@@ -12,6 +14,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -4169,6 +4172,74 @@ namespace dp2weixin.service
 
             return strResult;
         }
+
+        #endregion
+
+
+        #region 二维码
+
+        public MemoryStream GetQrImage(
+    string strCode,
+    int nWidth,
+    int nHeight,
+    out string strError)
+        {
+            strError = "";
+            try
+            {
+                if (nWidth <= 0)
+                    nWidth = 300;
+                if (nHeight <= 0)
+                    nHeight = 300;
+
+                MultiFormatWriter writer = new MultiFormatWriter(); //BarcodeWriter
+                ByteMatrix bm = writer.encode(strCode, BarcodeFormat.QR_CODE, nWidth, nHeight);// 300, 300);
+                using (Bitmap img = bm.ToBitmap())
+                {
+                    MemoryStream ms = new MemoryStream();
+                    img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    return ms;
+                }
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 根据文字生成图片
+        /// </summary>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public MemoryStream GetErrorImg(string strError)
+        {
+            Bitmap bmp = new Bitmap(210, 110);
+            Graphics g = Graphics.FromImage(bmp);
+            g.Clear(Color.White);
+
+
+            Font font = SystemFonts.DefaultFont;
+            Brush fontBrush = Brushes.Red;// SystemBrushes.ControlText;
+            StringFormat sf = new StringFormat();
+            sf.Alignment = StringAlignment.Center;
+            sf.LineAlignment = StringAlignment.Center;
+            Rectangle rect = new Rectangle(2, 2, 200, 100);
+            g.DrawString(strError, font, fontBrush, rect, sf);
+
+            //g.FillRectangle(Brushes.Red, 2, 2, 100, 100);
+            //g.DrawString(strError, new Font("微软雅黑", 10f), Brushes.Black, new PointF(5f, 5f));
+
+            MemoryStream ms = new MemoryStream();
+            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+            g.Dispose();
+            bmp.Dispose();
+
+            return ms;
+        }
+
+
 
         #endregion
     }
