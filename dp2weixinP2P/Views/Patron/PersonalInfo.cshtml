@@ -90,6 +90,14 @@
 @section header {
     <h1 class="mui-title">个人信息</h1>
 }
+
+@if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+{
+    @Html.Raw(ViewBag.RedirectInfo);
+}
+else
+{ 
+    
 <ul class="mui-table-view">
     <li class="mui-table-view-cell">
         <a class="mui-navigate-right" href="./OverdueInfo">
@@ -187,3 +195,4 @@
         <div style="font-size:9pt">(不要把二维码展示和提供给无关人员，以免账号被窃。)</div>
     </center>
 </div>
+}

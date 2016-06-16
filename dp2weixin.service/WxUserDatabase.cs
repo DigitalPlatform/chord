@@ -136,6 +136,18 @@ namespace dp2weixin.service
             return null;
         }
 
+        public WxUserItem GetOneWorkerAccount(string weixinId)
+        {
+            // 先查到weixinId+libCode+readerBarcode唯一的记录
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("type", C_Type_Worker);
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+            if (list.Count >= 1)
+                return list[0];
+
+            return null;
+        }
+
         /// <summary>
         /// 获取当前激活的读者账户
         /// </summary>

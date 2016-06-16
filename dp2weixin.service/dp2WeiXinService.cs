@@ -1540,6 +1540,7 @@ namespace dp2weixin.service
         void _channels_Login(object sender, LoginEventArgs e)
         {
             MessageConnection connection = sender as MessageConnection;
+            
 
             e.UserName = GetUserName();
             if (string.IsNullOrEmpty(e.UserName) == true)

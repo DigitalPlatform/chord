@@ -478,6 +478,8 @@
             return myReserHtml;
         }
 
+
+
         function getDetail(o) {
             // 找到下级的标签，里面存储的线索
             var mylable = o.children("label");
@@ -528,7 +530,8 @@
                 var selLib = model.selectedLib();
                 var myLib = $("#spanLibCode").text();
                 var bCanReservation = false;
-                var info = "<span style='color:blue;font-weight:normal'>您尚未绑定当前选择图书馆的账户，不能看到预约信息。</span>"
+                var returnUrl = "/Biblio/Index";
+                var info = "<span style='color:#999999;font-weight:normal'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl=" + encodeURIComponent(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>"
                 if (myLib != "" && selLib == myLib) 
                 {
                     bCanReservation = true;

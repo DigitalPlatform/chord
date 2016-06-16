@@ -69,7 +69,14 @@ namespace dp2weixinWeb.Controllers
             int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
             if (nRet == -1 || nRet == 0)
                 return Content(strError);
+            string strRedirectInfo = this.getLinkHtml(nRet, "二维码", "/Patron/QRcode");
+            if (strRedirectInfo != "")
+            {
+                ViewBag.RedirectInfo = strRedirectInfo;
+                return View();
+            }
 
+            /*
             if (nRet == -2)// 未绑定的情况，转到绑定界面
             {
                 return RedirectToAction("Bind", "Account");
@@ -79,7 +86,7 @@ namespace dp2weixinWeb.Controllers
             {
                 return RedirectToAction("Index", "Account");
             }
-
+            */
             string qrcodeUrl = "./getphoto?libUserName=" + HttpUtility.UrlEncode(activeUserItem.libUserName)
                 + "&type=pqri"
                 + "&barcode=" + HttpUtility.UrlEncode(activeUserItem.readerBarcode)
@@ -207,6 +214,41 @@ namespace dp2weixinWeb.Controllers
 
         #endregion
 
+        private string getLinkHtml(int nRet,string menu,string returnUrl)
+        {
+            //string returnUrl = "/Patron/PersonalInfo";
+            string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+            string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
+            string strRedirectInfo = "";
+            if (nRet == -4) // 任何帐户都未绑定
+            {
+                strRedirectInfo = "您尚未绑定读者帐号，不能查看" + menu + "，" + bindLink;
+            }
+            else if (nRet == -2)// 未绑定的情况，转到绑定界面
+            {
+                strRedirectInfo = "您虽然绑定了工作人员帐号，但尚未绑定读者帐号，不能查看" + menu + "，" + bindLink;
+            }
+            // 没有设置默认账户，转到帐户管理界面
+            if (nRet == -3)
+            {
+                string indexUrl = "/Account/Index";
+                string indexLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + indexUrl + "\")'>这里</a>进行设置。";
+
+                strRedirectInfo = "您虽然绑定了读者帐号，但尚未设置当前活动帐号，不能查看" + menu + "，" + indexLink;
+            }
+
+            if (strRedirectInfo != "")
+            {
+                strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
+                    //+ "<center>"
+                    + strRedirectInfo
+                    //+ "</center"
+                    + "</div>";
+            }
+
+            return strRedirectInfo;
+        }
+
         public ActionResult PersonalInfo(string code, string state)
         {
             string strError = "";
@@ -216,6 +258,14 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1 || nRet == 0)
                 return Content(strError);
 
+            string strRedirectInfo = this.getLinkHtml(nRet, "我的信息", "/Patron/PersonalInfo");
+            if (strRedirectInfo != "")
+            {
+                ViewBag.RedirectInfo = strRedirectInfo;
+            }
+
+
+            /*
             if (nRet == -2)// 未绑定的情况，转到绑定界面
             {
                 return RedirectToAction("Bind", "Account");
@@ -225,8 +275,12 @@ namespace dp2weixinWeb.Controllers
             {
                 return RedirectToAction("Index", "Account");
             }
+            */
 
-            PersonalInfoModel model = this.ParseXml(activeUserItem.libUserName,strXml);
+            PersonalInfoModel model = null;
+            if (activeUserItem != null)
+                model= this.ParseXml(activeUserItem.libUserName, strXml);
+
             return View(model);
         }
 
@@ -334,8 +388,13 @@ namespace dp2weixinWeb.Controllers
 
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
 
+            // 检查微信用户是否已经绑定账号
+            List<WxUserItem> userList = WxUserDatabase.Current.GetAllByWeixinId(weiXinId);
+            if (userList.Count == 0)// 未绑定读者的情况，转到绑定界面
+                return -4;
+
             // 检查微信用户是否已经绑定的读者
-            List<WxUserItem> userList = WxUserDatabase.Current.GetPatronsByWeixinId(weiXinId);
+            userList = WxUserDatabase.Current.GetPatronsByWeixinId(weiXinId);
             if (userList.Count == 0)// 未绑定读者的情况，转到绑定界面
                 return -2;
 
@@ -352,7 +411,7 @@ namespace dp2weixinWeb.Controllers
             }
             // 没有设置默认账户，转到帐户管理界面
             if (activeUserItem == null)
-                return -2;
+                return -3;
 
             // 有的调用处不需要获取读者xml，例如预约
             if (String.IsNullOrEmpty(strFormat) == false)

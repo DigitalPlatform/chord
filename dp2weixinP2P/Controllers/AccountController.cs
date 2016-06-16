@@ -48,8 +48,16 @@ namespace dp2weixinWeb.Controllers
 
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
+            if (userItem == null)
+            {
+                // 找工作人员帐户
+                userItem = WxUserDatabase.Current.GetOneWorkerAccount(weiXinId);
+            }
             if (userItem != null)
+            {
+                // 设当前图书馆
                 ViewBag.LibCode = userItem.libCode + "*" + userItem.libUserName;
+            }
 
             return View();
         }
@@ -73,6 +81,11 @@ namespace dp2weixinWeb.Controllers
             {
                 string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
                 WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
+                if (userItem == null)
+                {
+                    // 找工作人员帐户
+                    userItem = WxUserDatabase.Current.GetOneWorkerAccount(weiXinId);
+                }
                 if (userItem != null)
                     ViewBag.LibCode = userItem.libCode + "*" + userItem.libUserName;
             }

@@ -202,11 +202,10 @@
             else {
                 showTopBottom(true);
             }
-        }
+        };
 
         // 设置是否显示头尾参数的值，同时改变背景
-        function setShowValue(value)
-        {
+        function setShowValue(value) {
             bShowTopBottom = value;
             if (bShowTopBottom == true) {
                 $('body').css('background-color', 'green');
@@ -214,7 +213,7 @@
             else {
                 $('body').css('background-color', 'red');
             }
-        }
+        };
 
         // 真正做事，隐藏或显示头尾菜单
         var bShowTopBottom = true;
@@ -227,7 +226,12 @@
                 $("#divBottonTab").css('display', 'none');
                 $("#myheader").css('display', 'none');
             }
-        }
+        };
+
+        function gotoUrl(url) {
+            var myUrl = getRootPath() + url;
+            window.location = myUrl;
+        };
 
     </script>
 </body>
