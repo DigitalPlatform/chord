@@ -1794,15 +1794,27 @@ CancellationToken token)
                                         return;
                                     }
 
+                                    result.TotalLength = responseParam.TotalLength;
+                                    if (string.IsNullOrEmpty(responseParam.Metadata) == false)
+                                        result.Metadata = responseParam.Metadata;
+                                    if (string.IsNullOrEmpty(responseParam.Timestamp) == false)
+                                        result.Timestamp = responseParam.Timestamp;
+                                    if (string.IsNullOrEmpty(responseParam.Path) == false)
+                                        result.Path = responseParam.Path;
+
                                     // TODO: 检查一下和上次的最后位置是否连续
                                     if (lTail != -1 && responseParam.Start != lTail)
                                     {
-                                        errors.Add("GetResAsync 接收数据过程出现不连续的批次 lTail="+lTail+" param.Start=" + responseParam.Start);
+                                        errors.Add("GetResAsync 接收数据过程出现不连续的批次 lTail=" + lTail + " param.Start=" + responseParam.Start);
                                         wait_events.finish_event.Set();
                                         return;
                                     }
-                                    result.Data = ByteArray.Add(result.Data, responseParam.Data);
-                                    lTail = responseParam.Start + responseParam.Data.Length;
+
+                                    if (responseParam.Data != null)
+                                    {
+                                        result.Data = ByteArray.Add(result.Data, responseParam.Data);
+                                        lTail = responseParam.Start + responseParam.Data.Length;
+                                    }
 
                                     if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
                                         && errors.IndexOf(responseParam.ErrorInfo) == -1)
@@ -2398,6 +2410,8 @@ strError,
             return false;
         }
 
+        // TODO: 如果第一次 metadata 和 timestamp 发送成功了，后面的几次就不要发送了，这样可以节省流量
+        // TODO: 如果 dp2mserver 返回值表示需要中断，就不要继续处理了
         // parameters:
         //      batch_size  建议的最佳一次发送数目。-1 表示不限制
         // return:
@@ -2411,35 +2425,39 @@ strError,
 
             List<byte> rest = new List<byte>(); // 等待发送的
             List<byte> current = new List<byte>();  // 当前正在发送的
-            if (batch_size == -1)
-                current.AddRange(param.Data);
-            else
+            if (param.Data != null)
             {
-                rest.AddRange(param.Data);
-
-                // 将最多 batch_size 个元素从 rest 中移动到 current 中
-                for (int i = 0; i < batch_size && rest.Count > 0; i++)
+                if (batch_size == -1)
+                    current.AddRange(param.Data);
+                else
                 {
-                    current.Add(rest[0]);
-                    rest.RemoveAt(0);
+                    rest.AddRange(param.Data);
+
+                    // 将最多 batch_size 个元素从 rest 中移动到 current 中
+                    for (int i = 0; i < batch_size && rest.Count > 0; i++)
+                    {
+                        current.Add(rest[0]);
+                        rest.RemoveAt(0);
+                    }
                 }
             }
 
             long send = 0;  // 已经发送过的元素数
-            while (current.Count > 0)
+            while (current.Count > 0 || param.Data == null)
             {
                 try
                 {
                     Wait(new TimeSpan(0, 0, 0, 0, 50)); // 50
 
-                    MessageResult result = HubProxy.Invoke<MessageResult>("ResponseSearch",
+                    MessageResult result = HubProxy.Invoke<MessageResult>("ResponseGetRes",
                         new DigitalPlatform.Message.GetResResponse(
                         param.TaskID,
                         param.TotalLength,
                         param.Start + send,
+                        param.Path,
                         current.ToArray(),
-                        param.Metadata,
-                        param.Timestamp,
+                        send == 0 ? param.Metadata : "",
+                        send == 0 ? param.Timestamp : "",
                         param.ErrorInfo,
                         param.ErrorCode)).Result;
                     _lastTime = DateTime.Now;
@@ -2448,6 +2466,8 @@ strError,
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine("(retry)ResponseGetRes() exception=" + ex.Message);
+
                     if (ex.InnerException is InvalidOperationException)
                     {
                         if (current.Count == 1)
@@ -2487,6 +2507,9 @@ strError,
                         rest.RemoveAt(0);
                     }
                 }
+
+                if (param.Data == null)
+                    break;
             }
 
             Debug.Assert(rest.Count == 0, "");
@@ -2495,11 +2518,12 @@ strError,
         ERROR1:
             // 报错
             {
-                MessageResult result = HubProxy.Invoke<MessageResult>("ResponseSearch",
+                MessageResult result = HubProxy.Invoke<MessageResult>("ResponseGetRes",
         new DigitalPlatform.Message.GetResResponse(
         param.TaskID,
         -1, // param.TotalLength,
         param.Start + send,
+        param.Path,
         current.ToArray(),
         param.Metadata,
         param.Timestamp,
@@ -2508,6 +2532,18 @@ strError,
                 // 消息层面发生的错误(表示不是 dp2library 层面的错误)，错误码为 _ 开头
             }
             return false;
+        }
+
+        public void ResponseGetRes(GetResResponse param)
+        {
+            try
+            {
+                MessageResult result = HubProxy.Invoke<MessageResult>("ResponseGetRes",
+ param).Result;
+            }
+            catch
+            {
+            }
         }
 
         // 调用 server 端 ResponseSearchBiblio

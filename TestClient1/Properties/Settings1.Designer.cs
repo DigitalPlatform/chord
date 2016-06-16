@@ -538,5 +538,17 @@ namespace TestClient1.Properties {
                 this["getRes_style"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string getRes_outputFile {
+            get {
+                return ((string)(this["getRes_outputFile"]));
+            }
+            set {
+                this["getRes_outputFile"] = value;
+            }
+        }
     }
 }

@@ -213,12 +213,13 @@ namespace TestClient1
             this.textBox_message_groupName.Text = Settings.Default.message_groupName;
             this.textBox_message_timeRange.Text = Settings.Default.message_timeRange;
 
-            this.textBox_getInfo_remoteUserName.Text = Settings.Default.getRes_remoteUserName;
+            this.textBox_getRes_remoteUserName.Text = Settings.Default.getRes_remoteUserName;
             this.comboBox_getRes_operation.Text = Settings.Default.getRes_operation;
             this.textBox_getRes_path.Text = Settings.Default.getRes_path;
             this.textBox_getRes_start.Text = Settings.Default.getRes_start;
             this.textBox_getRes_length.Text = Settings.Default.getRes_length;
             this.textBox_getRes_style.Text = Settings.Default.getRes_style;
+            this.textBox_getRes_outputFile.Text = Settings.Default.getRes_outputFile;
         }
 
         void SaveSettings()
@@ -267,12 +268,13 @@ namespace TestClient1
             Settings.Default.message_groupName = this.textBox_message_groupName.Text;
             Settings.Default.message_timeRange = this.textBox_message_timeRange.Text;
 
-            Settings.Default.getRes_remoteUserName = this.textBox_getInfo_remoteUserName.Text;
+            Settings.Default.getRes_remoteUserName = this.textBox_getRes_remoteUserName.Text;
             Settings.Default.getRes_operation = this.comboBox_getRes_operation.Text;
             Settings.Default.getRes_path = this.textBox_getRes_path.Text;
             Settings.Default.getRes_start = this.textBox_getRes_start.Text;
             Settings.Default.getRes_length = this.textBox_getRes_length.Text;
             Settings.Default.getRes_style = this.textBox_getRes_style.Text;
+            Settings.Default.getRes_outputFile = this.textBox_getRes_outputFile.Text;
 
             Settings.Default.Save();
         }
@@ -309,6 +311,11 @@ namespace TestClient1
             if (this.tabControl_main.SelectedTab == this.tabPage_circulation)
             {
                 DoCirculation();
+            }
+
+            if (this.tabControl_main.SelectedTab == this.tabPage_getRes)
+            {
+                DoGetRes();
             }
         }
 
@@ -1153,6 +1160,21 @@ string strHtml)
             return text.ToString();
         }
 
+        static string ToString(GetResResponse result)
+        {
+            StringBuilder text = new StringBuilder();
+
+            text.Append("TotalLength=" + result.TotalLength + "\r\n");
+            text.Append("Start=" + result.Start + "\r\n");
+            text.Append("Path=" + result.Path + "\r\n");
+            text.Append("Data.Length=" + (result.Data == null ? 0 : result.Data.Length) + "\r\n");
+            text.Append("Metadata=" + result.Metadata + "\r\n");
+            text.Append("Timestamp=" + result.Timestamp + "\r\n");
+
+            text.Append("ErrorInfo=" + result.ErrorInfo + "\r\n");
+            text.Append("ErrorCode=" + result.ErrorCode + "\r\n");
+            return text.ToString();
+        }
 
         List<string> _entities = new List<string>();
 
@@ -2055,6 +2077,82 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         ERROR1:
             MessageBox.Show(this, strError);
 
+        }
+
+        async void DoGetRes()
+        {
+            string strError = "";
+
+            SetTextString(this.webBrowser1, "");
+
+            if (string.IsNullOrEmpty(this.comboBox_getRes_operation.Text) == true)
+            {
+                strError = "尚未指定方法";
+                goto ERROR1;
+            }
+
+            long start = 0;
+            long length = 0;
+
+            start = Convert.ToInt64(this.textBox_getRes_start.Text);
+            length = Convert.ToInt64(this.textBox_getRes_length.Text);
+
+            EnableControls(false);
+            try
+            {
+                CancellationToken cancel_token = new CancellationToken();
+
+                string id = Guid.NewGuid().ToString();
+                GetResRequest request = new GetResRequest(id,
+                    this.comboBox_getRes_operation.Text,
+                    this.textBox_getRes_path.Text,
+                    start,
+                    length,
+                    this.textBox_getRes_style.Text);
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        "");
+                    GetResResponse result = await connection.GetResAsync(
+                        this.textBox_search_remoteUserName.Text,
+                        request,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+
+                    if (result.Data != null
+                        && string.IsNullOrEmpty(this.textBox_getRes_outputFile.Text) == false)
+                    {
+                        using (Stream output = File.Create(this.textBox_getRes_outputFile.Text))
+                        {
+                            output.Write(result.Data, 0, result.Data.Length);
+                        }
+                    }
+
+                    // Thread.Sleep(1000);
+                    this.Invoke(new Action(() =>
+                    {
+                        SetTextString(this.webBrowser1, ToString(result));
+                    }));
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 
     }

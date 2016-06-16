@@ -2869,7 +2869,7 @@ ex.GetType().ToString());
                 int nRet = search_info.CompleteTarget(Context.ConnectionId,
                     responseParam.TotalLength,
                     responseParam.Data == null ? 0 : responseParam.Data.Length);
-                if (nRet == 2)
+                if (nRet == 2 || responseParam.Data == null || responseParam.Data.Length == 0)
                 {
                     // 追加一个消息，表示检索响应已经全部完成
                     Clients.Client(search_info.RequestConnectionID).responseGetRes(

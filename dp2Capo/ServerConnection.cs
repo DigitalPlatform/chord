@@ -145,7 +145,7 @@ namespace dp2Capo
         }
 
         public int GetMsmqMessage(
-            out MessageData [] messages,
+            out MessageData[] messages,
             out string strError)
         {
             messages = null;
@@ -161,7 +161,7 @@ namespace dp2Capo
                 table["action"] = "get";
                 table["count"] = "1";
                 string strParameters = StringUtil.BuildParameterString(table);
-                string[] message_ids = new string[] { "!msmq" , strParameters};
+                string[] message_ids = new string[] { "!msmq", strParameters };
                 lRet = channel.GetMessage(message_ids,
                     MessageLevel.Full,
                     out messages,
@@ -235,16 +235,16 @@ namespace dp2Capo
         {
             string strError = "";
             IList<string> results = new List<string>();
-            long batch_size = 10 * 1024;    // 10K
+            long batch_size = 4 * 1024;    // 4K
 
             LibraryChannel channel = GetChannel();
             try
             {
                 long lRet = 0;
-                    byte [] baContent = null;
-                    string strMetadata = "";
-                    string strOutputResPath = "";
-                    byte [] baOutputTimestamp = null;
+                byte[] baContent = null;
+                string strMetadata = "";
+                string strOutputResPath = "";
+                byte[] baOutputTimestamp = null;
 
                 if (param.Operation == "getRes")
                 {
@@ -255,7 +255,7 @@ namespace dp2Capo
             out baContent,
             out strMetadata,
             out strOutputResPath,
-            out  baOutputTimestamp,
+            out baOutputTimestamp,
                         out strError);
                 }
                 else
@@ -273,7 +273,7 @@ namespace dp2Capo
                 result.Metadata = strMetadata;
                 result.Timestamp = ByteArray.GetHexTimeStampString(baOutputTimestamp);
                 result.ErrorInfo = strError;
-                result.ErrorCode = channel.ErrorCode.ToString();
+                result.ErrorCode = channel.ErrorCode == ErrorCode.NoError ? "" : channel.ErrorCode.ToString();
 
                 TryResponseGetRes(result,
     ref batch_size);
@@ -282,7 +282,7 @@ namespace dp2Capo
             catch (Exception ex)
             {
                 AddErrorLine("GetResAndResponse() 出现异常: " + ex.Message);
-                strError = ex.Message;
+                strError = ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
             }
             finally
@@ -294,13 +294,12 @@ namespace dp2Capo
             {
                 // 报错
                 DigitalPlatform.Message.GetResResponse result = new DigitalPlatform.Message.GetResResponse();
+                result.TaskID = param.TaskID;
                 result.TotalLength = -1;
                 result.ErrorInfo = strError;
                 result.ErrorCode = channel.ErrorCode.ToString();
 
-                TryResponseGetRes(
-    result,
-    ref batch_size);
+                ResponseGetRes(result);
             }
         }
 
@@ -481,7 +480,7 @@ namespace dp2Capo
             catch (Exception ex)
             {
                 AddErrorLine("CirculationAndResponse() 出现异常: " + ex.Message);
-                strError = ex.Message;
+                strError = ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
             }
             finally
@@ -599,7 +598,7 @@ namespace dp2Capo
             catch (Exception ex)
             {
                 AddErrorLine("SetInfoAndResponse() 出现异常: " + ex.Message);
-                strError = ex.Message;
+                strError = ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
             }
             finally
@@ -659,7 +658,7 @@ strError);
             catch (Exception ex)
             {
                 AddErrorLine("BindPatronAndResponse() 出现异常: " + ex.Message);
-                strError = ex.Message;
+                strError = ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
             }
             finally
@@ -776,9 +775,9 @@ strError);
                              "",
                              out strQueryXml,
                              out strError);
-                        writeDebug("searchBiblio() lRet=" + lRet 
-                            + ", strQueryXml=" + strQueryXml 
-                            + ", strError=" + strError 
+                        writeDebug("searchBiblio() lRet=" + lRet
+                            + ", strQueryXml=" + strQueryXml
+                            + ", strError=" + strError
                             + ",errorcode=" + channel.ErrorCode.ToString());
                     }
                     else if (searchParam.Operation == "searchPatron")
@@ -854,7 +853,7 @@ strErrorCode));
             catch (Exception ex)
             {
                 AddErrorLine("SearchAndResponse() 出现异常: " + ex.Message);
-                strError = ex.Message;
+                strError = ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
             }
             finally
@@ -929,8 +928,8 @@ strErrorCode));
         out searchresults,
         out strError);
                     strErrorCode = channel.ErrorCode.ToString();
-                    writeDebug("GetSearchResult lRet=" + lRet + ", strResultSetName=" + strResultSetName 
-                        + ",lStart=" + lStart 
+                    writeDebug("GetSearchResult lRet=" + lRet + ", strResultSetName=" + strResultSetName
+                        + ",lStart=" + lStart
                         + ",lPerCount=" + lPerCount
                         + ",strBrowseStyle=" + strBrowseStyle
                         + ", strError=" + strError
@@ -1774,7 +1773,7 @@ strErrorCode));
             LibraryChannel channel = GetChannel();
             try
             {
-                UserInfo [] results = null;
+                UserInfo[] results = null;
 
                 long lRet = channel.GetUser(// null,
                     "",
