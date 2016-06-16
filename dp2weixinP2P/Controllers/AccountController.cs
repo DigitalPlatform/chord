@@ -60,8 +60,18 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
+            // 如果是从绑定界面过来的，可能会传来绑定界面使用的图书馆
             if (string.IsNullOrEmpty(libCode) == false && libCode != "undefined")
+            {
                 ViewBag.LibCode = libCode;// "lib_local*mycapo";
+            }
+            else
+            {
+                string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+                WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
+                if (userItem != null)
+                    ViewBag.LibCode = userItem.libCode + "*" + userItem.libUserName;
+            }
 
             if (string.IsNullOrEmpty(readerName) == false && readerName != "undefined")
                 ViewBag.ReaderName = readerName;// "test";
