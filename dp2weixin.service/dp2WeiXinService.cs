@@ -3517,7 +3517,7 @@ namespace dp2weixin.service
 
                 strResult += "<a "
     + (string.IsNullOrEmpty(strDisableClass) == false && strBarcode != strArrivedItemBarcode ? "class='" + strDisableClass + "'" : "")
-    + " href='#" + ">" + strBarcode + "</a>";  
+    + " href='#'" + ">" + strBarcode + "</a>";  
 
             }
 

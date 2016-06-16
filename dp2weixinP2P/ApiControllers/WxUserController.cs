@@ -26,6 +26,13 @@ namespace dp2weixinWeb.ApiControllers
             return list;
         }
 
+        public WxUserItem Get(string weixinId,string style)
+        {
+            if (style == "active")
+                return wxUserDb.GetActivePatron(weixinId);
+            return null;
+        }
+
         // POST api/<controller>
         [HttpPost]
         public WxUserResult Bind(WxUserItem item)

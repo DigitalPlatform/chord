@@ -153,15 +153,16 @@
                    
                     //2016-5-17改为统一返回账号管理界面
                     returnUrl = $("#returnUrl").text();
-                    //alert(returnUrl);
                     if (returnUrl == "")
                         returnUrl = "/Home/Index";
-                    var myUrl = getRootPath() + returnUrl;
-                    //mui.openWindow({
-                    //    url: myUrl,
-                    //    id: 'info'
-                    //});
-                    window.location = myUrl;
+                    if (returnUrl == "/Biblio/Index") {
+                        window.history.back(-1); //返回不刷新
+                    }
+                    else {
+                        gotoUrl(returnUrl);
+                        //var myUrl = getRootPath() + returnUrl;
+                        //window.location = myUrl;
+                    }
                 },
                 function (xhq, textStatus, errorThrown) {
                     alert(errorThrown);
