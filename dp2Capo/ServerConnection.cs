@@ -16,6 +16,7 @@ using DigitalPlatform.LibraryClient;
 using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
 using DigitalPlatform.LibraryClient.localhost;
+using System.Threading;
 
 namespace dp2Capo
 {
@@ -231,53 +232,112 @@ namespace dp2Capo
             Task.Run(() => GetResAndResponse(param));
         }
 
+        // TODO: 比对每次获得的时间戳，如果不一致则要报错。
         void GetResAndResponse(DigitalPlatform.Message.GetResRequest param)
         {
             string strError = "";
             IList<string> results = new List<string>();
             long batch_size = 4 * 1024;    // 4K
 
+            string strStyle = param.Style;
+            if (StringUtil.IsInList("timestamp", strStyle) == false)
+                StringUtil.SetInList(ref strStyle, "timestamp", true);  // 为了每次 GetRes() 以后比对
+
             LibraryChannel channel = GetChannel();
             try
             {
-                long lRet = 0;
-                byte[] baContent = null;
-                string strMetadata = "";
-                string strOutputResPath = "";
-                byte[] baOutputTimestamp = null;
+                long lTotalLength = 0;  // 对象的总长度
+                long send = 0;  // 累计发送了多少 byte
+                long chunk_size = -1;   // 每次从 dp2library 获取的分片大小
+                long length = -1;    // 本次点对点 API 希望获得的长度
 
-                if (param.Operation == "getRes")
+                if (param.Length != -1)
                 {
-                    lRet = channel.GetRes(param.Path,
-                        param.Start,
-                        (int)param.Length,
-                        param.Style,
-            out baContent,
-            out strMetadata,
-            out strOutputResPath,
-            out baOutputTimestamp,
-                        out strError);
-                }
-                else
-                {
-                    strError = "无法识别的 Operation 值 '" + param.Operation + "'";
-                    goto ERROR1;
+                    chunk_size = Math.Min(100 * 1024, (int)param.Length);
+                    length = param.Length;
                 }
 
-                DigitalPlatform.Message.GetResResponse result = new DigitalPlatform.Message.GetResResponse();
-                result.TaskID = param.TaskID;
-                result.TotalLength = lRet;
-                result.Start = param.Start;
-                result.Path = strOutputResPath;
-                result.Data = baContent;
-                result.Metadata = strMetadata;
-                result.Timestamp = ByteArray.GetHexTimeStampString(baOutputTimestamp);
-                result.ErrorInfo = strError;
-                result.ErrorCode = channel.ErrorCode == ErrorCode.NoError ? "" : channel.ErrorCode.ToString();
+                byte[] timestamp = null;
+                for (; ; )
+                {
+                    long lRet = 0;
+                    byte[] baContent = null;
+                    string strMetadata = "";
+                    string strOutputResPath = "";
+                    byte[] baOutputTimestamp = null;
 
-                TryResponseGetRes(result,
-    ref batch_size);
-                return;
+                    if (param.Operation == "getRes")
+                    {
+                        Console.WriteLine("getRes() start=" + (param.Start + send)
+                            + " length=" + chunk_size);
+                        // Thread.Sleep(500);
+
+                        lRet = channel.GetRes(param.Path,
+                            param.Start + send,
+                            (int)chunk_size, // (int)param.Length,
+                            param.Style,
+                            out baContent,
+                            out strMetadata,
+                            out strOutputResPath,
+                            out baOutputTimestamp,
+                            out strError);
+                    }
+                    else
+                    {
+                        strError = "无法识别的 Operation 值 '" + param.Operation + "'";
+                        goto ERROR1;
+                    }
+
+                    if (timestamp != null)
+                    {
+                        if (ByteArray.Compare(timestamp, baOutputTimestamp) != 0)
+                        {
+                            strError = "获取对象过程中发现时间戳发生了变化，本次获取操作无效";
+                            goto ERROR1;
+                        }
+                    }
+
+                    // 记忆下来供下一轮比对之用
+                    timestamp = baOutputTimestamp;
+
+                    lTotalLength = lRet;
+                    if (length == -1)
+                        length = lRet;
+
+                    DigitalPlatform.Message.GetResResponse result = new DigitalPlatform.Message.GetResResponse();
+                    result.TaskID = param.TaskID;
+                    result.TotalLength = lRet;
+                    result.Start = param.Start + send;
+                    result.Path = strOutputResPath;
+                    result.Data = baContent;
+                    if (send == 0)
+                    {
+                        result.Metadata = strMetadata;
+                        result.Timestamp = ByteArray.GetHexTimeStampString(baOutputTimestamp);
+                    }
+                    result.ErrorInfo = strError;
+                    result.ErrorCode = channel.ErrorCode == ErrorCode.NoError ? "" : channel.ErrorCode.ToString();
+
+                    bool bRet = TryResponseGetRes(result,
+        ref batch_size);
+                    if (bRet == false 
+                        || result.Data == null || result.Data.Length == 0
+                        || length == -1)
+                        return;
+
+                    if (param.Start + send >= length)
+                        return;
+
+                    send += result.Data.Length;
+
+                    {
+                        chunk_size = length - param.Start - send;
+                        if (chunk_size <= 0)
+                            return;
+                        if (chunk_size >= Int32.MaxValue)
+                            chunk_size = 100 * 1024;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -302,7 +362,6 @@ namespace dp2Capo
                 ResponseGetRes(result);
             }
         }
-
 
         #endregion
 

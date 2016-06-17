@@ -149,7 +149,10 @@
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.textBox_getRes_outputFile = new System.Windows.Forms.TextBox();
             this.label40 = new System.Windows.Forms.Label();
+            this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
+            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip1.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
             this.tabControl_main.SuspendLayout();
             this.tabPage_config.SuspendLayout();
             this.tabPage_getInfo.SuspendLayout();
@@ -205,6 +208,9 @@
             // 
             // statusStrip1
             // 
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripProgressBar1,
+            this.toolStripStatusLabel1});
             this.statusStrip1.Location = new System.Drawing.Point(0, 347);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(733, 22);
@@ -1376,6 +1382,17 @@
             this.label40.TabIndex = 55;
             this.label40.Text = "Output File:";
             // 
+            // toolStripProgressBar1
+            // 
+            this.toolStripProgressBar1.Name = "toolStripProgressBar1";
+            this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
+            // 
+            // toolStripStatusLabel1
+            // 
+            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(131, 17);
+            this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -1393,6 +1410,8 @@
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.tabControl_main.ResumeLayout(false);
             this.tabPage_config.ResumeLayout(false);
             this.tabPage_config.PerformLayout();
@@ -1547,6 +1566,8 @@
         private System.Windows.Forms.Label label48;
         private System.Windows.Forms.TextBox textBox_getRes_outputFile;
         private System.Windows.Forms.Label label40;
+        private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
     }
 }
 

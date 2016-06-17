@@ -160,8 +160,12 @@ namespace TestClient1
 
         }
 
+        CancellationTokenSource _cancel = new CancellationTokenSource();
+
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
+            _cancel.Cancel();
+
             SaveSettings();
             _channels.Login -= _channels_Login;
             _channels.TraceWriter.Close();
@@ -315,7 +319,7 @@ namespace TestClient1
 
             if (this.tabControl_main.SelectedTab == this.tabPage_getRes)
             {
-                DoGetRes();
+                DoGetRes2();
             }
         }
 
@@ -2079,7 +2083,8 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
         }
 
-        async void DoGetRes()
+        // 缓冲区版本
+        async void DoGetRes1()
         {
             string strError = "";
 
@@ -2155,5 +2160,106 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 
+        // 流版本
+        async void DoGetRes2()
+        {
+            string strError = "";
+
+            SetTextString(this.webBrowser1, "");
+
+            if (string.IsNullOrEmpty(this.comboBox_getRes_operation.Text) == true)
+            {
+                strError = "尚未指定方法";
+                goto ERROR1;
+            }
+
+            if (string.IsNullOrEmpty(this.textBox_getRes_outputFile.Text))
+            {
+                strError = "尚未指定输出文件名";
+                goto ERROR1;
+            }
+
+            long start = 0;
+            long length = 0;
+
+            start = Convert.ToInt64(this.textBox_getRes_start.Text);
+            length = Convert.ToInt64(this.textBox_getRes_length.Text);
+
+            EnableControls(false);
+            try
+            {
+                CancellationToken cancel_token = _cancel.Token; // new CancellationToken();
+
+                string id = Guid.NewGuid().ToString();
+                GetResRequest request = new GetResRequest(id,
+                    this.comboBox_getRes_operation.Text,
+                    this.textBox_getRes_path.Text,
+                    start,
+                    length,
+                    this.textBox_getRes_style.Text);
+                try
+                {
+                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                        this.textBox_config_messageServerUrl.Text,
+                        "");
+
+                    using (Stream output = File.Create(this.textBox_getRes_outputFile.Text))
+                    {
+                        GetResResponse result = await connection.GetResAsync(
+                            this.textBox_search_remoteUserName.Text,
+                            request,
+                            output,
+                            null, // setProgress,
+                            new TimeSpan(0, 1, 0),
+                            cancel_token);
+
+                        // Thread.Sleep(1000);
+                        this.Invoke(new Action(() =>
+                        {
+                            SetTextString(this.webBrowser1, ToString(result));
+                        }));
+                    }
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                return;
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        ERROR1:
+            this.Invoke((Action)(() => MessageBox.Show(this, strError)));
+        }
+
+        void setProgress(long totalLength, long current)
+        {
+
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action<long, long>(setProgress), totalLength, current);
+            }
+
+            int width = 1000;
+
+            double ratio = (double)width / (double)totalLength;
+
+            if (this.toolStripProgressBar1.Minimum != width)
+            {
+                this.toolStripProgressBar1.Maximum = width;
+                this.toolStripProgressBar1.Minimum = 0;
+            }
+            this.toolStripProgressBar1.Value = (int)(current * (double)ratio);
+
+            this.toolStripStatusLabel1.Text = current.ToString() + " / " + totalLength;
+        }
     }
 }
