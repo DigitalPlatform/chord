@@ -2209,7 +2209,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                             this.textBox_search_remoteUserName.Text,
                             request,
                             output,
-                            null, // setProgress,
+                            setProgress,
                             new TimeSpan(0, 1, 0),
                             cancel_token);
 

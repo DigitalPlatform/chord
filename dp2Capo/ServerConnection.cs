@@ -275,7 +275,7 @@ namespace dp2Capo
                         lRet = channel.GetRes(param.Path,
                             param.Start + send,
                             (int)chunk_size, // (int)param.Length,
-                            param.Style,
+                            strStyle,   // param.Style,
                             out baContent,
                             out strMetadata,
                             out strOutputResPath,
@@ -313,14 +313,15 @@ namespace dp2Capo
                     if (send == 0)
                     {
                         result.Metadata = strMetadata;
-                        result.Timestamp = ByteArray.GetHexTimeStampString(baOutputTimestamp);
+                        if (StringUtil.IsInList("timestamp", param.Style) == true)
+                            result.Timestamp = ByteArray.GetHexTimeStampString(baOutputTimestamp);
                     }
                     result.ErrorInfo = strError;
                     result.ErrorCode = channel.ErrorCode == ErrorCode.NoError ? "" : channel.ErrorCode.ToString();
 
                     bool bRet = TryResponseGetRes(result,
         ref batch_size);
-                    if (bRet == false 
+                    if (bRet == false
                         || result.Data == null || result.Data.Length == 0
                         || length == -1)
                         return;
