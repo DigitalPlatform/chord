@@ -176,9 +176,10 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiControllers\AnnouncementController.cs" />
     <Compile Include="ApiControllers\BiblioController.cs" />
     <Compile Include="ApiControllers\BorrowInfoController.cs" />
-    <Compile Include="ApiControllers\LibraryController.cs" />
+    <Compile Include="ApiControllers\LibrarySettingController.cs" />
     <Compile Include="ApiControllers\ReservationController.cs" />
     <Compile Include="ApiControllers\WxUserController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
@@ -188,6 +189,7 @@
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\BiblioController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\LibraryController.cs" />
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\OAuth2Controller.cs" />
     <Compile Include="Controllers\PatronController.cs" />
@@ -238,6 +240,7 @@
     <Content Include="Views\Home\UiTest.cshtml" />
     <Content Include="Views\Account\ChangePassword.cshtml" />
     <Content Include="Views\Patron\QRcode.cshtml" />
+    <Content Include="Views\Library\Announcement.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -8,7 +8,7 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class LibraryController : ApiController
+    public class LibrarySettingController : ApiController
     {
         private LibDatabase libDb = LibDatabase.Current;    
 

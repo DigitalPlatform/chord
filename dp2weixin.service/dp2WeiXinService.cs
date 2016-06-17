@@ -4247,5 +4247,42 @@ namespace dp2weixin.service
 
 
         #endregion
+
+        #region 公告
+
+        public AnnouncementResult GetAnnouncements()
+        {
+            //todo
+            AnnouncementResult result = new AnnouncementResult();
+            result.errorCode = 1;
+            result.errorInfo = "";
+
+            List<AnnouncementItem> list = new List<AnnouncementItem>();
+            AnnouncementItem item = new AnnouncementItem();
+            item.id = "1";
+            item.title = "test";
+            item.content = "这是一条公告。";
+            list.Add(item);
+            result.items = list;
+
+            return result;
+        }
+
+        /// <summary>
+        /// 处理公告
+        /// </summary>
+        /// <param name="libUserName"></param>
+        /// <param name="style"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public AnnouncementResult CoverAnnouncement(AnnouncementItem item,string style)
+        {
+            //todo
+
+            AnnouncementResult result = new AnnouncementResult();
+            return result;
+        }
+
+        #endregion
     }
 }

@@ -45,43 +45,40 @@
 @section Scripts {
     <script>
         var model = {
-            librarys: ko.observableArray(),
+            list: ko.observableArray(),
             editor: {
                 id: ko.observable(""),
-                libCode: ko.observable(""),
-                libName: ko.observable(""),
-                libUserName: ko.observable(""),
-                libContactPhone: ko.observable(""),
-
-                wxUserName: ko.observable(""),
-                wxPassword: ko.observable(""),
-                wxContactPhone: ko.observable(""),
-                comment: ko.observable("")
+                title: ko.observable(""),
+                content: ko.observable("")
             },
             displaySummary: ko.observable(true)
-
         }
 
         //用于获取图书馆
-        function getAllLib() {
+        function getAnnouncement() {
             //显示等待图层
             var index = loadLayer();
 
-            //alert("getAllLib");
-
             // 先删除可观察数组中的已有数据
-            model.librarys.removeAll();
+            model.list.removeAll();
 
             // 调web api
-            var url = "/api/LibrarySetting";
-            sendAjaxRequest(url, "GET", function (data) {
-                for (var i = 0; i < data.length; i++) {
-                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
-                    model.librarys.push(data[i]);
-                }
+            var url = "/api/Announcement";
+            sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
                 layer.close(index);
+
+                if (result.errorCode == -1)
+                {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                // 把返回的数组加到观察数组
+                for (var i = 0; i < result.items.length; i++) {
+                    model.list.push(result.items[i]);
+                }
 
             }, function (xhq, textStatus, errorThrown) {
 
@@ -92,21 +89,21 @@
         }
 
         // 删除一项
-        function removeLib(item) {
+        function remove(item) {
 
-            var gnl = confirm("你确定要删除图书馆[" + item.libName + "]吗?");
+            var gnl = confirm("你确定要删除公告[" + item.title + "]吗?");
             if (gnl == false) {
                 return false;
             }
 
             //alert("remove-"+item.libId);
-            var url = "/api/LibrarySetting/" + item.id;
+            var url = "/api/Announcement/" + item.id
             sendAjaxRequest(url, "DELETE", function () {
                 //getAllLib();
 
-                for (var i = 0; i < model.librarys().length; i++) {
-                    if (model.librarys()[i].id == item.id) {
-                        model.librarys.remove(model.librarys()[i]);
+                for (var i = 0; i < model.list().length; i++) {
+                    if (model.list()[i].id == item.id) {
+                        model.list.remove(model.list()[i]);
                         break;
                     }
                 }
@@ -117,64 +114,33 @@
         }
 
         // 新增一项
-        function addLib() {
+        function add() {
 
-            var libCode = model.editor.libCode().trim();
-            if (libCode == "") {
-                alert("尚未输入图书馆代码。");
+            var title = model.editor.title().trim();
+            if (title == "") {
+                alert("请输入标题。");
                 return;
             }
-            var libName = model.editor.libName().trim();
-            if (libName == "") {
-                alert("尚未输入图书馆名称。");
+            var content = model.editor.content().trim();
+            if (content == "") {
+                alert("请输入内容。");
                 return;
             }
-            var libUserName = model.editor.libUserName().trim();
-            if (libUserName == "") {
-                alert("尚未输入图书馆dp2opac账号名。");
-                return;
-            }
-
-            // 图书馆联系人员手机
-            var libContactPhone = model.editor.libContactPhone().trim();
-
-            // 微信端本方账户
-            var wxUserName = model.editor.wxUserName().trim();
-            if (wxUserName == "") {
-                alert("尚未输入图书馆微信本方账号名。");
-                return;
-            }
-            var wxPassword = model.editor.wxPassword().trim();
-            if (wxPassword == "") {
-                alert("尚未输入图书馆微信本方密码。");
-                return;
-            }
-            //微信本方联系人
-            var wxContactPhone = model.editor.wxContactPhone().trim();
-
-            // 备注
-            var comment = model.editor.comment().trim();
-
             //显示等待图层
             var index = loadLayer();
 
-            var url = "/api/LibrarySetting";
+            var url = "/api/Announcement";
             sendAjaxRequest(url, "POST",
                 function (newItem) {
-                    model.librarys.push(newItem);
+
+                    // 增加到观察数组里
+                    model.list.push(newItem);
+
                     model.displaySummary(true);
 
                     //清空编辑界面信息
-                    model.editor.libCode("");
-                    model.editor.libName("");
-                    model.editor.libUserName("");
-                    model.editor.libContactPhone("");
-
-                    model.editor.wxUserName("");
-                    model.editor.wxPassword("");
-                    model.editor.wxContactPhone("");
-
-                    model.editor.comment("");
+                    model.editor.title("");
+                    model.editor.content("");
 
                     // 关闭等待层
                     layer.close(index);
@@ -186,13 +152,7 @@
                 },
                 {
                     libCode: libCode,
-                    libName: libName,
-                    libUserName: libUserName,
-                    libContactPhone: libContactPhone,
-                    wxUserName: wxUserName,
-                    wxPassword: wxPassword,
-                    wxContactPhone: wxContactPhone,
-                    comment: comment
+                    libName: libName
                 }
             );
         }
@@ -336,7 +296,7 @@
     </script>
 }
 @section header {
-        <h1 class="mui-title">图书馆管理</h1>
+        <h1 class="mui-title">最新公告</h1>
 }
 
 <div data-bind="if: model.displaySummary">
