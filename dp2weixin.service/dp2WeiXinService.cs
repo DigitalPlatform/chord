@@ -2950,7 +2950,7 @@ namespace dp2weixin.service
                     item.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");
 
                     // 借阅情况
-                    string strBorrowInfo = "借阅情况:在架";
+                    string strBorrowInfo = "在架";
                     /*
                      <borrower>R00001</borrower>
     <borrowerReaderType>教职工</borrowerReaderType>
@@ -2963,9 +2963,14 @@ namespace dp2weixin.service
                     string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
     "borrowDate"), "yyyy/MM/dd");
                     string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
+                    borrowPeriod = GetDisplayTimePeriodStringEx(borrowPeriod);
                     if (string.IsNullOrEmpty(strBorrower) == false)
                         strBorrowInfo = "借阅者:*** 借阅时间:" + borrowDate + " 借期:" + borrowPeriod;
+
                     item.borrowInfo = strBorrowInfo;
+                    item.borrower = strBorrower;
+                    item.borrowDate = borrowDate;
+                    item.borrowPeriod = borrowPeriod;
 
                     itemList.Add(item);
                 }

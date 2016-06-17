@@ -25,6 +25,7 @@ namespace dp2weixinWeb.Controllers
             {
                 ViewBag.LibCode = userItem1.libCode + "*" + userItem1.libUserName;// "lib_local*mycapo";
                 ViewBag.PatronBarcode = userItem1.readerBarcode;
+                ViewBag.PatronName = userItem1.readerName;
                 ViewBag.LibUserName = userItem1.libUserName;
                 libUserName = userItem1.libUserName;
             }

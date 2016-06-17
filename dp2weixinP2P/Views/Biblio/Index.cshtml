@@ -31,6 +31,7 @@
                 $("#spanLibCode").text(data.libCode + "*" + data.libUserName);
                 //patronBarcode
                 $("#patronBarcode").text(data.readerBarcode);
+                $("#patronName").text(data.readerName);
                 //libUserName
                 $("#libUserName").text(data.libUserName);
 
@@ -483,7 +484,7 @@
             //alert("[" + reservationState + "]");
             var btn = "";
             if (reservationState == "未预约") {
-                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','new')\">预约该册</button>";
+                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','new')\">预约</button>";
             }
             else if (reservationState == "已预约") {
                 btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','delete')\">取消预约</button>";
@@ -497,6 +498,74 @@
             return myReserHtml;
         }
 
+        // 续借
+        function renew(itemBarcode) {
+            if (itemBarcode == "") {
+                alert("尚未传入册条码号。");
+                return;
+            }
+
+            var libUserName = $("#libUserName").text();;
+            var patronBarcode = $("#patronBarcode").text();
+            if (patronBarcode == "") {
+                alert("您尚未绑定图书馆读者账户，请先绑定账户。");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/BorrowInfo?libUserName=" + encodeURIComponent(libUserName)
+                + "&action=renew"
+                + "&patron=" + encodeURIComponent(patronBarcode)
+                + "&item=" + encodeURIComponent(itemBarcode)
+            // 调api
+            sendAjaxRequest(url, "POST", function (result) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                // 显示续借结果
+                var divId = "#renewInfo-" + itemBarcode;
+                var infoDiv = $(divId);
+                var info = result.errorInfo;
+
+
+                // 出错
+                if (result.errorCode == -1) {
+                    $(infoDiv).text(info);
+                    $(infoDiv).css("color", "red");  //设为红色
+
+                    alert(result.errorInfo);
+                    return;
+                }
+
+
+                if (info == "")
+                    info = "续借成功";
+
+                $(infoDiv).text(info);
+                $(infoDiv).css("color", "darkgreen");  //设为绿色
+
+                // todo 需要更新列表
+                
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                // 显示预约结果
+                var info = "访问服务器出错：[" + errorThrown + "]";
+                alert(info);
+
+                var divId = "#renewInfo-" + itemBarcode;
+                var infoDiv = $(divId);
+
+                $(infoDiv).text(info);
+                $(infoDiv).css("color", "red");  //设为红色                
+            });
+        }
 
 
         function getDetail(o) {
@@ -550,7 +619,7 @@
                 var myLib = $("#spanLibCode").text();
                 var bCanReservation = false;
                 var returnUrl = "/Biblio/Index";
-                var info = "<span style='color:#999999;font-weight:normal'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl=" + encodeURIComponent(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>"
+                var info = "<span style='color:#999999;'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl=" + encodeURIComponent(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>"
                 if (myLib != "" && selLib == myLib) 
                 {
                     bCanReservation = true;
@@ -558,11 +627,32 @@
                 }
                 //alert(info);
 
+                var curPatronBarcode = $("#patronBarcode").text();
+                var curPatronName = $("#patronName").text();
+
                 for (var i = 0; i < result.itemList.length; i++) {
                     var record = result.itemList[i];
                     var myReserHtml = info;
                     if (bCanReservation == true)
                         myReserHtml = "<div>"+getReservationHtml(record.barcode) + "</div><div class='resultInfo'></div>";
+
+                    var strBorrowInfo = "在架";
+                    // 检查是不是当前读者借的
+                    if (record.borrower != null && record.borrower != "") {
+                        if (curPatronBarcode != record.borrower) {
+                            strBorrowInfo = "借阅者:*** 借阅时间:" + record.borrowDate + " 借期:" + record.borrowPeriod;
+                        }
+                        else {
+                            strBorrowInfo = "<span style='vertical-align:middle;'>借阅者:" + curPatronName + " 借阅时间:" + record.borrowDate + " 借期:" + record.borrowPeriod + "&nbsp;</span>"
+                                + "<span style='vertical-align:middle;'><button class='mui-btn  mui-btn-default'  onclick=\"renew('" + record.barcode + "')\">续借</button></span>"
+                                + "<div id='renewInfo-" + record.barcode + "'/>";
+
+                            // 此时不能预约
+                            myReserHtml = "<div style='color:#999999;'>该册目前是您在借中，不能预约。</div>";
+                        }
+                    }
+
+
 
 
                     itemTables += "<table class='itemTable'>"
@@ -589,7 +679,7 @@
                     + "</tr>"
                     + "<tr>"
                     + "<td class='label'>在借情况</td>"
-                    + "<td class='value'>" + record.borrowInfo + "</td>"
+                    + "<td class='value'>" + strBorrowInfo + "</td>"
                     + "</tr>"
                     + "<tr>"
                     + "<td class='label'>预约信息</td>"
@@ -631,6 +721,7 @@
             text-align: left;            
             background-color: white;
             width: 100%;
+            
        margin-top:10px;
         }
 
@@ -673,6 +764,7 @@
 <span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 <span id="spanLibCode" style="display:none">@ViewBag.LibCode</span>
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
+<span id="patronName" style="display:none">@ViewBag.PatronName</span>
 <span id="libUserName" style="display:none">@ViewBag.LibUserName</span>
 <input id="maxNo" type="hidden" >
 <input id="resultSet" type="hidden" value="" disabled="disabled">

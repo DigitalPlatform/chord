@@ -10,39 +10,38 @@ namespace dp2weixinWeb.ApiControllers
 {
     public class LibraryController : ApiController
     {
-        //private LibraryRespository repo = LibraryRespository.Current;
-        private LibDatabase repo = LibDatabase.Current;    
+        private LibDatabase libDb = LibDatabase.Current;    
 
         // GET api/<controller>
         public IEnumerable<LibItem> Get()
         {
-            List<LibItem> list = repo.GetLibs();//"*", 0, -1).Result;
+            List<LibItem> list = libDb.GetLibs();//"*", 0, -1).Result;
             return list;
         }
 
         // GET api/<controller>/5
         public LibItem Get(string id)
         {
-            return repo.GetLibById(id);
+            return libDb.GetLibById(id);
         }
 
         // POST api/<controller>
         public LibItem Post(LibItem item)
         {
-            return repo.Add(item);
+            return libDb.Add(item);
         }
 
         // PUT api/<controller>/5
-        public long Put(LibItem item)
+        public long Put(string id,LibItem item)
         {
-            return repo.Update(item).Result;
+            return libDb.Update(id,item);
         }
 
         // DELETE api/<controller>/5
         [HttpDelete]
         public void Delete(string id)
         {
-            repo.Delete(id);
+            libDb.Delete(id);
         }
     }
 }
