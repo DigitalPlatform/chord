@@ -1,0 +1,375 @@
+﻿@section header {
+    <h1 class="mui-title">UI测试</h1>
+}
+@section style {
+    <style type="text/css">
+        .warning {
+            text-align: center;
+        }
+        .amerce .number {
+            background-color: #B8860B;/*#bbbb00;*/
+        }
+
+        .amerce .text {
+            background-color: #ffff00;
+        }
+
+        DIV.warning .number {
+            width: 50px;
+            font-size: 16pt;
+            font-weight: bolder;
+            color: White;
+            float:right;
+            padding:2px 0px;
+        }
+
+        DIV.warning .text {
+            width: 60px;
+            font-size: 9pt;
+            float: right;
+            padding:2px 0px;
+        }
+
+        .overdue .number {
+            background-color:#8B0000;/* #990000;*/
+        }
+
+        .overdue .text {
+            background-color: #ff9999;
+        }
+
+        .arrive .number {
+            background-color: darkgreen; /*#009900;*/
+        }
+
+        .arrive .text {
+            background-color: #99ff99;
+        }
+
+        /*===============*/
+        .amerceNum {
+            background-color: #B8860B;
+            color: white;
+        }
+
+        .arriveNum {
+            background-color: #006400;
+            color: white;
+        }
+
+        .overdueNum {
+            background-color:#8B0000;
+            color:white;
+        }
+
+        .rightText {
+            color:#bbbbbb;
+        }
+
+        .leftNum {
+            color:#CCCCCC;
+        }
+
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            $("#input1").focus(function () {
+                alert("input1=focus");
+            });
+
+            $("#input1").blur(function () {
+                alert("input1=blur");
+            });
+
+            $("#input2").focus(function () {
+                alert("input2=focus");
+            });
+
+            $("#input2").blur(function () {
+                alert("input2=blur");
+            });
+        });
+    </script>
+}
+<div>
+
+    <input id="input1" type="password" class="mui-input-password" placeholder="">
+    <input id="input2" type="password" class="mui-input-password" placeholder="">
+    <button id='login' class="mui-btn mui-btn-block mui-btn-primary" >检索</button>
+
+</div>
+<ul class="mui-table-view">
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./OverdueInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">交费</td>
+                    <td style="text-align:right;padding-right:20px;">
+                        <div class="warning amerce">
+                            <div class="text">待交费</div>
+                            <div class="number">3</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./BorrowInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">在借(<span style="color:gray">▪▪▪▪▪</span>)</td>
+                    <td style="text-align:right;padding-right:20px;">
+                        <div class="warning overdue">
+                            <div class="text">已超期</div>
+                            <div class="number">1</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./Reservation">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">预约(▪▪▪)</td>
+                    <td style="text-align:right;padding-right:20px;">
+                        <div class="warning arrive">
+                            <div class="text">已到书</div>
+                            <div class="number">2</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+</ul>
+<br />
+
+<ul class="mui-table-view">
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./OverdueInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">交费</td>
+                    <td style="text-align:right;padding-right:20px;">
+                        <div class="warning amerce">
+                            <div class="text">待交费</div>
+                            <div class="number">3</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./BorrowInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">在借(5)</td>
+                    <td style="text-align:right;padding-right:20px;">
+                        <div class="warning overdue">
+                            <div class="text">已超期</div>
+                            <div class="number">1</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./Reservation">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">预约(3)</td>
+                    <td style="text-align:right;padding-right:20px;">
+                        <div class="warning arrive">
+                            <div class="text">已到书</div>
+                            <div class="number">2</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+</ul>
+<br/>
+
+<ul class="mui-table-view">
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./OverdueInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">交费</td>
+                    <td style="text-align:right;padding-right:20px">
+                        <span class="mui-badge" style="background-color:#bbbb00;color:white">3</span>
+                        <span style="border:2px dotted #ffff00; color:#555555">待交费</span>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./BorrowInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">在借(5)</td>
+                    <td style="text-align:right;padding-right:20px">
+                        <span class="mui-badge" style="background-color:#990000;color:white">1</span>
+                        <span style="border:2px dotted #ff9999; color:#555555">已超期</span>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./Reservation">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">预约(3)</td>
+                    <td style="text-align:right;padding-right:20px">
+                        <span class="mui-badge" style="background-color:#009900;color:white">2</span>
+                        <span style="border:2px dotted #99ff99; color:#555555">已到书</span>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+</ul>
+
+<br />
+
+<ul class="mui-table-view">
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./OverdueInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">交费</td>
+                    <td style="text-align:right;padding-right:20px">
+                        <span class="mui-badge" style="background-color:#bbbb00;color:white">3</span>
+                        <span style="background-color:#ffff00; padding:2px;">待交费</span>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./BorrowInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">在借(5)</td>
+                    <td style="text-align:right;padding-right:20px">
+                        <span class="mui-badge" style="background-color:#990000;color:white">1</span>
+                        <span style="background-color:#ff9999;padding:2px;">已超期</span>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./Reservation">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">预约(3)</td>
+                    <td style="text-align:right;padding-right:20px">
+                        <span class="mui-badge" style="background-color:#009900;color:white">2</span>
+                        <span style="background-color:#99ff99;padding:2px; ">已到书</span>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+</ul>
+
+
+<br />
+
+<ul class="mui-table-view">
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./OverdueInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">交费</td>
+                    <td style="text-align:right;padding-right:20px">
+                        <span class="mui-badge" style="background-color:#999999;color:white">3</span>
+                        <span style="border:2px dotted #ffff00; color:#555555">待交费</span>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./BorrowInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">在借(5)</td>
+                    <td style="text-align:right;padding-right:20px">
+                        <span class="mui-badge" style="background-color:#111111;color:white">1</span>
+                        <span style="border:2px dotted #ff9999; color:#555555">已超期</span>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./Reservation">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">预约(3)</td>
+                    <td style="text-align:right;padding-right:20px">
+                        <span class="mui-badge" style="background-color:#666666;color:white">2</span>
+                        <span style="border:2px dotted #99ff99; color:#555555">已到书</span>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+</ul>
+
+<br/>
+<ul class="mui-table-view">
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./OverdueInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">交费</td>
+                    <td style="text-align:right;padding-right:20px">
+                        <span class="mui-badge amerceNum">3</span>
+                        <span class="rightText">待交</span>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./BorrowInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">在借(<span class="leftNum">5</span>)</td>
+                    <td style="text-align:right;padding-right:20px" >
+                        <span class="mui-badge overdueNum" >1</span>
+                        <span class="rightText">超期</span>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./Reservation">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">预约(<span class="leftNum">3</span>)</td>
+                    <td style="text-align:right;padding-right:20px">
+                        <span class="mui-badge arriveNum">2</span>
+                        <span class="rightText">到书</span>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+</ul>

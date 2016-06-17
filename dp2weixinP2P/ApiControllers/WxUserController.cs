@@ -10,23 +10,28 @@ namespace dp2weixinWeb.ApiControllers
 {
     public class WxUserController : ApiController
     {
-        private WxUserDatabase repo = WxUserDatabase.Current;
+        private WxUserDatabase wxUserDb = WxUserDatabase.Current;
 
-        // GET api/<controller>
+        // 获取全部绑定账户，包括读者与工作人员
+        [HttpGet]
         public IEnumerable<WxUserItem> Get()
         {
-            List<WxUserItem> list = repo.GetUsers();//"*", 0, -1).Result;
+            List<WxUserItem> list = wxUserDb.GetUsers();//"*", 0, -1).Result;
             return list;
         }
 
-        // GET api/<controller>
         public IEnumerable<WxUserItem> Get(string weixinId)
         {
-            List<WxUserItem> list = repo.GetByWeixinId(weixinId);//.GetUsers();//"*", 0, -1).Result;
+            List<WxUserItem> list = wxUserDb.GetAllByWeixinId(weixinId);//.GetUsers();//"*", 0, -1).Result;
             return list;
         }
 
-
+        public WxUserItem Get(string weixinId,string style)
+        {
+            if (style == "active")
+                return wxUserDb.GetActivePatron(weixinId);
+            return null;
+        }
 
         // POST api/<controller>
         [HttpPost]
@@ -37,19 +42,22 @@ namespace dp2weixinWeb.ApiControllers
             result.userItem = null;
             result.apiResult = new ApiResult();
 
+            // 前端有时传上来是这个值
+            if (item.prefix == "null")
+                item.prefix = "";
+
             WxUserItem userItem = null;
-            string readerBarcode="";
             string strError="";
-            string fullWord = item.word;
-            if (string.IsNullOrEmpty(item.prefix) == false && item.prefix != "null")
-                fullWord = item.prefix + ":" + item.word;
+            //string fullWord = item.word;
+            //if (string.IsNullOrEmpty(item.prefix) == false && item.prefix != "null")
+            //    fullWord = item.prefix + ":" + item.word;
             int nRet= dp2WeiXinService.Instance.Bind(item.libUserName,
                 item.libCode,
-                fullWord,
+                item.prefix,
+                item.word,
                 item.password,
                 item.weixinId,
                 out userItem,
-                out readerBarcode,
                 out strError);
             if (nRet == -1)
             {
@@ -79,14 +87,41 @@ namespace dp2weixinWeb.ApiControllers
             result.errorCode = nRet;
             result.errorInfo = strError;
 
-            return result;// repo.Add(item);
+            return result;
         }
+
+        // 修改密码
+        [HttpPost]
+        public ApiResult ChangePassword(string libUserName,
+            string patron,
+            string oldPassword,
+            string newPassword)
+        {
+            ApiResult result = new ApiResult();
+
+            string strError = "";
+            int nRet = dp2WeiXinService.Instance.ChangePassword(libUserName,
+                patron,
+                oldPassword,
+                newPassword,
+                out strError);
+            result.errorCode = nRet;
+            result.errorInfo = strError;
+
+            return result;
+        }
+
 
         // PUT api/<controller>/5
         [HttpPut]
         public void ActivePatron(string weixinId,string id)
         {
-             repo.SetActive(weixinId,id);// repo.Update(item);
+            if (weixinId == "null")
+                weixinId = "";
+
+            if (id == "null")
+                id = "";
+            wxUserDb.SetPatronActive(weixinId, id);
         }
 
 

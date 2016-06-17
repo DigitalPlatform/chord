@@ -8,26 +8,20 @@
     <!--CSS -->
     <link href="@Url.Content("~/Content/mui.min.css")" rel="stylesheet">
     <link href="@Url.Content("~/Content/style.css")" rel="stylesheet" type="text/css" />
-
     <link href="@Url.Content("~/Content/layer.m.css")" type="text/css" rel="stylesheet" />
     <script src="@Url.Content("~/Scripts/layer.js")"></script>
-
     <link href="@Url.Content("~/Content/jquery-ui.css")" rel="stylesheet">
-
-    <script src='@Url.Content("~/Scripts/jquery-2.2.3.js")'></script>
+    <script src='@Url.Content("~/Scripts/jquery-3.0.0.js")'></script>
     <script src='@Url.Content("~/Scripts/jquery-ui-1.11.4.js")'></script>
-
     <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
     <script src="@Url.Content("~/Scripts/weixin.js")"></script>
-
     @RenderSection("style", required: false)
     @RenderSection("scripts", required: false)
     @RenderSection("HeaderContent", false)
 
-
 </head>
 <body style="padding-bottom:50px;font-family: 'Microsoft YaHei',微软雅黑!important">
-    <header class="mui-bar mui-bar-nav" id="myheader" >
+    <header class="mui-bar mui-bar-nav" id="myheader">
         @RenderSection("header", required: false)
     </header>
 
@@ -43,6 +37,7 @@
                 <div class="innertiggle"></div>
             </div>
         </div><!--menu-->
+
         <div class="menu">
             <div class="bt-name">我的图书馆</div>
             <div class="new-sub">
@@ -61,9 +56,8 @@
                     {
                         <li><a href="~/Account/Bind">绑定账号</a></li>
                     }
-
                     <li><a href="~/Account/ResetPassword">找回密码</a></li>
-                    
+                    <li><a href="~/Patron/QRcode">二维码</a></li>
                 </ul>
                 <div class="tiggle"></div>
                 <div class="innertiggle"></div>
@@ -100,24 +94,25 @@
                         <li>
                             <a href="~/home/Setting">参数设置</a>
                         </li>
+                        <li>
+                            <a href="~/home/UiTest">UI 测试</a>
+                        </li>
                     }
                 </ul>
                 <div class="tiggle"></div>
                 <div class="innertiggle"></div>
             </div>
-        </div><!--menu-->
 
+        </div>
     </div>
 
     <div class="mui-content" style="padding-top:50px">
-        <span id="idTest"  style="display:none"></span>
+        <span id="idTest" style="display:block"></span>
         <!--部分页占位符 -->
         @RenderBody()
     </div>
+
     <script>
-
-
-
         //弹出垂直菜单
         $(".menu").click(function () {
             if ($(this).hasClass("cura")) {
@@ -166,67 +161,77 @@
         $(document).ready(function () {
 
             //$("#idTest").html(" 是否为iPhone: " + browser.versions.iPhone);
-
+            //browser.versions.iPhone
             if (browser.versions.iPhone == true) {
                 $("input").focus(function () {
-                    showTopBottom(false);
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
                 });
-                $("input").blur(function () {
-                    window.setTimeout("showTopBottom(true)", 1);
-                    //showTopBottom(true);
+                $("input").blur(function () {                   
+                    setShowValue(true);
+                    window.setTimeout("showTopBottom()", 1);
                 });
 
                 $("select").focus(function () {
-                    showTopBottom(false);
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
                 });
                 $("select").blur(function () {
+                    setShowValue(true);
                     window.setTimeout("showTopBottom(true)", 1);
-                    //showTopBottom(true);
                 });
             }
             else {
-                // 非iphone时，浏览器窗口变矮时，隐藏头尾栏
-                $(window).resize(function () {
+                //// 非iphone时，浏览器窗口变矮时，隐藏头尾栏
+                //$(window).resize(function () {
 
-                    window.setTimeout("adjust()", 1);
-                    //adjust();
-                });
+                //    window.setTimeout("adjust()", 1);
+                //    //adjust();
+                //});
             }
         });
 
-        
+
 
 
         function adjust() {
-            // var w = $(document).width();
-            // var h = $(document).height();
-            // $("#idTest").html("[" + w + "]-[" + h + "]");
-            var h = $(window).height();            
+            var h = $(window).height();
             if (h <= 150) {
                 showTopBottom(false);
             }
-            else{
+            else {
                 showTopBottom(true);
             }
-        }
-        
-        function showTopBottom(bShow)
-        {
-            if (bShow == true)
-            {
+        };
+
+        // 设置是否显示头尾参数的值，同时改变背景
+        function setShowValue(value) {
+            bShowTopBottom = value;
+            if (bShowTopBottom == true) {
+                $('body').css('background-color', 'green');
+            }
+            else {
+                $('body').css('background-color', 'red');
+            }
+        };
+
+        // 真正做事，隐藏或显示头尾菜单
+        var bShowTopBottom = true;
+        function showTopBottom() {
+            if (bShowTopBottom == true) {
                 $("#divBottonTab").css('display', 'block');
                 $("#myheader").css('display', 'block');
             }
-            else
-            {
-                //var h = $(window).height();
-                ////$("#idTest").html(h);
-                //if (h > 960)
-                //    return;
+            else {
                 $("#divBottonTab").css('display', 'none');
                 $("#myheader").css('display', 'none');
             }
-        }
+        };
+
+        function gotoUrl(url) {
+            var myUrl = getRootPath() + url;
+            window.location = myUrl;
+        };
 
     </script>
 </body>

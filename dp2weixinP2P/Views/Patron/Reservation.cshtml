@@ -133,6 +133,11 @@
 
             var items = $(obj).parent().children("span").text();
             //alert(items);
+            var opeName=$(obj).text();
+            var gnl = confirm("你确定对册[" + items + "]"+opeName+"吗?");
+            if (gnl == false) {
+                return false;
+            }
 
             doThing("delete", items);
         }
@@ -267,7 +272,7 @@
                         <input name='ckbBarcode' data-bind="value:pureBarcodes,enable:state=='' " type='checkbox' style='left:0px;' onchange="changeBarcord()" />
                     </div>
                 </td>
-                <td class="value"><span data-bind="html: barcodes"></span></td>
+                <td class="value" data-bind="html: barcodes"></td>
             </tr>
             <tr>
                 <td class="label">请求日期</td>
@@ -294,8 +299,8 @@
             <tr>
                 <td class="label">操作</td>
                 <td class="value">
-                    <button class='mui-btn  mui-btn-primary' onclick="deleteReservation(this)" data-bind="text:stateText=='' ? '取消预约' : '放弃取书' "></button>
-                    <button class='mui-btn  mui-btn-primary' onclick='splitReservation(this)' data-bind="visible:stateText == '' && pureBarcodes.indexOf(',')>0">拆散预约</button>
+                    <button class='mui-btn  mui-btn-default' onclick="deleteReservation(this)" data-bind="text:stateText=='' ? '取消预约' : '放弃取书' "></button>
+                    <button class='mui-btn  mui-btn-default' onclick='splitReservation(this)' data-bind="visible:stateText == '' && pureBarcodes.indexOf(',')>0">拆散预约</button>
                     <span style="display:none" data-bind="text:pureBarcodes" />
                 </td>
             </tr>

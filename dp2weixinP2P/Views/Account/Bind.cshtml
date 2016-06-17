@@ -4,8 +4,8 @@
         //观察模型
         var model = {
             // 图书馆列表
-            librarys: ko.observableArray(),
-            selectedLib: ko.observable(),
+            //librarys: ko.observableArray(),
+            //selectedLib: ko.observable(),
             // 界面输入值
             prefix: ko.observable("-1"),
             word: ko.observable(""),
@@ -18,14 +18,30 @@
             var index = loadLayer();
 
             // 先删除观察数组中的已有数据
-            model.librarys.removeAll();
+            //model.librarys.removeAll();
 
             // 调web api
             var url = "/api/library";
             sendAjaxRequest(url, "GET", function (data) {
+
+                var selLib = $("#selLib");
+                var opt = "<option value=''>请选择 图书馆</option>";
+                selLib.append(opt);
+
                 for (var i = 0; i < data.length; i++) {
-                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
-                    model.librarys.push(data[i]);
+                    ////遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    //model.librarys.push(data[i]);
+
+                    var item = data[i];
+                    var value = item.libCode + '*' + item.libUserName;
+                    opt = "<option value='" + value + "'>" + item.libName + "</option>";
+                    selLib.append(opt);
+                }
+
+                // 默认选中激活帐号的图书馆
+                var libCode = $("#spanLibCode").text();
+                if (libCode != null && libCode != "") {
+                    $("#selLib option[value='" + libCode + "']").attr("selected", "selected");
                 }
 
                 // 关闭等待层
@@ -44,11 +60,10 @@
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
 
-            //获取图书馆列表
-            getAllLib();
-
             //绑定观察模块
             ko.applyBindings(model);
+            //获取图书馆列表
+            getAllLib();
 
             // 密码框打回车时，进行绑定
             $('#password').bind('keypress', function (event) {
@@ -66,7 +81,8 @@
         function bind() {
 
             // 图书馆
-            var lib = model.selectedLib();
+            //var lib = model.selectedLib();
+            var lib = $("#selLib").val();
             if (lib == "" || lib==null) {
                 alert("您尚未选择图书馆。");
                 return;
@@ -136,13 +152,17 @@
                     alert("绑定成功");
                    
                     //2016-5-17改为统一返回账号管理界面
-                    returnUrl = "/Home/Index"; 
-                    var myUrl = getRootPath() + returnUrl;
-                    //mui.openWindow({
-                    //    url: myUrl,
-                    //    id: 'info'
-                    //});
-                    window.location = myUrl;
+                    returnUrl = $("#returnUrl").text();
+                    if (returnUrl == "")
+                        returnUrl = "/Home/Index";
+                    if (returnUrl == "/Biblio/Index") {
+                        window.history.back(-1); //返回不刷新
+                    }
+                    else {
+                        gotoUrl(returnUrl);
+                        //var myUrl = getRootPath() + returnUrl;
+                        //window.location = myUrl;
+                    }
                 },
                 function (xhq, textStatus, errorThrown) {
                     alert(errorThrown);
@@ -165,6 +185,10 @@
             var curText = $('#selPrefix option:checked').text();
             if (curText == "请选择 绑定方式")
                 curText = "账号";
+
+            if (curText == "工作人员账户")
+                curText = "账户名";
+
             $('#account').prop("placeholder", "请输入 " + curText);
             $('#lblAccount').html(curText)
         }
@@ -177,8 +201,9 @@
                 name = model.word();
 
             var lib = "";
-            if (model.selectedLib() != null && model.selectedLib() != "")
-                lib = model.selectedLib();
+            var lib = $("#selLib").val();
+            //if (model.selectedLib() != null && model.selectedLib() != "")
+            //    lib = model.selectedLib();
 
             var myUrl = getRootPath()
                 + '/Account/ResetPassword?libCode=' + encodeURIComponent(lib) + "&readerName=" + encodeURIComponent(name);
@@ -200,13 +225,17 @@
 }
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 <span id="returnUrl" style="display:none">@ViewBag.ReturnUrl</span>
+<span id="spanLibCode" style="display:none">@ViewBag.LibCode</span>
 
     <div class="mui-input-group">
         <div class="mui-input-row ">
             <label style="color:#cccccc">图书馆</label>
+            <select id="selLib" style="padding-left: 0px;width: 65%"></select>
+<!--
             <select id="selLib" style="padding-left: 0px;width: 65%" data-bind="options:librarys,optionsText:function(item) {
                        return  item.libName; },optionsValue:function(item) {
                        return item.libCode + '*' + item.libUserName; },optionsCaption:'请选择 图书馆',value:selectedLib"></select>
+-->
         </div>
         <div class="mui-input-row ">
             <label style="color:#cccccc">绑定方式</label>
@@ -217,6 +246,7 @@
                 <option value="TP">电话号码</option>
                 <option value="ID">身份证号</option>
                 <option value="CN">证号</option>
+                <option value="UN">工作人员账户</option>
             </select>
         </div>
         <div class="mui-input-row ">

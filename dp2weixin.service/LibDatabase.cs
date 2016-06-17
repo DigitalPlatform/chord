@@ -17,20 +17,19 @@ namespace dp2weixin.service
     public sealed class LibDatabase
     {
         // 饿汉模式
-        private static readonly LibDatabase repo = new LibDatabase();
+        private static readonly LibDatabase _db = new LibDatabase();
         public static LibDatabase Current
         {
             get
             {
-                return repo;
+                return _db;
             }
         }
 
-
+        // 成员变量
         MongoClient _mongoClient = null;
         IMongoDatabase _database = null;
         string _libDbName = "";
-
         IMongoCollection<LibItem> _libCollection = null;
         public IMongoCollection<LibItem> LibCollection
         {
@@ -41,8 +40,7 @@ namespace dp2weixin.service
         }
 
         // 初始化
-        public void Open(
-            string strMongoDbConnStr,
+        public void Open(string strMongoDbConnStr,
             string strInstancePrefix)
         {
             if (string.IsNullOrEmpty(strMongoDbConnStr) == true)
@@ -74,14 +72,12 @@ namespace dp2weixin.service
         }
 
         // 创建索引
-        public async Task CreateIndex()
+        public  void CreateIndex()
         {
-            /*
             var options = new CreateIndexOptions() { Unique = true };
-            await _libCollection.Indexes.CreateOneAsync(
+            _libCollection.Indexes.CreateOneAsync(
                 Builders<LibItem>.IndexKeys.Ascending("libCode"),
                 options);
-             */
         }
 
         // 清除集合内的全部内容

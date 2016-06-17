@@ -59,6 +59,31 @@
                 background-color: yellow;
             }
 
+
+        /*===============*/
+        .amerceNum {
+            background-color: #B8860B;
+            color: white;
+        }
+
+        .arriveNum {
+            background-color: #006400;
+            color: white;
+        }
+
+        .overdueNum {
+            background-color:#8B0000;
+            color:white;
+        }
+
+        .rightText {
+            color:#bbbbbb;
+        }
+
+        .leftNum {
+            color:#aaaaaa;
+        }
+
     </style>
 }
 
@@ -66,56 +91,77 @@
     <h1 class="mui-title">个人信息</h1>
 }
 
-
-    <ul class="mui-table-view">
-        <li class="mui-table-view-cell">
-            <a class="mui-navigate-right" href="./OverdueInfo">
-                @if (Model.OverdueCount>0)
-                {<span class="mui-badge mui-badge-danger">@Model.OverdueCount</span>}
-                您有<span>@Model.OverdueCount</span>条违约待交费记录。
-            </a>
-        </li>
-        <li class="mui-table-view-cell">
-            <a class="mui-navigate-right" href="./BorrowInfo">
-                <table style="width:100%;vertical-align:central">
-                    <tr>
-                        <td style="text-align:left"><span>您有</span>@Model.BorrowCount<span>本在借册</span>，@Model.CaoQiCount<span>本超期。</span></td>
-                        <td style="text-align:right;padding-right:20px">
-@if (Model.CaoQiCount > 0)
-{ 
-                            <span class="mui-badge mui-badge-warning">@Model.CaoQiCount</span>
-                            <span style="color:#cccccc;font-weight:bold">/</span>
-}
-@if (Model.BorrowCount > 0)
+@if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
 {
-                            <span class="mui-badge" style="background-color:#CCCCCC;color:#333333">@Model.BorrowCount</span>
+    @Html.Raw(ViewBag.RedirectInfo);
 }
-                        </td>
-                    </tr>
-                </table> 
-            </a>
-        </li>
-        <li class="mui-table-view-cell">
-            <a class="mui-navigate-right" href="./Reservation">
-                <table style="width:100%;vertical-align:central">
-                    <tr>
-                        <td style="text-align:left"><span>您有</span>@Model.ReservationCount<span>条预约请求</span>，@Model.DaoQiCount<span>条到书</span>。</td>
-                        <td style="text-align:right;padding-right:20px">
+else
+{ 
+    
+<ul class="mui-table-view">
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./OverdueInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">交费</td>
+                    <td style="text-align:right;padding-right:20px">
+@if (Model.OverdueCount>0)
+                {
+                        <span class="mui-badge amerceNum">@Model.OverdueCount</span>
+                        <span class="rightText">待交</span>
+}
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./BorrowInfo">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">在借(@Html.Raw(Model.BorrowCountHtml))</td>
+                    <td style="text-align:right;padding-right:20px">
+@if (Model.CaoQiCount > 0)
+{
+                        <span class="mui-badge overdueNum">@Model.CaoQiCount</span>
+                        <span class="rightText">超期</span>
+}
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="./Reservation">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">预约(@Html.Raw(Model.ReservationCountHtml))</td>
+                    <td style="text-align:right;padding-right:20px">
 @if (Model.DaoQiCount > 0)
 {
-                            <span class="mui-badge mui-badge-primary">@Model.DaoQiCount</span>
-                            <span style="color:#cccccc;font-weight:bold">/</span>
+                        <span class="mui-badge arriveNum">@Model.DaoQiCount </span>
+                        <span class="rightText">到书</span>
 }
-@if (Model.ReservationCount > 0)
-{
-                            <span class="mui-badge" style="background-color:#CCCCCC;color:#333333">@Model.ReservationCount</span>
-}
-                        </td>
-                    </tr>
-                </table>            
-            </a>
-        </li>
-    </ul>
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" href="~/Account/ChangePassword">
+            <table style="width:100%;vertical-align:central">
+                <tr>
+                    <td style="text-align:left">修改密码</td>
+                    <td style="text-align:right;padding-right:20px">
+                        &nbsp;
+                    </td>
+                </tr>
+            </table>
+        </a>
+    </li>
+</ul>
+
 
 <br />
 
@@ -149,3 +195,4 @@
         <div style="font-size:9pt">(不要把二维码展示和提供给无关人员，以免账号被窃。)</div>
     </center>
 </div>
+}

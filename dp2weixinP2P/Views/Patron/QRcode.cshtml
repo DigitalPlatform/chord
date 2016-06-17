@@ -1,0 +1,19 @@
+﻿@model dp2weixin.service.WxUserItem
+@section header {
+    <h1 class="mui-title">二维码</h1>
+}
+@if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+{
+    @Html.Raw(ViewBag.RedirectInfo);
+}
+else
+{
+<div class="mui-content-padded">
+    <center>
+        <img id="qrcode" src="@ViewBag.qrcodeUrl" alt='QRCode image' />
+        <div>@Model.readerName (@Model.readerBarcode)</div>
+        <div style="font-size:9pt">(不要把二维码展示和提供给无关人员，以免账号被窃。)</div>
+    </center>
+</div>
+}
+

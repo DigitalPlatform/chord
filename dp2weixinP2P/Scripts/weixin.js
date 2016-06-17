@@ -1,4 +1,6 @@
-﻿// 万能函数，给样式为pending的元素填充内容
+﻿
+
+// 万能函数，给样式为pending的元素填充内容
 function fillPending() {
     //alert("fillPending");
 

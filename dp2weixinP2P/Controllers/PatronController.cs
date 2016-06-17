@@ -5,7 +5,11 @@ using dp2weixin.service;
 using dp2weixinWeb.Models;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using System.Xml;
@@ -52,15 +56,25 @@ namespace dp2weixinWeb.Controllers
 
         #endregion
 
-        public ActionResult PersonalInfo(string code, string state)
+        #region 二维码 图片
+
+        // 二维码
+        public ActionResult QRcode(string code, string state)
         {
             string strError = "";
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml);
+            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
             if (nRet == -1 || nRet == 0)
                 return Content(strError);
+            string strRedirectInfo = this.getLinkHtml(nRet, "二维码", "/Patron/QRcode");
+            if (strRedirectInfo != "")
+            {
+                ViewBag.RedirectInfo = strRedirectInfo;
+                return View();
+            }
 
+            /*
             if (nRet == -2)// 未绑定的情况，转到绑定界面
             {
                 return RedirectToAction("Bind", "Account");
@@ -70,8 +84,145 @@ namespace dp2weixinWeb.Controllers
             {
                 return RedirectToAction("Index", "Account");
             }
+            */
+            string qrcodeUrl = "./getphoto?libUserName=" + HttpUtility.UrlEncode(activeUserItem.libUserName)
+                + "&type=pqri"
+                + "&barcode=" + HttpUtility.UrlEncode(activeUserItem.readerBarcode)
+                + "&width=400&height=400";
+            ViewBag.qrcodeUrl = qrcodeUrl;
+            return View(activeUserItem);
+        }
 
-            PersonalInfoModel model = this.ParseXml(strXml);
+        // 图片
+        public ActionResult GetPhoto(string libUserName, string type, string barcode)
+        {
+            MemoryStream ms = null;
+            string strError = "";
+
+            string strWidth = Request.QueryString["width"];
+            string strHeight = Request.QueryString["height"];
+            int nWidth = 0;
+            if (string.IsNullOrEmpty(strWidth) == false)
+            {
+                if (Int32.TryParse(strWidth, out nWidth) == false)
+                {
+                    strError = "width 参数 '" + strWidth + "' 格式不合法";
+                    goto ERROR1;
+                }
+            }
+            int nHeight = 0;
+            if (string.IsNullOrEmpty(strHeight) == false)
+            {
+                if (Int32.TryParse(strHeight, out nHeight) == false)
+                {
+                    strError = "height 参数 '" + strHeight + "' 格式不合法";
+                    goto ERROR1;
+                }
+            }
+
+            if (type == "pqri")
+            {
+                // 读者证号二维码
+                string strCode = "";
+                // 获得读者证号二维码字符串
+                int nRet = dp2WeiXinService.Instance.GetQRcode(libUserName,
+                    barcode,
+                    out strCode,
+                    out strError);
+                if (nRet == -1 || nRet==0)
+                    goto ERROR1;    // 把出错信息作为图像返回
+
+                // 获得二维码图片
+                ms = dp2WeiXinService.Instance.GetQrImage(strCode,
+                    nWidth,
+                    nHeight,
+                    out strError);
+                if (strError != "")
+                    goto ERROR1;
+
+                return File(ms.ToArray(), "image/jpeg");  
+            }
+
+            ms = dp2WeiXinService.Instance.GetErrorImg("不支持");
+            return File(ms.ToArray(), "image/jpeg");  
+
+        ERROR1:
+
+            ms = dp2WeiXinService.Instance.GetErrorImg(strError);
+            return File(ms.ToArray(), "image/jpeg");              
+        }
+
+
+
+        #endregion
+
+        private string getLinkHtml(int nRet,string menu,string returnUrl)
+        {
+            //string returnUrl = "/Patron/PersonalInfo";
+            string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+            string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
+            string strRedirectInfo = "";
+            if (nRet == -4) // 任何帐户都未绑定
+            {
+                strRedirectInfo = "您尚未绑定读者帐号，不能查看" + menu + "，" + bindLink;
+            }
+            else if (nRet == -2)// 未绑定的情况，转到绑定界面
+            {
+                strRedirectInfo = "您虽然绑定了工作人员帐号，但尚未绑定读者帐号，不能查看" + menu + "，" + bindLink;
+            }
+            // 没有设置默认账户，转到帐户管理界面
+            if (nRet == -3)
+            {
+                string indexUrl = "/Account/Index";
+                string indexLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + indexUrl + "\")'>这里</a>进行设置。";
+
+                strRedirectInfo = "您虽然绑定了读者帐号，但尚未设置当前活动帐号，不能查看" + menu + "，" + indexLink;
+            }
+
+            if (strRedirectInfo != "")
+            {
+                strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
+                    //+ "<center>"
+                    + strRedirectInfo
+                    //+ "</center"
+                    + "</div>";
+            }
+
+            return strRedirectInfo;
+        }
+
+        public ActionResult PersonalInfo(string code, string state)
+        {
+            string strError = "";
+            string strXml = "";
+            WxUserItem activeUserItem = null;
+            int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml);
+            if (nRet == -1 || nRet == 0)
+                return Content(strError);
+
+            string strRedirectInfo = this.getLinkHtml(nRet, "我的信息", "/Patron/PersonalInfo");
+            if (strRedirectInfo != "")
+            {
+                ViewBag.RedirectInfo = strRedirectInfo;
+            }
+
+
+            /*
+            if (nRet == -2)// 未绑定的情况，转到绑定界面
+            {
+                return RedirectToAction("Bind", "Account");
+            }
+            // 没有设置默认账户，转到帐户管理界面
+            if (nRet == -3)
+            {
+                return RedirectToAction("Index", "Account");
+            }
+            */
+
+            PersonalInfoModel model = null;
+            if (activeUserItem != null)
+                model= this.ParseXml(activeUserItem.libUserName, strXml);
+
             return View(model);
         }
 
@@ -179,9 +330,14 @@ namespace dp2weixinWeb.Controllers
 
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
 
+            // 检查微信用户是否已经绑定账号
+            List<WxUserItem> userList = WxUserDatabase.Current.GetAllByWeixinId(weiXinId);
+            if (userList.Count == 0)// 未绑定读者的情况，转到绑定界面
+                return -4;
+
             // 检查微信用户是否已经绑定的读者
-            List<WxUserItem> userList = WxUserDatabase.Current.GetByWeixinId(weiXinId);
-            if (userList.Count == 0)// 未绑定的情况，转到绑定界面
+            userList = WxUserDatabase.Current.GetPatronsByWeixinId(weiXinId);
+            if (userList.Count == 0)// 未绑定读者的情况，转到绑定界面
                 return -2;
 
 
@@ -197,7 +353,7 @@ namespace dp2weixinWeb.Controllers
             }
             // 没有设置默认账户，转到帐户管理界面
             if (activeUserItem == null)
-                return -2;
+                return -3;
 
             // 有的调用处不需要获取读者xml，例如预约
             if (String.IsNullOrEmpty(strFormat) == false)
@@ -216,7 +372,7 @@ namespace dp2weixinWeb.Controllers
 
 
 
-        private PersonalInfoModel ParseXml(string strXml)
+        private PersonalInfoModel ParseXml(string libUserName,string strXml)
         {
             PersonalInfoModel model = new PersonalInfoModel();
             XmlDocument dom = new XmlDocument();
@@ -234,10 +390,9 @@ namespace dp2weixinWeb.Controllers
             model.displayName = strDisplayName;
 
             // 二维码
-            string opacUrl =dp2WeiXinService.Instance.opacUrl;
-            string qrcodeUrl = "";
-            if (String.IsNullOrEmpty(opacUrl) == false)
-                qrcodeUrl = opacUrl + "/getphoto.aspx?action=pqri&barcode=" + HttpUtility.UrlEncode(strBarcode);
+            string qrcodeUrl = "./getphoto?libUserName=" + HttpUtility.UrlEncode(libUserName)
+                + "&type=pqri"
+                + "&barcode=" + HttpUtility.UrlEncode(strBarcode);
             model.qrcodeUrl = qrcodeUrl;
 
             // 姓名
@@ -343,8 +498,8 @@ namespace dp2weixinWeb.Controllers
 
             //头像
             string imageUrl = "";
-            if (String.IsNullOrEmpty(opacUrl) == false)
-                imageUrl=opacUrl+ "/getphoto.aspx?barcode=" + strBarcode;
+            //if (String.IsNullOrEmpty(opacUrl) == false)
+            //    imageUrl=opacUrl+ "/getphoto.aspx?barcode=" + strBarcode;
             model.imageUrl = imageUrl;
 
 
@@ -356,6 +511,7 @@ namespace dp2weixinWeb.Controllers
             // 在借
             nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
             model.BorrowCount = nodes.Count;
+            model.BorrowCountHtml = ConvertToString(model.BorrowCount);
             int caoQiCount = 0;
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -371,6 +527,7 @@ namespace dp2weixinWeb.Controllers
             // 预约
             nodes = dom.DocumentElement.SelectNodes("reservations/request");
             model.ReservationCount = nodes.Count;
+            model.ReservationCountHtml = ConvertToString(model.ReservationCount);
             int daoQiCount = 0;
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -385,6 +542,20 @@ namespace dp2weixinWeb.Controllers
 
             // 返回读者信息对象
             return model;
+        }
+
+        public string ConvertToString(int num)
+        {
+            string text = "";
+            if (num > 0 && num <= 5)
+            {
+                text = "<span class='leftNum'>" + "▪".PadRight(num, '▪') + "</span>";
+            }
+            else
+            {
+                text = num.ToString();
+            }
+            return text;
         }
 
         private string RemoveWeiXinId(string email)

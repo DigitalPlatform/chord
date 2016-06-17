@@ -50,7 +50,7 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            WxUserItem userItem= WxUserDatabase.Current.GetActive(weiXinId);
+            WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
 
             LibInfoModel libInfo = null;
             if (userItem!=null)
@@ -214,5 +214,13 @@ namespace dp2weixinWeb.Controllers
 
             return View();
         }
+
+
+        //UiTest
+        public ActionResult UiTest()
+        {
+            return View();
+        }
+
 	}
 }

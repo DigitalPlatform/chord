@@ -138,16 +138,21 @@
     <Content Include="img\empty3.png" />
     <Content Include="img\empty.jpg" />
     <Content Include="img\emptyBind.png" />
+    <Content Include="img\error.jpg" />
     <Content Include="img\library.jpg" />
     <Content Include="img\nonePhoto.png" />
     <Content Include="img\empty2.jpg" />
     <Content Include="img\wait2.gif" />
-    <None Include="Scripts\jquery-2.2.3.intellisense.js" />
-    <Content Include="Scripts\jquery-2.2.3.js" />
-    <Content Include="Scripts\jquery-2.2.3.min.js" />
+    <None Include="Scripts\jquery-3.0.0-vsdoc.js" />
+    <Content Include="Scripts\jquery-3.0.0.js" />
+    <Content Include="Scripts\jquery-3.0.0.min.js" />
+    <Content Include="Scripts\jquery-3.0.0.slim.js" />
+    <Content Include="Scripts\jquery-3.0.0.slim.min.js" />
     <Content Include="Scripts\jquery-ui-1.11.4.js" />
     <Content Include="Scripts\jquery-ui-1.11.4.min.js" />
     <Content Include="Scripts\jquery.form.js" />
+    <Content Include="Scripts\jquery-3.0.0.slim.min.map" />
+    <Content Include="Scripts\jquery-3.0.0.min.map" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
@@ -225,12 +230,14 @@
     <Content Include="Views\Biblio\Index.cshtml" />
     <Content Include="Views\Account\Bind.cshtml" />
     <Content Include="Views\Account\ResetPassword.cshtml" />
-    <Content Include="Scripts\jquery-2.2.3.min.map" />
     <Content Include="Views\Home\Test.cshtml" />
     <Content Include="Views\Patron\Reservation.cshtml" />
     <Content Include="Views\Patron\PersonalInfo.cshtml" />
     <Content Include="Views\Patron\OverdueInfo.cshtml" />
     <Content Include="Views\Patron\BorrowInfo.cshtml" />
+    <Content Include="Views\Home\UiTest.cshtml" />
+    <Content Include="Views\Account\ChangePassword.cshtml" />
+    <Content Include="Views\Patron\QRcode.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

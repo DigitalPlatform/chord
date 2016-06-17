@@ -247,6 +247,8 @@ namespace dp2weixin
 
         private IResponseMessageBase DoChangePatron(string strParam)
         {
+            return this.CreateTextResponseMessage("不支持");
+            /*
             // 设置当前命令
             this.CurrentMessageContext.CurrentCmdName = dp2CommandUtility.C_Command_ChangePatron;
 
@@ -289,9 +291,11 @@ namespace dp2weixin
             
             WxUserDatabase.Current.SetActive(user);
             return this.CreateTextResponseMessage("您成功切换当前读者为[" + user.readerBarcode+"("+user.readerName+")" + "]");
-
+            */
         }
 
+        #region 不再使用
+        /*
         public string getPatronList()
         {
             List<WxUserItem> patrons = WxUserDatabase.Current.GetByWeixinId(this.CurrentMessageContext.UserName);
@@ -306,6 +310,8 @@ namespace dp2weixin
 
             return text;
         }
+        */
+        #endregion
 
         private IResponseMessageBase DoSelectLib(string strParam)
         {
@@ -665,6 +671,9 @@ namespace dp2weixin
         /// <returns></returns>
         private IResponseMessageBase DoMyInfo()
         {
+            return this.CreateTextResponseMessage("不支持");
+            /*
+
             // 置空当前命令，该命令不需要保存状态
             this.CurrentMessageContext.CurrentCmdName = "";
 
@@ -695,6 +704,7 @@ namespace dp2weixin
 
             // 显示个人信息
             return this.CreateTextResponseMessage(strMyInfo);
+             */
         }
 
 
@@ -703,6 +713,9 @@ namespace dp2weixin
         /// </summary>
         private IResponseMessageBase DoBorrowInfo()
         {
+            return this.CreateTextResponseMessage("不支持");
+
+            /*
             // 置空当前命令,该命令不需要保存状态
             this.CurrentMessageContext.CurrentCmdName = "";
 
@@ -733,6 +746,7 @@ namespace dp2weixin
 
             // 显示借阅信息
             return this.CreateTextResponseMessage(strBorrowInfo);
+             */
         }
 
         /// <summary>
@@ -882,8 +896,8 @@ namespace dp2weixin
         private int CheckIsBinding(out string strError)
         {
             strError = "";
-
-            
+            return 0;
+            /*
             if (String.IsNullOrEmpty(this.CurrentMessageContext.ReaderBarcode) == true)
             {
                 // 根据openid检索绑定的读者
@@ -906,6 +920,7 @@ namespace dp2weixin
                 this.CurrentMessageContext.ReaderBarcode = strBarcode;
             }
             return 1;
+             */
         }
 
 
@@ -941,7 +956,7 @@ namespace dp2weixin
                 {
                     Title = DomUtil.GetNodeText(node.SelectSingleNode("Title")),
                     Description = DomUtil.GetNodeText(node.SelectSingleNode("Description")),
-                    PicUrl = this.CmdService.opacUrl + DomUtil.GetNodeText(node.SelectSingleNode("PicUrl")),
+                    PicUrl = DomUtil.GetNodeText(node.SelectSingleNode("PicUrl")),//this.CmdService.opacUrl + DomUtil.GetNodeText(node.SelectSingleNode("PicUrl")),
                     Url = DomUtil.GetNodeText(node.SelectSingleNode("Url"))
                 });
             }
@@ -979,7 +994,7 @@ namespace dp2weixin
                 article.Description = DomUtil.GetNodeText(node.SelectSingleNode("Description"));
                 string picUrl = DomUtil.GetNodeText(node.SelectSingleNode("PicUrl"));
                 if (String.IsNullOrEmpty(picUrl) == false)
-                    article.PicUrl = this.CmdService.opacUrl + picUrl;
+                    article.PicUrl = picUrl; //this.CmdService.opacUrl + picUrl;
                 article.Url = DomUtil.GetNodeText(node.SelectSingleNode("Url"));
                 responseMessage.Articles.Add(article);
             }
