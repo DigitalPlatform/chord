@@ -58,7 +58,7 @@ namespace DigitalPlatform.MessageServer
                 }
 
                 SearchInfo info = new SearchInfo();
-                info.CreateTime = DateTime.Now;
+                info.LastTime = DateTime.Now;
                 if (string.IsNullOrEmpty(strSearchID) == true)
                     info.UID = Guid.NewGuid().ToString();
                 else
@@ -97,7 +97,7 @@ namespace DigitalPlatform.MessageServer
         }
 
         // 根据 search request UID 查找 SearchInfo 对象
-        public SearchInfo GetSearchInfo(string strUID)
+        public SearchInfo GetSearchInfo(string strUID, bool bActivate = true)
         {
             this._lock.EnterReadLock();
             try
@@ -105,7 +105,7 @@ namespace DigitalPlatform.MessageServer
                 if (this.ContainsKey(strUID) == false)
                     return null;
 
-                return this[strUID];
+                return this[strUID].Activate();
             }
             finally
             {
@@ -170,7 +170,7 @@ namespace DigitalPlatform.MessageServer
         public string ServerPushEncoding = "";  // dp2mserver 推送消息给前端时候所使用的 encoding。主要是用来避免 .NET 4.0 的前端出现乱码
 
         public string UID = "";
-        public DateTime CreateTime; // 请求的时刻
+        public DateTime LastTime; // 请求的时刻
         public string RequestConnectionID = "";    // 请求者的 connection ID
 
         public long ReturnStart = 0;    // 检索请求中，结果集中要返回部分的开始位置。从 0 开始计数
@@ -202,9 +202,16 @@ namespace DigitalPlatform.MessageServer
 
         public bool IsTimeout()
         {
-            if ((DateTime.Now - CreateTime) > new TimeSpan(0, 30, 0))
+            if ((DateTime.Now - LastTime) > new TimeSpan(0, 30, 0))
                 return true;
             return false;
+        }
+
+        // 重新设置最近活动时间
+        public SearchInfo Activate()
+        {
+            this.LastTime = DateTime.Now;
+            return this;
         }
 
         // 标记结束一个检索目标

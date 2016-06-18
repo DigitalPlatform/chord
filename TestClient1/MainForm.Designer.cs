@@ -147,7 +147,12 @@
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.textBox_getRes_outputFile = new System.Windows.Forms.TextBox();
+            this.label40 = new System.Windows.Forms.Label();
+            this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
+            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip1.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
             this.tabControl_main.SuspendLayout();
             this.tabPage_config.SuspendLayout();
             this.tabPage_getInfo.SuspendLayout();
@@ -203,6 +208,9 @@
             // 
             // statusStrip1
             // 
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripProgressBar1,
+            this.toolStripStatusLabel1});
             this.statusStrip1.Location = new System.Drawing.Point(0, 347);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(733, 22);
@@ -1109,7 +1117,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 38);
             this.textBox_message_timeRange.Name = "textBox_message_timeRange";
-            this.textBox_message_timeRange.Size = new System.Drawing.Size(332, 21);
+            this.textBox_message_timeRange.Size = new System.Drawing.Size(336, 21);
             this.textBox_message_timeRange.TabIndex = 41;
             // 
             // label39
@@ -1128,7 +1136,7 @@
             this.textBox_message_text.Location = new System.Drawing.Point(54, 65);
             this.textBox_message_text.Multiline = true;
             this.textBox_message_text.Name = "textBox_message_text";
-            this.textBox_message_text.Size = new System.Drawing.Size(355, 62);
+            this.textBox_message_text.Size = new System.Drawing.Size(359, 62);
             this.textBox_message_text.TabIndex = 3;
             // 
             // textBox_message_groupName
@@ -1137,7 +1145,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_groupName.Location = new System.Drawing.Point(77, 11);
             this.textBox_message_groupName.Name = "textBox_message_groupName";
-            this.textBox_message_groupName.Size = new System.Drawing.Size(332, 21);
+            this.textBox_message_groupName.Size = new System.Drawing.Size(336, 21);
             this.textBox_message_groupName.TabIndex = 39;
             // 
             // label37
@@ -1189,6 +1197,8 @@
             // 
             // tabPage_getRes
             // 
+            this.tabPage_getRes.Controls.Add(this.textBox_getRes_outputFile);
+            this.tabPage_getRes.Controls.Add(this.label40);
             this.tabPage_getRes.Controls.Add(this.comboBox_getRes_operation);
             this.tabPage_getRes.Controls.Add(this.label42);
             this.tabPage_getRes.Controls.Add(this.textBox_getRes_remoteUserName);
@@ -1212,15 +1222,7 @@
             // 
             this.comboBox_getRes_operation.FormattingEnabled = true;
             this.comboBox_getRes_operation.Items.AddRange(new object[] {
-            "borrow",
-            "renew",
-            "return",
-            "lost",
-            "read",
-            "reservation",
-            "resetPassword",
-            "changePassword",
-            "verifyPassword"});
+            "getRes"});
             this.comboBox_getRes_operation.Location = new System.Drawing.Point(130, 40);
             this.comboBox_getRes_operation.Name = "comboBox_getRes_operation";
             this.comboBox_getRes_operation.Size = new System.Drawing.Size(161, 20);
@@ -1362,6 +1364,35 @@
             this.webBrowser1.Size = new System.Drawing.Size(334, 297);
             this.webBrowser1.TabIndex = 0;
             // 
+            // textBox_getRes_outputFile
+            // 
+            this.textBox_getRes_outputFile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_getRes_outputFile.Location = new System.Drawing.Point(130, 194);
+            this.textBox_getRes_outputFile.Name = "textBox_getRes_outputFile";
+            this.textBox_getRes_outputFile.Size = new System.Drawing.Size(250, 21);
+            this.textBox_getRes_outputFile.TabIndex = 56;
+            // 
+            // label40
+            // 
+            this.label40.AutoSize = true;
+            this.label40.Location = new System.Drawing.Point(7, 197);
+            this.label40.Name = "label40";
+            this.label40.Size = new System.Drawing.Size(77, 12);
+            this.label40.TabIndex = 55;
+            this.label40.Text = "Output File:";
+            // 
+            // toolStripProgressBar1
+            // 
+            this.toolStripProgressBar1.Name = "toolStripProgressBar1";
+            this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
+            // 
+            // toolStripStatusLabel1
+            // 
+            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(131, 17);
+            this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -1379,6 +1410,8 @@
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.tabControl_main.ResumeLayout(false);
             this.tabPage_config.ResumeLayout(false);
             this.tabPage_config.PerformLayout();
@@ -1531,6 +1564,10 @@
         private System.Windows.Forms.Label label42;
         private System.Windows.Forms.TextBox textBox_getRes_remoteUserName;
         private System.Windows.Forms.Label label48;
+        private System.Windows.Forms.TextBox textBox_getRes_outputFile;
+        private System.Windows.Forms.Label label40;
+        private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
     }
 }
 

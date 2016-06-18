@@ -668,6 +668,7 @@ namespace DigitalPlatform.Message
         public GetResResponse(string taskID,
             long totalLength,
             long start,
+            string path,
             byte [] data,
             string metadata,
             string timestamp,
@@ -677,6 +678,7 @@ namespace DigitalPlatform.Message
             this.TaskID = taskID;
             this.TotalLength = totalLength;
             this.Start = start;
+            this.Path = path;
             this.Data = data;
             this.Metadata = metadata;
             this.Timestamp = timestamp;

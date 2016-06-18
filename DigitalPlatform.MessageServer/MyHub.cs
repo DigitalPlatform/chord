@@ -183,7 +183,7 @@ false);
         void SearchGroupAndResponse(
             GetGroupRequest param)
         {
-            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID);
+            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID, false);
             if (search_info == null)
                 return;
 
@@ -882,7 +882,7 @@ ex.GetType().ToString());
     GetMessageRequest param,
     GroupQuery group_query)
         {
-            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID);
+            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID, false);
             if (search_info == null)
                 return;
 
@@ -948,7 +948,7 @@ ex.GetType().ToString());
     GetMessageRequest param,
     GroupQuery group_query)
         {
-            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID);
+            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID, false);
             if (search_info == null)
                 return;
 
@@ -1017,7 +1017,7 @@ ex.GetType().ToString());
             GetMessageRequest param,
             GroupQuery group_query)
         {
-            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID);
+            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID, false);
             if (search_info == null)
                 return;
 
@@ -1772,7 +1772,7 @@ true);
         void SearchConnectionInfoAndResponse(
             GetConnectionInfoRequest param)
         {
-            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID);
+            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID, false);
             if (search_info == null)
                 return;
 
@@ -1801,7 +1801,7 @@ true);
                         || i == count - 1)
                     {
                         // 每次发送前，重新试探获得一次，可以有效探知前端已经 CancelSearch() 的情况
-                        search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID);
+                        search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID, false);
                         if (search_info == null)
                             return;
 
@@ -1949,7 +1949,7 @@ true);
                     return result;
 
                 // TODO: 要确信当前 connection 是启动 Search 的
-                SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
+                SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID, false);
                 if (search_info == null)
                 {
                     result.ErrorInfo = "ID 为 '" + taskID + "' 的检索对象无法找到";
@@ -2828,6 +2828,8 @@ ex.GetType().ToString());
                     return result;
                 }
 
+                search_info.Activate();
+
 #if LOG
                 writeDebug("ResponseGetRes.3 SendResponse");
 #endif
@@ -2869,7 +2871,7 @@ ex.GetType().ToString());
                 int nRet = search_info.CompleteTarget(Context.ConnectionId,
                     responseParam.TotalLength,
                     responseParam.Data == null ? 0 : responseParam.Data.Length);
-                if (nRet == 2)
+                if (nRet == 2 || responseParam.Data == null || responseParam.Data.Length == 0)
                 {
                     // 追加一个消息，表示检索响应已经全部完成
                     Clients.Client(search_info.RequestConnectionID).responseGetRes(
@@ -2877,6 +2879,7 @@ ex.GetType().ToString());
         search_info.UID,
     -1,
     -1,
+    "",
     null,
     "",
     "",
