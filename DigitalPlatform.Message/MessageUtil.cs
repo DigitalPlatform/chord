@@ -144,7 +144,7 @@ namespace DigitalPlatform.Message
         public string Action { get; set; }  // 动作。空/getGroupName
 
         public string GroupCondition { get; set; }  // 群组名或者 ID
-        public string UserCondition { get; set; }
+        public string UserCondition { get; set; }   // 用户名条件
         public string TimeCondition { get; set; }   // 时间范围。xxxx~xxxx。DateTime.ToString("G") 格式。
 
         public long Start { get; set; }

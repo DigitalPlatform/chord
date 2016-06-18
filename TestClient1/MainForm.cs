@@ -216,6 +216,8 @@ namespace TestClient1
 
             this.textBox_message_groupName.Text = Settings.Default.message_groupName;
             this.textBox_message_timeRange.Text = Settings.Default.message_timeRange;
+            this.textBox_message_userRange.Text = Settings.Default.message_userRange;
+
 
             this.textBox_getRes_remoteUserName.Text = Settings.Default.getRes_remoteUserName;
             this.comboBox_getRes_operation.Text = Settings.Default.getRes_operation;
@@ -271,6 +273,7 @@ namespace TestClient1
 
             Settings.Default.message_groupName = this.textBox_message_groupName.Text;
             Settings.Default.message_timeRange = this.textBox_message_timeRange.Text;
+            Settings.Default.message_userRange = this.textBox_message_userRange.Text;
 
             Settings.Default.getRes_remoteUserName = this.textBox_getRes_remoteUserName.Text;
             Settings.Default.getRes_operation = this.comboBox_getRes_operation.Text;
@@ -363,10 +366,10 @@ namespace TestClient1
                     this.textBox_circulation_biblioFormatList.Text);
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
-                    CirculationResult result = await connection.CirculationAsync(
+                    CirculationResult result = await connection.CirculationAsyncLite(
                         this.textBox_circulation_remoteUserName.Text,
                         request,
                         new TimeSpan(0, 1, 10), // 10 秒
@@ -427,10 +430,10 @@ namespace TestClient1
                     entities);
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
-                    SetInfoResult result = await connection.SetInfoAsync(
+                    SetInfoResult result = await connection.SetInfoAsyncLite(
                         this.textBox_setInfo_remoteUserName.Text,
                         request,
                         new TimeSpan(0, 1, 0),
@@ -491,10 +494,10 @@ namespace TestClient1
                     this.textBox_bindPatron_resultTypeList.Text);
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
-                    BindPatronResult result = await connection.BindPatronAsync(
+                    BindPatronResult result = await connection.BindPatronAsyncLite(
                         this.textBox_bindPatron_remoteUserName.Text,
                         request,
                         new TimeSpan(0, 1, 0),
@@ -555,10 +558,10 @@ namespace TestClient1
                     count);
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
-                    GetConnectionInfoResult result = await connection.GetConnectionInfoAsync(
+                    GetConnectionInfoResult result = await connection.GetConnectionInfoAsyncLite(
                         request,
                         new TimeSpan(0, 1, 0),
                         cancel_token);
@@ -625,10 +628,10 @@ namespace TestClient1
                     count);
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
-                    SearchResult result = await connection.SearchAsync(
+                    SearchResult result = await connection.SearchAsyncLite(
                         this.textBox_search_remoteUserName.Text,
                         request,
                         new TimeSpan(0, 1, 0),
@@ -709,16 +712,16 @@ namespace TestClient1
 
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
 
-                    Task<SearchResult> task1 = connection.SearchAsync(
+                    Task<SearchResult> task1 = connection.SearchTaskAsync(
                         this.textBox_getInfo_remoteUserName.Text,
                         request1,
                         new TimeSpan(0, 1, 0),
                         cancel_token);
-                    Task<SearchResult> task2 = connection.SearchAsync(
+                    Task<SearchResult> task2 = connection.SearchTaskAsync(
                         this.textBox_getInfo_remoteUserName.Text,
                         request2,
                         new TimeSpan(0, 1, 0),
@@ -793,11 +796,11 @@ namespace TestClient1
 
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
 
-                    SearchResult result = await connection.SearchAsync(
+                    SearchResult result = await connection.SearchAsyncLite(
                         this.textBox_getInfo_remoteUserName.Text,
                         request,
                         new TimeSpan(0, 1, 0),
@@ -938,7 +941,7 @@ string strHtml)
                     text.Append("id=" + record.id + "\r\n");
                     text.Append("data=" + record.data + "\r\n");
                     if (record.groups != null)
-                        text.Append("groups=" + HttpUtility.HtmlEncode(string.Join(",", record.groups)) + "\r\n");
+                        text.Append("groups=" + string.Join(",", record.groups) + "\r\n");
                     text.Append("creator=" + record.creator + "\r\n");
                     text.Append("userName=" + record.userName + "\r\n");
 
@@ -972,7 +975,7 @@ string strHtml)
                     text.Append((i + 1).ToString() + ") ===");
                     text.Append("id=" + record.id + "\r\n");
                     if (record.groups != null)
-                        text.Append("groups=" + HttpUtility.HtmlEncode(string.Join(",", record.groups)) + "\r\n");
+                        text.Append("groups=" + string.Join(",", record.groups) + "\r\n");
                     text.Append("creator=" + record.creator + "\r\n");
                     text.Append("userName=" + record.userName + "\r\n");
                     text.Append("publishTime=" + record.publishTime + "\r\n");
@@ -1278,7 +1281,7 @@ string strHtml)
 
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
                     SetMessageRequest param = new SetMessageRequest("create",
@@ -1318,9 +1321,11 @@ string strHtml)
             bool bControl = Control.ModifierKeys == Keys.Control;
             if (bControl)
                 DoLoadMessage2(this.textBox_message_groupName.Text,
+                    this.textBox_message_userRange.Text,
                 this.textBox_message_timeRange.Text);
             else
                 DoLoadMessage(this.textBox_message_groupName.Text,
+                    this.textBox_message_userRange.Text,
                     this.textBox_message_timeRange.Text);
         }
 
@@ -1421,7 +1426,9 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             }
         }
 
-        async void DoLoadMessage(string strGroupCondition, string strTimeRange)
+        async void DoLoadMessage(string strGroupCondition, 
+            string strUserCondition,
+            string strTimeRange)
         {
             string strError = "";
 
@@ -1437,16 +1444,16 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 GetMessageRequest request = new GetMessageRequest(id,
                     "",
                     strGroupCondition, // "" 表示默认群组
-                    "",
+                    strUserCondition,
                     strTimeRange,
                     0,
                     -1);
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
-                    MessageResult result = await connection.GetMessageAsync(
+                    MessageResult result = await connection.GetMessageAsyncLite(
                         request,
                         FillMessage,
                         new TimeSpan(0, 1, 0),
@@ -1499,7 +1506,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     -1);
                 try
                 {
-                    MessageConnection connection = this._channels.GetConnectionAsync(
+                    MessageConnection connection = this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "").Result;
                     GetMessageResult result = connection.GetMessage(
@@ -1531,7 +1538,9 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 
-        async void DoLoadMessage2(string strGroupCondition, string strTimeRange)
+        async void DoLoadMessage2(string strGroupCondition, 
+            string strUserCondition,
+            string strTimeRange)
         {
             string strError = "";
 
@@ -1547,16 +1556,16 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 GetMessageRequest request = new GetMessageRequest(id,
                     "",
                     strGroupCondition, // "" 表示默认群组
-                    "",
+                    strUserCondition,
                     strTimeRange,
                     0,
                     -1);
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
-                    GetMessageResult result = await connection.GetMessageAsync(
+                    GetMessageResult result = await connection.GetMessageAsyncLite(
                         request,
                         new TimeSpan(0, 1, 0),
                         cancel_token);
@@ -1672,10 +1681,10 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     -1);
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
-                    MessageResult result = await connection.GetMessageAsync(
+                    MessageResult result = await connection.GetMessageAsyncLite(
                         request,
                         FillMessage,
                         new TimeSpan(0, 1, 0),
@@ -1747,10 +1756,10 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     -1);
                 try
                 {
-                    MessageConnection connection = this._channels.GetConnectionAsync(
+                    MessageConnection connection = this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "").Result;
-                    MessageResult result = connection.GetMessageAsync(
+                    MessageResult result = connection.GetMessageAsyncLite(
                         request,
                         (totalCount,
             start,
@@ -1835,7 +1844,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
                     SetMessageRequest param = new SetMessageRequest(strAction,  // "delete",
@@ -1930,12 +1939,12 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 -1);
             try
             {
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionAsyncLite(
                    dp2mserverUrl,
                     remoteUserName).Result;
 
 
-                SearchResult result = connection.SearchAsync(
+                SearchResult result = connection.SearchTaskAsync(
                     remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
@@ -1993,14 +2002,14 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 -1);
             try
             {
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionAsyncLite(
                     dp2mserverUrl,
                     remoteUserName).Result;
 
                 SearchResult result = null;
                 try
                 {
-                    result = connection.SearchAsync(
+                    result = connection.SearchTaskAsync(
                        remoteUserName,
                        request,
                        new TimeSpan(0, 1, 0),
@@ -2116,10 +2125,10 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     this.textBox_getRes_style.Text);
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
-                    GetResResponse result = await connection.GetResAsync(
+                    GetResResponse result = await connection.GetResAsyncLite(
                         this.textBox_search_remoteUserName.Text,
                         request,
                         new TimeSpan(0, 1, 0),
@@ -2199,13 +2208,13 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     this.textBox_getRes_style.Text);
                 try
                 {
-                    MessageConnection connection = await this._channels.GetConnectionAsync(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
                         "");
 
                     using (Stream output = File.Create(this.textBox_getRes_outputFile.Text))
                     {
-                        GetResResponse result = await connection.GetResAsync(
+                        GetResResponse result = await connection.GetResAsyncLite(
                             this.textBox_search_remoteUserName.Text,
                             request,
                             output,

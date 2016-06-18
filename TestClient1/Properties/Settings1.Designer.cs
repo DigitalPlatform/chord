@@ -550,5 +550,17 @@ namespace TestClient1.Properties {
                 this["getRes_outputFile"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string message_userRange {
+            get {
+                return ((string)(this["message_userRange"]));
+            }
+            set {
+                this["message_userRange"] = value;
+            }
+        }
     }
 }

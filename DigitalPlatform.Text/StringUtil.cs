@@ -256,6 +256,43 @@ namespace DigitalPlatform.Text
             return null;
         }
 
+        // 查找符合特定前缀的参数。增强版本，能处理 :username, operation:username, 这样的形态
+        // parameters:
+        //      strPrefix 前缀。例如 "getreaderinfo"
+        //      strDelimiter    前缀和后面参数的分隔符号。例如 ":"
+        // return:
+        //      null    没有找到前缀
+        //      ""      找到了前缀，并且值部分为空
+        //      其他     返回值部分
+        public static string GetParameterByPrefixEnvironment(string strList,
+            string strPrefix,
+            string strDelimiter = ":")
+        {
+            if (string.IsNullOrEmpty(strList) == true)
+                return null;
+            string environment = "";    // 当前环境值
+            string[] list = strList.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string s in list)
+            {
+                if (s.StartsWith(strDelimiter) == true)
+                {
+                    environment = s.Substring(strDelimiter.Length);
+                    continue;
+                }
+                if (s.StartsWith(strPrefix + strDelimiter) == true)
+                {
+                    string value = s.Substring(strPrefix.Length + strDelimiter.Length);
+                    if (string.IsNullOrEmpty(value) == false)
+                        return value;
+                    return environment;
+                }
+                if (s == strPrefix)
+                    return environment;
+            }
+
+            return null;
+        }
+
         //===================
         // 任延华 2015-12-22 加
 

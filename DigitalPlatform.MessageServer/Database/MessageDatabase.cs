@@ -41,7 +41,10 @@ new CreateIndexOptions() { Unique = false });
         public delegate bool Delegate_outputMessage(long totalCount, MessageItem item);
 
         // 返回空表示任意匹配
+        // parameters:
+        //      userCondiction  消息创建者的用户ID的列表，逗号分隔。如果为空，表示不在意消息创建者
         FilterDefinition<MessageItem> BuildQuery(GroupQuery group_query,
+            string userCondition,
             string timeRange)
         {
             string strStart = "";
@@ -57,6 +60,25 @@ new CreateIndexOptions() { Unique = false });
             catch (Exception)
             {
                 throw new ArgumentException("时间范围字符串 '" + timeRange + "' 不合法", "timeRange");
+            }
+
+            FilterDefinition<MessageItem> user_filter = null;
+            if (string.IsNullOrEmpty(userCondition) == false)
+            {
+                string[] list = userCondition.Split(new char[] { ',' });
+                List<FilterDefinition<MessageItem>> items = new List<FilterDefinition<MessageItem>>();
+                foreach (string user in list)
+                {
+                    string name = user;
+                    if (name.StartsWith("ui:"))
+                        name = name.Substring(3);
+                    FilterDefinition<MessageItem> item = Builders<MessageItem>.Filter.Eq("creator", name);
+                    items.Add(item);
+                }
+                if (items.Count == 1)
+                    user_filter = items[0];
+                else
+                    user_filter = Builders<MessageItem>.Filter.Or(items);
             }
 
             FilterDefinition<MessageItem> time_filter = null;
@@ -80,6 +102,21 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
             // 构造一个 AND 运算的检索式
             FilterDefinition<MessageItem> group_filter = group_query.BuildMongoQuery();
 
+            {
+                List<FilterDefinition<MessageItem>> items = new List<FilterDefinition<MessageItem>>();
+                if (time_filter != null)
+                    items.Add(time_filter);
+                if (expire_filter != null)
+                    items.Add(expire_filter);
+                if (group_filter != null)
+                    items.Add(group_filter);
+                if (user_filter != null)
+                    items.Add(user_filter);
+
+                return Builders<MessageItem>.Filter.And(items);
+            }
+
+#if NO
             if (time_filter == null)
                 return Builders<MessageItem>.Filter.And(expire_filter,
                 group_filter);
@@ -87,15 +124,18 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
             return time_filter = Builders<MessageItem>.Filter.And(time_filter,
                 expire_filter,
                 group_filter);
+#endif
+
         }
 
         // parameters:
         //      timeRange   时间范围
         public async Task GetMessages(// string groupName,
             GroupQuery group_query,
+            string userCondition,
             string timeRange,
-int start,
-int count,
+            int start,
+            int count,
             Delegate_outputMessage proc)
         {
             IMongoCollection<MessageItem> collection = this._collection;
@@ -103,6 +143,7 @@ int count,
             // List<MessageItem> results = new List<MessageItem>();
             FilterDefinition<MessageItem> filter = BuildQuery(// groupName,
                 group_query,
+                userCondition,
                 timeRange);
 #if NO
             if (string.IsNullOrEmpty(groupName))
@@ -336,6 +377,7 @@ int count,
 
             FilterDefinition<MessageItem> filter = BuildQuery(// groupName,
                 group_query,
+                "",
                 timeRange);
 
             var myresults = await collection.Aggregate().Match(filter)
@@ -379,6 +421,7 @@ int count,
             // List<MessageItem> results = new List<MessageItem>();
             FilterDefinition<MessageItem> filter = BuildQuery(// groupName,
                 group_query,
+                "",
                 timeRange);
 
             // 在遍历过程中，只接收 groups 字段

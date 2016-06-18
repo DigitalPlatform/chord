@@ -1,4 +1,4 @@
-﻿#define FIX_HANDLER
+﻿// #define FIX_HANDLER
 
 using System;
 using System.Collections.Generic;
@@ -25,21 +25,6 @@ namespace DigitalPlatform.MessageClient
     /// </summary>
     public class MessageConnection
     {
-#if NO
-        string _debugFileName = "";
-        public string DebugFileName
-        {
-            get
-            {
-                return this._debugFileName;
-            }
-            set
-            {
-                this._debugFileName = value;
-            }
-        }
-#endif
-
         public event ConnectionEventHandler ConnectionStateChange = null;
 
         /// <summary>
@@ -392,12 +377,12 @@ errorInfo)
         #region GetMessage() API
 
         // await 版本
-        public async Task<GetMessageResult> GetMessageAsync(GetMessageRequest request,
+        public async Task<GetMessageResult> GetMessageAsyncLite(GetMessageRequest request,
     TimeSpan timeout,
     CancellationToken cancel_token)
         {
             List<MessageRecord> results = new List<MessageRecord>();
-            MessageResult result = await this.GetMessageAsync(
+            MessageResult result = await this.GetMessageAsyncLite(
     request,
     (totalCount,
 start,
@@ -424,7 +409,7 @@ errorCode) =>
             CancellationToken cancel_token)
         {
             List<MessageRecord> results = new List<MessageRecord>();
-            MessageResult result = this.GetMessageAsync(
+            MessageResult result = this.GetMessageTaskAsync(
     request,
     (totalCount,
 start,
@@ -451,90 +436,99 @@ errorCode) =>
             string errorInfo,
             string errorCode);
 
-        public Task<MessageResult> GetMessageAsync(
+        public Task<MessageResult> GetMessageTaskAsync(
+    GetMessageRequest request,
+    Delegate_outputMessage proc,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            return TaskRun<MessageResult>(
+                () =>
+                {
+                    return GetMessageAsyncLite(request, proc, timeout, token).Result;
+                },
+            token);
+        }
+
+        public async Task<MessageResult> GetMessageAsyncLite(
             GetMessageRequest request,
             Delegate_outputMessage proc,
             TimeSpan timeout,
             CancellationToken token)
         {
-            return Task.Run<MessageResult>(
-                () =>
-                {
-                    MessageResult result = new MessageResult();
+            MessageResult result = new MessageResult();
 
-                    if (string.IsNullOrEmpty(request.TaskID) == true)
-                        request.TaskID = Guid.NewGuid().ToString();
+            if (string.IsNullOrEmpty(request.TaskID) == true)
+                request.TaskID = Guid.NewGuid().ToString();
 
-                    long recieved = 0;
+            long recieved = 0;
 
-                    using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+            using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+            {
+                using (var handler = HubProxy.On<
+                    string, long, long, IList<MessageRecord>, string, string>(
+                    "responseGetMessage",
+                    (taskID, resultCount, start, records, errorInfo, errorCode) =>
                     {
-                        using (var handler = HubProxy.On<
-                            string, long, long, IList<MessageRecord>, string, string>(
-                            "responseGetMessage",
-                            (taskID, resultCount, start, records, errorInfo, errorCode) =>
-                            {
-                                if (taskID != request.TaskID)
-                                    return;
+                        if (taskID != request.TaskID)
+                            return;
 
-                                if (resultCount == -1 || start == -1)
-                                {
-                                    if (start == -1)
-                                    {
-                                        // 表示发送响应过程已经结束。只是起到通知的作用，不携带任何信息
-                                        // result.Finished = true;
-                                    }
-                                    else
-                                    {
-                                        result.Value = resultCount;
-                                        result.ErrorInfo = errorInfo;
-                                        result.String = errorCode;
-                                    }
-                                    wait_events.finish_event.Set();
-                                    return;
-                                }
-
-                                proc(resultCount,
-                                    start,
-                                    records,
-                                    errorInfo,
-                                    errorCode);
-
-                                if (records != null)
-                                    recieved += records.Count;
-
-                                if (errorCode == "_complete")
-                                {
-                                    result.Value = resultCount;
-                                    wait_events.finish_event.Set();
-                                    return;
-                                }
-
-                                if (resultCount >= 0 &&
-                                    IsComplete(request.Start, request.Count, resultCount, recieved) == true)
-                                    wait_events.finish_event.Set();
-                                else
-                                    wait_events.active_event.Set();
-                            }))
+                        if (resultCount == -1 || start == -1)
                         {
-                            MessageResult temp = HubProxy.Invoke<MessageResult>(
-"RequestGetMessage",
-request).Result;
-                            if (temp.Value == -1 || temp.Value == 0 || temp.Value == 2)
-                                return temp;
-
-                            // result.String 里面是返回的 taskID
-
-                            Wait(
-            request.TaskID,
-            wait_events,
-            timeout,
-            token);
-                            return result;
+                            if (start == -1)
+                            {
+                                // 表示发送响应过程已经结束。只是起到通知的作用，不携带任何信息
+                                // result.Finished = true;
+                            }
+                            else
+                            {
+                                result.Value = resultCount;
+                                result.ErrorInfo = errorInfo;
+                                result.String = errorCode;
+                            }
+                            wait_events.finish_event.Set();
+                            return;
                         }
-                    }
-                },
-            token);
+
+                        proc(resultCount,
+                            start,
+                            records,
+                            errorInfo,
+                            errorCode);
+
+                        if (records != null)
+                            recieved += records.Count;
+
+                        if (errorCode == "_complete")
+                        {
+                            result.Value = resultCount;
+                            wait_events.finish_event.Set();
+                            return;
+                        }
+
+                        if (resultCount >= 0 &&
+                            IsComplete(request.Start, request.Count, resultCount, recieved) == true)
+                            wait_events.finish_event.Set();
+                        else
+                            wait_events.active_event.Set();
+                    }))
+                {
+                    MessageResult temp = await HubProxy.Invoke<MessageResult>(
+"RequestGetMessage",
+request);
+                    if (temp.Value == -1 || temp.Value == 0 || temp.Value == 2)
+                        return temp;
+
+                    // result.String 里面是返回的 taskID
+
+                    await WaitAsync(
+    request.TaskID,
+    wait_events,
+    timeout,
+    token);
+                    return result;
+                }
+            }
         }
 
         #endregion
@@ -552,85 +546,93 @@ request).Result;
 
         #region GetConnectionInfo() API
 
-        public Task<GetConnectionInfoResult> GetConnectionInfoAsync(
+        public Task<GetConnectionInfoResult> GetConnectionInfoTaskAsync(
+GetConnectionInfoRequest request,
+TimeSpan timeout,
+CancellationToken token)
+        {
+            return TaskRun<GetConnectionInfoResult>(
+                () =>
+                {
+                    return GetConnectionInfoAsyncLite(request, timeout, token).Result;
+                },
+            token);
+        }
+
+        public async Task<GetConnectionInfoResult> GetConnectionInfoAsyncLite(
     GetConnectionInfoRequest request,
     TimeSpan timeout,
     CancellationToken token)
         {
-            return Task.Run<GetConnectionInfoResult>(
-                () =>
-                {
-                    GetConnectionInfoResult result = new GetConnectionInfoResult();
-                    if (result.Records == null)
-                        result.Records = new List<ConnectionRecord>();
+            GetConnectionInfoResult result = new GetConnectionInfoResult();
+            if (result.Records == null)
+                result.Records = new List<ConnectionRecord>();
 
-                    if (string.IsNullOrEmpty(request.TaskID) == true)
-                        request.TaskID = Guid.NewGuid().ToString();
+            if (string.IsNullOrEmpty(request.TaskID) == true)
+                request.TaskID = Guid.NewGuid().ToString();
 
-                    using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+            using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+            {
+                using (var handler = HubProxy.On<
+                    string, long, long, IList<ConnectionRecord>, string, string>(
+                    "responseGetConnectionInfo",
+                    (taskID, resultCount, start, records, errorInfo, errorCode) =>
                     {
-                        using (var handler = HubProxy.On<
-                            string, long, long, IList<ConnectionRecord>, string, string>(
-                            "responseGetConnectionInfo",
-                            (taskID, resultCount, start, records, errorInfo, errorCode) =>
+                        if (taskID != request.TaskID)
+                            return;
+
+                        // 装载命中结果
+                        if (resultCount == -1 || start == -1)
+                        {
+                            if (start == -1)
                             {
-                                if (taskID != request.TaskID)
-                                    return;
-
-                                // 装载命中结果
-                                if (resultCount == -1 || start == -1)
-                                {
-                                    if (start == -1)
-                                    {
-                                        // 表示发送响应过程已经结束。只是起到通知的作用，不携带任何信息
-                                        // result.Finished = true;
-                                    }
-                                    else
-                                    {
-                                        result.ResultCount = resultCount;
-                                        result.ErrorInfo = errorInfo;
-                                        result.ErrorCode = errorCode;
-                                    }
-                                    wait_events.finish_event.Set();
-                                    return;
-                                }
-
+                                // 表示发送响应过程已经结束。只是起到通知的作用，不携带任何信息
+                                // result.Finished = true;
+                            }
+                            else
+                            {
                                 result.ResultCount = resultCount;
-                                // TODO: 似乎应该关注 start 位置
-                                result.Records.AddRange(records);
                                 result.ErrorInfo = errorInfo;
                                 result.ErrorCode = errorCode;
-
-                                if (IsComplete(request.Start, request.Count, resultCount, result.Records.Count) == true)
-                                    wait_events.finish_event.Set();
-                                else
-                                    wait_events.active_event.Set();
-                            }))
-                        {
-                            MessageResult message = HubProxy.Invoke<MessageResult>(
-                "RequestGetConnectionInfo",
-                request).Result;
-                            if (message.Value == -1 || message.Value == 0)
-                            {
-                                result.ErrorInfo = message.ErrorInfo;
-                                result.ResultCount = -1;
-                                return result;
                             }
-
-                            // result.String 里面是返回的 taskID
-
-                            // start_time = DateTime.Now;
-
-                            Wait(
-            request.TaskID,
-            wait_events,
-            timeout,
-            token);
-                            return result;
+                            wait_events.finish_event.Set();
+                            return;
                         }
+
+                        result.ResultCount = resultCount;
+                        // TODO: 似乎应该关注 start 位置
+                        result.Records.AddRange(records);
+                        result.ErrorInfo = errorInfo;
+                        result.ErrorCode = errorCode;
+
+                        if (IsComplete(request.Start, request.Count, resultCount, result.Records.Count) == true)
+                            wait_events.finish_event.Set();
+                        else
+                            wait_events.active_event.Set();
+                    }))
+                {
+                    MessageResult message = await HubProxy.Invoke<MessageResult>(
+        "RequestGetConnectionInfo",
+        request);
+                    if (message.Value == -1 || message.Value == 0)
+                    {
+                        result.ErrorInfo = message.ErrorInfo;
+                        result.ResultCount = -1;
+                        return result;
                     }
-                },
-            token);
+
+                    // result.String 里面是返回的 taskID
+
+                    // start_time = DateTime.Now;
+
+                    await WaitAsync(
+    request.TaskID,
+    wait_events,
+    timeout,
+    token);
+                    return result;
+                }
+            }
         }
 
         #endregion
@@ -821,7 +823,7 @@ SearchRequest request,
 TimeSpan timeout,
 CancellationToken token)
         {
-            return Task.Run<SearchResult>(
+            return TaskRun<SearchResult>(
                 () =>
                 {
                     // DateTime start_time = DateTime.Now;
@@ -925,6 +927,7 @@ CancellationToken token)
 
                         try
                         {
+#if NO
                             // https://github.com/SignalR/SignalR/issues/2153
                             ManualResetEventSlim ok = new ManualResetEventSlim();
                             MessageResult message = null;
@@ -939,12 +942,12 @@ CancellationToken token)
                             }).Start();
 
                             ok.Wait();
-#if NO
+#endif
+
                             MessageResult message = HubProxy.Invoke<MessageResult>(
                 "RequestSearch",
                 strRemoteUserName,
                 request).Result;
-#endif
                             if (message.Value == -1 || message.Value == 0)
                             {
                                 result.ErrorInfo = message.ErrorInfo;
@@ -1001,14 +1004,16 @@ CancellationToken token)
         }
 
 #else
+
+#if NO // 稳定版本
         // 新版 API，测试中
-        public Task<SearchResult> SearchAsync(
+        public Task<SearchResult> SearchTaskAsync(
     string strRemoteUserName,
     SearchRequest request,
     TimeSpan timeout,
     CancellationToken token)
         {
-            return Task.Run<SearchResult>(
+            return TaskRun<SearchResult>(
                 () =>
                 {
                     // DateTime start_time = DateTime.Now;
@@ -1023,71 +1028,65 @@ CancellationToken token)
                     if (string.IsNullOrEmpty(request.TaskID) == true)
                         request.TaskID = Guid.NewGuid().ToString();
 
-                    Debug.WriteLine("using wait_events");
                     using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
                     {
-                        Debug.WriteLine("using handle");
-                        var handler = HubProxy.On<SearchResponse>(
+                        using (var handler = HubProxy.On<SearchResponse>(
                             "responseSearch",
-                            (responseParam
-                                // taskID, resultCount, start, records, errorInfo, errorCode
-                                ) =>
+                            (responseParam) =>
                             {
-                                //Task.Run(() =>
+                                try
                                 {
-                                    try
+                                    if (responseParam.TaskID != request.TaskID)
+                                        return;
+
+                                    Debug.WriteLine("handler called. responseParam\r\n***\r\n" + responseParam.Dump() + "***\r\n");
+
+                                    // 装载命中结果
+                                    if (responseParam.ResultCount == -1 && responseParam.Start == -1)
                                     {
-                                        if (responseParam.TaskID != request.TaskID)
-                                            return;
-
-                                        Debug.WriteLine("handler called. responseParam\r\n***\r\n" + responseParam.Dump() + "***\r\n");
-
-                                        // 装载命中结果
-                                        if (responseParam.ResultCount == -1 && responseParam.Start == -1)
-                                        {
-                                            if (result.ResultCount != -1)
-                                                result.ResultCount = manager.GetTotalCount();
-                                            //result.ErrorInfo = responseParam.ErrorInfo;
-                                            //result.ErrorCode = responseParam.ErrorCode;
-                                            result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                            result.ErrorCode = StringUtil.MakePathList(codes, ",");
-
-                                            Debug.WriteLine("finish_event.Set() 1");
-                                            wait_events.finish_event.Set();
-                                            return;
-                                        }
-
-                                        // TODO: 似乎应该关注 start 位置
-                                        if (responseParam.Records != null)
-                                            AddLibraryUID(responseParam.Records, responseParam.LibraryUID);
-
-                                        result.Records.AddRange(responseParam.Records);
-                                        if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
-                                            && errors.IndexOf(responseParam.ErrorInfo) == -1)
-                                        {
-                                            errors.Add(responseParam.ErrorInfo);
-                                            result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                        }
-                                        if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
-                                            && codes.IndexOf(responseParam.ErrorCode) == -1)
-                                        {
-                                            codes.Add(responseParam.ErrorCode);
-                                            result.ErrorCode = StringUtil.MakePathList(codes, ",");
-                                        }
-
-                                        // 标记结束一个检索目标
-                                        // return:
-                                        //      0   尚未结束
-                                        //      1   结束
-                                        //      2   全部结束
-                                        int nRet = manager.CompleteTarget(responseParam.LibraryUID,
-                                            responseParam.ResultCount,
-                                            responseParam.Records == null ? 0 : responseParam.Records.Count);
-
-                                        if (responseParam.ResultCount == -1)
-                                            result.ResultCount = -1;
-                                        else
+                                        if (result.ResultCount != -1)
                                             result.ResultCount = manager.GetTotalCount();
+                                        //result.ErrorInfo = responseParam.ErrorInfo;
+                                        //result.ErrorCode = responseParam.ErrorCode;
+                                        result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                        result.ErrorCode = StringUtil.MakePathList(codes, ",");
+
+                                        Debug.WriteLine("finish_event.Set() 1");
+                                        wait_events.finish_event.Set();
+                                        return;
+                                    }
+
+                                    // TODO: 似乎应该关注 start 位置
+                                    if (responseParam.Records != null)
+                                        AddLibraryUID(responseParam.Records, responseParam.LibraryUID);
+
+                                    result.Records.AddRange(responseParam.Records);
+                                    if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
+                                        && errors.IndexOf(responseParam.ErrorInfo) == -1)
+                                    {
+                                        errors.Add(responseParam.ErrorInfo);
+                                        result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                    }
+                                    if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
+                                        && codes.IndexOf(responseParam.ErrorCode) == -1)
+                                    {
+                                        codes.Add(responseParam.ErrorCode);
+                                        result.ErrorCode = StringUtil.MakePathList(codes, ",");
+                                    }
+
+                                    // 标记结束一个检索目标
+                                    // return:
+                                    //      0   尚未结束
+                                    //      1   结束
+                                    //      2   全部结束
+                                    int nRet = manager.CompleteTarget(responseParam.LibraryUID,
+                                        responseParam.ResultCount,
+                                        responseParam.Records == null ? 0 : responseParam.Records.Count);
+
+                                    if (responseParam.ResultCount == -1)
+                                        result.ResultCount = -1;
+                                    else
+                                        result.ResultCount = manager.GetTotalCount();
 
 #if NO
                                             if (nRet == 2)
@@ -1098,20 +1097,17 @@ CancellationToken token)
                                             else
                                                 wait_events.active_event.Set();
 #endif
-                                        wait_events.active_event.Set();
+                                    wait_events.active_event.Set();
 
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        errors.Add("SearchAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
-                                        result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                        if (!(ex is ObjectDisposedException))
-                                            wait_events.finish_event.Set();
-                                    }
-
-                                }//);
-                            });
-                        try
+                                }
+                                catch (Exception ex)
+                                {
+                                    errors.Add("SearchAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
+                                    result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                    if (!(ex is ObjectDisposedException))
+                                        wait_events.finish_event.Set();
+                                }
+                            }))
                         {
                             MessageResult message = HubProxy.Invoke<MessageResult>(
                 "RequestSearch",
@@ -1130,8 +1126,6 @@ CancellationToken token)
                                 Debug.WriteLine("return pos 2");
                                 return result;
                             }
-
-                            // start_time = DateTime.Now;
 
                             try
                             {
@@ -1157,14 +1151,186 @@ CancellationToken token)
                             Debug.WriteLine("return pos 4");
                             return result;
                         }
-                        finally
-                        {
-                            handler.Dispose();
-                            GC.Collect();
-                        }
                     }
                 },
             token);
+        }
+
+#endif
+
+        // 新版 API，测试中
+        public Task<SearchResult> SearchTaskAsync(
+    string strRemoteUserName,
+    SearchRequest request,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            return TaskRun<SearchResult>(
+                () =>
+                {
+                    return SearchAsyncLite(strRemoteUserName, request, timeout, token).Result;
+                },
+            token);
+        }
+
+#if TESTING
+        // 用于测试的包装函数
+        public Task<SearchResult> SearchAsync(
+string strRemoteUserName,
+SearchRequest request,
+TimeSpan timeout,
+CancellationToken token)
+        {
+            return SearchTaskAsync(
+strRemoteUserName,
+request,
+timeout,
+token);
+        }
+#endif
+
+        // 新版 API，测试中
+        public async Task<SearchResult> SearchAsyncLite(
+    string strRemoteUserName,
+    SearchRequest request,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            ResultManager manager = new ResultManager();
+            List<string> errors = new List<string>();
+            List<string> codes = new List<string>();
+
+            SearchResult result = new SearchResult();
+            if (result.Records == null)
+                result.Records = new List<Record>();
+
+            if (string.IsNullOrEmpty(request.TaskID) == true)
+                request.TaskID = Guid.NewGuid().ToString();
+
+            using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+            {
+                using (var handler = HubProxy.On<SearchResponse>(
+                    "responseSearch",
+                    (responseParam) =>
+                    {
+                        try
+                        {
+                            if (responseParam.TaskID != request.TaskID)
+                                return;
+
+                            Debug.WriteLine("handler called. responseParam\r\n***\r\n" + responseParam.Dump() + "***\r\n");
+
+                            // 装载命中结果
+                            if (responseParam.ResultCount == -1 && responseParam.Start == -1)
+                            {
+                                if (result.ResultCount != -1)
+                                    result.ResultCount = manager.GetTotalCount();
+                                //result.ErrorInfo = responseParam.ErrorInfo;
+                                //result.ErrorCode = responseParam.ErrorCode;
+                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                result.ErrorCode = StringUtil.MakePathList(codes, ",");
+
+                                Debug.WriteLine("finish_event.Set() 1");
+                                wait_events.finish_event.Set();
+                                return;
+                            }
+
+                            // TODO: 似乎应该关注 start 位置
+                            if (responseParam.Records != null)
+                                AddLibraryUID(responseParam.Records, responseParam.LibraryUID);
+
+                            result.Records.AddRange(responseParam.Records);
+                            if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
+                                && errors.IndexOf(responseParam.ErrorInfo) == -1)
+                            {
+                                errors.Add(responseParam.ErrorInfo);
+                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                            }
+                            if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
+                                && codes.IndexOf(responseParam.ErrorCode) == -1)
+                            {
+                                codes.Add(responseParam.ErrorCode);
+                                result.ErrorCode = StringUtil.MakePathList(codes, ",");
+                            }
+
+                            // 标记结束一个检索目标
+                            // return:
+                            //      0   尚未结束
+                            //      1   结束
+                            //      2   全部结束
+                            int nRet = manager.CompleteTarget(responseParam.LibraryUID,
+                                responseParam.ResultCount,
+                                responseParam.Records == null ? 0 : responseParam.Records.Count);
+
+                            if (responseParam.ResultCount == -1)
+                                result.ResultCount = -1;
+                            else
+                                result.ResultCount = manager.GetTotalCount();
+
+#if NO
+                                            if (nRet == 2)
+                                            {
+                                                Debug.WriteLine("finish_event.Set() 2");
+                                                wait_events.finish_event.Set();
+                                            }
+                                            else
+                                                wait_events.active_event.Set();
+#endif
+                            wait_events.active_event.Set();
+
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add("SearchAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
+                            result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                            if (!(ex is ObjectDisposedException))
+                                wait_events.finish_event.Set();
+                        }
+                    }))
+                {
+                    MessageResult message = await HubProxy.Invoke<MessageResult>(
+        "RequestSearch",
+        strRemoteUserName,
+        request);
+                    if (message.Value == -1 || message.Value == 0)
+                    {
+                        result.ErrorInfo = message.ErrorInfo;
+                        result.ResultCount = -1;
+                        Debug.WriteLine("return pos 1");
+                        return result;
+                    }
+
+                    if (manager.SetTargetCount(message.Value) == true)
+                    {
+                        Debug.WriteLine("return pos 2");
+                        return result;
+                    }
+
+                    try
+                    {
+                        await WaitAsync(
+        request.TaskID,
+        wait_events,
+        timeout,
+        token);
+                    }
+                    catch (TimeoutException)
+                    {
+                        // 超时的时候实际上有结果了
+                        if (result.Records != null
+                            && result.Records.Count > 0)
+                        {
+                            result.ErrorCode += ",_timeout";    // 附加一个错误码，表示虽然返回了结果，但是已经超时
+                            Debug.WriteLine("return pos 3");
+                            return result;
+                        }
+                        throw;
+                    }
+
+                    Debug.WriteLine("return pos 4");
+                    return result;
+                }
+            }
         }
 
 #endif
@@ -1179,6 +1345,19 @@ CancellationToken token)
                 finish_event.Dispose();
                 active_event.Dispose();
             }
+        }
+
+        Task WaitAsync(string taskID,
+            WaitEvents wait_events,
+            TimeSpan timeout,
+            CancellationToken cancellation_token)
+        {
+            return TaskRunAction(
+    () =>
+    {
+        Wait(taskID, wait_events, timeout, cancellation_token);
+    },
+cancellation_token);
         }
 
         void Wait(string taskID,
@@ -1381,93 +1560,69 @@ CancellationToken token)
         {
         }
 
-        public Task<SetInfoResult> SetInfoAsync(
+        public Task<SetInfoResult> SetInfoTaskAsync(
+string strRemoteUserName,
+SetInfoRequest request,
+TimeSpan timeout,
+CancellationToken token)
+        {
+            return TaskRun<SetInfoResult>(() =>
+            {
+                return SetInfoAsyncLite(strRemoteUserName, request, timeout, token).Result;
+            }, token);
+        }
+
+        public async Task<SetInfoResult> SetInfoAsyncLite(
     string strRemoteUserName,
     SetInfoRequest request,
     TimeSpan timeout,
     CancellationToken token)
         {
-            return Task.Run<SetInfoResult>(() =>
+            SetInfoResult result = new SetInfoResult();
+            if (result.Entities == null)
+                result.Entities = new List<Entity>();
+
+            if (string.IsNullOrEmpty(request.TaskID) == true)
+                request.TaskID = Guid.NewGuid().ToString();
+
+            using (WaitEvents wait_events = new WaitEvents())
             {
-                SetInfoResult result = new SetInfoResult();
-                if (result.Entities == null)
-                    result.Entities = new List<Entity>();
-
-                if (string.IsNullOrEmpty(request.TaskID) == true)
-                    request.TaskID = Guid.NewGuid().ToString();
-
-                using (WaitEvents wait_events = new WaitEvents())
-                {
-                    using (var handler = HubProxy.On<
-                        string, long, IList<Entity>, string>(
-                        "responseSetInfo",
-                        (taskID, resultValue, entities, errorInfo) =>
-                        {
-                            if (taskID != request.TaskID)
-                                return;
-
-                            // 装载命中结果
-                            if (entities != null)
-                                result.Entities.AddRange(entities);
-                            result.Value = resultValue;
-                            result.ErrorInfo = errorInfo;
-                            wait_events.finish_event.Set();
-                        }))
+                using (var handler = HubProxy.On<
+                    string, long, IList<Entity>, string>(
+                    "responseSetInfo",
+                    (taskID, resultValue, entities, errorInfo) =>
                     {
-                        MessageResult message = HubProxy.Invoke<MessageResult>(
-            "RequestSetInfo",
-            strRemoteUserName,
-            request).Result;
-                        if (message.Value == -1
-                            || message.Value == 0)
-                        {
-                            result.ErrorInfo = message.ErrorInfo;
-                            result.Value = -1;
-                            return result;
-                        }
+                        if (taskID != request.TaskID)
+                            return;
 
-#if NO
-                        WaitHandle[] events = null;
-                        if (token != null)
-                        {
-                            events = new WaitHandle[2];
-                            events[0] = finish_event;
-                            events[1] = token.WaitHandle;
-                        }
-                        else
-                        {
-                            events = new WaitHandle[1];
-                            events[0] = finish_event;
-                        }
-
-                        int index = WaitHandle.WaitAny(events, timeout, false);
-                        if (index == WaitHandle.WaitTimeout)
-                        {
-                            // 向服务器发送 CancelSearch 请求
-                            CancelSearchAsync(request.TaskID);
-                            throw new TimeoutException("已超时 " + timeout.ToString());
-                        }
-
-                        if (index == 0) // 正常完成
-                            return result;
-                        if (token != null)
-                        {
-                            // 向服务器发送 CancelSearch 请求
-                            CancelSearchAsync(request.TaskID);
-                            token.ThrowIfCancellationRequested();
-                        }
-                        result.ErrorInfo += "_error";
-                        return result;
-#endif
-                        Wait(
-        request.TaskID,
-        wait_events,
-        timeout,
-        token);
+                        // 装载命中结果
+                        if (entities != null)
+                            result.Entities.AddRange(entities);
+                        result.Value = resultValue;
+                        result.ErrorInfo = errorInfo;
+                        wait_events.finish_event.Set();
+                    }))
+                {
+                    MessageResult message = await HubProxy.Invoke<MessageResult>(
+        "RequestSetInfo",
+        strRemoteUserName,
+        request);
+                    if (message.Value == -1
+                        || message.Value == 0)
+                    {
+                        result.ErrorInfo = message.ErrorInfo;
+                        result.Value = -1;
                         return result;
                     }
+
+                    await WaitAsync(
+    request.TaskID,
+    wait_events,
+    timeout,
+    token);
+                    return result;
                 }
-            }, token);
+            }
         }
 
         #endregion
@@ -1478,174 +1633,70 @@ CancellationToken token)
         {
         }
 
-        public Task<BindPatronResult> BindPatronAsync(
+        public Task<BindPatronResult> BindPatronTaskAsync(
+string strRemoteUserName,
+BindPatronRequest request,
+TimeSpan timeout,
+CancellationToken token)
+        {
+            return TaskRun<BindPatronResult>(() =>
+            {
+                return BindPatronAsyncLite(strRemoteUserName, request, timeout, token).Result;
+            }, token);
+        }
+
+        public async Task<BindPatronResult> BindPatronAsyncLite(
     string strRemoteUserName,
     BindPatronRequest request,
     TimeSpan timeout,
     CancellationToken token)
         {
-            return Task.Run<BindPatronResult>(() =>
+            BindPatronResult result = new BindPatronResult();
+            if (result.Results == null)
+                result.Results = new List<string>();
+
+            if (string.IsNullOrEmpty(request.TaskID) == true)
+                request.TaskID = Guid.NewGuid().ToString();
+
+            using (WaitEvents wait_events = new WaitEvents())
             {
-                BindPatronResult result = new BindPatronResult();
-                if (result.Results == null)
-                    result.Results = new List<string>();
-
-                if (string.IsNullOrEmpty(request.TaskID) == true)
-                    request.TaskID = Guid.NewGuid().ToString();
-
-                using (WaitEvents wait_events = new WaitEvents())
-                {
-                    using (var handler = HubProxy.On<
-                        string, long, IList<string>, string>(
-                        "responseBindPatron",
-                        (taskID, resultValue, results, errorInfo) =>
-                        {
-                            if (taskID != request.TaskID)
-                                return;
-
-                            // 装载命中结果
-                            if (results != null)
-                                result.Results.AddRange(results);
-                            result.Value = resultValue;
-                            result.ErrorInfo = errorInfo;
-                            wait_events.finish_event.Set();
-                        }))
+                using (var handler = HubProxy.On<
+                    string, long, IList<string>, string>(
+                    "responseBindPatron",
+                    (taskID, resultValue, results, errorInfo) =>
                     {
-                        MessageResult message = HubProxy.Invoke<MessageResult>(
-            "RequestBindPatron",
-            strRemoteUserName,
-            request).Result;
-                        if (message.Value == -1
-                            || message.Value == 0)
-                        {
-                            result.ErrorInfo = message.ErrorInfo;
-                            result.Value = -1;
-                            return result;
-                        }
+                        if (taskID != request.TaskID)
+                            return;
 
-#if NO
-                        WaitHandle[] events = null;
-                        if (token != null)
-                        {
-                            events = new WaitHandle[2];
-                            events[0] = finish_event;
-                            events[1] = token.WaitHandle;
-                        }
-                        else
-                        {
-                            events = new WaitHandle[1];
-                            events[0] = finish_event;
-                        }
-
-                        int index = WaitHandle.WaitAny(events, timeout, false);
-                        if (index == WaitHandle.WaitTimeout)
-                        {
-                            // 向服务器发送 CancelSearch 请求
-                            CancelSearchAsync(request.TaskID);
-                            throw new TimeoutException("已超时 " + timeout.ToString());
-                        }
-
-                        if (index == 0) // 正常完成
-                            return result;
-                        if (token != null)
-                        {
-                            // 向服务器发送 CancelSearch 请求
-                            CancelSearchAsync(request.TaskID);
-                            token.ThrowIfCancellationRequested();
-                        }
-                        result.ErrorInfo += "_error";
+                        // 装载命中结果
+                        if (results != null)
+                            result.Results.AddRange(results);
+                        result.Value = resultValue;
+                        result.ErrorInfo = errorInfo;
+                        wait_events.finish_event.Set();
+                    }))
+                {
+                    MessageResult message = await HubProxy.Invoke<MessageResult>(
+        "RequestBindPatron",
+        strRemoteUserName,
+        request);
+                    if (message.Value == -1
+                        || message.Value == 0)
+                    {
+                        result.ErrorInfo = message.ErrorInfo;
+                        result.Value = -1;
                         return result;
-#endif
-                        Wait(
+                    }
+
+                    await WaitAsync(
 request.TaskID,
 wait_events,
 timeout,
 token);
-                        return result;
-                    }
-                }
-            }, token);
-        }
-
-#if NO
-        public Task<BindPatronResult> BindPatronAsync(
-            string strRemoteUserName,
-            BindPatronRequest request,
-            TimeSpan timeout,
-            CancellationToken token)
-        {
-            return Task.Factory.StartNew<BindPatronResult>(() =>
-            {
-                BindPatronResult result = new BindPatronResult();
-
-                if (string.IsNullOrEmpty(request.TaskID) == true)
-                    request.TaskID = Guid.NewGuid().ToString();
-
-                MessageResult message = HubProxy.Invoke<MessageResult>(
-    "RequestBindPatron",
-    strRemoteUserName,
-    request).Result;
-                if (message.Value == -1
-                    || message.Value == 0)
-                {
-                    result.ErrorInfo = message.ErrorInfo;
-                    result.Value = -1;
                     return result;
                 }
-
-                DateTime start_time = DateTime.Now;
-
-                // 循环，取出得到的检索结果
-                for (; ; )
-                {
-                    if (token != null)
-                        token.ThrowIfCancellationRequested();
-
-                    if (DateTime.Now - start_time >= timeout)
-                        throw new TimeoutException("已超时 " + timeout.ToString());
-
-                    BindPatronResult result0 = (BindPatronResult)_resultTable[request.TaskID];
-                    if (result0 != null)
-                    {
-                        ClearResultFromTable(request.TaskID);
-                        return result0;
-                    }
-
-                    Thread.Sleep(200);
-                }
-            }, token);
-
-            // TODO: 超时以后到来的结果，放入 hashtable 以后，时间长了谁来清理？可能还是需要一个专门的线程来做清理
-            // 或者超时的时候，在 Hashtable 中放入一个占位事项，后面响应到来的时候看到这个占位事项就知道已经超时了，需要把事项清除。但，如果响应始终不来呢？
-        }
-#endif
-
-#if NO
-        // 当 server 发来检索响应的时候被调用。重载时可以显示收到的记录
-        // 按照 searchID 把返回的唯一结果存储起来。消费线程一旦发现有了这个事项，就表明请求得到了响应，可取走结果，注意要从 Hashtable 里面删除结果，避免长期运行后堆积占据空间
-        public virtual void OnResponseBindPatronRecieved(string taskID,
-    long resultValue,
-    IList<string> results,
-    string errorInfo)
-        {
-            lock (_resultTable)
-            {
-                BindPatronResult result = (BindPatronResult)_resultTable[taskID];
-                if (result == null)
-                {
-                    result = new BindPatronResult();
-                    _resultTable[taskID] = result;
-                }
-
-                if (result.Results == null)
-                    result.Results = new List<string>();
-
-                result.Results.AddRange(results);
-                result.Value = resultValue;
-                result.ErrorInfo = errorInfo;
             }
         }
-#endif
 
         #endregion
 
@@ -1655,89 +1706,65 @@ token);
         {
         }
 
-        public Task<CirculationResult> CirculationAsync(
+        public Task<CirculationResult> CirculationTaskAsync(
+string strRemoteUserName,
+CirculationRequest request,
+TimeSpan timeout,
+CancellationToken token)
+        {
+            return TaskRun<CirculationResult>(() =>
+            {
+                return CirculationAsyncLite(strRemoteUserName, request, timeout, token).Result;
+            }, token);
+        }
+
+        public async Task<CirculationResult> CirculationAsyncLite(
     string strRemoteUserName,
     CirculationRequest request,
     TimeSpan timeout,
     CancellationToken token)
         {
-            return Task.Run<CirculationResult>(() =>
+            CirculationResult result = new CirculationResult();
+
+            if (string.IsNullOrEmpty(request.TaskID) == true)
+                request.TaskID = Guid.NewGuid().ToString();
+
+            using (WaitEvents wait_events = new WaitEvents())
             {
-                CirculationResult result = new CirculationResult();
-
-                if (string.IsNullOrEmpty(request.TaskID) == true)
-                    request.TaskID = Guid.NewGuid().ToString();
-
-                using (WaitEvents wait_events = new WaitEvents())
-                {
-                    using (var handler = HubProxy.On<
-                        string, CirculationResult>(
-                        "responseCirculation",
-                        (taskID, circulation_result) =>
-                        {
-                            if (taskID != request.TaskID)
-                                return;
-
-                            // 装载命中结果
-                            result = circulation_result;
-                            wait_events.finish_event.Set();
-                        }))
+                using (var handler = HubProxy.On<
+                    string, CirculationResult>(
+                    "responseCirculation",
+                    (taskID, circulation_result) =>
                     {
-                        MessageResult message = HubProxy.Invoke<MessageResult>(
-            "RequestCirculation",
-            strRemoteUserName,
-            request).Result;
-                        if (message.Value == -1
-                            || message.Value == 0)
-                        {
-                            // -1 表示请求失败；0 表示没有找到调用目标。1 才是成功发起了操作
-                            result.ErrorInfo = message.ErrorInfo;
-                            result.Value = -1;
-                            return result;
-                        }
+                        if (taskID != request.TaskID)
+                            return;
 
-#if NO
-                        WaitHandle[] events = null;
-                        if (token != null)
-                        {
-                            events = new WaitHandle[2];
-                            events[0] = finish_event;
-                            events[1] = token.WaitHandle;
-                        }
-                        else
-                        {
-                            events = new WaitHandle[1];
-                            events[0] = finish_event;
-                        }
-
-                        int index = WaitHandle.WaitAny(events, timeout, false);
-                        if (index == WaitHandle.WaitTimeout)
-                        {
-                            // 向服务器发送 CancelSearch 请求
-                            CancelSearchAsync(request.TaskID);
-                            throw new TimeoutException("已超时 " + timeout.ToString());
-                        }
-
-                        if (index == 0) // 正常完成
-                            return result;
-                        if (token != null)
-                        {
-                            // 向服务器发送 CancelSearch 请求
-                            CancelSearchAsync(request.TaskID);
-                            token.ThrowIfCancellationRequested();
-                        }
-                        result.ErrorInfo += "_error";
+                        // 装载命中结果
+                        result = circulation_result;
+                        wait_events.finish_event.Set();
+                    }))
+                {
+                    MessageResult message = await HubProxy.Invoke<MessageResult>(
+        "RequestCirculation",
+        strRemoteUserName,
+        request);
+                    if (message.Value == -1
+                        || message.Value == 0)
+                    {
+                        // -1 表示请求失败；0 表示没有找到调用目标。1 才是成功发起了操作
+                        result.ErrorInfo = message.ErrorInfo;
+                        result.Value = -1;
                         return result;
-#endif
-                        Wait(
+                    }
+
+                    await WaitAsync(
 request.TaskID,
 wait_events,
 timeout,
 token);
-                        return result;
-                    }
+                    return result;
                 }
-            }, token);
+            }
         }
 
         #endregion
@@ -1753,7 +1780,7 @@ token);
 
         // 写入流版本
         // 返回结果中 result.Data 不会使用，为 null
-        public Task<GetResResponse> GetResAsync(
+        public async Task<GetResResponse> GetResAsyncLite(
             string strRemoteUserName,
             GetResRequest request,
             Stream stream,
@@ -1761,297 +1788,294 @@ token);
             TimeSpan timeout,
             CancellationToken token)
         {
-            return Task.Run<GetResResponse>(
-                () =>
-                {
-                    // ResultManager manager = new ResultManager();
-                    long lTail = -1;    // -1 表示尚未使用
-                    long count = 0;
-                    List<string> errors = new List<string>();
-                    List<string> codes = new List<string>();
+            long lTail = -1;    // -1 表示尚未使用
+            long count = 0;
+            List<string> errors = new List<string>();
+            List<string> codes = new List<string>();
 
-                    GetResResponse result = new GetResResponse();
+            GetResResponse result = new GetResResponse();
 
-                    if (string.IsNullOrEmpty(request.TaskID) == true)
-                        request.TaskID = Guid.NewGuid().ToString();
+            if (string.IsNullOrEmpty(request.TaskID) == true)
+                request.TaskID = Guid.NewGuid().ToString();
 
-                    using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+            using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+            {
+                using (var handler = HubProxy.On<GetResResponse>(
+                    "responseGetRes",
+                    (responseParam) =>
                     {
-                        using (var handler = HubProxy.On<GetResResponse>(
-                            "responseGetRes",
-                            (responseParam) =>
-                            {
-                                try
-                                {
-                                    if (responseParam.TaskID != request.TaskID)
-                                        return;
-
-                                    Debug.WriteLine("handler called. responseParam\r\n***\r\n" + responseParam.Dump() + "***\r\n");
-
-                                    // 装载命中结果
-                                    if (responseParam.TotalLength == -1 && responseParam.Start == -1)
-                                    {
-                                        if (func_setProgress != null && result.TotalLength >= 0)
-                                            func_setProgress(result.TotalLength, lTail);
-
-                                        result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                        result.ErrorCode = StringUtil.MakePathList(codes, ",");
-
-                                        Debug.WriteLine("finish_event.Set() 1");
-                                        wait_events.finish_event.Set();
-                                        return;
-                                    }
-
-                                    result.TotalLength = responseParam.TotalLength;
-                                    if (string.IsNullOrEmpty(responseParam.Metadata) == false)
-                                        result.Metadata = responseParam.Metadata;
-                                    if (string.IsNullOrEmpty(responseParam.Timestamp) == false)
-                                        result.Timestamp = responseParam.Timestamp;
-                                    if (string.IsNullOrEmpty(responseParam.Path) == false)
-                                        result.Path = responseParam.Path;
-
-                                    // TODO: 检查一下和上次的最后位置是否连续
-                                    if (lTail != -1 && responseParam.Start != lTail)
-                                    {
-                                        errors.Add("GetResAsync 接收数据过程出现不连续的批次 lTail=" + lTail + " param.Start=" + responseParam.Start);
-                                        result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                        result.TotalLength = -1;
-                                        // 向服务器发送 CancelSearch 请求
-                                        CancelSearchAsync(responseParam.TaskID);
-                                        wait_events.finish_event.Set();
-                                        return;
-                                    }
-
-                                    if (responseParam.Data != null)
-                                    {
-                                        stream.Write(responseParam.Data,
-                                            0,
-                                            responseParam.Data.Length);
-                                        lTail = responseParam.Start + responseParam.Data.Length;
-                                    }
-
-                                    if (func_setProgress != null && result.TotalLength >= 0 && (count++ % 10) == 0)
-                                        func_setProgress(result.TotalLength, lTail);
-
-                                    if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
-                                        && errors.IndexOf(responseParam.ErrorInfo) == -1)
-                                    {
-                                        errors.Add(responseParam.ErrorInfo);
-                                        result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                    }
-                                    if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
-                                        && codes.IndexOf(responseParam.ErrorCode) == -1)
-                                    {
-                                        codes.Add(responseParam.ErrorCode);
-                                        result.ErrorCode = StringUtil.MakePathList(codes, ",");
-                                    }
-
-                                    Debug.WriteLine("active_event activate");
-                                    wait_events.active_event.Set();
-                                }
-                                catch (Exception ex)
-                                {
-                                    errors.Add("GetResAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
-                                    result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                    if (!(ex is ObjectDisposedException))
-                                        wait_events.finish_event.Set();
-                                    // 向服务器发送 CancelSearch 请求
-                                    CancelSearchAsync(responseParam.TaskID);
-                                }
-
-                            }))
+                        try
                         {
-                            MessageResult message = HubProxy.Invoke<MessageResult>(
-                "RequestGetRes",
-                strRemoteUserName,
-                request).Result;
-                            if (message.Value == -1 || message.Value == 0)
+                            if (responseParam.TaskID != request.TaskID)
+                                return;
+
+                            Debug.WriteLine("handler called. responseParam\r\n***\r\n" + responseParam.Dump() + "***\r\n");
+
+                            // 装载命中结果
+                            if (responseParam.TotalLength == -1 && responseParam.Start == -1)
                             {
-                                result.ErrorInfo = message.ErrorInfo;
+                                if (func_setProgress != null && result.TotalLength >= 0)
+                                    func_setProgress(result.TotalLength, lTail);
+
+                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                result.ErrorCode = StringUtil.MakePathList(codes, ",");
+
+                                Debug.WriteLine("finish_event.Set() 1");
+                                wait_events.finish_event.Set();
+                                return;
+                            }
+
+                            result.TotalLength = responseParam.TotalLength;
+                            if (string.IsNullOrEmpty(responseParam.Metadata) == false)
+                                result.Metadata = responseParam.Metadata;
+                            if (string.IsNullOrEmpty(responseParam.Timestamp) == false)
+                                result.Timestamp = responseParam.Timestamp;
+                            if (string.IsNullOrEmpty(responseParam.Path) == false)
+                                result.Path = responseParam.Path;
+
+                            // TODO: 检查一下和上次的最后位置是否连续
+                            if (lTail != -1 && responseParam.Start != lTail)
+                            {
+                                errors.Add("GetResAsync 接收数据过程出现不连续的批次 lTail=" + lTail + " param.Start=" + responseParam.Start);
+                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
                                 result.TotalLength = -1;
-                                Debug.WriteLine("return pos 1");
-                                return result;
+                                // 向服务器发送 CancelSearch 请求
+                                CancelSearchAsync(responseParam.TaskID);
+                                wait_events.finish_event.Set();
+                                return;
                             }
 
-                            try
+                            if (responseParam.Data != null)
                             {
-                                Wait(
-                request.TaskID,
-                wait_events,
-                timeout,
-                token);
-                            }
-                            catch (TimeoutException)
-                            {
-                                // 超时的时候实际上有结果了
-                                if (lTail != -1)
-                                {
-                                    result.ErrorCode += ",_timeout";    // 附加一个错误码，表示虽然返回了结果，但是已经超时
-                                    return result;
-                                }
-                                throw;
+                                stream.Write(responseParam.Data,
+                                    0,
+                                    responseParam.Data.Length);
+                                lTail = responseParam.Start + responseParam.Data.Length;
                             }
 
+                            if (func_setProgress != null && result.TotalLength >= 0 && (count++ % 10) == 0)
+                                func_setProgress(result.TotalLength, lTail);
+
+                            if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
+                                && errors.IndexOf(responseParam.ErrorInfo) == -1)
+                            {
+                                errors.Add(responseParam.ErrorInfo);
+                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                            }
+                            if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
+                                && codes.IndexOf(responseParam.ErrorCode) == -1)
+                            {
+                                codes.Add(responseParam.ErrorCode);
+                                result.ErrorCode = StringUtil.MakePathList(codes, ",");
+                            }
+
+                            Debug.WriteLine("active_event activate");
+                            wait_events.active_event.Set();
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add("GetResAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
+                            result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                            if (!(ex is ObjectDisposedException))
+                                wait_events.finish_event.Set();
+                            // 向服务器发送 CancelSearch 请求
+                            CancelSearchAsync(responseParam.TaskID);
+                        }
+
+                    }))
+                {
+                    MessageResult message = await HubProxy.Invoke<MessageResult>(
+        "RequestGetRes",
+        strRemoteUserName,
+        request);
+                    if (message.Value == -1 || message.Value == 0)
+                    {
+                        result.ErrorInfo = message.ErrorInfo;
+                        result.TotalLength = -1;
+                        Debug.WriteLine("return pos 1");
+                        return result;
+                    }
+
+                    try
+                    {
+                        await WaitAsync(
+        request.TaskID,
+        wait_events,
+        timeout,
+        token);
+                    }
+                    catch (TimeoutException)
+                    {
+                        // 超时的时候实际上有结果了
+                        if (lTail != -1)
+                        {
+                            result.ErrorCode += ",_timeout";    // 附加一个错误码，表示虽然返回了结果，但是已经超时
                             return result;
                         }
+                        throw;
                     }
+
+                    return result;
+                }
+            }
+        }
+
+        // 写入流版本
+        // 返回结果中 result.Data 不会使用，为 null
+        public Task<GetResResponse> GetResTaskAsync(
+            string strRemoteUserName,
+            GetResRequest request,
+            Stream stream,
+            Delegate_setProgress func_setProgress,
+            TimeSpan timeout,
+            CancellationToken token)
+        {
+            return TaskRun<GetResResponse>(
+                () =>
+                {
+                    return GetResAsyncLite(strRemoteUserName, request, stream, func_setProgress, timeout, token).Result;
                 },
             token);
         }
 
         // byte [] 返回版本。注意要小批调用本函数，以避免内存溢出
-        public Task<GetResResponse> GetResAsync(
+        public async Task<GetResResponse> GetResAsyncLite(
 string strRemoteUserName,
 GetResRequest request,
 TimeSpan timeout,
 CancellationToken token)
         {
-            return Task.Run<GetResResponse>(
-                () =>
-                {
-                    // ResultManager manager = new ResultManager();
-                    long lTail = -1;    // -1 表示尚未使用
-                    List<string> errors = new List<string>();
-                    List<string> codes = new List<string>();
+            // ResultManager manager = new ResultManager();
+            long lTail = -1;    // -1 表示尚未使用
+            List<string> errors = new List<string>();
+            List<string> codes = new List<string>();
 
-                    GetResResponse result = new GetResResponse();
-                    if (result.Data == null)
-                        result.Data = new byte[0];
+            GetResResponse result = new GetResResponse();
+            if (result.Data == null)
+                result.Data = new byte[0];
 
-                    if (string.IsNullOrEmpty(request.TaskID) == true)
-                        request.TaskID = Guid.NewGuid().ToString();
+            if (string.IsNullOrEmpty(request.TaskID) == true)
+                request.TaskID = Guid.NewGuid().ToString();
 
-                    Debug.WriteLine("using wait_events");
-                    using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+            Debug.WriteLine("using wait_events");
+            using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+            {
+                Debug.WriteLine("using handle");
+                using (var handler = HubProxy.On<GetResResponse>(
+                    "responseGetRes",
+                    (responseParam) =>
                     {
-                        Debug.WriteLine("using handle");
-                        using (var handler = HubProxy.On<GetResResponse>(
-                            "responseGetRes",
-                            (responseParam) =>
-                            {
-                                try
-                                {
-                                    if (responseParam.TaskID != request.TaskID)
-                                        return;
-
-                                    Debug.WriteLine("handler called. responseParam\r\n***\r\n" + responseParam.Dump() + "***\r\n");
-
-                                    // 装载命中结果
-                                    if (responseParam.TotalLength == -1 && responseParam.Start == -1)
-                                    {
-                                        result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                        result.ErrorCode = StringUtil.MakePathList(codes, ",");
-
-                                        Debug.WriteLine("finish_event.Set() 1");
-                                        wait_events.finish_event.Set();
-                                        return;
-                                    }
-
-                                    result.TotalLength = responseParam.TotalLength;
-                                    if (string.IsNullOrEmpty(responseParam.Metadata) == false)
-                                        result.Metadata = responseParam.Metadata;
-                                    if (string.IsNullOrEmpty(responseParam.Timestamp) == false)
-                                        result.Timestamp = responseParam.Timestamp;
-                                    if (string.IsNullOrEmpty(responseParam.Path) == false)
-                                        result.Path = responseParam.Path;
-
-                                    // TODO: 检查一下和上次的最后位置是否连续
-                                    if (lTail != -1 && responseParam.Start != lTail)
-                                    {
-                                        errors.Add("GetResAsync 接收数据过程出现不连续的批次 lTail=" + lTail + " param.Start=" + responseParam.Start);
-                                        result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                        result.TotalLength = -1;
-                                        // 向服务器发送 CancelSearch 请求
-                                        CancelSearchAsync(responseParam.TaskID);
-                                        wait_events.finish_event.Set();
-                                        return;
-                                    }
-
-                                    if (responseParam.Data != null)
-                                    {
-                                        result.Data = ByteArray.Add(result.Data, responseParam.Data);
-                                        lTail = responseParam.Start + responseParam.Data.Length;
-                                    }
-
-                                    if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
-                                        && errors.IndexOf(responseParam.ErrorInfo) == -1)
-                                    {
-                                        errors.Add(responseParam.ErrorInfo);
-                                        result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                    }
-                                    if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
-                                        && codes.IndexOf(responseParam.ErrorCode) == -1)
-                                    {
-                                        codes.Add(responseParam.ErrorCode);
-                                        result.ErrorCode = StringUtil.MakePathList(codes, ",");
-                                    }
-
-                                    wait_events.active_event.Set();
-                                }
-                                catch (Exception ex)
-                                {
-                                    errors.Add("GetResAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
-                                    result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
-                                    if (!(ex is ObjectDisposedException))
-                                        wait_events.finish_event.Set();
-                                    // 向服务器发送 CancelSearch 请求
-                                    CancelSearchAsync(responseParam.TaskID);
-                                }
-
-                            }))
+                        try
                         {
-                            MessageResult message = HubProxy.Invoke<MessageResult>(
-                "RequestGetRes",
-                strRemoteUserName,
-                request).Result;
-                            if (message.Value == -1 || message.Value == 0)
+                            if (responseParam.TaskID != request.TaskID)
+                                return;
+
+                            Debug.WriteLine("handler called. responseParam\r\n***\r\n" + responseParam.Dump() + "***\r\n");
+
+                            // 装载命中结果
+                            if (responseParam.TotalLength == -1 && responseParam.Start == -1)
                             {
-                                result.ErrorInfo = message.ErrorInfo;
+                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                result.ErrorCode = StringUtil.MakePathList(codes, ",");
+
+                                Debug.WriteLine("finish_event.Set() 1");
+                                wait_events.finish_event.Set();
+                                return;
+                            }
+
+                            result.TotalLength = responseParam.TotalLength;
+                            if (string.IsNullOrEmpty(responseParam.Metadata) == false)
+                                result.Metadata = responseParam.Metadata;
+                            if (string.IsNullOrEmpty(responseParam.Timestamp) == false)
+                                result.Timestamp = responseParam.Timestamp;
+                            if (string.IsNullOrEmpty(responseParam.Path) == false)
+                                result.Path = responseParam.Path;
+
+                            // TODO: 检查一下和上次的最后位置是否连续
+                            if (lTail != -1 && responseParam.Start != lTail)
+                            {
+                                errors.Add("GetResAsync 接收数据过程出现不连续的批次 lTail=" + lTail + " param.Start=" + responseParam.Start);
+                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
                                 result.TotalLength = -1;
-                                Debug.WriteLine("return pos 1");
-                                return result;
+                                // 向服务器发送 CancelSearch 请求
+                                CancelSearchAsync(responseParam.TaskID);
+                                wait_events.finish_event.Set();
+                                return;
                             }
 
-                            try
+                            if (responseParam.Data != null)
                             {
-                                Wait(
-                request.TaskID,
-                wait_events,
-                timeout,
-                token);
-                            }
-                            catch (TimeoutException)
-                            {
-                                // 超时的时候实际上有结果了
-                                if (result.Data != null
-                                    && result.Data.Length > 0)
-                                {
-                                    result.ErrorCode += ",_timeout";    // 附加一个错误码，表示虽然返回了结果，但是已经超时
-                                    Debug.WriteLine("return pos 3");
-                                    return result;
-                                }
-                                throw;
+                                result.Data = ByteArray.Add(result.Data, responseParam.Data);
+                                lTail = responseParam.Start + responseParam.Data.Length;
                             }
 
-                            Debug.WriteLine("return pos 4");
+                            if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
+                                && errors.IndexOf(responseParam.ErrorInfo) == -1)
+                            {
+                                errors.Add(responseParam.ErrorInfo);
+                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                            }
+                            if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
+                                && codes.IndexOf(responseParam.ErrorCode) == -1)
+                            {
+                                codes.Add(responseParam.ErrorCode);
+                                result.ErrorCode = StringUtil.MakePathList(codes, ",");
+                            }
+
+                            wait_events.active_event.Set();
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add("GetResAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
+                            result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                            if (!(ex is ObjectDisposedException))
+                                wait_events.finish_event.Set();
+                            // 向服务器发送 CancelSearch 请求
+                            CancelSearchAsync(responseParam.TaskID);
+                        }
+
+                    }))
+                {
+                    MessageResult message = await HubProxy.Invoke<MessageResult>(
+        "RequestGetRes",
+        strRemoteUserName,
+        request);
+                    if (message.Value == -1 || message.Value == 0)
+                    {
+                        result.ErrorInfo = message.ErrorInfo;
+                        result.TotalLength = -1;
+                        Debug.WriteLine("return pos 1");
+                        return result;
+                    }
+
+                    try
+                    {
+                        Wait(
+        request.TaskID,
+        wait_events,
+        timeout,
+        token);
+                    }
+                    catch (TimeoutException)
+                    {
+                        // 超时的时候实际上有结果了
+                        if (result.Data != null
+                            && result.Data.Length > 0)
+                        {
+                            result.ErrorCode += ",_timeout";    // 附加一个错误码，表示虽然返回了结果，但是已经超时
+                            Debug.WriteLine("return pos 3");
                             return result;
                         }
+                        throw;
                     }
-                },
-            token);
+
+                    Debug.WriteLine("return pos 4");
+                    return result;
+                }
+            }
         }
 
         #endregion
-
-#if NO
-        Hashtable _resultTable = new Hashtable();   // taskID --> SearchResult 
-
-        // 从结果集表中移走结果
-        void ClearResultFromTable(string taskID)
-        {
-            _resultTable.Remove(taskID);
-        }
-#endif
 
         // 关闭连接，并且不会引起自动重连接
         public void CloseConnection()
@@ -2186,18 +2210,13 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
             return text.ToString();
         }
 
+#if NO
         // 等待 Task 结束。重载时可以在其中加入出让界面控制权，或者显示进度的功能
         public virtual void WaitTaskComplete(Task task)
         {
-#if NO
-            while (task.IsCompleted == false)
-            {
-                Application.DoEvents();
-                Thread.Sleep(200);
-            }
-#endif
             task.Wait();
         }
+#endif
 
         #region 调用 Server 端函数 (直接调用的浅包装)
 
@@ -2225,117 +2244,6 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
                 taskID);
         }
 
-#if NO
-        // 发起一次书目检索
-        // 发起检索成功后，调主应该用 SearchResponseEvent 事件接收检索结果
-        // return:
-        //      -1  出错
-        //      0   没有检索目标
-        //      1   成功发起检索
-        public int BeginSearchBiblio(
-            string userNameList,
-#if NO
-            string operation,
-            string inputSearchID,
-            string dbNameList,
-            string queryWord,
-            string fromList,
-            string matchStyle,
-            string formatList,
-            long maxResults,
-#endif
- SearchRequest searchParam,
-            out string outputSearchID,
-            out string strError)
-        {
-            strError = "";
-            outputSearchID = "";
-
-            AddInfoLine("BeginSearchBiblio "
-                + "; userNameList=" + userNameList
-#if NO
-                + "; operation=" + operation
-                + "; searchID=" + inputSearchID
-                + "; dbNameList=" + dbNameList
-                + "; queryWord=" + queryWord
-                + "; fromList=" + fromList
-                + "; matchStyle=" + matchStyle
-                + "; formatList=" + formatList
-                + "; maxResults=" + maxResults
-#endif
-);
-            try
-            {
-                Task<MessageResult> task = HubProxy.Invoke<MessageResult>("RequestSearchBiblio",
-                    userNameList,
-#if NO
-                    inputSearchID,
-                    dbNameList,
-                    queryWord,
-                    fromList,
-                    matchStyle,
-                    formatList,
-                    maxResults
-#endif
- searchParam
-                    );
-
-#if NO
-                while (task.IsCompleted == false)
-                {
-                    Application.DoEvents();
-                    Thread.Sleep(200);
-                }
-#endif
-                WaitTaskComplete(task);
-
-                if (task.IsFaulted == true)
-                {
-                    // AddErrorLine(GetExceptionText(task.Exception));
-                    strError = GetExceptionText(task.Exception);
-                    AddInfoLine("BeginSearchBiblio inputSearchID=" + searchParam.SearchID
-    + "; return error=" + strError + " value="
-    + -1);
-                    return -1;
-                }
-
-                MessageResult result = task.Result;
-                if (result.Value == -1)
-                {
-                    // AddErrorLine(result.ErrorInfo);
-                    strError = result.ErrorInfo;
-                    AddInfoLine("BeginSearchBiblio inputSearchID=" + searchParam.SearchID
-    + "; return error=" + strError + " value="
-    + -1);
-                    return -1;
-                }
-                if (result.Value == 0)
-                {
-                    // AddErrorLine(result.ErrorInfo);
-                    strError = result.ErrorInfo;
-                    AddInfoLine("BeginSearchBiblio inputSearchID=" + searchParam.SearchID
-   + "; return error=" + strError + " value="
-   + 0);
-                    return 0;
-                }
-                // AddMessageLine("search ID:", result.String);
-                outputSearchID = result.String;
-                AddInfoLine("BeginSearchBiblio inputSearchID=" + searchParam.SearchID
-+ "; return value="
-+ 1);
-                return 1;
-            }
-            catch (Exception ex)
-            {
-                strError = ex.Message;  //  ExceptionUtil.GetAutoText(ex);
-                AddInfoLine("BeginSearchBiblio inputSearchID=" + searchParam.SearchID
-+ "; return error=" + strError + " value="
-+ -1);
-                return -1;
-            }
-        }
-#endif
-
         // 调用 server 端 ResponseCirculation
         public Task<MessageResult> ResponseCirculationAsync(
             string taskID,
@@ -2345,7 +2253,6 @@ dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, 
 taskID,
 circulation_result);
         }
-
 
         // 调用 server 端 ResponseCirculation
         public bool TryResponseCirculation(
@@ -2779,6 +2686,22 @@ LoginRequest param)
         }
 
         #endregion
+
+        public static Task<TResult> TaskRun<TResult>(Func<TResult> function, CancellationToken cancellationToken)
+        {
+            return Task.Factory.StartNew<TResult>(
+                function,
+                cancellationToken,
+                TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        }
+
+        public static Task TaskRunAction(Action function, CancellationToken cancellationToken)
+        {
+            return Task.Factory.StartNew(
+                function,
+                cancellationToken,
+                TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        }
     }
 
     public class SearchResult
