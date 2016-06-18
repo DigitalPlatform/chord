@@ -59,7 +59,7 @@ namespace DigitalPlatform.MessageServer
         {
             bool bChanged = false;
 
-            foreach(GroupSegment segment in this.Segments)
+            foreach (GroupSegment segment in this.Segments)
             {
                 if (segment.Canonicalize(proc_replace))
                     bChanged = true;
@@ -102,9 +102,22 @@ namespace DigitalPlatform.MessageServer
         public List<GroupName> Names { get; set; }
         public string Definition { get; set; }  // 附加的定义部分
 
+        string _defaultNameType = "gn";
+        public string DefaultNameType
+        {
+            get
+            {
+                return _defaultNameType;
+            }
+            set
+            {
+                _defaultNameType = value;
+            }
+        }
+
         // parameters:
         //      strText 例如 [id:xxxx,id:xxxx]|definition
-        public GroupSegment(string strText)
+        public GroupSegment(string strText, string strDefaultNameType = "gn")
         {
             if (strText == null)
                 throw new ArgumentException("strText 参数值不应为空", "strText");
@@ -112,6 +125,8 @@ namespace DigitalPlatform.MessageServer
             strText = strText.Trim();
             if (strText == "")
                 throw new ArgumentException("strText 参数值不应为空", "strText");
+
+            this.DefaultNameType = strDefaultNameType;
 
             string strDefinition = "";
             List<string> array1 = StringUtil.ParseTwoPart(strText, "|");
@@ -141,7 +156,7 @@ namespace DigitalPlatform.MessageServer
 
             foreach (string name in names)
             {
-                this.Names.Add(new GroupName(name));
+                this.Names.Add(GroupName.Build(name, DefaultNameType));
             }
 
             this.SortNames();
@@ -153,7 +168,7 @@ namespace DigitalPlatform.MessageServer
             this.Names = new List<GroupName>();
             foreach (string name in names)
             {
-                this.Names.Add(new GroupName(name));
+                this.Names.Add(GroupName.Build(name, DefaultNameType));
             }
 
             this.Definition = definition;
@@ -202,7 +217,6 @@ namespace DigitalPlatform.MessageServer
 
             return bChanged;
         }
-
 
         // 变换为适于保存到数据库中 MessageItem.groups 的形态
         public bool Canonicalize(Delegate_replaceName proc_replace)
@@ -385,7 +399,7 @@ namespace DigitalPlatform.MessageServer
 
         // parameters:
         //      strType 类型、名字
-        public GroupName(string strText)
+        public static GroupName Build(string strText, string strDefaultType = "gn")
         {
             if (strText == null)
                 throw new ArgumentException("strText 参数值不应为空", "strText");
@@ -399,7 +413,7 @@ namespace DigitalPlatform.MessageServer
             List<string> array = StringUtil.ParseTwoPart(strText, ":");
             if (string.IsNullOrEmpty(array[1]))
             {
-                strType = "gn";
+                strType = strDefaultType;   //  "gn";
                 strName = array[0];
             }
             else
@@ -408,7 +422,9 @@ namespace DigitalPlatform.MessageServer
                 strName = array[1];
             }
 
-            this.Set(strType, strName);
+            GroupName result = new GroupName(strType, strName);
+            return result;
+            // this.Set(strType, strName);
         }
 
         public override string ToString()
@@ -418,4 +434,5 @@ namespace DigitalPlatform.MessageServer
     }
 
     public delegate GroupName Delegate_replaceName(GroupName name);
+
 }

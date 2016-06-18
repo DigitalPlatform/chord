@@ -216,6 +216,8 @@ namespace TestClient1
 
             this.textBox_message_groupName.Text = Settings.Default.message_groupName;
             this.textBox_message_timeRange.Text = Settings.Default.message_timeRange;
+            this.textBox_message_userRange.Text = Settings.Default.message_userRange;
+
 
             this.textBox_getRes_remoteUserName.Text = Settings.Default.getRes_remoteUserName;
             this.comboBox_getRes_operation.Text = Settings.Default.getRes_operation;
@@ -271,6 +273,7 @@ namespace TestClient1
 
             Settings.Default.message_groupName = this.textBox_message_groupName.Text;
             Settings.Default.message_timeRange = this.textBox_message_timeRange.Text;
+            Settings.Default.message_userRange = this.textBox_message_userRange.Text;
 
             Settings.Default.getRes_remoteUserName = this.textBox_getRes_remoteUserName.Text;
             Settings.Default.getRes_operation = this.comboBox_getRes_operation.Text;
@@ -1318,9 +1321,11 @@ string strHtml)
             bool bControl = Control.ModifierKeys == Keys.Control;
             if (bControl)
                 DoLoadMessage2(this.textBox_message_groupName.Text,
+                    this.textBox_message_userRange.Text,
                 this.textBox_message_timeRange.Text);
             else
                 DoLoadMessage(this.textBox_message_groupName.Text,
+                    this.textBox_message_userRange.Text,
                     this.textBox_message_timeRange.Text);
         }
 
@@ -1421,7 +1426,9 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             }
         }
 
-        async void DoLoadMessage(string strGroupCondition, string strTimeRange)
+        async void DoLoadMessage(string strGroupCondition, 
+            string strUserCondition,
+            string strTimeRange)
         {
             string strError = "";
 
@@ -1437,7 +1444,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 GetMessageRequest request = new GetMessageRequest(id,
                     "",
                     strGroupCondition, // "" 表示默认群组
-                    "",
+                    strUserCondition,
                     strTimeRange,
                     0,
                     -1);
@@ -1531,7 +1538,9 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 
-        async void DoLoadMessage2(string strGroupCondition, string strTimeRange)
+        async void DoLoadMessage2(string strGroupCondition, 
+            string strUserCondition,
+            string strTimeRange)
         {
             string strError = "";
 
@@ -1547,7 +1556,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 GetMessageRequest request = new GetMessageRequest(id,
                     "",
                     strGroupCondition, // "" 表示默认群组
-                    "",
+                    strUserCondition,
                     strTimeRange,
                     0,
                     -1);

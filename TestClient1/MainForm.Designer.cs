@@ -34,6 +34,8 @@
             this.MenuItem_writeToMSMQ = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItem_getSummaryAndItems = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
+            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.tabControl_main = new System.Windows.Forms.TabControl();
             this.tabPage_config = new System.Windows.Forms.TabPage();
             this.textBox_config_password = new System.Windows.Forms.TextBox();
@@ -131,6 +133,8 @@
             this.button_message_load = new System.Windows.Forms.Button();
             this.webBrowser_message = new System.Windows.Forms.WebBrowser();
             this.tabPage_getRes = new System.Windows.Forms.TabPage();
+            this.textBox_getRes_outputFile = new System.Windows.Forms.TextBox();
+            this.label40 = new System.Windows.Forms.Label();
             this.comboBox_getRes_operation = new System.Windows.Forms.ComboBox();
             this.label42 = new System.Windows.Forms.Label();
             this.textBox_getRes_remoteUserName = new System.Windows.Forms.TextBox();
@@ -147,10 +151,8 @@
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.textBox_getRes_outputFile = new System.Windows.Forms.TextBox();
-            this.label40 = new System.Windows.Forms.Label();
-            this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
-            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.textBox_message_userRange = new System.Windows.Forms.TextBox();
+            this.label41 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl_main.SuspendLayout();
@@ -216,6 +218,17 @@
             this.statusStrip1.Size = new System.Drawing.Size(733, 22);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
+            // 
+            // toolStripProgressBar1
+            // 
+            this.toolStripProgressBar1.Name = "toolStripProgressBar1";
+            this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
+            // 
+            // toolStripStatusLabel1
+            // 
+            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(131, 17);
+            this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
             // 
             // tabControl_main
             // 
@@ -1050,6 +1063,8 @@
             // splitContainer_message.Panel1
             // 
             this.splitContainer_message.Panel1.AutoScroll = true;
+            this.splitContainer_message.Panel1.Controls.Add(this.textBox_message_userRange);
+            this.splitContainer_message.Panel1.Controls.Add(this.label41);
             this.splitContainer_message.Panel1.Controls.Add(this.button_message_delete);
             this.splitContainer_message.Panel1.Controls.Add(this.button_message_enumGroupName);
             this.splitContainer_message.Panel1.Controls.Add(this.button_message_getGroupNameQuick);
@@ -1067,13 +1082,13 @@
             // 
             this.splitContainer_message.Panel2.Controls.Add(this.webBrowser_message);
             this.splitContainer_message.Size = new System.Drawing.Size(383, 271);
-            this.splitContainer_message.SplitterDistance = 159;
+            this.splitContainer_message.SplitterDistance = 213;
             this.splitContainer_message.SplitterWidth = 8;
             this.splitContainer_message.TabIndex = 40;
             // 
             // button_message_delete
             // 
-            this.button_message_delete.Location = new System.Drawing.Point(331, 132);
+            this.button_message_delete.Location = new System.Drawing.Point(331, 170);
             this.button_message_delete.Name = "button_message_delete";
             this.button_message_delete.Size = new System.Drawing.Size(56, 23);
             this.button_message_delete.TabIndex = 45;
@@ -1083,7 +1098,7 @@
             // 
             // button_message_enumGroupName
             // 
-            this.button_message_enumGroupName.Location = new System.Drawing.Point(283, 132);
+            this.button_message_enumGroupName.Location = new System.Drawing.Point(283, 170);
             this.button_message_enumGroupName.Name = "button_message_enumGroupName";
             this.button_message_enumGroupName.Size = new System.Drawing.Size(47, 23);
             this.button_message_enumGroupName.TabIndex = 44;
@@ -1093,7 +1108,7 @@
             // 
             // button_message_getGroupNameQuick
             // 
-            this.button_message_getGroupNameQuick.Location = new System.Drawing.Point(125, 132);
+            this.button_message_getGroupNameQuick.Location = new System.Drawing.Point(125, 170);
             this.button_message_getGroupNameQuick.Name = "button_message_getGroupNameQuick";
             this.button_message_getGroupNameQuick.Size = new System.Drawing.Size(155, 23);
             this.button_message_getGroupNameQuick.TabIndex = 43;
@@ -1103,7 +1118,7 @@
             // 
             // button_message_transGroupName
             // 
-            this.button_message_transGroupName.Location = new System.Drawing.Point(0, 132);
+            this.button_message_transGroupName.Location = new System.Drawing.Point(0, 170);
             this.button_message_transGroupName.Name = "button_message_transGroupName";
             this.button_message_transGroupName.Size = new System.Drawing.Size(119, 23);
             this.button_message_transGroupName.TabIndex = 42;
@@ -1115,15 +1130,15 @@
             // 
             this.textBox_message_timeRange.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 38);
+            this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 76);
             this.textBox_message_timeRange.Name = "textBox_message_timeRange";
-            this.textBox_message_timeRange.Size = new System.Drawing.Size(336, 21);
+            this.textBox_message_timeRange.Size = new System.Drawing.Size(340, 21);
             this.textBox_message_timeRange.TabIndex = 41;
             // 
             // label39
             // 
             this.label39.AutoSize = true;
-            this.label39.Location = new System.Drawing.Point(0, 42);
+            this.label39.Location = new System.Drawing.Point(0, 76);
             this.label39.Name = "label39";
             this.label39.Size = new System.Drawing.Size(71, 12);
             this.label39.TabIndex = 40;
@@ -1133,10 +1148,10 @@
             // 
             this.textBox_message_text.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_message_text.Location = new System.Drawing.Point(54, 65);
+            this.textBox_message_text.Location = new System.Drawing.Point(54, 103);
             this.textBox_message_text.Multiline = true;
             this.textBox_message_text.Name = "textBox_message_text";
-            this.textBox_message_text.Size = new System.Drawing.Size(359, 62);
+            this.textBox_message_text.Size = new System.Drawing.Size(363, 62);
             this.textBox_message_text.TabIndex = 3;
             // 
             // textBox_message_groupName
@@ -1145,13 +1160,13 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_groupName.Location = new System.Drawing.Point(77, 11);
             this.textBox_message_groupName.Name = "textBox_message_groupName";
-            this.textBox_message_groupName.Size = new System.Drawing.Size(336, 21);
+            this.textBox_message_groupName.Size = new System.Drawing.Size(340, 21);
             this.textBox_message_groupName.TabIndex = 39;
             // 
             // label37
             // 
             this.label37.AutoSize = true;
-            this.label37.Location = new System.Drawing.Point(0, 65);
+            this.label37.Location = new System.Drawing.Point(0, 103);
             this.label37.Name = "label37";
             this.label37.Size = new System.Drawing.Size(35, 12);
             this.label37.TabIndex = 2;
@@ -1168,7 +1183,7 @@
             // 
             // button_message_send
             // 
-            this.button_message_send.Location = new System.Drawing.Point(0, 103);
+            this.button_message_send.Location = new System.Drawing.Point(0, 141);
             this.button_message_send.Name = "button_message_send";
             this.button_message_send.Size = new System.Drawing.Size(47, 23);
             this.button_message_send.TabIndex = 4;
@@ -1178,7 +1193,7 @@
             // 
             // button_message_load
             // 
-            this.button_message_load.Location = new System.Drawing.Point(0, 80);
+            this.button_message_load.Location = new System.Drawing.Point(0, 118);
             this.button_message_load.Name = "button_message_load";
             this.button_message_load.Size = new System.Drawing.Size(47, 23);
             this.button_message_load.TabIndex = 5;
@@ -1192,7 +1207,7 @@
             this.webBrowser_message.Location = new System.Drawing.Point(0, 0);
             this.webBrowser_message.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser_message.Name = "webBrowser_message";
-            this.webBrowser_message.Size = new System.Drawing.Size(383, 104);
+            this.webBrowser_message.Size = new System.Drawing.Size(383, 50);
             this.webBrowser_message.TabIndex = 1;
             // 
             // tabPage_getRes
@@ -1217,6 +1232,24 @@
             this.tabPage_getRes.TabIndex = 7;
             this.tabPage_getRes.Text = "GetRes";
             this.tabPage_getRes.UseVisualStyleBackColor = true;
+            // 
+            // textBox_getRes_outputFile
+            // 
+            this.textBox_getRes_outputFile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_getRes_outputFile.Location = new System.Drawing.Point(130, 194);
+            this.textBox_getRes_outputFile.Name = "textBox_getRes_outputFile";
+            this.textBox_getRes_outputFile.Size = new System.Drawing.Size(250, 21);
+            this.textBox_getRes_outputFile.TabIndex = 56;
+            // 
+            // label40
+            // 
+            this.label40.AutoSize = true;
+            this.label40.Location = new System.Drawing.Point(7, 197);
+            this.label40.Name = "label40";
+            this.label40.Size = new System.Drawing.Size(77, 12);
+            this.label40.TabIndex = 55;
+            this.label40.Text = "Output File:";
             // 
             // comboBox_getRes_operation
             // 
@@ -1364,34 +1397,23 @@
             this.webBrowser1.Size = new System.Drawing.Size(334, 297);
             this.webBrowser1.TabIndex = 0;
             // 
-            // textBox_getRes_outputFile
+            // textBox_message_userRange
             // 
-            this.textBox_getRes_outputFile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.textBox_message_userRange.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_getRes_outputFile.Location = new System.Drawing.Point(130, 194);
-            this.textBox_getRes_outputFile.Name = "textBox_getRes_outputFile";
-            this.textBox_getRes_outputFile.Size = new System.Drawing.Size(250, 21);
-            this.textBox_getRes_outputFile.TabIndex = 56;
+            this.textBox_message_userRange.Location = new System.Drawing.Point(77, 38);
+            this.textBox_message_userRange.Name = "textBox_message_userRange";
+            this.textBox_message_userRange.Size = new System.Drawing.Size(340, 21);
+            this.textBox_message_userRange.TabIndex = 47;
             // 
-            // label40
+            // label41
             // 
-            this.label40.AutoSize = true;
-            this.label40.Location = new System.Drawing.Point(7, 197);
-            this.label40.Name = "label40";
-            this.label40.Size = new System.Drawing.Size(77, 12);
-            this.label40.TabIndex = 55;
-            this.label40.Text = "Output File:";
-            // 
-            // toolStripProgressBar1
-            // 
-            this.toolStripProgressBar1.Name = "toolStripProgressBar1";
-            this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
-            // 
-            // toolStripStatusLabel1
-            // 
-            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(131, 17);
-            this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
+            this.label41.AutoSize = true;
+            this.label41.Location = new System.Drawing.Point(0, 38);
+            this.label41.Name = "label41";
+            this.label41.Size = new System.Drawing.Size(71, 12);
+            this.label41.TabIndex = 46;
+            this.label41.Text = "User Range:";
             // 
             // MainForm
             // 
@@ -1568,6 +1590,8 @@
         private System.Windows.Forms.Label label40;
         private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+        private System.Windows.Forms.TextBox textBox_message_userRange;
+        private System.Windows.Forms.Label label41;
     }
 }
 

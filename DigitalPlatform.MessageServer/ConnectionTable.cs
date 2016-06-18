@@ -397,7 +397,7 @@ namespace DigitalPlatform.MessageServer
         // 根据用户的 un ui 获得当前在线的 connection id
         public string GetConnectionId(string name_or_id)
         {
-            GroupName name = new GroupName(name_or_id);
+            GroupName name = GroupName.Build(name_or_id, "gn");
             foreach (string key in this.Keys)
             {
                 ConnectionInfo info = this[key];

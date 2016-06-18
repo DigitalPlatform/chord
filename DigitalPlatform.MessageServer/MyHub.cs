@@ -710,6 +710,47 @@ ex.GetType().ToString());
 
         #region GetMessage() API
 
+        // 把用户名列表字符串转换为用户ID列表字符串
+        string CanonicalizeUserName(string userNameList)
+        {
+            if (string.IsNullOrEmpty(userNameList))
+                return userNameList;
+
+            GroupSegment segment = new GroupSegment(userNameList, "un");
+            segment.Canonicalize((name) =>
+            {
+                if (name.Type == "un")
+                {
+                    List<UserItem> results = ServerInfo.UserDatabase.GetUsersByName(name.Text, 0, 1).Result;
+                    if (results == null || results.Count == 0)
+                        throw new ArgumentException("未知的用户名 '" + name.Text + "'");
+                    return new GroupName("ui", results[0].id);
+                }
+                if (name.Type == "gn")
+                {
+                    throw new ArgumentException("不允许使用 gn 前缀");
+                }
+                return name;
+            });
+
+            return segment.ToStringUnQuote();
+        }
+
+#if NO
+        public class NotFoundException : Exception
+        {
+            /// <summary>
+            /// 构造函数
+            /// </summary>
+            /// <param name="error"></param>
+            /// <param name="strText"></param>
+            public NotFoundException(string strText)
+                : base(strText)
+            {
+            }
+        }
+#endif
+
         bool DisplaylizeGroupQuery(GroupQuery query, ConnectionInfo connection_info)
         {
             // 正规化组名
@@ -782,6 +823,18 @@ ex.GetType().ToString());
                     result.Value = -1;
                     result.String = "InvalidParam";
                     result.ErrorInfo = "param 成员 GroupCondition 不应为空";
+                    return result;
+                }
+
+                try
+                {
+                    param.UserCondition = CanonicalizeUserName(param.UserCondition);
+                }
+                catch(ArgumentException ex)
+                {
+                    result.Value = -1;
+                    result.String = "ConditionError";
+                    result.ErrorInfo = ex.Message;
                     return result;
                 }
 
@@ -1030,6 +1083,7 @@ ex.GetType().ToString());
 
                 ServerInfo.MessageDatabase.GetMessages(//param.GroupCondition,
                     group_query,
+                    param.UserCondition,    // TODO: 需要转换为 ID
                     param.TimeCondition,
                     (int)param.Start,
                     (int)param.Count,
