@@ -21,8 +21,22 @@ namespace dp2weixinWeb.ApiControllers
         public AnnouncementResult Post(AnnouncementItem item)
         {
             //style == add
+
+            item.id = Guid.NewGuid().ToString();
             return dp2WeiXinService.Instance.CoverAnnouncement(item,"add");
         }
+
+        // PUT api/<controller>/5
+        public AnnouncementResult Put(AnnouncementItem item)
+        {
+            //return libDb.Update(id, item);
+
+            string test = "";
+
+            return dp2WeiXinService.Instance.CoverAnnouncement(item, "modify");
+
+            //return null;
+     }
 
         // DELETE api/<controller>/5
         [HttpDelete]

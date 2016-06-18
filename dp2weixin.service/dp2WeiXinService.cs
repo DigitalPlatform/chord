@@ -1543,7 +1543,8 @@ namespace dp2weixin.service
         void _channels_Login(object sender, LoginEventArgs e)
         {
             MessageConnection connection = sender as MessageConnection;
-            
+
+            string connName = connection.Name;
 
             e.UserName = GetUserName();
             if (string.IsNullOrEmpty(e.UserName) == true)
@@ -4252,20 +4253,81 @@ namespace dp2weixin.service
 
         public AnnouncementResult GetAnnouncements()
         {
-            //todo
             AnnouncementResult result = new AnnouncementResult();
-            result.errorCode = 1;
-            result.errorInfo = "";
-
             List<AnnouncementItem> list = new List<AnnouncementItem>();
-            AnnouncementItem item = new AnnouncementItem();
-            item.id = "1";
-            item.title = "test";
-            item.content = "这是一条公告。";
-            list.Add(item);
-            result.items = list;
+            string strError = "";
+            int nRet = this.GetMessage(out list, out strError);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+            }
 
+            result.items = list;
+            result.errorCode = nRet;
             return result;
+        }
+
+        public const string C_GroupName_Announcement = "gn:_libAnnouncement";
+        public const string C_ConnPrefix_Myself = "<myself>:";
+        // 从 dp2mserver 获得消息
+        // 每次最多获得 100 条
+        int GetMessage(out List<AnnouncementItem> annoList, out string strError)
+        {
+            strError = "";
+            annoList = new List<AnnouncementItem>();
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            GetMessageRequest request = new GetMessageRequest(id,
+                "",
+                "_patronNotify",//C_GroupName_Announcement,
+                "",
+                "", // strTimeRange,
+                0,
+                1);
+            try
+            {
+                string name = C_ConnPrefix_Myself + "getAnnouncement";
+                MessageConnection connection = this.Channels.GetConnectionAsync(this.dp2MServerUrl,
+                    name).Result;
+                GetMessageResult result = connection.GetMessageAsync(request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.Value == -1)
+                    goto ERROR1;
+
+                foreach (MessageRecord record in result.Results)
+                {
+                    AnnouncementItem item = new AnnouncementItem();
+                    item.id = record.id;
+
+                    string xml = record.data;
+                    XmlDocument dom = new XmlDocument();
+                    dom.LoadXml(xml);
+                    XmlNode root = dom.DocumentElement;
+                    string title = DomUtil.GetNodeText(root.SelectSingleNode("title"));
+                    string content = DomUtil.GetNodeText(root.SelectSingleNode("content"));
+
+                    item.title = title;
+                    item.content = content;
+                    annoList.Add(item);
+                }
+                return result.Results.Count;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+        ERROR1:
+            strError = "GetMessage() error: " + strError;
+            return -1;
         }
 
         /// <summary>

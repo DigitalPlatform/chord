@@ -14,5 +14,10 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
+        // GET: Library
+        public ActionResult AnnouncementManage()
+        {
+            return View();
+        }
     }
 }

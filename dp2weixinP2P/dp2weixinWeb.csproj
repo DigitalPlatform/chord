@@ -241,6 +241,7 @@
     <Content Include="Views\Account\ChangePassword.cshtml" />
     <Content Include="Views\Patron\QRcode.cshtml" />
     <Content Include="Views\Library\Announcement.cshtml" />
+    <Content Include="Views\Library\AnnouncementManage.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
