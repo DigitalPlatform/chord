@@ -941,7 +941,7 @@ string strHtml)
                     text.Append("id=" + record.id + "\r\n");
                     text.Append("data=" + record.data + "\r\n");
                     if (record.groups != null)
-                        text.Append("groups=" + HttpUtility.HtmlEncode(string.Join(",", record.groups)) + "\r\n");
+                        text.Append("groups=" + string.Join(",", record.groups) + "\r\n");
                     text.Append("creator=" + record.creator + "\r\n");
                     text.Append("userName=" + record.userName + "\r\n");
 
@@ -975,7 +975,7 @@ string strHtml)
                     text.Append((i + 1).ToString() + ") ===");
                     text.Append("id=" + record.id + "\r\n");
                     if (record.groups != null)
-                        text.Append("groups=" + HttpUtility.HtmlEncode(string.Join(",", record.groups)) + "\r\n");
+                        text.Append("groups=" + string.Join(",", record.groups) + "\r\n");
                     text.Append("creator=" + record.creator + "\r\n");
                     text.Append("userName=" + record.userName + "\r\n");
                     text.Append("publishTime=" + record.publishTime + "\r\n");

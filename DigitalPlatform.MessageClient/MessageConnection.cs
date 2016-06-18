@@ -457,7 +457,8 @@ errorCode) =>
             TimeSpan timeout,
             CancellationToken token)
         {
-            return Task.Run<MessageResult>(
+            // return Task.Run<MessageResult>(
+            return Task.Factory.StartNew<MessageResult>(
                 () =>
                 {
                     MessageResult result = new MessageResult();
@@ -534,7 +535,8 @@ request).Result;
                         }
                     }
                 },
-            token);
+            token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            // token);
         }
 
         #endregion
@@ -821,7 +823,8 @@ SearchRequest request,
 TimeSpan timeout,
 CancellationToken token)
         {
-            return Task.Run<SearchResult>(
+            // return Task.Run<SearchResult>(
+            return Task.Factory.StartNew<SearchResult>(
                 () =>
                 {
                     // DateTime start_time = DateTime.Now;
@@ -925,6 +928,7 @@ CancellationToken token)
 
                         try
                         {
+#if NO
                             // https://github.com/SignalR/SignalR/issues/2153
                             ManualResetEventSlim ok = new ManualResetEventSlim();
                             MessageResult message = null;
@@ -939,12 +943,12 @@ CancellationToken token)
                             }).Start();
 
                             ok.Wait();
-#if NO
+#endif
+
                             MessageResult message = HubProxy.Invoke<MessageResult>(
                 "RequestSearch",
                 strRemoteUserName,
                 request).Result;
-#endif
                             if (message.Value == -1 || message.Value == 0)
                             {
                                 result.ErrorInfo = message.ErrorInfo;
@@ -997,7 +1001,8 @@ CancellationToken token)
                         }
                     }
                 },
-            token);
+                token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            // token);
         }
 
 #else
