@@ -119,6 +119,8 @@
             this.label35 = new System.Windows.Forms.Label();
             this.tabPage_message = new System.Windows.Forms.TabPage();
             this.splitContainer_message = new System.Windows.Forms.SplitContainer();
+            this.textBox_message_userRange = new System.Windows.Forms.TextBox();
+            this.label41 = new System.Windows.Forms.Label();
             this.button_message_delete = new System.Windows.Forms.Button();
             this.button_message_enumGroupName = new System.Windows.Forms.Button();
             this.button_message_getGroupNameQuick = new System.Windows.Forms.Button();
@@ -151,8 +153,6 @@
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.textBox_message_userRange = new System.Windows.Forms.TextBox();
-            this.label41 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl_main.SuspendLayout();
@@ -354,7 +354,8 @@
             "getBiblioInfo",
             "getItemInfo",
             "getBrowseRecords",
-            "getUserInfo"});
+            "getUserInfo",
+            "getSystemParameter"});
             this.comboBox_getInfo_method.Location = new System.Drawing.Point(132, 10);
             this.comboBox_getInfo_method.Name = "comboBox_getInfo_method";
             this.comboBox_getInfo_method.Size = new System.Drawing.Size(161, 20);
@@ -1086,6 +1087,24 @@
             this.splitContainer_message.SplitterWidth = 8;
             this.splitContainer_message.TabIndex = 40;
             // 
+            // textBox_message_userRange
+            // 
+            this.textBox_message_userRange.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_message_userRange.Location = new System.Drawing.Point(77, 38);
+            this.textBox_message_userRange.Name = "textBox_message_userRange";
+            this.textBox_message_userRange.Size = new System.Drawing.Size(344, 21);
+            this.textBox_message_userRange.TabIndex = 47;
+            // 
+            // label41
+            // 
+            this.label41.AutoSize = true;
+            this.label41.Location = new System.Drawing.Point(0, 38);
+            this.label41.Name = "label41";
+            this.label41.Size = new System.Drawing.Size(71, 12);
+            this.label41.TabIndex = 46;
+            this.label41.Text = "User Range:";
+            // 
             // button_message_delete
             // 
             this.button_message_delete.Location = new System.Drawing.Point(331, 170);
@@ -1132,7 +1151,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 76);
             this.textBox_message_timeRange.Name = "textBox_message_timeRange";
-            this.textBox_message_timeRange.Size = new System.Drawing.Size(340, 21);
+            this.textBox_message_timeRange.Size = new System.Drawing.Size(344, 21);
             this.textBox_message_timeRange.TabIndex = 41;
             // 
             // label39
@@ -1151,7 +1170,7 @@
             this.textBox_message_text.Location = new System.Drawing.Point(54, 103);
             this.textBox_message_text.Multiline = true;
             this.textBox_message_text.Name = "textBox_message_text";
-            this.textBox_message_text.Size = new System.Drawing.Size(363, 62);
+            this.textBox_message_text.Size = new System.Drawing.Size(367, 62);
             this.textBox_message_text.TabIndex = 3;
             // 
             // textBox_message_groupName
@@ -1160,7 +1179,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_groupName.Location = new System.Drawing.Point(77, 11);
             this.textBox_message_groupName.Name = "textBox_message_groupName";
-            this.textBox_message_groupName.Size = new System.Drawing.Size(340, 21);
+            this.textBox_message_groupName.Size = new System.Drawing.Size(344, 21);
             this.textBox_message_groupName.TabIndex = 39;
             // 
             // label37
@@ -1396,24 +1415,6 @@
             this.webBrowser1.Name = "webBrowser1";
             this.webBrowser1.Size = new System.Drawing.Size(334, 297);
             this.webBrowser1.TabIndex = 0;
-            // 
-            // textBox_message_userRange
-            // 
-            this.textBox_message_userRange.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_message_userRange.Location = new System.Drawing.Point(77, 38);
-            this.textBox_message_userRange.Name = "textBox_message_userRange";
-            this.textBox_message_userRange.Size = new System.Drawing.Size(340, 21);
-            this.textBox_message_userRange.TabIndex = 47;
-            // 
-            // label41
-            // 
-            this.label41.AutoSize = true;
-            this.label41.Location = new System.Drawing.Point(0, 38);
-            this.label41.Name = "label41";
-            this.label41.Size = new System.Drawing.Size(71, 12);
-            this.label41.TabIndex = 46;
-            this.label41.Text = "User Range:";
             // 
             // MainForm
             // 

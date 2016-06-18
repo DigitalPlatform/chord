@@ -768,6 +768,12 @@ strError);
                 return;
             }
 
+            if (searchParam.Operation == "getSystemParameter")
+            {
+                GetSystemParameter(searchParam);
+                return;
+            }
+
             if (searchParam.Operation == "getUserInfo")
             {
                 GetUserInfo(searchParam);
@@ -1685,6 +1691,96 @@ records,
 strError,
 strErrorCode));
         }
+
+        void GetSystemParameter(SearchRequest searchParam)
+        {
+            string strError = "";
+            string strErrorCode = "";
+            IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
+
+            if (string.IsNullOrEmpty(searchParam.QueryWord) == true)
+            {
+                strError = "QueryWord 不应为空";
+                goto ERROR1;
+            }
+
+            LibraryChannel channel = GetChannel();
+            try
+            {
+                string strValue = "";
+
+                long lRet = channel.GetSystemParameter(// null,
+                    searchParam.QueryWord,
+                    searchParam.FormatList,
+                    out strValue,
+                    out strError);
+                strErrorCode = channel.ErrorCode.ToString();
+                if (lRet == -1 || lRet == 0)
+                {
+                    if (lRet == 0
+                        || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                    {
+                        // 没有命中
+                        ResponseSearch(
+                            new SearchResponse(
+searchParam.TaskID,
+0,
+0,
+this.dp2library.LibraryUID,
+records,
+strError,  // 出错信息大概为 not found。
+strErrorCode));
+                        return;
+                    }
+                    goto ERROR1;
+                }
+
+                records.Clear();
+                {
+                    DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
+                    biblio.RecPath = "";
+                    biblio.Data = strValue;
+                    biblio.Format = "";
+                    records.Add(biblio);
+                }
+
+                long batch_size = -1;
+                bool bRet = TryResponseSearch(
+searchParam.TaskID,
+records.Count,
+0,
+this.dp2library.LibraryUID,
+records,
+"",
+strErrorCode,
+ref batch_size);
+                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                if (bRet == false)
+                    return;
+            }
+            catch (Exception ex)
+            {
+                strError = "GetSystemParameter() 异常：" + ExceptionUtil.GetDebugText(ex);
+                goto ERROR1;
+            }
+            finally
+            {
+                this._channelPool.ReturnChannel(channel);
+            }
+            return;
+        ERROR1:
+            // 报错
+            ResponseSearch(
+                new SearchResponse(
+searchParam.TaskID,
+-1,
+0,
+this.dp2library.LibraryUID,
+records,
+strError,
+strErrorCode));
+        }
+
 
         void GetPatronInfo(SearchRequest searchParam)
         {

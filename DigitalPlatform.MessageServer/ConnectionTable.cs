@@ -308,10 +308,10 @@ namespace DigitalPlatform.MessageServer
                         // 如何表达允许操作的权限?
                         // getreaderinfo:username1|username2
                         // 如果没有配置，表示不允许
-                        string strAllowUserList = StringUtil.GetParameterByPrefix(strDuty, strOperation, ":");
+                        string strAllowUserList = StringUtil.GetParameterByPrefixEnvironment(strDuty, strOperation, ":");
                         if (strAllowUserList != "" &&   // "" 表示所有用户名均通配
                             (strAllowUserList == null
-                            || StringUtil.Contains(strAllowUserList, strRequestUserName) == false)
+                            || StringUtil.Contains(strAllowUserList, strRequestUserName, '|') == false)
                             )
                             continue;
                     }
