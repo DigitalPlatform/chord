@@ -149,3 +149,86 @@
                 },
             token);
         }
+
+
+		~~~~
+
+		#if NO
+        public Task<BindPatronResult> BindPatronAsync(
+            string strRemoteUserName,
+            BindPatronRequest request,
+            TimeSpan timeout,
+            CancellationToken token)
+        {
+            return Task.Factory.StartNew<BindPatronResult>(() =>
+            {
+                BindPatronResult result = new BindPatronResult();
+
+                if (string.IsNullOrEmpty(request.TaskID) == true)
+                    request.TaskID = Guid.NewGuid().ToString();
+
+                MessageResult message = HubProxy.Invoke<MessageResult>(
+    "RequestBindPatron",
+    strRemoteUserName,
+    request).Result;
+                if (message.Value == -1
+                    || message.Value == 0)
+                {
+                    result.ErrorInfo = message.ErrorInfo;
+                    result.Value = -1;
+                    return result;
+                }
+
+                DateTime start_time = DateTime.Now;
+
+                // 循环，取出得到的检索结果
+                for (; ; )
+                {
+                    if (token != null)
+                        token.ThrowIfCancellationRequested();
+
+                    if (DateTime.Now - start_time >= timeout)
+                        throw new TimeoutException("已超时 " + timeout.ToString());
+
+                    BindPatronResult result0 = (BindPatronResult)_resultTable[request.TaskID];
+                    if (result0 != null)
+                    {
+                        ClearResultFromTable(request.TaskID);
+                        return result0;
+                    }
+
+                    Thread.Sleep(200);
+                }
+            }, token);
+
+            // TODO: 超时以后到来的结果，放入 hashtable 以后，时间长了谁来清理？可能还是需要一个专门的线程来做清理
+            // 或者超时的时候，在 Hashtable 中放入一个占位事项，后面响应到来的时候看到这个占位事项就知道已经超时了，需要把事项清除。但，如果响应始终不来呢？
+        }
+#endif
+
+#if NO
+        // 当 server 发来检索响应的时候被调用。重载时可以显示收到的记录
+        // 按照 searchID 把返回的唯一结果存储起来。消费线程一旦发现有了这个事项，就表明请求得到了响应，可取走结果，注意要从 Hashtable 里面删除结果，避免长期运行后堆积占据空间
+        public virtual void OnResponseBindPatronRecieved(string taskID,
+    long resultValue,
+    IList<string> results,
+    string errorInfo)
+        {
+            lock (_resultTable)
+            {
+                BindPatronResult result = (BindPatronResult)_resultTable[taskID];
+                if (result == null)
+                {
+                    result = new BindPatronResult();
+                    _resultTable[taskID] = result;
+                }
+
+                if (result.Results == null)
+                    result.Results = new List<string>();
+
+                result.Results.AddRange(results);
+                result.Value = resultValue;
+                result.ErrorInfo = errorInfo;
+            }
+        }
+#endif

@@ -29,7 +29,7 @@ namespace DigitalPlatform.MessageClient
 
         // parameters:
         //      strName 连接的名字。如果要针对同一 dp2mserver 使用多根连接，可以用名字区分它们。如果不想区分，可以使用空
-        public Task<MessageConnection> GetConnectionAsync(string url,
+        public Task<MessageConnection> GetConnectionTaskAsync(string url,
     string strName,
     bool autoConnect = true)
         {
@@ -109,10 +109,72 @@ namespace DigitalPlatform.MessageClient
                 return task;
             }
 #endif
-        return Task.Run(() =>
+            return Task.Run(() =>
+            {
+                return connection;
+            });
+        }
+
+#if TESTING
+        // 用于测试的包装函数
+        public Task<MessageConnection> GetConnectionAsync(string url,
+string strName,
+bool autoConnect = true)
         {
+            return GetConnectionTaskAsync(url, strName, autoConnect);
+        }
+#endif
+
+        public async Task<MessageConnection> GetConnectionAsyncLite(string url,
+string strName,
+bool autoConnect = true)
+        {
+            MessageConnection connection = null;
+            this._lock.EnterUpgradeableReadLock();
+            try
+            {
+                foreach (MessageConnection current_connection in _connections)
+                {
+                    if (current_connection.ServerUrl == url && current_connection.Name == strName)
+                    {
+                        connection = current_connection;
+                        goto FOUND;
+                    }
+                }
+
+                connection = new MessageConnection();
+                connection.ServerUrl = url;
+                connection.Name = strName;
+                connection.Container = this;
+                this._lock.EnterWriteLock();
+                try
+                {
+                    this._connections.Add(connection);
+                }
+                finally
+                {
+                    this._lock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                this._lock.ExitUpgradeableReadLock();
+            }
+
+            // 触发 Created 事件
+            this.TriggerCreated(connection, new ConnectionCreatedEventArgs());
+
+        FOUND:
+            if (autoConnect && connection.IsConnected == false)
+            {
+                // TODO: 建议抛出原有 Exception
+                MessageResult result = await connection.ConnectAsync();
+                if (result.Value == -1)
+                    throw new Exception(result.ErrorInfo);
+                return connection;
+            }
+
             return connection;
-        });
         }
 
 #if NO
