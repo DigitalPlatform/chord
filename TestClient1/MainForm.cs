@@ -1288,7 +1288,9 @@ string strHtml)
                         "",
                         records);
 
-                    SetMessageResult result = await connection.SetMessageAsync(param);
+                    SetMessageResult result = await connection.SetMessageAsyncLite(param, 
+                        new TimeSpan(0, 1, 0), 
+                        this._cancel.Token);
 
                     this.Invoke(new Action(() =>
                     {
@@ -1732,10 +1734,14 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
             DoDeleteMessage(bControl ? "expire" : "delete",
                 this.textBox_message_groupName.Text,
+                this.textBox_config_userName.Text,
                 this.textBox_message_text.Text);
         }
 
-        List<string> GetAllMessageID(string strGroupCondition)
+        // parameters:
+        //      strUserName 用于过滤的用户名。如果为空则表示不过滤
+        async Task<List<string>> GetAllMessageID(string strGroupCondition,
+            string strUserCondition)
         {
             string strError = "";
 
@@ -1744,22 +1750,22 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             EnableControls(false);
             try
             {
-                CancellationToken cancel_token = new CancellationToken();
+                CancellationToken cancel_token = this._cancel.Token;  //  new CancellationToken();
 
                 string id = Guid.NewGuid().ToString();
                 GetMessageRequest request = new GetMessageRequest(id,
                     "",
                     strGroupCondition,
-                    "",
+                    strUserCondition,
                     "", // strTimeRange,
                     0,
                     -1);
                 try
                 {
-                    MessageConnection connection = this._channels.GetConnectionAsyncLite(
+                    MessageConnection connection = await this._channels.GetConnectionAsyncLite(
                         this.textBox_config_messageServerUrl.Text,
-                        "").Result;
-                    MessageResult result = connection.GetMessageAsyncLite(
+                        "");
+                    MessageResult result = await connection.GetMessageAsyncLite(
                         request,
                         (totalCount,
             start,
@@ -1773,7 +1779,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                             }
                         },
                         new TimeSpan(0, 1, 0),
-                        cancel_token).Result;
+                        cancel_token);
                     this.Invoke(new Action(() =>
                     {
                         SetTextString(this.webBrowser1, ToString(result));
@@ -1790,7 +1796,6 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     strError = ex.Message;
                     goto ERROR1;
                 }
-                return results;
             }
             finally
             {
@@ -1801,10 +1806,12 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             return results;
         }
 
-
+        // parameters:
+        //      strUserName 用于过滤的用户名(仅删除此用户创建的消息)。如果为空则表示不过滤，即全部删除
         async void DoDeleteMessage(
             string strAction,
             string strGroupName,
+            string strUserName,
             string strMessageIDList)
         {
             string strError = "";
@@ -1819,7 +1826,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             if (strMessageIDList == "*")
             {
                 // 表示希望全部删除
-                ids = GetAllMessageID(strGroupName).ToArray();
+                ids = (await GetAllMessageID(strGroupName, strUserName)).ToArray();
             }
             else
             {
@@ -1851,7 +1858,9 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                         "",
                         records);
 
-                    SetMessageResult result = await connection.SetMessageAsync(param);
+                    SetMessageResult result = await connection.SetMessageAsyncLite(param,
+                        new TimeSpan(0, 1, 0),
+                        this._cancel.Token);
 
                     this.Invoke(new Action(() =>
                     {

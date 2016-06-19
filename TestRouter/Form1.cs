@@ -266,7 +266,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     return this.textBox_groupName.Text;
                 }));
 
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
         strUrl,
         "").Result;
 
@@ -324,7 +324,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 SetMessageRequest param = new SetMessageRequest("create",
                     "",
                     records);
-                SetMessageResult result = connection.SetMessageAsync(param).Result;
+                SetMessageResult result = connection.SetMessageTaskAsync(param, new CancellationToken()).Result;
 
                 if (result.Value == -1)
                 {
