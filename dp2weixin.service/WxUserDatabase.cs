@@ -123,7 +123,7 @@ namespace dp2weixin.service
         /// <param name="weixinId"></param>
         /// <param name="libCode"></param>
         /// <returns></returns>
-        public WxUserItem GetWorkerAccount(string weixinId, string libCode)
+        public WxUserItem GetWorker(string weixinId, string libCode)
         {
             // 先查到weixinId+libCode+readerBarcode唯一的记录
             var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
@@ -136,7 +136,7 @@ namespace dp2weixin.service
             return null;
         }
 
-        public WxUserItem GetOneWorkerAccount(string weixinId)
+        public WxUserItem GetOneWorker(string weixinId)
         {
             // 先查到weixinId+libCode+readerBarcode唯一的记录
             var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
@@ -275,6 +275,7 @@ namespace dp2weixin.service
                 .Set("libCode", item.libCode)
                 .Set("libUserName", item.libUserName)
                 .Set("libName", item.libName)
+                .Set("libId", item.libId)
 
                 .Set("readerBarcode", item.readerBarcode)
                 .Set("readerName", item.readerName)
@@ -325,8 +326,10 @@ namespace dp2weixin.service
         /// 如果删除的是读者账户，自动将第一个读者账户设为默认的
         /// </summary>
         /// <param name="id"></param>
-        public void Delete(String id)
+        public void Delete(String id,out WxUserItem newActivePatron)
         {
+            newActivePatron = null;
+
             if (string.IsNullOrEmpty(id) == true || id=="null")
                 return;           
 
@@ -355,7 +358,10 @@ namespace dp2weixin.service
             {
                 WxUserItem newUserItem = this.GetOnePatronByWeixinId(weixinId);
                 if (newUserItem != null)
-                    this.SetPatronActive(newUserItem.weixinId, newUserItem.id);
+                {
+                    this.SetActivePatron(newUserItem.weixinId, newUserItem.id);
+                    newActivePatron = newUserItem;
+                }
             }
         }
 
@@ -364,7 +370,7 @@ namespace dp2weixin.service
         /// </summary>
         /// <param name="weixinId"></param>
         /// <param name="id"></param>
-        public void SetPatronActive(string weixinId,string id)
+        public void SetActivePatron(string weixinId, string id)
         {
             if (string.IsNullOrEmpty(weixinId) == true)
                 return;
@@ -402,6 +408,7 @@ namespace dp2weixin.service
         public string libCode { get; set; } // 绑定必备
         public string libUserName { get; set; }// 绑定必备
         public string libName { get; set; }// 绑定必备   
+        public string libId { get; set; }// 对应图书馆的id，2016-6-19 jane
 
         public string readerBarcode { get; set; }
         public string readerName { get; set; }

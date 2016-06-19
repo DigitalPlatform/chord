@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using DigitalPlatform.Text;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using System;
@@ -74,10 +75,16 @@ namespace dp2weixin.service
         {
             var filter = Builders<LibItem>.Filter.Eq("id", id);
 
-            var list = this.LibCollection.Find(new BsonDocument("id", id)).ToListAsync().Result;
+            List<LibItem> list = this.LibCollection.Find(filter).ToList();
             if (list.Count > 0)
-                return list[0];
-
+            {
+                LibItem item = list[0];
+                //解密
+                if (String.IsNullOrEmpty(item.wxPassword)== false)
+                    item.wxPassword= Cryptography.Decrypt( item.wxPassword, WeiXinConst.EncryptKey);
+               
+                return item;
+            }
             return null;
         }
         public LibItem GetLibByLibCode(string libCode)
@@ -98,6 +105,10 @@ namespace dp2weixin.service
         public LibItem Add(LibItem item)
         {
             item.OperTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
+            item.wxPasswordView = "*".PadRight(item.wxPassword.Length, '*');
+            
+            string encryptPassword = Cryptography.Encrypt(item.wxPassword, WeiXinConst.EncryptKey);
+            item.wxPassword = encryptPassword;
 
             this.LibCollection.InsertOne(item);
             return item;
@@ -106,6 +117,12 @@ namespace dp2weixin.service
         // 更新
         public long Update(string id,LibItem item)
         {
+            if (String.IsNullOrEmpty(item.wxPassword) == false)
+            {
+                string encryptPassword = Cryptography.Encrypt(item.wxPassword, WeiXinConst.EncryptKey);
+                item.wxPassword = encryptPassword;
+            }
+
             var filter = Builders<LibItem>.Filter.Eq("id", id);
             var update = Builders<LibItem>.Update
                 .Set("libCode", item.libCode)
@@ -152,13 +169,8 @@ namespace dp2weixin.service
         public string wxUserName { get; set; } //微信端本方用户名
         public string wxPassword { get; set; }    //本方密码
         public string wxContactPhone { get; set; }    //本方联系人手机号，用于将来的找回密码
-        public string wxPasswordView
-        {
-            get
-            {
-                return "*".PadRight(this.wxPassword.Length, '*');
-            }
-        }
+        public string wxPasswordView{ get; set; }  
+
 
         public string comment { get; set; }  // 注释
         public string OperTime { get; set; } // 操作时间

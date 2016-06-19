@@ -51,7 +51,7 @@ namespace dp2weixinWeb.Controllers
             if (userItem == null)
             {
                 // 找工作人员帐户
-                userItem = WxUserDatabase.Current.GetOneWorkerAccount(weiXinId);
+                userItem = WxUserDatabase.Current.GetOneWorker(weiXinId);
             }
             if (userItem != null)
             {
@@ -84,7 +84,7 @@ namespace dp2weixinWeb.Controllers
                 if (userItem == null)
                 {
                     // 找工作人员帐户
-                    userItem = WxUserDatabase.Current.GetOneWorkerAccount(weiXinId);
+                    userItem = WxUserDatabase.Current.GetOneWorker(weiXinId);
                 }
                 if (userItem != null)
                     ViewBag.LibCode = userItem.libCode + "*" + userItem.libUserName;

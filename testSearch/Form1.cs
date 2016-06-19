@@ -128,11 +128,11 @@ namespace testSearch
                 -1);
             try
             {
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                    dp2mserverUrl,
                     remoteUserName).Result;
 
-                SearchResult result = connection.SearchAsync(
+                SearchResult result = connection.SearchTaskAsync(
                     remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
@@ -191,14 +191,14 @@ namespace testSearch
                 -1);
             try
             {
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     dp2mserverUrl,
                     remoteUserName).Result;
 
                 SearchResult result = null;
                 try
                 {
-                    result = connection.SearchAsync(
+                    result = connection.SearchTaskAsync(
                        remoteUserName,
                        request,
                        new TimeSpan(0, 1, 0),

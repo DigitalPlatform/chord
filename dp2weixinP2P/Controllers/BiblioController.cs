@@ -31,7 +31,7 @@ namespace dp2weixinWeb.Controllers
             }
             else
             {
-                userItem1 = WxUserDatabase.Current.GetOneWorkerAccount(weiXinId);
+                userItem1 = WxUserDatabase.Current.GetOneWorker(weiXinId);
                 if (userItem1 != null)
                 {
                     libUserName = userItem1.libUserName;

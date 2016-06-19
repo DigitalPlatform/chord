@@ -47,11 +47,12 @@ namespace dp2weixin.service
         // 微信web程序url
         //public string opacUrl = "";
 
-
         // dp2消息处理类
         MsgRouter _msgRouter = new MsgRouter();
 
-
+        /// <summary>
+        /// 通道
+        /// </summary>
         MessageConnectionCollection _channels = new MessageConnectionCollection();
          public MessageConnectionCollection Channels
          {
@@ -60,6 +61,7 @@ namespace dp2weixin.service
                  return this._channels;
              }
          }
+
 
         #endregion
 
@@ -188,6 +190,119 @@ namespace dp2weixin.service
 
             this.WriteLog("走到close()");
         }
+
+        #endregion
+
+        #region 本方账号登录
+
+
+        void _channels_Login(object sender, LoginEventArgs e)
+        {
+            MessageConnection connection = sender as MessageConnection;
+
+            string connName = connection.Name;
+            string prefix = C_ConnPrefix_Myself;
+            if (connName.Length > prefix.Length && connName.Substring(0, prefix.Length) == prefix)
+            {
+                // 需要使用当前图书馆的微信端本方帐户
+                string libId = connName.Substring(prefix.Length);
+                LibItem lib = LibDatabase.Current.GetLibById(libId);
+                if (lib == null)
+                {
+                    throw new Exception("异常的情况:根据id[" + libId + "]未找到图书馆对象。");
+                }
+
+                e.UserName = lib.wxUserName;
+                if (string.IsNullOrEmpty(e.UserName) == true)
+                    throw new Exception("尚未指定微信本方用户名，无法进行登录");
+                e.Password = lib.wxPassword;
+
+                //e.UserName = GetUserName();
+                //if (string.IsNullOrEmpty(e.UserName) == true)
+                //    throw new Exception("尚未指定用户名，无法进行登录");
+
+                //e.Password = GetPassword();
+            }
+            else
+            {
+                e.UserName = GetUserName();
+                if (string.IsNullOrEmpty(e.UserName) == true)
+                    throw new Exception("尚未指定用户名，无法进行登录");
+
+                e.Password = GetPassword();
+                //e.Parameters = "propertyList=biblio_search,libraryUID=xxx";
+
+            }
+        }
+
+
+        string GetUserName()
+        {
+            return this.userName;
+        }
+        string GetPassword()
+        {
+            return this.password;
+        }
+
+
+        //Hashtable _wxUserTable = new Hashtable();
+
+        public void SetActivePatron(WxUserItem userItem)
+        {
+            // 更新数据库
+            WxUserDatabase.Current.SetActivePatron(userItem.weixinId, userItem.id);
+
+            //更新内存
+            //this._wxUserTable[userItem.weixinId] = userItem;
+            //this.CurWxUser = userItem;
+
+            return;
+        }
+
+        public void DeletePatron(string userId)
+        {
+            // 删除mongodb库的记录
+            WxUserItem newActivePatron = null;
+            WxUserDatabase.Current.Delete(userId, out newActivePatron);
+
+            //if (newActivePatron != null)
+            //{
+            //    //更新内存
+            //    //this.CurWxUser = newActivePatron;
+            //    //this._wxUserTable[newActivePatron.weixinId] = newActivePatron;
+            //}
+
+            return;
+        }
+
+
+        // 当然微信用户 与当前图书馆
+        //private WxUserItem _curWxUser = null;
+        //private LibItem _curLib = null;
+        //public WxUserItem CurWxUser
+        //{
+        //    get
+        //    {
+        //        return this._curWxUser;
+        //    }
+        //    set
+        //    {
+        //        this._curWxUser = value;
+
+        //        string libId = this._curWxUser.libId;
+        //        if (String.IsNullOrEmpty(libId))
+        //        {
+        //            throw new Exception("异常的情况:微信用户的libId参数为空。");
+        //        }
+
+        //        this. _curLib = LibDatabase.Current.GetLibById(libId);
+        //        if (this._curLib == null)
+        //        {
+        //            throw new Exception("异常的情况:根据id["+libId+"]未找到图书馆对象。");
+        //        }
+        //    }
+        //}
 
         #endregion
 
@@ -1539,33 +1654,7 @@ namespace dp2weixin.service
 
         #endregion
 
-        #region 本方账号登录
-        void _channels_Login(object sender, LoginEventArgs e)
-        {
-            MessageConnection connection = sender as MessageConnection;
 
-            string connName = connection.Name;
-
-            e.UserName = GetUserName();
-            if (string.IsNullOrEmpty(e.UserName) == true)
-                throw new Exception("尚未指定用户名，无法进行登录");
-
-            e.Password = GetPassword();
-            e.Parameters = "";
-
-            // TODO: 登录如果失败，界面会有提示么?
-        }
-
-        string GetUserName()
-        {
-            return this.userName;
-        }
-        string GetPassword()
-        {
-            return this.password;
-        }
-
-        #endregion
 
 
         #region 找回密码，修改密码，二维码
@@ -1604,10 +1693,10 @@ namespace dp2weixin.service
                 "");//this.textBox_circulation_biblioFormatList.Text);
             try
             {
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
                     "").Result;
-                CirculationResult result = connection.CirculationAsync(
+                CirculationResult result = connection.CirculationTaskAsync(
                     remoteUserName,
                     request,
                     new TimeSpan(0, 1, 10), // 10 秒
@@ -1781,10 +1870,10 @@ namespace dp2weixin.service
                 "");//this.textBox_circulation_biblioFormatList.Text);
             try
             {
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
                     remoteUserName).Result;
-                CirculationResult result = connection.CirculationAsync(
+                CirculationResult result = connection.CirculationTaskAsync(
                     remoteUserName,
                     request,
                     new TimeSpan(0, 1, 10), // 10 秒
@@ -1847,10 +1936,10 @@ namespace dp2weixin.service
                 "");//this.textBox_circulation_biblioFormatList.Text);
             try
             {
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
                     remoteUserName).Result;
-                CirculationResult result = connection.CirculationAsync(
+                CirculationResult result = connection.CirculationTaskAsync(
                     remoteUserName,
                     request,
                     new TimeSpan(0, 1, 10), // 10 秒
@@ -1924,10 +2013,10 @@ namespace dp2weixin.service
                 "xml");
             try
             {
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
                     remoteUserName).Result;
-                BindPatronResult result = connection.BindPatronAsync(
+                BindPatronResult result = connection.BindPatronTaskAsync(
                      remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
@@ -1993,7 +2082,7 @@ namespace dp2weixin.service
                 if (type == 0)
                     userItem = WxUserDatabase.Current.GetPatronAccount(strWeiXinId, libCode, readerBarcode);
                 else
-                    userItem = WxUserDatabase.Current.GetWorkerAccount(strWeiXinId, libCode);
+                    userItem = WxUserDatabase.Current.GetWorker(strWeiXinId, libCode);
 
                 // 是否新增，对于工作人员账户，一个图书馆只绑一个工作人员，所以有update的情况
                 bool bNew = false;
@@ -2004,10 +2093,11 @@ namespace dp2weixin.service
                 }
 
                 LibItem lib = LibDatabase.Current.GetLibByLibCode(libCode);
-                userItem.weixinId = strWeiXinId;
+                userItem.weixinId = strWeiXinId;                
                 userItem.libCode = libCode;
                 userItem.libUserName = remoteUserName;
                 userItem.libName = lib.libName;
+                userItem.libId = lib.id;
 
                 userItem.readerBarcode = readerBarcode;
                 userItem.readerName = readerName;
@@ -2037,7 +2127,7 @@ namespace dp2weixin.service
                 if (type == 0)
                 {
                     // 置为活动状态
-                    WxUserDatabase.Current.SetPatronActive(userItem.weixinId,userItem.id);
+                    this.SetActivePatron(userItem);
                 }
 
 
@@ -2095,6 +2185,7 @@ namespace dp2weixin.service
 
 
 
+
         /// <summary>
         /// 
         /// </summary>
@@ -2131,11 +2222,11 @@ namespace dp2weixin.service
             try
             {
                 // 得到连接
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
                     userItem.libUserName).Result;
 
-                BindPatronResult result = connection.BindPatronAsync(
+                BindPatronResult result = connection.BindPatronTaskAsync(
                      userItem.libUserName,
                     request,
                     new TimeSpan(0, 1, 0),
@@ -2147,7 +2238,7 @@ namespace dp2weixin.service
                 }
 
                 // 删除mongodb库的记录
-                WxUserDatabase.Current.Delete(userId);
+                this.DeletePatron(userId);
 
                 // 发送解绑消息    
                 string strFirst = "您已成功对图书馆读者账号解除绑定。";
@@ -2477,11 +2568,11 @@ namespace dp2weixin.service
                     start,  //每次获取范围
                     count);
 
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
                     remoteUserName).Result;  
 
-                SearchResult result = connection.SearchAsync(
+                SearchResult result = connection.SearchTaskAsync(
                     remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
@@ -2817,11 +2908,11 @@ namespace dp2weixin.service
                 -1);
             try
             {
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
                     remoteUserName).Result;  //+ "-1"
 
-                SearchResult result = connection.SearchAsync(
+                SearchResult result = connection.SearchTaskAsync(
                     remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
@@ -2883,7 +2974,7 @@ namespace dp2weixin.service
             {
                 this.WriteLog("GetItemInfo1");
 
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
                     remoteUserName).Result;  //+"-2"
                 this.WriteLog("GetItemInfo2");
@@ -2893,7 +2984,7 @@ namespace dp2weixin.service
                 SearchResult result = null;
                 try
                 {
-                    result = connection.SearchAsync(
+                    result = connection.SearchTaskAsync(
                        remoteUserName,
                        request,
                        new TimeSpan(0, 1, 0),
@@ -3839,11 +3930,11 @@ namespace dp2weixin.service
 
             try
             {
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
                     remoteUserName).Result;
 
-                SearchResult result = connection.SearchAsync(
+                SearchResult result = connection.SearchTaskAsync(
                     remoteUserName,
                     request,
                     new TimeSpan(0, 1, 0),
@@ -4018,11 +4109,11 @@ namespace dp2weixin.service
                 "");
             try
             {
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
                     "").Result;
 
-                CirculationResult result = connection.CirculationAsync(
+                CirculationResult result = connection.CirculationTaskAsync(
                     remoteUserName,
                     request,
                     new TimeSpan(0, 1, 10), // 10 秒
@@ -4068,11 +4159,11 @@ namespace dp2weixin.service
                 "");
             try
             {
-                MessageConnection connection = this._channels.GetConnectionAsync(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
                     "").Result;
 
-                CirculationResult result = connection.CirculationAsync(
+                CirculationResult result = connection.CirculationTaskAsync(
                     remoteUserName,
                     request,
                     new TimeSpan(0, 1, 10), // 10 秒
@@ -4251,68 +4342,75 @@ namespace dp2weixin.service
 
         #region 公告
 
-        public AnnouncementResult GetAnnouncements()
-        {
-            AnnouncementResult result = new AnnouncementResult();
-            List<AnnouncementItem> list = new List<AnnouncementItem>();
-            string strError = "";
-            int nRet = this.GetMessage(out list, out strError);
-            if (nRet == -1)
-            {
-                result.errorCode = -1;
-                result.errorInfo = strError;
-            }
-
-            result.items = list;
-            result.errorCode = nRet;
-            return result;
-        }
-
         public const string C_GroupName_Announcement = "gn:_libAnnouncement";
         public const string C_ConnPrefix_Myself = "<myself>:";
+        public int GetAnnouncements(string libId,out List<AnnouncementItem> list,out string strError)
+        {
+            list = new List<AnnouncementItem>();
+            strError = "";
+
+
+            List<MessageRecord>  records = new List<MessageRecord>();
+            int nRet = this.GetMessage(C_GroupName_Announcement, libId,out records, out strError);
+            if (nRet == -1)
+                return -1;
+
+            foreach (MessageRecord record in records)
+            {
+                AnnouncementItem item = new AnnouncementItem();
+                item.id = record.id;
+
+                string xml = record.data;
+                XmlDocument dom = new XmlDocument();
+                dom.LoadXml(xml);
+                XmlNode root = dom.DocumentElement;
+                string title = DomUtil.GetNodeText(root.SelectSingleNode("title"));
+                string content = DomUtil.GetNodeText(root.SelectSingleNode("content"));
+
+                item.title = title;
+                item.content = content;
+                list.Add(item);
+            }
+
+            return nRet;
+        }
+
+
         // 从 dp2mserver 获得消息
         // 每次最多获得 100 条
-        int GetMessage(out List<AnnouncementItem> annoList, out string strError)
+        private int GetMessage(string groupName,string libId, out List<MessageRecord> records, out string strError)
         {
             strError = "";
-            annoList = new List<AnnouncementItem>();
+            records = new List<MessageRecord>();
+
+            // string connName
+            string connName = C_ConnPrefix_Myself + libId;
+
+            // 取出用户名
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            string wxUserName = lib.wxUserName;
+
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             GetMessageRequest request = new GetMessageRequest(id,
                 "",
-                "_patronNotify",//C_GroupName_Announcement,
-                "",
+                groupName,
+                wxUserName,
                 "", // strTimeRange,
                 0,
-                1);
+                100);  // todo 如果超过100条，要做成递归来调
             try
             {
-                string name = C_ConnPrefix_Myself + "getAnnouncement";
-                MessageConnection connection = this.Channels.GetConnectionAsync(this.dp2MServerUrl,
-                    name).Result;
-                GetMessageResult result = connection.GetMessageAsync(request,
+                MessageConnection connection = this.Channels.GetConnectionTaskAsync(this.dp2MServerUrl,
+                    connName).Result;
+                GetMessageResult result = connection.GetMessage(request,
                     new TimeSpan(0, 1, 0),
-                    cancel_token).Result;
+                    cancel_token);
                 if (result.Value == -1)
                     goto ERROR1;
 
-                foreach (MessageRecord record in result.Results)
-                {
-                    AnnouncementItem item = new AnnouncementItem();
-                    item.id = record.id;
-
-                    string xml = record.data;
-                    XmlDocument dom = new XmlDocument();
-                    dom.LoadXml(xml);
-                    XmlNode root = dom.DocumentElement;
-                    string title = DomUtil.GetNodeText(root.SelectSingleNode("title"));
-                    string content = DomUtil.GetNodeText(root.SelectSingleNode("content"));
-
-                    item.title = title;
-                    item.content = content;
-                    annoList.Add(item);
-                }
+                records = result.Results;
                 return result.Results.Count;
             }
             catch (AggregateException ex)
@@ -4337,12 +4435,67 @@ namespace dp2weixin.service
         /// <param name="style"></param>
         /// <param name="item"></param>
         /// <returns></returns>
-        public AnnouncementResult CoverAnnouncement(AnnouncementItem item,string style)
+        public AnnouncementResult CoverAnnouncement(string libId,AnnouncementItem item,string style)
         {
-            //todo
+            AnnouncementResult annResult = new AnnouncementResult();
 
-            AnnouncementResult result = new AnnouncementResult();
-            return result;
+            string connName = C_ConnPrefix_Myself + libId;
+
+            string strText = "<root>"
+                +"<title>" + item.title + "</title>"
+                +"<content>" + item.content+ "</content>"
+                +"</root>";
+
+            List<MessageRecord> records = new List<MessageRecord>();
+            MessageRecord record = new MessageRecord();
+            record.id = item.id;
+            record.groups = C_GroupName_Announcement.Split(new char[] { ',' });
+            record.creator = "";    // 服务器会自己填写
+            record.data = strText;
+            record.format = "text";
+            record.type = "message";
+            record.thread = "";
+            record.expireTime = new DateTime(0);    // 表示永远不失效
+            records.Add(record);
+
+            string strError = "";
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    connName).Result;
+                SetMessageRequest param = new SetMessageRequest(style,
+                    "",
+                    records);
+                CancellationToken cancel_token = new CancellationToken();
+
+                SetMessageResult result = connection.SetMessageTaskAsync(param,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.Value == -1)
+                {
+                    strError = result.ErrorInfo;
+                    goto ERROR1;
+                }
+
+                //result.
+                annResult.errorCode = result.Value;
+                return annResult;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+ERROR1:
+            annResult.errorCode = -1;
+            annResult.errorInfo= strError;
+            return annResult;
         }
 
         #endregion

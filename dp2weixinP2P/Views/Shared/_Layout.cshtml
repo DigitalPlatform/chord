@@ -183,6 +183,15 @@
                     setShowValue(true);
                     window.setTimeout("showTopBottom(true)", 1);
                 });
+
+                $("textarea").focus(function () {
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("textarea").blur(function () {
+                    setShowValue(true);
+                    window.setTimeout("showTopBottom()", 1);
+                });
             }
             else {
                 //// 非iphone时，浏览器窗口变矮时，隐藏头尾栏
