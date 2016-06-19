@@ -62,6 +62,11 @@ namespace dp2weixin.service
         public string borrowInfo { get; set; }
         // 备注
         public string comment { get; set; }
-        
+
+        //2016-6-17 jane 加借阅信息
+        public string borrower { get; set; }
+         public string borrowDate { get; set; }
+         public string borrowPeriod { get; set; }
+
     }
 }

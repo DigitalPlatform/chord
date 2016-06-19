@@ -121,7 +121,10 @@ namespace dp2weixinWeb.ApiControllers
 
             if (id == "null")
                 id = "";
-            wxUserDb.SetPatronActive(weixinId, id);
+
+            WxUserItem user = wxUserDb.GetById(id);
+            if (user != null)
+                dp2WeiXinService.Instance.SetActivePatron(user);
         }
 
 

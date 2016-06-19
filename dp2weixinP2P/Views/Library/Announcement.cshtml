@@ -1,0 +1,198 @@
+﻿@model List<dp2weixin.service.AnnouncementItem>
+@section Scripts {
+    <script>
+
+        //观察模型
+        var model = {
+            list: ko.observableArray()
+        }
+
+        function libChanged() {
+            var libId = $("#selLib").val();
+            //alert("["+libId+"]");
+            // 先把原来的元素删除
+            $("#firstAnn").remove();
+
+            // 先删除可观察数组中的已有数据
+            model.list.removeAll();
+
+            if (libId == "")
+                return;
+
+            //显示等待图层
+            var index = loadLayer();
+
+
+
+            // 调web api
+            var url = "/api/Announcement?libId="+libId;
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                alert("errorCode["+result.errorCode+"]");
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                if (result.errorInfo !="") {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                // 把返回的数组加到观察数组
+                if (result.items != null) {
+                    for (var i = 0; i < result.items.length; i++) {
+                        model.list.push(result.items[i]);
+                    }
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            ko.applyBindings(model);
+
+            $("#selLib").change(function () {
+                libChanged();
+            });
+        })
+
+    </script>
+}
+@section style {
+    <style>
+
+
+         .title {
+            /*上外边距是 10px 右外边距和左外边距是 5px 下外边距是 15px*/
+            margin: 10px 15px 2px;
+            color: #666666;
+            font-size:16px;
+        }
+
+        TABLE.libTable {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+        }
+
+        TABLE.libTable TR TD {
+            border-width: 0px;
+            /*border-top-width: 1px;
+            border-color: #dddddd;
+            border-style: dotted;*/
+            padding: 2px;
+        }
+
+        TABLE.libTable TR TD.value {
+            border-left: 1px solid #CCCCCC;
+            padding-left: 5px;
+        }
+
+        TABLE.libTable TR TD.label {
+            width: 80px;
+            background-color:#eeeeee;
+            color: #999999;
+            padding-left: 5px;
+            padding-right: 5px;
+            /*text-align: right;*/
+        }
+
+        .leftLabel {
+            color: #999999;
+        }
+
+    </style>
+}
+@section header {
+    <h1 class="mui-title">最新公告</h1>
+}
+@if (Model == null)
+{
+    <div class="mui-content-padded" id="divNo">
+        <div>您目前尚未绑定图书馆帐户，需要先选择图书馆，才能查看公告信息。</div>
+    </div>
+}
+else
+{
+        <div class="mui-content-padded" id="divNo">
+        <div>您可以选择图书馆，查看选中图书馆的公告信息。</div>
+    </div> 
+}
+
+<div class="mui-input-group">
+    <div class="mui-input-row">
+        <label style="color:#cccccc;">图书馆</label>
+        @Html.Raw(ViewBag.LibHtml)
+    </div>
+</div>
+
+<div id="firstAnn">
+
+    @if (Model != null)
+    {
+
+        if (Model.Count == 0)
+        {
+            <div class="mui-card" id="divNo">
+                <center>
+                    <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+                    <div>目前没有公告。</div>
+                </center>
+            </div>
+        }
+        else
+        {
+
+
+            <div class="title">
+                公告列表
+            </div>
+            <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed">
+                @foreach (dp2weixin.service.AnnouncementItem item in Model)
+                {
+                    <li class="mui-table-view-cell" style="border-bottom:0px">
+                        <table class="libTable">
+                            <tr>
+                                <td class="label">标题</td>
+                                <td class="value">@item.title</td>
+                            </tr>
+                            <tr>
+                                <td class="label">内容</td>
+                                <td class="value">@item.content</td>
+                            </tr>
+                        </table>
+
+                    </li>
+                }
+            </ul>
+
+        }
+    }
+</div>
+<ul class="mui-table-view" data-bind=" foreach:model.list">
+    <li class="mui-table-view-cell">
+        <table class="libTable">
+            <tr>
+                <td class="label">标题</td>
+                <td class="value" data-bind="text:title"></td>
+            </tr>
+            <tr>
+                <td class="label">内容</td>
+                <td class="value" data-bind="text:content"></td>
+            </tr>
+        </table>
+    </li>
+</ul>

@@ -1,0 +1,384 @@
+﻿
+@section style {
+    <style>
+         .title {
+            /*上外边距是 10px 右外边距和左外边距是 5px 下外边距是 15px*/
+            margin: 10px 15px 2px;
+            color: #666666;
+            font-size:16px;
+        }
+
+        TABLE.libTable {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+        }
+
+        TABLE.libTable TR TD {
+            border-width: 0px;
+            /*border-top-width: 1px;
+            border-color: #dddddd;
+            border-style: dotted;*/
+            padding: 2px;
+        }
+
+        TABLE.libTable TR TD.value {
+            border-left: 1px solid #CCCCCC;
+            padding-left: 5px;
+        }
+
+        TABLE.libTable TR TD.button {
+            padding-left: 5px;
+            text-align:right;
+        }
+
+        TABLE.libTable TR TD.label {
+            width: 80px;
+            background-color:#eeeeee;
+            color: #999999;
+            padding-left: 5px;
+            padding-right: 5px;
+            /*text-align: right;*/
+        }
+
+        .leftLabel {
+            color: #999999;
+        }
+
+    </style>
+}
+@section Scripts {
+    <script>
+        var model = {
+            list: ko.observableArray(),
+            editor: {
+                id: ko.observable(""),
+                title: ko.observable(""),
+                content: ko.observable("")
+            },
+            displaySummary: ko.observable(true)
+        }
+
+        //用于获取图书馆
+        function getAnnouncements() {
+            var libId = $("#libId").text();//.val();
+            //alert("["+libId+"]");
+            // 先删除可观察数组中的已有数据
+            model.list.removeAll();
+
+            if (libId == "")
+                return;
+
+            //显示等待图层
+            var index = loadLayer();
+
+
+
+            // 调web api
+            var url = "/api/Announcement?libId=" + libId;
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                // 把返回的数组加到观察数组
+                if (result.items != null) {
+                    for (var i = 0; i < result.items.length; i++) {
+                        model.list.push(result.items[i]);
+                    }
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        // 删除一项
+        function remove(item) {
+
+            var gnl = confirm("你确定要删除公告[" + item.title + "]吗?");
+            if (gnl == false) {
+                return false;
+            }
+
+            var libId = $("#libId").text();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            //alert("remove-"+item.libId);
+            var url = "/api/Announcement/" + item.id
+                +"?libId="+libId
+            sendAjaxRequest(url, "DELETE", function () {
+                //getAllLib();
+
+                for (var i = 0; i < model.list().length; i++) {
+                    if (model.list()[i].id == item.id) {
+                        model.list.remove(model.list()[i]);
+                        break;
+                    }
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+        }
+
+        // 新增一项
+        function add() {
+
+            var title = model.editor.title().trim();
+            if (title == "") {
+                alert("请输入标题。");
+                return;
+            }
+            var content = model.editor.content().trim();
+            if (content == "") {
+                alert("请输入内容。");
+                return;
+            }
+
+            var libId = $("#libId").text();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/Announcement?libId="+libId;
+            sendAjaxRequest(url, "POST",
+                function (newItem) {
+
+                    // 增加到观察数组里
+                    //model.list.push(newItem);
+                    getAnnouncements();
+
+                    model.displaySummary(true);
+
+                    //清空编辑界面信息
+                    model.editor.title("");
+                    model.editor.content("");
+
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    title: title,
+                    content: content
+                }
+            );
+        }
+
+        // 新增一项
+        function edit() {
+
+            var title = model.editor.title().trim();
+            if (title == "") {
+                alert("请输入标题。");
+                return;
+            }
+            //alert(libCode);
+            var content = model.editor.content().trim();
+            if (content == "") {
+                alert("请输入内容。");
+                return;
+            }
+            //alert(content);
+
+            var libId = $("#libId").text();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var id = model.editor.id();
+            if (id == null || id == "")
+            {
+                alert("id参数为空，无法保存。");
+                return;
+            }
+            var url = "/api/Announcement?libId=" + libId;
+            sendAjaxRequest(url, "PUT",
+                function () {
+                    //model.librarys.push(newItem);
+                    model.displaySummary(true);
+                    getAnnouncements();
+
+                    //清空编辑界面信息
+                    model.editor.id("");
+                    model.editor.title("");
+                    model.editor.content("");
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    id:id,
+                    title: title,
+                    content: content
+                }
+            );
+        }
+
+        function setShowTopButton()
+        {
+
+            if (browser.versions.iPhone == true) {
+                $("input").focus(function () {
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("input").blur(function () {
+                    setShowValue(true);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+
+                $("textarea").focus(function () {
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("textarea").blur(function () {
+                    setShowValue(true);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+            }
+        }
+
+        // 点击新增图书馆按钮
+        function handleCreateClick() {
+            model.displaySummary(false);
+
+            //由于一进来没有显示编辑界面，所以这里要重新设一下
+            setShowTopButton();
+
+            $("#btnAdd").css('display', 'block');
+            $("#btnEdit").css('display', 'none');
+        }
+
+        // 在新增图书馆，点击取消
+        function handleCancelClick() {
+            model.displaySummary(true);
+        }
+
+        function handleEditClick(item) {
+
+            model.displaySummary(false);
+
+            //由于一进来没有显示编辑界面，所以这里要重新设一下
+            setShowTopButton();
+
+            $("#btnAdd").css('display', 'none');
+            $("#btnEdit").css('display', 'block');
+
+            model.editor.id(item.id);
+            //alert("id-["+model.editor.id()+"]");
+            model.editor.title(item.title);
+            model.editor.content(item.content);
+        }
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 获取所有的操作命令
+            getAnnouncements();
+            ko.applyBindings(model);
+        })
+
+
+    </script>
+}
+@section header {
+        <h1 class="mui-title">公告管理</h1>
+}
+
+@if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+{
+    @Html.Raw(ViewBag.RedirectInfo);
+}
+else
+{
+
+<div class="mui-content-padded">
+    <span>图书馆:</span><span>@ViewBag.LibName</span>
+    <span id="libId" style="display:none">@ViewBag.LibId</span>
+</div>
+
+<div data-bind="if: model.displaySummary">
+    <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed" data-bind=" foreach:model.list">
+        <li class="mui-table-view-cell">
+
+            <table class="libTable">
+                <tr>
+                    <td class="label">标题</td>
+                    <td class="value" data-bind="text:title"></td>
+                </tr>
+                <tr>
+                    <td class="label">内容</td>
+                    <td class="value" data-bind="text:content"></td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td class="button">
+                        <button class="mui-btn  mui-btn-default" data-bind="click: handleEditClick">编辑</button>
+                        <button class="mui-btn mui-btn-danger" data-bind="click: remove">X&nbsp;删除</button>
+                    </td>
+                </tr>
+            </table>
+        </li>
+    </ul>
+    <div class="mui-content-padded">
+        <button class="mui-btn mui-btn-block mui-btn-primary" data-bind="click: handleCreateClick">
+            新发布通知
+        </button>
+    </div>
+    </div>
+<div data-bind="ifnot: model.displaySummary">
+
+    <div class="mui-card">
+        <div class="mui-input-group">
+            <div class="mui-input-row ">
+                <label class="leftLabel">标题</label>
+                <input type="text" class="mui-input mui-input-clear" placeholder="请输入 标题" data-bind="value:model.editor.title">
+            </div>
+            <div class="mui-input-row ">
+                <label class="leftLabel">内容</label>
+                <textarea rows="10" data-bind="value:model.editor.content"></textarea>
+            </div>
+        </div>
+        <div class="mui-content-padded" >
+            <table>
+                <tr>
+                    <td style ="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnAdd" data-bind="click: add" style="display:none">新增</button></td>
+                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnEdit" data-bind="click: edit" style="display:none">保存</button></td>
+                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" data-bind="click:handleCancelClick">取消</button></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+}

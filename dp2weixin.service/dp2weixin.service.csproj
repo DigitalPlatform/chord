@@ -93,6 +93,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnnounceItem.cs" />
     <Compile Include="ApiResult.cs" />
     <Compile Include="Command\BaseCommand.cs" />
     <Compile Include="Command\BindingCommand.cs" />

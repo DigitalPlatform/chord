@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using DigitalPlatform.Text;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using System;
@@ -56,19 +57,9 @@ namespace dp2weixin.service
             //图书馆点对点账号
             _libCollection = this._database.GetCollection<LibItem>("item");
 
-            /*
-            // todo 创建索引            
-            bool bExist = false;
-            var indexes = _libCollection.Indexes.ListAsync().Result.ToListAsync().Result;
-            foreach (BsonDocument doc in indexes)
-            {
-            }
-            // _logCollection.DropAllIndexes();
-            if (bExist == false)
-            {
-                //await CreateIndex();
-            }
-             */
+            //todo
+            //CreateIndex();
+            
         }
 
         // 创建索引
@@ -80,28 +71,20 @@ namespace dp2weixin.service
                 options);
         }
 
-        // 清除集合内的全部内容
-        public async Task Clear()
-        {
-            if (_libCollection == null)
-            {
-                throw new Exception("访问日志 mongodb 集合尚未初始化");
-            }
-
-            // https://docs.mongodb.org/getting-started/csharp/remove/
-            var filter = new BsonDocument();
-            await _libCollection.DeleteManyAsync(filter);
-            //await CreateIndex();
-        }
-
         public LibItem GetLibById(string id)
         {
             var filter = Builders<LibItem>.Filter.Eq("id", id);
 
-            var list = this.LibCollection.Find(new BsonDocument("id", id)).ToListAsync().Result;
+            List<LibItem> list = this.LibCollection.Find(filter).ToList();
             if (list.Count > 0)
-                return list[0];
-
+            {
+                LibItem item = list[0];
+                //解密
+                if (String.IsNullOrEmpty(item.wxPassword)== false)
+                    item.wxPassword= Cryptography.Decrypt( item.wxPassword, WeiXinConst.EncryptKey);
+               
+                return item;
+            }
             return null;
         }
         public LibItem GetLibByLibCode(string libCode)
@@ -119,67 +102,42 @@ namespace dp2weixin.service
             return this.LibCollection.Find(new BsonDocument()).ToListAsync().Result;
         }
 
-        /// <summary>
-        /// 根据libCode获得图书馆对象
-        /// </summary>
-        /// <param name="libCode">*获取全部</param>
-        /// <param name="start">0</param>
-        /// <param name="count">-1</param>
-        /// <returns></returns>
-        public async Task<List<LibItem>> GetLibs(string libCode,
-            int start,
-            int count)
-        {
-            IMongoCollection<LibItem> collection = this.LibCollection;
-
-            List<LibItem> results = new List<LibItem>();
-
-            var filter = Builders<LibItem>.Filter.Eq("libCode", libCode);
-            var index = 0;
-            using (var cursor = await collection.FindAsync(
-                libCode == "*" ? new BsonDocument() : filter
-                ))
-            {
-                while (await cursor.MoveNextAsync())
-                {
-                    var batch = cursor.Current;
-                    foreach (var document in batch)
-                    {
-                        if (count != -1 && index - start >= count)
-                            break;
-                        if (index >= start)
-                            results.Add(document);
-                        index++;
-                    }
-                }
-            }
-            return results;
-        }
-
         public LibItem Add(LibItem item)
         {
             item.OperTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
+            item.wxPasswordView = "*".PadRight(item.wxPassword.Length, '*');
+            
+            string encryptPassword = Cryptography.Encrypt(item.wxPassword, WeiXinConst.EncryptKey);
+            item.wxPassword = encryptPassword;
 
             this.LibCollection.InsertOne(item);
-
             return item;
         }
 
         // 更新
-        public async Task<long> Update(LibItem item)
+        public long Update(string id,LibItem item)
         {
-            IMongoCollection<LibItem> collection = this.LibCollection;
+            if (String.IsNullOrEmpty(item.wxPassword) == false)
+            {
+                string encryptPassword = Cryptography.Encrypt(item.wxPassword, WeiXinConst.EncryptKey);
+                item.wxPassword = encryptPassword;
+            }
 
-            var filter = Builders<LibItem>.Filter.Eq("id", item.id);
-            //var filter = Builders<LibItem>.Filter.Eq("libCode", item.libCode);
+            var filter = Builders<LibItem>.Filter.Eq("id", id);
             var update = Builders<LibItem>.Update
                 .Set("libCode", item.libCode)
                 .Set("libName", item.libName)
-                .Set("libP2PAccount", item.libUserName)
+                .Set("libUserName", item.libUserName) 
+                .Set("libContactPhone", item.libContactPhone)
+
+                .Set("wxUserName", item.wxUserName)
+                .Set("wxPassword", item.wxPassword)
+                .Set("wxContactPhone", item.wxContactPhone) 
+
                 .Set("comment", item.comment)
                 .Set("OperTime", item.OperTime);
 
-            UpdateResult ret = await collection.UpdateOneAsync(filter, update);
+            UpdateResult ret = this.LibCollection.UpdateOneAsync(filter, update).Result;
             return ret.ModifiedCount;
         }
 
@@ -190,12 +148,8 @@ namespace dp2weixin.service
         /// <param name="item"></param>
         public void Delete(String id)
         {
-            IMongoCollection<LibItem> collection = this.LibCollection;
-
             var filter = Builders<LibItem>.Filter.Eq("id", id);
-            //var filter = Builders<LibItem>.Filter.Eq("libCode", item.libCode);
-
-            collection.DeleteOne(filter);
+            this.LibCollection.DeleteOne(filter);
         }
 
     }
@@ -209,77 +163,18 @@ namespace dp2weixin.service
         public string libCode { get; set; }
         public string libName { get; set; }
         public string libUserName { get; set; }
+        public string libContactPhone { get; set; } // 图书馆联系人电话 jane 2016-6-17
+
+        // 2016-6-17 jane 本方账户的信息
+        public string wxUserName { get; set; } //微信端本方用户名
+        public string wxPassword { get; set; }    //本方密码
+        public string wxContactPhone { get; set; }    //本方联系人手机号，用于将来的找回密码
+        public string wxPasswordView{ get; set; }  
 
 
         public string comment { get; set; }  // 注释
-
         public string OperTime { get; set; } // 操作时间
 
+
     }
-    /*
-    public class LibraryRespository
-    {
-        private static LibraryRespository repo = new LibraryRespository();
-
-        public static LibraryRespository Current
-        {
-            get
-            {
-                return repo;
-            }
-        }
-
-        private List<LibItem> data = new List<LibItem> {
-            new LibItem {
-               id="001", libCode = "lib1", libName = "图书馆1", libP2PAccount = "a1"},
-            new LibItem {
-                id="002",libCode = "lib2", libName = "图书馆2", libP2PAccount = "a2"},
-            new LibItem {
-                id="003",libCode = "lib3", libName = "图书馆3", libP2PAccount = "a3"},
-        };
-
-        public IEnumerable<LibItem> GetAll()
-        {
-            return data;
-        }
-
-        public LibItem Get(string libId)
-        {
-            return data.Where(r => r.id == libId).FirstOrDefault();
-        }
-
-        public LibItem Add(LibItem item)
-        {
-            // id取guid todo
-            item.id = Guid.NewGuid().ToString();
-
-            data.Add(item);
-            return item;
-        }
-
-        public void Remove(string libId)
-        {
-            LibItem item = Get(libId);
-            if (item != null)
-            {
-                data.Remove(item);
-            }
-        }
-
-        public bool Update(LibItem item)
-        {
-            LibItem storedItem = Get(item.libCode);
-            if (storedItem != null)
-            {
-                storedItem.libName = item.libName;
-                storedItem.libP2PAccount = item.libP2PAccount;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-    }
-    */
 }

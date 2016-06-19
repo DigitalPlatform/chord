@@ -219,13 +219,12 @@ DeleteMessage(temp_records, this.GroupName);
                 100);
             try
             {
-                MessageConnection connection = this.Channels.GetConnectionAsync(
+                MessageConnection connection = this.Channels.GetConnectionTaskAsync(
                     this.Url,
                     "").Result;
-                GetMessageResult result = connection.GetMessageTaskAsync(
-                    request,
+                GetMessageResult result = connection.GetMessage(request,
                     new TimeSpan(0, 1, 0),
-                    cancel_token).Result;
+                    cancel_token);
                 if (result.Value == -1)
                     goto ERROR1;
                 return result.Results;
@@ -273,14 +272,16 @@ DeleteMessage(temp_records, this.GroupName);
 
             try
             {
-                MessageConnection connection = this.Channels.GetConnectionAsync(
+                MessageConnection connection = this.Channels.GetConnectionTaskAsync(
                     this.Url,
                     "").Result;
                 SetMessageRequest param = new SetMessageRequest("expire",
                     "dontNotifyMe",
                     delete_records);//records);这里应该用delete_records吧，用records好像也没错
-
-                SetMessageResult result = connection.SetMessageAsync(param).Result;
+                CancellationToken cancel_token = new CancellationToken();
+                SetMessageResult result = connection.SetMessageTaskAsync(param, 
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
                 if (result.Value == -1)
                     goto ERROR1;
             }

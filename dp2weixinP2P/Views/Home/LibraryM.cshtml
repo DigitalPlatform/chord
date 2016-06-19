@@ -1,13 +1,61 @@
 ﻿
+@section style {
+    <style>
+         .title {
+            /*上外边距是 10px 右外边距和左外边距是 5px 下外边距是 15px*/
+            margin: 10px 15px 2px;
+            color: #666666;
+            font-size:16px;
+        }
 
+        TABLE.libTable {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+        }
+
+        TABLE.libTable TR TD {
+            border-width: 0px;
+            /*border-top-width: 1px;
+            border-color: #dddddd;
+            border-style: dotted;*/
+            padding: 2px;
+        }
+
+        TABLE.libTable TR TD.value {
+            border-left: 1px solid #CCCCCC;
+            padding-left: 5px;
+        }
+
+        TABLE.libTable TR TD.label {
+            width: 150px;
+            /*background-color:#eeeeee;*/
+            color: #999999;
+            padding-left: 5px;
+            padding-right: 5px;
+            /*text-align: right;*/
+        }
+
+        .leftLabel {
+            color: #999999;
+        }
+
+    </style>
+}
 @section Scripts {
     <script>
         var model = {
             librarys: ko.observableArray(),
             editor: {
+                id: ko.observable(""),
                 libCode: ko.observable(""),
                 libName: ko.observable(""),
                 libUserName: ko.observable(""),
+                libContactPhone: ko.observable(""),
+
+                wxUserName: ko.observable(""),
+                wxPassword: ko.observable(""),
+                wxContactPhone: ko.observable(""),
                 comment: ko.observable("")
             },
             displaySummary: ko.observable(true)
@@ -25,7 +73,7 @@
             model.librarys.removeAll();
 
             // 调web api
-            var url = "/api/library";
+            var url = "/api/LibrarySetting";
             sendAjaxRequest(url, "GET", function (data) {
                 for (var i = 0; i < data.length; i++) {
                     //遍历从服务器得到的结果，以push方法对该数组填充新数据
@@ -46,13 +94,13 @@
         // 删除一项
         function removeLib(item) {
 
-            var gnl = confirm("你确定要删除账号[" + item.libName + "]吗?");
+            var gnl = confirm("你确定要删除图书馆[" + item.libName + "]吗?");
             if (gnl == false) {
                 return false;
             }
 
             //alert("remove-"+item.libId);
-            var url = "/api/library/" + item.id;
+            var url = "/api/LibrarySetting/" + item.id;
             sendAjaxRequest(url, "DELETE", function () {
                 //getAllLib();
 
@@ -62,7 +110,6 @@
                         break;
                     }
                 }
-
 
             }, function (xhq, textStatus, errorThrown) {
                 alert(errorThrown);
@@ -74,26 +121,44 @@
 
             var libCode = model.editor.libCode().trim();
             if (libCode == "") {
-                alert("尚未输入图书馆代码!");
+                alert("尚未输入图书馆代码。");
                 return;
             }
             var libName = model.editor.libName().trim();
             if (libName == "") {
-                alert("尚未输入图书馆名称!");
+                alert("尚未输入图书馆名称。");
                 return;
             }
             var libUserName = model.editor.libUserName().trim();
             if (libUserName == "") {
-                alert("尚未输入图书馆点对点账号!");
+                alert("尚未输入图书馆dp2opac账号名。");
                 return;
             }
 
+            // 图书馆联系人员手机
+            var libContactPhone = model.editor.libContactPhone().trim();
+
+            // 微信端本方账户
+            var wxUserName = model.editor.wxUserName().trim();
+            if (wxUserName == "") {
+                alert("尚未输入图书馆微信本方账号名。");
+                return;
+            }
+            var wxPassword = model.editor.wxPassword().trim();
+            if (wxPassword == "") {
+                alert("尚未输入图书馆微信本方密码。");
+                return;
+            }
+            //微信本方联系人
+            var wxContactPhone = model.editor.wxContactPhone().trim();
+
+            // 备注
             var comment = model.editor.comment().trim();
 
             //显示等待图层
             var index = loadLayer();
 
-            var url = "/api/library";
+            var url = "/api/LibrarySetting";
             sendAjaxRequest(url, "POST",
                 function (newItem) {
                     model.librarys.push(newItem);
@@ -103,6 +168,12 @@
                     model.editor.libCode("");
                     model.editor.libName("");
                     model.editor.libUserName("");
+                    model.editor.libContactPhone("");
+
+                    model.editor.wxUserName("");
+                    model.editor.wxPassword("");
+                    model.editor.wxContactPhone("");
+
                     model.editor.comment("");
 
                     // 关闭等待层
@@ -117,6 +188,103 @@
                     libCode: libCode,
                     libName: libName,
                     libUserName: libUserName,
+                    libContactPhone: libContactPhone,
+                    wxUserName: wxUserName,
+                    wxPassword: wxPassword,
+                    wxContactPhone: wxContactPhone,
+                    comment: comment
+                }
+            );
+        }
+
+        // 新增一项
+        function editLib() {
+
+            var libCode = model.editor.libCode().trim();
+            if (libCode == "") {
+                alert("尚未输入图书馆代码。");
+                return;
+            }
+            //alert(libCode);
+            var libName = model.editor.libName().trim();
+            if (libName == "") {
+                alert("尚未输入图书馆名称。");
+                return;
+            }
+            var libUserName = model.editor.libUserName().trim();
+            if (libUserName == "") {
+                alert("尚未输入图书馆dp2opac账号名。");
+                return;
+            }
+
+            // 图书馆联系人员手机
+            var libContactPhone = model.editor.libContactPhone().trim();
+
+            // 微信端本方账户
+            var wxUserName = model.editor.wxUserName().trim();
+            if (wxUserName == "") {
+                alert("尚未输入图书馆微信本方账号名。");
+                return;
+            }
+            var wxPassword = model.editor.wxPassword().trim();
+            if (wxPassword == "") {
+                alert("尚未输入图书馆微信本方密码。");
+                return;
+            }
+            //微信本方联系人
+            var wxContactPhone = model.editor.wxContactPhone().trim();
+
+            // 备注
+            var comment = model.editor.comment();
+
+            //alert("id-[" + model.editor.id() + "]-2");
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var id = model.editor.id();
+            if (id == null || id == "")
+            {
+                alert("id参数为空，无法保存。");
+                return;
+            }
+            var url = "/api/LibrarySetting?id=" + id;
+            sendAjaxRequest(url, "PUT",
+                function () {
+                    //model.librarys.push(newItem);
+                    model.displaySummary(true);
+                    getAllLib();
+
+                    //清空编辑界面信息
+                    model.editor.id("");
+                    model.editor.libCode("");
+                    model.editor.libName("");
+                    model.editor.libUserName("");
+                    model.editor.libContactPhone("");
+
+                    model.editor.wxUserName("");
+                    model.editor.wxPassword("");
+                    model.editor.wxContactPhone("");
+
+                    model.editor.comment("");
+
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    id:id,
+                    libCode: libCode,
+                    libName: libName,
+                    libUserName: libUserName,
+                    libContactPhone: libContactPhone,
+                    wxUserName: wxUserName,
+                    wxPassword: wxPassword,
+                    wxContactPhone: wxContactPhone,
                     comment: comment
                 }
             );
@@ -125,6 +293,9 @@
         // 点击新增图书馆按钮
         function handleCreateClick() {
             model.displaySummary(false);
+
+            $("#btnAdd").css('display', 'block');
+            $("#btnEdit").css('display', 'none');
         }
 
         // 在新增图书馆，点击取消
@@ -132,6 +303,24 @@
             model.displaySummary(true);
         }
 
+        function handleEditClick(item) {
+
+            model.displaySummary(false);
+            $("#btnAdd").css('display', 'none');
+            $("#btnEdit").css('display', 'block');
+
+            model.editor.id(item.id);
+            //alert("id-["+model.editor.id()+"]");
+            model.editor.libCode(item.libCode);
+            model.editor.libName(item.libName);
+            model.editor.libUserName(item.libUserName);
+            model.editor.libContactPhone(item.libContactPhone);
+
+            model.editor.wxUserName(item.wxUserName);
+            model.editor.wxPassword(item.wxPassword);
+            model.editor.wxContactPhone(item.wxContactPhone);
+            model.editor.comment(item.comment);
+        }
 
 
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
@@ -154,29 +343,51 @@
     <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed" data-bind=" foreach:model.librarys">
         <li class="mui-table-view-cell">
 
-            <table>
+            <table class="libTable">
                 <tr>
-                    <td style="color:#CCCCCC">馆代码</td>
-                    <td data-bind="text:libCode"></td>
+                    <td class="label">图书馆id</td>
+                    <td class="value" data-bind="text:id"></td>
                 </tr>
                 <tr>
-                    <td style="color:#CCCCCC">馆名称</td>
-                    <td data-bind="text:libName"></td>
+                    <td class="label">图书馆代码</td>
+                    <td class="value" data-bind="text:libCode"></td>
                 </tr>
                 <tr>
-                    <td style="color:#CCCCCC">dp2mserver账号</td>
-                    <td data-bind="text:libUserName"></td>
-                 </tr>
+                    <td class="label">图书馆名称</td>
+                    <td class="value" data-bind="text:libName"></td>
+                </tr>
                 <tr>
-                    <td style="color:#CCCCCC">备注</td>
-                    <td data-bind="text:comment"></td>
-                    </tr>
-                  <tr>
-                      <td>&nbsp;</td>
+                    <td class="label">dp2opac账号名</td>
+                    <td class="value" data-bind="text:libUserName"></td>
+                </tr>
+                <tr>
+                    <td class="label">图书馆联系人手机号</td>
+                    <td class="value" data-bind="text:libContactPhone"></td>
+                </tr>
+                <tr>
+                    <td class="label">微信端本方账户名</td>
+                    <td class="value" data-bind="text:wxUserName"></td>
+                </tr>
+                <tr>
+                    <td class="label">微信端本方密码</td>
+                    <td class="value" data-bind="text:wxPasswordView"></td>
+                </tr>
+                <tr>
+                    <td class="label">本方联系人手机号</td>
+                    <td class="value" data-bind="text:wxContactPhone"></td>
+                </tr>
+                <tr>
+                    <td class="label">备注</td>
+                    <td class="value" data-bind="text:comment"></td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
                     <td>
+                        <button class="mui-btn  mui-btn-default" data-bind="click: handleEditClick">编辑</button>
+
                         <button class="mui-btn mui-btn-danger" data-bind="click: removeLib">X&nbsp;删除</button>
+
                     </td>
-                            
                 </tr>
             </table>
         </li>
@@ -186,28 +397,52 @@
     </button>
 </div>
 <div data-bind="ifnot: model.displaySummary">
-    <center><h3>新增图书馆</h3></center>
 
-    <form class="mui-input-group">
-        <div class="mui-input-row ">
-            <label style="color:#cccccc">馆代码</label>
-            <input type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆代码" data-bind="value:model.editor.libCode">
+    <div class="mui-card">
+        <div class="mui-input-group">
+            <div class="mui-input-row ">
+                <label class="leftLabel">图书馆代码</label>
+                <input type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆代码" data-bind="value:model.editor.libCode">
+            </div>
+            <div class="mui-input-row ">
+                <label class="leftLabel">图书馆名称</label>
+                <input type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆名称" data-bind="value:model.editor.libName">
+            </div>
+            <div class="mui-input-row ">
+                <label class="leftLabel">图书馆dp2opac帐号</label>
+                <input type="text" class="mui-input mui-input-clear" placeholder="请输入  dp2opac帐号" data-bind="value:model.editor.libUserName">
+            </div>
+            <div class="mui-input-row ">
+                <label class="leftLabel">图书馆联系人手机号</label>
+                <input type="text" class="mui-input mui-input-clear" placeholder="请输入  图书馆联系人手机号" data-bind="value:model.editor.libContactPhone">
+            </div>
+
+            <div class="mui-input-row ">
+                <label class="leftLabel">微信本方帐号名</label>
+                <input type="text" class="mui-input mui-input-clear" placeholder="请输入 微信本方帐号名" data-bind="value:model.editor.wxUserName">
+            </div>
+            <div class="mui-input-row ">
+                <label class="leftLabel">微信本方帐号密码</label>
+                <input type="password" class="mui-input mui-input-clear" placeholder="请输入  微信本方帐号密码" data-bind="value:model.editor.wxPassword">
+            </div>
+            <div class="mui-input-row ">
+                <label class="leftLabel">本方联系人手机号</label>
+                <input type="text" class="mui-input mui-input-clear" placeholder="请输入  本方联系人手机号" data-bind="value:model.editor.wxContactPhone">
+            </div>
+
+            <div class="mui-input-row">
+                <label class="leftLabel">备注</label>
+                <textarea rows="5" data-bind="value:model.editor.comment"></textarea>
+            </div>
         </div>
-        <div class="mui-input-row ">
-            <label style="color:#cccccc">馆名称</label>
-            <input type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆名称" data-bind="value:model.editor.libName">
+        <div class="mui-content-padded" >
+            <table>
+                <tr>
+                    <td style ="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnAdd" data-bind="click: addLib" style="display:none">新增</button></td>
+                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnEdit" data-bind="click: editLib" style="display:none">保存</button></td>
+                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" data-bind="click:handleCancelClick">取消</button></td>
+                </tr>
+            </table>
         </div>
-        <div class="mui-input-row ">
-            <label style="color:#cccccc">馆dp2mserver帐号</label>
-            <input type="text" class="mui-input mui-input-clear" placeholder="请输入  dp2mserver帐号" data-bind="value:model.editor.libUserName">
-        </div>
-        <div class="mui-input-row">
-            <label style="color:#cccccc">备注</label>
-            <textarea  rows="5" data-bind="value:model.editor.comment"></textarea>
-        </div>
-        <div class="mui-button-row">
-            <button class="mui-btn  mui-btn-primary" data-bind="click: addLib">绑定</button>
-            <button class="mui-btn " data-bind="click: handleCancelClick">取消</button>
-        </div>
-    </form>
+    </div>
 </div>
