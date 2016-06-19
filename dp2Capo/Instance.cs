@@ -311,7 +311,7 @@ namespace dp2Capo
                                 new DigitalPlatform.Message.SetMessageRequest("create",
                                 "dontNotifyMe",
                                 records);
-                            SetMessageResult result = this.MessageConnection.SetMessageAsync(param).Result;
+                            SetMessageResult result = this.MessageConnection.SetMessageTaskAsync(param, new System.Threading.CancellationToken()).Result;
                             if (result.Value == -1)
                             {
                                 this.WriteErrorLog("Instance.Notify() 中 SetMessageAsync() 出错: " + result.ErrorInfo);
@@ -372,7 +372,7 @@ namespace dp2Capo
                             new DigitalPlatform.Message.SetMessageRequest("create",
                             "dontNotifyMe",
                             records);
-                        SetMessageResult result = this.MessageConnection.SetMessageAsync(param).Result;
+                        SetMessageResult result = this.MessageConnection.SetMessageTaskAsync(param, new System.Threading.CancellationToken()).Result;
                         if (result.Value == -1)
                         {
                             this.WriteErrorLog("Instance.Notify() 中 SetMessageAsync() 出错: " + result.ErrorInfo);
