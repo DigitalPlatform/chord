@@ -380,6 +380,44 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         item.SetID(Guid.NewGuid().ToString());  // 确保 id 字段有值。是否可以允许前端指定这个 ID 呢？如果要进行查重就麻烦了
                         ServerInfo.MessageDatabase.Add(item).Wait();
                         saved_items.Add(item);
+
+                        {
+                            Console.WriteLine("*** 开始验证刚写入的消息");
+                            Console.WriteLine("请求的消息:\r\n" + item.Dump());
+
+                            // 检索出原有的消息，以便核对条件
+                            List<MessageItem> results = ServerInfo.MessageDatabase.GetMessageByID(item.id).Result;
+                            if (results.Count == 0)
+                            {
+                                result.String = "VerifyFailed";
+                                result.Value = -1;
+                                result.ErrorInfo = "刚刚创建的 id 为 '" + item.id + "' 的消息在消息库中没有找到";
+                                return result;
+                            }
+                            if (results.Count > 1)
+                            {
+                                result.String = "VerifyFailed";
+                                result.Value = -1;
+                                result.ErrorInfo = "刚刚创建的 id 为 '" + item.id + "' 的消息在消息库中居然发现有 "+results.Count+" 条";
+                                return result;
+                            }
+                            if (results.Count == 1)
+                            {
+                                MessageItem new_item = results[0];
+                                string error = MessageItem.IsEqual(new_item, item);
+                                if (string.IsNullOrEmpty(error) == false)
+                                {
+                                    Console.WriteLine("从消息库中取出的消息:\r\n" + new_item.Dump());
+
+                                    result.String = "VerifyFailed";
+                                    result.Value = -1;
+                                    result.ErrorInfo = "刚刚创建的 id 为 '" + item.id + "' 的消息从消息库中取出以后，发现和请求的记录不一致:" + error;
+                                    return result;
+                                }
+                            }
+                            Console.WriteLine("上述消息成功写入数据库");
+                            Console.WriteLine("*** 结束验证刚写入的消息");
+                        }
                     }
                 }
                 else if (param.Action == "change")

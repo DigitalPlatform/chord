@@ -535,11 +535,59 @@ request);
 
         #region SetMessage() API
 
+#if NO
         public Task<SetMessageResult> SetMessageAsync(SetMessageRequest param)
         {
             return HubProxy.Invoke<SetMessageResult>(
  "SetMessage",
  param);
+        }
+#endif
+        public async Task<SetMessageResult> SetMessageAsyncLite(
+SetMessageRequest request)
+        {
+            return await HubProxy.Invoke<SetMessageResult>(
+"SetMessage",
+request);
+        }
+
+        public Task<SetMessageResult> SetMessageTaskAsync(
+SetMessageRequest request,
+CancellationToken token)
+        {
+            return TaskRun<SetMessageResult>(
+                () =>
+                {
+                    return SetMessageAsyncLite(request).Result;
+                },
+            token);
+        }
+
+        public async Task<SetMessageResult> SetMessageAsyncLite(
+    SetMessageRequest request,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            Task<SetMessageResult> task = HubProxy.Invoke<SetMessageResult>(
+"SetMessage",
+request);
+            if (task == await Task.WhenAny(task, Task.Delay(timeout)))
+                return task.Result;
+
+            throw new TimeoutException("已超时 " + timeout.ToString());
+        }
+
+        public Task<SetMessageResult> SetMessageTaskAsync(
+SetMessageRequest request,
+TimeSpan timeout,
+CancellationToken token)
+        {
+            return TaskRun<SetMessageResult>(
+                () =>
+                {
+                    return SetMessageAsyncLite(request, timeout, token).Result;
+                },
+            token);
         }
 
         #endregion

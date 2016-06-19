@@ -222,7 +222,7 @@ DeleteMessage(temp_records, this.GroupName);
                 MessageConnection connection = this.Channels.GetConnectionAsync(
                     this.Url,
                     "").Result;
-                GetMessageResult result = connection.GetMessageAsync(
+                GetMessageResult result = connection.GetMessageTaskAsync(
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;

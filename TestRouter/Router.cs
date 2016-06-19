@@ -194,13 +194,20 @@ namespace TestRouter
                 100);
             try
             {
-                MessageConnection connection = this.Channels.GetConnectionAsync(
+                MessageConnection connection = this.Channels.GetConnectionTaskAsync(
                     this.Url,
                     "").Result;
-                GetMessageResult result = connection.GetMessageAsync(
+#if NO
+                GetMessageResult result = connection.GetMessage(
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
+#endif
+                GetMessageResult result = connection.GetMessage(
+    request,
+    new TimeSpan(0, 1, 0),
+    cancel_token);
+
                 if (result.Value == -1)
                     goto ERROR1;
                 return result.Results;
@@ -239,14 +246,14 @@ namespace TestRouter
 
             try
             {
-                MessageConnection connection = this.Channels.GetConnectionAsync(
+                MessageConnection connection = this.Channels.GetConnectionTaskAsync(
                     this.Url,
                     "").Result;
                 SetMessageRequest param = new SetMessageRequest("expire",
                     "dontNotifyMe",
                     records);
 
-                SetMessageResult result = connection.SetMessageAsync(param).Result;
+                SetMessageResult result = connection.SetMessageTaskAsync(param, new CancellationToken()).Result;
                 if (result.Value == -1)
                     goto ERROR1;
             }
