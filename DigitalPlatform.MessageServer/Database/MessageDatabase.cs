@@ -639,6 +639,51 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime expireTime { get; set; } // 消息失效时间
 
+        static bool IsEqual(string [] array1, string [] array2)
+        {
+            if (array1.Length != array2.Length)
+                return false;
+            for(int i=0;i<array1.Length;i++)
+            {
+                if (array1[i] != array2[i])
+                    return false;
+            }
+            return true;
+        }
+
+        public static string IsEqual(MessageItem item,
+            MessageItem new_item)
+        {
+            List<string> errors = new List<string>();
+            if (new_item.id != item.id)
+                errors.Add("id 不一致");
+            if (IsEqual(new_item.groups,item.groups) == false)
+                errors.Add("id 不一致");
+
+            if (new_item.creator != item.creator)
+                errors.Add("creator 不一致");
+            if (new_item.userName != item.userName)
+                errors.Add("userName 不一致");
+            if (new_item.data != item.data)
+                errors.Add("data 不一致");
+            if (new_item.format != item.format)
+                errors.Add("format 不一致");
+            if (new_item.type != item.type)
+                errors.Add("id 不一致");
+            if (new_item.thread != item.thread)
+                errors.Add("thread 不一致");
+
+            if (new_item.publishTime.ToString() != item.publishTime.ToString())
+                errors.Add("publishTime 不一致");
+            if (new_item.expireTime.ToString() != item.expireTime.ToString())
+                errors.Add("id 不一致");
+
+            if (errors.Count == 0)
+                return "";
+
+            return StringUtil.MakePathList(errors, "; ");
+        }
+
         public string Dump()
         {
             StringBuilder text = new StringBuilder();
