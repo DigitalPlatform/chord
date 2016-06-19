@@ -428,11 +428,26 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                     foreach (MessageItem item in items)
                     {
                         // 正规化组名
-                        CanonicalizeMessageItemGroups(item, connection_info);
+                        // CanonicalizeMessageItemGroups(item, connection_info);
+
+                        // 注: item 里面只有 id 可信，用于判断权限的其他字段应该从数据库中获得
+
+                        // 检索出原有的消息，以便核对条件
+                        List<MessageItem> results = ServerInfo.MessageDatabase.GetMessageByID(item.id).Result;
+
+                        if (results.Count == 0)
+                        {
+                            result.String = "NotFound";
+                            result.Value = -1;
+                            result.ErrorInfo = "id 为 '" + item.id + "' 的消息记录不存在";
+                            return result;
+                        }
+
+                        MessageItem exist = results[0];
 
                         if (bSupervisor == false)
                         {
-                            string strParameters = GroupDefinition.FindGroupDefinition(connection_info.Groups, item.groups);
+                            string strParameters = GroupDefinition.FindGroupDefinition(connection_info.Groups, exist.groups);
                             if (string.IsNullOrEmpty(strParameters) == false
     && StringUtil.ContainsRight(strParameters, "ca") == 1)
                             {
@@ -442,7 +457,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             {
                                 if (connection_info.UserItem == null)
                                 {
-                                    if (GroupDefinition.IsDefaultGroupName(item.groups) == false)
+                                    if (GroupDefinition.IsDefaultGroupName(exist.groups) == false)
                                     {
                                         result.String = "Denied";
                                         result.Value = -1;
@@ -452,29 +467,17 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                                 }
                                 else
                                 {
-                                    if (item.groups.Length == 1 &&  // 多个 id 联合的情况暂时不检查
-                                        GroupDefinition.IncludeGroup(connection_info.Groups, item.groups) == false)
+                                    if (exist.groups.Length == 1 &&  // 多个 id 联合的情况暂时不检查
+                                        GroupDefinition.IncludeGroup(connection_info.Groups, exist.groups) == false)
                                     {
                                         result.String = "Denied";
                                         result.Value = -1;
-                                        result.ErrorInfo = "当前用户没有加入群组 '" + string.Join(",", item.groups) + "'，因此无法修改其中的消息";
+                                        result.ErrorInfo = "当前用户没有加入群组 '" + string.Join(",", exist.groups) + "'，因此无法修改其中的消息";
                                         return result;
                                     }
                                 }
                             }
 
-                            // 检索出原有的消息，以便核对条件
-                            List<MessageItem> results = ServerInfo.MessageDatabase.GetMessageByID(item.id).Result;
-
-                            if (results.Count == 0)
-                            {
-                                result.String = "NotFound";
-                                result.Value = -1;
-                                result.ErrorInfo = "id 为 '" + item.id + "' 的消息记录不存在";
-                                return result;
-                            }
-
-                            MessageItem exist = results[0];
                             string creator_string = BuildMessageUserID(connection_info);
 
                             if (exist.creator != creator_string)
@@ -486,7 +489,12 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             }
                         }
 
-                        // TODO: groups 字段不允许修改
+                        // groups 字段不允许修改
+                        item.groups = exist.groups;
+                        // creator 字段不允许修改
+                        item.creator = exist.creator;
+                        // exipreTime 字段不允许修改
+                        item.expireTime = exist.expireTime;
                         ServerInfo.MessageDatabase.Update(item).Wait();
                         saved_items.Add(item);  // TODO: 应该返回修改后的记录内容
                     }
@@ -505,12 +513,27 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                     foreach (MessageItem item in items)
                     {
                         // 正规化组名
-                        CanonicalizeMessageItemGroups(item, connection_info);
+                        // CanonicalizeMessageItemGroups(item, connection_info);
+
+                        // 注: item 里面只有 id 有用，其他字段内容都会被忽略
+
+                        // 检索出原有的消息，以便核对条件
+                        List<MessageItem> results = ServerInfo.MessageDatabase.GetMessageByID(item.id).Result;
+
+                        if (results.Count == 0)
+                        {
+                            result.String = "NotFound";
+                            result.Value = -1;
+                            result.ErrorInfo = "id 为 '" + item.id + "' 的消息不存在";
+                            return result;
+                        }
+
+                        MessageItem exist = results[0];
 
                         bool bDeleteAllRights = false;
                         if (bSupervisor == false)
                         {
-                            string strParameters = GroupDefinition.FindGroupDefinition(connection_info.Groups, item.groups);
+                            string strParameters = GroupDefinition.FindGroupDefinition(connection_info.Groups, exist.groups);
                             if (string.IsNullOrEmpty(strParameters) == false
     && StringUtil.ContainsRight(strParameters, "da") == 1)
                             {
@@ -521,7 +544,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             {
                                 if (connection_info.UserItem == null)
                                 {
-                                    if (GroupDefinition.IsDefaultGroupName(item.groups) == false)
+                                    if (GroupDefinition.IsDefaultGroupName(exist.groups) == false)
                                     {
                                         result.String = "Denied";
                                         result.Value = -1;
@@ -531,29 +554,17 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                                 }
                                 else
                                 {
-                                    if (item.groups.Length == 1 &&  // 多个 id 联合的情况暂时不检查
-                                        GroupDefinition.IncludeGroup(connection_info.Groups, item.groups) == false)
+                                    if (exist.groups.Length == 1 &&  // 多个 id 联合的情况暂时不检查
+                                        GroupDefinition.IncludeGroup(connection_info.Groups, exist.groups) == false)
                                     {
                                         result.String = "Denied";
                                         result.Value = -1;
-                                        result.ErrorInfo = "当前用户没有加入群组 '" + string.Join(",", item.groups) + "'，因此无法" + strActionName + "其中的消息";
+                                        result.ErrorInfo = "当前用户没有加入群组 '" + string.Join(",", exist.groups) + "'，因此无法" + strActionName + "其中的消息";
                                         return result;
                                     }
                                 }
                             }
 
-                            // 检索出原有的消息，以便核对条件
-                            List<MessageItem> results = ServerInfo.MessageDatabase.GetMessageByID(item.id).Result;
-
-                            if (results.Count == 0)
-                            {
-                                result.String = "NotFound";
-                                result.Value = -1;
-                                result.ErrorInfo = "id 为 '" + item.id + "' 的消息不存在";
-                                return result;
-                            }
-
-                            MessageItem exist = results[0];
                             string creator_string = BuildMessageUserID(connection_info);
 
                             if (bDeleteAllRights == false
@@ -574,7 +585,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             ServerInfo.MessageDatabase.ExpireByID(item.id, now).Wait();
                             item.expireTime = now;
                         }
-                        saved_items.Add(item);
+                        saved_items.Add(exist);
                     }
                 }
                 else
