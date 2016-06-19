@@ -380,6 +380,8 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         item.SetID(Guid.NewGuid().ToString());  // 确保 id 字段有值。是否可以允许前端指定这个 ID 呢？如果要进行查重就麻烦了
                         ServerInfo.MessageDatabase.Add(item).Wait();
                         saved_items.Add(item);
+
+                        Console.WriteLine("下列消息成功写入数据库:\r\n" + item.Dump());
                     }
                 }
                 else if (param.Action == "change")

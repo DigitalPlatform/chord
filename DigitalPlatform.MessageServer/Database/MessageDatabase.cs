@@ -639,6 +639,22 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime expireTime { get; set; } // 消息失效时间
 
+        public string Dump()
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("id=" + id + "\r\n");
+            text.Append("groups=" + string.Join(",", groups) + "\r\n");
+            text.Append("creator=" + creator + "\r\n");
+            text.Append("userName=" + userName + "\r\n");
+            text.Append("data=" + data + "\r\n");
+            text.Append("format=" + format + "\r\n");
+            text.Append("type=" + type + "\r\n");
+            text.Append("thread=" + thread + "\r\n");
+            text.Append("publishTime=" + publishTime.ToString() + "\r\n");
+            text.Append("expireTime=" + expireTime.ToString() + "\r\n");
+            return text.ToString();
+        }
+
         // TODO: 消息的历次修改者和时间。也可以不采用这种数据结构，而是在修改后在原时间重新写入一条修改后消息，并注明前后沿革关系
     }
 
