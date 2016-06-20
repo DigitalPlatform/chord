@@ -574,5 +574,17 @@ namespace TestClient1.Properties {
                 this["message_sortCondition"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string markdown_source {
+            get {
+                return ((string)(this["markdown_source"]));
+            }
+            set {
+                this["markdown_source"] = value;
+            }
+        }
     }
 }

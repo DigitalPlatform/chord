@@ -226,6 +226,8 @@ namespace TestClient1
             this.textBox_getRes_length.Text = Settings.Default.getRes_length;
             this.textBox_getRes_style.Text = Settings.Default.getRes_style;
             this.textBox_getRes_outputFile.Text = Settings.Default.getRes_outputFile;
+
+            this.textBox_markdown_source.Text = Settings.Default.markdown_source;
         }
 
         void SaveSettings()
@@ -284,6 +286,8 @@ namespace TestClient1
             Settings.Default.getRes_style = this.textBox_getRes_style.Text;
             Settings.Default.getRes_outputFile = this.textBox_getRes_outputFile.Text;
 
+            Settings.Default.markdown_source = this.textBox_markdown_source.Text;
+
             Settings.Default.Save();
         }
 
@@ -324,6 +328,11 @@ namespace TestClient1
             if (this.tabControl_main.SelectedTab == this.tabPage_getRes)
             {
                 DoGetRes2();
+            }
+
+            if (this.tabControl_main.SelectedTab == this.tabPage_markdown)
+            {
+                DisplayMarkDown();
             }
         }
 
@@ -2290,6 +2299,28 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             this.toolStripProgressBar1.Value = (int)(current * (double)ratio);
 
             this.toolStripStatusLabel1.Text = current.ToString() + " / " + totalLength;
+        }
+
+        void DisplayMarkDown()
+        {
+            var result = CommonMark.CommonMarkConverter.Convert(this.textBox_markdown_source.Text);
+
+            ClearForHtmlOutputing(this.webBrowser1);
+            AppendHtml(this.webBrowser1, result);
+        }
+
+        public static void ClearForHtmlOutputing(WebBrowser webBrowser)
+        {
+            HtmlDocument doc = webBrowser.Document;
+
+            if (doc == null)
+            {
+                Navigate(webBrowser, "about:blank");  // 2015/7/28
+                doc = webBrowser.Document;
+            }
+
+            doc = doc.OpenNew(true);
+            doc.Write("<html><body>");
         }
     }
 }
