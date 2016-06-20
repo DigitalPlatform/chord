@@ -230,6 +230,7 @@ DeleteMessage(temp_records, this.GroupName);
                 this.GroupName, // "" 表示默认群组
                 "",
                 "", // strTimeRange,
+                "publishTime|asc",//sortCondition 按发布时间正序排
                 0,
                 100);
             try

@@ -4367,9 +4367,10 @@ namespace dp2weixin.service
             {
                 BbItem item = new BbItem();
                 item.id = record.id;
+                item.publishTime = DateTimeUtil.DateTimeToString( record.publishTime);
 
-                string title = "不符合条件的title";
-                string content = "不符合条件的content";
+                string title = "";
+                string content = "";
 
                 string xml = record.data;
                 XmlDocument dom = new XmlDocument();
@@ -4381,7 +4382,10 @@ namespace dp2weixin.service
                     content = DomUtil.GetNodeText(root.SelectSingleNode("content"));
                 }
                 catch
-                {}
+                {
+                    title = "不符合格式的消息";
+                    content = "不符合格式的消息-" + xml;                
+                }
                 item.title = title;
                 item.content = content;
                 list.Add(item);
@@ -4413,6 +4417,7 @@ namespace dp2weixin.service
                 groupName,
                 wxUserName,
                 "", // strTimeRange,
+                "publishTime|desc",//sortCondition 按发布时间倒序排
                 0,
                 100);  // todo 如果超过100条，要做成递归来调
             try

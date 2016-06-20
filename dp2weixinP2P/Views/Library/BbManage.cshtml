@@ -61,7 +61,8 @@
             editor: {
                 id: ko.observable(""),
                 title: ko.observable(""),
-                content: ko.observable("")
+                content: ko.observable(""),
+                publishTime:ko.observable("")
             },
             displaySummary: ko.observable(true)
         }
@@ -188,6 +189,7 @@
                     //清空编辑界面信息
                     model.editor.title("");
                     model.editor.content("");
+                    model.editor.publishTime("");
 
                     // 关闭等待层
                     layer.close(index);
@@ -246,6 +248,7 @@
                     model.editor.id("");
                     model.editor.title("");
                     model.editor.content("");
+                    model.editor.publishTime("");
                     // 关闭等待层
                     layer.close(index);
                 },
@@ -289,9 +292,14 @@
         // 点击新增图书馆按钮
         function handleCreateClick() {
             model.displaySummary(false);
-
             //由于一进来没有显示编辑界面，所以这里要重新设一下
             setShowTopButton();
+
+            model.editor.id(item.id);
+            //alert("id-["+model.editor.id()+"]");
+            model.editor.title(item.title);
+            model.editor.content(item.content);
+            model.editor.publishTime(item.publishTime);//publishTime
 
             $("#btnAdd").css('display', 'block');
             $("#btnEdit").css('display', 'none');
@@ -315,7 +323,8 @@
             model.editor.id(item.id);
             //alert("id-["+model.editor.id()+"]");
             model.editor.title(item.title);
-            model.editor.content(item.content);
+            model.editor.content(item.content);            
+            model.editor.publishTime(item.publishTime);//publishTime
         }
 
 
@@ -326,6 +335,9 @@
             // 获取所有的操作命令
             getBbs();
             ko.applyBindings(model);
+
+            // 设顶部菜单不固定
+            $("#myheader").css("position", "absolute");
         })
 
 
@@ -360,7 +372,7 @@ else
         <div class="mui-card" style="margin-top:10px">
             <div class="mui-content-padded">
                 <div class="bb-title" data-bind="text:title"></div>
-                <p style="color:gray;font-size:10px">2016-6-20</p>
+                <p style="color:gray;font-size:10px" data-bind="text:publishTime"></p>
                 <div data-bind="text:content"></div>
                 <div style="text-align:right">
                     <button class="mui-btn  mui-btn-default" data-bind="click: handleEditClick">编辑</button>
@@ -380,23 +392,24 @@ else
 <div data-bind="ifnot: model.displaySummary">
 
     <div class="mui-card">
-        <div class="mui-input-group">
-            <div class="mui-input-row ">
-                <label class="leftLabel">标题</label>
-                <input type="text" class="mui-input mui-input-clear" placeholder="请输入 标题" data-bind="value:model.editor.title">
-            </div>
-
+        <div class="mui-input-row">
+            <label class="leftLabel">标题</label>
+            <input type="text" class="mui-input mui-input-clear" placeholder="请输入 标题" data-bind="value:model.editor.title">
         </div>
-        <div class="mui-input-row " style="margin: 10px 5px;">
+        <div class="mui-input-row">
             <label class="leftLabel">内容</label>
-            <textarea rows="6" data-bind="value:model.editor.content" ></textarea>
+            <textarea rows="6" data-bind="value:model.editor.content"></textarea>
+        </div>
+        <div class="mui-input-row ">
+            <label class="leftLabel">发布时间</label>
+            <input type="text" class="mui-input mui-input-clear" disabled="disabled" data-bind="value:model.editor.publishTime">
         </div>
 
         <div class="mui-content-padded" >
             <table>
                 <tr>
-                    <td style ="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnAdd" data-bind="click: add" style="display:none">新增</button></td>
-                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnEdit" data-bind="click: edit" style="display:none">保存</button></td>
+                    <td style ="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnAdd" data-bind="click: add" style="display:none">发布</button></td>
+                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnEdit" data-bind="click: edit" style="display:none">更新发布</button></td>
                     <td style="padding-left:5px"><button class="mui-btn mui-btn-default" data-bind="click:handleCancelClick">取消</button></td>
                 </tr>
             </table>

@@ -17,5 +17,7 @@ namespace dp2weixin.service
         public string id { get; set; }
         public string title { get; set; }
         public string content { get; set; }
+
+        public string publishTime { get; set; } // 2016-6-20 jane 发布时间，服务器消息的时间
     }
 }

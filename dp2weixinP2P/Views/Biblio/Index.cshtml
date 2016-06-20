@@ -250,8 +250,12 @@
                 + "&from=" + encodeURIComponent(from)
                 + "&word=" + encodeURIComponent(word)
                 + "&resultSet=" + encodeURIComponent(resultSet);
+
+            //alert(url);
             sendAjaxRequest(url, "GET",
                 function (result) {
+
+                    //alert("回来");
 
                     // 关闭等待层
                     layer.close(index);

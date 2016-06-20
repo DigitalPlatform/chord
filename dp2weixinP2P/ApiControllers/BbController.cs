@@ -37,7 +37,8 @@ namespace dp2weixinWeb.ApiControllers
         {
             //style == add
 
-            item.id = Guid.NewGuid().ToString();
+            // 服务器会自动产生id
+            //item.id = Guid.NewGuid().ToString();
             return dp2WeiXinService.Instance.CoverBb(libId, item, "create");
         }
 

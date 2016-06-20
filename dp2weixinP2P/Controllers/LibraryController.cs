@@ -8,12 +8,16 @@ using System.Web.Mvc;
 
 namespace dp2weixinWeb.Controllers
 {
-    public class LibraryController : Controller
+    public class LibraryController : BaseController
     {
         // GET: Library
-        public ActionResult Bb()
+        public ActionResult Bb(string code, string state)
         {
+            // 检查是否从微信入口进来
             string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
 
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
@@ -45,7 +49,7 @@ namespace dp2weixinWeb.Controllers
             List<BbItem> annlist = new List<BbItem>();
             if (userItem != null)
             {
-                int nRet = dp2WeiXinService.Instance.GetBbs(selLibId, out annlist, out strError);
+                nRet = dp2WeiXinService.Instance.GetBbs(selLibId, out annlist, out strError);
                 if (nRet == -1)
                 {
                     return Content(strError);
@@ -57,8 +61,14 @@ namespace dp2weixinWeb.Controllers
 
 
         // GET: Library
-        public ActionResult BbManage()
+        public ActionResult BbManage(string code, string state)
         {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
             // 找工作人员帐户
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             WxUserItem worker = WxUserDatabase.Current.GetOneWorker(weiXinId);

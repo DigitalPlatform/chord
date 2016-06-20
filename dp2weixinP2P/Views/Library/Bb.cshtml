@@ -72,6 +72,9 @@
             $("#selLib").change(function () {
                 libChanged();
             });
+
+            // 设顶部菜单不固定
+            $("#myheader").css("position", "absolute");
         })
 
     </script>
@@ -172,7 +175,7 @@ else
                     <div class="mui-card" style="margin-top:10px">
                         <div class="mui-content-padded" >
                             <div class="bb-title">@item.title</div>
-                            <p style="color:gray;font-size:10px">2016-6-20</p>
+                            <p style="color:gray;font-size:10px">@item.publishTime</p>
                             <div>@item.content</div>
                         </div>
                     </div>
@@ -190,7 +193,7 @@ else
     <div class="mui-card" style="margin-top:10px">
         <div class="mui-content-padded">
             <div class="bb-title" data-bind="text:title"></div>
-            <p style="color:gray;font-size:10px">2016-6-20</p>
+            <p style="color:gray;font-size:10px" data-bind="text:publishTime"></p>
             <div data-bind="text:content"></div>
         </div>
     </div>
