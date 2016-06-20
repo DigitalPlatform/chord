@@ -200,8 +200,8 @@
                     layer.close(index);
                 },
                 {
-                    title: title,
-                    content: content
+                    title:title,
+                    content:content
                 }
             );
         }
@@ -371,9 +371,9 @@ else
     <div data-bind=" foreach:model.list">
         <div class="mui-card" style="margin-top:10px">
             <div class="mui-content-padded">
-                <div class="bb-title" data-bind="text:title"></div>
+                <div class="bb-title" data-bind="html:title"></div>
                 <p style="color:gray;font-size:10px" data-bind="text:publishTime"></p>
-                <div data-bind="text:content"></div>
+                <div data-bind="html:content"></div>
                 <div style="text-align:right">
                     <button class="mui-btn  mui-btn-default" data-bind="click: handleEditClick">编辑</button>
                     <button class="mui-btn mui-btn-danger" data-bind="click: remove">X&nbsp;删除</button>

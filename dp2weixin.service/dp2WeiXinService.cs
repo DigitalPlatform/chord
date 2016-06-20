@@ -21,6 +21,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using System.Xml;
 
 namespace dp2weixin.service
@@ -4371,6 +4372,7 @@ namespace dp2weixin.service
 
                 string title = "";
                 string content = "";
+                string format = "text"; //默认是text样式
 
                 string xml = record.data;
                 XmlDocument dom = new XmlDocument();
@@ -4378,16 +4380,35 @@ namespace dp2weixin.service
                 {
                     dom.LoadXml(xml);
                     XmlNode root = dom.DocumentElement;
-                    title = DomUtil.GetNodeText(root.SelectSingleNode("title"));
-                    content = DomUtil.GetNodeText(root.SelectSingleNode("content"));
+                    XmlNode nodeTitle = root.SelectSingleNode("title");
+                    title = nodeTitle.InnerText;//DomUtil.GetNodeText(root.SelectSingleNode("title"));
+                    XmlNode nodeContent = root.SelectSingleNode("content");
+                    content = nodeContent.InnerText;//DomUtil.GetNodeText();
+
+                    format = DomUtil.GetAttr(nodeContent, "format");
                 }
                 catch
                 {
                     title = "不符合格式的消息";
                     content = "不符合格式的消息-" + xml;                
                 }
+
+                if (format == "markdown")
+                {
+                    content = CommonMark.CommonMarkConverter.Convert(content);
+                }
+                else
+                {
+                    //普通text 处理换行
+                    content = content.Replace("\r\n", "\n");
+                    content = content.Replace("\n", "<br/>");
+                }
+
+
                 item.title = title;
-                item.content = content;
+                    item.content = content;
+                item.contentFormat = format;
+
                 list.Add(item);
             }
 
@@ -4461,10 +4482,24 @@ namespace dp2weixin.service
 
             string connName = C_ConnPrefix_Myself + libId;
 
-            string strText = "<root>"
-                +"<title>" + item.title + "</title>"
-                +"<content>" + item.content+ "</content>"
-                +"</root>";
+            string strText = "";
+            if (style != "delete")
+            {
+                string content = item.content;
+
+                // todo 处理换行
+
+
+                strText = "<body>"
+                + "<title>" + HttpUtility.HtmlEncode(item.title) + "</title>"  //前端传过来时，已经转义过了 HttpUtility.HtmlEncode(item.title)
+                + "<content format='"+item.contentFormat+"'>" + HttpUtility.HtmlEncode(item.content) + "</content>"
+                + "</body>";
+                //XmlDocument dom = new XmlDocument();
+                //dom.LoadXml(strText);
+
+                //strText = HttpUtility.HtmlEncode(strText);
+
+            }
 
             List<MessageRecord> records = new List<MessageRecord>();
             MessageRecord record = new MessageRecord();

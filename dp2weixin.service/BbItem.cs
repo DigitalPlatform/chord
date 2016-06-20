@@ -17,7 +17,12 @@ namespace dp2weixin.service
         public string id { get; set; }
         public string title { get; set; }
         public string content { get; set; }
+        public string contentHtml { get; set; }  // 2016-6-20 html形态
+
+        public string contentFormat { get; set; }  // 2016-6-20 text/markdown
+
 
         public string publishTime { get; set; } // 2016-6-20 jane 发布时间，服务器消息的时间
+
     }
 }
