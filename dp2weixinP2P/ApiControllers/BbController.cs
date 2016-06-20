@@ -8,17 +8,17 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class AnnouncementController : ApiController
+    public class BbController : ApiController
     {
 
         // GET api/<controller>
-        public AnnouncementResult Get(string libId)
+        public BbResult Get(string libId)
         {
-            AnnouncementResult result = new AnnouncementResult();
+            BbResult result = new BbResult();
 
             string strError = "";
-            List<AnnouncementItem> list = null;
-            int nRet = dp2WeiXinService.Instance.GetAnnouncements(libId, out list, out strError);
+            List<BbItem> list = null;
+            int nRet = dp2WeiXinService.Instance.GetBbs(libId, out list, out strError);
             if (nRet == -1)
             {
                 result.errorCode = -1;
@@ -33,22 +33,22 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         // POST api/<controller>
-        public AnnouncementResult Post(string libId,AnnouncementItem item)
+        public BbResult Post(string libId,BbItem item)
         {
             //style == add
 
             item.id = Guid.NewGuid().ToString();
-            return dp2WeiXinService.Instance.CoverAnnouncement(libId, item, "create");
+            return dp2WeiXinService.Instance.CoverBb(libId, item, "create");
         }
 
         // PUT api/<controller>/5
-        public AnnouncementResult Put(string libId, AnnouncementItem item)
+        public BbResult Put(string libId, BbItem item)
         {
             //return libDb.Update(id, item);
 
             string test = "";
 
-            return dp2WeiXinService.Instance.CoverAnnouncement(libId, item, "change");
+            return dp2WeiXinService.Instance.CoverBb(libId, item, "change");
 
             //return null;
      }
@@ -57,10 +57,10 @@ namespace dp2weixinWeb.ApiControllers
         [HttpDelete]
         public void Delete( string id,string libId)
         {
-            AnnouncementItem item = new AnnouncementItem();
+            BbItem item = new BbItem();
             item.id = id;
             //style == delete
-            dp2WeiXinService.Instance.CoverAnnouncement(libId, item, "delete");
+            dp2WeiXinService.Instance.CoverBb(libId, item, "delete");
 
             return;
         }

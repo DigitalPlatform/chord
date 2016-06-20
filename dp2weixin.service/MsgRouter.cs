@@ -73,11 +73,26 @@ namespace dp2weixin.service
             if (e.Action != "create")
                 return;
 
+            MessageConnection connection = (MessageConnection)sender;
+            if (connection.Name != dp2WeiXinService.C_ConnName_TraceMessage)
+                return;
+
+            // 只处理_patronNotify群的消息
+            List<MessageRecord> tempList = new List<MessageRecord>();
+            if (e.Records.Count > 0)
+            {
+                foreach (MessageRecord record in e.Records)
+                {
+                    if (record.groups.Contains(dp2WeiXinService.C_GroupName_PatronNotity) == true)
+                        tempList.Add(record);
+                }
+            }
+
             lock (_syncRoot_messageList)
             {
                 // 累积太多了就不送入 list 了，只是激活线程等 GetMessage() 慢慢一百条地处理
                 if (this._messageList.Count < 10000)
-                    this._messageList.AddRange(e.Records);
+                    this._messageList.AddRange(tempList);//e.Records);
             }
             this.Activate();
         }
@@ -122,7 +137,7 @@ namespace dp2weixin.service
                 //this.WriteErrorLog("走到worker4:");
 
                 // 从 dp2mserver 中删除这些消息
-               bDeleteOk= DeleteMessage(temp_records, this.GroupName);
+               bDeleteOk= DeleteMessage(temp_records);//jane 2016-6-20 不需要传group参数了, this.GroupName);
 
                 //this.WriteErrorLog("走到worker5:");
             }
@@ -221,7 +236,7 @@ DeleteMessage(temp_records, this.GroupName);
             {
                 MessageConnection connection = this.Channels.GetConnectionTaskAsync(
                     this.Url,
-                    "").Result;
+                    dp2WeiXinService.C_ConnName_TraceMessage).Result;
                 GetMessageResult result = connection.GetMessage(request,
                     new TimeSpan(0, 1, 0),
                     cancel_token);
@@ -253,15 +268,15 @@ DeleteMessage(temp_records, this.GroupName);
         /// true    成功
         /// false   失败
         /// </returns>
-        bool DeleteMessage(List<MessageRecord> records,
-            string strGroupName)
+        bool DeleteMessage(List<MessageRecord> records)
         {
-            List<MessageRecord> delete_records = new List<MessageRecord>();
+             List<MessageRecord> delete_records = new List<MessageRecord>();
 
             foreach (MessageRecord source in records)
             {
                 MessageRecord record = new MessageRecord();
-                record.groups = strGroupName.Split(new char[] { ',' });
+                // 2016-6-20 jane 不需要传group参数
+                record.groups = dp2WeiXinService.C_GroupName_PatronNotity .Split(new char[] { ',' });
                 record.id = source.id;
                 delete_records.Add(record);
             }
@@ -272,9 +287,10 @@ DeleteMessage(temp_records, this.GroupName);
 
             try
             {
+
                 MessageConnection connection = this.Channels.GetConnectionTaskAsync(
                     this.Url,
-                    "").Result;
+                    dp2WeiXinService.C_ConnName_TraceMessage).Result;
                 SetMessageRequest param = new SetMessageRequest("expire",
                     "dontNotifyMe",
                     delete_records);//records);这里应该用delete_records吧，用records好像也没错

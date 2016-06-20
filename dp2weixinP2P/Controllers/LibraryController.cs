@@ -11,7 +11,7 @@ namespace dp2weixinWeb.Controllers
     public class LibraryController : Controller
     {
         // GET: Library
-        public ActionResult Announcement()
+        public ActionResult Bb()
         {
             string strError = "";
 
@@ -42,10 +42,10 @@ namespace dp2weixinWeb.Controllers
 
   
 
-            List<AnnouncementItem> annlist = null;
+            List<BbItem> annlist = null;
             if (userItem != null)
             {
-                int nRet = dp2WeiXinService.Instance.GetAnnouncements(selLibId, out annlist, out strError);
+                int nRet = dp2WeiXinService.Instance.GetBbs(selLibId, out annlist, out strError);
                 if (nRet == -1)
                 {
                     return Content(strError);
@@ -57,17 +57,17 @@ namespace dp2weixinWeb.Controllers
 
 
         // GET: Library
-        public ActionResult AnnouncementManage()
+        public ActionResult BbManage()
         {
             // 找工作人员帐户
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             WxUserItem worker = WxUserDatabase.Current.GetOneWorker(weiXinId);
             if (worker == null)
             {
-                string returnUrl = "/Library/AnnouncementManage";
+                string returnUrl = "/Library/BbManage";
                 string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
                 string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
-                string strRedirectInfo = "您尚未绑定工作人员帐号，不能管理公告，，" + bindLink;
+                string strRedirectInfo = "您尚未绑定工作人员帐号，不能管理公告，" + bindLink;
                 strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
                     + strRedirectInfo
                     + "</div>";

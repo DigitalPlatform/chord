@@ -1,4 +1,4 @@
-﻿@model List<dp2weixin.service.AnnouncementItem>
+﻿@model List<dp2weixin.service.BbItem>
 @section Scripts {
     <script>
 
@@ -25,13 +25,13 @@
 
 
             // 调web api
-            var url = "/api/Announcement?libId="+libId;
+            var url = "/api/Bb?libId="+libId;
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
                 layer.close(index);
 
-                alert("errorCode["+result.errorCode+"]");
+                //alert("errorCode["+result.errorCode+"]");
 
                 if (result.errorCode == -1) {
                     alert(result.errorInfo);
@@ -117,7 +117,7 @@
     </style>
 }
 @section header {
-    <h1 class="mui-title">最新公告</h1>
+    <h1 class="mui-title">公告</h1>
 }
 @if (Model == null)
 {
@@ -160,8 +160,8 @@ else
             <div class="title">
                 公告列表
             </div>
-            <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed">
-                @foreach (dp2weixin.service.AnnouncementItem item in Model)
+            <ul class="mui-table-view">
+                @foreach (dp2weixin.service.BbItem item in Model)
                 {
                     <li class="mui-table-view-cell" style="border-bottom:0px">
                         <table class="libTable">

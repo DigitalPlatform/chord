@@ -39,7 +39,7 @@
         <div class="mui-popover-arrow"></div>
         <ul class="mui-table-view">
             <li class="mui-table-view-cell">
-                <a href="~/Home/Index">最新公告</a>
+                <a href="~/Home/Index">公告</a>
             </li>
             <li class="mui-table-view-cell">
                 <a href="~/Home/Contact">联系我们</a>

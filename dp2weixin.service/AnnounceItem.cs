@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace dp2weixin.service
 {
-    public class AnnouncementResult : ApiResult
+    public class BbResult : ApiResult
     {
-        public List<AnnouncementItem> items { get; set; }
+        public List<BbItem> items { get; set; }
 
     }
 
-    public class AnnouncementItem
+    public class BbItem
     {
         public string id { get; set; }
         public string title { get; set; }

@@ -60,7 +60,7 @@
         }
 
         //用于获取图书馆
-        function getAnnouncements() {
+        function getBbs() {
             var libId = $("#libId").text();//.val();
             //alert("["+libId+"]");
             // 先删除可观察数组中的已有数据
@@ -75,7 +75,7 @@
 
 
             // 调web api
-            var url = "/api/Announcement?libId=" + libId;
+            var url = "/api/Bb?libId=" + libId;
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
@@ -116,7 +116,7 @@
             }
 
             //alert("remove-"+item.libId);
-            var url = "/api/Announcement/" + item.id
+            var url = "/api/Bb/" + item.id
                 +"?libId="+libId
             sendAjaxRequest(url, "DELETE", function () {
                 //getAllLib();
@@ -156,13 +156,13 @@
             //显示等待图层
             var index = loadLayer();
 
-            var url = "/api/Announcement?libId="+libId;
+            var url = "/api/Bb?libId="+libId;
             sendAjaxRequest(url, "POST",
                 function (newItem) {
 
                     // 增加到观察数组里
                     //model.list.push(newItem);
-                    getAnnouncements();
+                    getBbs();
 
                     model.displaySummary(true);
 
@@ -216,12 +216,12 @@
                 alert("id参数为空，无法保存。");
                 return;
             }
-            var url = "/api/Announcement?libId=" + libId;
+            var url = "/api/Bb?libId=" + libId;
             sendAjaxRequest(url, "PUT",
                 function () {
                     //model.librarys.push(newItem);
                     model.displaySummary(true);
-                    getAnnouncements();
+                    getBbs();
 
                     //清空编辑界面信息
                     model.editor.id("");
@@ -305,7 +305,7 @@
         $(document).ready(function () {
 
             // 获取所有的操作命令
-            getAnnouncements();
+            getBbs();
             ko.applyBindings(model);
         })
 
@@ -353,7 +353,7 @@ else
     </ul>
     <div class="mui-content-padded">
         <button class="mui-btn mui-btn-block mui-btn-primary" data-bind="click: handleCreateClick">
-            新发布通知
+            新发布公告
         </button>
     </div>
     </div>
@@ -365,11 +365,13 @@ else
                 <label class="leftLabel">标题</label>
                 <input type="text" class="mui-input mui-input-clear" placeholder="请输入 标题" data-bind="value:model.editor.title">
             </div>
-            <div class="mui-input-row ">
-                <label class="leftLabel">内容</label>
-                <textarea rows="10" data-bind="value:model.editor.content"></textarea>
-            </div>
+
         </div>
+        <div class="mui-input-row " style="margin: 10px 5px;">
+            <label class="leftLabel">内容</label>
+            <textarea rows="6" data-bind="value:model.editor.content" ></textarea>
+        </div>
+
         <div class="mui-content-padded" >
             <table>
                 <tr>

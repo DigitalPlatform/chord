@@ -176,7 +176,7 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApiControllers\AnnouncementController.cs" />
+    <Compile Include="ApiControllers\BbController.cs" />
     <Compile Include="ApiControllers\BiblioController.cs" />
     <Compile Include="ApiControllers\BorrowInfoController.cs" />
     <Compile Include="ApiControllers\LibrarySettingController.cs" />
@@ -240,8 +240,8 @@
     <Content Include="Views\Home\UiTest.cshtml" />
     <Content Include="Views\Account\ChangePassword.cshtml" />
     <Content Include="Views\Patron\QRcode.cshtml" />
-    <Content Include="Views\Library\Announcement.cshtml" />
-    <Content Include="Views\Library\AnnouncementManage.cshtml" />
+    <Content Include="Views\Library\Bb.cshtml" />
+    <Content Include="Views\Library\BbManage.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -170,7 +170,7 @@ namespace dp2weixin.service
             this._msgRouter.SendMessageEvent += _msgRouter_SendMessageEvent;
             this._msgRouter.Start(this._channels,
                 this.dp2MServerUrl,
-                "_patronNotify");
+                C_GroupName_PatronNotity);
 
         }
 
@@ -4342,31 +4342,46 @@ namespace dp2weixin.service
 
         #region 公告
 
-        public const string C_GroupName_Announcement = "gn:_libAnnouncement";
+
+        // 通道常量
+        public const string C_ConnName_TraceMessage = "_traceMessage";
         public const string C_ConnPrefix_Myself = "<myself>:";
-        public int GetAnnouncements(string libId,out List<AnnouncementItem> list,out string strError)
+
+        // 群组常量
+        public const string C_GroupName_Bb = "gn:_lib_bb";
+        public const string C_GroupName_PatronNotity = "gn:_patronNotify";
+
+
+        public int GetBbs(string libId,out List<BbItem> list,out string strError)
         {
-            list = new List<AnnouncementItem>();
+            list = new List<BbItem>();
             strError = "";
 
 
             List<MessageRecord>  records = new List<MessageRecord>();
-            int nRet = this.GetMessage(C_GroupName_Announcement, libId,out records, out strError);
+            int nRet = this.GetMessage(C_GroupName_Bb, libId,out records, out strError);
             if (nRet == -1)
                 return -1;
 
             foreach (MessageRecord record in records)
             {
-                AnnouncementItem item = new AnnouncementItem();
+                BbItem item = new BbItem();
                 item.id = record.id;
+
+                string title = "不符合条件的title";
+                string content = "不符合条件的content";
 
                 string xml = record.data;
                 XmlDocument dom = new XmlDocument();
-                dom.LoadXml(xml);
-                XmlNode root = dom.DocumentElement;
-                string title = DomUtil.GetNodeText(root.SelectSingleNode("title"));
-                string content = DomUtil.GetNodeText(root.SelectSingleNode("content"));
-
+                try
+                {
+                    dom.LoadXml(xml);
+                    XmlNode root = dom.DocumentElement;
+                    title = DomUtil.GetNodeText(root.SelectSingleNode("title"));
+                    content = DomUtil.GetNodeText(root.SelectSingleNode("content"));
+                }
+                catch
+                {}
                 item.title = title;
                 item.content = content;
                 list.Add(item);
@@ -4435,9 +4450,9 @@ namespace dp2weixin.service
         /// <param name="style"></param>
         /// <param name="item"></param>
         /// <returns></returns>
-        public AnnouncementResult CoverAnnouncement(string libId,AnnouncementItem item,string style)
+        public BbResult CoverBb(string libId,BbItem item,string style)
         {
-            AnnouncementResult annResult = new AnnouncementResult();
+            BbResult annResult = new BbResult();
 
             string connName = C_ConnPrefix_Myself + libId;
 
@@ -4449,7 +4464,7 @@ namespace dp2weixin.service
             List<MessageRecord> records = new List<MessageRecord>();
             MessageRecord record = new MessageRecord();
             record.id = item.id;
-            record.groups = C_GroupName_Announcement.Split(new char[] { ',' });
+            record.groups = C_GroupName_Bb.Split(new char[] { ',' });
             record.creator = "";    // 服务器会自己填写
             record.data = strText;
             record.format = "text";
