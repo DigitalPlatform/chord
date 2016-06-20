@@ -42,7 +42,8 @@ namespace dp2weixinWeb.Controllers
                 }
                 opt += "<option value='"+item.id+"' " + selectedString + ">" + item.libName + "</option>";
             }
-            ViewBag.LibHtml = "<select id='selLib'  style='padding-left: 0px;width: 65%'  data-bind=\"optionsCaption:'请选择 图书馆'\">" + opt + "</select>";
+            ViewBag.LibHtml = "<select id='selLib' style='padding-left: 0px;width: 65%;'   data-bind=\"optionsCaption:'请选择 图书馆'\">" + opt + "</select>";
+            //
 
   
 
@@ -88,6 +89,7 @@ namespace dp2weixinWeb.Controllers
             {
                 ViewBag.LibName = worker.libName;
                 ViewBag.LibId = worker.libId;
+                ViewBag.Creator = worker.userName;
             }
 
 

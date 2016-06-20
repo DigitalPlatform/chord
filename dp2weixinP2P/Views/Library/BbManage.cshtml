@@ -1,11 +1,10 @@
-﻿
-@section style {
+﻿@section style {
     <style>
-         .title {
+        .title {
             /*上外边距是 10px 右外边距和左外边距是 5px 下外边距是 15px*/
             margin: 10px 15px 2px;
             color: #666666;
-            font-size:16px;
+            font-size: 16px;
         }
 
         TABLE.libTable {
@@ -14,44 +13,43 @@
             width: 100%;
         }
 
-        TABLE.libTable TR TD {
-            border-width: 0px;
-            /*border-top-width: 1px;
+            TABLE.libTable TR TD {
+                border-width: 0px;
+                /*border-top-width: 1px;
             border-color: #dddddd;
             border-style: dotted;*/
-            padding: 2px;
-        }
+                padding: 2px;
+            }
 
-        TABLE.libTable TR TD.value {
-            border-left: 1px solid #CCCCCC;
-            padding-left: 5px;
-        }
+                TABLE.libTable TR TD.value {
+                    border-left: 1px solid #CCCCCC;
+                    padding-left: 5px;
+                }
 
-        TABLE.libTable TR TD.button {
-            padding-left: 5px;
-            text-align:right;
-        }
+                TABLE.libTable TR TD.button {
+                    padding-left: 5px;
+                    text-align: right;
+                }
 
-        TABLE.libTable TR TD.label {
-            width: 80px;
-            background-color:#eeeeee;
-            color: #999999;
-            padding-left: 5px;
-            padding-right: 5px;
-            /*text-align: right;*/
-        }
+                TABLE.libTable TR TD.label {
+                    width: 80px;
+                    background-color: #eeeeee;
+                    color: #999999;
+                    padding-left: 5px;
+                    padding-right: 5px;
+                    /*text-align: right;*/
+                }
 
         .leftLabel {
             color: #999999;
         }
 
-                .bb-title {
+        .bb-title {
             line-height: 1;
             margin-top: 5px;
             margin-bottom: 5px;
             font-size: 20px;
         }
-
     </style>
 }
 @section Scripts {
@@ -62,7 +60,8 @@
                 id: ko.observable(""),
                 title: ko.observable(""),
                 content: ko.observable(""),
-                publishTime:ko.observable("")
+                publishTime: ko.observable(""),
+                creator:ko.observable("")
             },
             displaySummary: ko.observable(true)
         }
@@ -130,7 +129,7 @@
 
             //alert("remove-"+item.libId);
             var url = "/api/Bb/" + item.id
-                +"?libId="+libId
+                + "?libId=" + libId
             sendAjaxRequest(url, "DELETE", function () {
                 //getAllLib();
 
@@ -141,7 +140,7 @@
                     }
                 }
 
-               // alert("length[" + model.list().length.length + "]");
+                // alert("length[" + model.list().length.length + "]");
 
                 if (model.list().length == 0)
                     $("#divNo").css('display', 'block');
@@ -156,12 +155,12 @@
         // 新增一项
         function add() {
 
-            var title = model.editor.title().trim();
+            var title = model.editor.title();
             if (title == "") {
                 alert("请输入标题。");
                 return;
             }
-            var content = model.editor.content().trim();
+            var content = model.editor.content();
             if (content == "") {
                 alert("请输入内容。");
                 return;
@@ -173,10 +172,17 @@
                 return;
             }
 
+            var creator = $("#creator").text();
+            if (creator == "") {
+                alert("异常情况：creator为空。");
+                return;
+            }
+            
+
             //显示等待图层
             var index = loadLayer();
 
-            var url = "/api/Bb?libId="+libId;
+            var url = "/api/Bb?libId=" + libId;
             sendAjaxRequest(url, "POST",
                 function (newItem) {
 
@@ -200,8 +206,10 @@
                     layer.close(index);
                 },
                 {
-                    title:title,
-                    content:content
+                    title: title,
+                    content: content,
+                    contentFormat: getContentFormat(),
+                    creator:creator
                 }
             );
         }
@@ -209,13 +217,13 @@
         // 新增一项
         function edit() {
 
-            var title = model.editor.title().trim();
+            var title = model.editor.title();
             if (title == "") {
                 alert("请输入标题。");
                 return;
             }
             //alert(libCode);
-            var content = model.editor.content().trim();
+            var content = model.editor.content();
             if (content == "") {
                 alert("请输入内容。");
                 return;
@@ -228,12 +236,17 @@
                 return;
             }
 
+            var creator = $("#creator").text();
+            if (creator == "") {
+                alert("异常情况：creator为空。");
+                return;
+            }
+
             //显示等待图层
             var index = loadLayer();
 
             var id = model.editor.id();
-            if (id == null || id == "")
-            {
+            if (id == null || id == "") {
                 alert("id参数为空，无法保存。");
                 return;
             }
@@ -258,15 +271,16 @@
                     layer.close(index);
                 },
                 {
-                    id:id,
+                    id: id,
                     title: title,
-                    content: content
+                    content: content,
+                    contentFormat: getContentFormat(),
+                    creator: creator
                 }
             );
         }
 
-        function setShowTopButton()
-        {
+        function setShowTopButton() {
 
             if (browser.versions.iPhone == true) {
                 $("input").focus(function () {
@@ -277,6 +291,9 @@
                     setShowValue(true);
                     window.setTimeout("showTopBottom()", 1);
                 });
+
+                //input[type=checkbox]不支持焦点事件
+
 
                 $("textarea").focus(function () {
                     setShowValue(false);
@@ -291,17 +308,25 @@
 
         // 点击新增图书馆按钮
         function handleCreateClick() {
+            //alert("handleCreateClick1");
             model.displaySummary(false);
             //由于一进来没有显示编辑界面，所以这里要重新设一下
             setShowTopButton();
-
-            model.editor.id(item.id);
+            //alert("handleCreateClick2");
+            model.editor.id("");
             //alert("id-["+model.editor.id()+"]");
-            model.editor.title(item.title);
-            model.editor.content(item.content);
-            model.editor.publishTime(item.publishTime);//publishTime
 
+            //alert("handleCreateClick3");
+            model.editor.title("");
+            model.editor.content("");
+            //alert("handleCreateClick4");
+            model.editor.publishTime("");//publishTime
+            model.editor.creator("");
+
+            //alert("handleCreateClick5");
             $("#btnAdd").css('display', 'block');
+            //alert("这里设为显示状态了");
+
             $("#btnEdit").css('display', 'none');
         }
 
@@ -323,8 +348,16 @@
             model.editor.id(item.id);
             //alert("id-["+model.editor.id()+"]");
             model.editor.title(item.title);
-            model.editor.content(item.content);            
-            model.editor.publishTime(item.publishTime);//publishTime
+            model.editor.content(item.content);
+            model.editor.publishTime(item.publishTime);//publishTime]
+            model.editor.creator(item.creator);//publishTime
+
+            if (item.contentFormat == "text") {
+                $("input[name='cbMarkDown']").removeAttr("checked");//取消全选
+            }
+            else {
+                $("input[name='cbMarkDown']").attr("checked", true);
+            }
         }
 
 
@@ -340,80 +373,128 @@
             $("#myheader").css("position", "absolute");
         })
 
+        function getContentFormat() {
+            var count = 0;
+            $("input[name='cbMarkDown']:checked").each(function () {
+                count++
+            });
+
+            if (count > 0)
+                return "markdown";
+            else
+                return "text";
+        }
+
+        // 选择项改变
+        function changeFormat() {
+
+            var format = getContentFormat();
+            if (format == "markdown") {
+                setShowValue(false);
+                window.setTimeout("showTopBottom()", 1);
+
+                $("#divContent").css("background-color", "#FDF5E6");  //设为红色
+            }
+            else {
+                setShowValue(true);
+                window.setTimeout("showTopBottom()", 1);
+
+                $("#divContent").css("background-color", "white");  //设为红色
+
+            }
+        }
 
     </script>
 }
 @section header {
-        <h1 class="mui-title">公告管理</h1>
+    <h1 class="mui-title">公告管理</h1>
 }
-
 @if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
 {
     @Html.Raw(ViewBag.RedirectInfo);
 }
 else
 {
-
-<div class="mui-content-padded">
-    <span>图书馆:</span><span>@ViewBag.LibName</span>
-    <span id="libId" style="display:none">@ViewBag.LibId</span>
-</div>
-
-<div data-bind="if: model.displaySummary">
-
-    <div class="mui-card" id="divNo" style="margin-top:10px;display:none">
-        <center>
-            <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
-            <div>目前没有公告。</div>
-        </center>
+    <div class="mui-content-padded">
+        <span>图书馆:</span><span>@ViewBag.LibName</span>
+        <span id="libId" style="display:none">@ViewBag.LibId</span>
+        <span id="creator" style="display:none">@ViewBag.Creator</span>        
     </div>
 
-    <div data-bind=" foreach:model.list">
-        <div class="mui-card" style="margin-top:10px">
-            <div class="mui-content-padded">
-                <div class="bb-title" data-bind="html:title"></div>
-                <p style="color:gray;font-size:10px" data-bind="text:publishTime"></p>
-                <div data-bind="html:content"></div>
-                <div style="text-align:right">
-                    <button class="mui-btn  mui-btn-default" data-bind="click: handleEditClick">编辑</button>
-                    <button class="mui-btn mui-btn-danger" data-bind="click: remove">X&nbsp;删除</button>
+    <div data-bind="if: model.displaySummary">
+        <div class="mui-content-padded">
+            <button class="mui-btn mui-btn-block mui-btn-primary" data-bind="click: handleCreateClick">
+                新发布公告
+            </button>
+        </div>
+        <div class="mui-card" id="divNo" style="margin-top:10px;display:none">
+            <center>
+                <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+                <div>目前没有公告。</div>
+            </center>
+        </div>
+
+        <div data-bind=" foreach:model.list">
+            <div class="mui-card" style="margin-top:10px">
+                <div class="mui-content-padded">
+                    <div class="bb-title" data-bind="text:title"></div>
+                    <p style="color:gray;font-size:12px" >
+                    <span data-bind="text:publishTime"></span>
+                        <span data-bind="visible:creator!=''">-</span>
+                        <span data-bind="text:creator"></span>
+                    </p>
+                    <div data-bind="html:contentHtml"></div>
+                    <div style="text-align:right">
+                        <button class="mui-btn  mui-btn-default" data-bind="click: handleEditClick">编辑</button>
+                        <button class="mui-btn mui-btn-danger" data-bind="click: remove">X&nbsp;删除</button>
+                    </div>
                 </div>
             </div>
         </div>
+        <br />
     </div>
+    <div data-bind="ifnot: model.displaySummary">
+        <div class="mui-card">
+            <div class="mui-input-row" style="border-bottom:0px">
+                <label class="leftLabel" style="width:20%;">标题</label>
+                <input type="text" class="mui-input mui-input-clear" style='left:0px;width:80%' placeholder="请输入 标题" data-bind="value:model.editor.title">
+            </div>
+            <div class="mui-input-row" style="border-bottom:0px">
+                <table>
+                    <tr>
+                        <td style="width:60px">
+                            <label class="leftLabel" style="width:100%">内容</label>
+                        </td>
+                        <td>
+                            <div class="mui-input-row mui-checkbox mui-left" style="border-bottom:0px;padding-bottom:0px;margin-bottom:0px;bottom:0px;float:left">
+                                <label style='padding-left:30px;padding-right:0px'>MarkDown格式</label>
+                                <input name="cbMarkDown" value="markdown" type="checkbox" style='left:0px;' onchange="changeFormat()">
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="mui-input-row" style="margin: 0px 15px;border-bottom:0px">
+                <textarea rows="6" id="divContent" data-bind="value:model.editor.content"></textarea>
+            </div>
+            <div class="mui-input-row " style="">
+                <label class="leftLabel">发布时间</label>
+                <input type="text" class="mui-input mui-input-clear" disabled="disabled" data-bind="value:model.editor.publishTime">
+            </div>
+            <div class="mui-input-row " style="">
+                <label class="leftLabel">工作人员</label>
+                <input type="text" class="mui-input mui-input-clear" disabled="disabled" data-bind="value:model.editor.creator">
+            </div>
 
-
-    <div class="mui-content-padded">
-        <button class="mui-btn mui-btn-block mui-btn-primary" data-bind="click: handleCreateClick">
-            新发布公告
-        </button>
+            <div class="mui-content-padded">
+                <table>
+                    <tr>
+                        <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnAdd" data-bind="click: add" style="display:none">发布</button></td>
+                        <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnEdit" data-bind="click: edit" style="display:none">更新发布</button></td>
+                        <td style="padding-left:5px"><button class="mui-btn mui-btn-default" data-bind="click:handleCancelClick">取消</button></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
     </div>
-    </div>
-<div data-bind="ifnot: model.displaySummary">
-
-    <div class="mui-card">
-        <div class="mui-input-row">
-            <label class="leftLabel">标题</label>
-            <input type="text" class="mui-input mui-input-clear" placeholder="请输入 标题" data-bind="value:model.editor.title">
-        </div>
-        <div class="mui-input-row">
-            <label class="leftLabel">内容</label>
-            <textarea rows="6" data-bind="value:model.editor.content"></textarea>
-        </div>
-        <div class="mui-input-row ">
-            <label class="leftLabel">发布时间</label>
-            <input type="text" class="mui-input mui-input-clear" disabled="disabled" data-bind="value:model.editor.publishTime">
-        </div>
-
-        <div class="mui-content-padded" >
-            <table>
-                <tr>
-                    <td style ="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnAdd" data-bind="click: add" style="display:none">发布</button></td>
-                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnEdit" data-bind="click: edit" style="display:none">更新发布</button></td>
-                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" data-bind="click:handleCancelClick">取消</button></td>
-                </tr>
-            </table>
-        </div>
-    </div>
-</div>
 }

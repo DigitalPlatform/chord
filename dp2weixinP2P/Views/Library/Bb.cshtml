@@ -25,7 +25,7 @@
 
 
             // 调web api
-            var url = "/api/Bb?libId="+libId;
+            var url = "/api/Bb?libId=" + libId;
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
@@ -38,7 +38,7 @@
                     return;
                 }
 
-                if (result.errorInfo !="") {
+                if (result.errorInfo != "") {
                     alert(result.errorInfo);
                     return;
                 }
@@ -81,13 +81,11 @@
 }
 @section style {
     <style>
-
-
-         .title {
+        .title {
             /*上外边距是 10px 右外边距和左外边距是 5px 下外边距是 15px*/
             margin: 10px 15px 2px;
             color: #666666;
-            font-size:16px;
+            font-size: 16px;
         }
 
         TABLE.libTable {
@@ -96,27 +94,27 @@
             width: 100%;
         }
 
-        TABLE.libTable TR TD {
-            border-width: 0px;
-            /*border-top-width: 1px;
+            TABLE.libTable TR TD {
+                border-width: 0px;
+                /*border-top-width: 1px;
             border-color: #dddddd;
             border-style: dotted;*/
-            padding: 2px;
-        }
+                padding: 2px;
+            }
 
-        TABLE.libTable TR TD.value {
-            border-left: 1px solid #CCCCCC;
-            padding-left: 5px;
-        }
+                TABLE.libTable TR TD.value {
+                    border-left: 1px solid #CCCCCC;
+                    padding-left: 5px;
+                }
 
-        TABLE.libTable TR TD.label {
-            width: 80px;
-            background-color:#eeeeee;
-            color: #999999;
-            padding-left: 5px;
-            padding-right: 5px;
-            /*text-align: right;*/
-        }
+                TABLE.libTable TR TD.label {
+                    width: 80px;
+                    background-color: #eeeeee;
+                    color: #999999;
+                    padding-left: 5px;
+                    padding-right: 5px;
+                    /*text-align: right;*/
+                }
 
         .leftLabel {
             color: #999999;
@@ -128,73 +126,60 @@
             margin-bottom: 5px;
             font-size: 20px;
         }
-
     </style>
 }
 @section header {
     <h1 class="mui-title">公告</h1>
 }
-
-<!--
-@if (Model == null)
-{
-    <div class="mui-content-padded" id="divNo">
-        <div>您目前尚未绑定图书馆帐户，需要先选择图书馆，才能查看公告信息。</div>
+<div>
+    <div class="mui-input-group" >
+        <div class="mui-input-row" >
+            <label style="color:#cccccc;">图书馆</label>
+            @Html.Raw(ViewBag.LibHtml)
+        </div>
     </div>
-}
-else
-{
-        <div class="mui-content-padded" id="divNo">
-        <div>您可以选择图书馆，查看选中图书馆的公告信息。</div>
-    </div> 
-}
--->
-<div class="mui-input-group">
-    <div class="mui-input-row">
-        <label style="color:#cccccc;">图书馆</label>
-        @Html.Raw(ViewBag.LibHtml)
     </div>
-</div>
 
 <div id="firstAnn">
-
-
-        @if (Model.Count == 0)
+    @if (Model.Count == 0)
+    {
+        <div class="mui-card" style="margin-top:10px">
+            <center>
+                <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+                <div>目前没有公告。</div>
+            </center>
+        </div>
+    }
+    else
+    {
+        foreach (dp2weixin.service.BbItem item in Model)
         {
             <div class="mui-card" style="margin-top:10px">
-                <center>
-                    <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
-                    <div>目前没有公告。</div>
-                </center>
+                <div class="mui-content-padded">
+                    <div class="bb-title">@Html.Raw(HttpUtility.HtmlEncode(item.title))</div>
+                    <p style="color:gray;font-size:10px">@item.publishTime</p>
+                    <div>@Html.Raw(item.contentHtml)</div>
+                </div>
             </div>
         }
-        else
-        {
-            foreach (dp2weixin.service.BbItem item in Model)
-            {
-                    <div class="mui-card" style="margin-top:10px">
-                        <div class="mui-content-padded" >
-                            <div class="bb-title">@item.title</div>
-                            <p style="color:gray;font-size:10px">@item.publishTime</p>
-                            <div>@item.content</div>
-                        </div>
-                    </div>
-                }   
-        }
+    }
+    <br/>
 </div>
+
+
 <div class="mui-card" id="divNo" style="margin-top:10px;display:none">
     <center>
         <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
         <div>目前没有公告。</div>
     </center>
 </div>
-
 <div data-bind=" foreach:model.list">
     <div class="mui-card" style="margin-top:10px">
         <div class="mui-content-padded">
             <div class="bb-title" data-bind="text:title"></div>
             <p style="color:gray;font-size:10px" data-bind="text:publishTime"></p>
-            <div data-bind="text:content"></div>
+            <div data-bind="html:contentHtml"></div>
         </div>
     </div>
 </div>
+<br />

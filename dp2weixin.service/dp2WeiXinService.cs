@@ -3030,6 +3030,11 @@ namespace dp2weixin.service
 
                     //状态
                     item.state = DomUtil.GetElementText(dom.DocumentElement, "state");
+
+                    //卷册
+                    item.volumn = DomUtil.GetElementText(dom.DocumentElement, "volumn");
+
+
                     // 馆藏地
                     item.location = DomUtil.GetElementText(dom.DocumentElement, "location");
                     // 索引号
@@ -4373,6 +4378,7 @@ namespace dp2weixin.service
                 string title = "";
                 string content = "";
                 string format = "text"; //默认是text样式
+                string creator = "";
 
                 string xml = record.data;
                 XmlDocument dom = new XmlDocument();
@@ -4386,6 +4392,12 @@ namespace dp2weixin.service
                     content = nodeContent.InnerText;//DomUtil.GetNodeText();
 
                     format = DomUtil.GetAttr(nodeContent, "format");
+                    if (format == "")
+                        format = "text";
+
+                    XmlNode nodeCreator = root.SelectSingleNode("creator");
+                    if (nodeCreator != null)
+                        creator = DomUtil.GetNodeText(nodeCreator);
                 }
                 catch
                 {
@@ -4393,21 +4405,25 @@ namespace dp2weixin.service
                     content = "不符合格式的消息-" + xml;                
                 }
 
+                string contentHtml = "";
                 if (format == "markdown")
                 {
-                    content = CommonMark.CommonMarkConverter.Convert(content);
+                    contentHtml = CommonMark.CommonMarkConverter.Convert(content);
                 }
                 else
                 {
                     //普通text 处理换行
-                    content = content.Replace("\r\n", "\n");
-                    content = content.Replace("\n", "<br/>");
+                    contentHtml = HttpUtility.HtmlEncode(content);
+                    contentHtml = contentHtml.Replace("\r\n", "\n");
+                    contentHtml = contentHtml.Replace("\n", "<br/>");
                 }
 
 
                 item.title = title;
-                    item.content = content;
+                item.content = content;
                 item.contentFormat = format;
+                item.contentHtml = contentHtml;
+                item.creator = creator;
 
                 list.Add(item);
             }
@@ -4485,20 +4501,11 @@ namespace dp2weixin.service
             string strText = "";
             if (style != "delete")
             {
-                string content = item.content;
-
-                // todo 处理换行
-
-
                 strText = "<body>"
                 + "<title>" + HttpUtility.HtmlEncode(item.title) + "</title>"  //前端传过来时，已经转义过了 HttpUtility.HtmlEncode(item.title)
                 + "<content format='"+item.contentFormat+"'>" + HttpUtility.HtmlEncode(item.content) + "</content>"
+                + "<creator>"+item.creator+"</creator>"
                 + "</body>";
-                //XmlDocument dom = new XmlDocument();
-                //dom.LoadXml(strText);
-
-                //strText = HttpUtility.HtmlEncode(strText);
-
             }
 
             List<MessageRecord> records = new List<MessageRecord>();
