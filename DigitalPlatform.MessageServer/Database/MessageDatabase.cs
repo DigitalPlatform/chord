@@ -134,6 +134,7 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
             GroupQuery group_query,
             string userCondition,
             string timeRange,
+            string sortCondition,
             int start,
             int count,
             Delegate_outputMessage proc)
@@ -156,7 +157,24 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
 #endif
             // filter = Builders<MessageItem>.Filter.Eq("group", groupName);
 
-            var sort = Builders<MessageItem>.Sort.Ascending("publishTime");
+            SortDefinition<MessageItem> sort = null;
+
+            if (string.IsNullOrEmpty(sortCondition))
+                sort = Builders<MessageItem>.Sort.Ascending("publishTime");
+            else
+            {
+                List<string> sort_params = StringUtil.ParseTwoPart(sortCondition, "|");
+                string field_name = sort_params[0];
+                // TODO: 需要检查一下 field_name 内容的正确性
+                string order_part = sort_params[1];
+                if (string.IsNullOrEmpty(order_part)
+                    || order_part == "ascending"
+                    || order_part == "asc")
+                    sort = Builders<MessageItem>.Sort.Ascending(field_name);
+                else
+                    sort = Builders<MessageItem>.Sort.Descending(field_name);
+            }
+
             var options = new FindOptions<MessageItem, MessageItem> { Sort = sort };
 
             long totalCount = 0;
@@ -639,11 +657,11 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime expireTime { get; set; } // 消息失效时间
 
-        static bool IsEqual(string [] array1, string [] array2)
+        static bool IsEqual(string[] array1, string[] array2)
         {
             if (array1.Length != array2.Length)
                 return false;
-            for(int i=0;i<array1.Length;i++)
+            for (int i = 0; i < array1.Length; i++)
             {
                 if (array1[i] != array2[i])
                     return false;
@@ -657,7 +675,7 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
             List<string> errors = new List<string>();
             if (new_item.id != item.id)
                 errors.Add("id 不一致");
-            if (IsEqual(new_item.groups,item.groups) == false)
+            if (IsEqual(new_item.groups, item.groups) == false)
                 errors.Add("id 不一致");
 
             if (new_item.creator != item.creator)

@@ -146,6 +146,7 @@ namespace DigitalPlatform.Message
         public string GroupCondition { get; set; }  // 群组名或者 ID
         public string UserCondition { get; set; }   // 用户名条件
         public string TimeCondition { get; set; }   // 时间范围。xxxx~xxxx。DateTime.ToString("G") 格式。
+        public string SortCondition { get; set; }   // 排序方式。publishTime|ascending。默认按照 publishTime 升序
 
         public long Start { get; set; }
         public long Count { get; set; }
@@ -155,6 +156,7 @@ namespace DigitalPlatform.Message
             string groupCondition,
             string userCondition,
             string timeCondition,
+            string sortCondition,
             long start,
             long count)
         {
@@ -163,6 +165,7 @@ namespace DigitalPlatform.Message
             this.GroupCondition = groupCondition;
             this.UserCondition = userCondition;
             this.TimeCondition = timeCondition;
+            this.SortCondition = sortCondition;
             this.Start = start;
             this.Count = count;
         }

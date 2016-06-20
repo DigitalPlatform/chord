@@ -562,5 +562,29 @@ namespace TestClient1.Properties {
                 this["message_userRange"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string message_sortCondition {
+            get {
+                return ((string)(this["message_sortCondition"]));
+            }
+            set {
+                this["message_sortCondition"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string markdown_source {
+            get {
+                return ((string)(this["markdown_source"]));
+            }
+            set {
+                this["markdown_source"] = value;
+            }
+        }
     }
 }

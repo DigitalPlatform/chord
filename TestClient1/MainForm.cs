@@ -217,7 +217,7 @@ namespace TestClient1
             this.textBox_message_groupName.Text = Settings.Default.message_groupName;
             this.textBox_message_timeRange.Text = Settings.Default.message_timeRange;
             this.textBox_message_userRange.Text = Settings.Default.message_userRange;
-
+            this.textBox_message_sortCondition.Text = Settings.Default.message_sortCondition;
 
             this.textBox_getRes_remoteUserName.Text = Settings.Default.getRes_remoteUserName;
             this.comboBox_getRes_operation.Text = Settings.Default.getRes_operation;
@@ -226,6 +226,8 @@ namespace TestClient1
             this.textBox_getRes_length.Text = Settings.Default.getRes_length;
             this.textBox_getRes_style.Text = Settings.Default.getRes_style;
             this.textBox_getRes_outputFile.Text = Settings.Default.getRes_outputFile;
+
+            this.textBox_markdown_source.Text = Settings.Default.markdown_source;
         }
 
         void SaveSettings()
@@ -274,6 +276,7 @@ namespace TestClient1
             Settings.Default.message_groupName = this.textBox_message_groupName.Text;
             Settings.Default.message_timeRange = this.textBox_message_timeRange.Text;
             Settings.Default.message_userRange = this.textBox_message_userRange.Text;
+            Settings.Default.message_sortCondition = this.textBox_message_sortCondition.Text;
 
             Settings.Default.getRes_remoteUserName = this.textBox_getRes_remoteUserName.Text;
             Settings.Default.getRes_operation = this.comboBox_getRes_operation.Text;
@@ -282,6 +285,8 @@ namespace TestClient1
             Settings.Default.getRes_length = this.textBox_getRes_length.Text;
             Settings.Default.getRes_style = this.textBox_getRes_style.Text;
             Settings.Default.getRes_outputFile = this.textBox_getRes_outputFile.Text;
+
+            Settings.Default.markdown_source = this.textBox_markdown_source.Text;
 
             Settings.Default.Save();
         }
@@ -323,6 +328,11 @@ namespace TestClient1
             if (this.tabControl_main.SelectedTab == this.tabPage_getRes)
             {
                 DoGetRes2();
+            }
+
+            if (this.tabControl_main.SelectedTab == this.tabPage_markdown)
+            {
+                DisplayMarkDown();
             }
         }
 
@@ -1324,11 +1334,13 @@ string strHtml)
             if (bControl)
                 DoLoadMessage2(this.textBox_message_groupName.Text,
                     this.textBox_message_userRange.Text,
-                this.textBox_message_timeRange.Text);
+                this.textBox_message_timeRange.Text,
+                this.textBox_message_sortCondition.Text);
             else
                 DoLoadMessage(this.textBox_message_groupName.Text,
                     this.textBox_message_userRange.Text,
-                    this.textBox_message_timeRange.Text);
+                    this.textBox_message_timeRange.Text,
+                this.textBox_message_sortCondition.Text);
         }
 
         void FillMessage(long totalCount,
@@ -1430,7 +1442,8 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
         async void DoLoadMessage(string strGroupCondition, 
             string strUserCondition,
-            string strTimeRange)
+            string strTimeRange,
+            string strSortCondition)
         {
             string strError = "";
 
@@ -1448,6 +1461,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     strGroupCondition, // "" 表示默认群组
                     strUserCondition,
                     strTimeRange,
+                    strSortCondition,
                     0,
                     -1);
                 try
@@ -1486,7 +1500,9 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         }
 
         // 同步阻塞版本
-        void DoLoadMessage1(string strGroupCondition, string strTimeRange)
+        void DoLoadMessage1(string strGroupCondition,
+            string strTimeRange,
+            string strSortCondition)
         {
             string strError = "";
 
@@ -1504,6 +1520,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     strGroupCondition, // "" 表示默认群组
                     "",
                     strTimeRange,
+                    strSortCondition,
                     0,
                     -1);
                 try
@@ -1542,7 +1559,8 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
         async void DoLoadMessage2(string strGroupCondition, 
             string strUserCondition,
-            string strTimeRange)
+            string strTimeRange,
+            string strSortCondition)
         {
             string strError = "";
 
@@ -1560,6 +1578,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     strGroupCondition, // "" 表示默认群组
                     strUserCondition,
                     strTimeRange,
+                    strSortCondition,
                     0,
                     -1);
                 try
@@ -1679,6 +1698,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     strGroupCondition, //
                     "",
                     "",
+                    "",
                     0,
                     -1);
                 try
@@ -1758,6 +1778,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     strGroupCondition,
                     strUserCondition,
                     "", // strTimeRange,
+                    "",
                     0,
                     -1);
                 try
@@ -2278,6 +2299,28 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             this.toolStripProgressBar1.Value = (int)(current * (double)ratio);
 
             this.toolStripStatusLabel1.Text = current.ToString() + " / " + totalLength;
+        }
+
+        void DisplayMarkDown()
+        {
+            var result = CommonMark.CommonMarkConverter.Convert(this.textBox_markdown_source.Text);
+
+            ClearForHtmlOutputing(this.webBrowser1);
+            AppendHtml(this.webBrowser1, result);
+        }
+
+        public static void ClearForHtmlOutputing(WebBrowser webBrowser)
+        {
+            HtmlDocument doc = webBrowser.Document;
+
+            if (doc == null)
+            {
+                Navigate(webBrowser, "about:blank");  // 2015/7/28
+                doc = webBrowser.Document;
+            }
+
+            doc = doc.OpenNew(true);
+            doc.Write("<html><body>");
         }
     }
 }
