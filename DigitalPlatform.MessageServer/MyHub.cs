@@ -1134,6 +1134,7 @@ ex.GetType().ToString());
                     group_query,
                     param.UserCondition,    // TODO: 需要转换为 ID
                     param.TimeCondition,
+                    param.SortCondition,
                     (int)param.Start,
                     (int)param.Count,
                     (totalCount, item) =>
