@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Configuration.Install;
 using System.Linq;
@@ -10,6 +11,20 @@ namespace DigitalPlatform.ServiceProcess
 {
     public static class ServiceUtil
     {
+        public static string GetPathOfService(string serviceName)
+        {
+            using (RegistryKey service = Registry.LocalMachine.CreateSubKey("System\\CurrentControlSet\\Services"))
+            {
+                // 2015/11/23 增加 using 部分
+                using (RegistryKey path = service.OpenSubKey(serviceName))
+                {
+                    if (path == null)
+                        return null;   // not found
+                    return (string)path.GetValue("ImagePath");
+                }
+            }
+        }
+
         public static int InstallService(string fullFileName,
 bool bInstall,
 out string strError)
