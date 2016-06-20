@@ -43,6 +43,11 @@
                     return;
                 }
 
+                if (result.items == null || result.items.length == 0)
+                    $("#divNo").css('display', 'block');
+                else
+                    $("#divNo").css('display', 'none');
+
                 // 把返回的数组加到观察数组
                 if (result.items != null) {
                     for (var i = 0; i < result.items.length; i++) {
@@ -114,11 +119,20 @@
             color: #999999;
         }
 
+        .bb-title {
+            line-height: 1;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-size: 20px;
+        }
+
     </style>
 }
 @section header {
     <h1 class="mui-title">公告</h1>
 }
+
+<!--
 @if (Model == null)
 {
     <div class="mui-content-padded" id="divNo">
@@ -131,7 +145,7 @@ else
         <div>您可以选择图书馆，查看选中图书馆的公告信息。</div>
     </div> 
 }
-
+-->
 <div class="mui-input-group">
     <div class="mui-input-row">
         <label style="color:#cccccc;">图书馆</label>
@@ -141,12 +155,10 @@ else
 
 <div id="firstAnn">
 
-    @if (Model != null)
-    {
 
-        if (Model.Count == 0)
+        @if (Model.Count == 0)
         {
-            <div class="mui-card" id="divNo">
+            <div class="mui-card" style="margin-top:10px">
                 <center>
                     <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
                     <div>目前没有公告。</div>
@@ -155,44 +167,31 @@ else
         }
         else
         {
-
-
-            <div class="title">
-                公告列表
-            </div>
-            <ul class="mui-table-view">
-                @foreach (dp2weixin.service.BbItem item in Model)
-                {
-                    <li class="mui-table-view-cell" style="border-bottom:0px">
-                        <table class="libTable">
-                            <tr>
-                                <td class="label">标题</td>
-                                <td class="value">@item.title</td>
-                            </tr>
-                            <tr>
-                                <td class="label">内容</td>
-                                <td class="value">@item.content</td>
-                            </tr>
-                        </table>
-
-                    </li>
-                }
-            </ul>
-
+            foreach (dp2weixin.service.BbItem item in Model)
+            {
+                    <div class="mui-card" style="margin-top:10px">
+                        <div class="mui-content-padded" >
+                            <div class="bb-title">@item.title</div>
+                            <p style="color:gray;font-size:10px">2016-6-20</p>
+                            <div>@item.content</div>
+                        </div>
+                    </div>
+                }   
         }
-    }
 </div>
-<ul class="mui-table-view" data-bind=" foreach:model.list">
-    <li class="mui-table-view-cell">
-        <table class="libTable">
-            <tr>
-                <td class="label">标题</td>
-                <td class="value" data-bind="text:title"></td>
-            </tr>
-            <tr>
-                <td class="label">内容</td>
-                <td class="value" data-bind="text:content"></td>
-            </tr>
-        </table>
-    </li>
-</ul>
+<div class="mui-card" id="divNo" style="margin-top:10px;display:none">
+    <center>
+        <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+        <div>目前没有公告。</div>
+    </center>
+</div>
+
+<div data-bind=" foreach:model.list">
+    <div class="mui-card" style="margin-top:10px">
+        <div class="mui-content-padded">
+            <div class="bb-title" data-bind="text:title"></div>
+            <p style="color:gray;font-size:10px">2016-6-20</p>
+            <div data-bind="text:content"></div>
+        </div>
+    </div>
+</div>

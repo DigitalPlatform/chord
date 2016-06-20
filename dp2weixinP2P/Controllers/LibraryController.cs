@@ -42,7 +42,7 @@ namespace dp2weixinWeb.Controllers
 
   
 
-            List<BbItem> annlist = null;
+            List<BbItem> annlist = new List<BbItem>();
             if (userItem != null)
             {
                 int nRet = dp2WeiXinService.Instance.GetBbs(selLibId, out annlist, out strError);
