@@ -10,6 +10,9 @@ namespace dp2weixin.service
     {
         public List<BbItem> items { get; set; }
 
+        public string worker { get; set; }
+
+        public string html { get;set;}
     }
 
     public class BbItem

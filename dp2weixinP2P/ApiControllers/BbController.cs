@@ -12,13 +12,14 @@ namespace dp2weixinWeb.ApiControllers
     {
 
         // GET api/<controller>
-        public BbResult Get(string libId)
+        public BbResult Get(string libId,string weixinId)
         {
             BbResult result = new BbResult();
 
             string strError = "";
             List<BbItem> list = null;
-            int nRet = dp2WeiXinService.Instance.GetBbs(libId, out list, out strError);
+            string worker = "";
+            int nRet = dp2WeiXinService.Instance.GetBbs(libId,weixinId,out list,out worker, out strError);
             if (nRet == -1)
             {
                 result.errorCode = -1;
@@ -26,6 +27,7 @@ namespace dp2weixinWeb.ApiControllers
             }
 
             result.items = list;
+            result.worker = worker;
             result.errorCode = nRet;
             result.errorInfo = strError;
 
@@ -33,9 +35,16 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         // POST api/<controller>
-        public BbResult Post(string libId,BbItem item)
+        public BbResult Post(string libId,string type,BbItem item)
         {
             //style == add
+            if (type == "covert2html")
+            {
+                string html = dp2WeiXinService.Convert2Html(item.contentFormat, item.content);
+                BbResult result = new BbResult();
+                result.html = html;
+                return result;
+            }
 
             // 服务器会自动产生id
             //item.id = Guid.NewGuid().ToString();

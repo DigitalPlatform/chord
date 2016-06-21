@@ -4358,11 +4358,18 @@ namespace dp2weixin.service
         public const string C_GroupName_PatronNotity = "gn:_patronNotify";
 
 
-        public int GetBbs(string libId,out List<BbItem> list,out string strError)
+        public int GetBbs(string libId,string weixinId,out List<BbItem> list,out string worker,out string strError)
         {
             list = new List<BbItem>();
             strError = "";
+            worker = "";
 
+            // 查找当前微信用户绑定的工作人员账号
+            WxUserItem user = WxUserDatabase.Current.GetWorkerByLibId(weixinId, libId);
+            if (user != null)
+            {
+                worker = user.userName;
+            }
 
             List<MessageRecord>  records = new List<MessageRecord>();
             int nRet = this.GetMessage(C_GroupName_Bb, libId,out records, out strError);
@@ -4405,18 +4412,8 @@ namespace dp2weixin.service
                     content = "不符合格式的消息-" + xml;                
                 }
 
-                string contentHtml = "";
-                if (format == "markdown")
-                {
-                    contentHtml = CommonMark.CommonMarkConverter.Convert(content);
-                }
-                else
-                {
-                    //普通text 处理换行
-                    contentHtml = HttpUtility.HtmlEncode(content);
-                    contentHtml = contentHtml.Replace("\r\n", "\n");
-                    contentHtml = contentHtml.Replace("\n", "<br/>");
-                }
+                string contentHtml = Convert2Html(format,content);
+
 
 
                 item.title = title;
@@ -4429,6 +4426,23 @@ namespace dp2weixin.service
             }
 
             return nRet;
+        }
+
+        public static string Convert2Html(string format,string content)
+        {
+            string contentHtml = "";
+            if (format == "markdown")
+            {
+                contentHtml = CommonMark.CommonMarkConverter.Convert(content);
+            }
+            else
+            {
+                //普通text 处理换行
+                contentHtml = HttpUtility.HtmlEncode(content);
+                contentHtml = contentHtml.Replace("\r\n", "\n");
+                contentHtml = contentHtml.Replace("\n", "<br/>");
+            }
+            return contentHtml;
         }
 
 
@@ -4481,7 +4495,7 @@ namespace dp2weixin.service
                 goto ERROR1;
             }
         ERROR1:
-            strError = "GetMessage() error: " + strError;
+            strError = "服务器异常: " + strError;
             return -1;
         }
 

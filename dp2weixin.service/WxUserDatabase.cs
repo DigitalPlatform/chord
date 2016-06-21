@@ -136,6 +136,19 @@ namespace dp2weixin.service
             return null;
         }
 
+        public WxUserItem GetWorkerByLibId(string weixinId, string libId)
+        {
+            // 先查到weixinId+libCode+readerBarcode唯一的记录
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("libId", libId)
+                & Builders<WxUserItem>.Filter.Eq("type", C_Type_Worker);
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+            if (list.Count >= 1)
+                return list[0];
+
+            return null;
+        }
+
         public WxUserItem GetOneWorker(string weixinId)
         {
             // 先查到weixinId+libCode+readerBarcode唯一的记录
