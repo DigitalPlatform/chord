@@ -4368,7 +4368,19 @@ namespace dp2weixin.service
             WxUserItem user = WxUserDatabase.Current.GetWorkerByLibId(weixinId, libId);
             if (user != null)
             {
-                worker = user.userName;
+                // 检索是否有权限 _wx_setbbj
+                int nHasRights = this.CheckBbRights(user.libUserName, user.userName, out strError);
+                if (nHasRights == -1)
+                    return -1;
+
+                if (nHasRights == 1)
+                {
+                    worker = user.userName;
+                }
+                else
+                {
+                    worker = "";
+                }
             }
 
             List<MessageRecord>  records = new List<MessageRecord>();
@@ -4572,6 +4584,114 @@ ERROR1:
             annResult.errorCode = -1;
             annResult.errorInfo= strError;
             return annResult;
+        }
+
+        public const string C_Right_SetBb = "_wx_setbb";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteUserName"></param>
+        /// <param name="worker"></param>
+        /// <param name="strError"></param>
+        /// <returns>
+        /// -1：出错
+        /// 0   无权限
+        /// 1   有权限
+        /// </returns>
+        public int CheckBbRights(string remoteUserName,string worker,out string strError)
+        {
+            strError ="";
+            string rights = "";
+            int nRet = this.GetUserInfo(remoteUserName,
+                worker,
+                out rights,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+            {
+                return -1;
+            }
+
+            if (rights.Contains(C_Right_SetBb) ==true)
+                return 1;
+
+            return 0;
+
+        }
+
+        /// <summary>
+        /// 获取用户权限
+        /// </summary>
+        /// <param name="remoteUserName"></param>
+        /// <param name="strWord"></param>
+        /// <param name="right"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public int GetUserInfo(string remoteUserName,string strWord,
+            out string rights,
+            out string strError)
+        {
+            strError = "";
+            rights = "";            
+
+            //long start = 0;
+            //long count = 10;
+            try
+            {
+
+                CancellationToken cancel_token = new CancellationToken();
+                string id = Guid.NewGuid().ToString();
+                SearchRequest request = new SearchRequest(id,
+                    "getUserInfo",
+                    "",
+                    strWord,
+                    "",//strFrom,
+                    "",//"middle",
+                    "",//resultSet,//"weixin",
+                    "",//"id,cols",
+                    1,//WeiXinConst.C_Search_MaxCount,  //最大数量
+                    0,  //每次获取范围
+                    -1);
+
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    remoteUserName).Result;
+
+                SearchResult result = connection.SearchTaskAsync(
+                    remoteUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.ResultCount == -1)
+                {
+                    strError = "检索出错：" + result.ErrorInfo;
+                    return -1;
+                }
+                if (result.ResultCount == 0)
+                {
+                    strError = "未命中";
+                    return 0;
+                }
+
+                string strXml = result.Records[0].Data;
+                XmlDocument dom = new XmlDocument();
+                dom.LoadXml(strXml);
+                rights = DomUtil.GetAttr(dom.DocumentElement, "rights");
+
+
+                return (int)result.ResultCount;// records.Count;
+            }
+            catch (AggregateException ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+
         }
 
         #endregion
