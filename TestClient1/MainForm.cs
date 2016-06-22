@@ -1335,12 +1335,14 @@ string strHtml)
                 DoLoadMessage2(this.textBox_message_groupName.Text,
                     this.textBox_message_userRange.Text,
                 this.textBox_message_timeRange.Text,
-                this.textBox_message_sortCondition.Text);
+                this.textBox_message_sortCondition.Text,
+                this.textBox_message_text.Text);
             else
                 DoLoadMessage(this.textBox_message_groupName.Text,
                     this.textBox_message_userRange.Text,
                     this.textBox_message_timeRange.Text,
-                this.textBox_message_sortCondition.Text);
+                this.textBox_message_sortCondition.Text,
+                this.textBox_message_text.Text);
         }
 
         void FillMessage(long totalCount,
@@ -1443,7 +1445,8 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         async void DoLoadMessage(string strGroupCondition, 
             string strUserCondition,
             string strTimeRange,
-            string strSortCondition)
+            string strSortCondition,
+            string strIdContidion)
         {
             string strError = "";
 
@@ -1462,6 +1465,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     strUserCondition,
                     strTimeRange,
                     strSortCondition,
+                    strIdContidion,
                     0,
                     -1);
                 try
@@ -1502,7 +1506,8 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         // 同步阻塞版本
         void DoLoadMessage1(string strGroupCondition,
             string strTimeRange,
-            string strSortCondition)
+            string strSortCondition,
+            string strIdCondition)
         {
             string strError = "";
 
@@ -1521,6 +1526,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     "",
                     strTimeRange,
                     strSortCondition,
+                    strIdCondition,
                     0,
                     -1);
                 try
@@ -1560,7 +1566,8 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         async void DoLoadMessage2(string strGroupCondition, 
             string strUserCondition,
             string strTimeRange,
-            string strSortCondition)
+            string strSortCondition,
+            string strIdCondition)
         {
             string strError = "";
 
@@ -1579,6 +1586,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     strUserCondition,
                     strTimeRange,
                     strSortCondition,
+                    strIdCondition,
                     0,
                     -1);
                 try
@@ -1699,6 +1707,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     "",
                     "",
                     "",
+                    "",
                     0,
                     -1);
                 try
@@ -1778,6 +1787,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     strGroupCondition,
                     strUserCondition,
                     "", // strTimeRange,
+                    "",
                     "",
                     0,
                     -1);
