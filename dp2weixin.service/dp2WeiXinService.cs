@@ -28,6 +28,23 @@ namespace dp2weixin.service
 {
     public class dp2WeiXinService
     {
+        // 消息类型
+        public const string C_MsgType_Bb = "bb";
+        public const string C_MsgType_Book = "book";
+
+        // 通道常量
+        public const string C_ConnName_TraceMessage = "_traceMessage";
+        public const string C_ConnPrefix_Myself = "<myself>:";
+
+        // 群组常量
+        public const string C_GroupName_Bb = "gn:_lib_bb";
+        public const string C_GroupName_PatronNotity = "gn:_patronNotify";
+        public const string C_GroupName_Book = "gn:_lib_book";
+
+        // 消息权限
+        public const string C_Right_SetBb = "_wx_setbb";
+        public const string C_Right_SetBook = "_wx_setbook";
+
         #region 成员变量
 
         // 微信数据目录
@@ -4349,27 +4366,41 @@ namespace dp2weixin.service
         #region 公告
 
 
-        // 通道常量
-        public const string C_ConnName_TraceMessage = "_traceMessage";
-        public const string C_ConnPrefix_Myself = "<myself>:";
-
-        // 群组常量
-        public const string C_GroupName_Bb = "gn:_lib_bb";
-        public const string C_GroupName_PatronNotity = "gn:_patronNotify";
 
 
-        public int GetBbs(string libId,string weixinId,out List<BbItem> list,out string worker,out string strError)
+
+        public int GetMessage(string weixinId,
+            string msgType,
+            string libId,            
+             string msgId,
+            string style,
+            out List<MessageItem> list,
+            out string worker,
+            out string strError)
         {
-            list = new List<BbItem>();
+            list = new List<MessageItem>();
             strError = "";
             worker = "";
+
+            if (msgType != dp2WeiXinService.C_MsgType_Bb
+                && msgType != dp2WeiXinService.C_MsgType_Book)
+            {
+                strError = "不支持的消息类型" + msgType;
+                return -1;
+            }
 
             // 查找当前微信用户绑定的工作人员账号
             WxUserItem user = WxUserDatabase.Current.GetWorkerByLibId(weixinId, libId);
             if (user != null)
             {
                 // 检索是否有权限 _wx_setbbj
-                int nHasRights = this.CheckBbRights(user.libUserName, user.userName, out strError);
+                string needRight = "";
+                if (msgType == C_MsgType_Bb)
+                    needRight = C_Right_SetBb;
+                else if (msgType == C_MsgType_Book)
+                    needRight = C_Right_SetBook;
+
+                int nHasRights = this.CheckRights(user.libUserName, user.userName,needRight, out strError);
                 if (nHasRights == -1)
                     return -1;
 
@@ -4383,14 +4414,20 @@ namespace dp2weixin.service
                 }
             }
 
+            string group="";
+            if (msgType == C_MsgType_Bb)
+                group = C_GroupName_Bb;
+            else if (msgType == C_MsgType_Book)
+                group = C_GroupName_Book;
+
             List<MessageRecord>  records = new List<MessageRecord>();
-            int nRet = this.GetMessage(C_GroupName_Bb, libId,out records, out strError);
+            int nRet = this.GetMessage(group, libId,msgId, out records, out strError);
             if (nRet == -1)
                 return -1;
-
+            
             foreach (MessageRecord record in records)
             {
-                BbItem item = new BbItem();
+                MessageItem item = new MessageItem();
                 item.id = record.id;
                 item.publishTime = DateTimeUtil.DateTimeToString( record.publishTime);
 
@@ -4424,15 +4461,30 @@ namespace dp2weixin.service
                     content = "不符合格式的消息-" + xml;                
                 }
 
-                string contentHtml = Convert2Html(format,content);
-
+                if (msgType == C_MsgType_Bb)
+                {
+                    string contentHtml = Convert2Html(format, content);
+                    item.contentHtml = contentHtml;
+                }
+                else
+                {
+                    string contentHtml = Convert2Html("text", content);
+                    item.contentHtml = "todo: 这里显示书目的浏览信息，点链接进入到详细界面<br/>" + contentHtml;
+                }
 
 
                 item.title = title;
-                item.content = content;
                 item.contentFormat = format;
-                item.contentHtml = contentHtml;
                 item.creator = creator;
+                item.content = "";
+                if (style == "full")
+                {
+                    item.content = content;
+                }
+                else if (style == "browse")
+                {
+                    item.content = "";
+                }
 
                 list.Add(item);
             }
@@ -4460,7 +4512,11 @@ namespace dp2weixin.service
 
         // 从 dp2mserver 获得消息
         // 每次最多获得 100 条
-        private int GetMessage(string groupName,string libId, out List<MessageRecord> records, out string strError)
+        private int GetMessage(string groupName,
+            string libId,
+            string msgId,
+            out List<MessageRecord> records,
+            out string strError)
         {
             strError = "";
             records = new List<MessageRecord>();
@@ -4481,6 +4537,7 @@ namespace dp2weixin.service
                 wxUserName,
                 "", // strTimeRange,
                 "publishTime|desc",//sortCondition 按发布时间倒序排
+                msgId, //IdCondition 
                 0,
                 100);  // todo 如果超过100条，要做成递归来调
             try
@@ -4518,12 +4575,22 @@ namespace dp2weixin.service
         /// <param name="style"></param>
         /// <param name="item"></param>
         /// <returns></returns>
-        public BbResult CoverBb(string libId,BbItem item,string style)
+        public MessageResult CoverMessage(string msgType, 
+            string libId, 
+            MessageItem item, 
+            string style)
         {
-            BbResult annResult = new BbResult();
+            MessageResult apiResult = new MessageResult();
+
+            if (msgType != dp2WeiXinService.C_MsgType_Bb
+                && msgType != dp2WeiXinService.C_MsgType_Book)
+            {
+                apiResult.errorInfo = "不支持的消息类型" + msgType;
+                apiResult.errorCode = -1;
+                return apiResult;
+            }
 
             string connName = C_ConnPrefix_Myself + libId;
-
             string strText = "";
             if (style != "delete")
             {
@@ -4534,10 +4601,16 @@ namespace dp2weixin.service
                 + "</body>";
             }
 
+            string group = "";
+            if (msgType == C_MsgType_Bb)
+                group = C_GroupName_Bb;
+            else if (msgType == C_MsgType_Book)
+                group = C_GroupName_Book;
+
             List<MessageRecord> records = new List<MessageRecord>();
             MessageRecord record = new MessageRecord();
             record.id = item.id;
-            record.groups = C_GroupName_Bb.Split(new char[] { ',' });
+            record.groups = group.Split(new char[] { ',' });
             record.creator = "";    // 服务器会自己填写
             record.data = strText;
             record.format = "text";
@@ -4567,8 +4640,8 @@ namespace dp2weixin.service
                 }
 
                 //result.
-                annResult.errorCode = result.Value;
-                return annResult;
+                apiResult.errorCode = result.Value;
+                return apiResult;
             }
             catch (AggregateException ex)
             {
@@ -4581,12 +4654,12 @@ namespace dp2weixin.service
                 goto ERROR1;
             }
 ERROR1:
-            annResult.errorCode = -1;
-            annResult.errorInfo= strError;
-            return annResult;
+            apiResult.errorCode = -1;
+            apiResult.errorInfo= strError;
+            return apiResult;
         }
 
-        public const string C_Right_SetBb = "_wx_setbb";
+
 
         /// <summary>
         /// 
@@ -4599,7 +4672,7 @@ ERROR1:
         /// 0   无权限
         /// 1   有权限
         /// </returns>
-        public int CheckBbRights(string remoteUserName,string worker,out string strError)
+        public int CheckRights(string remoteUserName,string worker,string needRight, out string strError)
         {
             strError ="";
             string rights = "";
@@ -4612,7 +4685,7 @@ ERROR1:
                 return -1;
             }
 
-            if (rights.Contains(C_Right_SetBb) ==true)
+            if (rights.Contains(needRight) == true)
                 return 1;
 
             return 0;

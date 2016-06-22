@@ -10,8 +10,8 @@ namespace dp2weixinWeb.Controllers
 {
     public class LibraryController : BaseController
     {
-        // GET: Library
-        public ActionResult BbManage(string code, string state)
+        // 公告
+        public ActionResult MsgManage(string code, string state,string msgType)
         {
             // 检查是否从微信入口进来
             string strError = "";
@@ -19,6 +19,43 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
+            if (msgType != dp2WeiXinService.C_MsgType_Bb
+                && msgType != dp2WeiXinService.C_MsgType_Book)
+            {
+                return Content("不支持的消息类型" + msgType);
+            }
+
+            // 图书馆html
+            ViewBag.LibHtml = this.GetLibHtml();
+
+            ViewBag.MsgType = msgType;
+            if (msgType == dp2WeiXinService.C_MsgType_Bb)
+                ViewBag.MsgTypeTitle = "公告";
+            else
+                ViewBag.MsgTypeTitle = "新书推荐";
+
+            return View();
+        }
+
+
+        // 新书推荐
+        public ActionResult Book(string code, string state)
+        {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
+            // 图书馆html
+            ViewBag.LibHtml = this.GetLibHtml();
+
+            return View();
+        }
+
+
+        private string GetLibHtml()
+        {
             // 找工作人员帐户
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             WxUserItem userItem = WxUserDatabase.Current.GetOneWorker(weiXinId);
@@ -43,10 +80,8 @@ namespace dp2weixinWeb.Controllers
                 }
                 opt += "<option value='" + item.id + "' " + selectedString + ">" + item.libName + "</option>";
             }
-            ViewBag.LibHtml = "<select id='selLib' style='padding-left: 0px;width: 65%;'   data-bind=\"optionsCaption:'请选择 图书馆'\">" + opt + "</select>";
- 
-
-            return View();
+            string libHtml= "<select id='selLib' style='padding-left: 0px;width: 65%;'   data-bind=\"optionsCaption:'请选择 图书馆'\">" + opt + "</select>";
+            return libHtml;
         }
     }
 }
