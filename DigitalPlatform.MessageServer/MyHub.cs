@@ -1135,6 +1135,7 @@ ex.GetType().ToString());
                     param.UserCondition,    // TODO: 需要转换为 ID
                     param.TimeCondition,
                     param.SortCondition,
+                    param.IdCondition,
                     (int)param.Start,
                     (int)param.Count,
                     (totalCount, item) =>

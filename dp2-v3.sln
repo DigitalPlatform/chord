@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2MServer", "dp2MServer\dp2MServer.csproj", "{946F6F11-C4F6-4370-894B-4907D5A2008F}"
 EndProject
@@ -54,6 +54,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestRouter", "TestRouter\TestRouter.csproj", "{341390D7-30B6-4951-BC8C-9BA19F671526}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testSearch", "testSearch\testSearch.csproj", "{C2D00B20-2586-4456-BFEB-C4F4E2CD5658}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChordInstaller", "ChordInstaller\ChordInstaller.csproj", "{B8D7740D-6E27-4C40-B7E4-4E29D5D00C9D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.Drawing", "DigitalPlatform.Drawing\DigitalPlatform.Drawing.csproj", "{7C1CDEEB-C44D-458C-96BB-0486A59397DE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -225,6 +229,18 @@ Global
 		{C2D00B20-2586-4456-BFEB-C4F4E2CD5658}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2D00B20-2586-4456-BFEB-C4F4E2CD5658}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C2D00B20-2586-4456-BFEB-C4F4E2CD5658}.Release|x86.ActiveCfg = Release|Any CPU
+		{B8D7740D-6E27-4C40-B7E4-4E29D5D00C9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8D7740D-6E27-4C40-B7E4-4E29D5D00C9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8D7740D-6E27-4C40-B7E4-4E29D5D00C9D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B8D7740D-6E27-4C40-B7E4-4E29D5D00C9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8D7740D-6E27-4C40-B7E4-4E29D5D00C9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8D7740D-6E27-4C40-B7E4-4E29D5D00C9D}.Release|x86.ActiveCfg = Release|Any CPU
+		{7C1CDEEB-C44D-458C-96BB-0486A59397DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C1CDEEB-C44D-458C-96BB-0486A59397DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C1CDEEB-C44D-458C-96BB-0486A59397DE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7C1CDEEB-C44D-458C-96BB-0486A59397DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C1CDEEB-C44D-458C-96BB-0486A59397DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C1CDEEB-C44D-458C-96BB-0486A59397DE}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

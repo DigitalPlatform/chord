@@ -82,6 +82,24 @@ namespace DigitalPlatform.Xml
             return element.GetAttribute(entry);
         }
 
+        // 获得一个整数值
+        // return:
+        //		所获得的整数值
+        public int GetInt(string section,
+            string entry,
+            int default_value)
+        {
+            string value = Get(section, entry, default_value.ToString());
+            return Convert.ToInt32(value);
+        }
+
+        public void SetInt(string section,
+    string entry,
+    int value)
+        {
+            Set(section, entry, value.ToString());
+        }
+
         public void Save()
         {
             if (string.IsNullOrEmpty(_filename) == false)

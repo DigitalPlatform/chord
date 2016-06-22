@@ -230,5 +230,25 @@ UTF-32 little-endian byte order: FF FE 00 00
                 Log.WriteEntry(strText, EventLogEntryType.Error);
             }
         }
+
+        // 写入日志文件。每天创建一个单独的日志文件
+        public static void WriteErrorLog(
+            object lockObj,
+            string strLogDir,
+            string strText,
+            string strPrefix = "log_",
+            string strPostfix = ".txt")
+        {
+
+            lock (lockObj)
+            {
+                DateTime now = DateTime.Now;
+                // 每天一个日志文件
+                string strFilename = Path.Combine(strLogDir, strPrefix + DateTimeUtil.DateTimeToString8(now) + strPostfix);
+                string strTime = now.ToString();
+                WriteText(strFilename,
+                    strTime + " " + strText + "\r\n");
+            }
+        }
     }
 }

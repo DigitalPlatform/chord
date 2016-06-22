@@ -45,7 +45,8 @@ new CreateIndexOptions() { Unique = false });
         //      userCondiction  消息创建者的用户ID的列表，逗号分隔。如果为空，表示不在意消息创建者
         FilterDefinition<MessageItem> BuildQuery(GroupQuery group_query,
             string userCondition,
-            string timeRange)
+            string timeRange,
+            string idCondition)
         {
             string strStart = "";
             string strEnd = "";
@@ -102,6 +103,23 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
             // 构造一个 AND 运算的检索式
             FilterDefinition<MessageItem> group_filter = group_query.BuildMongoQuery();
 
+            // id 列表
+            FilterDefinition<MessageItem> id_filter = null;
+            if (string.IsNullOrEmpty(idCondition) == false)
+            {
+                string[] list = idCondition.Split(new char[] { ',' });
+                List<FilterDefinition<MessageItem>> items = new List<FilterDefinition<MessageItem>>();
+                foreach (string id in list)
+                {
+                    FilterDefinition<MessageItem> item = Builders<MessageItem>.Filter.Eq("id", id);
+                    items.Add(item);
+                }
+                if (items.Count == 1)
+                    id_filter = items[0];
+                else
+                    id_filter = Builders<MessageItem>.Filter.Or(items);
+            }
+
             {
                 List<FilterDefinition<MessageItem>> items = new List<FilterDefinition<MessageItem>>();
                 if (time_filter != null)
@@ -112,6 +130,8 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
                     items.Add(group_filter);
                 if (user_filter != null)
                     items.Add(user_filter);
+                if (id_filter != null)
+                    items.Add(id_filter);
 
                 return Builders<MessageItem>.Filter.And(items);
             }
@@ -135,6 +155,7 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
             string userCondition,
             string timeRange,
             string sortCondition,
+            string idCondition,
             int start,
             int count,
             Delegate_outputMessage proc)
@@ -145,7 +166,8 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
             FilterDefinition<MessageItem> filter = BuildQuery(// groupName,
                 group_query,
                 userCondition,
-                timeRange);
+                timeRange,
+                idCondition);
 #if NO
             if (string.IsNullOrEmpty(groupName))
             {
@@ -396,7 +418,8 @@ int count,
             FilterDefinition<MessageItem> filter = BuildQuery(// groupName,
                 group_query,
                 "",
-                timeRange);
+                timeRange,
+                "");
 
             var myresults = await collection.Aggregate().Match(filter)
 .Group(new BsonDocument("_id", "$groups"))
@@ -440,7 +463,8 @@ int count,
             FilterDefinition<MessageItem> filter = BuildQuery(// groupName,
                 group_query,
                 "",
-                timeRange);
+                timeRange,
+                "");
 
             // 在遍历过程中，只接收 groups 字段
             // http://stackoverflow.com/questions/32938656/c-sharp-mongo-2-0-reduce-traffic-of-findasync

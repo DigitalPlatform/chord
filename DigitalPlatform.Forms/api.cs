@@ -43,6 +43,25 @@ namespace DigitalPlatform.Forms
 
         #endregion
 
+
+        public const int WM_NCLBUTTONDOWN = 0x00a1;
+        public const int WM_NCHITTEST = 0x0084;
+
+        public const int GWL_STYLE = -16;
+        public const int GWL_EXSTYLE = -20;
+
+        [DllImport("User32", CharSet = CharSet.Auto)]
+        public static extern int GetWindowLong(IntPtr hWnd, int Index);
+
+        [DllImport("User32", CharSet = CharSet.Auto)]
+        public static extern int SetWindowLong(IntPtr hWnd, int Index, int Value);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr SetForegroundWindow(IntPtr handle);
+
     }
 
 }
