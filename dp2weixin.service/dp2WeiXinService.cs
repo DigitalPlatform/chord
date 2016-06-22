@@ -21,6 +21,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using System.Xml;
 
 namespace dp2weixin.service
@@ -170,7 +171,7 @@ namespace dp2weixin.service
             this._msgRouter.SendMessageEvent += _msgRouter_SendMessageEvent;
             this._msgRouter.Start(this._channels,
                 this.dp2MServerUrl,
-                "_patronNotify");
+                C_GroupName_PatronNotity);
 
         }
 
@@ -3029,6 +3030,11 @@ namespace dp2weixin.service
 
                     //状态
                     item.state = DomUtil.GetElementText(dom.DocumentElement, "state");
+
+                    //卷册
+                    item.volumn = DomUtil.GetElementText(dom.DocumentElement, "volumn");
+
+
                     // 馆藏地
                     item.location = DomUtil.GetElementText(dom.DocumentElement, "location");
                     // 索引号
@@ -4342,37 +4348,113 @@ namespace dp2weixin.service
 
         #region 公告
 
-        public const string C_GroupName_Announcement = "gn:_libAnnouncement";
-        public const string C_ConnPrefix_Myself = "<myself>:";
-        public int GetAnnouncements(string libId,out List<AnnouncementItem> list,out string strError)
-        {
-            list = new List<AnnouncementItem>();
-            strError = "";
 
+        // 通道常量
+        public const string C_ConnName_TraceMessage = "_traceMessage";
+        public const string C_ConnPrefix_Myself = "<myself>:";
+
+        // 群组常量
+        public const string C_GroupName_Bb = "gn:_lib_bb";
+        public const string C_GroupName_PatronNotity = "gn:_patronNotify";
+
+
+        public int GetBbs(string libId,string weixinId,out List<BbItem> list,out string worker,out string strError)
+        {
+            list = new List<BbItem>();
+            strError = "";
+            worker = "";
+
+            // 查找当前微信用户绑定的工作人员账号
+            WxUserItem user = WxUserDatabase.Current.GetWorkerByLibId(weixinId, libId);
+            if (user != null)
+            {
+                // 检索是否有权限 _wx_setbbj
+                int nHasRights = this.CheckBbRights(user.libUserName, user.userName, out strError);
+                if (nHasRights == -1)
+                    return -1;
+
+                if (nHasRights == 1)
+                {
+                    worker = user.userName;
+                }
+                else
+                {
+                    worker = "";
+                }
+            }
 
             List<MessageRecord>  records = new List<MessageRecord>();
-            int nRet = this.GetMessage(C_GroupName_Announcement, libId,out records, out strError);
+            int nRet = this.GetMessage(C_GroupName_Bb, libId,out records, out strError);
             if (nRet == -1)
                 return -1;
 
             foreach (MessageRecord record in records)
             {
-                AnnouncementItem item = new AnnouncementItem();
+                BbItem item = new BbItem();
                 item.id = record.id;
+                item.publishTime = DateTimeUtil.DateTimeToString( record.publishTime);
+
+                string title = "";
+                string content = "";
+                string format = "text"; //默认是text样式
+                string creator = "";
 
                 string xml = record.data;
                 XmlDocument dom = new XmlDocument();
-                dom.LoadXml(xml);
-                XmlNode root = dom.DocumentElement;
-                string title = DomUtil.GetNodeText(root.SelectSingleNode("title"));
-                string content = DomUtil.GetNodeText(root.SelectSingleNode("content"));
+                try
+                {
+                    dom.LoadXml(xml);
+                    XmlNode root = dom.DocumentElement;
+                    XmlNode nodeTitle = root.SelectSingleNode("title");
+                    title = nodeTitle.InnerText;//DomUtil.GetNodeText(root.SelectSingleNode("title"));
+                    XmlNode nodeContent = root.SelectSingleNode("content");
+                    content = nodeContent.InnerText;//DomUtil.GetNodeText();
+
+                    format = DomUtil.GetAttr(nodeContent, "format");
+                    if (format == "")
+                        format = "text";
+
+                    XmlNode nodeCreator = root.SelectSingleNode("creator");
+                    if (nodeCreator != null)
+                        creator = DomUtil.GetNodeText(nodeCreator);
+                }
+                catch
+                {
+                    title = "不符合格式的消息";
+                    content = "不符合格式的消息-" + xml;                
+                }
+
+                string contentHtml = Convert2Html(format,content);
+
+
 
                 item.title = title;
                 item.content = content;
+                item.contentFormat = format;
+                item.contentHtml = contentHtml;
+                item.creator = creator;
+
                 list.Add(item);
             }
 
             return nRet;
+        }
+
+        public static string Convert2Html(string format,string content)
+        {
+            string contentHtml = "";
+            if (format == "markdown")
+            {
+                contentHtml = CommonMark.CommonMarkConverter.Convert(content);
+            }
+            else
+            {
+                //普通text 处理换行
+                contentHtml = HttpUtility.HtmlEncode(content);
+                contentHtml = contentHtml.Replace("\r\n", "\n");
+                contentHtml = contentHtml.Replace("\n", "<br/>");
+            }
+            return contentHtml;
         }
 
 
@@ -4398,6 +4480,7 @@ namespace dp2weixin.service
                 groupName,
                 wxUserName,
                 "", // strTimeRange,
+                "publishTime|desc",//sortCondition 按发布时间倒序排
                 0,
                 100);  // todo 如果超过100条，要做成递归来调
             try
@@ -4424,7 +4507,7 @@ namespace dp2weixin.service
                 goto ERROR1;
             }
         ERROR1:
-            strError = "GetMessage() error: " + strError;
+            strError = "服务器异常: " + strError;
             return -1;
         }
 
@@ -4435,21 +4518,26 @@ namespace dp2weixin.service
         /// <param name="style"></param>
         /// <param name="item"></param>
         /// <returns></returns>
-        public AnnouncementResult CoverAnnouncement(string libId,AnnouncementItem item,string style)
+        public BbResult CoverBb(string libId,BbItem item,string style)
         {
-            AnnouncementResult annResult = new AnnouncementResult();
+            BbResult annResult = new BbResult();
 
             string connName = C_ConnPrefix_Myself + libId;
 
-            string strText = "<root>"
-                +"<title>" + item.title + "</title>"
-                +"<content>" + item.content+ "</content>"
-                +"</root>";
+            string strText = "";
+            if (style != "delete")
+            {
+                strText = "<body>"
+                + "<title>" + HttpUtility.HtmlEncode(item.title) + "</title>"  //前端传过来时，已经转义过了 HttpUtility.HtmlEncode(item.title)
+                + "<content format='"+item.contentFormat+"'>" + HttpUtility.HtmlEncode(item.content) + "</content>"
+                + "<creator>"+item.creator+"</creator>"
+                + "</body>";
+            }
 
             List<MessageRecord> records = new List<MessageRecord>();
             MessageRecord record = new MessageRecord();
             record.id = item.id;
-            record.groups = C_GroupName_Announcement.Split(new char[] { ',' });
+            record.groups = C_GroupName_Bb.Split(new char[] { ',' });
             record.creator = "";    // 服务器会自己填写
             record.data = strText;
             record.format = "text";
@@ -4496,6 +4584,114 @@ ERROR1:
             annResult.errorCode = -1;
             annResult.errorInfo= strError;
             return annResult;
+        }
+
+        public const string C_Right_SetBb = "_wx_setbb";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteUserName"></param>
+        /// <param name="worker"></param>
+        /// <param name="strError"></param>
+        /// <returns>
+        /// -1：出错
+        /// 0   无权限
+        /// 1   有权限
+        /// </returns>
+        public int CheckBbRights(string remoteUserName,string worker,out string strError)
+        {
+            strError ="";
+            string rights = "";
+            int nRet = this.GetUserInfo(remoteUserName,
+                worker,
+                out rights,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+            {
+                return -1;
+            }
+
+            if (rights.Contains(C_Right_SetBb) ==true)
+                return 1;
+
+            return 0;
+
+        }
+
+        /// <summary>
+        /// 获取用户权限
+        /// </summary>
+        /// <param name="remoteUserName"></param>
+        /// <param name="strWord"></param>
+        /// <param name="right"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public int GetUserInfo(string remoteUserName,string strWord,
+            out string rights,
+            out string strError)
+        {
+            strError = "";
+            rights = "";            
+
+            //long start = 0;
+            //long count = 10;
+            try
+            {
+
+                CancellationToken cancel_token = new CancellationToken();
+                string id = Guid.NewGuid().ToString();
+                SearchRequest request = new SearchRequest(id,
+                    "getUserInfo",
+                    "",
+                    strWord,
+                    "",//strFrom,
+                    "",//"middle",
+                    "",//resultSet,//"weixin",
+                    "",//"id,cols",
+                    1,//WeiXinConst.C_Search_MaxCount,  //最大数量
+                    0,  //每次获取范围
+                    -1);
+
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    remoteUserName).Result;
+
+                SearchResult result = connection.SearchTaskAsync(
+                    remoteUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.ResultCount == -1)
+                {
+                    strError = "检索出错：" + result.ErrorInfo;
+                    return -1;
+                }
+                if (result.ResultCount == 0)
+                {
+                    strError = "未命中";
+                    return 0;
+                }
+
+                string strXml = result.Records[0].Data;
+                XmlDocument dom = new XmlDocument();
+                dom.LoadXml(strXml);
+                rights = DomUtil.GetAttr(dom.DocumentElement, "rights");
+
+
+                return (int)result.ResultCount;// records.Count;
+            }
+            catch (AggregateException ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+
         }
 
         #endregion

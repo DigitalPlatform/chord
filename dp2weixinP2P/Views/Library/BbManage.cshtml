@@ -1,0 +1,542 @@
+﻿@section style {
+    <style>
+        .title {
+            /*上外边距是 10px 右外边距和左外边距是 5px 下外边距是 15px*/
+            margin: 10px 15px 2px;
+            color: #666666;
+            font-size: 16px;
+        }
+
+        TABLE.libTable {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+        }
+
+            TABLE.libTable TR TD {
+                border-width: 0px;
+                /*border-top-width: 1px;
+            border-color: #dddddd;
+            border-style: dotted;*/
+                padding: 2px;
+            }
+
+                TABLE.libTable TR TD.value {
+                    border-left: 1px solid #CCCCCC;
+                    padding-left: 5px;
+                }
+
+                TABLE.libTable TR TD.button {
+                    padding-left: 5px;
+                    text-align: right;
+                }
+
+                TABLE.libTable TR TD.label {
+                    width: 80px;
+                    background-color: #eeeeee;
+                    color: #999999;
+                    padding-left: 5px;
+                    padding-right: 5px;
+                    /*text-align: right;*/
+                }
+
+        .leftLabel {
+            color: #999999;
+        }
+
+        .bb-title {
+            line-height: 1;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-size: 20px;
+        }
+    </style>
+}
+@section Scripts {
+    <script>
+        var model = {
+            list: ko.observableArray(),
+            editor: {
+                id: ko.observable(""),
+                title: ko.observable(""),
+                content: ko.observable(""),
+                publishTime: ko.observable(""),
+                creator: ko.observable("")
+            },
+            worker: ko.observable("")
+        }
+
+        //用于获取图书馆
+        function getBbs() {
+            //var libId = $("#libId").text();//.val();
+
+            //alert("getbbs1");
+
+            var libId = $("#selLib").val();
+            var weixinId = $("#weixinId").text();
+
+            //alert("["+libId+"]");
+            // 先删除可观察数组中的已有数据
+            model.list.removeAll();
+            model.worker("");
+
+            // 先把这些项隐藏
+            $("#divSummary").css('display', 'none');
+            $("#divEdit").css('display', 'none');
+            $("#divNo").css('display', 'none');
+
+            if (libId == "") {
+                return;
+            }
+
+
+
+            if (weixinId == "")
+            {
+                alert("异常情况：weixinId为空");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+
+            // 调web api
+            var url = "/api/Bb?libId=" + libId + "&weixinId=" + weixinId;
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                // 显示列表
+                $("#divSummary").css('display', 'block');
+
+                if (result.items == null || result.items.length == 0)
+                    $("#divNo").css('display', 'block');
+                else
+                    $("#divNo").css('display', 'none');
+
+                // 把返回的数组加到观察数组
+                if (result.items != null) {
+                    for (var i = 0; i < result.items.length; i++) {
+                        model.list.push(result.items[i]);
+                    }
+                }
+
+                model.worker(result.worker);
+
+                //alert("worker["+model.worker()+"]");
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert("访问服务器出错：\r\n"+errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        // 改变图书馆
+        function libChanged() {
+            getBbs();
+        }
+
+        // 删除一项
+        function remove(item) {
+
+            var gnl = confirm("你确定要删除公告[" + item.title + "]吗?");
+            if (gnl == false) {
+                return false;
+            }
+
+            //var libId = $("#libId").text();
+            var libId = $("#selLib").val();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            //alert("remove-"+item.libId);
+            var url = "/api/Bb/" + item.id
+                + "?libId=" + libId
+            sendAjaxRequest(url, "DELETE", function () {
+                //getAllLib();
+
+                for (var i = 0; i < model.list().length; i++) {
+                    if (model.list()[i].id == item.id) {
+                        model.list.remove(model.list()[i]);
+                        break;
+                    }
+                }
+
+                // alert("length[" + model.list().length.length + "]");
+
+                if (model.list().length == 0)
+                    $("#divNo").css('display', 'block');
+                else
+                    $("#divNo").css('display', 'none');
+
+            }, function (xhq, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+        }
+
+        // 新增一项
+        function save(type) {
+
+            //alert("type["+type+"]");
+
+            if (type == "")
+            {
+                alert("未传入保存类型type参数");
+                return;
+            }
+            var action = "";
+            if (type == "add")
+                action = "POST";
+            else
+                action = "PUT";
+
+
+            var title = model.editor.title();
+            if (title == "") {
+                alert("请输入标题。");
+                return;
+            }
+            //alert(libCode);
+            var content = model.editor.content();
+            if (content == "") {
+                alert("请输入内容。");
+                return;
+            }
+            //alert(content);
+
+            var libId = $("#selLib").val();// $("#libId").text();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            var worker = model.worker();
+            if (worker == "") {
+                alert("异常情况：worker为空。");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var id = "";
+            // 编辑时，要传入消息的id
+            if (type == "edit") {
+                id = model.editor.id();
+                if (id == null || id == "") {
+                    alert("id参数为空，无法保存。");
+                    return;
+                }
+            }
+
+            var url = "/api/Bb?libId=" + libId+"&type=";
+            sendAjaxRequest(url, action,
+                function () {
+                    cbBlur();
+                    //编辑态不可见            
+                    $("#divEdit").css('display', 'none');
+
+                    //清空编辑界面信息
+                    model.editor.id("");
+                    model.editor.title("");
+                    model.editor.content("");
+                    model.editor.publishTime("");
+                    model.editor.creator("");
+
+                    // 关闭等待层
+                    layer.close(index);
+
+                    // 刷新列表
+                    getBbs();
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    id: id,
+                    title: title,
+                    content: content,
+                    contentFormat: getContentFormat(),
+                    creator: worker
+                }
+            );
+        }
+
+        // checkbox获得焦点
+        function cbFocus()
+        {
+            if (browser.versions.iPhone == true) {
+                //alert("focus");
+                setShowValue(false);
+                window.setTimeout("showTopBottom()", 1);
+            }
+        }
+
+        // checkbox失去焦点
+        function cbBlur()
+        {
+            if (browser.versions.iPhone == true) {
+                //alert("blur");
+                setShowValue(true);
+                window.setTimeout("showTopBottom()", 1);
+            }
+        }
+
+        /*
+        // 设置上下菜单
+        function setShowTopButton() {
+
+            if (browser.versions.iPhone == true) {
+                $("input").focus(function () {
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("input").blur(function () {
+                    setShowValue(true);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+
+                $("textarea").focus(function () {
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("textarea").blur(function () {
+                    setShowValue(true);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+            }
+          
+        }
+  */
+        // 点击新增图书馆按钮
+        function handleCreateClick() {
+            //由于一进来没有显示编辑界面，所以这里要重新设一下
+            //setShowTopButton();
+
+            model.editor.id("");
+            model.editor.title("");
+            model.editor.content("");
+            model.editor.publishTime("");//publishTime
+            model.editor.creator(model.worker());
+            //编辑态可见            
+            $("#divEdit").css('display', 'block');
+
+            $("#cbMarkDown").prop("checked", false);//注意要用prop ，不能用attr
+            //alert("移掉了呀"+getContentFormat());
+
+            $("#btnAdd").css('display', 'block');
+            $("#btnEdit").css('display', 'none');
+
+
+            // 没有公告不显示
+            //$("#divNo").css('display', 'none');
+        }
+
+        // 在新增图书馆，点击取消
+        function handleCancelClick() {
+
+            cbBlur();
+
+            //alert("handleCancelClick");
+
+            //编辑态不可见            
+            $("#divEdit").css('display', 'none');
+        }
+
+        function handleEditClick(item) {
+
+
+            $('html, body').animate({ scrollTop: 0 }, 'slow');
+
+            $("#btnAdd").css('display', 'none');
+            $("#btnEdit").css('display', 'block');
+
+            model.editor.id(item.id);
+            model.editor.title(item.title);
+            model.editor.content(item.content);
+            model.editor.publishTime(item.publishTime);//publishTime]
+            model.editor.creator(item.creator);//publishTime
+            if (item.contentFormat == "text") {
+                $("#cbMarkDown").prop("checked", false);
+            }
+            else {
+                $("#cbMarkDown").prop("checked", true);
+            }
+
+            //编辑态可见            
+            $("#divEdit").css('display', 'block');
+
+
+
+            //var url = "/api/Bb?type=covert2html";
+            //sendAjaxRequest(url, "POST",
+            //    function (result) {
+
+            //    },
+            //    function (xhq, textStatus, errorThrown) {
+            //        alert(errorThrown);
+            //        // 关闭等待层
+            //        layer.close(index);
+            //    },
+            //    {
+            //        contentFormat:item.contentFormat,
+            //        content: item.content
+            //    });
+
+            
+
+            
+        }
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            ko.applyBindings(model);
+
+            // 获取所有的操作命令
+            getBbs();
+
+            // 设顶部菜单不固定
+            $("#myheader").css("position", "absolute");
+
+            $("#selLib").change(function () {
+                libChanged();
+            });
+        })
+
+        function getContentFormat() {
+            var count = 0;
+            $("#cbMarkDown:checked").each(function () {
+                count++
+            });
+
+            if (count > 0)
+                return "markdown";
+            else
+                return "text";
+        }
+
+        // 选择项改变
+        function changeFormat() {
+
+            //alert("changeFormat");
+            cbFocus();
+
+            var format = getContentFormat();
+
+            // 设背景色
+            if (format == "markdown") {
+                $("#divContent").css("background-color", "#FDF5E6");  
+            }
+            else {
+                $("#divContent").css("background-color", "white"); 
+            }
+        }
+
+    </script>
+}
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+@section header {
+    <h1 class="mui-title">公告管理</h1>
+}
+<div>
+    <div class="mui-input-group">
+        <div class="mui-input-row">
+            <label style="color:#cccccc;">图书馆</label>
+            @Html.Raw(ViewBag.LibHtml)
+        </div>
+    </div>
+</div>
+
+
+
+<div id="divEdit" style="padding-bottom:20px;padding-top:20px;display:none">
+    <div class="mui-card">
+        <div class="mui-input-row" style="border-bottom:0px">
+            <label class="leftLabel" style="width:20%;">标题</label>
+            <input type="text" class="mui-input mui-input-clear" style='left:0px;width:80%' placeholder="请输入 标题" data-bind="value:model.editor.title">
+        </div>
+        <div class="mui-input-row" style="border-bottom:0px">
+            <table>
+                <tr>
+                    <td style="width:60px">
+                        <label class="leftLabel" style="width:100%">内容</label>
+                    </td>
+                    <td>
+                        <div class="mui-input-row mui-checkbox mui-left" style="border-bottom:0px;padding-bottom:0px;margin-bottom:0px;bottom:0px;float:left">
+                            <label style='padding-left:30px;padding-right:0px'>MarkDown格式</label>
+                            <input id="cbMarkDown" value="markdown"  type="checkbox" style='left:0px;' onchange="changeFormat()">
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="mui-input-row" style="margin: 0px 15px;border-bottom:0px">
+            <textarea rows="6" id="divContent" data-bind="value:model.editor.content"></textarea>
+        </div>
+        <div class="mui-input-row " style="">
+            <label class="leftLabel">发布时间</label>
+            <input type="text" class="mui-input mui-input-clear" disabled="disabled" data-bind="value:model.editor.publishTime">
+        </div>
+        <div class="mui-input-row " style="">
+            <label class="leftLabel">发布账号</label>
+            <input type="text" class="mui-input mui-input-clear" disabled="disabled" data-bind="value:model.editor.creator">
+        </div>
+        <div class="mui-content-padded">
+            <table>
+                <tr>
+                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnAdd"  onclick="save('add')" style="display:none">发布</button></td>
+                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnEdit"  onclick="save('edit')" style="display:none">更新发布</button></td>
+                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" onclick="handleCancelClick()">取消</button></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="divSummary">
+    <div class="mui-content-padded" data-bind="visible:model.worker()!=''">
+        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="handleCreateClick()">
+            新发布公告
+        </button>
+    </div>
+    <div class="mui-card" id="divNo" style="margin-top:10px;display:none">
+        <center>
+            <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+            <div>目前没有公告。</div>
+        </center>
+    </div>
+    <div data-bind=" foreach:model.list">
+        <div class="mui-card" style="margin-top:10px">
+            <div class="mui-content-padded">
+                <div class="bb-title" data-bind="text:title"></div>
+                <p style="color:gray;font-size:12px">
+                    <span data-bind="text:publishTime"></span>
+                    <span data-bind="visible:creator!=''">-</span>
+                    <span data-bind="text:creator"></span>
+                </p>
+                <div data-bind="html:contentHtml"></div>
+                <div style="text-align:right" data-bind="visible:model.worker()!='' ">
+                    <button class="mui-btn  mui-btn-default" data-bind="click: handleEditClick">编辑</button>
+                    <button class="mui-btn mui-btn-danger" data-bind="click: remove">X&nbsp;删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+</div>
+

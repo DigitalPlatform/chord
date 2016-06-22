@@ -92,14 +92,32 @@ namespace dp2weixin.service
             var filter = Builders<LibItem>.Filter.Eq("libCode", libCode);
             List<LibItem> list = this.LibCollection.Find(filter).ToList();
             if (list.Count > 0)
-                return list[0];
+            {
+                LibItem item = list[0];
+                //解密
+                if (String.IsNullOrEmpty(item.wxPassword) == false)
+                    item.wxPassword = Cryptography.Decrypt(item.wxPassword, WeiXinConst.EncryptKey);
+
+                return item;
+            }
 
             return null;
         }
 
         public List<LibItem> GetLibs()
         {
-            return this.LibCollection.Find(new BsonDocument()).ToListAsync().Result;
+            List<LibItem> list  =this.LibCollection.Find(new BsonDocument()).ToListAsync().Result;
+            if (list != null && list.Count > 0)
+            {
+                foreach (LibItem item in list)
+                {
+                    //解密
+                    if (String.IsNullOrEmpty(item.wxPassword) == false)
+                        item.wxPassword = Cryptography.Decrypt(item.wxPassword, WeiXinConst.EncryptKey);
+
+                }
+            }
+            return list;
         }
 
         public LibItem Add(LibItem item)
@@ -119,6 +137,8 @@ namespace dp2weixin.service
         {
             if (String.IsNullOrEmpty(item.wxPassword) == false)
             {
+                item.wxPasswordView = "*".PadRight(item.wxPassword.Length, '*');
+
                 string encryptPassword = Cryptography.Encrypt(item.wxPassword, WeiXinConst.EncryptKey);
                 item.wxPassword = encryptPassword;
             }
@@ -132,6 +152,7 @@ namespace dp2weixin.service
 
                 .Set("wxUserName", item.wxUserName)
                 .Set("wxPassword", item.wxPassword)
+                .Set("wxPasswordView", item.wxPasswordView)
                 .Set("wxContactPhone", item.wxContactPhone) 
 
                 .Set("comment", item.comment)

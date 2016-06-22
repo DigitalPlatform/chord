@@ -30,7 +30,7 @@ namespace dp2weixin
                + "borrowinfo:借阅信息" + "\n"
                + "renew:续借" + "\n"
                + "bookrecommend:新书推荐" + "\n"
-               + "notice:最新公告";*/
+               + "notice:公告";*/
             return this.CreateTextResponseMessage(strMessage,false);
         }
 

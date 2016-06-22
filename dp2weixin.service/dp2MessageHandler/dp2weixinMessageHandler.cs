@@ -823,17 +823,18 @@ namespace dp2weixin
         /// <returns></returns>
         private IResponseMessageBase DoUnknownCmd(string strText)
         {
-            string strMessage = "您好，不认识的命令，您可以回复：\n"
-                    + "selectlib:选择图书馆" + "\n"
-                   + "search:检索" + "\n"
-                   + "binding:绑定读者账号" + "\n"
-                   + "unbinding:解除绑定" + "\n"
-                   + "myinfo:个人信息" + "\n"
-                   + "borrowinfo:借阅信息" + "\n"
-                   + "renew:续借" + "\n"
-                   + "bookrecommend:新书推荐" + "\n"
-                   + "notice:最新公告" + "\n"
-                   + "changePatron:切换读者" + "\n";
+            //string strMessage = "您好，不认识的命令，您可以回复：\n"
+            //        + "selectlib:选择图书馆" + "\n"
+            //       + "search:检索" + "\n"
+            //       + "binding:绑定读者账号" + "\n"
+            //       + "unbinding:解除绑定" + "\n"
+            //       + "myinfo:个人信息" + "\n"
+            //       + "borrowinfo:借阅信息" + "\n"
+            //       + "renew:续借" + "\n"
+            //       + "bookrecommend:新书推荐" + "\n"
+            //       + "notice:公告" + "\n"
+            //       + "changePatron:切换读者" + "\n";
+            string strMessage = "您好";
             return this.CreateTextResponseMessage(strMessage);
         }
 

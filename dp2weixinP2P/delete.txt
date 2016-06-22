@@ -1,4 +1,29 @@
-﻿
+﻿===列表方式的公告
+
+    <ul class="mui-table-view" data-bind=" foreach:model.list">
+        <li class="mui-table-view-cell">
+
+            <table class="libTable">
+                <tr>
+                    <td class="label">标题</td>
+                    <td class="value" data-bind="text:title"></td>
+                </tr>
+                <tr>
+                    <td class="label">内容</td>
+                    <td class="value" data-bind="text:content"></td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td class="button">
+                        <button class="mui-btn  mui-btn-default" data-bind="click: handleEditClick">编辑</button>
+                        <button class="mui-btn mui-btn-danger" data-bind="click: remove">X&nbsp;删除</button>
+                    </td>
+                </tr>
+            </table>
+        </li>
+    </ul>
+
+====
 
 @section Scripts {
     <script>
