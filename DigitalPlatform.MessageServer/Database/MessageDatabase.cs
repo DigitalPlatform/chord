@@ -138,7 +138,7 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
                 if (id_filter != null)
                     items.Add(id_filter);
                 if (string.IsNullOrEmpty(subjectCondition) == false)
-                    items.Add(CollectionQuery.BuildMongoQuery(subjectCondition, "subjects", "or"));
+                    items.Add(CollectionQuery.BuildMongoQuery(subjectCondition, "subjects"));
 
                 return Builders<MessageItem>.Filter.And(items);
             }

@@ -16,6 +16,7 @@ namespace DigitalPlatform.MessageServer
     {
         public string Type { get; set; }    // [ 或者 (
         public List<string> Names { get; set; }
+        public string Definition { get; set; }  // 附加的定义部分。and/or。默认 or
 
         string _defaultType = "(";
         public string DefaultType
@@ -32,11 +33,10 @@ namespace DigitalPlatform.MessageServer
 
         public static FilterDefinition<MessageItem> BuildMongoQuery(string text,
             string field,
-            string style,
             string default_type = "(")
         {
             CollectionQuery query = new CollectionQuery(text, default_type);
-            return query.BuildMongoQuery(field, style);
+            return query.BuildMongoQuery(field);
         }
 
         // parameters:
@@ -50,7 +50,26 @@ namespace DigitalPlatform.MessageServer
             if (strText == "")
                 throw new ArgumentException("strText 参数值不应为空", "strText");
 
+            if (default_type == "[" || default_type == "(")
+            {
+
+            }
+            else
+                throw new ArgumentException("default_type 参数值应为 '[' '(' 之一", "default_type");
+
             this.DefaultType = default_type;
+
+            string strDefinition = "";
+            List<string> array1 = StringUtil.ParseTwoPart(strText, "|");
+            if (string.IsNullOrEmpty(array1[1]))
+            {
+
+            }
+            else
+            {
+                strText = array1[0];
+                strDefinition = array1[1];
+            }
 
             // 去掉外围的括号
             if (strText[0] == '[' || strText[0] == '(')
@@ -70,15 +89,19 @@ namespace DigitalPlatform.MessageServer
             {
                 this.Names.Add(name);
             }
+
+            this.Definition = strDefinition;
         }
 
-        public CollectionQuery(string[] names)
+        public CollectionQuery(string[] names, string definition)
         {
             this.Names = new List<string>();
             foreach (string name in names)
             {
                 this.Names.Add(name);
             }
+
+            this.Definition = definition;
         }
 
         public string[] ToStringArray()
@@ -86,8 +109,7 @@ namespace DigitalPlatform.MessageServer
             return this.Names.ToArray();
         }
 
-        public FilterDefinition<MessageItem> BuildMongoQuery(string field,
-            string style)
+        public FilterDefinition<MessageItem> BuildMongoQuery(string field)
         {
             // 精确包含
             if (this.Type == "[")
@@ -113,7 +135,7 @@ namespace DigitalPlatform.MessageServer
             {
                 subs.Add(Builders<MessageItem>.Filter.Eq(field, name));
             }
-            if (style.ToLower() == "and")
+            if (this.Definition.ToLower() == "and")
                 return Builders<MessageItem>.Filter.And(subs);
             return Builders<MessageItem>.Filter.Or(subs);
         }
