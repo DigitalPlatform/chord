@@ -116,4 +116,40 @@ namespace DigitalPlatform.Forms
         }
     }
 
+    public static class SplitContainerExtension
+    {
+        public static float GetSplitterState(this SplitContainer container)
+        {
+            float fValue = (float)container.SplitterDistance /
+    (
+    container.Orientation == Orientation.Horizontal ?
+    (float)container.Height
+    :
+    (float)container.Width
+    )
+    ;
+
+            return fValue;
+        }
+
+        public static void SetSplitterState(this SplitContainer container,
+            float fValue)
+        {
+            try
+            {
+                container.SplitterDistance = (int)Math.Ceiling(
+                (
+                container.Orientation == Orientation.Horizontal ?
+                (float)container.Height
+                :
+                (float)container.Width
+                )
+                * fValue);
+            }
+            catch
+            {
+            }
+        }
+
+    }
 }

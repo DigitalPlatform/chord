@@ -62,6 +62,21 @@ namespace DigitalPlatform.Forms
         [DllImport("user32.dll")]
         public static extern IntPtr SetForegroundWindow(IntPtr handle);
 
+
+        public struct RECT
+        {
+            public int left;
+            public int top;
+            public int right;
+            public int bottom;
+        }
+
+        public const int LVM_FIRST = 0x1000;
+        public const int LVM_GETHEADER = (LVM_FIRST + 31);
+
+        [DllImport("user32.dll")]
+        public static extern bool GetWindowRect(HandleRef hwnd, out RECT lpRect);
+
     }
 
 }

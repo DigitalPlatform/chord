@@ -586,5 +586,29 @@ namespace TestClient1.Properties {
                 this["markdown_source"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string sendMessageDialog_ui {
+            get {
+                return ((string)(this["sendMessageDialog_ui"]));
+            }
+            set {
+                this["sendMessageDialog_ui"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string getMessageDialog_ui {
+            get {
+                return ((string)(this["getMessageDialog_ui"]));
+            }
+            set {
+                this["getMessageDialog_ui"] = value;
+            }
+        }
     }
 }

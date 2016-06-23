@@ -89,6 +89,7 @@ namespace DigitalPlatform.Message
         public string format { get; set; } // 消息格式。格式是从存储格式角度来说的
         public string type { get; set; }    // 消息类型。类型是从用途角度来说的
         public string thread { get; set; }    // 消息所从属的话题线索
+        public string[] subjects { get; set; }   // 主题词
 
         public DateTime publishTime { get; set; } // 消息发布时间
         public DateTime expireTime { get; set; } // 消息失效时间
@@ -148,6 +149,7 @@ namespace DigitalPlatform.Message
         public string TimeCondition { get; set; }   // 时间范围。xxxx~xxxx。DateTime.ToString("G") 格式。
         public string SortCondition { get; set; }   // 排序方式。publishTime|ascending。默认按照 publishTime 升序
         public string IdCondition { get; set; } // 消息 ID 的列表
+        public string SubjectCondition { get; set; }    // 主题词的列表
 
         public long Start { get; set; }
         public long Count { get; set; }
@@ -159,6 +161,7 @@ namespace DigitalPlatform.Message
             string timeCondition,
             string sortCondition,
             string idCondition,
+            string subjectCondition,
             long start,
             long count)
         {
@@ -169,6 +172,7 @@ namespace DigitalPlatform.Message
             this.TimeCondition = timeCondition;
             this.SortCondition = sortCondition;
             this.IdCondition = idCondition;
+            this.SubjectCondition = subjectCondition;
             this.Start = start;
             this.Count = count;
         }

@@ -732,6 +732,7 @@ ex.GetType().ToString());
             item.format = record.format;
             item.type = record.type;
             item.thread = record.thread;
+            item.subjects = record.subjects;
 
             item.publishTime = record.publishTime;
             item.expireTime = record.expireTime;
@@ -749,6 +750,7 @@ ex.GetType().ToString());
             record.format = item.format;
             record.type = item.type;
             record.thread = item.thread;
+            record.subjects = item.subjects;
 
             record.publishTime = item.publishTime;
             record.expireTime = item.expireTime;
@@ -1136,6 +1138,7 @@ ex.GetType().ToString());
                     param.TimeCondition,
                     param.SortCondition,
                     param.IdCondition,
+                    param.SubjectCondition,
                     (int)param.Start,
                     (int)param.Count,
                     (totalCount, item) =>

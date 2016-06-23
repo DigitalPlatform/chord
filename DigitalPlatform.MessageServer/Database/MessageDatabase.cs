@@ -33,6 +33,10 @@ new CreateIndexOptions() { Unique = false });
             await _collection.Indexes.CreateOneAsync(
 Builders<MessageItem>.IndexKeys.Ascending("thread"),
 new CreateIndexOptions() { Unique = false });
+            await _collection.Indexes.CreateOneAsync(
+Builders<MessageItem>.IndexKeys.Ascending("subjects"),
+new CreateIndexOptions() { Unique = false });
+            // TODO: 消息库要能随时初始化，或者重新创建 index
         }
 
         // return:
@@ -46,7 +50,8 @@ new CreateIndexOptions() { Unique = false });
         FilterDefinition<MessageItem> BuildQuery(GroupQuery group_query,
             string userCondition,
             string timeRange,
-            string idCondition)
+            string idCondition,
+            string subjectCondition)
         {
             string strStart = "";
             string strEnd = "";
@@ -132,6 +137,8 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
                     items.Add(user_filter);
                 if (id_filter != null)
                     items.Add(id_filter);
+                if (string.IsNullOrEmpty(subjectCondition) == false)
+                    items.Add(CollectionQuery.BuildMongoQuery(subjectCondition, "subjects", "or"));
 
                 return Builders<MessageItem>.Filter.And(items);
             }
@@ -156,6 +163,7 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
             string timeRange,
             string sortCondition,
             string idCondition,
+            string subjectCondition,
             int start,
             int count,
             Delegate_outputMessage proc)
@@ -167,7 +175,8 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
                 group_query,
                 userCondition,
                 timeRange,
-                idCondition);
+                idCondition,
+                subjectCondition);
 #if NO
             if (string.IsNullOrEmpty(groupName))
             {
@@ -419,6 +428,7 @@ int count,
                 group_query,
                 "",
                 timeRange,
+                "",
                 "");
 
             var myresults = await collection.Aggregate().Match(filter)
@@ -464,6 +474,7 @@ int count,
                 group_query,
                 "",
                 timeRange,
+                "",
                 "");
 
             // 在遍历过程中，只接收 groups 字段
@@ -674,6 +685,7 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
         public string format { get; set; } // 消息格式。格式是从存储格式角度来说的
         public string type { get; set; }    // 消息类型。类型是从用途角度来说的
         public string thread { get; set; }    // 消息所从属的话题线索
+        public string[] subjects { get; set; }   // 主题词
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime publishTime { get; set; } // 消息发布时间
@@ -737,6 +749,7 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
             text.Append("format=" + format + "\r\n");
             text.Append("type=" + type + "\r\n");
             text.Append("thread=" + thread + "\r\n");
+            text.Append("subjects=" + string.Join(",", subjects) + "\r\n");
             text.Append("publishTime=" + publishTime.ToString() + "\r\n");
             text.Append("expireTime=" + expireTime.ToString() + "\r\n");
             return text.ToString();

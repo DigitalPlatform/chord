@@ -398,7 +398,7 @@ FormWindowState.Normal);
                 try
                 {
                     DigitalPlatform.rms.InstanceDialog dlg = new DigitalPlatform.rms.InstanceDialog();
-                    GuiUtil.AutoSetDefaultFont(dlg);
+                    FontUtil.AutoSetDefaultFont(dlg);
 
                     // dlg.SourceDir = strRootDir;
                     dlg.DataZipFileName = Path.Combine(this.DataDir, "kernel_data.zip");

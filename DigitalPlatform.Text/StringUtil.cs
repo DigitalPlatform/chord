@@ -14,6 +14,43 @@ namespace DigitalPlatform.Text
     /// </summary>
     public static class StringUtil
     {
+
+        public static string EscapeString(string strText, string speical_chars)
+        {
+            if (string.IsNullOrEmpty(strText) == true)
+                return "";
+
+            StringBuilder text = new StringBuilder();
+            foreach (char ch in strText)
+            {
+                if (ch != '%' && speical_chars.IndexOf(ch) == -1)
+                    text.Append(ch);
+                else
+                    text.Append(Uri.HexEscape(ch));
+            }
+
+            return text.ToString();
+        }
+
+        public static string UnescapeString(string strText)
+        {
+            if (string.IsNullOrEmpty(strText) == true)
+                return "";
+
+            StringBuilder result = new StringBuilder();
+            int len = strText.Length;
+            int i = 0;
+            while (i < len)
+            {
+                if (Uri.IsHexEncoding(strText, i))
+                    result.Append(Uri.HexUnescape(strText, ref i));
+                else
+                    result.Append(strText[i++]);
+            }
+
+            return result.ToString();
+        }
+
         // 去掉外围括住的符号
         // parameters:
         //      pairs   若干对打算去除的符号。例如 "%%" "()" "[](){}"。如果包含多对符号，则从左到右匹配，用上前面的就用它处理然后返回了，后面的若干对就不发生作用了

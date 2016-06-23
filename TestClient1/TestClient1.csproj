@@ -53,6 +53,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GetMessageDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GetMessageDialog.Designer.cs">
+      <DependentUpon>GetMessageDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -66,6 +72,15 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="SendMessageDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SendMessageDialog.Designer.cs">
+      <DependentUpon>SendMessageDialog.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="GetMessageDialog.resx">
+      <DependentUpon>GetMessageDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -79,6 +94,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="SendMessageDialog.resx">
+      <DependentUpon>SendMessageDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

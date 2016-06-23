@@ -1,0 +1,99 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
+namespace DigitalPlatform.Forms
+{ 
+    public static class ListViewUtil
+    {
+#if NO
+        public static int GetColumnHeaderHeight(ListView list)
+        {
+            API.RECT rc = new API.RECT();
+            IntPtr hwnd = API.SendMessage(list.Handle, API.LVM_GETHEADER, 0, 0);
+            if (hwnd == null)
+                return -1;
+
+            if (API.GetWindowRect(new HandleRef(null, hwnd), out rc))
+            {
+                return rc.bottom - rc.top;
+            }
+
+            return -1;
+        }
+#endif
+        // 获得列标题宽度字符串
+        public static string GetColumnWidthListString(ListView list)
+        {
+            string strResult = "";
+            for (int i = 0; i < list.Columns.Count; i++)
+            {
+                ColumnHeader header = list.Columns[i];
+                if (i != 0)
+                    strResult += ",";
+                strResult += header.Width.ToString();
+            }
+
+            return strResult;
+        }
+
+        // 设置列标题的宽度
+        // parameters:
+        //      bExpandColumnCount  是否要扩展列标题到足够数目？
+        public static void SetColumnHeaderWidth(ListView list,
+            string strWidthList,
+            bool bExpandColumnCount)
+        {
+            string[] parts = strWidthList.Split(new char[] { ',' });
+
+            if (bExpandColumnCount == true)
+                EnsureColumns(list, parts.Length, 100);
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                if (i >= list.Columns.Count)
+                    break;
+
+                string strValue = parts[i].Trim();
+                int nWidth = -1;
+                try
+                {
+                    nWidth = Convert.ToInt32(strValue);
+                }
+                catch
+                {
+                    break;
+                }
+
+                if (nWidth != -1)
+                    list.Columns[i].Width = nWidth;
+            }
+        }
+
+        // 确保列标题数量足够
+        public static void EnsureColumns(ListView listview,
+            int nCount,
+            int nInitialWidth = 200)
+        {
+            if (listview.Columns.Count >= nCount)
+                return;
+
+            for (int i = listview.Columns.Count; i < nCount; i++)
+            {
+                string strText = "";
+                // strText = Convert.ToString(i);
+
+                ColumnHeader col = new ColumnHeader();
+                col.Text = strText;
+                col.Width = nInitialWidth;
+                listview.Columns.Add(col);
+            }
+        }
+
+    }
+}
