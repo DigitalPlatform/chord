@@ -963,9 +963,14 @@ ex.GetType().ToString());
                 if (param.Action == "transGroupName")
                     Task.Run(() => ResponseGroupName(param, group_query));
                 else if (param.Action == "enumGroupName")
-                    Task.Run(() => EnumGroupNameAndResponse(param, group_query));
+                {
+                    // Task.Run(() => EnumGroupNameAndResponse(param, group_query));
+                    Task.Run(() => EnumFieldAndResponse("groups", param, group_query));
+                }
                 else if (param.Action == "enumSubject")
-                    Task.Run(() => EnumSubjectsAndResponse(param, group_query));
+                    Task.Run(() => EnumFieldAndResponse("subjects", param, group_query));
+                else if (param.Action == "enumCreator")
+                    Task.Run(() => EnumFieldAndResponse("creator", param, group_query));
                 else
                     // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
                     // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
@@ -1050,9 +1055,10 @@ ex.GetType().ToString());
             }
         }
 
-        void EnumSubjectsAndResponse(
-GetMessageRequest param,
-GroupQuery group_query)
+        void EnumFieldAndResponse(
+            string field,
+            GetMessageRequest param,
+            GroupQuery group_query)
         {
             SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID, false);
             if (search_info == null)
@@ -1065,7 +1071,8 @@ GroupQuery group_query)
 
                 List<MessageRecord> records = new List<MessageRecord>();
 
-                ServerInfo.MessageDatabase.GetSubjectsFieldAggragate(
+                ServerInfo.MessageDatabase.GetFieldAggregate(
+                    field,
                     group_query,
                     param.UserCondition,
                     param.TimeCondition,
@@ -1122,6 +1129,7 @@ GroupQuery group_query)
             }
         }
 
+#if NO
         void EnumGroupNameAndResponse(
     GetMessageRequest param,
     GroupQuery group_query)
@@ -1190,6 +1198,7 @@ GroupQuery group_query)
                 ServerInfo.SearchTable.RemoveSearch(param.TaskID);
             }
         }
+#endif
 
         void SearchMessageAndResponse(
             GetMessageRequest param,

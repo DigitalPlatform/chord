@@ -9,6 +9,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
+using DigitalPlatform.Common;
 using DigitalPlatform.Text;
 
 namespace DigitalPlatform.MessageServer
@@ -411,6 +412,7 @@ int count,
 
 #endif
 
+#if NO
         // 这个版本速度最快。因为 Group 操作是在 mongodb 数据库内执行的
         // 检索出指定范围的 群名类型
         // Aggregate() 如何与 filter 一起使用
@@ -456,6 +458,7 @@ int count,
 
             proc(totalCount, null); // 表示结束
         }
+#endif
 
         // 这个版本资源耗费厉害
         // 按照条件检索出 MessageItem 中的 group 字段，并归并去重
@@ -552,7 +555,10 @@ int count,
             return results.ToArray();
         }
 
-        public async Task GetSubjectsFieldAggragate(
+        // parameters:
+        //      field   字段名。例如 groups/subjects
+        public async Task GetFieldAggregate(
+            string field,
             GroupQuery group_query,
             string userCondition,
             string timeRange,
@@ -602,11 +608,10 @@ Delegate_outputMessage proc)
 .Group(
                         new BsonDocument 
                             { 
-                                { "_id", "$subjects"
-                                }, 
+                                { "_id", "$" + field }, 
 
                                 { 
-                                    "Count", new BsonDocument 
+                                    "c", new BsonDocument 
                                                  { 
                                                      { 
                                                          "$sum", 1 
@@ -623,12 +628,21 @@ Delegate_outputMessage proc)
             {
                 if (count != -1 && index - start >= count)
                     break;
+                Type type = null;
                 if (index >= start)
                 {
                     MessageItem item = new MessageItem();
-                    BsonArray array = (doc.GetValue("_id") as BsonArray);
-                    item.subjects = GetStringArray(array);
-                    item.data = doc.GetValue("Count").ToString();
+
+                    // BsonArray array = (doc.GetValue("_id") as BsonArray);
+                    if (type == null)
+                        type = item.GetPropertyType(field);
+                    BsonValue temp = doc.GetValue("_id");
+                    if (type.Equals(typeof(string[])))
+                        item.SetPropertyValue(field, GetStringArray(temp as BsonArray));
+                    else
+                        item.SetPropertyValue(field, temp.ToString());
+
+                    item.data = doc.GetValue("c").ToString();
                     if (proc(totalCount, item) == false)
                         return;
                 }
@@ -817,7 +831,10 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
             if (new_item.publishTime.ToString() != item.publishTime.ToString())
                 errors.Add("publishTime 不一致");
             if (new_item.expireTime.ToString() != item.expireTime.ToString())
-                errors.Add("id 不一致");
+                errors.Add("expireTime 不一致");
+
+            if (IsEqual(new_item.subjects, item.subjects) == false)
+                errors.Add("subjects 不一致");
 
             if (errors.Count == 0)
                 return "";

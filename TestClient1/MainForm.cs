@@ -2424,5 +2424,27 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 dlg.IdCondition,
                 dlg.SubjectCondition);
         }
+
+        private void ToolStripMenuItem_enumCreator_Click(object sender, EventArgs e)
+        {
+            GetMessageDialog dlg = new GetMessageDialog();
+
+            dlg.UiState = Settings.Default.getMessageDialog_ui;
+            dlg.ShowDialog(this);
+            Settings.Default.getMessageDialog_ui = dlg.UiState;
+            if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
+                return;
+
+            this.tabControl_main.SelectedTab = this.tabPage_message;
+
+            DoLoadMessage(
+                "enumCreator",
+                dlg.GroupCondition,
+                dlg.UserCondition,
+                dlg.TimeCondition,
+                dlg.SortCondition,
+                dlg.IdCondition,
+                dlg.SubjectCondition);
+        }
     }
 }
