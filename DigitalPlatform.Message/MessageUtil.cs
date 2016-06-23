@@ -142,7 +142,7 @@ namespace DigitalPlatform.Message
     {
         public string TaskID { get; set; }    // 本次检索的任务 ID。由于一个 Connection 可以用于同时进行若干检索操作，本参数用于区分不同的检索操作
 
-        public string Action { get; set; }  // 动作。空/getGroupName
+        public string Action { get; set; }  // 动作。空/transGroupName/transGroupNameQuick/enumGroupName/enumSubject
 
         public string GroupCondition { get; set; }  // 群组名或者 ID
         public string UserCondition { get; set; }   // 用户名条件
