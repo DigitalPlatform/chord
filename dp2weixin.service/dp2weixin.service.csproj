@@ -97,6 +97,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BookSubjectItem.cs" />
     <Compile Include="MessageItem.cs" />
     <Compile Include="ApiResult.cs" />
     <Compile Include="Command\BaseCommand.cs" />

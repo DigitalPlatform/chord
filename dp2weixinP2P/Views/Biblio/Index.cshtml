@@ -693,7 +693,11 @@
                     + "</table>";
                 }
 
-                var myHtml = "<span>" + result.summary + "</span>" + itemTables;
+                var recommPath = "/Library/BookEdit?returnUrl=" + encodeURIComponent('/Biblio/Index') + "&biblioPath=" + encodeURIComponent(biblioPath)
+                var recommendBtn = "<div><button class='mui-btn  mui-btn-default' "
+                    +" onclick=\"gotoUrl('"+recommPath+"')\">好书推荐</button></div>";
+
+                var myHtml = "<span>" + result.summary + "</span>" +recommendBtn+ itemTables;
 
 
                 //换成实际的值，去掉pendingDetail状态，

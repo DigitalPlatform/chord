@@ -4363,6 +4363,9 @@ namespace dp2weixin.service
 
         #endregion
 
+
+
+
         #region 公告
 
 
@@ -4389,28 +4392,31 @@ namespace dp2weixin.service
                 return -1;
             }
 
-            // 查找当前微信用户绑定的工作人员账号
-            WxUserItem user = WxUserDatabase.Current.GetWorkerByLibId(weixinId, libId);
-            if (user != null)
+            if (string.IsNullOrEmpty(weixinId) == false)
             {
-                // 检索是否有权限 _wx_setbbj
-                string needRight = "";
-                if (msgType == C_MsgType_Bb)
-                    needRight = C_Right_SetBb;
-                else if (msgType == C_MsgType_Book)
-                    needRight = C_Right_SetBook;
-
-                int nHasRights = this.CheckRights(user.libUserName, user.userName,needRight, out strError);
-                if (nHasRights == -1)
-                    return -1;
-
-                if (nHasRights == 1)
+                // 查找当前微信用户绑定的工作人员账号
+                WxUserItem user = WxUserDatabase.Current.GetWorkerByLibId(weixinId, libId);
+                if (user != null)
                 {
-                    worker = user.userName;
-                }
-                else
-                {
-                    worker = "";
+                    // 检索是否有权限 _wx_setbbj
+                    string needRight = "";
+                    if (msgType == C_MsgType_Bb)
+                        needRight = C_Right_SetBb;
+                    else if (msgType == C_MsgType_Book)
+                        needRight = C_Right_SetBook;
+
+                    int nHasRights = this.CheckRights(user.libUserName, user.userName, needRight, out strError);
+                    if (nHasRights == -1)
+                        return -1;
+
+                    if (nHasRights == 1)
+                    {
+                        worker = user.userName;
+                    }
+                    else
+                    {
+                        worker = "";
+                    }
                 }
             }
 
@@ -4460,25 +4466,12 @@ namespace dp2weixin.service
                     title = "不符合格式的消息";
                     content = "不符合格式的消息-" + xml;                
                 }
-
-
-                string contentHtml = "";
-                if (msgType == C_MsgType_Bb)
-                {
-                    contentHtml = GetBbHtml(format, content);
-                }
-                else
-                {
-                    contentHtml = GetBookHtml(content);
-                }
-                item.contentHtml = contentHtml;
-
-
-
+                
                 item.title = title;
                 item.contentFormat = format;
                 item.creator = creator;
                 item.content = "";
+
                 if (style == "full")
                 {
                     item.content = content;
@@ -4486,6 +4479,18 @@ namespace dp2weixin.service
                 else if (style == "browse")
                 {
                     item.content = "";
+
+                    string contentHtml = "";
+                    if (msgType == C_MsgType_Bb)
+                    {
+                        contentHtml = GetBbHtml(format, content);
+                    }
+                    else
+                    {
+                        contentHtml = GetBookHtml(content);
+
+                    }
+                    item.contentHtml = contentHtml;
                 }
 
                 list.Add(item);
@@ -4582,7 +4587,7 @@ namespace dp2weixin.service
                     cancel_token);
                 if (result.Value == -1)
                     goto ERROR1;
-
+                
                 records = result.Results;
                 return result.Results.Count;
             }
@@ -4613,15 +4618,45 @@ namespace dp2weixin.service
             MessageItem item, 
             string style)
         {
+            string strError = "";
             MessageResult apiResult = new MessageResult();
 
             if (msgType != dp2WeiXinService.C_MsgType_Bb
                 && msgType != dp2WeiXinService.C_MsgType_Book)
             {
-                apiResult.errorInfo = "不支持的消息类型" + msgType;
-                apiResult.errorCode = -1;
-                return apiResult;
+                strError = "不支持的消息类型" + msgType;
+                goto ERROR1;
             }
+
+            if (String.IsNullOrEmpty(item.creator) == true)
+            {
+                strError = "未传入creator";
+                goto ERROR1;
+            }
+
+            // 检索工作人员是否有权限 _wx_setbb
+            string needRight = "";
+            if (msgType == C_MsgType_Bb)
+                needRight = C_Right_SetBb;
+            else if (msgType == C_MsgType_Book)
+                needRight = C_Right_SetBook;
+            LibItem libItem = LibDatabase.Current.GetLibById(libId);
+            if (libItem == null)
+            {
+                strError = "根据id["+libId+"]未找到对应的图书馆配置";
+                goto ERROR1;                
+            }
+            int nHasRights = this.CheckRights(libItem.libUserName, item.creator, needRight, out strError);
+            if (nHasRights == -1)
+            {
+                goto ERROR1;
+            }
+            if (nHasRights == 0)
+            {
+                strError = "帐户["+userName+"]没有"+needRight+"权限";
+                goto ERROR1;
+            }
+
 
             string connName = C_ConnPrefix_Myself + libId;
             string strText = "";
@@ -4650,9 +4685,11 @@ namespace dp2weixin.service
             record.type = "message";
             record.thread = "";
             record.expireTime = new DateTime(0);    // 表示永远不失效
+
+            // todo subject
+
             records.Add(record);
 
-            string strError = "";
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
@@ -4801,5 +4838,56 @@ ERROR1:
         }
 
         #endregion
+
+        #region  好书
+
+
+        /// <summary>
+        /// 获取好多推荐栏目
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="libId"></param>
+        /// <param name="userName">
+        /// 返回的当前绑定工作人员账户号，如果为空，不没有编辑权限
+        /// </param>
+        /// <returns></returns>
+        public int GetBookSubject(string libId,
+            out List<BookSubjectItem> list,
+            out string strError)
+        {
+            //userName = "";
+            strError = "";
+            list = new List<BookSubjectItem>();
+
+            
+
+
+            BookSubjectItem item = new BookSubjectItem();
+            item.name = "我喜欢的书";
+            item.count = 1;
+            list.Add(item);
+
+            item = new BookSubjectItem();
+            item.name = "6月新书";
+            item.count = 5;
+            list.Add(item);
+
+            // todo
+            // 用点对点api获取好书推荐栏目
+
+            return 0;
+        }
+
+        #endregion
+
+        public int GetBookMsg(string libId, string subject, out List<MessageItem> list, out string strError)
+        {
+            list = new List<MessageItem>();
+            strError = "";
+
+            //todo 根据subject取消息
+
+            return 0;
+        }
     }
 }

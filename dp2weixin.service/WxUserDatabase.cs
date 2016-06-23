@@ -454,6 +454,11 @@ namespace dp2weixin.service
         如果没有良好的同步机制，那么公众号模块不如每次需要的时候去临时获取这个字符串。
          */
         //public string right { get; set; }//没有很好的缓存机制，先不加权限字段
+
+
+
+        //最后使用的图书推荐的栏
+        public string bookSubject { get; set; }
     }
 
 

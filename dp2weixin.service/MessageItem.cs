@@ -22,6 +22,9 @@ namespace dp2weixin.service
         public string contentHtml { get; set; }  // 2016-6-20 html形态
         public string publishTime { get; set; } // 2016-6-20 jane 发布时间，服务器消息的时间
 
-        public string creator { get; set; }  //创建公告的工作人员帐户
+        public string creator { get; set; }  //创建消息的工作人员帐户
+
+        public string subject { get; set; } // 栏目
+        public string Remark { get; set; } //注释
     }
 }

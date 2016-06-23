@@ -175,6 +175,7 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiControllers\LibBookController.cs" />
     <Compile Include="ApiControllers\LibMessageController.cs" />
     <Compile Include="ApiControllers\BiblioController.cs" />
     <Compile Include="ApiControllers\BorrowInfoController.cs" />
@@ -200,6 +201,7 @@
     <Compile Include="MessageHandlers\CustomMessageHandler\CustomMessageContext.cs" />
     <Compile Include="MessageHandlers\CustomMessageHandler\CustomMessageHandler.cs" />
     <Compile Include="MessageHandlers\CustomMessageHandler\CustomMessageHandler_Events.cs" />
+    <Compile Include="Models\BookEditModel.cs" />
     <Compile Include="Models\LibInfoModel.cs" />
     <Compile Include="Models\LoginModel.cs" />
     <Compile Include="Models\MessageModel.cs" />
@@ -242,6 +244,9 @@
     <Content Include="Views\Library\MsgManage.cshtml" />
     <Content Include="Views\Biblio\Detail.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\Library\BookMsg.cshtml" />
+    <Content Include="Views\Library\BookEdit.cshtml" />
+    <Content Include="Views\Library\BookSubject.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -1,0 +1,145 @@
+﻿@section style {
+    <style>
+        .leftLabel {
+            color: #999999;
+        }
+
+        .msg-title {
+            line-height: 1;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-size: 20px;
+        }
+    </style>
+}
+@section Scripts {
+    <script>
+        var model = {
+            list: ko.observableArray(),
+            userName: ko.observable("")
+        }
+
+        //用于获取图书馆
+        function getBookSubject() {
+            var libId = $("#selLib").val();
+            var weixinId = $("#weixinId").text();
+
+            // 先删除可观察数组中的已有数据
+            model.list.removeAll();
+            model.userName("");
+
+            // 先把这些项隐藏
+            $("#divNo").css('display', 'none');
+            if (libId == "") {
+                return;
+            }
+            if (weixinId == "") {
+                alert("异常情况：weixinId为空");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+            // 调web api
+            var url = "/api/LibBook?weixinId=" + weixinId
+                        + "&libId=" + libId
+            sendAjaxRequest(url, "GET", function (result) {
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                // 显示列表
+                if (result.list == null || result.list.length == 0)
+                    $("#divNo").css('display', 'block');
+                else
+                    $("#divNo").css('display', 'none');
+
+                // 把返回的数组加到观察数组
+                if (result.list != null) {
+                    for (var i = 0; i < result.list.length; i++) {
+                        model.list.push(result.list[i]);
+                    }
+                }
+                model.userName(result.userName);
+
+                // 设置发布按钮是否可用
+                if (result.userName != "" && result.userName != null) {
+                    //
+                    $("#divNew").css('display', 'block');
+                }
+                else {
+                    $("#divNew").css('display', 'none');
+                }
+
+                //alert("worker["+model.worker()+"]");
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert("访问服务器出错：\r\n"+errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        // 改变图书馆
+        function libChanged() {
+            getBookSubject();
+        }
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            ko.applyBindings(model);
+
+            // 获取所有的操作命令
+            getBookSubject();
+
+            // 设顶部菜单不固定
+            $("#myheader").css("position", "absolute");
+
+            $("#selLib").change(function () {
+                libChanged();
+            });
+        })
+
+
+    </script>
+}
+@section header {
+    <h1 class="mui-title">@ViewBag.MsgTypeTitle</h1>
+}
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+
+<div>
+    <div class="mui-input-group">
+        <div class="mui-input-row">
+            <label style="color:#cccccc;">图书馆</label>
+            @Html.Raw(ViewBag.LibHtml)
+        </div>
+    </div>
+</div>
+
+<div class="mui-card" id="divNo" style="margin-top:10px;display:none">
+    <center>
+        <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+        <div>目前没有好书推荐。</div>
+    </center>
+</div>
+<div id="divNew" class="mui-content-padded" style="display:none">
+    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoUrl('/Library/BookEdit?returnUrl=' + encodeURIComponent('/Library/BookSubject'))">
+        发布好书推荐
+    </button>
+</div>
+<ul class="mui-table-view" data-bind=" foreach:model.list">
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" data-bind="attr: { href: './BookMsg?subject='+name}">
+            <span data-bind=" text:name"></span>
+            (<span data-bind="text:count"></span>）
+        </a>
+    </li>
+</ul>
