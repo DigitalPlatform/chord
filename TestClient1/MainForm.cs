@@ -1354,7 +1354,9 @@ string strHtml)
                 this.textBox_message_text.Text,
                 "");
             else
-                DoLoadMessage(this.textBox_message_groupName.Text,
+                DoLoadMessage(
+                    "",
+                    this.textBox_message_groupName.Text,
                     this.textBox_message_userRange.Text,
                     this.textBox_message_timeRange.Text,
                 this.textBox_message_sortCondition.Text,
@@ -1462,7 +1464,9 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             }
         }
 
-        async void DoLoadMessage(string strGroupCondition,
+        async void DoLoadMessage(
+            string strAction,
+            string strGroupCondition,
             string strUserCondition,
             string strTimeRange,
             string strSortCondition,
@@ -1481,7 +1485,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
                 string id = Guid.NewGuid().ToString();
                 GetMessageRequest request = new GetMessageRequest(id,
-                    "",
+                    strAction,
                     strGroupCondition, // "" 表示默认群组
                     strUserCondition,
                     strTimeRange,
@@ -2389,7 +2393,31 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
             this.tabControl_main.SelectedTab = this.tabPage_message;
 
-            DoLoadMessage(dlg.GroupCondition,
+            DoLoadMessage(
+                "",
+                dlg.GroupCondition,
+                dlg.UserCondition,
+                dlg.TimeCondition,
+                dlg.SortCondition,
+                dlg.IdCondition,
+                dlg.SubjectCondition);
+        }
+
+        private void ToolStripMenuItem_enumSubject_Click(object sender, EventArgs e)
+        {
+            GetMessageDialog dlg = new GetMessageDialog();
+
+            dlg.UiState = Settings.Default.getMessageDialog_ui;
+            dlg.ShowDialog(this);
+            Settings.Default.getMessageDialog_ui = dlg.UiState;
+            if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
+                return;
+
+            this.tabControl_main.SelectedTab = this.tabPage_message;
+
+            DoLoadMessage(
+                "enumSubject",
+                dlg.GroupCondition,
                 dlg.UserCondition,
                 dlg.TimeCondition,
                 dlg.SortCondition,

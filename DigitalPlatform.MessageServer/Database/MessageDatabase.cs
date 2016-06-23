@@ -552,6 +552,93 @@ int count,
             return results.ToArray();
         }
 
+        public async Task GetSubjectsFieldAggragate(
+            GroupQuery group_query,
+            string userCondition,
+            string timeRange,
+            string idCondition,
+            string subjectCondition,
+int start,
+int count,
+Delegate_outputMessage proc)
+        {
+            IMongoCollection<MessageItem> collection = this._collection;
+
+            FilterDefinition<MessageItem> filter = BuildQuery(// groupName,
+                group_query,
+                userCondition,
+                timeRange,
+                idCondition,
+                subjectCondition);
+
+#if NO
+            var group = new BsonDocument { 
+                    { "$group", 
+                        new BsonDocument 
+                            { 
+                                { "_id", new BsonDocument 
+                                             { 
+                                                 { 
+                                                     "MyUser","$subject" 
+                                                 } 
+                                             } 
+                                }, 
+
+                                { 
+                                    "Count", new BsonDocument 
+                                                 { 
+                                                     { 
+                                                         "$sum", 1 
+                                                     } 
+                                                 } 
+                                } 
+                            } 
+                  } 
+                };
+#endif
+
+            var myresults = await collection.Aggregate().Match(filter)
+                //.Group(new BsonDocument("_id", "$subjects"))
+.Group(
+                        new BsonDocument 
+                            { 
+                                { "_id", "$subjects"
+                                }, 
+
+                                { 
+                                    "Count", new BsonDocument 
+                                                 { 
+                                                     { 
+                                                         "$sum", 1 
+                                                     } 
+                                                 } 
+                                } 
+                            }
+)
+.ToListAsync();
+
+            long totalCount = myresults.Count;
+            var index = 0;
+            foreach (BsonDocument doc in myresults)
+            {
+                if (count != -1 && index - start >= count)
+                    break;
+                if (index >= start)
+                {
+                    MessageItem item = new MessageItem();
+                    BsonArray array = (doc.GetValue("_id") as BsonArray);
+                    item.subjects = GetStringArray(array);
+                    item.data = doc.GetValue("Count").ToString();
+                    if (proc(totalCount, item) == false)
+                        return;
+                }
+
+                index++;
+            }
+
+            proc(totalCount, null); // 表示结束
+        }
+
         // parameters:
         //      item    要加入的消息事项
         public async Task Add(MessageItem item)

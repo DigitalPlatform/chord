@@ -964,6 +964,8 @@ ex.GetType().ToString());
                     Task.Run(() => ResponseGroupName(param, group_query));
                 else if (param.Action == "enumGroupName")
                     Task.Run(() => EnumGroupNameAndResponse(param, group_query));
+                else if (param.Action == "enumSubject")
+                    Task.Run(() => EnumSubjectsAndResponse(param, group_query));
                 else
                     // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
                     // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
@@ -1029,6 +1031,78 @@ ex.GetType().ToString());
                     i++;
                 }
 
+            }
+            catch (Exception ex)
+            {
+                Clients.Client(search_info.RequestConnectionID).responseGetMessage(
+    param.TaskID,
+    -1, // resultCount,
+    0,
+    null,
+    ExceptionUtil.GetExceptionText(ex), // errorInfo,
+    "_sendExeption" // errorCode
+    );
+            }
+            finally
+            {
+                // 主动清除已经完成的检索对象
+                ServerInfo.SearchTable.RemoveSearch(param.TaskID);
+            }
+        }
+
+        void EnumSubjectsAndResponse(
+GetMessageRequest param,
+GroupQuery group_query)
+        {
+            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID, false);
+            if (search_info == null)
+                return;
+
+            try
+            {
+                int batch_size = 10;    // 100? 或者根据 data 尺寸动态计算每批的个数
+                int send_count = 0;
+
+                List<MessageRecord> records = new List<MessageRecord>();
+
+                ServerInfo.MessageDatabase.GetSubjectsFieldAggragate(
+                    group_query,
+                    param.UserCondition,
+                    param.TimeCondition,
+                    param.IdCondition,
+                    param.SubjectCondition,
+                    (int)param.Start,
+                    (int)param.Count,
+                    (totalCount, item) =>
+                    {
+                        if (item != null)
+                            records.Add(BuildMessageRecord(item));
+                        // 集中发送一次
+                        if (records.Count >= batch_size || item == null)
+                        {
+                            // 让前端获得检索结果
+                            try
+                            {
+                                Clients.Client(search_info.RequestConnectionID).responseGetMessage(
+                                    param.TaskID,
+                                    (long)totalCount, // resultCount,
+                                    (long)send_count,
+                                    records,
+                                    "", // errorInfo,
+                                    "" // errorCode
+                                    );
+                                send_count += records.Count;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("中心向前端分发 responseGetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                                return false;
+                            }
+                            records.Clear();
+                        }
+
+                        return true;
+                    }).Wait();
             }
             catch (Exception ex)
             {

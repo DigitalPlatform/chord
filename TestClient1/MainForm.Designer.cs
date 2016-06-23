@@ -33,6 +33,8 @@
             this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuItem_writeToMSMQ = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItem_getSummaryAndItems = new System.Windows.Forms.ToolStripMenuItem();
+            this.ToolStripMenuItem_sendMessage = new System.Windows.Forms.ToolStripMenuItem();
+            this.ToolStripMenuItem_getMessage = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
@@ -157,8 +159,7 @@
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.ToolStripMenuItem_sendMessage = new System.Windows.Forms.ToolStripMenuItem();
-            this.ToolStripMenuItem_getMessage = new System.Windows.Forms.ToolStripMenuItem();
+            this.ToolStripMenuItem_enumSubject = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl_main.SuspendLayout();
@@ -198,7 +199,8 @@
             this.MenuItem_writeToMSMQ,
             this.menuItem_getSummaryAndItems,
             this.ToolStripMenuItem_sendMessage,
-            this.ToolStripMenuItem_getMessage});
+            this.ToolStripMenuItem_getMessage,
+            this.ToolStripMenuItem_enumSubject});
             this.testToolStripMenuItem.Name = "testToolStripMenuItem";
             this.testToolStripMenuItem.Size = new System.Drawing.Size(41, 21);
             this.testToolStripMenuItem.Text = "test";
@@ -216,6 +218,20 @@
             this.menuItem_getSummaryAndItems.Size = new System.Drawing.Size(205, 22);
             this.menuItem_getSummaryAndItems.Text = "GetSummaryAndItems";
             this.menuItem_getSummaryAndItems.Click += new System.EventHandler(this.menuItem_getSummaryAndItems_Click);
+            // 
+            // ToolStripMenuItem_sendMessage
+            // 
+            this.ToolStripMenuItem_sendMessage.Name = "ToolStripMenuItem_sendMessage";
+            this.ToolStripMenuItem_sendMessage.Size = new System.Drawing.Size(205, 22);
+            this.ToolStripMenuItem_sendMessage.Text = "Send Message ...";
+            this.ToolStripMenuItem_sendMessage.Click += new System.EventHandler(this.ToolStripMenuItem_sendMessage_Click);
+            // 
+            // ToolStripMenuItem_getMessage
+            // 
+            this.ToolStripMenuItem_getMessage.Name = "ToolStripMenuItem_getMessage";
+            this.ToolStripMenuItem_getMessage.Size = new System.Drawing.Size(205, 22);
+            this.ToolStripMenuItem_getMessage.Text = "Get Message ...";
+            this.ToolStripMenuItem_getMessage.Click += new System.EventHandler(this.ToolStripMenuItem_getMessage_Click);
             // 
             // statusStrip1
             // 
@@ -1105,7 +1121,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_sortCondition.Location = new System.Drawing.Point(77, 91);
             this.textBox_message_sortCondition.Name = "textBox_message_sortCondition";
-            this.textBox_message_sortCondition.Size = new System.Drawing.Size(356, 21);
+            this.textBox_message_sortCondition.Size = new System.Drawing.Size(360, 21);
             this.textBox_message_sortCondition.TabIndex = 49;
             // 
             // label46
@@ -1123,7 +1139,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_userRange.Location = new System.Drawing.Point(77, 38);
             this.textBox_message_userRange.Name = "textBox_message_userRange";
-            this.textBox_message_userRange.Size = new System.Drawing.Size(356, 21);
+            this.textBox_message_userRange.Size = new System.Drawing.Size(360, 21);
             this.textBox_message_userRange.TabIndex = 47;
             // 
             // label41
@@ -1181,7 +1197,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 65);
             this.textBox_message_timeRange.Name = "textBox_message_timeRange";
-            this.textBox_message_timeRange.Size = new System.Drawing.Size(356, 21);
+            this.textBox_message_timeRange.Size = new System.Drawing.Size(360, 21);
             this.textBox_message_timeRange.TabIndex = 41;
             // 
             // label39
@@ -1200,7 +1216,7 @@
             this.textBox_message_text.Location = new System.Drawing.Point(54, 118);
             this.textBox_message_text.Multiline = true;
             this.textBox_message_text.Name = "textBox_message_text";
-            this.textBox_message_text.Size = new System.Drawing.Size(379, 62);
+            this.textBox_message_text.Size = new System.Drawing.Size(383, 62);
             this.textBox_message_text.TabIndex = 3;
             // 
             // textBox_message_groupName
@@ -1209,7 +1225,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_groupName.Location = new System.Drawing.Point(77, 11);
             this.textBox_message_groupName.Name = "textBox_message_groupName";
-            this.textBox_message_groupName.Size = new System.Drawing.Size(356, 21);
+            this.textBox_message_groupName.Size = new System.Drawing.Size(360, 21);
             this.textBox_message_groupName.TabIndex = 39;
             // 
             // label37
@@ -1470,19 +1486,12 @@
             this.webBrowser1.Size = new System.Drawing.Size(334, 288);
             this.webBrowser1.TabIndex = 0;
             // 
-            // ToolStripMenuItem_sendMessage
+            // ToolStripMenuItem_enumSubject
             // 
-            this.ToolStripMenuItem_sendMessage.Name = "ToolStripMenuItem_sendMessage";
-            this.ToolStripMenuItem_sendMessage.Size = new System.Drawing.Size(205, 22);
-            this.ToolStripMenuItem_sendMessage.Text = "Send Message ...";
-            this.ToolStripMenuItem_sendMessage.Click += new System.EventHandler(this.ToolStripMenuItem_sendMessage_Click);
-            // 
-            // ToolStripMenuItem_getMessage
-            // 
-            this.ToolStripMenuItem_getMessage.Name = "ToolStripMenuItem_getMessage";
-            this.ToolStripMenuItem_getMessage.Size = new System.Drawing.Size(205, 22);
-            this.ToolStripMenuItem_getMessage.Text = "Get Message ...";
-            this.ToolStripMenuItem_getMessage.Click += new System.EventHandler(this.ToolStripMenuItem_getMessage_Click);
+            this.ToolStripMenuItem_enumSubject.Name = "ToolStripMenuItem_enumSubject";
+            this.ToolStripMenuItem_enumSubject.Size = new System.Drawing.Size(205, 22);
+            this.ToolStripMenuItem_enumSubject.Text = "Enum Subject ...";
+            this.ToolStripMenuItem_enumSubject.Click += new System.EventHandler(this.ToolStripMenuItem_enumSubject_Click);
             // 
             // MainForm
             // 
@@ -1669,6 +1678,7 @@
         private System.Windows.Forms.TextBox textBox_markdown_source;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_sendMessage;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_getMessage;
+        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_enumSubject;
     }
 }
 
