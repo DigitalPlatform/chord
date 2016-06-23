@@ -9,7 +9,7 @@ namespace dp2weixinWeb.Controllers
 {
     public class BiblioController : BaseController
     {
-        // GET: Biblio
+        // 书目查询主界面
         public ActionResult Index(string code,string state)
         {
             // 检查是否从微信入口进来
@@ -56,5 +56,23 @@ namespace dp2weixinWeb.Controllers
 
             return View();
         }
+
+        // 书目查询主界面
+        public ActionResult Detail(string code, string state,string biblioPath)
+        {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
+            string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+
+            ViewBag.BiblioPath = biblioPath;
+
+            return View();
+        }
+
+
     }
 }

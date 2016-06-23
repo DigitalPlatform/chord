@@ -73,5 +73,13 @@ namespace dp2weixinWeb.Controllers
 
             return 0;
         }
+
+        //protected override void OnException(ExceptionContext filterContext)
+        //{
+        //    // 标记异常已处理
+        //    filterContext.ExceptionHandled = true;
+        //    // 跳转到错误页
+        //    filterContext.Result = this.RedirectToAction("Error", "Shared");// new RedirectResult("/Shared/Error");//Url.Action("Error", "Shared"));
+        //}
     }
 }

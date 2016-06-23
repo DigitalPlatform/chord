@@ -4461,16 +4461,18 @@ namespace dp2weixin.service
                     content = "不符合格式的消息-" + xml;                
                 }
 
+
+                string contentHtml = "";
                 if (msgType == C_MsgType_Bb)
                 {
-                    string contentHtml = Convert2Html(format, content);
-                    item.contentHtml = contentHtml;
+                    contentHtml = GetBbHtml(format, content);
                 }
                 else
                 {
-                    string contentHtml = Convert2Html("text", content);
-                    item.contentHtml = "todo: 这里显示书目的浏览信息，点链接进入到详细界面<br/>" + contentHtml;
+                    contentHtml = GetBookHtml(content);
                 }
+                item.contentHtml = contentHtml;
+
 
 
                 item.title = title;
@@ -4492,7 +4494,7 @@ namespace dp2weixin.service
             return nRet;
         }
 
-        public static string Convert2Html(string format,string content)
+        public string GetBbHtml(string format,string content)
         {
             string contentHtml = "";
             if (format == "markdown")
@@ -4502,13 +4504,44 @@ namespace dp2weixin.service
             else
             {
                 //普通text 处理换行
-                contentHtml = HttpUtility.HtmlEncode(content);
-                contentHtml = contentHtml.Replace("\r\n", "\n");
-                contentHtml = contentHtml.Replace("\n", "<br/>");
+                //contentHtml = HttpUtility.HtmlEncode(content);
+                //contentHtml = contentHtml.Replace("\r\n", "\n");
+                //contentHtml = contentHtml.Replace("\n", "<br/>");
+
+                content = content.Replace("\r\n", "\n");
+                content = content.Replace("\r", "\n");
+                string[] list=content.Split(new char[] { '\n' });
+                foreach (string str in list)
+                {
+                    if (contentHtml != "")
+                        contentHtml += "<br/>";
+
+                    contentHtml += HttpUtility.HtmlEncode(str);
+                }
             }
             return contentHtml;
         }
 
+
+        public string GetBookHtml(string content)
+        {
+            string contentHtml = "";
+
+            content = content.Replace("\r\n", "\n");
+            content = content.Replace("\r", "\n");
+            string[] list = content.Split(new char[] { '\n' });
+            foreach (string str in list)
+            {
+                if (contentHtml != "")
+                    contentHtml += "<br/>";
+
+                string detalUrl = "/Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(str);
+                contentHtml += "<a href='javascript:void(0)' onclick='gotoUrl(\"" + detalUrl + "\")'>" + HttpUtility.HtmlEncode(str) + "</a>";
+
+            }
+
+            return contentHtml;
+        }
 
         // 从 dp2mserver 获得消息
         // 每次最多获得 100 条
