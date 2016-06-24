@@ -19,6 +19,7 @@ using DigitalPlatform.Drawing;
 using DigitalPlatform.ServiceProcess;
 using Ionic.Zip;
 using System.Threading;
+using dp2Capo.Install;
 
 namespace ChordInstaller
 {
@@ -397,11 +398,11 @@ FormWindowState.Normal);
 
                 try
                 {
-                    DigitalPlatform.rms.InstanceDialog dlg = new DigitalPlatform.rms.InstanceDialog();
+                    dp2Capo.Install.InstallDialog dlg = new dp2Capo.Install.InstallDialog();
                     FontUtil.AutoSetDefaultFont(dlg);
 
-                    // dlg.SourceDir = strRootDir;
-                    dlg.DataZipFileName = Path.Combine(this.DataDir, "kernel_data.zip");
+                    dlg.BinDir = strProgramDir;
+                    // dlg.DataZipFileName = Path.Combine(this.DataDir, "kernel_data.zip");
                     dlg.StartPosition = FormStartPosition.CenterScreen;
                     dlg.ShowDialog(this);
 
@@ -415,12 +416,13 @@ FormWindowState.Normal);
                     if (string.IsNullOrEmpty(dlg.DebugInfo) == false)
                         AppendString("创建实例时的调试信息:\r\n" + dlg.DebugInfo + "\r\n");
 
+#if NO
                     if (dlg.Changed == true)
                     {
                         // 兑现修改
 
                     }
-
+#endif
                 }
                 finally
                 {
