@@ -28,9 +28,9 @@ namespace dp2weixin.service
 {
     public class dp2WeiXinService
     {
-        // 消息类型
-        public const string C_MsgType_Bb = "bb";
-        public const string C_MsgType_Book = "book";
+        //// 消息类型
+        //public const string C_MsgType_Bb = "bb";
+        //public const string C_MsgType_Book = "book";
 
         // 通道常量
         public const string C_ConnName_TraceMessage = "_traceMessage";
@@ -38,8 +38,8 @@ namespace dp2weixin.service
 
         // 群组常量
         public const string C_GroupName_Bb = "gn:_lib_bb";
-        public const string C_GroupName_PatronNotity = "gn:_patronNotify";
         public const string C_GroupName_Book = "gn:_lib_book";
+        public const string C_GroupName_PatronNotity = "gn:_patronNotify";
 
         // 消息权限
         public const string C_Right_SetBb = "_wx_setbb";
@@ -3927,69 +3927,27 @@ namespace dp2weixin.service
 
 
 
-        public int GetMessage(string weixinId,
-            string msgType,
+        public int GetMessage(string group,
             string libId,            
              string msgId,
+            string subjectCondition,
             string style,
             out List<MessageItem> list,
-            out string worker,
             out string strError)
         {
             list = new List<MessageItem>();
             strError = "";
-            worker = "";
 
-            if (msgType != dp2WeiXinService.C_MsgType_Bb
-                && msgType != dp2WeiXinService.C_MsgType_Book)
-            {
-                strError = "不支持的消息类型" + msgType;
-                return -1;
-            }
 
-            if (string.IsNullOrEmpty(weixinId) == false)
-            {
-                // 查找当前微信用户绑定的工作人员账号
-                WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
-                if (user != null)
-                {
-                    // 检索是否有权限 _wx_setbbj
-                    string needRight = "";
-                    if (msgType == C_MsgType_Bb)
-                        needRight = C_Right_SetBb;
-                    else if (msgType == C_MsgType_Book)
-                        needRight = C_Right_SetBook;
-
-                    LibItem lib = LibDatabase.Current.GetLibById(libId);
-                    if (lib == null)
-                    {
-                        strError = "未找到id为[" + libId + "]的图书馆定义。";
-                        return -1;
-                    }
-
-                    int nHasRights = this.CheckRights(lib.capoUserName, user.userName, needRight, out strError);
-                    if (nHasRights == -1)
-                        return -1;
-
-                    if (nHasRights == 1)
-                    {
-                        worker = user.userName;
-                    }
-                    else
-                    {
-                        worker = "";
-                    }
-                }
-            }
-
-            string group="";
-            if (msgType == C_MsgType_Bb)
-                group = C_GroupName_Bb;
-            else if (msgType == C_MsgType_Book)
-                group = C_GroupName_Book;
 
             List<MessageRecord>  records = new List<MessageRecord>();
-            int nRet = this.GetMessage(group, libId,msgId, out records, out strError);
+            int nRet = this.GetMessageInternal("", // action
+                group, 
+                libId,
+                msgId,
+                subjectCondition,
+                out records, 
+                out strError);
             if (nRet == -1)
                 return -1;
             
@@ -4003,6 +3961,7 @@ namespace dp2weixin.service
                 string content = "";
                 string format = "text"; //默认是text样式
                 string creator = "";
+                string remark = "";
 
                 string xml = record.data;
                 XmlDocument dom = new XmlDocument();
@@ -4014,6 +3973,9 @@ namespace dp2weixin.service
                     title = nodeTitle.InnerText;//DomUtil.GetNodeText(root.SelectSingleNode("title"));
                     XmlNode nodeContent = root.SelectSingleNode("content");
                     content = nodeContent.InnerText;//DomUtil.GetNodeText();
+
+                    XmlNode nodeRemark = root.SelectSingleNode("remark");
+                    remark = nodeRemark.InnerText;//DomUtil.GetNodeText();
 
                     format = DomUtil.GetAttr(nodeContent, "format");
                     if (format == "")
@@ -4033,8 +3995,9 @@ namespace dp2weixin.service
                 item.contentFormat = format;
                 item.creator = creator;
                 item.content = "";
+                item.remark = remark;
 
-                if (style == "full")
+                if (style == "original")
                 {
                     item.content = content;
                 }
@@ -4043,7 +4006,7 @@ namespace dp2weixin.service
                     item.content = "";
 
                     string contentHtml = "";
-                    if (msgType == C_MsgType_Bb)
+                    if (group == C_GroupName_Bb)
                     {
                         contentHtml = GetBbHtml(format, content);
                     }
@@ -4112,9 +4075,11 @@ namespace dp2weixin.service
 
         // 从 dp2mserver 获得消息
         // 每次最多获得 100 条
-        private int GetMessage(string groupName,
+        private int GetMessageInternal(string action,
+            string groupName,
             string libId,
             string msgId,
+            string subjectCondition,
             out List<MessageRecord> records,
             out string strError)
         {
@@ -4132,12 +4097,13 @@ namespace dp2weixin.service
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             GetMessageRequest request = new GetMessageRequest(id,
-                "",
+                action,
                 groupName,
                 wxUserName,
                 "", // strTimeRange,
                 "publishTime|desc",//sortCondition 按发布时间倒序排
                 msgId, //IdCondition 
+                subjectCondition,
                 0,
                 100);  // todo 如果超过100条，要做成递归来调
             try
@@ -4168,25 +4134,48 @@ namespace dp2weixin.service
             return -1;
         }
 
+
+        public MessageResult CoverMessage(string group,
+    string libId,
+    MessageItem item,
+    string style)
+        {
+            MessageResult result = new MessageResult();
+            string strError = "";
+            int nRet = this.CoverMessage(group,
+                libId,
+                item,
+                style,
+                out strError);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+                return result;
+            }
+
+            return result;
+        }
+
         /// <summary>
-        /// 处理公告
+        /// 处理消息
         /// </summary>
         /// <param name="libUserName"></param>
         /// <param name="style"></param>
         /// <param name="item"></param>
         /// <returns></returns>
-        public MessageResult CoverMessage(string msgType, 
+        public int CoverMessage(string group, 
             string libId, 
             MessageItem item, 
-            string style)
+            string style,
+            out string strError)
         {
-            string strError = "";
-            MessageResult apiResult = new MessageResult();
+            strError = "";
 
-            if (msgType != dp2WeiXinService.C_MsgType_Bb
-                && msgType != dp2WeiXinService.C_MsgType_Book)
+            if (group != dp2WeiXinService.C_GroupName_Bb
+                && group != dp2WeiXinService.C_GroupName_Book)
             {
-                strError = "不支持的消息类型" + msgType;
+                strError = "不支持的群" + group;
                 goto ERROR1;
             }
 
@@ -4198,9 +4187,9 @@ namespace dp2weixin.service
 
             // 检索工作人员是否有权限 _wx_setbb
             string needRight = "";
-            if (msgType == C_MsgType_Bb)
+            if (group == C_GroupName_Bb)
                 needRight = C_Right_SetBb;
-            else if (msgType == C_MsgType_Book)
+            else if (group == C_GroupName_Book)
                 needRight = C_Right_SetBook;
             LibItem libItem = LibDatabase.Current.GetLibById(libId);
             if (libItem == null)
@@ -4227,15 +4216,12 @@ namespace dp2weixin.service
                 strText = "<body>"
                 + "<title>" + HttpUtility.HtmlEncode(item.title) + "</title>"  //前端传过来时，已经转义过了 HttpUtility.HtmlEncode(item.title)
                 + "<content format='"+item.contentFormat+"'>" + HttpUtility.HtmlEncode(item.content) + "</content>"
+                + "<remark>" + HttpUtility.HtmlEncode(item.remark) + "</remark>" 
                 + "<creator>"+item.creator+"</creator>"
                 + "</body>";
             }
 
-            string group = "";
-            if (msgType == C_MsgType_Bb)
-                group = C_GroupName_Bb;
-            else if (msgType == C_MsgType_Book)
-                group = C_GroupName_Book;
+
 
             List<MessageRecord> records = new List<MessageRecord>();
             MessageRecord record = new MessageRecord();
@@ -4247,9 +4233,8 @@ namespace dp2weixin.service
             record.type = "message";
             record.thread = "";
             record.expireTime = new DateTime(0);    // 表示永远不失效
-
-            // todo subject
-
+            if (item.subject != null && item.subject !="")
+               record.subjects = item.subject.Split(new char[] { ',' });
             records.Add(record);
 
             try
@@ -4271,9 +4256,7 @@ namespace dp2weixin.service
                     goto ERROR1;
                 }
 
-                //result.
-                apiResult.errorCode = result.Value;
-                return apiResult;
+                return 0;
             }
             catch (AggregateException ex)
             {
@@ -4285,10 +4268,8 @@ namespace dp2weixin.service
                 strError = ex.Message;
                 goto ERROR1;
             }
-ERROR1:
-            apiResult.errorCode = -1;
-            apiResult.errorInfo= strError;
-            return apiResult;
+        ERROR1:
+            return -1;
         }
 
 
@@ -4297,11 +4278,11 @@ ERROR1:
         /// 0   无权限
         /// 1   有权限
         /// </returns>
-        public int CheckRights(string opacUserName,string worker,string needRight, out string strError)
+        public int CheckRights(string capoUserName,string worker,string needRight, out string strError)
         {
             strError ="";
             string rights = "";
-            int nRet = this.GetUserInfo(opacUserName,
+            int nRet = this.GetUserInfo(capoUserName,
                 worker,
                 out rights,
                 out strError);
@@ -4325,7 +4306,7 @@ ERROR1:
         /// <param name="right"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int GetUserInfo(string opacUserName, string strWord,
+        public int GetUserInfo(string capoUserName, string strWord,
             out string rights,
             out string strError)
         {
@@ -4353,10 +4334,10 @@ ERROR1:
 
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    opacUserName).Result;
+                    capoUserName).Result;
 
                 SearchResult result = connection.SearchTaskAsync(
-                    opacUserName,
+                    capoUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -4396,6 +4377,7 @@ ERROR1:
 
         #region  好书
 
+        public const string C_Active_EnumSubject = "enumSubject";
 
         /// <summary>
         /// 获取好多推荐栏目
@@ -4414,23 +4396,33 @@ ERROR1:
             strError = "";
             list = new List<BookSubjectItem>();
 
-            
+            List<MessageRecord> records = null;
+            int nRet = this.GetMessageInternal(C_Active_EnumSubject,
+                C_GroupName_Book,
+                libId,
+                "",
+                "",
+                out records,
+                out strError);
+            if (nRet == -1)
+                return -1;
+
+            foreach (MessageRecord record in records)
+            {
+                string[] subjects = record.subjects;
+                BookSubjectItem subItem = new BookSubjectItem();
+
+                // 发现确实空的情况。
+                if (subjects == null || subjects.Length == 0)
+                    continue;
 
 
-            BookSubjectItem item = new BookSubjectItem();
-            item.name = "我喜欢的书";
-            item.count = 1;
-            list.Add(item);
+                subItem.name = subjects[0];
+                subItem.count = record.data;
 
-            item = new BookSubjectItem();
-            item.name = "6月新书";
-            item.count = 5;
-            list.Add(item);
-
-            // todo
-            // 用点对点api获取好书推荐栏目
-
-            return 0;
+                list.Add(subItem);
+            }
+            return records.Count;
         }
 
         #endregion
@@ -4440,9 +4432,17 @@ ERROR1:
             list = new List<MessageItem>();
             strError = "";
 
-            //todo 根据subject取消息
+            int nRet = this.GetMessage(C_GroupName_Book,
+                libId,
+                "",
+                subject,
+                "browse",
+                out list,
+                out strError);
+            if (nRet == -1)
+                return -1;
 
-            return 0;
+            return nRet;
         }
     }
 }

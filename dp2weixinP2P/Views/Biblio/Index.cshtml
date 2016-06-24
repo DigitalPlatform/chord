@@ -763,7 +763,10 @@
                 var worker = $("#workerUserName").text();
                 var recommendBtn = "";
                 if (worker != null && worker != "") {
-                    var recommPath = "/Library/BookEdit?returnUrl=" + encodeURIComponent('/Biblio/Index') + "&biblioPath=" + encodeURIComponent(biblioPath)
+                    var recommPath = "/Library/BookEdit?libId=" + libId
+                        + "&userName=" + worker
+                        + "&biblioPath=" + encodeURIComponent(biblioPath)
+                        + "&returnUrl=" + encodeURIComponent('/Biblio/Index')
                     recommendBtn = "<div><button class='mui-btn  mui-btn-default' "
                         + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button></div>";
                 }

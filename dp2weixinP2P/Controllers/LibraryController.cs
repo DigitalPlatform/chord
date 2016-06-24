@@ -12,7 +12,7 @@ namespace dp2weixinWeb.Controllers
     public class LibraryController : BaseController
     {
         // 公告
-        public ActionResult MsgManage(string code, string state,string msgType)
+        public ActionResult MsgManage(string code, string state,string group)
         {
             // 检查是否从微信入口进来
             string strError = "";
@@ -20,26 +20,30 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
-            if (msgType != dp2WeiXinService.C_MsgType_Bb
-                && msgType != dp2WeiXinService.C_MsgType_Book)
+            if (group != dp2WeiXinService.C_GroupName_Bb
+                && group != dp2WeiXinService.C_GroupName_Book)
             {
-                return Content("不支持的消息类型" + msgType);
+                return Content("不支持的群" + group);
             }
 
-            // 图书馆html
-            ViewBag.LibHtml = this.GetLibHtml();
+            if (group == "")
+                group = dp2WeiXinService.C_GroupName_Bb;
 
-            ViewBag.MsgType = msgType;
-            if (msgType == dp2WeiXinService.C_MsgType_Bb)
-                ViewBag.MsgTypeTitle = "公告";
+
+            // 图书馆html
+            ViewBag.LibHtml = this.GetLibHtml("");
+
+            ViewBag.group = group;
+            if (group == dp2WeiXinService.C_GroupName_Bb)
+                ViewBag.groupTitle = "公告";
             else
-                ViewBag.MsgTypeTitle = "新书推荐";
+                ViewBag.groupTitle = "新书推荐";
 
             return View();
         }
 
         // 好书推荐
-        public ActionResult BookSubject(string code, string state)
+        public ActionResult BookSubject(string code, string state,string libId)
         {
             // 检查是否从微信入口进来
             string strError = "";
@@ -48,7 +52,7 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             // 图书馆html
-             ViewBag.LibHtml = this.GetLibHtml();
+             ViewBag.LibHtml = this.GetLibHtml(libId);
 
             return View();
         }
@@ -83,7 +87,10 @@ namespace dp2weixinWeb.Controllers
             ViewBag.subject = subject;
 
             List<MessageItem> list = new List<MessageItem>();
-            nRet = dp2WeiXinService.Instance.GetBookMsg(libId, subject, out list, out strError);
+            nRet = dp2WeiXinService.Instance.GetBookMsg(libId, 
+                subject, 
+                out list,
+                out strError);
             if (nRet == -1)
                 return Content(strError);
 
@@ -121,70 +128,127 @@ namespace dp2weixinWeb.Controllers
                 return Content("userName参数不能为空。");
             }
 
-            // 将这些值设到ViewTag
-            ViewBag.libId = libId;
-            ViewBag.userName = userName;
-            ViewBag.ReturnUrl = returnUrl;
-
-            BookEditModel model = new BookEditModel();
-            model.libId = libId;
-            model.userName = userName;
-            model.subject = subject;
-            model.returnUrl = "";
-
             // 栏目html
-            ViewBag.SubjectHtml = this.GetSubjectHtml(libId,subject,true);
+            ViewBag.SubjectHtml = this.GetSubjectHtml(libId, subject, true);
+
+            // 将这些参数值设到model上，这里可以回传返回
+            BookEditModel model = new BookEditModel();
+            model._libId = libId;
+            model._userName = userName;
+            model._subject = subject;
+            model._returnUrl = returnUrl;
+
+
+            if (string.IsNullOrEmpty(msgId) == false)
+            {
+                List<MessageItem> list = null;
+                nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_GroupName_Book,
+                    libId,
+                    msgId,
+                    "",
+                    "original",
+                    out list,
+                    out strError);
+                if (nRet == -1)
+                    return Content(strError);
+
+                if (list != null && list.Count == 1)
+                {
+                    MessageItem item = list[0];
+                    model.id = item.id;
+                    model.title = item.title;
+                    model.remark = item.remark;
+                    model.content = item.content;
+                    model.creator = item.creator;
+                    model.publishTime = item.publishTime;
+                }
+                else
+                {
+                    return Content("根据id获取消息异常，未找到或者条数不对");
+                }
+            }
+            
 
 
             // todo 根据id获取消息  //msgId
-            MessageItem item = new MessageItem();
             if (String.IsNullOrEmpty(biblioPath) == false)
-                item.content = biblioPath;
+                model.content = biblioPath;
 
-            model.msgItem = item;
+            //model.msgItem = item;
             return View(model);
         }
 
         [HttpPost]
-        public ActionResult BookEdit(BookEditModel model, string returnUrl)
+        [ValidateInput(false)]
+        public ActionResult BookEdit(BookEditModel model)
         {
+            string strError = "";
             // 实际保存
-            string libId = model.libId;
-            string userName = model.userName;
-            string subject =model.subject;
-            string returnUrl1 = model.returnUrl;
+            string libId = model._libId;
+            string userName = model._userName;
+            string subject =model._subject;
+            string returnUrl1 = model._returnUrl;
+
+            MessageItem item = new MessageItem();
+            item.id = model.id;
+            item.title = model.title;
+            item.content = model.content;
+            item.remark = model.remark;
+            item.creator = model._userName;
+            item.subject = model.subject;
+            if (String.IsNullOrEmpty(item.id) == true)
+            {
+                int nRet =dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_GroupName_Book,
+                    libId,
+                    item,
+                    "create",out strError);
+                if (nRet == -1)
+                    return Content(strError);
+            }
+            else 
+            {
+                int nRet = dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_GroupName_Book,
+                    libId,
+                    item,
+                    "change",out strError);
+                if (nRet == -1)
+                    return Content(strError);
+            }
+
 
             // 如果没有传入返回路径，保存完转到BookSubject
-            if (String.IsNullOrEmpty(returnUrl) == true)
+            if (String.IsNullOrEmpty(model._returnUrl) == true)
             {
                 return this.RedirectToAction("BookSubject", "Library");
             }
             else
             {
-                if (returnUrl == "/Biblio/Index")  // 直接跳转没有数据,改为javascript返回，注意是-2
+                if (model._returnUrl == "/Biblio/Index")  // 直接跳转没有数据,改为javascript返回，注意是-2
                     return Content("<script>window.history.go(-2);</script>");
                 else
-                    return Redirect(returnUrl);
+                    return Redirect(model._returnUrl);
             }
         }
 
 
 
-        private string GetLibHtml()
+        private string GetLibHtml(string libId)
         {
-            // 找工作人员帐户
-            string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            WxUserItem userItem = WxUserDatabase.Current.GetOneWorker(weiXinId);
-            if (userItem == null)
+            if (String.IsNullOrEmpty(libId) == true)
             {
-                // 找读者帐户
-                userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
+                // 找工作人员帐户
+                string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+                WxUserItem userItem = WxUserDatabase.Current.GetOneWorker(weiXinId);
+                if (userItem == null)
+                {
+                    // 找读者帐户
+                    userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
+                }
+                if (userItem != null)
+                    libId = userItem.libId;
             }
-            string selLibId = "";
-            if (userItem != null)
-                selLibId = userItem.libId;
 
-            return this.GetLibSelectHtml(selLibId);
+            return this.GetLibSelectHtml(libId);
         }
 
 

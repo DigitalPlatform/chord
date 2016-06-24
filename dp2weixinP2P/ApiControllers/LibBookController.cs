@@ -63,6 +63,7 @@ namespace dp2weixinWeb.ApiControllers
                     }
                 }
             }
+            result.userName = userName;
 
             // 获取指定图书的栏目
             List<BookSubjectItem> list = null;
@@ -74,7 +75,6 @@ namespace dp2weixinWeb.ApiControllers
             }
 
             result.list = list;
-            result.userName = userName;
             result.errorCode = nRet;
             result.errorInfo = strError;
 
@@ -89,7 +89,6 @@ namespace dp2weixinWeb.ApiControllers
         public BookMsgResult GetSubjectMsg(string weixinId, string libId, string subject)
         {
             BookMsgResult result = new BookMsgResult();
-
             string strError = "";
 
 

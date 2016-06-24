@@ -50,9 +50,9 @@
                 return;
             }
 
-            var msgType = $("#msgType").text();
-            if (msgType == "") {
-                alert("异常情况：msgType为空");
+            var group = $("#group").text();
+            if (group == "") {
+                alert("异常情况：group为空");
                 return;
             }
 
@@ -62,7 +62,7 @@
             var style = "browse";
             // 调web api
             var url = "/api/LibMessage?weixinId=" + weixinId
-                        + "&msgType=" + msgType
+                        + "&group=" + group
                         + "&libId=" + libId
                         + "&msgId=" + msgId
                         + "&style=" + style;
@@ -123,18 +123,37 @@
                 return;
             }
 
-            var msgType = $("#msgType").text();
-            if (msgType == "") {
-                alert("异常情况：msgType为空");
+            var group = $("#group").text();
+            if (group == "") {
+                alert("异常情况：group为空");
                 return;
             }
 
+            var worker = model.worker();
+            if (worker == null || worker == "")
+            {
+                alert("异常情况：worker为空");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+
             //alert("remove-"+item.libId);
-            var url = "/api/LibMessage/" + item.id
-                +"?msgType="+msgType
-                + "&libId=" + libId
-            sendAjaxRequest(url, "DELETE", function () {
-                //getAllLib();
+            var url = "/api/LibMessage?libId=" + libId
+                + "&group=" + group
+                + "&msgId=" + item.id
+                + "&userName=" + worker;
+            sendAjaxRequest(url, "DELETE", function (result) {
+
+
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert("操作失败：" + result.errorInfo);
+                    return;
+                }
 
                 for (var i = 0; i < model.list().length; i++) {
                     if (model.list()[i].id == item.id) {
@@ -142,6 +161,8 @@
                         break;
                     }
                 }
+
+
 
                 // alert("length[" + model.list().length.length + "]");
 
@@ -197,9 +218,9 @@
                 return;
             }
 
-            var msgType = $("#msgType").text();
-            if (msgType == "") {
-                alert("异常情况：msgType为空");
+            var group = $("#group").text();
+            if (group == "") {
+                alert("异常情况：group为空");
                 return;
             }
 
@@ -217,7 +238,7 @@
             }
 
             var url = "/api/LibMessage"
-                +"?msgType="+msgType
+                + "?group=" + group
                 + "&libId=" + libId ;
             sendAjaxRequest(url, action,
                 function (result) {
@@ -354,20 +375,20 @@
                 return;
             }
 
-            var msgType = $("#msgType").text();
-            if (msgType == "") {
-                alert("异常情况：msgType为空");
+            var group = $("#group").text();
+            if (group == "") {
+                alert("异常情况：group为空");
                 return;
             }
 
             //显示等待图层
             var index = loadLayer();
             var msgId = item.id;
-            var style = "full";
+            var style = "original";
             // 调web api
             var url = "/api/LibMessage"
-                + "?msgType=" + msgType
-                        + "&weixinId=" + weixinId
+                + "?weixinId=" + weixinId
+                        + "&group=" + group
                         + "&libId=" + libId
                         + "&msgId=" + msgId
                         + "&style=" + style;
@@ -463,9 +484,9 @@
     </script>
 }
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
-<span id="msgType" style="display:none">@ViewBag.MsgType</span>
+<span id="group" style="display:none">@ViewBag.group</span>
 @section header {
-    <h1 class="mui-title">@ViewBag.MsgTypeTitle</h1>
+    <h1 class="mui-title">@ViewBag.groupTitle</h1>
 }
 <div>
     <div class="mui-input-group">
@@ -489,7 +510,7 @@
                         <label class="leftLabel" style="width:100%">内容</label>
                     </td>
                     <td>
-                        @if (ViewBag.MsgType=="bb")
+                        @if (ViewBag.group== dp2weixin.service.dp2WeiXinService.C_GroupName_Bb)
                         { 
                         <div class="mui-input-row mui-checkbox mui-left" style="border-bottom:0px;padding-bottom:0px;margin-bottom:0px;bottom:0px;float:left">
                             <label style='padding-left:30px;padding-right:0px'>MarkDown格式</label>
@@ -530,14 +551,14 @@
 <div id="divSummary">
     <div class="mui-content-padded" data-bind="visible:model.worker()!=''">
         <button class="mui-btn mui-btn-block mui-btn-primary" onclick="handleCreateClick()">
-            发布<span>@ViewBag.MsgTypeTitle</span>
+            发布<span>@ViewBag.groupTitle</span>
             
         </button>
     </div>
     <div class="mui-card" id="divNo" style="margin-top:10px;display:none">
         <center>
             <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
-            <div>目前没有<span>@ViewBag.MsgTypeTitle</span>。</div>
+            <div>目前没有<span>@ViewBag.groupTitle</span>。</div>
         </center>
     </div>
     <div data-bind=" foreach:model.list">

@@ -6,15 +6,12 @@ using System.Web;
 
 namespace dp2weixinWeb.Models
 {
-    public class BookEditModel
+    public class BookEditModel:MessageItem
     {
-        public string libId { get; set; }
-        public string userName { get; set; }
-        public string subject { get; set; }
+        public string _libId { get; set; }
+        public string _userName { get; set; }
+        public string _subject { get; set; }
 
-        public string returnUrl { get; set; }
-
-
-        public MessageItem msgItem { get; set; }
+        public string _returnUrl { get; set; }
     }
 }
