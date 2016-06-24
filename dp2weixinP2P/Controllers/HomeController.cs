@@ -59,7 +59,7 @@ namespace dp2weixinWeb.Controllers
                 libInfo = new LibInfoModel();
                 libInfo.Title = libName+" 主页";
 
-                string htmlFile = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + userItem.libCode+"/index.html";
+                string htmlFile = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + userItem.libId+"/index.html";
                 if (System.IO.File.Exists(htmlFile) == false)
                 {
                     // 先缺省html文件

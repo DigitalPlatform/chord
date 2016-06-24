@@ -53,17 +53,21 @@ namespace dp2weixinWeb.Controllers
                 // 找工作人员帐户
                 userItem = WxUserDatabase.Current.GetOneWorker(weiXinId);
             }
+            string libId = "";
             if (userItem != null)
             {
                 // 设当前图书馆
-                ViewBag.LibCode = userItem.libCode + "*" + userItem.libUserName;
+                libId = userItem.libId;
             }
+
+            // 图书馆html
+            ViewBag.LibHtml = this.GetLibSelectHtml(libId);
 
             return View();
         }
 
         public ActionResult ResetPassword(string code, string state,
-            string libCode,
+            string libId,
             string readerName)
         {
             // 检查是否从微信入口进来
@@ -72,10 +76,11 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
+            string selLibId = "";
             // 如果是从绑定界面过来的，可能会传来绑定界面使用的图书馆
-            if (string.IsNullOrEmpty(libCode) == false && libCode != "undefined")
+            if (string.IsNullOrEmpty(libId) == false && libId != "undefined")
             {
-                ViewBag.LibCode = libCode;// "lib_local*mycapo";
+                selLibId = libId;// "lib_local*mycapo";
             }
             else
             {
@@ -87,11 +92,17 @@ namespace dp2weixinWeb.Controllers
                     userItem = WxUserDatabase.Current.GetOneWorker(weiXinId);
                 }
                 if (userItem != null)
-                    ViewBag.LibCode = userItem.libCode + "*" + userItem.libUserName;
+                    selLibId = userItem.libId;
             }
+
+            // 图书馆html
+            ViewBag.LibHtml = this.GetLibSelectHtml(libId);
+
 
             if (string.IsNullOrEmpty(readerName) == false && readerName != "undefined")
                 ViewBag.ReaderName = readerName;// "test";
+
+
 
             return View();
         }

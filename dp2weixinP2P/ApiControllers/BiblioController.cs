@@ -13,7 +13,7 @@ namespace dp2weixinWeb.ApiControllers
     public class BiblioController : ApiController
     {
         // GET api/<controller>
-        public SearchBiblioResult Get(string libUserName, string from, string word, string resultSet)
+        public SearchBiblioResult Get(string libId, string from, string word, string resultSet)
         {
             SearchBiblioResult searchRet = new SearchBiblioResult();
             if (String.IsNullOrEmpty(resultSet) == true)
@@ -44,7 +44,7 @@ namespace dp2weixinWeb.ApiControllers
                 if (from == "_N")
                 {
                     //word值表示起始位置
-                    searchRet= dp2WeiXinService.Instance.getFromResultSet(libUserName, resultSet, num, WeiXinConst.C_OnePage_Count);
+                    searchRet = dp2WeiXinService.Instance.getFromResultSet(libId, resultSet, num, WeiXinConst.C_OnePage_Count);
                     goto END1;
                 }
                 else if (from == "_ReView")
@@ -53,7 +53,7 @@ namespace dp2weixinWeb.ApiControllers
                         resultSet = resultSet.Substring(1);
 
                     // 重新显示，此时word代表数量
-                    searchRet= dp2WeiXinService.Instance.getFromResultSet(libUserName, resultSet, 0, num);
+                    searchRet = dp2WeiXinService.Instance.getFromResultSet(libId, resultSet, 0, num);
                     goto END1;
 
                 }
@@ -66,7 +66,7 @@ namespace dp2weixinWeb.ApiControllers
             }
             else
             {
-                searchRet= dp2WeiXinService.Instance.SearchBiblio(libUserName,
+                searchRet = dp2WeiXinService.Instance.SearchBiblio(libId,
                      from,
                      word,
                      resultSet);
@@ -78,13 +78,19 @@ namespace dp2weixinWeb.ApiControllers
             return searchRet;
         }
 
-        public string GetBiblio(string id, [FromUri] string format, string libUserName)
+        public string GetBiblio(string id, [FromUri] string format, string libId)
         {
-            string strSummary = "未实现";    
+            string strSummary = "未实现";
+
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                return "未找到id为[" + libId + "]的图书馆定义。";
+            }
 
             if (id == "more")
             {
-                strSummary = dp2WeiXinService.Instance.GetBarcodesSummary(libUserName, format);
+                strSummary = dp2WeiXinService.Instance.GetBarcodesSummary(lib.capoUserName, format);
                 return strSummary;
             }
 
@@ -92,7 +98,7 @@ namespace dp2weixinWeb.ApiControllers
             {
                 string strRecPath = "";
                 string strError = "";
-                int nRet = dp2WeiXinService.Instance.GetBiblioSummary(libUserName,id,
+                int nRet = dp2WeiXinService.Instance.GetBiblioSummary(lib.capoUserName, id,
                     "",
                     out strSummary,
                     out strRecPath,
@@ -113,10 +119,9 @@ namespace dp2weixinWeb.ApiControllers
         /// <param name="libUserName"></param>
         /// <param name="biblioPath"></param>
         /// <returns></returns>
-        public BiblioRecordResult Get(string libUserName, string biblioPath)
+        public BiblioRecordResult Get(string libId, string biblioPath)
         {
-            dp2WeiXinService.Instance.WriteLog("走进get() libUserName["+libUserName+"],biblioPath["+biblioPath+"]");
-            BiblioRecordResult result = dp2WeiXinService.Instance.GetBiblioDetail(libUserName,
+            BiblioRecordResult result = dp2WeiXinService.Instance.GetBiblioDetail(libId,
                 biblioPath);
             return result;
         }

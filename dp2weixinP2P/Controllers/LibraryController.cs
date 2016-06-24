@@ -54,7 +54,10 @@ namespace dp2weixinWeb.Controllers
         }
 
 
-        public ActionResult BookMsg(string code, string state,string libId,string userName,string subject)
+        public ActionResult BookMsg(string code, string state,
+            string libId,
+            string userName,
+            string subject)
         {
             // 检查是否从微信入口进来
             string strError = "";
@@ -62,10 +65,29 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
+            if (String.IsNullOrEmpty(libId) == true)
+            {
+                return Content("libId参数不能为空");
+            }
+            //if (String.IsNullOrEmpty(userName) == true)
+            //{
+            //    return Content("userName参数不能为空");
+            //}
+            if (String.IsNullOrEmpty(subject) == true)
+            {
+                return Content("subject参数不能为空");
+            }
 
+            ViewBag.LibId = libId;
+            ViewBag.userName = userName;
+            ViewBag.subject = subject;
 
+            List<MessageItem> list = new List<MessageItem>();
+            nRet = dp2WeiXinService.Instance.GetBookMsg(libId, subject, out list, out strError);
+            if (nRet == -1)
+                return Content(strError);
 
-            return View();
+            return View(list);
         }
 
 
@@ -124,9 +146,13 @@ namespace dp2weixinWeb.Controllers
         }
 
         [HttpPost]
-        public ActionResult BookEdit(MessageItem item, string returnUrl)
+        public ActionResult BookEdit(BookEditModel model, string returnUrl)
         {
             // 实际保存
+            string libId = model.libId;
+            string userName = model.userName;
+            string subject =model.subject;
+            string returnUrl1 = model.returnUrl;
 
             // 如果没有传入返回路径，保存完转到BookSubject
             if (String.IsNullOrEmpty(returnUrl) == true)
@@ -158,20 +184,7 @@ namespace dp2weixinWeb.Controllers
             if (userItem != null)
                 selLibId = userItem.libId;
 
-            List<LibItem> list = LibDatabase.Current.GetLibs();//"*", 0, -1).Result;
-            var opt = "<option value=''>请选择 图书馆</option>";
-            for (var i = 0; i < list.Count; i++)
-            {
-                var item = list[i];
-                string selectedString = "";
-                if (selLibId != "" && selLibId == item.id)
-                {
-                    selectedString = " selected='selected' ";
-                }
-                opt += "<option value='" + item.id + "' " + selectedString + ">" + item.libName + "</option>";
-            }
-            string libHtml= "<select id='selLib' style='padding-left: 0px;width: 65%;'  >" + opt + "</select>";
-            return libHtml;
+            return this.GetLibSelectHtml(selLibId);
         }
 
 

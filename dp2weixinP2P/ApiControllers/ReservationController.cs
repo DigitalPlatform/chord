@@ -11,7 +11,7 @@ namespace dp2weixinWeb.ApiControllers
     public class ReservationController : ApiController
     {
         // GET api/<controller>
-        public ReservationResult GetReservations(string libUserName, 
+        public ReservationResult GetReservations(string libId, 
             string patronBarcode)
         {
             ReservationResult result = new ReservationResult();
@@ -21,7 +21,7 @@ namespace dp2weixinWeb.ApiControllers
             // 获取当前账户的信息
             List<ReservationInfo> reservations = null;
             string strError = "";
-            int nRet =dp2WeiXinService.Instance.GetPatronReservation(libUserName,
+            int nRet = dp2WeiXinService.Instance.GetPatronReservation(libId,
                  patronBarcode,
                  out reservations,
                  out strError);
@@ -34,7 +34,7 @@ namespace dp2weixinWeb.ApiControllers
 
         // POST api/<controller>
         [HttpPost]
-        public ApiResult Post(string libUserName,
+        public ApiResult Post(string libId,
             string patron,
             string items,
             string style)
@@ -42,7 +42,7 @@ namespace dp2weixinWeb.ApiControllers
             ApiResult result = new ApiResult();
 
             string strError = "";
-            int nRet = dp2WeiXinService.Instance.Reservation(libUserName,
+            int nRet = dp2WeiXinService.Instance.Reservation(libId,
                 patron,
                 items,
                 style,

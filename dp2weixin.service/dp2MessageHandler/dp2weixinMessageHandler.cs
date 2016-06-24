@@ -389,17 +389,17 @@ namespace dp2weixin
 
         public string getLibList()
         {
-            List<LibItem> libs = LibDatabase.Current.GetLibs();
-            string text = "";
-            int i = 1;
-            foreach (LibItem item in libs)
-            {
-                text += i.ToString() + "  " + item.libCode + "  " + item.libName + "\n";
-                i++;
-            }
-            text = "下面是图书馆列表，请回复序号或者馆代码。\n" + text;
+            //List<LibItem> libs = LibDatabase.Current.GetLibs();
+            //string text = "";
+            //int i = 1;
+            //foreach (LibItem item in libs)
+            //{
+            //    text += i.ToString() + "  " + item.libCode + "  " + item.libName + "\n";
+            //    i++;
+            //}
+            //text = "下面是图书馆列表，请回复序号或者馆代码。\n" + text;
 
-            return text;
+            return "";
         }
 
 

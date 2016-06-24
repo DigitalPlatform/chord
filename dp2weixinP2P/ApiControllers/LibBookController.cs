@@ -31,14 +31,21 @@ namespace dp2weixinWeb.ApiControllers
             if (string.IsNullOrEmpty(weixinId) == false)
             {
                 // 查找当前微信用户绑定的工作人员账号
-                WxUserItem user = WxUserDatabase.Current.GetWorkerByLibId(weixinId, libId);
+                WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
                 // todo 后面可以放开对读者的权限
                 if (user != null)
                 {
                     // 检索是否有权限 _wx_setbbj
                     string needRight = dp2WeiXinService.C_Right_SetBook;
 
-                    int nHasRights = dp2WeiXinService.Instance.CheckRights(user.libUserName,
+                    LibItem lib = LibDatabase.Current.GetLibById(libId);
+                    if (lib == null)
+                    {
+                        strError = "未找到id为["+libId+"]的图书馆定义。";
+                        goto ERROR1;
+                    }
+
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
                         user.userName,
                         needRight,
                         out strError);
@@ -91,14 +98,21 @@ namespace dp2weixinWeb.ApiControllers
             if (string.IsNullOrEmpty(weixinId) == false)
             {
                 // 查找当前微信用户绑定的工作人员账号
-                WxUserItem user = WxUserDatabase.Current.GetWorkerByLibId(weixinId, libId);
+                WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
                 // todo 后面可以放开对读者的权限
                 if (user != null)
                 {
                     // 检索是否有权限 _wx_setbbj
                     string needRight = dp2WeiXinService.C_Right_SetBook;
 
-                    int nHasRights = dp2WeiXinService.Instance.CheckRights(user.libUserName,
+                    LibItem lib = LibDatabase.Current.GetLibById(libId);
+                    if (lib == null)
+                    {
+                        strError = "未找到id为[" + libId + "]的图书馆定义。";
+                        goto ERROR1;
+                    }
+
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
                         user.userName,
                         needRight,
                         out strError);

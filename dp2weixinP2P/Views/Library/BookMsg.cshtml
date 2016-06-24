@@ -29,15 +29,20 @@
         {
             alert(msgId);
             var libId = $("libId").text();
+            var userName = $("userName").text();
             var subject = $("subject").text();
-            gotoUrl("/Library/BookEdit?libId="+libId+"&subject="+subject+"&msgId="+msgId+"&returnUrl=' + encodeURIComponent('/Library/BookMsg?subject="+subject))
+            gotoUrl("/Library/BookEdit?libId="+libId
+                +"&userName="+userName
+                +"&subject="+subject
+                +"&msgId="+msgId
+                +"&returnUrl=" + encodeURIComponent("/Library/BookMsg?libId="+libId+"&userName="+userName+"&subject="+subject );
         }
 
     </script>
 }
-<span id="libId" style="display:none">@ViewBag.LibId</span>
-<span id="userName" style="display:none">@ViewBag.UserName</span>
-<span id="subject" style="display:none">@ViewBag.Subject</span>
+<span id="libId" style="display:none">@ViewBag.libId</span>
+<span id="userName" style="display:none">@ViewBag.userName</span>
+<span id="subject" style="display:none">@ViewBag.subject</span>
 
 
 @section header {
@@ -45,14 +50,15 @@
 }
 
 
-@if (String.IsNullOrEmpty(ViewBag.UserName)== false)
+@if (String.IsNullOrEmpty(ViewBag.userName)== false)
 { 
 <div id="divNew" class="mui-content-padded" style="display:none">
-    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit()">
+    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('')">
         发布好书推荐
     </button>
 </div>
 }
+
 @foreach(dp2weixin.service.MessageItem item in Model)
 { 
     <div class="mui-card" style="margin-top:10px">
@@ -63,7 +69,7 @@
                 <span>@item.creator</span>
             </p>
             <div>@item.contentHtml</div>
-            @if(String.IsNullOrEmpty(ViewBag.UserName)== false)
+            @if(String.IsNullOrEmpty(ViewBag.userName)== false)
             { 
             <div style="text-align:right">
                 <button class="mui-btn  mui-btn-default" data-bind="gotoEdit('@item.id')">编辑</button>

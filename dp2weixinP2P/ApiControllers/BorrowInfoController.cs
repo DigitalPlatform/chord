@@ -12,17 +12,17 @@ namespace dp2weixinWeb.ApiControllers
     {
 
         // GET api/<controller>
-        public BorrowInfoResult GetBorrowInfos(string libUserName,
+        public BorrowInfoResult GetBorrowInfos(string libId,
             string patronBarcode)
         {
 
-            return  dp2WeiXinService.Instance.GetPatronBorrowInfos(libUserName,
+            return  dp2WeiXinService.Instance.GetPatronBorrowInfos1(libId,
                  patronBarcode);
         }
 
         // POST api/<controller>
         [HttpPost]
-        public ApiResult Post(string libUserName,
+        public ApiResult Post(string libId,
             string action,
             string patron,
             string item)
@@ -32,7 +32,7 @@ namespace dp2weixinWeb.ApiControllers
             if (action == "renew")
             { 
             string strError = "";
-            int nRet = dp2WeiXinService.Instance.Renew(libUserName,
+            int nRet = dp2WeiXinService.Instance.Renew1(libId,
                 item,
                 out strError);
             result.errorCode = nRet;

@@ -3,7 +3,6 @@
 
         //观察模型
         var model = {
-            selectedLib: ko.observable(),
             reservations: ko.observableArray()    //预约列表
         }
 
@@ -14,11 +13,19 @@
             if (weixinId == "")
                 return;
 
+            // 图书馆
+            var libId = $("#selLib").val();
+            if (libId == "" || libId == null) {
+                return;
+            }
+
             //显示等待图层
             var index = loadLayer();
 
             // 调web api
-            var url = "/api/wxuser?weixinId=" + weixinId + "&style=active";
+            var url = "/api/wxuser?libId=" + encodeURIComponent(libId)
+                + "&weixinId=" + weixinId
+                + "&style=active";
             sendAjaxRequest(url, "GET", function (data) {
 
                 // 关闭等待层
@@ -27,13 +34,22 @@
                 if (data == null)
                     return;
 
-                //spanLibCode
-                $("#spanLibCode").text(data.libCode + "*" + data.libUserName);
-                //patronBarcode
-                $("#patronBarcode").text(data.readerBarcode);
-                $("#patronName").text(data.readerName);
-                //libUserName
-                $("#libUserName").text(data.libUserName);
+                if (data.list != null && data.list.length > 0)
+                {
+                    for (var i = 0; i < data.list.length; i++) {
+                        var user = data.list[i];
+                        // 读者
+                        if (user.type==0)
+                        {
+                            $("#patronBarcode").text(data.readerBarcode);
+                            $("#patronName").text(data.readerName);
+                        }
+                        else if  (user.type==1)
+                        {
+                            $("#workerUserName").text(data.userName);
+                        }
+                    }
+                }
 
             }, function (xhq, textStatus, errorThrown) {
 
@@ -50,17 +66,23 @@
             // 先删除可观察数组中的已有数据
             model.reservations.removeAll();                     
 
-            var libUserName = $("#libUserName").text();
-            if (libUserName == "") //未绑定
+            // 图书馆
+            var libId = $("#selLib").val();
+            if (libId == "" || libId == null) {
                 return;
+            }
 
             var patronBarcode = $("#patronBarcode").text();
+            if (patronBarcode == "")
+            {
+                return;// 未绑定
+            }
 
             //显示等待图层
             var index = loadLayer();
 
             // 调web api
-            var url = "/api/Reservation?libUserName=" + encodeURIComponent(libUserName)
+            var url = "/api/Reservation?libId=" + encodeURIComponent(libId)
                 + "&patronBarcode=" + encodeURIComponent(patronBarcode);
             sendAjaxRequest(url, "GET", function (result) {
 
@@ -138,17 +160,7 @@
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
 
-            //alert("ready");
-            //var isFirst1 = $("#isFirst1").val();
-            //if (isFirst1 == "1") {
-            //    $("#isFirst1").val("0");
-            //    alert("isFirst1");
-            //}
-
-            // 为了记住上次选择的图书馆，不能这样使用，相关代码已删除
-            //获取图书馆列表
-            //getAllLib();
-
+            // 获取当前图书馆对应的读者
             //2016-6-17 jane 获得当前绑定读者，为了解决普通浏览器返回时，读者信息没更新的问题,iphone倒是更新了
             getActivePatron();
 
@@ -187,20 +199,16 @@
             // 先删除more
             $("#more").remove();
 
-            var libUserName = "";
             var from = "";
             var word = "";
 
             // 图书馆
-            var lib = model.selectedLib();
-            if (lib == "" || lib == null) {
+            var libId = $("#selLib").val();
+            if (libId == "" || libId == null) {
                 alert("您尚未选择图书馆。");
                 return;
             }
-            //alert(lib);
-            var nIndex = lib.indexOf("*");
-            var libCode = lib.substr(0, nIndex);
-            var libUserName = lib.substr(nIndex + 1);
+
 
             if (bNext == 'true') {
                 from = "_N";
@@ -246,7 +254,7 @@
             var index = loadLayer();
 
             // 调web api
-            var url = "/api/biblio?libUserName=" + encodeURIComponent(libUserName)
+            var url = "/api/biblio?libId=" + encodeURIComponent(libId)
                 + "&from=" + encodeURIComponent(from)
                 + "&word=" + encodeURIComponent(word)
                 + "&resultSet=" + encodeURIComponent(resultSet);
@@ -294,7 +302,7 @@
                             + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\""+id+"\")'>" + record.no + " " + record.name + "</a>"
                             + "<div class='mui-collapse-content' style='display:none;'>"
                                 + "<span class='pendingDetail' >"
-                                    + "<label>"+record.libUserName+"|"+record.recPath+"</label>"
+                                    + "<label>"+record.libId+"|"+record.recPath+"</label>"
                                     + "<img src='../img/wait2.gif' />"
                                 + "</span>"
                             + "</div>"
@@ -351,19 +359,12 @@
                 }
             }
 
-
-            var selLib = model.selectedLib();
-            var myLib = $("#spanLibCode").text();
-            if (selLib != myLib) //应该不会走到这里，因为当前选择的图书馆不是绑定对应的图书馆的时候，不会走到这里
+            var libId = $("#selLib").value();
+            if (libid == "")
             {
-                alert("您绑定的图书馆与选择的图书馆不一致");
+                alert("尚未选择图书馆");
                 return;
             }
-            //alert(lib);
-            var nIndex = myLib.indexOf("*");
-            var libCode = myLib.substr(0, nIndex);
-            var libUserName = myLib.substr(nIndex + 1);
-
 
             var patron = $("#patronBarcode").text();
             if (patron == "")
@@ -372,22 +373,16 @@
                 return;
             }
 
-            var items = barcode;//"";
-            //$("input[name='ckbBarcode']:checked").each(function () {                
-            //    if (items != "")
-            //        items += ",";
-            //    items += $(this).val();
-            //});
+            var items = barcode;
             if (items == "") {
                 alert("您尚未选择要预约的册记录。");
                 return;
             }
-            //alert(items);
 
             //显示等待图层
             var index = loadLayer();
 
-            var url = "/api/Reservation?libUserName=" + encodeURIComponent(libUserName)
+            var url = "/api/Reservation?libId=" + encodeURIComponent(libId)
                 + "&patron=" + encodeURIComponent(patron)
                 + "&items=" + encodeURIComponent(items)
                 + "&style=" + style;//new 创建一个预约请求,delete删除
@@ -509,7 +504,14 @@
                 return;
             }
 
-            var libUserName = $("#libUserName").text();;
+            var libId = $("#libId").val();
+            if (libId == "")
+            {
+                alert("尚未选择图书馆");
+                return;
+            }
+
+
             var patronBarcode = $("#patronBarcode").text();
             if (patronBarcode == "") {
                 alert("您尚未绑定图书馆读者账户，请先绑定账户。");
@@ -519,7 +521,7 @@
             //显示等待图层
             var index = loadLayer();
 
-            var url = "/api/BorrowInfo?libUserName=" + encodeURIComponent(libUserName)
+            var url = "/api/BorrowInfo?libId=" + encodeURIComponent(libId)
                 + "&action=renew"
                 + "&patron=" + encodeURIComponent(patronBarcode)
                 + "&item=" + encodeURIComponent(itemBarcode)
@@ -594,17 +596,17 @@
 
             // 取出图书馆账号与记录路径
             var nIndex = keyword.indexOf('|');
-            var libUserName = keyword.substring(0, nIndex);
+            var libId = keyword.substring(0, nIndex);
             var biblioPath = keyword.substring(nIndex + 1);
             //alert("type[" + mytype + "]-value[" + myvalue + "]");
-            if (libUserName == "" || biblioPath == "") {
-                o.html("记录路径值[" + keyword + "]不对，格式应该为[图书馆账号|记录路径]");
+            if (libId == "" || biblioPath == "") {
+                o.html("记录路径值[" + keyword + "]不对，格式应该为[图书馆id|记录路径]");
                 o.removeClass("pendingDetail");
                 return;
             }
 
             // 调api
-            var url = "/api/biblio?libUserName=" + encodeURIComponent(libUserName) + "&biblioPath=" + encodeURIComponent(biblioPath);
+            var url = "/api/biblio?libId=" + encodeURIComponent(libId) + "&biblioPath=" + encodeURIComponent(biblioPath);
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 出错或未命中
@@ -619,12 +621,11 @@
                 if (result.itemList.length == 0)
                     itemTables = "<div  class='mui-card' style='padding:0px;margin:0px;margin-top:3px'><center><img src='../img/empty3.png' width='50' height='50' style='padding-top:3px' /><div style='color:#999999'>该书没有下级册信息。</div><center></div>"
 
-                var selLib = model.selectedLib();
-                var myLib = $("#spanLibCode").text();
+                var patronBarcode = $("#patronBarcode").text();
                 var bCanReservation = false;
                 var returnUrl = "/Biblio/Index";
                 var info = "<span style='color:#999999;'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl=" + encodeURIComponent(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>"
-                if (myLib != "" && selLib == myLib) 
+                if (patronBarcode != null && patronBarcode !="") // 有绑定的读者
                 {
                     bCanReservation = true;
                     info = "";
@@ -655,9 +656,6 @@
                             myReserHtml = "<div style='color:#999999;'>该册目前是您在借中，不能预约。</div>";
                         }
                     }
-
-
-
 
                     itemTables += "<table class='itemTable'>"
                     +"<tr>"
@@ -693,9 +691,13 @@
                     + "</table>";
                 }
 
-                var recommPath = "/Library/BookEdit?returnUrl=" + encodeURIComponent('/Biblio/Index') + "&biblioPath=" + encodeURIComponent(biblioPath)
-                var recommendBtn = "<div><button class='mui-btn  mui-btn-default' "
-                    +" onclick=\"gotoUrl('"+recommPath+"')\">好书推荐</button></div>";
+                var worker = $("#workerUserName").text();
+                var recommendBtn = "";
+                if (worker != null && worker != "") {
+                    var recommPath = "/Library/BookEdit?returnUrl=" + encodeURIComponent('/Biblio/Index') + "&biblioPath=" + encodeURIComponent(biblioPath)
+                    recommendBtn = "<div><button class='mui-btn  mui-btn-default' "
+                        + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button></div>";
+                }
 
                 var myHtml = "<span>" + result.summary + "</span>" +recommendBtn+ itemTables;
 
@@ -770,24 +772,22 @@
     <h1 class="mui-title">书目查询</h1>
     }
 <span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
-<span id="spanLibCode" style="display:none">@ViewBag.LibCode</span>
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
 <span id="patronName" style="display:none">@ViewBag.PatronName</span>
-<span id="libUserName" style="display:none">@ViewBag.LibUserName</span>
+
+
 <input id="maxNo" type="hidden" >
 <input id="resultSet" type="hidden" value="" disabled="disabled">
 <input id="expandId" type="hidden" value="" disabled="disabled">
+
+
+<span id="workerUserName" style="display:none">@ViewBag.workerUserName</span>
 
     <div id="divForm">
         <div class="mui-input-group">
             <div class="mui-input-row ">
                 <label style="color:#cccccc;">图书馆</label>
                 @Html.Raw(ViewBag.LibHtml)
-                <!--
-                <select id="selLib" style="padding-left: 0px;width: 65%" data-bind="options:librarys,optionsText:function(item) {
-                       return  item.libName; },optionsValue:function(item) {
-                       return item.libCode + '*' + item.libUserName; },optionsCaption:'请选择 图书馆',value:selectedLib"></select>
-                -->
             </div>
 
             <div class="mui-input-row ">

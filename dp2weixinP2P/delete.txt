@@ -1,4 +1,179 @@
-﻿===列表方式的公告
+﻿============
+        #region 不再使用
+
+        /*
+        public  long SearchOnePatronByWeiXinId(string remoteUserName,
+            string libCode,
+            string strWeiXinId,
+            out string strBarcode,
+            out string strError)
+        {
+            strError = "";
+            strBarcode = "";
+
+            // 从mongodb中检查是否绑定了用户
+            WxUserItem userItem = WxUserDatabase.Current.GetActiveOrFirst(strWeiXinId, libCode);
+            if (userItem == null)
+            {
+                strError = "异常的情况，未怎么图书馆时不应走到SearchPatronByWeiXinId函数。";
+                return -1;
+            }
+
+            // mongodb存在
+            if (String.IsNullOrEmpty(userItem.readerBarcode) == false)
+            {
+                strBarcode = userItem.readerBarcode;
+                return 1;
+            }
+
+            // 从远程dp2library中查
+            string strWord = WeiXinConst.C_WeiXinIdPrefix + strWeiXinId;
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            SearchRequest request = new SearchRequest(id,
+                "searchPatron",
+                "<全部>",
+                strWord,
+                "email",
+                "left",
+                "wx-patron",
+                "id,cols",
+                1000,
+                0,
+                WeiXinConst.C_Search_MaxCount);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                    this.dp2MServerUrl,
+                    remoteUserName).Result;
+
+                SearchResult result = connection.SearchAsync(
+                    remoteUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.ResultCount == -1)
+                {
+                    strError = result.ErrorInfo;
+                    return -1;
+                }
+                if (result.ResultCount == 0)
+                    return 0;
+
+                // 找到对应的读者记录
+                if (result.ResultCount > 0)
+                {
+                    LibItem libItem = LibDatabase.Current.GetLibByLibCode(libCode);
+                    string libName = libItem.libName;
+                    for (int i = 0; i < result.ResultCount; i++)
+                    {
+                        // 可能会检索出多笔记录，先取第一笔 todo
+                        string strXml = result.Records[i].Data;
+                        XmlDocument dom = new XmlDocument();
+                        dom.LoadXml(strXml);
+                        string strTempBarcode = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("barcode"));
+
+                        // 更新到mongodb库
+                        string name = "";
+                        XmlNode node = dom.DocumentElement.SelectSingleNode("name");
+                        if (node != null)
+                            name = DomUtil.GetNodeText(node);
+                        string refID = "";
+                        node = dom.DocumentElement.SelectSingleNode("refID");
+                        if (node != null)
+                            refID = DomUtil.GetNodeText(node);
+
+                        if (i == 0)
+                        {
+                            userItem.readerBarcode = strTempBarcode;
+                            userItem.readerName = name;
+                            userItem.xml = strXml;
+                            userItem.refID = refID;
+                            userItem.updateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                            WxUserDatabase.Current.Update(userItem);
+                            //将第一笔设为活动状态
+                            WxUserDatabase.Current.SetActive(userItem);
+                            //返回的strBarcode //todo refID
+                            strBarcode = strTempBarcode;
+                        }
+                        else
+                        {
+                            userItem = new WxUserItem();
+                            userItem.weixinId = strWeiXinId;
+                            userItem.libCode = libCode;
+                            userItem.libUserName = remoteUserName;
+                            userItem.libName = libName;
+                            userItem.readerBarcode = strTempBarcode;
+                            userItem.readerName = name;
+                            userItem.xml = strXml;
+                            userItem.refID = refID;
+                            userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                            userItem.updateTime = userItem.createTime;
+                            WxUserDatabase.Current.Add(userItem);
+                        }
+                    }
+
+                    return 1;
+                }
+
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+        ERROR1:
+            return -1;
+        }
+        */
+        #endregion
+
+
+============
+        #region del
+        // GET: Patron
+        public ActionResult Index(string code, string state)
+        {
+            string strError = "";
+            string strXml = "";
+            WxUserItem activeUserItem = null;
+            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
+            if (nRet == -1 || nRet == 0)
+                return Content(strError);
+
+            if (nRet == -2)// 未绑定的情况，转到绑定界面
+            {
+                return RedirectToAction("Bind", "Account");
+            }
+            // 没有设置默认账户，转到帐户管理界面
+            if (nRet == -3)
+            {
+                return RedirectToAction("Index", "Account");
+            }
+            
+            // 获取当前账户的信息
+            PatronInfo patronInfo =null;
+            nRet = dp2WeiXinService.Instance.GetPatron(activeUserItem.libUserName,
+                activeUserItem.readerBarcode,
+                out patronInfo,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+            {
+                return Content(strError);
+            }
+            ViewBag.LibUserName = activeUserItem.libUserName;
+            return View(patronInfo);
+        }
+
+        #endregion
+
+
+===列表方式的公告
 
     <ul class="mui-table-view" data-bind=" foreach:model.list">
         <li class="mui-table-view-cell">

@@ -25,7 +25,7 @@ namespace dp2weixin.service
         public string no = "";
         public string recPath = "";
         public string name = "";
-        public string libUserName = "";
+        public string libId = "";
     }
 
     public class BiblioRecordResult : ApiResult
