@@ -70,6 +70,9 @@ namespace TestClient1
                 text.Append("format=" + HttpUtility.HtmlEncode(record.format) + "\r\n");
                 text.Append("type=" + HttpUtility.HtmlEncode(record.type) + "\r\n");
                 text.Append("thread=" + HttpUtility.HtmlEncode(record.thread) + "\r\n");
+                
+                if (record.subjects != null)
+                    text.Append("subjects=" + HttpUtility.HtmlEncode(string.Join(",", record.subjects)) + "\r\n");
 
                 text.Append("publishTime=" + HttpUtility.HtmlEncode(record.publishTime) + "\r\n");
                 text.Append("expireTime=" + HttpUtility.HtmlEncode(record.expireTime) + "\r\n");
@@ -959,6 +962,9 @@ string strHtml)
                     text.Append("type=" + record.type + "\r\n");
                     text.Append("thread=" + record.thread + "\r\n");
 
+                    if (record.subjects != null)
+                        text.Append("subjects=" + (string.Join(",", record.subjects)) + "\r\n");
+
                     text.Append("publishTime=" + record.publishTime.ToString("G") + "\r\n");
                     text.Append("expireTime=" + record.expireTime + "\r\n");
 
@@ -990,6 +996,10 @@ string strHtml)
                     text.Append("userName=" + record.userName + "\r\n");
                     text.Append("publishTime=" + record.publishTime + "\r\n");
                     text.Append("expireTime=" + record.expireTime + "\r\n");
+
+                    if (record.subjects != null)
+                        text.Append("subjects=" + string.Join(",", record.subjects) + "\r\n");
+
                     i++;
                 }
             }
@@ -1240,10 +1250,13 @@ string strHtml)
         private void button_message_send_Click(object sender, EventArgs e)
         {
             DoSendMessage(this.textBox_message_groupName.Text,
-                this.textBox_message_text.Text);
+                this.textBox_message_text.Text,
+                null);
         }
 
-        async void DoSendMessage(string strGroupName, string strText)
+        async void DoSendMessage(string strGroupName,
+            string strText,
+            string[] subjects)
         {
             string strError = "";
 
@@ -1267,6 +1280,7 @@ string strHtml)
                     record.format = "text";
                     record.type = "message";
                     record.thread = "";
+                    record.subjects = subjects;
                     record.expireTime = new DateTime(0);    // 表示永远不失效
                     records.Add(record);
                 }
@@ -1280,6 +1294,7 @@ string strHtml)
                 record.format = "text";
                 record.type = "message";
                 record.thread = "";
+                record.subjects = subjects;
                 record.expireTime = new DateTime(0);    // 表示永远不失效
                 records.Add(record);
             }
@@ -1298,8 +1313,8 @@ string strHtml)
                         "",
                         records);
 
-                    SetMessageResult result = await connection.SetMessageAsyncLite(param, 
-                        new TimeSpan(0, 1, 0), 
+                    SetMessageResult result = await connection.SetMessageAsyncLite(param,
+                        new TimeSpan(0, 1, 0),
                         this._cancel.Token);
 
                     this.Invoke(new Action(() =>
@@ -1336,13 +1351,17 @@ string strHtml)
                     this.textBox_message_userRange.Text,
                 this.textBox_message_timeRange.Text,
                 this.textBox_message_sortCondition.Text,
-                this.textBox_message_text.Text);
+                this.textBox_message_text.Text,
+                "");
             else
-                DoLoadMessage(this.textBox_message_groupName.Text,
+                DoLoadMessage(
+                    "",
+                    this.textBox_message_groupName.Text,
                     this.textBox_message_userRange.Text,
                     this.textBox_message_timeRange.Text,
                 this.textBox_message_sortCondition.Text,
-                this.textBox_message_text.Text);
+                this.textBox_message_text.Text,
+                "");
         }
 
         void FillMessage(long totalCount,
@@ -1385,6 +1404,9 @@ string strHtml)
                     text.Append("format=" + HttpUtility.HtmlEncode(record.format) + "\r\n");
                     text.Append("type=" + HttpUtility.HtmlEncode(record.type) + "\r\n");
                     text.Append("thread=" + HttpUtility.HtmlEncode(record.thread) + "\r\n");
+
+                    if (record.subjects != null)
+                        text.Append("subjects=" + HttpUtility.HtmlEncode(string.Join(",", record.subjects)) + "\r\n");
 
                     text.Append("publishTime=" + HttpUtility.HtmlEncode(record.publishTime.ToString("G")) + "\r\n");
                     text.Append("expireTime=" + HttpUtility.HtmlEncode(record.expireTime) + "\r\n");
@@ -1442,11 +1464,14 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             }
         }
 
-        async void DoLoadMessage(string strGroupCondition, 
+        async void DoLoadMessage(
+            string strAction,
+            string strGroupCondition,
             string strUserCondition,
             string strTimeRange,
             string strSortCondition,
-            string strIdContidion)
+            string strIdContidion,
+            string strSubjectCondition)
         {
             string strError = "";
 
@@ -1460,12 +1485,13 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
                 string id = Guid.NewGuid().ToString();
                 GetMessageRequest request = new GetMessageRequest(id,
-                    "",
+                    strAction,
                     strGroupCondition, // "" 表示默认群组
                     strUserCondition,
                     strTimeRange,
                     strSortCondition,
                     strIdContidion,
+                    strSubjectCondition,
                     0,
                     -1);
                 try
@@ -1507,7 +1533,8 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         void DoLoadMessage1(string strGroupCondition,
             string strTimeRange,
             string strSortCondition,
-            string strIdCondition)
+            string strIdCondition,
+            string strSubjectCondition)
         {
             string strError = "";
 
@@ -1527,6 +1554,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     strTimeRange,
                     strSortCondition,
                     strIdCondition,
+                    strSubjectCondition,
                     0,
                     -1);
                 try
@@ -1563,11 +1591,12 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 
-        async void DoLoadMessage2(string strGroupCondition, 
+        async void DoLoadMessage2(string strGroupCondition,
             string strUserCondition,
             string strTimeRange,
             string strSortCondition,
-            string strIdCondition)
+            string strIdCondition,
+            string strSubjectCondition)
         {
             string strError = "";
 
@@ -1587,6 +1616,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     strTimeRange,
                     strSortCondition,
                     strIdCondition,
+                    strSubjectCondition,
                     0,
                     -1);
                 try
@@ -1708,6 +1738,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     "",
                     "",
                     "",
+                    "",
                     0,
                     -1);
                 try
@@ -1787,6 +1818,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     strGroupCondition,
                     strUserCondition,
                     "", // strTimeRange,
+                    "",
                     "",
                     "",
                     0,
@@ -2331,6 +2363,88 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
             doc = doc.OpenNew(true);
             doc.Write("<html><body>");
+        }
+
+        private void ToolStripMenuItem_sendMessage_Click(object sender, EventArgs e)
+        {
+            SendMessageDialog dlg = new SendMessageDialog();
+
+            dlg.UiState = Settings.Default.sendMessageDialog_ui;
+            dlg.ShowDialog(this);
+            Settings.Default.sendMessageDialog_ui = dlg.UiState;
+            if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
+                return;
+
+            this.tabControl_main.SelectedTab = this.tabPage_message;
+            DoSendMessage(dlg.GroupName,
+            dlg.Data,
+            dlg.Subjects);
+        }
+
+        private void ToolStripMenuItem_getMessage_Click(object sender, EventArgs e)
+        {
+            GetMessageDialog dlg = new GetMessageDialog();
+
+            dlg.UiState = Settings.Default.getMessageDialog_ui;
+            dlg.ShowDialog(this);
+            Settings.Default.getMessageDialog_ui = dlg.UiState;
+            if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
+                return;
+
+            this.tabControl_main.SelectedTab = this.tabPage_message;
+
+            DoLoadMessage(
+                "",
+                dlg.GroupCondition,
+                dlg.UserCondition,
+                dlg.TimeCondition,
+                dlg.SortCondition,
+                dlg.IdCondition,
+                dlg.SubjectCondition);
+        }
+
+        private void ToolStripMenuItem_enumSubject_Click(object sender, EventArgs e)
+        {
+            GetMessageDialog dlg = new GetMessageDialog();
+
+            dlg.UiState = Settings.Default.getMessageDialog_ui;
+            dlg.ShowDialog(this);
+            Settings.Default.getMessageDialog_ui = dlg.UiState;
+            if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
+                return;
+
+            this.tabControl_main.SelectedTab = this.tabPage_message;
+
+            DoLoadMessage(
+                "enumSubject",
+                dlg.GroupCondition,
+                dlg.UserCondition,
+                dlg.TimeCondition,
+                dlg.SortCondition,
+                dlg.IdCondition,
+                dlg.SubjectCondition);
+        }
+
+        private void ToolStripMenuItem_enumCreator_Click(object sender, EventArgs e)
+        {
+            GetMessageDialog dlg = new GetMessageDialog();
+
+            dlg.UiState = Settings.Default.getMessageDialog_ui;
+            dlg.ShowDialog(this);
+            Settings.Default.getMessageDialog_ui = dlg.UiState;
+            if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
+                return;
+
+            this.tabControl_main.SelectedTab = this.tabPage_message;
+
+            DoLoadMessage(
+                "enumCreator",
+                dlg.GroupCondition,
+                dlg.UserCondition,
+                dlg.TimeCondition,
+                dlg.SortCondition,
+                dlg.IdCondition,
+                dlg.SubjectCondition);
         }
     }
 }

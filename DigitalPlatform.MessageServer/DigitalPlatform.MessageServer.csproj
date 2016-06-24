@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConnectionTable.cs" />
+    <Compile Include="Database\CollectionQuery.cs" />
     <Compile Include="Database\GroupQuery.cs" />
     <Compile Include="Database\MongoDatabase.cs" />
     <Compile Include="Global.cs" />

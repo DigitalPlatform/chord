@@ -9,6 +9,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
+using DigitalPlatform.Common;
 using DigitalPlatform.Text;
 
 namespace DigitalPlatform.MessageServer
@@ -33,6 +34,10 @@ new CreateIndexOptions() { Unique = false });
             await _collection.Indexes.CreateOneAsync(
 Builders<MessageItem>.IndexKeys.Ascending("thread"),
 new CreateIndexOptions() { Unique = false });
+            await _collection.Indexes.CreateOneAsync(
+Builders<MessageItem>.IndexKeys.Ascending("subjects"),
+new CreateIndexOptions() { Unique = false });
+            // TODO: 消息库要能随时初始化，或者重新创建 index
         }
 
         // return:
@@ -46,7 +51,8 @@ new CreateIndexOptions() { Unique = false });
         FilterDefinition<MessageItem> BuildQuery(GroupQuery group_query,
             string userCondition,
             string timeRange,
-            string idCondition)
+            string idCondition,
+            string subjectCondition)
         {
             string strStart = "";
             string strEnd = "";
@@ -132,6 +138,8 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
                     items.Add(user_filter);
                 if (id_filter != null)
                     items.Add(id_filter);
+                if (string.IsNullOrEmpty(subjectCondition) == false)
+                    items.Add(CollectionQuery.BuildMongoQuery(subjectCondition, "subjects"));
 
                 return Builders<MessageItem>.Filter.And(items);
             }
@@ -156,6 +164,7 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
             string timeRange,
             string sortCondition,
             string idCondition,
+            string subjectCondition,
             int start,
             int count,
             Delegate_outputMessage proc)
@@ -167,7 +176,8 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
                 group_query,
                 userCondition,
                 timeRange,
-                idCondition);
+                idCondition,
+                subjectCondition);
 #if NO
             if (string.IsNullOrEmpty(groupName))
             {
@@ -402,6 +412,7 @@ int count,
 
 #endif
 
+#if NO
         // 这个版本速度最快。因为 Group 操作是在 mongodb 数据库内执行的
         // 检索出指定范围的 群名类型
         // Aggregate() 如何与 filter 一起使用
@@ -419,6 +430,7 @@ int count,
                 group_query,
                 "",
                 timeRange,
+                "",
                 "");
 
             var myresults = await collection.Aggregate().Match(filter)
@@ -446,6 +458,7 @@ int count,
 
             proc(totalCount, null); // 表示结束
         }
+#endif
 
         // 这个版本资源耗费厉害
         // 按照条件检索出 MessageItem 中的 group 字段，并归并去重
@@ -464,6 +477,7 @@ int count,
                 group_query,
                 "",
                 timeRange,
+                "",
                 "");
 
             // 在遍历过程中，只接收 groups 字段
@@ -539,6 +553,104 @@ int count,
                 results.Add(v.ToString());
             }
             return results.ToArray();
+        }
+
+        // parameters:
+        //      field   字段名。例如 groups/subjects
+        public async Task GetFieldAggregate(
+            string field,
+            GroupQuery group_query,
+            string userCondition,
+            string timeRange,
+            string idCondition,
+            string subjectCondition,
+int start,
+int count,
+Delegate_outputMessage proc)
+        {
+            IMongoCollection<MessageItem> collection = this._collection;
+
+            FilterDefinition<MessageItem> filter = BuildQuery(// groupName,
+                group_query,
+                userCondition,
+                timeRange,
+                idCondition,
+                subjectCondition);
+
+#if NO
+            var group = new BsonDocument { 
+                    { "$group", 
+                        new BsonDocument 
+                            { 
+                                { "_id", new BsonDocument 
+                                             { 
+                                                 { 
+                                                     "MyUser","$subject" 
+                                                 } 
+                                             } 
+                                }, 
+
+                                { 
+                                    "Count", new BsonDocument 
+                                                 { 
+                                                     { 
+                                                         "$sum", 1 
+                                                     } 
+                                                 } 
+                                } 
+                            } 
+                  } 
+                };
+#endif
+
+            var myresults = await collection.Aggregate().Match(filter)
+                //.Group(new BsonDocument("_id", "$subjects"))
+.Group(
+                        new BsonDocument 
+                            { 
+                                { "_id", "$" + field }, 
+
+                                { 
+                                    "c", new BsonDocument 
+                                                 { 
+                                                     { 
+                                                         "$sum", 1 
+                                                     } 
+                                                 } 
+                                } 
+                            }
+)
+.ToListAsync();
+
+            long totalCount = myresults.Count;
+            var index = 0;
+            foreach (BsonDocument doc in myresults)
+            {
+                if (count != -1 && index - start >= count)
+                    break;
+                Type type = null;
+                if (index >= start)
+                {
+                    MessageItem item = new MessageItem();
+
+                    // BsonArray array = (doc.GetValue("_id") as BsonArray);
+                    if (type == null)
+                        type = item.GetPropertyType(field);
+                    BsonValue temp = doc.GetValue("_id");
+                    if (type.Equals(typeof(string[])))
+                        item.SetPropertyValue(field, GetStringArray(temp as BsonArray));
+                    else
+                        item.SetPropertyValue(field, temp.ToString());
+
+                    item.data = doc.GetValue("c").ToString();
+                    if (proc(totalCount, item) == false)
+                        return;
+                }
+
+                index++;
+            }
+
+            proc(totalCount, null); // 表示结束
         }
 
         // parameters:
@@ -674,6 +786,7 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
         public string format { get; set; } // 消息格式。格式是从存储格式角度来说的
         public string type { get; set; }    // 消息类型。类型是从用途角度来说的
         public string thread { get; set; }    // 消息所从属的话题线索
+        public string[] subjects { get; set; }   // 主题词
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime publishTime { get; set; } // 消息发布时间
@@ -718,7 +831,10 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
             if (new_item.publishTime.ToString() != item.publishTime.ToString())
                 errors.Add("publishTime 不一致");
             if (new_item.expireTime.ToString() != item.expireTime.ToString())
-                errors.Add("id 不一致");
+                errors.Add("expireTime 不一致");
+
+            if (IsEqual(new_item.subjects, item.subjects) == false)
+                errors.Add("subjects 不一致");
 
             if (errors.Count == 0)
                 return "";
@@ -737,6 +853,7 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
             text.Append("format=" + format + "\r\n");
             text.Append("type=" + type + "\r\n");
             text.Append("thread=" + thread + "\r\n");
+            text.Append("subjects=" + string.Join(",", subjects) + "\r\n");
             text.Append("publishTime=" + publishTime.ToString() + "\r\n");
             text.Append("expireTime=" + expireTime.ToString() + "\r\n");
             return text.ToString();
