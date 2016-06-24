@@ -48,10 +48,10 @@
             librarys: ko.observableArray(),
             editor: {
                 id: ko.observable(""),
-                libCode: ko.observable(""),
+                //libCode: ko.observable(""),
                 libName: ko.observable(""),
-                libUserName: ko.observable(""),
-                libContactPhone: ko.observable(""),
+                capoUserName: ko.observable(""),
+                capoContactPhone: ko.observable(""),
 
                 wxUserName: ko.observable(""),
                 wxPassword: ko.observable(""),
@@ -119,24 +119,24 @@
         // 新增一项
         function addLib() {
 
-            var libCode = model.editor.libCode().trim();
-            if (libCode == "") {
-                alert("尚未输入图书馆代码。");
-                return;
-            }
+            //var libCode = model.editor.libCode().trim();
+            //if (libCode == "") {
+            //    alert("尚未输入图书馆代码。");
+            //    return;
+            //}
             var libName = model.editor.libName().trim();
             if (libName == "") {
                 alert("尚未输入图书馆名称。");
                 return;
             }
-            var libUserName = model.editor.libUserName().trim();
-            if (libUserName == "") {
-                alert("尚未输入图书馆dp2opac账号名。");
+            var capoUserName = model.editor.capoUserName().trim();
+            if (capoUserName == "") {
+                alert("尚未输入图书馆dp2capo账号名。");
                 return;
             }
 
             // 图书馆联系人员手机
-            var libContactPhone = model.editor.libContactPhone().trim();
+            var capoContactPhone = model.editor.capoContactPhone().trim();
 
             // 微信端本方账户
             var wxUserName = model.editor.wxUserName().trim();
@@ -165,10 +165,10 @@
                     model.displaySummary(true);
 
                     //清空编辑界面信息
-                    model.editor.libCode("");
+                    //model.editor.libCode("");
                     model.editor.libName("");
-                    model.editor.libUserName("");
-                    model.editor.libContactPhone("");
+                    model.editor.capoUserName("");
+                    model.editor.capoContactPhone("");
 
                     model.editor.wxUserName("");
                     model.editor.wxPassword("");
@@ -185,10 +185,10 @@
                     layer.close(index);
                 },
                 {
-                    libCode: libCode,
+                    //libCode: libCode,
                     libName: libName,
-                    libUserName: libUserName,
-                    libContactPhone: libContactPhone,
+                    capoUserName: capoUserName,
+                    capoContactPhone: capoContactPhone,
                     wxUserName: wxUserName,
                     wxPassword: wxPassword,
                     wxContactPhone: wxContactPhone,
@@ -200,25 +200,25 @@
         // 新增一项
         function editLib() {
 
-            var libCode = model.editor.libCode().trim();
-            if (libCode == "") {
-                alert("尚未输入图书馆代码。");
-                return;
-            }
+            //var libCode = model.editor.libCode().trim();
+            //if (libCode == "") {
+            //    alert("尚未输入图书馆代码。");
+            //    return;
+            //}
             //alert(libCode);
             var libName = model.editor.libName().trim();
             if (libName == "") {
                 alert("尚未输入图书馆名称。");
                 return;
             }
-            var libUserName = model.editor.libUserName().trim();
-            if (libUserName == "") {
-                alert("尚未输入图书馆dp2opac账号名。");
+            var capoUserName = model.editor.capoUserName().trim();
+            if (capoUserName == "") {
+                alert("尚未输入图书馆dp2capo账号名。");
                 return;
             }
 
             // 图书馆联系人员手机
-            var libContactPhone = model.editor.libContactPhone().trim();
+            var capoContactPhone = model.editor.capoContactPhone().trim();
 
             // 微信端本方账户
             var wxUserName = model.editor.wxUserName().trim();
@@ -257,10 +257,10 @@
 
                     //清空编辑界面信息
                     model.editor.id("");
-                    model.editor.libCode("");
+                    //model.editor.libCode("");
                     model.editor.libName("");
-                    model.editor.libUserName("");
-                    model.editor.libContactPhone("");
+                    model.editor.capoUserName("");
+                    model.editor.capoContactPhone("");
 
                     model.editor.wxUserName("");
                     model.editor.wxPassword("");
@@ -278,10 +278,10 @@
                 },
                 {
                     id:id,
-                    libCode: libCode,
+                    //libCode: libCode,
                     libName: libName,
-                    libUserName: libUserName,
-                    libContactPhone: libContactPhone,
+                    capoUserName: capoUserName,
+                    capoContactPhone: capoContactPhone,
                     wxUserName: wxUserName,
                     wxPassword: wxPassword,
                     wxContactPhone: wxContactPhone,
@@ -311,10 +311,10 @@
 
             model.editor.id(item.id);
             //alert("id-["+model.editor.id()+"]");
-            model.editor.libCode(item.libCode);
+            //model.editor.libCode(item.libCode);
             model.editor.libName(item.libName);
-            model.editor.libUserName(item.libUserName);
-            model.editor.libContactPhone(item.libContactPhone);
+            model.editor.capoUserName(item.capoUserName);
+            model.editor.capoContactPhone(item.capoContactPhone);
 
             model.editor.wxUserName(item.wxUserName);
             model.editor.wxPassword(item.wxPassword);
@@ -344,25 +344,27 @@
         <li class="mui-table-view-cell">
 
             <table class="libTable">
-                <tr>
+                 <!--<tr>
                     <td class="label">图书馆id</td>
                     <td class="value" data-bind="text:id"></td>
                 </tr>
+               
                 <tr>
                     <td class="label">图书馆代码</td>
                     <td class="value" data-bind="text:libCode"></td>
                 </tr>
+                    -->
                 <tr>
                     <td class="label">图书馆名称</td>
                     <td class="value" data-bind="text:libName"></td>
                 </tr>
                 <tr>
-                    <td class="label">dp2opac账号名</td>
-                    <td class="value" data-bind="text:libUserName"></td>
+                    <td class="label">dp2capo账号名</td>
+                    <td class="value" data-bind="text:capoUserName"></td>
                 </tr>
                 <tr>
                     <td class="label">图书馆联系人手机号</td>
-                    <td class="value" data-bind="text:libContactPhone"></td>
+                    <td class="value" data-bind="text:capoContactPhone"></td>
                 </tr>
                 <tr>
                     <td class="label">微信端本方账户名</td>
@@ -400,21 +402,23 @@
 
     <div class="mui-card">
         <div class="mui-input-group">
+            <!--
             <div class="mui-input-row ">
                 <label class="leftLabel">图书馆代码</label>
                 <input type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆代码" data-bind="value:model.editor.libCode">
             </div>
+                -->
             <div class="mui-input-row ">
                 <label class="leftLabel">图书馆名称</label>
                 <input type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆名称" data-bind="value:model.editor.libName">
             </div>
             <div class="mui-input-row ">
-                <label class="leftLabel">图书馆dp2opac帐号</label>
-                <input type="text" class="mui-input mui-input-clear" placeholder="请输入  dp2opac帐号" data-bind="value:model.editor.libUserName">
+                <label class="leftLabel">图书馆dp2capo帐号</label>
+                <input type="text" class="mui-input mui-input-clear" placeholder="请输入  dp2capo帐号" data-bind="value:model.editor.capoUserName">
             </div>
             <div class="mui-input-row ">
                 <label class="leftLabel">图书馆联系人手机号</label>
-                <input type="text" class="mui-input mui-input-clear" placeholder="请输入  图书馆联系人手机号" data-bind="value:model.editor.libContactPhone">
+                <input type="text" class="mui-input mui-input-clear" placeholder="请输入  图书馆联系人手机号" data-bind="value:model.editor.capoContactPhone">
             </div>
 
             <div class="mui-input-row ">

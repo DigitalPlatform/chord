@@ -9,7 +9,23 @@ namespace dp2weixinWeb.Controllers
 {
     public class BaseController : Controller
     {
-
+        public string GetLibSelectHtml(string selLibId)
+        {
+            List<LibItem> list = LibDatabase.Current.GetLibs();//"*", 0, -1).Result;
+            var opt = "<option value=''>请选择 图书馆</option>";
+            for (var i = 0; i < list.Count; i++)
+            {
+                var item = list[i];
+                string selectedString = "";
+                if (selLibId != "" && selLibId == item.id)
+                {
+                    selectedString = " selected='selected' ";
+                }
+                opt += "<option value='" + item.id + "' " + selectedString + ">" + item.libName + "</option>";
+            }
+            string libHtml = "<select id='selLib' style='padding-left: 0px;width: 65%;'  >" + opt + "</select>";
+            return libHtml;
+        }
         public int CheckIsFromWeiXin(string code, string state,out string strError)
         {
             strError = "";
@@ -73,5 +89,13 @@ namespace dp2weixinWeb.Controllers
 
             return 0;
         }
+
+        //protected override void OnException(ExceptionContext filterContext)
+        //{
+        //    // 标记异常已处理
+        //    filterContext.ExceptionHandled = true;
+        //    // 跳转到错误页
+        //    filterContext.Result = this.RedirectToAction("Error", "Shared");// new RedirectResult("/Shared/Error");//Url.Action("Error", "Shared"));
+        //}
     }
 }

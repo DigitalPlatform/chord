@@ -1,0 +1,82 @@
+﻿
+@model List<dp2weixin.service.MessageItem>
+
+@section style {
+    <style>
+        .leftLabel {
+            color: #999999;
+        }
+
+        .msg-title {
+            line-height: 1;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-size: 20px;
+        }
+    </style>
+}
+@section Scripts {
+    <script>
+
+        function deleteMsg(msgId)
+        {           
+            alert(msgId);
+
+            // todo 调一下ajax
+        }
+
+        function gotoEdit(msgId)
+        {
+            alert(msgId);
+            var libId = $("libId").text();
+            var userName = $("userName").text();
+            var subject = $("subject").text();
+            gotoUrl("/Library/BookEdit?libId="+libId
+                +"&userName="+userName
+                +"&subject="+subject
+                +"&msgId="+msgId
+                +"&returnUrl=" + encodeURIComponent("/Library/BookMsg?libId="+libId+"&userName="+userName+"&subject="+subject );
+        }
+
+    </script>
+}
+<span id="libId" style="display:none">@ViewBag.libId</span>
+<span id="userName" style="display:none">@ViewBag.userName</span>
+<span id="subject" style="display:none">@ViewBag.subject</span>
+
+
+@section header {
+    <h1 class="mui-title">@ViewBag.Subject</h1>
+}
+
+
+@if (String.IsNullOrEmpty(ViewBag.userName)== false)
+{ 
+<div id="divNew" class="mui-content-padded" style="display:none">
+    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('')">
+        发布好书推荐
+    </button>
+</div>
+}
+
+@foreach(dp2weixin.service.MessageItem item in Model)
+{ 
+    <div class="mui-card" style="margin-top:10px">
+        <div class="mui-content-padded">
+            <div class="msg-title">@item.title</div>
+            <p style="color:gray;font-size:12px">
+                <span>@item.publishTime</span>-
+                <span>@item.creator</span>
+            </p>
+            <div>@item.contentHtml</div>
+            @if(String.IsNullOrEmpty(ViewBag.userName)== false)
+            { 
+            <div style="text-align:right">
+                <button class="mui-btn  mui-btn-default" data-bind="gotoEdit('@item.id')">编辑</button>
+                <button class="mui-btn mui-btn-danger" data-bind="delete('@item.id')">X&nbsp;删除</button>
+            </div>
+            }
+        </div>
+    </div>
+}
+<br />

@@ -145,10 +145,10 @@ namespace dp2weixin.service
 
             var filter = Builders<LibItem>.Filter.Eq("id", id);
             var update = Builders<LibItem>.Update
-                .Set("libCode", item.libCode)
+                //.Set("libCode", item.libCode)
                 .Set("libName", item.libName)
-                .Set("libUserName", item.libUserName) 
-                .Set("libContactPhone", item.libContactPhone)
+                .Set("capoUserName", item.capoUserName)
+                .Set("capoContactPhone", item.capoContactPhone)
 
                 .Set("wxUserName", item.wxUserName)
                 .Set("wxPassword", item.wxPassword)
@@ -181,10 +181,10 @@ namespace dp2weixin.service
         [BsonRepresentation(BsonType.ObjectId)]
         public string id { get; private set; }
 
-        public string libCode { get; set; }
+        //public string libCode { get; set; }
         public string libName { get; set; }
-        public string libUserName { get; set; }
-        public string libContactPhone { get; set; } // 图书馆联系人电话 jane 2016-6-17
+        public string capoUserName { get; set; }
+        public string capoContactPhone { get; set; } // 图书馆联系人电话 jane 2016-6-17
 
         // 2016-6-17 jane 本方账户的信息
         public string wxUserName { get; set; } //微信端本方用户名

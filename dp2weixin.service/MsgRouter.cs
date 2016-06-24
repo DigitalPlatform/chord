@@ -231,6 +231,7 @@ DeleteMessage(temp_records, this.GroupName);
                 "",
                 "", // strTimeRange,
                 "publishTime|asc",//sortCondition 按发布时间正序排
+                "",
                 0,
                 100);
             try

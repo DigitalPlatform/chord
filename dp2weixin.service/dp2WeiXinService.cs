@@ -28,6 +28,23 @@ namespace dp2weixin.service
 {
     public class dp2WeiXinService
     {
+        // 消息类型
+        public const string C_MsgType_Bb = "bb";
+        public const string C_MsgType_Book = "book";
+
+        // 通道常量
+        public const string C_ConnName_TraceMessage = "_traceMessage";
+        public const string C_ConnPrefix_Myself = "<myself>:";
+
+        // 群组常量
+        public const string C_GroupName_Bb = "gn:_lib_bb";
+        public const string C_GroupName_PatronNotity = "gn:_patronNotify";
+        public const string C_GroupName_Book = "gn:_lib_book";
+
+        // 消息权限
+        public const string C_Right_SetBb = "_wx_setbb";
+        public const string C_Right_SetBook = "_wx_setbook";
+
         #region 成员变量
 
         // 微信数据目录
@@ -1663,19 +1680,26 @@ namespace dp2weixin.service
         /// <summary>
         /// 找回密码
         /// </summary>
-        /// <param name="remoteUserName"></param>
+        /// <param name="libId"></param>
         /// <param name="strLibraryCode"></param>
         /// <param name="name"></param>
         /// <param name="tel"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int ResetPassword(string remoteUserName,
-            string strLibraryCode,
+        public int ResetPassword(string libId,
             string name,
             string tel,
             out string strError)
         {
             strError = "";
+
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
+
             string resultXml = "";
             string patronParam = "style=returnMessage,"
                 + "queryword=NB:" + name + "|,"
@@ -1696,9 +1720,9 @@ namespace dp2weixin.service
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    "").Result;
+                    lib.capoUserName).Result;
                 CirculationResult result = connection.CirculationTaskAsync(
-                    remoteUserName,
+                    lib.capoUserName,
                     request,
                     new TimeSpan(0, 1, 10), // 10 秒
                     cancel_token).Result;
@@ -1806,7 +1830,7 @@ namespace dp2weixin.service
                         strBarcode,
                         strXml,
                         strBody,
-                        strLibraryCode,
+                        lib.libName, //todo,注意这里原来传的code 还是读者的libraryCode
                         out strError);
                     if (nRet == -1 || nRet == 0)
                         return nRet;
@@ -1837,7 +1861,7 @@ namespace dp2weixin.service
         /// <summary>
         /// 修改密码
         /// </summary>
-        /// <param name="remoteUserName"></param>
+        /// <param name="libId"></param>
         /// <param name="patron"></param>
         /// <param name="oldPassword"></param>
         /// <param name="newPassword"></param>
@@ -1847,13 +1871,20 @@ namespace dp2weixin.service
         /// 0   未成功
         /// 1   成功
         /// </returns>
-        public int ChangePassword(string remoteUserName,
+        public int ChangePassword(string libId,
             string patron,
             string oldPassword,
             string newPassword,
             out string strError)
         {
             strError = "";
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                goto ERROR1;
+            }
+
             // 注意新旧两个密码参数即便为空，也应该是 "" 而不应该是 null。
             // 所以在使用 Item 参数的时候，old 和 new 两个子参数的任何一个都不该被省略。
             // 省略子参数的用法是有意义的，但不该被用在这个修改读者密码的场合。
@@ -1873,9 +1904,9 @@ namespace dp2weixin.service
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    remoteUserName).Result;
+                    lib.capoUserName).Result;
                 CirculationResult result = connection.CirculationTaskAsync(
-                    remoteUserName,
+                    lib.capoUserName,
                     request,
                     new TimeSpan(0, 1, 10), // 10 秒
                     cancel_token).Result;
@@ -1909,13 +1940,20 @@ namespace dp2weixin.service
             return -1;
         }
 
-        public int GetQRcode(string remoteUserName,
+        public int GetQRcode(string libId,
             string patronBarcode,
             out string code,
             out string strError)
         {
             strError = "";
             code = "";
+
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                goto ERROR1;
+            }
 
             //Operation:verifyPassword
             //Patron: !getpatrontempid:R0000001
@@ -1939,9 +1977,9 @@ namespace dp2weixin.service
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    remoteUserName).Result;
+                    lib.capoUserName).Result;
                 CirculationResult result = connection.CirculationTaskAsync(
-                    remoteUserName,
+                    lib.capoUserName,
                     request,
                     new TimeSpan(0, 1, 10), // 10 秒
                     cancel_token).Result;
@@ -1984,8 +2022,7 @@ namespace dp2weixin.service
         /// -1 出错
         /// 0 成功
         /// </returns>
-        public int Bind(string remoteUserName,
-            string libCode,
+        public int Bind(string libId,
             string strPrefix,
             string strWord,
             string strPassword,
@@ -1996,6 +2033,14 @@ namespace dp2weixin.service
             userItem = null;
             strError = "";
             long lRet = -1;
+
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为["+libId+"]的图书馆定义。";
+                return -1;
+            }
+
 
             string strFullWord = strWord;
             if (string.IsNullOrEmpty(strPrefix) == false)
@@ -2016,9 +2061,9 @@ namespace dp2weixin.service
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    remoteUserName).Result;
+                    lib.capoUserName).Result;
                 BindPatronResult result = connection.BindPatronTaskAsync(
-                     remoteUserName,
+                     lib.capoUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -2081,9 +2126,9 @@ namespace dp2weixin.service
 
                 // 找到库中对应的记录
                 if (type == 0)
-                    userItem = WxUserDatabase.Current.GetPatronAccount(strWeiXinId, libCode, readerBarcode);
+                    userItem = WxUserDatabase.Current.GetPatronAccount(strWeiXinId, libId, readerBarcode);
                 else
-                    userItem = WxUserDatabase.Current.GetWorker(strWeiXinId, libCode);
+                    userItem = WxUserDatabase.Current.GetWorker(strWeiXinId, libId);
 
                 // 是否新增，对于工作人员账户，一个图书馆只绑一个工作人员，所以有update的情况
                 bool bNew = false;
@@ -2093,10 +2138,9 @@ namespace dp2weixin.service
                     userItem = new WxUserItem();
                 }
 
-                LibItem lib = LibDatabase.Current.GetLibByLibCode(libCode);
                 userItem.weixinId = strWeiXinId;                
-                userItem.libCode = libCode;
-                userItem.libUserName = remoteUserName;
+                //userItem.libCode = libCode;
+                //userItem.libUserName = remoteUserName;
                 userItem.libName = lib.libName;
                 userItem.libId = lib.id;
 
@@ -2208,6 +2252,13 @@ namespace dp2weixin.service
                 return -1;
             }
 
+            LibItem lib = LibDatabase.Current.GetLibById(userItem.libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + userItem.libId + "]的图书馆定义。";
+                return -1;
+            }
+
 
             // 调点对点解绑接口
             string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + userItem.weixinId;
@@ -2225,10 +2276,10 @@ namespace dp2weixin.service
                 // 得到连接
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    userItem.libUserName).Result;
+                    lib.capoUserName).Result;
 
                 BindPatronResult result = connection.BindPatronTaskAsync(
-                     userItem.libUserName,
+                     lib.capoUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -2289,139 +2340,7 @@ namespace dp2weixin.service
             return -1;
         }
 
-        #region 不再使用
 
-        /*
-        public  long SearchOnePatronByWeiXinId(string remoteUserName,
-            string libCode,
-            string strWeiXinId,
-            out string strBarcode,
-            out string strError)
-        {
-            strError = "";
-            strBarcode = "";
-
-            // 从mongodb中检查是否绑定了用户
-            WxUserItem userItem = WxUserDatabase.Current.GetActiveOrFirst(strWeiXinId, libCode);
-            if (userItem == null)
-            {
-                strError = "异常的情况，未怎么图书馆时不应走到SearchPatronByWeiXinId函数。";
-                return -1;
-            }
-
-            // mongodb存在
-            if (String.IsNullOrEmpty(userItem.readerBarcode) == false)
-            {
-                strBarcode = userItem.readerBarcode;
-                return 1;
-            }
-
-            // 从远程dp2library中查
-            string strWord = WeiXinConst.C_WeiXinIdPrefix + strWeiXinId;
-            CancellationToken cancel_token = new CancellationToken();
-            string id = Guid.NewGuid().ToString();
-            SearchRequest request = new SearchRequest(id,
-                "searchPatron",
-                "<全部>",
-                strWord,
-                "email",
-                "left",
-                "wx-patron",
-                "id,cols",
-                1000,
-                0,
-                WeiXinConst.C_Search_MaxCount);
-            try
-            {
-                MessageConnection connection = this._channels.GetConnectionAsync(
-                    this.dp2MServerUrl,
-                    remoteUserName).Result;
-
-                SearchResult result = connection.SearchAsync(
-                    remoteUserName,
-                    request,
-                    new TimeSpan(0, 1, 0),
-                    cancel_token).Result;
-                if (result.ResultCount == -1)
-                {
-                    strError = result.ErrorInfo;
-                    return -1;
-                }
-                if (result.ResultCount == 0)
-                    return 0;
-
-                // 找到对应的读者记录
-                if (result.ResultCount > 0)
-                {
-                    LibItem libItem = LibDatabase.Current.GetLibByLibCode(libCode);
-                    string libName = libItem.libName;
-                    for (int i = 0; i < result.ResultCount; i++)
-                    {
-                        // 可能会检索出多笔记录，先取第一笔 todo
-                        string strXml = result.Records[i].Data;
-                        XmlDocument dom = new XmlDocument();
-                        dom.LoadXml(strXml);
-                        string strTempBarcode = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("barcode"));
-
-                        // 更新到mongodb库
-                        string name = "";
-                        XmlNode node = dom.DocumentElement.SelectSingleNode("name");
-                        if (node != null)
-                            name = DomUtil.GetNodeText(node);
-                        string refID = "";
-                        node = dom.DocumentElement.SelectSingleNode("refID");
-                        if (node != null)
-                            refID = DomUtil.GetNodeText(node);
-
-                        if (i == 0)
-                        {
-                            userItem.readerBarcode = strTempBarcode;
-                            userItem.readerName = name;
-                            userItem.xml = strXml;
-                            userItem.refID = refID;
-                            userItem.updateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                            WxUserDatabase.Current.Update(userItem);
-                            //将第一笔设为活动状态
-                            WxUserDatabase.Current.SetActive(userItem);
-                            //返回的strBarcode //todo refID
-                            strBarcode = strTempBarcode;
-                        }
-                        else
-                        {
-                            userItem = new WxUserItem();
-                            userItem.weixinId = strWeiXinId;
-                            userItem.libCode = libCode;
-                            userItem.libUserName = remoteUserName;
-                            userItem.libName = libName;
-                            userItem.readerBarcode = strTempBarcode;
-                            userItem.readerName = name;
-                            userItem.xml = strXml;
-                            userItem.refID = refID;
-                            userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                            userItem.updateTime = userItem.createTime;
-                            WxUserDatabase.Current.Add(userItem);
-                        }
-                    }
-
-                    return 1;
-                }
-
-            }
-            catch (AggregateException ex)
-            {
-                strError = MessageConnection.GetExceptionText(ex);
-                goto ERROR1;
-            }
-            catch (Exception ex)
-            {
-                strError = ex.Message;
-                goto ERROR1;
-            }
-        ERROR1:
-            return -1;
-        }
-        */
-        #endregion
 
         #endregion
 
@@ -2430,11 +2349,11 @@ namespace dp2weixin.service
         /// <summary>
         /// 检索书目
         /// </summary>
-        /// <param name="remoteUserName"></param>
+        /// <param name="libId"></param>
         /// <param name="strFrom"></param>
         /// <param name="strWord"></param>
         /// <returns></returns>
-        public SearchBiblioResult SearchBiblio(string remoteUserName,
+        public SearchBiblioResult SearchBiblio(string libId,
             string strFrom,
             string strWord,
             string resultSet)
@@ -2467,7 +2386,7 @@ namespace dp2weixin.service
             // 这里的records是第一页的记录
             List<BiblioRecord> records = null;
             bool bNext = false;
-            long lRet =this.SearchBiblio(remoteUserName,
+            long lRet = this.SearchBiblio1(libId,
                 strFrom,
                 strWord,
                 resultSet,
@@ -2491,7 +2410,7 @@ namespace dp2weixin.service
             return searchRet;
         }
 
-        public SearchBiblioResult getFromResultSet(string remoteUserName, string resultSet,long start,long count)
+        public SearchBiblioResult getFromResultSet(string libId, string resultSet, long start, long count)
         {
 
             SearchBiblioResult searchRet = new SearchBiblioResult();
@@ -2505,7 +2424,7 @@ namespace dp2weixin.service
             string strError = "";
             List<BiblioRecord> records = null;
             bool bNext = false;
-            long lRet = this.SearchBiblio(remoteUserName,
+            long lRet = this.SearchBiblio1(libId,
                  "",
                  "!getResult",
                  resultSet,
@@ -2530,13 +2449,13 @@ namespace dp2weixin.service
         /// <summary>
         /// 检索书目
         /// </summary>
-        /// <param name="remoteUserName"></param>
+        /// <param name="libId"></param>
         /// <param name="strFrom"></param>
         /// <param name="strWord"></param>
         /// <param name="records">第一批的10条</param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public long SearchBiblio(string remoteUserName,
+        public long SearchBiblio1(string libId,
             string strFrom,
             string strWord,
             string resultSet,
@@ -2549,6 +2468,13 @@ namespace dp2weixin.service
             strError = "";
             records = new List<BiblioRecord>();
             bNext = false;
+
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
 
             //long start = 0;
             //long count = 10;
@@ -2571,10 +2497,10 @@ namespace dp2weixin.service
 
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    remoteUserName).Result;  
+                    lib.capoUserName).Result;  
 
                 SearchResult result = connection.SearchTaskAsync(
-                    remoteUserName,
+                    lib.capoUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -2613,7 +2539,7 @@ namespace dp2weixin.service
                     record.recPath = path;
                     record.name = name;
                     record.no = (i+start + 1).ToString();//todo 注意下一页的时候
-                    record.libUserName = remoteUserName;
+                    record.libId = libId;
                     records.Add(record);
                 }
 
@@ -2636,12 +2562,21 @@ namespace dp2weixin.service
 
         }
 
-        public BiblioRecordResult GetBiblioDetail(string remoteUserName,
+        public BiblioRecordResult GetBiblioDetail(string libId,
             string biblioPath)
         {
             BiblioRecordResult result = new BiblioRecordResult();
             result.errorCode = 0;
             result.biblioPath = biblioPath;
+
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                result.errorInfo= "未找到id为[" + libId + "]的图书馆定义。";
+                result.errorCode = -1;
+                return result;
+            }
+
 
             DateTime start_time = DateTime.Now;
 
@@ -2657,7 +2592,9 @@ namespace dp2weixin.service
                 string strSummary = "";
                 string tempPath = "@bibliorecpath:" + biblioPath;
                 string strOutputRecPath = "";
-                nRet = this.GetBiblioSummary(remoteUserName, tempPath, "",out strSummary, out strOutputRecPath,out strError);
+                nRet = this.GetBiblioSummary(lib.capoUserName,
+                    tempPath,
+                    "",out strSummary, out strOutputRecPath,out strError);
                 if (nRet == -1 || nRet == 0)
                 {
                     result.errorCode = -1;
@@ -2674,7 +2611,7 @@ namespace dp2weixin.service
                 // 取item
                 this.WriteLog("开始获取items");
                 List<BiblioItem> itemList = null;
-                nRet = (int)this.GetItemInfo(remoteUserName, biblioPath, out itemList, out strError);
+                nRet = (int)this.GetItemInfo(lib.capoUserName, biblioPath, out itemList, out strError);
                 if (nRet == -1) //0的情况表示没有册，不是错误
                 {
                     result.errorCode = -1;
@@ -2698,178 +2635,19 @@ namespace dp2weixin.service
                 return result;
             }
 
-
-
-            #region delete
-            /*
-            string strError = "";
-            CancellationToken cancel_token = new CancellationToken();
-            // 获取书目记录
-            string id1 = Guid.NewGuid().ToString();
-            SearchRequest request1 = new SearchRequest(id1,
-                "getBiblioInfo",
-                "<全部>",
-                biblioPath,
-                "",
-                "",
-                "",
-                "summary",
-                1,
-                0,
-                -1);
-            // 获取下属记录
-            string id2 = Guid.NewGuid().ToString();
-            SearchRequest request2 = new SearchRequest(id2,
-                "getItemInfo",
-                "entity",
-                biblioPath,
-                "",
-                "",
-                "",
-                "opac",
-                50,
-                0,
-                10);
-            try
-            {
-                MessageConnection connection = this._channels.GetConnectionAsync(
-                    this.dp2MServerUrl,
-                    remoteUserName).Result;
-
-                Task<SearchResult> task1 = connection.SearchAsync(
-                    remoteUserName,
-                    request1,
-                    new TimeSpan(0, 1, 0),
-                    cancel_token);
-
-                Task<SearchResult> task2 = connection.SearchAsync(
-                     remoteUserName,
-                    request2,
-                    new TimeSpan(0, 1, 0),
-                    cancel_token);
-
-                Task<SearchResult>[] tasks = new Task<SearchResult>[2];
-                tasks[0] = task1;
-                tasks[1] = task2;
-                Task.WaitAll(tasks);
-
-                if (task1.Result.ResultCount == -1)
-                {
-                    strError = "获取摘要出错：" + task1.Result.ErrorInfo;
-                    goto ERROR1;
-                }
-                if (task1.Result.ResultCount == 0)
-                {
-                    result.errorCode = 0;
-                    result.errorInfo = "获取Summary时未命中";
-                    return result;
-                }
-                result.summary = task1.Result.Records[0].Data;
-
-                if (task2.Result.ResultCount == -1)
-                {
-                    strError = "获取册出错：" + task2.Result.ErrorInfo;
-                    goto ERROR1;
-                }
-                // 没有册的情况，不算出错
-                //if (task2.Result.ResultCount == 0)
-                //{
-                //    result.errorCode = 0;
-                //    result.errorInfo = "获取册时未命中";
-                //    return result;
-                //}
-
-                result.itemList = new List<BiblioItem>();
-                for (int i = 0; i < task2.Result.Records.Count; i++)
-                {
-                    BiblioItem item = new BiblioItem();
-
-                    string xml = task2.Result.Records[i].Data;
-                    XmlDocument dom = new XmlDocument();
-                    dom.LoadXml(xml);
-
-                    string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
-                    string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
-                    // 册条码号
-                    string strViewBarcode = "";
-                    if (string.IsNullOrEmpty(strBarcode) == false)
-                        strViewBarcode = strBarcode;
-                    else
-                        strViewBarcode = "refID:" + strRefID;  //"@refID:"
-                    item.barcode = strViewBarcode;
-
-                    //状态
-                    item.state = DomUtil.GetElementText(dom.DocumentElement, "state");
-                    // 馆藏地
-                    item.location = DomUtil.GetElementText(dom.DocumentElement, "location");
-                    // 索引号
-                    item.accessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
-
-                    // 出版日期
-                    item.publishTime = DomUtil.GetElementText(dom.DocumentElement, "publishTime");
-                    // 价格
-                    item.price= DomUtil.GetElementText(dom.DocumentElement, "price");
-                    // 注释
-                    item.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");
-
-                    // 借阅情况
-                    string strBorrowInfo = "借阅情况:在架";
-                    
-    //                 <borrower>R00001</borrower>
-    //<borrowerReaderType>教职工</borrowerReaderType>
-    //<borrowerRecPath>读者/1</borrowerRecPath>
-    //<borrowDate>Sun, 17 Apr 2016 23:57:40 +0800</borrowDate>
-    //<borrowPeriod>31day</borrowPeriod>
-    //<returningDate>Wed, 18 May 2016 12:00:00 +0800</returningDate>
-                     
-                    string strBorrower = DomUtil.GetElementText(dom.DocumentElement, "borrower");
-                    string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
-                                                "borrowDate"), "yyyy/MM/dd");
-                    string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
-                    if (string.IsNullOrEmpty(strBorrower) == false)
-                        strBorrowInfo = "借阅者:*** 借阅时间:" + borrowDate + " 借期:" + borrowPeriod;
-                    item.borrowInfo = strBorrower;
-
-                    // 加到集合里
-                    result.itemList.Add(item);
-                }
-
-                result.errorCode = 1;
-
-                return result;
-
-            }
-            catch (AggregateException ex)
-            {
-                strError = MessageConnection.GetExceptionText(ex);
-                goto ERROR1;
-            }
-            catch (Exception ex)
-            {
-                strError = ex.Message;
-                goto ERROR1;
-            }
-
-        ERROR1:
-            result.errorCode = -1;
-            result.errorInfo = strError;
-            return result;
-             */
-
-            #endregion
         }
 
         /// <summary>
         /// 获取summary
         /// </summary>
-        /// <param name="remoteUserName"></param>
+        /// <param name="capoUserName"></param>
         /// <param name="word"></param>
         /// <param name="strBiblioRecPathExclude">排除的书目路径</param>
         /// <param name="summary"></param>
         /// <param name="strRecPath"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int GetBiblioSummary(string remoteUserName,
+        public int GetBiblioSummary(string capoUserName,
             string word,
             string strBiblioRecPathExclude,
             out string summary,
@@ -2911,10 +2689,10 @@ namespace dp2weixin.service
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    remoteUserName).Result;  //+ "-1"
+                    capoUserName).Result;  //+ "-1"
 
                 SearchResult result = connection.SearchTaskAsync(
-                    remoteUserName,
+                    capoUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -2950,7 +2728,7 @@ namespace dp2weixin.service
         }
 
 
-        private long GetItemInfo(string remoteUserName,
+        private long GetItemInfo(string capoUserName,
             string biblioPath,
             out List<BiblioItem> itemList,
             out string strError)
@@ -2977,7 +2755,7 @@ namespace dp2weixin.service
 
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    remoteUserName).Result;  //+"-2"
+                    capoUserName).Result;  //+"-2"
                 this.WriteLog("GetItemInfo2");
 
                 //string strFilename = string.Format(this.weiXinLogDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
@@ -2986,7 +2764,7 @@ namespace dp2weixin.service
                 try
                 {
                     result = connection.SearchTaskAsync(
-                       remoteUserName,
+                       capoUserName,
                        request,
                        new TimeSpan(0, 1, 0),
                        cancel_token).Result;
@@ -3092,7 +2870,7 @@ namespace dp2weixin.service
 
 
         // 获取多个item的summary
-        public string GetBarcodesSummary(string remoteUserName,
+        public string GetBarcodesSummary(string capoUserName,
             string strBarcodes)
         {
             string strSummary = "";
@@ -3124,7 +2902,7 @@ namespace dp2weixin.service
 
                 //    GetBiblioSummaryResponse result = channel.GetBiblioSummary(strBarcode, strPrevBiblioRecPath);
                 string strError = "";
-                int nRet = this.GetBiblioSummary(remoteUserName,
+                int nRet = this.GetBiblioSummary(capoUserName,
                     strBarcode,
                     strPrevBiblioRecPath,
                     out strOneSummary,
@@ -3172,48 +2950,16 @@ namespace dp2weixin.service
 
         #region 个人信息
 
-        /// <summary>
-        /// 获取个人信息
-        /// </summary>
-        /// <param name="remoteUserName"></param>
-        /// <param name="readerBarcode"></param>
-        /// <param name="patronInfo"></param>
-        /// <param name="strError"></param>
-        /// <returns></returns>
-        public int GetPatron(string remoteUserName,
-            string readerBarcode,
-            out PatronInfo patronInfo,
-            out string strError)
-        {
-            patronInfo = null;
-            string xml = "";
-            int nRet = dp2WeiXinService.Instance.GetPatronXml(remoteUserName,
-                readerBarcode,
-                "advancexml",
-                out xml,
-                out strError);
-            if (nRet == -1)
-                return -1;
-
-            if (nRet == 0)
-            {
-                strError = "从dp2library未找到证条码号为'" + readerBarcode + "'的记录";
-                return 0;
-            }
-            patronInfo = this.ParseReaderXml(xml);
-
-            return 1;
-        }
 
         /// <summary>
         /// 获取读者的预约信息
         /// </summary>
-        /// <param name="remoteUserName"></param>
+        /// <param name="libId"></param>
         /// <param name="readerBarcode"></param>
         /// <param name="reservations"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int GetPatronReservation(string remoteUserName,
+        public int GetPatronReservation(string libId,
             string readerBarcode,
             out List<ReservationInfo> reservations,
             out string strError)
@@ -3222,7 +2968,7 @@ namespace dp2weixin.service
             strError = "";
 
             string xml = "";
-            int nRet = dp2WeiXinService.Instance.GetPatronXml(remoteUserName,
+            int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                 readerBarcode,
                 "xml",
                 out xml,
@@ -3243,18 +2989,26 @@ namespace dp2weixin.service
             return 1;
         }
 
-        public BorrowInfoResult GetPatronBorrowInfos(string remoteUserName,
+        public BorrowInfoResult GetPatronBorrowInfos1(string libId,
             string readerBarcode)
         {
             BorrowInfoResult result = new BorrowInfoResult();
             result.errorCode = 0;
             result.errorInfo = "";
 
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                result.errorCode =-1;
+                result.errorInfo = "未找到id为[" + libId + "]的图书馆定义。";
+                return result;
+            }
+
 
             string strError = "";
 
             string xml = "";
-            int nRet = dp2WeiXinService.Instance.GetPatronXml(remoteUserName,
+            int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                 readerBarcode,
                 "advancexml",
                 out xml,
@@ -3699,218 +3453,16 @@ namespace dp2weixin.service
             return StringUtil.MakePathList(list, "; ");
         }
 
-        /// <returns>
-        /// -1  出错
-        /// 0   未查到对应记录
-        /// 1  成功
-        /// </returns>
-        public  int GetMyInfo(string remoteUserName,
-            string strReaderBarcode,
-            out string strMyInfo,
-            out string strError)
-        {
-            strError = "";
-            strMyInfo = "";
-            Debug.Assert(String.IsNullOrEmpty(strReaderBarcode) == false);
-
-
-            // 得到高级xml
-            string strXml = "";
-            int nRet = this.GetPatronXml(remoteUserName,
-                strReaderBarcode,
-                "xml",
-                out strXml,
-                out strError);
-            if (nRet == -1)
-                return -1;
-            if (nRet == 0)
-            {
-                strError = "从dp2library未找到证条码号为'" + strReaderBarcode + "'的记录"; //todo refID
-                return 0;
-            }
-
-            // 取出个人信息
-            XmlDocument dom = new XmlDocument();
-            dom.LoadXml(strXml);
-            //string strReaderBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
-            string strName = DomUtil.GetElementText(dom.DocumentElement, "name");
-            string strDepartment = DomUtil.GetElementText(dom.DocumentElement, "department");
-            string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
-            string strCreateDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
-                "createDate"), "yyyy/MM/dd");
-            string strExpireDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
-                "expireDate"), "yyyy/MM/dd");
-            string strReaderType = DomUtil.GetElementText(dom.DocumentElement,
-                "readerType");
-            string strComment = DomUtil.GetElementText(dom.DocumentElement,
-                "comment");
-
-            strMyInfo = "个人信息" + "\n"
-                + "姓名:" + strName + "\n"
-                + "证条码号:" + strReaderBarcode + "\n"
-                + "部门:" + strDepartment + "\n"
-                + "联系方式:\n" + GetContactString(dom) + "\n"
-                + "状态:" + strState + "\n"
-                + "有效期:" + strCreateDate + "~" + strExpireDate + "\n"
-                + "读者类别:" + strReaderType + "\n"
-                + "注释:" + strComment;
-            return 1;
-        }
-
-        /// <returns>
-        /// -1  出错
-        /// 0   未找到读者记录
-        /// 1   成功
-        /// </returns>
-        public  int GetBorrowInfo(string remoteUserName,
-            string strReaderBarcode,
-            out string strBorrowInfo,
-            out string strError)
-        {
-            strError = "";
-            strBorrowInfo = "";
-
-
-            // 得到高级xml
-            string strXml = "";
-            long lRet = this.GetPatronXml(remoteUserName,
-                strReaderBarcode,
-                "advancexml,advancexml_borrow_bibliosummary",
-                out strXml,
-                out strError);
-            if (lRet == -1)
-                return -1;
-
-            // 提取借书信息
-            lRet = this.GetBorrowsInfoInternal(strXml, out strBorrowInfo);
-            if (lRet == -1)
-                return -1;
-
-
-            return 1;
-
-        }
-
-        /// <summary>
-        /// 详细借阅信息
-        /// </summary>
-        /// <param name="strXml"></param>
-        /// <param name="strBorrowInfo"></param>
-        /// <returns></returns>
-        public int GetBorrowsInfoInternal(string strXml, out string strBorrowInfo)
-        {
-            strBorrowInfo = "";
-
-            XmlDocument dom = new XmlDocument();
-            dom.LoadXml(strXml);
-
-            /*
-                <info>
-        <item name="可借总册数" value="10" />
-        <item name="日历名">
-            <value>基本日历</value>
-        </item>
-        <item name="当前还可借" value="9" />
-    </info>
-''             
-             */
-            string maxBorrowCount = "";
-            string curBorrowCount = "";
-            XmlNode nodeMax = dom.DocumentElement.SelectSingleNode("info/item[@name='可借总册数']");
-            if (nodeMax == null)
-            {
-                maxBorrowCount = "获取当前读者可借总册数出错：未找到对应节点。";
-            }
-            else
-            {
-                string maxCount = DomUtil.GetAttr(nodeMax, "value");
-                if (maxCount == "")
-                {
-                    maxBorrowCount = "获取当前读者可借总册数出错：未设置对应值。";
-                }
-                else
-                {
-                    maxBorrowCount = "最多可借:" + maxCount; ;
-                    XmlNode nodeCurrent = dom.DocumentElement.SelectSingleNode("info/item[@name='当前还可借']");
-                    if (nodeCurrent == null)
-                    {
-                        curBorrowCount = "获取当前还可借出错：未找到对应节点。";
-                    }
-                    else
-                    {
-                        curBorrowCount = "当前可借:" + DomUtil.GetAttr(nodeCurrent, "value");
-                    }
-                }
-            }
-
-            strBorrowInfo = maxBorrowCount + " " + curBorrowCount + "\n";
-
-            XmlNodeList nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
-            if (nodes.Count == 0)
-            {
-                strBorrowInfo += "无借阅记录";
-                return 0;
-            }
-
-            Dictionary<string, string> borrowLit = new Dictionary<string, string>();
-            int index = 1;
-            string books = "";
-            foreach (XmlElement borrow in nodes)
-            {
-                if (books != "")
-                    books += "===============\n";
-
-                string overdueText = "";
-                string strIsOverdue = DomUtil.GetAttr(borrow, "isOverdue");
-                if (strIsOverdue == "yes")
-                    overdueText = DomUtil.GetAttr(borrow, "overdueInfo1");
-                else
-                    overdueText = "未超期";
-
-
-                string itemBarcode = DomUtil.GetAttr(borrow, "barcode");
-                borrowLit[index.ToString()] = itemBarcode; // 设到字典点，已变续借
-
-                /*
-                string bookName = DomUtil.GetAttr(borrow, "summary");//borrow.GetAttribute("summary")
-                int tempIndex = bookName.IndexOf('/');
-                if (tempIndex > 0)
-                {
-                    bookName = bookName.Substring(0, tempIndex);
-                }
-                 */
-                string summary = DomUtil.GetAttr(borrow, "summary");
-                books += "编号：" + index.ToString() + "\n"
-                    + "册条码号：" + itemBarcode + "\n"
-                    + "摘       要：" + summary + "\n"
-                    + "借阅时间：" + DateTimeUtil.ToLocalTime(borrow.GetAttribute("borrowDate"), "yyyy-MM-dd HH:mm") + "\n"
-                    + "借       期：" + DateTimeUtil.GetDisplayTimePeriodString(borrow.GetAttribute("borrowPeriod")) + "\n"
-                    + "应还时间：" + DateTimeUtil.ToLocalTime(borrow.GetAttribute("returningDate"), "yyyy-MM-dd") + "\n"
-                    + "是否超期：" + overdueText + "\n";
-
-
-                index++; //编号+1
-            }
-
-            strBorrowInfo += books;
-
-            // 设到用户上下文
-            //this.CurrentMessageContext.BorrowDict = borrowLit;
-
-            return nodes.Count;
-
-        }
-
         /// <summary>
         /// 获取读者信息
         /// </summary>
-        /// <param name="remoteUserName"></param>
+        /// <param name="libId"></param>
         /// <param name="strReaderBarocde"></param>
         /// <param name="strFormat"></param>
         /// <param name="xml"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int GetPatronXml(string remoteUserName,
+        public int GetPatronXml(string libId,
             string strReaderBarocde,  //todo refID
             string strFormat,
             out string xml,
@@ -3919,8 +3471,14 @@ namespace dp2weixin.service
             xml = "";
             strError = "";
 
-            CancellationToken cancel_token = new CancellationToken();
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                goto ERROR1;
+            }
 
+            CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
                 "getPatronInfo",
@@ -3938,10 +3496,10 @@ namespace dp2weixin.service
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    remoteUserName).Result;
+                    lib.capoUserName).Result;
 
                 SearchResult result = connection.SearchTaskAsync(
-                    remoteUserName,
+                    lib.capoUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -4096,12 +3654,19 @@ namespace dp2weixin.service
 
         #region 续借
 
-        public int Renew(string remoteUserName,
+        public int Renew1(string libId,
             //string patron,
             string item,
             out string strError)
         {
             strError = "";
+
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -4117,10 +3682,10 @@ namespace dp2weixin.service
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    "").Result;
+                    lib.capoUserName).Result;
 
                 CirculationResult result = connection.CirculationTaskAsync(
-                    remoteUserName,
+                    lib.capoUserName,
                     request,
                     new TimeSpan(0, 1, 10), // 10 秒
                     cancel_token).Result;
@@ -4145,13 +3710,20 @@ namespace dp2weixin.service
 
         #region 预约
 
-        public int Reservation(string remoteUserName,
+        public int Reservation(string libId,
             string patron,
             string items,
             string style,
             out string strError)
         {
             strError = "";
+
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -4167,10 +3739,10 @@ namespace dp2weixin.service
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    "").Result;
+                    lib.capoUserName).Result;
 
                 CirculationResult result = connection.CirculationTaskAsync(
-                    remoteUserName,
+                    lib.capoUserName,
                     request,
                     new TimeSpan(0, 1, 10), // 10 秒
                     cancel_token).Result;
@@ -4346,51 +3918,84 @@ namespace dp2weixin.service
 
         #endregion
 
+
+
+
         #region 公告
 
 
-        // 通道常量
-        public const string C_ConnName_TraceMessage = "_traceMessage";
-        public const string C_ConnPrefix_Myself = "<myself>:";
-
-        // 群组常量
-        public const string C_GroupName_Bb = "gn:_lib_bb";
-        public const string C_GroupName_PatronNotity = "gn:_patronNotify";
 
 
-        public int GetBbs(string libId,string weixinId,out List<BbItem> list,out string worker,out string strError)
+
+        public int GetMessage(string weixinId,
+            string msgType,
+            string libId,            
+             string msgId,
+            string style,
+            out List<MessageItem> list,
+            out string worker,
+            out string strError)
         {
-            list = new List<BbItem>();
+            list = new List<MessageItem>();
             strError = "";
             worker = "";
 
-            // 查找当前微信用户绑定的工作人员账号
-            WxUserItem user = WxUserDatabase.Current.GetWorkerByLibId(weixinId, libId);
-            if (user != null)
+            if (msgType != dp2WeiXinService.C_MsgType_Bb
+                && msgType != dp2WeiXinService.C_MsgType_Book)
             {
-                // 检索是否有权限 _wx_setbbj
-                int nHasRights = this.CheckBbRights(user.libUserName, user.userName, out strError);
-                if (nHasRights == -1)
-                    return -1;
+                strError = "不支持的消息类型" + msgType;
+                return -1;
+            }
 
-                if (nHasRights == 1)
+            if (string.IsNullOrEmpty(weixinId) == false)
+            {
+                // 查找当前微信用户绑定的工作人员账号
+                WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
+                if (user != null)
                 {
-                    worker = user.userName;
-                }
-                else
-                {
-                    worker = "";
+                    // 检索是否有权限 _wx_setbbj
+                    string needRight = "";
+                    if (msgType == C_MsgType_Bb)
+                        needRight = C_Right_SetBb;
+                    else if (msgType == C_MsgType_Book)
+                        needRight = C_Right_SetBook;
+
+                    LibItem lib = LibDatabase.Current.GetLibById(libId);
+                    if (lib == null)
+                    {
+                        strError = "未找到id为[" + libId + "]的图书馆定义。";
+                        return -1;
+                    }
+
+                    int nHasRights = this.CheckRights(lib.capoUserName, user.userName, needRight, out strError);
+                    if (nHasRights == -1)
+                        return -1;
+
+                    if (nHasRights == 1)
+                    {
+                        worker = user.userName;
+                    }
+                    else
+                    {
+                        worker = "";
+                    }
                 }
             }
 
+            string group="";
+            if (msgType == C_MsgType_Bb)
+                group = C_GroupName_Bb;
+            else if (msgType == C_MsgType_Book)
+                group = C_GroupName_Book;
+
             List<MessageRecord>  records = new List<MessageRecord>();
-            int nRet = this.GetMessage(C_GroupName_Bb, libId,out records, out strError);
+            int nRet = this.GetMessage(group, libId,msgId, out records, out strError);
             if (nRet == -1)
                 return -1;
-
+            
             foreach (MessageRecord record in records)
             {
-                BbItem item = new BbItem();
+                MessageItem item = new MessageItem();
                 item.id = record.id;
                 item.publishTime = DateTimeUtil.DateTimeToString( record.publishTime);
 
@@ -4423,16 +4028,32 @@ namespace dp2weixin.service
                     title = "不符合格式的消息";
                     content = "不符合格式的消息-" + xml;                
                 }
-
-                string contentHtml = Convert2Html(format,content);
-
-
-
+                
                 item.title = title;
-                item.content = content;
                 item.contentFormat = format;
-                item.contentHtml = contentHtml;
                 item.creator = creator;
+                item.content = "";
+
+                if (style == "full")
+                {
+                    item.content = content;
+                }
+                else if (style == "browse")
+                {
+                    item.content = "";
+
+                    string contentHtml = "";
+                    if (msgType == C_MsgType_Bb)
+                    {
+                        contentHtml = GetBbHtml(format, content);
+                    }
+                    else
+                    {
+                        contentHtml = GetBookHtml(content);
+
+                    }
+                    item.contentHtml = contentHtml;
+                }
 
                 list.Add(item);
             }
@@ -4440,7 +4061,7 @@ namespace dp2weixin.service
             return nRet;
         }
 
-        public static string Convert2Html(string format,string content)
+        public string GetBbHtml(string format,string content)
         {
             string contentHtml = "";
             if (format == "markdown")
@@ -4450,17 +4071,52 @@ namespace dp2weixin.service
             else
             {
                 //普通text 处理换行
-                contentHtml = HttpUtility.HtmlEncode(content);
-                contentHtml = contentHtml.Replace("\r\n", "\n");
-                contentHtml = contentHtml.Replace("\n", "<br/>");
+                //contentHtml = HttpUtility.HtmlEncode(content);
+                //contentHtml = contentHtml.Replace("\r\n", "\n");
+                //contentHtml = contentHtml.Replace("\n", "<br/>");
+
+                content = content.Replace("\r\n", "\n");
+                content = content.Replace("\r", "\n");
+                string[] list=content.Split(new char[] { '\n' });
+                foreach (string str in list)
+                {
+                    if (contentHtml != "")
+                        contentHtml += "<br/>";
+
+                    contentHtml += HttpUtility.HtmlEncode(str);
+                }
             }
             return contentHtml;
         }
 
 
+        public string GetBookHtml(string content)
+        {
+            string contentHtml = "";
+
+            content = content.Replace("\r\n", "\n");
+            content = content.Replace("\r", "\n");
+            string[] list = content.Split(new char[] { '\n' });
+            foreach (string str in list)
+            {
+                if (contentHtml != "")
+                    contentHtml += "<br/>";
+
+                string detalUrl = "/Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(str);
+                contentHtml += "<a href='javascript:void(0)' onclick='gotoUrl(\"" + detalUrl + "\")'>" + HttpUtility.HtmlEncode(str) + "</a>";
+
+            }
+
+            return contentHtml;
+        }
+
         // 从 dp2mserver 获得消息
         // 每次最多获得 100 条
-        private int GetMessage(string groupName,string libId, out List<MessageRecord> records, out string strError)
+        private int GetMessage(string groupName,
+            string libId,
+            string msgId,
+            out List<MessageRecord> records,
+            out string strError)
         {
             strError = "";
             records = new List<MessageRecord>();
@@ -4481,6 +4137,7 @@ namespace dp2weixin.service
                 wxUserName,
                 "", // strTimeRange,
                 "publishTime|desc",//sortCondition 按发布时间倒序排
+                msgId, //IdCondition 
                 0,
                 100);  // todo 如果超过100条，要做成递归来调
             try
@@ -4492,7 +4149,7 @@ namespace dp2weixin.service
                     cancel_token);
                 if (result.Value == -1)
                     goto ERROR1;
-
+                
                 records = result.Results;
                 return result.Results.Count;
             }
@@ -4518,12 +4175,52 @@ namespace dp2weixin.service
         /// <param name="style"></param>
         /// <param name="item"></param>
         /// <returns></returns>
-        public BbResult CoverBb(string libId,BbItem item,string style)
+        public MessageResult CoverMessage(string msgType, 
+            string libId, 
+            MessageItem item, 
+            string style)
         {
-            BbResult annResult = new BbResult();
+            string strError = "";
+            MessageResult apiResult = new MessageResult();
+
+            if (msgType != dp2WeiXinService.C_MsgType_Bb
+                && msgType != dp2WeiXinService.C_MsgType_Book)
+            {
+                strError = "不支持的消息类型" + msgType;
+                goto ERROR1;
+            }
+
+            if (String.IsNullOrEmpty(item.creator) == true)
+            {
+                strError = "未传入creator";
+                goto ERROR1;
+            }
+
+            // 检索工作人员是否有权限 _wx_setbb
+            string needRight = "";
+            if (msgType == C_MsgType_Bb)
+                needRight = C_Right_SetBb;
+            else if (msgType == C_MsgType_Book)
+                needRight = C_Right_SetBook;
+            LibItem libItem = LibDatabase.Current.GetLibById(libId);
+            if (libItem == null)
+            {
+                strError = "根据id["+libId+"]未找到对应的图书馆配置";
+                goto ERROR1;                
+            }
+            int nHasRights = this.CheckRights(libItem.capoUserName, item.creator, needRight, out strError);
+            if (nHasRights == -1)
+            {
+                goto ERROR1;
+            }
+            if (nHasRights == 0)
+            {
+                strError = "帐户["+userName+"]没有"+needRight+"权限";
+                goto ERROR1;
+            }
+
 
             string connName = C_ConnPrefix_Myself + libId;
-
             string strText = "";
             if (style != "delete")
             {
@@ -4534,19 +4231,27 @@ namespace dp2weixin.service
                 + "</body>";
             }
 
+            string group = "";
+            if (msgType == C_MsgType_Bb)
+                group = C_GroupName_Bb;
+            else if (msgType == C_MsgType_Book)
+                group = C_GroupName_Book;
+
             List<MessageRecord> records = new List<MessageRecord>();
             MessageRecord record = new MessageRecord();
             record.id = item.id;
-            record.groups = C_GroupName_Bb.Split(new char[] { ',' });
+            record.groups = group.Split(new char[] { ',' });
             record.creator = "";    // 服务器会自己填写
             record.data = strText;
             record.format = "text";
             record.type = "message";
             record.thread = "";
             record.expireTime = new DateTime(0);    // 表示永远不失效
+
+            // todo subject
+
             records.Add(record);
 
-            string strError = "";
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
@@ -4567,8 +4272,8 @@ namespace dp2weixin.service
                 }
 
                 //result.
-                annResult.errorCode = result.Value;
-                return annResult;
+                apiResult.errorCode = result.Value;
+                return apiResult;
             }
             catch (AggregateException ex)
             {
@@ -4581,29 +4286,22 @@ namespace dp2weixin.service
                 goto ERROR1;
             }
 ERROR1:
-            annResult.errorCode = -1;
-            annResult.errorInfo= strError;
-            return annResult;
+            apiResult.errorCode = -1;
+            apiResult.errorInfo= strError;
+            return apiResult;
         }
 
-        public const string C_Right_SetBb = "_wx_setbb";
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="remoteUserName"></param>
-        /// <param name="worker"></param>
-        /// <param name="strError"></param>
         /// <returns>
         /// -1：出错
         /// 0   无权限
         /// 1   有权限
         /// </returns>
-        public int CheckBbRights(string remoteUserName,string worker,out string strError)
+        public int CheckRights(string opacUserName,string worker,string needRight, out string strError)
         {
             strError ="";
             string rights = "";
-            int nRet = this.GetUserInfo(remoteUserName,
+            int nRet = this.GetUserInfo(opacUserName,
                 worker,
                 out rights,
                 out strError);
@@ -4612,7 +4310,7 @@ ERROR1:
                 return -1;
             }
 
-            if (rights.Contains(C_Right_SetBb) ==true)
+            if (rights.Contains(needRight) == true)
                 return 1;
 
             return 0;
@@ -4622,12 +4320,12 @@ ERROR1:
         /// <summary>
         /// 获取用户权限
         /// </summary>
-        /// <param name="remoteUserName"></param>
+        /// <param name="opacUserName"></param>
         /// <param name="strWord"></param>
         /// <param name="right"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int GetUserInfo(string remoteUserName,string strWord,
+        public int GetUserInfo(string opacUserName, string strWord,
             out string rights,
             out string strError)
         {
@@ -4655,10 +4353,10 @@ ERROR1:
 
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    remoteUserName).Result;
+                    opacUserName).Result;
 
                 SearchResult result = connection.SearchTaskAsync(
-                    remoteUserName,
+                    opacUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -4695,5 +4393,56 @@ ERROR1:
         }
 
         #endregion
+
+        #region  好书
+
+
+        /// <summary>
+        /// 获取好多推荐栏目
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="libId"></param>
+        /// <param name="userName">
+        /// 返回的当前绑定工作人员账户号，如果为空，不没有编辑权限
+        /// </param>
+        /// <returns></returns>
+        public int GetBookSubject(string libId,
+            out List<BookSubjectItem> list,
+            out string strError)
+        {
+            //userName = "";
+            strError = "";
+            list = new List<BookSubjectItem>();
+
+            
+
+
+            BookSubjectItem item = new BookSubjectItem();
+            item.name = "我喜欢的书";
+            item.count = 1;
+            list.Add(item);
+
+            item = new BookSubjectItem();
+            item.name = "6月新书";
+            item.count = 5;
+            list.Add(item);
+
+            // todo
+            // 用点对点api获取好书推荐栏目
+
+            return 0;
+        }
+
+        #endregion
+
+        public int GetBookMsg(string libId, string subject, out List<MessageItem> list, out string strError)
+        {
+            list = new List<MessageItem>();
+            strError = "";
+
+            //todo 根据subject取消息
+
+            return 0;
+        }
     }
 }

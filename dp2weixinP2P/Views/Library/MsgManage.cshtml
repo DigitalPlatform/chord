@@ -1,50 +1,9 @@
 ﻿@section style {
     <style>
-        .title {
-            /*上外边距是 10px 右外边距和左外边距是 5px 下外边距是 15px*/
-            margin: 10px 15px 2px;
-            color: #666666;
-            font-size: 16px;
-        }
-
-        TABLE.libTable {
-            text-align: left;
-            background-color: white;
-            width: 100%;
-        }
-
-            TABLE.libTable TR TD {
-                border-width: 0px;
-                /*border-top-width: 1px;
-            border-color: #dddddd;
-            border-style: dotted;*/
-                padding: 2px;
-            }
-
-                TABLE.libTable TR TD.value {
-                    border-left: 1px solid #CCCCCC;
-                    padding-left: 5px;
-                }
-
-                TABLE.libTable TR TD.button {
-                    padding-left: 5px;
-                    text-align: right;
-                }
-
-                TABLE.libTable TR TD.label {
-                    width: 80px;
-                    background-color: #eeeeee;
-                    color: #999999;
-                    padding-left: 5px;
-                    padding-right: 5px;
-                    /*text-align: right;*/
-                }
-
         .leftLabel {
             color: #999999;
         }
-
-        .bb-title {
+        .msg-title {
             line-height: 1;
             margin-top: 5px;
             margin-bottom: 5px;
@@ -67,13 +26,11 @@
         }
 
         //用于获取图书馆
-        function getBbs() {
-            //var libId = $("#libId").text();//.val();
-
-            //alert("getbbs1");
+        function getMessage() {
 
             var libId = $("#selLib").val();
             var weixinId = $("#weixinId").text();
+
 
             //alert("["+libId+"]");
             // 先删除可观察数组中的已有数据
@@ -88,20 +45,27 @@
             if (libId == "") {
                 return;
             }
-
-
-
-            if (weixinId == "")
-            {
+            if (weixinId == "") {
                 alert("异常情况：weixinId为空");
+                return;
+            }
+
+            var msgType = $("#msgType").text();
+            if (msgType == "") {
+                alert("异常情况：msgType为空");
                 return;
             }
 
             //显示等待图层
             var index = loadLayer();
-
+            var msgId = "";
+            var style = "browse";
             // 调web api
-            var url = "/api/Bb?libId=" + libId + "&weixinId=" + weixinId;
+            var url = "/api/LibMessage?weixinId=" + weixinId
+                        + "&msgType=" + msgType
+                        + "&libId=" + libId
+                        + "&msgId=" + msgId
+                        + "&style=" + style;
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
@@ -141,7 +105,7 @@
 
         // 改变图书馆
         function libChanged() {
-            getBbs();
+            getMessage();
         }
 
         // 删除一项
@@ -159,9 +123,16 @@
                 return;
             }
 
+            var msgType = $("#msgType").text();
+            if (msgType == "") {
+                alert("异常情况：msgType为空");
+                return;
+            }
+
             //alert("remove-"+item.libId);
-            var url = "/api/Bb/" + item.id
-                + "?libId=" + libId
+            var url = "/api/LibMessage/" + item.id
+                +"?msgType="+msgType
+                + "&libId=" + libId
             sendAjaxRequest(url, "DELETE", function () {
                 //getAllLib();
 
@@ -226,6 +197,12 @@
                 return;
             }
 
+            var msgType = $("#msgType").text();
+            if (msgType == "") {
+                alert("异常情况：msgType为空");
+                return;
+            }
+
             //显示等待图层
             var index = loadLayer();
 
@@ -239,9 +216,24 @@
                 }
             }
 
-            var url = "/api/Bb?libId=" + libId+"&type=";
+            var url = "/api/LibMessage"
+                +"?msgType="+msgType
+                + "&libId=" + libId ;
             sendAjaxRequest(url, action,
-                function () {
+                function (result) {
+
+                    // 关闭等待层
+                    layer.close(index);
+
+                    if (result.errorCode == -1)
+                    {
+                        alert("操作失败：" +result.errorInfo);
+                        return;
+                    }
+
+                    alert("操作成功");
+
+
                     cbBlur();
                     //编辑态不可见            
                     $("#divEdit").css('display', 'none');
@@ -253,11 +245,8 @@
                     model.editor.publishTime("");
                     model.editor.creator("");
 
-                    // 关闭等待层
-                    layer.close(index);
-
                     // 刷新列表
-                    getBbs();
+                    getMessage();
                 },
                 function (xhq, textStatus, errorThrown) {
                     alert(errorThrown);
@@ -339,7 +328,6 @@
             $("#btnAdd").css('display', 'block');
             $("#btnEdit").css('display', 'none');
 
-
             // 没有公告不显示
             //$("#divNo").css('display', 'none');
         }
@@ -356,48 +344,73 @@
         }
 
         function handleEditClick(item) {
-
-
-            $('html, body').animate({ scrollTop: 0 }, 'slow');
-
-            $("#btnAdd").css('display', 'none');
-            $("#btnEdit").css('display', 'block');
-
-            model.editor.id(item.id);
-            model.editor.title(item.title);
-            model.editor.content(item.content);
-            model.editor.publishTime(item.publishTime);//publishTime]
-            model.editor.creator(item.creator);//publishTime
-            if (item.contentFormat == "text") {
-                $("#cbMarkDown").prop("checked", false);
+            var libId = $("#selLib").val();
+            var weixinId = $("#weixinId").text();
+            if (libId == "") {
+                return;
             }
-            else {
-                $("#cbMarkDown").prop("checked", true);
+            if (weixinId == "") {
+                alert("异常情况：weixinId为空");
+                return;
             }
 
-            //编辑态可见            
-            $("#divEdit").css('display', 'block');
+            var msgType = $("#msgType").text();
+            if (msgType == "") {
+                alert("异常情况：msgType为空");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+            var msgId = item.id;
+            var style = "full";
+            // 调web api
+            var url = "/api/LibMessage"
+                + "?msgType=" + msgType
+                        + "&weixinId=" + weixinId
+                        + "&libId=" + libId
+                        + "&msgId=" + msgId
+                        + "&style=" + style;
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
 
 
+                // 把返回的数组加到观察数组
+                if (result.items != null && result.items.length>0) {
+                    item = result.items[0];
 
-            //var url = "/api/Bb?type=covert2html";
-            //sendAjaxRequest(url, "POST",
-            //    function (result) {
+                    // 移动顶部
+                    $('html, body').animate({ scrollTop: 0 }, 'slow');
+                    model.editor.id(item.id);
+                    model.editor.title(item.title);
+                    model.editor.content(item.content);
+                    model.editor.publishTime(item.publishTime);//publishTime]
+                    model.editor.creator(item.creator);//publishTime
+                    if (item.contentFormat == "text") {
+                        $("#cbMarkDown").prop("checked", false);
+                    }
+                    else {
+                        $("#cbMarkDown").prop("checked", true);
+                    }
+                    $("#btnAdd").css('display', 'none');
+                    $("#btnEdit").css('display', 'block');
+                    //编辑态可见            
+                    $("#divEdit").css('display', 'block');
+                }
 
-            //    },
-            //    function (xhq, textStatus, errorThrown) {
-            //        alert(errorThrown);
-            //        // 关闭等待层
-            //        layer.close(index);
-            //    },
-            //    {
-            //        contentFormat:item.contentFormat,
-            //        content: item.content
-            //    });
+            }, function (xhq, textStatus, errorThrown) {
 
-            
-
-            
+                alert("访问服务器出错：\r\n" + errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
         }
 
 
@@ -408,7 +421,7 @@
             ko.applyBindings(model);
 
             // 获取所有的操作命令
-            getBbs();
+            getMessage();
 
             // 设顶部菜单不固定
             $("#myheader").css("position", "absolute");
@@ -450,8 +463,9 @@
     </script>
 }
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="msgType" style="display:none">@ViewBag.MsgType</span>
 @section header {
-    <h1 class="mui-title">公告管理</h1>
+    <h1 class="mui-title">@ViewBag.MsgTypeTitle</h1>
 }
 <div>
     <div class="mui-input-group">
@@ -461,8 +475,6 @@
         </div>
     </div>
 </div>
-
-
 
 <div id="divEdit" style="padding-bottom:20px;padding-top:20px;display:none">
     <div class="mui-card">
@@ -477,10 +489,17 @@
                         <label class="leftLabel" style="width:100%">内容</label>
                     </td>
                     <td>
+                        @if (ViewBag.MsgType=="bb")
+                        { 
                         <div class="mui-input-row mui-checkbox mui-left" style="border-bottom:0px;padding-bottom:0px;margin-bottom:0px;bottom:0px;float:left">
                             <label style='padding-left:30px;padding-right:0px'>MarkDown格式</label>
-                            <input id="cbMarkDown" value="markdown"  type="checkbox" style='left:0px;' onchange="changeFormat()">
+                            <input id="cbMarkDown" value="markdown" type="checkbox" style='left:0px;' onchange="changeFormat()">
                         </div>
+                        }
+                        else
+                        {
+                            <div>（多条书目请换行）</div> 
+                        }
                     </td>
                 </tr>
             </table>
@@ -493,14 +512,14 @@
             <input type="text" class="mui-input mui-input-clear" disabled="disabled" data-bind="value:model.editor.publishTime">
         </div>
         <div class="mui-input-row " style="">
-            <label class="leftLabel">发布账号</label>
+            <label class="leftLabel">发布人</label>
             <input type="text" class="mui-input mui-input-clear" disabled="disabled" data-bind="value:model.editor.creator">
         </div>
         <div class="mui-content-padded">
             <table>
                 <tr>
-                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnAdd"  onclick="save('add')" style="display:none">发布</button></td>
-                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnEdit"  onclick="save('edit')" style="display:none">更新发布</button></td>
+                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnAdd" onclick="save('add')" style="display:none">发布</button></td>
+                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnEdit" onclick="save('edit')" style="display:none">更新发布</button></td>
                     <td style="padding-left:5px"><button class="mui-btn mui-btn-default" onclick="handleCancelClick()">取消</button></td>
                 </tr>
             </table>
@@ -511,19 +530,20 @@
 <div id="divSummary">
     <div class="mui-content-padded" data-bind="visible:model.worker()!=''">
         <button class="mui-btn mui-btn-block mui-btn-primary" onclick="handleCreateClick()">
-            新发布公告
+            发布<span>@ViewBag.MsgTypeTitle</span>
+            
         </button>
     </div>
     <div class="mui-card" id="divNo" style="margin-top:10px;display:none">
         <center>
             <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
-            <div>目前没有公告。</div>
+            <div>目前没有<span>@ViewBag.MsgTypeTitle</span>。</div>
         </center>
     </div>
     <div data-bind=" foreach:model.list">
         <div class="mui-card" style="margin-top:10px">
             <div class="mui-content-padded">
-                <div class="bb-title" data-bind="text:title"></div>
+                <div class="msg-title" data-bind="text:title"></div>
                 <p style="color:gray;font-size:12px">
                     <span data-bind="text:publishTime"></span>
                     <span data-bind="visible:creator!=''">-</span>

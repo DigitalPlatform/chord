@@ -55,9 +55,9 @@ function fillPending() {
 
     if (mytype == "bs-") {
         //alert("bs-"+keyword);
-        var libUserName = o.children("span").text();
+        var libId = o.children("span").text();
         var url = "/api/biblio?id=" + encodeURIComponent(myvalue) + "&format=summary"
-            + "&libUserName=" + encodeURIComponent(libUserName);
+            + "&libId=" + encodeURIComponent(libId);
 
         //alert(url);
 
@@ -81,37 +81,11 @@ function fillPending() {
             o.removeClass("pending");
             window.setTimeout("fillPending()", 1);
         });
-    }
-    else if (mytype == "rs-") {
-        var url = "/api/patron/" + encodeURIComponent(myvalue) + "?format=summary";
-        //alert(url);
-
-        sendAjaxRequest(url, "GET", function (data) {
-            if (data.apiResult.errorCode == -1) {
-                //alert("err1");
-                //换成实际的值，去掉pending状态，继续下一个pending
-                o.html("出错：" + data.apiResult.errorInfo);
-                o.removeClass("pending");
-                window.setTimeout("fillPending()", 1);
-            }
-            else {
-                //换成实际的值，去掉pending状态，继续下一个pending
-                //alert(data.summary);
-                o.html(data.summary);
-                o.removeClass("pending");
-                window.setTimeout("fillPending()", 1);
-            }
-        }, function (xhq, textStatus, errorThrown) {
-            //换成实际的值，去掉pending状态，继续下一个pending
-            o.html("访问服务器出错：" + errorThrown);
-            o.removeClass("pending");
-            window.setTimeout("fillPending()", 1);
-        });
-    }
+    }    
     else if (mytype == "ms-") {
-        var libUserName = o.children("span").text();
+        var libId = o.children("span").text();
         var url = "/api/biblio?id=more" + "&format=" + encodeURIComponent(myvalue)
-            +"&libUserName=" + encodeURIComponent(libUserName);
+            + "&libId=" + encodeURIComponent(libId);
         //alert(url);
         // 调api
         sendAjaxRequest(url, "GET", function (data) {

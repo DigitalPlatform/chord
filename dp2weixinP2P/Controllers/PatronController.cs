@@ -19,42 +19,7 @@ namespace dp2weixinWeb.Controllers
     public class PatronController : BaseController
     {
 
-        #region del
-        // GET: Patron
-        public ActionResult Index(string code, string state)
-        {
-            string strError = "";
-            string strXml = "";
-            WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
-            if (nRet == -1 || nRet == 0)
-                return Content(strError);
 
-            if (nRet == -2)// 未绑定的情况，转到绑定界面
-            {
-                return RedirectToAction("Bind", "Account");
-            }
-            // 没有设置默认账户，转到帐户管理界面
-            if (nRet == -3)
-            {
-                return RedirectToAction("Index", "Account");
-            }
-            
-            // 获取当前账户的信息
-            PatronInfo patronInfo =null;
-            nRet = dp2WeiXinService.Instance.GetPatron(activeUserItem.libUserName,
-                activeUserItem.readerBarcode,
-                out patronInfo,
-                out strError);
-            if (nRet == -1 || nRet == 0)
-            {
-                return Content(strError);
-            }
-            ViewBag.LibUserName = activeUserItem.libUserName;
-            return View(patronInfo);
-        }
-
-        #endregion
 
         #region 二维码 图片
 
@@ -74,18 +39,7 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
-            /*
-            if (nRet == -2)// 未绑定的情况，转到绑定界面
-            {
-                return RedirectToAction("Bind", "Account");
-            }
-            // 没有设置默认账户，转到帐户管理界面
-            if (nRet == -3)
-            {
-                return RedirectToAction("Index", "Account");
-            }
-            */
-            string qrcodeUrl = "./getphoto?libUserName=" + HttpUtility.UrlEncode(activeUserItem.libUserName)
+            string qrcodeUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(activeUserItem.libId)
                 + "&type=pqri"
                 + "&barcode=" + HttpUtility.UrlEncode(activeUserItem.readerBarcode)
                 + "&width=400&height=400";
@@ -94,7 +48,7 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 图片
-        public ActionResult GetPhoto(string libUserName, string type, string barcode)
+        public ActionResult GetPhoto(string libId, string type, string barcode)
         {
             MemoryStream ms = null;
             string strError = "";
@@ -125,7 +79,7 @@ namespace dp2weixinWeb.Controllers
                 // 读者证号二维码
                 string strCode = "";
                 // 获得读者证号二维码字符串
-                int nRet = dp2WeiXinService.Instance.GetQRcode(libUserName,
+                int nRet = dp2WeiXinService.Instance.GetQRcode(libId,
                     barcode,
                     out strCode,
                     out strError);
@@ -221,7 +175,7 @@ namespace dp2weixinWeb.Controllers
 
             PersonalInfoModel model = null;
             if (activeUserItem != null)
-                model= this.ParseXml(activeUserItem.libUserName, strXml);
+                model= this.ParseXml(activeUserItem.libId, strXml);
 
             return View(model);
         }
@@ -317,7 +271,10 @@ namespace dp2weixinWeb.Controllers
         /// 0 未找到读者记录
         /// 1 成功
         /// </returns>
-        public int GetReaderXml(string code, string state,string strFormat,out WxUserItem activeUserItem,out string strXml)
+        public int GetReaderXml(string code, string state,
+            string strFormat,
+            out WxUserItem activeUserItem,
+            out string strXml)
         {
             strXml = "";
             activeUserItem = null;
@@ -359,7 +316,7 @@ namespace dp2weixinWeb.Controllers
             if (String.IsNullOrEmpty(strFormat) == false)
             {
                 // 获取当前账户的信息
-                nRet = dp2WeiXinService.Instance.GetPatronXml(activeUserItem.libUserName,
+                nRet = dp2WeiXinService.Instance.GetPatronXml(activeUserItem.libId,
                     activeUserItem.readerBarcode,
                     strFormat,
                     out strXml,
@@ -372,7 +329,7 @@ namespace dp2weixinWeb.Controllers
 
 
 
-        private PersonalInfoModel ParseXml(string libUserName,string strXml)
+        private PersonalInfoModel ParseXml(string libId,string strXml)
         {
             PersonalInfoModel model = new PersonalInfoModel();
             XmlDocument dom = new XmlDocument();
@@ -390,7 +347,7 @@ namespace dp2weixinWeb.Controllers
             model.displayName = strDisplayName;
 
             // 二维码
-            string qrcodeUrl = "./getphoto?libUserName=" + HttpUtility.UrlEncode(libUserName)
+            string qrcodeUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(libId)
                 + "&type=pqri"
                 + "&barcode=" + HttpUtility.UrlEncode(strBarcode);
             model.qrcodeUrl = qrcodeUrl;

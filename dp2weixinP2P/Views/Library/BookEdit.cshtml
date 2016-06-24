@@ -1,0 +1,112 @@
+﻿@model dp2weixinWeb.Models.BookEditModel
+@section Scripts {
+    <script>
+
+
+        // 绑定方式变化，账号提示信息跟着变化
+        function prefixChange() {
+            var curText = $('#selPrefix option:checked').text();
+            if (curText == "请选择 绑定方式")
+                curText = "账号";
+
+            if (curText == "工作人员账户")
+                curText = "账户名";
+
+            $('#account').prop("placeholder", "请输入 " + curText);
+            $('#lblAccount').html(curText)
+        }
+
+        // 将选择的subject设到输入框中
+        function subjectChanged()
+        {
+            var subValue = $("#selSubject").val();
+
+            //alert(subValue);
+
+            if (subValue == "new") {
+                $("#divNewSubject").css('display', 'block');
+                $("#txtSubject").val("");
+                //$("#txtSubject").css('display', 'block');
+            }
+            else {
+                $("#divNewSubject").css('display', 'none');
+                $("#txtSubject").val(subValue);
+            }
+
+            
+        }
+
+
+    </script>
+}
+@section style {
+    <style>
+        .leftLabel {
+            color: #999999;
+        }
+
+        .msg-title {
+            line-height: 1;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-size: 20px;
+        }
+    </style>
+}
+@section header {
+    <h1 class="mui-title">绑定账号</h1>
+}
+
+<span id="userId" style="display:none">@ViewBag.UserId</span>
+@using (Html.BeginForm("BookEdit", "Library", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post))
+    {
+<div class='mui-input-group'>
+    <div class='mui-input-row' style='border-bottom:0px'>
+        <label class="leftLabel">栏目</label>
+        @Html.Raw(ViewBag.SubjectHtml)
+    </div>
+    <div class='mui-input-row' id='divNewSubject' style='display:none;border-bottom:0px'>
+        <label class="leftLabel">&nbsp;</label>
+        <input id='txtSubject' style='' placeholder='请输入新栏目名称' />
+    </div>
+
+    <div class="mui-input-row" style="border-bottom:0px">
+        <label class="leftLabel" >标题</label>
+        <input type="text" class="mui-input mui-input-clear"  value="@Model.msgItem.title">
+    </div>
+    <div class="mui-input-row" style="border-bottom:0px;height:100px">
+        <label class="leftLabel" style="width:20%;">注释</label>
+        <textarea rows="6" id="divRemark" style="">@Model.msgItem.Remark</textarea>
+    </div>
+    <div class="mui-input-row" style="border-bottom:0px;height:100px">
+        <label class="leftLabel">书目路径</label>
+        <textarea rows="6" id="divContent" style="">@Model.msgItem.content</textarea>
+    </div>
+    <div class="mui-input-row " style="">
+        <label class="leftLabel">发布时间</label>
+        <input type="text" class="mui-input mui-input-clear" disabled="disabled" value="@Model.msgItem.publishTime">
+    </div>
+    <div class="mui-input-row " style="">
+        <label class="leftLabel">发布人</label>
+        <input type="text" class="mui-input mui-input-clear" disabled="disabled" value="@Model.msgItem.creator">
+    </div>
+</div>
+
+<div class="mui-content-padded" >
+    <button class="mui-btn mui-btn-block mui-btn-primary" >
+        @if (String.IsNullOrEmpty(Model.msgItem.id)== true) //( .id == "" || Model.id==null)
+        {
+            <span>发布</span>
+        }
+        else
+        {
+             <span>更新</span>
+        }
+
+    </button>
+</div>
+}
+
+
+
+

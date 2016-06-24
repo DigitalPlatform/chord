@@ -13,6 +13,19 @@
   
 </head>
 <body>
+
+
+            <div style="position:relative;">
+                <span style="margin-left:100px;width:18px;height:26px; overflow:hidden;">
+                    <select style="width:118px;margin-left:-100px;height:26px; " onchange="this.parentNode.nextSibling.value=this.value">
+                        <option value="www.aspxhome.com"> Aspxhome.COM</option>
+                        <option value="www.llkyx.com"> 小游戏</option>
+                        <option value="WEB开发者"> WEB开发者 </option>
+                    </select>
+                </span>
+                <input name="box" style="width:100px; height:20px;position:absolute;left:0px;" />
+            </div>
+
  
 
 <!--↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓3列菜单开始↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓-->
@@ -63,6 +76,11 @@ $(".menu").click(function() {
         $(this).children(".new-sub").slideDown("fast"); //展示当前的二级菜单
     }
 });
+
+function selectChanged()
+{
+
+}
 </script>
 
 <div style="text-align:center;margin:50px 0; font:normal 14px/24px 'MicroSoft YaHei';">

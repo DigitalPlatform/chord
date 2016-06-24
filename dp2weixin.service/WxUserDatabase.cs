@@ -90,11 +90,11 @@ namespace dp2weixin.service
         /// <param name="libCode"></param>
         /// <param name="readerBarcode"></param>
         /// <returns></returns>
-        public WxUserItem GetPatronAccount(string weixinId, string libCode,string readerBarcode)
+        public WxUserItem GetPatronAccount(string weixinId, string libId,string readerBarcode)
         {
             // 先查到weixinId+libCode+readerBarcode唯一的记录
             var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
-                & Builders<WxUserItem>.Filter.Eq("libCode", libCode)
+                & Builders<WxUserItem>.Filter.Eq("libId", libId)
                 & Builders<WxUserItem>.Filter.Eq("readerBarcode", readerBarcode)
                 & Builders<WxUserItem>.Filter.Eq("type", C_Type_Patron);
 
@@ -123,20 +123,7 @@ namespace dp2weixin.service
         /// <param name="weixinId"></param>
         /// <param name="libCode"></param>
         /// <returns></returns>
-        public WxUserItem GetWorker(string weixinId, string libCode)
-        {
-            // 先查到weixinId+libCode+readerBarcode唯一的记录
-            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
-                & Builders<WxUserItem>.Filter.Eq("libCode", libCode)
-                & Builders<WxUserItem>.Filter.Eq("type", C_Type_Worker);
-            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
-            if (list.Count >= 1)
-                return list[0];
-
-            return null;
-        }
-
-        public WxUserItem GetWorkerByLibId(string weixinId, string libId)
+        public WxUserItem GetWorker(string weixinId, string libId)
         {
             // 先查到weixinId+libCode+readerBarcode唯一的记录
             var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
@@ -148,6 +135,7 @@ namespace dp2weixin.service
 
             return null;
         }
+
 
         public WxUserItem GetOneWorker(string weixinId)
         {
@@ -285,8 +273,8 @@ namespace dp2weixin.service
             var filter = Builders<WxUserItem>.Filter.Eq("id", item.id);
             var update = Builders<WxUserItem>.Update
                 .Set("weixinId", item.weixinId)
-                .Set("libCode", item.libCode)
-                .Set("libUserName", item.libUserName)
+                //.Set("libCode", item.libCode)
+                //.Set("libUserName", item.libUserName)
                 .Set("libName", item.libName)
                 .Set("libId", item.libId)
 
@@ -418,8 +406,6 @@ namespace dp2weixin.service
         public string id { get; private set; }
 
         public string weixinId { get; set; } // 绑定必备
-        public string libCode { get; set; } // 绑定必备
-        public string libUserName { get; set; }// 绑定必备
         public string libName { get; set; }// 绑定必备   
         public string libId { get; set; }// 对应图书馆的id，2016-6-19 jane
 
@@ -454,6 +440,11 @@ namespace dp2weixin.service
         如果没有良好的同步机制，那么公众号模块不如每次需要的时候去临时获取这个字符串。
          */
         //public string right { get; set; }//没有很好的缓存机制，先不加权限字段
+
+
+
+        //最后使用的图书推荐的栏
+        public string bookSubject { get; set; }
     }
 
 

@@ -26,12 +26,53 @@ namespace dp2weixinWeb.ApiControllers
             return list;
         }
 
-        public WxUserItem Get(string weixinId,string style)
+        public List<WxUserItem> Get(string libId,
+            string weixinId,
+            string style)
         {
+            List<WxUserItem> list = new List<WxUserItem>();
+
             if (style == "active")
-                return wxUserDb.GetActivePatron(weixinId);
-            return null;
+            {
+                WxUserItem user=  wxUserDb.GetActivePatron(weixinId);
+                if (user != null)
+                    list.Add(user);
+            }
+            else if (style == "activeAndWorker")
+            {
+                // 目前各图书馆只有一个活动账户
+                WxUserItem user = wxUserDb.GetActivePatron(weixinId);
+                if (user != null)
+                    list.Add(user);
+
+                user = wxUserDb.GetWorker(weixinId, libId);
+                if (user != null)
+                    list.Add(user);
+            }
+
+            return list;
         }
+
+        // POST api/<controller>
+        [HttpPost]
+        public ApiResult ResetPassword(string libId,
+            string name, 
+            string tel)
+        {
+            ApiResult result = new ApiResult();
+
+            string strError = "";
+            int nRet = dp2WeiXinService.Instance.ResetPassword(libId,
+                name,
+                tel,
+                out strError);
+            result.errorCode = nRet;
+            result.errorInfo = strError;
+
+            return result;
+        }
+
+
 
         // POST api/<controller>
         [HttpPost]
@@ -45,14 +86,9 @@ namespace dp2weixinWeb.ApiControllers
             // 前端有时传上来是这个值
             if (item.prefix == "null")
                 item.prefix = "";
-
             WxUserItem userItem = null;
             string strError="";
-            //string fullWord = item.word;
-            //if (string.IsNullOrEmpty(item.prefix) == false && item.prefix != "null")
-            //    fullWord = item.prefix + ":" + item.word;
-            int nRet= dp2WeiXinService.Instance.Bind(item.libUserName,
-                item.libCode,
+            int nRet= dp2WeiXinService.Instance.Bind(item.libId,
                 item.prefix,
                 item.word,
                 item.password,
@@ -70,29 +106,10 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
-        // POST api/<controller>
-        [HttpPost]
-        public ApiResult ResetPassword(string libUserName,
-            string libCode,
-            string name,string tel)
-        {
-            ApiResult result = new ApiResult();
-            
-            string strError="";
-            int nRet = dp2WeiXinService.Instance.ResetPassword(libUserName,
-                libCode,
-                name,
-                tel,
-                out strError);
-            result.errorCode = nRet;
-            result.errorInfo = strError;
-
-            return result;
-        }
 
         // 修改密码
         [HttpPost]
-        public ApiResult ChangePassword(string libUserName,
+        public ApiResult ChangePassword(string libId,
             string patron,
             string oldPassword,
             string newPassword)
@@ -100,7 +117,7 @@ namespace dp2weixinWeb.ApiControllers
             ApiResult result = new ApiResult();
 
             string strError = "";
-            int nRet = dp2WeiXinService.Instance.ChangePassword(libUserName,
+            int nRet = dp2WeiXinService.Instance.ChangePassword(libId,
                 patron,
                 oldPassword,
                 newPassword,
