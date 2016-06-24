@@ -9,6 +9,16 @@
         //2016-6-17 jane 获得当前绑定读者，为了解决普通浏览器返回时，读者信息没更新的问题,iphone倒是更新了
         function getActivePatron() {
 
+            //alert("getActivePatron1");
+
+            // 先删除可观察数组中的已有数据
+            model.reservations.removeAll();
+
+
+            $("#patronBarcode").text("");
+            $("#patronName").text("");
+            $("#workerUserName").text("");
+
             var weixinId = $("#weixinId").text();
             if (weixinId == "")
                 return;
@@ -19,14 +29,18 @@
                 return;
             }
 
+            //alert("getActivePatron2");
+
             //显示等待图层
             var index = loadLayer();
 
             // 调web api
             var url = "/api/wxuser?libId=" + encodeURIComponent(libId)
                 + "&weixinId=" + weixinId
-                + "&style=active";
+                + "&style=activeAndWorker";
             sendAjaxRequest(url, "GET", function (data) {
+
+               // alert("getActivePatron3");
 
                 // 关闭等待层
                 layer.close(index);
@@ -34,22 +48,34 @@
                 if (data == null)
                     return;
 
-                if (data.list != null && data.list.length > 0)
+                if (data.length > 0)
                 {
-                    for (var i = 0; i < data.list.length; i++) {
-                        var user = data.list[i];
+                    for (var i = 0; i < data.length; i++) {
+                        var user = data[i];
                         // 读者
                         if (user.type==0)
                         {
-                            $("#patronBarcode").text(data.readerBarcode);
-                            $("#patronName").text(data.readerName);
+                            $("#patronBarcode").text(user.readerBarcode);
+                            $("#patronName").text(user.readerName);
+
+                            //alert("getActivePatron4");
+
                         }
                         else if  (user.type==1)
                         {
-                            $("#workerUserName").text(data.userName);
+                            $("#workerUserName").text(user.userName);
+
+                            //alert("getActivePatron5");
+
                         }
                     }
                 }
+
+               // alert("getActivePatron6");
+
+
+                // 获取预约列表
+                getReservations();
 
             }, function (xhq, textStatus, errorThrown) {
 
@@ -61,7 +87,9 @@
         }
 
         //获取预约列表
-        function getReservations(checkBarcode,obj,info,bWarn) {
+        function getReservations(checkBarcode, obj, info, bWarn) {
+
+            //alert("getReservations1");
 
             // 先删除可观察数组中的已有数据
             model.reservations.removeAll();                     
@@ -69,14 +97,21 @@
             // 图书馆
             var libId = $("#selLib").val();
             if (libId == "" || libId == null) {
+
+                //alert("getReservations1-1");
                 return;
             }
 
             var patronBarcode = $("#patronBarcode").text();
             if (patronBarcode == "")
             {
+                //alert("getReservations1-2");
+
                 return;// 未绑定
             }
+
+           // alert("getReservations2");
+
 
             //显示等待图层
             var index = loadLayer();
@@ -85,6 +120,8 @@
             var url = "/api/Reservation?libId=" + encodeURIComponent(libId)
                 + "&patronBarcode=" + encodeURIComponent(patronBarcode);
             sendAjaxRequest(url, "GET", function (result) {
+                //alert("getReservations3");
+
 
                 // 关闭等待层
                 layer.close(index);
@@ -100,8 +137,16 @@
                     model.reservations.push(result.reservations[i]);
                 }
 
-                if (checkBarcode != null && checkBarcode != "") {
+                //alert("getReservations4");
+
+
+                if (checkBarcode != null && checkBarcode != "" && obj!=null) {
+
+                    //alert("getReservations5");
+
                     var myhtml = getReservationHtml(checkBarcode)
+                    alert("myhtml ["+myhtml+"]");
+
                     $(obj)[0].innerHTML = myhtml;  // 不能直接设html
                     //$("#responsediv")[0].innerHTML = msg就可以获得这个Dom对象使用innerHTML。
 
@@ -160,15 +205,16 @@
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
 
+            //alert("ready");
+
+            //绑定观察模块
+            ko.applyBindings(model);
+
             // 获取当前图书馆对应的读者
             //2016-6-17 jane 获得当前绑定读者，为了解决普通浏览器返回时，读者信息没更新的问题,iphone倒是更新了
             getActivePatron();
 
-            // 获取预约列表
-            getReservations();
 
-            //绑定观察模块
-            ko.applyBindings(model);
 
             // 密码框打回车时，进行绑定
             $('#txtWord').bind('keypress', function (event) {
@@ -182,14 +228,37 @@
             // 设顶部菜单不固定
             $("#myheader").css("position", "absolute");
 
+            //redoSearch();
+            window.setTimeout("redoSearch()", 10);
+            //// 当按浏览器返回按钮时，要显示原来的数据
+            //var word = $('#txtWord').val();
+            //if (word != "") {
+            //    //alert("maxNo=" + $("#maxNo").val());
+            //    var expandId = $('#expandId').val();
+            //    search("_ReView", expandId);
+            //}
+
+
+        });
+
+        function redoSearch()
+        {
+            //alert("redoSearch1");
             // 当按浏览器返回按钮时，要显示原来的数据
             var word = $('#txtWord').val();
             if (word != "") {
+
+                //alert("redoSearch2");
+
+
                 //alert("maxNo=" + $("#maxNo").val());
                 var expandId = $('#expandId').val();
                 search("_ReView", expandId);
+
+                ///alert("redoSearch3");
+
             }
-        });
+        }
 
 
 
@@ -359,8 +428,8 @@
                 }
             }
 
-            var libId = $("#selLib").value();
-            if (libid == "")
+            var libId = $("#selLib").val();
+            if (libId == "")
             {
                 alert("尚未选择图书馆");
                 return;

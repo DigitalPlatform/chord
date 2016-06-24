@@ -55,6 +55,27 @@ namespace dp2weixinWeb.ApiControllers
 
         // POST api/<controller>
         [HttpPost]
+        public ApiResult ResetPassword(string libId,
+            string name, 
+            string tel)
+        {
+            ApiResult result = new ApiResult();
+
+            string strError = "";
+            int nRet = dp2WeiXinService.Instance.ResetPassword(libId,
+                name,
+                tel,
+                out strError);
+            result.errorCode = nRet;
+            result.errorInfo = strError;
+
+            return result;
+        }
+
+
+
+        // POST api/<controller>
+        [HttpPost]
         public WxUserResult Bind(WxUserItem item)
         {
             // 返回对象
@@ -85,25 +106,6 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
-        // POST api/<controller>
-        [HttpPost]
-        public ApiResult ResetPassword(string libId,
-            string libCode,
-            string name,string tel)
-        {
-            ApiResult result = new ApiResult();
-            
-            string strError="";
-            int nRet = dp2WeiXinService.Instance.ResetPassword(libId,
-                libCode,
-                name,
-                tel,
-                out strError);
-            result.errorCode = nRet;
-            result.errorInfo = strError;
-
-            return result;
-        }
 
         // 修改密码
         [HttpPost]

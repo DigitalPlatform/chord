@@ -1687,7 +1687,6 @@ namespace dp2weixin.service
         /// <param name="strError"></param>
         /// <returns></returns>
         public int ResetPassword(string libId,
-            string strLibraryCode,
             string name,
             string tel,
             out string strError)
@@ -1831,7 +1830,7 @@ namespace dp2weixin.service
                         strBarcode,
                         strXml,
                         strBody,
-                        strLibraryCode,
+                        lib.libName, //todo,注意这里原来传的code 还是读者的libraryCode
                         out strError);
                     if (nRet == -1 || nRet == 0)
                         return nRet;
