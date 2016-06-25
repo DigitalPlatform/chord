@@ -37,11 +37,33 @@ namespace dp2Capo.Install
 
         private void button_OK_Click(object sender, EventArgs e)
         {
+            string strError = "";
+            if (string.IsNullOrEmpty(this.comboBox_url.Text))
+            {
+                strError = "尚未指定 dp2library 服务器 URL";
+                goto ERROR1;
+            }
+
+            if (string.IsNullOrEmpty(this.textBox_manageUserName.Text))
+            {
+                strError = "尚未指定用户名";
+                goto ERROR1;
+            }
+
+            if (string.IsNullOrEmpty(this.comboBox_msmqPath.Text))
+            {
+                strError = "尚未指定消息队列路径";
+                goto ERROR1;
+            }
+
             if (SaveToCfgDom() == false)
                 return;
 
             this.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.Close();
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
         }
 
         private void button_Cancel_Click(object sender, EventArgs e)
@@ -454,7 +476,7 @@ namespace dp2Capo.Install
                 // default_capo_rights
                 user.Rights = "getsystemparameter,getres,search,getbiblioinfo,setbiblioinfo,getreaderinfo,writeobject,getbibliosummary,listdbfroms,simulatereader,simulateworker"
                     + ",getiteminfo,getorderinfo,getissueinfo,getcommentinfo"
-                    + ",borrow,return";
+                    + ",borrow,return,getmsmqmessage";
 
                 long lRet = channel.SetUser(
         "new",

@@ -9,6 +9,38 @@ namespace DigitalPlatform.IO
 {
     public static class PathUtil
     {
+        // 删除一个目录内的所有文件和目录
+        // 不会抛出异常
+        public static bool TryClearDir(string strDir)
+        {
+            try
+            {
+                DirectoryInfo di = new DirectoryInfo(strDir);
+                if (di.Exists == false)
+                    return true;
+
+                // 删除所有的下级目录
+                DirectoryInfo[] dirs = di.GetDirectories();
+                foreach (DirectoryInfo childDir in dirs)
+                {
+                    Directory.Delete(childDir.FullName, true);
+                }
+
+                // 删除所有文件
+                FileInfo[] fis = di.GetFiles();
+                foreach (FileInfo fi in fis)
+                {
+                    File.Delete(fi.FullName);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
         // 如果目录不存在则创建之
         // return:
         //      false   已经存在

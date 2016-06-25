@@ -95,6 +95,12 @@ MessageBoxDefaultButton.Button2);
                 return;
             }
 
+            if (this.listView_instance.Items.Count == 0)
+            {
+                MessageBox.Show(this, "尚未创建第一个实例");
+                return;
+            }
+
             if (Finish() == false)
                 return;
 

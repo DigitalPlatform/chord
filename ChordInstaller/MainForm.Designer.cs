@@ -94,6 +94,7 @@
             this.MenuItem_autoUpgrade.Name = "MenuItem_autoUpgrade";
             this.MenuItem_autoUpgrade.Size = new System.Drawing.Size(242, 22);
             this.MenuItem_autoUpgrade.Text = "自动升级全部产品(&A)";
+            this.MenuItem_autoUpgrade.Click += new System.EventHandler(this.MenuItem_autoUpgrade_Click);
             // 
             // toolStripSeparator4
             // 
@@ -105,12 +106,14 @@
             this.MenuItem_displayDigitalPlatformEventLog.Name = "MenuItem_displayDigitalPlatformEventLog";
             this.MenuItem_displayDigitalPlatformEventLog.Size = new System.Drawing.Size(242, 22);
             this.MenuItem_displayDigitalPlatformEventLog.Text = "显示 DigitalPlatform 事件日志";
+            this.MenuItem_displayDigitalPlatformEventLog.Click += new System.EventHandler(this.MenuItem_displayDigitalPlatformEventLog_Click);
             // 
             // MenuItem_sendDebugInfos
             // 
             this.MenuItem_sendDebugInfos.Name = "MenuItem_sendDebugInfos";
             this.MenuItem_sendDebugInfos.Size = new System.Drawing.Size(242, 22);
             this.MenuItem_sendDebugInfos.Text = "打包事件日志信息(&S)";
+            this.MenuItem_sendDebugInfos.Click += new System.EventHandler(this.MenuItem_sendDebugInfos_Click);
             // 
             // toolStripSeparator8
             // 
@@ -122,6 +125,7 @@
             this.MenuItem_exit.Name = "MenuItem_exit";
             this.MenuItem_exit.Size = new System.Drawing.Size(242, 22);
             this.MenuItem_exit.Text = "退出(&X)";
+            this.MenuItem_exit.Click += new System.EventHandler(this.MenuItem_exit_Click);
             // 
             // MenuItem_dp2Capo
             // 
@@ -169,6 +173,7 @@
             this.MenuItem_dp2capo_openAppDir.Name = "MenuItem_dp2capo_openAppDir";
             this.MenuItem_dp2capo_openAppDir.Size = new System.Drawing.Size(160, 22);
             this.MenuItem_dp2capo_openAppDir.Text = "打开程序文件夹";
+            this.MenuItem_dp2capo_openAppDir.Click += new System.EventHandler(this.MenuItem_dp2capo_openAppDir_Click);
             // 
             // toolStripSeparator9
             // 

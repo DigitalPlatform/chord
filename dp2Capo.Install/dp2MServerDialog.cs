@@ -33,13 +33,38 @@ namespace dp2Capo.Install
             FillInfo();
         }
 
-        private void button_OK_Click(object sender, EventArgs e)
+        private async void button_OK_Click(object sender, EventArgs e)
         {
+            // 按下 Control 键可越过探测步骤
+            bool bControl = Control.ModifierKeys == Keys.Control;
+
+            string strError = "";
+            if (string.IsNullOrEmpty(this.textBox_url.Text))
+            {
+                strError = "尚未指定 dp2MServer URL";
+                goto ERROR1;
+            }
+
+            if (string.IsNullOrEmpty(this.textBox_userName.Text))
+            {
+                strError = "尚未指定用户名";
+                goto ERROR1;
+            }
+
+            if (bControl == false && await DetectUser() == false)
+                return;
+
             if (SaveToCfgDom() == false)
                 return;
 
             this.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.Close();
+            return;
+        ERROR1:
+            this.Invoke(new Action(() =>
+            {
+                MessageBox.Show(this, strError);
+            }));
         }
 
         private void button_Cancel_Click(object sender, EventArgs e)
@@ -61,8 +86,18 @@ namespace dp2Capo.Install
 
         private async void button_detect_Click(object sender, EventArgs e)
         {
-            string strError = "";
+            if (await DetectUser() == true)
+            {
+                this.Invoke(new Action(() =>
+                {
+                    MessageBox.Show(this, "账户存在");
+                }));
+            }
+        }
 
+        async Task<bool>DetectUser()
+        {
+            string strError = "";
             EnableControls(false);
             try
             {
@@ -77,7 +112,7 @@ namespace dp2Capo.Install
                 string id = Guid.NewGuid().ToString();
                 GetMessageRequest request = new GetMessageRequest(id,
                     "",
-                    "", // "" 表示默认群组
+                    "gn:<default>", // "" 表示默认群组
                     "",
                     "",
                     "",
@@ -96,11 +131,7 @@ namespace dp2Capo.Install
                     goto ERROR1;
                 }
 
-                this.Invoke(new Action(() =>
-                {
-                    MessageBox.Show(this, "账户存在");
-                }));
-                return;
+                return true;
             }
             catch (MessageException ex)
             {
@@ -136,6 +167,7 @@ namespace dp2Capo.Install
             {
                 MessageBox.Show(this, strError);
             }));
+            return false;
         }
 
         string GetUserName()

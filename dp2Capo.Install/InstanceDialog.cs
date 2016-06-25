@@ -57,8 +57,25 @@ namespace dp2Capo.Install
 
         private void button_OK_Click(object sender, EventArgs e)
         {
-            // string strError = "";
+            string strError = "";
             // 检查参数是否输入全了
+            if (string.IsNullOrEmpty(this.textBox_dataDir.Text))
+            {
+                strError = "尚未指定数据目录";
+                goto ERROR1;
+            }
+
+            if (string.IsNullOrEmpty(this.textBox_dp2library_def.Text))
+            {
+                strError = "尚未配置 dp2library 服务器参数";
+                goto ERROR1;
+            }
+
+            if (string.IsNullOrEmpty(this.textBox_dp2mserver_def.Text))
+            {
+                strError = "尚未配置 dp2MServer 服务器参数";
+                goto ERROR1;
+            }
 
             if (this.Changed)
                 this.SaveCfgXml();
@@ -66,10 +83,8 @@ namespace dp2Capo.Install
             this.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.Close();
             return;
-#if NO
         ERROR1:
             MessageBox.Show(this, strError);
-#endif
         }
 
         private void button_Cancel_Click(object sender, EventArgs e)
