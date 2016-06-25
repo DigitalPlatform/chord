@@ -14,7 +14,6 @@
             // 先删除可观察数组中的已有数据
             model.reservations.removeAll();
 
-
             $("#patronBarcode").text("");
             $("#patronName").text("");
             $("#workerUserName").text("");
@@ -59,14 +58,12 @@
                             $("#patronName").text(user.readerName);
 
                             //alert("getActivePatron4");
-
                         }
                         else if  (user.type==1)
                         {
                             $("#workerUserName").text(user.userName);
 
                             //alert("getActivePatron5");
-
                         }
                     }
                 }
@@ -370,10 +367,10 @@
                         var li = "<li class='mui-table-view-cell mui-collapse' id='" + id + "'> "
                             + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\""+id+"\")'>" + record.no + " " + record.name + "</a>"
                             + "<div class='mui-collapse-content' style='display:none;'>"
-                                + "<span class='pendingDetail' >"
+                                + "<div class='pendingDetail biblio' >"
                                     + "<label>"+record.libId+"|"+record.recPath+"</label>"
                                     + "<img src='../img/wait2.gif' />"
-                                + "</span>"
+                                + "</div>"
                             + "</div>"
                             + "</li>";
                         table.append(li);
@@ -512,10 +509,11 @@
         // 2016-6-17 jane 为了返回时记住展开项，expand函数由原来传一个对象，改为传一个id 
         function expand(expId)
         {
-            // 如果自己是展开状态，则收缩
+            //根据id找到<li>元素
             var id = "#" + expId;
             var obj = $(id);
-            //obj = $(obj).parent();
+
+            // 如果自己是展开状态，则收缩
             var  state=$(obj).find(".mui-collapse-content").first().css("display");
             if (state == "block") { //自己本来是展开状态，要关闭   
                     $(obj).find(".mui-collapse-content").css("display", "none");
@@ -523,8 +521,8 @@
             }
             else {
                 //其它收缩
-                $(".mui-collapse-content").css("display", "none");
-                $(".mui-collapse").removeClass("mui-active");
+                //$(".mui-collapse-content").css("display", "none");
+                //$(".mui-collapse").removeClass("mui-active");
 
                 //自己展开
                 $(obj).find(".mui-collapse-content").css("display", "block");
@@ -532,7 +530,6 @@
 
                 // 记住展开项
                 $("#expandId").val(expId);
-
 
                 //检查是否已经加载过了
                 var o = $(obj).find(".pendingDetail:first");
@@ -561,7 +558,8 @@
                 btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','delete')\">放弃取书</button>";
             }
             if (reservationState != "") {
-                myReserHtml = "<span style='vertical-align:middle;font-weight:bold''>" + reservationState + "&nbsp;&nbsp;</span><span style='vertical-align:middle'>" + btn + "</span>";
+                myReserHtml = "<div class='info'>" + reservationState+"</div>"
+                    + "<div class='btn'>" + btn + "</div>";
             }
             return myReserHtml;
         }
@@ -688,12 +686,14 @@
 
                 var itemTables = "";
                 if (result.itemList.length == 0)
-                    itemTables = "<div  class='mui-card' style='padding:0px;margin:0px;margin-top:3px'><center><img src='../img/empty3.png' width='50' height='50' style='padding-top:3px' /><div style='color:#999999'>该书没有下级册信息。</div><center></div>"
+                    itemTables = "<div class='mui-card item'>"
+                        + "<span class='remark'>没有册信息</span>"
+                        +"</div>"
 
                 var patronBarcode = $("#patronBarcode").text();
                 var bCanReservation = false;
                 var returnUrl = "/Biblio/Index";
-                var info = "<span style='color:#999999;'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl=" + encodeURIComponent(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>"
+                var info = "<span class='remark'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl=" + encodeURIComponent(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>"
                 if (patronBarcode != null && patronBarcode !="") // 有绑定的读者
                 {
                     bCanReservation = true;
@@ -717,21 +717,22 @@
                             strBorrowInfo = "借阅者:*** 借阅时间:" + record.borrowDate + " 借期:" + record.borrowPeriod;
                         }
                         else {
-                            strBorrowInfo = "<span style='vertical-align:middle;'>借阅者:" + curPatronName + " 借阅时间:" + record.borrowDate + " 借期:" + record.borrowPeriod + "&nbsp;</span>"
-                                + "<span style='vertical-align:middle;'><button class='mui-btn  mui-btn-default'  onclick=\"renew('" + record.barcode + "')\">续借</button></span>"
+                            strBorrowInfo = "<div>"
+                                    + "<div class='info'>借阅者:" + curPatronName + " 借阅时间:" + record.borrowDate + " 借期:" + record.borrowPeriod + "</div>"
+                                    + "<div class='btn'>"
+                                    +   "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + record.barcode + "')\">续借</button>"
+                                    + "</div>"
+                                +"</div>"
                                 + "<div id='renewInfo-" + record.barcode + "'/>";
 
                             // 此时不能预约
-                            myReserHtml = "<div style='color:#999999;'>该册目前是您在借中，不能预约。</div>";
+                            myReserHtml = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
                         }
                     }
 
-                    itemTables += "<table class='itemTable'>"
-                    +"<tr>"
-                    + "<td class='label'>册条码号"
-                    +"</td>"
-                    +    "<td class='value'>" + record.barcode + "</td>"
-                    +"</tr>"
+                    itemTables +="<div class='mui-card item' >"
+                    + "<div class='title'>" + record.barcode + "</div>"
+                     +"<table>"
                     +"<tr>"
                     + "<td class='label'>状态</td>"
                     + "<td class='value'>" + record.state + "</td>"
@@ -754,11 +755,14 @@
                     + "</tr>"
                     + "<tr>"
                     + "<td class='label'>预约信息</td>"
-                    + "<td class='reservation' >" + myReserHtml + "</td>"
+                    + "<td class='value' >" + myReserHtml + "</td>"
                     + "</tr>"
                     //
-                    + "</table>";
+                    + "</table>"
+                    +"</div>";
                 }
+
+
 
                 var worker = $("#workerUserName").text();
                 var recommendBtn = "";
@@ -767,9 +771,11 @@
                         + "&userName=" + worker
                         + "&biblioPath=" + encodeURIComponent(biblioPath)
                         + "&returnUrl=" + encodeURIComponent('/Biblio/Index')
-                    recommendBtn = "<div><button class='mui-btn  mui-btn-default' "
+                    recommendBtn = "<div class='btnRow'><button class='mui-btn  mui-btn-default' "
                         + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button></div>";
                 }
+
+
 
                 var myHtml = "<span>" + result.summary + "</span>" +recommendBtn+ itemTables;
 
@@ -797,44 +803,80 @@
 }
 
 @section style {
-<style type="text/css">
+    <style type="text/css">
+        /*书目*/
+        DIV.biblio {
+        }
 
-        TABLE.itemTable {
-            text-align: left;            
+        /*书目操作按钮行，现在有好书推荐按钮*/
+        DIV.biblio DIV.btnRow {
+            text-align: right;
+        }
+
+        /*整个册块*/
+        DIV.item {
+            margin: 3px 0px 0px;
+            padding: 2px;
+        }
+
+        /*册块标题，一般barcode使用该样式*/
+        DIV.item .title {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            padding-left: 10px;
+            font-size: 20px;
+        }
+
+        /*册块备注，没有册文字使用该样式*/
+        DIV.item .remark {
+            color: #999999;
+            padding: 2px;
+        }
+
+        /*一条一条的册table*/
+        DIV.item TABLE {
+            text-align: left;
             background-color: white;
             width: 100%;
-            
-       margin-top:10px;
+            margin-top: 10px;
         }
 
-    TABLE.itemTable TR TD {
-        border-width: 0px;
-        border-top-width: 1px;
-        border-color: #dddddd;
-        border-style: dotted;
-        padding: 2px;
-    }
-
-        TABLE.itemTable TR TD.value {
-            /*border-left-width: 2px;*/
-            border-left:1px solid #dddddd;
-            padding-left:4px;
+        /*册td*/
+        DIV.item TABLE TR TD {
+            border-width: 0px;
+            border-top-width: 1px;
+            border-color: #dddddd;
+            border-style: dotted;
+            padding: 2px;
         }
 
-        TABLE.itemTable TR TD.reservation {
-            font-weight:normal; /*bolder;*/
-                        border-left:1px solid #dddddd;
-                        padding-left:4px;
+        /*册右值数据td*/
+        DIV.item TABLE TR TD.value {
+            padding-left: 5px;
         }
 
-        TABLE.itemTable TR TD.label {
-           width:80px;
-           background-color:#ffffff;
-           color:#999999;
-           padding-left:4px;
+        /*册右值数据td*/
+        DIV.item TABLE TR TD.value  DIV.info{
+            float:left; 
+            padding-top:5px
         }
-        
-        .resultInfo {
+
+        /*册右值数据td*/
+        DIV.item TABLE TR TD.value  DIV.btn{
+            float:right; 
+        }
+
+        /*册左侧标题td*/
+        DIV.item TABLE TR TD.label {
+            width: 75px;
+            background-color: #ffffff;
+            color: #999999;
+            padding-right: 5px;
+            text-align: right;
+        }
+
+        /*册里面的操作提示*/
+        DIV.item TABLE TR TD .resultInfo {
             /*显示预约结果的span*/
         }
     </style>
@@ -846,14 +888,12 @@
 <span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
 <span id="patronName" style="display:none">@ViewBag.PatronName</span>
+<span id="workerUserName" style="display:none">@ViewBag.workerUserName</span>
 
-
+<!--关于结果集-->
 <input id="maxNo" type="hidden" >
 <input id="resultSet" type="hidden" value="" disabled="disabled">
 <input id="expandId" type="hidden" value="" disabled="disabled">
-
-
-<span id="workerUserName" style="display:none">@ViewBag.workerUserName</span>
 
     <div id="divForm">
         <div class="mui-input-group">
