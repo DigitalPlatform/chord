@@ -3970,12 +3970,16 @@ namespace dp2weixin.service
                     dom.LoadXml(xml);
                     XmlNode root = dom.DocumentElement;
                     XmlNode nodeTitle = root.SelectSingleNode("title");
-                    title = nodeTitle.InnerText;//DomUtil.GetNodeText(root.SelectSingleNode("title"));
+                    if (nodeTitle != null)
+                        title = nodeTitle.InnerText;
+
                     XmlNode nodeContent = root.SelectSingleNode("content");
-                    content = nodeContent.InnerText;//DomUtil.GetNodeText();
+                    if (nodeTitle != null)
+                        content = nodeContent.InnerText;
 
                     XmlNode nodeRemark = root.SelectSingleNode("remark");
-                    remark = nodeRemark.InnerText;//DomUtil.GetNodeText();
+                    if (nodeRemark != null)
+                        remark = nodeRemark.InnerText;
 
                     format = DomUtil.GetAttr(nodeContent, "format");
                     if (format == "")
@@ -4233,8 +4237,10 @@ namespace dp2weixin.service
             record.type = "message";
             record.thread = "";
             record.expireTime = new DateTime(0);    // 表示永远不失效
-            if (item.subject != null && item.subject !="")
-               record.subjects = item.subject.Split(new char[] { ',' });
+            if (item.subject != null && item.subject != "")
+                record.subjects = item.subject.Split(new char[] { ',' });
+            else
+                record.subjects = new string[] { };
             records.Add(record);
 
             try

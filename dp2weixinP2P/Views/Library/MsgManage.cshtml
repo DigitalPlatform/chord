@@ -218,6 +218,8 @@
                 return;
             }
 
+            //alert(worker);
+
             var group = $("#group").text();
             if (group == "") {
                 alert("异常情况：group为空");
@@ -258,6 +260,8 @@
                     cbBlur();
                     //编辑态不可见            
                     $("#divEdit").css('display', 'none');
+                    //创建按钮不可见
+                    $("#btnCreate").css('display', 'block');
 
                     //清空编辑界面信息
                     model.editor.id("");
@@ -279,7 +283,8 @@
                     title: title,
                     content: content,
                     contentFormat: getContentFormat(),
-                    creator: worker
+                    creator: worker,
+                    subject:""
                 }
             );
         }
@@ -342,6 +347,8 @@
             model.editor.creator(model.worker());
             //编辑态可见            
             $("#divEdit").css('display', 'block');
+            //创建按钮不可见
+            $("#btnCreate").css('display', 'none');
 
             $("#cbMarkDown").prop("checked", false);//注意要用prop ，不能用attr
             //alert("移掉了呀"+getContentFormat());
@@ -362,6 +369,9 @@
 
             //编辑态不可见            
             $("#divEdit").css('display', 'none');
+
+            //创建按钮不可见
+            $("#btnCreate").css('display', 'block');
         }
 
         function handleEditClick(item) {
@@ -424,6 +434,10 @@
                     $("#btnEdit").css('display', 'block');
                     //编辑态可见            
                     $("#divEdit").css('display', 'block');
+
+                    //创建按钮不可见
+                    $("#btnCreate").css('display', 'none');
+                    
                 }
 
             }, function (xhq, textStatus, errorThrown) {
@@ -549,7 +563,7 @@
 </div>
 
 <div id="divSummary">
-    <div class="mui-content-padded" data-bind="visible:model.worker()!=''">
+    <div class="mui-content-padded" id="btnCreate" data-bind="visible:model.worker()!=''">
         <button class="mui-btn mui-btn-block mui-btn-primary" onclick="handleCreateClick()">
             发布<span>@ViewBag.groupTitle</span>
             

@@ -38,6 +38,7 @@ namespace dp2weixinWeb.ApiControllers
             string strError="";
 
             // 检查下有无绑定工作人员账号
+            result.worker = "";
             string worker = "";
             if (string.IsNullOrEmpty(weixinId) == false)
             {
@@ -80,6 +81,7 @@ namespace dp2weixinWeb.ApiControllers
                     }
                 }
             }
+            result.worker = worker;
 
             List<MessageItem> list = null;
             int nRet = dp2WeiXinService.Instance.GetMessage(group,
@@ -106,7 +108,7 @@ namespace dp2weixinWeb.ApiControllers
         public MessageResult Post(string group, string libId, MessageItem item)
         {
             // 服务器会自动产生id
-            //item.id = Guid.NewGuid().ToString();
+            //item.id = Guid.NewGuid().ToString();`'
             return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "create");
         }
 
@@ -115,7 +117,6 @@ namespace dp2weixinWeb.ApiControllers
         {
             //return libDb.Update(id, item);
 
-            string test = "";
 
             return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "change");
      }

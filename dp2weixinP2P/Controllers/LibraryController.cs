@@ -20,14 +20,16 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
+            if (String.IsNullOrEmpty(group) == true)
+                group = dp2WeiXinService.C_GroupName_Bb;
+
             if (group != dp2WeiXinService.C_GroupName_Bb
                 && group != dp2WeiXinService.C_GroupName_Book)
             {
                 return Content("不支持的群" + group);
             }
 
-            if (group == "")
-                group = dp2WeiXinService.C_GroupName_Bb;
+
 
 
             // 图书馆html
@@ -226,8 +228,16 @@ namespace dp2weixinWeb.Controllers
                 if (model._returnUrl == "/Biblio/Index")  // 直接跳转没有数据,改为javascript返回，注意是-2
                     return Content("<script>window.history.go(-2);</script>");
                 else
-                    return Redirect(model._returnUrl);
+                {
+                    string url =Url.Content("~" + model._returnUrl);
+                    return Redirect(url);
+                }
             }
+
+            //// 如果我们进行到这一步时某个地方出错，则重新显示表单
+            //ModelState.AddModelError("", strError);//"提供的用户名或密码不正确。");
+            //return View(model);
+
         }
 
 
