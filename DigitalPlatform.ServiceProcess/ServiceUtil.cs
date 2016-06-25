@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration.Install;
 using System.Linq;
 using System.ServiceProcess;
@@ -52,6 +53,96 @@ out string strError)
             //     = TimeSpan.FromMinutes(2);
             service.Stop();
             service.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
+        }
+
+        public static int StartService(string strServiceName,
+            TimeSpan timeout,
+            out string strError)
+        {
+            strError = "";
+
+            ServiceController service = new ServiceController(strServiceName);
+            try
+            {
+                service.Start();
+                service.WaitForStatus(ServiceControllerStatus.Running, timeout);
+            }
+            catch (Exception ex)
+            {
+                if (GetNativeErrorCode(ex) == 1060)
+                {
+                    strError = "服务不存在";
+                    return -1;
+                }
+
+                else if (GetNativeErrorCode(ex) == 1056)
+                {
+                    strError = "调用前已经启动了";
+                    return 0;
+                }
+                else
+                {
+                    strError = ExceptionUtil.GetAutoText(ex);
+                    return -1;
+                }
+            }
+
+            return 1;
+        }
+
+        public static int StopService(string strServiceName,
+            TimeSpan timeout,
+            out string strError)
+        {
+            strError = "";
+
+            ServiceController service = new ServiceController(strServiceName);
+            try
+            {
+                service.Stop();
+
+                service.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
+            }
+            catch (Exception ex)
+            {
+                if (GetNativeErrorCode(ex) == 1060)
+                {
+                    strError = "服务不存在";
+                    return -1;
+                }
+
+                else if (GetNativeErrorCode(ex) == 1062)
+                {
+                    strError = "调用前已经停止了";
+                    return 0;
+                }
+                else
+                {
+                    strError = ExceptionUtil.GetAutoText(ex);
+                    return -1;
+                }
+            }
+
+            return 1;
+        }
+
+        // 1056 调用前已经启动了
+        // 1060 service 尚未安装
+        // 1062 调用前已经停止了
+        static int GetNativeErrorCode(Exception ex0)
+        {
+            if (ex0 is InvalidOperationException)
+            {
+                InvalidOperationException ex = ex0 as InvalidOperationException;
+
+                if (ex0.InnerException != null && ex0.InnerException is Win32Exception)
+                {
+                    Win32Exception ex1 = ex0.InnerException as Win32Exception;
+                    return ex1.NativeErrorCode;
+                }
+            }
+
+            return 0;
         }
     }
 

@@ -16,6 +16,7 @@ using Microsoft.AspNet.SignalR.Client.Transports;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
+using System.Net.Http;
 
 namespace DigitalPlatform.MessageClient
 {
@@ -98,12 +99,12 @@ namespace DigitalPlatform.MessageClient
         }
 
         // 调用前要求先设置好 this.ServerUrl this.UserName this.Password this.Parameters
-        public virtual void InitialAsync()
+        public virtual async void InitialAsync()
         {
             if (string.IsNullOrEmpty(this.ServerUrl) == false)
             {
                 // this.MainForm.BeginInvoke(new Action<string>(ConnectAsync), this.dp2MServerUrl);
-                ConnectAsync();
+                await ConnectAsync();
             }
         }
 
@@ -174,6 +175,7 @@ namespace DigitalPlatform.MessageClient
 
         #endregion
 
+#if NO
         // 连接 server
         // 要求调用前设置好 this.ServerUrl this.UserName this.Password this.Parameters
         public Task<MessageResult> ConnectAsync(
@@ -281,6 +283,116 @@ errorInfo)
             {
                 AddErrorLine(ex.Message);
                 throw ex;   // return null ?
+            }
+        }
+
+#endif
+
+        // 连接 server
+        // 要求调用前设置好 this.ServerUrl this.UserName this.Password this.Parameters
+        public async Task<MessageResult> ConnectAsync(
+            // string strServerUrl
+            )
+        {
+            // 一直到真正连接前才触发登录事件
+            if (this.Container != null)
+                this.Container.TriggerLogin(this);
+
+            AddInfoLine("正在连接服务器 " + this.ServerUrl + " ...");
+            Connection = new HubConnection(this.ServerUrl);
+
+            Connection.Closed += new Action(Connection_Closed);
+            Connection.Reconnecting += Connection_Reconnecting;
+            Connection.Reconnected += Connection_Reconnected;
+            // Connection.Error += Connection_Error;
+
+            if (this.Container != null && this.Container.TraceWriter != null)
+                Connection.TraceWriter = this.Container.TraceWriter;
+
+            // Connection.Credentials = new NetworkCredential("testusername", "testpassword");
+            Connection.Headers.Add("username", this.UserName);
+            Connection.Headers.Add("password", this.Password);
+            Connection.Headers.Add("parameters", this.Parameters);
+
+            HubProxy = Connection.CreateHubProxy("MyHub");
+
+            HubProxy.On<string, IList<MessageRecord>>("addMessage",
+                (name, messages) =>
+                OnAddMessageRecieved(name, messages)
+                );
+
+            // *** search
+            HubProxy.On<SearchRequest>("search",
+                (param) => OnSearchRecieved(param)
+                );
+
+#if FIX_HANDLER
+            HubProxy.On<SearchResponse>("responseSearch",
+    (param) => OnResponseSearchRecieved(param)
+);
+#endif
+
+            // *** bindPatron
+            HubProxy.On<BindPatronRequest>("bindPatron",
+                (param) => OnBindPatronRecieved(param)
+                );
+
+            // *** setInfo
+            HubProxy.On<SetInfoRequest>("setInfo",
+                (param) => OnSetInfoRecieved(param)
+                );
+
+            // *** circulation
+            HubProxy.On<CirculationRequest>("circulation",
+                (param) => OnCirculationRecieved(param)
+                );
+
+            // *** getRes
+            HubProxy.On<GetResRequest>("getRes",
+                (param) => OnGetResRecieved(param)
+                );
+
+            try
+            {
+                await Connection.Start();
+
+                MessageResult result = new MessageResult();
+                AddInfoLine("停止 Timer");
+                _timer.Stop();
+                AddInfoLine("成功连接到 " + this.ServerUrl);
+                TriggerConnectionStateChange("Connected");
+                return result;
+            }
+            catch (HttpRequestException ex)
+            {
+                MessageResult result = new MessageResult();
+                result.Value = -1;
+                result.ErrorInfo = ex.Message;
+                result.String = "HttpRequestException";
+                return result;
+            }
+            catch (Microsoft.AspNet.SignalR.Client.HttpClientException ex)
+            {
+                Microsoft.AspNet.SignalR.Client.HttpClientException ex0 = ex as Microsoft.AspNet.SignalR.Client.HttpClientException;
+                MessageResult result = new MessageResult();
+                result.Value = -1;
+                result.ErrorInfo = ex.Message;
+                result.String = ex0.Response.StatusCode.ToString();
+                return result;
+            }
+            catch (AggregateException ex)
+            {
+                MessageResult result = new MessageResult();
+                result.Value = -1;
+                result.ErrorInfo = GetExceptionText(ex);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                MessageResult result = new MessageResult();
+                result.Value = -1;
+                result.ErrorInfo = ExceptionUtil.GetExceptionText(ex);
+                return result;
             }
         }
 

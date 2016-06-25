@@ -36,8 +36,6 @@
             this.MenuItem_sendDebugInfos = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
             this.MenuItem_exit = new System.Windows.Forms.ToolStripMenuItem();
-            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.MenuItem_dp2Capo = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuItem_dp2capo_install = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuItem_dp2capo_upgrade = new System.Windows.Forms.ToolStripMenuItem();
@@ -61,6 +59,8 @@
             this.MenuItem_openProgramFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.MenuItem_copyright = new System.Windows.Forms.ToolStripMenuItem();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -123,23 +123,6 @@
             this.MenuItem_exit.Size = new System.Drawing.Size(242, 22);
             this.MenuItem_exit.Text = "退出(&X)";
             // 
-            // statusStrip1
-            // 
-            this.statusStrip1.Location = new System.Drawing.Point(0, 282);
-            this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(553, 22);
-            this.statusStrip1.TabIndex = 1;
-            this.statusStrip1.Text = "statusStrip1";
-            // 
-            // webBrowser1
-            // 
-            this.webBrowser1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.webBrowser1.Location = new System.Drawing.Point(0, 25);
-            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
-            this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(553, 257);
-            this.webBrowser1.TabIndex = 2;
-            // 
             // MenuItem_dp2Capo
             // 
             this.MenuItem_dp2Capo.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -173,35 +156,36 @@
             // toolStripSeparator6
             // 
             this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(161, 6);
+            this.toolStripSeparator6.Size = new System.Drawing.Size(157, 6);
             // 
             // MenuItem_dp2capo_openDataDir
             // 
             this.MenuItem_dp2capo_openDataDir.Name = "MenuItem_dp2capo_openDataDir";
-            this.MenuItem_dp2capo_openDataDir.Size = new System.Drawing.Size(164, 22);
+            this.MenuItem_dp2capo_openDataDir.Size = new System.Drawing.Size(160, 22);
             this.MenuItem_dp2capo_openDataDir.Text = "打开数据文件夹";
             // 
             // MenuItem_dp2capo_openAppDir
             // 
             this.MenuItem_dp2capo_openAppDir.Name = "MenuItem_dp2capo_openAppDir";
-            this.MenuItem_dp2capo_openAppDir.Size = new System.Drawing.Size(164, 22);
+            this.MenuItem_dp2capo_openAppDir.Size = new System.Drawing.Size(160, 22);
             this.MenuItem_dp2capo_openAppDir.Text = "打开程序文件夹";
             // 
             // toolStripSeparator9
             // 
             this.toolStripSeparator9.Name = "toolStripSeparator9";
-            this.toolStripSeparator9.Size = new System.Drawing.Size(161, 6);
+            this.toolStripSeparator9.Size = new System.Drawing.Size(157, 6);
             // 
             // MenuItem_dp2capo_instanceManagement
             // 
             this.MenuItem_dp2capo_instanceManagement.Name = "MenuItem_dp2capo_instanceManagement";
-            this.MenuItem_dp2capo_instanceManagement.Size = new System.Drawing.Size(164, 22);
+            this.MenuItem_dp2capo_instanceManagement.Size = new System.Drawing.Size(160, 22);
             this.MenuItem_dp2capo_instanceManagement.Text = "配置实例";
+            this.MenuItem_dp2capo_instanceManagement.Click += new System.EventHandler(this.MenuItem_dp2capo_instanceManagement_Click);
             // 
             // toolStripSeparator10
             // 
             this.toolStripSeparator10.Name = "toolStripSeparator10";
-            this.toolStripSeparator10.Size = new System.Drawing.Size(161, 6);
+            this.toolStripSeparator10.Size = new System.Drawing.Size(157, 6);
             // 
             // MenuItem_dp2capo_tools
             // 
@@ -214,7 +198,7 @@
             this.toolStripSeparator14,
             this.MenuItem_dp2capo_uninstall});
             this.MenuItem_dp2capo_tools.Name = "MenuItem_dp2capo_tools";
-            this.MenuItem_dp2capo_tools.Size = new System.Drawing.Size(164, 22);
+            this.MenuItem_dp2capo_tools.Size = new System.Drawing.Size(160, 22);
             this.MenuItem_dp2capo_tools.Text = "工具";
             // 
             // MenuItem_dp2capo_startService
@@ -222,12 +206,14 @@
             this.MenuItem_dp2capo_startService.Name = "MenuItem_dp2capo_startService";
             this.MenuItem_dp2capo_startService.Size = new System.Drawing.Size(202, 22);
             this.MenuItem_dp2capo_startService.Text = "启动 Windows Service";
+            this.MenuItem_dp2capo_startService.Click += new System.EventHandler(this.MenuItem_dp2capo_startService_Click);
             // 
             // MenuItem_dp2capo_stopService
             // 
             this.MenuItem_dp2capo_stopService.Name = "MenuItem_dp2capo_stopService";
             this.MenuItem_dp2capo_stopService.Size = new System.Drawing.Size(202, 22);
             this.MenuItem_dp2capo_stopService.Text = "停止 Windows Service";
+            this.MenuItem_dp2capo_stopService.Click += new System.EventHandler(this.MenuItem_dp2capo_stopService_Click);
             // 
             // toolStripSeparator11
             // 
@@ -239,12 +225,14 @@
             this.MenuItem_dp2capo_tools_installService.Name = "MenuItem_dp2capo_tools_installService";
             this.MenuItem_dp2capo_tools_installService.Size = new System.Drawing.Size(202, 22);
             this.MenuItem_dp2capo_tools_installService.Text = "注册 Windows Service";
+            this.MenuItem_dp2capo_tools_installService.Click += new System.EventHandler(this.MenuItem_dp2capo_tools_installService_Click);
             // 
             // MenuItem_dp2capo_tools_uninstallService
             // 
             this.MenuItem_dp2capo_tools_uninstallService.Name = "MenuItem_dp2capo_tools_uninstallService";
             this.MenuItem_dp2capo_tools_uninstallService.Size = new System.Drawing.Size(202, 22);
             this.MenuItem_dp2capo_tools_uninstallService.Text = "注销 Windows Service";
+            this.MenuItem_dp2capo_tools_uninstallService.Click += new System.EventHandler(this.MenuItem_dp2capo_tools_uninstallService_Click);
             // 
             // toolStripSeparator14
             // 
@@ -255,7 +243,8 @@
             // 
             this.MenuItem_dp2capo_uninstall.Name = "MenuItem_dp2capo_uninstall";
             this.MenuItem_dp2capo_uninstall.Size = new System.Drawing.Size(202, 22);
-            this.MenuItem_dp2capo_uninstall.Text = "卸载 dp2Kernel";
+            this.MenuItem_dp2capo_uninstall.Text = "卸载 dp2Capo";
+            this.MenuItem_dp2capo_uninstall.Click += new System.EventHandler(this.MenuItem_dp2capo_uninstall_Click);
             // 
             // MenuItem_help
             // 
@@ -302,6 +291,23 @@
             this.MenuItem_copyright.Size = new System.Drawing.Size(265, 22);
             this.MenuItem_copyright.Text = "版权(&C)...";
             this.MenuItem_copyright.Visible = false;
+            // 
+            // statusStrip1
+            // 
+            this.statusStrip1.Location = new System.Drawing.Point(0, 282);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(553, 22);
+            this.statusStrip1.TabIndex = 1;
+            this.statusStrip1.Text = "statusStrip1";
+            // 
+            // webBrowser1
+            // 
+            this.webBrowser1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.webBrowser1.Location = new System.Drawing.Point(0, 25);
+            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
+            this.webBrowser1.Name = "webBrowser1";
+            this.webBrowser1.Size = new System.Drawing.Size(553, 257);
+            this.webBrowser1.TabIndex = 2;
             // 
             // MainForm
             // 

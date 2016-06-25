@@ -40,10 +40,11 @@
             this.label2 = new System.Windows.Forms.Label();
             this.textBox_manageUserName = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
-            this.textBox_dp2LibraryUrl = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
-            this.textBox_msmqPath = new System.Windows.Forms.TextBox();
+            this.button_getQueuePath = new System.Windows.Forms.Button();
+            this.comboBox_msmqPath = new System.Windows.Forms.ComboBox();
+            this.comboBox_url = new System.Windows.Forms.ComboBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -56,7 +57,7 @@
             this.button_Cancel.Margin = new System.Windows.Forms.Padding(2);
             this.button_Cancel.Name = "button_Cancel";
             this.button_Cancel.Size = new System.Drawing.Size(56, 23);
-            this.button_Cancel.TabIndex = 25;
+            this.button_Cancel.TabIndex = 7;
             this.button_Cancel.Text = "取消";
             this.button_Cancel.UseVisualStyleBackColor = true;
             this.button_Cancel.Click += new System.EventHandler(this.button_Cancel_Click);
@@ -69,7 +70,7 @@
             this.button_OK.Margin = new System.Windows.Forms.Padding(2);
             this.button_OK.Name = "button_OK";
             this.button_OK.Size = new System.Drawing.Size(56, 23);
-            this.button_OK.TabIndex = 24;
+            this.button_OK.TabIndex = 6;
             this.button_OK.Text = "确定";
             this.button_OK.UseVisualStyleBackColor = true;
             this.button_OK.Click += new System.EventHandler(this.button_OK_Click);
@@ -92,7 +93,7 @@
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Padding = new System.Windows.Forms.Padding(2);
             this.groupBox1.Size = new System.Drawing.Size(333, 170);
-            this.groupBox1.TabIndex = 23;
+            this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = " 代理帐户(针对上述dp2Library) ";
             // 
@@ -186,6 +187,7 @@
             this.textBox_manageUserName.Name = "textBox_manageUserName";
             this.textBox_manageUserName.Size = new System.Drawing.Size(155, 21);
             this.textBox_manageUserName.TabIndex = 1;
+            this.textBox_manageUserName.TextChanged += new System.EventHandler(this.textBox_manageUserName_TextChanged);
             // 
             // label4
             // 
@@ -197,17 +199,6 @@
             this.label4.TabIndex = 0;
             this.label4.Text = "用户名(&U):";
             // 
-            // textBox_dp2LibraryUrl
-            // 
-            this.textBox_dp2LibraryUrl.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_dp2LibraryUrl.Location = new System.Drawing.Point(9, 26);
-            this.textBox_dp2LibraryUrl.Margin = new System.Windows.Forms.Padding(2);
-            this.textBox_dp2LibraryUrl.Name = "textBox_dp2LibraryUrl";
-            this.textBox_dp2LibraryUrl.Size = new System.Drawing.Size(334, 21);
-            this.textBox_dp2LibraryUrl.TabIndex = 22;
-            this.textBox_dp2LibraryUrl.Text = "http://localhost:8001/dp2Library";
-            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -215,7 +206,7 @@
             this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(161, 12);
-            this.label1.TabIndex = 21;
+            this.label1.TabIndex = 0;
             this.label1.Text = "dp2Library 服务器 URL (&U):";
             // 
             // label5
@@ -224,18 +215,44 @@
             this.label5.Location = new System.Drawing.Point(9, 247);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(101, 12);
-            this.label5.TabIndex = 26;
+            this.label5.TabIndex = 3;
             this.label5.Text = "消息队列路径(&M):";
             // 
-            // textBox_msmqPath
+            // button_getQueuePath
             // 
-            this.textBox_msmqPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.button_getQueuePath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button_getQueuePath.AutoSize = true;
+            this.button_getQueuePath.Location = new System.Drawing.Point(286, 259);
+            this.button_getQueuePath.Margin = new System.Windows.Forms.Padding(2);
+            this.button_getQueuePath.Name = "button_getQueuePath";
+            this.button_getQueuePath.Size = new System.Drawing.Size(57, 23);
+            this.button_getQueuePath.TabIndex = 5;
+            this.button_getQueuePath.Text = "获得";
+            this.button_getQueuePath.UseVisualStyleBackColor = true;
+            this.button_getQueuePath.Click += new System.EventHandler(this.button_getQueuePath_Click);
+            // 
+            // comboBox_msmqPath
+            // 
+            this.comboBox_msmqPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_msmqPath.Location = new System.Drawing.Point(11, 261);
-            this.textBox_msmqPath.Margin = new System.Windows.Forms.Padding(2);
-            this.textBox_msmqPath.Name = "textBox_msmqPath";
-            this.textBox_msmqPath.Size = new System.Drawing.Size(334, 21);
-            this.textBox_msmqPath.TabIndex = 27;
+            this.comboBox_msmqPath.FormattingEnabled = true;
+            this.comboBox_msmqPath.Items.AddRange(new object[] {
+            "!api"});
+            this.comboBox_msmqPath.Location = new System.Drawing.Point(12, 261);
+            this.comboBox_msmqPath.Name = "comboBox_msmqPath";
+            this.comboBox_msmqPath.Size = new System.Drawing.Size(270, 20);
+            this.comboBox_msmqPath.TabIndex = 4;
+            // 
+            // comboBox_url
+            // 
+            this.comboBox_url.FormattingEnabled = true;
+            this.comboBox_url.Items.AddRange(new object[] {
+            "http://localhost:8001/dp2Library",
+            "net.pipe://localhost/dp2library/xe"});
+            this.comboBox_url.Location = new System.Drawing.Point(9, 26);
+            this.comboBox_url.Name = "comboBox_url";
+            this.comboBox_url.Size = new System.Drawing.Size(334, 20);
+            this.comboBox_url.TabIndex = 1;
             // 
             // dp2LibraryDialog
             // 
@@ -244,12 +261,13 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.button_Cancel;
             this.ClientSize = new System.Drawing.Size(351, 362);
-            this.Controls.Add(this.textBox_msmqPath);
+            this.Controls.Add(this.comboBox_url);
+            this.Controls.Add(this.comboBox_msmqPath);
+            this.Controls.Add(this.button_getQueuePath);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.button_Cancel);
             this.Controls.Add(this.button_OK);
             this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.textBox_dp2LibraryUrl);
             this.Controls.Add(this.label1);
             this.Name = "dp2LibraryDialog";
             this.ShowIcon = false;
@@ -277,9 +295,10 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox textBox_manageUserName;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox textBox_dp2LibraryUrl;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.TextBox textBox_msmqPath;
+        private System.Windows.Forms.Button button_getQueuePath;
+        private System.Windows.Forms.ComboBox comboBox_msmqPath;
+        private System.Windows.Forms.ComboBox comboBox_url;
     }
 }

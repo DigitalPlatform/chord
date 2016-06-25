@@ -50,6 +50,12 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="ConfigSettingExtension.cs" />
+    <Compile Include="ConfirmSupervisorDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConfirmSupervisorDialog.designer.cs">
+      <DependentUpon>ConfirmSupervisorDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="ControlExtensions.cs" />
     <Compile Include="FloatingMessageForm.cs">
       <SubType>Form</SubType>
@@ -82,6 +88,9 @@
     <Content Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="ConfirmSupervisorDialog.resx">
+      <DependentUpon>ConfirmSupervisorDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FloatingMessageForm.resx">
       <DependentUpon>FloatingMessageForm.cs</DependentUpon>
     </EmbeddedResource>

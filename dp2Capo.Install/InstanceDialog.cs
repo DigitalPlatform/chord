@@ -57,7 +57,7 @@ namespace dp2Capo.Install
 
         private void button_OK_Click(object sender, EventArgs e)
         {
-            string strError = "";
+            // string strError = "";
             // 检查参数是否输入全了
 
             if (this.Changed)
@@ -66,8 +66,10 @@ namespace dp2Capo.Install
             this.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.Close();
             return;
+#if NO
         ERROR1:
             MessageBox.Show(this, strError);
+#endif
         }
 
         private void button_Cancel_Click(object sender, EventArgs e)
@@ -97,11 +99,17 @@ namespace dp2Capo.Install
             }
 
             DisplayDp2libraryInfo();
+            DisplayDp2mserverInfo();
         }
 
         void DisplayDp2libraryInfo()
         {
             this.textBox_dp2library_def.Text = dp2LibraryDialog.GetDisplayText(this.CfgDom);
+        }
+
+        void DisplayDp2mserverInfo()
+        {
+            this.textBox_dp2mserver_def.Text = dp2MServerDialog.GetDisplayText(this.CfgDom);
         }
 
         void SaveCfgXml()
@@ -132,7 +140,19 @@ namespace dp2Capo.Install
 
         private void button_edit_dp2mserver_Click(object sender, EventArgs e)
         {
+            dp2MServerDialog dlg = new dp2MServerDialog();
+            FontUtil.AutoSetDefaultFont(dlg);
 
+            dlg.CfgDom = this.CfgDom;
+            dlg.StartPosition = FormStartPosition.CenterScreen;
+            dlg.ShowDialog(this);
+
+            if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
+                return;
+
+            this.Changed = true;
+            // 刷新显示
+            this.DisplayDp2mserverInfo();
         }
     }
 }

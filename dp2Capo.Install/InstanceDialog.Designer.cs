@@ -103,6 +103,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_dataDir.Location = new System.Drawing.Point(155, 39);
             this.textBox_dataDir.Name = "textBox_dataDir";
+            this.textBox_dataDir.ReadOnly = true;
             this.textBox_dataDir.Size = new System.Drawing.Size(226, 21);
             this.textBox_dataDir.TabIndex = 23;
             // 
@@ -119,6 +120,7 @@
             // 
             this.textBox_instanceName.Location = new System.Drawing.Point(155, 12);
             this.textBox_instanceName.Name = "textBox_instanceName";
+            this.textBox_instanceName.ReadOnly = true;
             this.textBox_instanceName.Size = new System.Drawing.Size(165, 21);
             this.textBox_instanceName.TabIndex = 21;
             // 

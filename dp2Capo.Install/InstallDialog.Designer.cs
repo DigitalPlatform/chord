@@ -36,12 +36,12 @@
             this.listView_instance = new System.Windows.Forms.ListView();
             this.columnHeader_name = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_errorInfo = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_dataDir = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_dp2library_url = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_dp2MServer_url = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.label1 = new System.Windows.Forms.Label();
             this.textBox_dataDir = new System.Windows.Forms.TextBox();
             this.button_getDataDir = new System.Windows.Forms.Button();
-            this.columnHeader_dataDir = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
             // 
             // button_Cancel
@@ -120,6 +120,8 @@
             this.listView_instance.TabIndex = 15;
             this.listView_instance.UseCompatibleStateImageBehavior = false;
             this.listView_instance.View = System.Windows.Forms.View.Details;
+            this.listView_instance.SelectedIndexChanged += new System.EventHandler(this.listView_instance_SelectedIndexChanged);
+            this.listView_instance.DoubleClick += new System.EventHandler(this.listView_instance_DoubleClick);
             // 
             // columnHeader_name
             // 
@@ -129,6 +131,11 @@
             // columnHeader_errorInfo
             // 
             this.columnHeader_errorInfo.Text = "出错信息";
+            // 
+            // columnHeader_dataDir
+            // 
+            this.columnHeader_dataDir.Text = "数据目录";
+            this.columnHeader_dataDir.Width = 150;
             // 
             // columnHeader_dp2library_url
             // 
@@ -153,6 +160,7 @@
             // 
             this.textBox_dataDir.Location = new System.Drawing.Point(12, 28);
             this.textBox_dataDir.Name = "textBox_dataDir";
+            this.textBox_dataDir.ReadOnly = true;
             this.textBox_dataDir.Size = new System.Drawing.Size(340, 21);
             this.textBox_dataDir.TabIndex = 22;
             // 
@@ -165,11 +173,6 @@
             this.button_getDataDir.Text = "...";
             this.button_getDataDir.UseVisualStyleBackColor = true;
             this.button_getDataDir.Click += new System.EventHandler(this.button_getDataDir_Click);
-            // 
-            // columnHeader_dataDir
-            // 
-            this.columnHeader_dataDir.Text = "数据目录";
-            this.columnHeader_dataDir.Width = 150;
             // 
             // InstallDialog
             // 

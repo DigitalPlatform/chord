@@ -9,17 +9,19 @@ using System.Windows.Forms;
 using System.IO;
 using System.Deployment.Application;
 using System.Web;
+using System.Threading;
 
+using Ionic.Zip;
+
+using dp2Capo.Install;
+
+using DigitalPlatform;
 using DigitalPlatform.Forms;
 using DigitalPlatform.Xml;
 using DigitalPlatform.IO;
 using DigitalPlatform.Text;
-using DigitalPlatform;
 using DigitalPlatform.Drawing;
 using DigitalPlatform.ServiceProcess;
-using Ionic.Zip;
-using System.Threading;
-using dp2Capo.Install;
 
 namespace ChordInstaller
 {
@@ -76,6 +78,8 @@ FormWindowState.Normal);
             _versionManager.Load(Path.Combine(this.UserDir, "file_version.xml"));
 
             DisplayCopyRight();
+
+            Refresh_dp2capo_MenuItems();
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -483,34 +487,26 @@ FormWindowState.Normal);
 
             this.MenuItem_dp2capo_openDataDir.DropDownItems.Clear();
             AddMenuItem(MenuItem_dp2capo_openDataDir, "dp2Capo");
-
         }
 
         void AddMenuItem(ToolStripMenuItem menuItem, string strProductName)
         {
-            for (int i = 0; ; i++)
+            string strExePath = ServiceUtil.GetPathOfService("dp2CapoService");
+            if (string.IsNullOrEmpty(strExePath) == false)
             {
-                break;
+                strExePath = StringUtil.Unquote(strExePath, "\"\"");
 
-                string strInstanceName = "";
-                string strDataDir = "";
-                string strCertificatSN = "";
-
-                string[] existing_urls = null;
-#if NO
-                bool bRet = InstallHelper.GetInstanceInfo(strProductName,
-                    i,
-                    out strInstanceName,
-                    out strDataDir,
-                    out existing_urls,
-                    out strCertificatSN);
-                if (bRet == false)
-                    break;
-#endif
-                ToolStripMenuItem subItem = new ToolStripMenuItem("'" + strInstanceName + "' - " + strDataDir);
-                subItem.Tag = strProductName + "|" + strDataDir;
-                subItem.Click += new EventHandler(subItem_Click);
-                menuItem.DropDownItems.Add(subItem);
+                List<string> data_dirs = InstallDialog.GetInstanceDataDirByBinDir(Path.GetDirectoryName(strExePath));
+                int i = 0;
+                foreach (string data_dir in data_dirs)
+                {
+                    string strInstanceName = (i + 1).ToString();
+                    ToolStripMenuItem subItem = new ToolStripMenuItem("'" + strInstanceName + "' - " + data_dir);
+                    subItem.Tag = strProductName + "|" + data_dir;
+                    subItem.Click += new EventHandler(subItem_Click);
+                    menuItem.DropDownItems.Add(subItem);
+                    i++;
+                }
             }
 
             if (menuItem.DropDownItems.Count > 0)
@@ -685,6 +681,341 @@ MessageBoxDefaultButton.Button2);
             if (nRet == -1)
                 return "";
             return strPath.Substring(nRet + 1);
+        }
+
+        private void MenuItem_dp2capo_startService_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            AppendString("正在获得可执行文件目录 ...\r\n");
+
+            Application.DoEvents();
+
+            string strExePath = ServiceUtil.GetPathOfService("dp2CapoService");
+            if (string.IsNullOrEmpty(strExePath) == true)
+            {
+                strError = "dp2Capo 未曾安装过";
+                goto ERROR1;
+            }
+            strExePath = StringUtil.Unquote(strExePath, "\"\"");
+
+            AppendString("正在启动 dp2Capo 服务 ...\r\n");
+            Application.DoEvents();
+
+            nRet = ServiceUtil.StartService("dp2CapoService",
+                TimeSpan.FromMinutes(2),
+                out strError);
+            if (nRet == -1)
+                goto ERROR1;
+            AppendString("dp2Capo 服务成功启动\r\n");
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
+        }
+
+        private void MenuItem_dp2capo_stopService_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            AppendString("正在获得可执行文件目录 ...\r\n");
+
+            Application.DoEvents();
+
+            string strExePath = ServiceUtil.GetPathOfService("dp2CapoService");
+            if (string.IsNullOrEmpty(strExePath) == true)
+            {
+                strError = "dp2Capo 未曾安装过";
+                goto ERROR1;
+            }
+            strExePath = StringUtil.Unquote(strExePath, "\"\"");
+
+            AppendString("正在停止 dp2Capo 服务 ...\r\n");
+            Application.DoEvents();
+
+            nRet = ServiceUtil.StopService("dp2CapoService",
+                TimeSpan.FromMinutes(2),
+                out strError);
+            if (nRet == -1)
+                goto ERROR1;
+            AppendString("dp2Capo 服务已经停止\r\n");
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
+        }
+
+        private void MenuItem_dp2capo_tools_installService_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            AppendSectionTitle("注册 Windows Service 开始");
+
+            Application.DoEvents();
+
+            string strExePath = ServiceUtil.GetPathOfService("dp2CapoService");
+            if (string.IsNullOrEmpty(strExePath) == false)
+            {
+                strError = "dp2Capo 已经注册为 Windows Service，无法重复进行注册";
+                goto ERROR1;
+            }
+
+            // program files (x86)/digitalplatform/dp2capo
+            string strProgramDir = Global.GetProductDirectory("dp2capo");
+
+            strExePath = Path.Combine(strProgramDir, "dp2capo.exe");
+
+            if (File.Exists(strExePath) == false)
+            {
+                strError = "dp2capo.exe 尚未复制到目标位置，无法进行注册";
+                goto ERROR1;
+            }
+
+            nRet = ServiceUtil.InstallService(strExePath,
+                true,
+                out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            AppendSectionTitle("注册 Windows Service 结束");
+
+            this.Refresh_dp2capo_MenuItems();
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
+
+        }
+
+        private void MenuItem_dp2capo_tools_uninstallService_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            AppendSectionTitle("注销 Windows Service 开始");
+
+            Application.DoEvents();
+
+            string strExePath = ServiceUtil.GetPathOfService("dp2CapoService");
+            if (string.IsNullOrEmpty(strExePath) == true)
+            {
+                strError = "dp2Capo 尚未安装和注册为 Windows Service，无法进行注销";
+                goto ERROR1;
+            }
+            strExePath = StringUtil.Unquote(strExePath, "\"\"");
+
+            // 注销 Windows Service
+            nRet = ServiceUtil.InstallService(strExePath,
+    false,
+    out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            AppendSectionTitle("注销 Windows Service 结束");
+
+            this.Refresh_dp2capo_MenuItems();
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
+        }
+
+        private void MenuItem_dp2capo_uninstall_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            this._floatingMessage.Text = "正在卸载 dp2Capo - V2 V3 桥接模块 ...";
+
+            try
+            {
+                AppendSectionTitle("卸载 dp2Capo 开始");
+
+                AppendString("正在获得可执行文件目录 ...\r\n");
+
+                Application.DoEvents();
+
+                string strExePath = ServiceUtil.GetPathOfService("dp2CapoService");
+                if (string.IsNullOrEmpty(strExePath) == true)
+                {
+                    strError = "dp2Capo 尚未安装和注册为 Windows Service，无法进行注销";
+                    goto ERROR1;
+                }
+                strExePath = StringUtil.Unquote(strExePath, "\"\"");
+
+                string strProgramDir = Path.GetDirectoryName(strExePath);
+
+                {
+                    AppendString("正在停止 dp2Capo 服务 ...\r\n");
+
+                    nRet = ServiceUtil.StopService("dp2CapoService",
+                        TimeSpan.FromMinutes(2),
+                        out strError);
+                    if (nRet == -1)
+                        goto ERROR1;
+
+                    AppendString("dp2Capo 服务已经停止\r\n");
+                }
+
+
+                {
+                    dp2Capo.Install.InstallDialog dlg = new dp2Capo.Install.InstallDialog();
+                    FontUtil.AutoSetDefaultFont(dlg);
+                    dlg.Text = "dp2Capo - 彻底卸载所有实例和数据目录";
+                    // dlg.Comment = "下列实例将被全部卸载。请仔细确认。一旦卸载，全部数据目录、数据库和实例信息将被删除，并且无法恢复。";
+                    dlg.UninstallMode = true;
+                    dlg.BinDir = strProgramDir;
+                    dlg.StartPosition = FormStartPosition.CenterScreen;
+                    dlg.ShowDialog(this);
+
+                    if (dlg.DialogResult == DialogResult.Cancel)
+                    {
+                        MessageBox.Show(this,
+                            "已放弃卸载全部实例和数据目录。仅仅卸载了可执行程序。");
+                    }
+                    else
+                    {
+                        AppendString("已删除全部数据目录\r\n");
+                    }
+                }
+
+
+                // 探测 .exe 是否为新版本。新版本中 Installer.Uninstall 动作不会删除数据目录
+
+                AppendString("注销 Windows Service\r\n");
+
+                // 注销 Windows Service
+                nRet = ServiceUtil.InstallService(strExePath,
+        false,
+        out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+
+                AppendString("删除程序目录\r\n");
+
+            // 删除程序目录
+            REDO_DELETE_PROGRAMDIR:
+                try
+                {
+                    PathUtil.DeleteDirectory(Path.GetDirectoryName(strExePath));
+                }
+                catch (Exception ex)
+                {
+                    DialogResult temp_result = MessageBox.Show(this,
+    "删除程序目录 '" + Path.GetDirectoryName(strExePath) + "' 出错：" + ex.Message + "\r\n\r\n是否重试?\r\n\r\n(Retry: 重试; Cancel: 不重试，继续后续卸载过程)",
+    "卸载 dp2Capo",
+    MessageBoxButtons.RetryCancel,
+    MessageBoxIcon.Question,
+    MessageBoxDefaultButton.Button1);
+                    if (temp_result == DialogResult.Retry)
+                        goto REDO_DELETE_PROGRAMDIR;
+                }
+
+                AppendSectionTitle("卸载 dp2Capo 结束");
+                this.Refresh_dp2capo_MenuItems();
+            }
+            finally
+            {
+                this._floatingMessage.Text = "";
+            }
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
+        }
+
+        private void MenuItem_dp2capo_instanceManagement_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            bool bControl = Control.ModifierKeys == Keys.Control;
+            bool bInstalled = true;
+
+            this._floatingMessage.Text = "正在配置 dp2Capo 实例 ...";
+
+            try
+            {
+                AppendSectionTitle("配置实例开始");
+
+                AppendString("正在获得可执行文件目录 ...\r\n");
+
+                Application.DoEvents();
+
+                string strExePath = ServiceUtil.GetPathOfService("dp2CapoService");
+                strExePath = StringUtil.Unquote(strExePath, "\"\"");
+                if (string.IsNullOrEmpty(strExePath) == true)
+                {
+                    if (bControl == false)
+                    {
+                        strError = "dp2Capo 未曾安装过";
+                        goto ERROR1;
+                    }
+                    bInstalled = false;
+                }
+
+                if (bInstalled == true)
+                {
+                    AppendString("正在停止 dp2Capo 服务 ...\r\n");
+
+                    nRet = ServiceUtil.StopService("dp2CapoService",
+                        TimeSpan.FromMinutes(2),
+                        out strError);
+                    if (nRet == -1)
+                        goto ERROR1;
+
+                    AppendString("dp2Capo 服务已经停止\r\n");
+                }
+
+                try
+                {
+                    dp2Capo.Install.InstallDialog dlg = new dp2Capo.Install.InstallDialog();
+                    FontUtil.AutoSetDefaultFont(dlg);
+
+                    dlg.BinDir = Path.GetDirectoryName(strExePath);
+                    dlg.StartPosition = FormStartPosition.CenterScreen;
+                    dlg.ShowDialog(this);
+
+                    // TODO: 是否必须要创建至少一个实例?
+                    if (dlg.DialogResult == DialogResult.Cancel)
+                    {
+                        AppendSectionTitle("放弃创建实例 ...");
+                        return;
+                    }
+
+                    if (string.IsNullOrEmpty(dlg.DebugInfo) == false)
+                        AppendString("创建实例时的调试信息:\r\n" + dlg.DebugInfo + "\r\n");
+                }
+                finally
+                {
+                    if (bInstalled == true)
+                    {
+                        AppendString("正在重新启动 dp2Capo 服务 ...\r\n");
+                        nRet = ServiceUtil.StartService("dp2CapoService",
+                            TimeSpan.FromMinutes(2),
+                            out strError);
+                        if (nRet == -1)
+                        {
+                            AppendString("dp2Capo 服务启动失败: " + strError + "\r\n");
+                            MessageBox.Show(this, strError);
+                        }
+                        else
+                        {
+                            AppendString("dp2Capo 服务启动成功\r\n");
+                        }
+                    }
+
+                    AppendSectionTitle("配置实例结束");
+                }
+
+                Refresh_dp2capo_MenuItems();
+            }
+            finally
+            {
+                this._floatingMessage.Text = "";
+            }
+            return;
+        ERROR1:
+            AppendString("出错: " + strError + "\r\n");
+            MessageBox.Show(this, strError);
         }
     }
 }
