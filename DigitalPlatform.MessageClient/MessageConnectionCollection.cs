@@ -87,12 +87,12 @@ namespace DigitalPlatform.MessageClient
 
             if (autoConnect && connection.IsConnected == false)
             {
-                Task.Run<MessageConnection>(async () =>
+                return Task.Run<MessageConnection>(async () =>
                 {
                     // TODO: 建议抛出原有 Exception
                     MessageResult result = await connection.ConnectAsync();
                     if (result.Value == -1)
-                        throw new Exception(result.ErrorInfo);
+                        throw new MessageException(result.String, result.ErrorInfo);
                     return connection;
                 });
 #if NO
