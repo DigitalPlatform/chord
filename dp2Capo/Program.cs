@@ -6,10 +6,10 @@ using System.Reflection;
 using System.Diagnostics;
 using System.ServiceProcess;
 
-using dp2Capo.Properties;
+// using dp2Capo.Properties;
 
-using DigitalPlatform.ServiceProcess;
 using DigitalPlatform;
+using DigitalPlatform.ServiceProcess;
 
 namespace dp2Capo
 {

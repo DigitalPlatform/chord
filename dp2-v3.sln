@@ -56,8 +56,16 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testSearch", "testSearch\testSearch.csproj", "{C2D00B20-2586-4456-BFEB-C4F4E2CD5658}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChordInstaller", "ChordInstaller\ChordInstaller.csproj", "{B8D7740D-6E27-4C40-B7E4-4E29D5D00C9D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CAFC4E2D-7555-416D-AA74-2399676A4E86} = {CAFC4E2D-7555-416D-AA74-2399676A4E86}
+		{D3781AB6-C3F5-460C-AE9F-F9C4FBEB9FC1} = {D3781AB6-C3F5-460C-AE9F-F9C4FBEB9FC1}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.Drawing", "DigitalPlatform.Drawing\DigitalPlatform.Drawing.csproj", "{7C1CDEEB-C44D-458C-96BB-0486A59397DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2Capo.Install", "dp2Capo.Install\dp2Capo.Install.csproj", "{96B0196A-5622-4F6F-9409-9BBE266DDAFE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZipUtil", "ZipUtil\ZipUtil.csproj", "{D3781AB6-C3F5-460C-AE9F-F9C4FBEB9FC1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -241,6 +249,18 @@ Global
 		{7C1CDEEB-C44D-458C-96BB-0486A59397DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C1CDEEB-C44D-458C-96BB-0486A59397DE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7C1CDEEB-C44D-458C-96BB-0486A59397DE}.Release|x86.ActiveCfg = Release|Any CPU
+		{96B0196A-5622-4F6F-9409-9BBE266DDAFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96B0196A-5622-4F6F-9409-9BBE266DDAFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96B0196A-5622-4F6F-9409-9BBE266DDAFE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{96B0196A-5622-4F6F-9409-9BBE266DDAFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96B0196A-5622-4F6F-9409-9BBE266DDAFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96B0196A-5622-4F6F-9409-9BBE266DDAFE}.Release|x86.ActiveCfg = Release|Any CPU
+		{D3781AB6-C3F5-460C-AE9F-F9C4FBEB9FC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3781AB6-C3F5-460C-AE9F-F9C4FBEB9FC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3781AB6-C3F5-460C-AE9F-F9C4FBEB9FC1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D3781AB6-C3F5-460C-AE9F-F9C4FBEB9FC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3781AB6-C3F5-460C-AE9F-F9C4FBEB9FC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3781AB6-C3F5-460C-AE9F-F9C4FBEB9FC1}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

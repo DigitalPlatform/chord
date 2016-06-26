@@ -87,16 +87,26 @@ namespace DigitalPlatform.MessageClient
 
             if (autoConnect && connection.IsConnected == false)
             {
-                Task<MessageConnection> task = new Task<MessageConnection>(() =>
+                Task.Run<MessageConnection>(async () =>
                 {
                     // TODO: 建议抛出原有 Exception
-                    MessageResult result = connection.ConnectAsync().Result;
+                    MessageResult result = await connection.ConnectAsync();
+                    if (result.Value == -1)
+                        throw new Exception(result.ErrorInfo);
+                    return connection;
+                });
+#if NO
+                Task<MessageConnection> task = new Task<MessageConnection>(async () =>
+                {
+                    // TODO: 建议抛出原有 Exception
+                    MessageResult result = await connection.ConnectAsync();
                     if (result.Value == -1)
                         throw new Exception(result.ErrorInfo);
                     return connection;
                 });
                 task.Start();
                 return task;
+#endif
             }
 
 #if NO
@@ -167,10 +177,9 @@ bool autoConnect = true)
         FOUND:
             if (autoConnect && connection.IsConnected == false)
             {
-                // TODO: 建议抛出原有 Exception
                 MessageResult result = await connection.ConnectAsync();
                 if (result.Value == -1)
-                    throw new Exception(result.ErrorInfo);
+                    throw new MessageException(result.String, result.ErrorInfo);
                 return connection;
             }
 
@@ -409,4 +418,27 @@ bool autoConnect = true)
     {
         public string Action = "";
     }
+
+    /// <summary>
+    /// 通讯访问异常
+    /// </summary>
+    public class MessageException : Exception
+    {
+        /// <summary>
+        /// 错误码
+        /// </summary>
+        public string ErrorCode { get; set; }
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="error"></param>
+        /// <param name="strText"></param>
+        public MessageException(string error, string strText)
+            : base(strText)
+        {
+            this.ErrorCode = error;
+        }
+    }
+
 }

@@ -95,5 +95,45 @@ namespace DigitalPlatform.Forms
             }
         }
 
+        // 获得一个单元的值
+        public static string GetItemText(ListViewItem item,
+            int col)
+        {
+            if (col == 0)
+                return item.Text;
+
+            if (col >= item.SubItems.Count)
+                return "";
+
+            return item.SubItems[col].Text;
+        }
+
+        // 修改一个单元的值
+        public static void ChangeItemText(ListViewItem item,
+            int col,
+            string strText)
+        {
+            // 确保线程安全
+            if (item.ListView != null && item.ListView.InvokeRequired)
+            {
+                item.ListView.BeginInvoke(new Action<ListViewItem, int, string>(ChangeItemText), item, col, strText);
+                return;
+            }
+
+            if (col == 0)
+            {
+                item.Text = strText;
+                return;
+            }
+
+            // 保险
+            while (item.SubItems.Count < col + 1)   // 原来为<=, 会造成多加一列的后果 2006/10/9 changed
+            {
+                item.SubItems.Add("");
+            }
+
+            item.SubItems[col].Text = strText;
+        }
+
     }
 }

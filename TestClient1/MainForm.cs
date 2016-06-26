@@ -2011,7 +2011,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 -1);
             try
             {
-                MessageConnection connection = this._channels.GetConnectionAsyncLite(
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
                    dp2mserverUrl,
                     remoteUserName).Result;
 
