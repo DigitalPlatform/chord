@@ -87,16 +87,26 @@ namespace DigitalPlatform.MessageClient
 
             if (autoConnect && connection.IsConnected == false)
             {
-                Task<MessageConnection> task = new Task<MessageConnection>(() =>
+                Task.Run<MessageConnection>(async () =>
                 {
                     // TODO: 建议抛出原有 Exception
-                    MessageResult result = connection.ConnectAsync().Result;
+                    MessageResult result = await connection.ConnectAsync();
+                    if (result.Value == -1)
+                        throw new Exception(result.ErrorInfo);
+                    return connection;
+                });
+#if NO
+                Task<MessageConnection> task = new Task<MessageConnection>(async () =>
+                {
+                    // TODO: 建议抛出原有 Exception
+                    MessageResult result = await connection.ConnectAsync();
                     if (result.Value == -1)
                         throw new Exception(result.ErrorInfo);
                     return connection;
                 });
                 task.Start();
                 return task;
+#endif
             }
 
 #if NO

@@ -132,14 +132,15 @@ namespace DigitalPlatform.MessageClient
         }
 
         // 确保连接和登录
-        public void EnsureConnect()
+        public async void EnsureConnect()
         {
             if (string.IsNullOrEmpty(this.ServerUrl) == true)
                 throw new Exception("MessageConnection.dp2MServerUrl 尚未设置");
 
             if (this.Connection == null || this.Connection.State == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
             {
-                ConnectAsync().Wait();
+                // ConnectAsync().Wait();
+                await ConnectAsync();
             }
         }
 
