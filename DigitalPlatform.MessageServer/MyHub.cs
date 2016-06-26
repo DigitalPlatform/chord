@@ -271,8 +271,20 @@ false);
 
         #region SetMessage() API
 
+        // 正规化 MessageItem 里面的 subjects 成员内容
+        // 如果 subjects 仅有一个元素而且为 ""，则规范为 subjects 为空
+        MessageItem CanonicalizeMessageItemSubjects(MessageItem item)
+        {
+            if (item.subjects != null && item.subjects.Length == 1
+                && string.IsNullOrEmpty(item.subjects[0]))
+            {
+                item.subjects = null;
+            }
 
+            return item;
+        }
 
+        // 正规化 MessageItem 里面的 groups 成员内容
         void CanonicalizeMessageItemGroups(MessageItem item, ConnectionInfo connection_info)
         {
             // 正规化组名
@@ -325,7 +337,7 @@ SetMessageRequest param
                     result.ErrorInfo = "messages 中包含不合法的 MessageRecord 记录，groups 成员不允许为空(可以使用 '<default>' 作为默认群组的名字)";
                     return result;
                 }
-                items.Add(BuildMessageItem(record));
+                items.Add(CanonicalizeMessageItemSubjects(BuildMessageItem(record)));
             }
 
             try

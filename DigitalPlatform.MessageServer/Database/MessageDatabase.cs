@@ -796,6 +796,10 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
 
         static bool IsEqual(string[] array1, string[] array2)
         {
+            if (array1 == null && array2 == null)
+                return true;
+            if (array1 == null || array2 == null)
+                return false;   // 其中一个为 null
             if (array1.Length != array2.Length)
                 return false;
             for (int i = 0; i < array1.Length; i++)
@@ -846,14 +850,14 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
         {
             StringBuilder text = new StringBuilder();
             text.Append("id=" + id + "\r\n");
-            text.Append("groups=" + string.Join(",", groups) + "\r\n");
+            text.Append("groups=" + (groups == null ? "{null}" : string.Join(",", groups)) + "\r\n");
             text.Append("creator=" + creator + "\r\n");
             text.Append("userName=" + userName + "\r\n");
             text.Append("data=" + data + "\r\n");
             text.Append("format=" + format + "\r\n");
             text.Append("type=" + type + "\r\n");
             text.Append("thread=" + thread + "\r\n");
-            text.Append("subjects=" + string.Join(",", subjects) + "\r\n");
+            text.Append("subjects=" + (subjects == null ? "{null}" : string.Join(",", subjects)) + "\r\n");
             text.Append("publishTime=" + publishTime.ToString() + "\r\n");
             text.Append("expireTime=" + expireTime.ToString() + "\r\n");
             return text.ToString();
