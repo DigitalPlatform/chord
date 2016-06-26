@@ -25,6 +25,6 @@ namespace dp2weixin.service
         public string creator { get; set; }  //创建消息的工作人员帐户
 
         public string subject { get; set; } // 栏目
-        public string Remark { get; set; } //注释
+        public string remark { get; set; } //注释
     }
 }

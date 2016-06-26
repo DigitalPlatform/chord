@@ -18,7 +18,7 @@ namespace dp2weixin.service
     public class BookSubjectItem
     {
         public string name { get; set; }
-        public int count { get; set; }
+        public string count { get; set; }
     }
 
     public class BookMsgResult : ApiResult

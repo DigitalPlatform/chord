@@ -107,6 +107,49 @@
             });
         })
 
+        function gotoBookMsg(obj)
+        {            
+            var libId = $("#selLib").val();
+            var userName = model.userName();
+            var subject = $(obj).prop("title");
+
+            if (userName == null)
+                userName = "";
+
+            //var returnUrl = "/Library/BookSubject?libId=" + libId;
+            var url = "/Library/BookMsg?libId=" + libId
+                + "&userName=" + encodeURIComponent(userName)
+                + "&subject=" + encodeURIComponent(subject);
+            //+ "&returnUrl=" + encodeURIComponent(returnUrl);
+
+            //alert(url);
+            gotoUrl(url);
+        }
+
+        function gotoBookEdit() {
+            var libId = $("#selLib").val();
+            if (libId == "")
+            {
+                alert("请选择图书馆");
+                return;
+            }
+
+            var userName = model.userName();
+            if (userName == null || userName == "")
+            {
+                alert("userName不能为空");
+                return;
+            }
+
+            var returnUrl = "/Library/BookSubject?libId=" + libId;
+            var url = "/Library/BookEdit?libId=" + libId
+                + "&userName=" + encodeURIComponent(userName)
+                //+ "&subject=" + encodeURIComponent(subject);
+                + "&returnUrl=" + encodeURIComponent(returnUrl);
+
+            //alert(url);
+            gotoUrl(url);
+        }
 
     </script>
 }
@@ -131,15 +174,15 @@
     </center>
 </div>
 <div id="divNew" class="mui-content-padded" style="display:none">
-    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoUrl('/Library/BookEdit?returnUrl=' + encodeURIComponent('/Library/BookSubject'))">
-        发布好书推荐
+    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoBookEdit()">
+        新推荐好书
     </button>
 </div>
 <ul class="mui-table-view" data-bind=" foreach:model.list">
     <li class="mui-table-view-cell">
-        <a class="mui-navigate-right" data-bind="attr: { href: './BookMsg?subject='+name}">
+        <a class="mui-navigate-right" data-bind="attr: { title:name}" href='javascript:void(0)' onclick='gotoBookMsg(this)'>
             <span data-bind=" text:name"></span>
-            (<span data-bind="text:count"></span>）
+            (<span data-bind="text:count"></span>)
         </a>
     </li>
 </ul>

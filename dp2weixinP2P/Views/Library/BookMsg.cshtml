@@ -20,22 +20,67 @@
 
         function deleteMsg(msgId)
         {           
-            alert(msgId);
+            //alert(msgId);
 
-            // todo 调一下ajax
+            var titleDiv = "#title-" + msgId;
+            var title = $(titleDiv).html();
+
+            var gnl = confirm("你确定要删除公告[" + title + "]吗?");
+            if (gnl == false) {
+                return false;
+            }
+
+            var libId = $("#libId").text();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            var userName = $("#userName").text();
+            if (userName == "") {
+                alert("异常情况：userName为空。");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/LibMessage?libId=" + libId
+                + "&group=" + encodeURIComponent("gn:_lib_book")
+                + "&msgId=" + msgId
+            + "&userName=" + userName
+            sendAjaxRequest(url, "DELETE", function (result) {
+                
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert("操作失败：" + result.errorInfo);
+                    return;
+                }
+
+                alert("删除成功");
+
+                // 删除界面
+                var name = "#" + msgId;
+                $(name).remove();
+
+            }, function (xhq, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
         }
 
         function gotoEdit(msgId)
         {
-            alert(msgId);
-            var libId = $("libId").text();
-            var userName = $("userName").text();
-            var subject = $("subject").text();
+            //alert(msgId);
+            var libId = $("#libId").text();
+            var userName = $("#userName").text();
+            var subject = $("#subject").text();
             gotoUrl("/Library/BookEdit?libId="+libId
                 +"&userName="+userName
                 +"&subject="+subject
                 +"&msgId="+msgId
-                +"&returnUrl=" + encodeURIComponent("/Library/BookMsg?libId="+libId+"&userName="+userName+"&subject="+subject );
+                +"&returnUrl=" + encodeURIComponent("/Library/BookMsg?libId="+libId+"&userName="+userName+"&subject="+subject ));
         }
 
     </script>
@@ -52,28 +97,28 @@
 
 @if (String.IsNullOrEmpty(ViewBag.userName)== false)
 { 
-<div id="divNew" class="mui-content-padded" style="display:none">
+<div id="divNew" class="mui-content-padded" style="display:block">
     <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('')">
-        发布好书推荐
+        新推荐好书
     </button>
 </div>
 }
 
 @foreach(dp2weixin.service.MessageItem item in Model)
 { 
-    <div class="mui-card" style="margin-top:10px">
+    <div class="mui-card" style="margin-top:10px" id="@item.id">
         <div class="mui-content-padded">
-            <div class="msg-title">@item.title</div>
+            <div class="msg-title" id="title-@item.id">@item.title</div>
             <p style="color:gray;font-size:12px">
                 <span>@item.publishTime</span>-
                 <span>@item.creator</span>
             </p>
-            <div>@item.contentHtml</div>
+            <div>@Html.Raw(item.contentHtml)</div>
             @if(String.IsNullOrEmpty(ViewBag.userName)== false)
             { 
             <div style="text-align:right">
-                <button class="mui-btn  mui-btn-default" data-bind="gotoEdit('@item.id')">编辑</button>
-                <button class="mui-btn mui-btn-danger" data-bind="delete('@item.id')">X&nbsp;删除</button>
+                <button class="mui-btn  mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>
+                <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
             </div>
             }
         </div>

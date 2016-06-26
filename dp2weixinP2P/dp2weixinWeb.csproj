@@ -193,6 +193,7 @@
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\OAuth2Controller.cs" />
     <Compile Include="Controllers\PatronController.cs" />
+    <Compile Include="Controllers\UIController.cs" />
     <Compile Include="Controllers\WeixinController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -238,7 +239,6 @@
     <Content Include="Views\Patron\PersonalInfo.cshtml" />
     <Content Include="Views\Patron\OverdueInfo.cshtml" />
     <Content Include="Views\Patron\BorrowInfo.cshtml" />
-    <Content Include="Views\Home\UiTest.cshtml" />
     <Content Include="Views\Account\ChangePassword.cshtml" />
     <Content Include="Views\Patron\QRcode.cshtml" />
     <Content Include="Views\Library\MsgManage.cshtml" />
@@ -247,6 +247,8 @@
     <Content Include="Views\Library\BookMsg.cshtml" />
     <Content Include="Views\Library\BookEdit.cshtml" />
     <Content Include="Views\Library\BookSubject.cshtml" />
+    <Content Include="Views\UI\BiblioIndex.cshtml" />
+    <Content Include="Views\UI\PersonalInfo.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

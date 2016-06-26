@@ -31,11 +31,98 @@
             else {
                 $("#divNewSubject").css('display', 'none');
                 $("#txtSubject").val(subValue);
-            }
-
-            
+            }            
         }
 
+
+        function submitForm()
+        {
+            var subject = $("#txtSubject").val();
+            if (subject == "") {
+                alert("请选择栏目");
+                return;
+            }
+
+            var title = $("#title").val();
+            if (title == null || title == "") {
+                alert("请输入标题");
+                return;
+            }
+
+            var content = $("#content").val();
+            if (content == null || content == "") {
+                alert("请输入内容");
+                return;
+            }
+
+            var remark = $("#remark").val();
+
+            var libId = $("#_libId").val();// $("#libId").text();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            //_userName
+            var userName = $("#_userName").val();// $("#libId").text();
+            if (userName == "") {
+                alert("异常情况：userName为空。");
+                return;
+            }
+
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var id = $("#id").val();
+            var action = "";
+            if (id == "" || id==null)
+                action = "POST";
+            else
+                action = "PUT";
+            var group = "gn:_lib_book";
+            var url = "/api/LibMessage"
+                + "?group=" + group
+                + "&libId=" + libId;
+            sendAjaxRequest(url, action,
+                function (result) {
+
+                    // 关闭等待层
+                    layer.close(index);
+
+                    if (result.errorCode == -1) {
+                        alert("操作失败：" + result.errorInfo);
+                        return;
+                    }
+                    alert("操作成功");
+
+                    // 跳转
+                    var returnUrl = $("#_returnUrl").val();
+                    if (returnUrl == "")
+                        returnUrl = "/Library/BookSubject";
+                   // alert(returnUrl);
+                    if (returnUrl == "/Biblio/Index") {
+                        window.history.back(-1); //返回不刷新
+                    }
+                    else {
+                        gotoUrl(returnUrl);
+                    }
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    id: id,
+                    title: title,
+                    content: content,
+                    creator: userName,
+                    subject: subject,
+                    remark:remark
+                }
+            );
+        }
 
     </script>
 }
@@ -58,55 +145,65 @@
 }
 
 <span id="userId" style="display:none">@ViewBag.UserId</span>
-@using (Html.BeginForm("BookEdit", "Library", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post))
-    {
-<div class='mui-input-group'>
-    <div class='mui-input-row' style='border-bottom:0px'>
-        <label class="leftLabel">栏目</label>
-        @Html.Raw(ViewBag.SubjectHtml)
-    </div>
-    <div class='mui-input-row' id='divNewSubject' style='display:none;border-bottom:0px'>
-        <label class="leftLabel">&nbsp;</label>
-        <input id='txtSubject' style='' placeholder='请输入新栏目名称' />
+<div>
+    <input type="hidden" id="_libId" name="_libId" value="@Model._libId" />
+    <input type="hidden" id="_userName" name="_userName" value="@Model._userName" />
+    <input type="hidden" id="_subject" name="_subject" value="@Model._subject" />
+    <input type="hidden" id="_returnUrl" name="_returnUrl" value="@Model._returnUrl" />
+
+    <input type="hidden" id="id" name="id" value="@Model.id" />
+
+
+    <div class='mui-input-group'>
+        <div class='mui-input-row' style='border-bottom:0px'>
+            <label class="leftLabel">栏目</label>
+            @Html.Raw(ViewBag.SubjectHtml)
+        </div>
+        <div class='mui-input-row' id='divNewSubject' style='display:none;border-bottom:0px'>
+            <label class="leftLabel">&nbsp;</label>
+            <input type="text" id='txtSubject' name="subject" style="border:1px solid #CCCCCC;border-bottom:0px" value="@Model._subject" />
+        </div>
+
+        <div class="mui-input-row" style="border-bottom:0px">
+            <label class="leftLabel">标题</label>
+            <input type="text" id="title" class="mui-input mui-input-clear" style="border:1px solid #CCCCCC" name="title" value="@Model.title">
+        </div>
+        <div class="mui-input-row" style="border-bottom:0px;height:100px">
+            <label class="leftLabel" style="width:20%;">注释</label>
+            <textarea rows="6" id="remark" style="border:1px solid #CCCCCC;border-top:0px;   padding:2px" name="remark">@Model.remark</textarea>
+        </div>
+        <div class="mui-input-row" style="border-bottom:0px;height:100px">
+            <label class="leftLabel">书目路径</label>
+            <textarea rows="6" id="content" style="border:1px solid #cccccc" name="content">@Model.content</textarea>
+        </div>
+        <div class="mui-input-row " style="border-bottom:0px;">
+            <label class="leftLabel">发布时间</label>
+            <input type="text" class="mui-input mui-input-clear" style="border:1px solid #cccccc;background-color:#dddddd" disabled="disabled" name="publishTime" value="@Model.publishTime">
+        </div>
+        <div class="mui-input-row " style="border-bottom:0px;">
+            <label class="leftLabel">发布人</label>
+            <input type="text" class="mui-input mui-input-clear" style="border:1px solid #cccccc;background-color:#dddddd" disabled="disabled" name="creator" value="@Model._userName">
+        </div>
     </div>
 
-    <div class="mui-input-row" style="border-bottom:0px">
-        <label class="leftLabel" >标题</label>
-        <input type="text" class="mui-input mui-input-clear"  value="@Model.msgItem.title">
-    </div>
-    <div class="mui-input-row" style="border-bottom:0px;height:100px">
-        <label class="leftLabel" style="width:20%;">注释</label>
-        <textarea rows="6" id="divRemark" style="">@Model.msgItem.Remark</textarea>
-    </div>
-    <div class="mui-input-row" style="border-bottom:0px;height:100px">
-        <label class="leftLabel">书目路径</label>
-        <textarea rows="6" id="divContent" style="">@Model.msgItem.content</textarea>
-    </div>
-    <div class="mui-input-row " style="">
-        <label class="leftLabel">发布时间</label>
-        <input type="text" class="mui-input mui-input-clear" disabled="disabled" value="@Model.msgItem.publishTime">
-    </div>
-    <div class="mui-input-row " style="">
-        <label class="leftLabel">发布人</label>
-        <input type="text" class="mui-input mui-input-clear" disabled="disabled" value="@Model.msgItem.creator">
-    </div>
+
 </div>
 
-<div class="mui-content-padded" >
-    <button class="mui-btn mui-btn-block mui-btn-primary" >
-        @if (String.IsNullOrEmpty(Model.msgItem.id)== true) //( .id == "" || Model.id==null)
+
+<div class="mui-content-padded">
+    <button class="mui-btn mui-btn-block mui-btn-primary"  onclick="submitForm()">
+        @if (String.IsNullOrEmpty(Model.id) == true) //( .id == "" || Model.id==null)
         {
             <span>发布</span>
         }
         else
         {
-             <span>更新</span>
+            <span>更新</span>
         }
 
     </button>
-</div>
-}
 
+</div>
 
 
 

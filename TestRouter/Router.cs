@@ -190,6 +190,9 @@ namespace TestRouter
                 this.GroupName, // "" 表示默认群组
                 "",
                 "", // strTimeRange,
+                "", // sort
+                "", //id
+                "", // subject
                 0,
                 100);
             try

@@ -224,6 +224,7 @@ DeleteMessage(temp_records, this.GroupName);
             string strError = "";
             CancellationToken cancel_token = new CancellationToken();
 
+            string subjectCondition = "";
             string id = Guid.NewGuid().ToString();
             GetMessageRequest request = new GetMessageRequest(id,
                 "",
@@ -232,6 +233,7 @@ DeleteMessage(temp_records, this.GroupName);
                 "", // strTimeRange,
                 "publishTime|asc",//sortCondition 按发布时间正序排
                 "",
+                subjectCondition,
                 0,
                 100);
             try

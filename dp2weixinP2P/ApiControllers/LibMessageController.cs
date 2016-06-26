@@ -19,32 +19,85 @@ namespace dp2weixinWeb.ApiControllers
         /// <param name="msgId"></param>
         /// <param name="style">browse/full</param>
         /// <returns></returns>
-        public MessageResult Get(string weixinId, string msgType,
+        public MessageResult Get(string weixinId, 
+            string group,
             string libId, 
             string msgId,
             string style)
         {
             MessageResult result = new MessageResult();
 
-            string strError = "";
-            List<MessageItem> list = null;
+            if (group != dp2WeiXinService.C_GroupName_Bb
+                && group != dp2WeiXinService.C_GroupName_Book)
+            {
+                result.errorInfo = "不支持的群" + group;
+                result.errorCode = -1;
+                return result;
+            }
+
+            string strError="";
+
+            // 检查下有无绑定工作人员账号
+            result.worker = "";
             string worker = "";
-            int nRet = dp2WeiXinService.Instance.GetMessage(weixinId,
-                msgType,
+            if (string.IsNullOrEmpty(weixinId) == false)
+            {
+                // 查找当前微信用户绑定的工作人员账号
+                WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
+                if (user != null)
+                {
+                    // 检索是否有权限 _wx_setbbj
+                    string needRight = "";
+                    if (group == dp2WeiXinService.C_GroupName_Bb)
+                        needRight = dp2WeiXinService.C_Right_SetBb;
+                    else
+                        needRight = dp2WeiXinService.C_Right_SetBook;
+
+                    LibItem lib = LibDatabase.Current.GetLibById(libId);
+                    if (lib == null)
+                    {
+                        result.errorInfo = "未找到id为[" + libId + "]的图书馆定义。";
+                        result.errorCode = -1;
+                        return result;
+                    }
+
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                        user.userName,
+                        needRight,
+                        out strError);
+                    if (nHasRights == -1)
+                    {
+                        result.errorInfo = strError;
+                        result.errorCode = -1;
+                        return result;
+                    }
+                    if (nHasRights == 1)
+                    {
+                        worker = user.userName;
+                    }
+                    else
+                    {
+                        worker = "";
+                    }
+                }
+            }
+            result.worker = worker;
+
+            List<MessageItem> list = null;
+            int nRet = dp2WeiXinService.Instance.GetMessage(group,
                 libId,
                 msgId, 
+                "",//subject
                 style,
                 out list,
-                out worker,
                 out strError);
             if (nRet == -1)
             {
                 result.errorCode = -1;
                 result.errorInfo = strError;
             }
-
             result.items = list;
-            result.worker = worker;
+            
             result.errorCode = nRet;
             result.errorInfo = strError;
 
@@ -52,35 +105,31 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         // POST api/<controller>
-        public MessageResult Post(string msgType, string libId, MessageItem item)
+        public MessageResult Post(string group, string libId, MessageItem item)
         {
             // 服务器会自动产生id
-            //item.id = Guid.NewGuid().ToString();
-            return dp2WeiXinService.Instance.CoverMessage(msgType, libId, item, "create");
+            //item.id = Guid.NewGuid().ToString();`'
+            return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "create");
         }
 
         // PUT api/<controller>/5
-        public MessageResult Put(string msgType, string libId, MessageItem item)
+        public MessageResult Put(string group, string libId, MessageItem item)
         {
             //return libDb.Update(id, item);
 
-            string test = "";
 
-            return dp2WeiXinService.Instance.CoverMessage(msgType, libId, item, "change");
-
-            //return null;
+            return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "change");
      }
 
         // DELETE api/<controller>/5
         [HttpDelete]
-        public void Delete(string msgType, string id, string libId)
+        public MessageResult Delete(string group, string libId, string msgId,string userName)
         {
             MessageItem item = new MessageItem();
-            item.id = id;
+            item.id = msgId;
+            item.creator = userName;
             //style == delete
-            dp2WeiXinService.Instance.CoverMessage(msgType,libId, item, "delete");
-
-            return;
+            return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "delete");
         }
     }
 }

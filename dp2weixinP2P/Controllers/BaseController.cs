@@ -23,7 +23,7 @@ namespace dp2weixinWeb.Controllers
                 }
                 opt += "<option value='" + item.id + "' " + selectedString + ">" + item.libName + "</option>";
             }
-            string libHtml = "<select id='selLib' style='padding-left: 0px;width: 65%;'  >" + opt + "</select>";
+            string libHtml = "<select id='selLib' style='padding-left: 0px;width: 65%;border:1px solid #eeeeee'  >" + opt + "</select>";
             return libHtml;
         }
         public int CheckIsFromWeiXin(string code, string state,out string strError)
