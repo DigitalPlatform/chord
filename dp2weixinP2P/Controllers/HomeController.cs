@@ -22,6 +22,7 @@ namespace dp2weixinWeb.Controllers
     {
         public ActionResult Test()
         {
+            ViewBag.LibHtml = this.GetLibSelectHtml("");
             return View();
         }
         public ActionResult Index(string code, string state, string admin, string weiXinId)

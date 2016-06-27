@@ -6,22 +6,24 @@ using System.Threading.Tasks;
 
 namespace dp2weixin.service
 {
-    public class BookSubjectResult:ApiResult
+    // 栏目api返回结果
+    public class SubjectResult:ApiResult
     {
-        public List<BookSubjectItem> list { get; set; }
+        public List<SubjectItem> list { get; set; }
 
         // 绑定的且有权限的工作人员
         public string userName { get; set; }
     }
 
-
-    public class BookSubjectItem
+    // 栏目
+    public class SubjectItem
     {
         public string name { get; set; }
         public string count { get; set; }
     }
 
-    public class BookMsgResult : ApiResult
+    // 一个栏目下的msg
+    public class SubjectMsgResult : ApiResult
     {
         public List<MessageItem> list { get; set; }
 

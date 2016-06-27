@@ -175,6 +175,7 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiControllers\LibHomePageController.cs" />
     <Compile Include="ApiControllers\LibBookController.cs" />
     <Compile Include="ApiControllers\LibMessageController.cs" />
     <Compile Include="ApiControllers\BiblioController.cs" />
@@ -249,6 +250,7 @@
     <Content Include="Views\Library\BookSubject.cshtml" />
     <Content Include="Views\UI\BiblioIndex.cshtml" />
     <Content Include="Views\UI\PersonalInfo.cshtml" />
+    <Content Include="Views\Library\HomePage.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

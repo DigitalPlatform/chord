@@ -45,6 +45,22 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 好书推荐
+        public ActionResult HomePage(string code, string state, string libId)
+        {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
+            // 图书馆html
+            ViewBag.LibHtml = this.GetLibHtml(libId);
+
+            return View();
+        }
+
+
+        // 好书推荐
         public ActionResult BookSubject(string code, string state,string libId)
         {
             // 检查是否从微信入口进来
@@ -131,7 +147,8 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 栏目html
-            ViewBag.SubjectHtml = this.GetSubjectHtml(libId, subject, true);
+            ViewBag.SubjectHtml = this.GetSubjectHtml(dp2WeiXinService.C_GroupName_Book,
+                libId, subject, true);
 
             // 将这些参数值设到model上，这里可以回传返回
             BookEditModel model = new BookEditModel();
@@ -262,12 +279,12 @@ namespace dp2weixinWeb.Controllers
         }
 
 
-        private string GetSubjectHtml(string libId, string selSubject, bool bNew)
+        private string GetSubjectHtml(string group, string libId, string selSubject, bool bNew)
         {
 
             string strError="";
-            List<BookSubjectItem> list = null;
-            int nRet = dp2WeiXinService.Instance.GetBookSubject(libId, out list, out strError);
+            List<SubjectItem> list = null;
+            int nRet = dp2WeiXinService.Instance.GetSubject(group, libId, out list, out strError);
             if (nRet == -1)
             {
                 return "获取好书推荐的栏目出错";
@@ -276,7 +293,7 @@ namespace dp2weixinWeb.Controllers
             var opt = "<option value=''>请选择 栏目</option>";
             for (var i = 0; i < list.Count; i++)
             {
-                BookSubjectItem item = list[i];
+                SubjectItem item = list[i];
                 string selectedString = "";
                 if (selSubject != "" && selSubject == item.name)
                 {

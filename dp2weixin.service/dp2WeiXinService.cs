@@ -39,11 +39,13 @@ namespace dp2weixin.service
         // 群组常量
         public const string C_GroupName_Bb = "gn:_lib_bb";
         public const string C_GroupName_Book = "gn:_lib_book";
+        public const string C_GroupName_HomePage = "gn:_lib_homePage"; //图书馆主页
         public const string C_GroupName_PatronNotity = "gn:_patronNotify";
 
         // 消息权限
         public const string C_Right_SetBb = "_wx_setbb";
         public const string C_Right_SetBook = "_wx_setbook";
+        public const string C_Right_SetHomePage = "_wx_setHomePage";
 
         #region 成员变量
 
@@ -1353,13 +1355,20 @@ namespace dp2weixin.service
                 bOnShelf = true;
 
             // 册条码
+            string itemBarcode = "";
             XmlNode nodeItemBarcode = root.SelectSingleNode("itemBarcode");
-            if (nodeItemBarcode == null)
+            if (nodeItemBarcode != null)
             {
-                strError = "尚未定义<itemBarcode>节点";
-                return -1;
+                itemBarcode = DomUtil.GetNodeText(nodeItemBarcode);
             }
-            string itemBarcode = DomUtil.GetNodeText(nodeItemBarcode);
+            if (itemBarcode == "")
+            {
+                XmlNode nodeRefId = root.SelectSingleNode("refID");
+                if (nodeRefId != null)
+                {
+                    itemBarcode = DomUtil.GetNodeText(nodeRefId);
+                }
+            }
 
             //string first = this._msgFirstLeft+"我们很高兴地通知您，您预约的图书到了，请尽快来图书馆办理借书手续。";
             string end = "\n" + patronName + "，您预约的图书["+itemBarcode+"]到了，请尽快来图书馆办理借书手续，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
@@ -4394,17 +4403,25 @@ namespace dp2weixin.service
         /// 返回的当前绑定工作人员账户号，如果为空，不没有编辑权限
         /// </param>
         /// <returns></returns>
-        public int GetBookSubject(string libId,
-            out List<BookSubjectItem> list,
+        public int GetSubject(string libId,
+            string group,
+            out List<SubjectItem> list,
             out string strError)
         {
-            //userName = "";
             strError = "";
-            list = new List<BookSubjectItem>();
+            list = new List<SubjectItem>();
 
+            if (group != C_GroupName_Book 
+                && group != C_GroupName_HomePage)
+            {
+                strError = "不支持的群" + group;
+                return -1; 
+            }
+
+            // 获取栏目
             List<MessageRecord> records = null;
             int nRet = this.GetMessageInternal(C_Active_EnumSubject,
-                C_GroupName_Book,
+                group,
                 libId,
                 "",
                 "",
@@ -4416,7 +4433,7 @@ namespace dp2weixin.service
             foreach (MessageRecord record in records)
             {
                 string[] subjects = record.subjects;
-                BookSubjectItem subItem = new BookSubjectItem();
+                SubjectItem subItem = new SubjectItem();
 
                 // 发现确实空的情况。
                 if (subjects == null || subjects.Length == 0)

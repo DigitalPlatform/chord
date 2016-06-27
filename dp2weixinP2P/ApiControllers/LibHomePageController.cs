@@ -8,7 +8,7 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class LibBookController : ApiController
+    public class LibHomePageController : ApiController
     {
 
         /// <summary>
@@ -35,8 +35,8 @@ namespace dp2weixinWeb.ApiControllers
                 // todo 后面可以放开对读者的权限
                 if (user != null)
                 {
-                    // 检索是否有权限 _wx_setbbj
-                    string needRight = dp2WeiXinService.C_Right_SetBook;
+                    // 检索是否有权限 _wx_setHomePage
+                    string needRight = dp2WeiXinService.C_Right_SetHomePage;
 
                     LibItem lib = LibDatabase.Current.GetLibById(libId);
                     if (lib == null)
@@ -67,7 +67,7 @@ namespace dp2weixinWeb.ApiControllers
 
             // 获取指定图书的栏目
             List<SubjectItem> list = null;
-            int nRet = dp2WeiXinService.Instance.GetSubject(dp2WeiXinService.C_GroupName_Book,
+            int nRet = dp2WeiXinService.Instance.GetSubject(dp2WeiXinService.C_GroupName_HomePage,
                 libId, out list, out strError);
             if (nRet == -1)
             {
