@@ -67,8 +67,8 @@ namespace dp2weixinWeb.ApiControllers
 
             // 获取指定图书的栏目
             List<SubjectItem> list = null;
-            int nRet = dp2WeiXinService.Instance.GetSubject(dp2WeiXinService.C_GroupName_Book,
-                libId, out list, out strError);
+            int nRet = dp2WeiXinService.Instance.GetSubject(libId, dp2WeiXinService.C_GroupName_Book,
+                out list, out strError);
             if (nRet == -1)
             {
                 result.errorCode = -1;
@@ -133,7 +133,14 @@ namespace dp2weixinWeb.ApiControllers
 
             // 获取指定栏目的消息
             List<MessageItem> list = null;
-            int nRet = dp2WeiXinService.Instance.GetBookMsg(libId,subject, out list, out strError);
+            int nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_GroupName_Book,
+        libId,
+        "",
+        subject,
+        "browse",
+        out list,
+        out strError);
+            //int nRet = dp2WeiXinService.Instance.GetBookMsg(libId,subject, out list, out strError);
             if (nRet == -1)
             {
                 result.errorCode = -1;

@@ -100,6 +100,66 @@ function fillPending() {
             window.setTimeout("fillPending()", 1);
         });
     }
+    else if (mytype == "su-") {
+        var libId = o.children("span").text();
+
+        // 调web api
+        var url = "/api/LibHomePage?weixinId=" //+ weixinId
+                    + "&libId=" + libId
+                    + "&subject=" + encodeURIComponent(myvalue);
+        //alert(url);
+        // 调api
+        sendAjaxRequest(url, "GET", function (result) {
+
+            if (result.errorCode == -1) {
+                alert(result.errorInfo);
+                return;
+            }
+
+            /*
+    public class MessageItem
+    {
+        public string id { get; set; }
+        public string title { get; set; }
+        public string content { get; set; }
+        public string contentFormat { get; set; }  // 2016-6-20 text/markdown
+        public string contentHtml { get; set; }  // 2016-6-20 html形态
+        public string publishTime { get; set; } // 2016-6-20 jane 发布时间，服务器消息的时间
+
+        public string creator { get; set; }  //创建消息的工作人员帐户
+
+        public string subject { get; set; } // 栏目
+        public string remark { get; set; } //注释
+    }
+            */
+
+
+            //换成实际的值，
+            var msgHtml = "";
+            if (result.list != null) {
+                for (var i = 0; i < result.list.length; i++) {
+                    var msgItem = result.list[i];
+                    //alert(msgItem);
+                    msgHtml += getMsgHtml(msgItem);
+                }
+            }
+
+            // 这里得到的是list
+            o.html(msgHtml);
+
+
+            //去掉pending状态，继续下一个pending
+            o.removeClass("pending");
+            window.setTimeout("fillPending()", 1);
+
+        }, function (xhq, textStatus, errorThrown) {
+            //换成实际的值，去掉pending状态，继续下一个pending
+            o.html("访问服务器出错：" + errorThrown);
+            o.removeClass("pending");
+            window.setTimeout("fillPending()", 1);
+        });
+    }
+
     else {
         // 继续下面的
         o.removeClass("pending");
@@ -112,6 +172,24 @@ function fillPending() {
     //window.setTimeout("fillPending()", 1);
     return;
 }
+
+function getMsgHtml(msgItem) {
+
+    var html =
+        "<div class='mui-card' style='margin-top:10px' id='_edit_" + msgItem.id + "'>"
+            + "<div class='mui-content-padded'>"
+                + "<div class='msg-title'>" + msgItem.title + "</div>"
+                + "<p style='color:gray;font-size:12px'>"
+                + "   <span>"+msgItem.publishTime+"</span>-"
+                + "    <span>"+msgItem.creator+"</span>"
+                + "</p>"
+                + "<div>" + msgItem.contentHtml + "</div>"
+            + "</div>"
+        + "</div>";
+
+    return html;
+}
+
 
 function openMsg(msg, endCallback) {
     alert(msg);

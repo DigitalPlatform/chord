@@ -15,17 +15,18 @@
 @section Scripts {
     <script>
         var model = {
-            list: ko.observableArray(),
+            subjects: ko.observableArray(),
+            selSubject: ko.observable(""),
             userName: ko.observable("")
         }
 
-        //用于获取图书馆
-        function getBookSubject() {
+        //用于获取栏目
+        function getSubject() {
             var libId = $("#selLib").val();
             var weixinId = $("#weixinId").text();
 
             // 先删除可观察数组中的已有数据
-            model.list.removeAll();
+            model.subjects.removeAll();
             model.userName("");
 
             // 先把这些项隐藏
@@ -60,8 +61,29 @@
 
                 // 把返回的数组加到观察数组
                 if (result.list != null) {
+
+
+
                     for (var i = 0; i < result.list.length; i++) {
-                        model.list.push(result.list[i]);
+
+                        var subject = result.list[i].name;
+                        var count = result.list[i].count;
+
+                        // 加载栏目数组里
+                        model.subjects.push(subject);
+
+                        var subjectDiv =
+                            "<div id='_subject_" + subject + "'>"
+                                + "<div id='_subject_title'><h3>" + subject + "("+count+")</h3></div>"
+                                + "<div class='pending' >"
+                                    + "<label>su-" + subject + "</label>"
+                                    + "<img src='../img/wait2.gif' />"
+                                    +"<span>"+libId+"</span>"
+                                + "</div>"
+                            + "</div>";
+
+                        //alert(subjectDiv);
+                        $("#_subject_main").prepend(subjectDiv);
                     }
                 }
                 model.userName(result.userName);
@@ -75,6 +97,7 @@
                     $("#divNew").css('display', 'none');
                 }
 
+                window.setTimeout("fillPending()", 1);
                 //alert("worker["+model.worker()+"]");
 
             }, function (xhq, textStatus, errorThrown) {
@@ -87,7 +110,7 @@
 
         // 改变图书馆
         function libChanged() {
-            getBookSubject();
+            getSubject();
         }
 
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
@@ -97,7 +120,7 @@
             ko.applyBindings(model);
 
             // 获取所有的操作命令
-            getBookSubject();
+            getSubject();
 
             // 设顶部菜单不固定
             $("#myheader").css("position", "absolute");
@@ -126,35 +149,195 @@
             gotoUrl(url);
         }
 
-        function gotoBookEdit() {
-            var libId = $("#selLib").val();
-            if (libId == "")
-            {
-                alert("请选择图书馆");
+        // 在新增消息，点击取消
+        function cancelEdit(msgId) {
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
                 return;
             }
 
-            var userName = model.userName();
-            if (userName == null || userName == "")
-            {
-                alert("userName不能为空");
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+
+
+            //显示态html
+            var viewHtml = "";
+
+            if (msgId == "new") {
+                //创建按钮不可见
+                $("#btnCreate").css('display', 'block');
+                $(divId).html(viewHtml);
                 return;
             }
 
-            var returnUrl = "/Library/BookSubject?libId=" + libId;
-            var url = "/Library/BookEdit?libId=" + libId
-                + "&userName=" + encodeURIComponent(userName)
-                //+ "&subject=" + encodeURIComponent(subject);
-                + "&returnUrl=" + encodeURIComponent(returnUrl);
+            // 根据id获取显示态html
+            $(divId).html(viewHtml);
 
-            //alert(url);
-            gotoUrl(url);
         }
+        function gotoEdit(msgId) {
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
+                return;
+            }
+
+            if (msgId == "new")
+            {
+                //创建按钮不可见
+                $("#btnCreate").css('display', 'none');
+            }
+
+            var title = "";
+
+
+
+            var subjectHtml = getSubjectHtml();
+            var formHtml = "<div class='mui-input-group' >"
+                + "<div class='mui-input-row' style='border-bottom:0px'>"
+                    + "<label class='leftLabel'>栏目</label>"
+                    + subjectHtml
+                + "</div>"
+                + "<div>"
+                    + "<div class='mui-input-row' id='divNewSubject' style='display:none;border-bottom:0px'>"
+                    + "<label class='leftLabel'>&nbsp;</label>"
+                    + "<input type='text' id='_val_subject' name='subject' style='border:1px solid #CCCCCC;border-bottom:0px' value='' />"
+                + "</div>"
+                + "<div class='mui-input-row' style='border-bottom:0px'>"
+                    + "<label class='leftLabel'>标题</label>"
+                    + "<input type='text' id='_val_title' class='mui-input mui-input-clear' style='border:1px solid #CCCCCC' name='title' value=''>"
+                + "</div>"
+                + "<div class='mui-input-row' style='border-bottom:0px;height:100px'>"
+                    + "<label class='leftLabel' style='width:20%;'>注释</label>"
+                    + "<textarea rows='6' id='_val_remark' style='border:1px solid #CCCCCC;border-top:0px;   padding:2px' name='remark'></textarea>"
+                + "</div>"
+                + "<div class='mui-input-row' style='border-bottom:0px;height:100px'>"
+                    + "<label class='leftLabel'>内容</label>"
+                    + "<textarea rows='6' id='_val_content' style='border:1px solid #cccccc' name='content'></textarea>"
+                + "</div>"
+                + "<div class='mui-input-row ' style='border-bottom:0px;'>"
+                    + "<label class='leftLabel'>发布时间</label>"
+                    + "<input type='text' class='mui-input mui-input-clear' style='border:1px solid #cccccc;background-color:#dddddd' disabled='disabled' name='publishTime' value=''>"
+                + "</div>"
+                + "<div class='mui-input-row ' style='border-bottom:0px;'>"
+                    + "<label class='leftLabel'>发布人</label>"
+                    + "<input type='text' class='mui-input mui-input-clear' style='border:1px solid #cccccc;background-color:#dddddd' disabled='disabled' name='creator' value=''>"
+                + "</div>"
+                + "</div>";
+            var btnHtml = "<div class='mui-content-padded'>"
+                + "<button class='mui-btn mui-btn-primary' onclick=\"save('"+msgId+"')\">发布</button>&nbsp;&nbsp;"
+                +"<button class='mui-btn mui-btn-default' onclick=\"cancelEdit('"+msgId+"')\">取消</button>"
+                + "</div>";
+
+            var editHtml = formHtml + btnHtml;
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+            $(divId).html(editHtml);
+
+        }
+
+
+        function getSubjectHtml() {
+            var opt = "<option value=''>请选择 栏目</option>";
+
+
+            for (var i = 0; i < model.subjects().length; i++) {
+                var subject = model.subjects()[i];
+
+                var selectedString = "";
+                if (model.selSubject() != "" && model.selSubject() == subject) {
+                    selectedString = " selected='selected' ";
+                }
+                opt += "<option value='" + subject + "' " + selectedString + ">" + subject + "</option>";
+            }
+
+            //加自定义栏目
+            opt += "<option value='new'>自定义栏目</option>";
+            var onchange = " onchange='subjectChanged()' ";
+
+            return "<select id='selSubject' style='padding-left: 0px;width: 65%;'  " + onchange + " >" + opt + "</select>";
+
+        }
+
+        
+        function save(msgId)
+        {
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
+                return;
+            }
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+
+
+
+            var msgDiv = " <div class='mui-card'>"
+            +"test-"+msgId
+        +"</div>";
+
+            if (msgId == "new") {
+
+                msgDiv = "<div id='_edit_" + msgId + "'>"+msgDiv+ "</div>";
+
+                // 要先找下同名的subject，如果不存在，新创建一个subject div放在最上面
+                var mySubject = $("#_val_subject").val();
+                alert(mySubject);
+
+                var subjectObj = $("#_subject_main").children("#_subject_" + mySubject);
+                if (subjectObj.html() != null) {  //注意这里要用html()
+                    //alert("1");
+
+                    //_subject_
+                    var titleObj = $(subjectObj).find("#_subject_title");
+                    $(msgDiv).insertAfter(titleObj);
+                }
+                else {
+                    // 给框架加一条栏目
+                    model.subjects.push(mySubject);
+                    model.selSubject(mySubject); // 设当前选择的栏目
+
+                    //alert("2");
+                    var subjectDiv = "<div id='_subject_"+mySubject+"'>"
+                        +"<div id='_subject_title'>"+mySubject+"</div>"
+                        +msgDiv
+                        + "</div>";
+
+                    //alert(subjectDiv);
+                    $("#_subject_main").prepend(subjectDiv);
+                }
+
+                //创建按钮不可见
+                $("#btnCreate").css('display', 'block');
+                $(divId).html("");
+
+                return;
+            }
+
+            $(divId).html(title);
+
+        }
+
+
+
+        // 将选择的subject设到输入框中
+        function subjectChanged() {
+            var subValue = $("#selSubject").val();
+
+            //alert(subValue);
+
+            if (subValue == "new") {
+                $("#divNewSubject").css('display', 'block');
+                $("#_val_subject").val("");
+                //$("#txtSubject").css('display', 'block');
+            }
+            else {
+                $("#divNewSubject").css('display', 'none');
+                $("#_val_subject").val(subValue);
+            }
+        }
+
 
     </script>
 }
 @section header {
-    <h1 class="mui-title">@ViewBag.MsgTypeTitle</h1>
+    <h1 class="mui-title">图书馆主页</h1>
 }
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 
@@ -170,19 +353,34 @@
 <div class="mui-card" id="divNo" style="margin-top:10px;display:none">
     <center>
         <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
-        <div>目前没有好书推荐。</div>
+        <div>目前没有栏目。</div>
     </center>
 </div>
 <div id="divNew" class="mui-content-padded" style="display:none">
-    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoBookEdit()">
-        新推荐好书
+    <div id='_edit_new'></div>
+    <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
+        新发布信息
     </button>
 </div>
-<ul class="mui-table-view" data-bind=" foreach:model.list">
-    <li class="mui-table-view-cell">
-        <a class="mui-navigate-right" data-bind="attr: { title:name}" href='javascript:void(0)' onclick='gotoBookMsg(this)'>
-            <span data-bind=" text:name"></span>
-            (<span data-bind="text:count"></span>)
-        </a>
-    </li>
-</ul>
+
+<div class="mui-content-padded"  id="_subject_main">
+    <div id="_subject_栏目1">
+        <div id="_subject_title">栏目1</div>
+        <div id="_edit_msgId">
+            <div class='mui-card'>
+                test2
+            </div>
+        </div>
+    </div>
+
+    <div id="_subject_栏目2">
+        <div id="_subject_title">栏目2</div>
+        <div id="_edit_msgId">
+            <div class='mui-card'>
+                test
+            </div>
+        </div>
+    </div>
+
+</div>
+

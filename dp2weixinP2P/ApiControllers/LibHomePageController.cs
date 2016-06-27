@@ -67,13 +67,25 @@ namespace dp2weixinWeb.ApiControllers
 
             // 获取指定图书的栏目
             List<SubjectItem> list = null;
-            int nRet = dp2WeiXinService.Instance.GetSubject(dp2WeiXinService.C_GroupName_HomePage,
-                libId, out list, out strError);
+            int nRet = dp2WeiXinService.Instance.GetSubject( libId,dp2WeiXinService.C_GroupName_HomePage,
+                out list, out strError);
             if (nRet == -1)
             {
                 result.errorCode = -1;
                 result.errorInfo = strError;
             }
+
+            // 测试和
+            SubjectItem item = new SubjectItem();
+            item.name = "测试1";
+            item.count ="3";
+            list.Add(item);
+
+             item = new SubjectItem();
+            item.name = "测试2";
+            item.count = "5";
+            list.Add(item);
+
 
             result.list = list;
             result.errorCode = nRet;
@@ -133,12 +145,33 @@ namespace dp2weixinWeb.ApiControllers
 
             // 获取指定栏目的消息
             List<MessageItem> list = null;
-            int nRet = dp2WeiXinService.Instance.GetBookMsg(libId,subject, out list, out strError);
+            int nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_GroupName_HomePage,
+                    libId,
+                    "",
+                    subject,
+                    "browse",
+                    out list,
+                    out strError);
             if (nRet == -1)
             {
                 result.errorCode = -1;
                 result.errorInfo = strError;
             }
+
+
+            MessageItem item = new MessageItem();
+            item.id = "001";
+            item.title = "测试1";
+            list.Add(item);
+
+            item = new MessageItem();
+            item.id = "002";
+            item.title = "测试2";
+            list.Add(item);
+
+
+
+
 
             result.list = list;
             result.userName = userName;

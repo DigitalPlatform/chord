@@ -105,10 +105,17 @@ namespace dp2weixinWeb.Controllers
             ViewBag.subject = subject;
 
             List<MessageItem> list = new List<MessageItem>();
-            nRet = dp2WeiXinService.Instance.GetBookMsg(libId, 
-                subject, 
-                out list,
-                out strError);
+            nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_GroupName_Book,
+        libId,
+        "",
+        subject,
+        "browse",
+        out list,
+        out strError);
+            //nRet = dp2WeiXinService.Instance.GetBookMsg(libId, 
+            //    subject, 
+            //    out list,
+            //    out strError);
             if (nRet == -1)
                 return Content(strError);
 
@@ -284,7 +291,7 @@ namespace dp2weixinWeb.Controllers
 
             string strError="";
             List<SubjectItem> list = null;
-            int nRet = dp2WeiXinService.Instance.GetSubject(group, libId, out list, out strError);
+            int nRet = dp2WeiXinService.Instance.GetSubject(libId, group, out list, out strError);
             if (nRet == -1)
             {
                 return "获取好书推荐的栏目出错";

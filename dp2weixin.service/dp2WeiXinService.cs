@@ -4450,22 +4450,22 @@ namespace dp2weixin.service
 
         #endregion
 
-        public int GetBookMsg(string libId, string subject, out List<MessageItem> list, out string strError)
-        {
-            list = new List<MessageItem>();
-            strError = "";
+        //public int GetBookMsg(string libId, string subject, out List<MessageItem> list, out string strError)
+        //{
+        //    list = new List<MessageItem>();
+        //    strError = "";
 
-            int nRet = this.GetMessage(C_GroupName_Book,
-                libId,
-                "",
-                subject,
-                "browse",
-                out list,
-                out strError);
-            if (nRet == -1)
-                return -1;
+        //    int nRet = this.GetMessage(C_GroupName_Book,
+        //        libId,
+        //        "",
+        //        subject,
+        //        "browse",
+        //        out list,
+        //        out strError);
+        //    if (nRet == -1)
+        //        return -1;
 
-            return nRet;
-        }
+        //    return nRet;
+        //}
     }
 }

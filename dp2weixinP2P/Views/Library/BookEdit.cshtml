@@ -141,10 +141,16 @@
     </style>
 }
 @section header {
-    <h1 class="mui-title">绑定账号</h1>
+    @if (string.IsNullOrEmpty(Model.id) == true)
+    { 
+        <h1 class="mui-title">发布好书</h1>
+    }
+    else
+    {
+        <h1 class="mui-title">更新好书</h1>
+    }
 }
 
-<span id="userId" style="display:none">@ViewBag.UserId</span>
 <div>
     <input type="hidden" id="_libId" name="_libId" value="@Model._libId" />
     <input type="hidden" id="_userName" name="_userName" value="@Model._userName" />
@@ -186,24 +192,24 @@
         </div>
     </div>
 
+    <div class="mui-content-padded">
+        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="submitForm()">
+            @if (String.IsNullOrEmpty(Model.id) == true) //( .id == "" || Model.id==null)
+            {
+                <span>发布</span>
+            }
+            else
+            {
+                <span>更新</span>
+            }
 
+        </button>
+
+    </div>
 </div>
 
 
-<div class="mui-content-padded">
-    <button class="mui-btn mui-btn-block mui-btn-primary"  onclick="submitForm()">
-        @if (String.IsNullOrEmpty(Model.id) == true) //( .id == "" || Model.id==null)
-        {
-            <span>发布</span>
-        }
-        else
-        {
-            <span>更新</span>
-        }
 
-    </button>
-
-</div>
 
 
 
