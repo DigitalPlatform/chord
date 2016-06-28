@@ -149,7 +149,9 @@ function fillPending() {
             }
 
             // 这里得到的是list
-            o.html(msgHtml);
+            //o.html(msgHtml);
+            $(o).prop('outerHTML', msgHtml);
+            //o.outerHTML(msgHtml);不支持这样写
 
 
             //去掉pending状态，继续下一个pending
@@ -182,17 +184,29 @@ function getMsgViewHtml(msgItem, bContainEditDiv) {
     var html = "";
 
     if (bContainEditDiv == true)
-        html += "<div class='mui-card' style='margin-top:10px' id='_edit_" + msgItem.id + "'>";
+        html += "<div class='mui-card message' id='_edit_" + msgItem.id + "' onclick=\"clickMsgDiv('" + msgItem.id + "')\">";
 
-
-    html += "<div class='mui-content-padded'>"
-        + "<div class='msg-title'>" + msgItem.title + "</div>"
-        + "<p style='color:gray;font-size:12px'>"
-        + "   <span>" + msgItem.publishTime + "</span>-"
-        + "    <span>" + msgItem.creator + "</span>"
-        + "</p>"
-        + "<div>" + msgItem.contentHtml + "</div>"
-    + "</div>"
+    html += "<table>"
+                    + "<tr>"
+                        + "<td class='title'>" + msgItem.title + "</td>"
+                        + "<td class='btn'>"
+                            + "<div id='btnEdit' style='display: none;'>"
+                                + "<button class='mui-btn mui-btn-default' onclick=\"gotoEdit('" + msgItem.id + "')\">编辑</button>&nbsp;"
+                                + "<button class='mui-btn mui-btn-danger' onclick=\"deleteMsg('" + msgItem.id + "')\">X&nbsp;删除</button>"
+                            + "</div>"
+                        + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                        + "<td colspan='2' class='time'>"
+                                + "<span>" + msgItem.publishTime + "</span>-<span>" + msgItem.creator + "</span>"
+                        + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                        + "<td colspan='2' class='content'>"
+                        + msgItem.contentHtml
+                        + "</td>"
+                    + "</tr>"
+                + "</table>";
 
     if (bContainEditDiv == true)
         html += "</div>";

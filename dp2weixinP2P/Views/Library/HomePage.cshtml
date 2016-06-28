@@ -4,12 +4,69 @@
             color: #999999;
         }
 
-        .msg-title {
-            line-height: 1;
-            margin-top: 5px;
-            margin-bottom: 5px;
-            font-size: 20px;
+
+        /*栏目div*/
+        DIV.subject {
+            padding: 0px;
+           /* background-color: blue;*/
+           padding-bottom:10px;
         }
+        DIV.subject  .firstline{
+            padding: 10px;
+        }
+
+        DIV.subject .firstline .title{
+            font-size: 24px;
+        }
+
+        DIV.subject .firstline .count{
+            font-size: 18px;
+            color:#999999;
+        }
+
+        /*消息div*/
+        DIV.message {
+            margin-top:5px;
+            margin-bottom:5px;
+            padding: 10px;
+            /*background-color: green;*/
+        }
+
+        /*消息div下的table*/
+        DIV.message TABLE {
+            width: 100%;
+            /*background-color: red;*/
+        }
+
+        /*消息标题*/
+        DIV.message .title {
+            font-size: 18px;
+        }
+
+        /*标题右侧的按钮*/
+        DIV.message .btn {
+            text-align: right;
+            padding-right: 10px;
+        }
+
+        /*消息发布时间*/
+        DIV.message .time {
+            color: gray;
+            font-size: 12px;
+        }
+
+        /*消息内容*/
+        DIV.message .content {
+        }
+
+
+        /*===================*/
+        .msgEditState {
+
+            background-color:#CCFF99;
+            
+        }
+
     </style>
 }
 @section Scripts {
@@ -72,9 +129,9 @@
                         model.subjects.push(subject);
 
                         var subjectDiv =
-                            "<div id='_subject_" + subject + "'>"
-                                + "<div id='_subject_title'><h3>" + subject + "("+count+")</h3></div>"
-                                + "<div class='pending' >"
+                            "<div id='_subject_" + subject + "'  class='subject'>"
+                                + "<div id='_subject_title' class='firstline'><span class='title'>" + subject + "</span></div>" //<span class='count'>(" + count + ")</span>
+                                + "<div  class='pending' >"
                                     + "<label>su-" + subject + "</label>"
                                     + "<img src='../img/wait2.gif' />"
                                     +"<span>"+libId+"</span>"
@@ -106,6 +163,42 @@
             });
         }
 
+        function clickMsgDiv(msgId)
+        {
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
+                return;
+            }
+
+            if (model.userName() == "")
+            {
+                return;
+            }
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+            var editBtn = $(divId).find("#btnEdit");
+
+            // 这时候已经不是在浏览界面，应该是编辑态了
+            var viewTable = $(divId).children("table").html();
+            if (viewTable==null || viewTable=="")
+            {
+                return;
+            }
+
+            var editStateClass="msgEditState";
+            var editState = $(divId).hasClass(editStateClass);
+            if (editState == true) {
+                $(divId).removeClass(editStateClass);
+
+                $(editBtn).css("display", "none");
+            }
+            else {
+                $(divId).addClass(editStateClass);
+
+                $(editBtn).css("display", "block");
+            }
+        }
+
         // 改变图书馆
         function libChanged() {
             getSubject();
@@ -128,25 +221,6 @@
             });
         })
 
-        function gotoBookMsg(obj)
-        {
-            var libId = $("#selLib").val();
-            var userName = model.userName();
-            var subject = $(obj).prop("title");
-
-            if (userName == null)
-                userName = "";
-
-            //var returnUrl = "/Library/BookSubject?libId=" + libId;
-            var url = "/Library/BookMsg?libId=" + libId
-                + "&userName=" + encodeURIComponent(userName)
-                + "&subject=" + encodeURIComponent(subject);
-            //+ "&returnUrl=" + encodeURIComponent(returnUrl);
-
-            //alert(url);
-            gotoUrl(url);
-        }
-
         // 在新增消息，点击取消
         function cancelEdit(msgId) {
             if (msgId == null || msgId == "") {
@@ -167,80 +241,218 @@
                 return;
             }
 
-            // 根据id获取显示态html
-            $(divId).html(viewHtml);
+            // 根据id从服务器取记录，并只读态
+            var libId = $("#selLib").val();
+            var weixinId = $("#weixinId").text();
+            if (libId == "") {
+                alert("请选择图书馆");
+                return;
+            }
+            if (weixinId == "") {
+                alert("异常情况：weixinId为空");
+                return;
+            }
+            var group = "gn:_lib_homePage";
+            //显示等待图层
+            var index = loadLayer();
+            var style = "original";
+            /*
+            GetMessage(string weixinId, 
+            string group,
+            string libId, 
+            string msgId,
+            string subject,
+            string style)
+            */
+            // 调web api
+            var url = "/api/LibMessage?weixinId=" + weixinId
+                        + "&group=" + group
+                        + "&libId=" + libId
+                        + "&msgId=" + msgId
+                        + "&subject="
+                        + "&style=" + style;
+            sendAjaxRequest(url, "GET", function (result) {
+                // 关闭等待层
+                layer.close(index);
+
+                //alert("回来-"+result.errorCode);
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+                // 把返回的数组加到观察数组
+                if (result.items != null && result.items.length > 0) {
+
+                    // 把数据填在编辑界面
+                    var item = result.items[0];
+                    var html = getMsgViewHtml(item);
+                    $(divId).html(html);
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert("访问服务器出错：\r\n" + errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
 
         }
+
         function gotoEdit(msgId) {
             if (msgId == null || msgId == "") {
                 alert("未传入msgId");
                 return;
             }
 
+            //alert(msgId);
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
             if (msgId == "new")
             {
                 //创建按钮不可见
                 $("#btnCreate").css('display', 'none');
+                var html = getMsgEditHtml(null);
+                $(divId).html(html);
+                return;
             }
 
+
+            //根据id从服务器上取记录
+            var libId = $("#selLib").val();
+            var weixinId = $("#weixinId").text();
+            if (libId == "") {
+                alert("请选择图书馆");
+                return;
+            }
+            if (weixinId == "") {
+                alert("异常情况：weixinId为空");
+                return;
+            }
+            var group = "gn:_lib_homePage";
+            //显示等待图层
+            var index = loadLayer();
+            var style = "original";
+            /*
+            GetMessage(string weixinId, 
+            string group,
+            string libId, 
+            string msgId,
+            string subject,
+            string style)
+            */
+            // 调web api
+            var url = "/api/LibMessage?weixinId=" + weixinId
+                        + "&group=" + group
+                        + "&libId=" + libId
+                        + "&msgId=" + msgId
+                        + "&subject="
+                        + "&style=" + style;
+            sendAjaxRequest(url, "GET", function (result) {
+                // 关闭等待层
+                layer.close(index);
+
+                //alert("回来-"+result.errorCode);
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+                // 把返回的数组加到观察数组
+                if (result.items != null && result.items.length > 0) {
+
+                    // 把数据填在编辑界面
+                    var item = result.items[0];
+                    var html = getMsgEditHtml(item);
+                    $(divId).html(html);
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert("访问服务器出错：\r\n" + errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+
+        function getMsgEditHtml(msgItem) {
+            // 工作人员账号
+            var userName = model.userName();
+            if (userName == null || userName == "")
+            {
+                alert("异常情况，没有绑定工作人员不可能走到这里");
+                return;
+            }
+            //alert(msgItem);
+
+            var disabledStr = "";// "disabled"
+            var subject = model.selSubject();
+            var msgId = "new"; //默认新建的情况
             var title = "";
+            var remark = "";
+            var content = "";
+            if (msgItem != null)
+            {
+                msgId = msgItem.id;
+                title = msgItem.title;
+                remark = msgItem.remark;
+                content = msgItem.content;
+                subject = msgItem.subject;
 
+                disabledStr=" disabled='disabled' ";
+            }
 
+            //alert(subject);
 
-            var subjectHtml = getSubjectHtml();
-            var formHtml = "<div class='mui-input-group' >"
+            var subjectHtml = getSubjectHtml(subject, disabledStr);
+            var inputHtml = "<div class='mui-input-group' >"
                 + "<div class='mui-input-row' style='border-bottom:0px'>"
                     + "<label class='leftLabel'>栏目</label>"
                     + subjectHtml
                 + "</div>"
-                + "<div>"
-                    + "<div class='mui-input-row' id='divNewSubject' style='display:none;border-bottom:0px'>"
+               + "<div class='mui-input-row' id='divNewSubject' style='display:none;border-bottom:0px'>"
                     + "<label class='leftLabel'>&nbsp;</label>"
-                    + "<input type='text' id='_val_subject' name='subject' style='border:1px solid #CCCCCC;border-bottom:0px' value='' />"
+                    + "<input type='text' id='_val_subject' name='subject' style='border:1px solid #CCCCCC;border-bottom:0px' value='" + subject + "' />"
                 + "</div>"
                 + "<div class='mui-input-row' style='border-bottom:0px'>"
                     + "<label class='leftLabel'>标题</label>"
-                    + "<input type='text' id='_val_title' class='mui-input mui-input-clear' style='border:1px solid #CCCCCC' name='title' value=''>"
+                    + "<input type='text' id='_val_title' class='mui-input mui-input-clear' style='border:1px solid #CCCCCC'  value='" + title + "'>"
                 + "</div>"
                 + "<div class='mui-input-row' style='border-bottom:0px;height:100px'>"
                     + "<label class='leftLabel' style='width:20%;'>注释</label>"
-                    + "<textarea rows='6' id='_val_remark' style='border:1px solid #CCCCCC;border-top:0px;   padding:2px' name='remark'></textarea>"
+                    + "<textarea rows='6' id='_val_remark' style='border:1px solid #CCCCCC;border-top:0px;   padding:2px'>" + remark + "</textarea>"
                 + "</div>"
                 + "<div class='mui-input-row' style='border-bottom:0px;height:100px'>"
                     + "<label class='leftLabel'>内容</label>"
-                    + "<textarea rows='6' id='_val_content' style='border:1px solid #cccccc' name='content'></textarea>"
-                + "</div>"
-                + "<div class='mui-input-row ' style='border-bottom:0px;'>"
-                    + "<label class='leftLabel'>发布时间</label>"
-                    + "<input type='text' class='mui-input mui-input-clear' style='border:1px solid #cccccc;background-color:#dddddd' disabled='disabled' name='publishTime' value=''>"
+                    + "<textarea rows='6' id='_val_content' style='border:1px solid #cccccc'>" + content + "</textarea>"
                 + "</div>"
                 + "<div class='mui-input-row ' style='border-bottom:0px;'>"
                     + "<label class='leftLabel'>发布人</label>"
-                    + "<input type='text' class='mui-input mui-input-clear' style='border:1px solid #cccccc;background-color:#dddddd' disabled='disabled' name='creator' value=''>"
-                + "</div>"
+                    + "<input type='text' class='mui-input mui-input-clear' style='border:1px solid #cccccc;background-color:#dddddd' disabled='disabled' value='" + userName + "'>"
                 + "</div>";
             var btnHtml = "<div class='mui-content-padded'>"
-                + "<button class='mui-btn mui-btn-primary' onclick=\"save('"+msgId+"')\">发布</button>&nbsp;&nbsp;"
-                +"<button class='mui-btn mui-btn-default' onclick=\"cancelEdit('"+msgId+"')\">取消</button>"
+                + "<button class='mui-btn mui-btn-primary' onclick=\"save('" + msgId + "')\">发布</button>&nbsp;&nbsp;"
+                + "<button class='mui-btn mui-btn-default' onclick=\"cancelEdit('" + msgId + "')\">取消</button>"
                 + "</div>";
 
-            var editHtml = formHtml + btnHtml;
+            var html = "<div class='divForm'>"+inputHtml + btnHtml+"</div>";
 
-            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
-            $(divId).html(editHtml);
-
+            return html;
         }
 
 
-        function getSubjectHtml() {
+        function getSubjectHtml(selSubject, disabledStr) {
             var opt = "<option value=''>请选择 栏目</option>";
 
+            if (selSubject == null || selSubject == "")
+            {
+                selSubject=model.selSubject() ;
+            }
 
             for (var i = 0; i < model.subjects().length; i++) {
                 var subject = model.subjects()[i];
 
                 var selectedString = "";
-                if (model.selSubject() != "" && model.selSubject() == subject) {
+                if (selSubject != "" && selSubject == subject) {
                     selectedString = " selected='selected' ";
                 }
                 opt += "<option value='" + subject + "' " + selectedString + ">" + subject + "</option>";
@@ -250,7 +462,7 @@
             opt += "<option value='new'>自定义栏目</option>";
             var onchange = " onchange='subjectChanged()' ";
 
-            return "<select id='selSubject' style='padding-left: 0px;width: 65%;'  " + onchange + " >" + opt + "</select>";
+            return "<select id='selSubject' style='padding-left: 0px;width: 65%;'  " + onchange + "  " + disabledStr + ">" + opt + "</select>";
 
         }
 
@@ -259,10 +471,6 @@
         {
 
             var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
-
-            var msgViewHtml = getMsgViewHtml(msgItem);
-
-
             if (msgId == "new") {
 
                 // 得到完整的div
@@ -303,6 +511,8 @@
 
             // 拼出内部的html，直接替换原来内容
             var msgViewHtml = getMsgViewHtml(msgItem, false);
+
+            alert("返回的item-" + msgItem.subject);
             $(divId).html(msgViewHtml);
         }
         
@@ -321,6 +531,8 @@
                 alert("请先选择栏目");
                 return;
             }
+
+            alert(subject);
 
             var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
 
@@ -392,7 +604,7 @@
 
                         var item = result.items[0];
 
-                        alert("回来的消息标题:"+item.title);
+                        //alert("回来的消息标题:"+item.title);
                         viewMsg(msgId,item);
 
                     },
@@ -437,6 +649,59 @@
             }
         }
 
+
+        function deleteMsg(msgId) {
+            alert(msgId);
+
+            /*
+            var titleDiv = "#title-" + msgId;
+            var title = $(titleDiv).html();
+
+            var gnl = confirm("你确定要删除公告[" + title + "]吗?");
+            if (gnl == false) {
+                return false;
+            }
+
+            var libId = $("#libId").text();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            var userName = $("#userName").text();
+            if (userName == "") {
+                alert("异常情况：userName为空。");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/LibMessage?libId=" + libId
+                + "&group=" + encodeURIComponent("gn:_lib_book")
+                + "&msgId=" + msgId
+            + "&userName=" + userName
+            sendAjaxRequest(url, "DELETE", function (result) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert("操作失败：" + result.errorInfo);
+                    return;
+                }
+
+                alert("删除成功");
+
+                // 删除界面
+                var name = "#" + msgId;
+                $(name).remove();
+
+            }, function (xhq, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+            */
+        }
 
     </script>
 }

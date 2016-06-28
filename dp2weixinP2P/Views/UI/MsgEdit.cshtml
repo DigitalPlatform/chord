@@ -1,0 +1,214 @@
+﻿@section Scripts {
+    <script>
+        // 将选择的subject设到输入框中
+        function subjectChanged() {
+            var subValue = $("#selSubject").val();
+
+            //alert(subValue);
+
+            if (subValue == "new") {
+                $("#divNewSubject").css('display', 'block');
+                $("#_val_subject").val("");
+                //$("#txtSubject").css('display', 'block');
+            }
+            else {
+                $("#divNewSubject").css('display', 'none');
+                $("#_val_subject").val(subValue);
+            }
+        }
+
+    </script>
+    }
+
+@section style {
+        <style>
+            .leftLabel {
+            color: #999999;
+            width:80px;
+            }
+
+        select {
+            font-size: 17px;
+            height: 37px;
+            padding: 0;
+        }
+
+        /*栏目div*/
+        DIV.subject {
+            padding: 0px;
+            /* background-color: blue;*/
+            padding-bottom: 10px;
+        }
+
+        DIV.subject .firstline {
+            padding: 10px;
+        }
+
+        DIV.subject .firstline .title {
+            font-size: 24px;
+        }
+
+        DIV.subject .firstline .count {
+            font-size: 18px;
+            color: #999999;
+        }
+
+        /*消息div*/
+        DIV.message {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            padding: 10px;
+            /*background-color: green;*/
+        }
+
+        /*消息div下的table*/
+        DIV.message TABLE {
+            width: 100%;
+            /*background-color: red;*/
+        }
+
+        /*消息标题*/
+        DIV.message .title {
+            font-size: 18px;
+        }
+
+        /*标题右侧的按钮*/
+        DIV.message .btn {
+            text-align: right;
+            padding-right: 10px;
+        }
+
+        /*消息发布时间*/
+        DIV.message .time {
+            color: gray;
+            font-size: 12px;
+        }
+
+        /*消息内容*/
+        DIV.message .content {
+        }
+
+
+        /*===================*/
+        .msgEditState {
+            background-color: #CCFF99;
+        }
+        </style>
+    }
+    <div class="subject" id="_subject_我的">
+        <div class="firstline" id="_subject_title">
+            <span class="title">我的</span>
+        </div>
+        <div class="mui-card message" id="_edit_48c6cf02-ae0e-4320-b1fe-25a125e6c79c" >
+
+            <table>
+                <tr>
+                    <td class="leftLabel" style="background-color:red">栏目</td>
+                    <td>
+                        <select  id="selSubject" onchange="subjectChanged()">
+                            <option value="">请选择 栏目</option>
+                            <option value="aa">aa</option>
+                            <option value="测试2">测试2</option>
+                            <option value="测试1">测试1</option>
+                            <option selected="selected" value="我的">我的</option>
+                            <option value="new">自定义栏目</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr id="divNewSubject" style="display:none;background-color:red">
+                    <td class="leftLabel" style="">&nbsp;</td>
+                    <td>
+                        <input id="_val_subject" type="text" value="我的">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="leftLabel" style="background-color:red">标题</td>
+                    <td><input class="mui-input mui-input-clear" id="_val_title" type="text" value="鞢dfsf"></td>
+                </tr>
+            </table>
+
+            <div class="divForm">
+                <div class="mui-input-group" style="width:100%">
+                    <div class="mui-input-row" style="border-bottom-color: currentColor; border-bottom-width: 0px; border-bottom-style: none;">
+                        <label class="leftLabel">栏目</label>
+                        <select disabled="disabled" id="selSubject" onchange="subjectChanged()" style="width:65%">
+                            <option value="">请选择 栏目</option>
+                            <option value="aa">aa</option>
+                            <option value="测试2">测试2</option>
+                            <option value="测试1">测试1</option>
+                            <option selected="selected" value="我的">我的</option>
+                            <option value="new">自定义栏目</option>
+                        </select>
+                    </div>
+                    <div class="mui-input-row" id="" style="border-bottom-color: currentColor; border-bottom-width: 0px; border-bottom-style: none; display: none;">
+                        <label class="leftLabel">&nbsp;</label>
+                        <input name="subject" id="_val_subject" style="border-width: 1px 1px 0px; border-style: solid solid none; border-color: rgb(204, 204, 204) rgb(204, 204, 204) currentColor; border-image: none;" type="text" value="我的">
+                    </div>
+                    <div class="mui-input-row" style="border-bottom-color: currentColor; border-bottom-width: 0px; border-bottom-style: none;">
+                        <label class="leftLabel">标题</label>
+                        <input class="mui-input mui-input-clear" id="_val_title" style="border: 1px solid rgb(204, 204, 204); border-image: none;" type="text" value="鞢dfsf">
+                    </div>
+
+                    <div class="mui-input-row" style="height: 100px; border-bottom-color: currentColor; border-bottom-width: 0px; border-bottom-style: none;">
+                        <label class="leftLabel">内容</label>
+                        <textarea id="_val_content" style="border: 1px solid rgb(204, 204, 204); border-image: none;" rows="6">
+                            sadfsaf=2
+                        </textarea>
+                    </div>
+                    <div class="mui-input-row" style="height: 100px; border-bottom-color: currentColor; border-bottom-width: 0px; border-bottom-style: none;">
+                        <label class="leftLabel" style="width: 20%;">注释</label>
+                        <textarea id="_val_remark" style="border-width: 0px 1px 1px; border-style: none solid solid; border-color: currentColor rgb(204, 204, 204) rgb(204, 204, 204); padding: 2px; border-image: none;" rows="6">afda-1</textarea>
+                    </div>
+                    <div class="mui-input-row " style="border-bottom-color: currentColor; border-bottom-width: 0px; border-bottom-style: none;">
+                        <label class="leftLabel">发布人</label>
+                        <input disabled="disabled" class="mui-input mui-input-clear" style="border: 1px solid rgb(204, 204, 204); border-image: none; background-color: rgb(221, 221, 221);" type="text" value="jane">
+                    </div>
+
+                    <div class="mui-content-padded">
+                        <button class="mui-btn mui-btn-primary" onclick="save('48c6cf02-ae0e-4320-b1fe-25a125e6c79c')">发布</button>&nbsp;&nbsp;
+                        <button class="mui-btn mui-btn-default" onclick="cancelEdit('48c6cf02-ae0e-4320-b1fe-25a125e6c79c')">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mui-card message" id="_edit_14038185-520e-4b32-8151-d6226dae3478" onclick="clickMsgDiv('14038185-520e-4b32-8151-d6226dae3478')">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class="title">bb-test</td>
+                        <td class="btn">
+                            <div id="btnEdit" style="display: none;">
+                                <button class="mui-btn mui-btn-default" onclick="gotoEdit('14038185-520e-4b32-8151-d6226dae3478')">编辑</button>&nbsp;<button class="mui-btn mui-btn-danger" onclick="deleteMsg('14038185-520e-4b32-8151-d6226dae3478')">X&nbsp;删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr><td class="time" colspan="2"><span>2016-06-28 16:06:48</span>-<span>jane</span></td></tr>
+                    <tr><td class="content" colspan="2">cc</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="mui-card message" id="_edit_9a938fe3-ef5b-4fec-9a9e-a236bcbf6111" onclick="clickMsgDiv('9a938fe3-ef5b-4fec-9a9e-a236bcbf6111')">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class="title">aa</td>
+                        <td class="btn">
+                            <div id="btnEdit" style="display: none;"><button class="mui-btn mui-btn-default" onclick="gotoEdit('9a938fe3-ef5b-4fec-9a9e-a236bcbf6111')">编辑</button>&nbsp;<button class="mui-btn mui-btn-danger" onclick="deleteMsg('9a938fe3-ef5b-4fec-9a9e-a236bcbf6111')">X&nbsp;删除</button></div>
+                        </td>
+                    </tr>
+                    <tr><td class="time" colspan="2"><span>2016-06-28 16:06:18</span>-<span>jane</span></td></tr>
+                <tr><td class="content" colspan="2">xx</td></tr>
+            </tbody>
+        </table>
+    </div><div class="mui-card message" id="_edit_c5329535-19e6-46b9-b9c1-0e9eb99d38dc" onclick="clickMsgDiv('c5329535-19e6-46b9-b9c1-0e9eb99d38dc')">
+        <table>
+            <tbody>
+                <tr><td class="title">aa</td><td class="btn"><div id="btnEdit" style="display: none;"><button class="mui-btn mui-btn-default" onclick="gotoEdit('c5329535-19e6-46b9-b9c1-0e9eb99d38dc')">编辑</button>&nbsp;<button class="mui-btn mui-btn-danger" onclick="deleteMsg('c5329535-19e6-46b9-b9c1-0e9eb99d38dc')">X&nbsp;删除</button></div></td></tr>
+                <tr><td class="time" colspan="2"><span>2016-06-28 13:01:18</span>-<span>jane</span></td></tr>
+                <tr>
+                    <td class="content" colspan="2">ccff</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

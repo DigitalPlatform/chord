@@ -3973,10 +3973,13 @@ namespace dp2weixin.service
             MessageRecord record,
             string style)
         {
+           
             MessageItem item = new MessageItem();
             item.id = record.id;
             item.publishTime = DateTimeUtil.DateTimeToString(record.publishTime);
-
+            item.subject = "";
+            if (record.subjects != null && record.subjects.Length > 0)
+                item.subject = record.subjects[0];
             string title = "";
             string content = "";
             string format = "text"; //默认是text样式
