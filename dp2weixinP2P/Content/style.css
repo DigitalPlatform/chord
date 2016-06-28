@@ -1,12 +1,6 @@
 
-
-ul,li,ol{list-style:none;margin:0px;padding:0px}
-img{max-width:100%;}
-.clear{clear:both;height:0;line-height:0;font-size:0;visibility:hidden;overflow:hidden}
-.clearfix:after{visibility: hidden;display: block;font-size: 0;content: " ";clear: both;height: 0;zoom:1;}
-.l{float:left;}.r{float:right;}
 /*reset样式重置*/
-.btn3{position:fixed;
+DIV.btn3{position:fixed;
   z-index:3;
   bottom:0px;
   border-top:1px solid #b3b3b3;
@@ -15,7 +9,7 @@ img{max-width:100%;}
   text-align:center;
   box-sizing:border-box;
   -webkit-box-sizing:border-box;}
-.menu{position:relative;
+DIV.btn3 .menu{position:relative;
     float:left;
     width:33.33%;
     height:50px;
@@ -24,8 +18,8 @@ img{max-width:100%;}
     border-right:1px solid #ebebeb;
     box-sizing:border-box;
     -webkit-box-sizing:border-box;}
-.menu:last-child{border-right:none;}
-.new-sub{position:absolute;
+DIV.btn3 .menu:last-child{border-right:none;}
+DIV.btn3 .new-sub{position:absolute;
       bottom:60px;
       z-index:10;
       min-width:120px;
@@ -39,13 +33,13 @@ img{max-width:100%;}
       border: 1px solid #EEEEEE;
       border-radius: 5px;
       display:none;}
-.new-sub li{width: 100%;
+DIV.btn3 .new-sub li{width: 100%;
         background-color:green;/*#fff;*/
         float:none;
         box-sizing:border-box;
         -webkit-box-sizing:border-box;
         border-top:1px solid #f2f2f2;}
-.new-sub li a{display:block;
+DIV.btn3 .new-sub li a{display:block;
           height:50px;
           line-height:50px;
           text-align:left;
@@ -54,10 +48,10 @@ img{max-width:100%;}
           border:none;
           text-align:center;
           font-size:16px;}
-.sanjiao{position:absolute;bottom:5px;right:5px;width:0;height:0;border:5px solid transparent;border-right:5px solid #000;border-bottom:5px solid #000;opacity:.5;}
-.bt-name{font-size:16px;color:#000;}
-.bt-name a{display:block;font-size:16px;color:#000;}
-.new-sub .tiggle{
+DIV.btn3 .sanjiao{position:absolute;bottom:5px;right:5px;width:0;height:0;border:5px solid transparent;border-right:5px solid #000;border-bottom:5px solid #000;opacity:.5;}
+DIV.btn3 .bt-name{font-size:16px;color:#000;}
+DIV.btn3 .bt-name a{display:block;font-size:16px;color:#000;}
+DIV.btn3 .new-sub .tiggle{
 	width:0px;
       height:0px;
       position:absolute;
@@ -69,7 +63,7 @@ img{max-width:100%;}
       border-right:10px solid transparent;
       z-index:10;
   }
-  .new-sub .innertiggle{
+ DIV.btn3 .new-sub .innertiggle{
   	width:0px;
       height:0px;
       position:absolute;
@@ -81,3 +75,11 @@ img{max-width:100%;}
       border-right:9px solid transparent;
       z-index:11;
   }
+
+
+DIV.btn3 ul,li,ol
+{list-style:none;margin:0px;padding:0px}
+
+DIV.btn3 .clear{clear:both;height:0;line-height:0;font-size:0;visibility:hidden;overflow:hidden}
+DIV.btn3 .clearfix:after{visibility: hidden;display: block;font-size: 0;content: " ";clear: both;height: 0;zoom:1;}
+

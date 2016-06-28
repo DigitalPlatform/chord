@@ -43,11 +43,6 @@
             <div class="new-sub">
                 <ul>
                     <li><a href="~/Patron/PersonalInfo">我的信息</a></li>
-                    <!--
-                    <li><a href="~/Patron/BorrowInfo">在借续借</a></li>
-                    <li><a href="~/Patron/Reservation">预约请求</a></li>
-                    <li><a href="~/Patron/OverdueInfo">违约交费</a></li>
-                    -->
                     @if (Session[dp2weixin.service.WeiXinConst.C_Session_IsBind] != null && (int)Session[dp2weixin.service.WeiXinConst.C_Session_IsBind] == 1)
                     {
                         <li><a href="~/Account/Index">账号管理</a></li>
@@ -77,7 +72,7 @@
                     <li>
                         <a href="~/Home/Contact">联系我们</a>
                     </li>
-                    @if (Session["userType"] == "admin")
+                    @if (Session["userType"] != null && Session["userType"] == "admin")
                     {
                         <li>
                             <a href="~/home/LibraryM">图书馆管理</a>

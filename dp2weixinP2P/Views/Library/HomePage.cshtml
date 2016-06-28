@@ -1,72 +1,100 @@
 ﻿@section style {
     <style>
-        .leftLabel {
-            color: #999999;
-        }
-
-
-        /*栏目div*/
+        /*================栏目div============*/
         DIV.subject {
             padding: 0px;
-           /* background-color: blue;*/
-           padding-bottom:10px;
-        }
-        DIV.subject  .firstline{
-            padding: 10px;
+            /* background-color: blue;*/
+            padding-bottom: 10px;
         }
 
-        DIV.subject .firstline .title{
-            font-size: 24px;
-        }
+            DIV.subject .firstline {
+                padding: 10px;
+            }
 
-        DIV.subject .firstline .count{
-            font-size: 18px;
-            color:#999999;
-        }
+                DIV.subject .firstline .title {
+                    font-size: 24px;
+                }
 
-        /*消息div*/
+                DIV.subject .firstline .count {
+                    font-size: 18px;
+                    color: #999999;
+                }
+
+        /*=======消息div===========*/
         DIV.message {
-            margin-top:5px;
-            margin-bottom:5px;
+            margin-top: 5px;
+            margin-bottom: 5px;
             padding: 10px;
             /*background-color: green;*/
         }
 
-        /*消息div下的table*/
-        DIV.message TABLE {
-            width: 100%;
-            /*background-color: red;*/
-        }
+            /*消息div下的table*/
+            DIV.message TABLE {
+                width: 100%;
+                /*background-color: red;*/
+            }
 
-        /*消息标题*/
-        DIV.message .title {
-            font-size: 18px;
-        }
+                /*=======消息查看态===========*/
 
-        /*标题右侧的按钮*/
-        DIV.message .btn {
-            text-align: right;
-            padding-right: 10px;
-        }
+                /*消息标题*/
+                DIV.message TABLE.view .title {
+                    font-size: 18px;
+                }
 
-        /*消息发布时间*/
-        DIV.message .time {
-            color: gray;
-            font-size: 12px;
-        }
+                /*标题右侧的按钮*/
+                DIV.message TABLE.view .btn {
+                    text-align: right;
+                    padding-right: 10px;
+                }
+
+                /*消息发布时间*/
+                DIV.message TABLE.view .time {
+                    color: gray;
+                    font-size: 12px;
+                }
 
         /*消息内容*/
-        DIV.message .content {
+        DIV.messageTABLE.view .content {
         }
 
 
-        /*===================*/
-        .msgEditState {
 
-            background-color:#CCFF99;
-            
+
+        /*=============*/
+        /*消息编辑态标题*/
+        DIV.message INPUT, SELECT {
+            margin-bottom: 0px;
         }
 
+        DIV.message TABLE.edit tr td {
+            padding: 5px;
+        }
+
+            DIV.message TABLE.edit tr td.label {
+                color: #999999;
+                width: 40px;
+            }
+
+            DIV.message TABLE.edit tr td span.label {
+                color: #999999;
+            }
+
+        DIV.message TABLE.edit select {
+            font-size: 17px;
+            height: 37px;
+            padding: 0px;
+            margin: 0px;
+        }
+
+        DIV.message TABLE.edit input, textarea {
+            padding: 5px;
+            margin: 0px;
+        }
+
+        /*======是否可编辑态样式=============*/
+        .msgEditable {
+            background-color: #CCFF99;
+        }
     </style>
 }
 @section Scripts {
@@ -86,8 +114,13 @@
             model.subjects.removeAll();
             model.userName("");
 
+
+            // 删除所有下级
+            $("#_subject_main").children("*").remove();
+
             // 先把这些项隐藏
             $("#divNo").css('display', 'none');
+            $("#divNew").css('display', 'none');
             if (libId == "") {
                 return;
             }
@@ -127,19 +160,20 @@
 
                         // 加载栏目数组里
                         model.subjects.push(subject);
+                        if ( count > 0) {
+                            var subjectDiv =
+                                "<div id='_subject_" + subject + "'  class='subject'>"
+                                    + "<div id='_subject_title' class='firstline'><span class='title'>" + subject + "</span></div>" //<span class='count'>(" + count + ")</span>
+                                    + "<div  class='pending' >"
+                                        + "<label>su-" + subject + "</label>"
+                                        + "<img src='../img/wait2.gif' />"
+                                        + "<span>" + libId + "</span>"
+                                    + "</div>"
+                                + "</div>";
 
-                        var subjectDiv =
-                            "<div id='_subject_" + subject + "'  class='subject'>"
-                                + "<div id='_subject_title' class='firstline'><span class='title'>" + subject + "</span></div>" //<span class='count'>(" + count + ")</span>
-                                + "<div  class='pending' >"
-                                    + "<label>su-" + subject + "</label>"
-                                    + "<img src='../img/wait2.gif' />"
-                                    +"<span>"+libId+"</span>"
-                                + "</div>"
-                            + "</div>";
-
-                        //alert(subjectDiv);
-                        $("#_subject_main").prepend(subjectDiv);
+                            //alert(subjectDiv);
+                            $("#_subject_main").prepend(subjectDiv);
+                        }
                     }
                 }
                 model.userName(result.userName);
@@ -163,6 +197,7 @@
             });
         }
 
+        // 单击msg进行只读态与编辑态的切换
         function clickMsgDiv(msgId)
         {
             if (msgId == null || msgId == "") {
@@ -179,13 +214,13 @@
             var editBtn = $(divId).find("#btnEdit");
 
             // 这时候已经不是在浏览界面，应该是编辑态了
-            var viewTable = $(divId).children("table").html();
+            var viewTable = $(divId).children(".view").html();
             if (viewTable==null || viewTable=="")
             {
                 return;
             }
 
-            var editStateClass="msgEditState";
+            var editStateClass="msgEditable";
             var editState = $(divId).hasClass(editStateClass);
             if (editState == true) {
                 $(divId).removeClass(editStateClass);
@@ -237,7 +272,8 @@
             if (msgId == "new") {
                 //创建按钮不可见
                 $("#btnCreate").css('display', 'block');
-                $(divId).html(viewHtml);
+                $(divId).css('display', 'none');
+                $(divId).html("");
                 return;
             }
 
@@ -255,7 +291,7 @@
             var group = "gn:_lib_homePage";
             //显示等待图层
             var index = loadLayer();
-            var style = "original";
+            var style = "browse";
             /*
             GetMessage(string weixinId, 
             string group,
@@ -298,6 +334,7 @@
 
         }
 
+        // 进入编辑态
         function gotoEdit(msgId) {
             if (msgId == null || msgId == "") {
                 alert("未传入msgId");
@@ -311,6 +348,7 @@
             {
                 //创建按钮不可见
                 $("#btnCreate").css('display', 'none');
+                $(divId).css('display', 'block');
                 var html = getMsgEditHtml(null);
                 $(divId).html(html);
                 return;
@@ -373,7 +411,7 @@
             });
         }
 
-
+        // 获取编辑态html
         function getMsgEditHtml(msgItem) {
             // 工作人员账号
             var userName = model.userName();
@@ -383,6 +421,9 @@
                 return;
             }
             //alert(msgItem);
+
+            var formatTextStr = " selected ";// 默认文本格式选中
+            var formatMarkdownStr = "";
 
             var disabledStr = "";// "disabled"
             var subject = model.selSubject();
@@ -398,12 +439,64 @@
                 content = msgItem.content;
                 subject = msgItem.subject;
 
-                disabledStr=" disabled='disabled' ";
+                disabledStr = " disabled='disabled' ";
+
+                if (msgItem.contentFormat == "markdown")
+                    formatMarkdownStr = " selected ";
             }
 
             //alert(subject);
 
             var subjectHtml = getSubjectHtml(subject, disabledStr);
+            var html = "<table class='edit'>"
+            + "<tr>"
+                + "<td class='label'>栏目</td>"
+                + "<td>"
+                    + "<div style='border:1px solid #cccccc'>"
+                    + subjectHtml
+                    + "</div>"
+                    + "<div id='divNewSubject' style='display:none;margin-top:5px'>"
+                        + "<input id='_val_subject' type='text' value='"+subject+"' placeholder='请输入自定义栏目'>"
+                    + "</div>"
+                + "</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='label'>标题</td>"
+                + "<td>"
+                    + "<input class='mui-input mui-input-clear' id='_val_title' type='text' value='"+title+"'>"
+                + "</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='label'>内容</td>"
+                + "<td>"
+                    + "<div style='border:1px solid #cccccc;'>"
+                        + "<select id='_selFormat'>"
+                            + "<option value='text' " + formatTextStr + ">文本格式</option>"
+                            + "<option value='markdown' " + formatMarkdownStr + ">Markdown格式</option>"
+                        + "</select>"
+                    + "</div>"
+                + "</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td colspan='2'>"
+                    + "<textarea id='_val_content' rows='5'>" + content + "</textarea>"
+                + "</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td colspan='2' >"
+                    + "<span class='label'>注释</span>"
+                    + "<textarea id='_val_remark' rows='3'>"+remark+"</textarea>"
+                + "</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td colspan='2'>"
+                    + "<button class='mui-btn mui-btn-primary' onclick=\"save('" + msgId + "')\">发布</button>&nbsp;&nbsp;"
+                    + "<button class='mui-btn mui-btn-default' onclick=\"cancelEdit('" + msgId + "')\">取消</button>"
+                + "</td>"
+            + "</tr>"
+        + "</table>";
+
+            /*
             var inputHtml = "<div class='mui-input-group' >"
                 + "<div class='mui-input-row' style='border-bottom:0px'>"
                     + "<label class='leftLabel'>栏目</label>"
@@ -435,11 +528,11 @@
                 + "</div>";
 
             var html = "<div class='divForm'>"+inputHtml + btnHtml+"</div>";
-
+            */
             return html;
         }
 
-
+        // 生成栏目html
         function getSubjectHtml(selSubject, disabledStr) {
             var opt = "<option value=''>请选择 栏目</option>";
 
@@ -460,16 +553,15 @@
 
             //加自定义栏目
             opt += "<option value='new'>自定义栏目</option>";
-            var onchange = " onchange='subjectChanged()' ";
+            var onchange = " onchange='subjectChanged(true)' ";
 
-            return "<select id='selSubject' style='padding-left: 0px;width: 65%;'  " + onchange + "  " + disabledStr + ">" + opt + "</select>";
+            return "<select id='selSubject' " + onchange + "  " + disabledStr + ">" + opt + "</select>";
 
         }
 
         // 保存完后，显示一条消息
         function viewMsg(msgId,msgItem)
         {
-
             var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
             if (msgId == "new") {
 
@@ -492,8 +584,8 @@
                     model.selSubject(subject); // 设当前选择的栏目
 
                     //alert("2");
-                    var subjectDiv = "<div id='_subject_" + subject + "'>"
-                        + "<div id='_subject_title'><h3>" + subject + "(1)</h3></div>"  //<h3>" + subject + "("+count+")</h3>
+                    var subjectDiv = "<div id='_subject_" + subject + "'  class='subject'>"
+                        + "<div id='_subject_title' class='firstline'><span class='title'>" + subject + "<span></div>"  
                         + msgViewHtml
                         + "</div>";
 
@@ -503,6 +595,7 @@
 
                 //创建按钮不可见
                 $("#btnCreate").css('display', 'block');
+                $(divId).css('display', 'none');
                 $(divId).html("");
 
                 return;
@@ -512,7 +605,7 @@
             // 拼出内部的html，直接替换原来内容
             var msgViewHtml = getMsgViewHtml(msgItem, false);
 
-            alert("返回的item-" + msgItem.subject);
+            //alert("返回的item-" + msgItem.subject);
             $(divId).html(msgViewHtml);
         }
         
@@ -532,7 +625,7 @@
                 return;
             }
 
-            alert(subject);
+            //alert(subject);
 
             var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
 
@@ -557,21 +650,21 @@
                     alert("请输入内容。");
                     return;
                 }
-                //alert(content);
+            //alert(content);
 
-                var libId = $("#selLib").val();// $("#libId").text();
+                var format = $("#_selFormat").val();
+                //alert(format);
+
+                var libId = $("#selLib").val();
                 if (libId == "") {
                     alert("异常情况：libId为空。");
                     return;
                 }
-
                 var userName = model.userName(); 
                 if (userName == "") {
                     alert("异常情况：userName为空。");
                     return;
                 }
-
-
                 var group = "gn:_lib_homePage";
 
                 //显示等待图层
@@ -617,23 +710,17 @@
                         id: id,
                         title: title,
                         content: content,
+                        contentFormat:format,
                         creator: userName,
                         subject: subject,
                         remark: remark
                     }
-                );
-            
-
-            
-
-
+                );      
 
         }
 
-
-
-        // 将选择的subject设到输入框中
-        function subjectChanged() {
+        // 栏目切换，将选择的subject设到输入框中
+        function subjectChanged(bGetTemplate) {
             var subValue = $("#selSubject").val();
 
             //alert(subValue);
@@ -646,29 +733,71 @@
             else {
                 $("#divNewSubject").css('display', 'none');
                 $("#_val_subject").val(subValue);
+
+                if (bGetTemplate == true)
+                {
+                    // 取模板
+                    getTemplate(subValue);
+                    
+                }
+
             }
+
+
         }
 
+        //用于获取栏目
+        function getTemplate(subject) {
+            var libId = $("#selLib").val();
+            if (libId == "") {
+                return;
+            }
 
+            //显示等待图层
+            var index = loadLayer();
+            // 调web api
+            var url = "/api/LibMessage?group=" + encodeURIComponent("gn:_lib_homePage")
+                + "&libId=" + libId
+            + "&subject=" + encodeURIComponent(subject);
+            //alert(url);
+            sendAjaxRequest(url, "GET", function (result) {
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                $("#_val_content").val(result.info);
+                
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert("访问服务器出错：\r\n" + errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        // 删除msg
         function deleteMsg(msgId) {
-            alert(msgId);
+            //alert(msgId);
 
-            /*
-            var titleDiv = "#title-" + msgId;
-            var title = $(titleDiv).html();
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+            var title = $(divId).find(".title").html();
+            //alert(title);
 
-            var gnl = confirm("你确定要删除公告[" + title + "]吗?");
+           var gnl = confirm("你确定要删除[" + title + "]吗?");
             if (gnl == false) {
                 return false;
             }
 
-            var libId = $("#libId").text();
+            var libId = $("#selLib").val();
             if (libId == "") {
                 alert("异常情况：libId为空。");
                 return;
             }
-
-            var userName = $("#userName").text();
+            var userName = model.userName(); 
             if (userName == "") {
                 alert("异常情况：userName为空。");
                 return;
@@ -678,9 +807,9 @@
             var index = loadLayer();
 
             var url = "/api/LibMessage?libId=" + libId
-                + "&group=" + encodeURIComponent("gn:_lib_book")
+                + "&group=" + encodeURIComponent("gn:_lib_homePage")
                 + "&msgId=" + msgId
-            + "&userName=" + userName
+                + "&userName=" + userName
             sendAjaxRequest(url, "DELETE", function (result) {
 
                 // 关闭等待层
@@ -694,13 +823,28 @@
                 alert("删除成功");
 
                 // 删除界面
-                var name = "#" + msgId;
-                $(name).remove();
+
+                // 找到父亲
+                var subjectDiv = $(divId).parent();
+                // 删除自己;
+                $(divId).remove();
+
+                // 如果父亲下级没有message，父亲也删除
+                if ($(subjectDiv).children(".message").length == 0) {
+
+                    //// 移除内存中的栏目,这样下拉列表就不会再有此栏目了
+                    //var subject = $(subjectDiv).find(".firstline").find(".title").text();
+                    ////alert(subject);
+                    //model.subjects.remove(subject);
+
+                    // 移除栏目div
+                    subjectDiv.remove();
+                }
 
             }, function (xhq, textStatus, errorThrown) {
                 alert(errorThrown);
             });
-            */
+            
         }
 
     </script>
@@ -726,7 +870,7 @@
     </center>
 </div>
 <div id="divNew" class="mui-content-padded" style="display:none">
-    <div id='_edit_new'></div>
+    <div id='_edit_new' class="mui-card message" style="display:none"></div>
     <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
         新发布信息
     </button>

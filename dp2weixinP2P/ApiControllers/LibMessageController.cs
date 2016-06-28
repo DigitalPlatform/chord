@@ -1,15 +1,80 @@
-﻿using dp2weixin.service;
+﻿using DigitalPlatform.IO;
+using dp2weixin.service;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
     public class LibMessageController : ApiController
     {
+        public ApiResult GetTemplate(string group,
+            string libId,
+            string subject)
+        {
+            ApiResult result = new ApiResult();
+            //result.info = "test";
+
+
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                result.errorCode = -1;
+                result.errorInfo = "未找到id为'"+libId+"'的图书馆";
+                return result;
+            }
+
+
+            string file = dp2WeiXinService.Instance.weiXinDataDir 
+                + "/lib/" + lib.capoUserName 
+                + "/homePage/" 
+                + subject+".html";
+
+                // 文件存在，取出文件 的内容
+            string text = "";
+            string strError = "";
+            if (System.IO.File.Exists(file) == true)
+            {
+                Encoding encoding;
+                // 能自动识别文件内容的编码方式的读入文本文件内容模块
+                // parameters:
+                //      lMaxLength  装入的最大长度。如果超过，则超过的部分不装入。如果为-1，表示不限制装入长度
+                // return:
+                //      -1  出错 strError中有返回值
+                //      0   文件不存在 strError中有返回值
+                //      1   文件存在
+                //      2   读入的内容不是全部
+                int nRet = FileUtil.ReadTextFileContent(file,
+                    -1,
+                    out text,
+                    out encoding,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                {
+                    goto ERROR1;
+                }
+                if (nRet == 2)
+                {
+                    strError="FileUtil.ReadTextFileContent() error";
+                    goto ERROR1;
+                }
+
+                result.info = text;
+            }
+
+
+            return result;
+
+        ERROR1:
+            result.errorInfo = strError;
+        result.errorCode = -1;
+        return result;
+        }
 
         /// <summary>
         /// 
@@ -89,6 +154,28 @@ namespace dp2weixinWeb.ApiControllers
                 result.errorInfo = strError;
             }
 
+            // 如果是图书馆主页，需要加一些默认模板
+            if (group == dp2WeiXinService.C_GroupName_HomePage)
+            {
+                LibItem lib = LibDatabase.Current.GetLibById(libId);
+                string dir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + lib.capoUserName+"/homePage";
+
+                string[] files = Directory.GetFiles(dir, "*.html");
+
+                foreach(string file in files)
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(file);
+                    bool bExist = this.checkContaint(list, fileName);
+                    if (bExist == false)
+                    {
+                        SubjectItem subject = new SubjectItem();
+                        subject.name = fileName;
+                        subject.count = 0;
+                        list.Add(subject);
+                    }
+                }
+            }
+
 
             result.list = list;
             result.errorCode = nRet;
@@ -100,6 +187,22 @@ namespace dp2weixinWeb.ApiControllers
             result.errorCode = -1;
             result.errorInfo = strError;
             return result;
+        }
+
+        /// <summary>
+        /// 检查一个栏目是否已存在
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="subject"></param>
+        /// <returns></returns>
+        private bool checkContaint(List<SubjectItem> list, string subject)
+        {
+            foreach (SubjectItem item in list)
+            {
+                if (item.name == subject)
+                    return true;
+            }
+            return false;
         }
 
 

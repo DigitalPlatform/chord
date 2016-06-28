@@ -19,7 +19,7 @@ namespace dp2weixin.service
     public class SubjectItem
     {
         public string name { get; set; }
-        public string count { get; set; }
+        public int count { get; set; }
     }
 
     public class MessageResult : ApiResult

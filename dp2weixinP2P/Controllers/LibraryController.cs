@@ -44,9 +44,20 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
-        // 好书推荐
-        public ActionResult HomePage(string code, string state, string libId)
+        // 图书馆主页
+        public ActionResult HomePage(string code, string state, string admin, string weiXinId)
         {
+            if (String.IsNullOrEmpty(admin) == false && admin == "1")
+            {
+                Session["userType"] = "admin";
+            }
+            // 用于测试，如果传了一个weixin id参数，则存到session里
+            if (String.IsNullOrEmpty(weiXinId) == false)
+            {
+                // 记下微信id
+                Session[WeiXinConst.C_Session_WeiXinId] = weiXinId;
+            }
+
             // 检查是否从微信入口进来
             string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
@@ -54,7 +65,7 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             // 图书馆html
-            ViewBag.LibHtml = this.GetLibHtml(libId);
+            ViewBag.LibHtml = this.GetLibHtml("");
 
             return View();
         }

@@ -4466,8 +4466,18 @@ namespace dp2weixin.service
 
 
                 subItem.name = subjects[0];
-                subItem.count = record.data;
-
+                subItem.count = 0;
+                try
+                {
+                    subItem.count =Convert.ToInt32(record.data);
+                    }
+                catch(Exception ex)
+                {
+                    {
+                        strError = "将data转变数字出错：" + ex.Message;
+                        return -1;
+                    }
+                }
                 list.Add(subItem);
             }
             return records.Count;

@@ -15,6 +15,9 @@ namespace dp2weixin.service
         /// -1:表示出错
         /// </summary>
         public long errorCode = 0;
+
+        // 信息
+        public string info = "";
     }
 
     public class WxUserResult

@@ -186,7 +186,7 @@ function getMsgViewHtml(msgItem, bContainEditDiv) {
     if (bContainEditDiv == true)
         html += "<div class='mui-card message' id='_edit_" + msgItem.id + "' onclick=\"clickMsgDiv('" + msgItem.id + "')\">";
 
-    html += "<table>"
+    html += "<table class='view'>"
                     + "<tr>"
                         + "<td class='title'>" + msgItem.title + "</td>"
                         + "<td class='btn'>"
