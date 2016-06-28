@@ -41,7 +41,8 @@
             //显示等待图层
             var index = loadLayer();
             // 调web api
-            var url = "/api/LibBook?weixinId=" + weixinId
+            var url = "/api/LibMessage?weixinId=" + weixinId
+                        + "&group=" + encodeURIComponent("gn:_lib_book")
                         + "&libId=" + libId
             sendAjaxRequest(url, "GET", function (result) {
                 // 关闭等待层
@@ -74,9 +75,6 @@
                 else {
                     $("#divNew").css('display', 'none');
                 }
-
-                //alert("worker["+model.worker()+"]");
-
             }, function (xhq, textStatus, errorThrown) {
 
                 alert("访问服务器出错：\r\n"+errorThrown);

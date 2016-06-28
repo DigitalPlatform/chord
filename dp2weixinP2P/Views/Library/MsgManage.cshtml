@@ -22,7 +22,7 @@
                 publishTime: ko.observable(""),
                 creator: ko.observable("")
             },
-            worker: ko.observable("")
+            userName: ko.observable("")
         }
 
         //用于获取图书馆
@@ -35,7 +35,7 @@
             //alert("["+libId+"]");
             // 先删除可观察数组中的已有数据
             model.list.removeAll();
-            model.worker("");
+            model.userName("");
 
             // 先把这些项隐藏
             $("#divSummary").css('display', 'none');
@@ -91,9 +91,8 @@
                     }
                 }
 
-                model.worker(result.worker);
+                model.userName(result.userName);
 
-                //alert("worker["+model.worker()+"]");
 
             }, function (xhq, textStatus, errorThrown) {
 
@@ -129,10 +128,10 @@
                 return;
             }
 
-            var worker = model.worker();
-            if (worker == null || worker == "")
+            var userName = model.userName();
+            if (userName == null || userName == "")
             {
-                alert("异常情况：worker为空");
+                alert("异常情况：userName为空");
                 return;
             }
 
@@ -143,7 +142,7 @@
             var url = "/api/LibMessage?libId=" + libId
                 + "&group=" + group
                 + "&msgId=" + item.id
-                + "&userName=" + worker;
+                + "&userName=" + userName;
             sendAjaxRequest(url, "DELETE", function (result) {
 
 
@@ -212,13 +211,13 @@
                 return;
             }
 
-            var worker = model.worker();
-            if (worker == "") {
-                alert("异常情况：worker为空。");
+            var userName = model.userName();
+            if (userName == "") {
+                alert("异常情况：userName为空。");
                 return;
             }
 
-            //alert(worker);
+            //alert(userName);
 
             var group = $("#group").text();
             if (group == "") {
@@ -283,7 +282,7 @@
                     title: title,
                     content: content,
                     contentFormat: getContentFormat(),
-                    creator: worker,
+                    creator: userName,
                     subject:""
                 }
             );
@@ -344,7 +343,7 @@
             model.editor.title("");
             model.editor.content("");
             model.editor.publishTime("");//publishTime
-            model.editor.creator(model.worker());
+            model.editor.creator(model.userName());
             //编辑态可见            
             $("#divEdit").css('display', 'block');
             //创建按钮不可见
@@ -563,10 +562,10 @@
 </div>
 
 <div id="divSummary">
-    <div class="mui-content-padded" id="btnCreate" data-bind="visible:model.worker()!=''">
+    <div class="mui-content-padded" id="btnCreate" data-bind="visible:model.userName()!=''">
         <button class="mui-btn mui-btn-block mui-btn-primary" onclick="handleCreateClick()">
             发布<span>@ViewBag.groupTitle</span>
-            
+
         </button>
     </div>
     <div class="mui-card" id="divNo" style="margin-top:10px;display:none">
@@ -585,7 +584,7 @@
                     <span data-bind="text:creator"></span>
                 </p>
                 <div data-bind="html:contentHtml"></div>
-                <div style="text-align:right" data-bind="visible:model.worker()!='' ">
+                <div style="text-align:right" data-bind="visible:model.userName()!='' ">
                     <button class="mui-btn  mui-btn-default" data-bind="click: handleEditClick">编辑</button>
                     <button class="mui-btn mui-btn-danger" data-bind="click: remove">X&nbsp;删除</button>
                 </div>

@@ -19,16 +19,110 @@ namespace dp2weixinWeb.ApiControllers
         /// <param name="msgId"></param>
         /// <param name="style">browse/full</param>
         /// <returns></returns>
-        public MessageResult Get(string weixinId, 
+        public SubjectResult GetSubject(string weixinId, 
+            string group,
+            string libId)
+        {
+            SubjectResult result = new SubjectResult();
+
+            if (group != dp2WeiXinService.C_GroupName_HomePage
+    && group != dp2WeiXinService.C_GroupName_Book)
+            {
+                result.errorInfo = "不支持的群" + group;
+                result.errorCode = -1;
+                return result;
+            }
+
+            string strError = "";
+
+
+            // 检查是否绑定工作人员以及权限，前端根据返回的工作人员账号判断是否可以进入编辑界面
+            string userName = "";
+            if (string.IsNullOrEmpty(weixinId) == false)
+            {
+                // 查找当前微信用户绑定的工作人员账号
+                WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
+                // todo 后面可以放开对读者的权限
+                if (user != null)
+                {
+                    // 检索是否有权限 _wx_setHomePage
+                    string needRight = "";
+                    if (group == dp2WeiXinService.C_GroupName_HomePage)
+                        needRight = dp2WeiXinService.C_Right_SetHomePage;
+                    else if (group == dp2WeiXinService.C_GroupName_Book)
+                        needRight = dp2WeiXinService.C_Right_SetBook;
+
+                    LibItem lib = LibDatabase.Current.GetLibById(libId);
+                    if (lib == null)
+                    {
+                        strError = "未找到id为[" + libId + "]的图书馆定义。";
+                        goto ERROR1;
+                    }
+
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                        user.userName,
+                        needRight,
+                        out strError);
+                    if (nHasRights == -1)
+                    {
+                        goto ERROR1;
+                    }
+                    if (nHasRights == 1)
+                    {
+                        userName = user.userName;
+                    }
+                    else
+                    {
+                        userName = "";
+                    }
+                }
+            }
+            result.userName = userName;
+
+            // 获取指定图书的栏目
+            List<SubjectItem> list = null;
+            int nRet = dp2WeiXinService.Instance.GetSubject(libId, group,
+                out list, out strError);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+            }
+
+
+            result.list = list;
+            result.errorCode = nRet;
+            result.errorInfo = strError;
+
+            return result;
+
+        ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = strError;
+            return result;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="libId"></param>
+        /// <param name="msgId"></param>
+        /// <param name="style">browse/full</param>
+        /// <returns></returns>
+        public MessageResult GetMessage(string weixinId, 
             string group,
             string libId, 
             string msgId,
+            string subject,
             string style)
         {
             MessageResult result = new MessageResult();
 
             if (group != dp2WeiXinService.C_GroupName_Bb
-                && group != dp2WeiXinService.C_GroupName_Book)
+                && group != dp2WeiXinService.C_GroupName_Book
+                && group != dp2WeiXinService.C_GroupName_HomePage)
             {
                 result.errorInfo = "不支持的群" + group;
                 result.errorCode = -1;
@@ -38,8 +132,8 @@ namespace dp2weixinWeb.ApiControllers
             string strError="";
 
             // 检查下有无绑定工作人员账号
-            result.worker = "";
-            string worker = "";
+            result.userName = "";
+            string userName = "";
             if (string.IsNullOrEmpty(weixinId) == false)
             {
                 // 查找当前微信用户绑定的工作人员账号
@@ -50,8 +144,10 @@ namespace dp2weixinWeb.ApiControllers
                     string needRight = "";
                     if (group == dp2WeiXinService.C_GroupName_Bb)
                         needRight = dp2WeiXinService.C_Right_SetBb;
-                    else
+                    else if (group == dp2WeiXinService.C_GroupName_Book)
                         needRight = dp2WeiXinService.C_Right_SetBook;
+                    else if (group == dp2WeiXinService.C_GroupName_HomePage)
+                        needRight = dp2WeiXinService.C_Right_SetHomePage;
 
                     LibItem lib = LibDatabase.Current.GetLibById(libId);
                     if (lib == null)
@@ -73,21 +169,21 @@ namespace dp2weixinWeb.ApiControllers
                     }
                     if (nHasRights == 1)
                     {
-                        worker = user.userName;
+                        userName = user.userName;
                     }
                     else
                     {
-                        worker = "";
+                        userName = "";
                     }
                 }
             }
-            result.worker = worker;
+            result.userName = userName;
 
             List<MessageItem> list = null;
             int nRet = dp2WeiXinService.Instance.GetMessage(group,
                 libId,
                 msgId, 
-                "",//subject
+                subject,
                 style,
                 out list,
                 out strError);
@@ -115,9 +211,6 @@ namespace dp2weixinWeb.ApiControllers
         // PUT api/<controller>/5
         public MessageResult Put(string group, string libId, MessageItem item)
         {
-            //return libDb.Update(id, item);
-
-
             return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "change");
      }
 

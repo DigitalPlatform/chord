@@ -42,8 +42,9 @@
             //显示等待图层
             var index = loadLayer();
             // 调web api
-            var url = "/api/LibHomePage?weixinId=" + weixinId
-                        + "&libId=" + libId
+            var url = "/api/LibMessage?weixinId=" + weixinId
+                + "&group=" + encodeURIComponent("gn:_lib_homePage")
+                + "&libId=" + libId
             sendAjaxRequest(url, "GET", function (result) {
                 // 关闭等待层
                 layer.close(index);
@@ -61,8 +62,6 @@
 
                 // 把返回的数组加到观察数组
                 if (result.list != null) {
-
-
 
                     for (var i = 0; i < result.list.length; i++) {
 
@@ -98,7 +97,6 @@
                 }
 
                 window.setTimeout("fillPending()", 1);
-                //alert("worker["+model.worker()+"]");
 
             }, function (xhq, textStatus, errorThrown) {
 
@@ -256,47 +254,39 @@
 
         }
 
-        
-        function save(msgId)
+        // 保存完后，显示一条消息
+        function viewMsg(msgId,msgItem)
         {
-            if (msgId == null || msgId == "") {
-                alert("未传入msgId");
-                return;
-            }
 
             var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
 
+            var msgViewHtml = getMsgViewHtml(msgItem);
 
-
-            var msgDiv = " <div class='mui-card'>"
-            +"test-"+msgId
-        +"</div>";
 
             if (msgId == "new") {
 
-                msgDiv = "<div id='_edit_" + msgId + "'>"+msgDiv+ "</div>";
+                // 得到完整的div
+                var msgViewHtml = getMsgViewHtml(msgItem, true);
 
+                var subject = $("#_val_subject").val(); //
                 // 要先找下同名的subject，如果不存在，新创建一个subject div放在最上面
-                var mySubject = $("#_val_subject").val();
-                alert(mySubject);
-
-                var subjectObj = $("#_subject_main").children("#_subject_" + mySubject);
+                var subjectObj = $("#_subject_main").children("#_subject_" + subject);
                 if (subjectObj.html() != null) {  //注意这里要用html()
                     //alert("1");
 
                     //_subject_
                     var titleObj = $(subjectObj).find("#_subject_title");
-                    $(msgDiv).insertAfter(titleObj);
+                    $(msgViewHtml).insertAfter(titleObj);
                 }
                 else {
                     // 给框架加一条栏目
-                    model.subjects.push(mySubject);
-                    model.selSubject(mySubject); // 设当前选择的栏目
+                    model.subjects.push(subject);
+                    model.selSubject(subject); // 设当前选择的栏目
 
                     //alert("2");
-                    var subjectDiv = "<div id='_subject_"+mySubject+"'>"
-                        +"<div id='_subject_title'>"+mySubject+"</div>"
-                        +msgDiv
+                    var subjectDiv = "<div id='_subject_" + subject + "'>"
+                        + "<div id='_subject_title'><h3>" + subject + "(1)</h3></div>"  //<h3>" + subject + "("+count+")</h3>
+                        + msgViewHtml
                         + "</div>";
 
                     //alert(subjectDiv);
@@ -310,7 +300,121 @@
                 return;
             }
 
-            $(divId).html(title);
+
+            // 拼出内部的html，直接替换原来内容
+            var msgViewHtml = getMsgViewHtml(msgItem, false);
+            $(divId).html(msgViewHtml);
+        }
+        
+        // 保存
+        function save(msgId)
+        {
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
+                return;
+            }
+
+            // subject
+            var subject = $("#_val_subject").val(); //
+            if (subject == "")
+            {
+                alert("请先选择栏目");
+                return;
+            }
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+
+            var action = "";
+            if (msgId == "new") {
+                action = "POST";
+            }
+            else {
+                action = "PUT";
+            }
+
+
+            var title = $("#_val_title").val();
+                if (title == "") {
+                    alert("请输入标题。");
+                    return;
+                }
+                var remark = $("#_val_remark").val();
+
+                var content = $("#_val_content").val();
+                if (content == "") {
+                    alert("请输入内容。");
+                    return;
+                }
+                //alert(content);
+
+                var libId = $("#selLib").val();// $("#libId").text();
+                if (libId == "") {
+                    alert("异常情况：libId为空。");
+                    return;
+                }
+
+                var userName = model.userName(); 
+                if (userName == "") {
+                    alert("异常情况：userName为空。");
+                    return;
+                }
+
+
+                var group = "gn:_lib_homePage";
+
+                //显示等待图层
+                var index = loadLayer();
+
+                var id = "";
+                if (msgId != "new")
+                    id = msgId;
+
+                var url = "/api/LibMessage"
+                    + "?group=" + group
+                    + "&libId=" + libId;
+                sendAjaxRequest(url, action,
+                    function (result) {
+
+                        // 关闭等待层
+                        layer.close(index);
+
+                        if (result.errorCode == -1) {
+                            alert("操作失败：" + result.errorInfo);
+                            return;
+                        }
+
+                        alert("操作成功");
+
+                        if (result.items == null || result.items.length == 0)
+                        {
+                            alert("未返回保存后的消息对象");
+                        }
+
+                        var item = result.items[0];
+
+                        alert("回来的消息标题:"+item.title);
+                        viewMsg(msgId,item);
+
+                    },
+                    function (xhq, textStatus, errorThrown) {
+                        alert(errorThrown);
+                        // 关闭等待层
+                        layer.close(index);
+                    },
+                    {
+                        id: id,
+                        title: title,
+                        content: content,
+                        creator: userName,
+                        subject: subject,
+                        remark: remark
+                    }
+                );
+            
+
+            
+
+
 
         }
 
@@ -364,23 +468,6 @@
 </div>
 
 <div class="mui-content-padded"  id="_subject_main">
-    <div id="_subject_栏目1">
-        <div id="_subject_title">栏目1</div>
-        <div id="_edit_msgId">
-            <div class='mui-card'>
-                test2
-            </div>
-        </div>
-    </div>
-
-    <div id="_subject_栏目2">
-        <div id="_subject_title">栏目2</div>
-        <div id="_edit_msgId">
-            <div class='mui-card'>
-                test
-            </div>
-        </div>
-    </div>
 
 </div>
 

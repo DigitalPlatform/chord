@@ -104,10 +104,14 @@ function fillPending() {
         var libId = o.children("span").text();
 
         // 调web api
-        var url = "/api/LibHomePage?weixinId=" //+ weixinId
+        var url = "/api/LibMessage?weixinId=" //+ weixinId
+                    +"&group=gn:_lib_homePage"
                     + "&libId=" + libId
-                    + "&subject=" + encodeURIComponent(myvalue);
-        //alert(url);
+                    + "&msgId="
+                    + "&subject=" + encodeURIComponent(myvalue)
+        + "&style=browse";
+
+        //alert(myvalue);
         // 调api
         sendAjaxRequest(url, "GET", function (result) {
 
@@ -115,6 +119,7 @@ function fillPending() {
                 alert(result.errorInfo);
                 return;
             }
+
 
             /*
     public class MessageItem
@@ -136,11 +141,10 @@ function fillPending() {
 
             //换成实际的值，
             var msgHtml = "";
-            if (result.list != null) {
-                for (var i = 0; i < result.list.length; i++) {
-                    var msgItem = result.list[i];
-                    //alert(msgItem);
-                    msgHtml += getMsgHtml(msgItem);
+            if (result.items != null) {
+                for (var i = 0; i < result.items.length; i++) {
+                    var msgItem = result.items[i];
+                    msgHtml += getMsgViewHtml(msgItem,true);
                 }
             }
 
@@ -173,19 +177,25 @@ function fillPending() {
     return;
 }
 
-function getMsgHtml(msgItem) {
+function getMsgViewHtml(msgItem, bContainEditDiv) {
 
-    var html =
-        "<div class='mui-card' style='margin-top:10px' id='_edit_" + msgItem.id + "'>"
-            + "<div class='mui-content-padded'>"
-                + "<div class='msg-title'>" + msgItem.title + "</div>"
-                + "<p style='color:gray;font-size:12px'>"
-                + "   <span>"+msgItem.publishTime+"</span>-"
-                + "    <span>"+msgItem.creator+"</span>"
-                + "</p>"
-                + "<div>" + msgItem.contentHtml + "</div>"
-            + "</div>"
-        + "</div>";
+    var html = "";
+
+    if (bContainEditDiv == true)
+        html += "<div class='mui-card' style='margin-top:10px' id='_edit_" + msgItem.id + "'>";
+
+
+    html += "<div class='mui-content-padded'>"
+        + "<div class='msg-title'>" + msgItem.title + "</div>"
+        + "<p style='color:gray;font-size:12px'>"
+        + "   <span>" + msgItem.publishTime + "</span>-"
+        + "    <span>" + msgItem.creator + "</span>"
+        + "</p>"
+        + "<div>" + msgItem.contentHtml + "</div>"
+    + "</div>"
+
+    if (bContainEditDiv == true)
+        html += "</div>";
 
     return html;
 }

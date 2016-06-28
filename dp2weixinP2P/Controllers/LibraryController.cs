@@ -215,6 +215,8 @@ namespace dp2weixinWeb.Controllers
             string subject =model._subject;
             string returnUrl1 = model._returnUrl;
 
+            MessageItem returnItem = null;
+
             MessageItem item = new MessageItem();
             item.id = model.id;
             item.title = model.title;
@@ -227,7 +229,9 @@ namespace dp2weixinWeb.Controllers
                 int nRet =dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_GroupName_Book,
                     libId,
                     item,
-                    "create",out strError);
+                    "create",
+                    out returnItem,
+                    out strError);
                 if (nRet == -1)
                     return Content(strError);
             }
@@ -236,7 +240,9 @@ namespace dp2weixinWeb.Controllers
                 int nRet = dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_GroupName_Book,
                     libId,
                     item,
-                    "change",out strError);
+                    "change",
+                    out returnItem,
+                    out strError);
                 if (nRet == -1)
                     return Content(strError);
             }

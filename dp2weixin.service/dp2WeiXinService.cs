@@ -3962,82 +3962,89 @@ namespace dp2weixin.service
             
             foreach (MessageRecord record in records)
             {
-                MessageItem item = new MessageItem();
-                item.id = record.id;
-                item.publishTime = DateTimeUtil.DateTimeToString( record.publishTime);
-
-                string title = "";
-                string content = "";
-                string format = "text"; //默认是text样式
-                string creator = "";
-                string remark = "";
-
-                string xml = record.data;
-                XmlDocument dom = new XmlDocument();
-                try
-                {
-                    dom.LoadXml(xml);
-                    XmlNode root = dom.DocumentElement;
-                    XmlNode nodeTitle = root.SelectSingleNode("title");
-                    if (nodeTitle != null)
-                        title = nodeTitle.InnerText;
-
-                    XmlNode nodeContent = root.SelectSingleNode("content");
-                    if (nodeTitle != null)
-                        content = nodeContent.InnerText;
-
-                    XmlNode nodeRemark = root.SelectSingleNode("remark");
-                    if (nodeRemark != null)
-                        remark = nodeRemark.InnerText;
-
-                    format = DomUtil.GetAttr(nodeContent, "format");
-                    if (format == "")
-                        format = "text";
-
-                    XmlNode nodeCreator = root.SelectSingleNode("creator");
-                    if (nodeCreator != null)
-                        creator = DomUtil.GetNodeText(nodeCreator);
-                }
-                catch
-                {
-                    title = "不符合格式的消息";
-                    content = "不符合格式的消息-" + xml;                
-                }
-                
-                item.title = title;
-                item.contentFormat = format;
-                item.creator = creator;
-                item.content = "";
-                item.remark = remark;
-
-                if (style == "original")
-                {
-                    item.content = content;
-                }
-                else if (style == "browse")
-                {
-                    item.content = "";
-
-                    string contentHtml = "";
-                    if (group == C_GroupName_Bb)
-                    {
-                        contentHtml = GetBbHtml(format, content);
-                    }
-                    else
-                    {
-                        contentHtml = GetBookHtml(content);
-
-                    }
-                    item.contentHtml = contentHtml;
-                }
-
+                MessageItem item = ConvertMsgRecord(group, record, style);
                 list.Add(item);
             }
 
             return nRet;
         }
 
-        public string GetBbHtml(string format,string content)
+        public MessageItem ConvertMsgRecord(string group,
+            MessageRecord record,
+            string style)
+        {
+            MessageItem item = new MessageItem();
+            item.id = record.id;
+            item.publishTime = DateTimeUtil.DateTimeToString(record.publishTime);
+
+            string title = "";
+            string content = "";
+            string format = "text"; //默认是text样式
+            string creator = "";
+            string remark = "";
+
+            string xml = record.data;
+            XmlDocument dom = new XmlDocument();
+            try
+            {
+                dom.LoadXml(xml);
+                XmlNode root = dom.DocumentElement;
+                XmlNode nodeTitle = root.SelectSingleNode("title");
+                if (nodeTitle != null)
+                    title = nodeTitle.InnerText;
+
+                XmlNode nodeContent = root.SelectSingleNode("content");
+                if (nodeTitle != null)
+                    content = nodeContent.InnerText;
+
+                XmlNode nodeRemark = root.SelectSingleNode("remark");
+                if (nodeRemark != null)
+                    remark = nodeRemark.InnerText;
+
+                format = DomUtil.GetAttr(nodeContent, "format");
+                if (format == "")
+                    format = "text";
+
+                XmlNode nodeCreator = root.SelectSingleNode("creator");
+                if (nodeCreator != null)
+                    creator = DomUtil.GetNodeText(nodeCreator);
+            }
+            catch
+            {
+                title = "不符合格式的消息";
+                content = "不符合格式的消息-" + xml;
+            }
+
+            item.title = title;
+            item.contentFormat = format;
+            item.creator = creator;
+            item.content = "";
+            item.remark = remark;
+
+            if (style == "original")
+            {
+                item.content = content;
+            }
+            else if (style == "browse")
+            {
+                item.content = "";
+
+                string contentHtml = "";
+                if (group == C_GroupName_Bb || group== C_GroupName_HomePage)
+                {
+                    contentHtml = GetMsgHtml(format, content);
+                }
+                else if (group==C_GroupName_Book)
+                {
+                    contentHtml = GetBookHtml(content);
+
+                }
+                item.contentHtml = contentHtml;
+            }
+            return item;
+        }
+
+        public string GetMsgHtml(string format,string content)
         {
             string contentHtml = "";
             if (format == "markdown")
@@ -4149,16 +4156,18 @@ namespace dp2weixin.service
 
 
         public MessageResult CoverMessage(string group,
-    string libId,
-    MessageItem item,
-    string style)
+            string libId,
+            MessageItem item,
+            string style)
         {
             MessageResult result = new MessageResult();
             string strError = "";
+            MessageItem returnItem = null;
             int nRet = this.CoverMessage(group,
                 libId,
                 item,
                 style,
+                out returnItem,
                 out strError);
             if (nRet == -1)
             {
@@ -4167,6 +4176,9 @@ namespace dp2weixin.service
                 return result;
             }
 
+            List<MessageItem> list = new List<MessageItem>();
+            list.Add(returnItem);
+            result.items = list;
             return result;
         }
 
@@ -4181,12 +4193,16 @@ namespace dp2weixin.service
             string libId, 
             MessageItem item, 
             string style,
+            out MessageItem returnItem,
             out string strError)
         {
             strError = "";
 
+            returnItem = null;
+
             if (group != dp2WeiXinService.C_GroupName_Bb
-                && group != dp2WeiXinService.C_GroupName_Book)
+                && group != dp2WeiXinService.C_GroupName_Book
+                && group !=dp2WeiXinService.C_GroupName_HomePage)
             {
                 strError = "不支持的群" + group;
                 goto ERROR1;
@@ -4204,6 +4220,8 @@ namespace dp2weixin.service
                 needRight = C_Right_SetBb;
             else if (group == C_GroupName_Book)
                 needRight = C_Right_SetBook;
+            else if (group == C_GroupName_HomePage)
+                needRight = C_Right_SetHomePage;
             LibItem libItem = LibDatabase.Current.GetLibById(libId);
             if (libItem == null)
             {
@@ -4270,6 +4288,10 @@ namespace dp2weixin.service
                     strError = result.ErrorInfo;
                     goto ERROR1;
                 }
+
+                MessageRecord returnRecord = result.Results[0];
+                returnRecord.data = strText;
+                returnItem = this.ConvertMsgRecord(group,returnRecord,"browse");
 
                 return 0;
             }
