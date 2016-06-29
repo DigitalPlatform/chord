@@ -351,6 +351,9 @@
                 $(divId).css('display', 'block');
                 var html = getMsgEditHtml(null);
                 $(divId).html(html);
+
+                //由于一进来没有显示编辑界面，所以这里要重新设一下
+                setShowTopButton();
                 return;
             }
 
@@ -401,6 +404,9 @@
                     var item = result.items[0];
                     var html = getMsgEditHtml(item);
                     $(divId).html(html);
+
+                    //由于一进来没有显示编辑界面，所以这里要重新设一下
+                    setShowTopButton();
                 }
 
             }, function (xhq, textStatus, errorThrown) {
@@ -425,6 +431,7 @@
             var formatTextStr = " selected ";// 默认文本格式选中
             var formatMarkdownStr = "";
 
+            var saveBtnName = "新增";
             var disabledStr = "";// "disabled"
             var subject = model.selSubject();
             var msgId = "new"; //默认新建的情况
@@ -847,6 +854,30 @@
             
         }
 
+
+        function setShowTopButton() {
+            //
+            if (browser.versions.iPhone == true) {
+                $("input").focus(function () {
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("input").blur(function () {
+                    setShowValue(true);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("textarea").focus(function () {
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("textarea").blur(function () {
+                    setShowValue(true);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+            }
+
+        }
+
     </script>
 }
 @section header {
@@ -869,14 +900,16 @@
         <div>目前没有栏目。</div>
     </center>
 </div>
-<div id="divNew" class="mui-content-padded" style="display:none">
+<div id="divNew" style="display:none">
     <div id='_edit_new' class="mui-card message" style="display:none"></div>
-    <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
-        新发布信息
-    </button>
+    <div class="mui-content-padded">
+        <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
+            新发布信息
+        </button>
+    </div>
 </div>
 
-<div class="mui-content-padded"  id="_subject_main">
+<div  id="_subject_main">
 
 </div>
 

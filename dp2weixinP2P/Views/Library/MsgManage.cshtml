@@ -60,12 +60,22 @@
             var index = loadLayer();
             var msgId = "";
             var style = "browse";
+            /*
+            public MessageResult GetMessage(string weixinId, 
+                string group,
+                string libId, 
+                string msgId,
+                string subject,
+                string style)
+            */
             // 调web api
             var url = "/api/LibMessage?weixinId=" + weixinId
                         + "&group=" + group
                         + "&libId=" + libId
                         + "&msgId=" + msgId
+                        +"&subject="
                         + "&style=" + style;
+            //alert(url);
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
@@ -368,12 +378,21 @@
             var index = loadLayer();
             var msgId = item.id;
             var style = "original";
+            /*
+        public MessageResult GetMessage(string weixinId, 
+            string group,
+            string libId, 
+            string msgId,
+            string subject,
+            string style)
+            */
             // 调web api
             var url = "/api/LibMessage"
                 + "?weixinId=" + weixinId
                         + "&group=" + group
                         + "&libId=" + libId
                         + "&msgId=" + msgId
+                        +"&subject="
                         + "&style=" + style;
             sendAjaxRequest(url, "GET", function (result) {
 
