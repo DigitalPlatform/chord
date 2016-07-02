@@ -644,12 +644,13 @@
                 action = "PUT";
             }
 
-
+            
             var title = $("#_val_title").val();
-                if (title == "") {
-                    alert("请输入标题。");
-                    return;
-                }
+            // 对于图书馆主页，标题允许为空，因为已经有了栏目标题
+                //if (title == "") {
+                //    alert("请输入标题。");
+                //    return;
+                //}
                 var remark = $("#_val_remark").val();
 
                 var content = $("#_val_content").val();

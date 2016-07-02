@@ -182,13 +182,14 @@ function fillPending() {
 function getMsgViewHtml(msgItem, bContainEditDiv) {
 
     var html = "";
+    //alert("aa");
 
     if (bContainEditDiv == true)
         html += "<div class='mui-card message' id='_edit_" + msgItem.id + "' onclick=\"clickMsgDiv('" + msgItem.id + "')\">";
 
     html += "<table class='view'>"
                     + "<tr>"
-                        + "<td class='title'>" + msgItem.title + "</td>"
+                        + "<td class='title' >" + msgItem.title + "</td>"
                         + "<td class='btn'>"
                             + "<div id='btnEdit' style='display: none;'>"
                                 + "<button class='mui-btn mui-btn-default' onclick=\"gotoEdit('" + msgItem.id + "')\">编辑</button>&nbsp;"
@@ -196,11 +197,11 @@ function getMsgViewHtml(msgItem, bContainEditDiv) {
                             + "</div>"
                         + "</td>"
                     + "</tr>"
-                    + "<tr>"
-                        + "<td colspan='2' class='time'>"
-                                + "<span>" + msgItem.publishTime + "</span>-<span>" + msgItem.creator + "</span>"
-                        + "</td>"
-                    + "</tr>"
+                    //+ "<tr>"
+                    //    + "<td colspan='2' class='time'>"
+                    //            + "<span>" + msgItem.publishTime + "</span>-<span>" + msgItem.creator + "</span>"
+                    //    + "</td>"
+                    //+ "</tr>"
                     + "<tr>"
                         + "<td colspan='2' class='content'>"
                         + msgItem.contentHtml

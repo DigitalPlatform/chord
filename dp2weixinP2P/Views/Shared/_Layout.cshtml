@@ -23,7 +23,7 @@
 <body style="padding-bottom:50px;font-family: 'Microsoft YaHei',微软雅黑!important">
     <header class="mui-bar mui-bar-nav" id="myheader">
         @RenderSection("header", required: false)
-        <a class=" mui-icon mui-pull-right"  href='javascript:void(0)' onclick='gotoSetting()'><span style="font-size:10pt" id="_libName">@ViewBag.LibName</span></a>
+        <a class=" mui-icon mui-pull-right"  href='javascript:void(0)' onclick='gotoSetting()' style="color:#cccccc"><span style="font-size:10pt" id="_libName">@ViewBag.LibName</span></a>
         <span id="_libId" style="display:none">@ViewBag.LibId</span>
     </header>
 
@@ -252,10 +252,11 @@
 
         function gotoSetting()
         {
-            var thisUrl = window.location.pathname;
+            var thisUrl = window.location.pathname; //
             //alert("[" + thisUrl + "]");
             var url = "/Patron/Setting?returnUrl=" + encodeURIComponent(thisUrl);
             gotoUrl(url);
+
         }
 
     </script>

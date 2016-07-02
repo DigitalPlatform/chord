@@ -48,12 +48,16 @@
                     var returnUrl = $("#returnUrl").text();
                     if (returnUrl != null && returnUrl != "") {
 
-                        if (returnUrl == "/Biblio/Index" && oldName == libName) {
+                        if (returnUrl.indexOf("/Biblio/Index") != -1 && oldName == libName) {
                             //alert("1");
                             window.history.go(-1);
                         }
-                        else
-                            gotoUrl(returnUrl);
+                        else {
+                            //gotoUrl(returnUrl);
+
+                            var myUrl = window.location.protocol + '//' + window.location.host + returnUrl;
+                            window.location = myUrl;
+                        }
                     }
 
                     //
