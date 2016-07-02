@@ -72,6 +72,26 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+        [HttpPost]
+        public ApiResult Setting(string weixinId,string libId)
+        {
+            ApiResult result = new ApiResult();
+
+            string setting_lib = libId;
+
+            try
+            {
+                UserSettingDb.Current.SetLib(weixinId, libId);
+            }
+            catch (Exception ex)
+            {
+                result.errorCode = -1;
+                result.errorInfo = ex.Message;
+                return result;
+            }
+
+            return result;        
+        }
 
 
         // POST api/<controller>

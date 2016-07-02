@@ -243,7 +243,7 @@ function alertServerError(info) {
 // 得到虚拟目录路径
 function getRootPath() {
     var pathName = window.location.pathname.substring(1);
-    //alert("pathname["+ pathName+"]");
+   // alert("pathname["+ pathName+"]");
     var webName = pathName == '' ? '' : pathName.substring(0, pathName.indexOf('/'));
     //alert("webName[" + webName + "]");
     var rootPath = window.location.protocol + '//' + window.location.host;//+ '/' + webName;
@@ -251,6 +251,8 @@ function getRootPath() {
     //alert("rootPath[" + rootPath + "]");
     return rootPath;
 }
+
+
 
 // ajax请求
 function sendAjaxRequest(url,

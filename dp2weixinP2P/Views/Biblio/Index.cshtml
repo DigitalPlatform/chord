@@ -23,7 +23,7 @@
                 return;
 
             // 图书馆
-            var libId = $("#selLib").val();
+            var libId = getLibId();//$("#selLib").val();
             if (libId == "" || libId == null) {
                 return;
             }
@@ -92,7 +92,7 @@
             model.reservations.removeAll();                     
 
             // 图书馆
-            var libId = $("#selLib").val();
+            var libId = getLibId();//$("#selLib").val();
             if (libId == "" || libId == null) {
 
                 //alert("getReservations1-1");
@@ -269,7 +269,7 @@
             var word = "";
 
             // 图书馆
-            var libId = $("#selLib").val();
+            var libId = getLibId();//$("#selLib").val();
             if (libId == "" || libId == null) {
                 alert("您尚未选择图书馆。");
                 return;
@@ -420,7 +420,7 @@
                 }
             }
 
-            var libId = $("#selLib").val();
+            var libId = getLibId();//$("#selLib").val();
             if (libId == "")
             {
                 alert("尚未选择图书馆");
@@ -892,11 +892,12 @@
 
     <div id="divForm">
         <div class="mui-input-group">
+            <!--
             <div class="mui-input-row ">
                 <label style="color:#cccccc;">图书馆</label>
                 @Html.Raw(ViewBag.LibHtml)
             </div>
-
+-->
             <div class="mui-input-row ">
                 <label style="color:#cccccc">检索途径</label>
                 <select id="selFrom" name="selFrom">

@@ -40,7 +40,8 @@ namespace dp2weixinWeb.Controllers
                 } 
             }
 
-            ViewBag.LibHtml = this.GetLibSelectHtml(libId);
+            // 去掉图书馆选择 2016/7/3
+            //ViewBag.LibHtml = this.GetLibSelectHtml(libId);
 
             return View();
         }

@@ -33,7 +33,7 @@ namespace dp2weixinWeb.Controllers
 
 
             // 图书馆html
-            ViewBag.LibHtml = this.GetLibHtml("");
+            //ViewBag.LibHtml = this.GetLibHtml("");
 
             ViewBag.group = group;
             if (group == dp2WeiXinService.C_GroupName_Bb)
@@ -65,7 +65,7 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             // 图书馆html
-            ViewBag.LibHtml = this.GetLibHtml("");
+            //ViewBag.LibHtml = this.GetLibHtml("");
 
             return View();
         }
@@ -81,7 +81,7 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             // 图书馆html
-             ViewBag.LibHtml = this.GetLibHtml(libId);
+             //ViewBag.LibHtml = this.GetLibHtml(libId);
 
             return View();
         }

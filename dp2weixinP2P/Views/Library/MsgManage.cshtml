@@ -28,7 +28,7 @@
         //用于获取图书馆
         function getMessage() {
 
-            var libId = $("#selLib").val();
+            var libId = getLibId();//$("#selLib").val();
             var weixinId = $("#weixinId").text();
 
 
@@ -112,10 +112,10 @@
             });
         }
 
-        // 改变图书馆
-        function libChanged() {
-            getMessage();
-        }
+        //// 改变图书馆
+        //function libChanged() {
+        //    getMessage();
+        //}
 
         // 删除一项
         function remove(item) {
@@ -125,8 +125,7 @@
                 return false;
             }
 
-            //var libId = $("#libId").text();
-            var libId = $("#selLib").val();
+            var libId = getLibId();// $("#selLib").val();
             if (libId == "") {
                 alert("异常情况：libId为空。");
                 return;
@@ -215,7 +214,7 @@
             }
             //alert(content);
 
-            var libId = $("#selLib").val();// $("#libId").text();
+            var libId = getLibId();//''$("#selLib").val();
             if (libId == "") {
                 alert("异常情况：libId为空。");
                 return;
@@ -358,7 +357,7 @@
         }
 
         function handleEditClick(item) {
-            var libId = $("#selLib").val();
+            var libId = getLibId();//$("#selLib").val();
             var weixinId = $("#weixinId").text();
             if (libId == "") {
                 return;
@@ -453,9 +452,9 @@
             // 设顶部菜单不固定
             $("#myheader").css("position", "absolute");
 
-            $("#selLib").change(function () {
-                libChanged();
-            });
+            //$("#selLib").change(function () {
+            //    libChanged();
+            //});
         })
 
         function getContentFormat() {
@@ -494,6 +493,8 @@
 @section header {
     <h1 class="mui-title">@ViewBag.groupTitle</h1>
 }
+
+<!--
 <div>
     <div class="mui-input-group">
         <div class="mui-input-row">
@@ -502,7 +503,7 @@
         </div>
     </div>
 </div>
-
+-->
 <div id="divEdit" style="padding-bottom:20px;padding-top:20px;display:none">
     <div class="mui-card">
         <div class="mui-input-row" style="border-bottom:0px">

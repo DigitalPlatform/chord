@@ -161,6 +161,7 @@ namespace dp2weixin.service
             // 打开图书馆账号库与用户库
             WxUserDatabase.Current.Open(connectionString, instancePrefix);
             LibDatabase.Current.Open(connectionString, instancePrefix);
+            UserSettingDb.Current.Open(connectionString, instancePrefix);
 
             // 初始化接口类
             string strError = "";

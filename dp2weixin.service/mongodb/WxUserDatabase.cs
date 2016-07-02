@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace dp2weixin.service
 {
     /// <summary>
-    /// 用户数据库
+    /// 用户绑定数据库
     /// </summary>
     public sealed class WxUserDatabase
     {
@@ -297,6 +297,7 @@ namespace dp2weixin.service
                 .Set("type", item.type)
                 .Set("userName", item.userName)
                 .Set("isActiveWorker", item.isActiveWorker)
+
                 ;
 
             UpdateResult ret = collection.UpdateOne(filter, update);
@@ -443,8 +444,7 @@ namespace dp2weixin.service
 
 
 
-        //最后使用的图书推荐的栏
-        public string bookSubject { get; set; }
+
     }
 
 

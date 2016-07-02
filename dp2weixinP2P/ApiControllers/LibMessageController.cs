@@ -159,19 +159,20 @@ namespace dp2weixinWeb.ApiControllers
             {
                 LibItem lib = LibDatabase.Current.GetLibById(libId);
                 string dir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + lib.capoUserName+"/homePage";
-
-                string[] files = Directory.GetFiles(dir, "*.html");
-
-                foreach(string file in files)
+                if (Directory.Exists(dir) == true)
                 {
-                    string fileName = Path.GetFileNameWithoutExtension(file);
-                    bool bExist = this.checkContaint(list, fileName);
-                    if (bExist == false)
+                    string[] files = Directory.GetFiles(dir, "*.html");
+                    foreach (string file in files)
                     {
-                        SubjectItem subject = new SubjectItem();
-                        subject.name = fileName;
-                        subject.count = 0;
-                        list.Add(subject);
+                        string fileName = Path.GetFileNameWithoutExtension(file);
+                        bool bExist = this.checkContaint(list, fileName);
+                        if (bExist == false)
+                        {
+                            SubjectItem subject = new SubjectItem();
+                            subject.name = fileName;
+                            subject.count = 0;
+                            list.Add(subject);
+                        }
                     }
                 }
             }

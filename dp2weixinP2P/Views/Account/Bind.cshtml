@@ -34,7 +34,7 @@
 
             // 图书馆
             //var lib = model.selectedLib();
-            var libId = $("#selLib").val();
+            var libId = getLibId();//$("#selLib").val();
             if (libId == "" || libId == null) {
                 alert("您尚未选择图书馆。");
                 return;
@@ -148,9 +148,7 @@
                 name = model.word();
 
             var lib = "";
-            var lib = $("#selLib").val();
-            //if (model.selectedLib() != null && model.selectedLib() != "")
-            //    lib = model.selectedLib();
+            var lib = getLibId();//$("#selLib").val();
 
             var myUrl = getRootPath()
                 + '/Account/ResetPassword?libId=' + encodeURIComponent(lib) + "&readerName=" + encodeURIComponent(name);
@@ -174,10 +172,12 @@
 <span id="returnUrl" style="display:none">@ViewBag.ReturnUrl</span>
 
     <div class="mui-input-group">
+        <!--
         <div class="mui-input-row ">
             <label style="color:#cccccc">图书馆</label>
             @Html.Raw(ViewBag.LibHtml)
         </div>
+            -->
         <div class="mui-input-row ">
             <label style="color:#cccccc">绑定方式</label>
             <select id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.prefix">

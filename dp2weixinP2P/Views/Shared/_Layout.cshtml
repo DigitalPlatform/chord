@@ -23,6 +23,8 @@
 <body style="padding-bottom:50px;font-family: 'Microsoft YaHei',微软雅黑!important">
     <header class="mui-bar mui-bar-nav" id="myheader">
         @RenderSection("header", required: false)
+        <a class=" mui-icon mui-pull-right"  href='javascript:void(0)' onclick='gotoSetting()'><span style="font-size:10pt" id="_libName">@ViewBag.LibName</span></a>
+        <span id="_libId" style="display:none">@ViewBag.LibId</span>
     </header>
 
     <div class="btn3 clearfix" id="divBottonTab">
@@ -53,6 +55,7 @@
                     }
                     <li><a href="~/Account/ResetPassword">找回密码</a></li>
                     <li><a href="~/Patron/QRcode">二维码</a></li>
+                    <li><a href="~/Patron/Setting">设置</a></li>
                 </ul>
                 <div class="tiggle"></div>
                 <div class="innertiggle"></div>
@@ -236,6 +239,24 @@
             var myUrl = getRootPath() + url;
             window.location = myUrl;
         };
+
+        function getLibId()
+        {
+            return $("#_libId").text();
+        }
+
+        //function getCurPath() {
+        //    var path = 
+        //    alert("[" + path + "]");
+        //}
+
+        function gotoSetting()
+        {
+            var thisUrl = window.location.pathname;
+            //alert("[" + thisUrl + "]");
+            var url = "/Patron/Setting?returnUrl=" + encodeURIComponent(thisUrl);
+            gotoUrl(url);
+        }
 
     </script>
 </body>

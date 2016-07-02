@@ -107,7 +107,7 @@
 
         //用于获取栏目
         function getSubject() {
-            var libId = $("#selLib").val();
+            var libId = getLibId();//$("#selLib").val();
             var weixinId = $("#weixinId").text();
 
             // 先删除可观察数组中的已有数据
@@ -234,10 +234,10 @@
             }
         }
 
-        // 改变图书馆
-        function libChanged() {
-            getSubject();
-        }
+        //// 改变图书馆
+        //function libChanged() {
+        //    getSubject();
+        //}
 
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
@@ -251,9 +251,9 @@
             // 设顶部菜单不固定
             $("#myheader").css("position", "absolute");
 
-            $("#selLib").change(function () {
-                libChanged();
-            });
+            //$("#selLib").change(function () {
+            //    libChanged();
+            //});
         })
 
         // 在新增消息，点击取消
@@ -278,7 +278,7 @@
             }
 
             // 根据id从服务器取记录，并只读态
-            var libId = $("#selLib").val();
+            var libId = getLibId(); //$("#selLib").val();
             var weixinId = $("#weixinId").text();
             if (libId == "") {
                 alert("请选择图书馆");
@@ -359,7 +359,7 @@
 
 
             //根据id从服务器上取记录
-            var libId = $("#selLib").val();
+            var libId = getLibId(); //$("#selLib").val();
             var weixinId = $("#weixinId").text();
             if (libId == "") {
                 alert("请选择图书馆");
@@ -657,12 +657,11 @@
                     alert("请输入内容。");
                     return;
                 }
-            //alert(content);
 
                 var format = $("#_selFormat").val();
                 //alert(format);
 
-                var libId = $("#selLib").val();
+                var libId = getLibId(); //$("#selLib").val();
                 if (libId == "") {
                     alert("异常情况：libId为空。");
                     return;
@@ -755,7 +754,7 @@
 
         //用于获取栏目
         function getTemplate(subject) {
-            var libId = $("#selLib").val();
+            var libId = getLibId(); //$("#selLib").val();
             if (libId == "") {
                 return;
             }
@@ -799,7 +798,7 @@
                 return false;
             }
 
-            var libId = $("#selLib").val();
+            var libId = getLibId(); //$("#selLib").val();
             if (libId == "") {
                 alert("异常情况：libId为空。");
                 return;
@@ -885,6 +884,7 @@
 }
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 
+<!--
 <div>
     <div class="mui-input-group">
         <div class="mui-input-row">
@@ -893,6 +893,7 @@
         </div>
     </div>
 </div>
+-->
 
 <div class="mui-card" id="divNo" style="margin-top:10px;display:none">
     <center>

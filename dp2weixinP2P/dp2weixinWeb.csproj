@@ -251,6 +251,7 @@
     <Content Include="Views\Library\HomePage.cshtml" />
     <Content Include="Views\UI\Message.cshtml" />
     <Content Include="Views\UI\MsgEdit.cshtml" />
+    <Content Include="Views\Patron\Setting.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
