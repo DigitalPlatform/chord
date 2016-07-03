@@ -1,4 +1,72 @@
-﻿============
+﻿====BookMsg部分代码====
+        <div class="mui-content-padded">
+            <div class="msg-title" id="title-@item.id">@item.title</div>
+            <p style="color:gray;font-size:12px">
+                <span>@item.publishTime</span>-
+                <span>@item.creator</span>
+            </p>
+            <div>@Html.Raw(item.contentHtml)</div>
+            @if (String.IsNullOrEmpty(ViewBag.userName) == false)
+            {
+                <div style="text-align:right">
+                    <button class="mui-btn  mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>
+                    <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
+                </div>
+            }
+        </div>
+
+
+======好书推荐部分代码========
+
+    <div class='mui-input-group'>
+        <div class='mui-input-row' style='border-bottom:0px'>
+            <label class="leftLabel">栏目</label>
+            @Html.Raw(ViewBag.SubjectHtml)
+        </div>
+        <div class='mui-input-row' id='divNewSubject' style='display:none;border-bottom:0px'>
+            <label class="leftLabel">&nbsp;</label>
+            <input type="text" id='txtSubject' name="subject" style="border:1px solid #CCCCCC;border-bottom:0px" value="@Model._subject" />
+        </div>
+
+        <div class="mui-input-row" style="border-bottom:0px">
+            <label class="leftLabel">标题</label>
+            <input type="text" id="title" class="mui-input mui-input-clear" style="border:1px solid #CCCCCC" name="title" value="@Model.title">
+        </div>
+        <div class="mui-input-row" style="border-bottom:0px;height:100px">
+            <label class="leftLabel" style="width:20%;">注释</label>
+            <textarea rows="6" id="remark" style="border:1px solid #CCCCCC;border-top:0px;   padding:2px" name="remark">@Model.remark</textarea>
+        </div>
+        <div class="mui-input-row" style="border-bottom:0px;height:100px">
+            <label class="leftLabel">书目路径</label>
+            <textarea rows="6" id="content" style="border:1px solid #cccccc" name="content">@Model.content</textarea>
+        </div>
+        <div class="mui-input-row " style="border-bottom:0px;">
+            <label class="leftLabel">发布时间</label>
+            <input type="text" class="mui-input mui-input-clear" style="border:1px solid #cccccc;background-color:#dddddd" disabled="disabled" name="publishTime" value="@Model.publishTime">
+        </div>
+        <div class="mui-input-row " style="border-bottom:0px;">
+            <label class="leftLabel">发布人</label>
+            <input type="text" class="mui-input mui-input-clear" style="border:1px solid #cccccc;background-color:#dddddd" disabled="disabled" name="creator" value="@Model._userName">
+        </div>
+    </div>
+
+    <div class="mui-content-padded">
+        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="submitForm()">
+            @if (String.IsNullOrEmpty(Model.id) == true) //( .id == "" || Model.id==null)
+            {
+                <span>发布</span>
+            }
+            else
+            {
+                <span>更新</span>
+            }
+
+        </button>
+
+    </div>
+
+
+============
         #region 不再使用
 
         /*

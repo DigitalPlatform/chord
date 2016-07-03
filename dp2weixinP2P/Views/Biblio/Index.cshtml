@@ -142,7 +142,7 @@
                     //alert("getReservations5");
 
                     var myhtml = getReservationHtml(checkBarcode)
-                    alert("myhtml ["+myhtml+"]");
+                    //alert("myhtml ["+myhtml+"]");
 
                     $(obj)[0].innerHTML = myhtml;  // 不能直接设html
                     //$("#responsediv")[0].innerHTML = msg就可以获得这个Dom对象使用innerHTML。
@@ -702,22 +702,29 @@
                 for (var i = 0; i < result.itemList.length; i++) {
                     var record = result.itemList[i];
                     var myReserHtml = info;
-                    if (bCanReservation == true)
-                        myReserHtml = "<div>"+getReservationHtml(record.barcode) + "</div><div class='resultInfo'></div>";
+                    if (bCanReservation == true) {
+                        myReserHtml = "<div>" + getReservationHtml(record.barcode) + "</div>"
+                            + "<br/><div class='resultInfo'></div>";
+                    }
 
                     var strBorrowInfo = "在架";
                     // 检查是不是当前读者借的
                     if (record.borrower != null && record.borrower != "") {
                         if (curPatronBarcode != record.borrower) {
-                            strBorrowInfo = "借阅者:*** 借阅时间:" + record.borrowDate + " 借期:" + record.borrowPeriod;
+                            strBorrowInfo = "借阅者:***<br/>"
+                            +"借阅时间:" + record.borrowDate + "<br/>"
+                            +"借期:" + record.borrowPeriod;
                         }
                         else {
                             strBorrowInfo = "<div>"
-                                    + "<div class='info'>借阅者:" + curPatronName + " 借阅时间:" + record.borrowDate + " 借期:" + record.borrowPeriod + "</div>"
+                                    + "<div class='info'>借阅者:" + curPatronName + "<br/>"
+                                                              +"借阅时间:" + record.borrowDate + "<br/>"
+                                                              + "借期:" + record.borrowPeriod
+                                     + "</div>"
                                     + "<div class='btn'>"
                                     +   "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + record.barcode + "')\">续借</button>"
                                     + "</div>"
-                                +"</div>"
+                                +"</div><br/>"
                                 + "<div id='renewInfo-" + record.barcode + "'/>";
 
                             // 此时不能预约

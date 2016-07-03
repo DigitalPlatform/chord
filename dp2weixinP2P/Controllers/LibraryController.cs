@@ -333,7 +333,7 @@ namespace dp2weixinWeb.Controllers
                 onchange = " onchange='subjectChanged()' ";
             }
 
-            string subjectHtml = "<select id='selSubject' style='padding-left: 0px;width: 65%;'  "+onchange+" >" + opt + "</select>";
+            string subjectHtml = "<select id='selSubject'  "+onchange+" >" + opt + "</select>";
 
 
             return subjectHtml;

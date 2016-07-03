@@ -3963,7 +3963,7 @@ namespace dp2weixin.service
             
             foreach (MessageRecord record in records)
             {
-                MessageItem item = ConvertMsgRecord(group, record, style);
+                MessageItem item = ConvertMsgRecord(group, record, style,libId);
                 list.Add(item);
             }
 
@@ -3972,7 +3972,8 @@ namespace dp2weixin.service
 
         public MessageItem ConvertMsgRecord(string group,
             MessageRecord record,
-            string style)
+            string style,
+            string libId)
         {
            
             MessageItem item = new MessageItem();
@@ -4040,7 +4041,7 @@ namespace dp2weixin.service
                 }
                 else if (group==C_GroupName_Book)
                 {
-                    contentHtml = GetBookHtml(content);
+                    contentHtml = GetBookHtml(content,libId);
 
                 }
                 item.contentHtml = contentHtml;
@@ -4077,7 +4078,7 @@ namespace dp2weixin.service
         }
 
 
-        public string GetBookHtml(string content)
+        public string GetBookHtml(string content,string libId)
         {
             string contentHtml = "";
 
@@ -4086,11 +4087,17 @@ namespace dp2weixin.service
             string[] list = content.Split(new char[] { '\n' });
             foreach (string str in list)
             {
-                if (contentHtml != "")
-                    contentHtml += "<br/>";
+                //if (contentHtml != "")
+                //    contentHtml += "<br/>";
 
+                var word = "@bibliorecpath:" + str;
                 string detalUrl = "/Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(str);
-                contentHtml += "<a href='javascript:void(0)' onclick='gotoUrl(\"" + detalUrl + "\")'>" + HttpUtility.HtmlEncode(str) + "</a>";
+                contentHtml += "<div><a href='javascript:void(0)' onclick='gotoBiblioDetail(\"" + detalUrl + "\")'>" + HttpUtility.HtmlEncode(str) + "</a></div>";
+                contentHtml += "<div  class='pending' style='padding-bottom:10px'>"
+                                       + "<label>bs-" + word + "</label>"
+                                       + "<img src='../img/wait2.gif' />"
+                                       + "<span>" + libId + "</span>"
+                                   + "</div>";
 
             }
 
@@ -4295,7 +4302,7 @@ namespace dp2weixin.service
 
                 MessageRecord returnRecord = result.Results[0];
                 returnRecord.data = strText;
-                returnItem = this.ConvertMsgRecord(group,returnRecord,"browse");
+                returnItem = this.ConvertMsgRecord(group,returnRecord,"browse",libId);
 
                 return 0;
             }

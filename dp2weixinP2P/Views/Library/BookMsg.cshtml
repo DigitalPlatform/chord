@@ -3,15 +3,100 @@
 
 @section style {
     <style>
-        .leftLabel {
-            color: #999999;
+        /*================栏目div============*/
+        DIV.subject {
+            padding: 0px;
+            /* background-color: blue;*/
+            padding-bottom: 10px;
         }
 
-        .msg-title {
-            line-height: 1;
+            DIV.subject .firstline {
+                padding: 10px;
+            }
+
+                DIV.subject .firstline .title {
+                    font-size: 24px;
+                }
+
+                DIV.subject .firstline .count {
+                    font-size: 18px;
+                    color: #999999;
+                }
+
+        /*=======消息div===========*/
+        DIV.message {
             margin-top: 5px;
             margin-bottom: 5px;
-            font-size: 20px;
+            padding: 10px;
+            /*background-color: green;*/
+        }
+
+            /*消息div下的table*/
+            DIV.message TABLE {
+                width: 100%;
+                /*background-color: red;*/
+            }
+
+                /*=======消息查看态===========*/
+
+                /*消息标题*/
+                DIV.message TABLE.view .title {
+                    font-size: 18px;
+                }
+
+                /*标题右侧的按钮*/
+                DIV.message TABLE.view .btn {
+                    text-align: right;
+                    padding-right: 10px;
+                }
+
+                /*消息发布时间*/
+                DIV.message TABLE.view .time {
+                    color: gray;
+                    font-size: 12px;
+                }
+
+        /*消息内容*/
+        DIV.messageTABLE.view .content {
+        }
+
+
+
+
+        /*=============*/
+        /*消息编辑态标题*/
+        DIV.message INPUT, SELECT {
+            margin-bottom: 0px;
+        }
+
+        DIV.message TABLE.edit tr td {
+            padding: 5px;
+        }
+
+            DIV.message TABLE.edit tr td.label {
+                color: #999999;
+                width: 40px;
+            }
+
+            DIV.message TABLE.edit tr td span.label {
+                color: #999999;
+            }
+
+        DIV.message TABLE.edit select {
+            font-size: 17px;
+            height: 37px;
+            padding: 0px;
+            margin: 0px;
+        }
+
+        DIV.message TABLE.edit input, textarea {
+            padding: 5px;
+            margin: 0px;
+        }
+
+        /*======是否可编辑态样式=============*/
+        .msgEditable {
+            background-color: #CCFF99;
         }
     </style>
 }
@@ -62,12 +147,56 @@
                 alert("删除成功");
 
                 // 删除界面
-                var name = "#" + msgId;
+                var name = "#_edit_" + msgId;
                 $(name).remove();
 
             }, function (xhq, textStatus, errorThrown) {
                 alert(errorThrown);
             });
+        }
+
+        // 单击msg进行只读态与编辑态的切换
+        function clickMsgDiv(msgId) {
+
+            //alert(1);
+
+            if (bClickBiblioDetail == true)
+            {
+                bClickBiblioDetail = false;
+                return;
+            }
+
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
+                return;
+            }
+
+            var userName = $("#userName").text();
+            if (userName == "") {
+                return;
+            }
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+            var editBtn = $(divId).find("#btnEdit");
+
+            // 这时候已经不是在浏览界面，应该是编辑态了
+            var viewTable = $(divId).children(".view").html();
+            if (viewTable == null || viewTable == "") {
+                return;
+            }
+
+            var editStateClass = "msgEditable";
+            var editState = $(divId).hasClass(editStateClass);
+            if (editState == true) {
+                $(divId).removeClass(editStateClass);
+
+                $(editBtn).css("display", "none");
+            }
+            else {
+                $(divId).addClass(editStateClass);
+
+                $(editBtn).css("display", "block");
+            }
         }
 
         function gotoEdit(msgId)
@@ -82,6 +211,24 @@
                 +"&msgId="+msgId
                 +"&returnUrl=" + encodeURIComponent("/Library/BookMsg?libId="+libId+"&userName="+userName+"&subject="+subject ));
         }
+
+        // 当点击路径时，转到详细界面，该参数防止走到编辑态。
+        var bClickBiblioDetail = false;
+        function gotoBiblioDetail(url)
+        {
+            //alert("2");
+            bClickBiblioDetail = true;
+            gotoUrl(url);
+        }
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            //更新消息
+            window.setTimeout("fillPending()", 1);
+
+        })
 
     </script>
 }
@@ -104,24 +251,33 @@
 </div>
 }
 
-@foreach(dp2weixin.service.MessageItem item in Model)
-{ 
-    <div class="mui-card" style="margin-top:10px" id="@item.id">
-        <div class="mui-content-padded">
-            <div class="msg-title" id="title-@item.id">@item.title</div>
-            <p style="color:gray;font-size:12px">
-                <span>@item.publishTime</span>-
-                <span>@item.creator</span>
-            </p>
-            <div>@Html.Raw(item.contentHtml)</div>
-            @if(String.IsNullOrEmpty(ViewBag.userName)== false)
-            { 
-            <div style="text-align:right">
-                <button class="mui-btn  mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>
-                <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
-            </div>
-            }
-        </div>
+@foreach (dp2weixin.service.MessageItem item in Model)
+{
+    <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv('@item.id')">
+        <table class="view">
+            <tbody>
+                <tr>
+                    <td class="title" id="title-@item.id">@item.title</td>
+                    <td class="btn">
+@if (String.IsNullOrEmpty(ViewBag.userName) == false)
+{
+                        <div id="btnEdit" style="display: none;">
+                            <button class="mui-btn mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>&nbsp;
+                            <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
+                        </div>
+}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="time" colspan="2">
+                        <span>@item.publishTime</span>-<span>@item.creator</span>
+                    </td>
+                </tr>
+                <tr><td class="content" colspan="2">@Html.Raw(item.contentHtml)</td></tr>
+            </tbody>
+        </table>
+
+
     </div>
 }
 <br />
