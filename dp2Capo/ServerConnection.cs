@@ -668,7 +668,7 @@ namespace dp2Capo
 
         ERROR1:
             // 报错
-            ResponseSetInfo(
+            TryResponseSetInfo(
 param.TaskID,
 -1,
 results,
@@ -728,7 +728,7 @@ strError);
 
         ERROR1:
             // 报错
-            ResponseBindPatron(
+            TryResponseBindPatron(
 param.TaskID,
 -1,
 results,
@@ -750,7 +750,7 @@ strError);
 
         void writeDebug(string strText)
         {
-            this.Instance.WriteErrorLog("debug: " + strText);
+            // this.Instance.WriteErrorLog("debug: " + strText);
         }
 
         // TODO: 本函数最好放在一个工作线程内执行
@@ -873,7 +873,7 @@ strError);
                             || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
                         {
                             // 没有命中
-                            ResponseSearch(
+                            TryResponseSearch(
                                 new SearchResponse(
     searchParam.TaskID,
     0,
@@ -895,7 +895,7 @@ strError);
                     if (searchParam.Count == 0)
                     {
                         // 返回命中数
-                        ResponseSearch(
+                        TryResponseSearch(
                             new SearchResponse(
                             searchParam.TaskID,
                             lHitCount,
@@ -932,9 +932,8 @@ strErrorCode));
             return;
         ERROR1:
             // 报错
-            ResponseSearch(
-                                                new SearchResponse(
-
+            TryResponseSearch(
+                new SearchResponse(
 searchParam.TaskID,
 -1,
 0,
@@ -1067,7 +1066,7 @@ strErrorCode));
             return;
         ERROR1:
             // 报错
-            ResponseSearch(
+            TryResponseSearch(
 new SearchResponse(
 searchParam.TaskID,
 -1,
@@ -1102,7 +1101,7 @@ strErrorCode));
                         || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
                     {
                         // 没有命中
-                        ResponseSearch(
+                        TryResponseSearch(
                                                             new SearchResponse(
 searchParam.TaskID,
 0,
@@ -1164,7 +1163,7 @@ ref batch_size);
             return;
         ERROR1:
             // 报错
-            ResponseSearch(
+            TryResponseSearch(
                                                 new SearchResponse(
 searchParam.TaskID,
 -1,
@@ -1316,7 +1315,7 @@ strErrorCode));
                         || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
                     {
                         // 没有命中
-                        ResponseSearch(
+                        TryResponseSearch(
                                                             new SearchResponse(
 searchParam.TaskID,
 0,
@@ -1399,7 +1398,7 @@ strErrorCode));
             return;
         ERROR1:
             // 报错
-            ResponseSearch(
+            TryResponseSearch(
                                                 new SearchResponse(
 searchParam.TaskID,
 -1,
@@ -1463,7 +1462,7 @@ strErrorCode));
                         || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
                     {
                         // 没有命中
-                        ResponseSearch(
+                        TryResponseSearch(
                                                             new SearchResponse(
 searchParam.TaskID,
 0,
@@ -1525,7 +1524,7 @@ ref batch_size);
             return;
         ERROR1:
             // 报错
-            ResponseSearch(
+            TryResponseSearch(
                                                 new SearchResponse(
 
 searchParam.TaskID,
@@ -1592,7 +1591,7 @@ strErrorCode));
                         || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
                     {
                         // 没有命中
-                        ResponseSearch(
+                        TryResponseSearch(
                                                             new SearchResponse(
 
 searchParam.TaskID,
@@ -1681,7 +1680,7 @@ ref batch_size);
             return;
         ERROR1:
             // 报错
-            ResponseSearch(
+            TryResponseSearch(
                                                 new SearchResponse(
 searchParam.TaskID,
 -1,
@@ -1721,7 +1720,7 @@ strErrorCode));
                         || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
                     {
                         // 没有命中
-                        ResponseSearch(
+                        TryResponseSearch(
                             new SearchResponse(
 searchParam.TaskID,
 0,
@@ -1770,7 +1769,7 @@ ref batch_size);
             return;
         ERROR1:
             // 报错
-            ResponseSearch(
+            TryResponseSearch(
                 new SearchResponse(
 searchParam.TaskID,
 -1,
@@ -1815,7 +1814,7 @@ strErrorCode));
                         || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
                     {
                         // 没有命中
-                        ResponseSearch(
+                        TryResponseSearch(
                                                             new SearchResponse(
 searchParam.TaskID,
 0,
@@ -1883,7 +1882,7 @@ ref batch_size);
             return;
         ERROR1:
             // 报错
-            ResponseSearch(
+            TryResponseSearch(
                                                 new SearchResponse(
 searchParam.TaskID,
 -1,
@@ -1945,7 +1944,7 @@ strErrorCode));
                         || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
                     {
                         // 没有命中
-                        ResponseSearch(
+                        TryResponseSearch(
                                                             new SearchResponse(
 searchParam.TaskID,
 0,
@@ -2007,7 +2006,7 @@ ref batch_size);
             return;
         ERROR1:
             // 报错
-            ResponseSearch(
+            TryResponseSearch(
                                                 new SearchResponse(
 searchParam.TaskID,
 -1,

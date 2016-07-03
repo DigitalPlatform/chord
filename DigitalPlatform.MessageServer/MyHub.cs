@@ -379,7 +379,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
-                                    result.ErrorInfo = "当前用户没有加入群组 '" + string.Join(",", item.groups) + "'，因此无法在其中创建消息";
+                                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 没有加入群组 '" + string.Join(",", item.groups) + "'，因此无法在其中创建消息";
                                     return result;
                                 }
                             }
@@ -393,6 +393,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         ServerInfo.MessageDatabase.Add(item).Wait();
                         saved_items.Add(item);
 
+#if NO
                         {
                             Console.WriteLine("*** 开始验证刚写入的消息");
                             Console.WriteLine("请求的消息:\r\n" + item.Dump());
@@ -430,6 +431,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             Console.WriteLine("上述消息成功写入数据库");
                             Console.WriteLine("*** 结束验证刚写入的消息");
                         }
+#endif
                     }
                 }
                 else if (param.Action == "change")
@@ -484,7 +486,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                                     {
                                         result.String = "Denied";
                                         result.Value = -1;
-                                        result.ErrorInfo = "当前用户没有加入群组 '" + string.Join(",", exist.groups) + "'，因此无法修改其中的消息";
+                                        result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 没有加入群组 '" + string.Join(",", exist.groups) + "'，因此无法修改其中的消息";
                                         return result;
                                     }
                                 }
@@ -571,7 +573,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                                     {
                                         result.String = "Denied";
                                         result.Value = -1;
-                                        result.ErrorInfo = "当前用户没有加入群组 '" + string.Join(",", exist.groups) + "'，因此无法" + strActionName + "其中的消息";
+                                        result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 没有加入群组 '" + string.Join(",", exist.groups) + "'，因此无法" + strActionName + "其中的消息";
                                         return result;
                                     }
                                 }
@@ -893,7 +895,7 @@ ex.GetType().ToString());
                 {
                     param.UserCondition = CanonicalizeUserName(param.UserCondition);
                 }
-                catch(ArgumentException ex)
+                catch (ArgumentException ex)
                 {
                     result.Value = -1;
                     result.String = "ConditionError";
@@ -1393,9 +1395,7 @@ ex.GetType().ToString());
                 if (StringUtil.Contains(info.UserItem == null ? "" : info.UserItem.rights,
                     "supervisor") == true)
                 {
-                    var task = ServerInfo.UserDatabase.GetUsersByName(userName, start, count);
-                    task.Wait();
-                    result.Users = BuildUsers(task.Result);
+                    result.Users = BuildUsers(ServerInfo.UserDatabase.GetUsersByName(userName, start, count).Result);
                 }
                 else
                 {
@@ -1412,9 +1412,7 @@ ex.GetType().ToString());
                         return result;
                     }
 
-                    var task = ServerInfo.UserDatabase.GetUsersByName(userName, start, count);
-                    task.Wait();
-                    result.Users = BuildUsers(task.Result);
+                    result.Users = BuildUsers(ServerInfo.UserDatabase.GetUsersByName(userName, start, count).Result);
                 }
 
                 return result;
@@ -1628,9 +1626,9 @@ ex.GetType().ToString());
             user.tel = item.tel;
             user.comment = item.comment;
             user.groups = item.groups;
+            user.binding = item.binding;
             return user;
         }
-
 
         void RefreshUserInfo(string action, List<UserItem> users)
         {
@@ -3353,6 +3351,13 @@ ex.GetType().ToString());
             }, false);
         }
 
+        static string GetIpAddress(IRequest request)
+        {
+            object ipAddress;
+            request.Environment.TryGetValue("server.RemoteIpAddress", out ipAddress);
+            return (string)ipAddress;
+        }
+
         private static bool AuthenticateUser(
             IRequest request
             // string credentials
@@ -3375,8 +3380,20 @@ ex.GetType().ToString());
                 if (results.Count != 1)
                     return false;
                 var user = results[0];
-                string strHashed = Cryptography.GetSHA1(password);
 
+                if (string.IsNullOrEmpty(user.binding) == false)
+                {
+                    string list = StringUtil.GetOneBinding(user.binding, "ip");
+                    if (string.IsNullOrEmpty(list) == false)
+                    {
+                        // 检查 IP 地址
+                        string ip = GetIpAddress(request);
+                        if (StringUtil.MatchIpAddressList(list, ip) == false)
+                            return false;
+                    }
+                }
+
+                string strHashed = Cryptography.GetSHA1(password);
                 if (user.password != strHashed)
                     return false;
 

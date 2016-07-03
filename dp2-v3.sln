@@ -67,6 +67,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2Capo.Install", "dp2Capo.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZipUtil", "ZipUtil\ZipUtil.csproj", "{D3781AB6-C3F5-460C-AE9F-F9C4FBEB9FC1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2Router", "dp2Router\dp2Router.csproj", "{2705873B-D3CF-4307-9DF0-25465F35DB63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -261,6 +263,12 @@ Global
 		{D3781AB6-C3F5-460C-AE9F-F9C4FBEB9FC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3781AB6-C3F5-460C-AE9F-F9C4FBEB9FC1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D3781AB6-C3F5-460C-AE9F-F9C4FBEB9FC1}.Release|x86.ActiveCfg = Release|Any CPU
+		{2705873B-D3CF-4307-9DF0-25465F35DB63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2705873B-D3CF-4307-9DF0-25465F35DB63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2705873B-D3CF-4307-9DF0-25465F35DB63}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2705873B-D3CF-4307-9DF0-25465F35DB63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2705873B-D3CF-4307-9DF0-25465F35DB63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2705873B-D3CF-4307-9DF0-25465F35DB63}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

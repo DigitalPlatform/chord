@@ -14,7 +14,6 @@ namespace DigitalPlatform.Text
     /// </summary>
     public static class StringUtil
     {
-
         public static string EscapeString(string strText, string speical_chars)
         {
             if (string.IsNullOrEmpty(strText) == true)
@@ -140,7 +139,7 @@ namespace DigitalPlatform.Text
         {
             List<string> rights = SplitRights(strList);
             int on = 0;
-            foreach(string one in rights)
+            foreach (string one in rights)
             {
                 char ch = one[0];
                 if (one.Substring(1) == strRight)
@@ -150,7 +149,7 @@ namespace DigitalPlatform.Text
                     else
                     {
                         if (ch != '-')
-                            throw new ArgumentException("单个权限值 '"+one+"' 在列表中 '"+strList+"' 不合法");
+                            throw new ArgumentException("单个权限值 '" + one + "' 在列表中 '" + strList + "' 不合法");
                         on = -1;
                     }
                 }
@@ -216,9 +215,9 @@ namespace DigitalPlatform.Text
 
         // exception:
         //      抛出 Int64.Parse() 要抛出的那些异常
-        public static long GetSubInt64(string strText, 
-            char seperator, 
-            int index, 
+        public static long GetSubInt64(string strText,
+            char seperator,
+            int index,
             long default_value = 0)
         {
             string str_value = GetSubString(strText, seperator, index);
@@ -275,7 +274,7 @@ namespace DigitalPlatform.Text
         //      null    没有找到前缀
         //      ""      找到了前缀，并且值部分为空
         //      其他     返回值部分
-        public static string GetParameterByPrefix(string strList, 
+        public static string GetParameterByPrefix(string strList,
             string strPrefix,
             string strDelimiter = ":")
         {
@@ -328,6 +327,52 @@ namespace DigitalPlatform.Text
             }
 
             return null;
+        }
+
+        // 从 binding 字符串中寻找特定名字的 binding
+        public static string GetOneBinding(string strText, string strName)
+        {
+            // return:
+            //      null    没有找到前缀
+            //      ""      找到了前缀，并且值部分为空
+            //      其他     返回值部分
+            return GetParameterByPrefix(strText,
+                strName,
+                ":");
+        }
+
+        // 匹配 ip 地址列表
+        // parameters:
+        //      strList IP 地址列表。例如 localhost|192.168.1.1|192.168.*.*
+        //      strIP   要检测的一个 IP 地址
+        public static bool MatchIpAddressList(string strList, string strIP)
+        {
+            string[] list = strList.Split(new char[] {'|'});
+            foreach(string pattern in list)
+            {
+                if (MatchIpAddress(pattern, strIP) == true)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static bool MatchIpAddress(string pattern, string ip)
+        {
+            ip = CanonicalizeIP(ip);
+            pattern = CanonicalizeIP(pattern);
+
+            if (pattern == ip)
+                return true;
+            return false;
+        }
+
+        // 正规化 IP 地址
+        public static string CanonicalizeIP(string ip)
+        {
+            if (ip == "::1" || ip == "127.0.0.1")
+                return "localhost";
+            return ip;
         }
 
         //===================
