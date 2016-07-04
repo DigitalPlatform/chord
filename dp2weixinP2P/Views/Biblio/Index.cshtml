@@ -39,7 +39,7 @@
                 + "&style=activeAndWorker";
             sendAjaxRequest(url, "GET", function (data) {
 
-               // alert("getActivePatron3");
+                // alert("getActivePatron3");
 
                 // 关闭等待层
                 layer.close(index);
@@ -47,20 +47,17 @@
                 if (data == null)
                     return;
 
-                if (data.length > 0)
-                {
+                if (data.length > 0) {
                     for (var i = 0; i < data.length; i++) {
                         var user = data[i];
                         // 读者
-                        if (user.type==0)
-                        {
+                        if (user.type == 0) {
                             $("#patronBarcode").text(user.readerBarcode);
                             $("#patronName").text(user.readerName);
 
                             //alert("getActivePatron4");
                         }
-                        else if  (user.type==1)
-                        {
+                        else if (user.type == 1) {
                             $("#workerUserName").text(user.userName);
 
                             //alert("getActivePatron5");
@@ -68,7 +65,7 @@
                     }
                 }
 
-               // alert("getActivePatron6");
+                // alert("getActivePatron6");
 
 
                 // 获取预约列表
@@ -89,7 +86,7 @@
             //alert("getReservations1");
 
             // 先删除可观察数组中的已有数据
-            model.reservations.removeAll();                     
+            model.reservations.removeAll();
 
             // 图书馆
             var libId = getLibId();//$("#selLib").val();
@@ -100,14 +97,13 @@
             }
 
             var patronBarcode = $("#patronBarcode").text();
-            if (patronBarcode == "")
-            {
+            if (patronBarcode == "") {
                 //alert("getReservations1-2");
 
                 return;// 未绑定
             }
 
-           // alert("getReservations2");
+            // alert("getReservations2");
 
 
             //显示等待图层
@@ -137,7 +133,7 @@
                 //alert("getReservations4");
 
 
-                if (checkBarcode != null && checkBarcode != "" && obj!=null) {
+                if (checkBarcode != null && checkBarcode != "" && obj != null) {
 
                     //alert("getReservations5");
 
@@ -149,10 +145,10 @@
 
                     var infoDiv = $(obj).parent().find(".resultInfo").first();
                     //alert(infoDiv);
-                   // alert("["+info+"]");
+                    // alert("["+info+"]");
 
-                    $(infoDiv)[0].innerHTML=info;//.text(info);
-                    if (bWarn==true)
+                    $(infoDiv)[0].innerHTML = info;//.text(info);
+                    if (bWarn == true)
                         $(infoDiv).css("background-color", "yellow");  //设为绿色
                     else
                         $(infoDiv).css("color", "darkgreen");  //设为绿色
@@ -168,8 +164,7 @@
             });
         }
 
-        function getReservationState(barcode)
-        {
+        function getReservationState(barcode) {
             //alert("getReservationState1");
             if (model.reservations().length == 0)
                 return "未预约";
@@ -185,13 +180,12 @@
                 var nIndex = barcodeList.indexOf(barcode);
 
                 //alert(barcodeList + "-" + arrivedBarcode);
-                if (nIndex>=0)
-                {
-                    if (barcode== arrivedBarcode)
+                if (nIndex >= 0) {
+                    if (barcode == arrivedBarcode)
                         return "已到书";
                     else
                         return "已预约";
-                }                
+                }
             }
 
             return "未预约";
@@ -213,12 +207,21 @@
 
 
 
-            // 密码框打回车时，进行绑定
+            // 打回车检索
             $('#txtWord').bind('keypress', function (event) {
                 //alert("test");
                 if (event.keyCode == "13") {
                     // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
-                    search();
+                    search('');
+                }
+            });
+
+            // 打回车检索
+            $('#txtWordSimple').bind('keypress', function (event) {
+                //alert("test");
+                if (event.keyCode == "13") {
+                    // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+                    search('simple');
                 }
             });
 
@@ -238,8 +241,7 @@
 
         });
 
-        function redoSearch()
-        {
+        function redoSearch() {
             //alert("redoSearch1");
             // 当按浏览器返回按钮时，要显示原来的数据
             var word = $('#txtWord').val();
@@ -267,6 +269,7 @@
 
             var from = "";
             var word = "";
+            var match = "";
 
             // 图书馆
             var libId = getLibId();//$("#selLib").val();
@@ -283,6 +286,20 @@
             else if (bNext == '_ReView') {
                 from = "_ReView";
                 word = $("#maxNo").val();
+            }
+            else if (bNext == 'simple') {
+                // 检索途径
+                from = "title,ISBN,contributor,subjec,clc,_class,publishtime,publisher";
+                match = "left";
+
+                // 检查检索词
+                word = $("#txtWordSimple").val();
+                if (word == "") {
+                    alert("您尚未输入检索词。");
+                    return;
+                }
+                var table = $("#ulResult");//$('.mui-table-view');
+                table.html("");
             }
             else {
 
@@ -301,13 +318,18 @@
                 }
                 //alert("[" + from + "]-[" + word + "]");
 
+                match = $("#selMatch").val();
+                if (match == "") {
+                    alert("您尚未选择匹配方式。");
+                    return;
+                }
                 var table = $("#ulResult");//$('.mui-table-view');
                 table.html("");
 
             }
 
             //resultSet 如果为空，服务器生成一个
-            var resultSet = $("#resultSet").val(); 
+            var resultSet = $("#resultSet").val();
 
 
             // 调检索接口
@@ -318,6 +340,7 @@
             var url = "/api/biblio?libId=" + encodeURIComponent(libId)
                 + "&from=" + encodeURIComponent(from)
                 + "&word=" + encodeURIComponent(word)
+                + "&match=" + encodeURIComponent(match)
                 + "&resultSet=" + encodeURIComponent(resultSet);
 
             //alert(url);
@@ -354,16 +377,16 @@
                     var table = $("#ulResult");//$('.mui-table-view');
                     var start = 0;
                     if (bNext == 'true') {
-                        start =parseInt($("#maxNo").val());
+                        start = parseInt($("#maxNo").val());
                     }
                     for (var i = 0; i < result.records.length; i++) {
                         var record = result.records[i];
-                        var id="record-"+(start+i);
+                        var id = "record-" + (start + i);
                         var li = "<li class='mui-table-view-cell mui-collapse' id='" + id + "'> "
-                            + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\""+id+"\")'>" + record.no + " " + record.name + "</a>"
+                            + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\"" + id + "\")'>" + record.no + " " + record.name + "</a>"
                             + "<div class='mui-collapse-content' style='display:none;'>"
                                 + "<div class='pendingDetail biblio' >"
-                                    + "<label>"+record.libId+"|"+record.recPath+"</label>"
+                                    + "<label>" + record.libId + "|" + record.recPath + "</label>"
                                     + "<img src='../img/wait2.gif' />"
                                 + "</div>"
                             + "</div>"
@@ -391,8 +414,7 @@
                     }
 
                     // 打开需要展开的项
-                    if (expandId != null && expandId != "")
-                    {
+                    if (expandId != null && expandId != "") {
                         expand(expandId);
                     }
 
@@ -421,15 +443,13 @@
             }
 
             var libId = getLibId();//$("#selLib").val();
-            if (libId == "")
-            {
+            if (libId == "") {
                 alert("尚未选择图书馆");
                 return;
             }
 
             var patron = $("#patronBarcode").text();
-            if (patron == "")
-            {
+            if (patron == "") {
                 alert("您尚未绑定图书馆账户，请先绑定账户。");
                 return;
             }
@@ -459,7 +479,7 @@
                 //alert(infoDiv);
                 var info = result.errorInfo;
 
-                $("input[name='ckbBarcode']").removeAttr("checked");//取消全选 
+                $("input[name='ckbBarcode']").removeAttr("checked");//取消全选
 
                 // 出错
                 if (result.errorCode == -1) {
@@ -476,10 +496,10 @@
                     bWarn = false;
                 }
                 else {
-                    info = $(obj).html() + " 操作成功。<br>"+info;
+                    info = $(obj).html() + " 操作成功。<br>" + info;
                 }
 
-                alert(info.replace("<br>","\r\n"));
+                alert(info.replace("<br>", "\r\n"));
 
                 // 更新列表
                 var div = $(obj).parent().parent();
@@ -497,22 +517,21 @@
                 alert(info);
 
                 $(infoDiv).text(info);
-                $(infoDiv).css("color", "red");  //设为红色                
+                $(infoDiv).css("color", "red");  //设为红色
             });
         }
 
-        // 2016-6-17 jane 为了返回时记住展开项，expand函数由原来传一个对象，改为传一个id 
-        function expand(expId)
-        {
+        // 2016-6-17 jane 为了返回时记住展开项，expand函数由原来传一个对象，改为传一个id
+        function expand(expId) {
             //根据id找到<li>元素
             var id = "#" + expId;
             var obj = $(id);
 
             // 如果自己是展开状态，则收缩
-            var  state=$(obj).find(".mui-collapse-content").first().css("display");
-            if (state == "block") { //自己本来是展开状态，要关闭   
-                    $(obj).find(".mui-collapse-content").css("display", "none");
-                    $(obj).removeClass("mui-active");
+            var state = $(obj).find(".mui-collapse-content").first().css("display");
+            if (state == "block") { //自己本来是展开状态，要关闭
+                $(obj).find(".mui-collapse-content").css("display", "none");
+                $(obj).removeClass("mui-active");
             }
             else {
                 //其它收缩
@@ -537,8 +556,7 @@
             }
         }
 
-        function getReservationHtml(barcode)
-        {
+        function getReservationHtml(barcode) {
             myReserHtml = "";
             var reservationState = getReservationState(barcode);
             //alert("[" + reservationState + "]");
@@ -553,7 +571,7 @@
                 btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','delete')\">放弃取书</button>";
             }
             if (reservationState != "") {
-                myReserHtml = "<div class='info'>" + reservationState+"</div>"
+                myReserHtml = "<div class='info'>" + reservationState + "</div>"
                     + "<div class='btn'>" + btn + "</div>";
             }
             return myReserHtml;
@@ -567,8 +585,7 @@
             }
 
             var libId = $("#libId").val();
-            if (libId == "")
-            {
+            if (libId == "") {
                 alert("尚未选择图书馆");
                 return;
             }
@@ -616,7 +633,7 @@
                 $(infoDiv).css("color", "darkgreen");  //设为绿色
 
                 // todo 需要更新列表
-                
+
 
             }, function (xhq, textStatus, errorThrown) {
 
@@ -631,7 +648,7 @@
                 var infoDiv = $(divId);
 
                 $(infoDiv).text(info);
-                $(infoDiv).css("color", "red");  //设为红色                
+                $(infoDiv).css("color", "red");  //设为红色
             });
         }
 
@@ -683,13 +700,13 @@
                 if (result.itemList.length == 0)
                     itemTables = "<div class='mui-card item'>"
                         + "<span class='remark'>没有册信息</span>"
-                        +"</div>"
+                        + "</div>"
 
                 var patronBarcode = $("#patronBarcode").text();
                 var bCanReservation = false;
                 var returnUrl = "/Biblio/Index";
                 var info = "<span class='remark'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl=" + encodeURIComponent(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>"
-                if (patronBarcode != null && patronBarcode !="") // 有绑定的读者
+                if (patronBarcode != null && patronBarcode != "") // 有绑定的读者
                 {
                     bCanReservation = true;
                     info = "";
@@ -712,19 +729,19 @@
                     if (record.borrower != null && record.borrower != "") {
                         if (curPatronBarcode != record.borrower) {
                             strBorrowInfo = "借阅者:***<br/>"
-                            +"借阅时间:" + record.borrowDate + "<br/>"
-                            +"借期:" + record.borrowPeriod;
+                            + "借阅时间:" + record.borrowDate + "<br/>"
+                            + "借期:" + record.borrowPeriod;
                         }
                         else {
                             strBorrowInfo = "<div>"
                                     + "<div class='info'>借阅者:" + curPatronName + "<br/>"
-                                                              +"借阅时间:" + record.borrowDate + "<br/>"
+                                                              + "借阅时间:" + record.borrowDate + "<br/>"
                                                               + "借期:" + record.borrowPeriod
                                      + "</div>"
                                     + "<div class='btn'>"
-                                    +   "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + record.barcode + "')\">续借</button>"
+                                    + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + record.barcode + "')\">续借</button>"
                                     + "</div>"
-                                +"</div><br/>"
+                                + "</div><br/>"
                                 + "<div id='renewInfo-" + record.barcode + "'/>";
 
                             // 此时不能预约
@@ -732,10 +749,10 @@
                         }
                     }
 
-                    itemTables +="<div class='mui-card item' >"
+                    itemTables += "<div class='mui-card item' >"
                     + "<div class='title'>" + record.barcode + "</div>"
-                     +"<table>"
-                    +"<tr>"
+                     + "<table>"
+                    + "<tr>"
                     + "<td class='label'>状态</td>"
                     + "<td class='value'>" + record.state + "</td>"
                     + "</tr>"
@@ -761,7 +778,7 @@
                     + "</tr>"
                     //
                     + "</table>"
-                    +"</div>";
+                    + "</div>";
                 }
 
 
@@ -779,7 +796,7 @@
 
 
 
-                var myHtml = "<span>" + result.summary + "</span>" +recommendBtn+ itemTables;
+                var myHtml = "<span>" + result.summary + "</span>" + recommendBtn + itemTables;
 
 
                 //换成实际的值，去掉pendingDetail状态，
@@ -787,7 +804,7 @@
                 o.removeClass("pendingDetail");
             }, function (xhq, textStatus, errorThrown) {
                 //出错，去掉pendingDetail状态
-                o.html("访问服务器出错：[" + errorThrown+"]");
+                o.html("访问服务器出错：[" + errorThrown + "]");
                 o.removeClass("pendingDetail");
             });
 
@@ -800,20 +817,35 @@
             search("true");
         }
 
+        function changeType() {
+            var type = $("#searchType").text();
+            //alert(type);
+
+            if (type == "高级检索") {
+                $("#divAdvance").css("display", "block");
+                $("#divSimple").css("display", "none");
+                $("#searchType").text("简单检索");
+            }
+            else {
+                $("#divAdvance").css("display", "none");
+                $("#divSimple").css("display", "block");
+                $("#searchType").text("高级检索");
+            }
+        }
+
 
     </script>
 }
-
 @section style {
     <style type="text/css">
         /*书目*/
         DIV.biblio {
         }
 
-        /*书目操作按钮行，现在有好书推荐按钮*/
-        DIV.biblio DIV.btnRow {
-            text-align: right;
-        }
+            /*书目操作按钮行，现在有好书推荐按钮*/
+            DIV.biblio DIV.btnRow {
+                text-align: right;
+            }
 
         /*整个册块*/
         DIV.item {
@@ -821,115 +853,188 @@
             padding: 2px;
         }
 
-        /*册块标题，一般barcode使用该样式*/
-        DIV.item .title {
-            margin-top: 5px;
-            margin-bottom: 5px;
-            padding-left: 10px;
-            font-size: 20px;
+            /*册块标题，一般barcode使用该样式*/
+            DIV.item .title {
+                margin-top: 5px;
+                margin-bottom: 5px;
+                padding-left: 10px;
+                font-size: 20px;
+            }
+
+            /*册块备注，没有册文字使用该样式*/
+            DIV.item .remark {
+                color: #999999;
+                padding: 2px;
+            }
+
+            /*一条一条的册table*/
+            DIV.item TABLE {
+                text-align: left;
+                background-color: white;
+                width: 100%;
+                margin-top: 10px;
+            }
+
+                /*册td*/
+                DIV.item TABLE TR TD {
+                    border-width: 0px;
+                    border-top-width: 1px;
+                    border-color: #dddddd;
+                    border-style: dotted;
+                    padding: 2px;
+                }
+
+                    /*册右值数据td*/
+                    DIV.item TABLE TR TD.value {
+                        padding-left: 5px;
+                    }
+
+                        /*册右值数据td*/
+                        DIV.item TABLE TR TD.value DIV.info {
+                            float: left;
+                            padding-top: 5px;
+                        }
+
+                        /*册右值数据td*/
+                        DIV.item TABLE TR TD.value DIV.btn {
+                            float: right;
+                        }
+
+                    /*册左侧标题td*/
+                    DIV.item TABLE TR TD.label {
+                        width: 75px;
+                        background-color: #ffffff;
+                        color: #999999;
+                        padding-right: 5px;
+                        text-align: right;
+                    }
+
+                    /*册里面的操作提示*/
+                    DIV.item TABLE TR TD .resultInfo {
+                        /*显示预约结果的span*/
+                    }
+
+                    /*===========*/
+        DIV.search {
+            padding: 10px;
+            /*background-color: green;*/
         }
 
-        /*册块备注，没有册文字使用该样式*/
-        DIV.item .remark {
-            color: #999999;
-            padding: 2px;
+            /*消息div下的table*/
+            DIV.search TABLE {
+                width: 100%;
+                /*background-color: red;*/
+            }
+
+
+
+
+        /*=============*/
+        /*消息编辑态标题*/
+        DIV.search INPUT, SELECT {
+            margin-bottom: 0px;
         }
 
-        /*一条一条的册table*/
-        DIV.item TABLE {
-            text-align: left;
-            background-color: white;
-            width: 100%;
-            margin-top: 10px;
+        DIV.search TABLE.advance tr td {
+            padding: 5px;
         }
 
-        /*册td*/
-        DIV.item TABLE TR TD {
-            border-width: 0px;
-            border-top-width: 1px;
-            border-color: #dddddd;
-            border-style: dotted;
-            padding: 2px;
+            DIV.search TABLE.advance tr td.label {
+                color: #999999;
+                width:70px;
+            }
+
+
+        DIV.search TABLE.advance select {
+            font-size: 17px;
+            height: 37px;
+            padding: 0px;
+            margin:0px;
+            padding-left:5px;
         }
 
-        /*册右值数据td*/
-        DIV.item TABLE TR TD.value {
-            padding-left: 5px;
-        }
+                DIV.search TABLE.advance input, textarea {
 
-        /*册右值数据td*/
-        DIV.item TABLE TR TD.value  DIV.info{
-            float:left; 
-            padding-top:5px
-        }
-
-        /*册右值数据td*/
-        DIV.item TABLE TR TD.value  DIV.btn{
-            float:right; 
-        }
-
-        /*册左侧标题td*/
-        DIV.item TABLE TR TD.label {
-            width: 75px;
-            background-color: #ffffff;
-            color: #999999;
-            padding-right: 5px;
-            text-align: right;
-        }
-
-        /*册里面的操作提示*/
-        DIV.item TABLE TR TD .resultInfo {
-            /*显示预约结果的span*/
+            padding: 5px;
+            margin:0px;
         }
     </style>
 }
 
 @section header {
     <h1 class="mui-title">书目查询</h1>
-    }
+}
 <span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
 <span id="patronName" style="display:none">@ViewBag.PatronName</span>
 <span id="workerUserName" style="display:none">@ViewBag.workerUserName</span>
 
 <!--关于结果集-->
-<input id="maxNo" type="hidden" >
+<input id="maxNo" type="hidden">
 <input id="resultSet" type="hidden" value="" disabled="disabled">
 <input id="expandId" type="hidden" value="" disabled="disabled">
-
-    <div id="divForm">
-        <div class="mui-input-group">
-            <!--
-            <div class="mui-input-row ">
-                <label style="color:#cccccc;">图书馆</label>
-                @Html.Raw(ViewBag.LibHtml)
-            </div>
--->
-            <div class="mui-input-row ">
-                <label style="color:#cccccc">检索途径</label>
-                <select id="selFrom" name="selFrom">
-                    <option value="title" selected>书名</option>
-                    <option value="ISBN">ISBN</option>
-                    <option value="contributor">作者</option>
-                </select>
-            </div>
-            <div class="mui-input-row">
-                <label style="color:#cccccc">检索词</label>
+<div id="divSimple" class="search" style="padding:10px">
+    <table style="width:100%" class="simple">
+        <tr>
+            <td style="vertical-align:middle;width:100%">
+                <input  class="mui-input mui-input-clear" style="border-top-left-radius:4px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:4px;border-right:0px" id="txtWordSimple" type="text" value="" placeholder="请输入检索词">
+            </td>
+            <td style="vertical-align:top"><span class="mui-icon mui-icon-search" style="padding-top:10px;height:40px; border:1px solid #cccccc;border-left:0px;border-top-left-radius:0px;border-top-right-radius:4px;border-bottom-right-radius:4px;border-bottom-left-radius:0px;width:30px;cursor:pointer; background-color:white" onclick="search('simple')"></span></td>
+        </tr>
+    </table>
+</div>
+<div id="divAdvance" class="search" style="display:none" >
+    <table class="advance">
+        <tr>
+            <td class="label">检索途径</td>
+            <td>
+                <div style="border:1px solid #cccccc">
+                    <select id="selFrom" name="selFrom">
+                        <option value="title" selected>书名</option>
+                        <option value="ISBN">ISBN</option>
+                        <option value="contributor">作者</option>
+                        <option value="subject">主题词</option>
+                        <option value="clc,_class">分类号</option>
+                        <option value="publishtime">出版时间</option>
+                        <option value="publisher">出版社</option>
+                    </select>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="label">检索词</td>
+            <td>
                 <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
-            </div>
-        </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="label">匹配方式</td>
+            <td>
+                <div style="border:1px solid #cccccc">
+                    <!--left/middle/right/exact-->
+                    <select id="selMatch">
+                        <option value="left" selected>前方一致</option>
+                        <option value="middle">中间一致</option>
+                        <option value="right">后方一致</option>
+                        <option value="exact">精确一致</option>
+                    </select>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
+            </td>
+        </tr>
+    </table>
+</div>
+<div style="padding:10px">
+    <a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a>
+</div>
+<div id="divResult">
+    <!--数据列表-->
+    <span style="padding-left:10px" id="searchInfo"></span>
+    <ul id="ulResult" class="mui-table-view "></ul>
 
-        <div class="mui-content-padded">
-            <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
 
-
-        </div>
-    </div>
-
-    <div id="divResult">
-        <!--数据列表-->
-        <span style="padding-left:10px" id="searchInfo"></span>
-        <ul id="ulResult" class="mui-table-view "></ul>
-
-
-    </div>
+</div>

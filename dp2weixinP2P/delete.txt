@@ -1,4 +1,32 @@
-﻿====BookMsg部分代码====
+﻿====检索界面代码===
+
+    <div class="mui-input-group">
+        <!--
+                    <div class="mui-input-row ">
+                        <label style="color:#cccccc;">图书馆</label>
+                        @Html.Raw(ViewBag.LibHtml)
+                    </div>
+        -->
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">检索途径</label>
+            <select id="selFrom" name="selFrom">
+                <option value="title" selected>书名</option>
+                <option value="ISBN">ISBN</option>
+                <option value="contributor">作者</option>
+            </select>
+        </div>
+    </div>
+    <div class="mui-input-row">
+        <label style="color:#cccccc">检索词</label>
+        <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
+    </div>
+    <div class="mui-content-padded">
+        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
+    </div>
+</div>
+
+
+====BookMsg部分代码====
         <div class="mui-content-padded">
             <div class="msg-title" id="title-@item.id">@item.title</div>
             <p style="color:gray;font-size:12px">

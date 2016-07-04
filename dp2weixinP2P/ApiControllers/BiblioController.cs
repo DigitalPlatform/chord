@@ -13,7 +13,11 @@ namespace dp2weixinWeb.ApiControllers
     public class BiblioController : ApiController
     {
         // GET api/<controller>
-        public SearchBiblioResult Get(string libId, string from, string word, string resultSet)
+        public SearchBiblioResult Get(string libId, 
+            string from,
+            string word, 
+            string match,
+            string resultSet)
         {
             SearchBiblioResult searchRet = new SearchBiblioResult();
             if (String.IsNullOrEmpty(resultSet) == true)
@@ -69,6 +73,7 @@ namespace dp2weixinWeb.ApiControllers
                 searchRet = dp2WeiXinService.Instance.SearchBiblio(libId,
                      from,
                      word,
+                     match,
                      resultSet);
                 goto END1;
             }

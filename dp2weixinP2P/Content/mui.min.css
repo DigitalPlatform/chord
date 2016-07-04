@@ -2488,6 +2488,7 @@ select {
         margin-top: -18px;
         margin-right: 31px;
         content: '\e466';
+        background-color:red;
     }
 
     .mui-search.mui-active:before {

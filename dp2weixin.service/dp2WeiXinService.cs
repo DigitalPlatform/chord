@@ -2366,6 +2366,7 @@ namespace dp2weixin.service
         public SearchBiblioResult SearchBiblio(string libId,
             string strFrom,
             string strWord,
+            string match,
             string resultSet)
         {
             SearchBiblioResult searchRet = new SearchBiblioResult();
@@ -2399,6 +2400,7 @@ namespace dp2weixin.service
             long lRet = this.SearchBiblio1(libId,
                 strFrom,
                 strWord,
+                match,
                 resultSet,
                 0,
                 WeiXinConst.C_OnePage_Count,
@@ -2437,6 +2439,7 @@ namespace dp2weixin.service
             long lRet = this.SearchBiblio1(libId,
                  "",
                  "!getResult",
+                 "",//match
                  resultSet,
                  start,
                  count,
@@ -2468,6 +2471,7 @@ namespace dp2weixin.service
         public long SearchBiblio1(string libId,
             string strFrom,
             string strWord,
+            string match,
             string resultSet,
             long start,
             long count,
@@ -2498,7 +2502,7 @@ namespace dp2weixin.service
                     "",
                     strWord,
                     strFrom,
-                    "middle",
+                    match,//"middle",
                     resultSet,//"weixin",
                     "id,cols",
                     WeiXinConst.C_Search_MaxCount,  //最大数量
