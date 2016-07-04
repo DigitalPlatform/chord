@@ -98,6 +98,7 @@ namespace DigitalPlatform.MessageClient
             _timer.Elapsed += _timer_Elapsed;
         }
 
+#if NO
         // 调用前要求先设置好 this.ServerUrl this.UserName this.Password this.Parameters
         public virtual async void InitialAsync()
         {
@@ -107,8 +108,9 @@ namespace DigitalPlatform.MessageClient
                 await ConnectAsync();
             }
         }
+#endif
 
-        void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        async void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             if (this.Connection != null)
                 AddInfoLine("tick connection state = " + this.Connection.State.ToString());
@@ -117,7 +119,7 @@ namespace DigitalPlatform.MessageClient
                 this.Connection.State == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
             {
                 AddInfoLine("自动重新连接 ...");
-                this.EnsureConnect();
+                await this.EnsureConnect();
             }
         }
 
@@ -132,16 +134,19 @@ namespace DigitalPlatform.MessageClient
         }
 
         // 确保连接和登录
-        public async void EnsureConnect()
+        public async Task<bool> EnsureConnect()
         {
             if (string.IsNullOrEmpty(this.ServerUrl) == true)
                 throw new Exception("MessageConnection.dp2MServerUrl 尚未设置");
 
             if (this.Connection == null || this.Connection.State == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
             {
+
                 // ConnectAsync().Wait();
                 await ConnectAsync();
+                return true;
             }
+            return false;
         }
 
         public virtual void Destroy()
@@ -668,6 +673,24 @@ request);
 SetMessageRequest request,
 CancellationToken token)
         {
+#if NO
+            // 验证用
+            return Task.Factory.StartNew(
+                async () =>
+                {
+                    return await SetMessageAsyncLite(request);
+                },
+                token,
+            TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
+#endif
+#if NO
+            return Task.Run<SetMessageResult>(
+                async () =>
+                {
+                    return await SetMessageAsyncLite(request);
+                },
+            token);
+#endif
             return TaskRun<SetMessageResult>(
                 () =>
                 {
@@ -2447,55 +2470,71 @@ circulation_result);
         }
 
         // 调用 server 端 ResponseBindPatron
-        public async void ResponseBindPatron(
+        public async Task<MessageResult> ResponseBindPatron(
             string taskID,
             long resultValue,
             IList<string> results,
             string errorInfo)
         {
+            return await HubProxy.Invoke<MessageResult>("ResponseBindPatron",
+taskID,
+resultValue,
+results,
+errorInfo);
+        }
+
+        public async void TryResponseBindPatron(
+    string taskID,
+    long resultValue,
+    IList<string> results,
+    string errorInfo)
+        {
             try
             {
-                MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseBindPatron",
+                await HubProxy.Invoke<MessageResult>("ResponseBindPatron",
     taskID,
     resultValue,
     results,
     errorInfo);
-                if (result.Value == -1)
-                {
-                    AddErrorLine(result.ErrorInfo);
-                    return;
-                }
             }
-            catch (Exception ex)
+            catch
             {
-                AddErrorLine(ex.Message);
+
             }
         }
 
         // 调用 server 端 ResponseSetInfo
         // TODO: 要考虑发送失败的问题
-        public async void ResponseSetInfo(
+        public async Task<MessageResult> ResponseSetInfo(
             string taskID,
             long resultValue,
             IList<Entity> results,
             string errorInfo)
         {
+            return await HubProxy.Invoke<MessageResult>("ResponseSetInfo",
+taskID,
+resultValue,
+results,
+errorInfo);
+        }
+
+        public async void TryResponseSetInfo(
+    string taskID,
+    long resultValue,
+    IList<Entity> results,
+    string errorInfo)
+        {
             try
             {
-                MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSetInfo",
+                await HubProxy.Invoke<MessageResult>("ResponseSetInfo",
     taskID,
     resultValue,
     results,
     errorInfo);
-                if (result.Value == -1)
-                {
-                    AddErrorLine(result.ErrorInfo);
-                    return;
-                }
             }
-            catch (Exception ex)
+            catch
             {
-                AddErrorLine(ex.Message);
+
             }
         }
 
@@ -2619,7 +2658,7 @@ circulation_result);
             return true;
         ERROR1:
             // 报错
-            ResponseSearch(
+            TryResponseSearch(
                 new SearchResponse(
 taskID,
 -1,
@@ -2776,7 +2815,7 @@ SearchResponse responseParam)
         }
 
         // 调用 server 端 ResponseSearchBiblio
-        public async void ResponseSearch(
+        public async void TryResponseSearch(
 SearchResponse responseParam)
         {
             // TODO: 等待执行完成。如果有异常要当时处理。比如减小尺寸重发。
@@ -2817,11 +2856,16 @@ SearchResponse responseParam)
 
         public MessageResult SetUsers(string action, List<User> users)
         {
+#if NO
             var task = HubProxy.Invoke<MessageResult>("SetUsers",
                 action,
                 users);
             task.Wait();
             return task.Result;
+#endif
+            return HubProxy.Invoke<MessageResult>("SetUsers",
+                action,
+                users).Result;
         }
 
         // 调用 server 端 Login
@@ -2848,7 +2892,9 @@ LoginRequest param)
 
         #endregion
 
-        public static Task<TResult> TaskRun<TResult>(Func<TResult> function, CancellationToken cancellationToken)
+        public static Task<TResult> TaskRun<TResult>(
+            Func<TResult> function,
+            CancellationToken cancellationToken)
         {
             return Task.Factory.StartNew<TResult>(
                 function,

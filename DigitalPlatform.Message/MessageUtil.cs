@@ -377,6 +377,7 @@ namespace DigitalPlatform.Message
         public string comment { get; set; }  // 注释
 
         public string[] groups { get; set; }  // 所加入的群组
+        public string binding { get; set; }
     }
 
     public class GetConnectionInfoRequest

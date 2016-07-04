@@ -764,6 +764,7 @@ out strError);
                     out strLibraryCode);
 
                 strError = result.ErrorInfo;
+                this.ErrorCode = result.ErrorCode;  // 2016/7/2
                 return result.Value;
             }
             catch (Exception ex)
@@ -798,6 +799,7 @@ out strError);
             LibraryServerResult result = ws.Logout();
 
             strError = result.ErrorInfo;
+            this.ErrorCode = result.ErrorCode;  // 2016/7/2
             return result.Value;
         }
 

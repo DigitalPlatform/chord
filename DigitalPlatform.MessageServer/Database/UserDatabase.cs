@@ -237,7 +237,8 @@ namespace DigitalPlatform.MessageServer
                 .Set("department", item.department)
                 .Set("tel", item.tel)
                 .Set("comment", item.comment)
-                .Set("groups", item.groups);
+                .Set("groups", item.groups)
+                .Set("binding", item.binding);
 
             await collection.UpdateOneAsync(filter, update);
         }
@@ -381,6 +382,8 @@ namespace DigitalPlatform.MessageServer
         public string comment { get; set; }  // 注释
 
         public string [] groups { get; set; }  // 所加入的群组
+
+        public string binding { get; set; } // 绑定信息
 #if NO
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime OperTime { get; set; } // 操作时间

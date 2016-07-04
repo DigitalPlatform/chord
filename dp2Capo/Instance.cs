@@ -9,9 +9,9 @@ using System.Collections;
 using System.Messaging;
 using System.Diagnostics;
 
+using DigitalPlatform;
 using DigitalPlatform.Text;
 using DigitalPlatform.Message;
-using DigitalPlatform;
 using DigitalPlatform.IO;
 using DigitalPlatform.LibraryClient.localhost;
 
@@ -135,7 +135,7 @@ namespace dp2Capo
             }
         }
 
-        public void BeginConnnect()
+        public async void BeginConnnect()
         {
             try
             {
@@ -145,7 +145,8 @@ namespace dp2Capo
                 this.MessageConnection.Password = this.dp2mserver.Password;
                 this.MessageConnection.Parameters = GetParameters();
 
-                this.MessageConnection.InitialAsync();
+                // this.MessageConnection.InitialAsync();
+                await this.MessageConnection.ConnectAsync();
             }
             catch (Exception ex)
             {
