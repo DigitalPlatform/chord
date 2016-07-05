@@ -1,209 +1,17 @@
 ﻿@section Scripts {
     <script>
 
-        //观察模型
-        var model = {
-            reservations: ko.observableArray()    //预约列表
-        }
-
-        //2016-6-17 jane 获得当前绑定读者，为了解决普通浏览器返回时，读者信息没更新的问题,iphone倒是更新了
-        function getActivePatron() {
-
-            //alert("getActivePatron1");
-
-            // 先删除可观察数组中的已有数据
-            model.reservations.removeAll();
-
-            $("#patronBarcode").text("");
-            $("#patronName").text("");
-            $("#workerUserName").text("");
-
-            var weixinId = $("#weixinId").text();
-            if (weixinId == "")
-                return;
-
-            // 图书馆
-            var libId = getLibId();//$("#selLib").val();
-            if (libId == "" || libId == null) {
-                return;
-            }
-
-            //alert("getActivePatron2");
-
-            //显示等待图层
-            var index = loadLayer();
-
-            // 调web api
-            var url = "/api/wxuser?libId=" + encodeURIComponent(libId)
-                + "&weixinId=" + weixinId
-                + "&style=activeAndWorker";
-            sendAjaxRequest(url, "GET", function (data) {
-
-                // alert("getActivePatron3");
-
-                // 关闭等待层
-                layer.close(index);
-
-                if (data == null)
-                    return;
-
-                if (data.length > 0) {
-                    for (var i = 0; i < data.length; i++) {
-                        var user = data[i];
-                        // 读者
-                        if (user.type == 0) {
-                            $("#patronBarcode").text(user.readerBarcode);
-                            $("#patronName").text(user.readerName);
-
-                            //alert("getActivePatron4");
-                        }
-                        else if (user.type == 1) {
-                            $("#workerUserName").text(user.userName);
-
-                            //alert("getActivePatron5");
-                        }
-                    }
-                }
-
-                // alert("getActivePatron6");
-
-
-                // 获取预约列表
-                getReservations();
-
-            }, function (xhq, textStatus, errorThrown) {
-
-                alert(errorThrown);
-
-                // 关闭等待层
-                layer.close(index);
-            });
-        }
-
-        //获取预约列表
-        function getReservations(checkBarcode, obj, info, bWarn) {
-
-            //alert("getReservations1");
-
-            // 先删除可观察数组中的已有数据
-            model.reservations.removeAll();
-
-            // 图书馆
-            var libId = getLibId();//$("#selLib").val();
-            if (libId == "" || libId == null) {
-
-                //alert("getReservations1-1");
-                return;
-            }
-
-            var patronBarcode = $("#patronBarcode").text();
-            if (patronBarcode == "") {
-                //alert("getReservations1-2");
-
-                return;// 未绑定
-            }
-
-            // alert("getReservations2");
-
-
-            //显示等待图层
-            var index = loadLayer();
-
-            // 调web api
-            var url = "/api/Reservation?libId=" + encodeURIComponent(libId)
-                + "&patronBarcode=" + encodeURIComponent(patronBarcode);
-            sendAjaxRequest(url, "GET", function (result) {
-                //alert("getReservations3");
-
-
-                // 关闭等待层
-                layer.close(index);
-
-                // 出错或未命中
-                if (result.errorCode == -1 || result.errorCode == 0) {
-                    openMsg(result.errorInfo);
-                    return;
-                }
-
-                for (var i = 0; i < result.reservations.length; i++) {
-                    //加到观察数组中
-                    model.reservations.push(result.reservations[i]);
-                }
-
-                //alert("getReservations4");
-
-
-                if (checkBarcode != null && checkBarcode != "" && obj != null) {
-
-                    //alert("getReservations5");
-
-                    var myhtml = getReservationHtml(checkBarcode)
-                    //alert("myhtml ["+myhtml+"]");
-
-                    $(obj)[0].innerHTML = myhtml;  // 不能直接设html
-                    //$("#responsediv")[0].innerHTML = msg就可以获得这个Dom对象使用innerHTML。
-
-                    var infoDiv = $(obj).parent().find(".resultInfo").first();
-                    //alert(infoDiv);
-                    // alert("["+info+"]");
-
-                    $(infoDiv)[0].innerHTML = info;//.text(info);
-                    if (bWarn == true)
-                        $(infoDiv).css("background-color", "yellow");  //设为绿色
-                    else
-                        $(infoDiv).css("color", "darkgreen");  //设为绿色
-
-                    //alert($(infoDiv).attr('id'));
-                }
-
-            }, function (xhq, textStatus, errorThrown) {
-
-                alert(errorThrown);
-                // 关闭等待层
-                layer.close(index);
-            });
-        }
-
-        function getReservationState(barcode) {
-            //alert("getReservationState1");
-            if (model.reservations().length == 0)
-                return "未预约";
-
-            //alert("getReservationState2");
-
-            for (var i = 0; i < model.reservations().length; i++) {
-
-                //alert("getReservationState3-"+i);
-                var oneReservation = model.reservations()[i];
-                var barcodeList = oneReservation.pureBarcodes;
-                var arrivedBarcode = oneReservation.arrivedBarcode;
-                var nIndex = barcodeList.indexOf(barcode);
-
-                //alert(barcodeList + "-" + arrivedBarcode);
-                if (nIndex >= 0) {
-                    if (barcode == arrivedBarcode)
-                        return "已到书";
-                    else
-                        return "已预约";
-                }
-            }
-
-            return "未预约";
-        }
-
-
-        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
-        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        //浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
 
             //alert("ready");
 
             //绑定观察模块
-            ko.applyBindings(model);
+            //ko.applyBindings(model);
 
             // 获取当前图书馆对应的读者
             //2016-6-17 jane 获得当前绑定读者，为了解决普通浏览器返回时，读者信息没更新的问题,iphone倒是更新了
-            getActivePatron();
+           // getActivePatron();
 
 
 
@@ -228,8 +36,8 @@
             // 设顶部菜单不固定
             $("#myheader").css("position", "absolute");
 
-            //redoSearch();
-            window.setTimeout("redoSearch()", 10);
+            redoSearch();
+            //window.setTimeout("redoSearch()", 10);
             //// 当按浏览器返回按钮时，要显示原来的数据
             //var word = $('#txtWord').val();
             //if (word != "") {
@@ -237,29 +45,22 @@
             //    var expandId = $('#expandId').val();
             //    search("_ReView", expandId);
             //}
-
-
         });
 
+        // 重新检索
         function redoSearch() {
             //alert("redoSearch1");
             // 当按浏览器返回按钮时，要显示原来的数据
             var word = $('#txtWord').val();
-            if (word != "") {
-
-                //alert("redoSearch2");
-
-
+            if (word == "")
+                word = $('#txtWordSimple').val();
+            if (word != "") { 
                 //alert("maxNo=" + $("#maxNo").val());
                 var expandId = $('#expandId').val();
                 search("_ReView", expandId);
-
                 ///alert("redoSearch3");
-
             }
         }
-
-
 
         // 检索
         function search(bNext, expandId) {
@@ -386,7 +187,7 @@
                             + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\"" + id + "\")'>" + record.no + " " + record.name + "</a>"
                             + "<div class='mui-collapse-content' style='display:none;'>"
                                 + "<div class='pendingDetail biblio' >"
-                                    + "<label>" + record.libId + "|" + record.recPath + "</label>"
+                                    + "<label>" + record.recPath + "</label>"
                                     + "<img src='../img/wait2.gif' />"
                                 + "</div>"
                             + "</div>"
@@ -430,97 +231,6 @@
         }
 
 
-
-        //预约
-        function reservation(obj, barcode, style) {
-            //alert($("input[name='ckbBarcode']:checked").length);
-            if (style == "delete") {
-                var opeName = $(obj).text();
-                var gnl = confirm("你确定对册[" + barcode + "]" + opeName + "吗?");
-                if (gnl == false) {
-                    return false;
-                }
-            }
-
-            var libId = getLibId();//$("#selLib").val();
-            if (libId == "") {
-                alert("尚未选择图书馆");
-                return;
-            }
-
-            var patron = $("#patronBarcode").text();
-            if (patron == "") {
-                alert("您尚未绑定图书馆账户，请先绑定账户。");
-                return;
-            }
-
-            var items = barcode;
-            if (items == "") {
-                alert("您尚未选择要预约的册记录。");
-                return;
-            }
-
-            //显示等待图层
-            var index = loadLayer();
-
-            var url = "/api/Reservation?libId=" + encodeURIComponent(libId)
-                + "&patron=" + encodeURIComponent(patron)
-                + "&items=" + encodeURIComponent(items)
-                + "&style=" + style;//new 创建一个预约请求,delete删除
-            // 调api
-            sendAjaxRequest(url, "POST", function (result) {
-
-
-                // 关闭等待层
-                layer.close(index);
-
-                // 显示预约结果
-                var infoDiv = $(obj).parent().parent().parent().find(".resultInfo").first();
-                //alert(infoDiv);
-                var info = result.errorInfo;
-
-                $("input[name='ckbBarcode']").removeAttr("checked");//取消全选
-
-                // 出错
-                if (result.errorCode == -1) {
-                    $(infoDiv).text(info);
-                    $(infoDiv).css("color", "red");  //设为红色
-
-                    alert(result.errorInfo);
-                    return;
-                }
-
-                var bWarn = true;
-                if (info == "") {
-                    info = $(obj).html() + " 操作成功。";
-                    bWarn = false;
-                }
-                else {
-                    info = $(obj).html() + " 操作成功。<br>" + info;
-                }
-
-                alert(info.replace("<br>", "\r\n"));
-
-                // 更新列表
-                var div = $(obj).parent().parent();
-                getReservations(barcode, div, info, bWarn);
-
-
-            }, function (xhq, textStatus, errorThrown) {
-
-                // 关闭等待层
-                layer.close(index);
-
-                // 显示预约结果
-                var infoDiv = $(obj).parent().parent().parent().find(".resultInfo").first();
-                var info = "访问服务器出错：[" + errorThrown + "]";
-                alert(info);
-
-                $(infoDiv).text(info);
-                $(infoDiv).css("color", "red");  //设为红色
-            });
-        }
-
         // 2016-6-17 jane 为了返回时记住展开项，expand函数由原来传一个对象，改为传一个id
         function expand(expId) {
             //根据id找到<li>元素
@@ -545,278 +255,35 @@
                 // 记住展开项
                 $("#expandId").val(expId);
 
+
                 //检查是否已经加载过了
                 var o = $(obj).find(".pendingDetail:first");
                 if (o.length == 0) {
                     return;
                 }
                 else {
-                    getDetail(o);
-                }
-            }
-        }
+                    var recPath = o.children("label").text();
+                    //alert(recPath);
+                    if (recPath != null && recPath != "") {
+                        // 图书馆
+                        var libId = getLibId();
+                        var myhtml = getDetail(libId, recPath, o,"index");
 
-        function getReservationHtml(barcode) {
-            myReserHtml = "";
-            var reservationState = getReservationState(barcode);
-            //alert("[" + reservationState + "]");
-            var btn = "";
-            if (reservationState == "未预约") {
-                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','new')\">预约</button>";
-            }
-            else if (reservationState == "已预约") {
-                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','delete')\">取消预约</button>";
-            }
-            else if (reservationState == "已到书") {
-                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','delete')\">放弃取书</button>";
-            }
-            if (reservationState != "") {
-                myReserHtml = "<div class='info'>" + reservationState + "</div>"
-                    + "<div class='btn'>" + btn + "</div>";
-            }
-            return myReserHtml;
-        }
-
-        // 续借
-        function renew(itemBarcode) {
-            if (itemBarcode == "") {
-                alert("尚未传入册条码号。");
-                return;
-            }
-
-            var libId = $("#libId").val();
-            if (libId == "") {
-                alert("尚未选择图书馆");
-                return;
-            }
-
-
-            var patronBarcode = $("#patronBarcode").text();
-            if (patronBarcode == "") {
-                alert("您尚未绑定图书馆读者账户，请先绑定账户。");
-                return;
-            }
-
-            //显示等待图层
-            var index = loadLayer();
-
-            var url = "/api/BorrowInfo?libId=" + encodeURIComponent(libId)
-                + "&action=renew"
-                + "&patron=" + encodeURIComponent(patronBarcode)
-                + "&item=" + encodeURIComponent(itemBarcode)
-            // 调api
-            sendAjaxRequest(url, "POST", function (result) {
-
-                // 关闭等待层
-                layer.close(index);
-
-                // 显示续借结果
-                var divId = "#renewInfo-" + itemBarcode;
-                var infoDiv = $(divId);
-                var info = result.errorInfo;
-
-
-                // 出错
-                if (result.errorCode == -1) {
-                    $(infoDiv).text(info);
-                    $(infoDiv).css("color", "red");  //设为红色
-
-                    alert(result.errorInfo);
-                    return;
-                }
-
-
-                if (info == "")
-                    info = "续借成功";
-
-                $(infoDiv).text(info);
-                $(infoDiv).css("color", "darkgreen");  //设为绿色
-
-                // todo 需要更新列表
-
-
-            }, function (xhq, textStatus, errorThrown) {
-
-                // 关闭等待层
-                layer.close(index);
-
-                // 显示预约结果
-                var info = "访问服务器出错：[" + errorThrown + "]";
-                alert(info);
-
-                var divId = "#renewInfo-" + itemBarcode;
-                var infoDiv = $(divId);
-
-                $(infoDiv).text(info);
-                $(infoDiv).css("color", "red");  //设为红色
-            });
-        }
-
-
-        function getDetail(o) {
-            // 找到下级的标签，里面存储的线索
-            var mylable = o.children("label");
-
-            // pendingDetail没有定义标签label,去掉pendingDetail状态
-            if (mylable.length == 0) {
-                o.html("没找到存放线索信息的lable标签");
-                o.removeClass("pendingDetail");
-                return;
-            }
-
-            // 取出label设置的线索信息
-            var keyword = mylable.text();
-            // 未给label设值，去掉pendingDetail状态
-            if (keyword.length == 0) {
-                o.html("线索信息为空");
-                o.removeClass("pendingDetail");
-                return;
-            }
-
-            // 取出图书馆账号与记录路径
-            var nIndex = keyword.indexOf('|');
-            var libId = keyword.substring(0, nIndex);
-            var biblioPath = keyword.substring(nIndex + 1);
-            //alert("type[" + mytype + "]-value[" + myvalue + "]");
-            if (libId == "" || biblioPath == "") {
-                o.html("记录路径值[" + keyword + "]不对，格式应该为[图书馆id|记录路径]");
-                o.removeClass("pendingDetail");
-                return;
-            }
-
-            // 调api
-            var url = "/api/biblio?libId=" + encodeURIComponent(libId) + "&biblioPath=" + encodeURIComponent(biblioPath);
-            sendAjaxRequest(url, "GET", function (result) {
-
-                // 出错或未命中
-                if (result.errorCode == -1 || result.errorCode == 0) {
-                    o.html(result.errorInfo);
-                    $(o).css("color", "red");  //设置p元素的样式颜色为红色
-                    o.removeClass("pendingDetail");
-                    return;
-                }
-
-                var itemTables = "";
-                if (result.itemList.length == 0)
-                    itemTables = "<div class='mui-card item'>"
-                        + "<span class='remark'>没有册信息</span>"
-                        + "</div>"
-
-                var patronBarcode = $("#patronBarcode").text();
-                var bCanReservation = false;
-                var returnUrl = "/Biblio/Index";
-                var info = "<span class='remark'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl=" + encodeURIComponent(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>"
-                if (patronBarcode != null && patronBarcode != "") // 有绑定的读者
-                {
-                    bCanReservation = true;
-                    info = "";
-                }
-                //alert(info);
-
-                var curPatronBarcode = $("#patronBarcode").text();
-                var curPatronName = $("#patronName").text();
-
-                for (var i = 0; i < result.itemList.length; i++) {
-                    var record = result.itemList[i];
-                    var myReserHtml = info;
-                    if (bCanReservation == true) {
-                        myReserHtml = "<div>" + getReservationHtml(record.barcode) + "</div>"
-                            + "<br/><div class='resultInfo'></div>";
+                        //var url = "/Biblio/Detail?biblioPath=" + encodeURIComponent(recPath);
+                        //gotoUrl(url);
                     }
-
-                    var strBorrowInfo = "在架";
-                    // 检查是不是当前读者借的
-                    if (record.borrower != null && record.borrower != "") {
-                        if (curPatronBarcode != record.borrower) {
-                            strBorrowInfo = "借阅者:***<br/>"
-                            + "借阅时间:" + record.borrowDate + "<br/>"
-                            + "借期:" + record.borrowPeriod;
-                        }
-                        else {
-                            strBorrowInfo = "<div>"
-                                    + "<div class='info'>借阅者:" + curPatronName + "<br/>"
-                                                              + "借阅时间:" + record.borrowDate + "<br/>"
-                                                              + "借期:" + record.borrowPeriod
-                                     + "</div>"
-                                    + "<div class='btn'>"
-                                    + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + record.barcode + "')\">续借</button>"
-                                    + "</div>"
-                                + "</div><br/>"
-                                + "<div id='renewInfo-" + record.barcode + "'/>";
-
-                            // 此时不能预约
-                            myReserHtml = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
-                        }
-                    }
-
-                    itemTables += "<div class='mui-card item' >"
-                    + "<div class='title'>" + record.barcode + "</div>"
-                     + "<table>"
-                    + "<tr>"
-                    + "<td class='label'>状态</td>"
-                    + "<td class='value'>" + record.state + "</td>"
-                    + "</tr>"
-                    + "<tr>"
-                    + "<td class='label'>卷册</td>"
-                    + "<td class='value'>" + record.volumn + "</td>"
-                    + "</tr>"
-                    + "<tr>"
-                    + "<td class='label'>馆藏地</td>"
-                    + "<td class='value'>" + record.location + "</td>"
-                    + "</tr>"
-                    + "<tr>"
-                    + "<td class='label'>价格</td>"
-                    + "<td class='value'>" + record.price + "</td>"
-                    + "</tr>"
-                    + "<tr>"
-                    + "<td class='label'>在借情况</td>"
-                    + "<td class='value'>" + strBorrowInfo + "</td>"
-                    + "</tr>"
-                    + "<tr>"
-                    + "<td class='label'>预约信息</td>"
-                    + "<td class='value' >" + myReserHtml + "</td>"
-                    + "</tr>"
-                    //
-                    + "</table>"
-                    + "</div>";
                 }
-
-
-
-                var worker = $("#workerUserName").text();
-                var recommendBtn = "";
-                if (worker != null && worker != "") {
-                    var recommPath = "/Library/BookEdit?libId=" + libId
-                        + "&userName=" + worker
-                        + "&biblioPath=" + encodeURIComponent(biblioPath)
-                        + "&returnUrl=" + encodeURIComponent('/Biblio/Index')
-                    recommendBtn = "<div class='btnRow'><button class='mui-btn  mui-btn-default' "
-                        + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button></div>";
-                }
-
-
-
-                var myHtml = "<span>" + result.summary + "</span>" + recommendBtn + itemTables;
-
-
-                //换成实际的值，去掉pendingDetail状态，
-                o.html(myHtml);
-                o.removeClass("pendingDetail");
-            }, function (xhq, textStatus, errorThrown) {
-                //出错，去掉pendingDetail状态
-                o.html("访问服务器出错：[" + errorThrown + "]");
-                o.removeClass("pendingDetail");
-            });
-
-            return;
+            }
         }
-
 
         //必须要换一个名称，被下一页使用，直接用search("true")不行
         function searchN() {
             search("true");
         }
 
+
+
+        // 切换简单检索与高级检索
         function changeType() {
             var type = $("#searchType").text();
             //alert(type);
@@ -890,14 +357,16 @@
                     }
 
                         /*册右值数据td*/
-                        DIV.item TABLE TR TD.value DIV.info {
-                            float: left;
+                        DIV.item TABLE TR TD.value .info {
+                            /*float: left;*/
                             padding-top: 5px;
+                            text-align:left;
                         }
 
                         /*册右值数据td*/
-                        DIV.item TABLE TR TD.value DIV.btn {
-                            float: right;
+                        DIV.item TABLE TR TD.value .btn {
+                            /*float: right;*/
+                            text-align:right;
                         }
 
                     /*册左侧标题td*/
@@ -914,7 +383,7 @@
                         /*显示预约结果的span*/
                     }
 
-                    /*===========*/
+        /*===========*/
         DIV.search {
             padding: 10px;
             /*background-color: green;*/
@@ -929,35 +398,34 @@
 
 
 
-        /*=============*/
-        /*消息编辑态标题*/
-        DIV.search INPUT, SELECT {
-            margin-bottom: 0px;
-        }
-
-        DIV.search TABLE.advance tr td {
-            padding: 5px;
-        }
-
-            DIV.search TABLE.advance tr td.label {
-                color: #999999;
-                width:70px;
+            /*=============*/
+            /*消息编辑态标题*/
+            DIV.search INPUT, SELECT {
+                margin-bottom: 0px;
             }
 
+            DIV.search TABLE.advance tr td {
+                padding: 5px;
+            }
 
-        DIV.search TABLE.advance select {
-            font-size: 17px;
-            height: 37px;
-            padding: 0px;
-            margin:0px;
-            padding-left:5px;
-        }
+                DIV.search TABLE.advance tr td.label {
+                    color: #999999;
+                    width: 70px;
+                }
 
-                DIV.search TABLE.advance input, textarea {
 
-            padding: 5px;
-            margin:0px;
-        }
+            DIV.search TABLE.advance select {
+                font-size: 17px;
+                height: 37px;
+                padding: 0px;
+                margin: 0px;
+                padding-left: 5px;
+            }
+
+            DIV.search TABLE.advance input, textarea {
+                padding: 5px;
+                margin: 0px;
+            }
     </style>
 }
 
@@ -966,9 +434,10 @@
 }
 <span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
+<!--
 <span id="patronName" style="display:none">@ViewBag.PatronName</span>
 <span id="workerUserName" style="display:none">@ViewBag.workerUserName</span>
-
+-->
 <!--关于结果集-->
 <input id="maxNo" type="hidden">
 <input id="resultSet" type="hidden" value="" disabled="disabled">
@@ -977,13 +446,13 @@
     <table style="width:100%" class="simple">
         <tr>
             <td style="vertical-align:middle;width:100%">
-                <input  class="mui-input mui-input-clear" style="border-top-left-radius:4px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:4px;border-right:0px" id="txtWordSimple" type="text" value="" placeholder="请输入检索词">
+                <input class="mui-input mui-input-clear" style="border-top-left-radius:4px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:4px;border-right:0px" id="txtWordSimple" type="text" value="" placeholder="请输入检索词">
             </td>
             <td style="vertical-align:top"><span class="mui-icon mui-icon-search" style="padding-top:10px;height:40px; border:1px solid #cccccc;border-left:0px;border-top-left-radius:0px;border-top-right-radius:4px;border-bottom-right-radius:4px;border-bottom-left-radius:0px;width:30px;cursor:pointer; background-color:white" onclick="search('simple')"></span></td>
         </tr>
     </table>
 </div>
-<div id="divAdvance" class="search" style="display:none" >
+<div id="divAdvance" class="search" style="display:none">
     <table class="advance">
         <tr>
             <td class="label">检索途径</td>
@@ -1033,7 +502,7 @@
 </div>
 <div id="divResult">
     <!--数据列表-->
-    <span style="padding-left:10px" id="searchInfo"></span>
+    <span style="padding-left:10px;" id="searchInfo"></span>
     <ul id="ulResult" class="mui-table-view "></ul>
 
 

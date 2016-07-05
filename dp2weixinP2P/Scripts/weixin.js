@@ -26,7 +26,7 @@ function fillPending() {
     var keyword = mylable.text().trim();
     // 未给label设值，去掉pending状态，继续下一个pending
     if (keyword.length == 0) {
-         //alert("fillPending1-3:[" + mylable.text() + "]");
+        //alert("fillPending1-3:[" + mylable.text() + "]");
         o.removeClass("pending");
         window.setTimeout("fillPending()", 1);
         return;
@@ -56,7 +56,8 @@ function fillPending() {
     if (mytype == "bs-") {
         //alert("bs-"+keyword);
         var libId = o.children("span").text();
-        var url = "/api/biblio?id=" + encodeURIComponent(myvalue) + "&format=summary"
+        var url = "/api/biblio?id=" + encodeURIComponent(myvalue)
+            + "&format=summary"
             + "&libId=" + encodeURIComponent(libId);
 
         //alert(url);
@@ -81,10 +82,11 @@ function fillPending() {
             o.removeClass("pending");
             window.setTimeout("fillPending()", 1);
         });
-    }    
+    }
     else if (mytype == "ms-") {
         var libId = o.children("span").text();
-        var url = "/api/biblio?id=more" + "&format=" + encodeURIComponent(myvalue)
+        var url = "/api/biblio?id=" + encodeURIComponent(myvalue)
+            + "&format=more-summary"
             + "&libId=" + encodeURIComponent(libId);
         //alert(url);
         // 调api
@@ -105,7 +107,7 @@ function fillPending() {
 
         // 调web api
         var url = "/api/LibMessage?weixinId=" //+ weixinId
-                    +"&group=gn:_lib_homePage"
+                    + "&group=gn:_lib_homePage"
                     + "&libId=" + libId
                     + "&msgId="
                     + "&subject=" + encodeURIComponent(myvalue)
@@ -144,7 +146,7 @@ function fillPending() {
             if (result.items != null) {
                 for (var i = 0; i < result.items.length; i++) {
                     var msgItem = result.items[i];
-                    msgHtml += getMsgViewHtml(msgItem,true);
+                    msgHtml += getMsgViewHtml(msgItem, true);
                 }
             }
 
@@ -244,7 +246,7 @@ function alertServerError(info) {
 // 得到虚拟目录路径
 function getRootPath() {
     var pathName = window.location.pathname.substring(1);
-   // alert("pathname["+ pathName+"]");
+    // alert("pathname["+ pathName+"]");
     var webName = pathName == '' ? '' : pathName.substring(0, pathName.indexOf('/'));
     //alert("webName[" + webName + "]");
     var rootPath = window.location.protocol + '//' + window.location.host;//+ '/' + webName;
@@ -276,4 +278,5 @@ function sendAjaxRequest(url,
         async: myasync
     });
 }
+
 

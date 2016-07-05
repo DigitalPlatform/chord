@@ -34,21 +34,24 @@ namespace dp2weixinWeb.ApiControllers
 
         // POST api/<controller>
         [HttpPost]
-        public ApiResult Post(string libId,
+        public ItemReservationResult Post(string libId,
             string patron,
             string items,
             string style)
         {
-            ApiResult result = new ApiResult();
-
+            ItemReservationResult result = new ItemReservationResult();
+            string reserRowHtml = "";
             string strError = "";
             int nRet = dp2WeiXinService.Instance.Reservation(libId,
                 patron,
                 items,
                 style,
+                out reserRowHtml,
                 out strError);
             result.errorCode = nRet;
             result.errorInfo = strError;
+
+            result.reserRowHtml = reserRowHtml;
 
             return result;
         }

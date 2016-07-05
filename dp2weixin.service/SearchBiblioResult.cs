@@ -25,14 +25,19 @@ namespace dp2weixin.service
         public string no = "";
         public string recPath = "";
         public string name = "";
-        public string libId = "";
+        //public string libId = "";
     }
 
-    public class BiblioRecordResult : ApiResult
+    public class BiblioDetailResult : ApiResult
     {
         public string biblioPath { get; set; }
 
         public string summary { get; set; }
+        public List<BiblioItem> itemList { get; set; }
+    }
+
+    public class BiblioItemResult : ApiResult
+    {
         public List<BiblioItem> itemList { get; set; }
     }
 
@@ -68,5 +73,6 @@ namespace dp2weixin.service
          public string borrowDate { get; set; }
          public string borrowPeriod { get; set; }
 
+         public string reservationInfo { get; set; }
     }
 }

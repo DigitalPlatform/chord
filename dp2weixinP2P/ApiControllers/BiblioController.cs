@@ -12,8 +12,17 @@ namespace dp2weixinWeb.ApiControllers
 {
     public class BiblioController : ApiController
     {
-        // GET api/<controller>
-        public SearchBiblioResult Get(string libId, 
+        /// <summary>
+        /// 检索
+        /// </summary>
+        /// <param name="libId"></param>
+        /// <param name="from"></param>
+        /// <param name="word"></param>
+        /// <param name="match"></param>
+        /// <param name="resultSet"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public SearchBiblioResult Search(string libId, 
             string from,
             string word, 
             string match,
@@ -83,7 +92,15 @@ namespace dp2weixinWeb.ApiControllers
             return searchRet;
         }
 
-        public string GetBiblio(string id, [FromUri] string format, string libId)
+        /// <summary>
+        /// 获取摘要信息
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="format"></param>
+        /// <param name="libId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public string GetBiblioSummary(string id, [FromUri] string format, string libId)
         {
             string strSummary = "未实现";
 
@@ -93,13 +110,12 @@ namespace dp2weixinWeb.ApiControllers
                 return "未找到id为[" + libId + "]的图书馆定义。";
             }
 
-            if (id == "more")
+            if (format == "more-summary")
             {
-                strSummary = dp2WeiXinService.Instance.GetBarcodesSummary(lib.capoUserName, format);
+                strSummary = dp2WeiXinService.Instance.GetBarcodesSummary(lib.capoUserName, id);
                 return strSummary;
             }
-
-            if (format == "summary") //todo 将summary字符串改为常量
+            else if (format == "summary")
             {
                 string strRecPath = "";
                 string strError = "";
@@ -119,19 +135,57 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         /// <summary>
-        /// 获取书目详细信息
+        /// 获取书目详细信息,包括summary与items
         /// </summary>
         /// <param name="libUserName"></param>
         /// <param name="biblioPath"></param>
         /// <returns></returns>
-        public BiblioRecordResult Get(string libId, string biblioPath)
+        [HttpGet]
+        public BiblioDetailResult GetBiblioDetail(string weixinId,
+            string libId, 
+            string biblioPath,
+            string format,
+            string from)
         {
-            BiblioRecordResult result = dp2WeiXinService.Instance.GetBiblioDetail(libId,
-                biblioPath);
+          
+            BiblioDetailResult result = dp2WeiXinService.Instance.GetBiblioDetail(weixinId,
+                libId,
+                biblioPath,
+                from);
             return result;
         }
 
+        /*
+        /// <summary>
+        /// 获取items
+        /// </summary>
+        /// <param name="libId"></param>
+        /// <param name="biblioPath"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public BiblioItemResult GetBiblioItem(string weixinId, 
+            string libId, 
+            string biblioPath)
+        {
+            BiblioItemResult result = new BiblioItemResult();
 
+            List<BiblioItem> items = null;
+            string strError = "";
+            long ret= dp2WeiXinService.Instance.GetItemInfo(weixinId,
+                libId,
+                biblioPath,
+                out items,
+                out strError);
+            if (ret == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+                return result;
+            }
 
+            result.itemList = items;
+            return result;
+        }
+        */
     }
 }

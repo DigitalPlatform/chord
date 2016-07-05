@@ -1,4 +1,377 @@
-﻿====检索界面代码===
+﻿===检索界面展开书目代码===
+
+        //观察模型l
+        var model = {
+            reservations: ko.observableArray()    //预约列表
+        }
+
+        //2016-6-17 jane 获得当前绑定读者，为了解决普通浏览器返回时，读者信息没更新的问题,iphone倒是更新了
+        function getActivePatron() {
+
+            //alert("getActivePatron1");
+
+            // 先删除可观察数组中的已有数据
+            model.reservations.removeAll();
+
+            $("#patronBarcode").text("");
+            $("#patronName").text("");
+            $("#workerUserName").text("");
+
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "")
+                return;
+
+            // 图书馆
+            var libId = getLibId();//$("#selLib").val();
+            if (libId == "" || libId == null) {
+                return;
+            }
+
+            //alert("getActivePatron2");
+
+            //显示等待图层
+            var index = loadLayer();
+
+            // 调web api
+            var url = "/api/wxuser?libId=" + encodeURIComponent(libId)
+                + "&weixinId=" + weixinId
+                + "&style=activeAndWorker";
+            sendAjaxRequest(url, "GET", function (data) {
+
+                // alert("getActivePatron3");
+
+                // 关闭等待层
+                layer.close(index);
+
+                if (data == null)
+                    return;
+
+                if (data.length > 0) {
+                    for (var i = 0; i < data.length; i++) {
+                        var user = data[i];
+                        // 读者
+                        if (user.type == 0) {
+                            $("#patronBarcode").text(user.readerBarcode);
+                            $("#patronName").text(user.readerName);
+
+                            //alert("getActivePatron4");
+                        }
+                        else if (user.type == 1) {
+                            $("#workerUserName").text(user.userName);
+
+                            //alert("getActivePatron5");
+                        }
+                    }
+                }
+
+                // alert("getActivePatron6");
+
+
+                // 获取预约列表
+                getReservations();
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        //获取预约列表
+        function getReservations(checkBarcode, obj, info, bWarn) {
+
+            //alert("getReservations1");
+
+            // 先删除可观察数组中的已有数据
+            model.reservations.removeAll();
+
+            // 图书馆
+            var libId = getLibId();//$("#selLib").val();
+            if (libId == "" || libId == null) {
+
+                //alert("getReservations1-1");
+                return;
+            }
+
+            var patronBarcode = $("#patronBarcode").text();
+            if (patronBarcode == "") {
+                //alert("getReservations1-2");
+
+                return;// 未绑定
+            }
+
+            // alert("getReservations2");
+
+
+            //显示等待图层
+            var index = loadLayer();
+
+            // 调web api
+            var url = "/api/Reservation?libId=" + encodeURIComponent(libId)
+                + "&patronBarcode=" + encodeURIComponent(patronBarcode);
+            sendAjaxRequest(url, "GET", function (result) {
+                //alert("getReservations3");
+
+
+                // 关闭等待层
+                layer.close(index);
+
+                // 出错或未命中
+                if (result.errorCode == -1 || result.errorCode == 0) {
+                    openMsg(result.errorInfo);
+                    return;
+                }
+
+                for (var i = 0; i < result.reservations.length; i++) {
+                    //加到观察数组中
+                    model.reservations.push(result.reservations[i]);
+                }
+
+                //alert("getReservations4");
+
+
+                if (checkBarcode != null && checkBarcode != "" && obj != null) {
+
+                    //alert("getReservations5");
+
+                    var myhtml = getReservationHtml(checkBarcode)
+                    //alert("myhtml ["+myhtml+"]");
+
+                    $(obj)[0].innerHTML = myhtml;  // 不能直接设html
+                    //$("#responsediv")[0].innerHTML = msg就可以获得这个Dom对象使用innerHTML。
+
+                    var infoDiv = $(obj).parent().find(".resultInfo").first();
+                    //alert(infoDiv);
+                    // alert("["+info+"]");
+
+                    $(infoDiv)[0].innerHTML = info;//.text(info);
+                    if (bWarn == true)
+                        $(infoDiv).css("background-color", "yellow");  //设为绿色
+                    else
+                        $(infoDiv).css("color", "darkgreen");  //设为绿色
+
+                    //alert($(infoDiv).attr('id'));
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        // 得到预约状态
+        function getReservationState(barcode) {
+            //alert("getReservationState1");
+            if (model.reservations().length == 0)
+                return "未预约";
+
+            //alert("getReservationState2");
+
+            for (var i = 0; i < model.reservations().length; i++) {
+
+                //alert("getReservationState3-"+i);
+                var oneReservation = model.reservations()[i];
+                var barcodeList = oneReservation.pureBarcodes;
+                var arrivedBarcode = oneReservation.arrivedBarcode;
+                var nIndex = barcodeList.indexOf(barcode);
+
+                //alert(barcodeList + "-" + arrivedBarcode);
+                if (nIndex >= 0) {
+                    if (barcode == arrivedBarcode)
+                        return "已到书";
+                    else
+                        return "已预约";
+                }
+            }
+
+            return "未预约";
+        }
+
+        // 得到预约状态和操作按钮
+        function getReservationHtml(barcode) {
+            myReserHtml = "";
+            var reservationState = getReservationState(barcode);
+            //alert("[" + reservationState + "]");
+            var btn = "";
+            if (reservationState == "未预约") {
+                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','new')\">预约</button>";
+            }
+            else if (reservationState == "已预约") {
+                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','delete')\">取消预约</button>";
+            }
+            else if (reservationState == "已到书") {
+                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','delete')\">放弃取书</button>";
+            }
+            if (reservationState != "") {
+                myReserHtml = "<div class='info'>" + reservationState + "</div>"
+                    + "<div class='btn'>" + btn + "</div>";
+            }
+            return myReserHtml;
+        }
+
+        // 获取详细书目记录
+        function getDetail(o) {
+            // 找到下级的标签，里面存储的线索
+            var mylable = o.children("label");
+
+            // pendingDetail没有定义标签label,去掉pendingDetail状态
+            if (mylable.length == 0) {
+                o.html("没找到存放线索信息的lable标签");
+                o.removeClass("pendingDetail");
+                return;
+            }
+
+            // 取出label设置的线索信息
+            var keyword = mylable.text();
+            // 未给label设值，去掉pendingDetail状态
+            if (keyword.length == 0) {
+                o.html("线索信息为空");
+                o.removeClass("pendingDetail");
+                return;
+            }
+
+            // 取出图书馆账号与记录路径
+            var nIndex = keyword.indexOf('|');
+            var libId = keyword.substring(0, nIndex);
+            var biblioPath = keyword.substring(nIndex + 1);
+            //alert("type[" + mytype + "]-value[" + myvalue + "]");
+            if (libId == "" || biblioPath == "") {
+                o.html("记录路径值[" + keyword + "]不对，格式应该为[图书馆id|记录路径]");
+                o.removeClass("pendingDetail");
+                return;
+            }
+
+            // 调api
+            var url = "/api/biblio?libId=" + encodeURIComponent(libId) + "&biblioPath=" + encodeURIComponent(biblioPath);
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 出错或未命中
+                if (result.errorCode == -1 || result.errorCode == 0) {
+                    o.html(result.errorInfo);
+                    $(o).css("color", "red");  //设置p元素的样式颜色为红色
+                    o.removeClass("pendingDetail");
+                    return;
+                }
+
+                var itemTables = "";
+                if (result.itemList.length == 0)
+                    itemTables = "<div class='mui-card item'>"
+                        + "<span class='remark'>没有册信息</span>"
+                        + "</div>"
+
+                var patronBarcode = $("#patronBarcode").text();
+                var bCanReservation = false;
+                var returnUrl = "/Biblio/Index";
+                var info = "<span class='remark'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl=" + encodeURIComponent(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>"
+                if (patronBarcode != null && patronBarcode != "") // 有绑定的读者
+                {
+                    bCanReservation = true;
+                    info = "";
+                }
+                //alert(info);
+
+                var curPatronBarcode = $("#patronBarcode").text();
+                var curPatronName = $("#patronName").text();
+
+                for (var i = 0; i < result.itemList.length; i++) {
+                    var record = result.itemList[i];
+                    var myReserHtml = info;
+                    if (bCanReservation == true) {
+                        myReserHtml = "<div>" + getReservationHtml(record.barcode) + "</div>"
+                            + "<br/><div class='resultInfo'></div>";
+                    }
+
+                    var strBorrowInfo = "在架";
+                    // 检查是不是当前读者借的
+                    if (record.borrower != null && record.borrower != "") {
+                        if (curPatronBarcode != record.borrower) {
+                            strBorrowInfo = "借阅者:***<br/>"
+                            + "借阅时间:" + record.borrowDate + "<br/>"
+                            + "借期:" + record.borrowPeriod;
+                        }
+                        else {
+                            strBorrowInfo = "<div>"
+                                    + "<div class='info'>借阅者:" + curPatronName + "<br/>"
+                                                              + "借阅时间:" + record.borrowDate + "<br/>"
+                                                              + "借期:" + record.borrowPeriod
+                                     + "</div>"
+                                    + "<div class='btn'>"
+                                    + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + record.barcode + "')\">续借</button>"
+                                    + "</div>"
+                                + "</div><br/>"
+                                + "<div id='renewInfo-" + record.barcode + "'/>";
+
+                            // 此时不能预约
+                            myReserHtml = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
+                        }
+                    }
+
+                    itemTables += "<div class='mui-card item' >"
+                    + "<div class='title'>" + record.barcode + "</div>"
+                     + "<table>"
+                    + "<tr>"
+                    + "<td class='label'>状态</td>"
+                    + "<td class='value'>" + record.state + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>卷册</td>"
+                    + "<td class='value'>" + record.volumn + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>馆藏地</td>"
+                    + "<td class='value'>" + record.location + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>价格</td>"
+                    + "<td class='value'>" + record.price + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>在借情况</td>"
+                    + "<td class='value'>" + strBorrowInfo + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>预约信息</td>"
+                    + "<td class='value' >" + myReserHtml + "</td>"
+                    + "</tr>"
+                    //
+                    + "</table>"
+                    + "</div>";
+                }
+
+
+
+                var worker = $("#workerUserName").text();
+                var recommendBtn = "";
+                if (worker != null && worker != "") {
+                    var recommPath = "/Library/BookEdit?libId=" + libId
+                        + "&userName=" + worker
+                        + "&biblioPath=" + encodeURIComponent(biblioPath)
+                        + "&returnUrl=" + encodeURIComponent('/Biblio/Index')
+                    recommendBtn = "<div class='btnRow'><button class='mui-btn  mui-btn-default' "
+                        + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button></div>";
+                }
+
+                var myHtml = "<span>" + result.summary + "</span>" + recommendBtn + itemTables;
+
+
+                //换成实际的值，去掉pendingDetail状态，
+                o.html(myHtml);
+                o.removeClass("pendingDetail");
+            }, function (xhq, textStatus, errorThrown) {
+                //出错，去掉pendingDetail状态
+                o.html("访问服务器出错：[" + errorThrown + "]");
+                o.removeClass("pendingDetail");
+            });
+
+            return;
+        }
+
+
+====检索界面代码===
 
     <div class="mui-input-group">
         <!--
