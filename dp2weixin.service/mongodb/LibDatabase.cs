@@ -120,6 +120,20 @@ namespace dp2weixin.service
             return list;
         }
 
+        public LibItem GetOneLib()
+        {
+            LibItem item = null;
+            List<LibItem> list = this.LibCollection.Find(new BsonDocument()).ToListAsync().Result;
+            if (list != null && list.Count > 0)
+            {
+                item = list[0];
+                //解密
+                if (String.IsNullOrEmpty(item.wxPassword) == false)
+                    item.wxPassword = Cryptography.Decrypt(item.wxPassword, WeiXinConst.EncryptKey);
+            }
+            return item;
+        }
+
         public LibItem Add(LibItem item)
         {
             item.OperTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");

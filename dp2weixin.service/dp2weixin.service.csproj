@@ -97,7 +97,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BookSubjectItem.cs" />
     <Compile Include="MessageItem.cs" />
     <Compile Include="ApiResult.cs" />
     <Compile Include="Command\BaseCommand.cs" />
@@ -111,14 +110,15 @@
     <Compile Include="dp2MessageHandler\dp2weixinMessageHandler_Events.cs" />
     <Compile Include="Interface\MessageInterface.cs" />
     <Compile Include="Interface\ScriptManager.cs" />
-    <Compile Include="LibDatabase.cs" />
+    <Compile Include="mongodb\LibDatabase.cs" />
+    <Compile Include="mongodb\UserSettingDb.cs" />
     <Compile Include="MsgRouter.cs" />
     <Compile Include="Patron.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchBiblioResult.cs" />
     <Compile Include="TemplateData.cs" />
     <Compile Include="WeiXinConst.cs" />
-    <Compile Include="WxUserDatabase.cs" />
+    <Compile Include="mongodb\WxUserDatabase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -158,6 +158,7 @@
       <Name>DigitalPlatform.Xml</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

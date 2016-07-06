@@ -1,0 +1,92 @@
+﻿@section Scripts {
+    <script>
+
+
+        // 绑定账号
+        function save() {
+
+            // 图书馆
+            //var lib = model.selectedLib();
+            var libId = $("#selLib").val();
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+
+
+            // 微信id
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "") {
+                alert("weixinId不能为空。");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/wxuser?weixinId="+weixinId+"&libId="+libId;
+            sendAjaxRequest(url, "POST",
+                function (result) {
+
+                    // 关闭等待层
+                    layer.close(index);
+
+                    if (result.errorCode == -1) {
+                        openMsg(result.errorInfo);
+                        return;
+                    }
+
+                    // 更新到顶部
+                    var oldName = $("#_libName").text();
+                    var libName = $("#selLib  option:selected").text();
+                    libName="["+libName+"]"
+                    $("#_libName").text(libName);
+
+                    alert("保存成功");
+
+                    // 返回到来源页
+                    var returnUrl = $("#returnUrl").text();
+                    if (returnUrl != null && returnUrl != "") {
+
+                        if (returnUrl.indexOf("/Biblio/Index") != -1 && oldName == libName) {
+                            //alert("1");
+                            window.history.go(-1);
+                        }
+                        else {
+                            //gotoUrl(returnUrl);
+
+                            var myUrl = window.location.protocol + '//' + window.location.host + returnUrl;
+                            window.location = myUrl;
+                        }
+                    }
+
+                    //
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                }
+            );
+
+
+        }
+
+
+    </script>
+}
+@section header {
+    <h1 class="mui-title">设置</h1>
+}
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="returnUrl" style="display:none">@ViewBag.returnUrl</span>
+<div class="mui-input-group">
+    <div class="mui-input-row ">
+        <label style="color:#cccccc">当前图书馆</label>
+        @Html.Raw(ViewBag.LibHtml)
+    </div>
+    </div>
+
+<div class="mui-content-padded">
+    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>
+</div>

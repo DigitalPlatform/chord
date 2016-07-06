@@ -25,39 +25,41 @@
 
             if (subValue == "new") {
                 $("#divNewSubject").css('display', 'block');
-                $("#txtSubject").val("");
-                //$("#txtSubject").css('display', 'block');
+                $("#_val_subject").val("");
             }
             else {
                 $("#divNewSubject").css('display', 'none');
-                $("#txtSubject").val(subValue);
+                $("#_val_subject").val(subValue);
             }            
         }
 
 
         function submitForm()
         {
-            var subject = $("#txtSubject").val();
+            var subject = $("#_val_subject").val();
             if (subject == "") {
                 alert("请选择栏目");
                 return;
             }
 
-            var title = $("#title").val();
+            var title = $("#_val_title").val();
             if (title == null || title == "") {
                 alert("请输入标题");
                 return;
             }
+            //alert("title["+title+"]");
 
-            var content = $("#content").val();
+            var content = $("#_val_content").val();
             if (content == null || content == "") {
                 alert("请输入内容");
                 return;
             }
 
-            var remark = $("#remark").val();
+            var remark = $("#_val_remark").val();
 
-            var libId = $("#_libId").val();// $("#libId").text();
+            // 注意id和name同名了还取不到值，这里使用_libId_
+            var libId = $("#_libId_").val();// $("#libId").text();
+            //alert("[" + libId + "]");
             if (libId == "") {
                 alert("异常情况：libId为空。");
                 return;
@@ -105,7 +107,18 @@
                         window.history.back(-1); //返回不刷新
                     }
                     else {
-                        gotoUrl(returnUrl);
+                        var oldSubject = $("#_subject_").val();                        
+                        if (returnUrl.indexOf("BookMsg") != -1 && oldSubject != subject) {
+                            var nIndex = returnUrl.indexOf("&subject=");                            
+                            var myUrl = returnUrl.substring(0, nIndex);
+                            //alert("截完:" + myUrl);
+                            myUrl = myUrl + "&subject=" + subject;
+                            //alert("新的:" + myUrl);
+                            gotoUrl(myUrl);
+                        }
+                        else {
+                            gotoUrl(returnUrl);
+                        }
                     }
                 },
                 function (xhq, textStatus, errorThrown) {
@@ -128,82 +141,149 @@
 }
 @section style {
     <style>
-        .leftLabel {
-            color: #999999;
-        }
 
-        .msg-title {
-            line-height: 1;
+        /*=======消息div===========*/
+        DIV.message {
             margin-top: 5px;
             margin-bottom: 5px;
-            font-size: 20px;
+            padding: 10px;
+            /*background-color: green;*/
+        }
+
+            /*消息div下的table*/
+            DIV.message TABLE {
+                width: 100%;
+                /*background-color: red;*/
+            }
+
+
+
+
+        /*=============*/
+        /*消息编辑态标题*/
+        DIV.message INPUT, SELECT {
+            margin-bottom: 0px;
+        }
+
+        DIV.message TABLE.edit tr td {
+            padding: 5px;
+        }
+
+            DIV.message TABLE.edit tr td.label {
+                color: #999999;
+                width: 40px;
+            }
+
+            DIV.message TABLE.edit tr td span.label {
+                color: #999999;
+            }
+
+        DIV.message TABLE.edit select {
+            font-size: 17px;
+            height: 37px;
+            padding: 0px;
+            margin:0px;
+        }
+
+                DIV.message TABLE.edit input, textarea {
+
+            padding: 5px;
+            margin:0px;
+        }
+
+                /*======是否可编辑态样式=============*/
+        .msgEditable {
+            background-color: #CCFF99;
         }
     </style>
 }
 @section header {
-    <h1 class="mui-title">绑定账号</h1>
+    @if (string.IsNullOrEmpty(Model.id) == true)
+    { 
+        <h1 class="mui-title">发布好书</h1>
+    }
+    else
+    {
+        <h1 class="mui-title">更新好书</h1>
+    }
 }
 
-<span id="userId" style="display:none">@ViewBag.UserId</span>
 <div>
-    <input type="hidden" id="_libId" name="_libId" value="@Model._libId" />
+    <input type="hidden" id="_libId_" name="_libId" value="@Model._libId" />
     <input type="hidden" id="_userName" name="_userName" value="@Model._userName" />
-    <input type="hidden" id="_subject" name="_subject" value="@Model._subject" />
+    <input type="hidden" id="_subject_" name="_subject" value="@Model._subject" />
     <input type="hidden" id="_returnUrl" name="_returnUrl" value="@Model._returnUrl" />
-
     <input type="hidden" id="id" name="id" value="@Model.id" />
 
+    <div class="mui-card message" id="_edit_48c6cf02-ae0e-4320-b1fe-25a125e6c79c">
+        <table class="edit">
+            <tr>
+                <td class="label">栏目</td>
+                <td>
+                    <div style="border:1px solid #cccccc">
+                        @Html.Raw(ViewBag.SubjectHtml)
+                    </div>
+                    <div id="divNewSubject" style="display:none;margin-top:5px">
+                        <input id="_val_subject" type="text" name="subject" value="@Model._subject" placeholder="请输入自定义栏目">
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="label">标题</td>
+                <td>
+                    <input class="mui-input mui-input-clear" id="_val_title" type="text" name="title" value="@Model.title">
+                </td>
+            </tr>
+            <tr>
+                <td class="label" colspan="2">书目路径&nbsp;&nbsp;<span style="color:#cccccc">(多条书目请换行)</span>
+                    <!--
+                    <div style="border:1px solid #cccccc;">
+                        <select id="selFormat">
+                            <option value="test" selected>文本格式</option>
+                            <option value="markdown">Markdown格式</option>
+                        </select>
+                    </div>
+                        -->
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <textarea id="_val_content" rows="5" name="content">@Model.content</textarea>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <span class="label">注释</span>
+                    <textarea id="_val_remark" rows="3" name="remark">@Model.remark</textarea>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="submitForm()">
+                        @if (String.IsNullOrEmpty(Model.id) == true) //( .id == "" || Model.id==null)
+                        {
+                            <span>发布</span>
+                        }
+                        else
+                        {
+                            <span>更新</span>
+                        }
 
-    <div class='mui-input-group'>
-        <div class='mui-input-row' style='border-bottom:0px'>
-            <label class="leftLabel">栏目</label>
-            @Html.Raw(ViewBag.SubjectHtml)
-        </div>
-        <div class='mui-input-row' id='divNewSubject' style='display:none;border-bottom:0px'>
-            <label class="leftLabel">&nbsp;</label>
-            <input type="text" id='txtSubject' name="subject" style="border:1px solid #CCCCCC;border-bottom:0px" value="@Model._subject" />
-        </div>
-
-        <div class="mui-input-row" style="border-bottom:0px">
-            <label class="leftLabel">标题</label>
-            <input type="text" id="title" class="mui-input mui-input-clear" style="border:1px solid #CCCCCC" name="title" value="@Model.title">
-        </div>
-        <div class="mui-input-row" style="border-bottom:0px;height:100px">
-            <label class="leftLabel" style="width:20%;">注释</label>
-            <textarea rows="6" id="remark" style="border:1px solid #CCCCCC;border-top:0px;   padding:2px" name="remark">@Model.remark</textarea>
-        </div>
-        <div class="mui-input-row" style="border-bottom:0px;height:100px">
-            <label class="leftLabel">书目路径</label>
-            <textarea rows="6" id="content" style="border:1px solid #cccccc" name="content">@Model.content</textarea>
-        </div>
-        <div class="mui-input-row " style="border-bottom:0px;">
-            <label class="leftLabel">发布时间</label>
-            <input type="text" class="mui-input mui-input-clear" style="border:1px solid #cccccc;background-color:#dddddd" disabled="disabled" name="publishTime" value="@Model.publishTime">
-        </div>
-        <div class="mui-input-row " style="border-bottom:0px;">
-            <label class="leftLabel">发布人</label>
-            <input type="text" class="mui-input mui-input-clear" style="border:1px solid #cccccc;background-color:#dddddd" disabled="disabled" name="creator" value="@Model._userName">
-        </div>
+                    </button>
+                    <!--
+                    <button class='mui-btn mui-btn-primary' onclick="save('msgid')">发布</button>&nbsp;&nbsp;
+                    <button class='mui-btn mui-btn-default' onclick="cancelEdit('msgid ')">取消</button>
+                        -->
+                </td>
+            </tr>
+        </table>
     </div>
 
 
 </div>
 
 
-<div class="mui-content-padded">
-    <button class="mui-btn mui-btn-block mui-btn-primary"  onclick="submitForm()">
-        @if (String.IsNullOrEmpty(Model.id) == true) //( .id == "" || Model.id==null)
-        {
-            <span>发布</span>
-        }
-        else
-        {
-            <span>更新</span>
-        }
 
-    </button>
-
-</div>
 
 
 

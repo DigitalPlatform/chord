@@ -8,6 +8,11 @@ namespace dp2weixinWeb.Controllers
 {
     public class UIController : Controller
     {
+        public ActionResult MsgEdit()
+        {
+            return View();
+        }
+
         // GET: UI
         public ActionResult BiblioIndex()
         {
@@ -15,6 +20,11 @@ namespace dp2weixinWeb.Controllers
         }
 
         public ActionResult PersonalInfo()
+        {
+            return View();
+        }
+
+        public ActionResult Message()
         {
             return View();
         }

@@ -39,11 +39,13 @@ namespace dp2weixin.service
         // 群组常量
         public const string C_GroupName_Bb = "gn:_lib_bb";
         public const string C_GroupName_Book = "gn:_lib_book";
+        public const string C_GroupName_HomePage = "gn:_lib_homePage"; //图书馆主页
         public const string C_GroupName_PatronNotity = "gn:_patronNotify";
 
         // 消息权限
         public const string C_Right_SetBb = "_wx_setbb";
         public const string C_Right_SetBook = "_wx_setbook";
+        public const string C_Right_SetHomePage = "_wx_setHomePage";
 
         #region 成员变量
 
@@ -72,13 +74,13 @@ namespace dp2weixin.service
         /// 通道
         /// </summary>
         MessageConnectionCollection _channels = new MessageConnectionCollection();
-         public MessageConnectionCollection Channels
-         {
-             get
-             {
-                 return this._channels;
-             }
-         }
+        public MessageConnectionCollection Channels
+        {
+            get
+            {
+                return this._channels;
+            }
+        }
 
 
         #endregion
@@ -159,6 +161,7 @@ namespace dp2weixin.service
             // 打开图书馆账号库与用户库
             WxUserDatabase.Current.Open(connectionString, instancePrefix);
             LibDatabase.Current.Open(connectionString, instancePrefix);
+            UserSettingDb.Current.Open(connectionString, instancePrefix);
 
             // 初始化接口类
             string strError = "";
@@ -169,8 +172,8 @@ namespace dp2weixin.service
 
             //全局只需注册一次
             AccessTokenContainer.Register(this.weiXinAppId, this.weiXinSecret);
-           
-            
+
+
             _channels.Login -= _channels_Login;
             _channels.Login += _channels_Login;
 
@@ -417,7 +420,7 @@ namespace dp2weixin.service
             }
             catch (Exception ex)
             {
-                this.WriteErrorLog("[" + record.id + "]异常："+ex.Message);
+                this.WriteErrorLog("[" + record.id + "]异常：" + ex.Message);
 
             }
         }
@@ -556,8 +559,8 @@ namespace dp2weixin.service
             }
             else
             {
-                strError = "不支持的消息类型["+strType+"]";
-                return -1;            
+                strError = "不支持的消息类型[" + strType + "]";
+                return -1;
             }
 
 
@@ -622,7 +625,7 @@ namespace dp2weixin.service
                 }
             }
 
-            string strText = "您有["+barcodes + "]项违约以停代金到期了，";
+            string strText = "您有[" + barcodes + "]项违约以停代金到期了，";
             XmlNodeList listOverdue1 = root.SelectNodes("patronRecord/overdues/overdue");
             if (listOverdue1.Count > 0)
             {
@@ -761,33 +764,33 @@ namespace dp2weixin.service
             foreach (string weiXinId in weiXinIdList)
             {
                 try
-                { 
-                var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
-
-                //{{first.DATA}}
-                //退款原因：{{reason.DATA}}
-                //退款金额：{{refund.DATA}}
-                //{{remark.DATA}}
-                var msgData = new ReturnPayTemplateData()
                 {
-                    first = new TemplateDataItem("━━━━━━$━━━━━━", "#B8860B"),  // ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
-                    reason = new TemplateDataItem("撤消[" + barcodes + "]交费。", "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                    refund = new TemplateDataItem("CNY" + totalPrice, "#000000"),
-                    remark = new TemplateDataItem(this._msgRemark, "#CCCCCC")
-                };
+                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
-                // 发送模板消息
-                var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                    weiXinId,
-                    WeiXinConst.C_Template_ReturnPay,
-                    "#FF0000",
-                    "",//不出现详细了
-                    msgData);
-                if (result1.errcode != 0)
-                {
-                    strError = result1.errmsg;
-                    return -1;
-                }
+                    //{{first.DATA}}
+                    //退款原因：{{reason.DATA}}
+                    //退款金额：{{refund.DATA}}
+                    //{{remark.DATA}}
+                    var msgData = new ReturnPayTemplateData()
+                    {
+                        first = new TemplateDataItem("━━━━━━$━━━━━━", "#B8860B"),  // ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
+                        reason = new TemplateDataItem("撤消[" + barcodes + "]交费。", "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                        refund = new TemplateDataItem("CNY" + totalPrice, "#000000"),
+                        remark = new TemplateDataItem(this._msgRemark, "#CCCCCC")
+                    };
+
+                    // 发送模板消息
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weiXinId,
+                        WeiXinConst.C_Template_ReturnPay,
+                        "#FF0000",
+                        "",//不出现详细了
+                        msgData);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1038,7 +1041,7 @@ namespace dp2weixin.service
             XmlNodeList listOverdue = root.SelectNodes("patronRecord/overdues/overdue");
             if (listOverdue.Count > 0)
             {
-                remark = "\n"+patronName+"，您有" + listOverdue.Count + "笔超期违约记录，请履行超期手续。";
+                remark = "\n" + patronName + "，您有" + listOverdue.Count + "笔超期违约记录，请履行超期手续。";
             }
 
 
@@ -1163,10 +1166,10 @@ namespace dp2weixin.service
             }
 
             XmlNode root = bodyDom.DocumentElement;
-  //<itemBarcode>0000001</itemBarcode>
-  //<borrowDate>Sun, 22 May 2016 19:48:01 +0800</borrowDate>
-  //<borrowPeriod>31day</borrowPeriod>
-  //<returningDate>Wed, 22 Jun 2016 12:00:00 +0800</returningDate>
+            //<itemBarcode>0000001</itemBarcode>
+            //<borrowDate>Sun, 22 May 2016 19:48:01 +0800</borrowDate>
+            //<borrowPeriod>31day</borrowPeriod>
+            //<returningDate>Wed, 22 Jun 2016 12:00:00 +0800</returningDate>
             XmlNode nodeItemBarcode = root.SelectSingleNode("itemBarcode");
             if (nodeItemBarcode == null)
             {
@@ -1182,7 +1185,7 @@ namespace dp2weixin.service
                 return -1;
             }
             string borrowDate = DomUtil.GetNodeText(nodeBorrowDate);
-            borrowDate=DateTimeUtil.ToLocalTime(borrowDate, "yyyy/MM/dd");
+            borrowDate = DateTimeUtil.ToLocalTime(borrowDate, "yyyy/MM/dd");
 
             XmlNode nodeBorrowPeriod = root.SelectSingleNode("borrowPeriod");
             if (nodeBorrowPeriod == null)
@@ -1231,7 +1234,7 @@ namespace dp2weixin.service
                         keyword3 = new TemplateDataItem(borrowDate, "#000000"),
                         keyword4 = new TemplateDataItem(borrowPeriod, "#000000"),
                         keyword5 = new TemplateDataItem(returningDate, "#000000"),
-                        remark = new TemplateDataItem("\n"+patronName+"，祝您阅读愉快，欢迎再借。", "#CCCCCC")
+                        remark = new TemplateDataItem("\n" + patronName + "，祝您阅读愉快，欢迎再借。", "#CCCCCC")
                     };
 
                     // 发送模板消息
@@ -1277,7 +1280,7 @@ namespace dp2weixin.service
            body元素里面是预约到书通知记录(注意这是一个字符串，需要另行装入一个XmlDocument解析)，其格式如下：
            <?xml version="1.0" encoding="utf-8"?>
  <root>
-	<type>预约到书通知</type>
+    <type>预约到书通知</type>
     <itemBarcode>0000001</itemBarcode>
 <refID> </refID>
 <onShelf>false</onShelf>
@@ -1353,16 +1356,23 @@ namespace dp2weixin.service
                 bOnShelf = true;
 
             // 册条码
+            string itemBarcode = "";
             XmlNode nodeItemBarcode = root.SelectSingleNode("itemBarcode");
-            if (nodeItemBarcode == null)
+            if (nodeItemBarcode != null)
             {
-                strError = "尚未定义<itemBarcode>节点";
-                return -1;
+                itemBarcode = DomUtil.GetNodeText(nodeItemBarcode);
             }
-            string itemBarcode = DomUtil.GetNodeText(nodeItemBarcode);
+            if (itemBarcode == "")
+            {
+                XmlNode nodeRefId = root.SelectSingleNode("refID");
+                if (nodeRefId != null)
+                {
+                    itemBarcode = DomUtil.GetNodeText(nodeRefId);
+                }
+            }
 
             //string first = this._msgFirstLeft+"我们很高兴地通知您，您预约的图书到了，请尽快来图书馆办理借书手续。";
-            string end = "\n" + patronName + "，您预约的图书["+itemBarcode+"]到了，请尽快来图书馆办理借书手续，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
+            string end = "\n" + patronName + "，您预约的图书[" + itemBarcode + "]到了，请尽快来图书馆办理借书手续，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
             if (bOnShelf == true)
             {
                 //first = this._msgFirstLeft + "我们很高兴地通知您，您预约的图书已经在架上，请尽快来图书馆办理借书手续。";
@@ -1469,7 +1479,7 @@ namespace dp2weixin.service
                 {
                     templateId = WeiXinConst.C_Template_CaoQi;
                     //first = this._msgFirstLeft+"您借出的图书已超期，请尽快归还。";
-                    end = "\n"+patronName+"，您借出的图书已超期，请尽快归还。";
+                    end = "\n" + patronName + "，您借出的图书已超期，请尽快归还。";
                 }
                 else if (overdueType == "warning")
                 {
@@ -1477,11 +1487,11 @@ namespace dp2weixin.service
                     // first = this._msgFirstLeft+"您借出的图书即将到期，请注意不要超期，留意归还。";
                     end = "\n" + patronName + "，您借出的图书即将到期，请注意不要超期，留意归还。";
                 }
-                else 
+                else
                 {
-                    strError ="overdueType属性值[]不合法。";
+                    strError = "overdueType属性值[]不合法。";
                     return -1;//整个不处理 //continue;                    
-                }           
+                }
 
                 foreach (string weiXinId in weiXinIdList)
                 {
@@ -1526,7 +1536,7 @@ namespace dp2weixin.service
                     }
                     catch (Exception ex)
                     {
-                        this.WriteErrorLog("给读者"+patronName+"发送超期通知异常："+ex.Message);
+                        this.WriteErrorLog("给读者" + patronName + "发送超期通知异常：" + ex.Message);
                     }
                 }
             }
@@ -2037,7 +2047,7 @@ namespace dp2weixin.service
             LibItem lib = LibDatabase.Current.GetLibById(libId);
             if (lib == null)
             {
-                strError = "未找到id为["+libId+"]的图书馆定义。";
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
                 return -1;
             }
 
@@ -2138,7 +2148,7 @@ namespace dp2weixin.service
                     userItem = new WxUserItem();
                 }
 
-                userItem.weixinId = strWeiXinId;                
+                userItem.weixinId = strWeiXinId;
                 //userItem.libCode = libCode;
                 //userItem.libUserName = remoteUserName;
                 userItem.libName = lib.libName;
@@ -2184,7 +2194,7 @@ namespace dp2weixin.service
                 if (type == 1)
                 {
                     strFirst = "恭喜您！您已成功绑定图书馆工作人员账号。";
-                    strAccount=userItem.userName;
+                    strAccount = userItem.userName;
                     strRemark = "欢迎您使用微信公众号管理图书馆业务，如需解绑，请通过“绑定账号”菜单操作。";
                 }
 
@@ -2240,7 +2250,7 @@ namespace dp2weixin.service
         /// -1 出错
         /// 0   成功
         /// </returns>
-        public  int Unbind(string userId,
+        public int Unbind(string userId,
              out string strError)
         {
             strError = "";
@@ -2295,15 +2305,15 @@ namespace dp2weixin.service
                 // 发送解绑消息    
                 string strFirst = "您已成功对图书馆读者账号解除绑定。";
                 string strAccount = userItem.readerName + "(" + userItem.readerBarcode + ")";
-                string strRemark="\n您现在不能管理该图书馆的个人信息了，如需访问，请重新绑定。";
+                string strRemark = "\n您现在不能管理该图书馆的个人信息了，如需访问，请重新绑定。";
                 if (userItem.type == WxUserDatabase.C_Type_Worker)
                 {
-                    strFirst="您已成功对图书馆工作人员账号解除绑定。";
-                    strAccount=userItem.userName;
-                    strRemark="\n您现在不能对该图书馆进行管理工作了，如需访问，请重新绑定。";
+                    strFirst = "您已成功对图书馆工作人员账号解除绑定。";
+                    strAccount = userItem.userName;
+                    strRemark = "\n您现在不能对该图书馆进行管理工作了，如需访问，请重新绑定。";
                 }
 
-                        
+
                 string accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
                 var data = new UnBindTemplateData()
                 {
@@ -2356,6 +2366,7 @@ namespace dp2weixin.service
         public SearchBiblioResult SearchBiblio(string libId,
             string strFrom,
             string strWord,
+            string match,
             string resultSet)
         {
             SearchBiblioResult searchRet = new SearchBiblioResult();
@@ -2389,6 +2400,7 @@ namespace dp2weixin.service
             long lRet = this.SearchBiblio1(libId,
                 strFrom,
                 strWord,
+                match,
                 resultSet,
                 0,
                 WeiXinConst.C_OnePage_Count,
@@ -2427,6 +2439,7 @@ namespace dp2weixin.service
             long lRet = this.SearchBiblio1(libId,
                  "",
                  "!getResult",
+                 "",//match
                  resultSet,
                  start,
                  count,
@@ -2458,6 +2471,7 @@ namespace dp2weixin.service
         public long SearchBiblio1(string libId,
             string strFrom,
             string strWord,
+            string match,
             string resultSet,
             long start,
             long count,
@@ -2488,7 +2502,7 @@ namespace dp2weixin.service
                     "",
                     strWord,
                     strFrom,
-                    "middle",
+                    match,//"middle",
                     resultSet,//"weixin",
                     "id,cols",
                     WeiXinConst.C_Search_MaxCount,  //最大数量
@@ -2497,7 +2511,7 @@ namespace dp2weixin.service
 
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    lib.capoUserName).Result;  
+                    lib.capoUserName).Result;
 
                 SearchResult result = connection.SearchTaskAsync(
                     lib.capoUserName,
@@ -2534,12 +2548,12 @@ namespace dp2weixin.service
                     string path = result.Records[i].RecPath;
                     int nIndex = path.IndexOf("@");
                     path = path.Substring(0, nIndex);
-                       
+
                     BiblioRecord record = new BiblioRecord();
                     record.recPath = path;
                     record.name = name;
-                    record.no = (i+start + 1).ToString();//todo 注意下一页的时候
-                    record.libId = libId;
+                    record.no = (i + start + 1).ToString();//todo 注意下一页的时候
+                    //record.libId = libId;
                     records.Add(record);
                 }
 
@@ -2559,30 +2573,30 @@ namespace dp2weixin.service
                 strError = ex.Message;
                 return -1;
             }
-
         }
 
-        public BiblioRecordResult GetBiblioDetail(string libId,
-            string biblioPath)
+        public BiblioDetailResult GetBiblioDetail(string weixinId,
+            string libId,
+            string biblioPath,
+            string from)
         {
-            BiblioRecordResult result = new BiblioRecordResult();
+            BiblioDetailResult result = new BiblioDetailResult();
             result.errorCode = 0;
             result.biblioPath = biblioPath;
 
             LibItem lib = LibDatabase.Current.GetLibById(libId);
             if (lib == null)
             {
-                result.errorInfo= "未找到id为[" + libId + "]的图书馆定义。";
+                result.errorInfo = "未找到id为[" + libId + "]的图书馆定义。";
                 result.errorCode = -1;
                 return result;
             }
-
 
             DateTime start_time = DateTime.Now;
 
             try
             {
-                string strError="";
+                string strError = "";
                 int nRet = 0;
                 TimeSpan time_length = DateTime.Now - start_time;
                 string logInfo = "";
@@ -2594,24 +2608,81 @@ namespace dp2weixin.service
                 string strOutputRecPath = "";
                 nRet = this.GetBiblioSummary(lib.capoUserName,
                     tempPath,
-                    "",out strSummary, out strOutputRecPath,out strError);
+                    "",
+                    out strSummary,
+                    out strOutputRecPath,
+                    out strError);
                 if (nRet == -1 || nRet == 0)
                 {
                     result.errorCode = -1;
                     result.errorInfo = strError;
                     return result;
                 }
-                result.summary = strSummary;
+
+                // 得到绑定工作人员账号，并检查是否有权限
+                string workerUserName = "";
+                if (string.IsNullOrEmpty(weixinId) == false)
+                {
+                    // 查找当前微信用户绑定的工作人员账号，条件满足出来推荐图书按钮
+                    WxUserItem worker = WxUserDatabase.Current.GetWorker(weixinId, libId);
+                    // todo 后面可以放开对读者的权限
+                    if (worker != null)
+                    {
+                        // 检索是否有权限 _wx_setHomePage
+                        string needRight = dp2WeiXinService.C_Right_SetHomePage;
+                        int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                            worker.userName,
+                            needRight,
+                            out strError);
+                        if (nHasRights == -1)
+                        {
+                            result.errorCode = -1;
+                            result.errorInfo = strError;
+                            return result;
+                        }
+                        if (nHasRights == 1)
+                        {
+                            workerUserName = worker.userName;
+                        }
+                        else
+                        {
+                            workerUserName = "";
+                        }
+                    }
+                }
+                string recommendBtn = "";
+                if (workerUserName != "")
+                {
+                    string returnUrl = "/Biblio/Index";
+                    if (from == "detail")
+                        returnUrl = "/Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(biblioPath);
+
+                    string recommPath = "/Library/BookEdit?libId=" + libId
+                        + "&userName=" + workerUserName
+                        + "&biblioPath=" + HttpUtility.UrlEncode(biblioPath)
+                        + "&returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+                    recommendBtn = "<div class='btnRow'><button class='mui-btn  mui-btn-default' "
+                        + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button></div>";
+
+                }
+
+                result.summary = "<span>" + strSummary + "</span>" + recommendBtn;
+
+
                 time_length = DateTime.Now - start_time;
                 string info = "获取[" + biblioPath + "]的summary信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
                 this.WriteLog(info);
 
                 //Thread.Sleep(1000);
-                
+
                 // 取item
                 this.WriteLog("开始获取items");
                 List<BiblioItem> itemList = null;
-                nRet = (int)this.GetItemInfo(lib.capoUserName, biblioPath, out itemList, out strError);
+                nRet = (int)this.GetItemInfo(weixinId,
+                    libId,
+                    biblioPath,
+                    out itemList,
+                    out strError);
                 if (nRet == -1) //0的情况表示没有册，不是错误
                 {
                     result.errorCode = -1;
@@ -2728,7 +2799,8 @@ namespace dp2weixin.service
         }
 
 
-        private long GetItemInfo(string capoUserName,
+        public long GetItemInfo(string weixinId,
+            string libId,
             string biblioPath,
             out List<BiblioItem> itemList,
             out string strError)
@@ -2736,6 +2808,63 @@ namespace dp2weixin.service
             itemList = new List<BiblioItem>();
             strError = "";
 
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                goto ERROR1;
+            }
+
+            // 得到绑定的读者与工作人员账号
+            string workerUserName = "";
+            string patronBarcode = "";
+            string patronName = "";
+             List<ReservationInfo> reserList = null;
+             if (string.IsNullOrEmpty(weixinId) == false)
+             {
+                 // 查找当前微信用户绑定的工作人员账号，条件满足出来推荐图书按钮
+                 WxUserItem worker = WxUserDatabase.Current.GetWorker(weixinId, libId);
+                 // todo 后面可以放开对读者的权限
+                 if (worker != null)
+                 {
+                     // 检索是否有权限 _wx_setHomePage
+                     string needRight = dp2WeiXinService.C_Right_SetHomePage;
+                     int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                         worker.userName,
+                         needRight,
+                         out strError);
+                     if (nHasRights == -1)
+                     {
+                         goto ERROR1;
+                     }
+                     if (nHasRights == 1)
+                     {
+                         workerUserName = worker.userName;
+                     }
+                     else
+                     {
+                         workerUserName = "";
+                     }
+                 }
+
+                 // 检索是否绑定的读者账户，绑定的读者账户，可以出现预约，续借按钮
+
+                 WxUserItem patron = WxUserDatabase.Current.GetActivePatron(weixinId);
+                 if (patron != null)
+                 {
+                     patronBarcode = patron.readerBarcode;
+                     patronName = patron.readerName;
+
+                     int nRet = this.GetPatronReservation(libId,
+                         patronBarcode,
+                         out reserList,
+                         out strError);
+                     if (nRet == -1|| nRet==0)
+                         goto ERROR1;
+                 }
+             }
+
+            string capoUserName = lib.capoUserName;
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString(); // "2-item";//
             SearchRequest request = new SearchRequest(id,
@@ -2751,15 +2880,13 @@ namespace dp2weixin.service
                 -1);
             try
             {
-                this.WriteLog("GetItemInfo1");
+                //this.WriteLog("GetItemInfo1");
 
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
                     capoUserName).Result;  //+"-2"
-                this.WriteLog("GetItemInfo2");
+                //this.WriteLog("GetItemInfo2");
 
-                //string strFilename = string.Format(this.weiXinLogDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
-                //connection.logFileName = strFilename;
                 SearchResult result = null;
                 try
                 {
@@ -2775,7 +2902,7 @@ namespace dp2weixin.service
                     return -1;
                 }
 
-                this.WriteLog("GetItemInfo3");
+                //this.WriteLog("GetItemInfo3");
                 if (result.ResultCount == -1)
                 {
                     strError = "检索出错：" + result.ErrorInfo;
@@ -2787,7 +2914,22 @@ namespace dp2weixin.service
                     return 0;
                 }
 
-                this.WriteLog("GetItemInfo4");
+                //this.WriteLog("GetItemInfo4");
+
+
+                bool bCanReservation = false;
+                string returnUrl = "/Biblio/Index";
+                string reservationInfo = "<span class='remark'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，"
+                    +"点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl=" 
+                    + HttpUtility.UrlEncode(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>";
+
+                if (patronBarcode != null && patronBarcode != "") // 有绑定的读者
+                {
+                    bCanReservation = true;
+                    reservationInfo = "";
+                }
+                //alert(info);
+
                 for (int i = 0; i < result.Records.Count; i++)
                 {
                     BiblioItem item = new BiblioItem();
@@ -2826,7 +2968,7 @@ namespace dp2weixin.service
                     item.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");
 
                     // 借阅情况
-                    string strBorrowInfo = "在架";
+
                     /*
                      <borrower>R00001</borrower>
     <borrowerReaderType>教职工</borrowerReaderType>
@@ -2840,18 +2982,61 @@ namespace dp2weixin.service
     "borrowDate"), "yyyy/MM/dd");
                     string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
                     borrowPeriod = GetDisplayTimePeriodStringEx(borrowPeriod);
-                    if (string.IsNullOrEmpty(strBorrower) == false)
-                        strBorrowInfo = "借阅者:*** 借阅时间:" + borrowDate + " 借期:" + borrowPeriod;
 
-                    item.borrowInfo = strBorrowInfo;
+
+                    //if (string.IsNullOrEmpty(strBorrower) == false)
+                    //    strBorrowInfo = "借阅者:*** 借阅时间:" + borrowDate + " 借期:" + borrowPeriod;
+
                     item.borrower = strBorrower;
                     item.borrowDate = borrowDate;
                     item.borrowPeriod = borrowPeriod;
 
+                    string strBorrowInfo = "在架";
+                    bool bOwnBorrow = false;
+                    // 检查是不是当前读者借的
+                    if (string.IsNullOrEmpty(strBorrower) == false)
+                    {
+                        if (patronBarcode != item.borrower)
+                        {
+                            strBorrowInfo = "借阅者：***<br/>"
+                            + "借阅时间：" + item.borrowDate + "<br/>"
+                            + "借期：" + item.borrowPeriod;
+                        }
+                        else
+                        {
+                            strBorrowInfo =
+                                "<table style='width:100%;border:0px'>"
+                                +"<tr>"
+                                    + "<td class='info'>借阅者：" + patronName + "<br/>"
+                                                                + "借阅时间：" + item.borrowDate + "<br/>"
+                                                                + "借期：" + item.borrowPeriod
+                                        + "</td>"
+                                    + "<td class='btn'>"
+                                        + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + item.barcode + "')\">续借</button>"
+                                    + "</td>"
+                            + "</tr>"
+                            + "<tr><td colspan='2'><div id='renewInfo-" + item.barcode + "'/></td></tr>"
+                            +"</table>";
+
+                            // 此时不能预约
+                            bOwnBorrow = true;
+                            reservationInfo = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
+                        }
+                    }
+                    item.borrowInfo = strBorrowInfo;
+
+                    // 预约信息
+                    if (bCanReservation == true && bOwnBorrow == false)
+                    {
+                        string state = this.getReservationState(reserList, item.barcode);
+                        reservationInfo = getReservationHtml(state, item.barcode,false);
+                    }
+                    item.reservationInfo = reservationInfo;
+
                     itemList.Add(item);
                 }
 
-                this.WriteLog("GetItemInfo5");
+                ///this.WriteLog("GetItemInfo5");
                 return result.Records.Count;
             }
             catch (AggregateException ex)
@@ -2868,6 +3053,69 @@ namespace dp2weixin.service
             return -1;
         }
 
+
+        // 得到预约状态
+        private string getReservationState(List<ReservationInfo> list, string barcode)
+        {
+            if (list == null || list.Count == 0)
+                return "未预约";
+            for (int i = 0; i < list.Count; i++)
+            {
+                ReservationInfo reservation = list[i];
+                string barcodeList = reservation.pureBarcodes;
+                string arrivedBarcode = reservation.arrivedBarcode;
+                int nIndex = barcodeList.IndexOf(barcode);
+                if (nIndex >= 0)
+                {
+                    if (barcode == arrivedBarcode)
+                        return "已到书";
+                    else
+                        return "已预约";
+                }
+            }
+
+            return "未预约";
+        }
+
+        // 得到预约状态和操作按钮
+        private string getReservationHtml(string reservationState, string barcode,bool bOnlyReserRow)//List<ReservationInfo> list, string barcode)
+        {
+            string html = "";
+            //string reservationState = this.getReservationState(list, barcode);
+            string btn = "";
+            if (reservationState == "未预约")
+            {
+                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','new')\">预约</button>";
+            }
+            else if (reservationState == "已预约")
+            {
+                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','delete')\">取消预约</button>";
+            }
+            else if (reservationState == "已到书")
+            {
+                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','delete')\">放弃取书</button>";
+            }
+            if (reservationState != "")
+            {
+                if (bOnlyReserRow == false)
+                {
+                    html += "<table style='width:100%;border:0px'>";
+                }
+
+                html += "<tr class='reserRow'>"
+                    + "<td class='info'>" + reservationState + "</td><td class='btn'>" + btn + "</td>"
+                    + "</tr>";
+
+                if (bOnlyReserRow == false)
+                {
+                    html += "<tr>"
+                        +"<td colspan='2'><div class='resultInfo'></div></td>"
+                    + "</tr>"
+                    + "</table>";
+                }
+            }
+            return html;
+        }
 
         // 获取多个item的summary
         public string GetBarcodesSummary(string capoUserName,
@@ -2912,7 +3160,7 @@ namespace dp2weixin.service
                     strOneSummary = strError;
 
                 int tempIndex = strBiblioRecPath.IndexOf("@");
-                if (tempIndex>0)
+                if (tempIndex > 0)
                     strBiblioRecPath = strBiblioRecPath.Substring(0, tempIndex);
 
                 if (strOneSummary == "" && strPrevBiblioRecPath == strBiblioRecPath)
@@ -2999,7 +3247,7 @@ namespace dp2weixin.service
             LibItem lib = LibDatabase.Current.GetLibById(libId);
             if (lib == null)
             {
-                result.errorCode =-1;
+                result.errorCode = -1;
                 result.errorInfo = "未找到id为[" + libId + "]的图书馆定义。";
                 return result;
             }
@@ -3094,7 +3342,7 @@ namespace dp2weixin.service
             // 预约请求
             string strReservationWarningText = "";
             List<ReservationInfo> reservationList = GetReservations(strXml, out strReservationWarningText);
-            if (strReservationWarningText!="")
+            if (strReservationWarningText != "")
                 strWarningText += strReservationWarningText;
             patronResult.reservationList = reservationList;
 
@@ -3217,7 +3465,7 @@ namespace dp2weixin.service
             }
             if (nOverdueCount > 0)
                 strWarningText += "<div class='warning overdue'><div class='number'>" + nOverdueCount.ToString() + "</div><div class='text'>已超期</div></div>";
-            
+
             return borrowList;
         }
 
@@ -3275,7 +3523,7 @@ namespace dp2weixin.service
 
                 strWarningText += "<div class='warning amerce'><div class='number'>" + nodes.Count.ToString() + "</div><div class='text'>待交费</div></div>";
             }
-            
+
             return overdueLit;
         }
 
@@ -3286,7 +3534,7 @@ namespace dp2weixin.service
 
             XmlDocument dom = new XmlDocument();
             dom.LoadXml(strXml);
-            
+
             // ***
             // 预约请求
             XmlNodeList nodes = dom.DocumentElement.SelectNodes("reservations/request");
@@ -3374,7 +3622,7 @@ namespace dp2weixin.service
 
                 strResult += "<a "
     + (string.IsNullOrEmpty(strDisableClass) == false && strBarcode != strArrivedItemBarcode ? "class='" + strDisableClass + "'" : "")
-    + " href='#'" + ">" + strBarcode + "</a>";  
+    + " href='#'" + ">" + strBarcode + "</a>";
 
             }
 
@@ -3714,9 +3962,11 @@ namespace dp2weixin.service
             string patron,
             string items,
             string style,
+            out string reserRowHtml,
             out string strError)
         {
             strError = "";
+            reserRowHtml = "";
 
             LibItem lib = LibDatabase.Current.GetLibById(libId);
             if (lib == null)
@@ -3748,6 +3998,23 @@ namespace dp2weixin.service
                     cancel_token).Result;
 
                 strError = result.ErrorInfo;
+
+                if (result.Value != -1)
+                {
+                    if (style == "delete")
+                    {
+                        reserRowHtml = this.getReservationHtml("未预约", items, true);
+                    }
+                    else if (style=="new")
+                    {
+                        // 根据result.ErrorInfo区分是否到书 todo这个区分可靠吗？
+                        if (strError !="")
+                            reserRowHtml = this.getReservationHtml("已到书", items, true);
+                        else
+                            reserRowHtml = this.getReservationHtml("已预约", items, true);
+                    }
+                }
+
                 return (int)result.Value;
             }
             catch (AggregateException ex)
@@ -3921,14 +4188,10 @@ namespace dp2weixin.service
 
 
 
-        #region 公告
-
-
-
-
+        #region 消息：公告，好书，图书馆主页
 
         public int GetMessage(string group,
-            string libId,            
+            string libId,
              string msgId,
             string subjectCondition,
             string style,
@@ -3940,95 +4203,106 @@ namespace dp2weixin.service
 
 
 
-            List<MessageRecord>  records = new List<MessageRecord>();
+            List<MessageRecord> records = new List<MessageRecord>();
             int nRet = this.GetMessageInternal("", // action
-                group, 
+                group,
                 libId,
                 msgId,
                 subjectCondition,
-                out records, 
+                out records,
                 out strError);
             if (nRet == -1)
                 return -1;
-            
+
             foreach (MessageRecord record in records)
             {
-                MessageItem item = new MessageItem();
-                item.id = record.id;
-                item.publishTime = DateTimeUtil.DateTimeToString( record.publishTime);
-
-                string title = "";
-                string content = "";
-                string format = "text"; //默认是text样式
-                string creator = "";
-                string remark = "";
-
-                string xml = record.data;
-                XmlDocument dom = new XmlDocument();
-                try
-                {
-                    dom.LoadXml(xml);
-                    XmlNode root = dom.DocumentElement;
-                    XmlNode nodeTitle = root.SelectSingleNode("title");
-                    if (nodeTitle != null)
-                        title = nodeTitle.InnerText;
-
-                    XmlNode nodeContent = root.SelectSingleNode("content");
-                    if (nodeTitle != null)
-                        content = nodeContent.InnerText;
-
-                    XmlNode nodeRemark = root.SelectSingleNode("remark");
-                    if (nodeRemark != null)
-                        remark = nodeRemark.InnerText;
-
-                    format = DomUtil.GetAttr(nodeContent, "format");
-                    if (format == "")
-                        format = "text";
-
-                    XmlNode nodeCreator = root.SelectSingleNode("creator");
-                    if (nodeCreator != null)
-                        creator = DomUtil.GetNodeText(nodeCreator);
-                }
-                catch
-                {
-                    title = "不符合格式的消息";
-                    content = "不符合格式的消息-" + xml;                
-                }
-                
-                item.title = title;
-                item.contentFormat = format;
-                item.creator = creator;
-                item.content = "";
-                item.remark = remark;
-
-                if (style == "original")
-                {
-                    item.content = content;
-                }
-                else if (style == "browse")
-                {
-                    item.content = "";
-
-                    string contentHtml = "";
-                    if (group == C_GroupName_Bb)
-                    {
-                        contentHtml = GetBbHtml(format, content);
-                    }
-                    else
-                    {
-                        contentHtml = GetBookHtml(content);
-
-                    }
-                    item.contentHtml = contentHtml;
-                }
-
+                MessageItem item = ConvertMsgRecord(group, record, style, libId);
                 list.Add(item);
             }
 
             return nRet;
         }
 
-        public string GetBbHtml(string format,string content)
+        public MessageItem ConvertMsgRecord(string group,
+            MessageRecord record,
+            string style,
+            string libId)
+        {
+
+            MessageItem item = new MessageItem();
+            item.id = record.id;
+            item.publishTime = DateTimeUtil.DateTimeToString(record.publishTime);
+            item.subject = "";
+            if (record.subjects != null && record.subjects.Length > 0)
+                item.subject = record.subjects[0];
+            string title = "";
+            string content = "";
+            string format = "text"; //默认是text样式
+            string creator = "";
+            string remark = "";
+
+            string xml = record.data;
+            XmlDocument dom = new XmlDocument();
+            try
+            {
+                dom.LoadXml(xml);
+                XmlNode root = dom.DocumentElement;
+                XmlNode nodeTitle = root.SelectSingleNode("title");
+                if (nodeTitle != null)
+                    title = nodeTitle.InnerText;
+
+                XmlNode nodeContent = root.SelectSingleNode("content");
+                if (nodeTitle != null)
+                    content = nodeContent.InnerText;
+
+                XmlNode nodeRemark = root.SelectSingleNode("remark");
+                if (nodeRemark != null)
+                    remark = nodeRemark.InnerText;
+
+                format = DomUtil.GetAttr(nodeContent, "format");
+                if (format == "")
+                    format = "text";
+
+                XmlNode nodeCreator = root.SelectSingleNode("creator");
+                if (nodeCreator != null)
+                    creator = DomUtil.GetNodeText(nodeCreator);
+            }
+            catch
+            {
+                title = "不符合格式的消息";
+                content = "不符合格式的消息-" + xml;
+            }
+
+            item.title = title;
+            item.contentFormat = format;
+            item.creator = creator;
+            item.content = "";
+            item.remark = remark;
+
+            if (style == "original")
+            {
+                item.content = content;
+            }
+            else if (style == "browse")
+            {
+                item.content = "";
+
+                string contentHtml = "";
+                if (group == C_GroupName_Bb || group == C_GroupName_HomePage)
+                {
+                    contentHtml = GetMsgHtml(format, content);
+                }
+                else if (group == C_GroupName_Book)
+                {
+                    contentHtml = GetBookHtml(content, libId);
+
+                }
+                item.contentHtml = contentHtml;
+            }
+            return item;
+        }
+
+        public string GetMsgHtml(string format, string content)
         {
             string contentHtml = "";
             if (format == "markdown")
@@ -4044,7 +4318,7 @@ namespace dp2weixin.service
 
                 content = content.Replace("\r\n", "\n");
                 content = content.Replace("\r", "\n");
-                string[] list=content.Split(new char[] { '\n' });
+                string[] list = content.Split(new char[] { '\n' });
                 foreach (string str in list)
                 {
                     if (contentHtml != "")
@@ -4057,7 +4331,7 @@ namespace dp2weixin.service
         }
 
 
-        public string GetBookHtml(string content)
+        public string GetBookHtml(string content, string libId)
         {
             string contentHtml = "";
 
@@ -4066,11 +4340,17 @@ namespace dp2weixin.service
             string[] list = content.Split(new char[] { '\n' });
             foreach (string str in list)
             {
-                if (contentHtml != "")
-                    contentHtml += "<br/>";
+                //if (contentHtml != "")
+                //    contentHtml += "<br/>";
 
+                var word = "@bibliorecpath:" + str;
                 string detalUrl = "/Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(str);
-                contentHtml += "<a href='javascript:void(0)' onclick='gotoUrl(\"" + detalUrl + "\")'>" + HttpUtility.HtmlEncode(str) + "</a>";
+                contentHtml += "<div><a href='javascript:void(0)' onclick='gotoBiblioDetail(\"" + detalUrl + "\")'>" + HttpUtility.HtmlEncode(str) + "</a></div>";
+                contentHtml += "<div  class='pending' style='padding-bottom:10px'>"
+                                       + "<label>bs-" + word + "</label>"
+                                       + "<img src='../img/wait2.gif' />"
+                                       + "<span>" + libId + "</span>"
+                                   + "</div>";
 
             }
 
@@ -4119,7 +4399,7 @@ namespace dp2weixin.service
                     cancel_token);
                 if (result.Value == -1)
                     goto ERROR1;
-                
+
                 records = result.Results;
                 return result.Results.Count;
             }
@@ -4140,16 +4420,18 @@ namespace dp2weixin.service
 
 
         public MessageResult CoverMessage(string group,
-    string libId,
-    MessageItem item,
-    string style)
+            string libId,
+            MessageItem item,
+            string style)
         {
             MessageResult result = new MessageResult();
             string strError = "";
+            MessageItem returnItem = null;
             int nRet = this.CoverMessage(group,
                 libId,
                 item,
                 style,
+                out returnItem,
                 out strError);
             if (nRet == -1)
             {
@@ -4158,6 +4440,9 @@ namespace dp2weixin.service
                 return result;
             }
 
+            List<MessageItem> list = new List<MessageItem>();
+            list.Add(returnItem);
+            result.items = list;
             return result;
         }
 
@@ -4168,16 +4453,20 @@ namespace dp2weixin.service
         /// <param name="style"></param>
         /// <param name="item"></param>
         /// <returns></returns>
-        public int CoverMessage(string group, 
-            string libId, 
-            MessageItem item, 
+        public int CoverMessage(string group,
+            string libId,
+            MessageItem item,
             string style,
+            out MessageItem returnItem,
             out string strError)
         {
             strError = "";
 
+            returnItem = null;
+
             if (group != dp2WeiXinService.C_GroupName_Bb
-                && group != dp2WeiXinService.C_GroupName_Book)
+                && group != dp2WeiXinService.C_GroupName_Book
+                && group != dp2WeiXinService.C_GroupName_HomePage)
             {
                 strError = "不支持的群" + group;
                 goto ERROR1;
@@ -4195,11 +4484,13 @@ namespace dp2weixin.service
                 needRight = C_Right_SetBb;
             else if (group == C_GroupName_Book)
                 needRight = C_Right_SetBook;
+            else if (group == C_GroupName_HomePage)
+                needRight = C_Right_SetHomePage;
             LibItem libItem = LibDatabase.Current.GetLibById(libId);
             if (libItem == null)
             {
-                strError = "根据id["+libId+"]未找到对应的图书馆配置";
-                goto ERROR1;                
+                strError = "根据id[" + libId + "]未找到对应的图书馆配置";
+                goto ERROR1;
             }
             int nHasRights = this.CheckRights(libItem.capoUserName, item.creator, needRight, out strError);
             if (nHasRights == -1)
@@ -4208,7 +4499,7 @@ namespace dp2weixin.service
             }
             if (nHasRights == 0)
             {
-                strError = "帐户["+userName+"]没有"+needRight+"权限";
+                strError = "帐户[" + userName + "]没有" + needRight + "权限";
                 goto ERROR1;
             }
 
@@ -4219,9 +4510,9 @@ namespace dp2weixin.service
             {
                 strText = "<body>"
                 + "<title>" + HttpUtility.HtmlEncode(item.title) + "</title>"  //前端传过来时，已经转义过了 HttpUtility.HtmlEncode(item.title)
-                + "<content format='"+item.contentFormat+"'>" + HttpUtility.HtmlEncode(item.content) + "</content>"
-                + "<remark>" + HttpUtility.HtmlEncode(item.remark) + "</remark>" 
-                + "<creator>"+item.creator+"</creator>"
+                + "<content format='" + item.contentFormat + "'>" + HttpUtility.HtmlEncode(item.content) + "</content>"
+                + "<remark>" + HttpUtility.HtmlEncode(item.remark) + "</remark>"
+                + "<creator>" + item.creator + "</creator>"
                 + "</body>";
             }
 
@@ -4262,6 +4553,10 @@ namespace dp2weixin.service
                     goto ERROR1;
                 }
 
+                MessageRecord returnRecord = result.Results[0];
+                returnRecord.data = strText;
+                returnItem = this.ConvertMsgRecord(group, returnRecord, "browse", libId);
+
                 return 0;
             }
             catch (AggregateException ex)
@@ -4284,9 +4579,9 @@ namespace dp2weixin.service
         /// 0   无权限
         /// 1   有权限
         /// </returns>
-        public int CheckRights(string capoUserName,string worker,string needRight, out string strError)
+        public int CheckRights(string capoUserName, string worker, string needRight, out string strError)
         {
-            strError ="";
+            strError = "";
             string rights = "";
             int nRet = this.GetUserInfo(capoUserName,
                 worker,
@@ -4317,7 +4612,7 @@ namespace dp2weixin.service
             out string strError)
         {
             strError = "";
-            rights = "";            
+            rights = "";
 
             //long start = 0;
             //long count = 10;
@@ -4379,14 +4674,11 @@ namespace dp2weixin.service
 
         }
 
-        #endregion
-
-        #region  好书
 
         public const string C_Active_EnumSubject = "enumSubject";
 
         /// <summary>
-        /// 获取好多推荐栏目
+        /// 获取栏目
         /// </summary>
         /// <param name="weixinId"></param>
         /// <param name="libId"></param>
@@ -4394,17 +4686,25 @@ namespace dp2weixin.service
         /// 返回的当前绑定工作人员账户号，如果为空，不没有编辑权限
         /// </param>
         /// <returns></returns>
-        public int GetBookSubject(string libId,
-            out List<BookSubjectItem> list,
+        public int GetSubject(string libId,
+            string group,
+            out List<SubjectItem> list,
             out string strError)
         {
-            //userName = "";
             strError = "";
-            list = new List<BookSubjectItem>();
+            list = new List<SubjectItem>();
 
+            if (group != C_GroupName_Book
+                && group != C_GroupName_HomePage)
+            {
+                strError = "不支持的群" + group;
+                return -1;
+            }
+
+            // 获取栏目
             List<MessageRecord> records = null;
             int nRet = this.GetMessageInternal(C_Active_EnumSubject,
-                C_GroupName_Book,
+                group,
                 libId,
                 "",
                 "",
@@ -4416,7 +4716,7 @@ namespace dp2weixin.service
             foreach (MessageRecord record in records)
             {
                 string[] subjects = record.subjects;
-                BookSubjectItem subItem = new BookSubjectItem();
+                SubjectItem subItem = new SubjectItem();
 
                 // 发现确实空的情况。
                 if (subjects == null || subjects.Length == 0)
@@ -4424,8 +4724,18 @@ namespace dp2weixin.service
 
 
                 subItem.name = subjects[0];
-                subItem.count = record.data;
-
+                subItem.count = 0;
+                try
+                {
+                    subItem.count = Convert.ToInt32(record.data);
+                }
+                catch (Exception ex)
+                {
+                    {
+                        strError = "将data转变数字出错：" + ex.Message;
+                        return -1;
+                    }
+                }
                 list.Add(subItem);
             }
             return records.Count;
@@ -4433,22 +4743,5 @@ namespace dp2weixin.service
 
         #endregion
 
-        public int GetBookMsg(string libId, string subject, out List<MessageItem> list, out string strError)
-        {
-            list = new List<MessageItem>();
-            strError = "";
-
-            int nRet = this.GetMessage(C_GroupName_Book,
-                libId,
-                "",
-                subject,
-                "browse",
-                out list,
-                out strError);
-            if (nRet == -1)
-                return -1;
-
-            return nRet;
-        }
     }
 }

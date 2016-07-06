@@ -6,13 +6,18 @@
 
         function getDetail() {
 
-            var libUserName = "dp2capo";
+            var libId = $("#selLib").val();
+            if (libId == "")
+            {
+                alert("尚未选择图书馆");
+                return;
+            }
             var biblioPath = $("#txtWord").val();//"中文图书/78";//mylable.text();
 
-            alert(biblioPath);
-            var url = "/api/biblio?libUserName=" + encodeURIComponent(libUserName) + "&biblioPath=" + encodeURIComponent(biblioPath);
+            //alert(biblioPath);
+            var url = "/api/biblio?libId=" + encodeURIComponent(libId) + "&biblioPath=" + encodeURIComponent(biblioPath);
 
-            alert(url);
+            //alert(url);
 
             //显示等待图层
             var index = loadLayer();
@@ -23,7 +28,7 @@
                 // 关闭等待层
                 layer.close(index);
 
-                alert("回来[" + result.errorCode+"]");
+                //alert("回来[" + result.errorCode+"]");
                 var o = $("#result");
 
                 // 出错或未命中
@@ -92,7 +97,13 @@
 @section header {
     <h1 class="mui-title">测试</h1>
 }
+
+
 <div class="mui-input-group">
+    <div class="mui-input-row ">
+        <label style="color:#cccccc;">图书馆</label>
+        @Html.Raw(ViewBag.LibHtml)
+    </div>
     <div class="mui-input-row">
         <label style="color:#cccccc">书目路径</label>
         <input id="txtWord" type="text" class="mui-input mui-input-clear">

@@ -175,7 +175,6 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApiControllers\LibBookController.cs" />
     <Compile Include="ApiControllers\LibMessageController.cs" />
     <Compile Include="ApiControllers\BiblioController.cs" />
     <Compile Include="ApiControllers\BorrowInfoController.cs" />
@@ -249,6 +248,10 @@
     <Content Include="Views\Library\BookSubject.cshtml" />
     <Content Include="Views\UI\BiblioIndex.cshtml" />
     <Content Include="Views\UI\PersonalInfo.cshtml" />
+    <Content Include="Views\Library\HomePage.cshtml" />
+    <Content Include="Views\UI\Message.cshtml" />
+    <Content Include="Views\UI\MsgEdit.cshtml" />
+    <Content Include="Views\Patron\Setting.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -256,9 +259,7 @@
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Views\Base\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj">
       <Project>{441cb814-af78-4503-91ef-dce5f3269502}</Project>

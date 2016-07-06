@@ -21,6 +21,11 @@ namespace dp2weixinWeb.Controllers
                 {
                     selectedString = " selected='selected' ";
                 }
+                else
+                {
+                    if (selLibId == "~1" && i==0) //默认第一项选中
+                        selectedString = " selected='selected' ";
+                }
                 opt += "<option value='" + item.id + "' " + selectedString + ">" + item.libName + "</option>";
             }
             string libHtml = "<select id='selLib' style='padding-left: 0px;width: 65%;border:1px solid #eeeeee'  >" + opt + "</select>";
@@ -80,6 +85,34 @@ namespace dp2weixinWeb.Controllers
             else
                 Session[WeiXinConst.C_Session_IsBind] = 0;
 
+            // 微信用户设置的图书馆
+            string libName = "";
+            string libId = "";
+            UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
+            if (settingItem != null)
+            {
+                LibItem lib = LibDatabase.Current.GetLibById(settingItem.libId);
+                if (lib == null)
+                {
+                    strError= "未找到id为'"+lib.id+"'对应的图书馆";
+                    return -1;
+                }
+                libName = lib.libName;
+                libId = lib.id;
+            }
+            if (libName == "")
+            {
+                LibItem lib = LibDatabase.Current.GetOneLib();
+                if (lib == null)
+                {
+                    strError = "当前系统未配置图书馆";
+                    return -1;
+                }
+                libName = lib.libName;
+                libId = lib.id;
+            }
+            ViewBag.LibName = "["+libName+"]";
+            ViewBag.LibId = libId;
 
             ////当前读者
             //WxUserItem curPatron = WxUserDatabase.Current.GetActivePatron(weixinId);

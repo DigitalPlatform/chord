@@ -46,6 +46,8 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
+            // 去掉选择图书馆 2016/7/3 jane
+            /*
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
             if (userItem == null)
@@ -62,7 +64,7 @@ namespace dp2weixinWeb.Controllers
 
             // 图书馆html
             ViewBag.LibHtml = this.GetLibSelectHtml(libId);
-
+            */
             return View();
         }
 
@@ -76,6 +78,8 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
+            // 界面上不再选择图书馆 2016/7/3 jane
+            /*
             string selLibId = "";
             // 如果是从绑定界面过来的，可能会传来绑定界面使用的图书馆
             if (string.IsNullOrEmpty(libId) == false && libId != "undefined")
@@ -96,8 +100,8 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 图书馆html
-            ViewBag.LibHtml = this.GetLibSelectHtml(libId);
-
+            ViewBag.LibHtml = this.GetLibSelectHtml(selLibId);
+            */
 
             if (string.IsNullOrEmpty(readerName) == false && readerName != "undefined")
                 ViewBag.ReaderName = readerName;// "test";

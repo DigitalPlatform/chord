@@ -22,6 +22,7 @@ namespace dp2weixinWeb.Controllers
     {
         public ActionResult Test()
         {
+            ViewBag.LibHtml = this.GetLibSelectHtml("");
             return View();
         }
         public ActionResult Index(string code, string state, string admin, string weiXinId)
@@ -30,12 +31,6 @@ namespace dp2weixinWeb.Controllers
             {
                 Session["userType"] = "admin";
             }
-
-            if (String.IsNullOrEmpty(admin) == false && admin == "0")
-            {
-                Session["userType"] = null;
-            }
-
             // 用于测试，如果传了一个weixin id参数，则存到session里
             if (String.IsNullOrEmpty(weiXinId) == false)
             {

@@ -22,25 +22,26 @@ namespace dp2weixinWeb.Controllers
 
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             WxUserItem userItem1= WxUserDatabase.Current.GetActivePatron(weiXinId);
-            string libId = "";
+            //string libId = "";
             if (userItem1 != null)
             {
-                ViewBag.MyLibId = userItem1.libId;
+                //ViewBag.MyLibId = userItem1.libId;
                 ViewBag.PatronBarcode = userItem1.readerBarcode;
-                ViewBag.PatronName = userItem1.readerName;
-                libId = userItem1.libId;
+                //ViewBag.PatronName = userItem1.readerName;
+                //libId = userItem1.libId;
             }
-            else
-            {
-                userItem1 = WxUserDatabase.Current.GetOneWorker(weiXinId);
-                if (userItem1 != null)
-                {
-                    libId = userItem1.libId;
-                    ViewBag.workerUserName = userItem1.userName;
-                } 
-            }
+            //else
+            //{
+            //    userItem1 = WxUserDatabase.Current.GetOneWorker(weiXinId);
+            //    if (userItem1 != null)
+            //    {
+            //        libId = userItem1.libId;
+            //        ViewBag.workerUserName = userItem1.userName;
+            //    } 
+            //}
 
-            ViewBag.LibHtml = this.GetLibSelectHtml(libId);
+            // 去掉图书馆选择 2016/7/3
+            //ViewBag.LibHtml = this.GetLibSelectHtml(libId);
 
             return View();
         }
@@ -55,6 +56,11 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            WxUserItem userItem1 = WxUserDatabase.Current.GetActivePatron(weiXinId);
+            if (userItem1 != null)
+            {
+                ViewBag.PatronBarcode = userItem1.readerBarcode;
+            }
 
             ViewBag.BiblioPath = biblioPath;
 

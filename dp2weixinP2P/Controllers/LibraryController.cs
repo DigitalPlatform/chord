@@ -33,7 +33,7 @@ namespace dp2weixinWeb.Controllers
 
 
             // 图书馆html
-            ViewBag.LibHtml = this.GetLibHtml("");
+            //ViewBag.LibHtml = this.GetLibHtml("");
 
             ViewBag.group = group;
             if (group == dp2WeiXinService.C_GroupName_Bb)
@@ -43,6 +43,33 @@ namespace dp2weixinWeb.Controllers
 
             return View();
         }
+
+        // 图书馆主页
+        public ActionResult HomePage(string code, string state, string admin, string weiXinId)
+        {
+            if (String.IsNullOrEmpty(admin) == false && admin == "1")
+            {
+                Session["userType"] = "admin";
+            }
+            // 用于测试，如果传了一个weixin id参数，则存到session里
+            if (String.IsNullOrEmpty(weiXinId) == false)
+            {
+                // 记下微信id
+                Session[WeiXinConst.C_Session_WeiXinId] = weiXinId;
+            }
+
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
+            // 图书馆html
+            //ViewBag.LibHtml = this.GetLibHtml("");
+
+            return View();
+        }
+
 
         // 好书推荐
         public ActionResult BookSubject(string code, string state,string libId)
@@ -54,7 +81,7 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             // 图书馆html
-             ViewBag.LibHtml = this.GetLibHtml(libId);
+             //ViewBag.LibHtml = this.GetLibHtml(libId);
 
             return View();
         }
@@ -89,10 +116,17 @@ namespace dp2weixinWeb.Controllers
             ViewBag.subject = subject;
 
             List<MessageItem> list = new List<MessageItem>();
-            nRet = dp2WeiXinService.Instance.GetBookMsg(libId, 
-                subject, 
-                out list,
-                out strError);
+            nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_GroupName_Book,
+        libId,
+        "",
+        subject,
+        "browse",
+        out list,
+        out strError);
+            //nRet = dp2WeiXinService.Instance.GetBookMsg(libId, 
+            //    subject, 
+            //    out list,
+            //    out strError);
             if (nRet == -1)
                 return Content(strError);
 
@@ -131,7 +165,8 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 栏目html
-            ViewBag.SubjectHtml = this.GetSubjectHtml(libId, subject, true);
+            ViewBag.SubjectHtml = this.GetSubjectHtml(dp2WeiXinService.C_GroupName_Book,
+                libId, subject, true);
 
             // 将这些参数值设到model上，这里可以回传返回
             BookEditModel model = new BookEditModel();
@@ -191,6 +226,8 @@ namespace dp2weixinWeb.Controllers
             string subject =model._subject;
             string returnUrl1 = model._returnUrl;
 
+            MessageItem returnItem = null;
+
             MessageItem item = new MessageItem();
             item.id = model.id;
             item.title = model.title;
@@ -203,7 +240,9 @@ namespace dp2weixinWeb.Controllers
                 int nRet =dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_GroupName_Book,
                     libId,
                     item,
-                    "create",out strError);
+                    "create",
+                    out returnItem,
+                    out strError);
                 if (nRet == -1)
                     return Content(strError);
             }
@@ -212,7 +251,9 @@ namespace dp2weixinWeb.Controllers
                 int nRet = dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_GroupName_Book,
                     libId,
                     item,
-                    "change",out strError);
+                    "change",
+                    out returnItem,
+                    out strError);
                 if (nRet == -1)
                     return Content(strError);
             }
@@ -262,12 +303,12 @@ namespace dp2weixinWeb.Controllers
         }
 
 
-        private string GetSubjectHtml(string libId, string selSubject, bool bNew)
+        private string GetSubjectHtml(string group, string libId, string selSubject, bool bNew)
         {
 
             string strError="";
-            List<BookSubjectItem> list = null;
-            int nRet = dp2WeiXinService.Instance.GetBookSubject(libId, out list, out strError);
+            List<SubjectItem> list = null;
+            int nRet = dp2WeiXinService.Instance.GetSubject(libId, group, out list, out strError);
             if (nRet == -1)
             {
                 return "获取好书推荐的栏目出错";
@@ -276,7 +317,7 @@ namespace dp2weixinWeb.Controllers
             var opt = "<option value=''>请选择 栏目</option>";
             for (var i = 0; i < list.Count; i++)
             {
-                BookSubjectItem item = list[i];
+                SubjectItem item = list[i];
                 string selectedString = "";
                 if (selSubject != "" && selSubject == item.name)
                 {
@@ -292,7 +333,7 @@ namespace dp2weixinWeb.Controllers
                 onchange = " onchange='subjectChanged()' ";
             }
 
-            string subjectHtml = "<select id='selSubject' style='padding-left: 0px;width: 65%;'  "+onchange+" >" + opt + "</select>";
+            string subjectHtml = "<select id='selSubject'  "+onchange+" >" + opt + "</select>";
 
 
             return subjectHtml;

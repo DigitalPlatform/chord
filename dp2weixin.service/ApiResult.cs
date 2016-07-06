@@ -15,6 +15,9 @@ namespace dp2weixin.service
         /// -1:表示出错
         /// </summary>
         public long errorCode = 0;
+
+        // 信息
+        public string info = "";
     }
 
     public class WxUserResult
@@ -30,6 +33,10 @@ namespace dp2weixin.service
 
     }
 
+    public class ItemReservationResult : ApiResult
+    {
+        public string reserRowHtml { get; set; }
+    }
 
     public class BorrowInfoResult : ApiResult
     {

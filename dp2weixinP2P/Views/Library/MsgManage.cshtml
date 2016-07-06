@@ -22,20 +22,20 @@
                 publishTime: ko.observable(""),
                 creator: ko.observable("")
             },
-            worker: ko.observable("")
+            userName: ko.observable("")
         }
 
         //用于获取图书馆
         function getMessage() {
 
-            var libId = $("#selLib").val();
+            var libId = getLibId();//$("#selLib").val();
             var weixinId = $("#weixinId").text();
 
 
             //alert("["+libId+"]");
             // 先删除可观察数组中的已有数据
             model.list.removeAll();
-            model.worker("");
+            model.userName("");
 
             // 先把这些项隐藏
             $("#divSummary").css('display', 'none');
@@ -60,12 +60,22 @@
             var index = loadLayer();
             var msgId = "";
             var style = "browse";
+            /*
+            public MessageResult GetMessage(string weixinId, 
+                string group,
+                string libId, 
+                string msgId,
+                string subject,
+                string style)
+            */
             // 调web api
             var url = "/api/LibMessage?weixinId=" + weixinId
                         + "&group=" + group
                         + "&libId=" + libId
                         + "&msgId=" + msgId
+                        +"&subject="
                         + "&style=" + style;
+            //alert(url);
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
@@ -91,9 +101,8 @@
                     }
                 }
 
-                model.worker(result.worker);
+                model.userName(result.userName);
 
-                //alert("worker["+model.worker()+"]");
 
             }, function (xhq, textStatus, errorThrown) {
 
@@ -103,10 +112,10 @@
             });
         }
 
-        // 改变图书馆
-        function libChanged() {
-            getMessage();
-        }
+        //// 改变图书馆
+        //function libChanged() {
+        //    getMessage();
+        //}
 
         // 删除一项
         function remove(item) {
@@ -116,8 +125,7 @@
                 return false;
             }
 
-            //var libId = $("#libId").text();
-            var libId = $("#selLib").val();
+            var libId = getLibId();// $("#selLib").val();
             if (libId == "") {
                 alert("异常情况：libId为空。");
                 return;
@@ -129,10 +137,10 @@
                 return;
             }
 
-            var worker = model.worker();
-            if (worker == null || worker == "")
+            var userName = model.userName();
+            if (userName == null || userName == "")
             {
-                alert("异常情况：worker为空");
+                alert("异常情况：userName为空");
                 return;
             }
 
@@ -143,7 +151,7 @@
             var url = "/api/LibMessage?libId=" + libId
                 + "&group=" + group
                 + "&msgId=" + item.id
-                + "&userName=" + worker;
+                + "&userName=" + userName;
             sendAjaxRequest(url, "DELETE", function (result) {
 
 
@@ -206,19 +214,19 @@
             }
             //alert(content);
 
-            var libId = $("#selLib").val();// $("#libId").text();
+            var libId = getLibId();//''$("#selLib").val();
             if (libId == "") {
                 alert("异常情况：libId为空。");
                 return;
             }
 
-            var worker = model.worker();
-            if (worker == "") {
-                alert("异常情况：worker为空。");
+            var userName = model.userName();
+            if (userName == "") {
+                alert("异常情况：userName为空。");
                 return;
             }
 
-            //alert(worker);
+            //alert(userName);
 
             var group = $("#group").text();
             if (group == "") {
@@ -283,7 +291,7 @@
                     title: title,
                     content: content,
                     contentFormat: getContentFormat(),
-                    creator: worker,
+                    creator: userName,
                     subject:""
                 }
             );
@@ -309,32 +317,6 @@
             }
         }
 
-        /*
-        // 设置上下菜单
-        function setShowTopButton() {
-
-            if (browser.versions.iPhone == true) {
-                $("input").focus(function () {
-                    setShowValue(false);
-                    window.setTimeout("showTopBottom()", 1);
-                });
-                $("input").blur(function () {
-                    setShowValue(true);
-                    window.setTimeout("showTopBottom()", 1);
-                });
-
-                $("textarea").focus(function () {
-                    setShowValue(false);
-                    window.setTimeout("showTopBottom()", 1);
-                });
-                $("textarea").blur(function () {
-                    setShowValue(true);
-                    window.setTimeout("showTopBottom()", 1);
-                });
-            }
-          
-        }
-  */
         // 点击新增图书馆按钮
         function handleCreateClick() {
             //由于一进来没有显示编辑界面，所以这里要重新设一下
@@ -344,7 +326,7 @@
             model.editor.title("");
             model.editor.content("");
             model.editor.publishTime("");//publishTime
-            model.editor.creator(model.worker());
+            model.editor.creator(model.userName());
             //编辑态可见            
             $("#divEdit").css('display', 'block');
             //创建按钮不可见
@@ -375,7 +357,7 @@
         }
 
         function handleEditClick(item) {
-            var libId = $("#selLib").val();
+            var libId = getLibId();//$("#selLib").val();
             var weixinId = $("#weixinId").text();
             if (libId == "") {
                 return;
@@ -395,12 +377,21 @@
             var index = loadLayer();
             var msgId = item.id;
             var style = "original";
+            /*
+        public MessageResult GetMessage(string weixinId, 
+            string group,
+            string libId, 
+            string msgId,
+            string subject,
+            string style)
+            */
             // 调web api
             var url = "/api/LibMessage"
                 + "?weixinId=" + weixinId
                         + "&group=" + group
                         + "&libId=" + libId
                         + "&msgId=" + msgId
+                        +"&subject="
                         + "&style=" + style;
             sendAjaxRequest(url, "GET", function (result) {
 
@@ -461,9 +452,9 @@
             // 设顶部菜单不固定
             $("#myheader").css("position", "absolute");
 
-            $("#selLib").change(function () {
-                libChanged();
-            });
+            //$("#selLib").change(function () {
+            //    libChanged();
+            //});
         })
 
         function getContentFormat() {
@@ -502,6 +493,8 @@
 @section header {
     <h1 class="mui-title">@ViewBag.groupTitle</h1>
 }
+
+<!--
 <div>
     <div class="mui-input-group">
         <div class="mui-input-row">
@@ -510,7 +503,7 @@
         </div>
     </div>
 </div>
-
+-->
 <div id="divEdit" style="padding-bottom:20px;padding-top:20px;display:none">
     <div class="mui-card">
         <div class="mui-input-row" style="border-bottom:0px">
@@ -563,10 +556,10 @@
 </div>
 
 <div id="divSummary">
-    <div class="mui-content-padded" id="btnCreate" data-bind="visible:model.worker()!=''">
+    <div class="mui-content-padded" id="btnCreate" data-bind="visible:model.userName()!=''">
         <button class="mui-btn mui-btn-block mui-btn-primary" onclick="handleCreateClick()">
             发布<span>@ViewBag.groupTitle</span>
-            
+
         </button>
     </div>
     <div class="mui-card" id="divNo" style="margin-top:10px;display:none">
@@ -585,7 +578,7 @@
                     <span data-bind="text:creator"></span>
                 </p>
                 <div data-bind="html:contentHtml"></div>
-                <div style="text-align:right" data-bind="visible:model.worker()!='' ">
+                <div style="text-align:right" data-bind="visible:model.userName()!='' ">
                     <button class="mui-btn  mui-btn-default" data-bind="click: handleEditClick">编辑</button>
                     <button class="mui-btn mui-btn-danger" data-bind="click: remove">X&nbsp;删除</button>
                 </div>

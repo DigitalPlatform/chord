@@ -18,7 +18,28 @@ namespace dp2weixinWeb.Controllers
 {
     public class PatronController : BaseController
     {
+        public ActionResult Setting(string code, string state,string returnUrl)
+        {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
 
+            string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            ViewBag.returnUrl = returnUrl;
+
+            // 图书馆html
+            UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weiXinId);
+            string libId = "~1"; //默认选第一行
+            if (settingItem != null)
+            {
+                libId = settingItem.libId;
+            }
+            ViewBag.LibHtml = this.GetLibSelectHtml(libId);
+
+            return View();
+        }
 
 
         #region 二维码 图片
