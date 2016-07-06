@@ -11,6 +11,8 @@ using System.Threading;
 using System.Web;
 using System.Xml;
 using System.Messaging;
+using System.Net;
+using System.IO;
 
 using TestClient1.Properties;
 
@@ -19,8 +21,6 @@ using DigitalPlatform.MessageClient;
 using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
 using DigitalPlatform;
-using System.Net;
-using System.IO;
 
 namespace TestClient1
 {
@@ -170,6 +170,7 @@ namespace TestClient1
             _cancel.Cancel();
 
             SaveSettings();
+            _channels.AddMessage -= _channels_AddMessage;
             _channels.Login -= _channels_Login;
             _channels.TraceWriter.Close();
         }

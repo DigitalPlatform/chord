@@ -8,15 +8,16 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Diagnostics;
 using System.Collections;
+using System.Threading;
 
+using DigitalPlatform;
 using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
-using DigitalPlatform;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
 using DigitalPlatform.LibraryClient.localhost;
-using System.Threading;
+using DigitalPlatform.HTTP;
 
 namespace dp2Capo
 {
@@ -733,6 +734,178 @@ param.TaskID,
 -1,
 results,
 strError);
+        }
+
+        #endregion
+
+        #region WebFunction() API
+
+        WebDataTable _webDataTable = new WebDataTable();
+
+        // 当 server 发来 WebFunction 请求的时候被调用。重载的时候要对目标发送 HTTP 请求，获得 HTTP 响应，并调用 responseWebFuntion 把响应结果发送给 server
+        public override void OnWebFunctionRecieved(WebFunctionRequest param)
+        {
+            // 累积数据，当数据完整后，执行请求和获得响应
+            WebData data = _webDataTable.AddData(param.TaskID, param.WebData);
+            if (param.Complete == true)
+            {
+                Task.Run(() => WebFunctionAndResponse(param.TaskID, data));
+            }
+        }
+
+        // 判断特征是否匹配 url。算法是取 url 右边部分和 filter 进行比较
+        static bool MatchUrl(string url, string filter)
+        {
+            if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(filter))
+                return false;
+
+            if (url.Length < filter.Length)
+                return false;
+
+            // 右边加上一个 '/'
+            if (url[url.Length - 1] != '/')
+                url += "/";
+
+            if (filter[filter.Length - 1] != '/')
+                filter += "/";
+
+            if (url.EndsWith(filter) && url[url.Length - filter.Length - 1] == '/')
+                return true;
+
+            return false;
+        }
+
+        // 将 rest/verb 剖析为两个部分 rest 和 /verb 。注意，是从右边开始找第一个 '/'
+        static List<string> SplitVerb(string text)
+        {
+            List<string> results = new List<string>();
+            int nRet = text.LastIndexOf("/");
+            if (nRet == -1)
+            {
+                results.Add(text);
+                results.Add("");
+                return results;
+            }
+
+            results.Add(text.Substring(0, nRet));
+            results.Add(text.Substring(nRet));
+            return results;
+        }
+
+        // 从若干 URL 中根据 filter 提供的特征选择一个 URL
+        static string GetTargetUrl(string urls, string filter)
+        {
+            if (string.IsNullOrEmpty(filter) == false
+                && filter[0] == '/')
+                filter = filter.Substring(1);
+
+            {
+                // 只取第二级(以及以下全部内容)作为筛选特征
+                List<string> parts = StringUtil.ParseTwoPart(filter, "/");
+                filter = parts[1];
+            }
+
+            string verb = "";
+            // rest 要特殊处理
+            if (filter.StartsWith("rest/"))
+            {
+                List<string> parts = SplitVerb(filter);
+                filter = parts[0];
+                verb = parts[1];
+            }
+
+            string[] list = urls.Split(new char[] { ';' });
+            if (string.IsNullOrEmpty(filter))
+                return list[0] + verb;
+
+            foreach(string url in list)
+            {
+                if (MatchUrl(url, filter))
+                    return url + verb;
+            }
+
+            return "";
+        }
+
+        void WebFunctionAndResponse(string taskID, WebData request_data)
+        {
+            string strError = "";
+
+            try
+            {
+                if (string.IsNullOrEmpty(this.dp2library.WebUrl) == true)
+                {
+                    // 报错
+                    strError = "dp2Capo 中尚未为 dp2library 配置 webURL 参数";
+                    goto ERROR1;
+                }
+
+                HttpRequest request = MessageUtility.BuildHttpRequest(request_data);
+
+                // this.dp2library.WebUrl 可以是若干个 URL，需要用 request.Url 的第二级来进行匹配
+                string url = GetTargetUrl(this.dp2library.WebUrl, request.Url);
+
+                if (string.IsNullOrEmpty(url))
+                {
+                    strError = "dp2Capo 的 webURL 定义 '"+this.dp2library.WebUrl+"' 无法匹配上原始请求的 '"+request.Url+"'";
+                    goto ERROR1;
+                }
+
+                request_data = null;    // 防止后面无意用到
+
+                HttpResponse response = HttpProcessor.WebCall(request, url);
+                WebData response_data = MessageUtility.BuildWebData(response);
+
+                int chunk_size = 4 * 1024;
+                byte[] content = response_data.Content;
+                for (int i = 0; ; i++)
+                {
+                    WebData current = new WebData();
+                    if (i == 0)
+                    {
+                        current.Headers = response_data.Headers;
+                        if (response_data.Headers.Length < chunk_size)
+                            current.Content = ByteArray.Remove(ref content, chunk_size - response_data.Headers.Length);
+                    }
+                    else
+                    {
+                        current.Headers = null;
+                        current.Content = ByteArray.Remove(ref content, chunk_size);
+                    }
+
+                    WebFunctionResponse param = new WebFunctionResponse();
+                    param.TaskID = taskID;
+                    param.WebData = current;
+                    param.Complete = content.Length == 0;
+                    MessageResult result = ResponseWebFunctionAsync(param).Result;
+                    if (result.Value == -1)
+                        break;
+
+                    if (content.Length == 0)
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                strError = "WebFunctionAndResponse() 出现异常: " + ex.Message;
+                goto ERROR1;
+            }
+            finally
+            {
+                _webDataTable.RemoveData(taskID);
+            }
+
+        ERROR1:
+            {
+                WebFunctionResponse param = new WebFunctionResponse();
+                param.TaskID = taskID;
+                param.Complete = true;
+                param.Result = new MessageResult();
+                param.Result.Value = -1;
+                param.Result.ErrorInfo = strError;
+
+                TryResponseWebFunction(param);
+            }
         }
 
         #endregion

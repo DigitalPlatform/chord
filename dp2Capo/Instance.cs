@@ -220,6 +220,12 @@ namespace dp2Capo
             if (string.IsNullOrEmpty(strNewValue) == false)
                 element.SetAttribute("defaultQueue", strNewValue);
 
+            // 2016/7/4
+            Console.WriteLine("请输入 dp2library 的 basic.http 或 rest.http 协议绑定地址[若有多个地址请用分号间隔]: (当前值为 '" + element.GetAttribute("webURL") + "' )");
+            strNewValue = Console.ReadLine();
+            if (string.IsNullOrEmpty(strNewValue) == false)
+                element.SetAttribute("webURL", strNewValue);
+
             element = dom.DocumentElement.SelectSingleNode("dp2mserver") as XmlElement;
             if (element == null)
             {
@@ -473,6 +479,13 @@ namespace dp2Capo
 
     public class LibraryHostInfo : HostInfo
     {
+        // basic.http 协议绑定 URL。便于进行 Web 访问
+        public string WebUrl
+        {
+            get;
+            set;
+        }
+
         // 默认的 MSMQ 队列路径
         public string DefaultQueue
         {
@@ -505,6 +518,10 @@ namespace dp2Capo
             if (string.IsNullOrEmpty(this.DefaultQueue) == true)
                 throw new Exception("元素 " + element.Name + " 尚未定义 defaultQueue 属性");
 #endif
+
+            this.WebUrl = element.GetAttribute("webURL");
+
+            Console.WriteLine(element.Name + " webURL=" + this.WebUrl);
         }
     }
 

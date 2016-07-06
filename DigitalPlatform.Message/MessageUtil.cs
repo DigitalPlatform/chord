@@ -39,6 +39,11 @@ namespace DigitalPlatform.Message
         public long Start { get; set; }
         public long Count { get; set; }
 
+        public GetGroupRequest()
+        {
+
+        }
+
         public GetGroupRequest(string taskID,
             string groupCondition,
             string userCondition,
@@ -123,6 +128,11 @@ namespace DigitalPlatform.Message
         public string Style { get; set; }
         public List<MessageRecord> Records { get; set; }
 
+        public SetMessageRequest()
+        {
+
+        }
+
         public SetMessageRequest(string action,
             string style,
             List<MessageRecord> records)
@@ -153,6 +163,11 @@ namespace DigitalPlatform.Message
 
         public long Start { get; set; }
         public long Count { get; set; }
+
+        public GetMessageRequest()
+        {
+
+        }
 
         public GetMessageRequest(string taskID,
             string action,
@@ -251,6 +266,11 @@ namespace DigitalPlatform.Message
         public long Start { get; set; } // 本次获得结果的开始位置
         public long Count { get; set; } // 本次获得结果的个数。 -1表示尽可能多
         public string ServerPushEncoding { get; set; }
+
+        public SearchRequest()
+        {
+
+        }
 
         public SearchRequest(string taskID,
             string operation,
@@ -390,6 +410,11 @@ namespace DigitalPlatform.Message
         public long Start { get; set; } // 本次获得结果的开始位置
         public long Count { get; set; } // 本次获得结果的个数。 -1表示尽可能多
 
+        public GetConnectionInfoRequest()
+        {
+
+        }
+
         public GetConnectionInfoRequest(string taskID,
             string operation,
             string queryWord,
@@ -456,6 +481,11 @@ namespace DigitalPlatform.Message
         public string BiblioRecPath { get; set; }
         public List<Entity> Entities { get; set; }
 
+        public SetInfoRequest()
+        {
+
+        }
+
         public SetInfoRequest(string taskID,
             string operation,
             string biblioRecPath,
@@ -506,6 +536,11 @@ namespace DigitalPlatform.Message
         public string Style { get; set; }
         public string ResultTypeList { get; set; }
 
+        public BindPatronRequest()
+        {
+
+        }
+
         public BindPatronRequest(string taskID,
             string action,
             string queryWord,
@@ -547,6 +582,11 @@ namespace DigitalPlatform.Message
         public string PatronFormatList { get; set; }
         public string ItemFormatList { get; set; }  // 
         public string BiblioFormatList { get; set; }
+
+        public CirculationRequest()
+        {
+
+        }
 
         public CirculationRequest(string taskID,
             string operation,
@@ -643,6 +683,11 @@ namespace DigitalPlatform.Message
         public long Length { get; set; }     // 
         public string Style { get; set; }
 
+        public GetResRequest()
+        {
+
+        }
+
         public GetResRequest(string taskID,
             string operation,
             string path,
@@ -680,7 +725,7 @@ namespace DigitalPlatform.Message
             long totalLength,
             long start,
             string path,
-            byte [] data,
+            byte[] data,
             string metadata,
             string timestamp,
             string errorInfo,
@@ -710,6 +755,66 @@ namespace DigitalPlatform.Message
             text.Append("ErrorCode=" + this.ErrorCode + "\r\n");
             return text.ToString();
         }
+    }
+
+    #endregion
+
+
+    #region WebFunction() 有关
+
+    public class WebFunctionResult : MessageResult
+    {
+        public WebData WebData { get; set; }
+    }
+
+    public class WebFunctionRequest
+    {
+        public string TaskID { get; set; }    // 本次任务 ID
+        public WebData WebData { get; set; }    // 传送的数据
+        public bool First { get; set; }         // 是否为本次任务的第一个请求
+        public bool Complete { get; set; }      // 传送是否结束
+
+        // [JsonConstructor]
+        public WebFunctionRequest()
+        {
+
+        }
+
+        public WebFunctionRequest(string taskID,
+            WebData webData, 
+            bool first,
+            bool complete)
+        {
+            this.TaskID = taskID;
+            this.WebData = webData;
+            this.First = first;
+            this.Complete = complete;
+        }
+    }
+
+    public class WebData
+    {
+        public string Headers { get; set; }   // 头字段
+        public byte[] Content { get; set; }     // 数据体
+
+        public WebData()
+        {
+
+        }
+
+        public WebData(string headers, byte [] content)
+        {
+            this.Headers = headers;
+            this.Content = content;
+        }
+    }
+
+    public class WebFunctionResponse
+    {
+        public string TaskID { get; set; }    // 本次任务 ID
+        public WebData WebData { get; set; }    // 传送的数据
+        public bool Complete { get; set; }      // 传送是否结束
+        public MessageResult Result { get; set; }   // 是否出错
     }
 
     #endregion
