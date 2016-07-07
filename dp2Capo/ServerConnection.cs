@@ -752,10 +752,12 @@ strError);
         public override void OnWebCallRecieved(WebCallRequest param)
         {
             // 累积数据，当数据完整后，执行请求和获得响应
-            WebData data = _webDataTable.AddData(param.TaskID, param.WebData);
+            _webDataTable.AddData(param.TaskID, param.WebData);
             if (param.Complete == true)
             {
-                Task.Run(() => WebCallAndResponse(param.TaskID, data));
+                WebData data = _webDataTable.GetData(param.TaskID);
+
+                Task.Run(() => WebCallAndResponse(param.TaskID, param.TransferEncoding, data));
             }
         }
 
@@ -833,7 +835,9 @@ strError);
             return "";
         }
 
-        void WebCallAndResponse(string taskID, WebData request_data)
+        void WebCallAndResponse(string taskID,
+            string transferEncoding,
+            WebData request_data)
         {
             string strError = "";
 
@@ -846,7 +850,7 @@ strError);
                     goto ERROR1;
                 }
 
-                HttpRequest request = MessageUtility.BuildHttpRequest(request_data);
+                HttpRequest request = MessageUtility.BuildHttpRequest(request_data, transferEncoding);
 
                 // this.dp2library.WebUrl 可以是若干个 URL，需要用 request.Url 的第二级来进行匹配
                 string url = GetTargetUrl(this.dp2library.WebUrl, request.Url);
@@ -860,27 +864,62 @@ strError);
                 request_data = null;    // 防止后面无意用到
 
                 HttpResponse response = HttpProcessor.WebCall(request, url);
-                WebData response_data = MessageUtility.BuildWebData(response);
+                WebData response_data = MessageUtility.BuildWebData(response, transferEncoding);
 
                 int chunk_size = MessageUtil.BINARY_CHUNK_SIZE;
-                byte[] content = response_data.Content;
+
+                if (transferEncoding == "text" || transferEncoding == "base64")
+                {
+                    StringBuilder content = new StringBuilder(response_data.Text);
+                    for (int i = 0; ; i++)
+                    {
+                        WebData current = new WebData();
+                        if (i == 0)
+                        {
+                            current.Headers = response_data.Headers;
+                            if (response_data.Headers.Length < chunk_size)
+                                current.Text = RemoveFrom(content, chunk_size - response_data.Headers.Length);
+                        }
+                        else
+                        {
+                            current.Headers = null;
+                            current.Text = RemoveFrom(content, chunk_size);
+                        }
+
+                        WebCallResponse param = new WebCallResponse();
+                        param.TaskID = taskID;
+                        param.WebData = current;
+                        param.Complete = content.Length == 0;
+
+                        MessageResult result = ResponseWebCallAsync(param).Result;
+                        if (result.Value == -1)
+                            break;
+
+                        if (content.Length == 0)
+                            break;
+                    }
+                }
+
+                if (transferEncoding == "content")
+                {
+                    byte[] content = response_data.Content;
 #if VERIFY_CHUNK
                 int content_send = 0;
 #endif
-                for (int i = 0; ; i++)
-                {
-                    WebData current = new WebData();
-                    if (i == 0)
+                    for (int i = 0; ; i++)
                     {
-                        current.Headers = response_data.Headers;
-                        if (response_data.Headers.Length < chunk_size)
-                            current.Content = ByteArray.Remove(ref content, chunk_size - response_data.Headers.Length);
-                    }
-                    else
-                    {
-                        current.Headers = null;
-                        current.Content = ByteArray.Remove(ref content, chunk_size);
-                    }
+                        WebData current = new WebData();
+                        if (i == 0)
+                        {
+                            current.Headers = response_data.Headers;
+                            if (response_data.Headers.Length < chunk_size)
+                                current.Content = ByteArray.Remove(ref content, chunk_size - response_data.Headers.Length);
+                        }
+                        else
+                        {
+                            current.Headers = null;
+                            current.Content = ByteArray.Remove(ref content, chunk_size);
+                        }
 
 #if VERIFY_CHUNK
                     current.Offset = content_send;
@@ -890,19 +929,20 @@ strError);
                     content_send += current.Content.Length;
 #endif
 
-                    WebCallResponse param = new WebCallResponse();
-                    param.TaskID = taskID;
-                    param.WebData = current;
-                    param.Complete = content.Length == 0;
+                        WebCallResponse param = new WebCallResponse();
+                        param.TaskID = taskID;
+                        param.WebData = current;
+                        param.Complete = content.Length == 0;
 
-                    // Wait(TimeSpan.FromMilliseconds(5));
+                        // Wait(TimeSpan.FromMilliseconds(5));
 
-                    MessageResult result = ResponseWebCallAsync(param).Result;
-                    if (result.Value == -1)
-                        break;
+                        MessageResult result = ResponseWebCallAsync(param).Result;
+                        if (result.Value == -1)
+                            break;
 
-                    if (content.Length == 0)
-                        break;
+                        if (content.Length == 0)
+                            break;
+                    }
                 }
             }
             catch (Exception ex)

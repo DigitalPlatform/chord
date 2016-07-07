@@ -783,7 +783,10 @@ namespace DigitalPlatform.Message
     public class WebCallRequest
     {
         public string TaskID { get; set; }    // 本次任务 ID
+
+        public string TransferEncoding { get; set; }
         public WebData WebData { get; set; }    // 传送的数据
+
         public bool First { get; set; }         // 是否为本次任务的第一个请求
         public bool Complete { get; set; }      // 传送是否结束
 
@@ -794,11 +797,13 @@ namespace DigitalPlatform.Message
         }
 
         public WebCallRequest(string taskID,
+            string transferEncoding,
             WebData webData,
             bool first,
             bool complete)
         {
             this.TaskID = taskID;
+            this.TransferEncoding = transferEncoding;
             this.WebData = webData;
             this.First = first;
             this.Complete = complete;
@@ -808,7 +813,9 @@ namespace DigitalPlatform.Message
     public class WebData
     {
         public string Headers { get; set; }   // 头字段
+
         public byte[] Content { get; set; }     // 数据体
+        public string Text { get; set; }        // 文本形态的数据体
 
 #if NO
         public int Offset { get; set; } // 本次传输的 Content 在总的 Content 里面的偏移
@@ -824,6 +831,14 @@ namespace DigitalPlatform.Message
         {
             this.Headers = headers;
             this.Content = content;
+            this.Text = null;
+        }
+
+        public WebData(string headers, string text)
+        {
+            this.Headers = headers;
+            this.Text = text;
+            this.Content = null;
         }
 
         public string Dump()
@@ -832,6 +847,8 @@ namespace DigitalPlatform.Message
             text.Append("Headers=" + this.Headers + "\r\n");
             if (this.Content != null)
                 text.Append("Content.Length=" + this.Content.Length + "\r\n");
+            if (this.Text != null)
+                text.Append("Text=" + this.Text + "\r\n");
             return text.ToString();
         }
     }
@@ -839,7 +856,10 @@ namespace DigitalPlatform.Message
     public class WebCallResponse
     {
         public string TaskID { get; set; }    // 本次任务 ID
+
+        public string TransferEncoding { get; set; }
         public WebData WebData { get; set; }    // 传送的数据
+
         public bool Complete { get; set; }      // 传送是否结束
         public MessageResult Result { get; set; }   // 是否出错
     }

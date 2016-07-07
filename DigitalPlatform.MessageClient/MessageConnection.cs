@@ -837,7 +837,9 @@ CancellationToken token)
         }
 
         // 将 data 内容追加到 exist
-        static void AddData(WebData exist, WebData data)
+        static void AddData(WebData exist, 
+            StringBuilder text,
+            WebData data)
         {
             if (data.Headers != null)
             {
@@ -872,6 +874,22 @@ CancellationToken token)
                     throw new Exception("请求者收取的 Content MD5 校验不正确");
 #endif
             }
+
+            if (data.Text != null)
+            {
+#if NO
+                if (exist.Text == null)
+                {
+                    exist.Text = data.Text;
+                }
+                else
+                {
+                    exist.Text += data.Text;
+                }
+#endif
+                text.Append(data.Text);
+            }
+
         }
 
         public Task<WebCallResult> WebCallTaskAsync(
@@ -888,6 +906,15 @@ CancellationToken token)
             token);
         }
 
+        public static string RemoveFrom(StringBuilder text, int length)
+        {
+            if (length > text.Length)
+                length = text.Length;
+            string result = text.ToString(0, length);
+            text.Remove(0, length);
+            return result;
+        }
+
         public async Task<WebCallResult> WebCallAsyncLite(
     string strRemoteUserName,
     WebCallRequest request,
@@ -900,6 +927,7 @@ CancellationToken token)
             WebCallResult result = new WebCallResult();
             if (result.WebData == null)
                 result.WebData = new WebData();
+            StringBuilder text = new StringBuilder();   // 缓冲字符串
 
             if (string.IsNullOrEmpty(request.TaskID) == true)
                 request.TaskID = Guid.NewGuid().ToString();
@@ -943,7 +971,7 @@ CancellationToken token)
 
                             // 拼接命中结果
                             if (responseParam.WebData != null)
-                                AddData(result.WebData, responseParam.WebData);
+                                AddData(result.WebData, text, responseParam.WebData);
 
                             if (responseParam.Complete)
                                 wait_events.finish_event.Set();
@@ -961,24 +989,67 @@ CancellationToken token)
                 {
                     // 分批发出请求
                     int chunk_size = MessageUtil.BINARY_CHUNK_SIZE;
-                    byte[] content = request.WebData.Content;
+
+                    if (request.TransferEncoding == "text" || request.TransferEncoding == "base64")
+                    {
+                        StringBuilder content = new StringBuilder(request.WebData.Text);
+                        for (int i = 0; ; i++)
+                        {
+                            WebData current = new WebData();
+                            if (i == 0)
+                            {
+                                current.Headers = request.WebData.Headers;
+                                if (request.WebData.Headers.Length < chunk_size)
+                                    current.Text = RemoveFrom(content, chunk_size - request.WebData.Headers.Length);
+                            }
+                            else
+                            {
+                                current.Headers = null;
+                                current.Text = RemoveFrom(content, chunk_size);
+                            }
+
+                            WebCallRequest param = new WebCallRequest(
+                            request.TaskID,
+                            request.TransferEncoding,
+                            current,
+                            i == 0,
+                            content.Length == 0);
+
+                            MessageResult message = await HubProxy.Invoke<MessageResult>(
+    "RequestWebCall",
+    strRemoteUserName,
+    param);
+                            if (message.Value == -1 || message.Value == 0)
+                            {
+                                result.ErrorInfo = message.ErrorInfo;
+                                result.Value = -1;
+                                return result;
+                            }
+                            if (content.Length == 0)
+                                break;
+                        }
+                    }
+
+                    if (request.TransferEncoding == "content")
+                    {
+                        byte[] content = request.WebData.Content;
 #if VERIFY_CHUNK
                     int content_send = 0;
 #endif
-                    for (int i = 0; ; i++)
-                    {
-                        WebData current = new WebData();
-                        if (i == 0)
+                        for (int i = 0; ; i++)
                         {
-                            current.Headers = request.WebData.Headers;
-                            if (request.WebData.Headers.Length < chunk_size)
-                                current.Content = ByteArray.Remove(ref content, chunk_size - request.WebData.Headers.Length);
-                        }
-                        else
-                        {
-                            current.Headers = null;
-                            current.Content = ByteArray.Remove(ref content, chunk_size);
-                        }
+                            WebData current = new WebData();
+                            if (i == 0)
+                            {
+                                current.Headers = request.WebData.Headers;
+                                if (request.WebData.Headers.Length < chunk_size)
+                                    current.Content = ByteArray.Remove(ref content, chunk_size - request.WebData.Headers.Length);
+                            }
+                            else
+                            {
+                                current.Headers = null;
+                                current.Content = ByteArray.Remove(ref content, chunk_size);
+                            }
 
 #if VERIFY_CHUNK
                         current.Offset = content_send;
@@ -987,24 +1058,26 @@ CancellationToken token)
                         content_send += current.Content.Length;
 #endif
 
-                        WebCallRequest param = new WebCallRequest(
-                        request.TaskID,
-                        current,
-                        i == 0,
-                        content.Length == 0);
+                            WebCallRequest param = new WebCallRequest(
+                            request.TaskID,
+                            request.TransferEncoding,
+                            current,
+                            i == 0,
+                            content.Length == 0);
 
-                        MessageResult message = await HubProxy.Invoke<MessageResult>(
-"RequestWebCall",
-strRemoteUserName,
-param);
-                        if (message.Value == -1 || message.Value == 0)
-                        {
-                            result.ErrorInfo = message.ErrorInfo;
-                            result.Value = -1;
-                            return result;
+                            MessageResult message = await HubProxy.Invoke<MessageResult>(
+    "RequestWebCall",
+    strRemoteUserName,
+    param);
+                            if (message.Value == -1 || message.Value == 0)
+                            {
+                                result.ErrorInfo = message.ErrorInfo;
+                                result.Value = -1;
+                                return result;
+                            }
+                            if (content.Length == 0)
+                                break;
                         }
-                        if (content.Length == 0)
-                            break;
                     }
 
                     // 等待回应消息
@@ -1021,6 +1094,8 @@ param);
                         throw;
                     }
 
+                    if (text.Length > 0)
+                        result.WebData.Text = text.ToString();
                     return result;
                 }
             }

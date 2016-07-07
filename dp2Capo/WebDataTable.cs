@@ -23,6 +23,10 @@ namespace dp2Capo
             WebDataWrapper wrapper = GetWrapper(taskID);
             if (wrapper == null)
                 return null;
+            // 将缓冲的数据兑现到 WebData 中
+            if (wrapper.Text != null && wrapper.Text.Length != 0)
+                wrapper.WebData.Text = wrapper.Text.ToString();
+
             return wrapper.WebData;
         }
 
@@ -42,11 +46,18 @@ namespace dp2Capo
             }
         }
 
+#if NO
         // 追加数据
         public WebData AddData(string taskID, WebData data)
         {
             WebDataWrapper wrapper = AddWrapper(taskID, data);
             return wrapper.WebData;
+        }
+#endif
+        // 追加数据
+        public void AddData(string taskID, WebData data)
+        {
+            AddWrapper(taskID, data);
         }
 
         // 追加数据
@@ -56,6 +67,10 @@ namespace dp2Capo
             {
                 WebDataWrapper wrapper = new WebDataWrapper();
                 wrapper.WebData = data;
+                wrapper.Text = new StringBuilder();
+                if (data.Text != null)
+                    wrapper.Text.Append(data.Text);
+
                 if (_webData_table.ContainsKey(taskID) == false)
                 {
                     _webData_table[taskID] = wrapper;
@@ -92,6 +107,21 @@ namespace dp2Capo
                     }
                 }
 
+                if (data.Text != null)
+                {
+#if NO
+                    if (exist.WebData.Text == null)
+                    {
+                        exist.WebData.Text = data.Text;
+                    }
+                    else
+                    {
+                        exist.WebData.Text += data.Text;
+                    }
+#endif
+                    exist.Text.Append(data.Text);
+                }
+
                 return exist;
             }
         }
@@ -122,6 +152,8 @@ namespace dp2Capo
     public class WebDataWrapper
     {
         public WebData WebData { get; set; }
+
+        public StringBuilder Text { get; set; } // 提高字符串拼接的速度
 
         // 最近一次操作的时间
         public DateTime LastTime { get; set; }

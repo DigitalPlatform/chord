@@ -224,7 +224,8 @@ namespace dp2Router
             _channels.AddMessage -= _channels_AddMessage;
         }
 
-        public static DigitalPlatform.HTTP.HttpResponse WebCall(DigitalPlatform.HTTP.HttpRequest request)
+        public static DigitalPlatform.HTTP.HttpResponse WebCall(DigitalPlatform.HTTP.HttpRequest request,
+            string transferEncoding)
         {
             // 从 request.Url 中解析出 remoteUserName
             string remoteUserName = request.Url;
@@ -238,15 +239,19 @@ namespace dp2Router
                 remoteUserName = parts[0];
             }
 
-            WebData data = MessageUtility.BuildWebData(request);
+            WebData data = MessageUtility.BuildWebData(request, transferEncoding);
 
             string id = Guid.NewGuid().ToString();
-            WebCallRequest param = new WebCallRequest(id, data, true, true);
+            WebCallRequest param = new WebCallRequest(id, 
+                transferEncoding,
+                data, 
+                true,
+                true);
             CancellationToken cancel_token = new CancellationToken();
 
             try
             {
-                Console.WriteLine("Begin WebCall");
+                // Console.WriteLine("Begin WebCall");
 
                 MessageConnection connection = _channels.GetConnectionTaskAsync(
                     Url,
@@ -257,7 +262,7 @@ namespace dp2Router
                     new TimeSpan(0, 1, 10), // 10 秒
                     cancel_token).Result;
 
-                Console.WriteLine("End WebCall result=" + result.Dump());
+                // Console.WriteLine("End WebCall result=" + result.Dump());
 
                 if (result.Value == -1)
                 {
@@ -267,7 +272,7 @@ namespace dp2Router
                         result.ErrorInfo);
                 }
 
-                return MessageUtility.BuildHttpResponse(result.WebData);
+                return MessageUtility.BuildHttpResponse(result.WebData, transferEncoding);
             }
             catch (AggregateException ex)
             {
