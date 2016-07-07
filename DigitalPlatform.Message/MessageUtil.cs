@@ -8,6 +8,7 @@ namespace DigitalPlatform.Message
 {
     public static class MessageUtil
     {
+        public const int BINARY_CHUNK_SIZE = 4 * 1024;  // 4K 时会出现数据传输错误
 
     }
 
@@ -760,14 +761,26 @@ namespace DigitalPlatform.Message
     #endregion
 
 
-    #region WebFunction() 有关
+    #region WebCall() 有关
 
-    public class WebFunctionResult : MessageResult
+    public class WebCallResult : MessageResult
     {
         public WebData WebData { get; set; }
+
+        public string Dump()
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("Value=" + this.Value + "\r\n");
+            text.Append("ErrorInfo=" + this.ErrorInfo + "\r\n");
+            text.Append("String=" + this.String + "\r\n");
+
+            if (this.WebData != null)
+                text.Append("WebData=" + this.WebData.Dump() + "\r\n");
+            return text.ToString();
+        }
     }
 
-    public class WebFunctionRequest
+    public class WebCallRequest
     {
         public string TaskID { get; set; }    // 本次任务 ID
         public WebData WebData { get; set; }    // 传送的数据
@@ -775,13 +788,13 @@ namespace DigitalPlatform.Message
         public bool Complete { get; set; }      // 传送是否结束
 
         // [JsonConstructor]
-        public WebFunctionRequest()
+        public WebCallRequest()
         {
 
         }
 
-        public WebFunctionRequest(string taskID,
-            WebData webData, 
+        public WebCallRequest(string taskID,
+            WebData webData,
             bool first,
             bool complete)
         {
@@ -797,19 +810,33 @@ namespace DigitalPlatform.Message
         public string Headers { get; set; }   // 头字段
         public byte[] Content { get; set; }     // 数据体
 
+#if NO
+        public int Offset { get; set; } // 本次传输的 Content 在总的 Content 里面的偏移
+        public string MD5 { get; set; }
+#endif
+
         public WebData()
         {
 
         }
 
-        public WebData(string headers, byte [] content)
+        public WebData(string headers, byte[] content)
         {
             this.Headers = headers;
             this.Content = content;
         }
+
+        public string Dump()
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("Headers=" + this.Headers + "\r\n");
+            if (this.Content != null)
+                text.Append("Content.Length=" + this.Content.Length + "\r\n");
+            return text.ToString();
+        }
     }
 
-    public class WebFunctionResponse
+    public class WebCallResponse
     {
         public string TaskID { get; set; }    // 本次任务 ID
         public WebData WebData { get; set; }    // 传送的数据

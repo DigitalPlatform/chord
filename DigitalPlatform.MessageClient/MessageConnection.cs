@@ -1,4 +1,5 @@
 ﻿// #define FIX_HANDLER
+// #define VERIFY_CHUNK
 
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ using Microsoft.AspNet.SignalR.Client.Transports;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
+using DigitalPlatform.Common;
 
 namespace DigitalPlatform.MessageClient
 {
@@ -358,9 +360,9 @@ errorInfo)
                 (param) => OnGetResRecieved(param)
                 );
 
-            // *** webFunction
-            HubProxy.On<WebFunctionRequest>("webFunction",
-                (param) => OnWebFunctionRecieved(param)
+            // *** webCall
+            HubProxy.On<WebCallRequest>("webCall",
+                (param) => OnWebCallRecieved(param)
                 );
 
             try
@@ -826,10 +828,10 @@ CancellationToken token)
 
         #endregion
 
-        #region WebFunction() API
+        #region WebCall() API
 
-        // 当 server 发来 WebFunction 请求的时候被调用。重载的时候要对目标发送 HTTP 请求，获得 HTTP 响应，并调用 responseWebFuntion 把响应结果发送给 server
-        public virtual void OnWebFunctionRecieved(WebFunctionRequest param)
+        // 当 server 发来 WebCall 请求的时候被调用。重载的时候要对目标发送 HTTP 请求，获得 HTTP 响应，并调用 responseWebCall 把响应结果发送给 server
+        public virtual void OnWebCallRecieved(WebCallRequest param)
         {
 
         }
@@ -848,36 +850,54 @@ CancellationToken token)
             if (data.Content != null)
             {
                 if (exist.Content == null)
+                {
+#if VERIFY_CHUNK
+                    if (data.Offset != 0)
+                        throw new Exception("第一个 chunk 其 Offset 应该为 0");
+#endif
                     exist.Content = data.Content;
+                }
                 else
+                {
+#if VERIFY_CHUNK
+                    if (exist.Content.Length != data.Offset)
+                        throw new Exception("累积 Content 的长度 " + exist.Content.Length + " 和当前 chunk 的 offset " + data.Offset.ToString() + " 不一致");
+#endif
                     exist.Content = ByteArray.Add(exist.Content, data.Content);
+                }
+
+#if VERIFY_CHUNK
+                string md5 = StringUtil.GetMd5(exist.Content);
+                if (md5 != exist.MD5)
+                    throw new Exception("请求者收取的 Content MD5 校验不正确");
+#endif
             }
         }
 
-        public Task<WebFunctionResult> WebFunctionTaskAsync(
+        public Task<WebCallResult> WebCallTaskAsync(
 string strRemoteUserName,
-WebFunctionRequest request,
+WebCallRequest request,
 TimeSpan timeout,
 CancellationToken token)
         {
-            return TaskRun<WebFunctionResult>(
+            return TaskRun<WebCallResult>(
                 () =>
                 {
-                    return WebFunctionAsyncLite(strRemoteUserName, request, timeout, token).Result;
+                    return WebCallAsyncLite(strRemoteUserName, request, timeout, token).Result;
                 },
             token);
         }
 
-        public async Task<WebFunctionResult> WebFunctionAsyncLite(
+        public async Task<WebCallResult> WebCallAsyncLite(
     string strRemoteUserName,
-    WebFunctionRequest request,
+    WebCallRequest request,
     TimeSpan timeout,
     CancellationToken token)
         {
             List<string> errors = new List<string>();
             List<string> codes = new List<string>();
 
-            WebFunctionResult result = new WebFunctionResult();
+            WebCallResult result = new WebCallResult();
             if (result.WebData == null)
                 result.WebData = new WebData();
 
@@ -886,8 +906,8 @@ CancellationToken token)
 
             using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
             {
-                using (var handler = HubProxy.On<WebFunctionResponse>(
-                    "responseWebFunction",
+                using (var handler = HubProxy.On<WebCallResponse>(
+                    "responseWebCall",
                     (responseParam) =>
                     {
                         try
@@ -932,7 +952,7 @@ CancellationToken token)
                         }
                         catch (Exception ex)
                         {
-                            errors.Add("WebFunctionAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
+                            errors.Add("WebCallAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
                             result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
                             if (!(ex is ObjectDisposedException))
                                 wait_events.finish_event.Set();
@@ -940,8 +960,11 @@ CancellationToken token)
                     }))
                 {
                     // 分批发出请求
-                    int chunk_size = 4 * 1024;
+                    int chunk_size = MessageUtil.BINARY_CHUNK_SIZE;
                     byte[] content = request.WebData.Content;
+#if VERIFY_CHUNK
+                    int content_send = 0;
+#endif
                     for (int i = 0; ; i++)
                     {
                         WebData current = new WebData();
@@ -957,14 +980,21 @@ CancellationToken token)
                             current.Content = ByteArray.Remove(ref content, chunk_size);
                         }
 
-                        WebFunctionRequest param = new WebFunctionRequest(
+#if VERIFY_CHUNK
+                        current.Offset = content_send;
+
+                        //
+                        content_send += current.Content.Length;
+#endif
+
+                        WebCallRequest param = new WebCallRequest(
                         request.TaskID,
                         current,
                         i == 0,
                         content.Length == 0);
 
                         MessageResult message = await HubProxy.Invoke<MessageResult>(
-"RequestWebFunction",
+"RequestWebCall",
 strRemoteUserName,
 param);
                         if (message.Value == -1 || message.Value == 0)
@@ -2718,7 +2748,7 @@ errorInfo);
         DateTime _lastTime = DateTime.Now;
 
         // 和上次操作的时刻之间，等待至少这么多时间。
-        void Wait(TimeSpan length)
+        public void Wait(TimeSpan length)
         {
             DateTime now = DateTime.Now;
             TimeSpan delta = now - _lastTime;
@@ -3067,20 +3097,20 @@ LoginRequest param)
  param);
         }
 
-        // 调用 server 端 ResponseWebFunction
-        public Task<MessageResult> ResponseWebFunctionAsync(
-WebFunctionResponse responseParam)
+        // 调用 server 端 ResponseWebCall
+        public Task<MessageResult> ResponseWebCallAsync(
+WebCallResponse responseParam)
         {
-            return HubProxy.Invoke<MessageResult>("ResponseWebFunction",
+            return HubProxy.Invoke<MessageResult>("ResponseWebCall",
  responseParam);
         }
 
-        public void TryResponseWebFunction(
-WebFunctionResponse responseParam)
+        public void TryResponseWebCall(
+WebCallResponse responseParam)
         {
             try
             {
-                HubProxy.Invoke<MessageResult>("ResponseWebFunction",
+                HubProxy.Invoke<MessageResult>("ResponseWebCall",
      responseParam).Wait();
             }
             catch

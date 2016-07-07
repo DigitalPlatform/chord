@@ -118,6 +118,8 @@ namespace DigitalPlatform.HTTP
 
             string strHostName = builder.Host;
             int nPort = builder.Port;
+            if (nPort == -1)
+                nPort = 80;
 
             TcpClient client = new TcpClient(AddressFamily.InterNetwork);
             client.Connect(strHostName, nPort);

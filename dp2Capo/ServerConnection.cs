@@ -1,4 +1,5 @@
 ﻿// #define LOG
+// #define VERIFY_CHUNK
 
 using System;
 using System.Collections.Generic;
@@ -738,18 +739,23 @@ strError);
 
         #endregion
 
-        #region WebFunction() API
+        #region WebCall() API
 
         WebDataTable _webDataTable = new WebDataTable();
 
-        // 当 server 发来 WebFunction 请求的时候被调用。重载的时候要对目标发送 HTTP 请求，获得 HTTP 响应，并调用 responseWebFuntion 把响应结果发送给 server
-        public override void OnWebFunctionRecieved(WebFunctionRequest param)
+        public void CleanWebDataTable()
+        {
+            _webDataTable.Clean(TimeSpan.FromMinutes(10));
+        }
+
+        // 当 server 发来 WebCall 请求的时候被调用。重载的时候要对目标发送 HTTP 请求，获得 HTTP 响应，并调用 responseWebCall 把响应结果发送给 server
+        public override void OnWebCallRecieved(WebCallRequest param)
         {
             // 累积数据，当数据完整后，执行请求和获得响应
             WebData data = _webDataTable.AddData(param.TaskID, param.WebData);
             if (param.Complete == true)
             {
-                Task.Run(() => WebFunctionAndResponse(param.TaskID, data));
+                Task.Run(() => WebCallAndResponse(param.TaskID, data));
             }
         }
 
@@ -818,7 +824,7 @@ strError);
             if (string.IsNullOrEmpty(filter))
                 return list[0] + verb;
 
-            foreach(string url in list)
+            foreach (string url in list)
             {
                 if (MatchUrl(url, filter))
                     return url + verb;
@@ -827,7 +833,7 @@ strError);
             return "";
         }
 
-        void WebFunctionAndResponse(string taskID, WebData request_data)
+        void WebCallAndResponse(string taskID, WebData request_data)
         {
             string strError = "";
 
@@ -847,7 +853,7 @@ strError);
 
                 if (string.IsNullOrEmpty(url))
                 {
-                    strError = "dp2Capo 的 webURL 定义 '"+this.dp2library.WebUrl+"' 无法匹配上原始请求的 '"+request.Url+"'";
+                    strError = "dp2Capo 的 webURL 定义 '" + this.dp2library.WebUrl + "' 无法匹配上原始请求的 '" + request.Url + "'";
                     goto ERROR1;
                 }
 
@@ -856,8 +862,11 @@ strError);
                 HttpResponse response = HttpProcessor.WebCall(request, url);
                 WebData response_data = MessageUtility.BuildWebData(response);
 
-                int chunk_size = 4 * 1024;
+                int chunk_size = MessageUtil.BINARY_CHUNK_SIZE;
                 byte[] content = response_data.Content;
+#if VERIFY_CHUNK
+                int content_send = 0;
+#endif
                 for (int i = 0; ; i++)
                 {
                     WebData current = new WebData();
@@ -873,11 +882,22 @@ strError);
                         current.Content = ByteArray.Remove(ref content, chunk_size);
                     }
 
-                    WebFunctionResponse param = new WebFunctionResponse();
+#if VERIFY_CHUNK
+                    current.Offset = content_send;
+                    current.MD5 = StringUtil.GetMd5(current.Content);
+
+                    //
+                    content_send += current.Content.Length;
+#endif
+
+                    WebCallResponse param = new WebCallResponse();
                     param.TaskID = taskID;
                     param.WebData = current;
                     param.Complete = content.Length == 0;
-                    MessageResult result = ResponseWebFunctionAsync(param).Result;
+
+                    // Wait(TimeSpan.FromMilliseconds(5));
+
+                    MessageResult result = ResponseWebCallAsync(param).Result;
                     if (result.Value == -1)
                         break;
 
@@ -887,7 +907,7 @@ strError);
             }
             catch (Exception ex)
             {
-                strError = "WebFunctionAndResponse() 出现异常: " + ex.Message;
+                strError = "WebCallAndResponse() 出现异常: " + ex.Message;
                 goto ERROR1;
             }
             finally
@@ -897,14 +917,14 @@ strError);
 
         ERROR1:
             {
-                WebFunctionResponse param = new WebFunctionResponse();
+                WebCallResponse param = new WebCallResponse();
                 param.TaskID = taskID;
                 param.Complete = true;
                 param.Result = new MessageResult();
                 param.Result.Value = -1;
                 param.Result.ErrorInfo = strError;
 
-                TryResponseWebFunction(param);
+                TryResponseWebCall(param);
             }
         }
 
