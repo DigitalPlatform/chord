@@ -69,6 +69,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZipUtil", "ZipUtil\ZipUtil.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2Router", "dp2Router\dp2Router.csproj", "{2705873B-D3CF-4307-9DF0-25465F35DB63}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.HTTP", "DigitalPlatform.HTTP\DigitalPlatform.HTTP.csproj", "{DB68395B-9FED-47C1-B5EF-5C238E813279}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -269,6 +271,12 @@ Global
 		{2705873B-D3CF-4307-9DF0-25465F35DB63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2705873B-D3CF-4307-9DF0-25465F35DB63}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2705873B-D3CF-4307-9DF0-25465F35DB63}.Release|x86.ActiveCfg = Release|Any CPU
+		{DB68395B-9FED-47C1-B5EF-5C238E813279}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB68395B-9FED-47C1-B5EF-5C238E813279}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB68395B-9FED-47C1-B5EF-5C238E813279}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DB68395B-9FED-47C1-B5EF-5C238E813279}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB68395B-9FED-47C1-B5EF-5C238E813279}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB68395B-9FED-47C1-B5EF-5C238E813279}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

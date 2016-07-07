@@ -10,13 +10,13 @@ using System.Collections;
 using System.Diagnostics;
 using System.Net;
 using System.IO;
+using System.Net.Http;
 
 using Microsoft.AspNet.SignalR.Client;
 using Microsoft.AspNet.SignalR.Client.Transports;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
-using System.Net.Http;
 
 namespace DigitalPlatform.MessageClient
 {
@@ -356,6 +356,11 @@ errorInfo)
             // *** getRes
             HubProxy.On<GetResRequest>("getRes",
                 (param) => OnGetResRecieved(param)
+                );
+
+            // *** webFunction
+            HubProxy.On<WebFunctionRequest>("webFunction",
+                (param) => OnWebFunctionRecieved(param)
                 );
 
             try
@@ -814,6 +819,178 @@ CancellationToken token)
     wait_events,
     timeout,
     token);
+                    return result;
+                }
+            }
+        }
+
+        #endregion
+
+        #region WebFunction() API
+
+        // 当 server 发来 WebFunction 请求的时候被调用。重载的时候要对目标发送 HTTP 请求，获得 HTTP 响应，并调用 responseWebFuntion 把响应结果发送给 server
+        public virtual void OnWebFunctionRecieved(WebFunctionRequest param)
+        {
+
+        }
+
+        // 将 data 内容追加到 exist
+        static void AddData(WebData exist, WebData data)
+        {
+            if (data.Headers != null)
+            {
+                if (exist.Headers == null)
+                    exist.Headers = data.Headers;
+                else
+                    exist.Headers += data.Headers;
+            }
+
+            if (data.Content != null)
+            {
+                if (exist.Content == null)
+                    exist.Content = data.Content;
+                else
+                    exist.Content = ByteArray.Add(exist.Content, data.Content);
+            }
+        }
+
+        public Task<WebFunctionResult> WebFunctionTaskAsync(
+string strRemoteUserName,
+WebFunctionRequest request,
+TimeSpan timeout,
+CancellationToken token)
+        {
+            return TaskRun<WebFunctionResult>(
+                () =>
+                {
+                    return WebFunctionAsyncLite(strRemoteUserName, request, timeout, token).Result;
+                },
+            token);
+        }
+
+        public async Task<WebFunctionResult> WebFunctionAsyncLite(
+    string strRemoteUserName,
+    WebFunctionRequest request,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            List<string> errors = new List<string>();
+            List<string> codes = new List<string>();
+
+            WebFunctionResult result = new WebFunctionResult();
+            if (result.WebData == null)
+                result.WebData = new WebData();
+
+            if (string.IsNullOrEmpty(request.TaskID) == true)
+                request.TaskID = Guid.NewGuid().ToString();
+
+            using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+            {
+                using (var handler = HubProxy.On<WebFunctionResponse>(
+                    "responseWebFunction",
+                    (responseParam) =>
+                    {
+                        try
+                        {
+                            if (responseParam.TaskID != request.TaskID)
+                                return;
+
+                            if (responseParam.Result != null
+    && string.IsNullOrEmpty(responseParam.Result.ErrorInfo) == false
+    && errors.IndexOf(responseParam.Result.ErrorInfo) == -1)
+                            {
+                                errors.Add(responseParam.Result.ErrorInfo);
+                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                            }
+                            if (responseParam.Result != null
+                                && string.IsNullOrEmpty(responseParam.Result.String) == false
+                                && codes.IndexOf(responseParam.Result.String) == -1)
+                            {
+                                codes.Add(responseParam.Result.String);
+                                result.String = StringUtil.MakePathList(codes, ",");
+                            }
+
+                            // 报错了
+                            if (responseParam.Result != null
+                                && responseParam.Result.Value == -1)
+                            {
+                                result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                result.String = StringUtil.MakePathList(codes, ",");
+                                result.Value = -1;
+                                wait_events.finish_event.Set();
+                                return;
+                            }
+
+                            // 拼接命中结果
+                            if (responseParam.WebData != null)
+                                AddData(result.WebData, responseParam.WebData);
+
+                            if (responseParam.Complete)
+                                wait_events.finish_event.Set();
+                            else
+                                wait_events.active_event.Set();
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add("WebFunctionAsync handler 内出现异常: " + ExceptionUtil.GetDebugText(ex));
+                            result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                            if (!(ex is ObjectDisposedException))
+                                wait_events.finish_event.Set();
+                        }
+                    }))
+                {
+                    // 分批发出请求
+                    int chunk_size = 4 * 1024;
+                    byte[] content = request.WebData.Content;
+                    for (int i = 0; ; i++)
+                    {
+                        WebData current = new WebData();
+                        if (i == 0)
+                        {
+                            current.Headers = request.WebData.Headers;
+                            if (request.WebData.Headers.Length < chunk_size)
+                                current.Content = ByteArray.Remove(ref content, chunk_size - request.WebData.Headers.Length);
+                        }
+                        else
+                        {
+                            current.Headers = null;
+                            current.Content = ByteArray.Remove(ref content, chunk_size);
+                        }
+
+                        WebFunctionRequest param = new WebFunctionRequest(
+                        request.TaskID,
+                        current,
+                        i == 0,
+                        content.Length == 0);
+
+                        MessageResult message = await HubProxy.Invoke<MessageResult>(
+"RequestWebFunction",
+strRemoteUserName,
+param);
+                        if (message.Value == -1 || message.Value == 0)
+                        {
+                            result.ErrorInfo = message.ErrorInfo;
+                            result.Value = -1;
+                            return result;
+                        }
+                        if (content.Length == 0)
+                            break;
+                    }
+
+                    // 等待回应消息
+                    try
+                    {
+                        await WaitAsync(
+        request.TaskID,
+        wait_events,
+        timeout,
+        token);
+                    }
+                    catch (TimeoutException)
+                    {
+                        throw;
+                    }
+
                     return result;
                 }
             }
@@ -2888,6 +3065,28 @@ LoginRequest param)
                 propertyList
 #endif
  param);
+        }
+
+        // 调用 server 端 ResponseWebFunction
+        public Task<MessageResult> ResponseWebFunctionAsync(
+WebFunctionResponse responseParam)
+        {
+            return HubProxy.Invoke<MessageResult>("ResponseWebFunction",
+ responseParam);
+        }
+
+        public void TryResponseWebFunction(
+WebFunctionResponse responseParam)
+        {
+            try
+            {
+                HubProxy.Invoke<MessageResult>("ResponseWebFunction",
+     responseParam).Wait();
+            }
+            catch
+            {
+
+            }
         }
 
         #endregion

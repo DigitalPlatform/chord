@@ -80,11 +80,27 @@ namespace DigitalPlatform
             StringBuilder text = new StringBuilder();
             foreach (Exception ex in exception.InnerExceptions)
             {
-                text.Append(ex.GetType().ToString() + ":" + ex.Message + "\r\n");
+                if (ex is AggregateException)   // 2016/7/5
+                    text.Append(GetAggregateExceptionText(ex as AggregateException) + "\r\n");
+                else
+                    text.Append(ex.GetType().ToString() + ":" + ex.Message + "\r\n");
                 // text.Append(ex.ToString() + "\r\n");
             }
 
             return text.ToString();
+        }
+
+        public static Exception FindInnerException(AggregateException exception,
+            Type innerType)
+        {
+            StringBuilder text = new StringBuilder();
+            foreach (Exception ex in exception.InnerExceptions)
+            {
+                if (ex.GetType().Equals(innerType))
+                    return ex;
+            }
+
+            return null;
         }
     }
 

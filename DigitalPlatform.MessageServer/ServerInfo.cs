@@ -228,7 +228,7 @@ namespace DigitalPlatform.MessageServer
                 return false;
             }
 
-            WriteWindowsLog("日志文件检测正常。从此开始关于 dpMServer 的日志会写入目录 " + LogDir + " 中当天的日志文件",
+            WriteWindowsLog("日志文件检测正常。从此开始关于 dp2MServer 的日志会写入目录 " + LogDir + " 中当天的日志文件",
                 EventLogEntryType.Information);
             return true;
         }

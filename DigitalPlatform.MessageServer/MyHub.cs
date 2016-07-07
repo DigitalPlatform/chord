@@ -230,7 +230,7 @@ false);
             }
             finally
             {
-                // 主动清除已经完成的检索对象
+                // 主动清除已经完成的任务对象
                 ServerInfo.SearchTable.RemoveSearch(param.TaskID);
             }
         }
@@ -1064,7 +1064,7 @@ ex.GetType().ToString());
             }
             finally
             {
-                // 主动清除已经完成的检索对象
+                // 主动清除已经完成的任务对象
                 ServerInfo.SearchTable.RemoveSearch(param.TaskID);
             }
         }
@@ -1138,7 +1138,7 @@ ex.GetType().ToString());
             }
             finally
             {
-                // 主动清除已经完成的检索对象
+                // 主动清除已经完成的任务对象
                 ServerInfo.SearchTable.RemoveSearch(param.TaskID);
             }
         }
@@ -1208,7 +1208,7 @@ ex.GetType().ToString());
             }
             finally
             {
-                // 主动清除已经完成的检索对象
+                // 主动清除已经完成的任务对象
                 ServerInfo.SearchTable.RemoveSearch(param.TaskID);
             }
         }
@@ -1316,7 +1316,7 @@ ex.GetType().ToString());
             }
             finally
             {
-                // 主动清除已经完成的检索对象
+                // 主动清除已经完成的任务对象
                 ServerInfo.SearchTable.RemoveSearch(param.TaskID);
             }
         }
@@ -2031,7 +2031,7 @@ true);
             }
             finally
             {
-                // 主动清除已经完成的检索对象
+                // 主动清除已经完成的任务对象
                 ServerInfo.SearchTable.RemoveSearch(param.TaskID);
             }
         }
@@ -2056,7 +2056,7 @@ true);
                 SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID);
                 if (search_info == null)
                 {
-                    result.ErrorInfo = "ID 为 '" + taskID + "' 的检索对象无法找到";
+                    result.ErrorInfo = "ID 为 '" + taskID + "' 的任务对象无法找到";
                     result.Value = -1;
                     result.String = "_notFound";
                     return result;
@@ -2117,7 +2117,7 @@ true);
         null,
         "",
         "");
-                        // 主动清除已经完成的检索对象
+                        // 主动清除已经完成的任务对象
                         ServerInfo.SearchTable.RemoveSearch(taskID);
                         Console.WriteLine("complete");
                     }
@@ -2153,7 +2153,7 @@ true);
                 SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(taskID, false);
                 if (search_info == null)
                 {
-                    result.ErrorInfo = "ID 为 '" + taskID + "' 的检索对象无法找到";
+                    result.ErrorInfo = "ID 为 '" + taskID + "' 的任务对象无法找到";
                     result.Value = -1;
                     result.String = "_notFound";
                     return result;
@@ -2168,6 +2168,209 @@ ex.GetType().ToString());
                 ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
             return result;
+        }
+
+        #endregion
+
+        #region WebFunction() API
+
+        public MessageResult RequestWebFunction(
+    string userNameList,
+    WebFunctionRequest param
+    )
+        {
+
+#if LOG
+            writeDebug("RequestWebFunction.1 userNameList=" + userNameList
+                + ", param=" + param.Dump());
+#endif
+            MessageResult result = new MessageResult();
+
+            try
+            {
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+    result,
+    "RequestWebFunction()",
+    false);
+                if (connection_info == null)
+                    return result;
+
+#if LOG
+                writeDebug("RequestSearch.2");
+#endif
+
+                // 检查请求者是否具备操作的权限
+                if (StringUtil.Contains(connection_info.Rights, "webFunction") == false)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + "webFunction" + "' 操作的权限";
+                    return result;
+                }
+
+#if LOG
+                writeDebug("RequestSearch.3");
+#endif
+
+                List<string> connectionIds = null;
+                string strError = "";
+
+                int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
+                    userNameList,
+                    connection_info.UserName,
+                    "webFunction",
+                    "strict_one", // "all",
+                    out connectionIds,
+                    out strError);
+                if (nRet == -1)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = strError;
+                    return result;
+                }
+
+#if LOG
+                writeDebug("RequestSearch.4");
+#endif
+
+                if (connectionIds == null || connectionIds.Count == 0)
+                {
+                    result.Value = 0;
+                    result.ErrorInfo = "当前没有发现可操作的目标 (详情 '" + strError + "')";
+                    return result;
+                }
+#if LOG
+                writeDebug("RequestSearch.5");
+#endif
+
+                SearchInfo search_info = null;
+                try
+                {
+                    if (param.First)
+                        search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                            param.TaskID,
+                            0,  // searchParam.Start,
+                            -1, // searchParam.Count,
+                            ""  // searchParam.ServerPushEncoding
+                        );
+                    else
+                    {
+                        search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID);
+                        if (search_info == null)
+                        {
+                            result.ErrorInfo = "ID 为 '" + param.TaskID + "' 的任务对象无法找到";
+                            result.Value = -1;
+                            result.String = "_notFound";
+                            return result;
+                        }
+                    }
+                }
+                catch (ArgumentException)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
+                    return result;
+                }
+
+                result.String = search_info.UID;   // 返回检索请求的 UID
+                search_info.SetTargetIDs(connectionIds);
+
+#if LOG
+                writeDebug("RequestSearch.6 sendSearch connectionIds=" + StringUtil.MakePathList(connectionIds.ToList<string>()));
+#endif
+                Task.Run(() => SendWebFunction(connectionIds, param));
+                result.Value = connectionIds.Count;   // 表示已经成功发起了操作
+            }
+            catch (Exception ex)
+            {
+                result.SetError("RequestWebFunction() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
+            }
+            return result;
+        }
+
+        void SendWebFunction(List<string> connectionIds, WebFunctionRequest param)
+        {
+            Clients.Clients(connectionIds).webFunction(
+    param);
+        }
+
+        // parameters:
+        //      resultCount    命中的总的结果数。如果为 -1，表示检索出错，errorInfo 会给出出错信息
+        //                      这个值实际上是表示全部命中结果的数目，可能比 records 中的元素要多
+        //      start  records 参数中的第一个元素，在总的命中结果集中的偏移
+        //      errorInfo   错误信息
+        public MessageResult ResponseWebFunction(WebFunctionResponse responseParam)
+        {
+#if LOG
+            writeDebug("ResponseSearch.1 responseParam=" + responseParam.Dump());
+#endif
+            MessageResult result = new MessageResult();
+            try
+            {
+#if NO
+                Console.WriteLine("ResponseSearch start=" + responseParam.Start
+                    + ", records.Count=" + (responseParam.Records == null ? "null" : responseParam.Records.Count.ToString())
+                    + ", errorInfo=" + responseParam.ErrorInfo
+                    + ", errorCode=" + responseParam.ErrorCode);
+#endif
+                SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(responseParam.TaskID);
+                if (search_info == null)
+                {
+                    result.ErrorInfo = "ID 为 '" + responseParam.TaskID + "' 的任务对象无法找到";
+                    result.Value = -1;
+                    result.String = "_notFound";
+                    return result;
+                }
+
+#if LOG
+                writeDebug("ResponseSearch.2");
+#endif
+
+                Task.Run(() =>
+                SendWebFunctionResponse(
+    search_info,
+    responseParam));
+            }
+            catch (Exception ex)
+            {
+                result.SetError("ResponseWebFunction() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
+            }
+            return result;
+        }
+
+        void SendWebFunctionResponse(// string taskID,
+    SearchInfo search_info,
+    WebFunctionResponse responseParam)
+        {
+#if LOG
+            writeDebug("SendWebFunctionResponse.1");
+#endif
+
+            // 让前端获得响应结果
+            try
+            {
+                Clients.Client(search_info.RequestConnectionID).responseWebFunction(
+                    responseParam);
+
+#if LOG
+                writeDebug("SendWebFunctionResponse.2");
+#endif
+
+                // 主动清除已经完成的任务对象
+                if (responseParam.Complete == true)
+                    ServerInfo.SearchTable.RemoveSearch(search_info.UID);
+            }
+            catch (Exception ex)
+            {
+                ServerInfo.WriteErrorLog("中心向前端分发 responseWebFunction() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
+
+#if LOG
+            writeDebug("SendWebFunctionResponse.3");
+#endif
         }
 
         #endregion
@@ -2360,7 +2563,7 @@ ex.GetType().ToString());
                 SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(responseParam.TaskID);
                 if (search_info == null)
                 {
-                    result.ErrorInfo = "ID 为 '" + responseParam.TaskID + "' 的检索对象无法找到";
+                    result.ErrorInfo = "ID 为 '" + responseParam.TaskID + "' 的任务对象无法找到";
                     result.Value = -1;
                     result.String = "_notFound";
                     return result;
@@ -2494,7 +2697,7 @@ ex.GetType().ToString());
     null,
     "",
     ""));
-                    // 主动清除已经完成的检索对象
+                    // 主动清除已经完成的任务对象
                     ServerInfo.SearchTable.RemoveSearch(search_info.UID);  // taskID
                     Console.WriteLine("complete");
                 }
@@ -2908,7 +3111,7 @@ true);
             }
             finally
             {
-                // 主动清除已经完成的检索对象
+                // 主动清除已经完成的任务对象
                 ServerInfo.SearchTable.RemoveSearch(taskID);
             }
             return result;
@@ -3023,7 +3226,7 @@ ex.GetType().ToString());
                 SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(responseParam.TaskID);
                 if (search_info == null)
                 {
-                    result.ErrorInfo = "ID 为 '" + responseParam.TaskID + "' 的检索对象无法找到";
+                    result.ErrorInfo = "ID 为 '" + responseParam.TaskID + "' 的任务对象无法找到";
                     result.Value = -1;
                     result.String = "_notFound";
                     return result;
@@ -3086,7 +3289,7 @@ ex.GetType().ToString());
     "",
     "",
     ""));
-                    // 主动清除已经完成的检索对象
+                    // 主动清除已经完成的任务对象
                     ServerInfo.SearchTable.RemoveSearch(search_info.UID);  // taskID
                     Console.WriteLine("complete");
                 }

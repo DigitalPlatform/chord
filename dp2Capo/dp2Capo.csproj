@@ -69,6 +69,7 @@
     </Compile>
     <Compile Include="ServerConnection.cs" />
     <Compile Include="ServerInfo.cs" />
+    <Compile Include="WebDataTable.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -85,6 +86,10 @@
     <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj">
       <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
       <Name>DigitalPlatform.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.HTTP\DigitalPlatform.HTTP.csproj">
+      <Project>{db68395b-9fed-47c1-b5ef-5c238e813279}</Project>
+      <Name>DigitalPlatform.HTTP</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj">
       <Project>{441cb814-af78-4503-91ef-dce5f3269502}</Project>

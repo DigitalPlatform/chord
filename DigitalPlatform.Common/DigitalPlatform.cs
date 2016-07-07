@@ -265,6 +265,23 @@ namespace DigitalPlatform
             return source;
         }
 
+        // 从 source 头部移走一段。source 随后被改变
+        public static byte [] Remove(ref byte [] source, int length)
+        {
+            if (length > source.Length)
+                length = source.Length;
+
+            byte [] result = new byte [length];
+            Array.Copy(source, result, length);
+            int rest = source.Length - length;
+            byte[] temp = new byte[rest];
+            if (rest > 0)
+                Array.Copy(source, length, temp, 0, rest);
+
+            source = temp;
+            return result;
+        }
+
 		// 得到用16进制表示的时间戳字符串
 		public static string GetHexTimeStampString(byte [] baTimeStamp)
 		{

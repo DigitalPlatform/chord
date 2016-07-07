@@ -1,0 +1,92 @@
+﻿using DigitalPlatform.HTTP;
+using dp2Router.Models;
+using log4net;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace dp2Router
+{
+    public class HttpServer
+    {
+        #region Fields
+
+        private int Port;
+        private TcpListener Listener;
+        // private HttpProcessor Processor;
+        private bool IsActive = true;
+
+        #endregion
+
+        private static readonly ILog log = LogManager.GetLogger(typeof(HttpServer));
+
+        #region Public Methods
+        public HttpServer(int port
+            // , List<Route> routes
+            )
+        {
+            this.Port = port;
+            // this.Processor = new HttpProcessor();
+
+#if NO
+            foreach (var route in routes)
+            {
+                this.Processor.AddRoute(route);
+            }
+#endif
+        }
+
+        public void Listen()
+        {
+            this.Listener = new TcpListener(IPAddress.Any, this.Port);
+            this.Listener.Start();  // TODO: 要捕获异常
+            while (this.IsActive)
+            {
+                TcpClient s = this.Listener.AcceptTcpClient();
+                Thread thread = new Thread(() =>
+                {
+                    // this.Processor.TestHandleClient(s);
+                    TestHandleClient(s);
+                });
+                thread.Start();
+                Thread.Sleep(1);
+            }
+        }
+
+        public void TestHandleClient(TcpClient tcpClient)
+        {
+            Stream inputStream = tcpClient.GetStream();
+            Stream outputStream = tcpClient.GetStream();
+            try
+            {
+                HttpRequest request = HttpProcessor.GetIncomingRequest(inputStream);
+
+                HttpResponse response = ServerInfo.WebCall(request);
+                HttpProcessor.WriteResponse(outputStream, response);
+            }
+            catch (Exception ex)
+            {
+                // TODO: 写入日志? 哪些不写入日志?
+            }
+            finally
+            {
+                outputStream.Flush();
+                outputStream.Close();
+                outputStream = null;
+
+                inputStream.Close();
+                inputStream = null;
+            }
+        }
+
+        #endregion
+
+    }
+
+}
