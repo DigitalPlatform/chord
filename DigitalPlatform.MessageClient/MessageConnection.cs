@@ -836,6 +836,7 @@ CancellationToken token)
 
         }
 
+#if NO
         // 将 data 内容追加到 exist
         static void AddData(WebData exist, 
             StringBuilder text,
@@ -891,7 +892,7 @@ CancellationToken token)
             }
 
         }
-
+#endif
         public Task<WebCallResult> WebCallTaskAsync(
 string strRemoteUserName,
 WebCallRequest request,
@@ -906,15 +907,6 @@ CancellationToken token)
             token);
         }
 
-        public static string RemoveFrom(StringBuilder text, int length)
-        {
-            if (length > text.Length)
-                length = text.Length;
-            string result = text.ToString(0, length);
-            text.Remove(0, length);
-            return result;
-        }
-
         public async Task<WebCallResult> WebCallAsyncLite(
     string strRemoteUserName,
     WebCallRequest request,
@@ -925,9 +917,11 @@ CancellationToken token)
             List<string> codes = new List<string>();
 
             WebCallResult result = new WebCallResult();
+#if NO
             if (result.WebData == null)
                 result.WebData = new WebData();
-            StringBuilder text = new StringBuilder();   // 缓冲字符串
+#endif
+            WebDataWrapper wrapper = new WebDataWrapper();
 
             if (string.IsNullOrEmpty(request.TaskID) == true)
                 request.TaskID = Guid.NewGuid().ToString();
@@ -971,7 +965,7 @@ CancellationToken token)
 
                             // 拼接命中结果
                             if (responseParam.WebData != null)
-                                AddData(result.WebData, text, responseParam.WebData);
+                                wrapper.Append(responseParam.WebData);
 
                             if (responseParam.Complete)
                                 wait_events.finish_event.Set();
@@ -988,95 +982,29 @@ CancellationToken token)
                     }))
                 {
                     // 分批发出请求
-                    int chunk_size = MessageUtil.BINARY_CHUNK_SIZE;
+                    WebDataSplitter splitter = new WebDataSplitter();
+                    splitter.ChunkSize = MessageUtil.BINARY_CHUNK_SIZE;
+                    splitter.TransferEncoding = request.TransferEncoding;
+                    splitter.WebData = request.WebData;
 
-                    if (request.TransferEncoding == "text" || request.TransferEncoding == "base64")
+                    foreach (WebData current in splitter)
                     {
-                        StringBuilder content = new StringBuilder(request.WebData.Text);
-                        for (int i = 0; ; i++)
+                        WebCallRequest param = new WebCallRequest(
+                        request.TaskID,
+                        request.TransferEncoding,
+                        current,
+                        splitter.FirstOne,
+                        splitter.LastOne);
+
+                        MessageResult message = await HubProxy.Invoke<MessageResult>(
+"RequestWebCall",
+strRemoteUserName,
+param);
+                        if (message.Value == -1 || message.Value == 0)
                         {
-                            WebData current = new WebData();
-                            if (i == 0)
-                            {
-                                current.Headers = request.WebData.Headers;
-                                if (request.WebData.Headers.Length < chunk_size)
-                                    current.Text = RemoveFrom(content, chunk_size - request.WebData.Headers.Length);
-                            }
-                            else
-                            {
-                                current.Headers = null;
-                                current.Text = RemoveFrom(content, chunk_size);
-                            }
-
-                            WebCallRequest param = new WebCallRequest(
-                            request.TaskID,
-                            request.TransferEncoding,
-                            current,
-                            i == 0,
-                            content.Length == 0);
-
-                            MessageResult message = await HubProxy.Invoke<MessageResult>(
-    "RequestWebCall",
-    strRemoteUserName,
-    param);
-                            if (message.Value == -1 || message.Value == 0)
-                            {
-                                result.ErrorInfo = message.ErrorInfo;
-                                result.Value = -1;
-                                return result;
-                            }
-                            if (content.Length == 0)
-                                break;
-                        }
-                    }
-
-                    if (request.TransferEncoding == "content")
-                    {
-                        byte[] content = request.WebData.Content;
-#if VERIFY_CHUNK
-                    int content_send = 0;
-#endif
-                        for (int i = 0; ; i++)
-                        {
-                            WebData current = new WebData();
-                            if (i == 0)
-                            {
-                                current.Headers = request.WebData.Headers;
-                                if (request.WebData.Headers.Length < chunk_size)
-                                    current.Content = ByteArray.Remove(ref content, chunk_size - request.WebData.Headers.Length);
-                            }
-                            else
-                            {
-                                current.Headers = null;
-                                current.Content = ByteArray.Remove(ref content, chunk_size);
-                            }
-
-#if VERIFY_CHUNK
-                        current.Offset = content_send;
-
-                        //
-                        content_send += current.Content.Length;
-#endif
-
-                            WebCallRequest param = new WebCallRequest(
-                            request.TaskID,
-                            request.TransferEncoding,
-                            current,
-                            i == 0,
-                            content.Length == 0);
-
-                            MessageResult message = await HubProxy.Invoke<MessageResult>(
-    "RequestWebCall",
-    strRemoteUserName,
-    param);
-                            if (message.Value == -1 || message.Value == 0)
-                            {
-                                result.ErrorInfo = message.ErrorInfo;
-                                result.Value = -1;
-                                return result;
-                            }
-                            if (content.Length == 0)
-                                break;
+                            result.ErrorInfo = message.ErrorInfo;
+                            result.Value = -1;
+                            return result;
                         }
                     }
 
@@ -1094,8 +1022,8 @@ CancellationToken token)
                         throw;
                     }
 
-                    if (text.Length > 0)
-                        result.WebData.Text = text.ToString();
+                    wrapper.Flush();
+                    result.WebData = wrapper.WebData;
                     return result;
                 }
             }

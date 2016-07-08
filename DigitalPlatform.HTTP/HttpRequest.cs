@@ -34,14 +34,17 @@ namespace DigitalPlatform.HTTP
         }
 #endif
 
-        public string Dump()
+        public string Dump(bool displayContent = false)
         {
             StringBuilder text = new StringBuilder();
             text.Append(string.Format("{0} {1} HTTP/1.0\r\n", this.Method, this.Url));
             text.Append(string.Join("\r\n", this.Headers.Select(x => string.Format("{0}: {1}", x.Key, x.Value))));
             text.Append("\r\n\r\n");
 
-            text.Append(this.GetContentString());
+            if (displayContent)
+                text.Append(this.GetContentString());
+            else
+                text.Append("Content.Length=" + (this.Content == null ? 0 : this.Content.Length) + "\r\n");
             return text.ToString();
         }
     }

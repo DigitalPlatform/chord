@@ -70,7 +70,7 @@ namespace dp2Router
             {
                 HttpRequest request = HttpProcessor.GetIncomingRequest(inputStream);
 
-                //Console.WriteLine("=== request ===\r\n" + request.Dump());
+                // Console.WriteLine("=== request ===\r\n" + request.Dump());
 
                 HttpResponse response = ServerInfo.WebCall(request, "content");
                 // string content = response.GetContentString();

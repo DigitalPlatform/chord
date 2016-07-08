@@ -2277,7 +2277,10 @@ ex.GetType().ToString());
 #if LOG
                 writeDebug("RequestSearch.6 sendSearch connectionIds=" + StringUtil.MakePathList(connectionIds.ToList<string>()));
 #endif
-                Task.Run(() => SendWebCall(connectionIds, param));
+                if (param.Complete == false)
+                    SendWebCall(connectionIds, param);
+                else
+                    Task.Run(() => SendWebCall(connectionIds, param));
                 result.Value = connectionIds.Count;   // 表示已经成功发起了操作
             }
             catch (Exception ex)
