@@ -287,6 +287,9 @@ namespace dp2Capo
 
         public void Notify()
         {
+
+            this.MessageConnection.CleanWebDataTable();
+
             if (this.dp2library.DefaultQueue == "!api")
             {
                 try

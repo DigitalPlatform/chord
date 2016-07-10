@@ -42,6 +42,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -49,18 +50,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HttpBuilder.cs" />
-    <Compile Include="HttpProcessor.cs" />
     <Compile Include="HttpServer.cs" />
-    <Compile Include="Models\HttpRequest.cs" />
-    <Compile Include="Models\HttpResponse.cs" />
-    <Compile Include="Models\Route.cs" />
     <Compile Include="Program.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RouteHandlers\FileSystemRouteHandler.cs" />
-    <Compile Include="Routes.cs" />
     <Compile Include="ServerInfo.cs" />
   </ItemGroup>
   <ItemGroup>

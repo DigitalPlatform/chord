@@ -69,7 +69,6 @@
     </Compile>
     <Compile Include="ServerConnection.cs" />
     <Compile Include="ServerInfo.cs" />
-    <Compile Include="WebDataTable.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

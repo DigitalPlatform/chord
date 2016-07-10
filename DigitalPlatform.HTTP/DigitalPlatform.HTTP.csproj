@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HttpMessage.cs" />
     <Compile Include="HttpProcessor.cs" />
     <Compile Include="MessageUtility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

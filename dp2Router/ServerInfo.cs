@@ -7,12 +7,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Web;
+using System.Net;
 
 using DigitalPlatform;
 using DigitalPlatform.IO;
 using DigitalPlatform.Text;
 using DigitalPlatform.MessageClient;
-using dp2Router.Models;
 using DigitalPlatform.Message;
 using DigitalPlatform.HTTP;
 
@@ -223,7 +224,8 @@ namespace dp2Router
             _channels.AddMessage -= _channels_AddMessage;
         }
 
-        public static HttpResponse WebCall(HttpRequest request)
+        public static DigitalPlatform.HTTP.HttpResponse WebCall(DigitalPlatform.HTTP.HttpRequest request,
+            string transferEncoding)
         {
             // 从 request.Url 中解析出 remoteUserName
             string remoteUserName = request.Url;
@@ -237,39 +239,48 @@ namespace dp2Router
                 remoteUserName = parts[0];
             }
 
-            WebData data = MessageUtility.BuildWebData(request);
+            WebData data = MessageUtility.BuildWebData(request, transferEncoding);
 
             string id = Guid.NewGuid().ToString();
-            WebFunctionRequest param = new WebFunctionRequest(id, data, true, true);
+            WebCallRequest param = new WebCallRequest(id, 
+                transferEncoding,
+                data, 
+                true,
+                true);
             CancellationToken cancel_token = new CancellationToken();
 
             try
             {
+                // Console.WriteLine("Begin WebCall");
+
                 MessageConnection connection = _channels.GetConnectionTaskAsync(
                     Url,
                     request.Url).Result;
-                WebFunctionResult result = connection.WebFunctionTaskAsync(
+                WebCallResult result = connection.WebCallTaskAsync(
                     remoteUserName,
                     param,
                     new TimeSpan(0, 1, 10), // 10 秒
                     cancel_token).Result;
+
+                // Console.WriteLine("End WebCall result=" + result.Dump());
+
                 if (result.Value == -1)
                 {
                     // 构造一个 500 错误响应包
-                    return new HttpResponse()
-                    {
-                        StatusCode = "500",
-                        ReasonPhrase = "Router Error " + result.ErrorInfo,
-                        Content = Encoding.UTF8.GetBytes(result.ErrorInfo)
-                    };
+                    return new DigitalPlatform.HTTP.HttpResponse("500",
+                        "Router Error: " + WebUtility.UrlEncode(result.ErrorInfo),
+                        result.ErrorInfo);
                 }
 
-                return MessageUtility.BuildHttpResponse(result.WebData);
+                return MessageUtility.BuildHttpResponse(result.WebData, transferEncoding);
             }
             catch (AggregateException ex)
             {
                 string code = "500";
                 string error = ExceptionUtil.GetExceptionText(ex);
+
+                Console.WriteLine("Exception: " + error);
+
                 MessageException ex1 = ExceptionUtil.FindInnerException(ex, typeof(MessageException)) as MessageException;
                 if (ex1 != null && ex1.ErrorCode.ToLower() == "unauthorized")
                 {
@@ -277,23 +288,23 @@ namespace dp2Router
                     code = "401";
                 }
 
+                WriteErrorLog(error);
+
                 // 构造一个错误代码响应包
-                return new HttpResponse()
-                {
-                    StatusCode = code,
-                    ReasonPhrase = "Router Exception",
-                    Content = Encoding.UTF8.GetBytes(error)
-                };
+                return new DigitalPlatform.HTTP.HttpResponse(
+                    code,
+                    "Router Error: " + WebUtility.UrlEncode(error),
+                    error);
             }
             catch (Exception ex)
             {
+                WriteErrorLog(ExceptionUtil.GetExceptionText(ex));
+
                 // 构造一个 500 错误响应包
-                return new HttpResponse()
-                {
-                    StatusCode = "500",
-                    ReasonPhrase = "Router Exception",
-                    Content = Encoding.UTF8.GetBytes(ExceptionUtil.GetExceptionText(ex))
-                };
+                return new DigitalPlatform.HTTP.HttpResponse(
+                    "500",
+                    "Router Error: " + WebUtility.UrlEncode(ex.Message),
+                    ExceptionUtil.GetExceptionText(ex));
             }
         }
 

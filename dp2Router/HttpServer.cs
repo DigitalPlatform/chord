@@ -1,6 +1,4 @@
-﻿using DigitalPlatform.HTTP;
-using dp2Router.Models;
-using log4net;
+﻿using log4net;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +8,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using DigitalPlatform.HTTP;
 
 namespace dp2Router
 {
@@ -46,6 +46,9 @@ namespace dp2Router
         {
             this.Listener = new TcpListener(IPAddress.Any, this.Port);
             this.Listener.Start();  // TODO: 要捕获异常
+
+            Console.WriteLine("成功监听于 " + this.Port.ToString());
+
             while (this.IsActive)
             {
                 TcpClient s = this.Listener.AcceptTcpClient();
@@ -67,7 +70,13 @@ namespace dp2Router
             {
                 HttpRequest request = HttpProcessor.GetIncomingRequest(inputStream);
 
-                HttpResponse response = ServerInfo.WebCall(request);
+                // Console.WriteLine("=== request ===\r\n" + request.Dump());
+
+                HttpResponse response = ServerInfo.WebCall(request, "content");
+                // string content = response.GetContentString();
+
+                //Console.WriteLine("=== response ===\r\n" + response.Dump());
+
                 HttpProcessor.WriteResponse(outputStream, response);
             }
             catch (Exception ex)
