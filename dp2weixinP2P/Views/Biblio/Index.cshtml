@@ -169,7 +169,7 @@
 
                     // 出错或未命中
                     if (result.apiResult.errorCode == -1 || result.apiResult.errorCode == 0) {
-                        openMsg(result.apiResult.errorInfo);
+                        alert(result.apiResult.errorInfo);
                         return;
                     }
 

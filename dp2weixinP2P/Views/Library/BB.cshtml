@@ -1,0 +1,145 @@
+﻿@model List<dp2weixin.service.MessageItem>
+@section style {
+    <style>
+
+        /*=======消息div===========*/
+        DIV.message {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            padding: 10px;
+            /*background-color: green;*/
+        }
+
+            /*消息div下的table*/
+            DIV.message TABLE {
+                width: 100%;
+                /*background-color: red;*/
+            }
+
+                /*=======消息查看态===========*/
+
+                /*消息标题*/
+                DIV.message TABLE.view .title {
+                    font-size: 18px;
+                }
+
+                /*标题右侧的按钮*/
+                DIV.message TABLE.view .btn {
+                    text-align: right;
+                    padding-right: 10px;
+                }
+
+                /*消息发布时间*/
+                DIV.message TABLE.view .time {
+                    color: gray;
+                    font-size: 12px;
+                }
+
+        /*消息内容*/
+        DIV.messageTABLE.view .content {
+        }
+
+
+
+
+        /*=============*/
+        /*消息编辑态标题*/
+        DIV.message INPUT, SELECT {
+            margin-bottom: 0px;
+        }
+
+        DIV.message TABLE.edit tr td {
+            padding: 5px;
+        }
+
+            DIV.message TABLE.edit tr td.label {
+                color: #999999;
+                width: 40px;
+            }
+
+            DIV.message TABLE.edit tr td span.label {
+                color: #999999;
+            }
+
+        DIV.message TABLE.edit select {
+            font-size: 17px;
+            height: 37px;
+            padding: 0px;
+            margin: 0px;
+        }
+
+        DIV.message TABLE.edit input, textarea {
+            padding: 5px;
+            margin: 0px;
+        }
+
+        /*======是否可编辑态样式=============*/
+        .msgEditable {
+            background-color: #CCFF99;
+        }
+    </style>
+}
+@section Scripts {
+    <script>
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 设顶部菜单不固定
+            $("#myheader").css("position", "absolute");
+
+            //$("btnCreate").c
+
+        })
+
+    </script>
+}
+@section header {
+    <h1 class="mui-title">公告</h1>
+}
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="_userName" style="display:none">@ViewBag.userName</span>
+<span id="_group" style="display:none">gn:_lib_bb</span>
+<div class="mui-card" id="divNo" style="margin-top:10px;display:none">
+    <center>
+        <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+        <div>目前没有公告。</div>
+    </center>
+</div>
+@if (String.IsNullOrEmpty(ViewBag.userName) == false)
+{
+    <div id="divNew">
+        <div id='_edit_new' class="mui-card message" style="display:none"></div>
+        <div class="mui-content-padded">
+            <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
+                新发布公告
+            </button>
+        </div>
+    </div>
+}
+
+<div id="_subject_main">
+    @foreach (dp2weixin.service.MessageItem item in Model)
+    {
+        <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv('@item.id')">
+            <table class="view">
+                <tbody>
+                    <tr>
+                        <td class="title">@item.title</td>
+                        <td class="btn">
+                            <div id="btnEdit" style="display: none;">
+                                <button class="mui-btn mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>&nbsp;
+                                <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr><td class="time" colspan="2"><span>@item.publishTime</span>-<span>@item.creator</span></td></tr>
+                    <tr><td class="content" colspan="2">@Html.Raw(item.contentHtml)</td></tr>
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+

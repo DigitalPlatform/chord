@@ -322,7 +322,7 @@
 
                     // 把数据填在编辑界面
                     var item = result.items[0];
-                    var html = getMsgViewHtml(item);
+                    var html = getMsgViewHtml(item,false);
                     $(divId).html(html);
                 }
 
@@ -580,9 +580,6 @@
                 // 要先找下同名的subject，如果不存在，新创建一个subject div放在最上面
                 var subjectObj = $("#_subject_main").children("#_subject_" + subject);
                 if (subjectObj.html() != null) {  //注意这里要用html()
-                    //alert("1");
-
-                    //_subject_
                     var titleObj = $(subjectObj).find("#_subject_title");
                     $(msgViewHtml).insertAfter(titleObj);
                 }
@@ -856,28 +853,7 @@
         }
 
 
-        function setShowTopButton() {
-            //
-            if (browser.versions.iPhone == true) {
-                $("input").focus(function () {
-                    setShowValue(false);
-                    window.setTimeout("showTopBottom()", 1);
-                });
-                $("input").blur(function () {
-                    setShowValue(true);
-                    window.setTimeout("showTopBottom()", 1);
-                });
-                $("textarea").focus(function () {
-                    setShowValue(false);
-                    window.setTimeout("showTopBottom()", 1);
-                });
-                $("textarea").blur(function () {
-                    setShowValue(true);
-                    window.setTimeout("showTopBottom()", 1);
-                });
-            }
 
-        }
 
     </script>
 }
@@ -885,7 +861,7 @@
     <h1 class="mui-title">图书馆主页</h1>
 }
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
-
+<span id="_group" style="display:none">gn:_lib_homePage</span>
 <!--
 <div>
     <div class="mui-input-group">

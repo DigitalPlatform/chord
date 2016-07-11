@@ -11,6 +11,72 @@ namespace dp2weixinWeb.Controllers
 {
     public class LibraryController : BaseController
     {
+
+        public ActionResult BB(string code, string state)
+        {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
+            //绑定的工作人员账号 需要有权限
+            string userName = "";
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string libId = ViewBag.LibId;
+            // 查找当前微信用户绑定的工作人员账号
+            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
+            // todo 后面可以放开对读者的权限
+            if (user != null)
+            {
+                // 检索是否有权限 _wx_setHomePage
+                string needRight = dp2WeiXinService.C_Right_SetBb;
+                LibItem lib = LibDatabase.Current.GetLibById(libId);
+                if (lib == null)
+                {
+                    strError = "未找到id为[" + libId + "]的图书馆定义。";
+                    goto ERROR1;
+                }
+
+                int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                    user.userName,
+                    needRight,
+                    out strError);
+                if (nHasRights == -1)
+                {
+                    goto ERROR1;
+                }
+                if (nHasRights == 1)
+                {
+                    userName = user.userName;
+                }
+                else
+                {
+                    userName = "";
+                }
+            }
+
+            ViewBag.userName = userName;
+
+
+            // 获取消息
+            List<MessageItem> list = null;
+            nRet =dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_GroupName_Bb,
+                libId,
+                "",
+                "",
+                "browse",
+                out list,
+                out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            return View(list);
+
+        ERROR1:
+            return Content(strError);
+        }
+
         // 公告
         public ActionResult MsgManage(string code, string state,string group)
         {
