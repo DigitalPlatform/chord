@@ -12,7 +12,10 @@ namespace DigitalPlatform.HTTP
     public static class MessageUtility
     {
         // 根据 HttpRequest 构造 WebData
-        public static WebData BuildWebData(HttpRequest request)
+        // parameters:
+        //      style   content 将创建 Content; text 将创建 Text
+        public static WebData BuildWebData(HttpRequest request, 
+            string transferEncoding = "content")
         {
             StringBuilder text = new StringBuilder();
 
@@ -22,13 +25,21 @@ namespace DigitalPlatform.HTTP
 
             WebData data = new WebData();
             data.Headers = text.ToString();
-            data.Content = request.Content;
+            if (transferEncoding == "content")
+                data.Content = request.Content;
+            else if (transferEncoding == "base64")
+                data.Text = Convert.ToBase64String(request.Content);
+            else // text
+                data.Text = Encoding.UTF8.GetString(request.Content);
 
             return data;
         }
 
         // 根据 HttpResponse 构造 WebData
-        public static WebData BuildWebData(HttpResponse response)
+        // parameters:
+        //      style   content 将创建 Content; text 将创建 Text
+        public static WebData BuildWebData(HttpResponse response,
+            string transferEncoding = "content")
         {
             StringBuilder text = new StringBuilder();
             text.Append(string.Format("HTTP/1.0 {0} {1}\r\n", response.StatusCode, response.ReasonPhrase));
@@ -37,7 +48,13 @@ namespace DigitalPlatform.HTTP
 
             WebData data = new WebData();
             data.Headers = text.ToString();
-            data.Content = response.Content;
+
+            if (transferEncoding == "content")
+                data.Content = response.Content;
+            else if (transferEncoding == "base64")
+                data.Text = Convert.ToBase64String(response.Content);
+            else
+                data.Text = Encoding.UTF8.GetString(response.Content);
 
             return data;
         }
@@ -59,7 +76,8 @@ namespace DigitalPlatform.HTTP
         }
 
         // 根据 WebData 构造 HttpResponse
-        public static HttpResponse BuildHttpResponse(WebData data)
+        public static HttpResponse BuildHttpResponse(WebData data,
+            string transferEncoding = "content")
         {
             string[] lines = data.Headers.Replace("\r\n", "\n").Split(new char[] { '\n' });
 
@@ -121,6 +139,25 @@ namespace DigitalPlatform.HTTP
                 i++;
             }
 
+            if (data.Text != null)
+            {
+                if (transferEncoding == "base64")
+                    return new HttpResponse()
+                    {
+                        StatusCode = status_code,
+                        ReasonPhrase = reason_phrase,
+                        Headers = headers,
+                        Content = Convert.FromBase64String(data.Text)
+                    };
+                return new HttpResponse()
+                {
+                    StatusCode = status_code,
+                    ReasonPhrase = reason_phrase,
+                    Headers = headers,
+                    Content = Encoding.UTF8.GetBytes(data.Text)
+                };
+            }
+
             return new HttpResponse()
             {
                 StatusCode = status_code,
@@ -131,7 +168,8 @@ namespace DigitalPlatform.HTTP
         }
 
         // 根据 WebData 构造 HttpRequest
-        public static HttpRequest BuildHttpRequest(WebData data)
+        public static HttpRequest BuildHttpRequest(WebData data,
+            string transferEncoding = "content")
         {
             string[] lines = data.Headers.Replace("\r\n", "\n").Split(new char[] { '\n' });
 
@@ -185,6 +223,25 @@ namespace DigitalPlatform.HTTP
                 headers.Add(name, value);
 
                 i++;
+            }
+
+            if (data.Text != null)
+            {
+                if (transferEncoding == "base64")
+                    return new HttpRequest()
+                    {
+                        Method = method,
+                        Url = url,
+                        Headers = headers,
+                        Content = Convert.FromBase64String(data.Text)
+                    };
+                return new HttpRequest()
+                {
+                    Method = method,
+                    Url = url,
+                    Headers = headers,
+                    Content = Encoding.UTF8.GetBytes(data.Text)
+                };
             }
 
             return new HttpRequest()

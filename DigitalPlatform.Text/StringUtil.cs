@@ -84,8 +84,24 @@ namespace DigitalPlatform.Text
 
         public static string GetMd5(string strText)
         {
+#if NO
             MD5 hasher = MD5.Create();
             byte[] buffer = Encoding.UTF8.GetBytes(strText);
+            byte[] target = hasher.ComputeHash(buffer);
+            StringBuilder sb = new StringBuilder();
+            foreach (byte b in target)
+            {
+                sb.Append(b.ToString("x2").ToLower());
+            }
+
+            return sb.ToString();
+#endif
+            return GetMd5(Encoding.UTF8.GetBytes(strText));
+        }
+
+        public static string GetMd5(byte [] buffer)
+        {
+            MD5 hasher = MD5.Create();
             byte[] target = hasher.ComputeHash(buffer);
             StringBuilder sb = new StringBuilder();
             foreach (byte b in target)

@@ -26,14 +26,12 @@ namespace DigitalPlatform.HTTP
         InternalServerError = 500
     }
 
-    public class HttpResponse
+    public class HttpResponse : HttpMessage
     {
         public string StatusCode { get; set; }
         public string ReasonPhrase { get; set; }
-        public byte[] Content { get; set; }
 
-        public Dictionary<string, string> Headers { get; set; }
-
+#if NO
         public string ContentAsUTF8
         {
             set
@@ -50,16 +48,40 @@ namespace DigitalPlatform.HTTP
             }
             Content = encoding.GetBytes(content);
         }
+#endif
 
         public HttpResponse()
         {
             this.Headers = new Dictionary<string, string>();
         }
 
+        public HttpResponse(string status_code, 
+            string reason_phrase,
+            string content)
+        {
+            this.StatusCode = status_code;
+            this.ReasonPhrase = reason_phrase;
+            this.Headers = new Dictionary<string, string>() {
+            { "Content-Type","text/plain; charset=utf-8"}
+            };
+            this.SetContentString(content);
+        }
+
         // informational only tostring...
         public override string ToString()
         {
             return string.Format("HTTP status {0} {1}", this.StatusCode, this.ReasonPhrase);
+        }
+
+        public string Dump()
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append(string.Format("HTTP/1.0 {0} {1}\r\n", this.StatusCode, this.ReasonPhrase));
+            text.Append(string.Join("\r\n", this.Headers.Select(x => string.Format("{0}: {1}", x.Key, x.Value))));
+            text.Append("\r\n\r\n");
+
+            text.Append(this.GetContentString());
+            return text.ToString();
         }
     }
 

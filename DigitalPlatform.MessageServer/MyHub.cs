@@ -2172,16 +2172,16 @@ ex.GetType().ToString());
 
         #endregion
 
-        #region WebFunction() API
+        #region WebCall() API
 
-        public MessageResult RequestWebFunction(
+        public MessageResult RequestWebCall(
     string userNameList,
-    WebFunctionRequest param
+    WebCallRequest param
     )
         {
 
 #if LOG
-            writeDebug("RequestWebFunction.1 userNameList=" + userNameList
+            writeDebug("RequestWebCall.1 userNameList=" + userNameList
                 + ", param=" + param.Dump());
 #endif
             MessageResult result = new MessageResult();
@@ -2190,7 +2190,7 @@ ex.GetType().ToString());
             {
                 ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
     result,
-    "RequestWebFunction()",
+    "RequestWebCall()",
     false);
                 if (connection_info == null)
                     return result;
@@ -2200,10 +2200,10 @@ ex.GetType().ToString());
 #endif
 
                 // 检查请求者是否具备操作的权限
-                if (StringUtil.Contains(connection_info.Rights, "webFunction") == false)
+                if (StringUtil.Contains(connection_info.Rights, "webCall") == false)
                 {
                     result.Value = -1;
-                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + "webFunction" + "' 操作的权限";
+                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + "webCall" + "' 操作的权限";
                     return result;
                 }
 
@@ -2217,7 +2217,7 @@ ex.GetType().ToString());
                 int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
                     userNameList,
                     connection_info.UserName,
-                    "webFunction",
+                    "webCall",
                     "strict_one", // "all",
                     out connectionIds,
                     out strError);
@@ -2277,21 +2277,24 @@ ex.GetType().ToString());
 #if LOG
                 writeDebug("RequestSearch.6 sendSearch connectionIds=" + StringUtil.MakePathList(connectionIds.ToList<string>()));
 #endif
-                Task.Run(() => SendWebFunction(connectionIds, param));
+                if (param.Complete == false)
+                    SendWebCall(connectionIds, param);
+                else
+                    Task.Run(() => SendWebCall(connectionIds, param));
                 result.Value = connectionIds.Count;   // 表示已经成功发起了操作
             }
             catch (Exception ex)
             {
-                result.SetError("RequestWebFunction() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+                result.SetError("RequestWebCall() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
 ex.GetType().ToString());
                 ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
             return result;
         }
 
-        void SendWebFunction(List<string> connectionIds, WebFunctionRequest param)
+        void SendWebCall(List<string> connectionIds, WebCallRequest param)
         {
-            Clients.Clients(connectionIds).webFunction(
+            Clients.Clients(connectionIds).webCall(
     param);
         }
 
@@ -2300,10 +2303,10 @@ ex.GetType().ToString());
         //                      这个值实际上是表示全部命中结果的数目，可能比 records 中的元素要多
         //      start  records 参数中的第一个元素，在总的命中结果集中的偏移
         //      errorInfo   错误信息
-        public MessageResult ResponseWebFunction(WebFunctionResponse responseParam)
+        public MessageResult ResponseWebCall(WebCallResponse responseParam)
         {
 #if LOG
-            writeDebug("ResponseSearch.1 responseParam=" + responseParam.Dump());
+            writeDebug("ResponseWebCall.1 responseParam=" + responseParam.Dump());
 #endif
             MessageResult result = new MessageResult();
             try
@@ -2327,36 +2330,43 @@ ex.GetType().ToString());
                 writeDebug("ResponseSearch.2");
 #endif
 
+#if NO
                 Task.Run(() =>
-                SendWebFunctionResponse(
+                SendWebCallResponse(
     search_info,
     responseParam));
+#endif
+                // 此处不应另开线程进行处理。否则会在请求方引起数据错误
+                SendWebCallResponse(
+search_info,
+responseParam);
+
             }
             catch (Exception ex)
             {
-                result.SetError("ResponseWebFunction() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+                result.SetError("ResponseWebCall() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
 ex.GetType().ToString());
                 ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
             return result;
         }
 
-        void SendWebFunctionResponse(// string taskID,
+        void SendWebCallResponse(// string taskID,
     SearchInfo search_info,
-    WebFunctionResponse responseParam)
+    WebCallResponse responseParam)
         {
 #if LOG
-            writeDebug("SendWebFunctionResponse.1");
+            writeDebug("SendWebCallResponse.1");
 #endif
 
             // 让前端获得响应结果
             try
             {
-                Clients.Client(search_info.RequestConnectionID).responseWebFunction(
+                Clients.Client(search_info.RequestConnectionID).responseWebCall(
                     responseParam);
 
 #if LOG
-                writeDebug("SendWebFunctionResponse.2");
+                writeDebug("SendWebCallResponse.2");
 #endif
 
                 // 主动清除已经完成的任务对象
@@ -2365,11 +2375,11 @@ ex.GetType().ToString());
             }
             catch (Exception ex)
             {
-                ServerInfo.WriteErrorLog("中心向前端分发 responseWebFunction() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                ServerInfo.WriteErrorLog("中心向前端分发 responseWebCall() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
             }
 
 #if LOG
-            writeDebug("SendWebFunctionResponse.3");
+            writeDebug("SendWebCallResponse.3");
 #endif
         }
 

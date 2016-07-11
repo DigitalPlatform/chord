@@ -1,4 +1,5 @@
 ﻿// #define LOG
+// #define VERIFY_CHUNK
 
 using System;
 using System.Collections.Generic;
@@ -738,18 +739,25 @@ strError);
 
         #endregion
 
-        #region WebFunction() API
+        #region WebCall() API
 
         WebDataTable _webDataTable = new WebDataTable();
 
-        // 当 server 发来 WebFunction 请求的时候被调用。重载的时候要对目标发送 HTTP 请求，获得 HTTP 响应，并调用 responseWebFuntion 把响应结果发送给 server
-        public override void OnWebFunctionRecieved(WebFunctionRequest param)
+        public void CleanWebDataTable()
+        {
+            _webDataTable.Clean(TimeSpan.FromMinutes(10));
+        }
+
+        // 当 server 发来 WebCall 请求的时候被调用。重载的时候要对目标发送 HTTP 请求，获得 HTTP 响应，并调用 responseWebCall 把响应结果发送给 server
+        public override void OnWebCallRecieved(WebCallRequest param)
         {
             // 累积数据，当数据完整后，执行请求和获得响应
-            WebData data = _webDataTable.AddData(param.TaskID, param.WebData);
+            _webDataTable.AddData(param.TaskID, param.WebData);
             if (param.Complete == true)
             {
-                Task.Run(() => WebFunctionAndResponse(param.TaskID, data));
+                WebData data = _webDataTable.GetData(param.TaskID);
+
+                Task.Run(() => WebCallAndResponse(param.TaskID, param.TransferEncoding, data));
             }
         }
 
@@ -818,7 +826,7 @@ strError);
             if (string.IsNullOrEmpty(filter))
                 return list[0] + verb;
 
-            foreach(string url in list)
+            foreach (string url in list)
             {
                 if (MatchUrl(url, filter))
                     return url + verb;
@@ -827,7 +835,9 @@ strError);
             return "";
         }
 
-        void WebFunctionAndResponse(string taskID, WebData request_data)
+        void WebCallAndResponse(string taskID,
+            string transferEncoding,
+            WebData request_data)
         {
             string strError = "";
 
@@ -840,54 +850,52 @@ strError);
                     goto ERROR1;
                 }
 
-                HttpRequest request = MessageUtility.BuildHttpRequest(request_data);
+                HttpRequest request = MessageUtility.BuildHttpRequest(request_data, transferEncoding);
+
+                // Console.WriteLine("request=" + request.Dump());
 
                 // this.dp2library.WebUrl 可以是若干个 URL，需要用 request.Url 的第二级来进行匹配
                 string url = GetTargetUrl(this.dp2library.WebUrl, request.Url);
 
                 if (string.IsNullOrEmpty(url))
                 {
-                    strError = "dp2Capo 的 webURL 定义 '"+this.dp2library.WebUrl+"' 无法匹配上原始请求的 '"+request.Url+"'";
+                    strError = "dp2Capo 的 webURL 定义 '" + this.dp2library.WebUrl + "' 无法匹配上原始请求的 '" + request.Url + "'";
                     goto ERROR1;
                 }
 
                 request_data = null;    // 防止后面无意用到
 
                 HttpResponse response = HttpProcessor.WebCall(request, url);
-                WebData response_data = MessageUtility.BuildWebData(response);
 
-                int chunk_size = 4 * 1024;
-                byte[] content = response_data.Content;
-                for (int i = 0; ; i++)
+                if (response.StatusCode != "200")
                 {
-                    WebData current = new WebData();
-                    if (i == 0)
-                    {
-                        current.Headers = response_data.Headers;
-                        if (response_data.Headers.Length < chunk_size)
-                            current.Content = ByteArray.Remove(ref content, chunk_size - response_data.Headers.Length);
-                    }
-                    else
-                    {
-                        current.Headers = null;
-                        current.Content = ByteArray.Remove(ref content, chunk_size);
-                    }
+                    Console.WriteLine("request=" + request.Dump(true));
+                    Console.WriteLine("response=" + response.Dump());
+                }
 
-                    WebFunctionResponse param = new WebFunctionResponse();
+                WebData response_data = MessageUtility.BuildWebData(response, transferEncoding);
+
+                // 分批发出
+                WebDataSplitter splitter = new WebDataSplitter();
+                splitter.ChunkSize = MessageUtil.BINARY_CHUNK_SIZE;
+                splitter.TransferEncoding = transferEncoding;
+                splitter.WebData = response_data;
+
+                foreach (WebData current in splitter)
+                {
+                    WebCallResponse param = new WebCallResponse();
                     param.TaskID = taskID;
                     param.WebData = current;
-                    param.Complete = content.Length == 0;
-                    MessageResult result = ResponseWebFunctionAsync(param).Result;
-                    if (result.Value == -1)
-                        break;
+                    param.Complete = splitter.LastOne;
 
-                    if (content.Length == 0)
+                    MessageResult result = ResponseWebCallAsync(param).Result;
+                    if (result.Value == -1)
                         break;
                 }
             }
             catch (Exception ex)
             {
-                strError = "WebFunctionAndResponse() 出现异常: " + ex.Message;
+                strError = "WebCallAndResponse() 出现异常: " + ex.Message;
                 goto ERROR1;
             }
             finally
@@ -897,14 +905,14 @@ strError);
 
         ERROR1:
             {
-                WebFunctionResponse param = new WebFunctionResponse();
+                WebCallResponse param = new WebCallResponse();
                 param.TaskID = taskID;
                 param.Complete = true;
                 param.Result = new MessageResult();
                 param.Result.Value = -1;
                 param.Result.ErrorInfo = strError;
 
-                TryResponseWebFunction(param);
+                TryResponseWebCall(param);
             }
         }
 
