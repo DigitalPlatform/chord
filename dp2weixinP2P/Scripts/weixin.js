@@ -1144,6 +1144,7 @@ function clickMsgDiv(msgId) {
 // 取消新增或者修改
 function cancelEdit(msgId) {
 
+    //alert("cancelEdit() 1");
     var group = $("#_group").text();
     if (group == null || group == "") {
         alert("异常情况：group参数未设值");
@@ -1169,6 +1170,8 @@ function cancelEdit(msgId) {
         return;
     }
 
+    //alert("cancelEdit() 2");
+
     //显示态html
     var viewHtml = "";
 
@@ -1183,7 +1186,6 @@ function cancelEdit(msgId) {
         alert("异常情况：weixinId为空");
         return;
     }
-    var group = "gn:_lib_homePage";
     //显示等待图层
     var index = loadLayer();
     var style = "browse";

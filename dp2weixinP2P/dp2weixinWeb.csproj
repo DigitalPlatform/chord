@@ -126,6 +126,7 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\jquery-ui.css" />
     <Content Include="Content\layer.m.css" />
+    <Content Include="Content\biblio.css" />
     <Content Include="Content\mui.min.css" />
     <Content Include="Content\sticky-footer-navbar.css" />
     <Content Include="Content\message.css" />
