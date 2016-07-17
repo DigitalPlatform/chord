@@ -84,7 +84,7 @@
                     layer.close(index);
 
                     if (result.apiResult.errorCode == -1) {
-                        openMsg(result.apiResult.errorInfo);
+                        alert(result.apiResult.errorInfo);
                         return;
                     }                    
 
@@ -93,10 +93,7 @@
                     //model.prefix("-1");
                     model.word("");
                     model.password("");
-
-                    //openMsg("绑定成功");
-                    //mui.alert('绑定成功', 'ILoveLibrary');
-
+                    
                     alert("绑定成功");
                    
                     

@@ -37,10 +37,10 @@ namespace dp2weixin.service
         public const string C_ConnPrefix_Myself = "<myself>:";
 
         // 群组常量
-        public const string C_GroupName_Bb = "gn:_lib_bb";
-        public const string C_GroupName_Book = "gn:_lib_book";
-        public const string C_GroupName_HomePage = "gn:_lib_homePage"; //图书馆主页
-        public const string C_GroupName_PatronNotity = "gn:_patronNotify";
+        public const string C_Group_Bb = "gn:_lib_bb";
+        public const string C_Group_Book = "gn:_lib_book";
+        public const string C_Group_HomePage = "gn:_lib_homePage"; //图书馆主页
+        public const string C_Group_PatronNotity = "gn:_patronNotify";
 
         // 消息权限
         public const string C_Right_SetBb = "_wx_setbb";
@@ -191,7 +191,7 @@ namespace dp2weixin.service
             this._msgRouter.SendMessageEvent += _msgRouter_SendMessageEvent;
             this._msgRouter.Start(this._channels,
                 this.dp2MServerUrl,
-                C_GroupName_PatronNotity);
+                C_Group_PatronNotity);
 
         }
 
@@ -4288,11 +4288,11 @@ namespace dp2weixin.service
                 item.content = "";
 
                 string contentHtml = "";
-                if (group == C_GroupName_Bb || group == C_GroupName_HomePage)
+                if (group == C_Group_Bb || group == C_Group_HomePage)
                 {
                     contentHtml = GetMsgHtml(format, content);
                 }
-                else if (group == C_GroupName_Book)
+                else if (group == C_Group_Book)
                 {
                     contentHtml = GetBookHtml(content, libId);
 
@@ -4377,6 +4377,9 @@ namespace dp2weixin.service
             LibItem lib = LibDatabase.Current.GetLibById(libId);
             string wxUserName = lib.wxUserName;
 
+            // 这里要转换一下，接口传进来的是转义后的
+            //subjectCondition = HttpUtility.HtmlDecode(subjectCondition);
+
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -4422,7 +4425,8 @@ namespace dp2weixin.service
         public MessageResult CoverMessage(string group,
             string libId,
             MessageItem item,
-            string style)
+            string style,
+            string parameters)
         {
             MessageResult result = new MessageResult();
             string strError = "";
@@ -4431,6 +4435,7 @@ namespace dp2weixin.service
                 libId,
                 item,
                 style,
+                parameters,
                 out returnItem,
                 out strError);
             if (nRet == -1)
@@ -4457,6 +4462,7 @@ namespace dp2weixin.service
             string libId,
             MessageItem item,
             string style,
+            string parameters,
             out MessageItem returnItem,
             out string strError)
         {
@@ -4464,9 +4470,9 @@ namespace dp2weixin.service
 
             returnItem = null;
 
-            if (group != dp2WeiXinService.C_GroupName_Bb
-                && group != dp2WeiXinService.C_GroupName_Book
-                && group != dp2WeiXinService.C_GroupName_HomePage)
+            if (group != dp2WeiXinService.C_Group_Bb
+                && group != dp2WeiXinService.C_Group_Book
+                && group != dp2WeiXinService.C_Group_HomePage)
             {
                 strError = "不支持的群" + group;
                 goto ERROR1;
@@ -4480,11 +4486,11 @@ namespace dp2weixin.service
 
             // 检索工作人员是否有权限 _wx_setbb
             string needRight = "";
-            if (group == C_GroupName_Bb)
+            if (group == C_Group_Bb)
                 needRight = C_Right_SetBb;
-            else if (group == C_GroupName_Book)
+            else if (group == C_Group_Book)
                 needRight = C_Right_SetBook;
-            else if (group == C_GroupName_HomePage)
+            else if (group == C_Group_HomePage)
                 needRight = C_Right_SetHomePage;
             LibItem libItem = LibDatabase.Current.GetLibById(libId);
             if (libItem == null)
@@ -4556,6 +4562,32 @@ namespace dp2weixin.service
                 MessageRecord returnRecord = result.Results[0];
                 returnRecord.data = strText;
                 returnItem = this.ConvertMsgRecord(group, returnRecord, "browse", libId);
+
+                // 新创建，且check栏目的序号
+                if (style == "create" && parameters !=null && parameters.Contains("checkSubjectIndex") == true
+                    && returnItem.subject !="")
+                {
+                    List<SubjectItem> list = null;
+                    int nRet = this.GetSubject(libId,
+                        group,
+                        out list,
+                        out strError);
+                    if (nRet == -1)
+                        goto ERROR1;
+                    int nIndex = 0;
+                    foreach (SubjectItem sub in list)
+                    {
+                        if (sub.count == 0) //因为前端不显示为0的栏目，所以这里要忽略掉
+                            continue;
+
+                        if (sub.name == returnItem.subject)
+                        {
+                            returnItem.subjectIndex = nIndex;
+                            break;
+                        }
+                        nIndex++;
+                    }                   
+                }
 
                 return 0;
             }
@@ -4677,6 +4709,8 @@ namespace dp2weixin.service
 
         public const string C_Active_EnumSubject = "enumSubject";
 
+
+
         /// <summary>
         /// 获取栏目
         /// </summary>
@@ -4694,8 +4728,8 @@ namespace dp2weixin.service
             strError = "";
             list = new List<SubjectItem>();
 
-            if (group != C_GroupName_Book
-                && group != C_GroupName_HomePage)
+            if (group != C_Group_Book
+                && group != C_Group_HomePage)
             {
                 strError = "不支持的群" + group;
                 return -1;
@@ -4722,8 +4756,16 @@ namespace dp2weixin.service
                 if (subjects == null || subjects.Length == 0)
                     continue;
 
+                string subject = subjects[0];
 
-                subItem.name = subjects[0];
+                int no = 0;
+                string right = subject;
+                this.SplitSubject(subject, out no, out right);
+
+                subItem.no = no;
+                subItem.pureName =right ;
+                subItem.name = subject;
+                //subItem.encodedName = HttpUtility.HtmlEncode(subject);
                 subItem.count = 0;
                 try
                 {
@@ -4738,7 +4780,136 @@ namespace dp2weixin.service
                 }
                 list.Add(subItem);
             }
+
+            // 如果是图书馆主页，需要加一些默认模板
+            if (group == dp2WeiXinService.C_Group_HomePage)
+            {
+                LibItem lib = LibDatabase.Current.GetLibById(libId);
+                string dir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + lib.capoUserName + "/homePage";
+                if (Directory.Exists(dir) == true)
+                {
+                    string[] files = Directory.GetFiles(dir, "*.html");
+                    foreach (string file in files)
+                    {
+                        string fileName = Path.GetFileNameWithoutExtension(file);
+                        bool bExist = this.checkContaint(list, fileName);
+                        if (bExist == false)
+                        {
+                            string subject = fileName;
+                            int no = 0;
+                            string right = subject;
+                            this.SplitSubject(subject, out no, out right);
+
+                            SubjectItem subItem = new SubjectItem();
+                            subItem.no = no;
+                            subItem.pureName = right;
+                            subItem.name = subject;
+                            subItem.count = 0;
+                            list.Add(subItem);
+                        }
+                    }
+                }
+            }
+
+
+            // 排序
+            list.Sort();
             return records.Count;
+        }
+
+        public void SplitSubject(string subject, out int no, out string right)
+        {
+            no = 0;
+            int nIndex = subject.IndexOf('}');
+            string left = "";
+            right = subject;
+            if (nIndex > 0)
+            {
+                right = subject.Substring(nIndex + 1);
+                left = subject.Substring(0, nIndex + 1);//{3}
+                left = left.Substring(0, left.Length - 1);//{3
+                if (left.Length > 0 && left.Substring(0, 1) == "{")
+                    left = left.Substring(1).Trim(); //去掉序号两边的空格
+                try
+                {
+                    no = Convert.ToInt32(left);
+                }
+                catch (Exception ex)
+                {
+                    this.WriteErrorLog("栏目'" + subject + "'的序号格式不合法，无法参考排序。");
+                }
+            }
+            else
+            {
+                //检查是否有空格，如果空格前面是数字，也参考排序
+                nIndex = subject.IndexOf(' ');
+                if (nIndex > 0)
+                {
+                    left = subject.Substring(0, nIndex);
+                    try
+                    {
+                        no = Convert.ToInt32(left);
+                    }
+                    catch
+                    {
+                        this.WriteErrorLog("栏目'" + subject + "'虽有空格，但空格前是非数字，无法参考排序。");
+                    }
+                }
+
+            }
+        }
+
+        /// <summary>
+        /// 检查一个栏目是否已存在
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="subject"></param>
+        /// <returns></returns>
+        private bool checkContaint(List<SubjectItem> list, string subject)
+        {
+            foreach (SubjectItem item in list)
+            {
+                if (item.name == subject)
+                    return true;
+            }
+            return false;
+        }
+        public string GetSubjectHtml(string libId, string group, string selSubject, bool bNew, List<SubjectItem> list)
+        {
+
+            string strError = "";
+            if (list == null) //外面可以传进来
+            {
+                int nRet = this.GetSubject(libId, group, out list, out strError);
+                if (nRet == -1)
+                {
+                    return "获取好书推荐的栏目出错";
+                }
+            }
+
+            var opt = "<option value=''>请选择 栏目</option>";
+            for (var i = 0; i < list.Count; i++)
+            {
+                SubjectItem item = list[i];
+                string selectedString = "";
+                if (selSubject != "" && selSubject == item.name)
+                {
+                    selectedString = " selected='selected' ";
+                }
+                opt += "<option value='" + item.name + "' " + selectedString + ">" + item.name + "</option>";
+            }
+
+            string onchange = "";
+            if (bNew == true)
+            {
+                opt += "<option value='new'>自定义栏目</option>";
+                onchange = " onchange='subjectChanged()' ";
+            }
+
+            string subjectHtml = "<select id='selSubject'  " + onchange + " >" + opt + "</select>";
+
+
+            return subjectHtml;
         }
 
         #endregion

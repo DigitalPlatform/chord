@@ -83,7 +83,7 @@ namespace dp2weixin.service
             {
                 foreach (MessageRecord record in e.Records)
                 {
-                    if (record.groups.Contains(dp2WeiXinService.C_GroupName_PatronNotity) == true)
+                    if (record.groups.Contains(dp2WeiXinService.C_Group_PatronNotity) == true)
                         tempList.Add(record);
                 }
             }
@@ -280,7 +280,7 @@ DeleteMessage(temp_records, this.GroupName);
             {
                 MessageRecord record = new MessageRecord();
                 // 2016-6-20 jane 不需要传group参数
-                record.groups = dp2WeiXinService.C_GroupName_PatronNotity .Split(new char[] { ',' });
+                record.groups = dp2WeiXinService.C_Group_PatronNotity .Split(new char[] { ',' });
                 record.id = source.id;
                 delete_records.Add(record);
             }

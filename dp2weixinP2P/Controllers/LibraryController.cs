@@ -11,6 +11,71 @@ namespace dp2weixinWeb.Controllers
 {
     public class LibraryController : BaseController
     {
+
+        public ActionResult BB(string code, string state)
+        {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
+            //绑定的工作人员账号 需要有权限
+            string userName = "";
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string libId = ViewBag.LibId;
+            // 查找当前微信用户绑定的工作人员账号
+            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
+            // todo 后面可以放开对读者的权限
+            if (user != null)
+            {
+                // 检索是否有权限 _wx_setHomePage
+                string needRight = dp2WeiXinService.C_Right_SetBb;
+                LibItem lib = LibDatabase.Current.GetLibById(libId);
+                if (lib == null)
+                {
+                    strError = "未找到id为[" + libId + "]的图书馆定义。";
+                    goto ERROR1;
+                }
+
+                int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                    user.userName,
+                    needRight,
+                    out strError);
+                if (nHasRights == -1)
+                {
+                    goto ERROR1;
+                }
+                if (nHasRights == 1)
+                {
+                    userName = user.userName;
+                }
+                else
+                {
+                    userName = "";
+                }
+            }
+            ViewBag.userName = userName;
+
+
+            // 获取消息
+            List<MessageItem> list = null;
+            nRet =dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_Group_Bb,
+                libId,
+                "",
+                "",
+                "browse",
+                out list,
+                out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            return View(list);
+
+        ERROR1:
+            return Content(strError);
+        }
+
         // 公告
         public ActionResult MsgManage(string code, string state,string group)
         {
@@ -21,10 +86,10 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             if (String.IsNullOrEmpty(group) == true)
-                group = dp2WeiXinService.C_GroupName_Bb;
+                group = dp2WeiXinService.C_Group_Bb;
 
-            if (group != dp2WeiXinService.C_GroupName_Bb
-                && group != dp2WeiXinService.C_GroupName_Book)
+            if (group != dp2WeiXinService.C_Group_Bb
+                && group != dp2WeiXinService.C_Group_Book)
             {
                 return Content("不支持的群" + group);
             }
@@ -36,7 +101,7 @@ namespace dp2weixinWeb.Controllers
             //ViewBag.LibHtml = this.GetLibHtml("");
 
             ViewBag.group = group;
-            if (group == dp2WeiXinService.C_GroupName_Bb)
+            if (group == dp2WeiXinService.C_Group_Bb)
                 ViewBag.groupTitle = "公告";
             else
                 ViewBag.groupTitle = "新书推荐";
@@ -64,10 +129,57 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
-            // 图书馆html
-            //ViewBag.LibHtml = this.GetLibHtml("");
+            //绑定的工作人员账号 需要有权限
+            string userName = "";
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string libId = ViewBag.LibId;
+            // 查找当前微信用户绑定的工作人员账号
+            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
+            // todo 后面可以放开对读者的权限
+            if (user != null)
+            {
+                // 检索是否有权限 _wx_setHomePage
+                string needRight = dp2WeiXinService.C_Right_SetHomePage;
+                LibItem lib = LibDatabase.Current.GetLibById(libId);
+                if (lib == null)
+                {
+                    strError = "未找到id为[" + libId + "]的图书馆定义。";
+                    goto ERROR1;
+                }
 
-            return View();
+                int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                    user.userName,
+                    needRight,
+                    out strError);
+                if (nHasRights == -1)
+                {
+                    goto ERROR1;
+                }
+                if (nHasRights == 1)
+                {
+                    userName = user.userName;
+                }
+                else
+                {
+                    userName = "";
+                }
+            }
+            ViewBag.userName = userName;
+
+            // 获取栏目
+            List<SubjectItem> list = null;
+            nRet = dp2WeiXinService.Instance.GetSubject(libId, 
+                dp2WeiXinService.C_Group_HomePage,
+                out list, out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+
+            return View(list);
+
+        ERROR1:
+            return Content(strError);
         }
 
 
@@ -80,10 +192,58 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
-            // 图书馆html
-             //ViewBag.LibHtml = this.GetLibHtml(libId);
+            //绑定的工作人员账号 需要有权限
+            string userName = "";
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            if (String.IsNullOrEmpty(libId)==true)
+                libId = ViewBag.LibId;
+            // 查找当前微信用户绑定的工作人员账号
+            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
+            // todo 后面可以放开对读者的权限
+            if (user != null)
+            {
+                // 检索是否有权限 _wx_setHomePage
+                string needRight = dp2WeiXinService.C_Right_SetBook;
+                LibItem lib = LibDatabase.Current.GetLibById(libId);
+                if (lib == null)
+                {
+                    strError = "未找到id为[" + libId + "]的图书馆定义。";
+                    goto ERROR1;
+                }
 
-            return View();
+                int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                    user.userName,
+                    needRight,
+                    out strError);
+                if (nHasRights == -1)
+                {
+                    goto ERROR1;
+                }
+                if (nHasRights == 1)
+                {
+                    userName = user.userName;
+                }
+                else
+                {
+                    userName = "";
+                }
+            }
+            ViewBag.userName = userName;
+
+            // 获取栏目
+            List<SubjectItem> list = null;
+            nRet = dp2WeiXinService.Instance.GetSubject(libId,
+                dp2WeiXinService.C_Group_Book,
+                out list, out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+
+            return View(list);
+
+        ERROR1:
+            return Content(strError);
         }
 
 
@@ -116,7 +276,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.subject = subject;
 
             List<MessageItem> list = new List<MessageItem>();
-            nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_GroupName_Book,
+            nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_Group_Book,
         libId,
         "",
         subject,
@@ -165,8 +325,11 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 栏目html
-            ViewBag.SubjectHtml = this.GetSubjectHtml(dp2WeiXinService.C_GroupName_Book,
-                libId, subject, true);
+            ViewBag.SubjectHtml = dp2WeiXinService.Instance.GetSubjectHtml( libId,
+                dp2WeiXinService.C_Group_Book,
+               subject,
+               true,
+               null);
 
             // 将这些参数值设到model上，这里可以回传返回
             BookEditModel model = new BookEditModel();
@@ -179,7 +342,7 @@ namespace dp2weixinWeb.Controllers
             if (string.IsNullOrEmpty(msgId) == false)
             {
                 List<MessageItem> list = null;
-                nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_GroupName_Book,
+                nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_Group_Book,
                     libId,
                     msgId,
                     "",
@@ -237,10 +400,11 @@ namespace dp2weixinWeb.Controllers
             item.subject = model.subject;
             if (String.IsNullOrEmpty(item.id) == true)
             {
-                int nRet =dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_GroupName_Book,
+                int nRet =dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_Group_Book,
                     libId,
                     item,
                     "create",
+                    "",//parameters
                     out returnItem,
                     out strError);
                 if (nRet == -1)
@@ -248,10 +412,11 @@ namespace dp2weixinWeb.Controllers
             }
             else 
             {
-                int nRet = dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_GroupName_Book,
+                int nRet = dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_Group_Book,
                     libId,
                     item,
                     "change",
+                    "",//parameters
                     out returnItem,
                     out strError);
                 if (nRet == -1)
@@ -303,40 +468,6 @@ namespace dp2weixinWeb.Controllers
         }
 
 
-        private string GetSubjectHtml(string group, string libId, string selSubject, bool bNew)
-        {
 
-            string strError="";
-            List<SubjectItem> list = null;
-            int nRet = dp2WeiXinService.Instance.GetSubject(libId, group, out list, out strError);
-            if (nRet == -1)
-            {
-                return "获取好书推荐的栏目出错";
-            }
-
-            var opt = "<option value=''>请选择 栏目</option>";
-            for (var i = 0; i < list.Count; i++)
-            {
-                SubjectItem item = list[i];
-                string selectedString = "";
-                if (selSubject != "" && selSubject == item.name)
-                {
-                    selectedString = " selected='selected' ";
-                }
-                opt += "<option value='" + item.name+ "' " + selectedString + ">" + item.name + "</option>";
-            }
-
-            string onchange = "";
-            if (bNew == true)
-            {
-                opt += "<option value='new'>自定义栏目</option>";
-                onchange = " onchange='subjectChanged()' ";
-            }
-
-            string subjectHtml = "<select id='selSubject'  "+onchange+" >" + opt + "</select>";
-
-
-            return subjectHtml;
-        }
     }
 }

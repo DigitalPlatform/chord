@@ -3,7 +3,6 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href=@Url.Content("~/favicon.ico")>
     <title>我爱图书馆</title>
     <!--CSS -->
     <link href="@Url.Content("~/Content/mui.min.css")" rel="stylesheet">
@@ -14,7 +13,7 @@
     <script src='@Url.Content("~/Scripts/jquery-3.0.0.js")'></script>
     <script src='@Url.Content("~/Scripts/jquery-ui-1.11.4.js")'></script>
     <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
-    <script src="@Url.Content("~/Scripts/weixin.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/weixin.js?test=1.0")"></script>
     @RenderSection("style", required: false)
     @RenderSection("scripts", required: false)
     @RenderSection("HeaderContent", false)
@@ -67,7 +66,7 @@
             <div class="new-sub">
                 <ul>
                     <li>
-                        <a href="~/Library/MsgManage?group=gn:_lib_bb">公告</a>
+                        <a href="~/Library/BB">公告</a>
                     </li>
                     <li>
                         <a href="~/Library/HomePage">图书馆主页</a>
@@ -553,6 +552,30 @@
             });
         }
 
+
+        // 设置头尾菜单是否显示
+        function setShowTopButton() {
+            //
+            if (browser.versions.iPhone == true) {
+                $("input").focus(function () {
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("input").blur(function () {
+                    setShowValue(true);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("textarea").focus(function () {
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("textarea").blur(function () {
+                    setShowValue(true);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+            }
+
+        }
     </script>
 </body>
 </html>

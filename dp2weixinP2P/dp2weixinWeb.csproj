@@ -171,7 +171,9 @@
     <Content Include="Scripts\knockout-2.2.0.js" />
     <Content Include="Scripts\layer.js" />
     <Content Include="Scripts\senparc.menu.js" />
-    <Content Include="Scripts\weixin.js" />
+    <Content Include="Scripts\weixin.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -240,7 +242,7 @@
     <Content Include="Views\Patron\BorrowInfo.cshtml" />
     <Content Include="Views\Account\ChangePassword.cshtml" />
     <Content Include="Views\Patron\QRcode.cshtml" />
-    <Content Include="Views\Library\MsgManage.cshtml" />
+    <Content Include="Views\Library\MsgManage.txt" />
     <Content Include="Views\Biblio\Detail.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Library\BookMsg.cshtml" />
@@ -252,6 +254,7 @@
     <Content Include="Views\UI\Message.cshtml" />
     <Content Include="Views\UI\MsgEdit.cshtml" />
     <Content Include="Views\Patron\Setting.cshtml" />
+    <Content Include="Views\Library\BB.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
