@@ -867,11 +867,14 @@ strError);
 
                 HttpResponse response = HttpProcessor.WebCall(request, url);
 
+                /*
+                // 调试用
                 if (response.StatusCode != "200")
                 {
                     Console.WriteLine("request=" + request.Dump(true));
                     Console.WriteLine("response=" + response.Dump());
                 }
+                 * */
 
                 WebData response_data = MessageUtility.BuildWebData(response, transferEncoding);
 
