@@ -1400,7 +1400,7 @@ namespace dp2weixin.service
                     };
 
                     // 发送预约模板消息
-                    //string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+                    //string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fPersonalInfo&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
                         weiXinId,
                         WeiXinConst.C_Template_Arrived,
@@ -1521,7 +1521,7 @@ namespace dp2weixin.service
                             remark = new TemplateDataItem(end, "#CCCCCC")//"\n点击下方”详情“查看个人详细信息。"
                         };
 
-                        string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+                        string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fPersonalInfo&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
                         var result1 = TemplateApi.SendTemplateMessage(accessToken,
                             weiXinId,
                             templateId,
@@ -2208,6 +2208,7 @@ namespace dp2weixin.service
                 };
                 // 详细转到账户管理界面
                 string detailUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+                                        //https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect
                 var result1 = TemplateApi.SendTemplateMessage(accessToken,
                     strWeiXinId,
                     WeiXinConst.C_Template_Bind,
@@ -3007,11 +3008,11 @@ namespace dp2weixin.service
                             strBorrowInfo =
                                 "<table style='width:100%;border:0px'>"
                                 +"<tr>"
-                                    + "<td class='info'>借阅者：" + patronName + "<br/>"
+                                    + "<td class='info' style='border:0px'>借阅者：" + patronName + "<br/>"
                                                                 + "借阅时间：" + item.borrowDate + "<br/>"
                                                                 + "借期：" + item.borrowPeriod
                                         + "</td>"
-                                    + "<td class='btn'>"
+                                    + "<td class='btn' style='border:0px'>"
                                         + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + item.barcode + "')\">续借</button>"
                                     + "</td>"
                             + "</tr>"
@@ -3103,13 +3104,13 @@ namespace dp2weixin.service
                 }
 
                 html += "<tr class='reserRow'>"
-                    + "<td class='info'>" + reservationState + "</td><td class='btn'>" + btn + "</td>"
+                    + "<td class='info'  style='border:0px'>" + reservationState + "</td><td class='btn'>" + btn + "</td>"
                     + "</tr>";
 
                 if (bOnlyReserRow == false)
                 {
                     html += "<tr>"
-                        +"<td colspan='2'><div class='resultInfo'></div></td>"
+                        + "<td colspan='2' style='border:0px'><div class='resultInfo'></div></td>"
                     + "</tr>"
                     + "</table>";
                 }
@@ -4586,7 +4587,13 @@ namespace dp2weixin.service
                             break;
                         }
                         nIndex++;
-                    }                   
+                    }
+
+                    // 得到去掉序号的subject
+                    int no = 0;
+                    string right = returnItem.subject;
+                    this.SplitSubject(returnItem.subject, out no, out right);
+                    returnItem.subjectPureName = right;
                 }
 
                 return 0;
@@ -4903,7 +4910,11 @@ namespace dp2weixin.service
             if (bNew == true)
             {
                 opt += "<option value='new'>自定义栏目</option>";
+                
                 onchange = " onchange='subjectChanged()' ";
+
+                if (group == dp2WeiXinService.C_Group_HomePage)
+                    onchange = " onchange='subjectChanged(true)' ";
             }
 
             string subjectHtml = "<select id='selSubject'  " + onchange + " >" + opt + "</select>";

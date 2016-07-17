@@ -1,4 +1,24 @@
-﻿===BookSubject=====
+﻿===bookEdit=====
+        // 将选择的subject设到输入框中
+        function subjectChanged()
+        {
+            var subValue = $("#selSubject").val();
+
+            //alert(subValue);
+
+            if (subValue == "new") {
+                $("#divNewSubject").css('display', 'block');
+                $("#_val_subject").val("");
+            }
+            else {
+                $("#divNewSubject").css('display', 'none');
+                $("#_val_subject").val(subValue);
+            }            
+        }
+
+
+
+===BookSubject=====
 @section style {
     <style>
         .leftLabel {

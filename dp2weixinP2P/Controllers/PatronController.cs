@@ -62,8 +62,8 @@ namespace dp2weixinWeb.Controllers
 
             string qrcodeUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(activeUserItem.libId)
                 + "&type=pqri"
-                + "&barcode=" + HttpUtility.UrlEncode(activeUserItem.readerBarcode)
-                + "&width=400&height=400";
+                + "&barcode=" + HttpUtility.UrlEncode(activeUserItem.readerBarcode);
+                //+ "&width=400&height=400";
             ViewBag.qrcodeUrl = qrcodeUrl;
             return View(activeUserItem);
         }

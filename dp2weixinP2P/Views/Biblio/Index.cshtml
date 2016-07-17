@@ -1,4 +1,7 @@
-﻿@section Scripts {
+﻿@section style {
+<link href="@Url.Content("~/Content/biblio.css")" rel="stylesheet">
+}
+@section Scripts {
     <script>
 
         //浏览器加载并处理了文档的所有HTML元素之后才会执行。
@@ -303,131 +306,7 @@
 
     </script>
 }
-@section style {
-    <style type="text/css">
-        /*书目*/
-        DIV.biblio {
-        }
 
-            /*书目操作按钮行，现在有好书推荐按钮*/
-            DIV.biblio DIV.btnRow {
-                text-align: right;
-            }
-
-        /*整个册块*/
-        DIV.item {
-            margin: 3px 0px 0px;
-            padding: 2px;
-        }
-
-            /*册块标题，一般barcode使用该样式*/
-            DIV.item .title {
-                margin-top: 5px;
-                margin-bottom: 5px;
-                padding-left: 10px;
-                font-size: 20px;
-            }
-
-            /*册块备注，没有册文字使用该样式*/
-            DIV.item .remark {
-                color: #999999;
-                padding: 2px;
-            }
-
-            /*一条一条的册table*/
-            DIV.item TABLE {
-                text-align: left;
-                background-color: white;
-                width: 100%;
-                margin-top: 10px;
-            }
-
-                /*册td*/
-                DIV.item TABLE TR TD {
-                    border-width: 0px;
-                    border-top-width: 1px;
-                    border-color: #dddddd;
-                    border-style: dotted;
-                    padding: 2px;
-                }
-
-                    /*册右值数据td*/
-                    DIV.item TABLE TR TD.value {
-                        padding-left: 5px;
-                    }
-
-                        /*册右值数据td*/
-                        DIV.item TABLE TR TD.value .info {
-                            /*float: left;*/
-                            padding-top: 5px;
-                            text-align:left;
-                        }
-
-                        /*册右值数据td*/
-                        DIV.item TABLE TR TD.value .btn {
-                            /*float: right;*/
-                            text-align:right;
-                        }
-
-                    /*册左侧标题td*/
-                    DIV.item TABLE TR TD.label {
-                        width: 75px;
-                        background-color: #ffffff;
-                        color: #999999;
-                        padding-right: 5px;
-                        text-align: right;
-                    }
-
-                    /*册里面的操作提示*/
-                    DIV.item TABLE TR TD .resultInfo {
-                        /*显示预约结果的span*/
-                    }
-
-        /*===========*/
-        DIV.search {
-            padding: 10px;
-            /*background-color: green;*/
-        }
-
-            /*消息div下的table*/
-            DIV.search TABLE {
-                width: 100%;
-                /*background-color: red;*/
-            }
-
-
-
-
-            /*=============*/
-            /*消息编辑态标题*/
-            DIV.search INPUT, SELECT {
-                margin-bottom: 0px;
-            }
-
-            DIV.search TABLE.advance tr td {
-                padding: 5px;
-            }
-
-                DIV.search TABLE.advance tr td.label {
-                    color: #999999;
-                    width: 70px;
-                }
-
-
-            DIV.search TABLE.advance select {
-                font-size: 17px;
-                height: 37px;
-                padding: 0px;
-                margin: 0px;
-                padding-left: 5px;
-            }
-
-            DIV.search TABLE.advance input, textarea {
-                padding: 5px;
-                margin: 0px;
-            }
-    </style>
-}
 
 @section header {
     <h1 class="mui-title">书目查询</h1>

@@ -1,8 +1,6 @@
 ﻿@model dp2weixinWeb.Models.BookEditModel
 @section Scripts {
     <script>
-
-
         // 绑定方式变化，账号提示信息跟着变化
         function prefixChange() {
             var curText = $('#selPrefix option:checked').text();
@@ -14,23 +12,6 @@
 
             $('#account').prop("placeholder", "请输入 " + curText);
             $('#lblAccount').html(curText)
-        }
-
-        // 将选择的subject设到输入框中
-        function subjectChanged()
-        {
-            var subValue = $("#selSubject").val();
-
-            //alert(subValue);
-
-            if (subValue == "new") {
-                $("#divNewSubject").css('display', 'block');
-                $("#_val_subject").val("");
-            }
-            else {
-                $("#divNewSubject").css('display', 'none');
-                $("#_val_subject").val(subValue);
-            }            
         }
 
 
@@ -141,62 +122,7 @@
     </script>
 }
 @section style {
-    <style>
-
-        /*=======消息div===========*/
-        DIV.message {
-            margin-top: 5px;
-            margin-bottom: 5px;
-            padding: 10px;
-            /*background-color: green;*/
-        }
-
-            /*消息div下的table*/
-            DIV.message TABLE {
-                width: 100%;
-                /*background-color: red;*/
-            }
-
-
-
-
-        /*=============*/
-        /*消息编辑态标题*/
-        DIV.message INPUT, SELECT {
-            margin-bottom: 0px;
-        }
-
-        DIV.message TABLE.edit tr td {
-            padding: 5px;
-        }
-
-            DIV.message TABLE.edit tr td.label {
-                color: #999999;
-                width: 40px;
-            }
-
-            DIV.message TABLE.edit tr td span.label {
-                color: #999999;
-            }
-
-        DIV.message TABLE.edit select {
-            font-size: 17px;
-            height: 37px;
-            padding: 0px;
-            margin:0px;
-        }
-
-                DIV.message TABLE.edit input, textarea {
-
-            padding: 5px;
-            margin:0px;
-        }
-
-                /*======是否可编辑态样式=============*/
-        .msgEditable {
-            background-color: #CCFF99;
-        }
-    </style>
+<link href="@Url.Content("~/Content/message.css")" rel="stylesheet">
 }
 @section header {
     @if (string.IsNullOrEmpty(Model.id) == true)
