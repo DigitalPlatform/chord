@@ -4586,7 +4586,13 @@ namespace dp2weixin.service
                             break;
                         }
                         nIndex++;
-                    }                   
+                    }
+
+                    // 得到去掉序号的subject
+                    int no = 0;
+                    string right = returnItem.subject;
+                    this.SplitSubject(returnItem.subject, out no, out right);
+                    returnItem.subjectPureName = right;
                 }
 
                 return 0;
@@ -4903,7 +4909,11 @@ namespace dp2weixin.service
             if (bNew == true)
             {
                 opt += "<option value='new'>自定义栏目</option>";
+                
                 onchange = " onchange='subjectChanged()' ";
+
+                if (group == dp2WeiXinService.C_Group_HomePage)
+                    onchange = " onchange='subjectChanged(true)' ";
             }
 
             string subjectHtml = "<select id='selSubject'  " + onchange + " >" + opt + "</select>";

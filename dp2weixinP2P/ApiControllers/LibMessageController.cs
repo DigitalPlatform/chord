@@ -106,7 +106,7 @@ namespace dp2weixinWeb.ApiControllers
                 result.list = list;
 
             string html = dp2WeiXinService.Instance.GetSubjectHtml(libId,
-                dp2WeiXinService.C_Group_Book,
+                group,
                selSubject,
                true,
                list);

@@ -1,4 +1,298 @@
 ﻿
+//======书目详细信息==========
+
+// 获取详细书目记录
+function getDetail(libId, recPath, obj, from) {
+
+    //alert("getDetail 1");
+    if (libId == null || libId == "") {
+        alert("libId参数不能为空");
+        return;
+    }
+
+    if (recPath == null || recPath == "") {
+        recPath("libId参数不能为空");
+        return;
+    }
+
+    var weixinId = $("#weixinId").text();
+    if (weixinId == null || weixinId == "") {
+        alert("weixinId参数为空");
+        return;
+    }
+
+    //alert("getDetail 2");
+
+    // 调api
+    var url = "/api/biblio?weixinId=" + encodeURIComponent(weixinId)
+        + "&libId=" + encodeURIComponent(libId)
+        + "&biblioPath=" + encodeURIComponent(recPath)
+        + "&format=full"
+        + "&from=" + encodeURIComponent(from);
+
+    //alert("getDetail 3");
+    //alert(url);
+
+    sendAjaxRequest(url, "GET", function (result) {
+
+        //alert("getDetail 4");
+
+        // 出错或未命中
+        if (result.errorCode == -1 || result.errorCode == 0) {
+            var html = "error:" + result.errorInfo;
+            obj.html(html);
+            return;
+        }
+        //alert("getDetail 5");
+
+        var itemTables = "";
+        if (result.itemList.length == 0) {
+            itemTables = "<div class='mui-card item'>"
+                + "<span class='remark'>没有册信息</span>"
+                + "</div>"
+        }
+
+        for (var i = 0; i < result.itemList.length; i++) {
+            var record = result.itemList[i];
+
+            itemTables += "<div class='mui-card item' id='_item_" + record.barcode + "'>"
+            + "<div class='title'>" + record.barcode + "</div>"
+             + "<table>"
+            + "<tr>"
+            + "<td class='label'>状态</td>"
+            + "<td class='value'>" + record.state + "</td>"
+            + "</tr>"
+            + "<tr>"
+            + "<td class='label'>卷册</td>"
+            + "<td class='value'>" + record.volumn + "</td>"
+            + "</tr>"
+            + "<tr>"
+            + "<td class='label'>馆藏地</td>"
+            + "<td class='value'>" + record.location + "</td>"
+            + "</tr>"
+            + "<tr>"
+            + "<td class='label'>价格</td>"
+            + "<td class='value'>" + record.price + "</td>"
+            + "</tr>"
+            + "<tr>"
+            + "<td class='label'>在借情况</td>"
+            + "<td class='value'>" + record.borrowInfo + "</td>"
+            + "</tr>"
+            + "<tr>"
+            + "<td class='label'>预约信息</td>"
+            + "<td class='value' >" + record.reservationInfo + "</td>"
+            + "</tr>"
+            //
+            + "</table>"
+            + "</div>";
+        }
+
+        var recommendBtn = "";
+        //var worker=$("#")
+        //if (worker != null && worker != "") {
+        //    var recommPath = "/Library/BookEdit?libId=" + libId
+        //        + "&userName=" + worker
+        //        + "&biblioPath=" + encodeURIComponent(biblioPath)
+        //        + "&returnUrl=" + encodeURIComponent('/Biblio/Index')
+        //    recommendBtn = "<div class='btnRow'><button class='mui-btn  mui-btn-default' "
+        //        + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button></div>";
+        //}
+        //var myHtml = "<span>" + result.summary + "</span>"
+        //    + recommendBtn
+        //    + itemTables;
+
+        var myHtml = result.summary + itemTables;
+
+        obj.html(myHtml);
+
+        //alert(myHtml);
+
+        //return myHtml;
+
+    }, function (xhq, textStatus, errorThrown) {
+        o.html("访问服务器出错：[" + errorThrown + "]");
+        return;
+    });
+
+    //return "";
+}
+
+//预约
+function reservation(obj, barcode, style) {
+    //alert($("input[name='ckbBarcode']:checked").length);
+    if (style == "delete") {
+        var opeName = $(obj).text();
+        var gnl = confirm("你确定对册[" + barcode + "]" + opeName + "吗?");
+        if (gnl == false) {
+            return false;
+        }
+    }
+
+    var libId = getLibId();//$("#selLib").val();
+    if (libId == "") {
+        alert("尚未选择图书馆");
+        return;
+    }
+
+    var patron = $("#patronBarcode").text();
+    if (patron == "") {
+        alert("您尚未绑定图书馆账户，请先绑定账户。");
+        return;
+    }
+
+    if (barcode == "") {
+        alert("您尚未选择要预约的册记录。");
+        return;
+    }
+
+    var itemDivId = "#_item_" + barcode;
+    var infoDiv = $(itemDivId).find(".resultInfo");
+
+    //显示等待图层
+    var index = loadLayer();
+
+    var url = "/api/Reservation?libId=" + encodeURIComponent(libId)
+        + "&patron=" + encodeURIComponent(patron)
+        + "&items=" + encodeURIComponent(barcode)
+        + "&style=" + style;//new 创建一个预约请求,delete删除
+    // 调api
+    sendAjaxRequest(url, "POST", function (result) {
+
+
+        // 关闭等待层
+        layer.close(index);
+
+        // 显示预约结果
+
+        var info = result.errorInfo;
+
+        $("input[name='ckbBarcode']").removeAttr("checked");//取消全选
+
+        // 出错
+        if (result.errorCode == -1) {
+            $(infoDiv).text(info);
+            $(infoDiv).css("color", "red");  //设为红色
+
+            alert(result.errorInfo);
+            return;
+        }
+
+        var bWarn = true;
+        if (info == "") {
+            info = $(obj).html() + " 操作成功。";
+            bWarn = false;
+        }
+        else {
+            info = $(obj).html() + " 操作成功。<br>" + info;
+        }
+
+        alert(info.replace("<br>", "\r\n"));
+
+        if (bWarn == true)
+            $(infoDiv).css("background-color", "yellow");  //设为绿色
+        else
+            $(infoDiv).css("color", "darkgreen");  //设为绿色
+        $(infoDiv).html(info);
+
+        //reserRow
+        var reserRow = $(itemDivId).find(".reserRow");
+        //reserRow.html("<td>a</td><td>b</td>");
+        $(reserRow).prop('outerHTML', result.reserRowHtml);
+
+        // 更新当前册的预约显示 todo,传一个item id，从服务器得到html
+
+        //var div = $(obj).parent().parent();
+        //getReservations(barcode, div, info, bWarn);
+
+
+    }, function (xhq, textStatus, errorThrown) {
+
+        // 关闭等待层
+        layer.close(index);
+
+        // 显示预约结果
+        var info = "访问服务器出错：[" + errorThrown + "]";
+        alert(info);
+
+        $(infoDiv).text(info);
+        $(infoDiv).css("color", "red");  //设为红色
+    });
+}
+
+// 续借
+function renew(itemBarcode) {
+    if (itemBarcode == "") {
+        alert("尚未传入册条码号。");
+        return;
+    }
+
+    var libId = getLibId(); //$("#libId").val();
+    if (libId == "") {
+        alert("尚未选择图书馆");
+        return;
+    }
+
+
+    var patronBarcode = $("#patronBarcode").text();
+    if (patronBarcode == "") {
+        alert("您尚未绑定图书馆读者账户，请先绑定账户。");
+        return;
+    }
+
+    //显示等待图层
+    var index = loadLayer();
+
+    var url = "/api/BorrowInfo?libId=" + encodeURIComponent(libId)
+        + "&action=renew"
+        + "&patron=" + encodeURIComponent(patronBarcode)
+        + "&item=" + encodeURIComponent(itemBarcode)
+    // 调api
+    sendAjaxRequest(url, "POST", function (result) {
+
+        // 关闭等待层
+        layer.close(index);
+
+        // 显示续借结果
+        var divId = "#renewInfo-" + itemBarcode;
+        var infoDiv = $(divId);
+        var info = result.errorInfo;
+
+
+        // 出错
+        if (result.errorCode == -1) {
+            $(infoDiv).text(info);
+            $(infoDiv).css("color", "red");  //设为红色
+
+            alert(result.errorInfo);
+            return;
+        }
+
+
+        if (info == "")
+            info = "续借成功";
+
+        $(infoDiv).text(info);
+        $(infoDiv).css("color", "darkgreen");  //设为绿色
+
+        // 续借按钮还一直存在吗？todo
+
+
+    }, function (xhq, textStatus, errorThrown) {
+
+        // 关闭等待层
+        layer.close(index);
+
+        // 显示预约结果
+        var info = "访问服务器出错：[" + errorThrown + "]";
+        alert(info);
+
+        var divId = "#renewInfo-" + itemBarcode;
+        var infoDiv = $(divId);
+
+        $(infoDiv).text(info);
+        $(infoDiv).css("color", "red");  //设为红色
+    });
+}
 
 //============pending=============
 
@@ -184,6 +478,8 @@ function fillPending() {
     //window.setTimeout("fillPending()", 1);
     return;
 }
+
+
 
 //============消息相关=============
 
@@ -376,7 +672,7 @@ function viewMsg(msgId, msgItem) {
                     model.subjectHtml("");
 
                     var subjectDiv = "<div id='_subject_" + msgItem.subject + "'  class='subject'>"
-                        + "<div id='_subject_title' class='firstline'><span class='title'>" + msgItem.subject + "<span></div>"
+                        + "<div id='_subject_title' class='firstline'><span class='title'>" + msgItem.subjectPureName + "<span></div>"
                         + msgViewHtml
                         + "</div>";
                     $(subjectDiv).insertBefore(myDiv);
@@ -388,7 +684,7 @@ function viewMsg(msgId, msgItem) {
                 // 置空
                 model.subjectHtml("");
                 var subjectDiv = "<div id='_subject_" + msgItem.subject + "'  class='subject'>"
-                    + "<div id='_subject_title' class='firstline'><span class='title'>" + msgItem.subject + "<span></div>"
+                    + "<div id='_subject_title' class='firstline'><span class='title'>" + msgItem.subjectPureName + "<span></div>"
                     + msgViewHtml
                     + "</div>";
                 //alert(subjectDiv);
@@ -633,13 +929,16 @@ function deleteMsg(msgId) {
         // 删除自己;
         $(divId).remove();
 
-        // 如果父亲下级没有message，父亲也删除
-        if ($(subjectDiv).children(".message").length == 0) {
-            // 移除栏目div
-            subjectDiv.remove();
+        if (group == "gn:_lib_homePage") {
+            // 如果父亲下级没有message，父亲也删除
+            if ($(subjectDiv).children(".message").length == 0) {
 
-            // 置空subject,再打开编辑界面时，会重刷subject列表
-            model.subjectHtml("");
+                // 移除栏目div
+                subjectDiv.remove();
+
+                // 置空subject,再打开编辑界面时，会重刷subject列表
+                model.subjectHtml("");
+            }
         }
 
     }, function (xhq, textStatus, errorThrown) {
@@ -1043,6 +1342,70 @@ function gotoEdit(msgId) {
 }
 
 
+// 栏目切换，将选择的subject设到输入框中
+function subjectChanged(bGetTemplate) {
+
+    //alert("进入 subjectChanged()");
+    var subValue = $("#selSubject").val();
+
+    //alert(subValue);
+
+    if (subValue == "new") {
+        $("#divNewSubject").css('display', 'block');
+        $("#_val_subject").val("");
+        //$("#txtSubject").css('display', 'block');
+    }
+    else {
+        $("#divNewSubject").css('display', 'none');
+        $("#_val_subject").val(subValue);
+
+        if (bGetTemplate == true) {
+            //alert("get template");
+            // 取模板
+            getTemplate(subValue);
+        }
+    }
+}
+
+//用于获取栏目
+function getTemplate(subject) {
+    var group = $("#_group").text();
+    if (group == null || group == "" ||
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        alert("异常情况：group参数值不正确[" + group + "]。");
+        return;
+    }
+
+    var libId = getLibId(); //$("#selLib").val();
+    if (libId == "") {
+        return;
+    }
+
+    //显示等待图层
+    var index = loadLayer();
+    // 调web api
+    var url = "/api/LibMessage?group=" + encodeURIComponent(group)
+        + "&libId=" + libId
+    + "&subject=" + encodeURIComponent(subject);
+    //alert(url);
+    sendAjaxRequest(url, "GET", function (result) {
+        // 关闭等待层
+        layer.close(index);
+
+        if (result.errorCode == -1) {
+            alert(result.errorInfo);
+            return;
+        }
+
+        $("#_val_content").val(result.info);
+
+    }, function (xhq, textStatus, errorThrown) {
+
+        alert("访问服务器出错：\r\n" + errorThrown);
+        // 关闭等待层
+        layer.close(index);
+    });
+}
 
 //===========等待图层============
 // 显示等待图层

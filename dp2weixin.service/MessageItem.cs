@@ -62,6 +62,7 @@ namespace dp2weixin.service
 
         public string subject { get; set; } // 栏目
         public int subjectIndex = -1;//当前subject在subject列表中的序号，以便新增的subject在界面上插到合适的位置
+        public string subjectPureName { get; set; } // 去掉序号的
 
         public string remark { get; set; } //注释
     }

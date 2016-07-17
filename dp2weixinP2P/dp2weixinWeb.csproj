@@ -128,6 +128,7 @@
     <Content Include="Content\layer.m.css" />
     <Content Include="Content\mui.min.css" />
     <Content Include="Content\sticky-footer-navbar.css" />
+    <Content Include="Content\message.css" />
     <Content Include="Content\style.css" />
     <Content Include="delete.txt" />
     <Content Include="DongshifangMessageInterface.dll">
