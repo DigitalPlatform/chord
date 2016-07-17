@@ -85,7 +85,8 @@
             var group = "gn:_lib_book";
             var url = "/api/LibMessage"
                 + "?group=" + group
-                + "&libId=" + libId;
+                + "&libId=" + libId
+            + "&parameters=";
             sendAjaxRequest(url, action,
                 function (result) {
 

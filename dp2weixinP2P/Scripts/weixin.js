@@ -25,7 +25,7 @@ function fillPending() {
     }
 
     // 取出label设置的线索信息
-    var keyword = mylable.text().trim();
+    var keyword = mylable.text();//.trim();
     // 未给label设值，去掉pending状态，继续下一个pending
     if (keyword.length == 0) {
         //alert("fillPending1-3:[" + mylable.text() + "]");
@@ -107,6 +107,7 @@ function fillPending() {
     else if (mytype == "su-") {
         var libId = o.children("span").text();
 
+        //alert("["+myvalue+"]");
         // 调web api
         var url = "/api/LibMessage?weixinId=" //+ weixinId
                     + "&group=gn:_lib_homePage"
@@ -151,6 +152,7 @@ function fillPending() {
                     msgHtml += getMsgViewHtml(msgItem, true);
                 }
             }
+            //alert(msgHtml);
 
             // 这里得到的是list
             //o.html(msgHtml);
@@ -185,11 +187,11 @@ function fillPending() {
 
 //============消息相关=============
 
-function getMsgViewHtml(msgItem, bContainEditDiv){
+function getMsgViewHtml(msgItem, bContainEditDiv) {
     var group = $("#_group").text();
     if (group == null || group == "" ||
         (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
-        alert("异常情况：group参数值不正确["+group+"]。");
+        alert("异常情况：group参数值不正确[" + group + "]。");
         return;
     }
     var bContainSubject = false;
@@ -339,32 +341,87 @@ function viewMsg(msgId, msgItem) {
         // 得到完整的div
         var msgViewHtml = getMsgViewHtml(msgItem, true);
 
-        if (bContainSubject==false) {
+        if (bContainSubject == false) {
+
             // 加到最上面
             $("#_subject_main").prepend(msgViewHtml);
         }
         else {
-            var subject = $("#_val_subject").val(); //
-            // 要先找下同名的subject，如果不存在，新创建一个subject div放在最上面
-            var subjectObj = $("#_subject_main").children("#_subject_" + subject);
-            if (subjectObj.html() != null) {  //注意这里要用html()
-                var titleObj = $(subjectObj).find("#_subject_title");
-                $(msgViewHtml).insertAfter(titleObj);
+
+            //alert("序号=" + msgItem.subjectIndex);
+
+
+            var myDiv = null;
+            if (msgItem.subjectIndex >= 0)
+                myDiv = $("#_subject_main").children(".subject:eq(" + msgItem.subjectIndex + ")");
+
+            //alert(myDiv);
+            if (myDiv.html() != null) {
+                var myId = myDiv.attr('id');
+                myId = myId.substring(9);
+                //alert(myId);
+
+
+                // 如果subject相同，则加入item，如果不同，则要把subject插在之前
+                if (myId == msgItem.subject) {
+                    //alert("相同");
+
+                    var titleObj = $(myDiv).find("#_subject_title");
+                    $(msgViewHtml).insertAfter(titleObj);
+                }
+                else {
+                    //alert("不同");
+
+                    // 置空
+                    model.subjectHtml("");
+
+                    var subjectDiv = "<div id='_subject_" + msgItem.subject + "'  class='subject'>"
+                        + "<div id='_subject_title' class='firstline'><span class='title'>" + msgItem.subject + "<span></div>"
+                        + msgViewHtml
+                        + "</div>";
+                    $(subjectDiv).insertBefore(myDiv);
+                }
             }
             else {
-                // 给框架加一条栏目
-                model.subjects.push(subject);
-                model.selSubject(subject); // 设当前选择的栏目
 
-                //alert("2");
-                var subjectDiv = "<div id='_subject_" + subject + "'  class='subject'>"
-                    + "<div id='_subject_title' class='firstline'><span class='title'>" + subject + "<span></div>"
+                //alert("未找到");
+                // 置空
+                model.subjectHtml("");
+                var subjectDiv = "<div id='_subject_" + msgItem.subject + "'  class='subject'>"
+                    + "<div id='_subject_title' class='firstline'><span class='title'>" + msgItem.subject + "<span></div>"
                     + msgViewHtml
                     + "</div>";
-
                 //alert(subjectDiv);
-                $("#_subject_main").prepend(subjectDiv);
+                $("#_subject_main").append(subjectDiv);//插在后面
             }
+
+
+            //var subject = $("#_val_subject").val(); //
+            //// 要先找下同名的subject，如果不存在，新创建一个subject div放在最上面
+            //var subjectObj = $("#_subject_main").children("#_subject_" + subject);
+            //if (subjectObj.html() != null) {  //注意这里要用html()
+            //    var titleObj = $(subjectObj).find("#_subject_title");
+            //    $(msgViewHtml).insertAfter(titleObj);
+            //}
+            //else {
+            //    // 给框架加一条栏目
+            //    //model.subjects.push(subject);
+            //    // model.selSubject(subject); // 设当前选择的栏目
+
+            //    // 置空
+            //    model.subjectHtml("");
+
+            //    alert("序号="+msgItem.subjectIndex);
+
+            //    //alert("2");
+            //    var subjectDiv = "<div id='_subject_" + subject + "'  class='subject'>"
+            //        + "<div id='_subject_title' class='firstline'><span class='title'>" + subject + "<span></div>"
+            //        + msgViewHtml
+            //        + "</div>";
+
+            //    //alert(subjectDiv);
+            //    $("#_subject_main").prepend(subjectDiv);
+            //}
         }
 
         //创建按钮可见
@@ -429,8 +486,11 @@ function save(msgId) {
     var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
 
     var action = "";
+    var parameters = "";
     if (msgId == "new") {
         action = "POST";
+        if (bContainSubject == true)
+            parameters = "checkSubjectIndex,";
     }
     else {
         action = "PUT";
@@ -460,7 +520,7 @@ function save(msgId) {
     //alert(format);
 
 
-    var group = "gn:_lib_bb";
+    //var group = "gn:_lib_bb";
 
     //显示等待图层
     var index = loadLayer();
@@ -471,7 +531,9 @@ function save(msgId) {
 
     var url = "/api/LibMessage"
         + "?group=" + group
-        + "&libId=" + libId;
+        + "&libId=" + libId
+        + "&parameters=" + parameters;
+    //alert(parameters);
     sendAjaxRequest(url, action,
         function (result) {
 
@@ -494,6 +556,7 @@ function save(msgId) {
             //alert("回来的消息标题:"+item.title);
             viewMsg(msgId, item);
 
+
         },
         function (xhq, textStatus, errorThrown) {
             alert(errorThrown);
@@ -513,31 +576,90 @@ function save(msgId) {
 
 }
 
+// 删除msg
+function deleteMsg(msgId) {
+    //alert(msgId);
+
+    var group = $("#_group").text();
+    if (group == null || group == "" ||
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        alert("异常情况：group参数值不正确[" + group + "]。");
+        return;
+    }
+
+    var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+    var title = $(divId).find(".title").html();
+    //alert(title);
+
+    var gnl = confirm("你确定要删除[" + title + "]吗?");
+    if (gnl == false) {
+        return false;
+    }
+
+    var libId = getLibId(); //$("#selLib").val();
+    if (libId == "") {
+        alert("异常情况：libId为空。");
+        return;
+    }
+    var userName = $("#_userName").text();
+    if (userName == "") {
+        alert("异常情况：userName为空。");
+        return;
+    }
+
+    //显示等待图层
+    var index = loadLayer();
+
+    var url = "/api/LibMessage?libId=" + libId
+        + "&group=" + encodeURIComponent(group)
+        + "&msgId=" + msgId
+        + "&userName=" + userName
+    sendAjaxRequest(url, "DELETE", function (result) {
+
+        // 关闭等待层
+        layer.close(index);
+
+        if (result.errorCode == -1) {
+            alert("操作失败：" + result.errorInfo);
+            return;
+        }
+
+        alert("删除成功");
+
+        // 删除界面
+
+        // 找到父亲
+        var subjectDiv = $(divId).parent();
+        // 删除自己;
+        $(divId).remove();
+
+        // 如果父亲下级没有message，父亲也删除
+        if ($(subjectDiv).children(".message").length == 0) {
+            // 移除栏目div
+            subjectDiv.remove();
+
+            // 置空subject,再打开编辑界面时，会重刷subject列表
+            model.subjectHtml("");
+        }
+
+    }, function (xhq, textStatus, errorThrown) {
+        alert(errorThrown);
+    });
+
+}
+
 // 获取编辑态html
 function getMsgEditHtml(msgItem) {
 
     var group = $("#_group").text();
-    if (group == null || group == "") {
-        alert("异常情况：group参数未设值");
+    if (group == null || group == "" ||
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        alert("异常情况：group参数值不正确[" + group + "]。");
         return;
     }
     var bContainSubject = false;
-    if (group == "gn:_lib_bb") {
-        bContainSubject = false;
-    }
-    else if (group == "gn:_lib_homePage") {
+    if (group == "gn:_lib_homePage") {
         bContainSubject = true;
-    }
-    else {
-        alert();
-        return;
-    }
-
-    // 工作人员账号
-    var userName = $("#_userName").text();
-    if (userName == null || userName == "") {
-        alert("异常情况：userName为空。");
-        return;
     }
 
     var formatTextStr = " selected ";// 默认文本格式选中
@@ -565,12 +687,14 @@ function getMsgEditHtml(msgItem) {
         saveBtnName = "保存";
     }
 
+    //alert("getMsgEditHtml 1");
 
     var html = "<table class='edit'>"
 
     // 加选择栏目行
     if (bContainSubject == true) {
-        var subjectHtml = getSubjectHtml(subject, disabledStr);
+        var subjectHtml = model.subjectHtml();
+        //alert("2==" + subjectHtml);
         html += "<tr>"
             + "<td class='label'>栏目</td>"
             + "<td>"
@@ -618,10 +742,69 @@ function getMsgEditHtml(msgItem) {
             + "<button class='mui-btn mui-btn-default' onclick=\"cancelEdit('" + msgId + "')\">取消</button>"
         + "</td>"
     + "</tr>"
-+ "</table>";
-
+ + "</table>";
     return html;
 }
+
+//用于获取栏目
+function getSubjectHtml(msgId) {
+    var group = $("#_group").text();
+    if (group == null || group == "" ||
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        alert("异常情况：group参数值不正确[" + group + "]。");
+        return;
+    }
+
+    var libId = getLibId();
+    if (libId == "") {
+        alert("异常情况：libId为空");
+        return;
+    }
+    var weixinId = $("#weixinId").text();
+    if (weixinId == "") {
+        alert("异常情况：weixinId为空");
+        return;
+    }
+
+    // 置空
+    model.subjectHtml("");
+
+    //显示等待图层
+    var index = loadLayer();
+    // 调web api
+    var url = "/api/LibMessage?weixinId=" + weixinId
+        + "&group=" + encodeURIComponent(group)
+        + "&libId=" + libId
+    + "&selSubject="
+    + "&param=html";
+    sendAjaxRequest(url, "GET", function (result) {
+        // 关闭等待层
+        layer.close(index);
+
+        if (result.errorCode == -1) {
+            alert(result.errorInfo);
+            return;
+        }
+
+        //设到内存里
+        var subjectHtml = result.html;
+        model.subjectHtml(result.html);
+
+        //alert(subjectHtml);
+
+        // 继续进入编辑态
+        gotoEdit(msgId);
+
+    },
+    function (xhq, textStatus, errorThrown) {
+
+        alert("访问服务器出错：\r\n" + errorThrown);
+        // 关闭等待层
+        layer.close(index);
+    }); // 同步调用
+}
+
+
 
 // 单击msg进行只读态与编辑态的切换
 function clickMsgDiv(msgId) {
@@ -748,6 +931,22 @@ function cancelEdit(msgId) {
 
 // 进入编辑态
 function gotoEdit(msgId) {
+
+    var group = $("#_group").text();
+    if (group == null || group == "" ||
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        alert("异常情况：group参数值不正确[" + group + "]。");
+        return;
+    }
+
+    if (group == "gn:_lib_homePage") {
+        if (model.subjectHtml() == "") {
+            //alert("subjectHtml为空，需要从服务器获取。");
+            getSubjectHtml(msgId);
+            return;
+        }
+    }
+
     if (msgId == null || msgId == "") {
         alert("未传入msgId");
         return;
@@ -779,7 +978,6 @@ function gotoEdit(msgId) {
         alert("异常情况：weixinId为空");
         return;
     }
-    var group = "gn:_lib_bb";
     //显示等待图层
     var index = loadLayer();
     var style = "original";
@@ -792,7 +990,7 @@ function gotoEdit(msgId) {
     string style)
     */
     // 调web api
-    //alert("gotoEdit 1");
+    // alert("gotoEdit 1");
     var url = "/api/LibMessage?weixinId=" + weixinId
                 + "&group=" + group
                 + "&libId=" + libId
@@ -820,9 +1018,12 @@ function gotoEdit(msgId) {
 
             // 把数据填在编辑界面
             var item = result.items[0];
+            //alert(item);
+
             var html = getMsgEditHtml(item);
             $(divId).html(html);
 
+            //alert(html);
             //alert("gotoEdit 5");
 
 
@@ -840,6 +1041,8 @@ function gotoEdit(msgId) {
         layer.close(index);
     });
 }
+
+
 
 //===========等待图层============
 // 显示等待图层

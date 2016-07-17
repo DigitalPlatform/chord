@@ -86,65 +86,14 @@ namespace dp2weixinWeb.ApiControllers
         /// <returns></returns>
         public SubjectResult GetSubject(string weixinId, 
             string group,
-            string libId)
+            string libId,
+            string selSubject,
+            string param)
         {
             SubjectResult result = new SubjectResult();
-
-            if (group != dp2WeiXinService.C_GroupName_HomePage
-    && group != dp2WeiXinService.C_GroupName_Book)
-            {
-                result.errorInfo = "不支持的群" + group;
-                result.errorCode = -1;
-                return result;
-            }
-
             string strError = "";
 
-
-            // 检查是否绑定工作人员以及权限，前端根据返回的工作人员账号判断是否可以进入编辑界面
-            string userName = "";
-            if (string.IsNullOrEmpty(weixinId) == false)
-            {
-                // 查找当前微信用户绑定的工作人员账号
-                WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
-                // todo 后面可以放开对读者的权限
-                if (user != null)
-                {
-                    // 检索是否有权限 _wx_setHomePage
-                    string needRight = "";
-                    if (group == dp2WeiXinService.C_GroupName_HomePage)
-                        needRight = dp2WeiXinService.C_Right_SetHomePage;
-                    else if (group == dp2WeiXinService.C_GroupName_Book)
-                        needRight = dp2WeiXinService.C_Right_SetBook;
-
-                    LibItem lib = LibDatabase.Current.GetLibById(libId);
-                    if (lib == null)
-                    {
-                        strError = "未找到id为[" + libId + "]的图书馆定义。";
-                        goto ERROR1;
-                    }
-
-                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
-                        user.userName,
-                        needRight,
-                        out strError);
-                    if (nHasRights == -1)
-                    {
-                        goto ERROR1;
-                    }
-                    if (nHasRights == 1)
-                    {
-                        userName = user.userName;
-                    }
-                    else
-                    {
-                        userName = "";
-                    }
-                }
-            }
-            result.userName = userName;
-
-            // 获取指定图书的栏目
+            // 获取栏目
             List<SubjectItem> list = null;
             int nRet = dp2WeiXinService.Instance.GetSubject(libId, group,
                 out list, out strError);
@@ -153,57 +102,21 @@ namespace dp2weixinWeb.ApiControllers
                 result.errorCode = -1;
                 result.errorInfo = strError;
             }
+            if (param.Contains("list")==true)
+                result.list = list;
 
-            // 如果是图书馆主页，需要加一些默认模板
-            if (group == dp2WeiXinService.C_GroupName_HomePage)
-            {
-                LibItem lib = LibDatabase.Current.GetLibById(libId);
-                string dir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + lib.capoUserName+"/homePage";
-                if (Directory.Exists(dir) == true)
-                {
-                    string[] files = Directory.GetFiles(dir, "*.html");
-                    foreach (string file in files)
-                    {
-                        string fileName = Path.GetFileNameWithoutExtension(file);
-                        bool bExist = this.checkContaint(list, fileName);
-                        if (bExist == false)
-                        {
-                            SubjectItem subject = new SubjectItem();
-                            subject.name = fileName;
-                            subject.count = 0;
-                            list.Add(subject);
-                        }
-                    }
-                }
-            }
+            string html = dp2WeiXinService.Instance.GetSubjectHtml(libId,
+                dp2WeiXinService.C_Group_Book,
+               selSubject,
+               true,
+               list);
+            if (param.Contains("html") == true)
+                result.html = html;
 
-
-            result.list = list;
             result.errorCode = nRet;
             result.errorInfo = strError;
 
             return result;
-
-        ERROR1:
-            result.errorCode = -1;
-            result.errorInfo = strError;
-            return result;
-        }
-
-        /// <summary>
-        /// 检查一个栏目是否已存在
-        /// </summary>
-        /// <param name="list"></param>
-        /// <param name="subject"></param>
-        /// <returns></returns>
-        private bool checkContaint(List<SubjectItem> list, string subject)
-        {
-            foreach (SubjectItem item in list)
-            {
-                if (item.name == subject)
-                    return true;
-            }
-            return false;
         }
 
 
@@ -224,9 +137,9 @@ namespace dp2weixinWeb.ApiControllers
         {
             MessageResult result = new MessageResult();
 
-            if (group != dp2WeiXinService.C_GroupName_Bb
-                && group != dp2WeiXinService.C_GroupName_Book
-                && group != dp2WeiXinService.C_GroupName_HomePage)
+            if (group != dp2WeiXinService.C_Group_Bb
+                && group != dp2WeiXinService.C_Group_Book
+                && group != dp2WeiXinService.C_Group_HomePage)
             {
                 result.errorInfo = "不支持的群" + group;
                 result.errorCode = -1;
@@ -246,11 +159,11 @@ namespace dp2weixinWeb.ApiControllers
                 {
                     // 检索是否有权限 _wx_setbbj
                     string needRight = "";
-                    if (group == dp2WeiXinService.C_GroupName_Bb)
+                    if (group == dp2WeiXinService.C_Group_Bb)
                         needRight = dp2WeiXinService.C_Right_SetBb;
-                    else if (group == dp2WeiXinService.C_GroupName_Book)
+                    else if (group == dp2WeiXinService.C_Group_Book)
                         needRight = dp2WeiXinService.C_Right_SetBook;
-                    else if (group == dp2WeiXinService.C_GroupName_HomePage)
+                    else if (group == dp2WeiXinService.C_Group_HomePage)
                         needRight = dp2WeiXinService.C_Right_SetHomePage;
 
                     LibItem lib = LibDatabase.Current.GetLibById(libId);
@@ -305,17 +218,17 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         // POST api/<controller>
-        public MessageResult Post(string group, string libId, MessageItem item)
+        public MessageResult Post(string group, string libId, string parameters, MessageItem item)
         {
             // 服务器会自动产生id
             //item.id = Guid.NewGuid().ToString();`'
-            return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "create");
+            return dp2WeiXinService.Instance.CoverMessage(group, libId, item,"create",parameters );
         }
 
         // PUT api/<controller>/5
         public MessageResult Put(string group, string libId, MessageItem item)
         {
-            return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "change");
+            return dp2WeiXinService.Instance.CoverMessage(group, libId, item,"change", "");
      }
 
         // DELETE api/<controller>/5
@@ -326,7 +239,7 @@ namespace dp2weixinWeb.ApiControllers
             item.id = msgId;
             item.creator = userName;
             //style == delete
-            return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "delete");
+            return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "delete","");
         }
     }
 }
