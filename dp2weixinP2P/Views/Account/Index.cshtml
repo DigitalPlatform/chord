@@ -52,7 +52,11 @@
         // 删除一项
         function removeUser(item) {
 
-            var gnl = confirm("你确定要对账号[" + item.readerName + "]解除绑定吗?");
+            var name = item.readerName;
+            if (name == "")
+                name = item.userName;
+
+            var gnl = confirm("你确定要对账号[" + name + "]解除绑定吗?");
             if (gnl == false) {
                 return false;
             }

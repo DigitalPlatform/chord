@@ -239,22 +239,27 @@
                 // 记住展开项
                 $("#expandId").val(expId);
 
-
+                //alert("走进0");
                 //检查是否已经加载过了
                 var o = $(obj).find(".pendingDetail:first");
                 if (o.length == 0) {
                     return;
                 }
                 else {
+                    //alert("走进1");
+
                     var recPath = o.children("label").text();
                     //alert(recPath);
                     if (recPath != null && recPath != "") {
+
+                        //alert("走进2");
+
                         // 图书馆
                         var libId = getLibId();
                         var myhtml = getDetail(libId, recPath, o,"index");
 
-                        //var url = "/Biblio/Detail?biblioPath=" + encodeURIComponent(recPath);
-                        //gotoUrl(url);
+                        // 去掉css
+                       o.removeClass("pendingDetail");
                     }
                 }
             }

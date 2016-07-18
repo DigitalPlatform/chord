@@ -1,4 +1,22 @@
-﻿===========dp2获取资源==========
+﻿=========
+                string strOutMarcSyntax = "";
+                // 将XML格式转换为MARC格式
+                // 自动从数据记录中获得MARC语法
+                nRet = MarcUtil.Xml2Marc(strXml2,
+                    MarcUtil.Xml2MarcStyle.Warning | MarcUtil.Xml2MarcStyle.OutputFragmentXml,
+                    "",
+                    out strOutMarcSyntax,
+                    out strNewMARC,
+                    out strNewFragmentXml,
+                    out strError);
+                if (nRet == -1)
+                {
+                    strError = "XML转换到MARC记录时出错: " + strError;
+                    return -1;
+                }
+
+
+===========dp2获取资源==========
         public int DownloadObject0(System.Web.UI.Page Page,
             LibraryChannel channel,
             string strPath,

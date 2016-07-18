@@ -2,6 +2,7 @@
 using com.google.zxing.common;
 using DigitalPlatform.Interfaces;
 using DigitalPlatform.IO;
+using DigitalPlatform.Marc;
 using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.Text;
@@ -2509,6 +2510,220 @@ namespace dp2weixin.service
             }
         }
 
+        #region 封面图像
+
+        public static string GetImageHtmlFragment(string libId,
+    string strBiblioRecPath,
+    string strMARC)
+        {
+            string strImageUrl = GetCoverImageUrl(strMARC, "MediumImage");
+
+            if (string.IsNullOrEmpty(strImageUrl) == true)
+                return "";
+
+            if (StringUtil.HasHead(strImageUrl, "http:") == false)
+            {
+                string strUri = MakeObjectUrl(strBiblioRecPath,
+                      strImageUrl);
+                //string html= "<img class='pending' name='"
+                //+ (strBiblioRecPath == "?" ? "?" : "object-path:" + strUri)
+                //+ "' src='%mappeddir%\\images\\ajax-loader.gif' alt='封面图片'></img>";
+                //string html = "<div  class='pending' style='padding-bottom:10px'>"
+                //           + "<label>ob-" + strUri + "</label>"
+                //           + "<img src='../img/wait2.gif' />"
+                //           + "<span>" + libId + "</span>"
+                //       + "</div>";
+
+                 strImageUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
+     + "&type=photo"
+     + "&objectPath=" + HttpUtility.UrlEncode(strUri);
+            }
+            string html = "<img src='" + strImageUrl + "' width='100px' height='100px'></img>";
+            return html;
+        }
+
+        /// <summary>
+        /// 获得封面图像 URL
+        /// 优先选择中等大小的图片
+        /// </summary>
+        /// <param name="strMARC">MARC机内格式字符串</param>
+        /// <param name="strPreferredType">优先使用何种大小类型</param>
+        /// <returns>返回封面图像 URL。空表示没有找到</returns>
+        public static string GetCoverImageUrl(string strMARC,
+            string strPreferredType = "MediumImage")
+        {
+            string strLargeUrl = "";
+            string strMediumUrl = "";   // type:FrontCover.MediumImage
+            string strUrl = ""; // type:FronCover
+            string strSmallUrl = "";
+
+            MarcRecord record = new MarcRecord(strMARC);
+            MarcNodeList fields = record.select("field[@name='856']");
+            foreach (MarcField field in fields)
+            {
+                string x = field.select("subfield[@name='x']").FirstContent;
+                if (string.IsNullOrEmpty(x) == true)
+                    continue;
+                Hashtable table = StringUtil.ParseParameters(x, ';', ':');
+                string strType = (string)table["type"];
+                if (string.IsNullOrEmpty(strType) == true)
+                    continue;
+
+                string u = field.select("subfield[@name='u']").FirstContent;
+                // if (string.IsNullOrEmpty(u) == true)
+                //     u = field.select("subfield[@name='8']").FirstContent;
+
+                // . 分隔 FrontCover.MediumImage
+                if (StringUtil.HasHead(strType, "FrontCover." + strPreferredType) == true)
+                    return u;
+
+                if (StringUtil.HasHead(strType, "FrontCover.SmallImage") == true)
+                    strSmallUrl = u;
+                else if (StringUtil.HasHead(strType, "FrontCover.MediumImage") == true)
+                    strMediumUrl = u;
+                else if (StringUtil.HasHead(strType, "FrontCover.LargeImage") == true)
+                    strLargeUrl = u;
+                else if (StringUtil.HasHead(strType, "FrontCover") == true)
+                    strUrl = u;
+
+            }
+
+            if (string.IsNullOrEmpty(strLargeUrl) == false)
+                return strLargeUrl;
+            if (string.IsNullOrEmpty(strMediumUrl) == false)
+                return strMediumUrl;
+            if (string.IsNullOrEmpty(strUrl) == false)
+                return strUrl;
+            return strSmallUrl;
+        }
+
+        // 为了二次开发脚本使用
+        public static string MakeObjectUrl(string strRecPath,
+            string strUri)
+        {
+            if (string.IsNullOrEmpty(strUri) == true)
+                return strUri;
+
+            if (StringUtil.HasHead(strUri, "http:") == true)
+                return strUri;
+
+            if (StringUtil.HasHead(strUri, "uri:") == true)
+                strUri = strUri.Substring(4).Trim();
+
+            string strDbName = GetDbName(strRecPath);
+            string strRecID = GetRecordID(strRecPath);
+
+            string strOutputUri = "";
+            ReplaceUri(strUri,
+                strDbName,
+                strRecID,
+                out strOutputUri);
+
+            return strOutputUri;
+        }
+
+        /// <summary>
+        /// 从路径中取出库名部分
+        /// </summary>
+        /// <param name="strPath">路径。例如"中文图书/3"</param>
+        /// <returns>返回库名部分</returns>
+        public static string GetDbName(string strPath)
+        {
+            int nRet = strPath.LastIndexOf("/");
+            if (nRet == -1)
+                return strPath;
+
+            return strPath.Substring(0, nRet).Trim();
+        }
+
+        // 
+        // parammeters:
+        //      strPath 路径。例如"中文图书/3"
+        /// <summary>
+        /// 从路径中取出记录号部分
+        /// </summary>
+        /// <param name="strPath">路径。例如"中文图书/3"</param>
+        /// <returns>返回记录号部分</returns>
+        public static string GetRecordID(string strPath)
+        {
+            int nRet = strPath.LastIndexOf("/");
+            if (nRet == -1)
+                return "";
+
+            return strPath.Substring(nRet + 1).Trim();
+        }
+
+        static bool ReplaceUri(string strUri,
+    string strCurDbName,
+    string strCurRecID,
+    out string strOutputUri)
+        {
+            strOutputUri = strUri;
+            string strTemp = strUri;
+            // 看看第一部分是不是object
+            string strPart = GetFirstPartPath(ref strTemp);
+            if (strPart == "")
+                return false;
+
+            if (strTemp == "")
+            {
+                strOutputUri = strCurDbName + "/" + strCurRecID + "/object/" + strPart;
+                return true;
+            }
+
+            if (strPart == "object")
+            {
+                strOutputUri = strCurDbName + "/" + strCurRecID + "/object/" + strTemp;
+                return true;
+            }
+
+            string strPart2 = GetFirstPartPath(ref strTemp);
+            if (strPart2 == "")
+                return false;
+
+            if (strPart2 == "object")
+            {
+                strOutputUri = strCurDbName + "/" + strPart + "/object/" + strTemp;
+                return false;
+            }
+
+            string strPart3 = GetFirstPartPath(ref strTemp);
+            if (strPart3 == "")
+                return false;
+
+            if (strPart3 == "object")
+            {
+                strOutputUri = strPart + "/" + strPart2 + "/object/" + strTemp;
+                return true;
+            }
+
+            return false;
+        }
+
+        // 得到strPath的第一部分,以'/'作为间隔符,同时 strPath 缩短
+        public static string GetFirstPartPath(ref string strPath)
+        {
+            if (string.IsNullOrEmpty(strPath) == true)
+                return "";
+
+            string strResult = "";
+
+            int nIndex = strPath.IndexOf('/');
+            if (nIndex == -1)
+            {
+                strResult = strPath;
+                strPath = "";
+                return strResult;
+            }
+
+            strResult = strPath.Substring(0, nIndex);
+            strPath = strPath.Substring(nIndex + 1);
+
+            return strResult;
+        }
+
+        #endregion
+
         public BiblioDetailResult GetBiblioDetail(string weixinId,
             string libId,
             string biblioPath,
@@ -2517,6 +2732,8 @@ namespace dp2weixin.service
             BiblioDetailResult result = new BiblioDetailResult();
             result.errorCode = 0;
             result.biblioPath = biblioPath;
+
+            string strError = "";
 
             LibItem lib = LibDatabase.Current.GetLibById(libId);
             if (lib == null)
@@ -2530,7 +2747,6 @@ namespace dp2weixin.service
 
             try
             {
-                string strError = "";
                 int nRet = 0;
                 TimeSpan time_length = DateTime.Now - start_time;
                 string logInfo = "";
@@ -2538,13 +2754,12 @@ namespace dp2weixin.service
                 // 取出summary
                 this.WriteLog("开始获取summary");
                 string strSummary = "";
-                string tempPath = "@bibliorecpath:" + biblioPath;
-                string strOutputRecPath = "";
-                nRet = this.GetBiblioSummary(lib.capoUserName,
-                    tempPath,
-                    "",
+                //string tempPath = "@bibliorecpath:" + biblioPath;
+                string xml = "";
+                nRet = this.GetBiblioInfo(lib.capoUserName,
+                    biblioPath,
                     out strSummary,
-                    out strOutputRecPath,
+                    out xml,
                     out strError);
                 if (nRet == -1 || nRet == 0)
                 {
@@ -2552,6 +2767,33 @@ namespace dp2weixin.service
                     result.errorInfo = strError;
                     return result;
                 }
+
+                // 封面图像，是否显示根据设置来
+                string imgHtml = "";//<img src='../img/empty2.jpg' width='100' height='100' />
+                UserSettingItem item = UserSettingDb.Current.GetByWeixinId(weixinId);
+                if (item != null && item.showCover == 1)
+                {
+                    string strOutMarcSyntax = "";
+                    string strMARC = "";
+                    string strFragmentXml = "";
+                    // 将XML格式转换为MARC格式
+                    // 自动从数据记录中获得MARC语法
+                    nRet = MarcUtil.Xml2Marc(xml,
+                        MarcUtil.Xml2MarcStyle.Warning | MarcUtil.Xml2MarcStyle.OutputFragmentXml,
+                        "",
+                        out strOutMarcSyntax,
+                        out strMARC,
+                        out strFragmentXml,
+                        out strError);
+                    if (nRet == -1)
+                    {
+                        strError = "XML转换到MARC记录时出错: " + strError;
+                        goto ERROR1;
+                    }
+
+                    imgHtml= dp2WeiXinService.GetImageHtmlFragment(libId, biblioPath, strMARC);
+                }
+
 
                 // 得到绑定工作人员账号，并检查是否有权限
                 string workerUserName = "";
@@ -2600,7 +2842,17 @@ namespace dp2weixin.service
 
                 }
 
-                result.summary = "<span>" + strSummary + "</span>" + recommendBtn;
+                //result.summary = "<span>" + strSummary + "</span>" + recommendBtn;
+                string biblioInfo = "<table class='info'>"
+                    + "<tr>"
+                        + "<td class='cover'>" + imgHtml + "</td>"
+                        + "<td class='summary'>"+ strSummary+"</td>"
+                    + "</tr>"
+                + "</table>"
+                +recommendBtn;
+
+                result.summary = biblioInfo;
+
 
 
                 time_length = DateTime.Now - start_time;
@@ -2640,6 +2892,75 @@ namespace dp2weixin.service
                 return result;
             }
 
+ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = strError;
+            return result;
+
+        }
+
+        public int GetBiblioInfo(string capoUserName,
+            string biblioPath,
+            out string summary,
+            out string xml,
+            out string strError)
+        {
+            summary = "";
+            strError = "";
+            xml = "";
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            SearchRequest request = new SearchRequest(id,
+                "getBiblioInfo",
+                "<全部>",
+                biblioPath,
+                "",
+                "",
+                "",
+                "summary,xml",
+                1,
+                0,
+                -1);    
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    capoUserName).Result; 
+                SearchResult result = connection.SearchTaskAsync(
+                    capoUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.ResultCount == -1)
+                {
+                    strError = "检索出错：" + result.ErrorInfo;
+                    return -1;
+                }
+                if (result.ResultCount == 0)
+                {
+                    strError = "未命中";
+                    return 0;
+                }
+
+                summary = result.Records[0].Data;
+                xml = result.Records[1].Data;
+
+
+                return 1;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+        ERROR1:
+            return -1;
         }
 
         /// <summary>
@@ -5016,6 +5337,8 @@ namespace dp2weixin.service
         }
 
         #endregion
+
+
 
     }
 }
