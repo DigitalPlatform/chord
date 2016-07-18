@@ -1950,74 +1950,7 @@ namespace dp2weixin.service
             return -1;
         }
 
-        public int GetQRcode(string libId,
-            string patronBarcode,
-            out string code,
-            out string strError)
-        {
-            strError = "";
-            code = "";
 
-            LibItem lib = LibDatabase.Current.GetLibById(libId);
-            if (lib == null)
-            {
-                strError = "未找到id为[" + libId + "]的图书馆定义。";
-                goto ERROR1;
-            }
-
-            //Operation:verifyPassword
-            //Patron: !getpatrontempid:R0000001
-            //Item:
-            //ResultValue返回1表示成功，-1或0表示不成功。
-            //成功的情况下，ErrorInfo成员里面返回了二维码字符串，形如” PQR:R0000001@00JDURE5FT1JEOOWGJV0R1JXMYI”
-
-            string patron = "!getpatrontempid:" + patronBarcode;
-
-            CancellationToken cancel_token = new CancellationToken();
-            string id = Guid.NewGuid().ToString();
-            CirculationRequest request = new CirculationRequest(id,
-                "verifyPassword",
-                patron,
-                "",
-                "",//this.textBox_circulation_style.Text,
-                "",//this.textBox_circulation_patronFormatList.Text,
-                "",//this.textBox_circulation_itemFormatList.Text,
-                "");//this.textBox_circulation_biblioFormatList.Text);
-            try
-            {
-                MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
-                    lib.capoUserName).Result;
-                CirculationResult result = connection.CirculationTaskAsync(
-                    lib.capoUserName,
-                    request,
-                    new TimeSpan(0, 1, 10), // 10 秒
-                    cancel_token).Result;
-                if (result.Value == -1 || result.Value == 0)
-                {
-                    strError = "出错：" + result.ErrorInfo;
-                    return (int)result.Value;
-                }
-
-                // 成功
-                code = result.ErrorInfo;
-                return (int)result.Value;
-            }
-            catch (AggregateException ex)
-            {
-                strError = MessageConnection.GetExceptionText(ex);
-                goto ERROR1;
-            }
-            catch (Exception ex)
-            {
-                strError = ex.Message;
-                goto ERROR1;
-            }
-
-
-        ERROR1:
-            return -1;
-        }
 
         #endregion
 
@@ -3217,9 +3150,11 @@ namespace dp2weixin.service
             strError = "";
 
             string xml = "";
+            string recPath = "";
             int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                 readerBarcode,
                 "xml",
+                out recPath,
                 out xml,
                 out strError);
             if (nRet == -1)
@@ -3257,9 +3192,11 @@ namespace dp2weixin.service
             string strError = "";
 
             string xml = "";
+            string recPath = "";
             int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                 readerBarcode,
                 "advancexml",
+                out recPath,
                 out xml,
                 out strError);
             if (nRet == -1)
@@ -3714,11 +3651,13 @@ namespace dp2weixin.service
         public int GetPatronXml(string libId,
             string strReaderBarocde,  //todo refID
             string strFormat,
+            out string recPath,
             out string xml,
             out string strError)
         {
             xml = "";
             strError = "";
+            recPath = "";
 
             LibItem lib = LibDatabase.Current.GetLibById(libId);
             if (lib == null)
@@ -3764,7 +3703,10 @@ namespace dp2weixin.service
                     strError = result.ErrorInfo;
                     return 0;
                 }
-
+                string path = result.Records[0].RecPath;
+                int nIndex = path.IndexOf("@");
+                path = path.Substring(0, nIndex);
+                recPath = path;
                 xml = result.Records[0].Data;
                 return 1;
 
@@ -4120,11 +4062,80 @@ namespace dp2weixin.service
 
 
         #region 二维码
+        public int GetQRcode(string libId,
+    string patronBarcode,
+    out string code,
+    out string strError)
+        {
+            strError = "";
+            code = "";
 
-        public MemoryStream GetQrImage(
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                goto ERROR1;
+            }
+
+            //Operation:verifyPassword
+            //Patron: !getpatrontempid:R0000001
+            //Item:
+            //ResultValue返回1表示成功，-1或0表示不成功。
+            //成功的情况下，ErrorInfo成员里面返回了二维码字符串，形如” PQR:R0000001@00JDURE5FT1JEOOWGJV0R1JXMYI”
+
+            string patron = "!getpatrontempid:" + patronBarcode;
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            CirculationRequest request = new CirculationRequest(id,
+                "verifyPassword",
+                patron,
+                "",
+                "",//this.textBox_circulation_style.Text,
+                "",//this.textBox_circulation_patronFormatList.Text,
+                "",//this.textBox_circulation_itemFormatList.Text,
+                "");//this.textBox_circulation_biblioFormatList.Text);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    lib.capoUserName).Result;
+                CirculationResult result = connection.CirculationTaskAsync(
+                    lib.capoUserName,
+                    request,
+                    new TimeSpan(0, 1, 10), // 10 秒
+                    cancel_token).Result;
+                if (result.Value == -1 || result.Value == 0)
+                {
+                    strError = "出错：" + result.ErrorInfo;
+                    return (int)result.Value;
+                }
+
+                // 成功
+                code = result.ErrorInfo;
+                return (int)result.Value;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+
+
+        ERROR1:
+            return -1;
+        }
+
+        public void GetQrImage(
     string strCode,
     int nWidth,
     int nHeight,
+            Stream outputStream,
     out string strError)
         {
             strError = "";
@@ -4139,15 +4150,15 @@ namespace dp2weixin.service
                 ByteMatrix bm = writer.encode(strCode, BarcodeFormat.QR_CODE, nWidth, nHeight);// 300, 300);
                 using (Bitmap img = bm.ToBitmap())
                 {
-                    MemoryStream ms = new MemoryStream();
-                    img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
-                    return ms;
+                    //MemoryStream ms = new MemoryStream();
+                    img.Save(outputStream, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    //return ms;
                 }
             }
             catch (Exception ex)
             {
                 strError = ex.Message;
-                return null;
+                //return null;
             }
         }
 
@@ -4181,6 +4192,87 @@ namespace dp2weixin.service
 
             return ms;
         }
+
+
+        public int GetObjectMetadata(string libId,
+            string objectPath,
+            string style,
+            Stream outputStream,
+            out string metadata,
+            out string timestamp,
+            out string outputpath,
+            out string strError)
+        {
+            strError = "";
+            metadata = "";
+            timestamp="";
+            outputpath="";
+
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                goto ERROR1;
+            }
+
+
+
+            CancellationToken cancel_token = new CancellationToken();
+
+            string id = Guid.NewGuid().ToString();
+            GetResRequest request = new GetResRequest(id,
+                "getRes",
+                objectPath,
+                0,
+                -1,
+                style);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    lib.capoUserName).Result;
+                GetResResponse result = connection.GetResTaskAsync(
+   lib.capoUserName,
+    request,
+    outputStream,
+    null,
+    new TimeSpan(0, 1, 0),
+    cancel_token).Result;
+
+                if (String.IsNullOrEmpty(result.ErrorCode)==false )
+                {
+                    strError = "调GetRes出错：" + result.ErrorInfo;
+                    return -1;
+                }
+
+                if (result.TotalLength == -1)
+                {
+                    strError = "调GetRes出错：" + result.ErrorInfo;
+                    return -1;
+                }
+
+                // 成功
+                metadata = result.Metadata;
+                timestamp=result.Timestamp;
+                outputpath=result.Path;
+                return 0;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+
+
+        ERROR1:
+            return -1;
+        }
+
 
 
 

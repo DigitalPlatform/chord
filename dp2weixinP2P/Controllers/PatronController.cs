@@ -38,6 +38,17 @@ namespace dp2weixinWeb.Controllers
             }
             ViewBag.LibHtml = this.GetLibSelectHtml(libId);
 
+            string photoChecked = "";
+            if (settingItem.showPhoto == 1)
+                photoChecked = " checked='checked' ";
+            ViewBag.photoChecked = photoChecked;
+
+
+            string coverChecked = "";
+            if (settingItem.showCover == 1)
+                coverChecked = " checked='checked' ";
+            ViewBag.coverChecked = coverChecked;
+
             return View();
         }
 
@@ -69,9 +80,9 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 图片
-        public ActionResult GetPhoto(string libId, string type, string barcode)
+        public ActionResult GetPhoto(string libId, string type, string barcode,string objectPath)
         {
-            MemoryStream ms = null;
+            MemoryStream ms = new MemoryStream(); ;
             string strError = "";
 
             string strWidth = Request.QueryString["width"];
@@ -107,15 +118,79 @@ namespace dp2weixinWeb.Controllers
                 if (nRet == -1 || nRet==0)
                     goto ERROR1;    // 把出错信息作为图像返回
 
+                Response.ContentType = "image/jpeg";
+
                 // 获得二维码图片
-                ms = dp2WeiXinService.Instance.GetQrImage(strCode,
+                 dp2WeiXinService.Instance.GetQrImage(strCode,
                     nWidth,
                     nHeight,
+                    Response.OutputStream,
                     out strError);
                 if (strError != "")
                     goto ERROR1;
+                return null;
+               // return File(Response.OutputStream, "image/jpeg");
+                //return File(ms.ToArray(), "image/jpeg");  
+            }
 
-                return File(ms.ToArray(), "image/jpeg");  
+            // 取头像
+            if (type == "photo")
+            {
+                // 先取出metadata
+                string metadata = "";
+                string timestamp = "";
+                string outputpath = "";
+                int nRet = dp2WeiXinService.Instance.GetObjectMetadata(libId,
+                    objectPath,
+                    "metadata",
+                    null,
+                    out metadata,
+                    out timestamp,
+                    out outputpath,
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;    // 把出错信息作为图像返回
+
+
+                // 找出mimetype
+                XmlDocument dom = new XmlDocument();
+                try
+                {
+                    dom.LoadXml(metadata);
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                string mimetype = DomUtil.GetAttr(dom.DocumentElement, "mimetype");
+                Response.ContentType = mimetype;
+
+                //ms = dp2WeiXinService.Instance.GetErrorImg(mimetype);
+                //return File(ms.ToArray(), "image/jpeg");  
+
+                Response.OutputStream.Flush();
+
+                // 输出数据流
+                nRet = dp2WeiXinService.Instance.GetObjectMetadata(libId,
+                    objectPath,
+                    "metadata,timestamp,data,outputpath",
+                    //"metadata,data",
+                    Response.OutputStream, //ms,//
+                    out metadata,
+                    out timestamp,
+                    out outputpath,
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;    // 把出错信息作为图像返回
+
+                Response.OutputStream.Flush();
+
+                return null;
+
+                //ms.Seek(0, SeekOrigin.Begin);
+                //return File(ms, mimetype);
+                
             }
 
             ms = dp2WeiXinService.Instance.GetErrorImg("不支持");
@@ -196,7 +271,7 @@ namespace dp2weixinWeb.Controllers
 
             PersonalInfoModel model = null;
             if (activeUserItem != null)
-                model= this.ParseXml(activeUserItem.libId, strXml);
+                model= this.ParseXml(activeUserItem.libId, strXml,activeUserItem.recPath);
 
             return View(model);
         }
@@ -337,20 +412,24 @@ namespace dp2weixinWeb.Controllers
             if (String.IsNullOrEmpty(strFormat) == false)
             {
                 // 获取当前账户的信息
+                string recPath = "";
                 nRet = dp2WeiXinService.Instance.GetPatronXml(activeUserItem.libId,
                     activeUserItem.readerBarcode,
                     strFormat,
+                    out recPath,
                     out strXml,
                     out strError);
                 if (nRet == -1 || nRet == 0)
                     return nRet;
+
+                activeUserItem.recPath = recPath;
             }
             return 1;
         }
 
 
 
-        private PersonalInfoModel ParseXml(string libId,string strXml)
+        private PersonalInfoModel ParseXml(string libId,string strXml,string recPath)
         {
             PersonalInfoModel model = new PersonalInfoModel();
             XmlDocument dom = new XmlDocument();
@@ -475,9 +554,28 @@ namespace dp2weixinWeb.Controllers
             model.foregift = strForegift;
 
             //头像
+            //recPath
             string imageUrl = "";
-            //if (String.IsNullOrEmpty(opacUrl) == false)
-            //    imageUrl=opacUrl+ "/getphoto.aspx?barcode=" + strBarcode;
+            if (ViewBag.showPhoto == 1)
+            {
+                //dprms:file
+                // 看看是不是已经有图像对象
+                XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
+                nsmgr.AddNamespace("dprms", DpNs.dprms);
+                // 全部<dprms:file>元素
+                XmlNodeList fileNodes = dom.DocumentElement.SelectNodes("//dprms:file[@usage='photo']", nsmgr);
+                if (fileNodes.Count > 0)
+                {
+                    string strPhotoPath = recPath + "/object/" + DomUtil.GetAttr(fileNodes[0], "id");
+
+                    dp2WeiXinService.Instance.WriteLog("photoPath:" + strPhotoPath);
+
+                    imageUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(libId)
+                    + "&type=photo"
+                    + "&objectPath=" + HttpUtility.UrlEncode(strPhotoPath);
+                }
+            }
+
             model.imageUrl = imageUrl;
 
 

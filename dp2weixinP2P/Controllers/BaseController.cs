@@ -88,6 +88,8 @@ namespace dp2weixinWeb.Controllers
             // 微信用户设置的图书馆
             string libName = "";
             string libId = "";
+            int showPhoto = 0; //显示头像
+            int showCover = 0;//显示封面
             UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
             if (settingItem != null)
             {
@@ -99,6 +101,8 @@ namespace dp2weixinWeb.Controllers
                 }
                 libName = lib.libName;
                 libId = lib.id;
+                showPhoto = settingItem.showPhoto;
+                showCover = settingItem.showCover;
             }
             if (libName == "")
             {
@@ -113,6 +117,8 @@ namespace dp2weixinWeb.Controllers
             }
             ViewBag.LibName = "["+libName+"]";
             ViewBag.LibId = libId;
+            ViewBag.showPhoto = showPhoto;
+            ViewBag.showCover = showCover;
 
             ////当前读者
             //WxUserItem curPatron = WxUserDatabase.Current.GetActivePatron(weixinId);

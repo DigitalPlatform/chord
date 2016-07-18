@@ -73,15 +73,15 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         [HttpPost]
-        public ApiResult Setting(string weixinId,string libId)
+        public ApiResult Setting(string weixinId, UserSettingItem item)
         {
             ApiResult result = new ApiResult();
 
-            string setting_lib = libId;
+            //string setting_lib = libId;
 
             try
             {
-                UserSettingDb.Current.SetLib(weixinId, libId);
+                UserSettingDb.Current.SetLib(item);
             }
             catch (Exception ex)
             {

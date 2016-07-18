@@ -282,6 +282,7 @@ namespace dp2weixin.service
                 .Set("readerName", item.readerName)
                 .Set("department", item.department)
                 .Set("xml", item.xml)
+                .Set("recPath", item.recPath)
                 
                 .Set("refID", item.refID)
                 .Set("createTime", item.createTime)
@@ -414,6 +415,7 @@ namespace dp2weixin.service
         public string readerName { get; set; }
         public string department { get; set; } //部门，二维码下方显示 // 2016-6-16 新增
         public string xml { get; set; }
+        public string recPath { get; set; }
 
         public string refID { get; set; }
         public string createTime { get; set; } // 创建时间
