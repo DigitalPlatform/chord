@@ -50,6 +50,8 @@ namespace dp2weixin.service
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
+        public TemplateDataItem keyword4 { get; set; }
+        public TemplateDataItem keyword5 { get; set; }
         public TemplateDataItem remark { get; set; }
     }
 

@@ -30,7 +30,7 @@ namespace dp2weixin.service
 
         public MsgRouter()
         {
-            this.PerTime = 3*60 * 1000;  //改为3分钟了 2016-6-13 // 60 * 1000
+            this.PerTime = 1*60 * 1000;  //改为3分钟了 2016-6-13 // 60 * 1000
         }
 
         public void Start(MessageConnectionCollection channels,

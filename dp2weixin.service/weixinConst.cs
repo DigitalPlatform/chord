@@ -38,7 +38,7 @@ namespace dp2weixin.service
         //借阅成功通知
         public const string C_Template_Borrow = "_F9kVyDWhunqM5ijvcwm6HwzVCnwbkeZl6GV6awB_fc";
         //图书归还通知 
-        public const string C_Template_Return = "86Ee0NevuLIVGZE4Xu0uzDdmg0T3xnRMOJ5tREIEG_w";
+        public const string C_Template_Return = "zzlLzStt_qZlzMFhcDgRm8Zoi-tsxjWdsI2b3FeoRMs";
         //缴费成功通知
         public const string C_Template_Pay = "4HNhEfLcroEMdX0Pr6aFo_n7_aHuvAzD8_6lzABHkiM";
         //退款通知
