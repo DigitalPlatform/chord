@@ -630,7 +630,8 @@ namespace dp2weixin.service
                 }
             }
 
-            string strText = patronName + "，您有[" + barcodes + "]项违约以停代金到期了，";
+            string strText = patronName + "，您有册条码为[" + barcodes + "]项违约以停代金到期了，";
+            //您有册条码为C001,C002项违约以停代金到期了
             XmlNodeList listOverdue1 = root.SelectNodes("patronRecord/overdues/overdue");
             if (listOverdue1.Count > 0)
             {
@@ -4283,7 +4284,8 @@ ERROR1:
 
         #region 预约
 
-        public int Reservation(string libId,
+        public int Reservation(string weiXinId,
+            string libId,
             string patron,
             string items,
             string style,
@@ -4337,6 +4339,51 @@ ERROR1:
                             reserRowHtml = this.getReservationHtml("已到书", items, true);
                         else
                             reserRowHtml = this.getReservationHtml("已预约", items, true);
+                    }
+
+
+                    // 取消预约，发送微信通知
+                    if (style == "delete")
+                    {
+                        try
+                        {
+                            string operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                            string strText = "您已对图书[" + items + "]取消预约,该书将不再为您保留，读者证号["+patron+"]。";
+                            string remark = "\n"+this._msgRemark;
+
+                            var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                            //{{first.DATA}}
+                            //标题：{{keyword1.DATA}}
+                            //时间：{{keyword2.DATA}}
+                            //内容：{{keyword3.DATA}}
+                            //{{remark.DATA}}
+                            var msgData = new BorrowTemplateData()
+                            {
+                                first = new TemplateDataItem("☀☀☀☀☀☀☀☀☀☀", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
+                                keyword1 = new TemplateDataItem("取消预约成功", "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                                keyword2 = new TemplateDataItem(operTime, "#000000"),
+                                keyword3 = new TemplateDataItem(strText, "#000000"),
+                                remark = new TemplateDataItem(remark, "#CCCCCC")
+                            };
+
+                            // 发送模板消息
+                            var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                                weiXinId,
+                                WeiXinConst.C_Template_Message,
+                                "#FF0000",
+                                "",//不出现详细了
+                                msgData);
+                            if (result1.errcode != 0)
+                            {
+                                strError = result1.errmsg;
+                                return -1;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            this.WriteErrorLog("给读者" + patron + "发送'取消预约成功'通知异常：" + ex.Message);
+                        }
                     }
                 }
 

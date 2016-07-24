@@ -627,10 +627,17 @@ namespace dp2weixinWeb.Controllers
             {
                 text = "<span class='leftNum'>" + "▪".PadRight(num, '▪') + "</span>";
             }
+            else if (num == 0)
+            {
+                text = "";
+            }
             else
             {
                 text = num.ToString();
             }
+
+            if (text != "")
+                text = "("+text+")";
             return text;
         }
 
