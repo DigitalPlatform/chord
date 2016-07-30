@@ -1,4 +1,36 @@
-﻿=========
+﻿=========WxUserController============
+
+        /*
+        public List<WxUserItem> Get(string libId,
+            string weixinId,
+            string style)
+        {
+            List<WxUserItem> list = new List<WxUserItem>();
+
+            if (style == "active")
+            {
+                WxUserItem user=  wxUserDb.GetActivePatron(weixinId);
+                if (user != null)
+                    list.Add(user);
+            }
+            else if (style == "activeAndWorker")
+            {
+                // 目前各图书馆只有一个活动账户
+                WxUserItem user = wxUserDb.GetActivePatron(weixinId);
+                if (user != null)
+                    list.Add(user);
+
+                user = wxUserDb.GetWorker(weixinId, libId);
+                if (user != null)
+                    list.Add(user);
+            }
+
+            return list;
+        }
+        */
+
+
+=========
                 string strOutMarcSyntax = "";
                 // 将XML格式转换为MARC格式
                 // 自动从数据记录中获得MARC语法

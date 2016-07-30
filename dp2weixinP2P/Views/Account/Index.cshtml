@@ -19,16 +19,25 @@
 
             // 调web api
             var url = "/api/wxuser?weixinId=" + weixinId;
-            sendAjaxRequest(url, "GET", function (data) {
+            sendAjaxRequest(url, "GET", function (result) {
 
-                if (data.length == 0)
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1)
+                {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                if (result.users==null || result.users.length == 0)
                     $("#divNoBind").css('display', 'block');
                 else
                     $("#divNoBind").css('display', 'none');
 
-                for (var i = 0; i < data.length; i++) {
+                for (var i = 0; i < result.users.length; i++) {
 
-                    var user = data[i];
+                    var user = result.users[i];
 
                     // 根据类型，放在不同的数组里
                     if (user.type == 0)
@@ -37,8 +46,7 @@
                         model.wxWorkers.push(user);
                 }
 
-                // 关闭等待层
-                layer.close(index);
+
 
             }, function (xhq, textStatus, errorThrown) {
 

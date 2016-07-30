@@ -1261,64 +1261,66 @@ namespace dp2weixin.service
             string operTime = DomUtil.GetNodeText(nodeOperTime);
             operTime = DateTimeUtil.ToLocalTime(operTime, "yyyy/MM/dd");
 
+            string remark = "\n" + patronName + "，您已成功撤消交费，" + this._msgRemark;
 
             XmlNodeList listOverdue = root.SelectNodes("items/overdue");
-            string barcodes = "";
-            double totalPrice = 0;
             foreach (XmlNode node in listOverdue)
             {
                 string oneBarcode = DomUtil.GetAttr(node, "barcode");
-                if (barcodes != "")
-                    barcodes += ",";
-                barcodes += oneBarcode;
-
                 string price = DomUtil.GetAttr(node, "price");
-                if (String.IsNullOrEmpty(price) == false && price.Length > 3)
+                string summary = DomUtil.GetAttr(node, "summary");
+                string reason = DomUtil.GetAttr(node, "reason");
+
+                foreach (string weiXinId in weiXinIdList)
                 {
-                    double dPrice = Convert.ToDouble(price.Substring(3));
-                    totalPrice += dPrice;
-                }
-            }
-
-            string remark = "\n" + patronName + "，您已成功撤消交费，" + this._msgRemark;
-
-
-            foreach (string weiXinId in weiXinIdList)
-            {
-                try
-                {
-                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
-
-                    //{{first.DATA}}
-                    //退款原因：{{reason.DATA}}
-                    //退款金额：{{refund.DATA}}
-                    //{{remark.DATA}}
-                    var msgData = new ReturnPayTemplateData()
+                    try
                     {
-                        first = new TemplateDataItem("✈ ☁ ☁ ☁ ☁ ☁ ☁", "#B8860B"),  // ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
-                        reason = new TemplateDataItem("撤消[" + barcodes + "]交费。", "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                        refund = new TemplateDataItem("CNY" + totalPrice, "#000000"),
-                        remark = new TemplateDataItem(remark, "#CCCCCC")
-                    };
+                        var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
-                    // 发送模板消息
-                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                        weiXinId,
-                        WeiXinConst.C_Template_ReturnPay,
-                        "#FF0000",
-                        this._detailUrl_PersonalInfo,//详情转到个人信息界面
-                        msgData);
-                    if (result1.errcode != 0)
+                        //{{first.DATA}}
+                        //书刊摘要：{{keyword1.DATA}}
+                        //册条码号：{{keyword2.DATA}}
+                        //交费原因：{{keyword3.DATA}}
+                        //撤消金额：{{keyword4.DATA}}
+                        //撤消时间：{{keyword5.DATA}}
+                        //{{remark.DATA}}
+                        var msgData = new ReturnPayTemplateData()
+                        {
+                            first = new TemplateDataItem("✈ ☁ ☁ ☁ ☁ ☁ ☁", "#B8860B"),  // ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
+                            //summary
+                            keyword1 = new TemplateDataItem(summary, "#000000"),
+                            keyword2 = new TemplateDataItem(oneBarcode, "#000000"),
+                            keyword3 = new TemplateDataItem(reason, "#000000"),
+                            keyword4 = new TemplateDataItem(price, "#000000"), 
+                            keyword5 = new TemplateDataItem(operTime, "#000000"), 
+                            remark = new TemplateDataItem(remark, "#CCCCCC")
+                        };
+
+                        // 发送模板消息
+                        var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                            weiXinId,
+                            WeiXinConst.C_Template_CancelPay,
+                            "#FF0000",
+                            this._detailUrl_PersonalInfo,//详情转到个人信息界面
+                            msgData);
+                        if (result1.errcode != 0)
+                        {
+                            strError = result1.errmsg;
+                            return -1;
+                        }
+                    }
+                    catch (Exception ex)
                     {
-                        strError = result1.errmsg;
-                        return -1;
+                        this.WriteErrorLog("给读者" + patronName + "发送'撤消交费成功'通知异常：" + ex.Message);
                     }
                 }
-                catch (Exception ex)
-                {
-                    this.WriteErrorLog("给读者" + patronName + "发送'撤消交费成功'通知异常：" + ex.Message);
-                }
+
             }
+
+
+
+
+
 
 
             return 1;
@@ -5448,5 +5450,10 @@ ERROR1:
 
 
 
+
+        public WxUserResult RecoverUsers()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
