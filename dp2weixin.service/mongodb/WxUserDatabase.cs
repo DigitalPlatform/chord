@@ -368,6 +368,13 @@ namespace dp2weixin.service
             }
         }
 
+        public void DeleteByLib(string libId)
+        {
+            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
+            var filter = Builders<WxUserItem>.Filter.Eq("libId", libId);
+            collection.DeleteMany(filter);
+        }
+
         /// <summary>
         /// 激活读者账户
         /// </summary>

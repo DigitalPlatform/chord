@@ -48,6 +48,7 @@ namespace dp2weixin.service
         public const string C_Right_SetBook = "_wx_setbook";
         public const string C_Right_SetHomePage = "_wx_setHomePage";
 
+
         #region 成员变量
 
         // 微信数据目录
@@ -5315,7 +5316,7 @@ ERROR1:
             if (group == dp2WeiXinService.C_Group_HomePage)
             {
                 LibItem lib = LibDatabase.Current.GetLibById(libId);
-                string dir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + lib.capoUserName + "/homePage";
+                string dir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + lib.capoUserName + "/home";
                 if (Directory.Exists(dir) == true)
                 {
                     string[] files = Directory.GetFiles(dir, "*.html");
@@ -5453,7 +5454,124 @@ ERROR1:
 
         public WxUserResult RecoverUsers()
         {
-            throw new NotImplementedException();
+            WxUserResult result = new WxUserResult();
+
+            List<LibItem> libs = LibDatabase.Current.GetLibs();
+            foreach (LibItem libItem in libs)
+            {
+                // 查询图书馆绑定的账户的读者。
+
+
+                // 查找工作人员
+
+
+                // 先删除
+
+                // 增加到mongodb库
+
+            }
+
+            return result;
+        }
+
+        public long SearchOnePatronByWeiXinId(LibItem libItem,
+            out List<WxUserItem> users,
+                    out string strError)
+        {
+            strError = "";
+            users = new List<WxUserItem>();
+
+
+            // 从远程dp2library中查
+            string strWord = WeiXinConst.C_WeiXinIdPrefix;// +strWeiXinId;
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            SearchRequest request = new SearchRequest(id,
+                "searchPatron",
+                "<全部>",
+                strWord,
+                "email",
+                "left",
+                "wx-patron",
+                "id,cols",
+                1000,
+                0,
+                WeiXinConst.C_Search_MaxCount);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    libItem.capoUserName).Result;
+
+                SearchResult result = connection.SearchTaskAsync(
+                    libItem.capoUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.ResultCount == -1)
+                {
+                    strError = result.ErrorInfo;
+                    return -1;
+                }
+                if (result.ResultCount == 0)
+                    return 0;
+
+                // 找到对应的读者记录
+                if (result.ResultCount > 0)
+                {
+                    for (int i = 0; i < result.ResultCount; i++)
+                    {
+                        // 可能会检索出多笔记录，先取第一笔 todo
+                        string strXml = result.Records[i].Data;
+                        XmlDocument dom = new XmlDocument();
+                        dom.LoadXml(strXml);
+
+
+                        string strTempBarcode = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("barcode"));
+                        string strWeiXinId = "";
+
+                        // 更新到mongodb库
+                        string name = "";
+                        XmlNode node = dom.DocumentElement.SelectSingleNode("name");
+                        if (node != null)
+                            name = DomUtil.GetNodeText(node);
+                        string refID = "";
+                        node = dom.DocumentElement.SelectSingleNode("refID");
+                        if (node != null)
+                            refID = DomUtil.GetNodeText(node);
+
+
+                            WxUserItem userItem = new WxUserItem();
+                            userItem.weixinId = strWeiXinId;
+                            userItem.libId = libItem.id;
+                            userItem.readerBarcode = strTempBarcode;
+                            userItem.readerName = name;
+                            userItem.xml = strXml;
+                            userItem.refID = refID;
+                            userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                            userItem.updateTime = userItem.createTime;
+
+
+                            WxUserDatabase.Current.Add(userItem);
+
+                    }
+
+                    return 1;
+                }
+
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+        ERROR1:
+            return -1;
         }
     }
 }

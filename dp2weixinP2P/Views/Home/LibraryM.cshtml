@@ -28,7 +28,8 @@
         }
 
         TABLE.libTable TR TD.label {
-            width: 150px;
+            min-width: 140px;
+            width:140px;
             /*background-color:#eeeeee;*/
             color: #999999;
             padding-left: 5px;
@@ -340,7 +341,7 @@
 }
 
 <div data-bind="if: model.displaySummary">
-    <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed" data-bind=" foreach:model.librarys">
+    <ul class="mui-table-view " data-bind=" foreach:model.librarys">
         <li class="mui-table-view-cell">
 
             <table class="libTable">

@@ -53,8 +53,10 @@ namespace dp2weixinWeb
 
         public override void Init()
         {
+            // 2016.8.7 web api不需要session，检索到第几页是通过页面传过去的。
             // 对web api启用session，主要用于检索下一页
-            this.PostAuthenticateRequest += (sender, e) => HttpContext.Current.SetSessionStateBehavior(SessionStateBehavior.Required);
+            //this.PostAuthenticateRequest += (sender, e) => HttpContext.Current.SetSessionStateBehavior(SessionStateBehavior.Required);
+            
             base.Init();
         }
 

@@ -110,7 +110,7 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 图书馆主页
-        public ActionResult HomePage(string code, string state, string admin, string weiXinId)
+        public ActionResult Home(string code, string state, string admin, string weiXinId)
         {
             if (String.IsNullOrEmpty(admin) == false && admin == "1")
             {

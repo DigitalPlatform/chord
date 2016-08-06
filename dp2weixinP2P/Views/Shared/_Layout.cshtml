@@ -13,7 +13,7 @@
     <script src='@Url.Content("~/Scripts/jquery-3.0.0.js")'></script>
     <script src='@Url.Content("~/Scripts/jquery-ui-1.11.4.js")'></script>
     <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/Scripts/weixin.js?test=1.1")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/weixin.js?test=1.0")"></script>
     @RenderSection("style", required: false)
     @RenderSection("scripts", required: false)
     @RenderSection("HeaderContent", false)
@@ -69,19 +69,22 @@
                         <a href="~/Library/BB">公告</a>
                     </li>
                     <li>
-                        <a href="~/Library/HomePage">图书馆主页</a>
+                        <a href="~/Library/Home">图书馆主页</a>
                     </li>
                     <li>
                         <a href="~/Home/Contact">联系我们</a>
                     </li>
+
                     @if (Session["userType"] != null && Session["userType"] == "admin")
                     {
-                        <li>
+                         <li>
                             <a href="~/home/LibraryM">图书馆管理</a>
                         </li>
+                        
                         <li>
                             <a href="~/home/WeixinUser">用户管理</a>
                         </li>
+
                         <li>
                             <a href="~/home/WeixinMessage">微信消息</a>
                         </li>
@@ -213,12 +216,14 @@
         // 设置是否显示头尾参数的值，同时改变背景
         function setShowValue(value) {
             bShowTopBottom = value;
-            if (bShowTopBottom == true) {
-                $('body').css('background-color', 'green');
-            }
-            else {
-                $('body').css('background-color', 'red');
-            }
+
+            // 正式发布 去掉背景色
+            //if (bShowTopBottom == true) {
+            //    $('body').css('background-color', 'green');
+            //}
+            //else {
+            //    $('body').css('background-color', 'red');
+            //}
         };
 
         // 真正做事，隐藏或显示头尾菜单

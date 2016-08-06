@@ -133,14 +133,26 @@ namespace dp2weixinWeb.Controllers
             return View(model);
         }
 
-        public ActionResult LibraryM()
+        public ActionResult LibraryM(string code,string state)
         {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
             return View();
         }
 
         //WeixinUser
-        public ActionResult WeixinUser()
+        public ActionResult WeixinUser(string code, string state)
         {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
             return View();
         }
 
