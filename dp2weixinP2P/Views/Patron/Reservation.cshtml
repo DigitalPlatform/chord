@@ -72,10 +72,18 @@
             }
             //alert(items);
 
+            var weixinId = $("#weixinId").text();
+            if (weixinId == null || weixinId == "") {
+                alert("weixinId参数为空");
+                return;
+            }
+
             //显示等待图层
             var index = loadLayer();
 
-            var url = "/api/Reservation?libId=" + encodeURIComponent(libId)
+            var url = "/api/Reservation"
+                 + "?weixinId=" + weixinId
+                +"&libId=" + encodeURIComponent(libId)
                 + "&patron=" + encodeURIComponent(patronBarcode)
                 + "&items=" + encodeURIComponent(items)
                 + "&style=" + style;//创建一个预约请求
@@ -254,6 +262,7 @@
 @section header {
     <h1 class="mui-title">预约请求</h1>
 }
+<span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 <span id="libId" style="display:none">@Model.libId</span>
 <span id="patronBarcode" style="display:none">@Model.readerBarcode</span>
 <div class="mui-content-padded" id="divNo" style="display:none;">

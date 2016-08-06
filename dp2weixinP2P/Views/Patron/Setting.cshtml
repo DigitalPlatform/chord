@@ -6,7 +6,6 @@
         function save() {
 
             // 图书馆
-            //var lib = model.selectedLib();
             var libId = $("#selLib").val();
             if (libId == "" || libId == null) {
                 alert("您尚未选择图书馆。");
@@ -21,10 +20,16 @@
                 return;
             }
 
+            // 显示图片
+            var showPhoto = getShowPhoto();
+            var showCover = getShowCover();
+
+            //alert("photo=["+showPhoto+"] cover=["+showCover+"]");
+
             //显示等待图层
             var index = loadLayer();
 
-            var url = "/api/wxuser?weixinId="+weixinId+"&libId="+libId;
+            var url = "/api/wxuser?weixinId="+weixinId;
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -66,12 +71,36 @@
                     alert(errorThrown);
                     // 关闭等待层
                     layer.close(index);
+                },
+                {
+                    weixinId: weixinId,
+                    libId: libId,
+                    showPhoto: showPhoto,
+                    showCover: showCover                    
                 }
+
             );
 
 
         }
 
+
+        function getShowPhoto() {
+            var count = 0;
+            $("#ckbPhoto:checked").each(function () {
+                count = 1;
+            });
+            return count
+        }
+
+
+        function getShowCover() {
+            var count = 0;
+            $("#ckbCover:checked").each(function () {
+                count = 1;
+            });
+            return count
+        }
 
     </script>
 }
@@ -85,7 +114,20 @@
         <label style="color:#cccccc">当前图书馆</label>
         @Html.Raw(ViewBag.LibHtml)
     </div>
+
+    <div class='mui-input-row mui-checkbox mui-left' >
+        <label>显示头像</label>
+        <input id='ckbPhoto' type='checkbox'  @ViewBag.photoChecked/>
     </div>
+
+    <div class='mui-input-row mui-checkbox mui-left' >
+        <label >显示图书封面</label>
+        <input  id='ckbCover' type='checkbox' @ViewBag.coverChecked/>
+    </div>
+
+    </div>
+
+
 
 <div class="mui-content-padded">
     <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>

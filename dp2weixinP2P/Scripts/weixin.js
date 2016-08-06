@@ -128,6 +128,12 @@ function reservation(obj, barcode, style) {
         }
     }
 
+    var weixinId = $("#weixinId").text();
+    if (weixinId == null || weixinId == "") {
+        alert("weixinId参数为空");
+        return;
+    }
+
     var libId = getLibId();//$("#selLib").val();
     if (libId == "") {
         alert("尚未选择图书馆");
@@ -151,10 +157,14 @@ function reservation(obj, barcode, style) {
     //显示等待图层
     var index = loadLayer();
 
-    var url = "/api/Reservation?libId=" + encodeURIComponent(libId)
+    var url = "/api/Reservation"
+        + "?weixinId=" + weixinId
+        +"&libId=" + encodeURIComponent(libId)
         + "&patron=" + encodeURIComponent(patron)
         + "&items=" + encodeURIComponent(barcode)
         + "&style=" + style;//new 创建一个预约请求,delete删除
+
+       // alert(url);
     // 调api
     sendAjaxRequest(url, "POST", function (result) {
 

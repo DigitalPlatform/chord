@@ -83,14 +83,12 @@
                     // 关闭等待层
                     layer.close(index);
 
-                    if (result.apiResult.errorCode == -1) {
-                        alert(result.apiResult.errorInfo);
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
                         return;
                     }                    
 
                     //清空编辑界面信息,前两项可以不清除
-                    //model.selectedLib("");
-                    //model.prefix("-1");
                     model.word("");
                     model.password("");
                     
@@ -105,8 +103,6 @@
                     }
                     else {
                         gotoUrl(returnUrl);
-                        //var myUrl = getRootPath() + returnUrl;
-                        //window.location = myUrl;
                     }
                 },
                 function (xhq, textStatus, errorThrown) {

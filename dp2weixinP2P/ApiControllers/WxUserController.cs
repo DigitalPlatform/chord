@@ -14,43 +14,27 @@ namespace dp2weixinWeb.ApiControllers
 
         // 获取全部绑定账户，包括读者与工作人员
         [HttpGet]
-        public IEnumerable<WxUserItem> Get()
+        public WxUserResult Get()
         {
+            WxUserResult result = new WxUserResult();
             List<WxUserItem> list = wxUserDb.GetUsers();//"*", 0, -1).Result;
-            return list;
+            result.users = list;
+            return result;
         }
 
-        public IEnumerable<WxUserItem> Get(string weixinId)
-        {
-            List<WxUserItem> list = wxUserDb.GetAllByWeixinId(weixinId);//.GetUsers();//"*", 0, -1).Result;
-            return list;
-        }
-
-        public List<WxUserItem> Get(string libId,
-            string weixinId,
-            string style)
-        {
-            List<WxUserItem> list = new List<WxUserItem>();
-
-            if (style == "active")
+        public WxUserResult Get(string weixinId)
+        {          
+            if (weixinId == "recover")
             {
-                WxUserItem user=  wxUserDb.GetActivePatron(weixinId);
-                if (user != null)
-                    list.Add(user);
+                return dp2WeiXinService.Instance.RecoverUsers();
             }
-            else if (style == "activeAndWorker")
+            else
             {
-                // 目前各图书馆只有一个活动账户
-                WxUserItem user = wxUserDb.GetActivePatron(weixinId);
-                if (user != null)
-                    list.Add(user);
-
-                user = wxUserDb.GetWorker(weixinId, libId);
-                if (user != null)
-                    list.Add(user);
+                WxUserResult result = new WxUserResult();
+                List<WxUserItem> list= wxUserDb.GetAllByWeixinId(weixinId);
+                result.users = list;
+                return result;
             }
-
-            return list;
         }
 
         // POST api/<controller>
@@ -73,15 +57,15 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         [HttpPost]
-        public ApiResult Setting(string weixinId,string libId)
+        public ApiResult Setting(string weixinId, UserSettingItem item)
         {
             ApiResult result = new ApiResult();
 
-            string setting_lib = libId;
+            //string setting_lib = libId;
 
             try
             {
-                UserSettingDb.Current.SetLib(weixinId, libId);
+                UserSettingDb.Current.SetLib(item);
             }
             catch (Exception ex)
             {
@@ -100,8 +84,8 @@ namespace dp2weixinWeb.ApiControllers
         {
             // 返回对象
             WxUserResult result = new WxUserResult();
-            result.userItem = null;
-            result.apiResult = new ApiResult();
+            //result.userItem = null;
+           // result.apiResult = new ApiResult();
 
             // 前端有时传上来是这个值
             if (item.prefix == "null")
@@ -117,10 +101,11 @@ namespace dp2weixinWeb.ApiControllers
                 out strError);
             if (nRet == -1)
             {
-                result.apiResult.errorCode = -1;
-                result.apiResult.errorInfo = strError;
+                result.errorCode = -1;
+                result.errorInfo = strError;
             }
-            result.userItem = userItem;
+            result.users = new List<WxUserItem>();
+            result.users.Add(userItem);
 
             return result;// repo.Add(item);
         }

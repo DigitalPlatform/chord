@@ -7,17 +7,6 @@
         //浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
 
-            //alert("ready");
-
-            //绑定观察模块
-            //ko.applyBindings(model);
-
-            // 获取当前图书馆对应的读者
-            //2016-6-17 jane 获得当前绑定读者，为了解决普通浏览器返回时，读者信息没更新的问题,iphone倒是更新了
-           // getActivePatron();
-
-
-
             // 打回车检索
             $('#txtWord').bind('keypress', function (event) {
                 //alert("test");
@@ -40,14 +29,6 @@
             $("#myheader").css("position", "absolute");
 
             redoSearch();
-            //window.setTimeout("redoSearch()", 10);
-            //// 当按浏览器返回按钮时，要显示原来的数据
-            //var word = $('#txtWord').val();
-            //if (word != "") {
-            //    //alert("maxNo=" + $("#maxNo").val());
-            //    var expandId = $('#expandId').val();
-            //    search("_ReView", expandId);
-            //}
         });
 
         // 重新检索
@@ -258,22 +239,27 @@
                 // 记住展开项
                 $("#expandId").val(expId);
 
-
+                //alert("走进0");
                 //检查是否已经加载过了
                 var o = $(obj).find(".pendingDetail:first");
                 if (o.length == 0) {
                     return;
                 }
                 else {
+                    //alert("走进1");
+
                     var recPath = o.children("label").text();
                     //alert(recPath);
                     if (recPath != null && recPath != "") {
+
+                        //alert("走进2");
+
                         // 图书馆
                         var libId = getLibId();
                         var myhtml = getDetail(libId, recPath, o,"index");
 
-                        //var url = "/Biblio/Detail?biblioPath=" + encodeURIComponent(recPath);
-                        //gotoUrl(url);
+                        // 去掉css
+                       o.removeClass("pendingDetail");
                     }
                 }
             }
@@ -312,7 +298,7 @@
     <h1 class="mui-title">书目查询</h1>
 }
 <span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
-<span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
+<spanl id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</spanl>
 <!--
 <span id="patronName" style="display:none">@ViewBag.PatronName</span>
 <span id="workerUserName" style="display:none">@ViewBag.workerUserName</span>

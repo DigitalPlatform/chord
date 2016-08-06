@@ -20,10 +20,9 @@ namespace dp2weixin.service
         public string info = "";
     }
 
-    public class WxUserResult
+    public class WxUserResult:ApiResult
     {
-        public WxUserItem userItem { get; set; }
-        public ApiResult apiResult { get; set; }
+        public List<WxUserItem> users { get; set; }
     }
 
     public class ReservationResult:ApiResult

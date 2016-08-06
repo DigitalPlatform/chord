@@ -1,4 +1,292 @@
-﻿===bookEdit=====
+﻿=========WxUserController============
+
+        /*
+        public List<WxUserItem> Get(string libId,
+            string weixinId,
+            string style)
+        {
+            List<WxUserItem> list = new List<WxUserItem>();
+
+            if (style == "active")
+            {
+                WxUserItem user=  wxUserDb.GetActivePatron(weixinId);
+                if (user != null)
+                    list.Add(user);
+            }
+            else if (style == "activeAndWorker")
+            {
+                // 目前各图书馆只有一个活动账户
+                WxUserItem user = wxUserDb.GetActivePatron(weixinId);
+                if (user != null)
+                    list.Add(user);
+
+                user = wxUserDb.GetWorker(weixinId, libId);
+                if (user != null)
+                    list.Add(user);
+            }
+
+            return list;
+        }
+        */
+
+
+=========
+                string strOutMarcSyntax = "";
+                // 将XML格式转换为MARC格式
+                // 自动从数据记录中获得MARC语法
+                nRet = MarcUtil.Xml2Marc(strXml2,
+                    MarcUtil.Xml2MarcStyle.Warning | MarcUtil.Xml2MarcStyle.OutputFragmentXml,
+                    "",
+                    out strOutMarcSyntax,
+                    out strNewMARC,
+                    out strNewFragmentXml,
+                    out strError);
+                if (nRet == -1)
+                {
+                    strError = "XML转换到MARC记录时出错: " + strError;
+                    return -1;
+                }
+
+
+===========dp2获取资源==========
+        public int DownloadObject0(System.Web.UI.Page Page,
+            LibraryChannel channel,
+            string strPath,
+            bool bSaveAs,
+            string strStyle,
+            out string strError)
+        {
+            strError = "";
+
+            if (StringUtil.IsInList("hitcount", strStyle) == true
+                && StringUtil.IsInList("hitcount", this.SearchLogEnable) == false)
+            {
+                OpacApplication.OutputImage(Page,
+                    Color.FromArgb(200, Color.Blue),
+                    "*"); // 星号表示尚未启用内部对象计数功能
+                return 1;
+            }
+
+            WebPageStop stop = new WebPageStop(Page);
+
+            // strPath = boards.GetCanonicalUri(strPath);
+
+            // 获得资源。写入文件的版本。特别适用于获得资源，也可用于获得主记录体。
+            // parameters:
+            //		fileTarget	文件。注意在调用函数前适当设置文件指针位置。函数只会在当前位置开始向后写，写入前不会主动改变文件指针。
+            //		strStyleParam	一般设置为"content,data,metadata,timestamp,outputpath";
+            //		input_timestamp	若!=null，则本函数会把第一个返回的timestamp和本参数内容比较，如果不相等，则报错
+            // return:
+            //		-1	出错。具体出错原因在this.ErrorCode中。this.ErrorInfo中有出错信息。
+            //		0	成功
+            string strMetaData = "";
+            string strOutputPath;
+            byte[] baOutputTimeStamp = null;
+            byte[] baContent = null;
+            // 只获得媒体类型
+            long lRet = channel.GetRes(
+                stop,
+                strPath,
+                0,
+                0,
+                "metadata",
+                out baContent,
+                out strMetaData,
+                out strOutputPath,
+                out baOutputTimeStamp,
+                out strError);
+            if (lRet == -1)
+            {
+                if (StringUtil.IsInList("hitcount", strStyle))
+                {
+                    OutputImage(Page,
+                        Color.FromArgb(100, Color.Red),
+                        "?");
+                    return 1;
+                }
+
+                if (channel.ErrorCode == ErrorCode.AccessDenied)
+                {
+                    // 权限不够
+                    return -1;
+                }
+
+                strError = "GetRes() (for metadata) Error : " + strError;
+                return -1;
+            }
+
+            if (Page.Response.IsClientConnected == false)
+                return -1;
+
+            // 取 metadata 中的 mime 类型信息
+            Hashtable values = StringUtil.ParseMedaDataXml(strMetaData,
+                out strError);
+            if (values == null)
+            {
+                strError = "ParseMedaDataXml() Error :" + strError;
+                return -1;
+            }
+
+            if (StringUtil.IsInList("hitcount", strStyle))
+            {
+                string strReadCount = (string)values["readCount"];
+                if (string.IsNullOrEmpty(strReadCount) == true)
+                    strReadCount = "?";
+                OutputImage(Page,
+                    Color.FromArgb(200, Color.DarkGreen),
+                    strReadCount);
+                return 1;
+            }
+#if NO
+            RETURN_IMAGE:
+            if (StringUtil.IsInList("hitcount", strStyle))
+            {
+                string strReadCount = (string)values["readCount"];
+                if (string.IsNullOrEmpty(strReadCount) == true)
+                    strReadCount = "?";
+
+                // 文字图片
+                using (MemoryStream image = ArtText.BuildArtText(
+                    strReadCount,
+                    "Microsoft YaHei",
+                    (float)12,
+                                FontStyle.Regular,
+                Color.Black,
+                Color.White,
+                Color.Gray,
+                ArtEffect.None,
+                ImageFormat.Jpeg,
+                100))
+                {
+                    Page.Response.ContentType = "image/jpeg";
+                    Page.Response.AddHeader("Content-Length", image.Length.ToString());
+
+                    Page.Response.AddHeader("Pragma", "no-cache");
+                    Page.Response.AddHeader("Cache-Control", "no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
+                    Page.Response.AddHeader("Expires", "0");
+
+                    // FlushOutput flushdelegate = new FlushOutput(MyFlushOutput);
+
+                    image.Seek(0, SeekOrigin.Begin);
+                    StreamUtil.DumpStream(image, Page.Response.OutputStream/*, flushdelegate*/);
+
+                }
+                Page.Response.Flush();
+                return 1;
+            }
+#endif
+
+            string strLastModifyTime = (string)values["lastmodifytime"];
+            if (String.IsNullOrEmpty(strLastModifyTime) == false)
+            {
+                DateTime lastmodified = DateTime.Parse(strLastModifyTime).ToUniversalTime();
+                string strIfHeader = Page.Request.Headers["If-Modified-Since"];
+
+                if (String.IsNullOrEmpty(strIfHeader) == false)
+                {
+                    DateTime isModifiedSince = DateTimeUtil.FromRfc1123DateTimeString(strIfHeader); // .ToLocalTime();
+
+                    if (DateTimeUtil.CompareHeaderTime(isModifiedSince, lastmodified) != 0)
+                    {
+                        // 修改过
+                    }
+                    else
+                    {
+                        // 没有修改过
+                        Page.Response.StatusCode = 304;
+                        Page.Response.SuppressContent = true;
+                        return 0;
+                    }
+                }
+
+                Page.Response.AddHeader("Last-Modified", DateTimeUtil.Rfc1123DateTimeString(lastmodified)); // .ToUniversalTime()
+                /*
+                                Page.Response.Cache.SetLastModified(lastmodified);
+                                Page.Response.Cache.SetCacheability(HttpCacheability.Public);
+                 * */
+            }
+
+            string strMime = (string)values["mimetype"];
+            string strClientPath = (string)values["localpath"];
+            if (strClientPath != "")
+                strClientPath = PathUtil.PureName(strClientPath);
+
+            // TODO: 如果是非image/????类型，都要加入content-disposition
+            // 是否出现另存为对话框
+            if (bSaveAs == true)
+            {
+                string strEncodedFileName = HttpUtility.UrlEncode(strClientPath, Encoding.UTF8);
+                Page.Response.AddHeader("content-disposition", "attachment; filename=" + strEncodedFileName);
+            }
+
+            /*
+            Page.Response.AddHeader("Accept-Ranges", "bytes");
+            Page.Response.AddHeader("Last-Modified", "Wed, 21 Nov 2007 07:10:54 GMT");
+             * */
+
+            // 用 text/plain IE XML 搜索google
+            // http://support.microsoft.com/kb/329661
+            // http://support.microsoft.com/kb/239750/EN-US/
+            /*
+To use this fix, you must add the following registry value to the key listed below: 
+Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings
+
+Value name: IsTextPlainHonored
+Value type: DWORD
+Value data: HEX 0x1 
+             * */
+
+            /*
+
+            Page.Response.CacheControl = "no-cache";    // 如果不用此句，text/plain会被当作xml文件打开
+            Page.Response.AddHeader("Pragma", "no-cache");
+            Page.Response.AddHeader("Cache-Control", "no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
+//            Page.Response.AddHeader("Cache-Control", "public");
+            Page.Response.AddHeader("Expires", "0");
+            Page.Response.AddHeader("Content-Transfer-Encoding", "binary");
+             * */
+
+            // 设置媒体类型
+            if (strMime == "text/plain")
+                strMime = "text";
+            Page.Response.ContentType = strMime;
+
+            string strSize = (string)values["size"];
+            if (String.IsNullOrEmpty(strSize) == false)
+            {
+                Page.Response.AddHeader("Content-Length", strSize);
+            }
+
+            if (Page.Response.IsClientConnected == false)
+                return -1;
+
+            string strGetStyle = "content,data,incReadCount";
+            if (StringUtil.IsInList("log", this.SearchLogEnable) == false)
+                strGetStyle += ",skipLog";
+            else
+                strGetStyle += ",clientAddress:" + Page.Request.UserHostAddress;
+
+            // 传输数据
+            lRet = channel.GetRes(
+                stop,
+                strPath,
+                Page.Response.OutputStream,
+                strGetStyle,
+                null,	// byte [] input_timestamp,
+                out strMetaData,
+                out baOutputTimeStamp,
+                out strOutputPath,
+                out strError);
+            if (lRet == -1)
+            {
+                // Page.Response.ContentType = "text/plain";    // 可能因为 Page.Response.OutputStream 已经写入了部分内容，这时候设置 ContentType 会抛出异常
+                strError = "GetRes() (for res) Error : " + strError;
+                return -1;
+            }
+            return 1;
+        }
+
+===bookEdit=====
         // 将选择的subject设到输入框中
         function subjectChanged()
         {

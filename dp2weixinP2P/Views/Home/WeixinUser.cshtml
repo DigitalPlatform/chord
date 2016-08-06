@@ -1,7 +1,48 @@
 ﻿@{
     ViewBag.Title = "WeixinUser";
 }
+@section style {
+    <style>
+        .title {
+            /*上外边距是 10px 右外边距和左外边距是 5px 下外边距是 15px*/
+            margin: 10px 15px 2px;
+            color: #666666;
+            font-size: 16px;
+        }
 
+        TABLE.libTable {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+        }
+
+            TABLE.libTable TR TD {
+                border-width: 0px;
+                /*border-top-width: 1px;
+            border-color: #dddddd;
+            border-style: dotted;*/
+                padding: 2px;
+            }
+
+                TABLE.libTable TR TD.value {
+                    border-left: 1px solid #CCCCCC;
+                    padding-left: 5px;
+                }
+
+                TABLE.libTable TR TD.label {
+                    width: 150px;
+                    /*background-color:#eeeeee;*/
+                    color: #999999;
+                    padding-left: 5px;
+                    padding-right: 5px;
+                    /*text-align: right;*/
+                }
+
+        .leftLabel {
+            color: #999999;
+        }
+    </style>
+}
 @section Scripts {
     <script>
         var model = {
@@ -20,14 +61,24 @@
 
             // 调web api
             var url = "/api/wxuser";
-            sendAjaxRequest(url, "GET", function (data) {
-                for (var i = 0; i < data.length; i++) {
-                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
-                    model.wxUsers.push(data[i]);
-                }
+            sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
                 layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                //alert(result.users.length);
+
+                for (var i = 0; i < result.users.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    model.wxUsers.push(result.users[i]);
+                    //alert(result.users[i].weixinId);
+                }
+
 
             }, function (xhq, textStatus, errorThrown) {
 
@@ -60,38 +111,74 @@
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
 
+
+            //alert("test1");
             // 获取所有的操作命令
             getAllUsers();
+
+            //alert("test2");
+
             ko.applyBindings(model);
         })
 
     </script>
 }
+@section header {
+    <h1 class="mui-title">微信用户管理</h1>
+}
+<div>
+    <div class="mui-content-padded">
+        <button class="mui-btn mui-btn-block mui-btn-primary" >
+            从服务器恢复本地微信用户库
+        </button>
+    </div>
 
+    <ul class="mui-table-view" data-bind=" foreach:model.wxUsers">
+        <li class="mui-table-view-cell">
+            <table class="libTable">
+                <tr>
+                    <td class="label">图书馆id</td>
+                    <td class="value" data-bind="text:libId"></td>
+                </tr>
+                <tr>
+                    <td class="label">姓名/账户</td>
+                    <td class="value">
+                        <span data-bind="text:readerName"></span>
+                        <span data-bind="text:userName"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">证条码</td>
+                    <td class="value" data-bind="text:readerBarcode"></td>
+                </tr>
+                <tr>
+                    <td class="label">账号类别</td>
+                    <td class="value" data-bind="text:type"></td>
+                </tr> 
+                <tr>
+                    <td class="label">微信id</td>
+                    <td class="value" data-bind="text:weixinId"></td>
+                </tr>
 
-<div class="col-md-12">
-    <center><h3>用户列表</h3></center>
-    <table class="table table-striped">
-        <thead>
-            <tr><th>active</th><th>微信id</th><th>馆ID</th><th>证条码号</th><th>姓名</th><th>refID</th><th>创建时间</th><th>更新时间</th><th>操作</th></tr>
-        </thead>
-        <tbody data-bind="foreach:model.wxUsers">        
-            <tr data-bind="style: {'background-color': isActive==1 ? 'darkgreen' : 'white ' }">
-
-                <td data-bind="text:isActive"></td>
-                <td data-bind="text:weixinId"></td>
-                <td data-bind="text:libId"></td>
-                <td data-bind="text:readerBarcode"></td>
-                <td data-bind="text:readerName"></td>
-                <td data-bind="text:refID"></td>
-                <td data-bind="text:createTime"></td>
-                <td data-bind="text:updateTime"></td>
-                <td>
-                    <button class="btn btn-xs btn-default" data-bind="click: removeUser">X</button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                <tr>
+                    <td class="label">是否活动</td>
+                    <td class="value" data-bind="text:isActive"></td>
+                </tr>
+                <tr>
+                    <td class="label">参考id</td>
+                    <td class="value" data-bind="text:refID"></td>
+                </tr>
+                <tr>
+                    <td class="label">创建时间</td>
+                    <td class="value" data-bind="text:createTime"></td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td>
+                        <button class="mui-btn mui-btn-danger" data-bind="click: removeUser">X&nbsp;删除</button>
+                    </td>
+                </tr>                               
+            </table>
+        </li>
+    </ul>
 </div>
-
-

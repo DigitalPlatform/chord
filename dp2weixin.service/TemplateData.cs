@@ -50,6 +50,8 @@ namespace dp2weixin.service
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
+        public TemplateDataItem keyword4 { get; set; }
+        public TemplateDataItem keyword5 { get; set; }
         public TemplateDataItem remark { get; set; }
     }
 
@@ -81,18 +83,20 @@ namespace dp2weixin.service
     }
 
 //{{first.DATA}}
-//退款原因：{{reason.DATA}}
-//退款金额：{{refund.DATA}}
+//书刊摘要：{{keyword1.DATA}}
+//册条码号：{{keyword2.DATA}}
+//交费原因：{{keyword3.DATA}}
+//撤消金额：{{keyword4.DATA}}
+//撤消时间：{{keyword5.DATA}}
 //{{remark.DATA}}
-//您好，您对微信数据容灾服务的抢购未成功，已退款。
-//退款原因：未抢购成功
-//退款金额：2570元
-//备注：如有疑问，请致电13912345678联系我们，或回复M来了解详情。
     public class ReturnPayTemplateData
     {
         public TemplateDataItem first { get; set; }
-        public TemplateDataItem reason { get; set; }
-        public TemplateDataItem refund { get; set; }
+        public TemplateDataItem keyword1 { get; set; }
+        public TemplateDataItem keyword2 { get; set; }
+        public TemplateDataItem keyword3 { get; set; }
+        public TemplateDataItem keyword4 { get; set; }
+        public TemplateDataItem keyword5 { get; set; }
         public TemplateDataItem remark { get; set; }
     }
 
