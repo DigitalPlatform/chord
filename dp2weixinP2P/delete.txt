@@ -1,4 +1,14 @@
-﻿=========WxUserController============
+﻿=====web 菜单修改=========
+                    @if (Session[dp2weixin.service.WeiXinConst.C_Session_IsBind] != null && (int)Session[dp2weixin.service.WeiXinConst.C_Session_IsBind] == 1)
+                    {
+                        <li><a href="~/Account/Index">账号管理</a></li>
+                    }
+                    else
+                    {
+                        <li><a href="~/Account/Bind">绑定账号</a></li>
+                    }
+
+=========WxUserController============
 
         /*
         public List<WxUserItem> Get(string libId,

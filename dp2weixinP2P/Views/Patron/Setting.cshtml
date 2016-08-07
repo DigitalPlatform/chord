@@ -44,15 +44,18 @@
                     // 更新到顶部
                     var oldName = $("#_libName").text();
                     var libName = $("#selLib  option:selected").text();
-                    libName="["+libName+"]"
+                    libName = "[" + libName + "]"
                     $("#_libName").text(libName);
 
                     alert("保存成功");
 
                     // 返回到来源页
                     var returnUrl = $("#returnUrl").text();
-                    if (returnUrl != null && returnUrl != "") {
-
+                    if (returnUrl == null || returnUrl == "") {
+                        returnUrl = "/Library/Home"; //转到图书馆主页
+                        gotoUrl(returnUrl);
+                    }
+                    else {
                         if (returnUrl.indexOf("/Biblio/Index") != -1 && oldName == libName) {
                             //alert("1");
                             window.history.go(-1);

@@ -2305,7 +2305,7 @@ namespace dp2weixin.service
                 // 发送解绑消息    
                 string strFirst = "🔒您已成功对图书馆读者账号解除绑定。";
                 string strAccount = userItem.readerName + "(" + userItem.readerBarcode + ")";
-                string strRemark = "\n您现在不能管理该图书馆的个人信息了，如需访问，请重新绑定。";
+                string strRemark = "\n您现在不能查看您在该图书馆的个人信息了，如需访问，请重新绑定。";
                 if (userItem.type == WxUserDatabase.C_Type_Worker)
                 {
                     strFirst = "🔒您已成功对图书馆工作人员账号解除绑定。";
