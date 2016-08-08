@@ -39,7 +39,7 @@ namespace Senparc.Weixin.MP.Sample.Controllers
         {
             if (CheckSupervisorLogin() == false)
             {
-                return Redirect("/Home/Login?returnUrl=" + System.Web.HttpUtility.UrlEncode("/Home/Manager"));
+                return Redirect("~/Home/Login?returnUrl=" + System.Web.HttpUtility.UrlEncode("~/Home/Manager"));
             }
 
             GetMenuResult result = new GetMenuResult(new ButtonGroup());

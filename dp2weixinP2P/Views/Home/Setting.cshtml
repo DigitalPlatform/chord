@@ -12,20 +12,31 @@
 {
     <div class="mui-card mui-content-padded">
         <div class="mui-input-row ">
-            <label style="color:#cccccc">dp2MServer Url</label>
+            <label style="color:#999999">dp2MServer Url</label>
             <input type="text" class="mui-input mui-input-clear" id="dp2MServerUrl" name="dp2MServerUrl" placeholder="dp2MServer Url" value=@Model.dp2MserverUrl>
         </div>
 
         <div class="mui-input-row ">
-            <label style="color:#cccccc">User name</label>
+            <label style="color:#999999">User name</label>
             <input type="text" class="mui-input mui-input-clear" id="userName" name="userName" placeholder="User name" value=@Model.userName>
         </div>
 
         <div class="mui-input-row ">
-            <label style="color:#cccccc">Password</label>
+            <label style="color:#999999">Password</label>
             <input type="password" class="mui-input mui-input-clear" id="password" name="password" placeholder="Password" value=@Model.password>
         </div>
-    </div>
+        <div class="mui-input-row " style="background-color:#eeeeee;height:20px">
+
+            </div>
+            <div class="mui-input-row ">
+                <label style="color:#999999">mongoDB connection</label>
+                <input type="text" class="mui-input mui-input-clear" name="mongoDbConnection" value=@Model.mongoDbConnection>
+            </div>
+            <div class="mui-input-row ">
+                <label style="color:#999999">mongoDB prefix</label>
+                <input type="text" class="mui-input mui-input-clear" name="mongoDbPrefix" value=@Model.mongoDbPrefix>
+            </div>
+        </div>
 
     <div class="mui-content-padded">
         <button type="submit" id="btnSave" class="mui-btn mui-btn-block  mui-btn-primary">保存</button>

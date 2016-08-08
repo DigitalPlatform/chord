@@ -324,6 +324,18 @@ namespace dp2weixin.service
             return null;
         }
 
+        // 根据图书馆id获取绑定的账户
+        public List<WxUserItem> GetByLibId(String libId)
+        {
+            if (string.IsNullOrEmpty(libId) == true || libId == "null")
+                return null;
+
+            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
+            var filter = Builders<WxUserItem>.Filter.Eq("libId", libId);
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+            return list;
+        }
+
         /// <summary>
         /// 删除账户
         /// 如果删除的是读者账户，自动将第一个读者账户设为默认的

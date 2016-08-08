@@ -61,6 +61,9 @@ namespace dp2weixin.service
         public string userName = "";
         public string password = "";
 
+        public string monodbConnectionString = "";
+        public string monodbPrefixString = "";
+
         // 微信信息
         public string weiXinAppId { get; set; }
         public string weiXinSecret { get; set; }
@@ -154,16 +157,16 @@ namespace dp2weixin.service
 
             // mongo配置
             XmlNode nodeMongoDB = root.SelectSingleNode("mongoDB");
-            string connectionString = DomUtil.GetAttr(nodeMongoDB, "connectionString");
-            if (String.IsNullOrEmpty(connectionString) == true)
+            this.monodbConnectionString = DomUtil.GetAttr(nodeMongoDB, "connectionString");
+            if (String.IsNullOrEmpty(this.monodbConnectionString) == true)
             {
                 throw new Exception("尚未配置mongoDB节点的connectionString属性");
             }
-            string instancePrefix = DomUtil.GetAttr(nodeMongoDB, "instancePrefix");
+            this.monodbPrefixString = DomUtil.GetAttr(nodeMongoDB, "instancePrefix");
             // 打开图书馆账号库与用户库
-            WxUserDatabase.Current.Open(connectionString, instancePrefix);
-            LibDatabase.Current.Open(connectionString, instancePrefix);
-            UserSettingDb.Current.Open(connectionString, instancePrefix);
+            WxUserDatabase.Current.Open(this.monodbConnectionString, this.monodbPrefixString);
+            LibDatabase.Current.Open(this.monodbConnectionString, this.monodbPrefixString);
+            UserSettingDb.Current.Open(this.monodbConnectionString, this.monodbPrefixString);
 
             // 初始化接口类
             string strError = "";
@@ -334,6 +337,8 @@ namespace dp2weixin.service
         public int SetDp2mserverInfo(string dp2mserverUrl,
             string userName,
             string password,
+            string mongodbConnection,
+            string mongodbPrefix,
             out string strError)
         {
             strError = "";
@@ -396,11 +401,15 @@ namespace dp2weixin.service
 
         public void GetDp2mserverInfo(out string dp2mserverUrl,
             out string userName,
-            out string password)
+            out string password,
+            out string mongodbConnection,
+            out string mongodbPrefix)
         {
             dp2mserverUrl = "";
             userName = "";
             password = "";
+            mongodbConnection = "";
+            mongodbPrefix = "";
 
             XmlDocument dom = new XmlDocument();
             dom.Load(this._cfgFile);
@@ -415,6 +424,35 @@ namespace dp2weixin.service
                 password = DomUtil.GetAttr(nodeDp2mserver, "password");
                 if (string.IsNullOrEmpty(password) == false)// 解密
                     password = Cryptography.Decrypt(this.password, WeiXinConst.EncryptKey);
+            }
+
+            // 设置mongoDB
+            XmlNode nodeMongoDB = root.SelectSingleNode("mongoDB");
+            if (nodeMongoDB != null)
+            {
+                mongodbConnection = DomUtil.GetAttr(nodeMongoDB, "connectionString");
+                mongodbPrefix = DomUtil.GetAttr(nodeMongoDB, "instancePrefix");
+            }
+        }
+
+        public void GetSupervisorAccount(out string username,
+            out string password)
+        {
+            username = "";
+            password = "";
+
+            XmlDocument dom = new XmlDocument();
+            dom.Load(this._cfgFile);
+            XmlNode root = dom.DocumentElement;
+
+            // 设置mserver服务器配置信息
+            XmlNode nodeSupervisor = root.SelectSingleNode("Supervisor");
+            if (nodeSupervisor != null)
+            {
+                username = DomUtil.GetAttr(nodeSupervisor, "username");
+                password = DomUtil.GetAttr(nodeSupervisor, "password");
+                if (string.IsNullOrEmpty(password) == false)// 解密
+                    password = Cryptography.Decrypt(password,WeiXinConst.EncryptKey);
             }
         }
 

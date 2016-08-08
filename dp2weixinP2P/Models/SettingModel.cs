@@ -11,5 +11,10 @@ namespace dp2weixinWeb.Models
         public string userName { get; set; }
         public string password { get; set; }
 
+        public string mongoDbConnection { get; set; }
+
+        //mongoDbPrefix
+        public string mongoDbPrefix { get; set; }
+
     }
 }

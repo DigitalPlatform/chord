@@ -39,9 +39,22 @@ namespace dp2weixinWeb.ApiControllers
 
         // DELETE api/<controller>/5
         [HttpDelete]
-        public void Delete(string id)
+        public ApiResult Delete(string id)
         {
+            ApiResult result = new ApiResult();
+            // 先检查一下，是否有微信用户绑定了该图书馆
+            List<WxUserItem> list = WxUserDatabase.Current.GetByLibId(id);
+            if (list != null && list.Count > 0)
+            {
+                result.errorCode = -1;
+                result.errorInfo = "目前存在微信用户绑定了该图书馆的账户，不能删除图书馆。";
+                return result;
+            }
+
+            //
             libDb.Delete(id);
+
+            return result;
         }
     }
 }

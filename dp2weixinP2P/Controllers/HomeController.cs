@@ -22,7 +22,7 @@ namespace dp2weixinWeb.Controllers
     {
         public ActionResult Index(string code, string state, string weiXinId)
         {
-            return Redirect("/Library/Home?code=" + code
+            return Redirect("~/Library/Home?code=" + code
                 + "&state=" + state 
                 + "&weiXinId=" + weiXinId);
         }
@@ -40,8 +40,12 @@ namespace dp2weixinWeb.Controllers
         {
             Session["supervisor"] = true;
 
+            string userName = "";
+            string password = "";
+            dp2WeiXinService.Instance.GetSupervisorAccount(out userName, out password);
+
             string error = "";
-            if (model.UserName != "1" || model.Password != "1")
+            if (model.UserName != userName || model.Password != password)
             {
                 error = "账户或密码不正确。";
             }
@@ -51,7 +55,7 @@ namespace dp2weixinWeb.Controllers
                 if (string.IsNullOrEmpty(returnUrl) == false)
                     return Redirect(returnUrl);
                 else
-                    return Redirect("/Home/Manager");
+                    return Redirect("~/Home/Manager");
             }
 
             ViewBag.Error = error;
@@ -73,7 +77,7 @@ namespace dp2weixinWeb.Controllers
         {
             if (CheckSupervisorLogin() == false)
             {
-                return Redirect("/Home/Login?returnUrl=" + HttpUtility.UrlEncode("/Home/Manager"));
+                return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Home/Manager"));
             }
 
             return View();
@@ -84,7 +88,7 @@ namespace dp2weixinWeb.Controllers
         {
             if (CheckSupervisorLogin() == false)
             {
-                return Redirect("/Home/Login?returnUrl=" + HttpUtility.UrlEncode("/Home/Setting"));
+                return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Home/Setting"));
             }
 
             ViewBag.success = false;
@@ -93,6 +97,8 @@ namespace dp2weixinWeb.Controllers
             model.dp2MserverUrl = dp2WeiXinService.Instance.dp2MServerUrl;// "";// dp2MServerUrl;
             model.userName = dp2WeiXinService.Instance.userName;// "";//userName;
             model.password = dp2WeiXinService.Instance.password;// "";//password;
+            model.mongoDbConnection = dp2WeiXinService.Instance.monodbConnectionString;
+            model.mongoDbPrefix = dp2WeiXinService.Instance.monodbPrefixString;
 
             return View(model);
         }
@@ -105,6 +111,8 @@ namespace dp2weixinWeb.Controllers
             int nRet = dp2WeiXinService.Instance.SetDp2mserverInfo(model.dp2MserverUrl,
                 model.userName,
                 model.password,
+                "",
+                "",
                 out strError); //函数里面会将密码加密
             if (nRet == -1)
             {
@@ -120,7 +128,7 @@ namespace dp2weixinWeb.Controllers
         {
             if (CheckSupervisorLogin() == false)
             {
-                return Redirect("/Home/Login?returnUrl=" + HttpUtility.UrlEncode("/Home/LibraryM"));
+                return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Home/LibraryM"));
             }
 
 
@@ -132,7 +140,7 @@ namespace dp2weixinWeb.Controllers
         {
             if (CheckSupervisorLogin() == false)
             {
-                return Redirect("/Home/Login?returnUrl=" + HttpUtility.UrlEncode("/Home/WeixinUser"));
+                return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Home/WeixinUser"));
             }
 
             return View();
@@ -143,7 +151,7 @@ namespace dp2weixinWeb.Controllers
         {
             if (CheckSupervisorLogin() == false)
             {
-                return Redirect("/Home/Login?returnUrl=" + HttpUtility.UrlEncode("/Home/WeixinMessage"));
+                return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Home/WeixinMessage"));
             }
 
             MessageModel model = new MessageModel();

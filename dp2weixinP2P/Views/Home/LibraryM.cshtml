@@ -102,10 +102,21 @@
                 return false;
             }
 
+            //显示等待图层
+            var index = loadLayer();
+
             //alert("remove-"+item.libId);
             var url = "/api/LibrarySetting/" + item.id;
-            sendAjaxRequest(url, "DELETE", function () {
+            sendAjaxRequest(url, "DELETE", function (result) {
                 //getAllLib();
+
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
 
                 for (var i = 0; i < model.librarys().length; i++) {
                     if (model.librarys()[i].id == item.id) {
@@ -297,8 +308,30 @@
         function handleCreateClick() {
             model.displaySummary(false);
 
+            //id: ko.observable(""),
+            //libName: ko.observable(""),
+            //capoUserName: ko.observable(""),
+            //capoContactPhone: ko.observable(""),
+
+            //wxUserName: ko.observable(""),
+            //wxPassword: ko.observable(""),
+            //wxContactPhone: ko.observable(""),
+            //comment: ko.observable("")
+
+            model.editor.id("");
+            model.editor.libName("");
+            model.editor.capoUserName("");
+            model.editor.capoContactPhone("");
+
+            model.editor.wxUserName("");
+            model.editor.wxPassword("");
+            model.editor.wxContactPhone("");
+            model.editor.comment("");
+
             $("#btnAdd").css('display', 'block');
             $("#btnEdit").css('display', 'none');
+
+            
         }
 
         // 在新增图书馆，点击取消
