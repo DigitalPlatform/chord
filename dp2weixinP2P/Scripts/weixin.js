@@ -27,7 +27,7 @@ function getDetail(libId, recPath, obj, from) {
     var url = "/api/biblio?weixinId=" + encodeURIComponent(weixinId)
         + "&libId=" + encodeURIComponent(libId)
         + "&biblioPath=" + encodeURIComponent(recPath)
-        + "&format=full"
+        + "&format=table"
         + "&from=" + encodeURIComponent(from);
 
     //alert("getDetail 3");
@@ -87,21 +87,8 @@ function getDetail(libId, recPath, obj, from) {
             + "</div>";
         }
 
-        var recommendBtn = "";
-        //var worker=$("#")
-        //if (worker != null && worker != "") {
-        //    var recommPath = "/Library/BookEdit?libId=" + libId
-        //        + "&userName=" + worker
-        //        + "&biblioPath=" + encodeURIComponent(biblioPath)
-        //        + "&returnUrl=" + encodeURIComponent('/Biblio/Index')
-        //    recommendBtn = "<div class='btnRow'><button class='mui-btn  mui-btn-default' "
-        //        + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button></div>";
-        //}
-        //var myHtml = "<span>" + result.summary + "</span>"
-        //    + recommendBtn
-        //    + itemTables;
 
-        var myHtml = result.summary + itemTables;
+        var myHtml = result.info + itemTables;
 
         obj.html(myHtml);
 

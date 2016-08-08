@@ -151,6 +151,7 @@ namespace dp2weixinWeb.ApiControllers
             BiblioDetailResult result = dp2WeiXinService.Instance.GetBiblioDetail(weixinId,
                 libId,
                 biblioPath,
+                format,
                 from);
             return result;
         }

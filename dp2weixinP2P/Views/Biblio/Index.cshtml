@@ -1,5 +1,5 @@
 ﻿@section style {
-<link href="@Url.Content("~/Content/biblio.css")" rel="stylesheet">
+<link href="@Url.Content("~/Content/biblio.css?a=1")" rel="stylesheet">
 }
 @section Scripts {
     <script>
@@ -38,6 +38,8 @@
             var word = $('#txtWord').val();
             if (word == "")
                 word = $('#txtWordSimple').val();
+
+            //alert("word=["+word+"]");
             if (word != "") { 
                 //alert("maxNo=" + $("#maxNo").val());
                 var expandId = $('#expandId').val();
@@ -324,6 +326,7 @@
             <td>
                 <div style="border:1px solid #cccccc">
                     <select id="selFrom" name="selFrom">
+                        <option value="title,ISBN,contributor,subjec,clc,_class,publishtime,publisher" selected>全部</option>
                         <option value="title" selected>书名</option>
                         <option value="ISBN">ISBN</option>
                         <option value="contributor">作者</option>

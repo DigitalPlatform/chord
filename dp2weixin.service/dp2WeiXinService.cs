@@ -2471,7 +2471,7 @@ namespace dp2weixin.service
             // 这里的records是第一页的记录
             List<BiblioRecord> records = null;
             bool bNext = false;
-            long lRet = this.SearchBiblio1(libId,
+            long lRet = this.SearchBiblioInternal(libId,
                 strFrom,
                 strWord,
                 match,
@@ -2510,7 +2510,7 @@ namespace dp2weixin.service
             string strError = "";
             List<BiblioRecord> records = null;
             bool bNext = false;
-            long lRet = this.SearchBiblio1(libId,
+            long lRet = this.SearchBiblioInternal(libId,
                  "",
                  "!getResult",
                  "",//match
@@ -2542,7 +2542,7 @@ namespace dp2weixin.service
         /// <param name="records">第一批的10条</param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public long SearchBiblio1(string libId,
+        private long SearchBiblioInternal(string libId,
             string strFrom,
             string strWord,
             string match,
@@ -2653,9 +2653,9 @@ namespace dp2weixin.service
 
         public static string GetImageHtmlFragment(string libId,
     string strBiblioRecPath,
-    string strMARC)
+    string strImageUrl)
         {
-            string strImageUrl = GetCoverImageUrl(strMARC, "MediumImage");
+            //
 
             if (string.IsNullOrEmpty(strImageUrl) == true)
                 return "";
@@ -2866,6 +2866,7 @@ namespace dp2weixin.service
         public BiblioDetailResult GetBiblioDetail(string weixinId,
             string libId,
             string biblioPath,
+            string format,
             string from)
         {
             BiblioDetailResult result = new BiblioDetailResult();
@@ -2890,51 +2891,72 @@ namespace dp2weixin.service
                 TimeSpan time_length = DateTime.Now - start_time;
                 string logInfo = "";
 
-                // 取出summary
-                this.WriteLog("开始获取summary");
-                string strSummary = "";
-                //string tempPath = "@bibliorecpath:" + biblioPath;
-                string xml = "";
-                nRet = this.GetBiblioInfo(lib.capoUserName,
-                    biblioPath,
-                    out strSummary,
-                    out xml,
-                    out strError);
-                if (nRet == -1 || nRet == 0)
-                {
-                    result.errorCode = -1;
-                    result.errorInfo = strError;
-                    return result;
-                }
-
-                // 封面图像，是否显示根据设置来
-                string imgHtml = "";//<img src='../img/empty2.jpg' width='100' height='100' />
+                bool showCover = false;
                 UserSettingItem item = UserSettingDb.Current.GetByWeixinId(weixinId);
                 if (item != null && item.showCover == 1)
                 {
-                    string strOutMarcSyntax = "";
-                    string strMARC = "";
-                    string strFragmentXml = "";
-                    // 将XML格式转换为MARC格式
-                    // 自动从数据记录中获得MARC语法
-                    nRet = MarcUtil.Xml2Marc(xml,
-                        MarcUtil.Xml2MarcStyle.Warning | MarcUtil.Xml2MarcStyle.OutputFragmentXml,
-                        "",
-                        out strOutMarcSyntax,
-                        out strMARC,
-                        out strFragmentXml,
-                        out strError);
-                    if (nRet == -1)
+                    showCover = true;
+                }
+
+                // 取出summary
+                this.WriteLog("开始获取biblio info");
+
+                string strBiblioInfo = "";
+                string imgHtml = "";// 封面图像
+                string biblioInfo = "";
+                if (format == "summary")
+                {
+                    nRet = this.GetSummaryAndImgHtml(lib.capoUserName,
+                       biblioPath,
+                       showCover,
+                       libId,
+                       out strBiblioInfo,
+                       out imgHtml,
+                       out strError);
+                    if (nRet == -1 || nRet == 0)
                     {
-                        strError = "XML转换到MARC记录时出错: " + strError;
-                        goto ERROR1;
+                        result.errorCode = -1;
+                        result.errorInfo = strError;
+                        return result;
                     }
 
-                    imgHtml= dp2WeiXinService.GetImageHtmlFragment(libId, biblioPath, strMARC);
+                    biblioInfo = "<table class='info'>"
+                        + "<tr>"
+                            + "<td class='cover'>" + imgHtml + "</td>"
+                            + "<td class='biblio_info'>" + strBiblioInfo + "</td>"
+                        + "</tr>"
+                    + "</table>";
+                }
+                else if (format == "table")
+                {
+                    nRet = this.GetTableAndImgHtml(lib.capoUserName,
+                        biblioPath,
+                        showCover,
+                        libId,
+                        out strBiblioInfo,
+                        out imgHtml,
+                        out strError);
+                    if (nRet == -1 || nRet == 0)
+                    {
+                        result.errorCode = -1;
+                        result.errorInfo = strError;
+                        return result;
+                    }
+
+                    biblioInfo = "<table class='info'>"
+    + "<tr>"
+        //+ "<td class='cover'>" + imgHtml + "</td>"
+        + "<td class='biblio_info'>" + strBiblioInfo + "</td>" //image放在里面了 2016.8.8
+    + "</tr>"
++ "</table>";
+                }
+                else
+                {
+                    strBiblioInfo = format + "风格";
                 }
 
 
-                // 得到绑定工作人员账号，并检查是否有权限
+                // 得到绑定工作人员账号，并检查是否有权限，进行好书推荐
                 string workerUserName = "";
                 if (string.IsNullOrEmpty(weixinId) == false)
                 {
@@ -2981,21 +3003,15 @@ namespace dp2weixin.service
 
                 }
 
-                //result.summary = "<span>" + strSummary + "</span>" + recommendBtn;
-                string biblioInfo = "<table class='info'>"
-                    + "<tr>"
-                        + "<td class='cover'>" + imgHtml + "</td>"
-                        + "<td class='summary'>"+ strSummary+"</td>"
-                    + "</tr>"
-                + "</table>"
-                +recommendBtn;
 
-                result.summary = biblioInfo;
+                
+
+                result.info = biblioInfo+recommendBtn;;
 
 
 
                 time_length = DateTime.Now - start_time;
-                string info = "获取[" + biblioPath + "]的summary信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
+                string info = "获取[" + biblioPath + "]的table信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
                 this.WriteLog(info);
 
                 //Thread.Sleep(1000);
@@ -3038,15 +3054,173 @@ ERROR1:
 
         }
 
-        public int GetBiblioInfo(string capoUserName,
+        //得到table风格的书目信息
+        private int GetTableAndImgHtml(string capoUserName,
             string biblioPath,
-            out string summary,
-            out string xml,
+            bool showCover,
+            string libId,
+            out string table,
+            out string coverImgHtml,
             out string strError)
         {
-            summary = "";
             strError = "";
-            xml = "";
+            table = "";
+            coverImgHtml = "";
+
+            List<string> dataList = null;
+            int nRet = this.GetBiblioInfo(capoUserName, biblioPath,
+               "table",
+                out dataList,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+                return nRet;
+
+            string xml = dataList[0];
+            XmlDocument dom = new XmlDocument();
+            try
+            {
+                dom.LoadXml(xml);
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+            XmlNode root = dom.DocumentElement;
+//<root>
+//    <line name="_coverImage" value="http://www.hongniba.com.cn/bookclub/images/books/book_20005451_s.jpg" />
+//    <line name="题名与责任说明拼音" value="dang wo xiang shui de shi hou" />
+//    <line name="题名与责任说明" value="当我想睡的时候 [专著]  / (美)简·R. 霍华德文 ; (美)琳内·彻丽图 ; 林芳萍翻译" />
+//    <line name="责任者" value="霍华德; 林芳萍; 彻丽" />
+//    <line name="出版发行" value="石家庄 : 河北教育出版社, 2010" />
+//    <line name="载体形态" value="1册 ; 26cm" />
+//    <line name="主题分析" value="图画故事-美国-现代" />
+//    <line name="分类号" value="中图法分类号: I712.85" />
+//    <line name="附注" value="启发精选世界优秀畅销绘本版权页英文题名：When I'm sleepy" />
+//    <line name="获得方式" value="ISBN 978-7-5434-7754-4 (精装 ) : CNY27.80" />
+//    <line name="提要文摘" value="临睡前，带着孩子一起环游世界，看看他可不可以像长颈鹿一样站着睡，和蝙蝠一起倒挂着睡，或者像企鹅一样睡在好冷好冷的地方。" />
+//</root>
+            string imgUrl = "";
+            XmlNodeList lineList = root.SelectNodes("line");
+            string pinyin = "";
+            foreach (XmlNode node in lineList)
+            {
+                string name = DomUtil.GetAttr(node, "name");
+                string value = DomUtil.GetAttr(node, "value");
+                if (name == "_coverImage")
+                {
+                    imgUrl = value;
+                    if (showCover == true && String.IsNullOrEmpty(imgUrl) == false)
+                    {
+                        coverImgHtml = dp2WeiXinService.GetImageHtmlFragment(libId, biblioPath, imgUrl);
+                    }
+                    
+                    table += "<tr>"
+                        + "<td class='name'></td>"
+                        + "<td class='value'>" + coverImgHtml + "</td>"
+                        + "</tr>";
+
+                    continue;
+                }
+
+                if (name == "题名与责任说明拼音")
+                {
+                    pinyin = value;
+                    continue;
+                }
+
+                // 拼音与书名合为一行
+                if (name == "题名与责任说明" && pinyin !="")
+                {
+                    table += "<tr>"
+                        + "<td class='name'>" + name + "</td>"
+                        + "<td class='value'>"
+                            + "<span style='color:gray'>" + pinyin + "</span><br/>"                       
+                            + value 
+                        + "</td>"
+                        + "</tr>";
+                    continue;
+                }
+
+                table += "<tr>"
+                    + "<td class='name'>" + name + "</td>"
+                    + "<td class='value'>" + value + "</td>"
+                    + "</tr>";
+
+            }
+
+            if (table != "")
+            {
+                table = "<table class='biblio_table'>" + table + "</table>";
+            }
+            
+            
+ 
+
+
+            return 1;
+        }
+
+        private int GetSummaryAndImgHtml(string capoUserName,
+            string biblioPath,
+            bool showCover,
+            string libId,
+            out string summary,
+            out string coverImgHtml,
+            out string strError)
+        {
+            strError = "";
+            summary = "";
+            coverImgHtml = "";
+
+            List<string> dataList = null;
+            int nRet = this.GetBiblioInfo(capoUserName, biblioPath,
+               "summary,xml",
+                out dataList,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+                return nRet;
+
+            summary = dataList[0];
+            summary = "<span class='summary'>" + summary + "</span>";
+            string xml = dataList[1];
+            if (showCover == true)
+            {
+                string strOutMarcSyntax = "";
+                string strMARC = "";
+                string strFragmentXml = "";
+                // 将XML格式转换为MARC格式
+                // 自动从数据记录中获得MARC语法
+                nRet = MarcUtil.Xml2Marc(xml,
+                    MarcUtil.Xml2MarcStyle.Warning | MarcUtil.Xml2MarcStyle.OutputFragmentXml,
+                    "",
+                    out strOutMarcSyntax,
+                    out strMARC,
+                    out strFragmentXml,
+                    out strError);
+                if (nRet == -1)
+                {
+                    strError = "XML转换到MARC记录时出错: " + strError;
+                    return -1;
+                }
+
+                string strImageUrl = GetCoverImageUrl(strMARC, "MediumImage");
+                coverImgHtml = dp2WeiXinService.GetImageHtmlFragment(libId, biblioPath, strImageUrl);
+                
+            }
+            
+
+            return 1;
+        }
+
+        public int GetBiblioInfo(string capoUserName,
+            string biblioPath,
+            string formatList,
+            out List<string> dataList,
+            out string strError)
+        {
+            strError = "";
+            dataList = new List<string>();
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -3057,7 +3231,7 @@ ERROR1:
                 "",
                 "",
                 "",
-                "summary,xml",
+                formatList,//
                 1,
                 0,
                 -1);    
@@ -3081,9 +3255,16 @@ ERROR1:
                     strError = "未命中";
                     return 0;
                 }
+                if (result.Records != null && result.Records.Count > 0)
+                {
+                    for (int i = 0; i < result.Records.Count; i++)
+                    {
+                        dataList.Add(result.Records[i].Data);
+                    }
+                }
 
-                summary = result.Records[0].Data;
-                xml = result.Records[1].Data;
+                //    summary = result.Records[0].Data;
+                //xml = result.Records[1].Data;
 
 
                 return 1;
