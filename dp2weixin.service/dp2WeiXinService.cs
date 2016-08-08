@@ -331,10 +331,38 @@ namespace dp2weixin.service
 
         #region 设置dp2mserver信息
 
-        public void SetDp2mserverInfo(string dp2mserverUrl,
+        public int SetDp2mserverInfo(string dp2mserverUrl,
             string userName,
-            string password)
+            string password,
+            out string strError)
         {
+            strError = "";
+
+            string oldUserName = this.userName;
+            string oldPassword = this.password;
+
+
+
+            // 先检查下地址与密码是否可用，如不可用，不保存
+            try
+            {
+                this.userName = userName;
+                this.password = password;
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                  dp2mserverUrl,
+                    Guid.NewGuid().ToString()).Result;
+            }
+            catch (AggregateException ex)
+            {
+                strError = "测试服务器连接不成功："+MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = "测试服务器连接不成功：" + ex.Message;
+                goto ERROR1;
+            }
+
             XmlDocument dom = new XmlDocument();
             dom.Load(this._cfgFile);
             XmlNode root = dom.DocumentElement;
@@ -356,6 +384,14 @@ namespace dp2weixin.service
             this.dp2MServerUrl = dp2mserverUrl;
             this.userName = userName;
             this.password = password;
+
+            return 0;
+
+        ERROR1:
+            // 还原原来的值
+            this.userName = oldUserName;
+            this.password = oldPassword;
+            return -1;
         }
 
         public void GetDp2mserverInfo(out string dp2mserverUrl,

@@ -1,0 +1,27 @@
+﻿@model dp2weixinWeb.Models.LoginModel
+@{
+    Layout = "~/Views/Shared/_LayoutManager.cshtml";
+}
+@section header {
+    <h1 class="mui-title">超级管理员登录</h1>
+}
+@using (Html.BeginForm("Login", "Home", new { returnUrl = ViewBag.ReturnUrl }, FormMethod.Post))
+    {
+    <div class="mui-input-group">
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">账号</label>
+            <input type="text" name="UserName" class="mui-input mui-input-clear" placeholder="请输入 账号">
+        </div>
+        <div class="mui-input-row">
+            <label style="color:#cccccc">密码</label>
+            <input type="password" name="Password" class="mui-input-password" placeholder="请输入 密码">
+        </div>
+    </div>
+
+    <div class="mui-content-padded">
+        <button id='login' class="mui-btn mui-btn-block mui-btn-primary">登录</button>
+    </div>
+}
+
+<div class="mui-content-padded" style="color:red">@ViewBag.Error
+</div>

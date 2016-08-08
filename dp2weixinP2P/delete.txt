@@ -1,4 +1,83 @@
-﻿=====web 菜单修改=========
+﻿===home/index===
+
+            /*
+           if (String.IsNullOrEmpty(admin) == false && admin == "1")
+           {
+               Session["userType"] = "admin";
+           }
+           // 用于测试，如果传了一个weixin id参数，则存到session里
+           if (String.IsNullOrEmpty(weiXinId) == false)
+           {
+               // 记下微信id
+               Session[WeiXinConst.C_Session_WeiXinId] = weiXinId;
+           }
+
+           // 检查是否从微信入口进来
+           string strError = "";
+           int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+           if (nRet == -1)
+               return Content(strError);
+
+
+           
+           weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            
+           WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
+
+           LibInfoModel libInfo = null;
+           if (userItem!=null)
+           {
+               string libName = userItem.libName;
+               libInfo = new LibInfoModel();
+               libInfo.Title = libName+" 主页";
+
+               string htmlFile = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + userItem.libId+"/index.html";
+               if (System.IO.File.Exists(htmlFile) == false)
+               {
+                   // 先缺省html文件
+                   htmlFile = dp2WeiXinService.Instance.weiXinDataDir + "/lib/index.html";
+               }
+
+               string strHtml = "";
+               // 文件存在，取出文件 的内容
+               if (System.IO.File.Exists(htmlFile) == true)
+               {
+                   Encoding encoding;
+                   // 能自动识别文件内容的编码方式的读入文本文件内容模块
+                   // parameters:
+                   //      lMaxLength  装入的最大长度。如果超过，则超过的部分不装入。如果为-1，表示不限制装入长度
+                   // return:
+                   //      -1  出错 strError中有返回值
+                   //      0   文件不存在 strError中有返回值
+                   //      1   文件存在
+                   //      2   读入的内容不是全部
+                   nRet = FileUtil.ReadTextFileContent(htmlFile,
+                       -1,
+                       out strHtml,
+                       out encoding,
+                       out strError);
+                   if (nRet == -1 || nRet == 0)
+                       throw new Exception(strError);
+                   if (nRet == 2)
+                       throw new Exception("FileUtil.ReadTextFileContent() error");
+
+                   // 替换关键词
+                   strHtml = strHtml.Replace("%libName%", userItem.libName);
+               }
+               else
+               {
+                   strHtml=@"<div class='mui-content-padded'>"
+                       +"欢迎访问 "+libName+" 图书馆"
+                       +"</div>";
+               }
+
+               libInfo.Content = strHtml;
+           }
+
+           return View(libInfo);
+            */
+
+=====web 菜单修改=========
                     @if (Session[dp2weixin.service.WeiXinConst.C_Session_IsBind] != null && (int)Session[dp2weixin.service.WeiXinConst.C_Session_IsBind] == 1)
                     {
                         <li><a href="~/Account/Index">账号管理</a></li>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>我爱图书馆</title>
+    <title>我爱图书馆-后台管理系统</title>
     <!--CSS -->
     <link href="@Url.Content("~/Content/mui.min.css")" rel="stylesheet">
     <link href="@Url.Content("~/Content/style.css")" rel="stylesheet" type="text/css" />
@@ -22,17 +22,25 @@
 <body style="padding-bottom:50px;font-family: 'Microsoft YaHei',微软雅黑!important">
     <header class="mui-bar mui-bar-nav" id="myheader">
         @RenderSection("header", required: false)
-        <a class=" mui-icon mui-pull-right"  href='javascript:void(0)' onclick='gotoSetting()' style="color:#cccccc"><span style="font-size:10pt" id="_libName">@ViewBag.LibName</span></a>
-        <span id="_libId" style="display:none">@ViewBag.LibId</span>
+        <a class=" mui-icon mui-pull-left"  href='javascript:void(0)'  style="color:#cccccc">
+        <span style="font-size:10pt" id="_libName">我爱图书馆-后台管理系统</span>
+        </a>
     </header>
 
     <div class="btn3 clearfix" id="divBottonTab">
         <div class="menu">
-            <div class="bt-name">资源</div>
+            <div class="bt-name">公众号管理</div>
             <div class="new-sub">
                 <ul>
-                    <li><a href="~/Biblio/Index">书目查询</a></li>
-                    <li><a href="~/Library/BookSubject">好书推荐</a></li>
+                    <li>
+                        <a href="~/home/Setting">参数配置</a>
+                    </li>
+                    <li>
+                        <a href="~/home/LibraryM">图书馆管理</a>
+                    </li>
+                    <li>
+                        <a href="~/home/WeixinUser">用户管理</a>
+                    </li>
                 </ul>
                 <div class="tiggle"></div>
                 <div class="innertiggle"></div>
@@ -40,14 +48,15 @@
         </div><!--menu-->
 
         <div class="menu">
-            <div class="bt-name">我的图书馆</div>
+            <div class="bt-name">微信</div>
             <div class="new-sub">
                 <ul>
-                    <li><a href="~/Patron/PersonalInfo">我的信息</a></li>
-                    <li><a href="~/Account/Index">绑定账号</a></li>
-                    <li><a href="~/Account/ResetPassword">找回密码</a></li>
-                    <li><a href="~/Patron/QRcode">二维码</a></li>
-                    <li><a href="~/Patron/Setting">设置</a></li>
+                    <li>
+                        <a href="~/Menu/Index">微信菜单</a>
+                    </li>
+                    <li>
+                        <a href="~/home/WeixinMessage">微信消息</a>
+                    </li>
                 </ul>
                 <div class="tiggle"></div>
                 <div class="innertiggle"></div>
@@ -55,19 +64,25 @@
         </div><!--menu-->
 
         <div class="menu">
-            <div class="bt-name">更多</div>
+            <div class="bt-name">UI</div>
             <div class="new-sub">
                 <ul>
-                    <li>
-                        <a href="~/Library/BB">公告</a>
-                    </li>
-                    <li>
-                        <a href="~/Library/Home">图书馆主页</a>
-                    </li>
-                    <li>
-                        <a href="~/Home/Contact">联系我们</a>
-                    </li>
 
+                        <li>
+                            <a href="~/UI/PersonalInfo">我的信息</a>
+                        </li>
+                    <li>
+                        <a href="~/UI/BiblioIndex">书目</a>
+                    </li>
+                    <li>
+                        <a href="~/UI/Message">消息</a>
+                    </li>
+                    <li>
+                        <a href="~/UI/MsgEdit">消息编辑</a>
+                    </li>
+                    <li>
+                        <a href="~/Library/Home?weixinId=o4xvUviTxj2HbRqbQb9W2nMl4fGg">公众号测试入口</a>
+                    </li>
                 </ul>
                 <div class="tiggle"></div>
                 <div class="innertiggle"></div>
@@ -170,19 +185,7 @@
             }
         });
 
-
-
-
-        function adjust() {
-            var h = $(window).height();
-            if (h <= 150) {
-                showTopBottom(false);
-            }
-            else {
-                showTopBottom(true);
-            }
-        };
-
+        
         // 设置是否显示头尾参数的值，同时改变背景
         function setShowValue(value) {
             bShowTopBottom = value;
@@ -209,55 +212,6 @@
             }
         };
 
-        function gotoUrl(url) {
-            var myUrl = getRootPath() + url;
-            window.location = myUrl;
-        };
-
-        function getLibId()
-        {
-            return $("#_libId").text();
-        }
-
-        //function getCurPath() {
-        //    var path = 
-        //    alert("[" + path + "]");
-        //}
-
-        function gotoSetting()
-        {
-            var thisUrl = window.location.pathname; //
-            //alert("[" + thisUrl + "]");
-            var url = "/Patron/Setting?returnUrl=" + encodeURIComponent(thisUrl);
-            gotoUrl(url);
-        }
-
-
-
-
-        // 设置头尾菜单是否显示
-        function setShowTopButton() {
-            //
-            if (browser.versions.iPhone == true) {
-                $("input").focus(function () {
-                    setShowValue(false);
-                    window.setTimeout("showTopBottom()", 1);
-                });
-                $("input").blur(function () {
-                    setShowValue(true);
-                    window.setTimeout("showTopBottom()", 1);
-                });
-                $("textarea").focus(function () {
-                    setShowValue(false);
-                    window.setTimeout("showTopBottom()", 1);
-                });
-                $("textarea").blur(function () {
-                    setShowValue(true);
-                    window.setTimeout("showTopBottom()", 1);
-                });
-            }
-
-        }
     </script>
 </body>
 </html>

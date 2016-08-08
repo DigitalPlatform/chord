@@ -23,7 +23,7 @@ function getDetail(libId, recPath, obj, from) {
 
     //alert("getDetail 2");
 
-    // 调api
+    // 调GetBiblioDetail  api
     var url = "/api/biblio?weixinId=" + encodeURIComponent(weixinId)
         + "&libId=" + encodeURIComponent(libId)
         + "&biblioPath=" + encodeURIComponent(recPath)
@@ -362,6 +362,8 @@ function fillPending() {
     if (mytype == "bs-") {
         //alert("bs-"+keyword);
         var libId = o.children("span").text();
+
+        // 调GetBiblioSummary api
         var url = "/api/biblio?id=" + encodeURIComponent(myvalue)
             + "&format=summary"
             + "&libId=" + encodeURIComponent(libId);
@@ -391,6 +393,8 @@ function fillPending() {
     }
     else if (mytype == "ms-") {
         var libId = o.children("span").text();
+
+        // 调GetBiblioSummary api
         var url = "/api/biblio?id=" + encodeURIComponent(myvalue)
             + "&format=more-summary"
             + "&libId=" + encodeURIComponent(libId);
