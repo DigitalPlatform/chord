@@ -13,7 +13,7 @@
     <script src='@Url.Content("~/Scripts/jquery-3.0.0.js")'></script>
     <script src='@Url.Content("~/Scripts/jquery-ui-1.11.4.js")'></script>
     <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/Scripts/weixin.js?test=1.0")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/weixin.js?test=1.1")"></script>
     @RenderSection("style", required: false)
     @RenderSection("scripts", required: false)
     @RenderSection("HeaderContent", false)
@@ -39,7 +39,7 @@
             </div>
         </div><!--menu-->
 
-        <div class="menu">
+        <div class="menu" >
             <div class="bt-name">我的图书馆</div>
             <div class="new-sub">
                 <ul>
@@ -128,37 +128,51 @@
             language: (navigator.browserLanguage || navigator.language).toLowerCase()
         };
 
-        $(document).ready(function () {
+        function doTopBottom()
+        {
+            window.setTimeout("showTopBottom()", 1);
+        }
 
-            //$("#idTest").html(" 是否为iPhone: " + browser.versions.iPhone);
+        $(document).ready(function () {
+            totalHeight = $(window).height();
+            //$("#idTest").html($(window).height() + "-" + $("#divBottonTab").height());//" 是否为iPhone: " + browser.versions.iPhone);
             //browser.versions.iPhone
             if (browser.versions.iPhone == true) {
                 $("input").focus(function () {
                     setShowValue(false);
-                    window.setTimeout("showTopBottom()", 1);
+                    doTopBottom();
                 });
                 $("input").blur(function () {                   
                     setShowValue(true);
-                    window.setTimeout("showTopBottom()", 1);
+                    doTopBottom();
                 });
 
                 $("select").focus(function () {
                     setShowValue(false);
-                    window.setTimeout("showTopBottom()", 1);
+                    doTopBottom();
                 });
                 $("select").blur(function () {
                     setShowValue(true);
-                    window.setTimeout("showTopBottom(true)", 1);
+                    doTopBottom();
                 });
 
                 $("textarea").focus(function () {
                     setShowValue(false);
-                    window.setTimeout("showTopBottom()", 1);
+                    doTopBottom();
                 });
                 $("textarea").blur(function () {
                     setShowValue(true);
-                    window.setTimeout("showTopBottom()", 1);
+                    doTopBottom();
                 });
+
+                //$("a").focus(function () {
+                //    setShowValue(false);
+                //    doTopBottom();
+                //});
+                //$("a").blur(function () {
+                //    setShowValue(true);
+                //    doTopBottom();
+                //});
             }
             else {
                 //// 非iphone时，浏览器窗口变矮时，隐藏头尾栏
@@ -173,15 +187,15 @@
 
 
 
-        function adjust() {
-            var h = $(window).height();
-            if (h <= 150) {
-                showTopBottom(false);
-            }
-            else {
-                showTopBottom(true);
-            }
-        };
+        //function adjust() {
+        //    var h = $(window).height();
+        //    if (h <= 150) {
+        //        showTopBottom(false);
+        //    }
+        //    else {
+        //        showTopBottom(true);
+        //    }
+        //};
 
         // 设置是否显示头尾参数的值，同时改变背景
         function setShowValue(value) {
@@ -198,14 +212,27 @@
 
         // 真正做事，隐藏或显示头尾菜单
         var bShowTopBottom = true;
+        var totalHeight = 0;
         function showTopBottom() {
             if (bShowTopBottom == true) {
+
+                // 把菜单位置设在最下方
+                $("#divBottonTab").css('position', 'fixed');
+                $("#divBottonTab").css('z-index', '3');
+                
+                var top = totalHeight - 40;//发现height会越变越小，真是奇怪？ $("#divBottonTab").height();//要用一进来的值，因为iphone会在头顶弹出防欺诈盗号类行 $(window).height()
+                //if (top == 416)
+                //    top = top - 40;
+                $("#divBottonTab").css('top', top+'px');
+                //$("#idTest").html(totalHeight + "===" + $("#divBottonTab").height() +"==="+ top);
+
                 $("#divBottonTab").css('display', 'block');
                 $("#myheader").css('display', 'block');
             }
             else {
                 $("#divBottonTab").css('display', 'none');
                 $("#myheader").css('display', 'none');
+
             }
         };
 
@@ -241,19 +268,27 @@
             if (browser.versions.iPhone == true) {
                 $("input").focus(function () {
                     setShowValue(false);
-                    window.setTimeout("showTopBottom()", 1);
+                    doTopBottom();
                 });
                 $("input").blur(function () {
                     setShowValue(true);
-                    window.setTimeout("showTopBottom()", 1);
+                    doTopBottom();
+                });
+                $("select").focus(function () {
+                    setShowValue(false);
+                    doTopBottom();
+                });
+                $("select").blur(function () {
+                    setShowValue(true);
+                    doTopBottom();
                 });
                 $("textarea").focus(function () {
                     setShowValue(false);
-                    window.setTimeout("showTopBottom()", 1);
+                    doTopBottom();
                 });
                 $("textarea").blur(function () {
                     setShowValue(true);
-                    window.setTimeout("showTopBottom()", 1);
+                    doTopBottom();
                 });
             }
 

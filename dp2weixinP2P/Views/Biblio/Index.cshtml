@@ -112,6 +112,7 @@
                 }
                 var table = $("#ulResult");//$('.mui-table-view');
                 table.html("");
+                $("#searchInfo").text("");
 
             }
 
@@ -279,12 +280,21 @@
             var type = $("#searchType").text();
             //alert(type);
 
+            // 2016-8-11 置空结果集
+            var table = $("#ulResult");//$('.mui-table-view');
+            table.html("");
+            $("#searchInfo").text("");
+            $('#txtWordSimple').val("");
+            $('#txtWord').val("");
+
             if (type == "高级检索") {
+                //$('#txtWordSimple').focus();
                 $("#divAdvance").css("display", "block");
                 $("#divSimple").css("display", "none");
                 $("#searchType").text("简单检索");
             }
             else {
+                //$('#txtWord').focus();
                 $("#divAdvance").css("display", "none");
                 $("#divSimple").css("display", "block");
                 $("#searchType").text("高级检索");
@@ -366,6 +376,7 @@
     </table>
 </div>
 <div style="padding:10px">
+
     <a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a>
 </div>
 <div id="divResult">
