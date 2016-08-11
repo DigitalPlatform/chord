@@ -1996,7 +1996,8 @@ true);
             info.LibraryUID,
             info.LibraryName,
             info.LibraryUserName,
-            info.PropertyList);
+            info.PropertyList,
+            info.ClientIP);
                     records.Add(record);
                     if (records.Count >= batch_size
                         || i == count - 1)
@@ -3377,6 +3378,13 @@ ex.GetType().ToString());
             connection_info.LibraryUID = (string)table["libraryUID"];
             connection_info.LibraryName = (string)table["libraryName"];
             connection_info.LibraryUserName = (string)table["libraryUserName"];
+
+            // 2016/8/11
+            {
+                object ipAddress;
+                Context.Request.Environment.TryGetValue("server.RemoteIpAddress", out ipAddress);
+                connection_info.ClientIP = (string)ipAddress;
+            }
 
             AddToSignalRGroup(connection_info, true);
         }

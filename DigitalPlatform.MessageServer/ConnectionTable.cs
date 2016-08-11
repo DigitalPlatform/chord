@@ -436,6 +436,7 @@ namespace DigitalPlatform.MessageServer
 
         // public string UserName = "";    // 用户名
         public string PropertyList = "";    // 属性值列表 biblio_search
+        public string ClientIP = "";        // 前端 IP 地址 2016/8/11
 
         public string LibraryUserName = ""; // 用户在本馆所用的用户名
 

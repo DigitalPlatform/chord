@@ -443,6 +443,8 @@ namespace DigitalPlatform.Message
 
         public string PropertyList { get; set; }
 
+        public string ClientIP { get; set; }
+
         public ConnectionRecord(string userName,
             string rights,
             string duty,
@@ -452,7 +454,8 @@ namespace DigitalPlatform.Message
             string libraryUID,
             string libraryName,
             string libraryUserName,
-            string propertyList)
+            string propertyList,
+            string clientIP)
         {
             User user = new User();
             user.userName = userName;
@@ -467,6 +470,7 @@ namespace DigitalPlatform.Message
             this.LibraryName = libraryName;
             this.LibraryUserName = libraryUserName;
             this.PropertyList = propertyList;
+            this.ClientIP = clientIP;
         }
     }
 
