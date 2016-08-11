@@ -80,6 +80,16 @@ namespace dp2weixin.service
             return null;
         }
 
+        // 获得了设置了指定图书馆的项
+        public List<UserSettingItem> GetByLibId(string libId)
+        {
+            // 先查到weixinId+libCode+readerBarcode唯一的记录
+            var filter = Builders<UserSettingItem>.Filter.Eq("libId", libId);
+
+            List<UserSettingItem> list = this.settingCollection.Find(filter).ToList();
+            return list;
+        }
+
         public void SetLib(UserSettingItem inputItem)
         {
             UserSettingItem item = this.GetByWeixinId(inputItem.weixinId);

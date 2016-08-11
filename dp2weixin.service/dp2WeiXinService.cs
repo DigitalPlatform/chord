@@ -5835,6 +5835,8 @@ ERROR1:
         }
 
 
+        #region 图书馆管理
+
         public int AddLib(LibItem item,out LibItem outputItem,out string strError)
         {
             strError = "";
@@ -5861,14 +5863,23 @@ ERROR1:
 
         public ApiResult deleteLib(string id)
         {
+            string strError = "";
+
             ApiResult result = new ApiResult();
             // 先检查一下，是否有微信用户绑定了该图书馆
             List<WxUserItem> list = WxUserDatabase.Current.GetByLibId(id);
             if (list != null && list.Count > 0)
             {
-                result.errorCode = -1;
-                result.errorInfo = "目前存在微信用户绑定了该图书馆的账户，不能删除图书馆。";
-                return result;
+                strError = "目前存在微信用户绑定了该图书馆的账户，不能删除图书馆。";
+                goto ERROR1;
+            }
+
+            // 检查是否有微信用户设置了该图书馆
+            List<UserSettingItem> settingList= UserSettingDb.Current.GetByLibId(id);
+            if (settingList != null && settingList.Count > 0)
+            {
+                strError = "目前已经存在微信用户设置了该图书馆，不能删除图书馆。";
+                goto ERROR1;
             }
 
             // 删除配置目录
@@ -5884,17 +5895,23 @@ ERROR1:
                 }
                 catch (Exception ex)
                 {
-                    result.errorCode = -1;
-                    result.errorInfo = ex.Message;// "目前存在微信用户绑定了该图书馆的账户，不能删除图书馆。";
-                    return result;
+                    strError = ex.Message;
+                    goto ERROR1;
                 }
             }
             
-            //
+            // 从mongodb中删除
             LibDatabase.Current.Delete(id);
 
             return result;
 
+
+            ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = strError;
+            return result;
         }
+
+        #endregion
     }
 }
