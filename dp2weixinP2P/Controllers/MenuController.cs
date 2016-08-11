@@ -22,11 +22,26 @@ namespace Senparc.Weixin.MP.Sample.Controllers
 {
     public class MenuController : Controller
     {
+        private bool CheckSupervisorLogin()
+        {
+            if (Session["supervisor"] != null && (bool)Session["supervisor"] == true)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         //
         // GET: /Menu/
 
         public ActionResult Index()
         {
+            if (CheckSupervisorLogin() == false)
+            {
+                return Redirect("~/Home/Login?returnUrl=" + System.Web.HttpUtility.UrlEncode("~/Home/Manager"));
+            }
+
             GetMenuResult result = new GetMenuResult(new ButtonGroup());
 
             //初始化

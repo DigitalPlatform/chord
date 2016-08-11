@@ -23,11 +23,11 @@ function getDetail(libId, recPath, obj, from) {
 
     //alert("getDetail 2");
 
-    // 调api
+    // 调GetBiblioDetail  api
     var url = "/api/biblio?weixinId=" + encodeURIComponent(weixinId)
         + "&libId=" + encodeURIComponent(libId)
         + "&biblioPath=" + encodeURIComponent(recPath)
-        + "&format=full"
+        + "&format=table"
         + "&from=" + encodeURIComponent(from);
 
     //alert("getDetail 3");
@@ -87,21 +87,8 @@ function getDetail(libId, recPath, obj, from) {
             + "</div>";
         }
 
-        var recommendBtn = "";
-        //var worker=$("#")
-        //if (worker != null && worker != "") {
-        //    var recommPath = "/Library/BookEdit?libId=" + libId
-        //        + "&userName=" + worker
-        //        + "&biblioPath=" + encodeURIComponent(biblioPath)
-        //        + "&returnUrl=" + encodeURIComponent('/Biblio/Index')
-        //    recommendBtn = "<div class='btnRow'><button class='mui-btn  mui-btn-default' "
-        //        + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button></div>";
-        //}
-        //var myHtml = "<span>" + result.summary + "</span>"
-        //    + recommendBtn
-        //    + itemTables;
 
-        var myHtml = result.summary + itemTables;
+        var myHtml = result.info + itemTables;
 
         obj.html(myHtml);
 
@@ -362,6 +349,8 @@ function fillPending() {
     if (mytype == "bs-") {
         //alert("bs-"+keyword);
         var libId = o.children("span").text();
+
+        // 调GetBiblioSummary api
         var url = "/api/biblio?id=" + encodeURIComponent(myvalue)
             + "&format=summary"
             + "&libId=" + encodeURIComponent(libId);
@@ -391,6 +380,8 @@ function fillPending() {
     }
     else if (mytype == "ms-") {
         var libId = o.children("span").text();
+
+        // 调GetBiblioSummary api
         var url = "/api/biblio?id=" + encodeURIComponent(myvalue)
             + "&format=more-summary"
             + "&libId=" + encodeURIComponent(libId);

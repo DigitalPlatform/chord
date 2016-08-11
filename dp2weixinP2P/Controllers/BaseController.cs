@@ -123,8 +123,10 @@ namespace dp2weixinWeb.Controllers
             ////当前读者
             //WxUserItem curPatron = WxUserDatabase.Current.GetActivePatron(weixinId);
 
-            //// 当前工作人员
+            // 当前工作人员
             //WxUserItem curWorker = WxUserDatabase.Current.GetOneWorker(weixinId);
+            
+            
 
             return 0;
         }

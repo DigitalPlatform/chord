@@ -238,7 +238,6 @@
     <Content Include="Views\Biblio\Index.cshtml" />
     <Content Include="Views\Account\Bind.cshtml" />
     <Content Include="Views\Account\ResetPassword.cshtml" />
-    <Content Include="Views\Home\Test.cshtml" />
     <Content Include="Views\Patron\Reservation.cshtml" />
     <Content Include="Views\Patron\PersonalInfo.cshtml" />
     <Content Include="Views\Patron\OverdueInfo.cshtml" />
@@ -253,11 +252,14 @@
     <Content Include="Views\Library\BookSubject.cshtml" />
     <Content Include="Views\UI\BiblioIndex.cshtml" />
     <Content Include="Views\UI\PersonalInfo.cshtml" />
-    <Content Include="Views\Library\HomePage.cshtml" />
+    <Content Include="Views\Library\Home.cshtml" />
     <Content Include="Views\UI\Message.cshtml" />
     <Content Include="Views\UI\MsgEdit.cshtml" />
     <Content Include="Views\Patron\Setting.cshtml" />
     <Content Include="Views\Library\BB.cshtml" />
+    <Content Include="Views\Shared\_LayoutManager.cshtml" />
+    <Content Include="Views\Home\Manager.cshtml" />
+    <Content Include="Views\Home\Login.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

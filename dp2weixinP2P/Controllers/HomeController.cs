@@ -20,133 +20,140 @@ namespace dp2weixinWeb.Controllers
 {
     public class HomeController : BaseController
     {
-        public ActionResult Test()
+        public ActionResult Index(string code, string state, string weiXinId)
         {
-            ViewBag.LibHtml = this.GetLibSelectHtml("");
+            return Redirect("~/Library/Home?code=" + code
+                + "&state=" + state 
+                + "&weiXinId=" + weiXinId);
+        }
+
+        // 超级管理员登录
+        public ActionResult Login(string returnUrl)
+        {
+            ViewBag.ReturnUrl = returnUrl;
+
             return View();
         }
-        public ActionResult Index(string code, string state, string admin, string weiXinId)
+
+        [HttpPost]
+        public ActionResult Login(LoginModel model,string returnUrl)
         {
-            if (String.IsNullOrEmpty(admin) == false && admin == "1")
+            Session["supervisor"] = true;
+
+            string userName = "";
+            string password = "";
+            dp2WeiXinService.Instance.GetSupervisorAccount(out userName, out password);
+
+            string error = "";
+            if (model.UserName != userName || model.Password != password)
             {
-                Session["userType"] = "admin";
+                error = "账户或密码不正确。";
             }
-            // 用于测试，如果传了一个weixin id参数，则存到session里
-            if (String.IsNullOrEmpty(weiXinId) == false)
+
+            if (error == "")
             {
-                // 记下微信id
-                Session[WeiXinConst.C_Session_WeiXinId] = weiXinId;
-            }
-
-            // 检查是否从微信入口进来
-            string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
-            if (nRet == -1)
-                return Content(strError);
-
-            weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
-
-            LibInfoModel libInfo = null;
-            if (userItem!=null)
-            {
-                string libName = userItem.libName;
-                libInfo = new LibInfoModel();
-                libInfo.Title = libName+" 主页";
-
-                string htmlFile = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + userItem.libId+"/index.html";
-                if (System.IO.File.Exists(htmlFile) == false)
-                {
-                    // 先缺省html文件
-                    htmlFile = dp2WeiXinService.Instance.weiXinDataDir + "/lib/index.html";
-                }
-
-                string strHtml = "";
-                // 文件存在，取出文件 的内容
-                if (System.IO.File.Exists(htmlFile) == true)
-                {
-                    Encoding encoding;
-                    // 能自动识别文件内容的编码方式的读入文本文件内容模块
-                    // parameters:
-                    //      lMaxLength  装入的最大长度。如果超过，则超过的部分不装入。如果为-1，表示不限制装入长度
-                    // return:
-                    //      -1  出错 strError中有返回值
-                    //      0   文件不存在 strError中有返回值
-                    //      1   文件存在
-                    //      2   读入的内容不是全部
-                    nRet = FileUtil.ReadTextFileContent(htmlFile,
-                        -1,
-                        out strHtml,
-                        out encoding,
-                        out strError);
-                    if (nRet == -1 || nRet == 0)
-                        throw new Exception(strError);
-                    if (nRet == 2)
-                        throw new Exception("FileUtil.ReadTextFileContent() error");
-
-                    // 替换关键词
-                    strHtml = strHtml.Replace("%libName%", userItem.libName);
-                }
+                if (string.IsNullOrEmpty(returnUrl) == false)
+                    return Redirect(returnUrl);
                 else
-                {
-                    strHtml=@"<div class='mui-content-padded'>"
-                        +"欢迎访问 "+libName+" 图书馆"
-                        +"</div>";
-                }
-
-                libInfo.Content = strHtml;
+                    return Redirect("~/Home/Manager");
             }
 
-            return View(libInfo);
+            ViewBag.Error = error;
+            return View();
         }
 
-        // 系统设置
+        private bool CheckSupervisorLogin()
+        {
+            if (Session["supervisor"] != null && (bool)Session["supervisor"] == true)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        // Manager
+        public ActionResult Manager()
+        {
+            if (CheckSupervisorLogin() == false)
+            {
+                return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Home/Manager"));
+            }
+
+            return View();
+        }
+
+        // 参数配置
         public ActionResult Setting()
         {
+            if (CheckSupervisorLogin() == false)
+            {
+                return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Home/Setting"));
+            }
+
             ViewBag.success = false;
 
-            /*
-            // 从web config中取出mserver服务器地址，微信自己的账号
-            string dp2MServerUrl = WebConfigurationManager.AppSettings["dp2MServerUrl"];
-            string userName = WebConfigurationManager.AppSettings["userName"];            
-            string password = WebConfigurationManager.AppSettings["password"];
-            if (string.IsNullOrEmpty(password)==false)// 解密
-                password = Cryptography.Decrypt(password, dp2WeiXinService.EncryptKey);
-             */
             SettingModel model = new SettingModel();
             model.dp2MserverUrl = dp2WeiXinService.Instance.dp2MServerUrl;// "";// dp2MServerUrl;
             model.userName = dp2WeiXinService.Instance.userName;// "";//userName;
             model.password = dp2WeiXinService.Instance.password;// "";//password;
+            model.mongoDbConnection = dp2WeiXinService.Instance.monodbConnectionString;
+            model.mongoDbPrefix = dp2WeiXinService.Instance.monodbPrefixString;
 
             return View(model);
         }
         [HttpPost]
         public ActionResult Setting(SettingModel model)
         {
-            ViewBag.success = false;  
+            ViewBag.success = false;
 
-            dp2WeiXinService.Instance.SetDp2mserverInfo(model.dp2MserverUrl,
+            string strError = "";
+            int nRet = dp2WeiXinService.Instance.SetDp2mserverInfo(model.dp2MserverUrl,
                 model.userName,
-                model.password); //函数里面会将密码加密
-
-            ViewBag.success = true;  
+                model.password,
+                "",
+                "",
+                out strError); //函数里面会将密码加密
+            if (nRet == -1)
+            {
+                ViewBag.success = false;
+                ViewBag.Error = strError;
+            }
+            else
+                ViewBag.success = true;  
             return View(model);
         }
 
         public ActionResult LibraryM()
         {
+            if (CheckSupervisorLogin() == false)
+            {
+                return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Home/LibraryM"));
+            }
+
+
             return View();
         }
 
         //WeixinUser
-        public ActionResult WeixinUser()
+        public ActionResult WeixinUser(string code, string state)
         {
+            if (CheckSupervisorLogin() == false)
+            {
+                return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Home/WeixinUser"));
+            }
+
             return View();
         }
 
         //WeixinMessage
         public ActionResult WeixinMessage()
         {
+            if (CheckSupervisorLogin() == false)
+            {
+                return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Home/WeixinMessage"));
+            }
+
             MessageModel model = new MessageModel();
             return View(model);
         }
@@ -180,12 +187,6 @@ namespace dp2weixinWeb.Controllers
             return View(model);
         }
 
-        //WeixinMenu
-        public ActionResult WeixinMenu()
-        {
-            return View();
-        }
-
 
         public ActionResult About(string code, string state)
         {
@@ -210,12 +211,6 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
-
-        //UiTest
-        public ActionResult UiTest()
-        {
-            return View();
-        }
 
 	}
 }

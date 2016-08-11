@@ -27,6 +27,11 @@ namespace dp2weixinWeb.ApiControllers
             if (weixinId == "recover")
             {
                 return dp2WeiXinService.Instance.RecoverUsers();
+
+                //WxUserResult result = new WxUserResult();
+                //List<WxUserItem> list = wxUserDb.GetUsers();//"*", 0, -1).Result;
+                //result.users = list;
+                //return result;
             }
             else
             {

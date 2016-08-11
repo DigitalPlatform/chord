@@ -3,10 +3,7 @@
 DIV.biblio {
 }
 
-    /*书目操作按钮行，现在有好书推荐按钮*/
-    DIV.biblio DIV.btnRow {
-        text-align: right;
-    }
+
 
     /*信息行*/
       DIV.biblio TABLE.info{
@@ -16,16 +13,44 @@ DIV.biblio {
             margin-bottom:5px;
         }
 
+
         DIV.biblio TABLE.info td.cover{
    
+            padding:4px;
+            vertical-align:top;
+            width:108px;
+        }
+        
+                DIV.biblio TABLE.info td.biblio_info{
+            vertical-align:top;
+            padding:2px;
         }
 
-        DIV.biblio TABLE.info td.summary{
+        DIV.biblio TABLE.info td.biblio_info .summary{
             vertical-align:middle;
-            /*margin-left:10px;*/
-            padding-left:5px;
-            width:100%;
         }
+
+    DIV.biblio TABLE.info td.biblio_info table.biblio_table{
+            width: 100%;
+        }
+
+     DIV.biblio TABLE.info td.biblio_info table.biblio_table .name{
+            color: #bbbbbb;
+            padding-right: 4px;
+            padding-bottom:4px;
+            text-align: right;
+            min-width:60px;
+            width:60px;
+            vertical-align:top;
+        }
+          DIV.biblio TABLE.info td.biblio_info table.biblio_table .value{
+                          padding-bottom:4px;
+        }
+
+    /*书目操作按钮行，现在有好书推荐按钮*/
+    DIV.biblio DIV.btnRow {
+        text-align: right;
+    }
 
 /*整个册块*/
 DIV.item {

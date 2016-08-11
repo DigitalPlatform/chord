@@ -32,7 +32,7 @@ namespace dp2weixin.service
     {
         public string biblioPath { get; set; }
 
-        public string summary { get; set; }
+        public string info { get; set; }
         public List<BiblioItem> itemList { get; set; }
     }
 

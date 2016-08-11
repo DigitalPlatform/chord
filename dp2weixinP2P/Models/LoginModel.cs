@@ -16,8 +16,5 @@ namespace dp2weixinWeb.Models
         [DataType(DataType.Password)]
         [Display(Name = "密码")]
         public string Password { get; set; }
-
-        [Display(Name = "读者")]
-        public string IsReader { get; set; }
     }
 }

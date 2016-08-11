@@ -48,6 +48,7 @@ namespace dp2weixin.service
         public const string C_Right_SetBook = "_wx_setbook";
         public const string C_Right_SetHomePage = "_wx_setHomePage";
 
+
         #region 成员变量
 
         // 微信数据目录
@@ -59,6 +60,9 @@ namespace dp2weixin.service
         public string dp2MServerUrl = "";
         public string userName = "";
         public string password = "";
+
+        public string monodbConnectionString = "";
+        public string monodbPrefixString = "";
 
         // 微信信息
         public string weiXinAppId { get; set; }
@@ -153,16 +157,16 @@ namespace dp2weixin.service
 
             // mongo配置
             XmlNode nodeMongoDB = root.SelectSingleNode("mongoDB");
-            string connectionString = DomUtil.GetAttr(nodeMongoDB, "connectionString");
-            if (String.IsNullOrEmpty(connectionString) == true)
+            this.monodbConnectionString = DomUtil.GetAttr(nodeMongoDB, "connectionString");
+            if (String.IsNullOrEmpty(this.monodbConnectionString) == true)
             {
                 throw new Exception("尚未配置mongoDB节点的connectionString属性");
             }
-            string instancePrefix = DomUtil.GetAttr(nodeMongoDB, "instancePrefix");
+            this.monodbPrefixString = DomUtil.GetAttr(nodeMongoDB, "instancePrefix");
             // 打开图书馆账号库与用户库
-            WxUserDatabase.Current.Open(connectionString, instancePrefix);
-            LibDatabase.Current.Open(connectionString, instancePrefix);
-            UserSettingDb.Current.Open(connectionString, instancePrefix);
+            WxUserDatabase.Current.Open(this.monodbConnectionString, this.monodbPrefixString);
+            LibDatabase.Current.Open(this.monodbConnectionString, this.monodbPrefixString);
+            UserSettingDb.Current.Open(this.monodbConnectionString, this.monodbPrefixString);
 
             // 初始化接口类
             string strError = "";
@@ -330,10 +334,40 @@ namespace dp2weixin.service
 
         #region 设置dp2mserver信息
 
-        public void SetDp2mserverInfo(string dp2mserverUrl,
+        public int SetDp2mserverInfo(string dp2mserverUrl,
             string userName,
-            string password)
+            string password,
+            string mongodbConnection,
+            string mongodbPrefix,
+            out string strError)
         {
+            strError = "";
+
+            string oldUserName = this.userName;
+            string oldPassword = this.password;
+
+
+
+            // 先检查下地址与密码是否可用，如不可用，不保存
+            try
+            {
+                this.userName = userName;
+                this.password = password;
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                  dp2mserverUrl,
+                    Guid.NewGuid().ToString()).Result;
+            }
+            catch (AggregateException ex)
+            {
+                strError = "测试服务器连接不成功："+MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = "测试服务器连接不成功：" + ex.Message;
+                goto ERROR1;
+            }
+
             XmlDocument dom = new XmlDocument();
             dom.Load(this._cfgFile);
             XmlNode root = dom.DocumentElement;
@@ -355,15 +389,27 @@ namespace dp2weixin.service
             this.dp2MServerUrl = dp2mserverUrl;
             this.userName = userName;
             this.password = password;
+
+            return 0;
+
+        ERROR1:
+            // 还原原来的值
+            this.userName = oldUserName;
+            this.password = oldPassword;
+            return -1;
         }
 
         public void GetDp2mserverInfo(out string dp2mserverUrl,
             out string userName,
-            out string password)
+            out string password,
+            out string mongodbConnection,
+            out string mongodbPrefix)
         {
             dp2mserverUrl = "";
             userName = "";
             password = "";
+            mongodbConnection = "";
+            mongodbPrefix = "";
 
             XmlDocument dom = new XmlDocument();
             dom.Load(this._cfgFile);
@@ -378,6 +424,35 @@ namespace dp2weixin.service
                 password = DomUtil.GetAttr(nodeDp2mserver, "password");
                 if (string.IsNullOrEmpty(password) == false)// 解密
                     password = Cryptography.Decrypt(this.password, WeiXinConst.EncryptKey);
+            }
+
+            // 设置mongoDB
+            XmlNode nodeMongoDB = root.SelectSingleNode("mongoDB");
+            if (nodeMongoDB != null)
+            {
+                mongodbConnection = DomUtil.GetAttr(nodeMongoDB, "connectionString");
+                mongodbPrefix = DomUtil.GetAttr(nodeMongoDB, "instancePrefix");
+            }
+        }
+
+        public void GetSupervisorAccount(out string username,
+            out string password)
+        {
+            username = "";
+            password = "";
+
+            XmlDocument dom = new XmlDocument();
+            dom.Load(this._cfgFile);
+            XmlNode root = dom.DocumentElement;
+
+            // 设置mserver服务器配置信息
+            XmlNode nodeSupervisor = root.SelectSingleNode("Supervisor");
+            if (nodeSupervisor != null)
+            {
+                username = DomUtil.GetAttr(nodeSupervisor, "username");
+                password = DomUtil.GetAttr(nodeSupervisor, "password");
+                if (string.IsNullOrEmpty(password) == false)// 解密
+                    password = Cryptography.Decrypt(password,WeiXinConst.EncryptKey);
             }
         }
 
@@ -2304,7 +2379,7 @@ namespace dp2weixin.service
                 // 发送解绑消息    
                 string strFirst = "🔒您已成功对图书馆读者账号解除绑定。";
                 string strAccount = userItem.readerName + "(" + userItem.readerBarcode + ")";
-                string strRemark = "\n您现在不能管理该图书馆的个人信息了，如需访问，请重新绑定。";
+                string strRemark = "\n您现在不能查看您在该图书馆的个人信息了，如需访问，请重新绑定。";
                 if (userItem.type == WxUserDatabase.C_Type_Worker)
                 {
                     strFirst = "🔒您已成功对图书馆工作人员账号解除绑定。";
@@ -2396,7 +2471,7 @@ namespace dp2weixin.service
             // 这里的records是第一页的记录
             List<BiblioRecord> records = null;
             bool bNext = false;
-            long lRet = this.SearchBiblio1(libId,
+            long lRet = this.SearchBiblioInternal(libId,
                 strFrom,
                 strWord,
                 match,
@@ -2435,7 +2510,7 @@ namespace dp2weixin.service
             string strError = "";
             List<BiblioRecord> records = null;
             bool bNext = false;
-            long lRet = this.SearchBiblio1(libId,
+            long lRet = this.SearchBiblioInternal(libId,
                  "",
                  "!getResult",
                  "",//match
@@ -2467,7 +2542,7 @@ namespace dp2weixin.service
         /// <param name="records">第一批的10条</param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public long SearchBiblio1(string libId,
+        private long SearchBiblioInternal(string libId,
             string strFrom,
             string strWord,
             string match,
@@ -2578,9 +2653,9 @@ namespace dp2weixin.service
 
         public static string GetImageHtmlFragment(string libId,
     string strBiblioRecPath,
-    string strMARC)
+    string strImageUrl)
         {
-            string strImageUrl = GetCoverImageUrl(strMARC, "MediumImage");
+            //
 
             if (string.IsNullOrEmpty(strImageUrl) == true)
                 return "";
@@ -2791,6 +2866,7 @@ namespace dp2weixin.service
         public BiblioDetailResult GetBiblioDetail(string weixinId,
             string libId,
             string biblioPath,
+            string format,
             string from)
         {
             BiblioDetailResult result = new BiblioDetailResult();
@@ -2815,51 +2891,72 @@ namespace dp2weixin.service
                 TimeSpan time_length = DateTime.Now - start_time;
                 string logInfo = "";
 
-                // 取出summary
-                this.WriteLog("开始获取summary");
-                string strSummary = "";
-                //string tempPath = "@bibliorecpath:" + biblioPath;
-                string xml = "";
-                nRet = this.GetBiblioInfo(lib.capoUserName,
-                    biblioPath,
-                    out strSummary,
-                    out xml,
-                    out strError);
-                if (nRet == -1 || nRet == 0)
-                {
-                    result.errorCode = -1;
-                    result.errorInfo = strError;
-                    return result;
-                }
-
-                // 封面图像，是否显示根据设置来
-                string imgHtml = "";//<img src='../img/empty2.jpg' width='100' height='100' />
+                bool showCover = false;
                 UserSettingItem item = UserSettingDb.Current.GetByWeixinId(weixinId);
                 if (item != null && item.showCover == 1)
                 {
-                    string strOutMarcSyntax = "";
-                    string strMARC = "";
-                    string strFragmentXml = "";
-                    // 将XML格式转换为MARC格式
-                    // 自动从数据记录中获得MARC语法
-                    nRet = MarcUtil.Xml2Marc(xml,
-                        MarcUtil.Xml2MarcStyle.Warning | MarcUtil.Xml2MarcStyle.OutputFragmentXml,
-                        "",
-                        out strOutMarcSyntax,
-                        out strMARC,
-                        out strFragmentXml,
-                        out strError);
-                    if (nRet == -1)
+                    showCover = true;
+                }
+
+                // 取出summary
+                this.WriteLog("开始获取biblio info");
+
+                string strBiblioInfo = "";
+                string imgHtml = "";// 封面图像
+                string biblioInfo = "";
+                if (format == "summary")
+                {
+                    nRet = this.GetSummaryAndImgHtml(lib.capoUserName,
+                       biblioPath,
+                       showCover,
+                       libId,
+                       out strBiblioInfo,
+                       out imgHtml,
+                       out strError);
+                    if (nRet == -1 || nRet == 0)
                     {
-                        strError = "XML转换到MARC记录时出错: " + strError;
-                        goto ERROR1;
+                        result.errorCode = -1;
+                        result.errorInfo = strError;
+                        return result;
                     }
 
-                    imgHtml= dp2WeiXinService.GetImageHtmlFragment(libId, biblioPath, strMARC);
+                    biblioInfo = "<table class='info'>"
+                        + "<tr>"
+                            + "<td class='cover'>" + imgHtml + "</td>"
+                            + "<td class='biblio_info'>" + strBiblioInfo + "</td>"
+                        + "</tr>"
+                    + "</table>";
+                }
+                else if (format == "table")
+                {
+                    nRet = this.GetTableAndImgHtml(lib.capoUserName,
+                        biblioPath,
+                        showCover,
+                        libId,
+                        out strBiblioInfo,
+                        out imgHtml,
+                        out strError);
+                    if (nRet == -1 || nRet == 0)
+                    {
+                        result.errorCode = -1;
+                        result.errorInfo = strError;
+                        return result;
+                    }
+
+                    biblioInfo = "<table class='info'>"
+    + "<tr>"
+        //+ "<td class='cover'>" + imgHtml + "</td>"
+        + "<td class='biblio_info'>" + strBiblioInfo + "</td>" //image放在里面了 2016.8.8
+    + "</tr>"
++ "</table>";
+                }
+                else
+                {
+                    strBiblioInfo = format + "风格";
                 }
 
 
-                // 得到绑定工作人员账号，并检查是否有权限
+                // 得到绑定工作人员账号，并检查是否有权限，进行好书推荐
                 string workerUserName = "";
                 if (string.IsNullOrEmpty(weixinId) == false)
                 {
@@ -2906,21 +3003,15 @@ namespace dp2weixin.service
 
                 }
 
-                //result.summary = "<span>" + strSummary + "</span>" + recommendBtn;
-                string biblioInfo = "<table class='info'>"
-                    + "<tr>"
-                        + "<td class='cover'>" + imgHtml + "</td>"
-                        + "<td class='summary'>"+ strSummary+"</td>"
-                    + "</tr>"
-                + "</table>"
-                +recommendBtn;
 
-                result.summary = biblioInfo;
+                
+
+                result.info = biblioInfo+recommendBtn;;
 
 
 
                 time_length = DateTime.Now - start_time;
-                string info = "获取[" + biblioPath + "]的summary信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
+                string info = "获取[" + biblioPath + "]的table信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
                 this.WriteLog(info);
 
                 //Thread.Sleep(1000);
@@ -2963,15 +3054,173 @@ ERROR1:
 
         }
 
-        public int GetBiblioInfo(string capoUserName,
+        //得到table风格的书目信息
+        private int GetTableAndImgHtml(string capoUserName,
             string biblioPath,
-            out string summary,
-            out string xml,
+            bool showCover,
+            string libId,
+            out string table,
+            out string coverImgHtml,
             out string strError)
         {
-            summary = "";
             strError = "";
-            xml = "";
+            table = "";
+            coverImgHtml = "";
+
+            List<string> dataList = null;
+            int nRet = this.GetBiblioInfo(capoUserName, biblioPath,
+               "table",
+                out dataList,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+                return nRet;
+
+            string xml = dataList[0];
+            XmlDocument dom = new XmlDocument();
+            try
+            {
+                dom.LoadXml(xml);
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+            XmlNode root = dom.DocumentElement;
+//<root>
+//    <line name="_coverImage" value="http://www.hongniba.com.cn/bookclub/images/books/book_20005451_s.jpg" />
+//    <line name="题名与责任说明拼音" value="dang wo xiang shui de shi hou" />
+//    <line name="题名与责任说明" value="当我想睡的时候 [专著]  / (美)简·R. 霍华德文 ; (美)琳内·彻丽图 ; 林芳萍翻译" />
+//    <line name="责任者" value="霍华德; 林芳萍; 彻丽" />
+//    <line name="出版发行" value="石家庄 : 河北教育出版社, 2010" />
+//    <line name="载体形态" value="1册 ; 26cm" />
+//    <line name="主题分析" value="图画故事-美国-现代" />
+//    <line name="分类号" value="中图法分类号: I712.85" />
+//    <line name="附注" value="启发精选世界优秀畅销绘本版权页英文题名：When I'm sleepy" />
+//    <line name="获得方式" value="ISBN 978-7-5434-7754-4 (精装 ) : CNY27.80" />
+//    <line name="提要文摘" value="临睡前，带着孩子一起环游世界，看看他可不可以像长颈鹿一样站着睡，和蝙蝠一起倒挂着睡，或者像企鹅一样睡在好冷好冷的地方。" />
+//</root>
+            string imgUrl = "";
+            XmlNodeList lineList = root.SelectNodes("line");
+            string pinyin = "";
+            foreach (XmlNode node in lineList)
+            {
+                string name = DomUtil.GetAttr(node, "name");
+                string value = DomUtil.GetAttr(node, "value");
+                if (name == "_coverImage")
+                {
+                    imgUrl = value;
+                    if (showCover == true && String.IsNullOrEmpty(imgUrl) == false)
+                    {
+                        coverImgHtml = dp2WeiXinService.GetImageHtmlFragment(libId, biblioPath, imgUrl);
+                    }
+                    
+                    table += "<tr>"
+                        + "<td class='name'></td>"
+                        + "<td class='value'>" + coverImgHtml + "</td>"
+                        + "</tr>";
+
+                    continue;
+                }
+
+                if (name == "题名与责任说明拼音")
+                {
+                    pinyin = value;
+                    continue;
+                }
+
+                // 拼音与书名合为一行
+                if (name == "题名与责任说明" && pinyin !="")
+                {
+                    table += "<tr>"
+                        + "<td class='name'>" + name + "</td>"
+                        + "<td class='value'>"
+                            + "<span style='color:gray'>" + pinyin + "</span><br/>"                       
+                            + value 
+                        + "</td>"
+                        + "</tr>";
+                    continue;
+                }
+
+                table += "<tr>"
+                    + "<td class='name'>" + name + "</td>"
+                    + "<td class='value'>" + value + "</td>"
+                    + "</tr>";
+
+            }
+
+            if (table != "")
+            {
+                table = "<table class='biblio_table'>" + table + "</table>";
+            }
+            
+            
+ 
+
+
+            return 1;
+        }
+
+        private int GetSummaryAndImgHtml(string capoUserName,
+            string biblioPath,
+            bool showCover,
+            string libId,
+            out string summary,
+            out string coverImgHtml,
+            out string strError)
+        {
+            strError = "";
+            summary = "";
+            coverImgHtml = "";
+
+            List<string> dataList = null;
+            int nRet = this.GetBiblioInfo(capoUserName, biblioPath,
+               "summary,xml",
+                out dataList,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+                return nRet;
+
+            summary = dataList[0];
+            summary = "<span class='summary'>" + summary + "</span>";
+            string xml = dataList[1];
+            if (showCover == true)
+            {
+                string strOutMarcSyntax = "";
+                string strMARC = "";
+                string strFragmentXml = "";
+                // 将XML格式转换为MARC格式
+                // 自动从数据记录中获得MARC语法
+                nRet = MarcUtil.Xml2Marc(xml,
+                    MarcUtil.Xml2MarcStyle.Warning | MarcUtil.Xml2MarcStyle.OutputFragmentXml,
+                    "",
+                    out strOutMarcSyntax,
+                    out strMARC,
+                    out strFragmentXml,
+                    out strError);
+                if (nRet == -1)
+                {
+                    strError = "XML转换到MARC记录时出错: " + strError;
+                    return -1;
+                }
+
+                string strImageUrl = GetCoverImageUrl(strMARC, "MediumImage");
+                coverImgHtml = dp2WeiXinService.GetImageHtmlFragment(libId, biblioPath, strImageUrl);
+                
+            }
+            
+
+            return 1;
+        }
+
+        public int GetBiblioInfo(string capoUserName,
+            string biblioPath,
+            string formatList,
+            out List<string> dataList,
+            out string strError)
+        {
+            strError = "";
+            dataList = new List<string>();
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -2982,7 +3231,7 @@ ERROR1:
                 "",
                 "",
                 "",
-                "summary,xml",
+                formatList,//
                 1,
                 0,
                 -1);    
@@ -3006,9 +3255,16 @@ ERROR1:
                     strError = "未命中";
                     return 0;
                 }
+                if (result.Records != null && result.Records.Count > 0)
+                {
+                    for (int i = 0; i < result.Records.Count; i++)
+                    {
+                        dataList.Add(result.Records[i].Data);
+                    }
+                }
 
-                summary = result.Records[0].Data;
-                xml = result.Records[1].Data;
+                //    summary = result.Records[0].Data;
+                //xml = result.Records[1].Data;
 
 
                 return 1;
@@ -5315,7 +5571,7 @@ ERROR1:
             if (group == dp2WeiXinService.C_Group_HomePage)
             {
                 LibItem lib = LibDatabase.Current.GetLibById(libId);
-                string dir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + lib.capoUserName + "/homePage";
+                string dir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + lib.capoUserName + "/home";
                 if (Directory.Exists(dir) == true)
                 {
                     string[] files = Directory.GetFiles(dir, "*.html");
@@ -5453,7 +5709,124 @@ ERROR1:
 
         public WxUserResult RecoverUsers()
         {
-            throw new NotImplementedException();
+            WxUserResult result = new WxUserResult();
+
+            List<LibItem> libs = LibDatabase.Current.GetLibs();
+            foreach (LibItem libItem in libs)
+            {
+                // 查询图书馆绑定的账户的读者。
+
+
+                // 查找工作人员
+
+
+                // 先删除
+
+                // 增加到mongodb库
+
+            }
+
+            return result;
+        }
+
+        public long SearchOnePatronByWeiXinId(LibItem libItem,
+            out List<WxUserItem> users,
+                    out string strError)
+        {
+            strError = "";
+            users = new List<WxUserItem>();
+
+
+            // 从远程dp2library中查
+            string strWord = WeiXinConst.C_WeiXinIdPrefix;// +strWeiXinId;
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            SearchRequest request = new SearchRequest(id,
+                "searchPatron",
+                "<全部>",
+                strWord,
+                "email",
+                "left",
+                "wx-patron",
+                "id,cols",
+                1000,
+                0,
+                WeiXinConst.C_Search_MaxCount);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    libItem.capoUserName).Result;
+
+                SearchResult result = connection.SearchTaskAsync(
+                    libItem.capoUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.ResultCount == -1)
+                {
+                    strError = result.ErrorInfo;
+                    return -1;
+                }
+                if (result.ResultCount == 0)
+                    return 0;
+
+                // 找到对应的读者记录
+                if (result.ResultCount > 0)
+                {
+                    for (int i = 0; i < result.ResultCount; i++)
+                    {
+                        // 可能会检索出多笔记录，先取第一笔 todo
+                        string strXml = result.Records[i].Data;
+                        XmlDocument dom = new XmlDocument();
+                        dom.LoadXml(strXml);
+
+
+                        string strTempBarcode = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("barcode"));
+                        string strWeiXinId = "";
+
+                        // 更新到mongodb库
+                        string name = "";
+                        XmlNode node = dom.DocumentElement.SelectSingleNode("name");
+                        if (node != null)
+                            name = DomUtil.GetNodeText(node);
+                        string refID = "";
+                        node = dom.DocumentElement.SelectSingleNode("refID");
+                        if (node != null)
+                            refID = DomUtil.GetNodeText(node);
+
+
+                            WxUserItem userItem = new WxUserItem();
+                            userItem.weixinId = strWeiXinId;
+                            userItem.libId = libItem.id;
+                            userItem.readerBarcode = strTempBarcode;
+                            userItem.readerName = name;
+                            userItem.xml = strXml;
+                            userItem.refID = refID;
+                            userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                            userItem.updateTime = userItem.createTime;
+
+
+                            WxUserDatabase.Current.Add(userItem);
+
+                    }
+
+                    return 1;
+                }
+
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+        ERROR1:
+            return -1;
         }
     }
 }

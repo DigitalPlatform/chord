@@ -39,13 +39,13 @@ namespace dp2weixinWeb.Controllers
             ViewBag.LibHtml = this.GetLibSelectHtml(libId);
 
             string photoChecked = "";
-            if (settingItem.showPhoto == 1)
+            if (settingItem != null && settingItem.showPhoto == 1)
                 photoChecked = " checked='checked' ";
             ViewBag.photoChecked = photoChecked;
 
 
             string coverChecked = "";
-            if (settingItem.showCover == 1)
+            if (settingItem != null && settingItem.showCover == 1)
                 coverChecked = " checked='checked' ";
             ViewBag.coverChecked = coverChecked;
 

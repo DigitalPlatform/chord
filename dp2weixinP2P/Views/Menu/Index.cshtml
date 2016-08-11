@@ -1,8 +1,11 @@
 ﻿@model Senparc.Weixin.MP.Entities.GetMenuResult
 @{
-    ViewBag.Title = "自定义菜单工具";
+    Layout = "~/Views/Shared/_LayoutManager.cshtml";
 }
-@section HeaderContent
+@section header {
+    <h1 class="mui-title">微信菜单</h1>
+}
+@section style
 {
     <style>
         .txtButton {

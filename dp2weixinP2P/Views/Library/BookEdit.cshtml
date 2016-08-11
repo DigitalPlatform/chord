@@ -84,8 +84,9 @@
                     var returnUrl = $("#_returnUrl").val();
                     if (returnUrl == "")
                         returnUrl = "/Library/BookSubject";
-                   // alert(returnUrl);
-                    if (returnUrl == "/Biblio/Index") {
+                   //alert(returnUrl);
+                   if (returnUrl == "/Biblio/Index") {
+                       //alert("走到这里");
                         window.history.back(-1); //返回不刷新
                     }
                     else {

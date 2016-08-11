@@ -1,5 +1,5 @@
 ﻿@section style {
-<link href="@Url.Content("~/Content/biblio.css")" rel="stylesheet">
+<link href="@Url.Content("~/Content/biblio.css?a=1")" rel="stylesheet">
 }
 @section Scripts {
     <script>
@@ -38,6 +38,8 @@
             var word = $('#txtWord').val();
             if (word == "")
                 word = $('#txtWordSimple').val();
+
+            //alert("word=["+word+"]");
             if (word != "") { 
                 //alert("maxNo=" + $("#maxNo").val());
                 var expandId = $('#expandId').val();
@@ -110,6 +112,7 @@
                 }
                 var table = $("#ulResult");//$('.mui-table-view');
                 table.html("");
+                $("#searchInfo").text("");
 
             }
 
@@ -121,7 +124,7 @@
             //显示等待图层
             var index = loadLayer();
 
-            // 调web api
+            // 调Search api
             var url = "/api/biblio?libId=" + encodeURIComponent(libId)
                 + "&from=" + encodeURIComponent(from)
                 + "&word=" + encodeURIComponent(word)
@@ -277,12 +280,21 @@
             var type = $("#searchType").text();
             //alert(type);
 
+            // 2016-8-11 置空结果集
+            var table = $("#ulResult");//$('.mui-table-view');
+            table.html("");
+            $("#searchInfo").text("");
+            $('#txtWordSimple').val("");
+            $('#txtWord').val("");
+
             if (type == "高级检索") {
+                //$('#txtWordSimple').focus();
                 $("#divAdvance").css("display", "block");
                 $("#divSimple").css("display", "none");
                 $("#searchType").text("简单检索");
             }
             else {
+                //$('#txtWord').focus();
                 $("#divAdvance").css("display", "none");
                 $("#divSimple").css("display", "block");
                 $("#searchType").text("高级检索");
@@ -324,6 +336,7 @@
             <td>
                 <div style="border:1px solid #cccccc">
                     <select id="selFrom" name="selFrom">
+                        <option value="title,ISBN,contributor,subjec,clc,_class,publishtime,publisher" selected>全部</option>
                         <option value="title" selected>书名</option>
                         <option value="ISBN">ISBN</option>
                         <option value="contributor">作者</option>
@@ -363,6 +376,7 @@
     </table>
 </div>
 <div style="padding:10px">
+
     <a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a>
 </div>
 <div id="divResult">
