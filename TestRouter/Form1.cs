@@ -410,7 +410,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             {
                 return this.textBox_sender_password.Text;
             }));
-            e.Parameters = "propertyList=biblio_search,libraryUID=xxx";
+            e.Parameters = "propertyList=biblio_search,libraryUID=testrouter";
         }
 
         private void toolStripButton_clearDisplay_Click(object sender, EventArgs e)

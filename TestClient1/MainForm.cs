@@ -140,7 +140,7 @@ namespace TestClient1
                 throw new Exception("尚未指定用户名，无法进行登录");
 
             e.Password = GetPassword();
-            e.Parameters = "propertyList=biblio_search,libraryUID=xxx";
+            e.Parameters = "propertyList=biblio_search,libraryUID=testclient1";
 
             // TODO: 登录如果失败，界面会有提示么?
 #if NO
@@ -1180,6 +1180,8 @@ string strHtml)
 
                     if (string.IsNullOrEmpty(record.PropertyList) == false)
                         text.Append("PropertyList=" + record.PropertyList + "\r\n");
+                    if (string.IsNullOrEmpty(record.ClientIP) == false)
+                        text.Append("ClientIP=" + record.ClientIP + "\r\n");
 
                     i++;
                 }

@@ -66,7 +66,7 @@ namespace TestRouter
 
             e.UserName = this.UserName;
             e.Password = this.Password;
-            e.Parameters = "propertyList=biblio_search,libraryUID=xxx";
+            e.Parameters = "propertyList=biblio_search,libraryUID=testrouter";
         }
 
         void _channels_AddMessage(object sender, AddMessageEventArgs e)

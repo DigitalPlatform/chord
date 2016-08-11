@@ -189,7 +189,7 @@ namespace dp2Capo.Install
                 throw new Exception("尚未指定用户名，无法进行登录");
 
             e.Password = GetPassword();
-            e.Parameters = "propertyList=biblio_search,libraryUID=xxx";
+            e.Parameters = "propertyList=biblio_search,libraryUID=install";
         }
 
         public static string EncryptKey = "dp2capopassword";
