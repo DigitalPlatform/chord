@@ -26,9 +26,20 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         // POST api/<controller>
-        public LibItem Post(LibItem item)
+        public LibSetResult Post(LibItem item)
         {
-            return libDb.Add(item);
+            LibSetResult result = new LibSetResult();
+            string strError = "";
+            LibItem outputItem = null;
+            int nRet= dp2WeiXinService.Instance.AddLib(item,out outputItem, out strError);// libDb.Add(item);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+            }
+            result.libItem = outputItem;
+            return result;
+
         }
 
         // PUT api/<controller>/5
@@ -41,20 +52,7 @@ namespace dp2weixinWeb.ApiControllers
         [HttpDelete]
         public ApiResult Delete(string id)
         {
-            ApiResult result = new ApiResult();
-            // 先检查一下，是否有微信用户绑定了该图书馆
-            List<WxUserItem> list = WxUserDatabase.Current.GetByLibId(id);
-            if (list != null && list.Count > 0)
-            {
-                result.errorCode = -1;
-                result.errorInfo = "目前存在微信用户绑定了该图书馆的账户，不能删除图书馆。";
-                return result;
-            }
-
-            //
-            libDb.Delete(id);
-
-            return result;
+            return dp2WeiXinService.Instance.deleteLib(id);
         }
     }
 }

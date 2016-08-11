@@ -94,15 +94,22 @@ namespace dp2weixinWeb.Controllers
             if (settingItem != null)
             {
                 LibItem lib = LibDatabase.Current.GetLibById(settingItem.libId);
-                if (lib == null)
+
+                // todo ,看来需要一个维护设置的界面，要手动删除这个异常数据。
+                //if (lib == null)
+                //{
+                //    //UserSettingDb.Current.UpdateLib()
+                //    strError = "未找到id为'" + settingItem.libId + "'对应的图书馆"; //这里lib为null竟然用了lib.id，一个bug 2016-8-11
+                //    return -1;
+                //}
+
+                if (lib != null)
                 {
-                    strError= "未找到id为'"+lib.id+"'对应的图书馆";
-                    return -1;
+                    libName = lib.libName;
+                    libId = lib.id;
+                    showPhoto = settingItem.showPhoto;
+                    showCover = settingItem.showCover;
                 }
-                libName = lib.libName;
-                libId = lib.id;
-                showPhoto = settingItem.showPhoto;
-                showCover = settingItem.showCover;
             }
             if (libName == "")
             {

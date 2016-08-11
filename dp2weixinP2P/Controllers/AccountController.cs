@@ -27,7 +27,8 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             // 未账户任何账户时，自动转到绑定界面            
-            if (Session[WeiXinConst.C_Session_IsBind] == null || (int)Session[WeiXinConst.C_Session_IsBind] == 0)
+            if (Session[WeiXinConst.C_Session_IsBind] == null 
+                || (int)Session[WeiXinConst.C_Session_IsBind] == 0)
             {
                 return RedirectToAction("Bind");
             }              
