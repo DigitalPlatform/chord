@@ -491,12 +491,14 @@ function getMsgViewHtml(msgItem, bContainEditDiv) {
         alert("异常情况：group参数值不正确[" + group + "]。");
         return;
     }
-    var bContainSubject = false;
+    
     var bShowTime = false;
     if (group == "gn:_lib_bb") {
         bShowTime = true;
     }
-    else if (group == "gn:_lib_homePage") {
+
+    var bContainSubject = false;
+    if (group == "gn:_lib_homePage") {
         bContainSubject = true;
     }
 
@@ -752,6 +754,10 @@ function save(msgId) {
         titleCanEmpty = true;
     }
 
+    var bContainRemark = true;
+    if (group == "gn:_lib_bb" || group == "gn:_lib_homePage")
+        bContainRemark = false;
+
     var libId = getLibId(); //$("#selLib").val();
     if (libId == "") {
         alert("异常情况：libId为空。");
@@ -810,7 +816,10 @@ function save(msgId) {
     }
 
     // 备注
-    var remark = $("#_val_remark").val();
+    var remark = "";
+    if (bContainRemark == true) {
+        remark=$("#_val_remark").val();
+    }
 
     // 格式 text/markdown
     var format = $("#_selFormat").val();
@@ -888,7 +897,13 @@ function deleteMsg(msgId) {
     var title = $(divId).find(".title").html();
     //alert(title);
 
-    var gnl = confirm("你确定要删除[" + title + "]吗?");
+    var confirmInfo = "你确定要删除该项吗?";
+    if (title != null && title != "")
+    {
+        confirmInfo = "你确定要删除[" + title + "]吗?";
+    }
+
+    var gnl = confirm(confirmInfo);
     if (gnl == false) {
         return false;
     }
@@ -962,6 +977,10 @@ function getMsgEditHtml(msgItem) {
         bContainSubject = true;
     }
 
+    var bContainRemark = true;
+    if (group == "gn:_lib_bb" || group == "gn:_lib_homePage")
+        bContainRemark = false;
+
     var formatTextStr = " selected ";// 默认文本格式选中
     var formatMarkdownStr = "";
 
@@ -1027,16 +1046,20 @@ function getMsgEditHtml(msgItem) {
     + "</tr>"
     + "<tr>"
         + "<td colspan='2'>"
-            + "<textarea id='_val_content' rows='5'>" + content + "</textarea>"
+            + "<textarea id='_val_content' rows='4'>" + content + "</textarea>"
         + "</td>"
-    + "</tr>"
-    + "<tr>"
-        + "<td colspan='2' >"
-            + "<span class='label'>注释</span>"
-            + "<textarea id='_val_remark' rows='3'>" + remark + "</textarea>"
-        + "</td>"
-    + "</tr>"
-    + "<tr>"
+    + "</tr>";
+
+    if (bContainRemark == true) {
+        html += "<tr>"
+            + "<td colspan='2' >"
+                + "<span class='label'>注释</span>"
+                + "<textarea id='_val_remark' rows='2'>" + remark + "</textarea>"
+            + "</td>"
+        + "</tr>";
+    }
+
+    html += "<tr>"
         + "<td colspan='2'>"
             + "<button class='mui-btn mui-btn-primary' onclick=\"save('" + msgId + "')\">" + saveBtnName + "</button>&nbsp;&nbsp;"
             + "<button class='mui-btn mui-btn-default' onclick=\"cancelEdit('" + msgId + "')\">取消</button>"

@@ -54,6 +54,8 @@
                 var name = "#_edit_" + msgId;
                 $(name).remove();
 
+                // todo,如果删除完成，怎么办呢？是加主subject页面吗？还是保存当前页。 
+
             }, function (xhq, textStatus, errorThrown) {
                 alert(errorThrown);
             });
