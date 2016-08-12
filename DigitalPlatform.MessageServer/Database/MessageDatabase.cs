@@ -695,7 +695,8 @@ Delegate_outputMessage proc)
                 .Set("data", item.data)
                 .Set("format", item.format)
                 .Set("type", item.type)
-                .Set("thread", item.thread);
+                .Set("thread", item.thread)
+                .Set("subjects", item.subjects);
 
             await collection.UpdateOneAsync(filter, update);
         }

@@ -507,6 +507,10 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         item.groups = exist.groups;
                         // creator 字段不允许修改
                         item.creator = exist.creator;
+
+                        // publishTime 字段不允许修改 2016/8/12
+                        item.publishTime = exist.publishTime;
+
                         // exipreTime 字段不允许修改
                         item.expireTime = exist.expireTime;
                         ServerInfo.MessageDatabase.Update(item).Wait();
