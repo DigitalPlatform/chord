@@ -65,5 +65,7 @@ namespace dp2weixin.service
         public string subjectPureName { get; set; } // 去掉序号的
 
         public string remark { get; set; } //注释
+        public string remarkHtml { get; set; }  // 2016-8-13 html形态
+
     }
 }

@@ -220,18 +220,77 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         // POST api/<controller>
-        public MessageResult Post(string group, string libId, string parameters, MessageItem item)
+        public MessageResult Post(string weixinId, 
+            string group, 
+            string libId, 
+            string parameters, 
+            MessageItem item)
         {
+
+            // 更新setting
+            if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
+            {
+                UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
+                if (settingItem == null)
+                {
+                    settingItem = new UserSettingItem();
+                    settingItem.weixinId = weixinId;
+                    settingItem.libId = libId;
+                    settingItem.showCover = 1;
+                    settingItem.showPhoto = 1;
+                    settingItem.xml = "<root><subject book='" + item.subject + "'/></root>";
+                    UserSettingDb.Current.Add(settingItem);
+                }
+                else
+                {
+                    string bookSuject = UserSettingDb.getBookSubject(settingItem.xml);
+                    if (item.subject != bookSuject)
+                    {
+                        // todo 要先取出xml，根据group更新subject
+                        settingItem.xml = "<root><subject book='" + item.subject + "'/></root>";
+                        UserSettingDb.Current.UpdateLib(settingItem);
+                    }
+                }
+            }
+
+
             // 服务器会自动产生id
-            //item.id = Guid.NewGuid().ToString();`'
             return dp2WeiXinService.Instance.CoverMessage(group, libId, item,"create",parameters );
         }
 
         // PUT api/<controller>/5
-        public MessageResult Put(string group, string libId, MessageItem item)
+        public MessageResult Put(string weixinId,
+            string group,
+            string libId,
+            MessageItem item)
         {
-            return dp2WeiXinService.Instance.CoverMessage(group, libId, item,"change", "");
-     }
+            // 更新setting
+            if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
+            {
+                UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
+                if (settingItem == null)
+                {
+                    settingItem = new UserSettingItem();
+                    settingItem.weixinId = weixinId;
+                    settingItem.libId = libId;
+                    settingItem.showCover = 1;
+                    settingItem.showPhoto = 1;
+                    settingItem.xml = "<root><subject book='" + item.subject + "'/></root>";
+                    UserSettingDb.Current.Add(settingItem);
+                }
+                else
+                {
+                    string bookSuject = UserSettingDb.getBookSubject(settingItem.xml);
+                    if (item.subject != bookSuject)
+                    {
+                        // todo 要先取出xml，根据group更新subject
+                        settingItem.xml = "<root><subject book='" + item.subject + "'/></root>";
+                        UserSettingDb.Current.UpdateLib(settingItem);
+                    }
+                }
+            }
+            return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "change", "");
+        }
 
         // DELETE api/<controller>/5
         [HttpDelete]

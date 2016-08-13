@@ -5084,6 +5084,11 @@ ERROR1:
 
                 }
                 item.contentHtml = contentHtml;
+
+                if (String.IsNullOrEmpty(item.remark) == false)
+                {
+                    item.remarkHtml = GetMsgHtml("text", item.remark);
+                }
             }
             return item;
         }

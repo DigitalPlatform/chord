@@ -50,11 +50,22 @@
 
                 alert("删除成功");
 
-                // 删除界面
-                var name = "#_edit_" + msgId;
-                $(name).remove();
+                // edit div id
+                var divEditId = "#_edit_" + msgId;
 
-                // todo,如果删除完成，怎么办呢？是加主subject页面吗？还是保存当前页。 
+                // 先找到父亲，方便后面查看有没有下级message
+                var msgParent = $(divEditId).parent();
+
+                // 删除当前msg
+                $(divEditId).remove();
+
+                // 2016-8-13 jane 如果全部删除了，转到subject页面
+                //alert(msgId);
+                if ($(msgParent).children(".message").length == 0) {
+                    //alert("没有下级了");
+                    var url = "/Library/BookSubject?libId=" + libId;// + "&userName=" + userName;
+                    gotoUrl(url);
+                }
 
             }, function (xhq, textStatus, errorThrown) {
                 alert(errorThrown);
@@ -179,7 +190,12 @@
                         <span>@item.publishTime</span>-<span>@item.creator</span>
                     </td>
                 </tr>
-                <tr><td class="content" colspan="2">@Html.Raw(item.contentHtml)</td></tr>
+                <tr>
+                    <td class="content" colspan="2">@Html.Raw(item.contentHtml)</td>
+                </tr>
+                <tr>
+                    <td class="remark" colspan="2">@Html.Raw(item.remarkHtml)</td>
+                </tr>
             </tbody>
         </table>
 

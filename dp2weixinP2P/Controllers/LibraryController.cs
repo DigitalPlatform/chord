@@ -195,8 +195,8 @@ namespace dp2weixinWeb.Controllers
                 libId = ViewBag.LibId;
             // 查找当前微信用户绑定的工作人员账号
             WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
-            // todo 后面可以放开对读者的权限
-            if (user != null)
+            // 2016-8-13 加了当前工作所在图书馆与设置图书馆的判断
+            if (user != null && user.libId== libId)
             {
                 // 检索是否有权限 _wx_setHomePage
                 string needRight = dp2WeiXinService.C_Right_SetBook;
@@ -320,6 +320,11 @@ namespace dp2weixinWeb.Controllers
                 return Content("userName参数不能为空。");
             }
 
+            if (String.IsNullOrEmpty(subject) == true)
+            {
+                subject = ViewBag.remeberBookSubject;
+            }
+
             // 栏目html
             ViewBag.SubjectHtml = dp2WeiXinService.Instance.GetSubjectHtml( libId,
                 dp2WeiXinService.C_Group_Book,
@@ -419,6 +424,13 @@ namespace dp2weixinWeb.Controllers
                     return Content(strError);
             }
 
+            // 2016-8-13 jane 记住选择的subject
+            if (model.subject != ViewBag.remeberBookSubject)
+            {
+                ViewBag.remeberBookSubject = model.subject;
+
+                // todo 保存到mongo库里
+            }
 
             // 如果没有传入返回路径，保存完转到BookSubject
             if (String.IsNullOrEmpty(model._returnUrl) == true)

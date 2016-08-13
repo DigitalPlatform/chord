@@ -24,10 +24,13 @@
             }
 
             var title = $("#_val_title").val();
-            if (title == null || title == "") {
-                alert("请输入标题");
-                return;
-            }
+            if (title == null)
+                title = "";
+
+            //if (title == "") {
+            //    alert("请输入标题");
+            //    return;
+            //}
             //alert("title["+title+"]");
 
             var content = $("#_val_content").val();
@@ -64,8 +67,15 @@
             else
                 action = "PUT";
             var group = "gn:_lib_book";
-            var url = "/api/LibMessage"
-                + "?group=" + group
+
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "") {
+                alert("异常情况：weixinId为空");
+                return;
+            }
+
+            var url = "/api/LibMessage?weixinId="+weixinId
+                + "&group=" + group
                 + "&libId=" + libId
             + "&parameters=";
             sendAjaxRequest(url, action,
@@ -135,6 +145,7 @@
         <h1 class="mui-title">更新好书</h1>
     }
 }
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 
 <div>
     <input type="hidden" id="_libId_" name="_libId" value="@Model._libId" />

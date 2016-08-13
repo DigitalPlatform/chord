@@ -1,9 +1,11 @@
-﻿using dp2weixin.service;
+﻿using DigitalPlatform.Xml;
+using dp2weixin.service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Xml;
 
 namespace dp2weixinWeb.Controllers
 {
@@ -90,18 +92,16 @@ namespace dp2weixinWeb.Controllers
             string libId = "";
             int showPhoto = 0; //显示头像
             int showCover = 0;//显示封面
+            
             UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
             if (settingItem != null)
             {
                 LibItem lib = LibDatabase.Current.GetLibById(settingItem.libId);
-
-                // todo ,看来需要一个维护设置的界面，要手动删除这个异常数据。
-                //if (lib == null)
-                //{
-                //    //UserSettingDb.Current.UpdateLib()
-                //    strError = "未找到id为'" + settingItem.libId + "'对应的图书馆"; //这里lib为null竟然用了lib.id，一个bug 2016-8-11
-                //    return -1;
-                //}
+                if (lib == null)
+                {
+                    strError = "未找到id为'" + settingItem.libId + "'对应的图书馆"; //这里lib为null竟然用了lib.id，一个bug 2016-8-11
+                    return -1;
+                }
 
                 if (lib != null)
                 {
@@ -109,6 +109,12 @@ namespace dp2weixinWeb.Controllers
                     libId = lib.id;
                     showPhoto = settingItem.showPhoto;
                     showCover = settingItem.showCover;
+
+                    if (Request.Path.Contains("/Library/BookEdit") == true)
+                    {
+                        string xml = settingItem.xml;
+                        ViewBag.remeberBookSubject = UserSettingDb.getBookSubject(xml);
+                    }
                 }
             }
             if (libName == "")
@@ -126,6 +132,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.LibId = libId;
             ViewBag.showPhoto = showPhoto;
             ViewBag.showCover = showCover;
+
 
             ////当前读者
             //WxUserItem curPatron = WxUserDatabase.Current.GetActivePatron(weixinId);

@@ -821,8 +821,14 @@ function save(msgId) {
     if (msgId != "new")
         id = msgId;
 
-    var url = "/api/LibMessage"
-        + "?group=" + group
+    var weixinId = $("#weixinId").text();
+    if (weixinId == "") {
+        alert("异常情况：weixinId为空");
+        return;
+    }
+
+    var url = "/api/LibMessage?weixinId="+weixinId
+        + "&group=" + group
         + "&libId=" + libId
         + "&parameters=" + parameters;
     //alert(parameters);

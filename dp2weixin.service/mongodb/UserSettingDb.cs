@@ -1,4 +1,5 @@
 ﻿using DigitalPlatform.IO;
+using DigitalPlatform.Xml;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace dp2weixin.service
 {
@@ -126,11 +128,29 @@ namespace dp2weixin.service
                 .Set("libId", item.libId)
                 .Set("showPhoto", item.showPhoto)
                 .Set("showCover", item.showCover)
+                .Set("xml", item.xml)
                 ;
 
             UpdateResult ret = this.settingCollection.UpdateOne(filter, update);
             return ret.ModifiedCount;
         
+        }
+
+        public static string getBookSubject(string xml)
+        {
+            string subject = "";
+            if (string.IsNullOrEmpty(xml) == false)
+            {
+                XmlDocument dom = new XmlDocument();
+                dom.LoadXml(xml);
+                XmlNode root = dom.DocumentElement;
+                XmlNode subjectNode = root.SelectSingleNode("subject");
+                if (subjectNode != null)
+                {
+                    subject = DomUtil.GetAttr(subjectNode, "book");
+                }
+            }
+            return subject;
         }
 
     }
@@ -147,6 +167,9 @@ namespace dp2weixin.service
         public int showPhoto { get; set; }
 
         public int showCover { get; set; }
+
+        public string xml { get; set; }
+
     }
 
 
