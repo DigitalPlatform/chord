@@ -146,12 +146,12 @@ function reservation(obj, barcode, style) {
 
     var url = "/api/Reservation"
         + "?weixinId=" + weixinId
-        +"&libId=" + encodeURIComponent(libId)
+        + "&libId=" + encodeURIComponent(libId)
         + "&patron=" + encodeURIComponent(patron)
         + "&items=" + encodeURIComponent(barcode)
         + "&style=" + style;//new 创建一个预约请求,delete删除
 
-       // alert(url);
+    // alert(url);
     // 调api
     sendAjaxRequest(url, "POST", function (result) {
 
@@ -491,12 +491,14 @@ function getMsgViewHtml(msgItem, bContainEditDiv) {
         alert("异常情况：group参数值不正确[" + group + "]。");
         return;
     }
-    var bContainSubject = false;
+
     var bShowTime = false;
     if (group == "gn:_lib_bb") {
         bShowTime = true;
     }
-    else if (group == "gn:_lib_homePage") {
+
+    var bContainSubject = false;
+    if (group == "gn:_lib_homePage") {
         bContainSubject = true;
     }
 
@@ -658,7 +660,6 @@ function viewMsg(msgId, msgItem) {
                 myId = myId.substring(9);
                 //alert(myId);
 
-
                 // 如果subject相同，则加入item，如果不同，则要把subject插在之前
                 if (myId == msgItem.subject) {
                     //alert("相同");
@@ -692,33 +693,6 @@ function viewMsg(msgId, msgItem) {
                 $("#_subject_main").append(subjectDiv);//插在后面
             }
 
-
-            //var subject = $("#_val_subject").val(); //
-            //// 要先找下同名的subject，如果不存在，新创建一个subject div放在最上面
-            //var subjectObj = $("#_subject_main").children("#_subject_" + subject);
-            //if (subjectObj.html() != null) {  //注意这里要用html()
-            //    var titleObj = $(subjectObj).find("#_subject_title");
-            //    $(msgViewHtml).insertAfter(titleObj);
-            //}
-            //else {
-            //    // 给框架加一条栏目
-            //    //model.subjects.push(subject);
-            //    // model.selSubject(subject); // 设当前选择的栏目
-
-            //    // 置空
-            //    model.subjectHtml("");
-
-            //    alert("序号="+msgItem.subjectIndex);
-
-            //    //alert("2");
-            //    var subjectDiv = "<div id='_subject_" + subject + "'  class='subject'>"
-            //        + "<div id='_subject_title' class='firstline'><span class='title'>" + subject + "<span></div>"
-            //        + msgViewHtml
-            //        + "</div>";
-
-            //    //alert(subjectDiv);
-            //    $("#_subject_main").prepend(subjectDiv);
-            //}
         }
 
         //创建按钮可见
@@ -729,6 +703,16 @@ function viewMsg(msgId, msgItem) {
         return;
     }
 
+    if (group == "gn:_lib_homePage") {
+        // 编辑时更新了栏目，要重刷界面
+        var parentId = $(divId).parent().attr('id');
+        var thisSubject = "_subject_" + msgItem.subject;
+        if (parentId != thisSubject) {
+            //alert("栏目不同-" + msgItem.subject + "-old:" + parentId);
+            window.location.reload();
+            return;
+        }
+    }
     // 拼出内部的html，直接替换原来内容
     var msgViewHtml = getMsgViewHtml(msgItem, false);
 
@@ -752,6 +736,10 @@ function save(msgId) {
         titleCanEmpty = true;
     }
 
+    var bContainRemark = true;
+    if (group == "gn:_lib_bb" || group == "gn:_lib_homePage")
+        bContainRemark = false;
+
     var libId = getLibId(); //$("#selLib").val();
     if (libId == "") {
         alert("异常情况：libId为空。");
@@ -768,19 +756,23 @@ function save(msgId) {
         return;
     }
 
+
+
+
+
+    var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+
     // subject
     var subject = "";
     if (bContainSubject == true) {
-        subject = $("#_val_subject").val(); //
+        subject = $(divId).find("#_val_subject").val();//$("#_val_subject").val(); //
         if (subject == "") {
             alert("请先选择栏目");
             return;
         }
     }
-
     //alert(subject);
 
-    var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
 
     var action = "";
     var parameters = "";
@@ -794,7 +786,7 @@ function save(msgId) {
     }
 
 
-    var title = $("#_val_title").val();
+    var title = $(divId).find("#_val_title").val();//$("#_val_title").val();
     // 对于图书馆主页，标题允许为空，因为已经有了栏目标题
     if (titleCanEmpty == false) {
         if (title == "") {
@@ -803,17 +795,20 @@ function save(msgId) {
         }
     }
 
-    var content = $("#_val_content").val();
+    var content = $(divId).find("#_val_content").val();//$("#_val_content").val();
     if (content == "") {
         alert("请输入内容。");
         return;
     }
 
     // 备注
-    var remark = $("#_val_remark").val();
+    var remark = "";
+    if (bContainRemark == true) {
+        remark = $(divId).find("#_val_remark").val();//$("#_val_remark").val();
+    }
 
     // 格式 text/markdown
-    var format = $("#_selFormat").val();
+    var format = $(divId).find("#_selFormat").val();//$("#_selFormat").val();
     //alert(format);
 
 
@@ -826,8 +821,14 @@ function save(msgId) {
     if (msgId != "new")
         id = msgId;
 
-    var url = "/api/LibMessage"
-        + "?group=" + group
+    var weixinId = $("#weixinId").text();
+    if (weixinId == "") {
+        alert("异常情况：weixinId为空");
+        return;
+    }
+
+    var url = "/api/LibMessage?weixinId="+weixinId
+        + "&group=" + group
         + "&libId=" + libId
         + "&parameters=" + parameters;
     //alert(parameters);
@@ -888,7 +889,12 @@ function deleteMsg(msgId) {
     var title = $(divId).find(".title").html();
     //alert(title);
 
-    var gnl = confirm("你确定要删除[" + title + "]吗?");
+    var confirmInfo = "你确定要删除该项吗?";
+    if (title != null && title != "") {
+        confirmInfo = "你确定要删除[" + title + "]吗?";
+    }
+
+    var gnl = confirm(confirmInfo);
     if (gnl == false) {
         return false;
     }
@@ -962,6 +968,10 @@ function getMsgEditHtml(msgItem) {
         bContainSubject = true;
     }
 
+    var bContainRemark = true;
+    if (group == "gn:_lib_bb" || group == "gn:_lib_homePage")
+        bContainRemark = false;
+
     var formatTextStr = " selected ";// 默认文本格式选中
     var formatMarkdownStr = "";
 
@@ -978,7 +988,7 @@ function getMsgEditHtml(msgItem) {
         remark = msgItem.remark;
         content = msgItem.content;
         subject = msgItem.subject;
-
+        //alert(subject);
         disabledStr = " disabled='disabled' ";
 
         if (msgItem.contentFormat == "markdown")
@@ -986,6 +996,8 @@ function getMsgEditHtml(msgItem) {
 
         saveBtnName = "保存";
     }
+
+
 
     //alert("getMsgEditHtml 1");
 
@@ -1029,14 +1041,18 @@ function getMsgEditHtml(msgItem) {
         + "<td colspan='2'>"
             + "<textarea id='_val_content' rows='5'>" + content + "</textarea>"
         + "</td>"
-    + "</tr>"
-    + "<tr>"
-        + "<td colspan='2' >"
-            + "<span class='label'>注释</span>"
-            + "<textarea id='_val_remark' rows='3'>" + remark + "</textarea>"
-        + "</td>"
-    + "</tr>"
-    + "<tr>"
+    + "</tr>";
+
+    if (bContainRemark == true) {
+        html += "<tr>"
+            + "<td colspan='2' >"
+                + "<span class='label'>注释</span>"
+                + "<textarea id='_val_remark' rows='2'>" + remark + "</textarea>"
+            + "</td>"
+        + "</tr>";
+    }
+
+    html += "<tr>"
         + "<td colspan='2'>"
             + "<button class='mui-btn mui-btn-primary' onclick=\"save('" + msgId + "')\">" + saveBtnName + "</button>&nbsp;&nbsp;"
             + "<button class='mui-btn mui-btn-default' onclick=\"cancelEdit('" + msgId + "')\">取消</button>"
@@ -1075,7 +1091,7 @@ function getSubjectHtml(msgId) {
     var url = "/api/LibMessage?weixinId=" + weixinId
         + "&group=" + encodeURIComponent(group)
         + "&libId=" + libId
-    + "&selSubject="
+    + "&selSubject=" //msgid-"+msgId
     + "&param=html";
     sendAjaxRequest(url, "GET", function (result) {
         // 关闭等待层
@@ -1254,6 +1270,25 @@ function gotoEdit(msgId) {
         return;
     }
 
+    // 2016-8-13 任延华加
+    // 关闭其它正在编辑的msg
+    var editDiv = $("#_subject_main").find(".edit").each(function (index) {
+        //alert(index);//循环的下标值，从0开始
+        var myMsgId = "";
+        var editId = $(this).parent().attr("id");
+        if (editId != null && editId.length > 6 && editId.substring(0, 6) == "_edit_")
+        {
+            myMsgId = editId.substring(6);
+        }        
+        //alert(editId + "***" + myMsgId);
+
+        // 关闭编辑区
+        cancelEdit(myMsgId);
+    });
+
+
+
+
     var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
 
     // 新增的情况
@@ -1332,6 +1367,19 @@ function gotoEdit(msgId) {
             //由于一进来没有显示编辑界面，所以这里要重新设一下
             setShowTopButton();
 
+            // 设置checkbox的选中项
+            var subject1 = item.subject;
+            if (subject1 != null && subject1 != "") {
+                //alert(subject1);
+                $(divId).find("#selSubject").val(subject1);
+                //$("select[@name=ISHIPTYPE] option").each(function () {
+                //    if ($(this).val() == subject1) {
+                //       // $(this).remove();
+                //    }
+                //});
+            }
+
+
             //alert("gotoEdit 6");
 
         }
@@ -1346,21 +1394,21 @@ function gotoEdit(msgId) {
 
 
 // 栏目切换，将选择的subject设到输入框中
-function subjectChanged(bGetTemplate) {
+function subjectChanged(bGetTemplate, obj) {
 
-    //alert("进入 subjectChanged()");
-    var subValue = $("#selSubject").val();
-
+    var subValue = $(obj).val();//$("#selSubject").val();
     //alert(subValue);
 
+    var topDiv = $(obj).parent().parent();
+    //alert(topDiv.html());
+
     if (subValue == "new") {
-        $("#divNewSubject").css('display', 'block');
-        $("#_val_subject").val("");
-        //$("#txtSubject").css('display', 'block');
+        $(topDiv).find("#divNewSubject").css('display', 'block');
+        $(topDiv).find("#_val_subject").val("");
     }
     else {
-        $("#divNewSubject").css('display', 'none');
-        $("#_val_subject").val(subValue);
+        $(topDiv).find("#divNewSubject").css('display', 'none');
+        $(topDiv).find("#_val_subject").val(subValue);
 
         if (bGetTemplate == true) {
             //alert("get template");

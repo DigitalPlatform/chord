@@ -105,13 +105,15 @@ namespace dp2weixinWeb.ApiControllers
             if (param.Contains("list")==true)
                 result.list = list;
 
-            string html = dp2WeiXinService.Instance.GetSubjectHtml(libId,
-                group,
-               selSubject,
-               true,
-               list);
             if (param.Contains("html") == true)
+            {
+                string html = dp2WeiXinService.Instance.GetSubjectHtml(libId,
+                    group,
+                   selSubject,
+                   true,
+                   list);
                 result.html = html;
+            }
 
             result.errorCode = nRet;
             result.errorInfo = strError;
@@ -218,18 +220,37 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         // POST api/<controller>
-        public MessageResult Post(string group, string libId, string parameters, MessageItem item)
+        public MessageResult Post(string weixinId, 
+            string group, 
+            string libId, 
+            string parameters, 
+            MessageItem item)
         {
+
+            // 更新setting
+            if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
+            {
+                dp2WeiXinService.Instance.UpdateUserSetting(weixinId, libId, item.subject);
+            }
+
+
             // 服务器会自动产生id
-            //item.id = Guid.NewGuid().ToString();`'
             return dp2WeiXinService.Instance.CoverMessage(group, libId, item,"create",parameters );
         }
 
         // PUT api/<controller>/5
-        public MessageResult Put(string group, string libId, MessageItem item)
+        public MessageResult Put(string weixinId,
+            string group,
+            string libId,
+            MessageItem item)
         {
-            return dp2WeiXinService.Instance.CoverMessage(group, libId, item,"change", "");
-     }
+            // 更新setting
+            if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
+            {
+                dp2WeiXinService.Instance.UpdateUserSetting(weixinId, libId, item.subject);
+            }
+            return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "change", "");
+        }
 
         // DELETE api/<controller>/5
         [HttpDelete]

@@ -33,8 +33,7 @@
         function bind() {
 
             // 图书馆
-            //var lib = model.selectedLib();
-            var libId = getLibId();//$("#selLib").val();
+            var libId = $("#selLib").val();  // 2016-8-13 jane加入选择图书馆项，而不是从设置来 getLibId();//
             if (libId == "" || libId == null) {
                 alert("您尚未选择图书馆。");
                 return;
@@ -76,6 +75,7 @@
             //显示等待图层
             var index = loadLayer();
 
+            // 调WxUser的Bind()
             var url = "/api/wxuser";
             sendAjaxRequest(url, "POST",
                 function (result) {
@@ -139,9 +139,13 @@
             var name = "";
             if (model.prefix() == "NB")
                 name = model.word();
+            //if (name == null)
+            //    name = "";
 
             var lib = "";
-            var lib = getLibId();//$("#selLib").val();
+            var lib = $("#selLib").val();  // 2016-8-13 jane加入选择图书馆项，而不是从设置来  getLibId();//
+            if (lib == null)
+                lib = "";
 
             var myUrl = getRootPath()
                 + '/Account/ResetPassword?libId=' + encodeURIComponent(lib) + "&readerName=" + encodeURIComponent(name);
@@ -165,12 +169,10 @@
 <span id="returnUrl" style="display:none">@ViewBag.ReturnUrl</span>
 
     <div class="mui-input-group">
-        <!--
         <div class="mui-input-row ">
             <label style="color:#cccccc">图书馆</label>
             @Html.Raw(ViewBag.LibHtml)
         </div>
-            -->
         <div class="mui-input-row ">
             <label style="color:#cccccc">绑定方式</label>
             <select id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.prefix">

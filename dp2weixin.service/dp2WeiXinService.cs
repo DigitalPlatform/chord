@@ -279,10 +279,6 @@ namespace dp2weixin.service
             // 更新数据库
             WxUserDatabase.Current.SetActivePatron(userItem.weixinId, userItem.id);
 
-            //更新内存
-            //this._wxUserTable[userItem.weixinId] = userItem;
-            //this.CurWxUser = userItem;
-
             return;
         }
 
@@ -291,44 +287,10 @@ namespace dp2weixin.service
             // 删除mongodb库的记录
             WxUserItem newActivePatron = null;
             WxUserDatabase.Current.Delete(userId, out newActivePatron);
-
-            //if (newActivePatron != null)
-            //{
-            //    //更新内存
-            //    //this.CurWxUser = newActivePatron;
-            //    //this._wxUserTable[newActivePatron.weixinId] = newActivePatron;
-            //}
-
             return;
         }
 
 
-        // 当然微信用户 与当前图书馆
-        //private WxUserItem _curWxUser = null;
-        //private LibItem _curLib = null;
-        //public WxUserItem CurWxUser
-        //{
-        //    get
-        //    {
-        //        return this._curWxUser;
-        //    }
-        //    set
-        //    {
-        //        this._curWxUser = value;
-
-        //        string libId = this._curWxUser.libId;
-        //        if (String.IsNullOrEmpty(libId))
-        //        {
-        //            throw new Exception("异常的情况:微信用户的libId参数为空。");
-        //        }
-
-        //        this. _curLib = LibDatabase.Current.GetLibById(libId);
-        //        if (this._curLib == null)
-        //        {
-        //            throw new Exception("异常的情况:根据id["+libId+"]未找到图书馆对象。");
-        //        }
-        //    }
-        //}
 
         #endregion
 
@@ -1830,6 +1792,48 @@ namespace dp2weixin.service
         #region 找回密码，修改密码，二维码
 
         /// <summary>
+        /// 更新用户设置
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="libId"></param>
+        /// <param name="bookSubject"></param>
+        public void UpdateUserSetting(string weixinId, string libId, string bookSubject)
+        {
+            if (bookSubject == null)
+                bookSubject = "";
+
+            UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
+            if (settingItem == null)
+            {
+                settingItem = new UserSettingItem();
+                settingItem.weixinId = weixinId;
+                settingItem.libId = libId;
+                settingItem.showCover = 1;
+                settingItem.showPhoto = 1;
+
+
+                settingItem.xml = "<root><subject book='"+bookSubject+"'/></root>";
+                UserSettingDb.Current.Add(settingItem);
+            }
+            else
+            {
+                if (settingItem.libId != libId)
+                {
+                    settingItem.libId = libId;
+                }
+
+                if (string.IsNullOrEmpty(bookSubject) == false)
+                {
+                    // todo 要先取出xml，根据group更新subject
+                    settingItem.xml = "<root><subject book='" + bookSubject + "'/></root>";
+                }
+
+                UserSettingDb.Current.UpdateLib(settingItem);
+
+            }
+        }
+
+        /// <summary>
         /// 找回密码
         /// </summary>
         /// <param name="libId"></param>
@@ -1838,12 +1842,15 @@ namespace dp2weixin.service
         /// <param name="tel"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int ResetPassword(string libId,
+        public int ResetPassword(string weixinId, 
+            string libId,
             string name,
             string tel,
+            out string patronBarcode,
             out string strError)
         {
             strError = "";
+            patronBarcode = "";
 
             LibItem lib = LibDatabase.Current.GetLibById(libId);
             if (lib == null)
@@ -1911,6 +1918,10 @@ namespace dp2weixin.service
                 goto ERROR1;
             }
 
+            // 2016-8-13 jane 自动修改设置的图书馆
+            this.UpdateUserSetting(weixinId, libId, "");
+
+
             // 发送短信
             string strMessageTemplate = "";
             MessageInterface external_interface = this.GetMessageInterface("sms");
@@ -1948,6 +1959,7 @@ namespace dp2weixin.service
             string strTel = DomUtil.GetNodeText(nodePatron.SelectSingleNode("tel"));
 
             string strBarcode = DomUtil.GetNodeText(nodePatron.SelectSingleNode("barcode"));
+            patronBarcode = strBarcode;//2016-8-13 jane加，返回给前端，用于指定修改密码的账户
             string strName = DomUtil.GetNodeText(nodePatron.SelectSingleNode("name"));
             string strReaderTempPassword = DomUtil.GetNodeText(nodePatron.SelectSingleNode("tempPassword"));
             string expireTime = DomUtil.GetNodeText(nodePatron.SelectSingleNode("expireTime"));
@@ -2260,6 +2272,8 @@ namespace dp2weixin.service
                     this.SetActivePatron(userItem);
                 }
 
+                // 2016-8-13 jane 自动修改设置的图书馆
+                this.UpdateUserSetting(strWeiXinId, libId, "");
 
 
                 // 发送绑定成功的客服消息    
@@ -2594,7 +2608,7 @@ namespace dp2weixin.service
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "检索出错：" + result.ErrorInfo;
+                    strError = "SearchBiblioInternal()检索出错：" + result.ErrorInfo + "\n dp2mserver账户:" + connection.UserName + "\n 目标账户名:" + lib.capoUserName;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -3247,7 +3261,7 @@ ERROR1:
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "检索出错：" + result.ErrorInfo;
+                    strError = "GetBiblioInfo()检索出错：" + result.ErrorInfo + " \n dp2mserver账户:" + connection.UserName;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -3344,7 +3358,7 @@ ERROR1:
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "检索出错：" + result.ErrorInfo;
+                    strError = "GetBiblioSummary()检索出错：" + result.ErrorInfo + " \n dp2mserver账户:" + connection.UserName;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -3424,8 +3438,9 @@ ERROR1:
 
                  // 检索是否绑定的读者账户，绑定的读者账户，可以出现预约，续借按钮
 
-                 WxUserItem patron = WxUserDatabase.Current.GetActivePatron(weixinId);
-                 if (patron != null)
+                 WxUserItem patron = WxUserDatabase.Current.GetActivePatron(weixinId,libId);
+                 // patron.libId==libId  2016-8-13 jane todo 关于当前账户与设置图书馆这块内容要统一修改
+                 if (patron != null)// && patron.libId==libId)
                  {
                      patronBarcode = patron.readerBarcode;
                      patronName = patron.readerName;
@@ -3473,14 +3488,14 @@ ERROR1:
                 }
                 catch (Exception ex)
                 {
-                    strError = "检索出错：[SearchAsync异常]" + ex.Message;
+                    strError = "GetItemInfo()检索出错：" + ex.Message + " \n dp2mserver账户:" + connection.UserName;
                     return -1;
                 }
 
                 //this.WriteLog("GetItemInfo3");
                 if (result.ResultCount == -1)
                 {
-                    strError = "检索出错：" + result.ErrorInfo;
+                    strError = "GetItemInfo()检索出错：" + result.ErrorInfo + " \n dp2mserver账户:" + connection.UserName;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -4393,6 +4408,11 @@ ERROR1:
 
                 //用code换取access_token
                 var result = OAuthApi.GetAccessToken(this.weiXinAppId, this.weiXinSecret, code);
+                if (result == null)
+                {
+                    strError = "GetAccessToken()返回的result为null。";
+                    return -1;
+                }
                 if (result.errcode != ReturnCode.请求成功)
                 {
                     strError = "获取微信id出错：" + result.errmsg;
@@ -5078,6 +5098,11 @@ ERROR1:
 
                 }
                 item.contentHtml = contentHtml;
+
+                if (String.IsNullOrEmpty(item.remark) == false)
+                {
+                    item.remarkHtml = GetMsgHtml("text", item.remark);
+                }
             }
             return item;
         }
@@ -5462,7 +5487,7 @@ ERROR1:
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "检索出错：" + result.ErrorInfo;
+                    strError = "GetUserInfo()出错：" + result.ErrorInfo + " \n dp2mserver账户:" + connection.UserName;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -5662,16 +5687,40 @@ ERROR1:
         }
         public string GetSubjectHtml(string libId, string group, string selSubject, bool bNew, List<SubjectItem> list)
         {
-
+            int nRet =0;
             string strError = "";
             if (list == null) //外面可以传进来
             {
-                int nRet = this.GetSubject(libId, group, out list, out strError);
+                nRet = this.GetSubject(libId, group, out list, out strError);
                 if (nRet == -1)
                 {
                     return "获取好书推荐的栏目出错";
                 }
             }
+            //if (String.IsNullOrEmpty(selSubject)== false)
+            //{
+            //    if (selSubject.Length > 6 && selSubject.Substring(0, 6) == "msgid-")
+            //    {
+            //        string msgId=selSubject.Substring(6);
+            //        List<MessageItem> msgList = null;
+            //        nRet = this.GetMessage(group,
+            //            libId,
+            //            msgId,
+            //            "",
+            //            "original",
+            //            out msgList,
+            //            out strError);
+            //        if (nRet ==-1)
+            //        {
+            //            return "获得id为'"+msgId+"'的message出错。";
+            //        }
+
+            //        if(msgList != null && msgList.Count>0)
+            //        {
+            //            selSubject = msgList[0].subject;
+            //        }
+            //    }
+            //}
 
             var opt = "<option value=''>请选择 栏目</option>";
             for (var i = 0; i < list.Count; i++)
@@ -5690,10 +5739,10 @@ ERROR1:
             {
                 opt += "<option value='new'>自定义栏目</option>";
                 
-                onchange = " onchange='subjectChanged()' ";
+                onchange = " onchange='subjectChanged(false,this)' ";
 
                 if (group == dp2WeiXinService.C_Group_HomePage)
-                    onchange = " onchange='subjectChanged(true)' ";
+                    onchange = " onchange='subjectChanged(true,this)' ";
             }
 
             string subjectHtml = "<select id='selSubject'  " + onchange + " >" + opt + "</select>";
@@ -5828,5 +5877,85 @@ ERROR1:
         ERROR1:
             return -1;
         }
+
+
+        #region 图书馆管理
+
+        public int AddLib(LibItem item,out LibItem outputItem,out string strError)
+        {
+            strError = "";
+            outputItem = null;
+            try
+            {
+                outputItem=LibDatabase.Current.Add(item);
+
+                //创建对应的图书馆主页配置目录
+                string libDir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + item.capoUserName + "/home";
+                if (Directory.Exists(libDir) == false)
+                    Directory.CreateDirectory(libDir);
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+
+            return 0;
+
+        }
+
+
+        public ApiResult deleteLib(string id)
+        {
+            string strError = "";
+
+            ApiResult result = new ApiResult();
+            // 先检查一下，是否有微信用户绑定了该图书馆
+            List<WxUserItem> list = WxUserDatabase.Current.GetByLibId(id);
+            if (list != null && list.Count > 0)
+            {
+                strError = "目前存在微信用户绑定了该图书馆的账户，不能删除图书馆。";
+                goto ERROR1;
+            }
+
+            // 检查是否有微信用户设置了该图书馆
+            List<UserSettingItem> settingList= UserSettingDb.Current.GetByLibId(id);
+            if (settingList != null && settingList.Count > 0)
+            {
+                strError = "目前已经存在微信用户设置了该图书馆，不能删除图书馆。";
+                goto ERROR1;
+            }
+
+            // 删除配置目录
+            LibItem lib = LibDatabase.Current.GetLibById(id);
+            if (lib != null)
+            {
+                try
+                {
+                    //创建对应的图书馆主页配置目录
+                    string libDir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + lib.capoUserName;// +"/home";
+                    if (Directory.Exists(libDir) == true)
+                        Directory.Delete(libDir, true);
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+            }
+            
+            // 从mongodb中删除
+            LibDatabase.Current.Delete(id);
+
+            return result;
+
+
+            ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = strError;
+            return result;
+        }
+
+        #endregion
     }
 }

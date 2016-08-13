@@ -20,6 +20,11 @@ namespace dp2weixin.service
         public string info = "";
     }
 
+    public class LibSetResult : ApiResult
+    {
+        public LibItem libItem { get; set; }
+    }
+
     public class WxUserResult:ApiResult
     {
         public List<WxUserItem> users { get; set; }

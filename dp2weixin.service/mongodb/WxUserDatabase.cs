@@ -137,26 +137,15 @@ namespace dp2weixin.service
         }
 
 
-        public WxUserItem GetOneWorker(string weixinId)
-        {
-            // 先查到weixinId+libCode+readerBarcode唯一的记录
-            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
-                & Builders<WxUserItem>.Filter.Eq("type", C_Type_Worker);
-            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
-            if (list.Count >= 1)
-                return list[0];
-
-            return null;
-        }
-
         /// <summary>
         /// 获取当前激活的读者账户
         /// </summary>
         /// <param name="weixinId"></param>
         /// <returns></returns>
-        public WxUserItem GetActivePatron(string weixinId)
+        public WxUserItem GetActivePatron(string weixinId,string libId)
         {
             var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("libId", libId)
                 & Builders<WxUserItem>.Filter.Eq("isActive", 1)
                 & Builders<WxUserItem>.Filter.Eq("type", C_Type_Patron);
 
@@ -168,6 +157,16 @@ namespace dp2weixin.service
                 return list[0];
 
             return null;
+        }
+
+        public List<WxUserItem> GetPatrons(string weixinId, string libId)
+        {
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("libId", libId)
+                & Builders<WxUserItem>.Filter.Eq("type", C_Type_Patron);
+
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();//.ToListAsync().Result;
+            return list;
         }
 
         /// <summary>

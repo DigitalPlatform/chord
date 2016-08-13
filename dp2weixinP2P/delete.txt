@@ -1,4 +1,93 @@
-﻿===home/index===
+﻿===========
+        private string getLinkHtml(int nRet,string menu,string returnUrl)
+        {
+            //string returnUrl = "/Patron/PersonalInfo";
+            string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+            string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
+            string strRedirectInfo = "";
+            if (nRet == -4) // 任何帐户都未绑定
+            {
+                strRedirectInfo = "您尚未绑定读者帐号，不能查看" + menu + "，" + bindLink;
+            }
+            else if (nRet == -2)// 未绑定的情况，转到绑定界面
+            {
+                strRedirectInfo = "您虽然绑定了工作人员帐号，但尚未绑定读者帐号，不能查看" + menu + "，" + bindLink;
+            }
+            // 没有设置默认账户，转到帐户管理界面
+            if (nRet == -3)
+            {
+                //string indexUrl = "/Account/Index";
+                //string indexLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + indexUrl + "\")'>这里</a>进行设置。";
+                //strRedirectInfo = "您虽然绑定了读者帐号，但当前活动账户与当前设置的图书馆不同，不能查看" + menu + "，" + indexLink;
+
+                strRedirectInfo = "您尚未绑定当前图书馆的读者账户，不能查看" + menu + "，" + bindLink;
+            }
+
+            if (strRedirectInfo != "")
+            {
+                strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
+                    //+ "<center>"
+                    + strRedirectInfo
+                    //+ "</center"
+                    + "</div>";
+            }
+
+            return strRedirectInfo;
+        }
+
+
+
+===============
+
+            // 检查微信用户是否已经绑定账号
+            List<WxUserItem> userList = WxUserDatabase.Current.GetAllByWeixinId(weiXinId);
+            if (userList.Count == 0)// 未绑定读者的情况，转到绑定界面
+                return -4;
+
+            // 检查微信用户是否已经绑定的读者
+            userList = WxUserDatabase.Current.GetPatronsByWeixinId(weiXinId);
+            if (userList.Count == 0)// 未绑定读者的情况，转到绑定界面
+                return -2;
+
+
+            // 检查是否设置了默认账户
+            activeUserItem = null;
+            foreach (WxUserItem item in userList)
+            {
+                if (item.isActive == 1)
+                {
+                    activeUserItem = item;
+                    break;
+                }
+            }
+            // 没有设置默认账户，转到帐户管理界面
+            if (activeUserItem == null || activeUserItem.libId != ViewBag.LibId)
+                return -3;
+
+============
+        private string GetLibHtml(string libId)
+        {
+            if (String.IsNullOrEmpty(libId) == true)
+            {
+                // 找工作人员帐户
+                string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+                WxUserItem userItem = WxUserDatabase.Current.GetOneWorker(weiXinId);
+                if (userItem == null)
+                {
+                    // 找读者帐户
+                    userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
+                }
+                if (userItem != null)
+                    libId = userItem.libId;
+            }
+
+            return this.GetLibSelectHtml(libId);
+        }
+
+
+
+
+===home/index===
 
             /*
            if (String.IsNullOrEmpty(admin) == false && admin == "1")

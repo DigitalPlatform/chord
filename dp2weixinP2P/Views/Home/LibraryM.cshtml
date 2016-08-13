@@ -174,8 +174,16 @@
 
             var url = "/api/LibrarySetting";
             sendAjaxRequest(url, "POST",
-                function (newItem) {
-                    model.librarys.push(newItem);
+                function (result) {
+                    // 关闭等待层
+                    layer.close(index);
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }
+
+                    model.librarys.push(result.libItem);
                     model.displaySummary(true);
 
                     //清空编辑界面信息
@@ -190,8 +198,7 @@
 
                     model.editor.comment("");
 
-                    // 关闭等待层
-                    layer.close(index);
+
                 },
                 function (xhq, textStatus, errorThrown) {
                     alert(errorThrown);

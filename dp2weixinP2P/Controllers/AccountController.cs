@@ -27,7 +27,8 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             // 未账户任何账户时，自动转到绑定界面            
-            if (Session[WeiXinConst.C_Session_IsBind] == null || (int)Session[WeiXinConst.C_Session_IsBind] == 0)
+            if (Session[WeiXinConst.C_Session_IsBind] == null 
+                || (int)Session[WeiXinConst.C_Session_IsBind] == 0)
             {
                 return RedirectToAction("Bind");
             }              
@@ -46,25 +47,9 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
-            // 去掉选择图书馆 2016/7/3 jane
-            /*
-            string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
-            if (userItem == null)
-            {
-                // 找工作人员帐户
-                userItem = WxUserDatabase.Current.GetOneWorker(weiXinId);
-            }
-            string libId = "";
-            if (userItem != null)
-            {
-                // 设当前图书馆
-                libId = userItem.libId;
-            }
+            // 图书馆html,选中项为设置的图书馆
+            ViewBag.LibHtml = this.GetLibSelectHtml(ViewBag.LibId);
 
-            // 图书馆html
-            ViewBag.LibHtml = this.GetLibSelectHtml(libId);
-            */
             return View();
         }
 
@@ -77,31 +62,18 @@ namespace dp2weixinWeb.Controllers
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
                 return Content(strError);
-
-            // 界面上不再选择图书馆 2016/7/3 jane
-            /*
-            string selLibId = "";
-            // 如果是从绑定界面过来的，可能会传来绑定界面使用的图书馆
-            if (string.IsNullOrEmpty(libId) == false && libId != "undefined")
+            
+            // 如果是从绑定界面过来的，会传来绑定界面使用的图书馆
+            // 如果未传进图书馆，使用设置的图书馆
+            if (string.IsNullOrEmpty(libId) == true)
             {
-                selLibId = libId;// "lib_local*mycapo";
+                libId=ViewBag.LibId;
             }
-            else
-            {
-                string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-                WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
-                if (userItem == null)
-                {
-                    // 找工作人员帐户
-                    userItem = WxUserDatabase.Current.GetOneWorker(weiXinId);
-                }
-                if (userItem != null)
-                    selLibId = userItem.libId;
-            }
+            
 
             // 图书馆html
-            ViewBag.LibHtml = this.GetLibSelectHtml(selLibId);
-            */
+            ViewBag.LibHtml = this.GetLibSelectHtml(libId);
+            
 
             if (string.IsNullOrEmpty(readerName) == false && readerName != "undefined")
                 ViewBag.ReaderName = readerName;// "test";
@@ -112,7 +84,7 @@ namespace dp2weixinWeb.Controllers
         }
 
 
-        public ActionResult ChangePassword(string code, string state)
+        public ActionResult ChangePassword(string code, string state,string patronBarcode)
         {
             // 检查是否从微信入口进来
             string strError = "";
@@ -120,10 +92,17 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
-            string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
+            if (String.IsNullOrEmpty(patronBarcode) == true)
+            {
+                string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+                WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId,ViewBag.LibId);
+                if (userItem != null)
+                    patronBarcode = userItem.readerBarcode;
+            }
 
-            return View(userItem);
+            ViewBag.patronBarcode = patronBarcode;
+
+            return View();
         }
 
 

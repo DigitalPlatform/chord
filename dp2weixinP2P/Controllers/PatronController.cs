@@ -30,22 +30,15 @@ namespace dp2weixinWeb.Controllers
             ViewBag.returnUrl = returnUrl;
 
             // 图书馆html
-            UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weiXinId);
-            string libId = "~1"; //默认选第一行
-            if (settingItem != null)
-            {
-                libId = settingItem.libId;
-            }
-            ViewBag.LibHtml = this.GetLibSelectHtml(libId);
+            ViewBag.LibHtml = this.GetLibSelectHtml(ViewBag.LibId);
 
             string photoChecked = "";
-            if (settingItem != null && settingItem.showPhoto == 1)
+            if (ViewBag.showPhoto == 1)
                 photoChecked = " checked='checked' ";
             ViewBag.photoChecked = photoChecked;
 
-
             string coverChecked = "";
-            if (settingItem != null && settingItem.showCover == 1)
+            if (ViewBag.showCover == 1)
                 coverChecked = " checked='checked' ";
             ViewBag.coverChecked = coverChecked;
 
@@ -64,10 +57,9 @@ namespace dp2weixinWeb.Controllers
             int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
             if (nRet == -1 || nRet == 0)
                 return Content(strError);
-            string strRedirectInfo = this.getLinkHtml(nRet, "二维码", "/Patron/QRcode");
-            if (strRedirectInfo != "")
+            if (nRet==-2)
             {
-                ViewBag.RedirectInfo = strRedirectInfo;
+                ViewBag.RedirectInfo = this.getLinkHtml("二维码", "/Patron/QRcode");
                 return View();
             }
 
@@ -206,37 +198,19 @@ namespace dp2weixinWeb.Controllers
 
         #endregion
 
-        private string getLinkHtml(int nRet,string menu,string returnUrl)
+        private string getLinkHtml(string menu, string returnUrl)
         {
             //string returnUrl = "/Patron/PersonalInfo";
             string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
             string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
-            string strRedirectInfo = "";
-            if (nRet == -4) // 任何帐户都未绑定
-            {
-                strRedirectInfo = "您尚未绑定读者帐号，不能查看" + menu + "，" + bindLink;
-            }
-            else if (nRet == -2)// 未绑定的情况，转到绑定界面
-            {
-                strRedirectInfo = "您虽然绑定了工作人员帐号，但尚未绑定读者帐号，不能查看" + menu + "，" + bindLink;
-            }
-            // 没有设置默认账户，转到帐户管理界面
-            if (nRet == -3)
-            {
-                string indexUrl = "/Account/Index";
-                string indexLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + indexUrl + "\")'>这里</a>进行设置。";
+            string strRedirectInfo = "您尚未绑定当前图书馆的读者账户，不能查看" + menu + "，" + bindLink;
 
-                strRedirectInfo = "您虽然绑定了读者帐号，但尚未设置当前活动帐号，不能查看" + menu + "，" + indexLink;
-            }
+            strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
+                //+ "<center>"
+                + strRedirectInfo
+                //+ "</center"
+                + "</div>";
 
-            if (strRedirectInfo != "")
-            {
-                strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
-                    //+ "<center>"
-                    + strRedirectInfo
-                    //+ "</center"
-                    + "</div>";
-            }
 
             return strRedirectInfo;
         }
@@ -249,25 +223,11 @@ namespace dp2weixinWeb.Controllers
             int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml);
             if (nRet == -1 || nRet == 0)
                 return Content(strError);
-
-            string strRedirectInfo = this.getLinkHtml(nRet, "我的信息", "/Patron/PersonalInfo");
-            if (strRedirectInfo != "")
+            if (nRet==-2)
             {
-                ViewBag.RedirectInfo = strRedirectInfo;
+                ViewBag.RedirectInfo = this.getLinkHtml("我的信息", "/Patron/PersonalInfo");
+                return View();
             }
-
-
-            /*
-            if (nRet == -2)// 未绑定的情况，转到绑定界面
-            {
-                return RedirectToAction("Bind", "Account");
-            }
-            // 没有设置默认账户，转到帐户管理界面
-            if (nRet == -3)
-            {
-                return RedirectToAction("Index", "Account");
-            }
-            */
 
             PersonalInfoModel model = null;
             if (activeUserItem != null)
@@ -285,15 +245,9 @@ namespace dp2weixinWeb.Controllers
             int nRet = this.GetReaderXml(code, state, "xml", out activeUserItem, out strXml);
             if (nRet == -1 || nRet == 0)
                 return Content(strError);
-
-            if (nRet == -2)// 未绑定的情况，转到绑定界面
+            if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
             {
                 return RedirectToAction("Bind", "Account");
-            }
-            // 没有设置默认账户，转到帐户管理界面
-            if (nRet == -3)
-            {
-                return RedirectToAction("Index", "Account");
             }
 
             string strWarningText = "";
@@ -316,15 +270,9 @@ namespace dp2weixinWeb.Controllers
             int nRet = this.GetReaderXml(code, state, "",out activeUserItem, out strXml);
             if (nRet == -1 || nRet == 0)
                 return Content(strError);
-
-            if (nRet == -2)// 未绑定的情况，转到绑定界面
+            if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
             {
                 return RedirectToAction("Bind", "Account");
-            }
-            // 没有设置默认账户，转到帐户管理界面
-            if (nRet == -3)
-            {
-                return RedirectToAction("Index", "Account");
             }
 
             return View(activeUserItem);
@@ -342,14 +290,9 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1 || nRet == 0)
                 return Content(strError);
 
-            if (nRet == -2)// 未绑定的情况，转到绑定界面
+            if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
             {
                 return RedirectToAction("Bind", "Account");
-            }
-            // 没有设置默认账户，转到帐户管理界面
-            if (nRet == -3)
-            {
-                return RedirectToAction("Index", "Account");
             }
 
             return View(activeUserItem);
@@ -382,31 +325,11 @@ namespace dp2weixinWeb.Controllers
                 return -1;
 
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-
-            // 检查微信用户是否已经绑定账号
-            List<WxUserItem> userList = WxUserDatabase.Current.GetAllByWeixinId(weiXinId);
-            if (userList.Count == 0)// 未绑定读者的情况，转到绑定界面
-                return -4;
-
-            // 检查微信用户是否已经绑定的读者
-            userList = WxUserDatabase.Current.GetPatronsByWeixinId(weiXinId);
-            if (userList.Count == 0)// 未绑定读者的情况，转到绑定界面
-                return -2;
-
-
-            // 检查是否设置了默认账户
-            activeUserItem = null;
-            foreach (WxUserItem item in userList)
-            {
-                if (item.isActive == 1)
-                {
-                    activeUserItem = item;
-                    break;
-                }
-            }
-            // 没有设置默认账户，转到帐户管理界面
+            activeUserItem = WxUserDatabase.Current.GetActivePatron(weiXinId, ViewBag.LibId);
+            // 未绑定读者账户，应该不会出现未激活的情况，todo，当设置图书馆，如果发现微信用户绑定了该图书馆的读者账户，则自动找到第一个激活
             if (activeUserItem == null)
-                return -3;
+                return -2;
+            
 
             // 有的调用处不需要获取读者xml，例如预约
             if (String.IsNullOrEmpty(strFormat) == false)

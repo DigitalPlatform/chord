@@ -21,27 +21,12 @@ namespace dp2weixinWeb.Controllers
             ViewBag.workerUserName = "";
 
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            WxUserItem userItem1= WxUserDatabase.Current.GetActivePatron(weiXinId);
-            //string libId = "";
-            if (userItem1 != null)
+            WxUserItem userItem1 = WxUserDatabase.Current.GetActivePatron(weiXinId, ViewBag.LibId);
+            // 增加userItem1.libId == ViewBag.LibId  2016-8-13 jane todo
+            if (userItem1 != null) //&& userItem1.libId == ViewBag.LibId)
             {
-                //ViewBag.MyLibId = userItem1.libId;
                 ViewBag.PatronBarcode = userItem1.readerBarcode;
-                //ViewBag.PatronName = userItem1.readerName;
-                //libId = userItem1.libId;
             }
-            //else
-            //{
-            //    userItem1 = WxUserDatabase.Current.GetOneWorker(weiXinId);
-            //    if (userItem1 != null)
-            //    {
-            //        libId = userItem1.libId;
-            //        ViewBag.workerUserName = userItem1.userName;
-            //    } 
-            //}
-
-            // 去掉图书馆选择 2016/7/3
-            //ViewBag.LibHtml = this.GetLibSelectHtml(libId);
 
             return View();
         }
@@ -56,8 +41,9 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            WxUserItem userItem1 = WxUserDatabase.Current.GetActivePatron(weiXinId);
-            if (userItem1 != null)
+            WxUserItem userItem1 = WxUserDatabase.Current.GetActivePatron(weiXinId,ViewBag.LibId);
+            // patron.libId==libId  2016-8-13 jane todo 关于当前账户与设置图书馆这块内容要统一修改
+            if (userItem1 != null)// && userItem1.libId== ViewBag.LibId)
             {
                 ViewBag.PatronBarcode = userItem1.readerBarcode;
             }

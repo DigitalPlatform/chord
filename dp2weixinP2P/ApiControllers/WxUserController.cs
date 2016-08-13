@@ -44,19 +44,24 @@ namespace dp2weixinWeb.ApiControllers
 
         // POST api/<controller>
         [HttpPost]
-        public ApiResult ResetPassword(string libId,
+        public ApiResult ResetPassword(string weixinId,
+            string libId,
             string name, 
             string tel)
         {
             ApiResult result = new ApiResult();
 
             string strError = "";
-            int nRet = dp2WeiXinService.Instance.ResetPassword(libId,
+            string patronBarcode = "";
+            int nRet = dp2WeiXinService.Instance.ResetPassword(weixinId,
+                libId,
                 name,
                 tel,
+                out patronBarcode,
                 out strError);
             result.errorCode = nRet;
             result.errorInfo = strError;
+            result.info = patronBarcode;
 
             return result;
         }
@@ -71,6 +76,15 @@ namespace dp2weixinWeb.ApiControllers
             try
             {
                 UserSettingDb.Current.SetLib(item);
+
+                // 2016-8-13 jane 检查微信用户对于这个图书馆是否有绑定的读者，如果有的话，将第一个读者设为激活状态
+                List<WxUserItem> users = WxUserDatabase.Current.GetPatrons(item.weixinId, item.libId);
+                if (users != null && users.Count > 0)
+                {
+                    WxUserItem userItem= users[0];
+                    WxUserDatabase.Current.SetActivePatron(userItem.weixinId, userItem.id);
+                }
+
             }
             catch (Exception ex)
             {
@@ -89,8 +103,6 @@ namespace dp2weixinWeb.ApiControllers
         {
             // 返回对象
             WxUserResult result = new WxUserResult();
-            //result.userItem = null;
-           // result.apiResult = new ApiResult();
 
             // 前端有时传上来是这个值
             if (item.prefix == "null")
@@ -151,7 +163,13 @@ namespace dp2weixinWeb.ApiControllers
 
             WxUserItem user = wxUserDb.GetById(id);
             if (user != null)
+            {
+                //设为活动账户
                 dp2WeiXinService.Instance.SetActivePatron(user);
+
+                // 自动更新设置的当前图书馆
+                dp2WeiXinService.Instance.UpdateUserSetting(user.weixinId, user.libId, "");
+            }
         }
 
 
