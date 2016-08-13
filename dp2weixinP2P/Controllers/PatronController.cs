@@ -26,11 +26,11 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
-            string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             ViewBag.returnUrl = returnUrl;
 
             // 图书馆html
-            ViewBag.LibHtml = this.GetLibSelectHtml(ViewBag.LibId);
+            ViewBag.LibHtml = this.GetLibSelectHtml(ViewBag.LibId, weixinId);
 
             string photoChecked = "";
             if (ViewBag.showPhoto == 1)

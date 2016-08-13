@@ -83,3 +83,12 @@ DIV.btn3 ul,li,ol
 DIV.btn3 .clear{clear:both;height:0;line-height:0;font-size:0;visibility:hidden;overflow:hidden}
 DIV.btn3 .clearfix:after{visibility: hidden;display: block;font-size: 0;content: " ";clear: both;height: 0;zoom:1;}
 
+.option-current {
+    color:darkgreen;
+}
+.option-bind {
+    color:#000000;
+}
+.option-unbind {
+    color:#cccccc;
+}

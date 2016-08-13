@@ -180,6 +180,24 @@ namespace dp2weixin.service
             return this.wxUserCollection.Find(filter).ToList();
         }
 
+        public List<string> GetLibsByWeixinId(string weixinId)
+        {
+            List<string> libs = new List<string>();
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId);
+            List <WxUserItem> list=  this.wxUserCollection.Find(filter).ToList();
+            if (list != null && list.Count > 0)
+            {
+                foreach (WxUserItem item in list)
+                {
+                    if (libs.Contains(item.libId) == false)
+                    {
+                        libs.Add(item.libId);
+                    }
+                }
+            }
+            return libs;
+        }
+
         /// <summary>
         /// 获取微信用户绑定的所有读者账户
         /// </summary>
