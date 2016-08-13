@@ -77,13 +77,8 @@ namespace dp2weixinWeb.ApiControllers
             {
                 UserSettingDb.Current.SetLib(item);
 
-                // 2016-8-13 jane 检查微信用户对于这个图书馆是否有绑定的读者，如果有的话，将第一个读者设为激活状态
-                List<WxUserItem> users = WxUserDatabase.Current.GetPatrons(item.weixinId, item.libId);
-                if (users != null && users.Count > 0)
-                {
-                    WxUserItem userItem= users[0];
-                    WxUserDatabase.Current.SetActivePatron(userItem.weixinId, userItem.id);
-                }
+                // 2016-8-13 jane 检查微信用户对于该馆是否设置了活动账户
+                dp2WeiXinService.Instance.CheckUserActivePatron(item.weixinId, item.libId);
 
             }
             catch (Exception ex)
@@ -165,10 +160,10 @@ namespace dp2weixinWeb.ApiControllers
             if (user != null)
             {
                 //设为活动账户
-                dp2WeiXinService.Instance.SetActivePatron(user);
+                WxUserDatabase.Current.SetActivePatron(user.weixinId, user.id);
 
                 // 自动更新设置的当前图书馆
-                dp2WeiXinService.Instance.UpdateUserSetting(user.weixinId, user.libId, "");
+                dp2WeiXinService.Instance.UpdateUserSetting(user.weixinId, user.libId, "",false);
             }
         }
 

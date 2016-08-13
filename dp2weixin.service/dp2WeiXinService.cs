@@ -243,11 +243,6 @@ namespace dp2weixin.service
                     throw new Exception("尚未指定微信本方用户名，无法进行登录");
                 e.Password = lib.wxPassword;
 
-                //e.UserName = GetUserName();
-                //if (string.IsNullOrEmpty(e.UserName) == true)
-                //    throw new Exception("尚未指定用户名，无法进行登录");
-
-                //e.Password = GetPassword();
             }
             else
             {
@@ -272,23 +267,22 @@ namespace dp2weixin.service
         }
 
 
-        //Hashtable _wxUserTable = new Hashtable();
 
-        public void SetActivePatron(WxUserItem userItem)
-        {
-            // 更新数据库
-            WxUserDatabase.Current.SetActivePatron(userItem.weixinId, userItem.id);
+        //public void SetActivePatron(WxUserItem userItem)
+        //{
+        //    // 更新数据库
+        //    WxUserDatabase.Current.SetActivePatron(userItem.weixinId, userItem.id);
 
-            return;
-        }
+        //    return;
+        //}
 
-        public void DeletePatron(string userId)
-        {
-            // 删除mongodb库的记录
-            WxUserItem newActivePatron = null;
-            WxUserDatabase.Current.Delete(userId, out newActivePatron);
-            return;
-        }
+        //public void DeletePatron(string userId)
+        //{
+        //    // 删除mongodb库的记录
+        //    WxUserItem newActivePatron = null;
+        //    WxUserDatabase.Current.Delete(userId, out newActivePatron);
+        //    return;
+        //}
 
 
 
@@ -1797,7 +1791,7 @@ namespace dp2weixin.service
         /// <param name="weixinId"></param>
         /// <param name="libId"></param>
         /// <param name="bookSubject"></param>
-        public void UpdateUserSetting(string weixinId, string libId, string bookSubject)
+        public void UpdateUserSetting(string weixinId, string libId, string bookSubject,bool bCheckActiveUser)
         {
             if (bookSubject == null)
                 bookSubject = "";
@@ -1830,6 +1824,48 @@ namespace dp2weixin.service
 
                 UserSettingDb.Current.UpdateLib(settingItem);
 
+            }
+
+            if (bCheckActiveUser == true)
+            {
+                //检查微信用户对于该馆是否设置了活动账户
+                this.CheckUserActivePatron(weixinId, libId);
+            }
+        }
+
+        /// <summary>
+        /// 检查微信用户对于该馆是否设置了活动账户
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="libId"></param>
+        public void CheckUserActivePatron(string weixinId,string libId)
+        {
+            // 检查该图是否绑定了读者账户
+            List<WxUserItem> users = WxUserDatabase.Current.GetPatrons(weixinId, libId);
+            if (users != null && users.Count > 0)
+            {
+                // 检查当前有没有激活账户
+                bool isActive = false;
+                foreach (WxUserItem user in users)
+                {
+                    if (user.isActive == 1)
+                    {
+                        isActive = true;
+                        break;
+                    }
+                }
+
+                // 没有激活的，激活第一人
+                if (isActive == false)
+                {
+                    WxUserItem userItem = users[0];
+                    WxUserDatabase.Current.SetActivePatron(userItem.weixinId, userItem.id);
+                }
+            }
+            else
+            {
+                // 没有绑定该图书馆读者账户，全部将该微信用户对应的他馆账户置为未激活状态
+                WxUserDatabase.Current.SetNoActivePatron(weixinId);
             }
         }
 
@@ -1919,7 +1955,7 @@ namespace dp2weixin.service
             }
 
             // 2016-8-13 jane 自动修改设置的图书馆
-            this.UpdateUserSetting(weixinId, libId, "");
+            this.UpdateUserSetting(weixinId, libId, "",true);
 
 
             // 发送短信
@@ -2269,11 +2305,11 @@ namespace dp2weixin.service
                 if (type == 0)
                 {
                     // 置为活动状态
-                    this.SetActivePatron(userItem);
+                    WxUserDatabase.Current.SetActivePatron(userItem.weixinId,userItem.id);
                 }
 
-                // 2016-8-13 jane 自动修改设置的图书馆
-                this.UpdateUserSetting(strWeiXinId, libId, "");
+                // 2016-8-13 jane 自动修改当前的图书馆
+                this.UpdateUserSetting(strWeiXinId, libId, "", true);//,因为有工作人员的情况，这里要传true
 
 
                 // 发送绑定成功的客服消息    
@@ -2388,7 +2424,8 @@ namespace dp2weixin.service
                 }
 
                 // 删除mongodb库的记录
-                this.DeletePatron(userId);
+                WxUserItem newActivePatron = null;
+                WxUserDatabase.Current.Delete(userId, out newActivePatron);
 
                 // 发送解绑消息    
                 string strFirst = "🔒您已成功对图书馆读者账号解除绑定。";

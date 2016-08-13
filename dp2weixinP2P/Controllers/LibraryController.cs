@@ -11,7 +11,6 @@ namespace dp2weixinWeb.Controllers
 {
     public class LibraryController : BaseController
     {
-
         public ActionResult BB(string code, string state)
         {
             // 检查是否从微信入口进来
@@ -123,7 +122,9 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
-                return Content(strError);
+            {
+                goto ERROR1;
+            }
 
             //绑定的工作人员账号 需要有权限
             string userName = "";
@@ -175,7 +176,9 @@ namespace dp2weixinWeb.Controllers
             return View(list);
 
         ERROR1:
-            return Content(strError);
+
+            ViewBag.Error = strError;
+            return View();//Content(strError);
         }
 
 
