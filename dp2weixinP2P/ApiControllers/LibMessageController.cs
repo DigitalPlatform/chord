@@ -105,13 +105,15 @@ namespace dp2weixinWeb.ApiControllers
             if (param.Contains("list")==true)
                 result.list = list;
 
-            string html = dp2WeiXinService.Instance.GetSubjectHtml(libId,
-                group,
-               selSubject,
-               true,
-               list);
             if (param.Contains("html") == true)
+            {
+                string html = dp2WeiXinService.Instance.GetSubjectHtml(libId,
+                    group,
+                   selSubject,
+                   true,
+                   list);
                 result.html = html;
+            }
 
             result.errorCode = nRet;
             result.errorInfo = strError;

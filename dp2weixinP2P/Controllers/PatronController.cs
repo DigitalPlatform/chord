@@ -226,7 +226,7 @@ namespace dp2weixinWeb.Controllers
                 string indexUrl = "/Account/Index";
                 string indexLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + indexUrl + "\")'>这里</a>进行设置。";
 
-                strRedirectInfo = "您虽然绑定了读者帐号，但尚未设置当前活动帐号，不能查看" + menu + "，" + indexLink;
+                strRedirectInfo = "您虽然绑定了读者帐号，但当前活动账户与当前设置的图书馆不同，不能查看" + menu + "，" + indexLink;
             }
 
             if (strRedirectInfo != "")
@@ -405,7 +405,7 @@ namespace dp2weixinWeb.Controllers
                 }
             }
             // 没有设置默认账户，转到帐户管理界面
-            if (activeUserItem == null)
+            if (activeUserItem == null || activeUserItem.libId != ViewBag.LibId)
                 return -3;
 
             // 有的调用处不需要获取读者xml，例如预约

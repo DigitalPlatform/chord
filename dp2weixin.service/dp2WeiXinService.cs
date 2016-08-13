@@ -3425,7 +3425,8 @@ ERROR1:
                  // 检索是否绑定的读者账户，绑定的读者账户，可以出现预约，续借按钮
 
                  WxUserItem patron = WxUserDatabase.Current.GetActivePatron(weixinId);
-                 if (patron != null)
+                 // patron.libId==libId  2016-8-13 jane todo 关于当前账户与设置图书馆这块内容要统一修改
+                 if (patron != null && patron.libId==libId)
                  {
                      patronBarcode = patron.readerBarcode;
                      patronName = patron.readerName;
@@ -5667,16 +5668,40 @@ ERROR1:
         }
         public string GetSubjectHtml(string libId, string group, string selSubject, bool bNew, List<SubjectItem> list)
         {
-
+            int nRet =0;
             string strError = "";
             if (list == null) //外面可以传进来
             {
-                int nRet = this.GetSubject(libId, group, out list, out strError);
+                nRet = this.GetSubject(libId, group, out list, out strError);
                 if (nRet == -1)
                 {
                     return "获取好书推荐的栏目出错";
                 }
             }
+            //if (String.IsNullOrEmpty(selSubject)== false)
+            //{
+            //    if (selSubject.Length > 6 && selSubject.Substring(0, 6) == "msgid-")
+            //    {
+            //        string msgId=selSubject.Substring(6);
+            //        List<MessageItem> msgList = null;
+            //        nRet = this.GetMessage(group,
+            //            libId,
+            //            msgId,
+            //            "",
+            //            "original",
+            //            out msgList,
+            //            out strError);
+            //        if (nRet ==-1)
+            //        {
+            //            return "获得id为'"+msgId+"'的message出错。";
+            //        }
+
+            //        if(msgList != null && msgList.Count>0)
+            //        {
+            //            selSubject = msgList[0].subject;
+            //        }
+            //    }
+            //}
 
             var opt = "<option value=''>请选择 栏目</option>";
             for (var i = 0; i < list.Count; i++)
@@ -5695,10 +5720,10 @@ ERROR1:
             {
                 opt += "<option value='new'>自定义栏目</option>";
                 
-                onchange = " onchange='subjectChanged()' ";
+                onchange = " onchange='subjectChanged(false,this)' ";
 
                 if (group == dp2WeiXinService.C_Group_HomePage)
-                    onchange = " onchange='subjectChanged(true)' ";
+                    onchange = " onchange='subjectChanged(true,this)' ";
             }
 
             string subjectHtml = "<select id='selSubject'  " + onchange + " >" + opt + "</select>";
