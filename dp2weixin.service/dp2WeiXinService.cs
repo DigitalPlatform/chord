@@ -625,8 +625,8 @@ namespace dp2weixin.service
            */
 
             string patronName = "";
-            List<string> weiXinIdList = this.GetWeiXinIds(bodyDom, out patronName);
-            if (weiXinIdList.Count == 0)
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
                 return 0;
@@ -675,7 +675,7 @@ namespace dp2weixin.service
 
             string remark ="\n"+ this._msgRemark;  // patronName + "，您好，" +
 
-            foreach (string weiXinId in weiXinIdList)
+            foreach (string weixinId in weixinIdList)
             {
                 try
                 {
@@ -697,7 +697,7 @@ namespace dp2weixin.service
 
                     // 发送模板消息
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                        weiXinId,
+                        weixinId,
                         WeiXinConst.C_Template_Message,
                         "#FF0000",
                         "",//不出现详细了
@@ -784,8 +784,8 @@ namespace dp2weixin.service
            */
 
             string patronName = "";
-            List<string> weiXinIdList = this.GetWeiXinIds(bodyDom, out patronName);
-            if (weiXinIdList.Count == 0)
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
                 return 0;
@@ -840,7 +840,7 @@ namespace dp2weixin.service
             }
             string summary = DomUtil.GetNodeText(nodeSummary);
 
-            foreach (string weiXinId in weiXinIdList)
+            foreach (string weixinId in weixinIdList)
             {
                 try
                 {
@@ -866,7 +866,7 @@ namespace dp2weixin.service
 
                     // 发送模板消息
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                        weiXinId,
+                        weixinId,
                         WeiXinConst.C_Template_Borrow,
                         "#006400",  //FF0000
                         this._detailUrl_PersonalInfo,//详情转到个人信息界面
@@ -973,8 +973,8 @@ namespace dp2weixin.service
            */
 
             string patronName = "";
-            List<string> weiXinIdList = this.GetWeiXinIds(bodyDom, out patronName);
-            if (weiXinIdList.Count == 0)
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
                 return 0;
@@ -1036,7 +1036,7 @@ namespace dp2weixin.service
             }
 
 
-            foreach (string weiXinId in weiXinIdList)
+            foreach (string weixinId in weixinIdList)
             {
                 try
                 {
@@ -1066,7 +1066,7 @@ namespace dp2weixin.service
 
                     // 发送模板消息
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                        weiXinId,
+                        weixinId,
                         WeiXinConst.C_Template_Return,
                         "#00008B",
                         this._detailUrl_PersonalInfo,//详情转到个人信息界面
@@ -1130,8 +1130,8 @@ namespace dp2weixin.service
            */
 
             string patronName = "";
-            List<string> weiXinIdList = this.GetWeiXinIds(bodyDom, out patronName);
-            if (weiXinIdList.Count == 0)
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
                 return 0;
@@ -1174,7 +1174,7 @@ namespace dp2weixin.service
 
             string remark = "\n" + patronName + "，您已成功交费，" + this._msgRemark;
 
-            foreach (string weiXinId in weiXinIdList)
+            foreach (string weixinId in weixinIdList)
             {
 
                 try
@@ -1208,7 +1208,7 @@ namespace dp2weixin.service
 
                     // 发送模板消息
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                        weiXinId,
+                        weixinId,
                         WeiXinConst.C_Template_Pay,
                         "#FF0000",
                         this._detailUrl_PersonalInfo,//详情转到个人信息界面
@@ -1275,8 +1275,8 @@ namespace dp2weixin.service
            */
 
             string patronName = "";
-            List<string> weiXinIdList = this.GetWeiXinIds(bodyDom, out patronName);
-            if (weiXinIdList.Count == 0)
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
                 return 0;
@@ -1302,7 +1302,7 @@ namespace dp2weixin.service
                 string summary = DomUtil.GetAttr(node, "summary");
                 string reason = DomUtil.GetAttr(node, "reason");
 
-                foreach (string weiXinId in weiXinIdList)
+                foreach (string weixinId in weixinIdList)
                 {
                     try
                     {
@@ -1329,7 +1329,7 @@ namespace dp2weixin.service
 
                         // 发送模板消息
                         var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                            weiXinId,
+                            weixinId,
                             WeiXinConst.C_Template_CancelPay,
                             "#FF0000",
                             this._detailUrl_PersonalInfo,//详情转到个人信息界面
@@ -1384,8 +1384,8 @@ namespace dp2weixin.service
 
             // 得到绑定的微信id
             string patronName = "";
-            List<string> weiXinIdList = this.GetWeiXinIds(bodyDom, out patronName);
-            if (weiXinIdList.Count == 0)
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
                 return 0;
@@ -1428,7 +1428,7 @@ namespace dp2weixin.service
                     return -1;//整个不处理 //continue;                    
                 }
 
-                foreach (string weiXinId in weiXinIdList)
+                foreach (string weixinId in weixinIdList)
                 {
                     try
                     {
@@ -1457,7 +1457,7 @@ namespace dp2weixin.service
                         };
 
                         var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                            weiXinId,
+                            weixinId,
                             templateId,
                             "#FF0000",
                             this._detailUrl_PersonalInfo,//详情转到个人信息界面
@@ -1526,8 +1526,8 @@ namespace dp2weixin.service
            */
 
             string patronName = "";
-            List<string> weiXinIdList = this.GetWeiXinIds(bodyDom, out patronName);
-            if (weiXinIdList.Count == 0)
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
                 return 0;
@@ -1598,7 +1598,7 @@ namespace dp2weixin.service
                 end = "\n" + patronName + "，您预约的图书[" + itemBarcode + "]已经在架上，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或允许其他读者借阅。";
             }
 
-            foreach (string weiXinId in weiXinIdList)
+            foreach (string weixinId in weixinIdList)
             {
                 try
                 {
@@ -1620,7 +1620,7 @@ namespace dp2weixin.service
 
                     // 发送预约模板消息
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                        weiXinId,
+                        weixinId,
                         WeiXinConst.C_Template_Arrived,
                         "#FF0000",
                         this._detailUrl_PersonalInfo,//详情转到个人信息界面
@@ -1664,7 +1664,7 @@ namespace dp2weixin.service
             string email = DomUtil.GetNodeText(emailNode);
             //<email>test@163.com,123,weixinid:o4xvUviTxj2HbRqbQb9W2nMl4fGg,weixinid:o4xvUvnLTg6NnflbYdcS-sxJCGFo,weixinid:testid</email>
             string[] emailList = email.Split(new char[] { ',' });
-            List<string> weiXinIdList = new List<string>();
+            List<string> weixinIdList = new List<string>();
             for (int i = 0; i < emailList.Length; i++)
             {
                 string oneEmail = emailList[i].Trim();
@@ -1672,10 +1672,10 @@ namespace dp2weixin.service
                 {
                     string weiwinId = oneEmail.Substring(9).Trim();
                     if (weiwinId != "")
-                        weiXinIdList.Add(weiwinId);
+                        weixinIdList.Add(weiwinId);
                 }
             }
-            return weiXinIdList;
+            return weixinIdList;
         }
 
         #endregion
@@ -2150,7 +2150,7 @@ namespace dp2weixin.service
         /// </summary>
         /// <param name="strBarcode"></param>
         /// <param name="strPassword"></param>
-        /// <param name="weiXinId"></param>
+        /// <param name="weixinId"></param>
         /// <returns>
         /// -1 出错
         /// 0 成功
@@ -2159,7 +2159,7 @@ namespace dp2weixin.service
             string strPrefix,
             string strWord,
             string strPassword,
-            string strWeiXinId,
+            string weixinId,
             out WxUserItem userItem,
             out string strError)
         {
@@ -2181,7 +2181,7 @@ namespace dp2weixin.service
 
             CancellationToken cancel_token = new CancellationToken();
 
-            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + strWeiXinId;
+            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + weixinId;
             string id = Guid.NewGuid().ToString();
             BindPatronRequest request = new BindPatronRequest(id,
                 "bind",
@@ -2259,9 +2259,9 @@ namespace dp2weixin.service
 
                 // 找到库中对应的记录
                 if (type == 0)
-                    userItem = WxUserDatabase.Current.GetPatronAccount(strWeiXinId, libId, readerBarcode);
+                    userItem = WxUserDatabase.Current.GetPatronAccount(weixinId, libId, readerBarcode);
                 else
-                    userItem = WxUserDatabase.Current.GetWorker(strWeiXinId, libId);
+                    userItem = WxUserDatabase.Current.GetWorker(weixinId, libId);
 
                 // 是否新增，对于工作人员账户，一个图书馆只绑一个工作人员，所以有update的情况
                 bool bNew = false;
@@ -2271,7 +2271,7 @@ namespace dp2weixin.service
                     userItem = new WxUserItem();
                 }
 
-                userItem.weixinId = strWeiXinId;
+                userItem.weixinId = weixinId;
                 //userItem.libCode = libCode;
                 //userItem.libUserName = remoteUserName;
                 userItem.libName = lib.libName;
@@ -2309,7 +2309,7 @@ namespace dp2weixin.service
                 }
 
                 // 2016-8-13 jane 自动修改当前的图书馆
-                this.UpdateUserSetting(strWeiXinId, libId, "", true);//,因为有工作人员的情况，这里要传true
+                this.UpdateUserSetting(weixinId, libId, "", true);//,因为有工作人员的情况，这里要传true
 
 
                 // 发送绑定成功的客服消息    
@@ -2333,7 +2333,7 @@ namespace dp2weixin.service
                 };
 
                 var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                    strWeiXinId,
+                    weixinId,
                     WeiXinConst.C_Template_Bind,
                     "#FF0000",
                     this._detailUrl_AccountIndex,//详情转到账户管理界面
@@ -2365,11 +2365,6 @@ namespace dp2weixin.service
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="weiXinId"></param>
-        /// <param name="strError"></param>
         /// <returns>
         /// -1 出错
         /// 0   成功
@@ -4425,14 +4420,14 @@ ERROR1:
         /// </summary>
         /// <param name="code"></param>
         /// <param name="state"></param>
-        /// <param name="weiXinId"></param>
+        /// <param name="weixinId"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int GetWeiXinId(string code, string state, out string weiXinId,
+        public int GetWeiXinId(string code, string state, out string weixinId,
             out string strError)
         {
             strError = "";
-            weiXinId = "";
+            weixinId = "";
 
             try
             {
@@ -4462,7 +4457,7 @@ ERROR1:
                 //Session["OAuthAccessToken"] = result;            
 
                 // 取出微信id
-                weiXinId = result.openid;
+                weixinId = result.openid;
                 return 0;
             }
             catch (Exception ex)
@@ -4599,7 +4594,7 @@ ERROR1:
 
         #region 预约
 
-        public int Reservation(string weiXinId,
+        public int Reservation(string weixinId,
             string libId,
             string patron,
             string items,
@@ -4684,7 +4679,7 @@ ERROR1:
 
                             // 发送模板消息
                             var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                                weiXinId,
+                                weixinId,
                                 WeiXinConst.C_Template_Message,
                                 "#FF0000",
                                 "",//不出现详细了
@@ -5815,7 +5810,7 @@ ERROR1:
             return result;
         }
 
-        public long SearchOnePatronByWeiXinId(LibItem libItem,
+        public long SearchPatronsByWeiXinId(LibItem libItem,
             out List<WxUserItem> users,
                     out string strError)
         {
@@ -5824,7 +5819,7 @@ ERROR1:
 
 
             // 从远程dp2library中查
-            string strWord = WeiXinConst.C_WeiXinIdPrefix;// +strWeiXinId;
+            string strWord = WeiXinConst.C_WeiXinIdPrefix;// +weixinId;
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
@@ -5869,7 +5864,7 @@ ERROR1:
 
 
                         string strTempBarcode = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("barcode"));
-                        string strWeiXinId = "";
+                        string weixinId = "";
 
                         // 更新到mongodb库
                         string name = "";
@@ -5883,7 +5878,7 @@ ERROR1:
 
 
                             WxUserItem userItem = new WxUserItem();
-                            userItem.weixinId = strWeiXinId;
+                            userItem.weixinId = weixinId;
                             userItem.libId = libItem.id;
                             userItem.readerBarcode = strTempBarcode;
                             userItem.readerName = name;

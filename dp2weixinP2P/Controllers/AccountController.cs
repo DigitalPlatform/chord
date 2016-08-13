@@ -96,8 +96,8 @@ namespace dp2weixinWeb.Controllers
 
             if (String.IsNullOrEmpty(patronBarcode) == true)
             {
-                string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-                WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId,ViewBag.LibId);
+                string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+                WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weixinId,ViewBag.LibId);
                 if (userItem != null)
                     patronBarcode = userItem.readerBarcode;
             }

@@ -890,7 +890,6 @@ namespace dp2weixin
         /// <summary>
         /// 检查微信用户是否绑定读者账号
         /// </summary>
-        /// <param name="strWeiXinId"></param>
         /// <param name="strXml"></param>
         /// <param name="strError"></param>
         /// <returns></returns>

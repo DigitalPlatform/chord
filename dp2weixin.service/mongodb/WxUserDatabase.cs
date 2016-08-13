@@ -263,7 +263,7 @@ namespace dp2weixin.service
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
 
             /*
-                userItem.weixinId = strWeiXinId;
+                userItem.weixinId = weixinId;
                 userItem.libCode = libCode;
                 userItem.libUserName = remoteUserName;
                 userItem.libName = lib.libName;

@@ -92,3 +92,8 @@ DIV.btn3 .clearfix:after{visibility: hidden;display: block;font-size: 0;content:
 .option-unbind {
     color:#cccccc;
 }
+
+.option-group
+{
+    color:#eeeeee;
+}

@@ -46,7 +46,7 @@ namespace dp2weixinWeb.Controllers
             // 先加绑定的
             if (bindList.Count > 0)
             {
-                //opt += "<optgroup label='已绑定图书馆' class='select-group' >已绑定图书馆</optgroup>";
+                opt += "<optgroup label='已绑定图书馆' class='option-group'  >已绑定图书馆</optgroup>";
                 for (var i = 0; i < bindList.Count; i++)
                 {
                     var item = bindList[i];
@@ -70,7 +70,7 @@ namespace dp2weixinWeb.Controllers
             // 再加未绑定的
             if (unbindList.Count > 0)
             {
-                //opt += "<optgroup label='其它图书馆' class='select-group' >其它图书馆</optgroup>";
+                opt += "<optgroup label='其它图书馆' class='option-group' >其它图书馆</optgroup>";
                 for (var i = 0; i < unbindList.Count; i++)
                 {
                     var item = unbindList[i];
@@ -114,17 +114,17 @@ namespace dp2weixinWeb.Controllers
                 }
                 else
                 {
-                    dp2WeiXinService.Instance.WriteLog("传进来的code[" + code + "]与session中保存的code["+sessionCode+"]不同，重新获取weixinid了。");
+                    dp2WeiXinService.Instance.WriteLog("传进来的code[" + code + "]与session中保存的code["+sessionCode+"]不同，重新获取weixinid了，ip="+Request.UserHostAddress+"。");
 
-                    string weiXinIdTemp = "";
-                    int nRet = dp2WeiXinService.Instance.GetWeiXinId(code, state, out weiXinIdTemp, out strError);
+                    string weixinIdTemp = "";
+                    int nRet = dp2WeiXinService.Instance.GetWeiXinId(code, state, out weixinIdTemp, out strError);
                     if (nRet == -1)
                     { return -1; }
 
-                    if (String.IsNullOrEmpty(weiXinIdTemp) == false)
+                    if (String.IsNullOrEmpty(weixinIdTemp) == false)
                     {
                         // 记下微信id
-                        Session[WeiXinConst.C_Session_WeiXinId] = weiXinIdTemp;
+                        Session[WeiXinConst.C_Session_WeiXinId] = weixinIdTemp;
                         // 记下code，因为在iphone点返回按钮，要重新传过来同样的code,再用这code取weixinid就会报40029
                         Session[WeiXinConst.C_Session_Code] = code;
                     }
