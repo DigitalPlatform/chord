@@ -29,6 +29,7 @@
             //显示等待图层
             var index = loadLayer();
 
+            // setting()
             var url = "/api/wxuser?weixinId="+weixinId;
             sendAjaxRequest(url, "POST",
                 function (result) {

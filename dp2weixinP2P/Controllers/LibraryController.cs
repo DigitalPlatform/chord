@@ -456,26 +456,6 @@ namespace dp2weixinWeb.Controllers
 
 
 
-        private string GetLibHtml(string libId)
-        {
-            if (String.IsNullOrEmpty(libId) == true)
-            {
-                // 找工作人员帐户
-                string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-                WxUserItem userItem = WxUserDatabase.Current.GetOneWorker(weiXinId);
-                if (userItem == null)
-                {
-                    // 找读者帐户
-                    userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
-                }
-                if (userItem != null)
-                    libId = userItem.libId;
-            }
-
-            return this.GetLibSelectHtml(libId);
-        }
-
-
 
     }
 }

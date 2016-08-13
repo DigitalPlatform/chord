@@ -95,7 +95,12 @@
             //alert("remove-"+item.libId);
             var url = "/api/wxuser?weixinId=" + item.weixinId + "&id=" + item.id;
             sendAjaxRequest(url, "PUT", function () {
-                getBindList(item.weixinId);
+
+                // 因为有可能更新当前图书馆，所以reload保险，todo
+                window.location.reload();
+                //getBindList(item.weixinId);
+
+                
 
             }, function (xhq, textStatus, errorThrown) {
                 alert(errorThrown);

@@ -279,10 +279,6 @@ namespace dp2weixin.service
             // 更新数据库
             WxUserDatabase.Current.SetActivePatron(userItem.weixinId, userItem.id);
 
-            //更新内存
-            //this._wxUserTable[userItem.weixinId] = userItem;
-            //this.CurWxUser = userItem;
-
             return;
         }
 
@@ -291,44 +287,10 @@ namespace dp2weixin.service
             // 删除mongodb库的记录
             WxUserItem newActivePatron = null;
             WxUserDatabase.Current.Delete(userId, out newActivePatron);
-
-            //if (newActivePatron != null)
-            //{
-            //    //更新内存
-            //    //this.CurWxUser = newActivePatron;
-            //    //this._wxUserTable[newActivePatron.weixinId] = newActivePatron;
-            //}
-
             return;
         }
 
 
-        // 当然微信用户 与当前图书馆
-        //private WxUserItem _curWxUser = null;
-        //private LibItem _curLib = null;
-        //public WxUserItem CurWxUser
-        //{
-        //    get
-        //    {
-        //        return this._curWxUser;
-        //    }
-        //    set
-        //    {
-        //        this._curWxUser = value;
-
-        //        string libId = this._curWxUser.libId;
-        //        if (String.IsNullOrEmpty(libId))
-        //        {
-        //            throw new Exception("异常的情况:微信用户的libId参数为空。");
-        //        }
-
-        //        this. _curLib = LibDatabase.Current.GetLibById(libId);
-        //        if (this._curLib == null)
-        //        {
-        //            throw new Exception("异常的情况:根据id["+libId+"]未找到图书馆对象。");
-        //        }
-        //    }
-        //}
 
         #endregion
 
@@ -1830,6 +1792,48 @@ namespace dp2weixin.service
         #region 找回密码，修改密码，二维码
 
         /// <summary>
+        /// 更新用户设置
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="libId"></param>
+        /// <param name="bookSubject"></param>
+        public void UpdateUserSetting(string weixinId, string libId, string bookSubject)
+        {
+            if (bookSubject == null)
+                bookSubject = "";
+
+            UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
+            if (settingItem == null)
+            {
+                settingItem = new UserSettingItem();
+                settingItem.weixinId = weixinId;
+                settingItem.libId = libId;
+                settingItem.showCover = 1;
+                settingItem.showPhoto = 1;
+
+
+                settingItem.xml = "<root><subject book='"+bookSubject+"'/></root>";
+                UserSettingDb.Current.Add(settingItem);
+            }
+            else
+            {
+                if (settingItem.libId != libId)
+                {
+                    settingItem.libId = libId;
+                }
+
+                if (string.IsNullOrEmpty(bookSubject) == false)
+                {
+                    // todo 要先取出xml，根据group更新subject
+                    settingItem.xml = "<root><subject book='" + bookSubject + "'/></root>";
+                }
+
+                UserSettingDb.Current.UpdateLib(settingItem);
+
+            }
+        }
+
+        /// <summary>
         /// 找回密码
         /// </summary>
         /// <param name="libId"></param>
@@ -1838,12 +1842,15 @@ namespace dp2weixin.service
         /// <param name="tel"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int ResetPassword(string libId,
+        public int ResetPassword(string weixinId, 
+            string libId,
             string name,
             string tel,
+            out string patronBarcode,
             out string strError)
         {
             strError = "";
+            patronBarcode = "";
 
             LibItem lib = LibDatabase.Current.GetLibById(libId);
             if (lib == null)
@@ -1911,6 +1918,10 @@ namespace dp2weixin.service
                 goto ERROR1;
             }
 
+            // 2016-8-13 jane 自动修改设置的图书馆
+            this.UpdateUserSetting(weixinId, libId, "");
+
+
             // 发送短信
             string strMessageTemplate = "";
             MessageInterface external_interface = this.GetMessageInterface("sms");
@@ -1948,6 +1959,7 @@ namespace dp2weixin.service
             string strTel = DomUtil.GetNodeText(nodePatron.SelectSingleNode("tel"));
 
             string strBarcode = DomUtil.GetNodeText(nodePatron.SelectSingleNode("barcode"));
+            patronBarcode = strBarcode;//2016-8-13 jane加，返回给前端，用于指定修改密码的账户
             string strName = DomUtil.GetNodeText(nodePatron.SelectSingleNode("name"));
             string strReaderTempPassword = DomUtil.GetNodeText(nodePatron.SelectSingleNode("tempPassword"));
             string expireTime = DomUtil.GetNodeText(nodePatron.SelectSingleNode("expireTime"));
@@ -2260,6 +2272,8 @@ namespace dp2weixin.service
                     this.SetActivePatron(userItem);
                 }
 
+                // 2016-8-13 jane 自动修改设置的图书馆
+                this.UpdateUserSetting(strWeiXinId, libId, "");
 
 
                 // 发送绑定成功的客服消息    
@@ -3424,9 +3438,9 @@ ERROR1:
 
                  // 检索是否绑定的读者账户，绑定的读者账户，可以出现预约，续借按钮
 
-                 WxUserItem patron = WxUserDatabase.Current.GetActivePatron(weixinId);
+                 WxUserItem patron = WxUserDatabase.Current.GetActivePatron(weixinId,libId);
                  // patron.libId==libId  2016-8-13 jane todo 关于当前账户与设置图书馆这块内容要统一修改
-                 if (patron != null && patron.libId==libId)
+                 if (patron != null)// && patron.libId==libId)
                  {
                      patronBarcode = patron.readerBarcode;
                      patronName = patron.readerName;

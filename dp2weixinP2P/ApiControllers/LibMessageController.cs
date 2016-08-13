@@ -230,27 +230,7 @@ namespace dp2weixinWeb.ApiControllers
             // 更新setting
             if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
             {
-                UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
-                if (settingItem == null)
-                {
-                    settingItem = new UserSettingItem();
-                    settingItem.weixinId = weixinId;
-                    settingItem.libId = libId;
-                    settingItem.showCover = 1;
-                    settingItem.showPhoto = 1;
-                    settingItem.xml = "<root><subject book='" + item.subject + "'/></root>";
-                    UserSettingDb.Current.Add(settingItem);
-                }
-                else
-                {
-                    string bookSuject = UserSettingDb.getBookSubject(settingItem.xml);
-                    if (item.subject != bookSuject)
-                    {
-                        // todo 要先取出xml，根据group更新subject
-                        settingItem.xml = "<root><subject book='" + item.subject + "'/></root>";
-                        UserSettingDb.Current.UpdateLib(settingItem);
-                    }
-                }
+                dp2WeiXinService.Instance.UpdateUserSetting(weixinId, libId, item.subject);
             }
 
 
@@ -267,27 +247,7 @@ namespace dp2weixinWeb.ApiControllers
             // 更新setting
             if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
             {
-                UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
-                if (settingItem == null)
-                {
-                    settingItem = new UserSettingItem();
-                    settingItem.weixinId = weixinId;
-                    settingItem.libId = libId;
-                    settingItem.showCover = 1;
-                    settingItem.showPhoto = 1;
-                    settingItem.xml = "<root><subject book='" + item.subject + "'/></root>";
-                    UserSettingDb.Current.Add(settingItem);
-                }
-                else
-                {
-                    string bookSuject = UserSettingDb.getBookSubject(settingItem.xml);
-                    if (item.subject != bookSuject)
-                    {
-                        // todo 要先取出xml，根据group更新subject
-                        settingItem.xml = "<root><subject book='" + item.subject + "'/></root>";
-                        UserSettingDb.Current.UpdateLib(settingItem);
-                    }
-                }
+                dp2WeiXinService.Instance.UpdateUserSetting(weixinId, libId, item.subject);
             }
             return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "change", "");
         }
