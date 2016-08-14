@@ -230,7 +230,7 @@ namespace dp2weixinWeb.ApiControllers
             // 更新setting
             if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
             {
-                dp2WeiXinService.Instance.UpdateUserSetting(weixinId, libId, item.subject);
+                dp2WeiXinService.Instance.UpdateUserSetting(weixinId, libId, item.subject,false);
             }
 
 
@@ -247,7 +247,7 @@ namespace dp2weixinWeb.ApiControllers
             // 更新setting
             if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
             {
-                dp2WeiXinService.Instance.UpdateUserSetting(weixinId, libId, item.subject);
+                dp2WeiXinService.Instance.UpdateUserSetting(weixinId, libId, item.subject,false);
             }
             return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "change", "");
         }

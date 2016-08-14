@@ -180,6 +180,24 @@ namespace dp2weixin.service
             return this.wxUserCollection.Find(filter).ToList();
         }
 
+        public List<string> GetLibsByWeixinId(string weixinId)
+        {
+            List<string> libs = new List<string>();
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId);
+            List <WxUserItem> list=  this.wxUserCollection.Find(filter).ToList();
+            if (list != null && list.Count > 0)
+            {
+                foreach (WxUserItem item in list)
+                {
+                    if (libs.Contains(item.libId) == false)
+                    {
+                        libs.Add(item.libId);
+                    }
+                }
+            }
+            return libs;
+        }
+
         /// <summary>
         /// 获取微信用户绑定的所有读者账户
         /// </summary>
@@ -198,10 +216,11 @@ namespace dp2weixin.service
         /// </summary>
         /// <param name="weixinId"></param>
         /// <returns></returns>
-        public WxUserItem GetOnePatronByWeixinId(string weixinId)
+        public WxUserItem GetOnePatronByWeixinId(string weixinId,string libId)
         {
             var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
-                & Builders<WxUserItem>.Filter.Eq("type",C_Type_Patron);  // 2016-6-16 jane 查读者账户
+                & Builders<WxUserItem>.Filter.Eq("type",C_Type_Patron)  // 2016-6-16 jane 查读者账户
+                & Builders<WxUserItem>.Filter.Eq("libId", libId); // 2016-8-13 jane 增加匹配图书馆
 
             List<WxUserItem>list= this.wxUserCollection.Find(filter).ToList();//.ToListAsync().Result;
             if (list.Count > 0)
@@ -244,7 +263,7 @@ namespace dp2weixin.service
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
 
             /*
-                userItem.weixinId = strWeiXinId;
+                userItem.weixinId = weixinId;
                 userItem.libCode = libCode;
                 userItem.libUserName = remoteUserName;
                 userItem.libName = lib.libName;
@@ -355,11 +374,13 @@ namespace dp2weixin.service
             string weixinId = "";
             int type = -1;
             int isActive = 0;
+            string libId = "";
             if (userItem != null)
             {
                 weixinId = userItem.weixinId;
                 type = userItem.type;
                 isActive = userItem.isActive;
+                libId = userItem.libId;
             }
 
             // 先删除
@@ -370,7 +391,7 @@ namespace dp2weixin.service
             // 如果删除的是读者账户且是激活的，自动将第一个读者账户设为默认的
             if (type == 0 && isActive==1)
             {
-                WxUserItem newUserItem = this.GetOnePatronByWeixinId(weixinId);
+                WxUserItem newUserItem = this.GetOnePatronByWeixinId(weixinId,libId);
                 if (newUserItem != null)
                 {
                     this.SetActivePatron(newUserItem.weixinId, newUserItem.id);
@@ -416,6 +437,22 @@ namespace dp2weixin.service
                 .Set("isActive", 1)
                 .Set("updateTime", DateTimeUtil.DateTimeToString(DateTime.Now));
             ret = collection.UpdateMany(filter, update);
+        }
+
+        public void SetNoActivePatron(string weixinId)
+        {
+            if (string.IsNullOrEmpty(weixinId) == true)
+                return;
+
+            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
+
+            // 将该微信用户的所有绑定读者都设为非活动
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("type", 0); // jane 2016-6-16 注意只存读者账户
+            var update = Builders<WxUserItem>.Update
+                .Set("isActive", 0)
+                .Set("updateTime", DateTimeUtil.DateTimeToString(DateTime.Now));
+            UpdateResult ret = collection.UpdateMany(filter, update);
         }
 
     }

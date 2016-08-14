@@ -11,25 +11,86 @@ namespace dp2weixinWeb.Controllers
 {
     public class BaseController : Controller
     {
-        public string GetLibSelectHtml(string selLibId)
+        public string GetLibSelectHtml(string selLibId, string weixinId)
         {
-            List<LibItem> list = LibDatabase.Current.GetLibs();//"*", 0, -1).Result;
-            var opt = "<option value=''>请选择 图书馆</option>";
-            for (var i = 0; i < list.Count; i++)
+            List<LibItem> list1 = LibDatabase.Current.GetLibs();
+
+            string curLib = "";
+            UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
+            if (settingItem != null)
             {
-                var item = list[i];
-                string selectedString = "";
-                if (selLibId != "" && selLibId == item.id)
+                curLib = settingItem.libId;
+            }
+
+            // 得到该微信用户绑定过的图书馆列表
+            List<string> libs = WxUserDatabase.Current.GetLibsByWeixinId(weixinId);
+
+            // 将所有图书馆分为2组：绑定过账户与未绑定过
+            List<LibItem> bindList = new List<LibItem>();
+            List<LibItem> unbindList = new List<LibItem>();
+            foreach (LibItem libItem in list1)
+            {
+                if (libs.Contains(libItem.id) == true)
                 {
-                    selectedString = " selected='selected' ";
+                    bindList.Add(libItem);
                 }
                 else
                 {
-                    if (selLibId == "~1" && i==0) //默认第一项选中
-                        selectedString = " selected='selected' ";
+                    unbindList.Add(libItem);
                 }
-                opt += "<option value='" + item.id + "' " + selectedString + ">" + item.libName + "</option>";
             }
+
+
+            var opt = "";// "<option style='color:#aaaaaa' value=''>请选择图书馆</option>";
+
+            // 先加绑定的
+            if (bindList.Count > 0)
+            {
+                opt += "<optgroup label='已绑定图书馆' class='option-group'  >已绑定图书馆</optgroup>";
+                for (var i = 0; i < bindList.Count; i++)
+                {
+                    var item = bindList[i];
+                    string selectedString = "";
+                    if (selLibId != "" && selLibId == item.id)
+                    {
+                        selectedString = " selected='selected' ";
+                    }
+
+                    string name = item.libName;
+                    //if (curLib != "" && curLib == item.id)
+                    //    name = "*" + name;
+                    string className = "option-bind";
+                    if (curLib != "" && curLib == item.id)
+                        className = "option-current";
+
+                    opt += "<option class='" + className + "' value='" + item.id + "' " + selectedString + ">" + name + "</option>";
+                }
+            }
+
+            // 再加未绑定的
+            if (unbindList.Count > 0)
+            {
+                opt += "<optgroup label='其它图书馆' class='option-group' >其它图书馆</optgroup>";
+                for (var i = 0; i < unbindList.Count; i++)
+                {
+                    var item = unbindList[i];
+                    string selectedString = "";
+                    if (selLibId != "" && selLibId == item.id)
+                    {
+                        selectedString = " selected='selected' ";
+                    }
+
+                    string name = item.libName;
+                    //if (curLib != "" && curLib == item.id)
+                    //    name = "*" + name;
+
+                    string className = "option-unbind";
+                    if (curLib != "" && curLib == item.id)
+                        className = "option-current";
+                    opt += "<option class='" + className + "' value='" + item.id + "' " + selectedString + ">" + name + "</option>";
+                }
+            }
+
             string libHtml = "<select id='selLib' style='padding-left: 0px;width: 65%;border:1px solid #eeeeee'  >" + opt + "</select>";
             return libHtml;
         }
@@ -53,17 +114,17 @@ namespace dp2weixinWeb.Controllers
                 }
                 else
                 {
-                    dp2WeiXinService.Instance.WriteLog("传进来的code[" + code + "]与session中保存的code["+sessionCode+"]不同，重新获取weixinid了。");
+                    dp2WeiXinService.Instance.WriteLog("传进来的code[" + code + "]与session中保存的code["+sessionCode+"]不同，重新获取weixinid了，ip="+Request.UserHostAddress+"。");
 
-                    string weiXinIdTemp = "";
-                    int nRet = dp2WeiXinService.Instance.GetWeiXinId(code, state, out weiXinIdTemp, out strError);
+                    string weixinIdTemp = "";
+                    int nRet = dp2WeiXinService.Instance.GetWeiXinId(code, state, out weixinIdTemp, out strError);
                     if (nRet == -1)
                     { return -1; }
 
-                    if (String.IsNullOrEmpty(weiXinIdTemp) == false)
+                    if (String.IsNullOrEmpty(weixinIdTemp) == false)
                     {
                         // 记下微信id
-                        Session[WeiXinConst.C_Session_WeiXinId] = weiXinIdTemp;
+                        Session[WeiXinConst.C_Session_WeiXinId] = weixinIdTemp;
                         // 记下code，因为在iphone点返回按钮，要重新传过来同样的code,再用这code取weixinid就会报40029
                         Session[WeiXinConst.C_Session_Code] = code;
                     }
@@ -102,7 +163,6 @@ namespace dp2weixinWeb.Controllers
                     strError = "未找到id为'" + settingItem.libId + "'对应的图书馆"; //这里lib为null竟然用了lib.id，一个bug 2016-8-11
                     return -1;
                 }
-
                 if (lib != null)
                 {
                     libName = lib.libName;
@@ -117,7 +177,7 @@ namespace dp2weixinWeb.Controllers
                     }
                 }
             }
-            if (libName == "")
+            if (libName == "" || libId=="")
             {
                 LibItem lib = LibDatabase.Current.GetOneLib();
                 if (lib == null)

@@ -117,6 +117,12 @@ namespace dp2weixin.service
 
                 }
             }
+            //list.Sort()
+            list.Sort((x, y) =>
+            {
+                int value = x.libName.CompareTo(y.libName);
+                return value;
+            });
             return list;
         }
 

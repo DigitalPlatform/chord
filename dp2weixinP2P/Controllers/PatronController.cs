@@ -26,11 +26,11 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return Content(strError);
 
-            string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             ViewBag.returnUrl = returnUrl;
 
             // 图书馆html
-            ViewBag.LibHtml = this.GetLibSelectHtml(ViewBag.LibId);
+            ViewBag.LibHtml = this.GetLibSelectHtml(ViewBag.LibId, weixinId);
 
             string photoChecked = "";
             if (ViewBag.showPhoto == 1)
@@ -324,8 +324,8 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return -1;
 
-            string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            activeUserItem = WxUserDatabase.Current.GetActivePatron(weiXinId, ViewBag.LibId);
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            activeUserItem = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
             // 未绑定读者账户，应该不会出现未激活的情况，todo，当设置图书馆，如果发现微信用户绑定了该图书馆的读者账户，则自动找到第一个激活
             if (activeUserItem == null)
                 return -2;

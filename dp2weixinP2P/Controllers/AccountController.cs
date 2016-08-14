@@ -48,7 +48,8 @@ namespace dp2weixinWeb.Controllers
                 return Content(strError);
 
             // 图书馆html,选中项为设置的图书馆
-            ViewBag.LibHtml = this.GetLibSelectHtml(ViewBag.LibId);
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            ViewBag.LibHtml = this.GetLibSelectHtml(ViewBag.LibId,weixinId);
 
             return View();
         }
@@ -72,7 +73,8 @@ namespace dp2weixinWeb.Controllers
             
 
             // 图书馆html
-            ViewBag.LibHtml = this.GetLibSelectHtml(libId);
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            ViewBag.LibHtml = this.GetLibSelectHtml(libId,weixinId);
             
 
             if (string.IsNullOrEmpty(readerName) == false && readerName != "undefined")
@@ -94,8 +96,8 @@ namespace dp2weixinWeb.Controllers
 
             if (String.IsNullOrEmpty(patronBarcode) == true)
             {
-                string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-                WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId,ViewBag.LibId);
+                string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+                WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weixinId,ViewBag.LibId);
                 if (userItem != null)
                     patronBarcode = userItem.readerBarcode;
             }

@@ -11,7 +11,6 @@ namespace dp2weixinWeb.Controllers
 {
     public class LibraryController : BaseController
     {
-
         public ActionResult BB(string code, string state)
         {
             // 检查是否从微信入口进来
@@ -110,24 +109,26 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 图书馆主页
-        public ActionResult Home(string code, string state, string weiXinId)
+        public ActionResult Home(string code, string state, string weixinId)
         {
             // 用于测试，如果传了一个weixin id参数，则存到session里
-            if (String.IsNullOrEmpty(weiXinId) == false)
+            if (String.IsNullOrEmpty(weixinId) == false)
             {
                 // 记下微信id
-                Session[WeiXinConst.C_Session_WeiXinId] = weiXinId;
+                Session[WeiXinConst.C_Session_WeiXinId] = weixinId;
             }
 
             // 检查是否从微信入口进来
             string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
-                return Content(strError);
+            {
+                goto ERROR1;
+            }
 
             //绑定的工作人员账号 需要有权限
             string userName = "";
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             string libId = ViewBag.LibId;
             // 查找当前微信用户绑定的工作人员账号
             WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
@@ -175,7 +176,9 @@ namespace dp2weixinWeb.Controllers
             return View(list);
 
         ERROR1:
-            return Content(strError);
+
+            ViewBag.Error = strError;
+            return View();//Content(strError);
         }
 
 

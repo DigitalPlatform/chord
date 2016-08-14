@@ -1,6 +1,6 @@
 ﻿@model List<dp2weixin.service.SubjectItem>
 @section style {
-<link href="@Url.Content("~/Content/message.css")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/message.css")" rel="stylesheet">
 }
 @section Scripts {
     <script>
@@ -18,14 +18,9 @@
             window.setTimeout("fillPending()", 1);
         })
 
-
         var model = {
             subjectHtml: ko.observable("")
         }
-
-
-
-
 
     </script>
 }
@@ -36,44 +31,57 @@
 <span id="_userName" style="display:none">@ViewBag.userName</span>
 <span id="_group" style="display:none">gn:_lib_homePage</span>
 
-@if (Model == null || Model.Count==0)
-{ 
-<div class="mui-card" id="divNo" style="margin-top:10px;">
-    <center>
-        <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
-        <div>目前没有栏目。</div>
-    </center>
-</div>
-}
-
-@if (String.IsNullOrEmpty(ViewBag.userName) == false)
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
-<div id="divNew" >
-    <div id='_edit_new' class="mui-card message" style="display:none"></div>
     <div class="mui-content-padded">
-        <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
-            新发布信息
-        </button>
+        <span style="color:red">
+            @ViewBag.Error
+        </span>
     </div>
-</div>
 }
-
-<div  id="_subject_main">
-    @foreach (dp2weixin.service.SubjectItem subject in Model)
+else
+{
+    if (Model == null || Model.Count == 0)
     {
-        if (subject.count == 0)
-        {
-            continue;
-        }
-        
-        <div id='_subject_@subject.name'  class='subject'>
-                                   <div id='_subject_title' class='firstline'><span class='title'>@subject.pureName</span></div>
-                                  <div  class='pending' >
-                                    <label>su-@subject.name</label>
-                                    <img src='../img/wait2.gif' />
-                                      <span>@ViewBag.LibId</span>
-                                   </div>
-                              </div>
+        <div class="mui-card" id="divNo" style="margin-top:10px;">
+            <center>
+                <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+                <div>目前没有栏目。</div>
+            </center>
+        </div>
     }
-</div>
 
+    if (String.IsNullOrEmpty(ViewBag.userName) == false)
+    {
+        <div id="divNew">
+            <div id='_edit_new' class="mui-card message" style="display:none"></div>
+            <div class="mui-content-padded">
+                <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
+                    新发布信息
+                </button>
+            </div>
+        </div>
+    }
+
+    <div id="_subject_main">
+        @if (Model != null && Model.Count > 0)
+        {
+            foreach (dp2weixin.service.SubjectItem subject in Model)
+            {
+                if (subject.count == 0)
+                {
+                    continue;
+                }
+
+                <div id='_subject_@subject.name' class='subject'>
+                    <div id='_subject_title' class='firstline'><span class='title'>@subject.pureName</span></div>
+                    <div class='pending'>
+                        <label>su-@subject.name</label>
+                        <img src='../img/wait2.gif' />
+                        <span>@ViewBag.LibId</span>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+}
