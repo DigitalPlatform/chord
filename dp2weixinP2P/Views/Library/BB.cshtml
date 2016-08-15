@@ -1,6 +1,6 @@
 ﻿@model List<dp2weixin.service.MessageItem>
 @section style {
-<link href="@Url.Content("~/Content/message.css")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/message.css")" rel="stylesheet">
 }
 @section Scripts {
     <script>
@@ -25,44 +25,62 @@
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 <span id="_userName" style="display:none">@ViewBag.userName</span>
 <span id="_group" style="display:none">gn:_lib_bb</span>
-<div class="mui-card" id="divNo" style="margin-top:10px;display:none">
-    <center>
-        <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
-        <div>目前没有公告。</div>
-    </center>
-</div>
-@if (String.IsNullOrEmpty(ViewBag.userName) == false)
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
-    <div id="divNew">
-        <div id='_edit_new' class="mui-card message" style="display:none"></div>
-        <div class="mui-content-padded">
-            <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
-                新发布公告
-            </button>
-        </div>
+    <div class="mui-content-padded">
+        <span style="color:red">
+            @ViewBag.Error
+        </span>
     </div>
 }
-
-<div id="_subject_main">
-    @foreach (dp2weixin.service.MessageItem item in Model)
+else
+{
+    if (Model == null || Model.Count == 0)
     {
-        <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv('@item.id')">
-            <table class="view">
-                <tbody>
-                    <tr>
-                        <td class="title">@item.title</td>
-                        <td class="btn">
-                            <div id="btnEdit" style="display: none;">
-                                <button class="mui-btn mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>&nbsp;
-                                <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr><td class="time" colspan="2"><span>@item.publishTime</span>-<span>@item.creator</span></td></tr>
-                    <tr><td class="content" colspan="2">@Html.Raw(item.contentHtml)</td></tr>
-                </tbody>
-            </table>
+        <div class="mui-card" id="divNo" style="margin-top:10px;">
+            <center>
+                <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+                <div>目前没有公告。</div>
+            </center>
         </div>
     }
-</div>
 
+    if (String.IsNullOrEmpty(ViewBag.userName) == false)
+    {
+        <div id="divNew">
+            <div id='_edit_new' class="mui-card message" style="display:none"></div>
+            <div class="mui-content-padded">
+                <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
+                    新发布公告
+                </button>
+            </div>
+        </div>
+    }
+
+    <div id="_subject_main">
+        @if (Model != null)
+        {
+            foreach (dp2weixin.service.MessageItem item in Model)
+            {
+                <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv('@item.id')">
+                    <table class="view">
+                        <tbody>
+                            <tr>
+                                <td class="title">@item.title</td>
+                                <td class="btn">
+                                    <div id="btnEdit" style="display: none;">
+                                        <button class="mui-btn mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>&nbsp;
+                                        <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr><td class="time" colspan="2"><span>@item.publishTime</span>-<span>@item.creator</span></td></tr>
+                            <tr><td class="content" colspan="2">@Html.Raw(item.contentHtml)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+    </div>
+}

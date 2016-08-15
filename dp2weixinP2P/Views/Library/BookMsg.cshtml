@@ -1,14 +1,13 @@
-﻿
-@model List<dp2weixin.service.MessageItem>
+﻿@model List<dp2weixin.service.MessageItem>
 
 @section style {
-<link href="@Url.Content("~/Content/message.css")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/message.css")" rel="stylesheet">
 }
 @section Scripts {
     <script>
 
         function deleteMsg(msgId)
-        {           
+        {
             //alert(msgId);
 
             var titleDiv = "#title-" + msgId;
@@ -39,7 +38,7 @@
                 + "&msgId=" + msgId
             + "&userName=" + userName
             sendAjaxRequest(url, "DELETE", function (result) {
-                
+
                 // 关闭等待层
                 layer.close(index);
 
@@ -158,48 +157,61 @@
     <h1 class="mui-title">@ViewBag.Subject</h1>
 }
 
-
-@if (String.IsNullOrEmpty(ViewBag.userName)== false)
-{ 
-<div id="divNew" class="mui-content-padded" style="display:block">
-    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('')">
-        新推荐好书
-    </button>
-</div>
-}
-
-@foreach (dp2weixin.service.MessageItem item in Model)
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
-    <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv('@item.id')">
-        <table class="view">
-            <tbody>
-                <tr>
-                    <td class="title" id="title-@item.id">@item.title</td>
-                    <td class="btn">
-@if (String.IsNullOrEmpty(ViewBag.userName) == false)
+    <div class="mui-content-padded">
+        <span style="color:red">
+            @ViewBag.Error
+        </span>
+    </div>
+}
+else
+{
+    if (String.IsNullOrEmpty(ViewBag.userName) == false)
+    {
+        <div id="divNew" class="mui-content-padded" style="display:block">
+            <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('')">
+                新推荐好书
+            </button>
+        </div>
+    }
+
+    if (Model != null)
+    {
+        foreach (dp2weixin.service.MessageItem item in Model)
+        {
+            <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv('@item.id')">
+                <table class="view">
+                    <tbody>
+                        <tr>
+                            <td class="title" id="title-@item.id">@item.title</td>
+                            <td class="btn">
+                                @if (String.IsNullOrEmpty(ViewBag.userName) == false)
 {
                         <div id="btnEdit" style="display: none;">
                             <button class="mui-btn mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>&nbsp;
                             <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
                         </div>
 }
-                    </td>
-                </tr>
-                <tr>
-                    <td class="time" colspan="2">
-                        <span>@item.publishTime</span>-<span>@item.creator</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="content" colspan="2">@Html.Raw(item.contentHtml)</td>
-                </tr>
-                <tr>
-                    <td class="remark" colspan="2">@Html.Raw(item.remarkHtml)</td>
-                </tr>
-            </tbody>
-        </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="time" colspan="2">
+                                <span>@item.publishTime</span>-<span>@item.creator</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="content" colspan="2">@Html.Raw(item.contentHtml)</td>
+                        </tr>
+                        <tr>
+                            <td class="remark" colspan="2">@Html.Raw(item.remarkHtml)</td>
+                        </tr>
+                    </tbody>
+                </table>
 
 
-    </div>
+            </div>
+        }
+    }
+    <br />
 }
-<br />
