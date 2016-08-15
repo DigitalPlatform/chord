@@ -100,9 +100,9 @@
                         window.history.back(-1); //返回不刷新
                     }
                     else {
-                        var oldSubject = $("#_subject_").val();                        
+                        var oldSubject = $("#_subject_").val();
                         if (returnUrl.indexOf("BookMsg") != -1 && oldSubject != subject) {
-                            var nIndex = returnUrl.indexOf("&subject=");                            
+                            var nIndex = returnUrl.indexOf("&subject=");
                             var myUrl = returnUrl.substring(0, nIndex);
                             //alert("截完:" + myUrl);
                             myUrl = myUrl + "&subject=" + subject;
@@ -133,93 +133,107 @@
     </script>
 }
 @section style {
-<link href="@Url.Content("~/Content/message.css")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/message.css")" rel="stylesheet">
 }
 @section header {
-    @if (string.IsNullOrEmpty(Model.id) == true)
-    { 
-        <h1 class="mui-title">发布好书</h1>
+    @if (Model != null)
+    {
+        if (string.IsNullOrEmpty(Model.id) == true)
+        {
+            <h1 class="mui-title">发布好书</h1>
+        }
+        else
+        {
+            <h1 class="mui-title">更新好书</h1>
+        }
     }
     else
     {
-        <h1 class="mui-title">更新好书</h1>
+        <h1 class="mui-title">出错</h1>
     }
 }
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
-
-<div>
-    <input type="hidden" id="_libId_" name="_libId" value="@Model._libId" />
-    <input type="hidden" id="_userName" name="_userName" value="@Model._userName" />
-    <input type="hidden" id="_subject_" name="_subject" value="@Model._subject" />
-    <input type="hidden" id="_returnUrl" name="_returnUrl" value="@Model._returnUrl" />
-    <input type="hidden" id="id" name="id" value="@Model.id" />
-
-    <div class="mui-card message" id="_edit_48c6cf02-ae0e-4320-b1fe-25a125e6c79c">
-        <table class="edit">
-            <tr>
-                <td class="label">栏目</td>
-                <td>
-                    <div style="border:1px solid #cccccc">
-                        @Html.Raw(ViewBag.SubjectHtml)
-                    </div>
-                    <div id="divNewSubject" style="display:none;margin-top:5px">
-                        <input id="_val_subject" type="text" name="subject" value="@Model._subject" placeholder="请输入自定义栏目">
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td class="label">标题</td>
-                <td>
-                    <input class="mui-input mui-input-clear" id="_val_title" type="text" name="title" value="@Model.title">
-                </td>
-            </tr>
-            <tr>
-                <td class="label" colspan="2">书目路径&nbsp;&nbsp;<span style="color:#cccccc">(多条书目请换行)</span>
-                    <!--
-                    <div style="border:1px solid #cccccc;">
-                        <select id="selFormat">
-                            <option value="test" selected>文本格式</option>
-                            <option value="markdown">Markdown格式</option>
-                        </select>
-                    </div>
-                        -->
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <textarea id="_val_content" rows="3" name="content">@Model.content</textarea>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <span class="label">注释</span>
-                    <textarea id="_val_remark" rows="2" name="remark">@Model.remark</textarea>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="submitForm()">
-                        @if (String.IsNullOrEmpty(Model.id) == true) //( .id == "" || Model.id==null)
-                        {
-                            <span>发布</span>
-                        }
-                        else
-                        {
-                            <span>更新</span>
-                        }
-
-                    </button>
-                    <!--
-                    <button class='mui-btn mui-btn-primary' onclick="save('msgid')">发布</button>&nbsp;&nbsp;
-                    <button class='mui-btn mui-btn-default' onclick="cancelEdit('msgid ')">取消</button>
-                        -->
-                </td>
-            </tr>
-        </table>
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span style="color:red">
+            @ViewBag.Error
+        </span>
     </div>
+}
+else
+{
+    <div>
+        <input type="hidden" id="_libId_" name="_libId" value="@Model._libId" />
+        <input type="hidden" id="_userName" name="_userName" value="@Model._userName" />
+        <input type="hidden" id="_subject_" name="_subject" value="@Model._subject" />
+        <input type="hidden" id="_returnUrl" name="_returnUrl" value="@Model._returnUrl" />
+        <input type="hidden" id="id" name="id" value="@Model.id" />
+
+        <div class="mui-card message" id="_edit_48c6cf02-ae0e-4320-b1fe-25a125e6c79c">
+            <table class="edit">
+                <tr>
+                    <td class="label">栏目</td>
+                    <td>
+                        <div style="border:1px solid #cccccc">
+                            @Html.Raw(ViewBag.SubjectHtml)
+                        </div>
+                        <div id="divNewSubject" style="display:none;margin-top:5px">
+                            <input id="_val_subject" type="text" name="subject" value="@Model._subject" placeholder="请输入自定义栏目">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">标题</td>
+                    <td>
+                        <input class="mui-input mui-input-clear" id="_val_title" type="text" name="title" value="@Model.title">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label" colspan="2">
+                        书目路径&nbsp;&nbsp;<span style="color:#cccccc">(多条书目请换行)</span>
+                        <!--
+                        <div style="border:1px solid #cccccc;">
+                            <select id="selFormat">
+                                <option value="test" selected>文本格式</option>
+                                <option value="markdown">Markdown格式</option>
+                            </select>
+                        </div>
+                            -->
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <textarea id="_val_content" rows="3" name="content">@Model.content</textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <span class="label">注释</span>
+                        <textarea id="_val_remark" rows="2" name="remark">@Model.remark</textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="submitForm()">
+                            @if (String.IsNullOrEmpty(Model.id) == true) //( .id == "" || Model.id==null)
+                            {
+                                <span>发布</span>
+                            }
+                            else
+                            {
+                                <span>更新</span>
+                            }
+
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
 
 
-</div>
+    </div>
+}
 
 
 

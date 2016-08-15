@@ -1250,6 +1250,9 @@ function cancelEdit(msgId) {
 // 进入编辑态
 function gotoEdit(msgId) {
 
+    $("#divNo").css('display', 'none');
+    //alert($("#divNo"));
+
     var group = $("#_group").text();
     if (group == null || group == "" ||
         (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {

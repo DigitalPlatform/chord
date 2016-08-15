@@ -26,7 +26,7 @@
         })
 
         function gotoBookMsg(obj)
-        {            
+        {
             var libId = getLibId();//$("#selLib").val();
             var userName = $("#_userName").text();//model.userName();
             var subject = $(obj).prop("title");
@@ -77,38 +77,52 @@
 <span id="_userName" style="display:none">@ViewBag.userName</span>
 <span id="_group" style="display:none">gn:_lib_book</span>
 
-@if (Model == null || Model.Count==0)
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
-<div class="mui-card" id="divNo" style="margin-top:10px;">
-    <center>
-        <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
-        <div>目前没有好书推荐。</div>
-    </center>
-</div>
+    <div class="mui-content-padded">
+        <span style="color:red">
+            @ViewBag.Error
+        </span>
+    </div>
 }
-
-@if (String.IsNullOrEmpty(ViewBag.userName) == false)
+else
 {
-<div id="divNew" class="mui-content-padded" >
-    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoBookEdit()">
-        新推荐好书
-    </button>
-</div>
-}
-
-<ul class="mui-table-view" data-bind=" foreach:model.list">
-@foreach (dp2weixin.service.SubjectItem subject in Model)
+    if (Model == null || Model.Count == 0)
     {
-        if (subject.count == 0)
+        <div class="mui-card" id="divNo" style="margin-top:10px;">
+            <center>
+                <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+                <div>目前没有好书推荐。</div>
+            </center>
+        </div>
+    }
+
+    if (String.IsNullOrEmpty(ViewBag.userName) == false)
+    {
+        <div id="divNew" class="mui-content-padded">
+            <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoBookEdit()">
+                新推荐好书
+            </button>
+        </div>
+    }
+
+    <ul class="mui-table-view" data-bind=" foreach:model.list">
+        @if (Model != null)
         {
-            continue;
+            foreach (dp2weixin.service.SubjectItem subject in Model)
+            {
+                if (subject.count == 0)
+                {
+                    continue;
+                }
+
+                <li class="mui-table-view-cell">
+                    <a class="mui-navigate-right" title="@subject.name" href='javascript:void(0)' onclick='gotoBookMsg(this)'>
+                        <span>@subject.name</span>
+                        (<span>@subject.count</span>)
+                    </a>
+                </li>
+            }
         }
-    
-    <li class="mui-table-view-cell">
-        <a class="mui-navigate-right" title="@subject.name" href='javascript:void(0)' onclick='gotoBookMsg(this)'>
-            <span>@subject.name</span>
-            (<span>@subject.count</span>)
-        </a>
-    </li>
+    </ul>
 }
-</ul>

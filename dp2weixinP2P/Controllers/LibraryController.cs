@@ -11,13 +11,14 @@ namespace dp2weixinWeb.Controllers
 {
     public class LibraryController : BaseController
     {
+        // 公告
         public ActionResult BB(string code, string state)
         {
             // 检查是否从微信入口进来
             string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
-                return Content(strError);
+                goto ERROR1;
 
             //绑定的工作人员账号 需要有权限
             string userName = "";
@@ -71,42 +72,13 @@ namespace dp2weixinWeb.Controllers
 
             return View(list);
 
+
         ERROR1:
-            return Content(strError);
+
+            ViewBag.Error = strError;
+            return View();//Content(strError);
         }
 
-        // 公告
-        public ActionResult MsgManage(string code, string state,string group)
-        {
-            // 检查是否从微信入口进来
-            string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
-            if (nRet == -1)
-                return Content(strError);
-
-            if (String.IsNullOrEmpty(group) == true)
-                group = dp2WeiXinService.C_Group_Bb;
-
-            if (group != dp2WeiXinService.C_Group_Bb
-                && group != dp2WeiXinService.C_Group_Book)
-            {
-                return Content("不支持的群" + group);
-            }
-
-
-
-
-            // 图书馆html
-            //ViewBag.LibHtml = this.GetLibHtml("");
-
-            ViewBag.group = group;
-            if (group == dp2WeiXinService.C_Group_Bb)
-                ViewBag.groupTitle = "公告";
-            else
-                ViewBag.groupTitle = "新书推荐";
-
-            return View();
-        }
 
         // 图书馆主页
         public ActionResult Home(string code, string state, string weixinId)
@@ -164,13 +136,20 @@ namespace dp2weixinWeb.Controllers
             ViewBag.userName = userName;
 
             // 获取栏目
-            List<SubjectItem> list = null;
+            List<SubjectItem> list1 = null;
             nRet = dp2WeiXinService.Instance.GetSubject(libId, 
                 dp2WeiXinService.C_Group_HomePage,
-                out list, out strError);
+                out list1, out strError);
             if (nRet == -1)
             {
                 goto ERROR1;
+            }
+            List<SubjectItem> list = new List<SubjectItem>();
+            foreach (SubjectItem item in list1)
+            {
+                if (item.count == 0)
+                    continue;
+                list.Add(item);
             }
 
             return View(list);
@@ -189,7 +168,7 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
-                return Content(strError);
+                goto ERROR1;
 
             //绑定的工作人员账号 需要有权限
             string userName = "";
@@ -242,7 +221,8 @@ namespace dp2weixinWeb.Controllers
             return View(list);
 
         ERROR1:
-            return Content(strError);
+            ViewBag.Error = strError;
+            return View();//Content(strError);
         }
 
 
@@ -255,41 +235,40 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
-                return Content(strError);
+            {
+                goto ERROR1;
+            }
 
             if (String.IsNullOrEmpty(libId) == true)
             {
-                return Content("libId参数不能为空");
+                strError = "libId参数不能为空";
+                goto ERROR1;
             }
-            //if (String.IsNullOrEmpty(userName) == true)
-            //{
-            //    return Content("userName参数不能为空");
-            //}
             if (String.IsNullOrEmpty(subject) == true)
             {
-                return Content("subject参数不能为空");
+                strError = "subject参数不能为空";
+                goto ERROR1;
             }
 
             ViewBag.LibId = libId;
             ViewBag.userName = userName;
             ViewBag.subject = subject;
-
             List<MessageItem> list = new List<MessageItem>();
             nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_Group_Book,
-        libId,
-        "",
-        subject,
-        "browse",
-        out list,
-        out strError);
-            //nRet = dp2WeiXinService.Instance.GetBookMsg(libId, 
-            //    subject, 
-            //    out list,
-            //    out strError);
+                libId,
+                "",
+                subject,
+                "browse",
+                out list,
+                out strError);
             if (nRet == -1)
-                return Content(strError);
+                goto ERROR1;
 
             return View(list);
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();//Content(strError);
         }
 
 
@@ -311,16 +290,20 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
-                return Content(strError);
+            {
+                goto ERROR1;
+            }
 
             if (String.IsNullOrEmpty(libId) == true)
             {
-                return Content("libId参数不能为空。");
+                strError = "libId参数不能为空。";
+                goto ERROR1;
             }
 
             if (String.IsNullOrEmpty(userName) == true)
             {
-                return Content("userName参数不能为空。");
+                strError = "userName参数不能为空。";
+                goto ERROR1;
             }
 
             if (String.IsNullOrEmpty(subject) == true)
@@ -354,7 +337,9 @@ namespace dp2weixinWeb.Controllers
                     out list,
                     out strError);
                 if (nRet == -1)
-                    return Content(strError);
+                {
+                    goto ERROR1;
+                }
 
                 if (list != null && list.Count == 1)
                 {
@@ -368,7 +353,8 @@ namespace dp2weixinWeb.Controllers
                 }
                 else
                 {
-                    return Content("根据id获取消息异常，未找到或者条数不对");
+                    strError = "根据id获取消息异常，未找到或者条数不对";
+                    goto ERROR1;
                 }
             }
             
@@ -380,81 +366,10 @@ namespace dp2weixinWeb.Controllers
 
             //model.msgItem = item;
             return View(model);
-        }
 
-        [HttpPost]
-        [ValidateInput(false)]
-        public ActionResult BookEdit(BookEditModel model)
-        {
-            string strError = "";
-            // 实际保存
-            string libId = model._libId;
-            string userName = model._userName;
-            string subject =model._subject;
-            string returnUrl1 = model._returnUrl;
-
-            MessageItem returnItem = null;
-
-            MessageItem item = new MessageItem();
-            item.id = model.id;
-            item.title = model.title;
-            item.content = model.content;
-            item.remark = model.remark;
-            item.creator = model._userName;
-            item.subject = model.subject;
-            if (String.IsNullOrEmpty(item.id) == true)
-            {
-                int nRet =dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_Group_Book,
-                    libId,
-                    item,
-                    "create",
-                    "",//parameters
-                    out returnItem,
-                    out strError);
-                if (nRet == -1)
-                    return Content(strError);
-            }
-            else 
-            {
-                int nRet = dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_Group_Book,
-                    libId,
-                    item,
-                    "change",
-                    "",//parameters
-                    out returnItem,
-                    out strError);
-                if (nRet == -1)
-                    return Content(strError);
-            }
-
-            // 2016-8-13 jane 记住选择的subject
-            if (model.subject != ViewBag.remeberBookSubject)
-            {
-                ViewBag.remeberBookSubject = model.subject;
-
-                // todo 保存到mongo库里
-            }
-
-            // 如果没有传入返回路径，保存完转到BookSubject
-            if (String.IsNullOrEmpty(model._returnUrl) == true)
-            {
-                return this.RedirectToAction("BookSubject", "Library");
-            }
-            else
-            {
-                if (model._returnUrl == "/Biblio/Index")  // 直接跳转没有数据,改为javascript返回，注意是-2
-                    return Content("<script>window.history.go(-2);</script>");
-                else
-                {
-                    string url =Url.Content("~" + model._returnUrl);
-                    return Redirect(url);
-                }
-            }
-
-            //// 如果我们进行到这一步时某个地方出错，则重新显示表单
-            //ModelState.AddModelError("", strError);//"提供的用户名或密码不正确。");
-            //return View(model);
-
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();//Content(strError);
         }
 
 

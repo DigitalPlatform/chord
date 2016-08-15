@@ -5254,7 +5254,7 @@ ERROR1:
                 goto ERROR1;
             }
         ERROR1:
-            strError = "服务器异常: " + strError;
+            strError = "访问服务器异常: " + strError;
             return -1;
         }
 

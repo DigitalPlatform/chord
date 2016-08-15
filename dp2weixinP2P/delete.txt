@@ -1,4 +1,117 @@
-﻿===========
+﻿========
+bookedit的mvc方式保存
+
+        [HttpPost]
+        [ValidateInput(false)]
+        public ActionResult BookEdit(BookEditModel model)
+        {
+            string strError = "";
+            // 实际保存
+            string libId = model._libId;
+            string userName = model._userName;
+            string subject =model._subject;
+            string returnUrl1 = model._returnUrl;
+
+            MessageItem returnItem = null;
+
+            MessageItem item = new MessageItem();
+            item.id = model.id;
+            item.title = model.title;
+            item.content = model.content;
+            item.remark = model.remark;
+            item.creator = model._userName;
+            item.subject = model.subject;
+            if (String.IsNullOrEmpty(item.id) == true)
+            {
+                int nRet =dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_Group_Book,
+                    libId,
+                    item,
+                    "create",
+                    "",//parameters
+                    out returnItem,
+                    out strError);
+                if (nRet == -1)
+                    return Content(strError);
+            }
+            else 
+            {
+                int nRet = dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_Group_Book,
+                    libId,
+                    item,
+                    "change",
+                    "",//parameters
+                    out returnItem,
+                    out strError);
+                if (nRet == -1)
+                    return Content(strError);
+            }
+
+            // 2016-8-13 jane 记住选择的subject
+            if (model.subject != ViewBag.remeberBookSubject)
+            {
+                ViewBag.remeberBookSubject = model.subject;
+
+                // todo 保存到mongo库里
+            }
+
+            // 如果没有传入返回路径，保存完转到BookSubject
+            if (String.IsNullOrEmpty(model._returnUrl) == true)
+            {
+                return this.RedirectToAction("BookSubject", "Library");
+            }
+            else
+            {
+                if (model._returnUrl == "/Biblio/Index")  // 直接跳转没有数据,改为javascript返回，注意是-2
+                    return Content("<script>window.history.go(-2);</script>");
+                else
+                {
+                    string url =Url.Content("~" + model._returnUrl);
+                    return Redirect(url);
+                }
+            }
+
+            //// 如果我们进行到这一步时某个地方出错，则重新显示表单
+            //ModelState.AddModelError("", strError);//"提供的用户名或密码不正确。");
+            //return View(model);
+
+        }
+
+
+==========
+        // 公告
+        public ActionResult MsgManage(string code, string state,string group)
+        {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
+            if (String.IsNullOrEmpty(group) == true)
+                group = dp2WeiXinService.C_Group_Bb;
+
+            if (group != dp2WeiXinService.C_Group_Bb
+                && group != dp2WeiXinService.C_Group_Book)
+            {
+                return Content("不支持的群" + group);
+            }
+
+
+
+
+            // 图书馆html
+            //ViewBag.LibHtml = this.GetLibHtml("");
+
+            ViewBag.group = group;
+            if (group == dp2WeiXinService.C_Group_Bb)
+                ViewBag.groupTitle = "公告";
+            else
+                ViewBag.groupTitle = "新书推荐";
+
+            return View();
+        }
+
+===========
         private string getLinkHtml(int nRet,string menu,string returnUrl)
         {
             //string returnUrl = "/Patron/PersonalInfo";
