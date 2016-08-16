@@ -115,6 +115,11 @@
                 return;
             }
 
+            var gnl = confirm("您确认续借册[" + itemBarcode + "]吗?");
+            if (gnl == false) {
+                return false;
+            }
+
             var libId = $("#libId").text();;
             var patronBarcode = $("#patronBarcode").text();
 
@@ -148,6 +153,8 @@
 
                 if (info == "")
                     info = "续借成功";
+
+                alert(info);
 
                 $(infoDiv).text(info);
                 $(infoDiv).css("color", "darkgreen");  //设为绿色
@@ -241,7 +248,7 @@
                 <tr>
                     <td class="label">操作</td>
                     <td class="value">
-                        <button type="button" class="mui-btn  mui-btn-default" onclick="renew(this)">
+                        <button type="button" class="mui-btn  mui-btn-default" onclick="renew(this)" data-bind="visible:rowCss!='borrowinfo-overdue' ">
                             续借
                         </button>
                         <span style="display:none" data-bind="text: barcode"></span>
