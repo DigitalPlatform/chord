@@ -55,7 +55,16 @@ function getDetail(libId, recPath, obj, from) {
         for (var i = 0; i < result.itemList.length; i++) {
             var record = result.itemList[i];
 
-            itemTables += "<div class='mui-card item' id='_item_" + record.barcode + "'>"
+            var tempBarcode = record.barcode;
+            if (tempBarcode.indexOf("@refID:") != -1)
+            {
+                //alert(tempBarcode+"前");
+                tempBarcode = tempBarcode.replace("@refID:", "refID-");
+                //alert(tempBarcode + "后");
+
+            }
+
+            itemTables += "<div class='mui-card item' id='_item_" + tempBarcode + "'>"
             + "<div class='title'>" + record.barcode + "</div>"
              + "<table>"
             + "<tr>"
@@ -106,14 +115,8 @@ function getDetail(libId, recPath, obj, from) {
 
 //预约
 function reservation(obj, barcode, style) {
-    //alert($("input[name='ckbBarcode']:checked").length);
-    if (style == "delete") {
-        var opeName = $(obj).text();
-        var gnl = confirm("你确定对册[" + barcode + "]" + opeName + "吗?");
-        if (gnl == false) {
-            return false;
-        }
-    }
+    //alert("走到reservation()");
+
 
     var weixinId = $("#weixinId").text();
     if (weixinId == null || weixinId == "") {
@@ -137,21 +140,35 @@ function reservation(obj, barcode, style) {
         alert("您尚未选择要预约的册记录。");
         return;
     }
-
+    //alert(barcode);
     var itemDivId = "#_item_" + barcode;
     var infoDiv = $(itemDivId).find(".resultInfo");
 
     //显示等待图层
     var index = loadLayer();
 
+    var paramBarcord = barcode;
+    if (paramBarcord.indexOf("refID-") != -1) {
+        paramBarcord = paramBarcord.replace("refID-", "@refID:");
+        //alert(paramBarcord);
+    }
+
+    //if (style == "delete") {
+    var opeName = $(obj).text();
+    var gnl = confirm("你确定对册[" + paramBarcord + "]" + opeName + "吗?");
+    if (gnl == false) {
+        return false;
+    }
+    //}
+
     var url = "/api/Reservation"
         + "?weixinId=" + weixinId
         + "&libId=" + encodeURIComponent(libId)
         + "&patron=" + encodeURIComponent(patron)
-        + "&items=" + encodeURIComponent(barcode)
+        + "&items=" + encodeURIComponent(paramBarcord)
         + "&style=" + style;//new 创建一个预约请求,delete删除
 
-    // alert(url);
+     //alert(url);
     // 调api
     sendAjaxRequest(url, "POST", function (result) {
 
@@ -236,13 +253,24 @@ function renew(itemBarcode) {
         return;
     }
 
+    var paramItemBarcord = itemBarcode;
+    if (paramItemBarcord.indexOf("refID-") != -1) {
+        paramItemBarcord = paramItemBarcord.replace("refID-", "@refID:");
+        //alert(paramItemBarcord);
+    }
+
+    var gnl = confirm("您确认续借册[" + paramItemBarcord + "]吗?");
+    if (gnl == false) {
+        return false;
+    }
+
     //显示等待图层
     var index = loadLayer();
 
     var url = "/api/BorrowInfo?libId=" + encodeURIComponent(libId)
         + "&action=renew"
         + "&patron=" + encodeURIComponent(patronBarcode)
-        + "&item=" + encodeURIComponent(itemBarcode)
+        + "&item=" + encodeURIComponent(paramItemBarcord)
     // 调api
     sendAjaxRequest(url, "POST", function (result) {
 
@@ -267,7 +295,7 @@ function renew(itemBarcode) {
 
         if (info == "")
             info = "续借成功";
-
+        alert(info);
         $(infoDiv).text(info);
         $(infoDiv).css("color", "darkgreen");  //设为绿色
 

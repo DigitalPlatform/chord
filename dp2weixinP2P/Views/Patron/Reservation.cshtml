@@ -47,6 +47,9 @@
                     model.reservations.push(result.reservations[i]);
                 }
 
+                // 更新合并按钮的文字和状态
+                changeBarcord();
+
                 window.setTimeout("fillPending()", 1);
 
             }, function (xhq, textStatus, errorThrown) {
@@ -57,10 +60,15 @@
             });
         }
 
-        function doThing(style, items) {
+        function doThing(style, items, opeName) {
             if (style == "") {
                 alert("未传入style参数。");
                 return;
+            }
+
+            var gnl = confirm("您确认对册[" + items + "]" + opeName + "吗?");
+            if (gnl == false) {
+                return false;
             }
 
             var libId = $("#libId").text();
@@ -142,12 +150,9 @@
             var items = $(obj).parent().children("span").text();
             //alert(items);
             var opeName=$(obj).text();
-            var gnl = confirm("你确定对册[" + items + "]"+opeName+"吗?");
-            if (gnl == false) {
-                return false;
-            }
 
-            doThing("delete", items);
+
+            doThing("delete", items,opeName);
         }
 
         // 合并
@@ -161,7 +166,7 @@
 
             //alert(items);
 
-            doThing("merge", items);
+            doThing("merge", items,"合并预约");
         }
 
         // 拆散
@@ -170,7 +175,7 @@
             var items = $(obj).parent().children("span").text();
             //alert(items);
 
-            doThing("split", items);
+            doThing("split", items,"拆散预约");
 
         }
 

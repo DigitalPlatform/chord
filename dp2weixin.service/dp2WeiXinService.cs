@@ -3626,6 +3626,12 @@ ERROR1:
                         }
                         else
                         {
+
+                            // 2016-8-16 修改isbn不能预约的情况
+                            string tempBarcode = item.barcode;
+                            if (tempBarcode.Contains("@refID:") == true)
+                                tempBarcode = tempBarcode.Replace("@refID:", "refID-");
+
                             strBorrowInfo =
                                 "<table style='width:100%;border:0px'>"
                                 +"<tr>"
@@ -3634,10 +3640,10 @@ ERROR1:
                                                                 + "借期：" + item.borrowPeriod
                                         + "</td>"
                                     + "<td class='btn' style='border:0px'>"
-                                        + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + item.barcode + "')\">续借</button>"
+                                        + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + tempBarcode + "')\">续借</button>"
                                     + "</td>"
                             + "</tr>"
-                            + "<tr><td colspan='2'><div id='renewInfo-" + item.barcode + "'/></td></tr>"
+                            + "<tr><td colspan='2'><div id='renewInfo-" + tempBarcode + "'/></td></tr>"
                             +"</table>";
 
                             // 此时不能预约
@@ -3702,6 +3708,10 @@ ERROR1:
         // 得到预约状态和操作按钮
         private string getReservationHtml(string reservationState, string barcode,bool bOnlyReserRow)//List<ReservationInfo> list, string barcode)
         {
+            // 2016-8-16 修改isbn不能预约的情况
+            if (barcode.Contains("@refID:") == true)
+                barcode = barcode.Replace("@refID:", "refID-");
+
             string html = "";
             //string reservationState = this.getReservationState(list, barcode);
             string btn = "";
