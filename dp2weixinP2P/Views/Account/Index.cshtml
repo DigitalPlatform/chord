@@ -79,6 +79,8 @@
                 // 关闭等待层
                 layer.close(index);
 
+                alert("解除[" + name + "]绑定成功。");
+
                 // 刷新绑定列表
                 getBindList(item.weixinId);
 
@@ -92,6 +94,9 @@
 
         // 设为默认
         function activeUser(item) {
+
+            var name = item.readerName;
+
             //alert("remove-"+item.libId);
             var url = "/api/wxuser?weixinId=" + item.weixinId + "&id=" + item.id;
             sendAjaxRequest(url, "PUT", function () {
@@ -99,6 +104,8 @@
                 // 因为有可能更新当前图书馆，所以reload保险，todo
                 //window.location.reload();
                 ////getBindList(item.weixinId);
+
+                alert("成功设置["+name+"]为活动账户。");
 
                 // 2016-8-14 jane 改为转到图书馆主页，这样可能更好一些
                 gotoUrl("/Library/Home");

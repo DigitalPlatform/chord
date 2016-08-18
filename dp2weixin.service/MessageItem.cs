@@ -18,7 +18,7 @@ namespace dp2weixin.service
     }
 
     // 栏目
-    public class SubjectItem:IComparable
+    public class SubjectItem//:IComparable
     {
         public int no { get; set; }
         public string pureName { get; set; }
@@ -27,19 +27,19 @@ namespace dp2weixin.service
         //public string encodedName { get; set; }
         public int count { get; set; }
 
-        public int CompareTo(object obj)
-        {
-            string thisName = this.no.ToString() + this.pureName;//this.name;
-            string otherName = ((SubjectItem)obj).no.ToString() + ((SubjectItem)obj).pureName;// ((SubjectItem)obj).name;
-            int maxLength = thisName.Length>otherName.Length?thisName.Length:otherName.Length;
-            if (thisName.Length<maxLength)
-                thisName= thisName.PadLeft(maxLength,'0');
-            if (otherName.Length<maxLength)
-                otherName=otherName.PadLeft(maxLength,'0');
+        //public int CompareTo(object obj)
+        //{
+        //    string thisName = this.no.ToString() + this.pureName;//this.name;
+        //    string otherName = ((SubjectItem)obj).no.ToString() + ((SubjectItem)obj).pureName;// ((SubjectItem)obj).name;
+        //    int maxLength = thisName.Length>otherName.Length?thisName.Length:otherName.Length;
+        //    if (thisName.Length<maxLength)
+        //        thisName= thisName.PadLeft(maxLength,'0');
+        //    if (otherName.Length<maxLength)
+        //        otherName=otherName.PadLeft(maxLength,'0');
 
-            return String.Compare(thisName, otherName, true);
-            //return  ((SubjectItem)obj).no.CompareTo(this.no);
-        }
+        //    return String.Compare(thisName, otherName, true);
+        //    //return  ((SubjectItem)obj).no.CompareTo(this.no);
+        //}
     }
 
     public class MessageResult : ApiResult

@@ -603,7 +603,7 @@ namespace dp2weixin.service
         private string _msgRemark = "如有疑问，请联系系统管理员。";
 
         private string _detailUrl_PersonalInfo = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fPersonalInfo&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
-        private string _detailUrl_AccountIndex= "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+        public const string C_detailUrl_AccountIndex= "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
 
 
         /// <returns>
@@ -2336,7 +2336,7 @@ namespace dp2weixin.service
                     weixinId,
                     WeiXinConst.C_Template_Bind,
                     "#FF0000",
-                    this._detailUrl_AccountIndex,//详情转到账户管理界面
+                    dp2WeiXinService.C_detailUrl_AccountIndex,//详情转到账户管理界面
                     testData);
                 if (result1.errcode != 0)
                 {
@@ -2446,7 +2446,7 @@ namespace dp2weixin.service
                     userItem.weixinId,
                     WeiXinConst.C_Template_UnBind,
                     "#FF0000",
-                    this._detailUrl_AccountIndex,//详情转到账户管理界面
+                   dp2WeiXinService.C_detailUrl_AccountIndex,//详情转到账户管理界面
                     data);
                 if (result1.errcode != 0)
                 {
@@ -2723,7 +2723,7 @@ namespace dp2weixin.service
      + "&type=photo"
      + "&objectPath=" + HttpUtility.UrlEncode(strUri);
             }
-            string html = "<img src='" + strImageUrl + "' width='100px' height='100px'></img>";
+            string html = "<img src='" + strImageUrl + "'  style='max-width:220px'></img>"; // 2016/8/19 不要人为把宽高固定了  width='100px' height='100px'
             return html;
         }
 
@@ -3520,12 +3520,12 @@ ERROR1:
                 }
                 catch (Exception ex)
                 {
-                    strError = "GetItemInfo()检索出错：" + ex.Message + " \n dp2mserver账户:" + connection.UserName;
+                    strError = "GetItemInfo()检索出错1：" + ex.Message + " \n dp2mserver账户:" + connection.UserName;
                     return -1;
                 }
 
                 //this.WriteLog("GetItemInfo3");
-                if (result.ResultCount == -1)
+                if (result.ResultCount == -1 && result.ErrorCode != "ItemDbNotDef") // 2016-8-19 过滤到未定义实体库的情况
                 {
                     strError = "GetItemInfo()检索出错：" + result.ErrorInfo + " \n dp2mserver账户:" + connection.UserName;
                     return -1;
@@ -5665,14 +5665,66 @@ ERROR1:
             }
 
 
-            // 排序
-            list.Sort();
+            // 2016-8-19 jane 修改栏目排序算法
+
+            // 先检查列表项中有没有带{}的
+            bool hasParenthesis = false;
+            foreach (SubjectItem sub in list)
+            {
+                if (sub.no != -1)
+                {
+                    hasParenthesis = true;
+                    break;
+                }
+            }
+
+            // 带括号的情况，括号里的值会自动扩充长度
+            if (hasParenthesis == true)
+            {
+                list.Sort((x, y) =>
+                {
+                    // 一个有括号，一个没括号，有{}的排前面
+                    if (x.no == -1 && y.no !=-1) // 左没有，右有{}
+                        return 0;
+                    if (x.no != -1 && y.no == -1) // 左有{}，右没有
+                        return 1;
+
+                    // 都没有括号的时候左对齐
+                    if (x.no == -1 && x.no == 1) 
+                        return x.name.CompareTo(y.name);
+
+                    //都有括号的时候，把括号里的内容扩充为等长，前补0
+                    string tempNo1 = x.no.ToString();
+                    string tempNo2 = y.no.ToString();
+                    int maxLength = tempNo1.Length > tempNo2.Length ? tempNo1.Length : tempNo2.Length;
+                    if (tempNo1.Length < maxLength)
+                        tempNo1 = tempNo1.PadLeft(maxLength, '0');
+                    if (tempNo2.Length < maxLength)
+                        tempNo2 = tempNo2.PadLeft(maxLength, '0');
+
+                    string name1 = "{"+tempNo1+"}" + x.pureName;
+                    string name2 = "{" + tempNo2 + "}" + y.pureName;
+
+                    return name1.CompareTo(name2); //左对齐排序
+                });
+            }
+            else
+            {
+                // 不带括号的情况，全部左对齐
+                list.Sort((x, y) =>
+                {
+                    int value = x.name.CompareTo(y.name);
+                    return value;
+                });
+            }
+
+
             return records.Count;
         }
 
         public void SplitSubject(string subject, out int no, out string right)
         {
-            no = 0;
+            no = -1;
             int nIndex = subject.IndexOf('}');
             string left = "";
             right = subject;
@@ -5692,24 +5744,25 @@ ERROR1:
                     this.WriteErrorLog("栏目'" + subject + "'的序号格式不合法，无法参考排序。");
                 }
             }
-            else
-            {
-                //检查是否有空格，如果空格前面是数字，也参考排序
-                nIndex = subject.IndexOf(' ');
-                if (nIndex > 0)
-                {
-                    left = subject.Substring(0, nIndex);
-                    try
-                    {
-                        no = Convert.ToInt32(left);
-                    }
-                    catch
-                    {
-                        this.WriteErrorLog("栏目'" + subject + "'虽有空格，但空格前是非数字，无法参考排序。");
-                    }
-                }
+            // 2016-8-19 排序只处理{}的情况，注掉下方内容
+            //else
+            //{
+            //    //检查是否有空格，如果空格前面是数字，也参考排序
+            //    nIndex = subject.IndexOf(' ');
+            //    if (nIndex > 0)
+            //    {
+            //        left = subject.Substring(0, nIndex);
+            //        try
+            //        {
+            //            no = Convert.ToInt32(left);
+            //        }
+            //        catch
+            //        {
+            //            this.WriteErrorLog("栏目'" + subject + "'虽有空格，但空格前是非数字，无法参考排序。");
+            //        }
+            //    }
 
-            }
+            //}
         }
 
         /// <summary>
@@ -5982,7 +6035,10 @@ ERROR1:
                 catch (Exception ex)
                 {
                     strError = ex.Message;
-                    goto ERROR1;
+
+                    // 2016-8-19权限不够，删除不了目录的话，改为记到日志里。
+                    this.WriteErrorLog(strError);
+                    //goto ERROR1;
                 }
             }
             

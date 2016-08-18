@@ -140,12 +140,13 @@ function reservation(obj, barcode, style) {
         alert("您尚未选择要预约的册记录。");
         return;
     }
+
+
     //alert(barcode);
     var itemDivId = "#_item_" + barcode;
     var infoDiv = $(itemDivId).find(".resultInfo");
 
-    //显示等待图层
-    var index = loadLayer();
+
 
     var paramBarcord = barcode;
     if (paramBarcord.indexOf("refID-") != -1) {
@@ -160,6 +161,9 @@ function reservation(obj, barcode, style) {
         return false;
     }
     //}
+
+    //显示等待图层
+    var index = loadLayer();
 
     var url = "/api/Reservation"
         + "?weixinId=" + weixinId
