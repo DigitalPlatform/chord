@@ -42,6 +42,11 @@
             this.textBox_subjectCondition = new System.Windows.Forms.TextBox();
             this.textBox_idCondition = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.textBox_string = new System.Windows.Forms.TextBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.button_escapeString = new System.Windows.Forms.Button();
+            this.button_unescapeString = new System.Windows.Forms.Button();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // button_Cancel
@@ -175,11 +180,57 @@
             this.label5.TabIndex = 61;
             this.label5.Text = "Message ID:";
             // 
+            // textBox_string
+            // 
+            this.textBox_string.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_string.Location = new System.Drawing.Point(6, 20);
+            this.textBox_string.Name = "textBox_string";
+            this.textBox_string.Size = new System.Drawing.Size(508, 21);
+            this.textBox_string.TabIndex = 64;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.button_unescapeString);
+            this.groupBox1.Controls.Add(this.button_escapeString);
+            this.groupBox1.Controls.Add(this.textBox_string);
+            this.groupBox1.Location = new System.Drawing.Point(14, 186);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(520, 85);
+            this.groupBox1.TabIndex = 65;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Escape Utility \"[](),|\"";
+            // 
+            // button_escapeString
+            // 
+            this.button_escapeString.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.button_escapeString.Location = new System.Drawing.Point(6, 47);
+            this.button_escapeString.Name = "button_escapeString";
+            this.button_escapeString.Size = new System.Drawing.Size(75, 23);
+            this.button_escapeString.TabIndex = 65;
+            this.button_escapeString.Text = "Escape";
+            this.button_escapeString.UseVisualStyleBackColor = true;
+            this.button_escapeString.Click += new System.EventHandler(this.button_escapeString_Click);
+            // 
+            // button_unescapeString
+            // 
+            this.button_unescapeString.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.button_unescapeString.Location = new System.Drawing.Point(87, 47);
+            this.button_unescapeString.Name = "button_unescapeString";
+            this.button_unescapeString.Size = new System.Drawing.Size(75, 23);
+            this.button_unescapeString.TabIndex = 66;
+            this.button_unescapeString.Text = "Unescape";
+            this.button_unescapeString.UseVisualStyleBackColor = true;
+            this.button_unescapeString.Click += new System.EventHandler(this.button_unescapeString_Click);
+            // 
             // GetMessageDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(546, 380);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.textBox_idCondition);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.textBox_subjectCondition);
@@ -196,6 +247,8 @@
             this.Controls.Add(this.button_OK);
             this.Name = "GetMessageDialog";
             this.Text = "GetMessageDialog";
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -217,5 +270,9 @@
         private System.Windows.Forms.TextBox textBox_subjectCondition;
         private System.Windows.Forms.TextBox textBox_idCondition;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox textBox_string;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Button button_unescapeString;
+        private System.Windows.Forms.Button button_escapeString;
     }
 }

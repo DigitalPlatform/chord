@@ -72,7 +72,7 @@ namespace TestClient1
                 text.Append("thread=" + HttpUtility.HtmlEncode(record.thread) + "\r\n");
                 
                 if (record.subjects != null)
-                    text.Append("subjects=" + HttpUtility.HtmlEncode(string.Join(",", record.subjects)) + "\r\n");
+                    text.Append("subjects=" + HttpUtility.HtmlEncode(string.Join(SUBJECT_DELIM, record.subjects)) + "\r\n");
 
                 text.Append("publishTime=" + HttpUtility.HtmlEncode(record.publishTime) + "\r\n");
                 text.Append("expireTime=" + HttpUtility.HtmlEncode(record.expireTime) + "\r\n");
@@ -964,7 +964,7 @@ string strHtml)
                     text.Append("thread=" + record.thread + "\r\n");
 
                     if (record.subjects != null)
-                        text.Append("subjects=" + (string.Join(",", record.subjects)) + "\r\n");
+                        text.Append("subjects=" + (string.Join(SUBJECT_DELIM, record.subjects)) + "\r\n");
 
                     text.Append("publishTime=" + record.publishTime.ToString("G") + "\r\n");
                     text.Append("expireTime=" + record.expireTime + "\r\n");
@@ -976,6 +976,7 @@ string strHtml)
             return text.ToString();
         }
 
+        const string SUBJECT_DELIM = "|";
 
         static string ToString(SetMessageResult result)
         {
@@ -999,7 +1000,7 @@ string strHtml)
                     text.Append("expireTime=" + record.expireTime + "\r\n");
 
                     if (record.subjects != null)
-                        text.Append("subjects=" + string.Join(",", record.subjects) + "\r\n");
+                        text.Append("subjects=" + string.Join(SUBJECT_DELIM, record.subjects) + "\r\n");
 
                     i++;
                 }
@@ -1409,7 +1410,7 @@ string strHtml)
                     text.Append("thread=" + HttpUtility.HtmlEncode(record.thread) + "\r\n");
 
                     if (record.subjects != null)
-                        text.Append("subjects=" + HttpUtility.HtmlEncode(string.Join(",", record.subjects)) + "\r\n");
+                        text.Append("subjects=" + HttpUtility.HtmlEncode(string.Join(SUBJECT_DELIM, record.subjects)) + "\r\n");
 
                     text.Append("publishTime=" + HttpUtility.HtmlEncode(record.publishTime.ToString("G")) + "\r\n");
                     text.Append("expireTime=" + HttpUtility.HtmlEncode(record.expireTime) + "\r\n");
