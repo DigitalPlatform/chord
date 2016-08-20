@@ -110,16 +110,18 @@ namespace dp2weixinWeb.Controllers
                 // 如果session中的code与传进入的code相同，则不再获取weixinid
                 if (sessionCode == code)
                 {
-                    dp2WeiXinService.Instance.WriteLog("传进来的code["+code+"]与session中保存的code相同，不再获取weixinid了。");
+                    dp2WeiXinService.Instance.WriteLog("传进来的code[" + code + "]与session中保存的code相同，不再获取weixinid了。");
                 }
                 else
                 {
-                    dp2WeiXinService.Instance.WriteLog("传进来的code[" + code + "]与session中保存的code["+sessionCode+"]不同，重新获取weixinid了，ip="+Request.UserHostAddress+"。");
+                    dp2WeiXinService.Instance.WriteLog("传进来的code[" + code + "]与session中保存的code[" + sessionCode + "]不同，重新获取weixinid了，ip=" + Request.UserHostAddress + "。");
 
                     string weixinIdTemp = "";
                     int nRet = dp2WeiXinService.Instance.GetWeiXinId(code, state, out weixinIdTemp, out strError);
                     if (nRet == -1)
-                    { return -1; }
+                    {
+                        return -1;
+                    }
 
                     if (String.IsNullOrEmpty(weixinIdTemp) == false)
                     {
@@ -130,12 +132,21 @@ namespace dp2weixinWeb.Controllers
                     }
                 }
             }
+            else
+            {
+                if (Session[WeiXinConst.C_Session_WeiXinId] == null)
+                {
+                    strError = "请从微信\"我爱图书馆\"公众号进入。";
+                    return -1;
+                }
+            }
+
 
             // 检查session中是否存在weixinid
             if (Session[WeiXinConst.C_Session_WeiXinId] == null
                 || (String)Session[WeiXinConst.C_Session_WeiXinId] == "")
             {
-                strError = "非正规途径进入或者Session已失效，请重新从微信中\"我爱图书馆\"公众号进入。";
+                strError = "页面长期未使用Session已失效，请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
                 return -1;
             }
 

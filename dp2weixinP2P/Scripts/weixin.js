@@ -540,7 +540,9 @@ function getMsgViewHtml(msgItem, bContainEditDiv) {
     if (bContainEditDiv == true)
         html += "<div class='mui-card message' id='_edit_" + msgItem.id + "' onclick=\"clickMsgDiv('" + msgItem.id + "')\">";
 
-    html += "<table class='view'>"
+    // 2016-8-20 如果markdown格式产生的pre/code元素放在表格里不支持，这里给显示态再套一层div，把内容和注释提到table外的div里
+    html+="<div class='view'>"
+    html += "<table class='view-top'>"
                     + "<tr>"
                         + "<td class='title' >" + msgItem.title + "</td>"
                         + "<td class='btn'>"
@@ -557,15 +559,16 @@ function getMsgViewHtml(msgItem, bContainEditDiv) {
                     + "<span>" + msgItem.publishTime + "</span>-<span>" + msgItem.creator + "</span>"
             + "</td>"
         + "</tr>"
-
     }
+    html += "</table>";
 
-    html += "<tr>"
-                        + "<td colspan='2' class='content'>"
+    // 加内容
+    html += "<div class='content'>"
                         + msgItem.contentHtml
-                        + "</td>"
-                    + "</tr>"
-                + "</table>";
+                        + "</div>";
+
+    // 收尾的div
+    html += "</div>";
 
     if (bContainEditDiv == true)
         html += "</div>";
@@ -615,6 +618,8 @@ function deleteMsg(msgId) {
         + "&group=" + encodeURIComponent("gn:_lib_homePage")
         + "&msgId=" + msgId
         + "&userName=" + userName
+
+    //alert(url);
     sendAjaxRequest(url, "DELETE", function (result) {
 
         // 关闭等待层
@@ -644,6 +649,10 @@ function deleteMsg(msgId) {
         }
 
     }, function (xhq, textStatus, errorThrown) {
+
+        // 关闭等待层
+        layer.close(index);
+
         alert(errorThrown);
     });
 
@@ -982,6 +991,9 @@ function deleteMsg(msgId) {
 
     }, function (xhq, textStatus, errorThrown) {
         alert(errorThrown);
+
+        // 关闭等待层
+        layer.close(index);
     });
 
 }
@@ -1156,6 +1168,8 @@ function getSubjectHtml(msgId) {
 
 // 单击msg进行只读态与编辑态的切换
 function clickMsgDiv(msgId) {
+
+    //alert("走进clientMsgDiv");
     if (msgId == null || msgId == "") {
         alert("未传入msgId");
         return;
@@ -1169,6 +1183,7 @@ function clickMsgDiv(msgId) {
 
     var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
     var editBtn = $(divId).find("#btnEdit");
+    //alert(editBtn);
 
     // 这时候已经不是在浏览界面，应该是编辑态了
     var viewTable = $(divId).children(".view").html();

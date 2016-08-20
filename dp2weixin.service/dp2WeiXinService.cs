@@ -426,6 +426,8 @@ namespace dp2weixin.service
                 return;
             }
 
+            this.WriteLog("收到消息["+record.id+"]准备处理，publishTime=" + record.publishTime);
+
             //this.WriteErrorLog("走进_msgRouter_SendMessageEvent");
 
             try
@@ -4444,7 +4446,7 @@ ERROR1:
                 //可以传一个state用于校验
                 if (state != "dp2weixin")
                 {
-                    strError = "验证失败！请从正规途径进入！";
+                    strError = "验证失败！非正规途径进入！";
                     return -1;
                 }
 
@@ -5381,8 +5383,10 @@ ERROR1:
             record.type = "message";
             record.thread = "";
             record.expireTime = new DateTime(0);    // 表示永远不失效
+            if (item.subject !=null)
+                item.subject=item.subject.Trim();// 2016-8-20 jane 对栏目首尾去掉空白
             if (item.subject != null && item.subject != "")
-                record.subjects = item.subject.Split(new char[] { ',' });
+                record.subjects = new string[]{item.subject};//2016-8-20,不管有没有逗号，只当作一条subject处理。item.subject.Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries); // 2016-8-20，jane,对首尾去掉空白，与服务器保存一致。
             else
                 record.subjects = new string[] { };
             records.Add(record);
@@ -5609,16 +5613,15 @@ ERROR1:
                 if (subjects == null || subjects.Length == 0)
                     continue;
 
-                string subject = subjects[0];
+                string subject = subjects[0];//2016-8-20 jane 这里的栏目是从服务器上得到了，不用管首尾空白的问题，如果管了反而暴露不出来问题
 
                 int no = 0;
                 string right = subject;
                 this.SplitSubject(subject, out no, out right);
 
                 subItem.no = no;
-                subItem.pureName =right ;
+                subItem.pureName =right ;  
                 subItem.name = subject;
-                //subItem.encodedName = HttpUtility.HtmlEncode(subject);
                 subItem.count = 0;
                 try
                 {
@@ -5648,7 +5651,7 @@ ERROR1:
                         bool bExist = this.checkContaint(list, fileName);
                         if (bExist == false)
                         {
-                            string subject = fileName;
+                            string subject = fileName.Trim();// 2016-8-20 对首尾去空白，因为服务器对subject的空白支持不太好
                             int no = 0;
                             string right = subject;
                             this.SplitSubject(subject, out no, out right);
@@ -5683,11 +5686,27 @@ ERROR1:
             {
                 list.Sort((x, y) =>
                 {
-                    // 一个有括号，一个没括号，有{}的排前面
-                    if (x.no == -1 && y.no !=-1) // 左没有，右有{}
-                        return 0;
-                    if (x.no != -1 && y.no == -1) // 左有{}，右没有
-                        return 1;
+                    //// 一个有括号，一个没括号，有{}的排前面
+                    //if (x.no == -1 && y.no !=-1) // 左没有，右有{}
+                    //    return 0;
+                    //if (x.no != -1 && y.no == -1) // 左有{}，右没有
+                    //    return 1;
+                    if ((x.no == -1 && y.no != -1) || (x.no != -1 && y.no == -1))
+                    {
+                        // 右对齐 2016-8-20 jane 发现上面的算法，当一个有括号一个没括号时，排序出来的结果不出。
+                        string tempName1 = x.name;
+                        string tempName2 = y.name;
+                        int length = tempName1.Length > tempName2.Length ? tempName1.Length : tempName2.Length;
+                        if (tempName1.Length < length)
+                            tempName1 = tempName1.PadLeft(length, '0');
+                        if (tempName2.Length < length)
+                            tempName2 = tempName2.PadLeft(length, '0');
+
+                        return tempName1.CompareTo(tempName2); //左对齐排序
+
+ 
+                    }
+
 
                     // 都没有括号的时候左对齐
                     if (x.no == -1 && x.no == 1) 

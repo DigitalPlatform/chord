@@ -1,7 +1,7 @@
 ﻿@model List<dp2weixin.service.MessageItem>
 
 @section style {
-    <link href="@Url.Content("~/Content/message.css")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/message.css?a=1")" rel="stylesheet">
 }
 @section Scripts {
     <script>
@@ -181,8 +181,8 @@ else
         foreach (dp2weixin.service.MessageItem item in Model)
         {
             <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv('@item.id')">
-                <table class="view">
-                    <tbody>
+                <div class="view">
+                <table class="view-top">
                         <tr>
                             <td class="title" id="title-@item.id">@item.title</td>
                             <td class="btn">
@@ -200,16 +200,10 @@ else
                                 <span>@item.publishTime</span>-<span>@item.creator</span>
                             </td>
                         </tr>
-                        <tr>
-                            <td class="content" colspan="2">@Html.Raw(item.contentHtml)</td>
-                        </tr>
-                        <tr>
-                            <td class="remark" colspan="2">@Html.Raw(item.remarkHtml)</td>
-                        </tr>
-                    </tbody>
                 </table>
-
-
+                <div class="content">@Html.Raw(item.contentHtml)</div>
+                <div class="remark">@Html.Raw(item.remarkHtml)</div>
+                </div>
             </div>
         }
     }
