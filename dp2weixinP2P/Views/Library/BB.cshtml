@@ -1,6 +1,6 @@
 ﻿@model List<dp2weixin.service.MessageItem>
 @section style {
-    <link href="@Url.Content("~/Content/message.css")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/message.css?a=1")" rel="stylesheet">
 }
 @section Scripts {
     <script>
@@ -64,21 +64,23 @@ else
             foreach (dp2weixin.service.MessageItem item in Model)
             {
                 <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv('@item.id')">
-                    <table class="view">
-                        <tbody>
-                            <tr>
-                                <td class="title">@item.title</td>
-                                <td class="btn">
-                                    <div id="btnEdit" style="display: none;">
-                                        <button class="mui-btn mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>&nbsp;
-                                        <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr><td class="time" colspan="2"><span>@item.publishTime</span>-<span>@item.creator</span></td></tr>
-                            <tr><td class="content" colspan="2">@Html.Raw(item.contentHtml)</td></tr>
-                        </tbody>
-                    </table>
+                    <div class="view">
+                        <table class="view-top">
+                            <tbody>
+                                <tr>
+                                    <td class="title">@item.title</td>
+                                    <td class="btn">
+                                        <div id="btnEdit" style="display: none;">
+                                            <button class="mui-btn mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>&nbsp;
+                                            <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr><td class="time" colspan="2"><span>@item.publishTime</span>-<span>@item.creator</span></td></tr>
+                            </tbody>
+                        </table>
+                        <div class="content">@Html.Raw(item.contentHtml)</div>
+                    </div>
                 </div>
             }
         }

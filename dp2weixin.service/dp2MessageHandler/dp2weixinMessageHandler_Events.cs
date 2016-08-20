@@ -8,6 +8,7 @@ using Senparc.Weixin.MP.Helpers;
 using Senparc.Weixin.MP.MessageHandlers;
 using Senparc.Weixin.Context;
 using dp2Command.Service;
+using dp2weixin.service;
 namespace dp2weixin
 {
     /// <summary>
@@ -21,7 +22,8 @@ namespace dp2weixin
         /// <returns></returns>
         public override IResponseMessageBase OnEvent_SubscribeRequest(RequestMessageEvent_Subscribe requestMessage)
         {
-            string strMessage = "您好，欢迎关注我爱图书馆公众号:-)";
+            string strMessage = "您好，欢迎关注我爱图书馆公众号。😊\n"
+                + "<a href='" + dp2WeiXinService.C_detailUrl_AccountIndex + "'>点击绑定图书馆账户。</a>";
             /*您可以回复：\n"
                + "search:检索" + "\n"
                + "binding:绑定读者账号" + "\n"
