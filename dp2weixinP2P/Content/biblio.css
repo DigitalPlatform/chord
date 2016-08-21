@@ -1,7 +1,10 @@
 
 /*书目*/
-DIV.biblio {
-}
+        DIV.biblio {
+            top:0px;
+            padding:10px;
+            background-color:white;
+        }
 
 
 
@@ -45,6 +48,10 @@ DIV.biblio {
         }
           DIV.biblio TABLE.info td.biblio_info table.biblio_table .value{
                           padding-bottom:4px;
+        }
+
+                    DIV.biblio TABLE.info td.biblio_info table.biblio_table .titlevalue{
+                        font-weight:bold;
         }
 
     /*书目操作按钮行，现在有好书推荐按钮*/

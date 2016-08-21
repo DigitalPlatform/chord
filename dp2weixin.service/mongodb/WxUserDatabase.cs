@@ -62,16 +62,16 @@ namespace dp2weixin.service
             _wxUserCollection = this._database.GetCollection<WxUserItem>("item");
 
             // todo 创建索引            
-            bool bExist = false;
-            var indexes = _wxUserCollection.Indexes.ListAsync().Result.ToListAsync().Result;
-            foreach (BsonDocument doc in indexes)
-            {
-            }
-            // _logCollection.DropAllIndexes();
-            if (bExist == false)
-            {
-                CreateIndex();
-            }
+            //bool bExist = false;
+            //var indexes = _wxUserCollection.Indexes.ListAsync().Result.ToListAsync().Result;
+            //foreach (BsonDocument doc in indexes)
+            //{
+            //}
+            //// _logCollection.DropAllIndexes();
+            //if (bExist == false)
+            //{
+            //    CreateIndex();
+            //}
         }
 
         // 创建索引

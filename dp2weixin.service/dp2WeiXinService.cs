@@ -3178,15 +3178,25 @@ ERROR1:
                 }
 
                 // 拼音与书名合为一行
-                if (name == "题名与责任说明" && pinyin !="")
+                if (name == "题名与责任说明")
                 {
-                    table += "<tr>"
-                        + "<td class='name'>" + name + "</td>"
-                        + "<td class='value'>"
-                            + "<span style='color:gray'>" + pinyin + "</span><br/>"                       
-                            + value 
-                        + "</td>"
-                        + "</tr>";
+                    if (String.IsNullOrEmpty(pinyin) == false)
+                    {
+                        table += "<tr>"
+                            + "<td class='name'>" + name + "</td>"
+                            + "<td class='titlevalue'>"
+                                + "<span style='color:gray'>" + pinyin + "</span><br/>"
+                                + value
+                            + "</td>"
+                            + "</tr>";
+                    }
+                    else
+                    {
+                        table += "<tr>"
+                           + "<td class='name'>" + name + "</td>"
+                           + "<td class='titlevalue'>" + value + "</td>"
+                           + "</tr>";
+                    }
                     continue;
                 }
 
@@ -5386,7 +5396,10 @@ ERROR1:
             if (item.subject !=null)
                 item.subject=item.subject.Trim();// 2016-8-20 jane 对栏目首尾去掉空白
             if (item.subject != null && item.subject != "")
-                record.subjects = new string[]{item.subject};//2016-8-20,不管有没有逗号，只当作一条subject处理。item.subject.Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries); // 2016-8-20，jane,对首尾去掉空白，与服务器保存一致。
+            {
+                string tempSubject = StringUtil.EscapeString(item.subject, "[](),|");
+                record.subjects = new string[] {tempSubject };//2016-8-20,不管有没有逗号，只当作一条subject处理。item.subject.Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries); // 2016-8-20，jane,对首尾去掉空白，与服务器保存一致。
+            }
             else
                 record.subjects = new string[] { };
             records.Add(record);
@@ -5614,6 +5627,7 @@ ERROR1:
                     continue;
 
                 string subject = subjects[0];//2016-8-20 jane 这里的栏目是从服务器上得到了，不用管首尾空白的问题，如果管了反而暴露不出来问题
+                subject = StringUtil.UnescapeString(subject);
 
                 int no = 0;
                 string right = subject;
