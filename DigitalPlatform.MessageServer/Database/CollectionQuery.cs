@@ -41,6 +41,8 @@ namespace DigitalPlatform.MessageServer
 
         // parameters:
         //      strText 例如 [xxxx,xxxx] 或 (xxxx,xxxx)
+        //              xxxx 部分内容，需要利用 StringUtil.EscapeString() 函数进行转义，以保护里面的特殊字符。用法如下：
+        //              EscapeString(strText, "[](),|")
         public CollectionQuery(string strText, string default_type)
         {
             if (strText == null)
@@ -87,12 +89,14 @@ namespace DigitalPlatform.MessageServer
 
             foreach (string name in names)
             {
-                this.Names.Add(name);
+                this.Names.Add(StringUtil.UnescapeString(name));
             }
 
             this.Definition = strDefinition;
         }
 
+        // parameters:
+        //      names   这个数组里面的每个字符串元素，不需要预先转义。就是说里面允许出现逗号等特殊符号
         public CollectionQuery(string[] names, string definition)
         {
             this.Names = new List<string>();

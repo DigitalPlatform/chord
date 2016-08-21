@@ -1,4 +1,5 @@
 ﻿using DigitalPlatform.Forms;
+using DigitalPlatform.Text;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -128,6 +129,16 @@ namespace TestClient1
                 controls.Add(this.textBox_subjectCondition);
                 GuiState.SetUiState(controls, value);
             }
+        }
+
+        private void button_escapeString_Click(object sender, EventArgs e)
+        {
+            this.textBox_string.Text = StringUtil.EscapeString(this.textBox_string.Text, "[](),|");
+        }
+
+        private void button_unescapeString_Click(object sender, EventArgs e)
+        {
+            this.textBox_string.Text = StringUtil.UnescapeString(this.textBox_string.Text);
         }
 
     }
