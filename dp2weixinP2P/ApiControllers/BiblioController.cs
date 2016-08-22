@@ -29,6 +29,7 @@ namespace dp2weixinWeb.ApiControllers
             string resultSet)
         {
             SearchBiblioResult searchRet = new SearchBiblioResult();
+
             if (String.IsNullOrEmpty(resultSet) == true)
                 resultSet = "weixin-" + Guid.NewGuid();
 

@@ -2612,6 +2612,14 @@ namespace dp2weixin.service
                 return -1;
             }
 
+            // 检查该图书馆的配置是否支持检索
+            if (lib.noShareBiblio == 1)
+            {
+                strError = "图书馆\""+lib.libName+"\"不对外公开书目信息。";
+                return -1;
+            }
+
+
             //long start = 0;
             //long count = 10;
             try
@@ -5088,7 +5096,10 @@ ERROR1:
             item.publishTime = DateTimeUtil.DateTimeToString(record.publishTime);
             item.subject = "";
             if (record.subjects != null && record.subjects.Length > 0)
+            {
                 item.subject = record.subjects[0];
+                item.subject = StringUtil.UnescapeString(item.subject);
+            }
             string title = "";
             string content = "";
             string format = "text"; //默认是text样式
@@ -5430,6 +5441,7 @@ ERROR1:
                 MessageRecord returnRecord = result.Results[0];
                 returnRecord.data = strText;
                 returnItem = this.ConvertMsgRecord(group, returnRecord, "browse", libId);
+                //returnItem
 
                 // 新创建，且check栏目的序号
                 if (style == "create" && parameters !=null && parameters.Contains("checkSubjectIndex") == true

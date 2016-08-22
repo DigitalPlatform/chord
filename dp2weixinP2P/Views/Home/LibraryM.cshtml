@@ -59,7 +59,8 @@
                 wxUserName: ko.observable(""),
                 wxPassword: ko.observable(""),
                 wxContactPhone: ko.observable(""),
-                comment: ko.observable("")
+                comment: ko.observable(""),
+                noShareBiblio: ko.observable(0),
             },
             displaySummary: ko.observable(true)
 
@@ -130,6 +131,14 @@
             });
         }
 
+        function getNoShareBiblio() {
+            var count = 0;
+            $("#ckbNoShareBiblio:checked").each(function () {
+                count = 1;
+            });
+            return count
+        }
+
         // 新增一项
         function addLib() {
 
@@ -197,6 +206,7 @@
                     model.editor.wxContactPhone("");
 
                     model.editor.comment("");
+                    model.editor.noShareBiblio(0);
 
 
                 },
@@ -213,7 +223,8 @@
                     wxUserName: wxUserName,
                     wxPassword: wxPassword,
                     wxContactPhone: wxContactPhone,
-                    comment: comment
+                    comment: comment,
+                    noShareBiblio:getNoShareBiblio()
                 }
             );
         }
@@ -289,6 +300,8 @@
 
                     model.editor.comment("");
 
+                    model.editor.noShareBiblio(0);
+
                     // 关闭等待层
                     layer.close(index);
                 },
@@ -306,7 +319,9 @@
                     wxUserName: wxUserName,
                     wxPassword: wxPassword,
                     wxContactPhone: wxContactPhone,
-                    comment: comment
+                    comment: comment,
+                    noShareBiblio: getNoShareBiblio()
+
                 }
             );
         }
@@ -334,6 +349,8 @@
             model.editor.wxPassword("");
             model.editor.wxContactPhone("");
             model.editor.comment("");
+
+            model.editor.noShareBiblio(0);
 
             $("#btnAdd").css('display', 'block');
             $("#btnEdit").css('display', 'none');
@@ -363,6 +380,8 @@
             model.editor.wxPassword(item.wxPassword);
             model.editor.wxContactPhone(item.wxContactPhone);
             model.editor.comment(item.comment);
+
+            model.editor.noShareBiblio(item.noShareBiblio);
         }
 
 
@@ -426,6 +445,10 @@
                     <td class="value" data-bind="text:comment"></td>
                 </tr>
                 <tr>
+                    <td class="label">不对外公开书目</td>
+                    <td class="value" data-bind="text:noShareBiblio"></td>
+                </tr>
+                <tr>
                     <td>&nbsp;</td>
                     <td>
                         <button class="mui-btn  mui-btn-default" data-bind="click: handleEditClick">编辑</button>
@@ -479,7 +502,11 @@
 
             <div class="mui-input-row">
                 <label class="leftLabel">备注</label>
-                <textarea rows="5" data-bind="value:model.editor.comment"></textarea>
+                <textarea rows="5" data-bind="value:model.editor.comment" placeholder="请输入  备注"></textarea>
+            </div>
+            <div class='mui-input-row mui-checkbox mui-left'>
+                <label>不对外公开书目</label>
+                <input id='ckbNoShareBiblio' type='checkbox' data-bind="checked:model.editor.noShareBiblio" />
             </div>
         </div>
         <div class="mui-content-padded" >

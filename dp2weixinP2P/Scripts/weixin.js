@@ -690,13 +690,12 @@ function viewMsg(msgId, msgItem) {
 
             //alert("序号=" + msgItem.subjectIndex);
 
-
             var myDiv = null;
             if (msgItem.subjectIndex >= 0)
                 myDiv = $("#_subject_main").children(".subject:eq(" + msgItem.subjectIndex + ")");
 
             //alert(myDiv);
-            if (myDiv.html() != null) {
+            if (myDiv!=null && myDiv.html() != null) {
                 var myId = myDiv.attr('id');
                 myId = myId.substring(9);
                 //alert(myId);
@@ -705,8 +704,13 @@ function viewMsg(msgId, msgItem) {
                 if (myId == msgItem.subject) {
                     //alert("相同");
 
-                    var titleObj = $(myDiv).find("#_subject_title");
-                    $(msgViewHtml).insertAfter(titleObj);
+                    if (group == "gn:_lib_homePage") {
+                        $(myDiv).append(msgViewHtml);//插在后面
+                    }
+                    else {
+                        var titleObj = $(myDiv).find("#_subject_title");
+                        $(msgViewHtml).insertAfter(titleObj);
+                    }
                 }
                 else {
                     //alert("不同");
