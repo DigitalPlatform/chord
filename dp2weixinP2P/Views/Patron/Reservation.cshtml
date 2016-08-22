@@ -257,10 +257,13 @@
                 }
 
                 TABLE.borderTable TR TD.label {
-                    width: 100px;
+                    width: 94px;
+                    max-width:94px;
+                    min-width:94px;
                     background-color: #eeeeee;
                     color: #999999;
                     padding-left: 5px;
+                    text-align:right;
                 }
     </style>
 }
@@ -282,7 +285,7 @@
             <tr>
                 <td class="label">
                     <div class='mui-input-row mui-checkbox mui-left' style="border-bottom:0px;">
-                        <label style='padding-left:30px;padding-right:0px'>册条码号</label>
+                        <label style='padding-left:26px;padding-right:0px'>册条码号</label>
                         <input name='ckbBarcode' data-bind="value:pureBarcodes,enable:state=='' " type='checkbox' style='left:0px;' onchange="changeBarcord()" />
                     </div>
                 </td>

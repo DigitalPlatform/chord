@@ -828,7 +828,7 @@ function save(msgId) {
 
 
     var title = $(divId).find("#_val_title").val();//$("#_val_title").val();
-    // 对于图书馆主页，标题允许为空，因为已经有了栏目标题
+    // 对于图书馆介绍，标题允许为空，因为已经有了栏目标题
     if (titleCanEmpty == false) {
         if (title == "") {
             alert("请输入标题。");

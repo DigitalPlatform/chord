@@ -80,7 +80,7 @@ namespace dp2weixinWeb.Controllers
         }
 
 
-        // 图书馆主页
+        // 图书馆介绍
         public ActionResult Home(string code, string state, string weixinId)
         {
             // 用于测试，如果传了一个weixin id参数，则存到session里

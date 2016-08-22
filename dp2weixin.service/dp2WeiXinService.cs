@@ -40,7 +40,7 @@ namespace dp2weixin.service
         // 群组常量
         public const string C_Group_Bb = "gn:_lib_bb";
         public const string C_Group_Book = "gn:_lib_book";
-        public const string C_Group_HomePage = "gn:_lib_homePage"; //图书馆主页
+        public const string C_Group_HomePage = "gn:_lib_homePage"; //图书馆介绍
         public const string C_Group_PatronNotity = "gn:_patronNotify";
 
         // 消息权限
@@ -5042,7 +5042,7 @@ ERROR1:
 
 
 
-        #region 消息：公告，好书，图书馆主页
+        #region 消息：公告，好书，图书馆介绍
 
         public int GetMessage(string group,
             string libId,
@@ -5239,6 +5239,10 @@ ERROR1:
             // 这里要转换一下，接口传进来的是转义后的
             //subjectCondition = HttpUtility.HtmlDecode(subjectCondition);
 
+            string sortCondition = "publishTime|desc";
+            if (groupName==dp2WeiXinService.C_Group_HomePage)
+                sortCondition = "publishTime|asc";
+
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -5247,7 +5251,7 @@ ERROR1:
                 groupName,
                 wxUserName,
                 "", // strTimeRange,
-                "publishTime|desc",//sortCondition 按发布时间倒序排
+                sortCondition,//sortCondition 按发布时间倒序排
                 msgId, //IdCondition 
                 subjectCondition,
                 0,
@@ -5651,7 +5655,7 @@ ERROR1:
                 list.Add(subItem);
             }
 
-            // 如果是图书馆主页，需要加一些默认模板
+            // 如果是图书馆介绍，需要加一些默认模板
             if (group == dp2WeiXinService.C_Group_HomePage)
             {
                 LibItem lib = LibDatabase.Current.GetLibById(libId);
@@ -6017,7 +6021,7 @@ ERROR1:
             {
                 outputItem=LibDatabase.Current.Add(item);
 
-                //创建对应的图书馆主页配置目录
+                //创建对应的图书馆介绍配置目录
                 string libDir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + item.capoUserName + "/home";
                 if (Directory.Exists(libDir) == false)
                     Directory.CreateDirectory(libDir);
@@ -6060,7 +6064,7 @@ ERROR1:
             {
                 try
                 {
-                    //创建对应的图书馆主页配置目录
+                    //创建对应的图书馆介绍配置目录
                     string libDir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + lib.capoUserName;// +"/home";
                     if (Directory.Exists(libDir) == true)
                         Directory.Delete(libDir, true);
