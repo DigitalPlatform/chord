@@ -1,5 +1,9 @@
+/*当页面出错时，显示的错误信息*/
+.errorinfo {
+color:red;
+}
 
-/*reset样式重置*/
+/*三按钮底部菜单*/
 DIV.btn3{position:fixed;
   z-index:3;
   bottom:0px;

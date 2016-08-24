@@ -29,9 +29,6 @@ namespace dp2weixin.service
 {
     public class dp2WeiXinService
     {
-        //// 消息类型
-        //public const string C_MsgType_Bb = "bb";
-        //public const string C_MsgType_Book = "book";
 
         // 通道常量
         public const string C_ConnName_TraceMessage = "_traceMessage";
@@ -1155,80 +1152,82 @@ namespace dp2weixin.service
             operTime = DateTimeUtil.ToLocalTime(operTime, "yyyy/MM/dd");
 
 
-            XmlNodeList listOverdue = root.SelectNodes("items/overdue");
-            string barcodes = "";
-            double totalPrice = 0;
-            string reasons = "";
-            foreach (XmlNode node in listOverdue)
-            {
-                string oneBarcode = DomUtil.GetAttr(node, "barcode");
-                if (barcodes != "")
-                    barcodes += ",";
-                barcodes += oneBarcode;
+            //XmlNodeList listOverdue = root.SelectNodes("items/overdue");
+            //string barcodes = "";
+            //double totalPrice = 0;
+            //string reasons = "";
+            //foreach (XmlNode node in listOverdue)
+            //{
+            //    string oneBarcode = DomUtil.GetAttr(node, "barcode");
+            //    if (barcodes != "")
+            //        barcodes += ",";
+            //    barcodes += oneBarcode;
 
-                string price = DomUtil.GetAttr(node, "price");
-                if (String.IsNullOrEmpty(price) == false && price.Length > 3)
-                {
-                    double dPrice = Convert.ToDouble(price.Substring(3));
-                    totalPrice += dPrice;
-                }
+            //    string price = DomUtil.GetAttr(node, "price");
+            //    if (String.IsNullOrEmpty(price) == false && price.Length > 3)
+            //    {
+            //        double dPrice = Convert.ToDouble(price.Substring(3));
+            //        totalPrice += dPrice;
+            //    }
 
-                string oneReason = DomUtil.GetAttr(node, "reason");
-                if (reasons != "")
-                    reasons += ",";
-                reasons += oneReason;
-            }
+            //    string oneReason = DomUtil.GetAttr(node, "reason");
+            //    if (reasons != "")
+            //        reasons += ",";
+            //    reasons += oneReason;
+            //}
 
             string remark = "\n" + patronName + "，您已成功交费，" + this._msgRemark;
 
-            foreach (string weixinId in weixinIdList)
+            XmlNodeList listOverdue = root.SelectNodes("items/overdue");
+            foreach (XmlNode node in listOverdue)
             {
+                string oneBarcode = DomUtil.GetAttr(node, "barcode");
+                string price = DomUtil.GetAttr(node, "price");
+                string summary = DomUtil.GetAttr(node, "summary");
+                string reason = DomUtil.GetAttr(node, "reason");
 
-                try
+                foreach (string weixinId in weixinIdList)
                 {
-                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
-                    //{{first.DATA}}
-                    //订单号：{{keyword1.DATA}}
-                    //缴费人：{{keyword2.DATA}}
-                    //缴费金额：{{keyword3.DATA}}
-                    //费用类型：{{keyword4.DATA}}
-                    //缴费时间：{{keyword5.DATA}}
-                    //{{remark.DATA}}
-                    //您好，您已缴费成功！
-                    //订单号：书名（册条码号）
-                    //缴费人：张三
-                    //缴费金额：￥100.00
-                    //费用类型：违约
-                    //缴费时间：2015-12-27 13:15
-                    //如有疑问，请联系学校管理员，感谢您的使用！、
-                    var msgData = new PayTemplateData()
+                    try
                     {
-                        first = new TemplateDataItem("💰💰💰💰💰💰💰💰💰💰", "#556B2F"),//★★★★★★★★★★★★★★★ dark olive green//this._msgFirstLeft+"您已交费成功！"
-                        keyword1 = new TemplateDataItem(barcodes, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                        keyword2 = new TemplateDataItem(patronName, "#000000"),
-                        keyword3 = new TemplateDataItem("CNY" + totalPrice, "#000000"),
-                        keyword4 = new TemplateDataItem(reasons, "#000000"),
-                        keyword5 = new TemplateDataItem(operTime, "#000000"),
-                        remark = new TemplateDataItem(remark, "#CCCCCC")
-                    };
+                        var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
-                    // 发送模板消息
-                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                        weixinId,
-                        WeiXinConst.C_Template_Pay,
-                        "#FF0000",
-                        this.C_Url_PersonalInfo,//详情转到个人信息界面
-                        msgData);
-                    if (result1.errcode != 0)
-                    {
-                        strError = result1.errmsg;
-                        return -1;
+                        //尊敬的读者，您已成功交费。
+                        //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
+                        //册条码号：C0000001
+                        //交费金额：CNY 10元
+                        //交费原因：超期。超1天，违约金因子：CNY1.0/Day
+                        //交费时间：2015-12-27 13:15
+                        //如有疑问，请联系系统管理员。
+                        var msgData = new PayTemplateData()
+                        {
+                            first = new TemplateDataItem("💰💰💰💰💰💰💰💰💰💰", "#556B2F"),//★★★★★★★★★★★★★★★ dark olive green//this._msgFirstLeft+"您已交费成功！"
+                            keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                            keyword2 = new TemplateDataItem(oneBarcode, "#000000"),
+                            keyword3 = new TemplateDataItem("CNY" + price, "#000000"),
+                            keyword4 = new TemplateDataItem(reason, "#000000"),
+                            keyword5 = new TemplateDataItem(operTime, "#000000"),
+                            remark = new TemplateDataItem(remark, "#CCCCCC")
+                        };
+
+                        // 发送模板消息
+                        var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                            weixinId,
+                            WeiXinConst.C_Template_Pay,
+                            "#FF0000",
+                            this.C_Url_PersonalInfo,//详情转到个人信息界面
+                            msgData);
+                        if (result1.errcode != 0)
+                        {
+                            strError = result1.errmsg;
+                            return -1;
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    this.WriteErrorLog("给读者" + patronName + "发送交费成功通知异常：" + ex.Message);
+                    catch (Exception ex)
+                    {
+                        this.WriteErrorLog("给读者" + patronName + "发送交费成功通知异常：" + ex.Message);
+                    }
                 }
             }
 

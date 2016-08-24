@@ -85,9 +85,8 @@ namespace dp2weixinWeb.Controllers
 
 
         ERROR1:
-
             ViewBag.Error = strError;
-            return View();//Content(strError);
+            return View();
         }
 
 

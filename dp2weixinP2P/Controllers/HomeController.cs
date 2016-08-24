@@ -180,27 +180,24 @@ namespace dp2weixinWeb.Controllers
             return View(model);
         }
 
-
-        public ActionResult About(string code, string state)
-        {
-            // 检查是否从微信入口进来
-            string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
-            if (nRet == -1)
-                return Content(strError);
-
-            return View();
-        }
-
-
+        /// <summary>
+        /// 联系开发者
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
         public ActionResult Contact(string code, string state)
         {
             // 检查是否从微信入口进来
             string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
-                return Content(strError);
+                goto ERROR1;
 
+            return View();
+
+        ERROR1:
+            ViewBag.Error = strError;
             return View();
         }
 

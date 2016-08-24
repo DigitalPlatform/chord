@@ -1,4 +1,50 @@
-﻿overflow:auto;
+﻿=========setting 老代码========================
+
+        // checkbox获得焦点
+        function cbFocus() {
+            if (browser.versions.iPhone == true) {
+                //alert("focus");
+                setShowValue(false);
+                window.setTimeout("showTopBottom()", 1);
+            }
+        }
+
+        // checkbox失去焦点
+        function cbBlur() {
+            if (browser.versions.iPhone == true) {
+                //alert("blur");
+                setShowValue(true);
+                window.setTimeout("showTopBottom()", 1);
+            }
+        }
+
+        function showTop() {
+            $("#myheader").css('display', 'block');
+        }
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            //// checkbox获得与失去焦点在iphone的微信浏览器表示异常，不能自动触发focus与blur事件
+            //$('input:checkbox').change(function () {
+
+            //    //当先选择图书馆，出现列表时点击checkbox，会出现下方菜单，
+            //    // 设置该值，保证不出现菜单
+            //    //setShowValue(false);
+            //    //this.focus(); // 不用this.focus是因为这样可以免去 不与select交叉时，不必修改菜单隐藏
+
+            //    // 只显示头部，不显示尾部，是因为尾部的位置怎么搞都是在中间。
+            //    //window.setTimeout("showTop()", 100); //
+
+            //});
+
+        })
+
+===============
+
+
+overflow:auto;
 =========
 main源文件
 

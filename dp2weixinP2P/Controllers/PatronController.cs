@@ -24,7 +24,7 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
-                return Content(strError);
+                goto ERROR1;
 
             string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             ViewBag.returnUrl = returnUrl;
@@ -42,6 +42,10 @@ namespace dp2weixinWeb.Controllers
                 coverChecked = " checked='checked' ";
             ViewBag.coverChecked = coverChecked;
 
+            return View();
+
+        ERROR1:
+            ViewBag.Error = strError;
             return View();
         }
 

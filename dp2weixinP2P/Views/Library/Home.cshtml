@@ -34,8 +34,8 @@
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
     <div class="mui-content-padded">
-        <span style="color:red">
-           @Html.Raw(ViewBag.Error)
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
         </span>
     </div>
 }
