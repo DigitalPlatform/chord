@@ -17,20 +17,22 @@ using Senparc.Weixin.Entities;
 using Senparc.Weixin.MP.CommonAPIs;
 using Senparc.Weixin.MP.Entities;
 using Senparc.Weixin.MP.Entities.Menu;
+using dp2weixinWeb.Controllers;
 
 namespace Senparc.Weixin.MP.Sample.Controllers
 {
-    public class MenuController : Controller
+    public class MenuController : BaseController
     {
-        private bool CheckSupervisorLogin()
-        {
-            if (Session["supervisor"] != null && (bool)Session["supervisor"] == true)
-            {
-                return true;
-            }
+        //private bool CheckSupervisorLogin()
+        //{
+        //    if (Session[dp2WeiXinService.C_Session_Supervisor] != null
+        //        && (bool)Session[dp2WeiXinService.C_Session_Supervisor] == true)
+        //    {
+        //        return true;
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
         //
         // GET: /Menu/

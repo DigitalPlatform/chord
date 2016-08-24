@@ -209,6 +209,17 @@ namespace dp2weixinWeb.Controllers
             return 0;
         }
 
+        public bool CheckSupervisorLogin()
+        {
+            if (Session[dp2WeiXinService.C_Session_Supervisor] != null
+                && (bool)Session[dp2WeiXinService.C_Session_Supervisor] == true)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         //protected override void OnException(ExceptionContext filterContext)
         //{
         //    // 标记异常已处理

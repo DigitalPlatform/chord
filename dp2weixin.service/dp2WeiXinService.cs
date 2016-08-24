@@ -48,6 +48,10 @@ namespace dp2weixin.service
         public const string C_Right_SetBook = "_wx_setbook";
         public const string C_Right_SetHomePage = "_wx_setHomePage";
 
+        // 超级管理员标志
+        public const string C_Supervisor = "_supervisor_";
+
+        public const string C_Session_Supervisor = "supervisor";
 
         #region 成员变量
 
@@ -2191,7 +2195,7 @@ namespace dp2weixin.service
                 strFullWord,
                 strPassword,
                 fullWeixinId,
-                "single",   // "multiple",由于工作人员是single的用户，先统一设为single,multiple用法不常见
+                "multiple",   // 2016-8-24 改为多重绑定，这是复杂的情况，要不没法与mongodb保持一致，比较一个微信用户绑了一位读者，另一个微信用户又绑了这名相同的读者，如果不用多重绑定，就用第一名读者冲掉了，但微信mongodb并不知道。 //single,multiple
                 "xml");
             try
             {
@@ -5372,29 +5376,35 @@ ERROR1:
                 goto ERROR1;
             }
 
-            // 检索工作人员是否有权限 _wx_setbb
-            string needRight = "";
-            if (group == C_Group_Bb)
-                needRight = C_Right_SetBb;
-            else if (group == C_Group_Book)
-                needRight = C_Right_SetBook;
-            else if (group == C_Group_HomePage)
-                needRight = C_Right_SetHomePage;
-            LibItem libItem = LibDatabase.Current.GetLibById(libId);
-            if (libItem == null)
+            // 2016-8-24 超级管理员可以编辑任何图书馆介绍与公告,注意这个条件判断是取反
+            if (!((group == dp2WeiXinService.C_Group_Bb || group == dp2WeiXinService.C_Group_HomePage)
+                && item.creator == dp2WeiXinService.C_Supervisor))
             {
-                strError = "根据id[" + libId + "]未找到对应的图书馆配置";
-                goto ERROR1;
-            }
-            int nHasRights = this.CheckRights(libItem.capoUserName, item.creator, needRight, out strError);
-            if (nHasRights == -1)
-            {
-                goto ERROR1;
-            }
-            if (nHasRights == 0)
-            {
-                strError = "帐户[" + userName + "]没有" + needRight + "权限";
-                goto ERROR1;
+                // 检索工作人员是否有权限 _wx_setbb
+                string needRight = "";
+                if (group == C_Group_Bb)
+                    needRight = C_Right_SetBb;
+                else if (group == C_Group_Book)
+                    needRight = C_Right_SetBook;
+                else if (group == C_Group_HomePage)
+                    needRight = C_Right_SetHomePage;
+                LibItem libItem = LibDatabase.Current.GetLibById(libId);
+                if (libItem == null)
+                {
+                    strError = "根据id[" + libId + "]未找到对应的图书馆配置";
+                    goto ERROR1;
+                }
+                int nHasRights = this.CheckRights(libItem.capoUserName, item.creator, needRight, out strError);
+                if (nHasRights == -1)
+                {
+                    strError = "用账户名'" + item.creator + "'获取工作人员账户出错：" + strError;
+                    goto ERROR1;
+                }
+                if (nHasRights == 0)
+                {
+                    strError = "帐户[" + userName + "]没有" + needRight + "权限";
+                    goto ERROR1;
+                }
             }
 
 

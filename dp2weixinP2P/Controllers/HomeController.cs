@@ -38,8 +38,6 @@ namespace dp2weixinWeb.Controllers
         [HttpPost]
         public ActionResult Login(LoginModel model,string returnUrl)
         {
-            Session["supervisor"] = true;
-
             string userName = "";
             string password = "";
             dp2WeiXinService.Instance.GetSupervisorAccount(out userName, out password);
@@ -52,6 +50,9 @@ namespace dp2weixinWeb.Controllers
 
             if (error == "")
             {
+                // 设为超级管理员已登录状态
+                Session[dp2WeiXinService.C_Session_Supervisor] = true;
+
                 if (string.IsNullOrEmpty(returnUrl) == false)
                     return Redirect(returnUrl);
                 else
@@ -62,15 +63,7 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
-        private bool CheckSupervisorLogin()
-        {
-            if (Session["supervisor"] != null && (bool)Session["supervisor"] == true)
-            {
-                return true;
-            }
 
-            return false;
-        }
 
         // Manager
         public ActionResult Manager()

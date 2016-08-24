@@ -24,37 +24,48 @@ namespace dp2weixinWeb.Controllers
             string userName = "";
             string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             string libId = ViewBag.LibId;
-            // 查找当前微信用户绑定的工作人员账号
-            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
-            // todo 后面可以放开对读者的权限
-            if (user != null)
-            {
-                // 检索是否有权限 _wx_setHomePage
-                string needRight = dp2WeiXinService.C_Right_SetBb;
-                LibItem lib = LibDatabase.Current.GetLibById(libId);
-                if (lib == null)
-                {
-                    strError = "未找到id为[" + libId + "]的图书馆定义。";
-                    goto ERROR1;
-                }
 
-                int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
-                    user.userName,
-                    needRight,
-                    out strError);
-                if (nHasRights == -1)
+            if (weixinId == dp2WeiXinService.C_Supervisor)
+            {
+                userName = weixinId;
+            }
+            else
+            {
+
+                // 查找当前微信用户绑定的工作人员账号
+                WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
+                // todo 后面可以放开对读者的权限
+                if (user != null)
                 {
-                    goto ERROR1;
-                }
-                if (nHasRights == 1)
-                {
-                    userName = user.userName;
-                }
-                else
-                {
-                    userName = "";
+                    // 检索是否有权限 _wx_setHomePage
+                    string needRight = dp2WeiXinService.C_Right_SetBb;
+                    LibItem lib = LibDatabase.Current.GetLibById(libId);
+                    if (lib == null)
+                    {
+                        strError = "未找到id为[" + libId + "]的图书馆定义。";
+                        goto ERROR1;
+                    }
+
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                        user.userName,
+                        needRight,
+                        out strError);
+                    if (nHasRights == -1)
+                    {
+                        goto ERROR1;
+                    }
+                    if (nHasRights == 1)
+                    {
+                        userName = user.userName;
+                    }
+                    else
+                    {
+                        userName = "";
+                    }
                 }
             }
+
+            //设到ViewBag里
             ViewBag.userName = userName;
 
 
@@ -83,11 +94,19 @@ namespace dp2weixinWeb.Controllers
         // 图书馆介绍
         public ActionResult Home(string code, string state, string weixinId)
         {
-            // 用于测试，如果传了一个weixin id参数，则存到session里
+            // 如果是超级管理员，支持传一个weixin id参数
             if (String.IsNullOrEmpty(weixinId) == false)
             {
-                // 记下微信id
-                Session[WeiXinConst.C_Session_WeiXinId] = weixinId;
+                if (this.CheckSupervisorLogin() == true)
+                {
+                    // 记下微信id
+                    Session[WeiXinConst.C_Session_WeiXinId] = weixinId;
+                }
+                else
+                {
+                    // 转到登录界面
+                    return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Library/Home?weixinId="+weixinId));
+                }
             }
 
             // 检查是否从微信入口进来
@@ -100,39 +119,55 @@ namespace dp2weixinWeb.Controllers
 
             //绑定的工作人员账号 需要有权限
             string userName = "";
-            weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            string libId = ViewBag.LibId;
-            // 查找当前微信用户绑定的工作人员账号
-            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
-            // todo 后面可以放开对读者的权限
-            if (user != null)
-            {
-                // 检索是否有权限 _wx_setHomePage
-                string needRight = dp2WeiXinService.C_Right_SetHomePage;
-                LibItem lib = LibDatabase.Current.GetLibById(libId);
-                if (lib == null)
-                {
-                    strError = "未找到id为[" + libId + "]的图书馆定义。";
-                    goto ERROR1;
-                }
 
-                int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
-                    user.userName,
-                    needRight,
-                    out strError);
-                if (nHasRights == -1)
+            // 微信id
+            weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+
+            // 图书馆id
+            string libId = ViewBag.LibId;
+
+
+            // 2016-8-24 超级管理员可修改任何图书馆的介绍与公告
+            if (weixinId ==dp2WeiXinService.C_Supervisor)
+            {
+                userName = weixinId;
+            }
+            else
+            {
+                // 查找当前微信用户绑定的工作人员账号
+                WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
+                // todo 后面可以放开对读者的权限
+                if (user != null)
                 {
-                    goto ERROR1;
-                }
-                if (nHasRights == 1)
-                {
-                    userName = user.userName;
-                }
-                else
-                {
-                    userName = "";
+                    // 检索是否有权限 _wx_setHomePage
+                    string needRight = dp2WeiXinService.C_Right_SetHomePage;
+                    LibItem lib = LibDatabase.Current.GetLibById(libId);
+                    if (lib == null)
+                    {
+                        strError = "未找到id为[" + libId + "]的图书馆定义。";
+                        goto ERROR1;
+                    }
+
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                        user.userName,
+                        needRight,
+                        out strError);
+                    if (nHasRights == -1)
+                    {
+                        goto ERROR1;
+                    }
+                    if (nHasRights == 1)
+                    {
+                        userName = user.userName;
+                    }
+                    else
+                    {
+                        userName = "";
+                    }
                 }
             }
+
+            // 设到ViewBag
             ViewBag.userName = userName;
 
             // 获取栏目
