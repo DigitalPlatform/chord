@@ -604,8 +604,9 @@ namespace dp2weixin.service
         private string _msgFirstLeft = "尊敬的读者：您好，";
         private string _msgRemark = "如有疑问，请联系系统管理员。";
 
-        private string _detailUrl_PersonalInfo = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fPersonalInfo&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
-        public const string C_detailUrl_AccountIndex= "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+        public string C_Url_PersonalInfo = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fPersonalInfo&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+        public const string C_Url_AccountIndex= "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+        public const string C_Url_LibHome ="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fLibrary%2fHome&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
 
 
         /// <returns>
@@ -871,7 +872,7 @@ namespace dp2weixin.service
                         weixinId,
                         WeiXinConst.C_Template_Borrow,
                         "#006400",  //FF0000
-                        this._detailUrl_PersonalInfo,//详情转到个人信息界面
+                        this.C_Url_PersonalInfo,//详情转到个人信息界面
                         msgData);
                     if (result1.errcode != 0)
                     {
@@ -1071,7 +1072,7 @@ namespace dp2weixin.service
                         weixinId,
                         WeiXinConst.C_Template_Return,
                         "#00008B",
-                        this._detailUrl_PersonalInfo,//详情转到个人信息界面
+                        this.C_Url_PersonalInfo,//详情转到个人信息界面
                         msgData);
                     if (result1.errcode != 0)
                     {
@@ -1213,7 +1214,7 @@ namespace dp2weixin.service
                         weixinId,
                         WeiXinConst.C_Template_Pay,
                         "#FF0000",
-                        this._detailUrl_PersonalInfo,//详情转到个人信息界面
+                        this.C_Url_PersonalInfo,//详情转到个人信息界面
                         msgData);
                     if (result1.errcode != 0)
                     {
@@ -1334,7 +1335,7 @@ namespace dp2weixin.service
                             weixinId,
                             WeiXinConst.C_Template_CancelPay,
                             "#FF0000",
-                            this._detailUrl_PersonalInfo,//详情转到个人信息界面
+                            this.C_Url_PersonalInfo,//详情转到个人信息界面
                             msgData);
                         if (result1.errcode != 0)
                         {
@@ -1462,7 +1463,7 @@ namespace dp2weixin.service
                             weixinId,
                             templateId,
                             "#FF0000",
-                            this._detailUrl_PersonalInfo,//详情转到个人信息界面
+                            this.C_Url_PersonalInfo,//详情转到个人信息界面
                             msgData);
                         if (result1.errcode != 0)
                         {
@@ -1625,7 +1626,7 @@ namespace dp2weixin.service
                         weixinId,
                         WeiXinConst.C_Template_Arrived,
                         "#FF0000",
-                        this._detailUrl_PersonalInfo,//详情转到个人信息界面
+                        this.C_Url_PersonalInfo,//详情转到个人信息界面
                         msgData);
                     if (result1.errcode != 0)
                     {
@@ -2338,7 +2339,7 @@ namespace dp2weixin.service
                     weixinId,
                     WeiXinConst.C_Template_Bind,
                     "#FF0000",
-                    dp2WeiXinService.C_detailUrl_AccountIndex,//详情转到账户管理界面
+                    dp2WeiXinService.C_Url_AccountIndex,//详情转到账户管理界面
                     testData);
                 if (result1.errcode != 0)
                 {
@@ -2448,7 +2449,7 @@ namespace dp2weixin.service
                     userItem.weixinId,
                     WeiXinConst.C_Template_UnBind,
                     "#FF0000",
-                   dp2WeiXinService.C_detailUrl_AccountIndex,//详情转到账户管理界面
+                   dp2WeiXinService.C_Url_AccountIndex,//详情转到账户管理界面
                     data);
                 if (result1.errcode != 0)
                 {
@@ -2485,7 +2486,8 @@ namespace dp2weixin.service
         /// <param name="strFrom"></param>
         /// <param name="strWord"></param>
         /// <returns></returns>
-        public SearchBiblioResult SearchBiblio(string libId,
+        public SearchBiblioResult SearchBiblio(string weixinId,
+            string libId,
             string strFrom,
             string strWord,
             string match,
@@ -2519,7 +2521,8 @@ namespace dp2weixin.service
             // 这里的records是第一页的记录
             List<BiblioRecord> records = null;
             bool bNext = false;
-            long lRet = this.SearchBiblioInternal(libId,
+            long lRet = this.SearchBiblioInternal(weixinId,
+                libId,
                 strFrom,
                 strWord,
                 match,
@@ -2544,7 +2547,11 @@ namespace dp2weixin.service
             return searchRet;
         }
 
-        public SearchBiblioResult getFromResultSet(string libId, string resultSet, long start, long count)
+        public SearchBiblioResult getFromResultSet(string weixinId,
+            string libId, 
+            string resultSet,
+            long start,
+            long count)
         {
 
             SearchBiblioResult searchRet = new SearchBiblioResult();
@@ -2558,7 +2565,8 @@ namespace dp2weixin.service
             string strError = "";
             List<BiblioRecord> records = null;
             bool bNext = false;
-            long lRet = this.SearchBiblioInternal(libId,
+            long lRet = this.SearchBiblioInternal(weixinId,
+                libId,
                  "",
                  "!getResult",
                  "",//match
@@ -2590,7 +2598,8 @@ namespace dp2weixin.service
         /// <param name="records">第一批的10条</param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        private long SearchBiblioInternal(string libId,
+        private long SearchBiblioInternal(string weixinId,
+            string libId,
             string strFrom,
             string strWord,
             string match,
@@ -2615,8 +2624,13 @@ namespace dp2weixin.service
             // 检查该图书馆的配置是否支持检索
             if (lib.noShareBiblio == 1)
             {
-                strError = "图书馆\""+lib.libName+"\"不对外公开书目信息。";
-                return -1;
+                // 检查微信用户是否绑定了图书馆账户，如果未绑定，则不能检索
+                List<WxUserItem> userList = WxUserDatabase.Current.GetPatronAndWorker(weixinId, libId);
+                if (userList == null || userList.Count == 0)
+                {
+                    strError = "图书馆\"" + lib.libName + "\"不对外公开书目信息。";
+                    return -1;
+                }
             }
 
 
@@ -4492,7 +4506,7 @@ ERROR1:
             }
             catch (Exception ex)
             {
-                strError = ex.Message;
+                strError ="获取微信id异常：" + ex.Message;
                 return -1;
 
             }
@@ -5671,10 +5685,10 @@ ERROR1:
             if (group == dp2WeiXinService.C_Group_HomePage)
             {
                 LibItem lib = LibDatabase.Current.GetLibById(libId);
-                string dir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + lib.capoUserName + "/home";
+                string dir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + "template/home";// +lib.capoUserName + "/home";
                 if (Directory.Exists(dir) == true)
                 {
-                    string[] files = Directory.GetFiles(dir, "*.html");
+                    string[] files = Directory.GetFiles(dir, "*.txt");
                     foreach (string file in files)
                     {
                         string fileName = Path.GetFileNameWithoutExtension(file);
@@ -6033,10 +6047,10 @@ ERROR1:
             {
                 outputItem=LibDatabase.Current.Add(item);
 
-                //创建对应的图书馆介绍配置目录
-                string libDir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + item.capoUserName + "/home";
-                if (Directory.Exists(libDir) == false)
-                    Directory.CreateDirectory(libDir);
+                ////创建对应的图书馆介绍配置目录
+                //string libDir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + item.capoUserName + "/home";
+                //if (Directory.Exists(libDir) == false)
+                //    Directory.CreateDirectory(libDir);
             }
             catch (Exception ex)
             {

@@ -1,5 +1,5 @@
 ﻿@section style {
-<link href="@Url.Content("~/Content/biblio.css?a=5")" rel="stylesheet">
+<link href="@Url.Content("~/Content/biblio.css?a=6")" rel="stylesheet">
 }
 @section Scripts {
     <script>
@@ -120,12 +120,19 @@
             var resultSet = $("#resultSet").val();
 
 
+            var weixinId = $("#weixinId").text();
+            if (weixinId == null || weixinId == "") {
+                alert("weixinId参数为空");
+                return;
+            }
+
             // 调检索接口
             //显示等待图层
             var index = loadLayer();
 
             // 调Search api
-            var url = "/api/biblio?libId=" + encodeURIComponent(libId)
+            var url = "/api/biblio?weixinId=" + encodeURIComponent(weixinId)
+                + "&libId=" + encodeURIComponent(libId)
                 + "&from=" + encodeURIComponent(from)
                 + "&word=" + encodeURIComponent(word)
                 + "&match=" + encodeURIComponent(match)
@@ -310,7 +317,7 @@
     <h1 class="mui-title">书目查询</h1>
 }
 <span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
-<spanl id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</spanl>
+<span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
 <!--
 <span id="patronName" style="display:none">@ViewBag.PatronName</span>
 <span id="workerUserName" style="display:none">@ViewBag.workerUserName</span>

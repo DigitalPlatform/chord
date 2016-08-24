@@ -169,6 +169,15 @@ namespace dp2weixin.service
             return list;
         }
 
+        public List<WxUserItem> GetPatronAndWorker(string weixinId, string libId)
+        {
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("libId", libId);
+
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();//.ToListAsync().Result;
+            return list;
+        }
+
         /// <summary>
         /// 获取绑定的所有账户，不区分读者与工作人员
         /// </summary>

@@ -132,21 +132,14 @@ namespace dp2weixinWeb.Controllers
                     }
                 }
             }
-            else
-            {
-                if (Session[WeiXinConst.C_Session_WeiXinId] == null)
-                {
-                    strError = "请从微信\"我爱图书馆\"公众号进入。";
-                    return -1;
-                }
-            }
 
+            //
 
             // 检查session中是否存在weixinid
             if (Session[WeiXinConst.C_Session_WeiXinId] == null
                 || (String)Session[WeiXinConst.C_Session_WeiXinId] == "")
             {
-                strError = "页面长期未使用Session已失效，请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
+                strError = "页面超时，请点击<a href='"+dp2WeiXinService.C_Url_LibHome+"'>这里</a>或者从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
                 return -1;
             }
 

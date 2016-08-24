@@ -31,9 +31,9 @@ namespace dp2weixinWeb.ApiControllers
 
 
             string file = dp2WeiXinService.Instance.weiXinDataDir 
-                + "/lib/" + lib.capoUserName 
+                + "/lib/" + "template"//lib.capoUserName 
                 + "/home/" 
-                + subject+".html";
+                + subject+".txt";
 
                 // 文件存在，取出文件 的内容
             string text = "";
