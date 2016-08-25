@@ -1205,7 +1205,7 @@ namespace dp2weixin.service
                             first = new TemplateDataItem("💰💰💰💰💰💰💰💰💰💰", "#556B2F"),//★★★★★★★★★★★★★★★ dark olive green//this._msgFirstLeft+"您已交费成功！"
                             keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
                             keyword2 = new TemplateDataItem(oneBarcode, "#000000"),
-                            keyword3 = new TemplateDataItem("CNY" + price, "#000000"),
+                            keyword3 = new TemplateDataItem(price, "#000000"),
                             keyword4 = new TemplateDataItem(reason, "#000000"),
                             keyword5 = new TemplateDataItem(operTime, "#000000"),
                             remark = new TemplateDataItem(remark, "#CCCCCC")

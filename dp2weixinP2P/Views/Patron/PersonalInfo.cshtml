@@ -11,25 +11,20 @@
             border-left-width: 8px;
             border-right-width: 8px;
             border-color: white;
-            
             width: 100%;
         }
-
-
 
             TABLE.personalinfo TR TD {
                 border-width: 0px;
                 border-top-width: 1px;
                 border-color: #dddddd;
                 border-style: dotted;
-                padding:2px;
+                padding: 2px;
             }
 
                 TABLE.personalinfo TR TD.value {
                     border-left-width: 2px;
                 }
-
-
 
             TABLE.personalinfo TD.summary {
                 font-size: 10px;
@@ -60,7 +55,6 @@
                 background-color: yellow;
             }
 
-
         /*===============*/
         .amerceNum {
             background-color: #B8860B;
@@ -73,18 +67,13 @@
         }
 
         .overdueNum {
-            background-color:#8B0000;
-            color:white;
+            background-color: #8B0000;
+            color: white;
         }
 
         .rightText {
-            color:#bbbbbb;
+            color: #bbbbbb;
         }
-
-        .leftNum {
-            color:#aaaaaa;
-        }
-
     </style>
 }
 
@@ -92,111 +81,122 @@
     <h1 class="mui-title">我的信息</h1>
 }
 
-@if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
-    @Html.Raw(ViewBag.RedirectInfo);
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
 }
 else
-{ 
-    
-<ul class="mui-table-view">
-    <li class="mui-table-view-cell">
-        <a class="mui-navigate-right" href="./OverdueInfo">
-            <table style="width:100%;vertical-align:central">
-                <tr>
-                    <td style="text-align:left">交费</td>
-                    <td style="text-align:right;padding-right:20px">
-@if (Model.OverdueCount>0)
-                {
-                        <span class="mui-badge amerceNum">@Model.OverdueCount</span>
-                        <span class="rightText">待交</span>
-}
-                    </td>
-                </tr>
-            </table>
-        </a>
-    </li>
-    <li class="mui-table-view-cell">
-        <a class="mui-navigate-right" href="./BorrowInfo">
-            <table style="width:100%;vertical-align:central">
-                <tr>
-                    <td style="text-align:left">在借<span>@Html.Raw(Model.BorrowCountHtml)</span></td>
-                    <td style="text-align:right;padding-right:20px">
-@if (Model.CaoQiCount > 0)
 {
-                        <span class="mui-badge overdueNum">@Model.CaoQiCount</span>
-                        <span class="rightText">超期</span>
-}
-                    </td>
-                </tr>
-            </table>
-        </a>
-    </li>
-    <li class="mui-table-view-cell">
-        <a class="mui-navigate-right" href="./Reservation">
-            <table style="width:100%;vertical-align:central">
-                <tr>
-                    <td style="text-align:left">预约<span>@Html.Raw(Model.ReservationCountHtml)</span></td>
-                    <td style="text-align:right;padding-right:20px">
-@if (Model.DaoQiCount > 0)
-{
-                        <span class="mui-badge arriveNum">@Model.DaoQiCount </span>
-                        <span class="rightText">到书</span>
-}
-                    </td>
-                </tr>
-            </table>
-        </a>
-    </li>
 
-    <li class="mui-table-view-cell">
-        <a class="mui-navigate-right" href="~/Account/ChangePassword">
-            <table style="width:100%;vertical-align:central">
-                <tr>
-                    <td style="text-align:left">修改密码</td>
-                    <td style="text-align:right;padding-right:20px">
-                        &nbsp;
-                    </td>
-                </tr>
-            </table>
-        </a>
-    </li>
-</ul>
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+        <ul class="mui-table-view">
+            <li class="mui-table-view-cell">
+                <a class="mui-navigate-right" href="./OverdueInfo">
+                    <table style="width:100%;vertical-align:central">
+                        <tr>
+                            <td style="text-align:left">交费<span>@Html.Raw(Model.OverdueCountHtml)</span></td>
+                            <td style="text-align:right;padding-right:20px">
+                                @if (Model.OverdueCount > 0)
+                                {
+                                    <span class="mui-badge amerceNum">@Model.OverdueCount</span>
+                                    <span class="rightText">待交</span>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a class="mui-navigate-right" href="./BorrowInfo">
+                    <table style="width:100%;vertical-align:central">
+                        <tr>
+                            <td style="text-align:left">在借<span>@Html.Raw(Model.BorrowCountHtml)</span></td>
+                            <td style="text-align:right;padding-right:20px">
+                                @if (Model.CaoQiCount > 0)
+                                {
+                                    <span class="mui-badge overdueNum">@Model.CaoQiCount</span>
+                                    <span class="rightText">超期</span>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </a>
+            </li>
+            <li class="mui-table-view-cell">
+                <a class="mui-navigate-right" href="./Reservation">
+                    <table style="width:100%;vertical-align:central">
+                        <tr>
+                            <td style="text-align:left">预约<span>@Html.Raw(Model.ReservationCountHtml)</span></td>
+                            <td style="text-align:right;padding-right:20px">
+                                @if (Model.DaoQiCount > 0)
+                                {
+                                    <span class="mui-badge arriveNum">@Model.DaoQiCount </span>
+                                    <span class="rightText">到书</span>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </a>
+            </li>
+
+            <li class="mui-table-view-cell">
+                <a class="mui-navigate-right" href="~/Account/ChangePassword">
+                    <table style="width:100%;vertical-align:central">
+                        <tr>
+                            <td style="text-align:left">修改密码</td>
+                            <td style="text-align:right;padding-right:20px">
+                                &nbsp;
+                            </td>
+                        </tr>
+                    </table>
+                </a>
+            </li>
+        </ul>
 
 
-<br />
+        <br />
 
-    <table class='personalinfo'>
-        <tr class='person_name'> <td class='name'>姓名</td> <td class='value'>@Model.name</td> </tr>
-        <tr class='gender'> <td class='name'>性别</td> <td class='value'>@Model.gender</td> </tr>
-        <tr class='dateOfBirth'> <td class='name'>出生日期</td> <td class='value'>@Model.dateOfBirth</td> </tr>
-        <tr class='cardnumber'> <td class='name'>证号</td> <td class='value'>@Model.cardNumber</td> </tr>
-        <tr class='idcardnumber'> <td class='name'>身份证号</td> <td class='value'>@Model.idCardNumber</td> </tr>
-        <tr class='department'> <td class='name'>单位</td> <td class='value'>@Model.department</td> </tr>
-        <tr class='post'> <td class='name'>职务</td> <td class='value'>@Model.post</td> </tr>
-        <tr class='address'> <td class='name'>地址</td> <td class='value'>@Model.address</td> </tr>
-        <tr class='tel'> <td class='name'>电话</td> <td class='value'>@Model.tel</td> </tr>
-        <tr class='email'> <td class='name'>Email</td> <td class='value'>@Model.email</td> </tr>
-        <tr class='barcode'> <td class='name'>证条码号</td> <td class='value'>@Model.barcode</td> </tr>
-        <tr class='readertype'> <td class='name'>读者类型</td> <td class='value'>@Model.readerType</td> </tr>
-        <tr class='state'> <td class='name'> 证状态</td> <td class='value'>@Model.state</td> </tr>
-        <tr class='createdate'> <td class='name'>发证日期</td> <td class='value'>@Model.createDate</td> </tr>
-        <tr class='expiredate'> <td class='name'>证失效期</td> <td class='value'>@Model.expireDate</td> </tr>
-        <tr class='hire'> <td class='name'>租金</td> <td class='value'>@Model.hire</td> </tr>
-        <tr class='photo'>
-            <td class='name'>头像</td>
-            <td class='value'>
-                @if (String.IsNullOrEmpty(Model.imageUrl) == false)
-                { 
-                <img id="PersonalInfoControl1_photo" src="@Model.imageUrl" style="height:100px;width:100px;" />
-                }
-            </td>
-        </tr>
-    </table>
-<div class="mui-content-padded">
-    <center>
-        <img id="qrcode" src="@Model.qrcodeUrl" alt='QRCode image' />
-        <div style="font-size:9pt">(不要把二维码展示和提供给无关人员，以免账号被窃。)</div>
-    </center>
-</div>
+        <table class='personalinfo'>
+            <tr class='person_name'> <td class='name'>姓名</td> <td class='value'>@Model.name</td> </tr>
+            <tr class='gender'> <td class='name'>性别</td> <td class='value'>@Model.gender</td> </tr>
+            <tr class='dateOfBirth'> <td class='name'>出生日期</td> <td class='value'>@Model.dateOfBirth</td> </tr>
+            <tr class='cardnumber'> <td class='name'>证号</td> <td class='value'>@Model.cardNumber</td> </tr>
+            <tr class='idcardnumber'> <td class='name'>身份证号</td> <td class='value'>@Model.idCardNumber</td> </tr>
+            <tr class='department'> <td class='name'>单位</td> <td class='value'>@Model.department</td> </tr>
+            <tr class='post'> <td class='name'>职务</td> <td class='value'>@Model.post</td> </tr>
+            <tr class='address'> <td class='name'>地址</td> <td class='value'>@Model.address</td> </tr>
+            <tr class='tel'> <td class='name'>电话</td> <td class='value'>@Model.tel</td> </tr>
+            <tr class='email'> <td class='name'>Email</td> <td class='value'>@Model.email</td> </tr>
+            <tr class='barcode'> <td class='name'>证条码号</td> <td class='value'>@Model.barcode</td> </tr>
+            <tr class='readertype'> <td class='name'>读者类型</td> <td class='value'>@Model.readerType</td> </tr>
+            <tr class='state'> <td class='name'> 证状态</td> <td class='value'>@Model.state</td> </tr>
+            <tr class='createdate'> <td class='name'>发证日期</td> <td class='value'>@Model.createDate</td> </tr>
+            <tr class='expiredate'> <td class='name'>证失效期</td> <td class='value'>@Model.expireDate</td> </tr>
+            <tr class='hire'> <td class='name'>租金</td> <td class='value'>@Model.hire</td> </tr>
+            <tr class='photo'>
+                <td class='name'>头像</td>
+                <td class='value'>
+                    @if (String.IsNullOrEmpty(Model.imageUrl) == false)
+                    {
+                        <img id="PersonalInfoControl1_photo" src="@Model.imageUrl" style="height:100px;width:100px;" />
+                    }
+                </td>
+            </tr>
+        </table>
+        <div class="mui-content-padded">
+            <center>
+                <img id="qrcode" src="@Model.qrcodeUrl" alt='QRCode image' />
+                <div style="font-size:9pt">(不要把二维码展示和提供给无关人员，以免账号被窃。)</div>
+            </center>
+        </div>
+    }
 }

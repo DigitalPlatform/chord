@@ -31,7 +31,6 @@ namespace dp2weixinWeb.Controllers
             }
             else
             {
-
                 // 查找当前微信用户绑定的工作人员账号
                 WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
                 // todo 后面可以放开对读者的权限

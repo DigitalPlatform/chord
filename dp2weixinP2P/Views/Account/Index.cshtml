@@ -177,89 +177,101 @@
     <h1 class="mui-title">账号管理</h1>
 }
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
-<div class="mui-content-padded">
-    您可以绑定多个图书馆账号，前方有红色勾号的表示活动账号，个人信息以及预约续借功能都是针对当前活动账户的。
-</div>
-<div class="mui-content-padded" id="divNoBind" style="display:none;">
-    <center>
-        <img src='../img/emptyBind.png' width='100' height='100' style=" padding-top:5px" />
-        <div>您尚未绑定图书馆账号。</div>
-    </center>
-</div>
 
-<div id="divPatron" data-bind="visible: model.wxPatrons().length>0">
-    <div class="title">
-        读者账号
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
     </div>
-    <div class="mui-card">
-        <ul class="mui-table-view " data-bind=" foreach:model.wxPatrons">
-            <li class="mui-table-view-cell">
-                <table class="accountTable">
-                    <tr>
-                        <td class="label">
-                            <span data-bind="if: isActive==1" style="color:red;font-weight:bold;padding-left:0px">√</span>
-                            <span> 读者</span>
-                        </td>
-                        <td class="value">
-                            <span data-bind="text:readerName" style="font-size:22px"></span>
-                            <span data-bind="text:readerBarcode" style="color:darkgreen;font-weight:bold;font-size:24px"></span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="label">图书馆</td>
-                        <td class="value">
-                            <span data-bind="text:libName"></span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2" align="right">
-                            <span data-bind="ifnot: isActive==1"><button class="mui-btn  " data-bind="click: activeUser">设为活动账号</button></span>
-                            <button type="button" class="mui-btn mui-btn-danger" data-bind="click: removeUser">
-                                X&nbsp;解绑
-                            </button>
-                        </td>
-                    </tr>
-                </table>
-            </li>
-        </ul>
+}
+else
+{
+    <div class="mui-content-padded">
+        您可以绑定多个图书馆账号，前方有红色勾号的表示活动账号，个人信息以及预约续借功能都是针对当前活动账户的。
     </div>
-</div>
+    <div class="mui-content-padded" id="divNoBind" style="display:none;">
+        <center>
+            <img src='../img/emptyBind.png' width='100' height='100' style=" padding-top:5px" />
+            <div>您尚未绑定图书馆账号。</div>
+        </center>
+    </div>
 
-<div id="divWorker" data-bind="visible: model.wxWorkers().length>0">
-    <div class="title">
-        工作人员账号
+    <div id="divPatron" data-bind="visible: model.wxPatrons().length>0">
+        <div class="title">
+            读者账号
+        </div>
+        <div class="mui-card">
+            <ul class="mui-table-view " data-bind=" foreach:model.wxPatrons">
+                <li class="mui-table-view-cell">
+                    <table class="accountTable">
+                        <tr>
+                            <td class="label">
+                                <span data-bind="if: isActive==1" style="color:red;font-weight:bold;padding-left:0px">√</span>
+                                <span> 读者</span>
+                            </td>
+                            <td class="value">
+                                <span data-bind="text:readerName" style="font-size:22px"></span>
+                                <span data-bind="text:readerBarcode" style="color:darkgreen;font-weight:bold;font-size:24px"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label">图书馆</td>
+                            <td class="value">
+                                <span data-bind="text:libName"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="right">
+                                <span data-bind="ifnot: isActive==1"><button class="mui-btn  " data-bind="click: activeUser">设为活动账号</button></span>
+                                <button type="button" class="mui-btn mui-btn-danger" data-bind="click: removeUser">
+                                    X&nbsp;解绑
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                </li>
+            </ul>
+        </div>
     </div>
-    <div class="mui-card">
-        <ul class="mui-table-view " data-bind=" foreach:model.wxWorkers">
-            <li class="mui-table-view-cell">
-                <table class="accountTable">
-                    <tr>
-                        <td class="label">
-                            <span data-bind="if: isActiveWorker==1" style="color:red;font-weight:bold;padding-left:0px">√</span>
-                            <span> 账号名</span>
-                        </td>
-                        <td class="value">
-                            <span data-bind="text:userName" style="font-size:22px"></span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="label">图书馆</td>
-                        <td class="value">
-                            <span data-bind="text:libName"></span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2" align="right">
-                            <button type="button" class="mui-btn mui-btn-danger" data-bind="click: removeUser">
-                                X&nbsp;解绑
-                            </button>
-                        </td>
-                    </tr>
-                </table>
-            </li>
-        </ul>
+
+    <div id="divWorker" data-bind="visible: model.wxWorkers().length>0">
+        <div class="title">
+            工作人员账号
+        </div>
+        <div class="mui-card">
+            <ul class="mui-table-view " data-bind=" foreach:model.wxWorkers">
+                <li class="mui-table-view-cell">
+                    <table class="accountTable">
+                        <tr>
+                            <td class="label">
+                                <span data-bind="if: isActiveWorker==1" style="color:red;font-weight:bold;padding-left:0px">√</span>
+                                <span> 账号名</span>
+                            </td>
+                            <td class="value">
+                                <span data-bind="text:userName" style="font-size:22px"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label">图书馆</td>
+                            <td class="value">
+                                <span data-bind="text:libName"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="right">
+                                <button type="button" class="mui-btn mui-btn-danger" data-bind="click: removeUser">
+                                    X&nbsp;解绑
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                </li>
+            </ul>
+        </div>
     </div>
-</div>
-<div class="mui-content-padded">
-    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="goToBind()">新增绑定账号</button>
-</div>
+    <div class="mui-content-padded">
+        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="goToBind()">新增绑定账号</button>
+    </div>
+}

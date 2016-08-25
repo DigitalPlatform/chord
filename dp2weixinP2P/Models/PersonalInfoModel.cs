@@ -68,6 +68,8 @@ namespace dp2weixinWeb.Models
 
         //违约交费数量
         public int OverdueCount { get; set; }
+        public string OverdueCountHtml { get; set; }
+
 
         //在借 超期数量
         public int BorrowCount { get; set; }
