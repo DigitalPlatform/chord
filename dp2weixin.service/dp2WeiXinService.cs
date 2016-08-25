@@ -1847,7 +1847,7 @@ namespace dp2weixin.service
         public void CheckUserActivePatron(string weixinId,string libId)
         {
             // 检查该图是否绑定了读者账户
-            List<WxUserItem> users = WxUserDatabase.Current.GetPatrons(weixinId, libId);
+            List<WxUserItem> users = WxUserDatabase.Current.GetPatron(weixinId, libId,null);
             if (users != null && users.Count > 0)
             {
                 // 检查当前有没有激活账户
@@ -2265,7 +2265,11 @@ namespace dp2weixin.service
 
                 // 找到库中对应的记录
                 if (type == 0)
-                    userItem = WxUserDatabase.Current.GetPatronAccount(weixinId, libId, readerBarcode);
+                {
+                    List<WxUserItem> tempList =  WxUserDatabase.Current.GetPatron(weixinId, libId, readerBarcode);
+                    if (tempList != null && tempList.Count > 0)
+                        userItem = tempList[0];
+                }
                 else
                     userItem = WxUserDatabase.Current.GetWorker(weixinId, libId);
 
@@ -2278,8 +2282,6 @@ namespace dp2weixin.service
                 }
 
                 userItem.weixinId = weixinId;
-                //userItem.libCode = libCode;
-                //userItem.libUserName = remoteUserName;
                 userItem.libName = lib.libName;
                 userItem.libId = lib.id;
 
@@ -2293,15 +2295,19 @@ namespace dp2weixin.service
                 userItem.updateTime = userItem.createTime;
                 userItem.isActive = 0; // isActive只针对读者，后面会激活读者，工作人员时均为0
 
-                userItem.prefix = strPrefix;
-                userItem.word = strWord;
-                userItem.fullWord = strFullWord;
-                userItem.password = strPassword;
+                //userItem.prefix = strPrefix;
+                //userItem.word = strWord;
+                //userItem.fullWord = strFullWord;
+                //userItem.password = strPassword;
 
                 userItem.libraryCode = libraryCode;
                 userItem.type = type;
                 userItem.userName = userName;
                 userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0
+
+                // 2016-8-26 新增
+                userItem.state = 1;
+                userItem.remark = strFullWord;
 
                 if (bNew == true)
                     WxUserDatabase.Current.Add(userItem);
@@ -2628,7 +2634,7 @@ namespace dp2weixin.service
             if (lib.noShareBiblio == 1)
             {
                 // 检查微信用户是否绑定了图书馆账户，如果未绑定，则不能检索
-                List<WxUserItem> userList = WxUserDatabase.Current.GetPatronAndWorker(weixinId, libId);
+                List<WxUserItem> userList = WxUserDatabase.Current.Get(weixinId, libId,-1);
                 if (userList == null || userList.Count == 0)
                 {
                     strError = "图书馆\"" + lib.libName + "\"不对外公开书目信息。";
@@ -5925,29 +5931,57 @@ ERROR1:
 
         public WxUserResult RecoverUsers()
         {
+            string strError = "";
             WxUserResult result = new WxUserResult();
 
+            // 先更用户库中的记录为失效状态 state=0
+
+            // 循环处理每个图书馆
             List<LibItem> libs = LibDatabase.Current.GetLibs();
             foreach (LibItem libItem in libs)
             {
-                // 查询图书馆绑定的账户的读者。
+                // 查询图书馆绑定了微信的读者。
 
+                List<WxUserItem> libPatrons = null;
+                long lRet = this.GetBindPatronsFromLib(libItem,
+                    out libPatrons,
+                    out strError);
+                if (lRet == -1)
+                {
+                    goto ERROR1;
+                }
+
+                // 加到微信用户mongodb，注意这时状态是-1，表示还不能正式使用
+                foreach (WxUserItem user in libPatrons)
+                {
+                    WxUserDatabase.Current.Add(user);
+                }
 
                 // 查找工作人员
 
 
-                // 先删除
-
-                // 增加到mongodb库
-
             }
 
             return result;
+
+        ERROR1:
+            result.errorCode = -1;
+        result.errorInfo = strError;
+            
+            return result;
+
         }
 
-        public long SearchPatronsByWeiXinId(LibItem libItem,
+        /// <summary>
+        /// 从图书馆查询到绑定了微信的读者，同时转为mongodb的格式
+        /// </summary>
+        /// <param name="libItem"></param>
+        /// <param name="users"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public long GetBindPatronsFromLib(LibItem libItem,
             out List<WxUserItem> users,
-                    out string strError)
+            out string strError)
         {
             strError = "";
             users = new List<WxUserItem>();
@@ -6021,9 +6055,7 @@ ERROR1:
                             userItem.refID = refID;
                             userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
                             userItem.updateTime = userItem.createTime;
-
-
-                            WxUserDatabase.Current.Add(userItem);
+                            userItem.state = -1;
 
                     }
 
@@ -6078,7 +6110,7 @@ ERROR1:
 
             ApiResult result = new ApiResult();
             // 先检查一下，是否有微信用户绑定了该图书馆
-            List<WxUserItem> list = WxUserDatabase.Current.GetByLibId(id);
+            List<WxUserItem> list = WxUserDatabase.Current.Get(null,id,-1);
             if (list != null && list.Count > 0)
             {
                 strError = "目前存在微信用户绑定了该图书馆的账户，不能删除图书馆。";

@@ -208,22 +208,7 @@ namespace dp2weixinWeb.Controllers
 
         #endregion
 
-        private string getLinkHtml(string menu, string returnUrl)
-        {
-            //string returnUrl = "/Patron/PersonalInfo";
-            string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
-            string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
-            string strRedirectInfo = "您尚未绑定当前图书馆的读者账户，不能查看" + menu + "，" + bindLink;
 
-            strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
-                //+ "<center>"
-                + strRedirectInfo
-                //+ "</center"
-                + "</div>";
-
-
-            return strRedirectInfo;
-        }
 
         /// <summary>
         /// 我的信息主界面
@@ -336,7 +321,24 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
-        #region 内容函数
+        #region 内部函数
+
+        private string getLinkHtml(string menu, string returnUrl)
+        {
+            //string returnUrl = "/Patron/PersonalInfo";
+            string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+            string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
+            string strRedirectInfo = "您尚未绑定当前图书馆的读者账户，不能查看" + menu + "，" + bindLink;
+
+            strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
+                //+ "<center>"
+                + strRedirectInfo
+                //+ "</center"
+                + "</div>";
+
+
+            return strRedirectInfo;
+        }
 
         /// <summary>
         /// 

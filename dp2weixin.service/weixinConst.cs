@@ -11,8 +11,6 @@ namespace dp2weixin.service
         public const string C_Session_WeiXinId = "weixinId";
         public const string C_Session_Code = "code";
 
-        public const string C_Session_IsBind = "isBind";
-
 
         public static string EncryptKey = "dp2weixinPassword";
 

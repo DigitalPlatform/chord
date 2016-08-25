@@ -92,18 +92,17 @@
             });
         }
 
-        // 设为默认
+        // 设为活动账户
         function activeUser(item) {
 
             var name = item.readerName;
 
-            //alert("remove-"+item.libId);
+            // 调ActivePatron api
             var url = "/api/wxuser?weixinId=" + item.weixinId + "&id=" + item.id;
-            sendAjaxRequest(url, "PUT", function () {
+            sendAjaxRequest(url, "POST", function () {
 
                 // 因为有可能更新当前图书馆，所以reload保险，todo
                 //window.location.reload();
-                ////getBindList(item.weixinId);
 
                 alert("成功设置["+name+"]为活动账户。");
 
@@ -114,6 +113,7 @@
                 alert(errorThrown);
             });
         }
+
 
         // 跳转到新增绑定
         function goToBind() {

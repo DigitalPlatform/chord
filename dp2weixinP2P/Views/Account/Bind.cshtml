@@ -86,13 +86,11 @@
                         alert(result.errorInfo);
                         return;
                     }                    
+                    alert("绑定成功");
 
                     //清空编辑界面信息,前两项可以不清除
                     model.word("");
-                    model.password("");
-                    
-                    alert("绑定成功");
-                   
+                    model.password("");                
                     
                     returnUrl = $("#returnUrl").text();
                     if (returnUrl == "")
