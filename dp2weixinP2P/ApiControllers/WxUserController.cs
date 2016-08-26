@@ -23,23 +23,24 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         public WxUserResult Get(string weixinId)
-        {          
-            if (weixinId == "recover")
+        {
+            WxUserResult result = new WxUserResult();
+            List<WxUserItem> list = wxUserDb.Get(weixinId, null, -1);
+            result.users = list;
+            return result;
+        }
+
+        [HttpPost]
+        public WxUserResult DoThing(string actionType)
+        {
+            // 恢复用户
+            if (actionType == "recover")
             {
                 return dp2WeiXinService.Instance.RecoverUsers();
+            }
 
-                //WxUserResult result = new WxUserResult();
-                //List<WxUserItem> list = wxUserDb.GetUsers();//"*", 0, -1).Result;
-                //result.users = list;
-                //return result;
-            }
-            else
-            {
-                WxUserResult result = new WxUserResult();
-                List<WxUserItem> list= wxUserDb.Get(weixinId,null,-1);
-                result.users = list;
-                return result;
-            }
+            WxUserResult result = new WxUserResult();
+            return result;
         }
 
         /// <summary>
@@ -176,7 +177,7 @@ namespace dp2weixinWeb.ApiControllers
                 WxUserDatabase.Current.SetActivePatron(user.weixinId, user.id);
 
                 // 自动更新设置的当前图书馆
-                dp2WeiXinService.Instance.UpdateUserSetting(user.weixinId, user.libId, "",false);
+                dp2WeiXinService.Instance.UpdateUserSetting(user.weixinId, user.libId, "",false,user.refID);
             }
         }
 

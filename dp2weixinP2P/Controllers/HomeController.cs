@@ -88,7 +88,7 @@ namespace dp2weixinWeb.Controllers
 
             SettingModel model = new SettingModel();
             model.dp2MserverUrl = dp2WeiXinService.Instance.dp2MServerUrl;// "";// dp2MServerUrl;
-            model.userName = dp2WeiXinService.Instance.userName;// "";//userName;
+            model.userName = dp2WeiXinService.Instance.userNameWeixin;// "";//userName;
             model.password = dp2WeiXinService.Instance.password;// "";//password;
             model.mongoDbConnection = dp2WeiXinService.Instance.monodbConnectionString;
             model.mongoDbPrefix = dp2WeiXinService.Instance.monodbPrefixString;

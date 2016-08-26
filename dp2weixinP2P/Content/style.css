@@ -3,6 +3,10 @@
 color:red;
 }
 
+.lib_layout  td{
+    padding:4px;
+}
+
 /*三按钮底部菜单*/
 DIV.btn3{position:fixed;
   z-index:3;

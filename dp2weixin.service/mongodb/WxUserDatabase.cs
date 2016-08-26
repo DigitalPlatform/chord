@@ -21,6 +21,8 @@ namespace dp2weixin.service
 
         // 状态
         public const int C_State_Available = 1;
+        public const int C_State_Temp = 2;
+        public const int C_State_disabled = 0;
 
         /// <summary>
         /// 单一静态实例,饿汉模式
@@ -122,6 +124,22 @@ namespace dp2weixin.service
         {
             List<WxUserItem> list = this.Get(weixinId, libId, C_Type_Worker);// this.wxUserCollection.Find(filter).ToList();
             if (list != null && list.Count >= 1)
+                return list[0];
+
+            return null;
+        }
+
+        public WxUserItem GetPatronByPatronRefID(string weixinId,
+            string libId,
+            string patronRefID)
+        {
+            var filter = Builders<WxUserItem>.Filter.Eq("state", C_State_Available)
+                & Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+                & Builders<WxUserItem>.Filter.Eq("libId", libId)
+                & Builders<WxUserItem>.Filter.Eq("refID", patronRefID);
+
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+            if (list != null && list.Count > 0)
                 return list[0];
 
             return null;
@@ -248,6 +266,47 @@ namespace dp2weixin.service
             }
         }
 
+
+        // 根据libId与状态删除记录
+        public void delete(string libId,int state)
+        {
+            if (String.IsNullOrEmpty(libId) == true)
+                return;
+            
+            var filter = Builders<WxUserItem>.Filter.Eq("libId", libId);
+            if (state != -1)
+            {
+                filter = filter & Builders<WxUserItem>.Filter.Eq("state", state);
+            }
+            DeleteResult ret = this.wxUserCollection.DeleteMany(filter);
+        }
+
+        public void SetState(string libId,int fromState,int toState)
+        {
+            if (string.IsNullOrEmpty(libId) == true)
+                return;
+
+            // 查找指定图书馆的账户
+            var filter = Builders<WxUserItem>.Filter.Eq("libId", libId);
+            if (fromState != -1) 
+            {
+                filter = filter & Builders<WxUserItem>.Filter.Eq("state", fromState); 
+            }
+                
+            var update = Builders<WxUserItem>.Update
+                .Set("state", toState)
+                .Set("updateTime", DateTimeUtil.DateTimeToString(DateTime.Now));
+            UpdateResult ret = this.wxUserCollection.UpdateMany(filter, update);
+        }
+
+        public List<WxUserItem> GetActivePatrons()
+        {
+            var filter = Builders<WxUserItem>.Filter.Eq("isActive", 1);
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+            return list;
+        }
+
+
         /// <summary>
         /// 激活读者账户
         /// </summary>
@@ -261,8 +320,6 @@ namespace dp2weixin.service
             if (string.IsNullOrEmpty(id) == true)
                 return;
 
-            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
-
             // 先将该微信用户的所有绑定读者都设为非活动
             this.SetNoActivePatron(weixinId);
 
@@ -271,23 +328,21 @@ namespace dp2weixin.service
             var update = Builders<WxUserItem>.Update
                 .Set("isActive", 1)
                 .Set("updateTime", DateTimeUtil.DateTimeToString(DateTime.Now));
-            collection.UpdateMany(filter, update);
+            this.wxUserCollection.UpdateMany(filter, update);
         }
 
         public void SetNoActivePatron(string weixinId)
         {
             if (string.IsNullOrEmpty(weixinId) == true)
                 return;
-
-            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
-
+            
             // 将该微信用户的所有绑定读者都设为非活动
             var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
                 & Builders<WxUserItem>.Filter.Eq("type", 0); // jane 2016-6-16 注意只存读者账户
             var update = Builders<WxUserItem>.Update
                 .Set("isActive", 0)
                 .Set("updateTime", DateTimeUtil.DateTimeToString(DateTime.Now));
-            UpdateResult ret = collection.UpdateMany(filter, update);
+            UpdateResult ret = this.wxUserCollection.UpdateMany(filter, update);
         }
 
         /// <summary>
@@ -297,8 +352,6 @@ namespace dp2weixin.service
         /// <returns></returns>
         public long Update(WxUserItem item)
         {
-            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
-
             var filter = Builders<WxUserItem>.Filter.Eq("id", item.id);
             var update = Builders<WxUserItem>.Update
                 .Set("weixinId", item.weixinId)
@@ -327,7 +380,7 @@ namespace dp2weixin.service
                 .Set("remark", item.remark)
                 ;
 
-            UpdateResult ret = collection.UpdateOne(filter, update);
+            UpdateResult ret = this.wxUserCollection.UpdateOne(filter, update);
             return ret.ModifiedCount;
         }
 
@@ -362,7 +415,7 @@ namespace dp2weixin.service
 
 
         // 2016-8-26 jane 新增
-        public int state { get; set; } //状态0未设置 1有效 -1失效 -2恢复时的临时状态
+        public int state { get; set; } //状态:0失效 1有效 2恢复时的临时状态 
         public string remark { get; set; } // 会存一下绑定方式等
 
         /* 关于是否缓冲权限

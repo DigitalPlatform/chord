@@ -612,7 +612,6 @@ namespace dp2weixinWeb.Controllers
             string clearEmail = "";
             for (int i = 0; i < emailList.Length; i++)
             {
-
                 string oneEmail = emailList[i].Trim();
                 if (oneEmail.Length > 9 && oneEmail.Substring(0, 9) == WeiXinConst.C_WeiXinIdPrefix)
                 {

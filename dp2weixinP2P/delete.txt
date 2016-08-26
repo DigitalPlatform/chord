@@ -1,4 +1,25 @@
-﻿===WxUserDatabase===
+﻿===bind======
+                    // 证条码号
+                    readerBarcode = DomUtil.GetNodeText(rootNode.SelectSingleNode("barcode"));
+                    // 姓名
+                    XmlNode nodeName = rootNode.SelectSingleNode("name");
+                    if (nodeName != null)
+                        readerName = DomUtil.GetNodeText(nodeName);
+                    //参考id
+                    XmlNode nodeRefID = rootNode.SelectSingleNode("refID");
+                    if (nodeRefID != null)
+                        refID = DomUtil.GetNodeText(nodeRefID);
+                    // 部门
+                    XmlNode nodeDept = rootNode.SelectSingleNode("department");
+                    if (nodeDept != null)
+                        department = DomUtil.GetNodeText(nodeDept);
+                    // 分馆代码
+                    XmlNode nodelibraryCode = rootNode.SelectSingleNode("libraryCode");
+                    if (nodelibraryCode != null)
+                        libraryCode = DomUtil.GetNodeText(nodelibraryCode);
+
+
+===WxUserDatabase===
             
             //bool bExist = false;
             //var indexes = _wxUserCollection.Indexes.ListAsync().Result.ToListAsync().Result;

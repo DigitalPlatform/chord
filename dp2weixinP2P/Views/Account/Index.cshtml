@@ -74,10 +74,15 @@
 
             //alert("remove-"+item.libId);
             var url = "/api/wxuser/" + item.id;
-            sendAjaxRequest(url, "DELETE", function () {
+            sendAjaxRequest(url, "DELETE", function (result) {
 
                 // 关闭等待层
                 layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert("解绑出错："+result.errorInfo);
+                    return;
+                }
 
                 alert("解除[" + name + "]绑定成功。");
 

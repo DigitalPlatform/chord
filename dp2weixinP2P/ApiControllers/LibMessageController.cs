@@ -219,7 +219,7 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
-        // POST api/<controller>
+        // 新增消息
         public MessageResult Post(string weixinId, 
             string group, 
             string libId, 
@@ -230,7 +230,7 @@ namespace dp2weixinWeb.ApiControllers
             // 更新setting
             if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
             {
-                dp2WeiXinService.Instance.UpdateUserSetting(weixinId, libId, item.subject,false);
+                dp2WeiXinService.Instance.UpdateUserSetting(weixinId, libId, item.subject,false,null);
             }
 
 
@@ -238,7 +238,7 @@ namespace dp2weixinWeb.ApiControllers
             return dp2WeiXinService.Instance.CoverMessage(group, libId, item,"create",parameters );
         }
 
-        // PUT api/<controller>/5
+        // 修改消息
         public MessageResult Put(string weixinId,
             string group,
             string libId,
@@ -247,7 +247,7 @@ namespace dp2weixinWeb.ApiControllers
             // 更新setting
             if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
             {
-                dp2WeiXinService.Instance.UpdateUserSetting(weixinId, libId, item.subject,false);
+                dp2WeiXinService.Instance.UpdateUserSetting(weixinId, libId, item.subject,false,null);
             }
             return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "change", "");
         }
