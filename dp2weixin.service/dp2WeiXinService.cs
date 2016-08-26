@@ -2391,6 +2391,7 @@ namespace dp2weixin.service
                 strError = "绑定账号未找到";
                 return -1;
             }
+            string weixinId = userItem.weixinId;
 
             LibItem lib = LibDatabase.Current.GetLibById(userItem.libId);
             if (lib == null)
@@ -2439,8 +2440,12 @@ namespace dp2weixin.service
                 WxUserItem newActivePatron = null;
                 WxUserDatabase.Current.Delete(userId, out newActivePatron);
 
+                string refID = "";
+                if (newActivePatron != null)
+                    refID = newActivePatron.refID;
+
                 // 更新图书馆设置
-                this.UpdateUserSetting(newActivePatron.weixinId, lib.id, null, false, newActivePatron.refID);
+                this.UpdateUserSetting(weixinId, lib.id, null, false, refID);
 
                 // 发送解绑消息    
                 string strFirst = "🔒您已成功对图书馆读者账号解除绑定。";
@@ -6025,7 +6030,9 @@ ERROR1:
                }
             }
 
-            
+
+            List<WxUserItem> list = WxUserDatabase.Current.Get(null, null, null, -1, false);//.GetUsers();
+            result.users = list;
 
 
             return result;
