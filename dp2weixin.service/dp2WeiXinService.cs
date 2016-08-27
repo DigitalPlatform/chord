@@ -607,6 +607,8 @@ namespace dp2weixin.service
 
         public string C_Url_PersonalInfo = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fPersonalInfo&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
         public const string C_Url_AccountIndex= "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+        public const string C_Url_AccountResetPassword = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fResetPassword&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+
         public const string C_Url_LibHome ="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fLibrary%2fHome&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
 
 
