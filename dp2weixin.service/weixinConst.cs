@@ -11,8 +11,6 @@ namespace dp2weixin.service
         public const string C_Session_WeiXinId = "weixinId";
         public const string C_Session_Code = "code";
 
-        public const string C_Session_IsBind = "isBind";
-
 
         public static string EncryptKey = "dp2weixinPassword";
 
@@ -40,7 +38,8 @@ namespace dp2weixin.service
         //图书归还通知 
         public const string C_Template_Return = "zzlLzStt_qZlzMFhcDgRm8Zoi-tsxjWdsI2b3FeoRMs";
         //缴费成功通知
-        public const string C_Template_Pay = "4HNhEfLcroEMdX0Pr6aFo_n7_aHuvAzD8_6lzABHkiM";
+        public const string C_Template_Pay = "xFg1P44Hbk_Lpjc7Ds4gU8aZUqAlzoKpoeixtK1ykBI";//"4HNhEfLcroEMdX0Pr6aFo_n7_aHuvAzD8_6lzABHkiM";
+         
         //退款通知
         public const string C_Template_CancelPay = "-XsD34ux9R2EgAdMhH0lpOSjcozf4Jli_eC86AXwM3Q";// "sIzSJJ-VRbFUFrDHszxCqwiIYjr9IyyqEqLr95iJVTs";
         //个人消息通知 

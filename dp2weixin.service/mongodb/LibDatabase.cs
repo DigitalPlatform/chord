@@ -176,7 +176,8 @@ namespace dp2weixin.service
                 .Set("wxContactPhone", item.wxContactPhone) 
 
                 .Set("comment", item.comment)
-                .Set("OperTime", item.OperTime);
+                .Set("OperTime", item.OperTime)
+            .Set("noShareBiblio", item.noShareBiblio);
 
             UpdateResult ret = this.LibCollection.UpdateOneAsync(filter, update).Result;
             return ret.ModifiedCount;
@@ -216,6 +217,7 @@ namespace dp2weixin.service
         public string comment { get; set; }  // 注释
         public string OperTime { get; set; } // 操作时间
 
+        public int noShareBiblio  { get; set; } // 操作时间;
 
     }
 }

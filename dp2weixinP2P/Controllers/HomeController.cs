@@ -38,8 +38,6 @@ namespace dp2weixinWeb.Controllers
         [HttpPost]
         public ActionResult Login(LoginModel model,string returnUrl)
         {
-            Session["supervisor"] = true;
-
             string userName = "";
             string password = "";
             dp2WeiXinService.Instance.GetSupervisorAccount(out userName, out password);
@@ -52,6 +50,9 @@ namespace dp2weixinWeb.Controllers
 
             if (error == "")
             {
+                // 设为超级管理员已登录状态
+                Session[dp2WeiXinService.C_Session_Supervisor] = true;
+
                 if (string.IsNullOrEmpty(returnUrl) == false)
                     return Redirect(returnUrl);
                 else
@@ -62,15 +63,7 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
-        private bool CheckSupervisorLogin()
-        {
-            if (Session["supervisor"] != null && (bool)Session["supervisor"] == true)
-            {
-                return true;
-            }
 
-            return false;
-        }
 
         // Manager
         public ActionResult Manager()
@@ -95,7 +88,7 @@ namespace dp2weixinWeb.Controllers
 
             SettingModel model = new SettingModel();
             model.dp2MserverUrl = dp2WeiXinService.Instance.dp2MServerUrl;// "";// dp2MServerUrl;
-            model.userName = dp2WeiXinService.Instance.userName;// "";//userName;
+            model.userName = dp2WeiXinService.Instance.userNameWeixin;// "";//userName;
             model.password = dp2WeiXinService.Instance.password;// "";//password;
             model.mongoDbConnection = dp2WeiXinService.Instance.monodbConnectionString;
             model.mongoDbPrefix = dp2WeiXinService.Instance.monodbPrefixString;
@@ -187,27 +180,24 @@ namespace dp2weixinWeb.Controllers
             return View(model);
         }
 
-
-        public ActionResult About(string code, string state)
-        {
-            // 检查是否从微信入口进来
-            string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
-            if (nRet == -1)
-                return Content(strError);
-
-            return View();
-        }
-
-
+        /// <summary>
+        /// 联系开发者
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
         public ActionResult Contact(string code, string state)
         {
             // 检查是否从微信入口进来
             string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
-                return Content(strError);
+                goto ERROR1;
 
+            return View();
+
+        ERROR1:
+            ViewBag.Error = strError;
             return View();
         }
 

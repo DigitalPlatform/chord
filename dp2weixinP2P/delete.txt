@@ -1,4 +1,87 @@
-﻿========
+﻿===bind======
+                    // 证条码号
+                    readerBarcode = DomUtil.GetNodeText(rootNode.SelectSingleNode("barcode"));
+                    // 姓名
+                    XmlNode nodeName = rootNode.SelectSingleNode("name");
+                    if (nodeName != null)
+                        readerName = DomUtil.GetNodeText(nodeName);
+                    //参考id
+                    XmlNode nodeRefID = rootNode.SelectSingleNode("refID");
+                    if (nodeRefID != null)
+                        refID = DomUtil.GetNodeText(nodeRefID);
+                    // 部门
+                    XmlNode nodeDept = rootNode.SelectSingleNode("department");
+                    if (nodeDept != null)
+                        department = DomUtil.GetNodeText(nodeDept);
+                    // 分馆代码
+                    XmlNode nodelibraryCode = rootNode.SelectSingleNode("libraryCode");
+                    if (nodelibraryCode != null)
+                        libraryCode = DomUtil.GetNodeText(nodelibraryCode);
+
+
+===WxUserDatabase===
+            
+            //bool bExist = false;
+            //var indexes = _wxUserCollection.Indexes.ListAsync().Result.ToListAsync().Result;
+            //foreach (BsonDocument doc in indexes)
+            //{
+            //}
+            //// _logCollection.DropAllIndexes();
+            //if (bExist == false)
+            //{
+            //    CreateIndex();
+            //}
+
+        // 创建索引
+        //public void CreateIndex()
+        //{
+        //    var options = new CreateIndexOptions() { Unique = false };  //不唯一，一个微信用户可能对应多个读者
+        //    _wxUserCollection.Indexes.CreateOne(
+        //        Builders<WxUserItem>.IndexKeys.Ascending("weixinId"),
+        //        options);
+        //}
+
+
+
+        //// 根据图书馆id获取绑定的账户
+        //public List<WxUserItem> GetByLibId(String libId)
+        //{
+        //    if (string.IsNullOrEmpty(libId) == true || libId == "null")
+        //        return null;
+
+        //    IMongoCollection<WxUserItem> collection = this.wxUserCollection;
+        //    var filter = Builders<WxUserItem>.Filter.Eq("libId", libId);
+        //    List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+        //    return list;
+        //}
+
+        ///// <summary>
+        ///// 获取绑定的所有账户，不区分读者与工作人员
+        ///// </summary>
+        ///// <param name="weixinId"></param>
+        ///// <returns></returns>
+        //public List<WxUserItem> GetAllByWeixinId(string weixinId)
+        //{
+        //    var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId);
+        //    return this.wxUserCollection.Find(filter).ToList();
+        //}
+
+
+        ///// <summary>
+        ///// 获取微信用户绑定的所有读者账户
+        ///// </summary>
+        ///// <param name="weixinId"></param>
+        ///// <returns></returns>
+        //public List<WxUserItem> GetPatronsByWeixinId(string weixinId)
+        //{
+        //    var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+        //         & Builders<WxUserItem>.Filter.Eq("type", C_Type_Patron);  // 2016-6-16 jane 查读者账户
+
+        //    return this.wxUserCollection.Find(filter).ToList();//.ToListAsync().Result;
+        //}
+
+
+========
 bookedit的mvc方式保存
 
         [HttpPost]

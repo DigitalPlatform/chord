@@ -72,7 +72,6 @@ namespace dp2weixin.service
         /// <returns></returns>
         public UserSettingItem GetByWeixinId(string weixinId)
         {
-            // 先查到weixinId+libCode+readerBarcode唯一的记录
             var filter = Builders<UserSettingItem>.Filter.Eq("weixinId", weixinId);
 
             List<UserSettingItem> list = this.settingCollection.Find(filter).ToList();
@@ -85,7 +84,6 @@ namespace dp2weixin.service
         // 获得了设置了指定图书馆的项
         public List<UserSettingItem> GetByLibId(string libId)
         {
-            // 先查到weixinId+libCode+readerBarcode唯一的记录
             var filter = Builders<UserSettingItem>.Filter.Eq("libId", libId);
 
             List<UserSettingItem> list = this.settingCollection.Find(filter).ToList();
@@ -129,6 +127,7 @@ namespace dp2weixin.service
                 .Set("showPhoto", item.showPhoto)
                 .Set("showCover", item.showCover)
                 .Set("xml", item.xml)
+                .Set("patronRefID", item.patronRefID)
                 ;
 
             UpdateResult ret = this.settingCollection.UpdateOne(filter, update);
@@ -169,6 +168,8 @@ namespace dp2weixin.service
         public int showCover { get; set; }
 
         public string xml { get; set; }
+
+        public string patronRefID { get; set; }
 
     }
 

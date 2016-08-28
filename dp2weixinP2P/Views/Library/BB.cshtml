@@ -1,6 +1,6 @@
 ﻿@model List<dp2weixin.service.MessageItem>
 @section style {
-    <link href="@Url.Content("~/Content/message.css?a=1")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/message.css?a=6")" rel="stylesheet">
 }
 @section Scripts {
     <script>
@@ -29,8 +29,8 @@
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
     <div class="mui-content-padded">
-        <span style="color:red">
-            @ViewBag.Error
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
         </span>
     </div>
 }

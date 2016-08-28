@@ -94,9 +94,28 @@
         // 删除一项
         function removeUser(item) {
             //alert("remove-"+item.libId);
+
+            var name = item.readerName;
+            if (name == "")
+                name = item.userName;
+
+            var gnl = confirm("你确定要对账号[" + name + "]解除绑定吗?");
+            if (gnl == false) {
+                return false;
+            }
+
+
             var url = "/api/wxuser/" + item.id;
-            sendAjaxRequest(url, "DELETE", function () {
+            sendAjaxRequest(url, "DELETE", function (result) {
                 //getAllLib();
+
+                if (result.errorCode == -1) {
+                    alert("解绑出错：" + result.errorInfo);
+                    return;
+                }
+
+                alert("解除[" + name + "]绑定成功。");
+
                 for (var i = 0; i < model.wxUsers().length; i++) {
                     if (model.wxUsers()[i].id == item.id) {
                         model.wxUsers.remove(model.wxUsers()[i]);
@@ -114,14 +133,19 @@
         {
             //alert("test");
 
+            var gnl = confirm("你确认从图书馆端恢复绑定账户吗?该操作将删除本地用户mongodb库，全部绑定关系根据图书馆端数据创建。");
+            if (gnl == false) {
+                return false;
+            }
+
             //显示等待图层
             var index = loadLayer();
             // 先删除可观察数组中的已有数据
             model.wxUsers.removeAll();
 
             // 调web api
-            var url = "/api/wxuser?weixinId=recover";
-            sendAjaxRequest(url, "GET", function (result) {
+            var url = "/api/wxuser?actionType=recover";
+            sendAjaxRequest(url, "POST", function (result) {
 
                 // 关闭等待层
                 layer.close(index);
@@ -211,6 +235,14 @@
                     <td class="label">创建时间</td>
                     <td class="value" data-bind="text:createTime"></td>
                 </tr>
+                <tr>
+                    <td class="label">状态</td>
+                    <td class="value" data-bind="text:state"></td>
+                </tr>
+                <tr>
+                    <td class="label">备注</td>
+                    <td class="value" data-bind="text:remark"></td>
+                </tr>                                
                 <tr>
                     <td>&nbsp;</td>
                     <td>

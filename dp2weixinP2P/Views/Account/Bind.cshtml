@@ -37,8 +37,7 @@
             if (libId == "" || libId == null) {
                 alert("您尚未选择图书馆。");
                 return;
-            }
-  
+            }  
 
             // 绑定方式
             var prefix = model.prefix().trim();
@@ -87,13 +86,11 @@
                         alert(result.errorInfo);
                         return;
                     }                    
+                    alert("绑定成功");
 
                     //清空编辑界面信息,前两项可以不清除
                     model.word("");
-                    model.password("");
-                    
-                    alert("绑定成功");
-                   
+                    model.password("");                
                     
                     returnUrl = $("#returnUrl").text();
                     if (returnUrl == "")
@@ -168,6 +165,17 @@
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 <span id="returnUrl" style="display:none">@ViewBag.ReturnUrl</span>
 
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+
     <div class="mui-input-group">
         <div class="mui-input-row ">
             <label style="color:#cccccc">图书馆</label>
@@ -201,3 +209,4 @@
             <center><a href="JavaScript:void(0)" onclick="gotoResetPassword()">找回密码</a></center>
         </div>
     </div>
+}

@@ -1,5 +1,5 @@
 ﻿@section style {
-<link href="@Url.Content("~/Content/biblio.css?a=1")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/biblio.css?a=1")" rel="stylesheet">
 }
 @section Scripts {
     <script>
@@ -18,14 +18,12 @@
                 if (recPath != null && recPath != "") {
                     // 图书馆
                     var libId = getLibId();
-                    var myhtml = getDetail(libId, recPath, o,"detail");
+                    var myhtml = getDetail(libId, recPath, o, "detail");
                 }
             }
-
         });
 
-
-        </script>
+    </script>
 }
 
 @section header {
@@ -34,8 +32,21 @@
 <span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
 <span id="biblioPath" style="display:none;">@ViewBag.BiblioPath</span>
-<div style="padding:10px">
-    <div class='biblio'>
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
     </div>
-</div>
+}
+else
+{
+
+    <div style="padding:10px">
+        <div class='biblio'>
+        </div>
+    </div>
+}
 

@@ -132,32 +132,20 @@ namespace dp2weixinWeb.Controllers
                     }
                 }
             }
-            else
-            {
-                if (Session[WeiXinConst.C_Session_WeiXinId] == null)
-                {
-                    strError = "请从微信\"我爱图书馆\"公众号进入。";
-                    return -1;
-                }
-            }
 
+            //
 
             // 检查session中是否存在weixinid
             if (Session[WeiXinConst.C_Session_WeiXinId] == null
                 || (String)Session[WeiXinConst.C_Session_WeiXinId] == "")
             {
-                strError = "页面长期未使用Session已失效，请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
+                strError = "页面超时，请点击<a href='"+dp2WeiXinService.C_Url_LibHome+"'>这里</a>或者从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
                 return -1;
             }
 
 
             string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            // 检查微信id是否已经绑定的读者
-            List<WxUserItem> userList = WxUserDatabase.Current.GetAllByWeixinId(weixinId);
-            if (userList !=null && userList.Count >0)
-                Session[WeiXinConst.C_Session_IsBind] = 1;
-            else
-                Session[WeiXinConst.C_Session_IsBind] = 0;
+
 
             // 微信用户设置的图书馆
             string libName = "";
@@ -214,6 +202,17 @@ namespace dp2weixinWeb.Controllers
             
 
             return 0;
+        }
+
+        public bool CheckSupervisorLogin()
+        {
+            if (Session[dp2WeiXinService.C_Session_Supervisor] != null
+                && (bool)Session[dp2WeiXinService.C_Session_Supervisor] == true)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         //protected override void OnException(ExceptionContext filterContext)

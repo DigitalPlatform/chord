@@ -412,7 +412,7 @@ p {
     font-size: 14px;
     margin-top: 0;
     margin-bottom: 10px;
-    color: #8f8f94;
+    color: #666666;/*#8f8f94;*/
 }
 
 .mui-row:after, .mui-row:before {

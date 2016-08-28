@@ -17,32 +17,40 @@ namespace dp2weixinWeb.ApiControllers
         public WxUserResult Get()
         {
             WxUserResult result = new WxUserResult();
-            List<WxUserItem> list = wxUserDb.GetUsers();//"*", 0, -1).Result;
+            List<WxUserItem> list = wxUserDb.Get(null,null,null,-1,false);//.GetUsers();
             result.users = list;
             return result;
         }
 
         public WxUserResult Get(string weixinId)
-        {          
-            if (weixinId == "recover")
-            {
-                return dp2WeiXinService.Instance.RecoverUsers();
-
-                //WxUserResult result = new WxUserResult();
-                //List<WxUserItem> list = wxUserDb.GetUsers();//"*", 0, -1).Result;
-                //result.users = list;
-                //return result;
-            }
-            else
-            {
-                WxUserResult result = new WxUserResult();
-                List<WxUserItem> list= wxUserDb.GetAllByWeixinId(weixinId);
-                result.users = list;
-                return result;
-            }
+        {
+            WxUserResult result = new WxUserResult();
+            List<WxUserItem> list = wxUserDb.Get(weixinId, null, -1);
+            result.users = list;
+            return result;
         }
 
-        // POST api/<controller>
+        [HttpPost]
+        public WxUserResult DoThing(string actionType)
+        {
+            // 恢复用户
+            if (actionType == "recover")
+            {
+                return dp2WeiXinService.Instance.RecoverUsers();
+            }
+
+            WxUserResult result = new WxUserResult();
+            return result;
+        }
+
+        /// <summary>
+        /// 找回密码
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="libId"></param>
+        /// <param name="name"></param>
+        /// <param name="tel"></param>
+        /// <returns></returns>
         [HttpPost]
         public ApiResult ResetPassword(string weixinId,
             string libId,
@@ -66,6 +74,12 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+        /// <summary>
+        /// 设置
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
         [HttpPost]
         public ApiResult Setting(string weixinId, UserSettingItem item)
         {
@@ -92,9 +106,9 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
-        // POST api/<controller>
+        // 绑定
         [HttpPost]
-        public WxUserResult Bind(WxUserItem item)
+        public WxUserResult Bind(BindItem item)
         {
             // 返回对象
             WxUserResult result = new WxUserResult();
@@ -146,8 +160,8 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
-        // PUT api/<controller>/5
-        [HttpPut]
+        // 设为活动账户
+        [HttpPost]
         public void ActivePatron(string weixinId,string id)
         {
             if (weixinId == "null")
@@ -163,13 +177,11 @@ namespace dp2weixinWeb.ApiControllers
                 WxUserDatabase.Current.SetActivePatron(user.weixinId, user.id);
 
                 // 自动更新设置的当前图书馆
-                dp2WeiXinService.Instance.UpdateUserSetting(user.weixinId, user.libId, "",false);
+                dp2WeiXinService.Instance.UpdateUserSetting(user.weixinId, user.libId, "",false,user.refID);
             }
         }
 
-
-
-        // DELETE api/<controller>/5
+        // 删除
         [HttpDelete]
         public ApiResult Delete(string id)
         {

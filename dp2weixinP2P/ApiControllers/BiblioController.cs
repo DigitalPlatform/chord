@@ -22,13 +22,15 @@ namespace dp2weixinWeb.ApiControllers
         /// <param name="resultSet"></param>
         /// <returns></returns>
         [HttpGet]
-        public SearchBiblioResult Search(string libId, 
+        public SearchBiblioResult Search(string weixinId,
+            string libId, 
             string from,
             string word, 
             string match,
             string resultSet)
         {
             SearchBiblioResult searchRet = new SearchBiblioResult();
+
             if (String.IsNullOrEmpty(resultSet) == true)
                 resultSet = "weixin-" + Guid.NewGuid();
 
@@ -57,7 +59,8 @@ namespace dp2weixinWeb.ApiControllers
                 if (from == "_N")
                 {
                     //word值表示起始位置
-                    searchRet = dp2WeiXinService.Instance.getFromResultSet(libId, resultSet, num, WeiXinConst.C_OnePage_Count);
+                    searchRet = dp2WeiXinService.Instance.getFromResultSet(weixinId,
+                        libId, resultSet, num, WeiXinConst.C_OnePage_Count);
                     goto END1;
                 }
                 else if (from == "_ReView")
@@ -66,7 +69,8 @@ namespace dp2weixinWeb.ApiControllers
                         resultSet = resultSet.Substring(1);
 
                     // 重新显示，此时word代表数量
-                    searchRet = dp2WeiXinService.Instance.getFromResultSet(libId, resultSet, 0, num);
+                    searchRet = dp2WeiXinService.Instance.getFromResultSet(weixinId,
+                        libId, resultSet, 0, num);
                     goto END1;
 
                 }
@@ -79,7 +83,8 @@ namespace dp2weixinWeb.ApiControllers
             }
             else
             {
-                searchRet = dp2WeiXinService.Instance.SearchBiblio(libId,
+                searchRet = dp2WeiXinService.Instance.SearchBiblio(weixinId,
+                    libId,
                      from,
                      word,
                      match,

@@ -1,5 +1,5 @@
 ﻿@section style {
-<link href="@Url.Content("~/Content/biblio.css?a=1")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/biblio.css?a=6")" rel="stylesheet">
 }
 @section Scripts {
     <script>
@@ -40,7 +40,7 @@
                 word = $('#txtWordSimple').val();
 
             //alert("word=["+word+"]");
-            if (word != "") { 
+            if (word != "") {
                 //alert("maxNo=" + $("#maxNo").val());
                 var expandId = $('#expandId').val();
                 search("_ReView", expandId);
@@ -120,12 +120,19 @@
             var resultSet = $("#resultSet").val();
 
 
+            var weixinId = $("#weixinId").text();
+            if (weixinId == null || weixinId == "") {
+                alert("weixinId参数为空");
+                return;
+            }
+
             // 调检索接口
             //显示等待图层
             var index = loadLayer();
 
             // 调Search api
-            var url = "/api/biblio?libId=" + encodeURIComponent(libId)
+            var url = "/api/biblio?weixinId=" + encodeURIComponent(weixinId)
+                + "&libId=" + encodeURIComponent(libId)
                 + "&from=" + encodeURIComponent(from)
                 + "&word=" + encodeURIComponent(word)
                 + "&match=" + encodeURIComponent(match)
@@ -172,7 +179,7 @@
                         var id = "record-" + (start + i);
                         var li = "<li class='mui-table-view-cell mui-collapse' id='" + id + "'> "
                             + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\"" + id + "\")'>" + record.no + " " + record.name + "</a>"
-                            + "<div class='mui-collapse-content' style='display:none;'>"
+                            + "<div class='mui-collapse-content' style='display:none;padding-top: 0px;'>"
                                 + "<div class='pendingDetail biblio' >"
                                     + "<label>" + record.recPath + "</label>"
                                     + "<img src='../img/wait2.gif' />"
@@ -259,10 +266,10 @@
 
                         // 图书馆
                         var libId = getLibId();
-                        var myhtml = getDetail(libId, recPath, o,"index");
+                        var myhtml = getDetail(libId, recPath, o, "index");
 
                         // 去掉css
-                       o.removeClass("pendingDetail");
+                        o.removeClass("pendingDetail");
                     }
                 }
             }
@@ -310,79 +317,85 @@
     <h1 class="mui-title">书目查询</h1>
 }
 <span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
-<spanl id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</spanl>
-<!--
-<span id="patronName" style="display:none">@ViewBag.PatronName</span>
-<span id="workerUserName" style="display:none">@ViewBag.workerUserName</span>
--->
+<span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
 <!--关于结果集-->
 <input id="maxNo" type="hidden">
 <input id="resultSet" type="hidden" value="" disabled="disabled">
 <input id="expandId" type="hidden" value="" disabled="disabled">
-<div id="divSimple" class="search" style="padding:10px">
-    <table style="width:100%" class="simple">
-        <tr>
-            <td style="vertical-align:middle;width:100%">
-                <input class="mui-input mui-input-clear" style="border-top-left-radius:4px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:4px;border-right:0px" id="txtWordSimple" type="text" value="" placeholder="请输入检索词">
-            </td>
-            <td style="vertical-align:top"><span class="mui-icon mui-icon-search" style="padding-top:10px;height:40px; border:1px solid #cccccc;border-left:0px;border-top-left-radius:0px;border-top-right-radius:4px;border-bottom-right-radius:4px;border-bottom-left-radius:0px;width:30px;cursor:pointer; background-color:white" onclick="search('simple')"></span></td>
-        </tr>
-    </table>
-</div>
-<div id="divAdvance" class="search" style="display:none">
-    <table class="advance">
-        <tr>
-            <td class="label">检索途径</td>
-            <td>
-                <div style="border:1px solid #cccccc">
-                    <select id="selFrom" name="selFrom">
-                        <option value="title,ISBN,contributor,subjec,clc,_class,publishtime,publisher" selected>全部</option>
-                        <option value="title" selected>书名</option>
-                        <option value="ISBN">ISBN</option>
-                        <option value="contributor">作者</option>
-                        <option value="subject">主题词</option>
-                        <option value="clc,_class">分类号</option>
-                        <option value="publishtime">出版时间</option>
-                        <option value="publisher">出版社</option>
-                    </select>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="label">检索词</td>
-            <td>
-                <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
-            </td>
-        </tr>
-        <tr>
-            <td class="label">匹配方式</td>
-            <td>
-                <div style="border:1px solid #cccccc">
-                    <!--left/middle/right/exact-->
-                    <select id="selMatch">
-                        <option value="left" selected>前方一致</option>
-                        <option value="middle">中间一致</option>
-                        <option value="right">后方一致</option>
-                        <option value="exact">精确一致</option>
-                    </select>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
-            </td>
-        </tr>
-    </table>
-</div>
-<div style="padding:10px">
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
 
-    <a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a>
-</div>
-<div id="divResult">
-    <!--数据列表-->
-    <span style="padding-left:10px;" id="searchInfo"></span>
-    <ul id="ulResult" class="mui-table-view "></ul>
+    <div id="divSimple" class="search" style="padding:10px">
+        <table style="width:100%" class="simple">
+            <tr>
+                <td style="vertical-align:middle;width:100%">
+                    <input class="mui-input mui-input-clear" style="border-top-left-radius:4px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:4px;border-right:0px" id="txtWordSimple" type="text" value="" placeholder="请输入检索词">
+                </td>
+                <td style="vertical-align:top"><span class="mui-icon mui-icon-search" style="padding-top:10px;height:40px; border:1px solid #cccccc;border-left:0px;border-top-left-radius:0px;border-top-right-radius:4px;border-bottom-right-radius:4px;border-bottom-left-radius:0px;width:30px;cursor:pointer; background-color:white" onclick="search('simple')"></span></td>
+            </tr>
+        </table>
+    </div>
+    <div id="divAdvance" class="search" style="display:none">
+        <table class="advance">
+            <tr>
+                <td class="label">检索途径</td>
+                <td>
+                    <div style="border:1px solid #cccccc">
+                        <select id="selFrom" name="selFrom">
+                            <option value="title,ISBN,contributor,subjec,clc,_class,publishtime,publisher" selected>全部</option>
+                            <option value="title" selected>书名</option>
+                            <option value="ISBN">ISBN</option>
+                            <option value="contributor">作者</option>
+                            <option value="subject">主题词</option>
+                            <option value="clc,_class">分类号</option>
+                            <option value="publishtime">出版时间</option>
+                            <option value="publisher">出版社</option>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="label">检索词</td>
+                <td>
+                    <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
+                </td>
+            </tr>
+            <tr>
+                <td class="label">匹配方式</td>
+                <td>
+                    <div style="border:1px solid #cccccc">
+                        <!--left/middle/right/exact-->
+                        <select id="selMatch">
+                            <option value="left" selected>前方一致</option>
+                            <option value="middle">中间一致</option>
+                            <option value="right">后方一致</option>
+                            <option value="exact">精确一致</option>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div style="padding:10px">
 
-
-</div>
+        <a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a>
+    </div>
+    <div id="divResult">
+        <!--数据列表-->
+        <span style="padding-left:10px;" id="searchInfo"></span>
+        <ul id="ulResult" class="mui-table-view "></ul>
+    </div>
+}

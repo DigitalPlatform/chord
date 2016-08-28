@@ -228,7 +228,6 @@
     <Content Include="Views\Home\WeixinUser.cshtml" />
     <Content Include="Views\Home\WeixinMessage.cshtml" />
     <Content Include="Views\Home\WeixinMenu.cshtml" />
-    <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Setting.cshtml" />
     <Content Include="Views\OAuth2\Index.cshtml" />

@@ -1,7 +1,10 @@
 
 /*书目*/
-DIV.biblio {
-}
+        DIV.biblio {
+            top:0px;
+            padding:10px;
+            background-color:white;
+        }
 
 
 
@@ -47,6 +50,11 @@ DIV.biblio {
                           padding-bottom:4px;
         }
 
+                    DIV.biblio TABLE.info td.biblio_info table.biblio_table .titlevalue{
+                        font-weight:bold;
+                         font-size:16px;
+        }
+
     /*书目操作按钮行，现在有好书推荐按钮*/
     DIV.biblio DIV.btnRow {
         text-align: right;
@@ -54,7 +62,7 @@ DIV.biblio {
 
 /*整个册块*/
 DIV.item {
-    margin: 3px 0px 0px;
+    margin: 14px 0px 0px;
     padding: 2px;
 }
 
@@ -77,7 +85,7 @@ DIV.item {
         text-align: left;
         background-color: white;
         width: 100%;
-        margin-top: 10px;
+        margin-top: 0px;
     }
 
         /*册td*/
@@ -86,7 +94,8 @@ DIV.item {
             /*border-top-width: 1px;*/
             border-color: #dddddd;
             border-style: dotted;
-            padding: 2px;
+            padding: 1px;
+            vertical-align:top;
         }
 
             /*册右值数据td*/
@@ -97,7 +106,7 @@ DIV.item {
                 /*册右值数据td*/
                 DIV.item TABLE TR TD.value .info {
                     /*float: left;*/
-                    padding-top: 5px;
+                    padding-top: 0px;
                     text-align: left;
                 }
 

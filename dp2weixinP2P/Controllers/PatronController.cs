@@ -24,7 +24,7 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
-                return Content(strError);
+                goto ERROR1;
 
             string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             ViewBag.returnUrl = returnUrl;
@@ -43,6 +43,10 @@ namespace dp2weixinWeb.Controllers
             ViewBag.coverChecked = coverChecked;
 
             return View();
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
         }
 
 
@@ -50,13 +54,15 @@ namespace dp2weixinWeb.Controllers
 
         // 二维码
         public ActionResult QRcode(string code, string state)
-        {
+        {       
             string strError = "";
+
             string strXml = "";
             WxUserItem activeUserItem = null;
             int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
             if (nRet == -1 || nRet == 0)
-                return Content(strError);
+                goto ERROR1;
+
             if (nRet==-2)
             {
                 ViewBag.RedirectInfo = this.getLinkHtml("二维码", "/Patron/QRcode");
@@ -69,6 +75,10 @@ namespace dp2weixinWeb.Controllers
                 //+ "&width=400&height=400";
             ViewBag.qrcodeUrl = qrcodeUrl;
             return View(activeUserItem);
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
         }
 
         // 图片
@@ -198,6 +208,121 @@ namespace dp2weixinWeb.Controllers
 
         #endregion
 
+
+
+        /// <summary>
+        /// 我的信息主界面
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public ActionResult PersonalInfo(string code, string state)
+        {
+            string strError = "";
+
+            string strXml = "";
+            WxUserItem activeUserItem = null;
+            int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml);
+            if (nRet == -1 || nRet == 0)
+                goto ERROR1;
+
+            if (nRet==-2)
+            {
+                ViewBag.RedirectInfo = this.getLinkHtml("我的信息", "/Patron/PersonalInfo");
+                return View();
+            }
+
+            PersonalInfoModel model = null;
+            if (activeUserItem != null)
+                model= this.ParseXml(activeUserItem.libId, strXml,activeUserItem.recPath);
+
+            return View(model);
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
+        //违约交费信息
+        public ActionResult OverdueInfo(string code, string state)
+        {
+            string strError = "";
+            string strXml = "";
+            WxUserItem activeUserItem = null;
+            int nRet = this.GetReaderXml(code, state, "xml", out activeUserItem, out strXml);
+            if (nRet == -1 || nRet == 0)
+                goto ERROR1;
+
+            if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
+            {
+                return RedirectToAction("Bind", "Account");
+            }
+
+            string strWarningText = "";
+            List<OverdueInfo> overdueList= dp2WeiXinService.Instance.GetOverdueInfo(strXml, out strWarningText);
+
+            return View(overdueList);
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
+        /// <summary>
+        /// 预约请求界面
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public ActionResult Reservation(string code, string state)
+        {
+            string strError = "";
+            string strXml = "";
+            WxUserItem activeUserItem = null;
+            int nRet = this.GetReaderXml(code, state, "",out activeUserItem, out strXml);
+            if (nRet == -1 || nRet == 0)
+                goto ERROR1;
+            if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
+            {
+                return RedirectToAction("Bind", "Account");
+            }
+
+            return View(activeUserItem);
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+      
+        /// <summary>
+        /// 在借续借界面
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public ActionResult BorrowInfo(string code, string state)
+        {
+            string strError = "";
+            string strXml = "";
+            WxUserItem activeUserItem = null;
+            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
+            if (nRet == -1 || nRet == 0)
+                goto ERROR1;
+
+            if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
+            {
+                return RedirectToAction("Bind", "Account");
+            }
+
+            return View(activeUserItem);
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
+        #region 内部函数
+
         private string getLinkHtml(string menu, string returnUrl)
         {
             //string returnUrl = "/Patron/PersonalInfo";
@@ -215,89 +340,6 @@ namespace dp2weixinWeb.Controllers
             return strRedirectInfo;
         }
 
-        public ActionResult PersonalInfo(string code, string state)
-        {
-            string strError = "";
-            string strXml = "";
-            WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml);
-            if (nRet == -1 || nRet == 0)
-                return Content(strError);
-            if (nRet==-2)
-            {
-                ViewBag.RedirectInfo = this.getLinkHtml("我的信息", "/Patron/PersonalInfo");
-                return View();
-            }
-
-            PersonalInfoModel model = null;
-            if (activeUserItem != null)
-                model= this.ParseXml(activeUserItem.libId, strXml,activeUserItem.recPath);
-
-            return View(model);
-        }
-
-        //违约交费信息
-        public ActionResult OverdueInfo(string code, string state)
-        {
-            string strError = "";
-            string strXml = "";
-            WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "xml", out activeUserItem, out strXml);
-            if (nRet == -1 || nRet == 0)
-                return Content(strError);
-            if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
-            {
-                return RedirectToAction("Bind", "Account");
-            }
-
-            string strWarningText = "";
-            List<OverdueInfo> overdueList= dp2WeiXinService.Instance.GetOverdueInfo(strXml, out strWarningText);
-
-            return View(overdueList);
-        }
-
-        /// <summary>
-        /// 预约入口
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
-        public ActionResult Reservation(string code, string state)
-        {
-            string strError = "";
-            string strXml = "";
-            WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "",out activeUserItem, out strXml);
-            if (nRet == -1 || nRet == 0)
-                return Content(strError);
-            if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
-            {
-                return RedirectToAction("Bind", "Account");
-            }
-
-            return View(activeUserItem);
-        }
-
-
-
-        //BorrowInfo
-        public ActionResult BorrowInfo(string code, string state)
-        {
-            string strError = "";
-            string strXml = "";
-            WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
-            if (nRet == -1 || nRet == 0)
-                return Content(strError);
-
-            if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
-            {
-                return RedirectToAction("Bind", "Account");
-            }
-
-            return View(activeUserItem);
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -310,7 +352,7 @@ namespace dp2weixinWeb.Controllers
         /// 0 未找到读者记录
         /// 1 成功
         /// </returns>
-        public int GetReaderXml(string code, string state,
+        private int GetReaderXml(string code, string state,
             string strFormat,
             out WxUserItem activeUserItem,
             out string strXml)
@@ -326,7 +368,7 @@ namespace dp2weixinWeb.Controllers
 
             string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             activeUserItem = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
-            // 未绑定读者账户，应该不会出现未激活的情况，todo，当设置图书馆，如果发现微信用户绑定了该图书馆的读者账户，则自动找到第一个激活
+            // 未绑定读者账户,不会出现未激活的情况
             if (activeUserItem == null)
                 return -2;
             
@@ -349,8 +391,6 @@ namespace dp2weixinWeb.Controllers
             }
             return 1;
         }
-
-
 
         private PersonalInfoModel ParseXml(string libId,string strXml,string recPath)
         {
@@ -505,7 +545,8 @@ namespace dp2weixinWeb.Controllers
             // 违约
             List<OverdueInfo> overdueLit = new List<OverdueInfo>();
             XmlNodeList nodes = dom.DocumentElement.SelectNodes("overdues/overdue");
-            model.OverdueCount = nodes.Count; 
+            model.OverdueCount = nodes.Count;
+            model.OverdueCountHtml = ConvertToString(model.OverdueCount);
 
             // 在借
             nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
@@ -543,7 +584,7 @@ namespace dp2weixinWeb.Controllers
             return model;
         }
 
-        public string ConvertToString(int num)
+        private string ConvertToString(int num)
         {
             string text = "";
             if (num > 0 && num <= 5)
@@ -571,7 +612,6 @@ namespace dp2weixinWeb.Controllers
             string clearEmail = "";
             for (int i = 0; i < emailList.Length; i++)
             {
-
                 string oneEmail = emailList[i].Trim();
                 if (oneEmail.Length > 9 && oneEmail.Substring(0, 9) == WeiXinConst.C_WeiXinIdPrefix)
                 {
@@ -587,6 +627,6 @@ namespace dp2weixinWeb.Controllers
             return clearEmail;
         }
 
-
+        #endregion
     }
 }

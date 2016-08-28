@@ -22,8 +22,10 @@ namespace dp2weixin
         /// <returns></returns>
         public override IResponseMessageBase OnEvent_SubscribeRequest(RequestMessageEvent_Subscribe requestMessage)
         {
-            string strMessage = "您好，欢迎关注我爱图书馆公众号。😊\n"
-                + "<a href='" + dp2WeiXinService.C_detailUrl_AccountIndex + "'>点击绑定图书馆账户。</a>";
+            string strMessage = "☀您好，欢迎关注我爱图书馆公众号，"
+                + "点击<a href='" + dp2WeiXinService.C_Url_AccountIndex + "'>绑定账户</a>绑定您在图书馆的读者账户。"
+                + "\n如果您不清楚读者证密码，请点击<a href='" + dp2WeiXinService.C_Url_AccountResetPassword + "'>找回密码</a>。"
+                + "(请您确保已经在图书馆登记过手机号，才能使用找回密码功能。)";
             /*您可以回复：\n"
                + "search:检索" + "\n"
                + "binding:绑定读者账号" + "\n"
