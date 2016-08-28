@@ -16,6 +16,8 @@ using System.Net.Http;
 using Microsoft.AspNet.SignalR.Client;
 using Microsoft.AspNet.SignalR.Client.Transports;
 
+using Nito.AsyncEx;
+
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
 using DigitalPlatform.Common;
@@ -302,6 +304,8 @@ errorInfo)
             // string strServerUrl
             )
         {
+            _exiting = true;
+
             // 一直到真正连接前才触发登录事件
             if (this.Container != null)
                 this.Container.TriggerLogin(this);
@@ -372,6 +376,7 @@ errorInfo)
                 MessageResult result = new MessageResult();
                 AddInfoLine("停止 Timer");
                 _timer.Stop();
+                _exiting = false;
                 AddInfoLine("成功连接到 " + this.ServerUrl);
                 TriggerConnectionStateChange("Connected");
                 return result;
@@ -3076,6 +3081,23 @@ SearchResponse responseParam)
             return HubProxy.Invoke<MessageResult>("SetUsers",
                 action,
                 users).Result;
+        }
+
+        public async Task<MessageResult> SetUsersAsyncLite(
+            string action, 
+            List<User> users,
+            TimeSpan timeout,
+            CancellationToken token)
+        {
+            Task<MessageResult> task = HubProxy.Invoke<MessageResult>("SetUsers",
+                action,
+                users);
+
+            List<Task> tasks = new List<Task>() { };
+            if (task == await Task.WhenAny(task, Task.Delay(timeout), token.AsTask()))
+                return task.Result;
+
+            throw new TimeoutException("已超时 " + timeout.ToString());
         }
 
         // 调用 server 端 Login

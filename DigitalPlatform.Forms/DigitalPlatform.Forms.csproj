@@ -65,6 +65,9 @@
     </Compile>
     <Compile Include="FormUtil.cs" />
     <Compile Include="GuiState.cs" />
+    <Compile Include="InputDlg.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="ListViewUtil.cs" />
     <Compile Include="MessageBar.cs">
       <SubType>Form</SubType>
@@ -93,6 +96,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FloatingMessageForm.resx">
       <DependentUpon>FloatingMessageForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="InputDlg.resx">
+      <DependentUpon>InputDlg.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MessageBar.resx">
       <DependentUpon>MessageBar.cs</DependentUpon>

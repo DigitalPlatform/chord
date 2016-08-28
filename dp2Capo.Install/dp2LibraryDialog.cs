@@ -369,7 +369,7 @@ namespace dp2Capo.Install
                 e.UserName = this.SupervisorUserName;
                 e.Password = this.SupervisorPassword;
 
-                e.Parameters = "location=#setup,type=worker,client=dp2OPAC|0.01";   // 2016/5/6 加上 0.01 部分
+                e.Parameters = "location=#setup,type=worker,client=dp2CapoInstall|0.01";   // 2016/5/6 加上 0.01 部分
 
                 if (String.IsNullOrEmpty(e.UserName) == false)
                     return; // 立即返回, 以便作第一次 不出现 对话框的自动登录
@@ -413,6 +413,7 @@ namespace dp2Capo.Install
         }
 
         // 创建代理帐户
+        // 安装成功后，dp2Capo 运行中，点对点 API 实际上是使用这个账户对 dp2library 进行操作的
         int CreateManageUser(out string strError)
         {
             strError = "";
@@ -476,7 +477,8 @@ namespace dp2Capo.Install
                 // default_capo_rights
                 user.Rights = "getsystemparameter,getres,search,getbiblioinfo,setbiblioinfo,getreaderinfo,writeobject,getbibliosummary,listdbfroms,simulatereader,simulateworker"
                     + ",getiteminfo,getorderinfo,getissueinfo,getcommentinfo"
-                    + ",borrow,return,getmsmqmessage";
+                    + ",borrow,return,getmsmqmessage"
+                    + ",bindpatron,searchbiblio,getpatrontempid,resetpasswordreturnmessage,getuser,changereaderpassword,renew";
 
                 long lRet = channel.SetUser(
         "new",
@@ -679,5 +681,49 @@ out strError);
         ERROR1:
             MessageBox.Show(this, strError);
         }
+
+        // 为工作人员添加管理公众号的权限
+        private void button_workerRights_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+
+            this.EnableControls(false);
+            try
+            {
+                using (LibraryChannel channel = new LibraryChannel())
+                {
+                    channel.Url = this.comboBox_url.Text;
+
+                    channel.BeforeLogin -= new BeforeLoginEventHandle(channel_BeforeLogin);
+                    channel.BeforeLogin += new BeforeLoginEventHandle(channel_BeforeLogin);
+
+                    strError = "请用超级用户身份登录，以便为工作人员添加管理公众号的权限。";
+                    int nRet = channel.DoNotLogin(ref strError);
+                    if (nRet == -1 || nRet == 0)
+                    {
+                        strError = "以超级用户身份登录失败: " + strError;
+                        goto ERROR1;
+                    }
+
+                    WorkerRightsDialog dlg = new WorkerRightsDialog();
+                    FontUtil.AutoSetDefaultFont(dlg);
+                    dlg.Channel = channel;
+                    dlg.ManagerUserName = this.textBox_manageUserName.Text;
+                    dlg.StartPosition = FormStartPosition.CenterScreen;
+                    dlg.ShowDialog(this);
+
+                    channel.Logout(out strError);
+                }
+
+            }
+            finally
+            {
+                this.EnableControls(true);
+            }
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
+        }
+
     }
 }

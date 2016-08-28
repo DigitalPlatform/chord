@@ -284,7 +284,7 @@ namespace dp2Router
                 MessageException ex1 = ExceptionUtil.FindInnerException(ex, typeof(MessageException)) as MessageException;
                 if (ex1 != null && ex1.ErrorCode.ToLower() == "unauthorized")
                 {
-                    error = "dp2Router 针对 dp2MServer 的账户登录失败";
+                    error = "dp2Router 针对 dp2MServer 的账户 '"+ex1.UserName+"' 登录失败";
                     code = "401";
                 }
 

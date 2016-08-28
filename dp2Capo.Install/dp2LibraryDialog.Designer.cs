@@ -45,6 +45,7 @@
             this.button_getQueuePath = new System.Windows.Forms.Button();
             this.comboBox_msmqPath = new System.Windows.Forms.ComboBox();
             this.comboBox_url = new System.Windows.Forms.ComboBox();
+            this.button_workerRights = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -53,11 +54,11 @@
             this.button_Cancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button_Cancel.AutoSize = true;
             this.button_Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.button_Cancel.Location = new System.Drawing.Point(286, 329);
+            this.button_Cancel.Location = new System.Drawing.Point(286, 357);
             this.button_Cancel.Margin = new System.Windows.Forms.Padding(2);
             this.button_Cancel.Name = "button_Cancel";
             this.button_Cancel.Size = new System.Drawing.Size(56, 23);
-            this.button_Cancel.TabIndex = 7;
+            this.button_Cancel.TabIndex = 8;
             this.button_Cancel.Text = "取消";
             this.button_Cancel.UseVisualStyleBackColor = true;
             this.button_Cancel.Click += new System.EventHandler(this.button_Cancel_Click);
@@ -66,11 +67,11 @@
             // 
             this.button_OK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button_OK.AutoSize = true;
-            this.button_OK.Location = new System.Drawing.Point(225, 329);
+            this.button_OK.Location = new System.Drawing.Point(225, 357);
             this.button_OK.Margin = new System.Windows.Forms.Padding(2);
             this.button_OK.Name = "button_OK";
             this.button_OK.Size = new System.Drawing.Size(56, 23);
-            this.button_OK.TabIndex = 6;
+            this.button_OK.TabIndex = 7;
             this.button_OK.Text = "确定";
             this.button_OK.UseVisualStyleBackColor = true;
             this.button_OK.Click += new System.EventHandler(this.button_OK_Click);
@@ -212,7 +213,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(9, 247);
+            this.label5.Location = new System.Drawing.Point(7, 246);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(101, 12);
             this.label5.TabIndex = 3;
@@ -238,9 +239,9 @@
             this.comboBox_msmqPath.FormattingEnabled = true;
             this.comboBox_msmqPath.Items.AddRange(new object[] {
             "!api"});
-            this.comboBox_msmqPath.Location = new System.Drawing.Point(12, 261);
+            this.comboBox_msmqPath.Location = new System.Drawing.Point(9, 261);
             this.comboBox_msmqPath.Name = "comboBox_msmqPath";
-            this.comboBox_msmqPath.Size = new System.Drawing.Size(270, 20);
+            this.comboBox_msmqPath.Size = new System.Drawing.Size(273, 20);
             this.comboBox_msmqPath.TabIndex = 4;
             // 
             // comboBox_url
@@ -254,13 +255,26 @@
             this.comboBox_url.Size = new System.Drawing.Size(334, 20);
             this.comboBox_url.TabIndex = 1;
             // 
+            // button_workerRights
+            // 
+            this.button_workerRights.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.button_workerRights.Location = new System.Drawing.Point(9, 305);
+            this.button_workerRights.Name = "button_workerRights";
+            this.button_workerRights.Size = new System.Drawing.Size(333, 23);
+            this.button_workerRights.TabIndex = 6;
+            this.button_workerRights.Text = "为工作人员添加管理公众号的权限";
+            this.button_workerRights.UseVisualStyleBackColor = true;
+            this.button_workerRights.Click += new System.EventHandler(this.button_workerRights_Click);
+            // 
             // dp2LibraryDialog
             // 
             this.AcceptButton = this.button_OK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.button_Cancel;
-            this.ClientSize = new System.Drawing.Size(351, 362);
+            this.ClientSize = new System.Drawing.Size(351, 390);
+            this.Controls.Add(this.button_workerRights);
             this.Controls.Add(this.comboBox_url);
             this.Controls.Add(this.comboBox_msmqPath);
             this.Controls.Add(this.button_getQueuePath);
@@ -300,5 +314,6 @@
         private System.Windows.Forms.Button button_getQueuePath;
         private System.Windows.Forms.ComboBox comboBox_msmqPath;
         private System.Windows.Forms.ComboBox comboBox_url;
+        private System.Windows.Forms.Button button_workerRights;
     }
 }
