@@ -1522,6 +1522,16 @@ true);
 
                     foreach (UserItem item in users)
                     {
+                        List<UserItem> exists = ServerInfo.UserDatabase.GetUsersByName(item.userName, 0, 1).Result;
+
+                        if (exists.Count > 0)
+                        {
+                            result.String = "AlreadyExist";
+                            result.Value = -1;
+                            result.ErrorInfo = "create 命令失败: 用户名为 '"+item.userName+"' 的账户已经存在";
+                            return result;
+                        }
+
                         ServerInfo.UserDatabase.Add(item).Wait();
                     }
                 }

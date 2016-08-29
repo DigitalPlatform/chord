@@ -92,7 +92,7 @@ namespace DigitalPlatform.MessageClient
                     // TODO: 建议抛出原有 Exception
                     MessageResult result = await connection.ConnectAsync();
                     if (result.Value == -1)
-                        throw new MessageException(result.String, result.ErrorInfo);
+                        throw new MessageException(result.String, connection.UserName, result.ErrorInfo);
                     return connection;
                 });
 #if NO
@@ -179,7 +179,7 @@ bool autoConnect = true)
             {
                 MessageResult result = await connection.ConnectAsync();
                 if (result.Value == -1)
-                    throw new MessageException(result.String, result.ErrorInfo);
+                    throw new MessageException(result.String, connection.UserName, result.ErrorInfo);
                 return connection;
             }
 
@@ -430,14 +430,23 @@ bool autoConnect = true)
         public string ErrorCode { get; set; }
 
         /// <summary>
+        /// 登录时使用的用户名
+        /// </summary>
+        public string UserName { get; set; }
+
+        /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="error"></param>
+        /// <param name="strUserName"></param>
         /// <param name="strText"></param>
-        public MessageException(string error, string strText)
+        public MessageException(string error, 
+            string strUserName,
+            string strText)
             : base(strText)
         {
             this.ErrorCode = error;
+            this.UserName = strUserName;
         }
     }
 
