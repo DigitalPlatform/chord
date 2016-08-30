@@ -59,7 +59,7 @@ namespace dp2weixinWeb.Controllers
 
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
+            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml,out strError);
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
 
@@ -222,23 +222,45 @@ namespace dp2weixinWeb.Controllers
 
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml);
+            int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml,out strError);
+            dp2WeiXinService.Instance.WriteErrorLog("test0");
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
 
-            if (nRet==-2)
+            dp2WeiXinService.Instance.WriteErrorLog("test1");
+
+            if (nRet == -2)
             {
+                dp2WeiXinService.Instance.WriteErrorLog("test2");
                 ViewBag.RedirectInfo = this.getLinkHtml("我的信息", "/Patron/PersonalInfo");
                 return View();
             }
 
+            dp2WeiXinService.Instance.WriteErrorLog("test3");
             PersonalInfoModel model = null;
             if (activeUserItem != null)
-                model= this.ParseXml(activeUserItem.libId, strXml,activeUserItem.recPath);
+            {
+                model = this.ParseXml(activeUserItem.libId, strXml, activeUserItem.recPath);
+                dp2WeiXinService.Instance.WriteErrorLog("test4");
+            }
 
+            if (model == null)
+            {
+                dp2WeiXinService.Instance.WriteErrorLog("test5");
+                strError = "model为null,返回值为" + nRet + "，error为" + strError;
+                goto ERROR1;
+            }
+
+            dp2WeiXinService.Instance.WriteErrorLog("test6");
             return View(model);
 
         ERROR1:
+
+            dp2WeiXinService.Instance.WriteErrorLog("test7");
+            if (strError == "")
+            {
+                strError = "error怎么没赋值呢？ret=" + nRet;
+            }
             ViewBag.Error = strError;
             return View();
         }
@@ -249,7 +271,7 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "xml", out activeUserItem, out strXml);
+            int nRet = this.GetReaderXml(code, state, "xml", out activeUserItem, out strXml,out strError);
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
 
@@ -279,7 +301,7 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "",out activeUserItem, out strXml);
+            int nRet = this.GetReaderXml(code, state, "",out activeUserItem, out strXml,out strError);
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
             if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
@@ -305,7 +327,7 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
+            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml,out strError);
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
 
@@ -355,13 +377,14 @@ namespace dp2weixinWeb.Controllers
         private int GetReaderXml(string code, string state,
             string strFormat,
             out WxUserItem activeUserItem,
-            out string strXml)
+            out string strXml,
+            out string strError)
         {
             strXml = "";
             activeUserItem = null;
+            strError = "";
 
             // 检查是否从微信入口进来
-            string strError = "";
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
                 return -1;

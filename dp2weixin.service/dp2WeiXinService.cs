@@ -3351,7 +3351,7 @@ ERROR1:
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "GetBiblioInfo()检索出错：" + result.ErrorInfo + " \n dp2mserver账户:" + connection.UserName;
+                    strError = "GetBiblioInfo()检索出错：" + result.ErrorInfo;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -3448,7 +3448,7 @@ ERROR1:
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "GetBiblioSummary()检索出错：" + result.ErrorInfo + " \n dp2mserver账户:" + connection.UserName;
+                    strError = "GetBiblioSummary()检索出错：" + result.ErrorInfo ;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -3578,14 +3578,14 @@ ERROR1:
                 }
                 catch (Exception ex)
                 {
-                    strError = "GetItemInfo()检索出错1：" + ex.Message + " \n dp2mserver账户:" + connection.UserName;
+                    strError = "GetItemInfo()检索出错1：" + ex.Message;// +" \n dp2mserver账户:" + connection.UserName;
                     return -1;
                 }
 
                 //this.WriteLog("GetItemInfo3");
                 if (result.ResultCount == -1 && result.ErrorCode != "ItemDbNotDef") // 2016-8-19 过滤到未定义实体库的情况
                 {
-                    strError = "GetItemInfo()检索出错：" + result.ErrorInfo + " \n dp2mserver账户:" + connection.UserName;
+                    strError = "GetItemInfo()检索出错：" + result.ErrorInfo;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -4451,12 +4451,13 @@ ERROR1:
                 if (result.ResultCount == -1)
                 {
                     strError = result.ErrorInfo;
+                    //WriteErrorLog("返回-1，返回errorinfo:" + strError);
                     return -1;
                 }
 
                 if (result.ResultCount == 0)
                 {
-                    strError = result.ErrorInfo;
+                    strError = "未命中:"+result.ErrorInfo;
                     return 0;
                 }
                 string path = result.Records[0].RecPath;
@@ -4470,15 +4471,21 @@ ERROR1:
             catch (AggregateException ex)
             {
                 strError = MessageConnection.GetExceptionText(ex);
+                //WriteErrorLog("2返回-1，返回errorinfo:" + strError);
+
                 goto ERROR1;
             }
             catch (Exception ex)
             {
                 strError = ex.Message;
+                //WriteErrorLog("3返回-1，返回errorinfo:" + strError);
+
                 goto ERROR1;
             }
 
         ERROR1:
+            //WriteErrorLog("4返回-1，返回errorinfo:" + strError);
+
             return -1;
         }
 
@@ -5631,7 +5638,7 @@ ERROR1:
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "GetUserInfo()出错：" + result.ErrorInfo + " \n dp2mserver账户:" + connection.UserName;
+                    strError = "GetUserInfo()出错：" + result.ErrorInfo;// +" \n dp2mserver账户:" + connection.UserName;
                     return -1;
                 }
                 if (result.ResultCount == 0)
