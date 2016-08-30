@@ -7,11 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Threading;
+using System.Net;
 
 using MongoDB.Driver;
 
 using DigitalPlatform.IO;
-using System.Net;
 
 namespace DigitalPlatform.MessageServer
 {
