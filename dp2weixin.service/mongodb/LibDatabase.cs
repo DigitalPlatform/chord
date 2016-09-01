@@ -87,9 +87,9 @@ namespace dp2weixin.service
             }
             return null;
         }
-        public LibItem GetLibByLibCode(string libCode)
+        public LibItem GetLibByCapoUserName(string capoUserName)
         {
-            var filter = Builders<LibItem>.Filter.Eq("libCode", libCode);
+            var filter = Builders<LibItem>.Filter.Eq("capoUserName", capoUserName);
             List<LibItem> list = this.LibCollection.Find(filter).ToList();
             if (list.Count > 0)
             {
