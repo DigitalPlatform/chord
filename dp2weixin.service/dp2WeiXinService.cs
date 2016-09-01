@@ -493,7 +493,7 @@ namespace dp2weixin.service
             }
             catch (Exception ex)
             {
-                strError = "加载消息返回的data到xml出错:" + ex.Message;
+                strError = "加载消息返回的data到xml出错：" + ex.Message;
                 return -1;
             }
 
@@ -551,7 +551,7 @@ namespace dp2weixin.service
             }
             catch (Exception ex)
             {
-                strError = "加载消息data中的body到xml出错:" + ex.Message;
+                strError = "加载消息data中的body到xml出错：" + ex.Message;
                 return -1;
             }
             XmlNode root = bodyDom.DocumentElement;
@@ -1960,7 +1960,7 @@ namespace dp2weixin.service
                 }
                 if (nRet == -1)
                 {
-                    strError = "向读者 '" + strBarcode + "' 发送" + external_interface.Type + " message时出错: " + strError;
+                    strError = "向读者 '" + strBarcode + "' 发送" + external_interface.Type + " message时出错：" + strError;
 
                     this.WriteErrorLog(strError);
                     return -1;
@@ -3247,7 +3247,7 @@ ERROR1:
                     out strError);
                 if (nRet == -1)
                 {
-                    strError = "XML转换到MARC记录时出错: " + strError;
+                    strError = "XML转换到MARC记录时出错：" + strError;
                     return -1;
                 }
 

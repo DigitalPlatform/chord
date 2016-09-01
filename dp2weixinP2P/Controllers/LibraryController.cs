@@ -147,7 +147,7 @@ namespace dp2weixinWeb.Controllers
                     }
 
                     int nHasRights = dp2WeiXinService.Instance.CheckRights(lib,
-                        user.userName,
+                        user.userName,   
                         needRight,
                         out strError);
                     if (nHasRights == -1)
