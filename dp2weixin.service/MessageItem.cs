@@ -42,7 +42,7 @@ namespace dp2weixin.service
         //}
     }
 
-    public class MessageResult : ApiResult
+    public class WxMessageResult : ApiResult
     {
         public List<MessageItem> items { get; set; }
 

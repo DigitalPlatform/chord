@@ -45,7 +45,7 @@ namespace dp2weixinWeb.Controllers
                         goto ERROR1;
                     }
 
-                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib,
                         user.userName,
                         needRight,
                         out strError);
@@ -146,7 +146,7 @@ namespace dp2weixinWeb.Controllers
                         goto ERROR1;
                     }
 
-                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib,
                         user.userName,
                         needRight,
                         out strError);
@@ -222,7 +222,7 @@ namespace dp2weixinWeb.Controllers
                     goto ERROR1;
                 }
 
-                int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                int nHasRights = dp2WeiXinService.Instance.CheckRights(lib,
                     user.userName,
                     needRight,
                     out strError);

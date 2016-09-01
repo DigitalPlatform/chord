@@ -130,14 +130,14 @@ namespace dp2weixinWeb.ApiControllers
         /// <param name="msgId"></param>
         /// <param name="style">browse/full</param>
         /// <returns></returns>
-        public MessageResult GetMessage(string weixinId, 
+        public WxMessageResult GetMessage(string weixinId, 
             string group,
             string libId, 
             string msgId,
             string subject,
             string style)
         {
-            MessageResult result = new MessageResult();
+            WxMessageResult result = new WxMessageResult();
 
             if (group != dp2WeiXinService.C_Group_Bb
                 && group != dp2WeiXinService.C_Group_Book
@@ -176,7 +176,7 @@ namespace dp2weixinWeb.ApiControllers
                         return result;
                     }
 
-                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib,
                         user.userName,
                         needRight,
                         out strError);
@@ -220,7 +220,7 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         // 新增消息
-        public MessageResult Post(string weixinId, 
+        public WxMessageResult Post(string weixinId, 
             string group, 
             string libId, 
             string parameters, 
@@ -239,7 +239,7 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         // 修改消息
-        public MessageResult Put(string weixinId,
+        public WxMessageResult Put(string weixinId,
             string group,
             string libId,
             MessageItem item)
@@ -254,7 +254,7 @@ namespace dp2weixinWeb.ApiControllers
 
         // DELETE api/<controller>/5
         [HttpDelete]
-        public MessageResult Delete(string group, string libId, string msgId,string userName)
+        public WxMessageResult Delete(string group, string libId, string msgId,string userName)
         {
             MessageItem item = new MessageItem();
             item.id = msgId;

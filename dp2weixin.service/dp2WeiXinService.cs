@@ -1662,8 +1662,30 @@ namespace dp2weixin.service
 
         #endregion
 
+        /// <summary>
+        /// 得到友好的提示
+        /// </summary>
+        /// <returns></returns>
+        private string GetFriendlyErrorInfo(MessageResult result,string libName)
+        {
+            if (result.String == "TargetNotFound")
+            {
+                return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问";
+            }
 
+            return result.ErrorInfo;
+        }
 
+        //SearchRequest
+        private string GetFriendlyErrorInfo(SearchResult result, string libName)
+        {
+            if (result.ErrorCode== "TargetNotFound")
+            {
+                return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问";
+            }
+
+            return result.ErrorInfo;
+        }
 
         #region 找回密码，修改密码，二维码
 
@@ -1815,7 +1837,7 @@ namespace dp2weixin.service
                     new TimeSpan(0, 1, 10), // 10 秒
                     cancel_token).Result;
                 if (result.Value == -1)
-                {
+                {                    
                     strError = "操作失败：" + result.ErrorInfo;
                     return -1;
                 }
@@ -2098,15 +2120,12 @@ namespace dp2weixin.service
                     cancel_token).Result;
                 if (result.Value == -1)
                 {
-                    strError = result.ErrorInfo;
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName); //result.ErrorInfo;
                     return -1;
                 }
 
                 // 获取需要缓存的信息
                 string xml = result.Results[0];
-                //XmlDocument dom = new XmlDocument();
-                //dom.LoadXml(xml);
-                //XmlNode rootNode = dom.DocumentElement;
 
                 // 读者信息
                 string readerBarcode = "";
@@ -2130,9 +2149,6 @@ namespace dp2weixin.service
 
                     List<string> weixinIds = null;
                     this.GetWorkerInfoByXml(xml, out weixinIds, out userName, out libraryCode);
-
-                    //userName = DomUtil.GetAttr(rootNode, "name");
-                    //libraryCode = DomUtil.GetAttr(rootNode, "libraryCode");
                 }
                 else
                 {
@@ -2311,7 +2327,7 @@ namespace dp2weixin.service
                     cancel_token).Result;
                 if (result.Value == -1)
                 {
-                    strError = result.ErrorInfo;
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName);//result.ErrorInfo;
                     return -1;
                 }
 
@@ -2327,12 +2343,12 @@ namespace dp2weixin.service
                 this.UpdateUserSetting(weixinId, lib.id, null, false, refID);
 
                 // 发送解绑消息    
-                string strFirst = "🔒您已成功对图书馆读者账号解除绑定。";
+                string strFirst = "☀您已成功对图书馆读者账号解除绑定。";
                 string strAccount = userItem.readerName + "(" + userItem.readerBarcode + ")";
                 string strRemark = "\n您现在不能查看您在该图书馆的个人信息了，如需访问，请重新绑定。";
                 if (userItem.type == WxUserDatabase.C_Type_Worker)
                 {
-                    strFirst = "🔒您已成功对图书馆工作人员账号解除绑定。";
+                    strFirst = "☀您已成功对图书馆工作人员账号解除绑定。";
                     strAccount = userItem.userName;
                     strRemark = "\n您现在不能对该图书馆进行管理工作了，如需访问，请重新绑定。";
                 }
@@ -2569,11 +2585,20 @@ namespace dp2weixin.service
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "SearchBiblioInternal()检索出错：" + result.ErrorInfo 
-                        + "\n本方账号:" + connection.UserName 
-                        + "\n目标账号:" + lib.capoUserName
-                        + "\nErrorCode:[" + result.ErrorCode+"]";
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName);
                     return -1;
+
+                    //if (result.ErrorCode == "TargetNotFound")
+                    //{
+                    //    strError = "SearchBiblioInternal()出错：图书馆[" + lib.libName + "]当前不在线，不能访问。";
+                    //}
+                    //else
+                    //{
+                    //    strError = "SearchBiblioInternal()出错：" + result.ErrorInfo
+                    //        + "\n本方账号:" + connection.UserName
+                    //        + "\n目标账号:" + lib.capoUserName
+                    //        + "\nErrorCode:[" + result.ErrorCode + "]";
+                    //}
                 }
                 if (result.ResultCount == 0)
                 {
@@ -2627,7 +2652,7 @@ namespace dp2weixin.service
             }
         }
 
-        #region 封面图像
+        #region 封面图像 静态函数
 
         public static string GetImageHtmlFragment(string libId,
     string strBiblioRecPath,
@@ -2890,10 +2915,10 @@ namespace dp2weixin.service
                 string biblioInfo = "";
                 if (format == "summary")
                 {
-                    nRet = this.GetSummaryAndImgHtml(lib.capoUserName,
+                    nRet = this.GetSummaryAndImgHtml(lib,
                        biblioPath,
                        showCover,
-                       libId,
+                       //lib,
                        out strBiblioInfo,
                        out imgHtml,
                        out strError);
@@ -2913,10 +2938,10 @@ namespace dp2weixin.service
                 }
                 else if (format == "table")
                 {
-                    nRet = this.GetTableAndImgHtml(lib.capoUserName,
+                    nRet = this.GetTableAndImgHtml(lib,//.capoUserName,
                         biblioPath,
                         showCover,
-                        libId,
+                        //libId,
                         out strBiblioInfo,
                         out imgHtml,
                         out strError);
@@ -2951,7 +2976,7 @@ namespace dp2weixin.service
                     {
                         // 检索是否有权限 _wx_setHomePage
                         string needRight = dp2WeiXinService.C_Right_SetHomePage;
-                        int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                        int nHasRights = dp2WeiXinService.Instance.CheckRights(lib,
                             worker.userName,
                             needRight,
                             out strError);
@@ -3039,10 +3064,9 @@ ERROR1:
         }
 
         //得到table风格的书目信息
-        private int GetTableAndImgHtml(string capoUserName,
+        private int GetTableAndImgHtml(LibItem lib,
             string biblioPath,
             bool showCover,
-            string libId,
             out string table,
             out string coverImgHtml,
             out string strError)
@@ -3052,7 +3076,8 @@ ERROR1:
             coverImgHtml = "";
 
             List<string> dataList = null;
-            int nRet = this.GetBiblioInfo(capoUserName, biblioPath,
+            int nRet = this.GetBiblioInfo(lib,//lib.capoUserName,
+                biblioPath,
                "table",
                 out dataList,
                 out strError);
@@ -3099,7 +3124,7 @@ ERROR1:
                     imgUrl = value;
                     if (showCover == true && String.IsNullOrEmpty(imgUrl) == false)
                     {
-                        coverImgHtml = dp2WeiXinService.GetImageHtmlFragment(libId, biblioPath, imgUrl,true);
+                        coverImgHtml = dp2WeiXinService.GetImageHtmlFragment(lib.id, biblioPath, imgUrl,true);
                     }
 
                     table += "<tr>"
@@ -3183,10 +3208,9 @@ ERROR1:
         }
 
 
-        private int GetSummaryAndImgHtml(string capoUserName,
+        private int GetSummaryAndImgHtml(LibItem lib,//string capoUserName,
             string biblioPath,
             bool showCover,
-            string libId,
             out string summary,
             out string coverImgHtml,
             out string strError)
@@ -3196,7 +3220,8 @@ ERROR1:
             coverImgHtml = "";
 
             List<string> dataList = null;
-            int nRet = this.GetBiblioInfo(capoUserName, biblioPath,
+            int nRet = this.GetBiblioInfo(lib, 
+                biblioPath,
                "summary,xml",
                 out dataList,
                 out strError);
@@ -3227,7 +3252,7 @@ ERROR1:
                 }
 
                 string strImageUrl = GetCoverImageUrl(strMARC, "MediumImage");
-                coverImgHtml = dp2WeiXinService.GetImageHtmlFragment(libId, biblioPath, strImageUrl,false);
+                coverImgHtml = dp2WeiXinService.GetImageHtmlFragment(lib.id, biblioPath, strImageUrl,false);
                 
             }
             
@@ -3235,7 +3260,7 @@ ERROR1:
             return 1;
         }
 
-        public int GetBiblioInfo(string capoUserName,
+        public int GetBiblioInfo(LibItem lib,
             string biblioPath,
             string formatList,
             out List<string> dataList,
@@ -3261,15 +3286,15 @@ ERROR1:
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    capoUserName).Result; 
+                    lib.capoUserName).Result; 
                 SearchResult result = connection.SearchTaskAsync(
-                    capoUserName,
+                    lib.capoUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "GetBiblioInfo()检索出错：" + result.ErrorInfo;
+                    strError = "GetBiblioInfo()出错：" + this.GetFriendlyErrorInfo(result, lib.libName);// result.ErrorInfo;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -3284,10 +3309,6 @@ ERROR1:
                         dataList.Add(result.Records[i].Data);
                     }
                 }
-
-                //    summary = result.Records[0].Data;
-                //xml = result.Records[1].Data;
-
 
                 return 1;
             }
@@ -3315,7 +3336,7 @@ ERROR1:
         /// <param name="strRecPath"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int GetBiblioSummary(string capoUserName,
+        public int GetBiblioSummary(LibItem lib,//string capoUserName,
             string word,
             string strBiblioRecPathExclude,
             out string summary,
@@ -3344,16 +3365,16 @@ ERROR1:
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    capoUserName).Result;  //+ "-1"
+                    lib.capoUserName).Result;  //+ "-1"
 
                 SearchResult result = connection.SearchTaskAsync(
-                    capoUserName,
+                    lib.capoUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "GetBiblioSummary()检索出错：" + result.ErrorInfo ;
+                    strError = "GetBiblioSummary()出错：" + this.GetFriendlyErrorInfo(result, lib.libName); //result.ErrorInfo ;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -3413,7 +3434,7 @@ ERROR1:
                  {
                      // 检索是否有权限 _wx_setHomePage
                      string needRight = dp2WeiXinService.C_Right_SetHomePage;
-                     int nHasRights = dp2WeiXinService.Instance.CheckRights(lib.capoUserName,
+                     int nHasRights = dp2WeiXinService.Instance.CheckRights(lib,
                          worker.userName,
                          needRight,
                          out strError);
@@ -3472,25 +3493,16 @@ ERROR1:
                     capoUserName).Result;  //+"-2"
                 //this.WriteLog("GetItemInfo2");
 
-                SearchResult result = null;
-                try
-                {
-                    result = connection.SearchTaskAsync(
+                SearchResult result = connection.SearchTaskAsync(
                        capoUserName,
                        request,
                        new TimeSpan(0, 1, 0),
                        cancel_token).Result;
-                }
-                catch (Exception ex)
-                {
-                    strError = "GetItemInfo()检索出错1：" + ex.Message;// +" \n dp2mserver账户:" + connection.UserName;
-                    return -1;
-                }
 
                 //this.WriteLog("GetItemInfo3");
                 if (result.ResultCount == -1 && result.ErrorCode != "ItemDbNotDef") // 2016-8-19 过滤到未定义实体库的情况
                 {
-                    strError = "GetItemInfo()检索出错：" + result.ErrorInfo;
+                    strError = "GetItemInfo()出错：" + this.GetFriendlyErrorInfo(result, lib.libName);//result.ErrorInfo;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -3713,7 +3725,7 @@ ERROR1:
         }
 
         // 获取多个item的summary
-        public string GetBarcodesSummary(string capoUserName,
+        public string GetBarcodesSummary(LibItem lib,//string capoUserName,
             string strBarcodes)
         {
             string strSummary = "";
@@ -3745,7 +3757,7 @@ ERROR1:
 
                 //    GetBiblioSummaryResponse result = channel.GetBiblioSummary(strBarcode, strPrevBiblioRecPath);
                 string strError = "";
-                int nRet = this.GetBiblioSummary(capoUserName,
+                int nRet = this.GetBiblioSummary(lib,//capoUserName,
                     strBarcode,
                     strPrevBiblioRecPath,
                     out strOneSummary,
@@ -4355,8 +4367,7 @@ ERROR1:
 
                 if (result.ResultCount == -1)
                 {
-                    strError = result.ErrorInfo;
-                    //WriteErrorLog("返回-1，返回errorinfo:" + strError);
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName);//result.ErrorInfo;
                     return -1;
                 }
 
@@ -4376,15 +4387,11 @@ ERROR1:
             catch (AggregateException ex)
             {
                 strError = MessageConnection.GetExceptionText(ex);
-                //WriteErrorLog("2返回-1，返回errorinfo:" + strError);
-
                 goto ERROR1;
             }
             catch (Exception ex)
             {
                 strError = ex.Message;
-                //WriteErrorLog("3返回-1，返回errorinfo:" + strError);
-
                 goto ERROR1;
             }
 
@@ -4553,6 +4560,11 @@ ERROR1:
                     request,
                     new TimeSpan(0, 1, 10), // 10 秒
                     cancel_token).Result;
+                if (result.Value == -1)
+                {
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName);
+                    return -1;
+                }
 
                 strError = result.ErrorInfo;
                 return (int)result.Value;
@@ -4613,70 +4625,73 @@ ERROR1:
                     request,
                     new TimeSpan(0, 1, 10), // 10 秒
                     cancel_token).Result;
-
-                strError = result.ErrorInfo;
-
-                if (result.Value != -1)
+                if (result.Value == -1)
                 {
-                    if (style == "delete")
-                    {
-                        reserRowHtml = this.getReservationHtml("未预约", items, true);
-                    }
-                    else if (style=="new")
-                    {
-                        // 根据result.ErrorInfo区分是否到书 todo这个区分可靠吗？
-                        if (strError !="")
-                            reserRowHtml = this.getReservationHtml("已到书", items, true);
-                        else
-                            reserRowHtml = this.getReservationHtml("已预约", items, true);
-                    }
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName);
+                    return -1;
+                }
 
 
-                    // 取消预约，发送微信通知
-                    if (style == "delete")
+
+                if (style == "delete")
+                {
+                    reserRowHtml = this.getReservationHtml("未预约", items, true);
+                }
+                else if (style == "new")
+                {
+                    // 根据result.ErrorInfo区分是否到书 todo这个区分可靠吗？
+                    if (strError != "")
+                        reserRowHtml = this.getReservationHtml("已到书", items, true);
+                    else
+                        reserRowHtml = this.getReservationHtml("已预约", items, true);
+                }
+
+
+                // 取消预约，发送微信通知
+                if (style == "delete")
+                {
+                    try
                     {
-                        try
+                        string operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                        string strText = "您已对图书[" + items + "]取消预约,该书将不再为您保留，读者证号[" + patron + "]。";
+                        string remark = "\n" + this._msgRemark;
+
+                        var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                        //{{first.DATA}}
+                        //标题：{{keyword1.DATA}}
+                        //时间：{{keyword2.DATA}}
+                        //内容：{{keyword3.DATA}}
+                        //{{remark.DATA}}
+                        var msgData = new BorrowTemplateData()
                         {
-                            string operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                            string strText = "您已对图书[" + items + "]取消预约,该书将不再为您保留，读者证号["+patron+"]。";
-                            string remark = "\n"+this._msgRemark;
+                            first = new TemplateDataItem("☀☀☀☀☀☀☀☀☀☀", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
+                            keyword1 = new TemplateDataItem("取消预约成功", "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                            keyword2 = new TemplateDataItem(operTime, "#000000"),
+                            keyword3 = new TemplateDataItem(strText, "#000000"),
+                            remark = new TemplateDataItem(remark, "#CCCCCC")
+                        };
 
-                            var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
-
-                            //{{first.DATA}}
-                            //标题：{{keyword1.DATA}}
-                            //时间：{{keyword2.DATA}}
-                            //内容：{{keyword3.DATA}}
-                            //{{remark.DATA}}
-                            var msgData = new BorrowTemplateData()
-                            {
-                                first = new TemplateDataItem("☀☀☀☀☀☀☀☀☀☀", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
-                                keyword1 = new TemplateDataItem("取消预约成功", "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                                keyword2 = new TemplateDataItem(operTime, "#000000"),
-                                keyword3 = new TemplateDataItem(strText, "#000000"),
-                                remark = new TemplateDataItem(remark, "#CCCCCC")
-                            };
-
-                            // 发送模板消息
-                            var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                                weixinId,
-                                WeiXinConst.C_Template_Message,
-                                "#FF0000",
-                                "",//不出现详细了
-                                msgData);
-                            if (result1.errcode != 0)
-                            {
-                                strError = result1.errmsg;
-                                return -1;
-                            }
-                        }
-                        catch (Exception ex)
+                        // 发送模板消息
+                        var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                            weixinId,
+                            WeiXinConst.C_Template_Message,
+                            "#FF0000",
+                            "",//不出现详细了
+                            msgData);
+                        if (result1.errcode != 0)
                         {
-                            this.WriteErrorLog("给读者" + patron + "发送'取消预约成功'通知异常：" + ex.Message);
+                            strError = result1.errmsg;
+                            return -1;
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        this.WriteErrorLog("给读者" + patron + "发送'取消预约成功'通知异常：" + ex.Message);
                     }
                 }
 
+                strError = result.ErrorInfo;
                 return (int)result.Value;
             }
             catch (AggregateException ex)
@@ -4826,7 +4841,7 @@ ERROR1:
                     cancel_token).Result;
                 if (result.Value == -1 || result.Value == 0)
                 {
-                    strError = "出错：" + result.ErrorInfo;
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName); //"出错：" + result.ErrorInfo;
                     return (int)result.Value;
                 }
 
@@ -5225,7 +5240,10 @@ ERROR1:
                     new TimeSpan(0, 1, 0),
                     cancel_token);
                 if (result.Value == -1)
+                {
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName);
                     goto ERROR1;
+                }
 
                 records = result.Results;
                 return result.Results.Count;
@@ -5246,13 +5264,13 @@ ERROR1:
         }
 
 
-        public MessageResult CoverMessage(string group,
+        public WxMessageResult CoverMessage(string group,
             string libId,
             MessageItem item,
             string style,
             string parameters)
         {
-            MessageResult result = new MessageResult();
+            WxMessageResult result = new WxMessageResult();
             string strError = "";
             MessageItem returnItem = null;
             int nRet = this.CoverMessage(group,
@@ -5326,7 +5344,7 @@ ERROR1:
                     strError = "根据id[" + libId + "]未找到对应的图书馆配置";
                     goto ERROR1;
                 }
-                int nHasRights = this.CheckRights(libItem.capoUserName, item.creator, needRight, out strError);
+                int nHasRights = this.CheckRights(libItem, item.creator, needRight, out strError);
                 if (nHasRights == -1)
                 {
                     strError = "用账户名'" + item.creator + "'获取工作人员账户出错：" + strError;
@@ -5453,11 +5471,11 @@ ERROR1:
         /// 0   无权限
         /// 1   有权限
         /// </returns>
-        public int CheckRights(string capoUserName, string worker, string needRight, out string strError)
+        public int CheckRights(LibItem lib, string worker, string needRight, out string strError)
         {
             strError = "";
             string rights = "";
-            int nRet = this.GetUserRights(capoUserName,
+            int nRet = this.GetUserRights(lib,
                 worker,
                 out rights,
                 out strError);
@@ -5481,7 +5499,8 @@ ERROR1:
         /// <param name="right"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int GetUserRights(string capoUserName, string strWord,
+        public int GetUserRights(LibItem lib, 
+            string strWord,
             out string rights,
             out string strError)
         {
@@ -5489,7 +5508,7 @@ ERROR1:
             rights = "";
 
             List<Record> records = null;
-            int nRet = this.GetUserInfo1(capoUserName, strWord, out records, out strError);
+            int nRet = this.GetUserInfo1(lib, strWord, out records, out strError);
             if (nRet == -1 || nRet == 0)
                 return nRet;
 
@@ -5506,7 +5525,7 @@ ERROR1:
         }
 
 
-        public int GetUserInfo1(string capoUserName, string strWord,
+        public int GetUserInfo1(LibItem lib, string strWord,
             out List<Record> records,
             out string strError)
         {
@@ -5534,16 +5553,16 @@ ERROR1:
 
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
-                    capoUserName).Result;
+                    lib.capoUserName).Result;
 
                 SearchResult result = connection.SearchTaskAsync(
-                    capoUserName,
+                    lib.capoUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "GetUserInfo()出错：" + result.ErrorInfo;// +" \n dp2mserver账户:" + connection.UserName;
+                    strError = "GetUserInfo()出错：" + this.GetFriendlyErrorInfo(result,lib.libName);// result.ErrorInfo;// +" \n dp2mserver账户:" + connection.UserName;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -5999,7 +6018,7 @@ ERROR1:
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = result.ErrorInfo;
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName);// result.ErrorInfo;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -6065,7 +6084,7 @@ ERROR1:
             strError = "";
 
             List<Record> records = null;
-            int nRet = this.GetUserInfo1(lib.capoUserName, "", out records, out strError);
+            int nRet = this.GetUserInfo1(lib, "", out records, out strError);
             if (nRet == -1 || nRet == 0)
             {
                 return nRet;
