@@ -304,7 +304,22 @@ namespace dp2Capo.Install
         }
 
         /*
-微信公众号新图书馆dp2mserver账号命名：weixin_图书馆英文或中文简称（如weixin_cctb,weixin_tjsyzx）权限：getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes义务：空单位：图书馆名称群组：gn:_lib_bbgn:_lib_bookgn:_lib_homePage===新图书馆安装dp2capo时创建的dp2mserver账号命名：capo_图书馆英文或中文简称（如capo_cctb,capo_tjsyzx）权限：空义务：getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes单位：图书馆名称群组：gn:_patronNotify
+微信公众号新图书馆dp2mserver账号
+命名：weixin_图书馆英文或中文简称（如weixin_cctb,weixin_tjsyzx）
+权限：getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes
+义务：空
+单位：图书馆名称
+群组：gn:_lib_bb
+gn:_lib_book
+gn:_lib_homePage
+
+===
+新图书馆安装dp2capo时创建的dp2mserver账号
+命名：capo_图书馆英文或中文简称（如capo_cctb,capo_tjsyzx）
+权限：空
+义务：getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes
+单位：图书馆名称
+群组：gn:_patronNotify
          * */
 
         async Task<bool> CreateCapoUser()

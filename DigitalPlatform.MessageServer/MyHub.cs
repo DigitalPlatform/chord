@@ -2251,6 +2251,7 @@ ex.GetType().ToString());
                 {
                     result.Value = 0;
                     result.ErrorInfo = "当前没有发现可操作的目标 (详情 '" + strError + "')";
+                    result.String = "targetNotFound";
                     return result;
                 }
 #if LOG
@@ -2517,6 +2518,7 @@ ex.GetType().ToString());
                     result.Value = 0;
                     // result.ErrorInfo = "当前没有任何可检索的目标 (目标用户名 '"+userNameList+"'; 操作 '"+searchParam.Operation+"')";
                     result.ErrorInfo = "当前没有发现可检索的目标 (详情 '" + strError + "')";
+                    result.String = "targetNotFound";
                     return result;
                 }
 #if LOG
@@ -2800,6 +2802,7 @@ true);
             {
                 result.Value = 0;
                 result.ErrorInfo = "当前没有任何可操作的目标";
+                result.String = "targetNotFound";
                 return result;
             }
 
@@ -2949,6 +2952,7 @@ true);
             {
                 result.Value = 0;
                 result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
+                result.String = "targetNotFound";
                 return result;
             }
 
@@ -3065,6 +3069,7 @@ true);
             {
                 result.Value = 0;
                 result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
+                result.String = "targetNotFound";
                 return result;
             }
 
@@ -3193,7 +3198,8 @@ true);
                 {
                     result.Value = 0;
                     // result.ErrorInfo = "当前没有任何可检索的目标 (目标用户名 '"+userNameList+"'; 操作 '"+searchParam.Operation+"')";
-                    result.ErrorInfo = "当前没有发现可检索的目标 (详情 '" + strError + "')";
+                    result.ErrorInfo = "当前没有发现可操作的目标 (详情 '" + strError + "')";
+                    result.String = "targetNotFound";
                     return result;
                 }
 
