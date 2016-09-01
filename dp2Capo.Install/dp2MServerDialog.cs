@@ -357,7 +357,7 @@ this.Font);
                 user.userName = this.textBox_userName.Text;
                 user.password = this.textBox_password.Text;
                 user.rights = "";
-                user.duty = "getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes";
+                user.duty = "getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes,getSystemParameter";
                 user.groups = new string[] { "gn:_patronNotify" };
                 user.department = strDepartment;
 
