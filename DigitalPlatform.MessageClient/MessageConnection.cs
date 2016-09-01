@@ -814,6 +814,7 @@ CancellationToken token)
                     {
                         result.ErrorInfo = message.ErrorInfo;
                         result.ResultCount = -1;
+                        result.ErrorCode = message.String;
                         return result;
                     }
 
@@ -1009,6 +1010,7 @@ param);
                         {
                             result.ErrorInfo = message.ErrorInfo;
                             result.Value = -1;
+                            result.String = message.String;
                             return result;
                         }
                     }
@@ -1163,6 +1165,7 @@ param);
                 {
                     task.result.ErrorInfo = message.ErrorInfo;
                     task.result.ResultCount = -1;
+                    task.result.ErrorCode = message.String;
                     return task.result;
                 }
 
@@ -1351,6 +1354,7 @@ CancellationToken token)
                             {
                                 result.ErrorInfo = message.ErrorInfo;
                                 result.ResultCount = -1;
+                                result.ErrorCode = message.String;
                                 Debug.WriteLine("return pos 1");
                                 return result;
                             }
@@ -1516,6 +1520,7 @@ CancellationToken token)
                             {
                                 result.ErrorInfo = message.ErrorInfo;
                                 result.ResultCount = -1;
+                                result.ErrorCode = message.String;
                                 Debug.WriteLine("return pos 1");
                                 return result;
                             }
@@ -1695,6 +1700,7 @@ token);
                     {
                         result.ErrorInfo = message.ErrorInfo;
                         result.ResultCount = -1;
+                        result.ErrorCode = message.String;
                         Debug.WriteLine("return pos 1");
                         return result;
                     }
@@ -1841,6 +1847,7 @@ cancellation_token);
                 {
                     result.ErrorInfo = message.ErrorInfo;
                     result.ResultCount = -1;
+                    result.ErrorCode = message.String;
                     return result;
                 }
 
@@ -2011,6 +2018,7 @@ CancellationToken token)
                     {
                         result.ErrorInfo = message.ErrorInfo;
                         result.Value = -1;
+                        result.String = message.String;
                         return result;
                     }
 
@@ -2084,6 +2092,7 @@ CancellationToken token)
                     {
                         result.ErrorInfo = message.ErrorInfo;
                         result.Value = -1;
+                        result.String = message.String;
                         return result;
                     }
 
@@ -2153,6 +2162,7 @@ CancellationToken token)
                         // -1 表示请求失败；0 表示没有找到调用目标。1 才是成功发起了操作
                         result.ErrorInfo = message.ErrorInfo;
                         result.Value = -1;
+                        result.String = message.String;
                         return result;
                     }
 
@@ -2291,6 +2301,7 @@ token);
                     {
                         result.ErrorInfo = message.ErrorInfo;
                         result.TotalLength = -1;
+                        result.ErrorCode = message.String;
                         Debug.WriteLine("return pos 1");
                         return result;
                     }
@@ -2443,6 +2454,7 @@ CancellationToken token)
                     {
                         result.ErrorInfo = message.ErrorInfo;
                         result.TotalLength = -1;
+                        result.ErrorCode = message.String;
                         Debug.WriteLine("return pos 1");
                         return result;
                     }
