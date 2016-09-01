@@ -718,7 +718,12 @@ Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
         {
             IMongoCollection<MessageItem> collection = this._collection;
 
-            FilterDefinition<MessageItem> filter = Builders<MessageItem>.Filter.Lt("publishTime", publish_end_time);
+            // FilterDefinition<MessageItem> filter = Builders<MessageItem>.Filter.Lt("publishTime", publish_end_time);
+
+            // 删除 expireTime 不为 0 的，并且 publishTime 在一定时间 publish_end_time 以前的那些记录
+            FilterDefinition<MessageItem> filter = Builders<MessageItem>.Filter.And(
+Builders<MessageItem>.Filter.Gt("expireTime", new DateTime(0)),
+Builders<MessageItem>.Filter.Lt("publishTime", publish_end_time));
 
             // DeleteResult result = 
             await collection.DeleteManyAsync(filter);
