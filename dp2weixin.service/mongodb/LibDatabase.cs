@@ -115,30 +115,36 @@ namespace dp2weixin.service
                     if (String.IsNullOrEmpty(item.wxPassword) == false)
                         item.wxPassword = Cryptography.Decrypt(item.wxPassword, WeiXinConst.EncryptKey);
 
+                    if (item.libName == WeiXinConst.C_Dp2003LibName)
+                    {
+                        item.no = -1;
+                    }
                 }
             }
             //list.Sort()
             list.Sort((x, y) =>
             {
-                int value = x.libName.CompareTo(y.libName);
+                int value = x.no.CompareTo(y.no);
+                if (value==0)
+                    value=x.libName.CompareTo(y.libName);
                 return value;
             });
             return list;
         }
 
-        public LibItem GetOneLib()
-        {
-            LibItem item = null;
-            List<LibItem> list = this.LibCollection.Find(new BsonDocument()).ToListAsync().Result;
-            if (list != null && list.Count > 0)
-            {
-                item = list[0];
-                //解密
-                if (String.IsNullOrEmpty(item.wxPassword) == false)
-                    item.wxPassword = Cryptography.Decrypt(item.wxPassword, WeiXinConst.EncryptKey);
-            }
-            return item;
-        }
+        //public LibItem GetOneLib()
+        //{
+        //    LibItem item = null;
+        //    List<LibItem> list = this.LibCollection.Find(new BsonDocument()).ToListAsync().Result;
+        //    if (list != null && list.Count > 0)
+        //    {
+        //        item = list[0];
+        //        //解密
+        //        if (String.IsNullOrEmpty(item.wxPassword) == false)
+        //            item.wxPassword = Cryptography.Decrypt(item.wxPassword, WeiXinConst.EncryptKey);
+        //    }
+        //    return item;
+        //}
 
         public LibItem Add(LibItem item)
         {
@@ -222,6 +228,8 @@ namespace dp2weixin.service
 
 
         public string searchDbs { get; set; }  // 参于检索的书目库
+
+        public int no = 0;
 
     }
 }

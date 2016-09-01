@@ -68,6 +68,9 @@ namespace dp2weixin.service
         // 微信信息
         public string weiXinAppId { get; set; }
         public string weiXinSecret { get; set; }
+        public string weixin_Token { get; set; }
+        public string weixin_EncodingAESKey { get; set; }
+
         public bool bTrace = false;
 
         // 微信web程序url
@@ -87,6 +90,9 @@ namespace dp2weixin.service
                 return this._channels;
             }
         }
+
+        public Hashtable TracingOnUsers = new Hashtable(); //List<TraceOnUser>();
+
 
 
         #endregion
@@ -148,9 +154,10 @@ namespace dp2weixin.service
 
             // 取出微信配置信息
             XmlNode nodeDp2weixin = root.SelectSingleNode("dp2weixin");
-            //this.opacUrl = DomUtil.GetAttr(nodeDp2weixin, "opacUrl"); //WebConfigurationManager.AppSettings["weiXinUrl"];
             this.weiXinAppId = DomUtil.GetAttr(nodeDp2weixin, "AppId"); //WebConfigurationManager.AppSettings["weiXinAppId"];
             this.weiXinSecret = DomUtil.GetAttr(nodeDp2weixin, "Secret"); //WebConfigurationManager.AppSettings["weiXinSecret"];
+            this.weixin_Token = DomUtil.GetAttr(nodeDp2weixin, "Token");
+            this.weixin_EncodingAESKey = DomUtil.GetAttr(nodeDp2weixin, "EncodingAESKey");
             string trace = DomUtil.GetAttr(nodeDp2weixin, "trace");
             if (trace.ToLower() == "true")
                 this.bTrace = true;

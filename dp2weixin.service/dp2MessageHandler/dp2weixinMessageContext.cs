@@ -24,22 +24,14 @@ namespace dp2weixin
     /// </summary>
     public class dp2weixinMessageContext : MessageContext<IRequestMessageBase,IResponseMessageBase>
     {
-        /// <summary>
-        /// 读者证条码号，如果未绑定则为空
-        /// </summary>
-        public string ReaderBarcode = "";
-
         // 命令集合
         public CommandContainer CmdContiner = null;
         // 当前命令
         public string CurrentCmdName = null;
 
-        // 当前命令路径,该变量主要用于输入
+        // 当前命令路径,该变量主要用于输出
         public string CurrentCmdPath = "";
 
-        // 图书馆代码
-        public string LibCode1 = "";
-        public string LibUserName = "";
 
         /// <summary>
         /// 构造函数

@@ -20,6 +20,8 @@ namespace dp2weixin.service
         public const int C_Search_MaxCount = 200;
         public const int C_OnePage_Count = 10;
 
+        public const string C_Dp2003LibName = "数字平台";
+
         #region 模板消息
 
         //微信绑定通知

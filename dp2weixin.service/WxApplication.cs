@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace dp2Command.Service
+namespace dp2weixin.service
 {
-    public class SearchCommand:BaseCommand
+    public class WxApplication
     {
-
-        public string ResultSetName = "";
+        public List<string> weixinIds = new List<string>();
     }
 }

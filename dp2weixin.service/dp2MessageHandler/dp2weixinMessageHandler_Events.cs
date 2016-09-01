@@ -26,18 +26,6 @@ namespace dp2weixin
                 + "\r\n1) 去图书馆出纳台，找工作人员在图书馆系统中登记存储您的手机号码；"
                 + "\r\n2) 点击 <a href='" + dp2WeiXinService.C_Url_AccountResetPassword + "'>找回密码</a>，获得您的图书馆读者证密码(密码将自动通过短信发送到您的手机)；"
                 + "\r\n3) 点击 <a href='" + dp2WeiXinService.C_Url_AccountIndex + "'>绑定账户</a>，完成绑定。";
-                //+ "点击<a href='" + dp2WeiXinService.C_Url_AccountIndex + "'>绑定账户</a>绑定您在图书馆的读者账户。"
-                //+ "\n如果您不清楚读者证密码，请点击<a href='" + dp2WeiXinService.C_Url_AccountResetPassword + "'>找回密码</a>。"
-                //+ "(请您确保已经在图书馆登记过手机号，才能使用找回密码功能。)";
-            /*您可以回复：\n"
-               + "search:检索" + "\n"
-               + "binding:绑定读者账号" + "\n"
-               + "unbinding:解除绑定" + "\n"
-               + "myinfo:个人信息" + "\n"
-               + "borrowinfo:借阅信息" + "\n"
-               + "renew:续借" + "\n"
-               + "bookrecommend:新书推荐" + "\n"
-               + "notice:公告";*/
             return this.CreateTextResponseMessage(strMessage,false);
         }
 
@@ -60,37 +48,13 @@ namespace dp2weixin
                     {
                         return this.DoSearch("");
                     }
-                case dp2CommandUtility.C_Command_Binding://"Binding":
+                case dp2CommandUtility.C_Command_Set:
                     {
-                        return this.DoBinding("");
-                    }
-                case dp2CommandUtility.C_Command_Unbinding://"Unbinding":
-                    {
-                        return this.DoUnbinding();
-                    }
-                case dp2CommandUtility.C_Command_MyInfo://"MyInfo":
-                    {
-                        return this.DoMyInfo();
-                    }
-                case dp2CommandUtility.C_Command_BorrowInfo:// "BorrowInfo":
-                    {
-                        return DoBorrowInfo();
-                    }
-                case dp2CommandUtility.C_Command_Renew:// "Renew":
-                    {
-                        return DoRenew("");
-                    }
-                case dp2CommandUtility.C_Command_BookRecommend://"BookRecommend":
-                    {
-                        return this.DoNewBooks();
-                    }
-                case dp2CommandUtility.C_Command_Notice:
-                    {
-                        return this.DoNotice();
+                        return this.DoSet("");
                     }
                 default:
                     {
-                        return this.CreateTextResponseMessage("未知的命令:" + requestMessage.EventKey);
+                        return this.DoUnknownCmd(strEventKey);// this.CreateTextResponseMessage("未知的命令:" + requestMessage.EventKey);
                     }
             }
         }
@@ -105,7 +69,7 @@ namespace dp2weixin
         public override IResponseMessageBase OnEvent_LocationRequest(RequestMessageEvent_Location requestMessage)
         {
             var responseMessage = CreateResponseMessage<ResponseMessageText>();
-            responseMessage.Content = "这里写什么都无所谓，比如：上帝爱你！";
+            responseMessage.Content = "谢谢使用：）";
             return responseMessage;
         }
         /// <summary>

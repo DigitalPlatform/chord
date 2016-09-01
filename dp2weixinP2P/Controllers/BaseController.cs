@@ -178,12 +178,14 @@ namespace dp2weixinWeb.Controllers
             }
             if (libName == "" || libId=="")
             {
-                LibItem lib = LibDatabase.Current.GetOneLib();
-                if (lib == null)
+                List<LibItem> libs = LibDatabase.Current.GetLibs();
+                if (libs == null || libs.Count == 0)
                 {
                     strError = "当前系统未配置图书馆";
                     return -1;
                 }
+
+                LibItem lib = libs[0]; // 第一个是数字平台
                 libName = lib.libName;
                 libId = lib.id;
             }
