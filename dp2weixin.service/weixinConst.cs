@@ -34,7 +34,7 @@ namespace dp2weixin.service
         public const string C_Template_DaoQi = "Q6O3UFPxPnq0rSz82r9P9be41tqEPaJVPD3U0PU8XOU";
 
         //借阅成功通知
-        public const string C_Template_Borrow = "_F9kVyDWhunqM5ijvcwm6HwzVCnwbkeZl6GV6awB_fc";
+        public const string C_Template_Borrow = "2AVbpcn0y1NtqIQ7X7KY1Ebcyyhx6mUXTpAxuOcxSE0";//"_F9kVyDWhunqM5ijvcwm6HwzVCnwbkeZl6GV6awB_fc"; 
         //图书归还通知 
         public const string C_Template_Return = "zzlLzStt_qZlzMFhcDgRm8Zoi-tsxjWdsI2b3FeoRMs";
         //缴费成功通知

@@ -1,4 +1,354 @@
-﻿===bind======
+﻿===LibraryM=======
+        // 新增一项
+        function addLib() {
+
+            var libName = model.editor.libName().trim();
+            if (libName == "") {
+                alert("尚未输入图书馆名称。");
+                return;
+            }
+            var capoUserName = model.editor.capoUserName().trim();
+            if (capoUserName == "") {
+                alert("尚未输入图书馆dp2capo账号名。");
+                return;
+            }
+
+            // 图书馆联系人员手机
+            var capoContactPhone = model.editor.capoContactPhone().trim();
+
+            // 微信端本方账户
+            var wxUserName = model.editor.wxUserName().trim();
+            if (wxUserName == "") {
+                alert("尚未输入图书馆微信本方账号名。");
+                return;
+            }
+            var wxPassword = model.editor.wxPassword().trim();
+            if (wxPassword == "") {
+                alert("尚未输入图书馆微信本方密码。");
+                return;
+            }
+            //微信本方联系人
+            var wxContactPhone = model.editor.wxContactPhone().trim();
+
+            // 备注
+            var comment = model.editor.comment().trim();
+
+            // 参于检索的数据库
+            var searchDbs = model.editor.searchDbs().trim();
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/LibrarySetting";
+            sendAjaxRequest(url, "POST",
+                function (result) {
+                    // 关闭等待层
+                    layer.close(index);
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }
+
+                    model.librarys.push(result.libItem);
+                    model.displaySummary(true);
+
+                    //清空编辑界面信息
+                    //model.editor.libCode("");
+                    model.editor.libName("");
+                    model.editor.capoUserName("");
+                    model.editor.capoContactPhone("");
+
+                    model.editor.wxUserName("");
+                    model.editor.wxPassword("");
+                    model.editor.wxContactPhone("");
+
+                    model.editor.comment("");
+                    model.editor.noShareBiblio(0);
+                    model.editor.searchDbs("");
+
+
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    //libCode: libCode,
+                    libName: libName,
+                    capoUserName: capoUserName,
+                    capoContactPhone: capoContactPhone,
+                    wxUserName: wxUserName,
+                    wxPassword: wxPassword,
+                    wxContactPhone: wxContactPhone,
+                    comment: comment,
+                    noShareBiblio: getNoShareBiblio(),
+                    searchDbs: searchDbs
+                }
+            );
+        }
+
+
+===模板消息===
+
+===以停代金
+
+            foreach (string weixinId in weixinIdList)
+            {
+                try
+                {
+                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                    //{{first.DATA}}
+                    //标题：{{keyword1.DATA}}
+                    //时间：{{keyword2.DATA}}
+                    //内容：{{keyword3.DATA}}
+                    //{{remark.DATA}}
+                    var msgData = new BorrowTemplateData()
+                    {
+                        first = new TemplateDataItem("☀☀☀☀☀☀☀☀☀☀", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
+                        keyword1 = new TemplateDataItem("以停代金到期", "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                        keyword2 = new TemplateDataItem(operTime, "#000000"),
+                        keyword3 = new TemplateDataItem(strText, "#000000"),
+                        remark = new TemplateDataItem(remark, "#CCCCCC")
+                    };
+
+                    // 发送模板消息
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weixinId,
+                        WeiXinConst.C_Template_Message,
+                        "#FF0000",
+                        "",//不出现详细了
+                        msgData);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.WriteErrorLog("给读者" + patronName + "发送'以停代金到期'通知异常：" + ex.Message);
+                }
+            }
+
+===预约
+
+            foreach (string weixinId in weixinIdList)
+            {
+                try
+                {
+                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                    //{{first.DATA}}
+                    //图书书名：{{keyword1.DATA}}
+                    //到书日期：{{keyword2.DATA}}
+                    //保留期限：{{keyword3.DATA}}
+                    //{{remark.DATA}}
+                    var msgData = new ArrivedTemplateData()
+                    {
+                        first = new TemplateDataItem("📗📗📗📗📗📗📗📗📗📗", "#FF8C00"),//  dark orange   	yellow 	#FFFF00
+                        keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                        keyword2 = new TemplateDataItem(today, "#000000"),
+                        keyword3 = new TemplateDataItem("保留" + reserveTime, "#000000"),
+                        remark = new TemplateDataItem(end, "#CCCCCC")
+                    };
+
+                    // 发送预约模板消息
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weixinId,
+                        WeiXinConst.C_Template_Arrived,
+                        "#FF0000",
+                        this.C_Url_PersonalInfo,//详情转到个人信息界面
+                        msgData);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.WriteErrorLog("给读者" + patronName + "发送预约到书通知异常：" + ex.Message);
+                }
+            }
+
+===取消交费==
+
+                foreach (string weixinId in weixinIdList)
+                {
+                    try
+                    {
+                        var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                        //{{first.DATA}}
+                        //书刊摘要：{{keyword1.DATA}}
+                        //册条码号：{{keyword2.DATA}}
+                        //交费原因：{{keyword3.DATA}}
+                        //撤消金额：{{keyword4.DATA}}
+                        //撤消时间：{{keyword5.DATA}}
+                        //{{remark.DATA}}
+                        var msgData = new ReturnPayTemplateData()
+                        {
+                            first = new TemplateDataItem("✈ ☁ ☁ ☁ ☁ ☁ ☁", "#B8860B"),  // ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
+                            //summary
+                            keyword1 = new TemplateDataItem(summary, "#000000"),
+                            keyword2 = new TemplateDataItem(oneBarcode, "#000000"),
+                            keyword3 = new TemplateDataItem(reason, "#000000"),
+                            keyword4 = new TemplateDataItem(price, "#000000"), 
+                            keyword5 = new TemplateDataItem(operTime, "#000000"), 
+                            remark = new TemplateDataItem(remark, "#CCCCCC")
+                        };
+
+                        // 发送模板消息
+                        var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                            weixinId,
+                            WeiXinConst.C_Template_CancelPay,
+                            "#FF0000",
+                            this.C_Url_PersonalInfo,//详情转到个人信息界面
+                            msgData);
+                        if (result1.errcode != 0)
+                        {
+                            strError = result1.errmsg;
+                            return -1;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        this.WriteErrorLog("给读者" + patronName + "发送'撤消交费成功'通知异常：" + ex.Message);
+                    }
+                }
+
+===
+交费
+
+
+                foreach (string weixinId in weixinIdList)
+                {
+
+                    try
+                    {
+                        var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                        //尊敬的读者，您已成功交费。
+                        //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
+                        //册条码号：C0000001
+                        //交费金额：CNY 10元
+                        //交费原因：超期。超1天，违约金因子：CNY1.0/Day
+                        //交费时间：2015-12-27 13:15
+                        //如有疑问，请联系系统管理员。
+                        var msgData = new PayTemplateData()
+                        {
+                            first = new TemplateDataItem("💰💰💰💰💰💰💰💰💰💰", "#556B2F"),//★★★★★★★★★★★★★★★ dark olive green//this._msgFirstLeft+"您已交费成功！"
+                            keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                            keyword2 = new TemplateDataItem(oneBarcode, "#000000"),
+                            keyword3 = new TemplateDataItem(price, "#000000"),
+                            keyword4 = new TemplateDataItem(reason, "#000000"),
+                            keyword5 = new TemplateDataItem(operTime, "#000000"),
+                            remark = new TemplateDataItem(remark, "#CCCCCC")
+                        };
+
+                        // 发送模板消息
+                        var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                            weixinId,
+                            WeiXinConst.C_Template_Pay,
+                            "#FF0000",
+                            this.C_Url_PersonalInfo,//详情转到个人信息界面
+                            msgData);
+                        if (result1.errcode != 0)
+                        {
+                            strError = result1.errmsg;
+                            return -1;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        this.WriteErrorLog("给读者" + patronName + "发送交费成功通知异常：" + ex.Message);
+                    }
+                }
+            }
+
+
+===
+还书
+
+            foreach (string weixinId in weixinIdList)
+            {
+                try
+                {
+                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                    /*
+                    尊敬的读者，您已成功还书。
+                    书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00 
+                    册条码号：C0000001
+                    借书日期：2016-5-27
+                    借阅期限：31天
+                    还书日期：2016-6-27
+                    谢谢您及时归还，欢迎再借。
+                    */
+
+                    var msgData = new ReturnTemplateData()
+                    {
+                        first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#00008B"),  // 	dark blue//this._msgFirstLeft + "您借出的图书已确认归还。"
+                        keyword1 = new TemplateDataItem(summary, "#000000"),
+                        keyword2 = new TemplateDataItem(itemBarcode, "#000000"),
+                        keyword3 = new TemplateDataItem(borrowDate, "#000000"),
+                        keyword4 = new TemplateDataItem(borrowPeriod, "#000000"),
+                        keyword5 = new TemplateDataItem(operTime, "#000000"),
+
+                        remark = new TemplateDataItem(remark, "#CCCCCC")
+                    };
+
+                    // 发送模板消息
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weixinId,
+                        WeiXinConst.C_Template_Return,
+                        "#00008B",
+                        this.C_Url_PersonalInfo,//详情转到个人信息界面
+                        msgData);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.WriteErrorLog("给读者" + patronName + "发送还书成功通知异常：" + ex.Message);
+                }
+            }
+
+===
+借书
+            //foreach (string weixinId in weixinIdList)
+            //{
+            //    try
+            //    {
+            //        //var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+            //        // 发送模板消息
+            //        //var result1 = TemplateApi.SendTemplateMessage(accessToken,
+            //        //    weixinId,
+            //        //    WeiXinConst.C_Template_Borrow,
+            //        //    "#006400",  //FF0000
+            //        //    this.C_Url_PersonalInfo,//详情转到个人信息界面
+            //        //    msgData);
+            //        //if (result1.errcode != 0)
+            //        //{
+            //        //    strError = result1.errmsg;
+            //        //    return -1;
+            //        //}
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        this.WriteErrorLog("给读者" + patronName + "发送借书成功通知异常：" + ex.Message);
+            //    }
+            //}
+
+
+===bind======
                     // 证条码号
                     readerBarcode = DomUtil.GetNodeText(rootNode.SelectSingleNode("barcode"));
                     // 姓名

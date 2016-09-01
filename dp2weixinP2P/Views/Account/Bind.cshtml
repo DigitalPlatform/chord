@@ -89,12 +89,18 @@
                     alert("绑定成功");
 
                     //清空编辑界面信息,前两项可以不清除
-                    model.word("");
-                    model.password("");                
+                    // 2016-8-30 反正也要跳转了，不用清除了。
+                    //model.word("");
+                    //model.password("");                
                     
                     returnUrl = $("#returnUrl").text();
-                    if (returnUrl == "")
-                        returnUrl = "/Library/Home";
+                    if (returnUrl == "") {
+                        if (prefix == "UN")
+                            returnUrl = "/Library/Home"; //工作人员转到图书馆介绍
+                        else
+                            returnUrl = "/Patron/PersonalInfo"; //2016-8-30 读者绑完转到我的信息
+                    }
+
                     if (returnUrl == "/Biblio/Index") {
                         window.history.back(-1); //返回不刷新
                     }

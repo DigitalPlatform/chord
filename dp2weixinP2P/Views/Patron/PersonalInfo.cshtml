@@ -187,7 +187,7 @@ else
                 <td class='value'>
                     @if (String.IsNullOrEmpty(Model.imageUrl) == false)
                     {
-                        <img id="PersonalInfoControl1_photo" src="@Model.imageUrl" style="height:100px;width:100px;" />
+                        <img src="@Model.imageUrl" style="max-width:200px" />
                     }
                 </td>
             </tr>

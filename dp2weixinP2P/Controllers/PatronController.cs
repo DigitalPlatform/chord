@@ -165,13 +165,17 @@ namespace dp2weixinWeb.Controllers
                     strError = ex.Message;
                     goto ERROR1;
                 }
+
+                //Response.OutputStream.Flush();
+
                 string mimetype = DomUtil.GetAttr(dom.DocumentElement, "mimetype");
                 Response.ContentType = mimetype;
+                Response.Clear();
 
                 //ms = dp2WeiXinService.Instance.GetErrorImg(mimetype);
                 //return File(ms.ToArray(), "image/jpeg");  
 
-                Response.OutputStream.Flush();
+
 
                 // 输出数据流
                 nRet = dp2WeiXinService.Instance.GetObjectMetadata(libId,
@@ -549,7 +553,7 @@ namespace dp2weixinWeb.Controllers
                 XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
                 nsmgr.AddNamespace("dprms", DpNs.dprms);
                 // 全部<dprms:file>元素
-                XmlNodeList fileNodes = dom.DocumentElement.SelectNodes("//dprms:file[@usage='photo']", nsmgr);
+                XmlNodeList fileNodes = dom.DocumentElement.SelectNodes("//dprms:file[@usage='cardphoto']", nsmgr);
                 if (fileNodes.Count > 0)
                 {
                     string strPhotoPath = recPath + "/object/" + DomUtil.GetAttr(fileNodes[0], "id");
