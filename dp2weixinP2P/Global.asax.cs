@@ -27,7 +27,6 @@ namespace dp2weixinWeb
             GlobalConfiguration.Configure(WebApiConfig.Register);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
-
             // 从web config中取出数据目录
             string dataDir = WebConfigurationManager.AppSettings["DataDir"];
             if (String.IsNullOrEmpty(dataDir) == true)
@@ -40,12 +39,9 @@ namespace dp2weixinWeb
             {
                 throw new Exception("微信数据目录" + dataDir + "不存在。");
             }
+
             // 初始化命令服务类
             dp2WeiXinService.Instance.Init(dataDir);
-
-            // 注册一缓存条目在5分钟内到期,到期后模拟点击网站网页  
-            //this.RegisterCacheEntry();
-            //HttpContext.Current.Cache.Remove(DummyCacheItemKey);
 
             dp2WeiXinService.Instance.WriteLog("走进Application_Start");
         }

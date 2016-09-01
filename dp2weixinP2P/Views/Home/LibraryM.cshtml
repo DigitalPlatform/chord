@@ -61,6 +61,7 @@
                 wxContactPhone: ko.observable(""),
                 comment: ko.observable(""),
                 noShareBiblio: ko.observable(0),
+                searchDbs: ko.observable("")
             },
             displaySummary: ko.observable(true)
 
@@ -139,105 +140,13 @@
             return count
         }
 
-        // 新增一项
-        function addLib() {
 
-            //var libCode = model.editor.libCode().trim();
-            //if (libCode == "") {
-            //    alert("尚未输入图书馆代码。");
-            //    return;
-            //}
-            var libName = model.editor.libName().trim();
-            if (libName == "") {
-                alert("尚未输入图书馆名称。");
-                return;
-            }
-            var capoUserName = model.editor.capoUserName().trim();
-            if (capoUserName == "") {
-                alert("尚未输入图书馆dp2capo账号名。");
-                return;
-            }
-
-            // 图书馆联系人员手机
-            var capoContactPhone = model.editor.capoContactPhone().trim();
-
-            // 微信端本方账户
-            var wxUserName = model.editor.wxUserName().trim();
-            if (wxUserName == "") {
-                alert("尚未输入图书馆微信本方账号名。");
-                return;
-            }
-            var wxPassword = model.editor.wxPassword().trim();
-            if (wxPassword == "") {
-                alert("尚未输入图书馆微信本方密码。");
-                return;
-            }
-            //微信本方联系人
-            var wxContactPhone = model.editor.wxContactPhone().trim();
-
-            // 备注
-            var comment = model.editor.comment().trim();
-
-            //显示等待图层
-            var index = loadLayer();
-
-            var url = "/api/LibrarySetting";
-            sendAjaxRequest(url, "POST",
-                function (result) {
-                    // 关闭等待层
-                    layer.close(index);
-
-                    if (result.errorCode == -1) {
-                        alert(result.errorInfo);
-                        return;
-                    }
-
-                    model.librarys.push(result.libItem);
-                    model.displaySummary(true);
-
-                    //清空编辑界面信息
-                    //model.editor.libCode("");
-                    model.editor.libName("");
-                    model.editor.capoUserName("");
-                    model.editor.capoContactPhone("");
-
-                    model.editor.wxUserName("");
-                    model.editor.wxPassword("");
-                    model.editor.wxContactPhone("");
-
-                    model.editor.comment("");
-                    model.editor.noShareBiblio(0);
-
-
-                },
-                function (xhq, textStatus, errorThrown) {
-                    alert(errorThrown);
-                    // 关闭等待层
-                    layer.close(index);
-                },
-                {
-                    //libCode: libCode,
-                    libName: libName,
-                    capoUserName: capoUserName,
-                    capoContactPhone: capoContactPhone,
-                    wxUserName: wxUserName,
-                    wxPassword: wxPassword,
-                    wxContactPhone: wxContactPhone,
-                    comment: comment,
-                    noShareBiblio:getNoShareBiblio()
-                }
-            );
-        }
 
         // 新增一项
-        function editLib() {
+        function save() {
 
-            //var libCode = model.editor.libCode().trim();
-            //if (libCode == "") {
-            //    alert("尚未输入图书馆代码。");
-            //    return;
-            //}
-            //alert(libCode);
+            //alert("test");
+
             var libName = model.editor.libName().trim();
             if (libName == "") {
                 alert("尚未输入图书馆名称。");
@@ -269,41 +178,41 @@
             // 备注
             var comment = model.editor.comment();
 
+            // 参于检索的数据库
+            var searchDbs = model.editor.searchDbs().trim();
+
             //alert("id-[" + model.editor.id() + "]-2");
 
             //显示等待图层
             var index = loadLayer();
 
+            var url = "";
+            var actionType = "";
             var id = model.editor.id();
-            if (id == null || id == "")
-            {
-                alert("id参数为空，无法保存。");
-                return;
+            if (id == null || id == "") {
+                actionType = "POST";
+                url = "/api/LibrarySetting";
             }
-            var url = "/api/LibrarySetting?id=" + id;
-            sendAjaxRequest(url, "PUT",
+            else {
+                actionType = "PUT";
+                url = "/api/LibrarySetting?id=" + id;
+            }
+            //alert("id=["+id+"]");
+
+            
+            sendAjaxRequest(url, actionType,
                 function () {
+
+                    // 关闭等待层
+                    layer.close(index);
+
                     //model.librarys.push(newItem);
                     model.displaySummary(true);
                     getAllLib();
 
                     //清空编辑界面信息
-                    model.editor.id("");
-                    //model.editor.libCode("");
-                    model.editor.libName("");
-                    model.editor.capoUserName("");
-                    model.editor.capoContactPhone("");
+                    clearEditModel();
 
-                    model.editor.wxUserName("");
-                    model.editor.wxPassword("");
-                    model.editor.wxContactPhone("");
-
-                    model.editor.comment("");
-
-                    model.editor.noShareBiblio(0);
-
-                    // 关闭等待层
-                    layer.close(index);
                 },
                 function (xhq, textStatus, errorThrown) {
                     alert(errorThrown);
@@ -312,7 +221,6 @@
                 },
                 {
                     id:id,
-                    //libCode: libCode,
                     libName: libName,
                     capoUserName: capoUserName,
                     capoContactPhone: capoContactPhone,
@@ -320,26 +228,15 @@
                     wxPassword: wxPassword,
                     wxContactPhone: wxContactPhone,
                     comment: comment,
-                    noShareBiblio: getNoShareBiblio()
-
+                    noShareBiblio: getNoShareBiblio(),
+                    searchDbs: searchDbs
                 }
             );
         }
-
-        // 点击新增图书馆按钮
-        function handleCreateClick() {
-            model.displaySummary(false);
-
-            //id: ko.observable(""),
-            //libName: ko.observable(""),
-            //capoUserName: ko.observable(""),
-            //capoContactPhone: ko.observable(""),
-
-            //wxUserName: ko.observable(""),
-            //wxPassword: ko.observable(""),
-            //wxContactPhone: ko.observable(""),
-            //comment: ko.observable("")
-
+        
+        // 清空输入项
+        function clearEditModel()
+        {
             model.editor.id("");
             model.editor.libName("");
             model.editor.capoUserName("");
@@ -351,27 +248,33 @@
             model.editor.comment("");
 
             model.editor.noShareBiblio(0);
+            model.editor.searchDbs("");
+        }
+
+        // 点击新增图书馆按钮
+        function handleCreateClick() {
+            model.displaySummary(false);
+
+            // 清空输入项
+            clearEditModel();
 
             $("#btnAdd").css('display', 'block');
-            $("#btnEdit").css('display', 'none');
-
-            
+            $("#btnEdit").css('display', 'none');            
         }
 
         // 在新增图书馆，点击取消
         function handleCancelClick() {
             model.displaySummary(true);
+
         }
 
         function handleEditClick(item) {
-
             model.displaySummary(false);
+
             $("#btnAdd").css('display', 'none');
             $("#btnEdit").css('display', 'block');
 
             model.editor.id(item.id);
-            //alert("id-["+model.editor.id()+"]");
-            //model.editor.libCode(item.libCode);
             model.editor.libName(item.libName);
             model.editor.capoUserName(item.capoUserName);
             model.editor.capoContactPhone(item.capoContactPhone);
@@ -382,13 +285,13 @@
             model.editor.comment(item.comment);
 
             model.editor.noShareBiblio(item.noShareBiblio);
+            model.editor.searchDbs(item.searchDbs);
         }
 
 
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
-
             // 获取所有的操作命令
             getAllLib();
             ko.applyBindings(model);
@@ -439,6 +342,10 @@
                 <tr>
                     <td class="label">本方联系人手机号</td>
                     <td class="value" data-bind="text:wxContactPhone"></td>
+                </tr>
+                <tr>
+                    <td class="label">参于检索的数据库</td>
+                    <td class="value" data-bind="text:searchDbs"></td>
                 </tr>
                 <tr>
                     <td class="label">备注</td>
@@ -499,7 +406,10 @@
                 <label class="leftLabel">本方联系人手机号</label>
                 <input type="text" class="mui-input mui-input-clear" placeholder="请输入  本方联系人手机号" data-bind="value:model.editor.wxContactPhone">
             </div>
-
+            <div class="mui-input-row">
+                <label class="leftLabel">参于检索的数据库</label>
+                <textarea rows="5" data-bind="value:model.editor.searchDbs" placeholder="请输入  数据库名称(以逗号分隔)"></textarea>
+            </div>
             <div class="mui-input-row">
                 <label class="leftLabel">备注</label>
                 <textarea rows="5" data-bind="value:model.editor.comment" placeholder="请输入  备注"></textarea>
@@ -512,8 +422,8 @@
         <div class="mui-content-padded" >
             <table>
                 <tr>
-                    <td style ="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnAdd" data-bind="click: addLib" style="display:none">新增</button></td>
-                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnEdit" data-bind="click: editLib" style="display:none">保存</button></td>
+                    <td style ="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnAdd" data-bind="click: save" style="display:none">新增</button></td>
+                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnEdit" data-bind="click: save" style="display:none">保存</button></td>
                     <td style="padding-left:5px"><button class="mui-btn mui-btn-default" data-bind="click:handleCancelClick">取消</button></td>
                 </tr>
             </table>

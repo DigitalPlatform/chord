@@ -111,8 +111,7 @@
 
                 alert("成功设置["+name+"]为活动账户。");
 
-                // 2016-8-14 jane 改为转到图书馆介绍，这样可能更好一些
-                gotoUrl("/Library/Home");
+                gotoUrl("/Patron/PersonalInfo");//2016-8-30 读者绑完转到我的信息  /Library/Home
 
             }, function (xhq, textStatus, errorThrown) {
                 alert(errorThrown);

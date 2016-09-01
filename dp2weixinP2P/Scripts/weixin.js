@@ -1,4 +1,29 @@
-﻿
+﻿function setImgSize(obj)
+{
+    var parentObj = $(obj).parent();
+    if (parentObj != null) {
+
+        var width = $(parentObj).width()-15;
+
+        $(obj).css("max-width", width+"px");
+
+        //alert(width);
+    }
+    else {
+        //alert("计算size时，发现父亲对象为null");
+    }
+}
+
+//function resizeImg() {
+//    var count = 0;
+//    $(".autoimg").each(function () {
+        
+//        alert($(this).)
+//    });
+//    return count
+//}
+
+
 //======书目详细信息==========
 
 // 获取详细书目记录
@@ -78,6 +103,10 @@ function getDetail(libId, recPath, obj, from) {
             + "<tr>"
             + "<td class='label'>馆藏地</td>"
             + "<td class='value'>" + record.location + "</td>"
+            + "</tr>"
+            + "<tr>"
+            + "<td class='label'>索取号</td>"
+            + "<td class='value'>" + record.accessNo + "</td>"
             + "</tr>"
             + "<tr>"
             + "<td class='label'>价格</td>"
