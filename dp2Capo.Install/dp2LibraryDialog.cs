@@ -1,9 +1,4 @@
-﻿using DigitalPlatform.Drawing;
-using DigitalPlatform.Forms;
-using DigitalPlatform.LibraryClient;
-using DigitalPlatform.LibraryClient.localhost;
-using DigitalPlatform.Text;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -14,6 +9,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+
+using DigitalPlatform.Drawing;
+using DigitalPlatform.Forms;
+using DigitalPlatform.LibraryClient;
+using DigitalPlatform.LibraryClient.localhost;
+using DigitalPlatform.Text;
 
 namespace dp2Capo.Install
 {
@@ -478,7 +479,7 @@ namespace dp2Capo.Install
                 user.Rights = "getsystemparameter,getres,search,getbiblioinfo,setbiblioinfo,getreaderinfo,writeobject,getbibliosummary,listdbfroms,simulatereader,simulateworker"
                     + ",getiteminfo,getorderinfo,getissueinfo,getcommentinfo"
                     + ",borrow,return,getmsmqmessage"
-                    + ",bindpatron,searchbiblio,getpatrontempid,resetpasswordreturnmessage,getuser,changereaderpassword,renew";
+                    + ",bindpatron,searchbiblio,getpatrontempid,resetpasswordreturnmessage,getuser,changereaderpassword,renew,reservation";
 
                 long lRet = channel.SetUser(
         "new",
