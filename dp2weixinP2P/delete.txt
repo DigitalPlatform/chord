@@ -1,4 +1,96 @@
-﻿===模板消息===
+﻿===LibraryM=======
+        // 新增一项
+        function addLib() {
+
+            var libName = model.editor.libName().trim();
+            if (libName == "") {
+                alert("尚未输入图书馆名称。");
+                return;
+            }
+            var capoUserName = model.editor.capoUserName().trim();
+            if (capoUserName == "") {
+                alert("尚未输入图书馆dp2capo账号名。");
+                return;
+            }
+
+            // 图书馆联系人员手机
+            var capoContactPhone = model.editor.capoContactPhone().trim();
+
+            // 微信端本方账户
+            var wxUserName = model.editor.wxUserName().trim();
+            if (wxUserName == "") {
+                alert("尚未输入图书馆微信本方账号名。");
+                return;
+            }
+            var wxPassword = model.editor.wxPassword().trim();
+            if (wxPassword == "") {
+                alert("尚未输入图书馆微信本方密码。");
+                return;
+            }
+            //微信本方联系人
+            var wxContactPhone = model.editor.wxContactPhone().trim();
+
+            // 备注
+            var comment = model.editor.comment().trim();
+
+            // 参于检索的数据库
+            var searchDbs = model.editor.searchDbs().trim();
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/LibrarySetting";
+            sendAjaxRequest(url, "POST",
+                function (result) {
+                    // 关闭等待层
+                    layer.close(index);
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }
+
+                    model.librarys.push(result.libItem);
+                    model.displaySummary(true);
+
+                    //清空编辑界面信息
+                    //model.editor.libCode("");
+                    model.editor.libName("");
+                    model.editor.capoUserName("");
+                    model.editor.capoContactPhone("");
+
+                    model.editor.wxUserName("");
+                    model.editor.wxPassword("");
+                    model.editor.wxContactPhone("");
+
+                    model.editor.comment("");
+                    model.editor.noShareBiblio(0);
+                    model.editor.searchDbs("");
+
+
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    //libCode: libCode,
+                    libName: libName,
+                    capoUserName: capoUserName,
+                    capoContactPhone: capoContactPhone,
+                    wxUserName: wxUserName,
+                    wxPassword: wxPassword,
+                    wxContactPhone: wxContactPhone,
+                    comment: comment,
+                    noShareBiblio: getNoShareBiblio(),
+                    searchDbs: searchDbs
+                }
+            );
+        }
+
+
+===模板消息===
 
 ===以停代金
 

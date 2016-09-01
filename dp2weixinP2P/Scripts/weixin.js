@@ -1,4 +1,29 @@
-﻿
+﻿function setImgSize(obj)
+{
+    var parentObj = $(obj).parent();
+    if (parentObj != null) {
+
+        var width = $(parentObj).width()-15;
+
+        $(obj).css("max-width", width+"px");
+
+        //alert(width);
+    }
+    else {
+        //alert("计算size时，发现父亲对象为null");
+    }
+}
+
+//function resizeImg() {
+//    var count = 0;
+//    $(".autoimg").each(function () {
+        
+//        alert($(this).)
+//    });
+//    return count
+//}
+
+
 //======书目详细信息==========
 
 // 获取详细书目记录

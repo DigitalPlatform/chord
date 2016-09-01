@@ -631,7 +631,8 @@ namespace dp2weixin.service
            */
 
             string patronName = "";
-            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            string patronBarcode = "";
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName,out patronBarcode);
             if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
@@ -770,7 +771,8 @@ namespace dp2weixin.service
            */
 
             string patronName = "";
-            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            string patronBarcode = "";
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName,out patronBarcode);
             if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
@@ -833,14 +835,23 @@ namespace dp2weixin.service
             //借阅期限：31
             //应还日期：2016-6-27
             //祝您阅读愉快，欢迎再借。
+//            您好，您已借书成功。 腾讯工作人员您好，虽然模板库中已存在类似模板，但与我司的字段定义不同，我司为几千家图书馆提供专业服务，需要采用专业术语（例如书刊摘要，册条码号，证条码号等）,以免被行内人士吐槽，请批准，谢谢！
+//书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
+//册条码号：C0000001
+//借书日期：2016-07-01
+//应还日期：2016-07-31
+//证条码号：R0000001
+//xxx，祝您阅读愉快，欢迎再借。
+
+            string tempBorrowDate = borrowDate + " 期限为" + borrowPeriod;
             var msgData = new BorrowTemplateData()
             {
                 first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#006400"), // 	dark green //this._msgFirstLeft + "恭喜您借书成功。"
                 keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
                 keyword2 = new TemplateDataItem(itemBarcode, "#000000"),
-                keyword3 = new TemplateDataItem(borrowDate, "#000000"),
-                keyword4 = new TemplateDataItem(borrowPeriod, "#000000"),
-                keyword5 = new TemplateDataItem(returningDate, "#000000"),
+                keyword3 = new TemplateDataItem(tempBorrowDate, "#000000"),//borrowDate
+                keyword4 = new TemplateDataItem(returningDate, "#000000"),
+                keyword5 = new TemplateDataItem(patronBarcode, "#000000"),
                 remark = new TemplateDataItem("\n" + patronName + "，祝您阅读愉快，欢迎再借。", "#CCCCCC")
             };
 
@@ -875,7 +886,7 @@ namespace dp2weixin.service
                     // 发送模板消息
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
                         weixinId,
-                        WeiXinConst.C_Template_Borrow,
+                        template,//WeiXinConst.C_Template_Borrow,
                         topColor,  //FF0000
                         "",//this.C_Url_PersonalInfo,//2016-8-30 去掉详情链接 //详情转到个人信息界面
                         msgData);
@@ -982,7 +993,8 @@ namespace dp2weixin.service
            */
 
             string patronName = "";
-            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            string patronBarcode = "";
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName,out patronBarcode);
             if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
@@ -1115,7 +1127,8 @@ namespace dp2weixin.service
            */
 
             string patronName = "";
-            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            string patronBarcode = "";
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName,out patronBarcode);
             if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
@@ -1214,7 +1227,8 @@ namespace dp2weixin.service
            */
 
             string patronName = "";
-            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            string patronBarcode = "";
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName,out patronBarcode);
             if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
@@ -1295,7 +1309,8 @@ namespace dp2weixin.service
 
             // 得到绑定的微信id
             string patronName = "";
-            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            string patronBarcode = "";
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName,out patronBarcode);
             if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
@@ -1404,7 +1419,8 @@ namespace dp2weixin.service
            */
 
             string patronName = "";
-            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName);
+            string patronBarcode = "";
+            List<string> weixinIdList = this.GetWeiXinIds(bodyDom, out patronName,out patronBarcode);
             if (weixinIdList.Count == 0)
             {
                 strError = "未绑定微信id";
@@ -1507,15 +1523,23 @@ namespace dp2weixin.service
         /// <param name="bodyDom"></param>
         /// <param name="patronName"></param>
         /// <returns></returns>
-        private List<string> GetWeiXinIds(XmlDocument bodyDom, out string patronName)
+        private List<string> GetWeiXinIds(XmlDocument bodyDom, 
+            out string patronName,
+            out string patronBarcode)
         {
             patronName = "";
+            patronBarcode = "";
 
             XmlNode root = bodyDom.DocumentElement;
             XmlNode patronRecordNode = root.SelectSingleNode("patronRecord");
             if (patronRecordNode == null)
                 throw new Exception("尚未定义<patronRecordNode>节点");
             patronName = DomUtil.GetNodeText(patronRecordNode.SelectSingleNode("name"));
+
+            XmlNode node = patronRecordNode.SelectSingleNode("barcode");
+            if (node != null)
+                patronBarcode = DomUtil.GetNodeText(node);
+
             XmlNode emailNode = patronRecordNode.SelectSingleNode("email");
             if (emailNode == null)
                 throw new Exception("尚未定义<email>节点");
@@ -2186,7 +2210,7 @@ namespace dp2weixin.service
                 {
                     strFirst = "☀恭喜您！您已成功绑定图书馆工作人员账号。";
                     strAccount = userItem.userName;
-                    strRemark = "欢迎您使用微信公众号管理图书馆业务，如需解绑，请通过“绑定账号”菜单操作。";
+                    strRemark = "欢迎您使用微信公众号管理图书馆业务，如需解绑，请通过“绑定账号”菜单操作。http://www.163.com";
                 }
 
                 string accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
@@ -2510,6 +2534,10 @@ namespace dp2weixin.service
                 }
             }
 
+            string dbnames = "<全部>";
+            if (String.IsNullOrEmpty(lib.searchDbs) == false)
+                dbnames = lib.searchDbs;
+
 
             //long start = 0;
             //long count = 10;
@@ -2520,7 +2548,7 @@ namespace dp2weixin.service
                 string id = Guid.NewGuid().ToString();
                 SearchRequest request = new SearchRequest(id,
                     "searchBiblio",
-                    "",
+                    dbnames,
                     strWord,
                     strFrom,
                     match,//"middle",
@@ -2541,7 +2569,10 @@ namespace dp2weixin.service
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "SearchBiblioInternal()检索出错：" + result.ErrorInfo + "\n dp2mserver账户:" + connection.UserName + "\n 目标账户名:" + lib.capoUserName;
+                    strError = "SearchBiblioInternal()检索出错：" + result.ErrorInfo 
+                        + "\n本方账号:" + connection.UserName 
+                        + "\n目标账号:" + lib.capoUserName
+                        + "\nErrorCode:[" + result.ErrorCode+"]";
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -2600,7 +2631,8 @@ namespace dp2weixin.service
 
         public static string GetImageHtmlFragment(string libId,
     string strBiblioRecPath,
-    string strImageUrl)
+    string strImageUrl,
+            bool addOnloadEvent)
         {
             //
 
@@ -2624,7 +2656,12 @@ namespace dp2weixin.service
      + "&type=photo"
      + "&objectPath=" + HttpUtility.UrlEncode(strUri);
             }
-            string html = "<img src='" + strImageUrl + "'  style='max-width:200px'></img>"; // 2016/8/19 不要人为把宽高固定了  width='100px' height='100px'
+
+            string onloadStr = "";
+            if (addOnloadEvent == true)
+                onloadStr = " onload='setImgSize(this)' ";
+
+            string html = "<img src='" + strImageUrl + "'  style='max-width:200px' " + onloadStr + "></img>"; // 2016/8/19 不要人为把宽高固定了  width='100px' height='100px'
             return html;
         }
 
@@ -3062,17 +3099,17 @@ ERROR1:
                     imgUrl = value;
                     if (showCover == true && String.IsNullOrEmpty(imgUrl) == false)
                     {
-                        coverImgHtml = dp2WeiXinService.GetImageHtmlFragment(libId, biblioPath, imgUrl);
+                        coverImgHtml = dp2WeiXinService.GetImageHtmlFragment(libId, biblioPath, imgUrl,true);
                     }
-                    
-                    //table += "<tr>"
-                    //    + "<td class='name'></td>"
-                    //    + "<td class='value'>" + coverImgHtml + "</td>"
-                    //    + "</tr>";
 
                     table += "<tr>"
-                        + "<td colspan='2'>" + coverImgHtml + "</td>"
+                        + "<td class='name'></td>"
+                        + "<td class='value'>" + coverImgHtml + "</td>"  // style='background-color:red'
                         + "</tr>";
+
+                    //table += "<tr>"
+                    //    + "<td colspan='2'>" + coverImgHtml + "</td>"
+                    //    + "</tr>";
 
                     continue;
                 }
@@ -3113,8 +3150,15 @@ ERROR1:
 
             }
 
+
+
             if (table != "")
             {
+                table += "<tr>"
+    + "<td class='name'>路径</td>"
+    + "<td class='value'>" + biblioPath + "</td>"
+    + "</tr>";
+
                 table = "<table class='biblio_table'>" + table + "</table>";
             }
             
@@ -3183,7 +3227,7 @@ ERROR1:
                 }
 
                 string strImageUrl = GetCoverImageUrl(strMARC, "MediumImage");
-                coverImgHtml = dp2WeiXinService.GetImageHtmlFragment(libId, biblioPath, strImageUrl);
+                coverImgHtml = dp2WeiXinService.GetImageHtmlFragment(libId, biblioPath, strImageUrl,false);
                 
             }
             
@@ -3282,19 +3326,6 @@ ERROR1:
             strError = "";
             strRecPath = "";
 
-            /*
-            SearchRequest request = new SearchRequest(id,
-                "getBiblioInfo",
-                "<全部>",
-                biblioPath,
-                "",
-                "",
-                "",
-                "summary",
-                1,
-                0,
-                -1);             
-             */
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();

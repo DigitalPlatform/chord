@@ -177,7 +177,8 @@ namespace dp2weixin.service
 
                 .Set("comment", item.comment)
                 .Set("OperTime", item.OperTime)
-            .Set("noShareBiblio", item.noShareBiblio);
+                .Set("noShareBiblio", item.noShareBiblio)
+                .Set("searchDbs", item.searchDbs);
 
             UpdateResult ret = this.LibCollection.UpdateOneAsync(filter, update).Result;
             return ret.ModifiedCount;
@@ -217,7 +218,10 @@ namespace dp2weixin.service
         public string comment { get; set; }  // 注释
         public string OperTime { get; set; } // 操作时间
 
-        public int noShareBiblio  { get; set; } // 操作时间;
+        public int noShareBiblio  { get; set; } // 不对外公开书目;
+
+
+        public string searchDbs { get; set; }  // 参于检索的书目库
 
     }
 }
