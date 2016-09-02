@@ -160,7 +160,7 @@ namespace dp2weixin
 
             if (strParam == "")
             {
-                return this.CreateTextResponseMessage("请输入设置的功能名称");
+                return this.CreateTextResponseMessage("请输入要设置的功能名称");
             }
 
             // 继续解析strParam
@@ -187,7 +187,6 @@ namespace dp2weixin
                     // 默认on
 
                     // 先检查该微信用户是否绑定了图书馆的工作人员账号
-                    bool bBindWorker = false;
                     List<WxUserItem> userList = WxUserDatabase.Current.Get(this.WeixinOpenId,
                         null,
                         WxUserDatabase.C_Type_Worker);
@@ -196,21 +195,18 @@ namespace dp2weixin
                         TracingOnUser tracingOnUser = new TracingOnUser();
                         tracingOnUser.WeixinId = this.WeixinOpenId;
 
-                        if (bBindWorker == true)
+                        // 检查有没有绑 数字平台,绑了的话，设为公司管理员
+                        foreach (WxUserItem user in userList)
                         {
-                            // 检查有没有绑 数字平台,绑了的话，设为公司管理员
-                            foreach (WxUserItem user in userList)
+                            LibItem lib = LibDatabase.Current.GetLibById(user.libId);
+                            if (lib != null)
                             {
-                                LibItem lib = LibDatabase.Current.GetLibById(user.libId);
-                                if (lib != null)
+                                if (lib.libName == WeiXinConst.C_Dp2003LibName)
                                 {
-                                    if (lib.libName == WeiXinConst.C_Dp2003LibName)
-                                    {
-                                        tracingOnUser.IsAdmin = true;
-                                        break;
-                                    }
+                                    tracingOnUser.IsAdmin = true;
+                                    break;
                                 }
-                            }                            
+                            }
                         }
 
                         // 设到hashtable里
@@ -225,7 +221,7 @@ namespace dp2weixin
                     }
 
                     return this.CreateTextResponseMessage("您尚未绑定图书馆工作人员账户，不能打开tracing功能。"
-                        +"\n 点击 <a href='" + dp2WeiXinService.C_Url_AccountIndex + "'>绑定账户</a>。");
+                        +"\n点击 <a href='" + dp2WeiXinService.C_Url_AccountIndex + "'>绑定账户</a>。");
 
                 }
             }
@@ -387,12 +383,12 @@ namespace dp2weixin
 
         private IResponseMessageBase CreateTextResponseMessage(string strText, bool bShowPath)
         {
-            if (bShowPath == true)
-            {
-                strText = "命令路径:[" + this.CurrentMessageContext.CurrentCmdPath + "]\n"
-                    + "============\n"
-                    + strText;
-            }
+            //if (bShowPath == true)
+            //{
+            //    strText = "命令路径:[" + this.CurrentMessageContext.CurrentCmdPath + "]\n"
+            //        + "============\n"
+            //        + strText;
+            //}
 
             var responseMessage = CreateResponseMessage<ResponseMessageText>();
             responseMessage.Content = strText;

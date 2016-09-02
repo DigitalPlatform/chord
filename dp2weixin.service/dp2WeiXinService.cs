@@ -91,8 +91,101 @@ namespace dp2weixin.service
             }
         }
 
+        // 打开 tracing的微信用户
         public Hashtable TracingOnUsers = new Hashtable(); //List<TraceOnUser>();
 
+#endregion
+
+        #region 图书馆参于检索的数据库
+
+        // 公众号后台管理线程
+        ManagerThread _managerThread = new ManagerThread();
+
+
+        public Hashtable LibDbs = new Hashtable();
+
+        public int GetDbNames(LibItem lib,out string dbnames,out string strError)
+        {
+            strError = "";
+            dbnames = "";
+            // 优先认配置的
+            if (String.IsNullOrEmpty(lib.searchDbs) == false)
+            {
+                dbnames = lib.searchDbs;
+                return 1;
+            }
+
+            string libId = lib.id;
+            // 如果已在缓冲中，直接使用
+            if (this.LibDbs.ContainsKey(libId) == true)
+            {
+                dbnames=(string)this.LibDbs[libId];
+                return 1;
+            }
+
+            // 调服务器api，获得opac检索库
+            //string dbnames="";
+            int nRet = this.GetDbNamesFromLib(lib, out dbnames, out strError);
+            if (nRet == -1)
+                return -1;
+
+            // 如果没有配置设全部
+            if (dbnames == "")
+                dbnames = "<全部>";
+
+
+            // 设到缓冲里
+            this.LibDbs[libId] = dbnames;
+            return 1;
+        }
+
+        public int GetDbNamesFromLib(LibItem lib,out string dbnames,out string strError)
+        {
+            dbnames = "";
+            strError = "";
+            List<string> dataList= new List<string>();
+            int nRet = this.GetSystemParameter(lib, "virtual", "def", out dataList, out strError);
+            if (nRet == -1 || nRet==0)
+            {
+                return nRet;
+            }
+
+            string xml = dataList[0];
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(xml);
+            XmlNode root = dom.DocumentElement;
+            XmlNodeList dbList = root.SelectNodes("database");
+            foreach (XmlNode node in dbList)
+            {
+                if (dbnames != "")
+                    dbnames += ",";
+
+                string name = DomUtil.GetAttr(node,"name");
+
+                XmlNode captionNode = node.SelectSingleNode("caption[@lang='zh']");
+                if (captionNode != null)
+                    name = DomUtil.GetNodeText(captionNode);
+
+                dbnames+= name;
+            }
+
+
+            return 1;
+        }
+
+        public int GetSystemParameter(LibItem lib,
+            string queryWord,
+            string formatList,
+            out List<string> dataList,
+            out string strError)
+        {
+            return this.GetInfo(lib, 
+                "getSystemParameter",
+                queryWord,
+                formatList, 
+                out dataList,
+                out strError);
+        }
 
 
         #endregion
@@ -205,6 +298,10 @@ namespace dp2weixin.service
             this._msgRouter.Start(this._channels,
                 this.dp2MServerUrl,
                 C_Group_PatronNotity);
+
+            // 启动管理线程
+            this._managerThread.WeixinService = this;
+            this._managerThread.BeginThread();
 
         }
 
@@ -1884,6 +1981,8 @@ namespace dp2weixin.service
 
         #endregion
 
+        #region 错误友好提示
+
         /// <summary>
         /// 得到友好的提示
         /// </summary>
@@ -1908,6 +2007,8 @@ namespace dp2weixin.service
 
             return result.ErrorInfo;
         }
+
+        #endregion
 
         #region 找回密码，修改密码，二维码
 
@@ -2808,9 +2909,12 @@ namespace dp2weixin.service
                 }
             }
 
-            string dbnames = "<全部>";
-            if (String.IsNullOrEmpty(lib.searchDbs) == false)
-                dbnames = lib.searchDbs;
+            string dbnames = "";
+            int nRet = this.GetDbNames(lib, out dbnames, out strError);
+            if (nRet == -1)
+                return -1;
+            //if (String.IsNullOrEmpty(lib.searchDbs) == false)
+            //    dbnames = lib.searchDbs;
 
 
             //long start = 0;
@@ -3524,15 +3628,35 @@ ERROR1:
             out List<string> dataList,
             out string strError)
         {
+            return this.GetInfo(lib, "getBiblioInfo", biblioPath, formatList, out dataList, out strError);
+        }
+
+        /// <summary>
+        /// get info 底层api
+        /// </summary>
+        /// <param name="lib"></param>
+        /// <param name="method"></param>
+        /// <param name="queryWord"></param>
+        /// <param name="formatList"></param>
+        /// <param name="dataList"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public int GetInfo(LibItem lib,
+            string method,
+            string queryWord,
+            string formatList,
+            out List<string> dataList,
+            out string strError)
+        {
             strError = "";
             dataList = new List<string>();
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
-                "getBiblioInfo",
-                "<全部>",
-                biblioPath,
+                method,
+                "",
+                queryWord,
                 "",
                 "",
                 "",
@@ -3552,7 +3676,7 @@ ERROR1:
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "GetBiblioInfo()出错：" + this.GetFriendlyErrorInfo(result, lib.libName);// result.ErrorInfo;
+                    strError = "GetInfo() 出错：" + this.GetFriendlyErrorInfo(result, lib.libName);// result.ErrorInfo;
                     return -1;
                 }
                 if (result.ResultCount == 0)
