@@ -3646,6 +3646,8 @@ ERROR1:
             {
                 string name = DomUtil.GetAttr(node, "name");
                 string value = DomUtil.GetAttr(node, "value");
+                string type = DomUtil.GetAttr(node, "type");
+
                 // 处理换行
                 value = this.ConvertHtmlLine(value);
 
@@ -3674,15 +3676,21 @@ ERROR1:
                 //特殊地，中文的书目数据，还可能具有题名拼音行，那么它会有 type=titlepinyin。
                 //再次强调一下，type 属性的值是一个逗号间隔的字符串，因此判断 title 和 titlepinyin 的时候要用特定的解析函数，
                 //否则将来数据中一旦出现逗号的时候就会出现故障。
-                if (name == "题名与责任说明拼音")
+                //  <line name="题名与责任说明拼音" value="dang wo xiang shui de shi hou" type="titlepinyin" />
+                //  <line name="题名与责任说明" value="当我想睡的时候 [专著]  林芳萍翻译" type="title" />
+                
+                // 检查是不是拼音
+                if (this.CheckContainWord(type, "titlepinyin") == true) // name == "题名与责任说明拼音")
                 {
                     pinyin = value;
                     continue;
                 }
 
-                // 拼音与书名合为一行
-                if (name == "题名与责任说明")
+
+                // 是否为标题行
+                if (this.CheckContainWord(type, "title") == true) //(name == "题名与责任说明")
                 {
+                    // 拼音与书名合为一行
                     if (String.IsNullOrEmpty(pinyin) == false)
                     {
                         table += "<tr>"
@@ -3707,26 +3715,32 @@ ERROR1:
                     + "<td class='name'>" + name + "</td>"
                     + "<td class='value'>" + value + "</td>"
                     + "</tr>";
-
             }
-
-
 
             if (table != "")
             {
                 table += "<tr>"
-    + "<td class='name'>路径</td>"
-    + "<td class='value'>" + biblioPath + "</td>"
-    + "</tr>";
+                    + "<td class='name'>路径</td>"
+                    + "<td class='value'>" + biblioPath + "</td>"
+                    + "</tr>";
 
                 table = "<table class='biblio_table'>" + table + "</table>";
-            }
+            }      
             
-            
- 
-
-
             return 1;
+        }
+
+        public bool CheckContainWord(string text, string word)
+        {
+            // 先将text按逗号拆分
+            string[] list = text.Split(',');
+            foreach (string str in list)
+            {
+                if (str.Trim() == word) //注意这里去掉前后空白了
+                    return true;
+            }
+
+            return false;        
         }
 
 
