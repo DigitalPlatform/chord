@@ -31,9 +31,9 @@ namespace dp2weixin.service
         //预约到书通知 
         public const string C_Template_Arrived = "Wm-7-0HJay4yloWEgGG9HXq9eOF5cL8Qm2aAUy-isoM";
         //图书超期提醒 
-        public const string C_Template_CaoQi = "QcS3LoLHk37Jh0rgKJId2o93IZjulr5XxgshzlW5VkY";
+        public const string C_Template_CaoQi1 = "2sOCuATcFdSNbJM24zrHnFv89R3D-cZFIpk4ec_Irn4";//"QcS3LoLHk37Jh0rgKJId2o93IZjulr5XxgshzlW5VkY";
         //图书到期提醒
-        public const string C_Template_DaoQi = "Q6O3UFPxPnq0rSz82r9P9be41tqEPaJVPD3U0PU8XOU";
+        //public const string C_Template_DaoQi = "Q6O3UFPxPnq0rSz82r9P9be41tqEPaJVPD3U0PU8XOU";
 
         //借阅成功通知
         public const string C_Template_Borrow = "2AVbpcn0y1NtqIQ7X7KY1Ebcyyhx6mUXTpAxuOcxSE0";

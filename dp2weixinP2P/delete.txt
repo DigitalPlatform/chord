@@ -1,5 +1,20 @@
 ﻿==========
 
+                  string[] emailList = email.Split(new char[] { ',' });
+                  for (int i = 0; i < emailList.Length; i++)
+                  {
+                      string oneEmail = emailList[i].Trim();
+                      if (oneEmail.Length > 9 && oneEmail.Substring(0, 9) == WeiXinConst.C_WeiXinIdPrefix)
+                      {
+                          string weiwinId = oneEmail.Substring(9).Trim();
+                          if (weiwinId != "")
+                              weixinIdList.Add(weiwinId);
+                      }
+                  }
+
+
+==========
+
                 // ====给工作人员发通知===
 
                 // 先找到公司管理员
