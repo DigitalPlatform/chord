@@ -11,7 +11,7 @@ namespace dp2weixinWeb.Controllers
 {
     public class BaseController : Controller
     {
-        public string GetLibSelectHtml(string selLibId, string weixinId)
+        public string GetLibSelectHtml(string selLibId, string weixinId,bool bContainEmptyLine)
         {
             List<LibItem> list1 = LibDatabase.Current.GetLibs();
 
@@ -21,6 +21,9 @@ namespace dp2weixinWeb.Controllers
             {
                 curLib = settingItem.libId;
             }
+
+            if (String.IsNullOrEmpty(selLibId) == true)
+                selLibId = curLib;
 
             // 得到该微信用户绑定过的图书馆列表
             List<string> libs = WxUserDatabase.Current.GetLibsByWeixinId(weixinId);
@@ -41,7 +44,10 @@ namespace dp2weixinWeb.Controllers
             }
 
 
-            var opt = "";// "<option style='color:#aaaaaa' value=''>请选择图书馆</option>";
+            var opt = "";
+
+            if (bContainEmptyLine==true)
+                opt= "<option style='color:#aaaaaa' value=''>请选择图书馆</option>";
 
             // 先加绑定的
             if (bindList.Count > 0)
@@ -178,12 +184,14 @@ namespace dp2weixinWeb.Controllers
             }
             if (libName == "" || libId=="")
             {
-                LibItem lib = LibDatabase.Current.GetOneLib();
-                if (lib == null)
+                List<LibItem> libs = LibDatabase.Current.GetLibs();
+                if (libs == null || libs.Count == 0)
                 {
                     strError = "当前系统未配置图书馆";
                     return -1;
                 }
+
+                LibItem lib = libs[0]; // 第一个是数字平台
                 libName = lib.libName;
                 libId = lib.id;
             }

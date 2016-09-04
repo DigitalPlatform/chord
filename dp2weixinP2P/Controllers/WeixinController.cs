@@ -39,9 +39,6 @@ namespace dp2weixinWeb.Controllers
 
     public partial class WeixinController : Controller
     {
-        public static readonly string Token = WebConfigurationManager.AppSettings["WeixinToken"];//与微信公众账号后台的Token设置保持一致，区分大小写。
-        public static readonly string EncodingAESKey =  WebConfigurationManager.AppSettings["WeixinEncodingAESKey"];//与微信公众账号后台的EncodingAESKey设置保持一致，区分大小写。
-        public static readonly string AppId = WebConfigurationManager.AppSettings["WeixinAppId"];//与微信公众账号后台的AppId设置保持一致，区分大小写。
 
         readonly Func<string> _getRandomFileName = () => DateTime.Now.Ticks + Guid.NewGuid().ToString("n").Substring(0, 6);
 
@@ -57,13 +54,16 @@ namespace dp2weixinWeb.Controllers
         [ActionName("Index")]
         public ActionResult Get(PostModel postModel, string echostr)
         {
-            if (CheckSignature.Check(postModel.Signature, postModel.Timestamp, postModel.Nonce, Token))
+            if (CheckSignature.Check(postModel.Signature, 
+                postModel.Timestamp, 
+                postModel.Nonce, 
+                dp2WeiXinService.Instance.weixin_Token))
             {
                 return Content(echostr); //返回随机字符串则表示验证通过
             }
             else
             {
-                return Content("failed:" + postModel.Signature + "," + CheckSignature.GetSignature(postModel.Timestamp, postModel.Nonce, Token) + "。" +
+                return Content("failed:" + postModel.Signature + "," + CheckSignature.GetSignature(postModel.Timestamp, postModel.Nonce, dp2WeiXinService.Instance.weixin_Token) + "。" +
                     "如果你在浏览器中看到这句话，说明此地址可以被作为微信公众账号后台的Url，请注意保持Token一致。");
             }
         }
@@ -88,10 +88,10 @@ namespace dp2weixinWeb.Controllers
             // 开始时间
             DateTime start_time = DateTime.Now;
 
-
-            postModel.Token = Token;//根据自己后台的设置保持一致
-            postModel.EncodingAESKey = EncodingAESKey;//根据自己后台的设置保持一致
-            postModel.AppId = AppId;//根据自己后台的设置保持一致
+            //与公众后台的设置保持一致
+            postModel.Token = dp2WeiXinService.Instance.weixin_Token;
+            postModel.EncodingAESKey = dp2WeiXinService.Instance.weixin_EncodingAESKey;
+            postModel.AppId = dp2WeiXinService.Instance.weiXinAppId;
 
             //v4.2.2之后的版本，可以设置每个人上下文消息储存的最大数量，防止内存占用过多，如果该参数小于等于0，则不限制
             var maxRecordCount = 10;
@@ -107,10 +107,7 @@ namespace dp2weixinWeb.Controllers
             //}
 
             //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
-            var messageHandler = new dp2weixinMessageHandler(dp2WeiXinService.Instance,
-                Request.InputStream, postModel, maxRecordCount);
-            messageHandler.Init(Server.MapPath("~"), true, true);
-            // 把appid传入CmdService，用于发送消息。
+            var messageHandler = new dp2weixinMessageHandler(Request.InputStream, postModel, maxRecordCount);
             try
             {
                 ////测试时可开启此记录，帮助跟踪数据
@@ -207,15 +204,16 @@ namespace dp2weixinWeb.Controllers
         [ActionName("MiniPost")]
         public ActionResult MiniPost(PostModel postModel)
         {
-            if (!CheckSignature.Check(postModel.Signature, postModel.Timestamp, postModel.Nonce, Token))
+            if (!CheckSignature.Check(postModel.Signature, postModel.Timestamp, postModel.Nonce, dp2WeiXinService.Instance.weixin_Token))
             {
                 return Content("参数错误！");//v0.7-
                 //return new WeixinResult("参数错误！");//v0.8+
             }
 
-            postModel.Token = Token;
-            postModel.EncodingAESKey = EncodingAESKey;//根据自己后台的设置保持一致
-            postModel.AppId = AppId;//根据自己后台的设置保持一致
+            //以下参数与自己后台的设置保持一致
+            postModel.Token = dp2WeiXinService.Instance.weixin_Token;
+            postModel.EncodingAESKey = dp2WeiXinService.Instance.weixin_EncodingAESKey;
+            postModel.AppId = dp2WeiXinService.Instance.weiXinAppId;
 
             var messageHandler = new CustomMessageHandler(Request.InputStream, postModel, 10);
 

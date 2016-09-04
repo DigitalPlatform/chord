@@ -9,7 +9,7 @@ senparc.menu ={
         $('#menuEditor').hide();
 
         // 自动获取accessToken
-        $.getJSON('/Menu/GetToken?t=' + Math.random(), { appId: 'wx57aa3682c59d16c2', appSecret: '61ac93be56e3f7f42d0861bf073427e6' },
+        $.getJSON('/Menu/GetToken?t=' + Math.random(), { appId: 'wx57aa3682c59d16c2', appSecret: '5d1a0507f05be41a56e27c632c0a808d' },
 
         function (json) {
             if (json.access_token) {

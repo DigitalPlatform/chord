@@ -164,7 +164,7 @@ namespace dp2weixinWeb.Controllers
                 client.Headers["Content-type"] = "application/xml; charset=utf-8";
                 string xml = WeiXinClientUtil.GetPostXmlToWeiXinGZH(msgSend);
                 byte[] baData = Encoding.UTF8.GetBytes(xml);
-                string url = "http://localhost:15794/weixin/index";
+                string url = "http://localhost:15794/weixin/index";//"http://localhost/dp2weixin/weixin/index";//
                 byte[] result = client.UploadData(url,
                     "POST",
                     baData);
@@ -193,6 +193,11 @@ namespace dp2weixinWeb.Controllers
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
                 goto ERROR1;
+
+            ViewBag.WeixinIds = "";
+            if (dp2WeiXinService.Instance.TracingOnUsers != null && dp2WeiXinService.Instance.TracingOnUsers.Count > 0)
+                ViewBag.WeixinIds = dp2WeiXinService.Instance.TracingOnUsers.Count.ToString();
+
 
             return View();
 

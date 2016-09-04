@@ -44,6 +44,9 @@ namespace dp2weixinWeb
             dp2WeiXinService.Instance.Init(dataDir);
 
             dp2WeiXinService.Instance.WriteLog("走进Application_Start");
+
+
+            Application["app"] = "test";
         }
 
 

@@ -117,14 +117,14 @@ namespace dp2weixinWeb.ApiControllers
 
             if (format == "more-summary")
             {
-                strSummary = dp2WeiXinService.Instance.GetBarcodesSummary(lib.capoUserName, id);
+                strSummary = dp2WeiXinService.Instance.GetBarcodesSummary(lib, id);
                 return strSummary;
             }
             else if (format == "summary")
             {
                 string strRecPath = "";
                 string strError = "";
-                int nRet = dp2WeiXinService.Instance.GetBiblioSummary(lib.capoUserName, id,
+                int nRet = dp2WeiXinService.Instance.GetBiblioSummary(lib, id,
                     "",
                     out strSummary,
                     out strRecPath,

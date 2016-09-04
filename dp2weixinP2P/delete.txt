@@ -1,4 +1,47 @@
-﻿===LibraryM=======
+﻿==========
+
+                // ====给工作人员发通知===
+
+                // 先找到公司管理员
+                List<string> toWorkerWeixinIds = this.GetAdminWeixinIds();
+                
+                // 再查找绑定本馆工作人员账户;
+                if (String.IsNullOrEmpty(libId) == false)
+                {
+                    List<WxUserItem> userList = WxUserDatabase.Current.Get(null, libId, WxUserDatabase.C_Type_Worker);
+                    if (userList != null && userList.Count > 0)
+                    {
+                        foreach (WxUserItem user in userList)
+                        {
+                            if (toWorkerWeixinIds.Contains(user.weixinId) == false)
+                            {
+                                // 检查是否设为tracing on
+                                if (this.TracingOnUsers.ContainsKey(user.weixinId) == true)
+                                {
+                                    toWorkerWeixinIds.Add(user.weixinId);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 发通知
+                foreach (string weixinId in toWorkerWeixinIds)
+                {
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weixinId,
+                        template,
+                        topColor,
+                        linkUrl,
+                        msgData2worker);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
+                }
+
+===LibraryM=======
         // 新增一项
         function addLib() {
 

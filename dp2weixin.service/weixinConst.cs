@@ -20,6 +20,8 @@ namespace dp2weixin.service
         public const int C_Search_MaxCount = 200;
         public const int C_OnePage_Count = 10;
 
+        public const string C_Dp2003LibName = "数字平台";
+
         #region 模板消息
 
         //微信绑定通知
@@ -34,14 +36,14 @@ namespace dp2weixin.service
         public const string C_Template_DaoQi = "Q6O3UFPxPnq0rSz82r9P9be41tqEPaJVPD3U0PU8XOU";
 
         //借阅成功通知
-        public const string C_Template_Borrow = "2AVbpcn0y1NtqIQ7X7KY1Ebcyyhx6mUXTpAxuOcxSE0";//"_F9kVyDWhunqM5ijvcwm6HwzVCnwbkeZl6GV6awB_fc"; 
+        public const string C_Template_Borrow = "2AVbpcn0y1NtqIQ7X7KY1Ebcyyhx6mUXTpAxuOcxSE0";
         //图书归还通知 
         public const string C_Template_Return = "zzlLzStt_qZlzMFhcDgRm8Zoi-tsxjWdsI2b3FeoRMs";
         //缴费成功通知
-        public const string C_Template_Pay = "xFg1P44Hbk_Lpjc7Ds4gU8aZUqAlzoKpoeixtK1ykBI";//"4HNhEfLcroEMdX0Pr6aFo_n7_aHuvAzD8_6lzABHkiM";
+        public const string C_Template_Pay = "xFg1P44Hbk_Lpjc7Ds4gU8aZUqAlzoKpoeixtK1ykBI";
          
         //退款通知
-        public const string C_Template_CancelPay = "-XsD34ux9R2EgAdMhH0lpOSjcozf4Jli_eC86AXwM3Q";// "sIzSJJ-VRbFUFrDHszxCqwiIYjr9IyyqEqLr95iJVTs";
+        public const string C_Template_CancelPay = "-XsD34ux9R2EgAdMhH0lpOSjcozf4Jli_eC86AXwM3Q";
         //个人消息通知 
         public const string C_Template_Message = "rtAx0BoUAwZ3npbNIO8Y9eIbdWO-weLGE2iOacGqN_s";
 

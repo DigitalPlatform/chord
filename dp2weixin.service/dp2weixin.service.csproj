@@ -97,10 +97,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ManagerThread.cs" />
     <Compile Include="MessageItem.cs" />
     <Compile Include="ApiResult.cs" />
     <Compile Include="Command\BaseCommand.cs" />
-    <Compile Include="Command\BindingCommand.cs" />
+    <Compile Include="Command\SetCommand.cs" />
     <Compile Include="Command\CommandContainer.cs" />
     <Compile Include="Command\dp2CommandUtility.cs" />
     <Compile Include="Command\SearchCommand.cs" />
@@ -117,8 +118,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchBiblioResult.cs" />
     <Compile Include="TemplateData.cs" />
+    <Compile Include="TraceOnUser.cs" />
     <Compile Include="WeiXinConst.cs" />
     <Compile Include="mongodb\WxUserDatabase.cs" />
+    <Compile Include="WxApplication.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

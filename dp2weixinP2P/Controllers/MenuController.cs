@@ -18,21 +18,13 @@ using Senparc.Weixin.MP.CommonAPIs;
 using Senparc.Weixin.MP.Entities;
 using Senparc.Weixin.MP.Entities.Menu;
 using dp2weixinWeb.Controllers;
+using dp2weixin.service;
 
 namespace Senparc.Weixin.MP.Sample.Controllers
 {
     public class MenuController : BaseController
     {
-        //private bool CheckSupervisorLogin()
-        //{
-        //    if (Session[dp2WeiXinService.C_Session_Supervisor] != null
-        //        && (bool)Session[dp2WeiXinService.C_Session_Supervisor] == true)
-        //    {
-        //        return true;
-        //    }
 
-        //    return false;
-        //}
 
         //
         // GET: /Menu/
