@@ -5221,8 +5221,15 @@ ERROR1:
                 {
                     try
                     {
+                        WxUserItem user= WxUserDatabase.Current.GetActivePatron(weixinId, libId);
+                        if (user == null)
+                        {
+                            strError = "取消预约时，不可能找不到当前绑定的读者账户";
+                            return -1;
+                        }
+
                         string operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                        string strText = "您已对图书[" + items + "]取消预约,该书将不再为您保留，读者证号 " + patron + "。";
+                        string strText = user.readerName + " " + patron + "，您已对图书 " + items + " 取消预约,该书将不再为您保留。";
                         string remark = "\n" + this._msgRemark;
 
                         List<string> bindWeixinIds = new List<string>();

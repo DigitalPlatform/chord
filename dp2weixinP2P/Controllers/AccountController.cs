@@ -60,7 +60,7 @@ namespace dp2weixinWeb.Controllers
 
             // 图书馆html,选中项为设置的图书馆
             string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            ViewBag.LibHtml = this.GetLibSelectHtml(ViewBag.LibId,weixinId);
+            ViewBag.LibHtml = this.GetLibSelectHtml("", weixinId,true); //2016-9-4 绑定时不支持选中默认图书馆 ViewBag.LibId
 
             return View();
 
@@ -89,14 +89,16 @@ namespace dp2weixinWeb.Controllers
             
             // 如果是从绑定界面过来的，会传来绑定界面使用的图书馆
             // 如果未传进图书馆，使用设置的图书馆
-            if (string.IsNullOrEmpty(libId) == true)
-            {
-                libId=ViewBag.LibId;
-            }            
+            //if (string.IsNullOrEmpty(libId) == true)
+            //{
+            //    libId=ViewBag.LibId;
+            //}    
+            if (libId == null)
+                libId = "";
 
             // 图书馆html
             string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            ViewBag.LibHtml = this.GetLibSelectHtml(libId,weixinId);
+            ViewBag.LibHtml = this.GetLibSelectHtml(libId,weixinId,true);
             
 
             if (string.IsNullOrEmpty(readerName) == false && readerName != "undefined")
