@@ -886,6 +886,12 @@ out string strError)
             return time.ToString("yyyy-MM-dd HH:mm:ss");
         }
 
+
+        // 日期转换成yyyy-MM-dd HH:mm:ss格式字符串
+        public static string DateTimeToStringNoSec(DateTime time)
+        {
+            return time.ToString("yyyy-MM-dd HH:mm");
+        }
     }
 
 }

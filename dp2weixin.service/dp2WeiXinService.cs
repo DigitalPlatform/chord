@@ -810,6 +810,10 @@ namespace dp2weixin.service
             try
             {
                 var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                string nowTime = DateTimeUtil.DateTimeToStringNoSec(DateTime.Now);
+                BaseTemplateData templateData = (BaseTemplateData)msgData;
+                templateData.remark.value = templateData.remark.value + "("+nowTime+")";
                 foreach (string weixinId in weixinIds)
                 {
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
@@ -817,7 +821,7 @@ namespace dp2weixin.service
                         template,
                         topColor,
                         linkUrl,
-                        msgData);
+                        templateData); //msgData
                     if (result1.errcode != 0)
                     {
                         strError = result1.errmsg;
@@ -1668,7 +1672,7 @@ namespace dp2weixin.service
 
                 if (bindWeixinIds.Count > 0)
                 {
-                    var msgData = new ReturnPayTemplateData()
+                    var msgData = new CancelPayTemplateData()
                     {
                         first = new TemplateDataItem("✈ ☁ ☁ ☁ ☁ ☁ ☁", "#B8860B"),  // ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
                         keyword1 = new TemplateDataItem(summary, "#000000"),
@@ -1694,7 +1698,7 @@ namespace dp2weixin.service
                 {
                     string markPatronName = this.markString(patronName);
                     remark = remark.Replace(patronName, markPatronName);
-                    var msgData2worker = new ReturnPayTemplateData()
+                    var msgData2worker = new CancelPayTemplateData()
                     {
                         first = new TemplateDataItem("✈ ☁ ☁ ☁ ☁ ☁ ☁", "#B8860B"),  // ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
                         keyword1 = new TemplateDataItem(summary, "#000000"),
@@ -2882,6 +2886,20 @@ namespace dp2weixin.service
                     }
                 }
 
+                // 移除该工作人员的tracing on
+                if (userItem.type == WxUserDatabase.C_Type_Worker)
+                {
+                    if (this.TracingOnUsers.ContainsKey(weixinId) == true)
+                    {
+                        // 检查一下该微信用户是否还绑定其它工作人员，如果没有再绑工作人员，从tracing列表中删除
+                        List<WxUserItem> workerList = WxUserDatabase.Current.Get(weixinId, null, WxUserDatabase.C_Type_Worker);
+                        if (workerList.Count == 0)
+                        {
+                            this.TracingOnUsers.Remove(weixinId);
+                        }
+                    }
+                }
+
                 return 0;
             }
             catch (AggregateException ex)
@@ -3609,17 +3627,17 @@ ERROR1:
             }
             XmlNode root = dom.DocumentElement;
 //<root>
-//    <line name="_coverImage" value="http://www.hongniba.com.cn/bookclub/images/books/book_20005451_s.jpg" />
-//    <line name="题名与责任说明拼音" value="dang wo xiang shui de shi hou" />
-//    <line name="题名与责任说明" value="当我想睡的时候 [专著]  / (美)简·R. 霍华德文 ; (美)琳内·彻丽图 ; 林芳萍翻译" />
-//    <line name="责任者" value="霍华德; 林芳萍; 彻丽" />
-//    <line name="出版发行" value="石家庄 : 河北教育出版社, 2010" />
-//    <line name="载体形态" value="1册 ; 26cm" />
-//    <line name="主题分析" value="图画故事-美国-现代" />
-//    <line name="分类号" value="中图法分类号: I712.85" />
-//    <line name="附注" value="启发精选世界优秀畅销绘本版权页英文题名：When I'm sleepy" />
-//    <line name="获得方式" value="ISBN 978-7-5434-7754-4 (精装 ) : CNY27.80" />
-//    <line name="提要文摘" value="临睡前，带着孩子一起环游世界，看看他可不可以像长颈鹿一样站着睡，和蝙蝠一起倒挂着睡，或者像企鹅一样睡在好冷好冷的地方。" />
+//  <line name="_coverImage" value="http://www.hongniba.com.cn/bookclub/images/books/book_20005451_b.jpg" />
+//  <line name="题名与责任说明拼音" value="dang wo xiang shui de shi hou" type="titlepinyin" />
+//  <line name="题名与责任说明" value="当我想睡的时候 [专著]  / (美)简·R. 霍华德文 ; (美)琳内·彻丽图 ; 林芳萍翻译" type="title" />
+//  <line name="责任者" value="霍华德; 林芳萍; 彻丽" />
+//  <line name="出版发行" value="石家庄 : 河北教育出版社, 2010" />
+//  <line name="载体形态" value="1册 ; 26cm" />
+//  <line name="主题分析" value="图画故事-美国-现代" />
+//  <line name="分类号" value="中图法分类号: I712.85" />
+//  <line name="附注" value="启发精选世界优秀畅销绘本版权页英文题名：When I'm sleepy" />
+//  <line name="获得方式" value="ISBN 978-7-5434-7754-4 (精装 ) : CNY27.80" />
+//  <line name="提要文摘" value="临睡前，带着孩子一起环游世界，看看他可不可以像长颈鹿一样站着睡，和蝙蝠一起倒挂着睡，或者像企鹅一样睡在好冷好冷的地方。" />
 //</root>
             string imgUrl = "";
             XmlNodeList lineList = root.SelectNodes("line");
@@ -3651,6 +3669,11 @@ ERROR1:
                     continue;
                 }
 
+                //这个版本，为书目信息的 table 格式，增加了一个 type 属性。注意这是一个逗号间隔的字符串，
+                //虽然现在还没有用到逗号。无论是中文还是英文的书目数据，题名行都有 type=title，需要用这个来识别，以把这行加粗。
+                //特殊地，中文的书目数据，还可能具有题名拼音行，那么它会有 type=titlepinyin。
+                //再次强调一下，type 属性的值是一个逗号间隔的字符串，因此判断 title 和 titlepinyin 的时候要用特定的解析函数，
+                //否则将来数据中一旦出现逗号的时候就会出现故障。
                 if (name == "题名与责任说明拼音")
                 {
                     pinyin = value;
@@ -5719,6 +5742,26 @@ ERROR1:
             return contentHtml;
         }
 
+        public static bool CheckIsBiblioPath(string text)
+        {
+            bool bPath = false;
+            int index = text.LastIndexOf('/');
+            if (index > 0 ) //因为路径中的/不可能是第一个字符，所以没有-1
+            {
+                string right = text.Substring(index+1);
+                try
+                {
+                    int no = Convert.ToInt32(right);
+                    if (no >= 0)
+                        bPath = true;
+                }
+                catch
+                { }
+            }
+
+            return bPath;
+        }
+
 
         public string GetBookHtml(string content, string libId)
         {
@@ -5729,17 +5772,23 @@ ERROR1:
             string[] list = content.Split(new char[] { '\n' });
             foreach (string str in list)
             {
-                //if (contentHtml != "")
-                //    contentHtml += "<br/>";
-
-                var word = "@bibliorecpath:" + str;
-                string detalUrl = "/Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(str);
-                contentHtml += "<div><a href='javascript:void(0)' onclick='gotoBiblioDetail(\"" + detalUrl + "\")'>" + HttpUtility.HtmlEncode(str) + "</a></div>";
-                contentHtml += "<div  class='pending' style='padding-bottom:10px'>"
-                                       + "<label>bs-" + word + "</label>"
-                                       + "<img src='../img/wait2.gif' />"
-                                       + "<span>" + libId + "</span>"
-                                   + "</div>";
+                // 检查是不是书目路径
+                bool bPath = dp2WeiXinService.CheckIsBiblioPath(str);
+                if (bPath == false)
+                {
+                    contentHtml += "<div style='color:gray'>" + HttpUtility.HtmlEncode(str) + "</div>";
+                }
+                else
+                {
+                    var word = "@bibliorecpath:" + str;
+                    string detalUrl = "/Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(str);
+                    contentHtml += "<div style='padding-top:4px;'><a href='javascript:void(0)' onclick='gotoBiblioDetail(\"" + detalUrl + "\")'>" + HttpUtility.HtmlEncode(str) + "</a></div>";
+                    contentHtml += "<div  class='pending' style='padding-bottom:4px'>"
+                                           + "<label>bs-" + word + "</label>"
+                                           + "<img src='../img/wait2.gif' />"
+                                           + "<span>" + libId + "</span>"
+                                       + "</div>";
+                }
 
             }
 

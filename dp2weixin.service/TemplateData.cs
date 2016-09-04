@@ -7,133 +7,105 @@ using System.Threading.Tasks;
 
 namespace dp2weixin.service
 {
-//{{first.DATA}}
-//图书书名：{{keyword1.DATA}}
-//册条码号：{{keyword2.DATA}}
-//借阅日期：{{keyword3.DATA}}
-//借阅期限：{{keyword4.DATA}}
-//应还日期：{{keyword5.DATA}}
-//{{remark.DATA}}
-
-//尊敬的XXX，恭喜您借书成功。
-//图书书名：C#开发教程
-//册条码号：C0000001
-//借阅日期：2016-5-27
-//借阅期限：31
-//应还日期：2016-6-27
-//祝您阅读愉快，欢迎再借。
-    public class BorrowTemplateData
+    public class BaseTemplateData
     {
         public TemplateDataItem first { get; set; }
+        public TemplateDataItem remark { get; set; }
+    }
+
+    //您好，您已借书成功。
+    //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
+    //册条码号：C0000001
+    //借书日期：2016-07-01
+    //应还日期：2016-07-31
+    //证条码号：R0000001
+    //xxx，祝您阅读愉快，欢迎再借。
+    public class BorrowTemplateData:BaseTemplateData
+    {
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
         public TemplateDataItem keyword4 { get; set; }
         public TemplateDataItem keyword5 { get; set; }
-        public TemplateDataItem remark { get; set; }
     }
 
-
-//{{first.DATA}}
-//书名：{{keyword1.DATA}}
-//归还时间：{{keyword2.DATA}}
-//借阅人：{{keyword3.DATA}}
-//{{remark.DATA}}    
-//您好,你借阅的图书已确认归还.
-//书名：算法导论
-//归还时间：2015-10-10 12:14
-//借阅人：李明
-//欢迎继续借书!
-    public class ReturnTemplateData
+    //尊敬的读者，您已成功还书。
+    //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00 
+    //册条码号：C0000001
+    //借书日期：2016-5-27
+    //借阅期限：31天
+    //还书日期：2016-6-27
+    //谢谢您及时归还，欢迎再借。
+    public class ReturnTemplateData:BaseTemplateData
     {
-        public TemplateDataItem first { get; set; }
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
         public TemplateDataItem keyword4 { get; set; }
         public TemplateDataItem keyword5 { get; set; }
-        public TemplateDataItem remark { get; set; }
     }
 
 
 
-//{{first.DATA}}
-//订单号：{{keyword1.DATA}}
-//缴费人：{{keyword2.DATA}}
-//缴费金额：{{keyword3.DATA}}
-//费用类型：{{keyword4.DATA}}
-//缴费时间：{{keyword5.DATA}}
-//{{remark.DATA}}
-//您好，您已缴费成功！
-//订单号：书名（册条码号）
-//缴费人：张三
-//缴费金额：￥100.00
-//费用类型：违约
-//缴费时间：2015-12-27 13:15
-//如有疑问，请联系学校管理员，感谢您的使用！
-    public class PayTemplateData
+
+
+    //尊敬的读者，您已成功交费。
+    //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
+    //册条码号：C0000001
+    //交费金额：CNY 10元
+    //交费原因：超期。超1天，违约金因子：CNY1.0/Day
+    //交费时间：2015-12-27 13:15
+    //如有疑问，请联系系统管理员。
+    public class PayTemplateData:BaseTemplateData
     {
-        public TemplateDataItem first { get; set; }
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
         public TemplateDataItem keyword4 { get; set; }
         public TemplateDataItem keyword5 { get; set; }
-        public TemplateDataItem remark { get; set; }
     }
 
-//{{first.DATA}}
-//书刊摘要：{{keyword1.DATA}}
-//册条码号：{{keyword2.DATA}}
-//交费原因：{{keyword3.DATA}}
-//撤消金额：{{keyword4.DATA}}
-//撤消时间：{{keyword5.DATA}}
-//{{remark.DATA}}
-    public class ReturnPayTemplateData
+    //您好，撤消交费成功。
+    //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
+    //册条码号：C0000001
+    //交费原因：超期。超1天，违约金因子
+    //撤消金额：CNY1
+    //撤消时间：2015-12-27 13:15
+    //任延华，您已成功撤消交费，如有疑问，请联系系统管理员
+    public class CancelPayTemplateData:BaseTemplateData
     {
-        public TemplateDataItem first { get; set; }
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
         public TemplateDataItem keyword4 { get; set; }
         public TemplateDataItem keyword5 { get; set; }
-        public TemplateDataItem remark { get; set; }
     }
 
 
-//{{first.DATA}}
-//标题：{{keyword1.DATA}}
-//时间：{{keyword2.DATA}}
-//内容：{{keyword3.DATA}}
-//{{remark.DATA}}
-//您好，您有新的消息！
-//标题：车辆剩余油量过少
-//时间：2015年8月20日
-//内容：您的车辆剩余测量过少，请注意加油
-//感谢您使用车管家！
-    public class MessageTemplateData
+
+    //您好，您有新的消息！
+    //标题：车辆剩余油量过少
+    //时间：2015年8月20日
+    //内容：您的车辆剩余测量过少，请注意加油
+    //感谢您使用车管家！
+    public class MessageTemplateData:BaseTemplateData
     {
-        public TemplateDataItem first { get; set; }
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
-        public TemplateDataItem remark { get; set; }
     }
 
 
-//{{first.DATA}}
-//图书书名：{{keyword1.DATA}}
-//应还日期：{{keyword2.DATA}}
-//超期天数：{{keyword3.DATA}}
-//{{remark.DATA}}
-    public class CaoQiTemplateData
+    //{{first.DATA}}
+    //图书书名：{{keyword1.DATA}}
+    //应还日期：{{keyword2.DATA}}
+    //超期天数：{{keyword3.DATA}}
+    //{{remark.DATA}}
+    public class CaoQiTemplateData:BaseTemplateData
     {
-        public TemplateDataItem first { get; set; }
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
-        public TemplateDataItem remark { get; set; }
-
     }
 
     //{{first.DATA}}
@@ -141,14 +113,11 @@ namespace dp2weixin.service
     //到书日期：{{keyword2.DATA}}
     //保留期限：{{keyword3.DATA}}
     //{{remark.DATA}}
-    public class ArrivedTemplateData
+    public class ArrivedTemplateData:BaseTemplateData
     {
-        public TemplateDataItem first { get; set; }
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
-        public TemplateDataItem remark { get; set; }
-
     }
 
 
@@ -156,27 +125,21 @@ namespace dp2weixin.service
     //绑定帐号：{{keyword1.DATA}}
     //绑定说明：{{keyword2.DATA}}
     //{{remark.DATA}}
-    public class BindTemplateData
+    public class BindTemplateData:BaseTemplateData
     {
-        public TemplateDataItem first { get; set; }
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
-        public TemplateDataItem remark { get; set; }
-
     }
 
 
 
-//{{first.DATA}}
-//解绑帐号：{{keyword1.DATA}}
-//解绑说明：{{keyword2.DATA}}
-//{{remark.DATA}}
-    public class UnBindTemplateData
+    //{{first.DATA}}
+    //解绑帐号：{{keyword1.DATA}}
+    //解绑说明：{{keyword2.DATA}}
+    //{{remark.DATA}}
+    public class UnBindTemplateData:BaseTemplateData
     {
-        public TemplateDataItem first { get; set; }
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
-        public TemplateDataItem remark { get; set; }
-
     }
 }

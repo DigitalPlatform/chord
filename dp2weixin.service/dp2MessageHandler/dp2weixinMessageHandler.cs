@@ -175,54 +175,61 @@ namespace dp2weixin
 
             if (function == "tracing")
             {
+                // 先检查该微信用户是否绑定了图书馆的工作人员账号
+                List<WxUserItem> workerList = WxUserDatabase.Current.Get(this.WeixinOpenId,
+                    null,
+                    WxUserDatabase.C_Type_Worker);
+                if (workerList == null || workerList.Count == 0)
+                {
+                    return this.CreateTextResponseMessage("您尚未绑定图书馆工作人员账户，不能使用tracing功能。"
+                       + "\n点击 <a href='" + dp2WeiXinService.C_Url_AccountIndex + "'>绑定账户</a>。");
+                }
+
                 if (parameter == "off")
                 {
                     dp2WeiXinService.Instance.TracingOnUsers.Remove(this.WeixinOpenId);
                     string text = "set tracing off 成功，您将不再收到非本人的微信通知。";
                     return this.CreateTextResponseMessage(text);
+                }
+                else if (parameter == "on")
+                {
+                    TracingOnUser tracingOnUser = new TracingOnUser();
+                    tracingOnUser.WeixinId = this.WeixinOpenId;
 
+                    // 检查有没有绑 数字平台,绑了的话，设为公司管理员
+                    foreach (WxUserItem user in workerList)
+                    {
+                        LibItem lib = LibDatabase.Current.GetLibById(user.libId);
+                        if (lib != null)
+                        {
+                            if (lib.libName == WeiXinConst.C_Dp2003LibName)
+                            {
+                                tracingOnUser.IsAdmin = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    // 设到hashtable里
+                    dp2WeiXinService.Instance.TracingOnUsers[this.WeixinOpenId] = tracingOnUser;
+
+                    string text = "set tracing on 成功，您将会收到本馆的全部微信通知。";
+                    if (tracingOnUser.IsAdmin == true)
+                    {
+                        text = "set tracing on 成功，您是数字平台工作人员，您将会收到全部图书馆的微信通知。";
+                    }
+                    return this.CreateTextResponseMessage(text);
                 }
                 else
                 {
-                    // 默认on
-
-                    // 先检查该微信用户是否绑定了图书馆的工作人员账号
-                    List<WxUserItem> userList = WxUserDatabase.Current.Get(this.WeixinOpenId,
-                        null,
-                        WxUserDatabase.C_Type_Worker);
-                    if (userList != null && userList.Count > 0)
+                    if (dp2WeiXinService.Instance.TracingOnUsers[this.WeixinOpenId] == null)
                     {
-                        TracingOnUser tracingOnUser = new TracingOnUser();
-                        tracingOnUser.WeixinId = this.WeixinOpenId;
-
-                        // 检查有没有绑 数字平台,绑了的话，设为公司管理员
-                        foreach (WxUserItem user in userList)
-                        {
-                            LibItem lib = LibDatabase.Current.GetLibById(user.libId);
-                            if (lib != null)
-                            {
-                                if (lib.libName == WeiXinConst.C_Dp2003LibName)
-                                {
-                                    tracingOnUser.IsAdmin = true;
-                                    break;
-                                }
-                            }
-                        }
-
-                        // 设到hashtable里
-                        dp2WeiXinService.Instance.TracingOnUsers[this.WeixinOpenId] = tracingOnUser;
-
-                        string text = "set tracing on 成功，您将会收到本馆的全部微信通知。";
-                        if (tracingOnUser.IsAdmin == true)
-                        {
-                            text = "set tracing on 成功，您是数字平台工作人员，您将会收到全部图书馆的微信通知。";
-                        }
-                        return this.CreateTextResponseMessage(text);
+                        return this.CreateTextResponseMessage("您当前是 tracing off 状态。");
                     }
-
-                    return this.CreateTextResponseMessage("您尚未绑定图书馆工作人员账户，不能打开tracing功能。"
-                        +"\n点击 <a href='" + dp2WeiXinService.C_Url_AccountIndex + "'>绑定账户</a>。");
-
+                    else
+                    {
+                        return this.CreateTextResponseMessage("您当前是 tracing on 状态。");
+                    }
                 }
             }
 
