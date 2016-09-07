@@ -94,6 +94,8 @@ namespace dp2weixin.service
                 if (this._messageList.Count < 10000)
                     this._messageList.AddRange(tempList);//e.Records);
             }
+
+            this.WriteLog("AddMessage得到"+tempList.Count.ToString()+"条消息。");
             this.Activate();
         }
 

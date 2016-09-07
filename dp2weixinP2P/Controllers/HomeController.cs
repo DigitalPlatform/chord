@@ -20,6 +20,9 @@ namespace dp2weixinWeb.Controllers
 {
     public class HomeController : BaseController
     {
+
+
+
         public ActionResult Index(string code, string state, string weixinId)
         {
             return Redirect("~/Library/Home?code=" + code

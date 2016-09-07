@@ -29,7 +29,7 @@ namespace dp2weixin.service
         // 微信解绑通知 overdues
         public const string C_Template_UnBind = "1riAKkt2W0AOtkx5rx-Lwa0RKRydDTHaMjSoUBGuHog";
         //预约到书通知 
-        public const string C_Template_Arrived = "Wm-7-0HJay4yloWEgGG9HXq9eOF5cL8Qm2aAUy-isoM";
+        public const string C_Template_Arrived1 = "U79IrJOgNJWZnqeKy2467ZoN-aM9vrEGQf2JJtvdBPM";
         //图书超期提醒 
         public const string C_Template_CaoQi1 = "2sOCuATcFdSNbJM24zrHnFv89R3D-cZFIpk4ec_Irn4";//"QcS3LoLHk37Jh0rgKJId2o93IZjulr5XxgshzlW5VkY";
         //图书到期提醒

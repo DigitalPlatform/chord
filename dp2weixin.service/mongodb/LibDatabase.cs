@@ -73,6 +73,9 @@ namespace dp2weixin.service
 
         public LibItem GetLibById(string id)
         {
+            if (string.IsNullOrEmpty(id) == true)
+                return null;
+
             var filter = Builders<LibItem>.Filter.Eq("id", id);
 
             List<LibItem> list = this.LibCollection.Find(filter).ToList();
