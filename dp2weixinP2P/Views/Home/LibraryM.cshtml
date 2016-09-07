@@ -3,11 +3,11 @@
 }
 @section style {
     <style>
-         .title {
+        .title {
             /*上外边距是 10px 右外边距和左外边距是 5px 下外边距是 15px*/
             margin: 10px 15px 2px;
             color: #666666;
-            font-size:16px;
+            font-size: 16px;
         }
 
         TABLE.libTable {
@@ -16,33 +16,32 @@
             width: 100%;
         }
 
-        TABLE.libTable TR TD {
-            border-width: 0px;
-            /*border-top-width: 1px;
+            TABLE.libTable TR TD {
+                border-width: 0px;
+                /*border-top-width: 1px;
             border-color: #dddddd;
             border-style: dotted;*/
-            padding: 2px;
-        }
+                padding: 2px;
+            }
 
-        TABLE.libTable TR TD.value {
-            border-left: 1px solid #CCCCCC;
-            padding-left: 5px;
-        }
+                TABLE.libTable TR TD.value {
+                    border-left: 1px solid #CCCCCC;
+                    padding-left: 5px;
+                }
 
-        TABLE.libTable TR TD.label {
-            min-width: 140px;
-            width:140px;
-            /*background-color:#eeeeee;*/
-            color: #999999;
-            padding-left: 5px;
-            padding-right: 5px;
-            /*text-align: right;*/
-        }
+                TABLE.libTable TR TD.label {
+                    min-width: 140px;
+                    width: 140px;
+                    /*background-color:#eeeeee;*/
+                    color: #999999;
+                    padding-left: 5px;
+                    padding-right: 5px;
+                    /*text-align: right;*/
+                }
 
         .leftLabel {
             color: #999999;
         }
-
     </style>
 }
 @section Scripts {
@@ -140,6 +139,137 @@
             return count
         }
 
+        function detectUser()
+        {
+            //alert("detectUser 1");
+            // 微信端本方账户
+            var wxUserName = model.editor.wxUserName().trim();
+            if (wxUserName == "") {
+                alert("尚未输入图书馆微信本方账号名。");
+                return;
+            }
+            var wxPassword = model.editor.wxPassword().trim();
+            if (wxPassword == "") {
+                alert("尚未输入图书馆微信本方密码。");
+                return;
+            }
+
+            var password2 = $("#wxPassword2").val();
+            if (wxPassword == "") {
+                alert("再次输入密码 为空");
+                return;
+            }
+            if (wxPassword != password2)
+            {
+                alert("两次输入的密码不一致。");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+            var url = "/api/LibrarySetting?username=" + wxUserName
+                +"&password="+wxPassword;
+            sendAjaxRequest(url, "POST", function (result) {
+                // 关闭等待层
+                layer.close(index);
+
+
+
+                if (result.errorCode == -1) {
+                    alert("检测用户时出错:" + result.errorInfo);
+                    return;
+                }
+
+                alert("用户已存在");
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                layer.close(index);
+
+                alert(errorThrown);
+            });
+
+        }
+
+        function createUser() {
+            //alert("createUser 1");
+
+            var libName = model.editor.libName().trim();
+            if (libName == "") {
+                alert("尚未输入图书馆名称。");
+                return;
+            }
+
+            // 微信端本方账户
+            var wxUserName = model.editor.wxUserName().trim();
+            if (wxUserName == "") {
+                alert("尚未输入图书馆微信本方账号名。");
+                return;
+            }
+            var wxPassword = model.editor.wxPassword().trim();
+            if (wxPassword == "") {
+                alert("尚未输入图书馆微信本方密码。");
+                return;
+            }
+
+            var password2 = $("#wxPassword2").val();
+            if (wxPassword == "") {
+                alert("再次输入密码 为空");
+                return;
+            }
+            if (wxPassword != password2) {
+                alert("两次输入的密码不一致。");
+                return;
+            }
+
+
+            // 检查dp2mserver超级管理员账户
+            var mUsername = $("#mUsername").val();
+            if (mUsername == null || mUsername == "") {
+                alert("请输入dp2mserver超级管理员账户");
+
+                $("#supervisorDiv").css('display', 'block');
+                return;
+            }
+            var mPassword = $("#mPassword").val();
+            if (mPassword == null || mPassword == "") {
+                alert("请输入dp2mserver超级管理员密码");
+
+                $("#supervisorDiv").css('display', 'block');
+                return;
+            }
+
+
+            //显示等待图层
+            var index = loadLayer();
+            var url = "/api/LibrarySetting?username=" + encodeURIComponent(wxUserName)
+                + "&password=" + encodeURIComponent(wxPassword)
+            + "&department=" + encodeURIComponent(libName)
+            + "&mUsername=" +encodeURIComponent(mUsername) 
+            + "&mPassword=" + encodeURIComponent(mPassword);
+
+            sendAjaxRequest(url, "POST", function (result) {
+                // 关闭等待层
+                layer.close(index);
+
+                $("#supervisorDiv").css('display', 'none');
+
+
+                if (result.errorCode == -1) {
+                    alert("检测用户时出错:" + result.errorInfo);
+                    return;
+                }
+
+                alert("用户已存在");
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                layer.close(index);
+
+                alert(errorThrown);
+            });
+            
+        }
 
 
         // 新增一项
@@ -199,7 +329,7 @@
             }
             //alert("id=["+id+"]");
 
-            
+
             sendAjaxRequest(url, actionType,
                 function () {
 
@@ -220,7 +350,7 @@
                     layer.close(index);
                 },
                 {
-                    id:id,
+                    id: id,
                     libName: libName,
                     capoUserName: capoUserName,
                     capoContactPhone: capoContactPhone,
@@ -233,10 +363,9 @@
                 }
             );
         }
-        
+
         // 清空输入项
-        function clearEditModel()
-        {
+        function clearEditModel() {
             model.editor.id("");
             model.editor.libName("");
             model.editor.capoUserName("");
@@ -259,7 +388,7 @@
             clearEditModel();
 
             $("#btnAdd").css('display', 'block');
-            $("#btnEdit").css('display', 'none');            
+            $("#btnEdit").css('display', 'none');
         }
 
         // 在新增图书馆，点击取消
@@ -301,24 +430,22 @@
     </script>
 }
 @section header {
-        <h1 class="mui-title">图书馆管理</h1>
+    <h1 class="mui-title">图书馆管理</h1>
 }
-
 <div data-bind="if: model.displaySummary">
     <ul class="mui-table-view " data-bind=" foreach:model.librarys">
         <li class="mui-table-view-cell">
-
             <table class="libTable">
-                 <tr>
+                <tr>
                     <td class="label">图书馆id</td>
                     <td class="value" data-bind="text:id"></td>
                 </tr>
-               <!--
-                <tr>
-                    <td class="label">图书馆代码</td>
-                    <td class="value" data-bind="text:libCode"></td>
-                </tr>
-                    -->
+                <!--
+                 <tr>
+                     <td class="label">图书馆代码</td>
+                     <td class="value" data-bind="text:libCode"></td>
+                 </tr>
+                     -->
                 <tr>
                     <td class="label">图书馆名称</td>
                     <td class="value" data-bind="text:libName"></td>
@@ -371,62 +498,84 @@
         新增图书馆
     </button>
 </div>
-<div data-bind="ifnot: model.displaySummary">
+<div id="editDiv" data-bind="ifnot: model.displaySummary">
 
     <div class="mui-card">
-        <div class="mui-input-group">
-            <!--
-            <div class="mui-input-row ">
-                <label class="leftLabel">图书馆代码</label>
-                <input type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆代码" data-bind="value:model.editor.libCode">
-            </div>
-                -->
-            <div class="mui-input-row ">
-                <label class="leftLabel">图书馆名称</label>
-                <input type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆名称" data-bind="value:model.editor.libName">
-            </div>
-            <div class="mui-input-row ">
-                <label class="leftLabel">图书馆dp2capo帐号</label>
-                <input type="text" class="mui-input mui-input-clear" placeholder="请输入  dp2capo帐号" data-bind="value:model.editor.capoUserName">
-            </div>
-            <div class="mui-input-row ">
-                <label class="leftLabel">图书馆联系人手机号</label>
-                <input type="text" class="mui-input mui-input-clear" placeholder="请输入  图书馆联系人手机号" data-bind="value:model.editor.capoContactPhone">
-            </div>
-
-            <div class="mui-input-row ">
-                <label class="leftLabel">微信本方帐号名</label>
-                <input type="text" class="mui-input mui-input-clear" placeholder="请输入 微信本方帐号名" data-bind="value:model.editor.wxUserName">
-            </div>
-            <div class="mui-input-row ">
-                <label class="leftLabel">微信本方帐号密码</label>
-                <input type="password" class="mui-input mui-input-clear" placeholder="请输入  微信本方帐号密码" data-bind="value:model.editor.wxPassword">
-            </div>
-            <div class="mui-input-row ">
-                <label class="leftLabel">本方联系人手机号</label>
-                <input type="text" class="mui-input mui-input-clear" placeholder="请输入  本方联系人手机号" data-bind="value:model.editor.wxContactPhone">
-            </div>
-            <div class="mui-input-row">
-                <label class="leftLabel">参于检索的数据库</label>
-                <textarea rows="5" data-bind="value:model.editor.searchDbs" placeholder="请输入  数据库名称(以逗号分隔)"></textarea>
-            </div>
-            <div class="mui-input-row">
-                <label class="leftLabel">备注</label>
-                <textarea rows="5" data-bind="value:model.editor.comment" placeholder="请输入  备注"></textarea>
-            </div>
-            <div class='mui-input-row mui-checkbox mui-left'>
-                <label>不对外公开书目</label>
-                <input id='ckbNoShareBiblio' type='checkbox' data-bind="checked:model.editor.noShareBiblio" />
-            </div>
+        <div class="mui-input-row ">
+            <label class="leftLabel">图书馆名称</label>
+            <input type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆名称" data-bind="value:model.editor.libName">
         </div>
-        <div class="mui-content-padded" >
-            <table>
-                <tr>
-                    <td style ="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnAdd" data-bind="click: save" style="display:none">新增</button></td>
-                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnEdit" data-bind="click: save" style="display:none">保存</button></td>
-                    <td style="padding-left:5px"><button class="mui-btn mui-btn-default" data-bind="click:handleCancelClick">取消</button></td>
-                </tr>
-            </table>
+        <div class="mui-input-row ">
+            <label class="leftLabel">图书馆dp2capo帐号</label>
+            <input type="text" class="mui-input mui-input-clear" placeholder="请输入  dp2capo帐号" data-bind="value:model.editor.capoUserName">
+        </div>
+        <div class="mui-input-row ">
+            <label class="leftLabel">图书馆联系人手机号</label>
+            <input type="text" class="mui-input mui-input-clear" placeholder="请输入  图书馆联系人手机号" data-bind="value:model.editor.capoContactPhone">
         </div>
     </div>
+    <br />
+    <div class="mui-card">
+        <div class="mui-input-row ">
+            <label class="leftLabel">微信本方帐号名</label>
+            <input type="text" class="mui-input mui-input-clear" placeholder="请输入 微信本方帐号名" data-bind="value:model.editor.wxUserName">
+        </div>
+        <div class="mui-input-row ">
+            <label class="leftLabel">微信本方帐号密码</label>
+            <input type="password" class="mui-input mui-input-clear" placeholder="请输入  微信本方帐号密码" data-bind="value:model.editor.wxPassword">
+        </div>
+        <div class="mui-input-row ">
+            <label class="leftLabel">再次输入密码</label>
+            <input type="password" class="mui-input mui-input-clear" placeholder="请再次输入密码" id="wxPassword2">
+        </div>
+
+        <div class="mui-input-row ">
+            <label class="leftLabel">本方联系人手机号</label>
+            <input type="text" class="mui-input mui-input-clear" placeholder="请输入  本方联系人手机号" data-bind="value:model.editor.wxContactPhone">
+        </div>
+
+        <div id="supervisorDiv" style="display:none;background-color:#CCFF99">
+            <div class="mui-content-padded">请在下方输入dp2mserver超级管理账户</div>
+            <div class="mui-input-row ">
+                <label class="leftLabel">dp2mserver超级帐号名</label>
+                <input type="text" class="mui-input mui-input-clear" placeholder="请输入 超级账号名" id="mUsername">
+            </div>
+            <div class="mui-input-row ">
+                <label class="leftLabel">超级帐号密码</label>
+                <input type="password" class="mui-input mui-input-clear" placeholder="请输入 超级帐号密码" id="mPassword">
+            </div>
+        </div>
+        <div class="mui-button-row">
+            <button type="button" class="mui-btn mui-btn-default" onclick="detectUser()">检测</button>&nbsp;&nbsp;
+            <button type="button" class="mui-btn mui-btn-default" onclick="createUser()">创建</button>&nbsp;&nbsp;
+
+        </div>
+    </div>
+    <br />
+    <div class="mui-card">
+        <div class="mui-input-row">
+            <label class="leftLabel">参于检索的数据库</label>
+            <textarea rows="2" data-bind="value:model.editor.searchDbs" placeholder="请输入  数据库名称(以逗号分隔)"></textarea>
+        </div>
+        <div class="mui-input-row">
+            <label class="leftLabel">备注</label>
+            <textarea rows="5" data-bind="value:model.editor.comment" placeholder="请输入  备注"></textarea>
+        </div>
+        <div class='mui-input-row mui-checkbox mui-left'>
+            <label>不对外公开书目</label>
+            <input id='ckbNoShareBiblio' type='checkbox' data-bind="checked:model.editor.noShareBiblio" />
+        </div>
+    </div>
+    <div class="mui-content-padded">
+        <table>
+            <tr>
+                <td style="padding-left:5px"><button class="mui-btn mui-btn-primary" id="btnAdd" data-bind="click: save" style="display:none">新增图书馆</button></td>
+                <td style="padding-left:5px"><button class="mui-btn mui-btn-primary" id="btnEdit" data-bind="click: save" style="display:none">保存图书馆</button></td>
+                <td style="padding-left:5px"><button class="mui-btn mui-btn-default" data-bind="click:handleCancelClick">取消</button></td>
+            </tr>
+        </table>
+    </div>
 </div>
+
+
+

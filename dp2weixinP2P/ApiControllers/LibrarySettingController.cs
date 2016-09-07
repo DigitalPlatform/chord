@@ -54,5 +54,45 @@ namespace dp2weixinWeb.ApiControllers
         {
             return dp2WeiXinService.Instance.deleteLib(id);
         }
+
+        [HttpPost]
+        public WxUserResult DetectUser(string username, string password)
+        {
+            WxUserResult result = new WxUserResult();
+
+            string strError = "";
+            bool bRet = dp2WeiXinService.Instance.DetectMserverUser(username, password, out strError);
+            if (bRet == false)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+            }
+
+            return result;
+        }
+
+        [HttpPost]
+        public WxUserResult CreateUser(string username,
+            string password,
+            string department,
+            string mUsername,
+            string mPassword)
+        {
+            WxUserResult result = new WxUserResult();
+
+            string strError = "";
+            bool bRet = dp2WeiXinService.Instance.CreateMserverUser(username, password,
+                department,
+                mUsername,
+                mPassword,
+                out strError);
+            if (bRet == false)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+            }
+
+            return result;
+        }
     }
 }

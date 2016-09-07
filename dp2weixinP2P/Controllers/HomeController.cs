@@ -131,6 +131,8 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
+
+
         //WeixinUser
         public ActionResult WeixinUser(string code, string state)
         {

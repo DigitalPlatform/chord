@@ -23,6 +23,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Mvc;
 using System.Xml;
 
 namespace dp2weixin.service
@@ -405,8 +406,6 @@ namespace dp2weixin.service
 
             string oldUserName = this.GetUserName();
             string oldPassword = this.password;
-
-
 
             // 先检查下地址与密码是否可用，如不可用，不保存
             try
@@ -3416,8 +3415,7 @@ namespace dp2weixin.service
                       objectUrl);
 
                 objectUrl = "../patron/GetObject?libId=" + HttpUtility.UrlEncode(libId)
-                    + "&uri=" + HttpUtility.UrlEncode(strUri)
-                    + "&mime=" + HttpUtility.UrlEncode(mime);
+                    + "&uri=" + HttpUtility.UrlEncode(strUri);
             }
 
 
@@ -3439,18 +3437,9 @@ namespace dp2weixin.service
             {
                 string strUri = MakeObjectUrl(strBiblioRecPath,
                       strImageUrl);
-                //string html= "<img class='pending' name='"
-                //+ (strBiblioRecPath == "?" ? "?" : "object-path:" + strUri)
-                //+ "' src='%mappeddir%\\images\\ajax-loader.gif' alt='封面图片'></img>";
-                //string html = "<div  class='pending' style='padding-bottom:10px'>"
-                //           + "<label>ob-" + strUri + "</label>"
-                //           + "<img src='../img/wait2.gif' />"
-                //           + "<span>" + libId + "</span>"
-                //       + "</div>";
 
                  strImageUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
-     + "&type=photo"
-     + "&objectPath=" + HttpUtility.UrlEncode(strUri);
+                 + "&objectPath=" + HttpUtility.UrlEncode(strUri);
             }
 
             string onloadStr = "";
@@ -6807,7 +6796,7 @@ ERROR1:
         #endregion
 
 
-
+        #region 恢复绑定账户
 
         public WxUserResult RecoverUsers()
         {
@@ -7148,6 +7137,8 @@ ERROR1:
 
         }
 
+        #endregion
+
         #region 图书馆管理
 
         public int AddLib(LibItem item,out LibItem outputItem,out string strError)
@@ -7226,6 +7217,390 @@ ERROR1:
             result.errorCode = -1;
             result.errorInfo = strError;
             return result;
+        }
+
+        #endregion
+
+
+        #region 资源下载
+
+        public static Uri GetUri(string strURI)
+        {
+            try
+            {
+                return new Uri(strURI);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static bool MatchMIME(string strMime, string strLeftParam)
+        {
+            string strLeft = "";
+            string strRight = "";
+            StringUtil.ParseTwoPart(strMime, "/", out strLeft, out strRight);
+            if (string.Compare(strLeft, strLeftParam, true) == 0)
+                return true;
+            return false;
+        }
+
+        public static string PureName(string strPath)
+        {
+            // 2012/11/30
+            if (string.IsNullOrEmpty(strPath) == true)
+                return strPath;
+
+            string sResult = "";
+            sResult = strPath;
+            sResult = sResult.Replace("/", "\\");
+            if (sResult.Length > 0)
+            {
+                if (sResult[sResult.Length - 1] == '\\')
+                    sResult = sResult.Substring(0, sResult.Length - 1);
+            }
+            int nRet = sResult.LastIndexOf("\\");
+            if (nRet != -1)
+                sResult = sResult.Substring(nRet + 1);
+
+            return sResult;
+        }
+
+        public static int GetObject0(Controller mvcControl, string libId, string uri, out string strError)
+        {
+            strError = "";
+            int nRet = 0;
+
+            // 先取出metadata
+            string metadata = "";
+            string timestamp = "";
+            string outputpath = "";
+            nRet = dp2WeiXinService.Instance.GetObjectMetadata(libId,
+                uri,
+                "metadata",
+                null,
+                out metadata,
+                out timestamp,
+                out outputpath,
+                out strError);
+            if (nRet == -1)
+                return -1;
+
+            // <file mimetype="application/pdf" localpath="D:\工作清单.pdf" size="188437"
+            // lastmodified="2016/9/6 12:45:14" readCount="17" />
+            XmlDocument dom = new XmlDocument();
+            try
+            {
+                dom.LoadXml(metadata);
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+
+            // 检查是否有更新，没更新直接用浏览器缓存数据
+            string strLastModifyTime = DomUtil.GetAttr(dom.DocumentElement, "lastmodified");//lastmodifytime");
+            if (String.IsNullOrEmpty(strLastModifyTime) == false)
+            {
+                DateTime lastmodified = DateTime.Parse(strLastModifyTime).ToUniversalTime();
+
+                string strIfHeader = mvcControl.Request.Headers["If-Modified-Since"];
+                if (String.IsNullOrEmpty(strIfHeader) == false)
+                {
+                    DateTime isModifiedSince = DateTimeUtil.FromRfc1123DateTimeString(strIfHeader); // .ToLocalTime();
+
+                    if (DateTimeUtil.CompareHeaderTime(isModifiedSince, lastmodified) != 0)
+                    {
+                        // 修改过
+                    }
+                    else
+                    {
+                        // 没有修改过
+                        mvcControl.Response.StatusCode = 304;
+                        mvcControl.Response.SuppressContent = true;
+                        return 0;
+                    }
+                }
+
+                mvcControl.Response.AddHeader("Last-Modified", DateTimeUtil.Rfc1123DateTimeString(lastmodified)); // .ToUniversalTime()
+            }
+
+            // 设置媒体类型
+            string strMime = DomUtil.GetAttr(dom.DocumentElement, "mimetype");
+            bool bSaveAs = false;
+            if (string.IsNullOrEmpty(strMime) == true
+                || MatchMIME(strMime, "text") == true
+                || MatchMIME(strMime, "image") == true)
+            {
+
+            }
+            else
+            {
+                bSaveAs = true;
+            }
+            if (strMime == "text/plain")
+                strMime = "text";
+            mvcControl.Response.ContentType = strMime;
+
+            // 是否出现另存为对话框
+            if (bSaveAs == true)
+            {
+                string strClientPath = DomUtil.GetAttr(dom.DocumentElement, "localpath");
+                if (strClientPath != "")
+                    strClientPath = PureName(strClientPath);
+
+                string strEncodedFileName = HttpUtility.UrlEncode(strClientPath, Encoding.UTF8);
+                mvcControl.Response.AddHeader("content-disposition", "attachment; filename=" + strEncodedFileName);
+            }
+
+            //设置尺寸
+            string strSize = DomUtil.GetAttr(dom.DocumentElement, "size");
+            if (String.IsNullOrEmpty(strSize) == false)
+            {
+                mvcControl.Response.AddHeader("Content-Length", strSize);
+            }
+
+            // 关闭buffer
+            mvcControl.Response.BufferOutput = false; // 2016/8/31
+
+
+            // 输出数据流
+            nRet = dp2WeiXinService.Instance.GetObjectMetadata(libId,
+                uri,
+                "metadata,timestamp,data,outputpath",
+                mvcControl.Response.OutputStream, //ms,//
+                out metadata,
+                out timestamp,
+                out outputpath,
+                out strError);
+            if (nRet == -1)
+                return -1;
+
+            return 0;
+        }
+
+
+
+        #endregion
+
+
+        #region 创建weixin_xxx账户
+
+        private string ManagerUserName = "";
+        private string ManagerPassword = "";
+
+
+        // 用 supervisor 用户名进行登录
+        void channels_LoginSupervisor(object sender, LoginEventArgs e)
+        {
+            if (string.IsNullOrEmpty(this.ManagerUserName) == true)
+                throw new Exception("尚未指定超级用户名，无法进行登录");
+
+            e.UserName = this.ManagerUserName;
+            e.Password = this.ManagerPassword;
+            e.Parameters = "propertyList=biblio_search,libraryUID=weixin";
+            return;
+        }
+
+        public bool CreateMserverUser(string username,
+            string password,
+            string strDepartment,
+            string mUsername,
+            string mPassword,
+            out string strError)
+        {
+            strError = "";
+
+            this.ManagerUserName = mUsername;
+            this.ManagerPassword = mPassword;
+
+            MessageConnectionCollection channels = null;
+            try
+            {
+                channels = new MessageConnectionCollection();
+                channels.Login += channels_LoginSupervisor;
+
+                MessageConnection connection = channels.GetConnectionTaskAsync(
+                    dp2MServerUrl,
+                    "supervisor-weixin").Result;
+
+                CancellationToken cancel_token = new CancellationToken();
+                string id = Guid.NewGuid().ToString();
+
+                List<User> users = new List<User>();
+
+                User user = new User();
+                user.userName = username;
+                user.password = password;
+                user.rights = "getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes,getSystemParameter";
+                user.duty = "";
+                user.groups = new string[] { "gn:_lib_bb", "gn:_lib_book", "gn:_lib_homePage" };
+                user.department = strDepartment;
+                users.Add(user);
+
+                // todo
+                MessageResult result = connection.SetUsers("create",
+                    users);
+
+                if (result.Value == -1)
+                {
+                    strError = "创建用户 '" + username + "' 时出错: " + result.ErrorInfo;
+                    goto ERROR1;
+                }
+
+                return true;
+            }
+            catch (MessageException ex)
+            {
+                strError = this.GetFriendlyException(ex);
+                goto ERROR1;
+            }
+            catch (AggregateException ex)
+            {
+                if (ex.InnerExceptions.Count > 0 && ex.InnerExceptions[0] is MessageException)
+                {
+                    MessageException ex1 = (MessageException)ex.InnerExceptions[0];
+                    if (ex1.ErrorCode == "Unauthorized")
+                    {
+                        strError = "dp2mserver超级管理员账户或密码不正确。";
+                        goto ERROR1;
+                    }
+                }
+
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+            finally
+            {
+                if (channels != null)
+                    channels.Login -= channels_LoginSupervisor;
+
+                this.ManagerUserName = "";
+                this.ManagerPassword = "";
+            }
+        ERROR1:
+
+            return false;
+        }
+
+        private string DetectUserName = "";
+        private string DetectPassword = "";
+
+        void channels_LoginUser(object sender, LoginEventArgs e)
+        {
+            if (string.IsNullOrEmpty(this.DetectUserName) == true)
+                throw new Exception("尚未指定用户名，无法进行登录"); ;
+
+            e.UserName = this.DetectUserName;
+            e.Password = this.DetectPassword;
+            e.Parameters = "propertyList=biblio_search,libraryUID=weixin";
+            return;
+        }
+
+
+        public bool DetectMserverUser(string username,string password,out string strError)
+        {
+            strError = "";
+
+            this.DetectUserName = username;
+            this.DetectPassword = password;
+            MessageConnectionCollection channels = null;
+            try
+            {
+                channels = new MessageConnectionCollection();
+                channels.Login += channels_LoginUser;
+
+                MessageConnection connection = channels.GetConnectionTaskAsync(
+        this.dp2MServerUrl,
+        "").Result;
+                CancellationToken cancel_token = new CancellationToken();
+
+                string id = Guid.NewGuid().ToString();
+                GetMessageRequest request = new GetMessageRequest(id,
+                    "",
+                    "gn:<default>", // "" 表示默认群组
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    0,
+                    1);
+
+                GetMessageResult result = connection.GetMessage(request,
+                   new TimeSpan(0, 1, 0),
+                   cancel_token);
+                if (result.Value == -1)
+                {
+                    strError = "检测用户时出错: " + result.ErrorInfo;
+                    goto ERROR1;
+                }
+
+                return true;
+            }
+            catch (MessageException ex)
+            {
+                strError = this.GetFriendlyException(ex);
+                goto ERROR1;
+            }
+            catch (AggregateException ex)
+            {
+                if (ex.InnerExceptions.Count > 0 && ex.InnerExceptions[0] is MessageException)
+                {
+                    MessageException ex1 = (MessageException)ex.InnerExceptions[0];
+                    if (ex1.ErrorCode == "Unauthorized")
+                    {
+                        strError = "用户名或密码不存在";
+                        goto ERROR1;
+                    }
+                }
+
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+            finally
+            {
+                if (channels != null)
+                    channels.Login -= channels_LoginUser;
+
+                // 把测试账户置空
+                this.DetectUserName = "";
+                this.DetectPassword = "";
+            }
+
+        ERROR1:
+            return false;
+        }
+
+
+        private string GetFriendlyException(MessageException ex)
+        {
+            string strError = "";
+            if (ex.ErrorCode == "Unauthorized")
+            {
+                strError = "以用户名 '" + ex.UserName + "' 登录时, 用户名或密码不正确";
+            }
+            else if (ex.ErrorCode == "HttpRequestException")
+            {
+                strError = "dp2MServer URL 不正确，或 dp2MServer 尚未启动";
+            }
+            else
+            {
+                strError = ex.Message;
+            }
+            return strError;
         }
 
         #endregion
