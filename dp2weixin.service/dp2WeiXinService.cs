@@ -1030,6 +1030,15 @@ namespace dp2weixin.service
             {
                 summary = summary.Substring(0, nIndex);
             }
+            else
+            {
+                //西文标点，点、空、横、横、空
+                nIndex = summary.IndexOf(". -- ");
+                if (nIndex > 0)
+                {
+                    summary = summary.Substring(0, nIndex);
+                }
+            }
             return summary;
         }
 
@@ -7441,8 +7450,10 @@ ERROR1:
                 users.Add(user);
 
                 // todo
-                MessageResult result = connection.SetUsers("create",
-                    users);
+                MessageResult result = connection.SetUsersTaskAsync("create",
+                    users,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
 
                 if (result.Value == -1)
                 {

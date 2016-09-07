@@ -154,16 +154,16 @@
                 return;
             }
 
-            var password2 = $("#wxPassword2").val();
-            if (wxPassword == "") {
-                alert("再次输入密码 为空");
-                return;
-            }
-            if (wxPassword != password2)
-            {
-                alert("两次输入的密码不一致。");
-                return;
-            }
+            //var password2 = $("#wxPassword2").val();
+            //if (wxPassword == "") {
+            //    alert("再次输入密码 为空");
+            //    return;
+            //}
+            //if (wxPassword != password2)
+            //{
+            //    alert("两次输入的密码不一致。");
+            //    return;
+            //}
 
             //显示等待图层
             var index = loadLayer();
@@ -213,8 +213,11 @@
             }
 
             var password2 = $("#wxPassword2").val();
-            if (wxPassword == "") {
-                alert("再次输入密码 为空");
+            if (password2 == "") {
+
+                alert("请再次输入微信本方账户密码，且输入dp2mserver超级管理员账号");
+
+                $("#supervisorDiv").css('display', 'block');
                 return;
             }
             if (wxPassword != password2) {
@@ -226,7 +229,7 @@
             // 检查dp2mserver超级管理员账户
             var mUsername = $("#mUsername").val();
             if (mUsername == null || mUsername == "") {
-                alert("请输入dp2mserver超级管理员账户");
+                alert("请输入dp2mserver超级管理员账号");
 
                 $("#supervisorDiv").css('display', 'block');
                 return;
@@ -253,6 +256,7 @@
                 layer.close(index);
 
                 $("#supervisorDiv").css('display', 'none');
+                $("#wxPassword2").val("");
 
 
                 if (result.errorCode == -1) {
@@ -260,7 +264,7 @@
                     return;
                 }
 
-                alert("用户已存在");
+                alert("账户 "+wxUserName+" 创建成功。");
 
             }, function (xhq, textStatus, errorThrown) {
                 // 关闭等待层
@@ -384,6 +388,8 @@
         function handleCreateClick() {
             model.displaySummary(false);
 
+            $("#libName").focus();
+
             // 清空输入项
             clearEditModel();
 
@@ -399,6 +405,9 @@
 
         function handleEditClick(item) {
             model.displaySummary(false);
+
+            $("#libName").focus();
+
 
             $("#btnAdd").css('display', 'none');
             $("#btnEdit").css('display', 'block');
@@ -424,6 +433,10 @@
             // 获取所有的操作命令
             getAllLib();
             ko.applyBindings(model);
+
+            // 设顶部菜单不固定
+            $("#myheader").css("position", "absolute");
+
         })
 
 
@@ -503,7 +516,7 @@
     <div class="mui-card">
         <div class="mui-input-row ">
             <label class="leftLabel">图书馆名称</label>
-            <input type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆名称" data-bind="value:model.editor.libName">
+            <input id="libName" type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆名称" data-bind="value:model.editor.libName">
         </div>
         <div class="mui-input-row ">
             <label class="leftLabel">图书馆dp2capo帐号</label>
@@ -525,29 +538,28 @@
             <input type="password" class="mui-input mui-input-clear" placeholder="请输入  微信本方帐号密码" data-bind="value:model.editor.wxPassword">
         </div>
         <div class="mui-input-row ">
-            <label class="leftLabel">再次输入密码</label>
-            <input type="password" class="mui-input mui-input-clear" placeholder="请再次输入密码" id="wxPassword2">
-        </div>
-
-        <div class="mui-input-row ">
             <label class="leftLabel">本方联系人手机号</label>
             <input type="text" class="mui-input mui-input-clear" placeholder="请输入  本方联系人手机号" data-bind="value:model.editor.wxContactPhone">
         </div>
 
         <div id="supervisorDiv" style="display:none;background-color:#CCFF99">
-            <div class="mui-content-padded">请在下方输入dp2mserver超级管理账户</div>
+            <div class="mui-content-padded" style="color:blue">请在下方输入dp2mserver超级管理员账号</div>
             <div class="mui-input-row ">
-                <label class="leftLabel">dp2mserver超级帐号名</label>
-                <input type="text" class="mui-input mui-input-clear" placeholder="请输入 超级账号名" id="mUsername">
+                <label class="leftLabel">再次输入微信本方账号密码</label>
+                <input type="password" class="mui-input mui-input-clear" placeholder="请再次输入 微信本方账号密码" id="wxPassword2">
             </div>
             <div class="mui-input-row ">
-                <label class="leftLabel">超级帐号密码</label>
-                <input type="password" class="mui-input mui-input-clear" placeholder="请输入 超级帐号密码" id="mPassword">
+                <label class="leftLabel">dp2mserver超级管理员账号名</label>
+                <input type="text" class="mui-input mui-input-clear" placeholder="请输入 dp2mserver超级管理员账号名" id="mUsername">
+            </div>
+            <div class="mui-input-row ">
+                <label class="leftLabel">dp2mserver超级管理员密码</label>
+                <input type="password" class="mui-input mui-input-clear" placeholder="请输入 dp2mserver超级管理员密码" id="mPassword">
             </div>
         </div>
         <div class="mui-button-row">
-            <button type="button" class="mui-btn mui-btn-default" onclick="detectUser()">检测</button>&nbsp;&nbsp;
-            <button type="button" class="mui-btn mui-btn-default" onclick="createUser()">创建</button>&nbsp;&nbsp;
+            <button type="button" class="mui-btn mui-btn-primary" onclick="detectUser()">检测</button>&nbsp;&nbsp;
+            <button type="button" class="mui-btn mui-btn-primary" onclick="createUser()">创建</button>&nbsp;&nbsp;
 
         </div>
     </div>
