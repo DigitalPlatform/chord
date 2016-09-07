@@ -1670,6 +1670,16 @@ ex.GetType().ToString());
             foreach (ConnectionInfo info in delete_connections)
             {
                 ServerInfo.ConnectionTable.RemoveConnection(info.ConnectionID);
+                // TODO: 要让 SignalR 层的连接删除
+                try
+                {
+                    CloseRequest request = new CloseRequest("");
+                    Clients.Client(info.ConnectionID).close(request);
+                }
+                catch(Exception ex)
+                {
+                    Console.Write("切断前端通讯通道时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                }
             }
 
             // TODO: dp2Capo 遇到中途报错没有登录的情况，会自动重试登录么?

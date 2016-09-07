@@ -14,6 +14,7 @@ using DigitalPlatform.Text;
 using DigitalPlatform.Message;
 using DigitalPlatform.IO;
 using DigitalPlatform.LibraryClient.localhost;
+using System.Threading;
 
 namespace dp2Capo
 {
@@ -127,6 +128,13 @@ namespace dp2Capo
             }
             catch (Exception ex)
             {
+                {
+                    MessageQueue temp = this._queue;
+                    if (temp != null)
+                        temp.Dispose();
+                    _queue = null;  // 2016/9/6 这样可以迫使后面一轮调用重新进入 if (_queue == null ...
+                }
+
                 if (bFirst)
                 {
                     // Program.WriteWindowsLog("启动实例 " + this.Name + " 的 Queue '" + this.dp2library.DefaultQueue + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
@@ -287,7 +295,6 @@ namespace dp2Capo
 
         public void Notify()
         {
-
             this.MessageConnection.CleanWebDataTable();
 
             if (this.dp2library.DefaultQueue == "!api")
@@ -386,10 +393,19 @@ namespace dp2Capo
                         if (result.Value == -1)
                         {
                             this.WriteErrorLog("Instance.Notify() 中 SetMessageAsync() 出错: " + result.ErrorInfo);
+                            Thread.Sleep(5*1000);   // 拖延 5 秒
                             return;
                         }
 
-                        iterator.RemoveCurrent();
+                        // http://stackoverflow.com/questions/21864043/with-messageenumerator-removecurrent-how-do-i-know-if-i-am-at-end-of-queue
+                        try
+                        {
+                            iterator.RemoveCurrent();
+                        }
+                        finally
+                        {
+                            iterator.Reset();
+                        }
                     }
                 }
                 catch (MessageQueueException ex)
@@ -397,18 +413,21 @@ namespace dp2Capo
                     // 记入错误日志
                     // Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                     this.WriteErrorLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
+                    Thread.Sleep(5 * 1000);   // 拖延 5 秒
                 }
                 catch (InvalidCastException ex)
                 {
                     // 记入错误日志
                     // Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                     this.WriteErrorLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
+                    Thread.Sleep(5 * 1000);   // 拖延 5 秒
                 }
                 catch (Exception ex)
                 {
                     // 记入错误日志
                     // Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                     this.WriteErrorLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
+                    Thread.Sleep(5 * 1000);   // 拖延 5 秒
                 }
                 finally
                 {
