@@ -369,6 +369,10 @@ errorInfo)
                 (param) => OnWebCallRecieved(param)
                 );
 
+            // *** close
+            HubProxy.On<CloseRequest>("close",
+                (param) => OnCloseRecieved(param)
+                );
             try
             {
                 await Connection.Start();
@@ -829,6 +833,20 @@ CancellationToken token)
     token);
                     return result;
                 }
+            }
+        }
+
+        #endregion
+
+        #region Close() API
+
+        // 当 server 发来 Close 请求的时候被调用。
+        public virtual void OnCloseRecieved(CloseRequest param)
+        {
+            this.CloseConnection();
+            if (param.Action == "reconnect")
+            {
+                ConnectAsync(); // 不用等待完成
             }
         }
 
@@ -2488,6 +2506,40 @@ CancellationToken token)
 
         #endregion
 
+        #region SetUsers() API
+
+        public Task<MessageResult> SetUsersTaskAsync(
+            string action,
+            List<User> users,
+            TimeSpan timeout,
+            CancellationToken token)
+        {
+            return TaskRun<MessageResult>(() =>
+            {
+                return SetUsersAsyncLite(action, users, timeout, token).Result;
+            }, token);
+        }
+
+        public async Task<MessageResult> SetUsersAsyncLite(
+    string action,
+    List<User> users,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            Task<MessageResult> task = HubProxy.Invoke<MessageResult>("SetUsers",
+                action,
+                users);
+
+            List<Task> tasks = new List<Task>() { };
+            if (task == await Task.WhenAny(task, Task.Delay(timeout), token.AsTask()))
+                return task.Result;
+
+            throw new TimeoutException("已超时 " + timeout.ToString());
+        }
+
+
+        #endregion
+
         // 关闭连接，并且不会引起自动重连接
         public void CloseConnection()
         {
@@ -3093,23 +3145,6 @@ SearchResponse responseParam)
             return HubProxy.Invoke<MessageResult>("SetUsers",
                 action,
                 users).Result;
-        }
-
-        public async Task<MessageResult> SetUsersAsyncLite(
-            string action, 
-            List<User> users,
-            TimeSpan timeout,
-            CancellationToken token)
-        {
-            Task<MessageResult> task = HubProxy.Invoke<MessageResult>("SetUsers",
-                action,
-                users);
-
-            List<Task> tasks = new List<Task>() { };
-            if (task == await Task.WhenAny(task, Task.Delay(timeout), token.AsTask()))
-                return task.Result;
-
-            throw new TimeoutException("已超时 " + timeout.ToString());
         }
 
         // 调用 server 端 Login
