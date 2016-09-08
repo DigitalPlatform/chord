@@ -263,6 +263,14 @@
                         expand(expandId);
                     }
 
+
+                    // 当下页时，自动移动下一行
+                    if (from == "_N")
+                    {
+                        var winScrollTop = $(window).scrollTop();
+                        $('html, body').animate({ scrollTop: winScrollTop + 40 }, 'medium');
+                    }
+
                     // 关闭等待层
                     //layer.close(index);
 
