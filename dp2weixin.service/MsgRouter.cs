@@ -95,7 +95,7 @@ namespace dp2weixin.service
                     this._messageList.AddRange(tempList);//e.Records);
             }
 
-            this.WriteLog("AddMessage得到"+tempList.Count.ToString()+"条消息。");
+            this.WriteLog("AddMessage得到" + tempList.Count.ToString() + "条消息。", dp2WeiXinService.C_LogLevel_3);
             this.Activate();
         }
 
@@ -174,7 +174,7 @@ DeleteMessage(temp_records, this.GroupName);
                 if (this._sendedTable.ContainsKey(record.id))
                     continue;
 
-                this.WriteLog("开始处理:" + record.id);
+                this.WriteLog("开始处理:" + record.id, dp2WeiXinService.C_LogLevel_3);
 
                 // 发送
                 if (handler != null)
@@ -184,7 +184,7 @@ DeleteMessage(temp_records, this.GroupName);
                     handler(this, e);
                 }
 
-                this.WriteLog("处理结束:" + record.id);
+                this.WriteLog("处理结束:" + record.id, dp2WeiXinService.C_LogLevel_3);
 
                 this._sendedTable[record.id] = DateTime.Now;
             }
@@ -209,14 +209,9 @@ DeleteMessage(temp_records, this.GroupName);
             }
         }
 
-        void WriteLog(string strText)
+        void WriteLog(string strText,int logLevel)
         {
-            dp2WeiXinService.Instance.WriteLog(strText);
-            //MessageRecord record = new MessageRecord();
-            //record.data = "*** error *** " + strText;
-            //SendMessageEventArgs e = new SendMessageEventArgs();
-            //e.Message = record;
-            //this.SendMessageEvent(this, e);
+            dp2WeiXinService.Instance.WriteLog(strText,logLevel);
         }
 
         // 从 dp2mserver 获得消息
@@ -261,7 +256,7 @@ DeleteMessage(temp_records, this.GroupName);
                 goto ERROR1;
             }
         ERROR1:
-            this.WriteLog("GetMessage() error: " + strError);
+            this.WriteLog("GetMessage() error: " + strError,dp2WeiXinService.C_LogLevel_1);
             return new List<MessageRecord>();
         }
 
@@ -321,7 +316,7 @@ DeleteMessage(temp_records, this.GroupName);
 
 
         ERROR1:
-            this.WriteLog("DeleteMessage() error : " + strError);
+            this.WriteLog("DeleteMessage() error : " + strError, dp2WeiXinService.C_LogLevel_1);
             return false;
         }
     }

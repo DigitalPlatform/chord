@@ -50,7 +50,15 @@ namespace dp2weixin.service
 
         public const string C_Session_Supervisor = "supervisor";
 
+        //// 日志分级
+        public const int C_LogLevel_1 = 1;
+        public const int C_LogLevel_2 = 2;
+        public const int C_LogLevel_3 = 3;
+
         #region 成员变量
+
+        // 日志级别
+        public int LogLevel = 1;
 
         // 微信数据目录
         public string weiXinDataDir = "";
@@ -319,7 +327,7 @@ namespace dp2weixin.service
                     this.Channels.TraceWriter.Close();
             }
 
-            this.WriteLog("走到close()");
+            this.WriteLog1("走到close()");
         }
 
         #endregion
@@ -525,11 +533,11 @@ namespace dp2weixin.service
             MessageRecord record = e.Message;
             if (record == null)
             {
-                this.WriteErrorLog("传过来的e.Message为null");
+                this.WriteErrorLog1("传过来的e.Message为null");
                 return;
             }
 
-            this.WriteLog("收到消息["+record.id+"]准备处理，publishTime=" + record.publishTime);
+            this.WriteLog3("收到消息["+record.id+"]准备处理，publishTime=" + record.publishTime);
 
             //this.WriteErrorLog("走进_msgRouter_SendMessageEvent");
 
@@ -541,12 +549,12 @@ namespace dp2weixin.service
                     lib = LibDatabase.Current.GetLibByCapoUserName(record.userName);
                     if (lib == null)
                     {
-                           this.WriteLog("未找到[" + record.userName + "]对应的图书馆。");
+                           this.WriteErrorLog1("未找到[" + record.userName + "]对应的图书馆。");
                     }
                 }
                 else
                 {
-                    this.WriteLog("异常：消息[" + record.id + "]传过来的userName为空。");
+                    this.WriteErrorLog1("异常：消息[" + record.id + "]传过来的userName为空。");
                 }
 
 
@@ -559,20 +567,20 @@ namespace dp2weixin.service
                 int nRet = this.InternalDoMessage(record, lib, out strError);
                 if (nRet == -1)
                 {
-                    this.WriteErrorLog("[" + record.id + "]未发送成功:" + strError);
+                    this.WriteErrorLog1("[" + record.id + "]未发送成功:" + strError);
                 }
                 else if (nRet == 0)
                 {
-                    this.WriteErrorLog("[" + record.id + "]未发送：" + strError);//未绑定微信id。
+                    this.WriteLog3("[" + record.id + "]未发送：" + strError);//未绑定微信id。
                 }
                 else
                 {
-                    this.WriteErrorLog("[" + record.id + "]发送成功。");
+                    this.WriteLog3("[" + record.id + "]发送成功。");
                 }
             }
             catch (Exception ex)
             {
-                this.WriteErrorLog("[" + record.id + "]异常：" + ex.Message);
+                this.WriteErrorLog1("[" + record.id + "]异常：" + ex.Message);
 
             }
         }
@@ -2104,7 +2112,7 @@ namespace dp2weixin.service
             }
             catch (Exception ex)
             {
-                this.WriteErrorLog("计算保留至的日期出错："+ex.Message);
+                this.WriteErrorLog1("计算保留至的日期出错："+ex.Message);
             }
 
             reserveTime = "保留" + reserveTime;
@@ -2635,7 +2643,7 @@ namespace dp2weixin.service
                 {
                     strError = "向读者 '" + strBarcode + "' 发送" + external_interface.Type + " message时出错：" + strError;
 
-                    this.WriteErrorLog(strError);
+                    this.WriteErrorLog1(strError);
                     return -1;
                 }
             }
@@ -3677,7 +3685,7 @@ namespace dp2weixin.service
                 }
 
                 // 取出summary
-                this.WriteLog("开始获取biblio info");
+                this.WriteLog3("开始获取biblio info");
 
                 string strBiblioInfo = "";
                 string imgHtml = "";// 封面图像
@@ -3790,12 +3798,12 @@ namespace dp2weixin.service
 
                 time_length = DateTime.Now - start_time;
                 string info = "获取[" + biblioPath + "]的table信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
-                this.WriteLog(info);
+                this.WriteLog3(info);
 
                 //Thread.Sleep(1000);
 
                 // 取item
-                this.WriteLog("开始获取items");
+                this.WriteLog3("开始获取items");
                 List<BiblioItem> itemList = null;
                 nRet = (int)this.GetItemInfo(weixinId,
                     libId,
@@ -3812,7 +3820,7 @@ namespace dp2weixin.service
                 // 计算用了多少时间
                 time_length = DateTime.Now - start_time;
                 logInfo = "获取[" + biblioPath + "]的item信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
-                this.WriteLog(logInfo);
+                this.WriteLog3(logInfo);
 
                 result.itemList = itemList;
                 result.errorCode = 1;
@@ -5571,7 +5579,7 @@ ERROR1:
                     }
                     catch (Exception ex)
                     {
-                        this.WriteErrorLog("给读者" + patron + "发送'取消预约成功'通知异常：" + ex.Message);
+                        this.WriteErrorLog1("给读者" + patron + "发送'取消预约成功'通知异常：" + ex.Message);
                     }
                 }
 
@@ -5636,12 +5644,28 @@ ERROR1:
 
         #region 错误日志
 
-        public void WriteErrorLog(string strText)
+
+        public void WriteErrorLog1(string strText)
         {
-            this.WriteLog("ERROR:" + strText);
+            this.WriteLog("ERROR:" + strText,1);
         }
 
-        public void WriteLog(string strText)
+        public void WriteLog1(string strText)
+        {
+            this.WriteLog(strText, 1);
+        }
+
+        public void WriteLog3(string strText)
+        {
+            this.WriteLog(strText, 3);
+        }
+
+        public void WriteLog2(string strText)
+        {
+            this.WriteLog(strText, 2);
+        }
+
+        public void WriteLog(string strText,int logLevel)
         {
             // todo 有空比对下谢老师写日志的代码
             //DateTime now = DateTime.Now;
@@ -5651,9 +5675,12 @@ ERROR1:
             //FileUtil.WriteText(strFilename,
             //    strTime + " " + strText + "\r\n");
 
-            var logDir = this.weiXinLogDir;
-            string strFilename = string.Format(logDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
-            FileUtil.WriteLog(strFilename, strText, "dp2weixin");
+            if (logLevel <= this.LogLevel)
+            {
+                var logDir = this.weiXinLogDir;
+                string strFilename = string.Format(logDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
+                FileUtil.WriteLog(strFilename, strText, "dp2weixin");
+            }
         }
 
 
@@ -6697,7 +6724,7 @@ ERROR1:
                 }
                 catch (Exception ex)
                 {
-                    this.WriteErrorLog("栏目'" + subject + "'的序号格式不合法，无法参考排序。");
+                    this.WriteErrorLog1("栏目'" + subject + "'的序号格式不合法，无法参于排序。");
                 }
             }
             // 2016-8-19 排序只处理{}的情况，注掉下方内容
@@ -6833,7 +6860,7 @@ ERROR1:
                 if (nRet == -1)
                 {
                     //goto ERROR1;
-                    this.WriteErrorLog("恢复用户-获得工作人员出错：" + strError);
+                    this.WriteErrorLog1("恢复用户-获得工作人员出错：" + strError);
                     continue;
                 }
 
@@ -6843,7 +6870,7 @@ ERROR1:
                 if (lRet == -1)
                 {
                     //goto ERROR1;
-                    this.WriteErrorLog("恢复用户-获得读者出错：" + strError);
+                    this.WriteErrorLog1("恢复用户-获得读者出错：" + strError);
                     continue;
                 }
 
@@ -7211,7 +7238,7 @@ ERROR1:
                     strError = ex.Message;
 
                     // 2016-8-19权限不够，删除不了目录的话，改为记到日志里。
-                    this.WriteErrorLog(strError);
+                    this.WriteErrorLog1(strError);
                     //goto ERROR1;
                 }
             }

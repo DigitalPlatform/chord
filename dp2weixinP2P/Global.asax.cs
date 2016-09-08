@@ -43,7 +43,7 @@ namespace dp2weixinWeb
             // 初始化命令服务类
             dp2WeiXinService.Instance.Init(dataDir);
 
-            dp2WeiXinService.Instance.WriteLog("走进Application_Start");
+            dp2WeiXinService.Instance.WriteLog1("走进Application_Start");
 
 
             Application["app"] = "test";
@@ -63,7 +63,7 @@ namespace dp2weixinWeb
         {
             dp2WeiXinService.Instance.Close();
 
-            dp2WeiXinService.Instance.WriteLog("走进Application_End");
+            dp2WeiXinService.Instance.WriteLog1("走进Application_End");
         }       
 
 

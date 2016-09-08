@@ -194,40 +194,31 @@ namespace dp2weixinWeb.Controllers
             string strXml = "";
             WxUserItem activeUserItem = null;
             int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml, out strError);
-            dp2WeiXinService.Instance.WriteErrorLog("test0");
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
 
-            dp2WeiXinService.Instance.WriteErrorLog("test1");
-
             if (nRet == -2)
             {
-                dp2WeiXinService.Instance.WriteErrorLog("test2");
                 ViewBag.RedirectInfo = this.getLinkHtml("我的信息", "/Patron/PersonalInfo");
                 return View();
             }
 
-            dp2WeiXinService.Instance.WriteErrorLog("test3");
             PersonalInfoModel model = null;
             if (activeUserItem != null)
             {
                 model = this.ParseXml(activeUserItem.libId, strXml, activeUserItem.recPath);
-                dp2WeiXinService.Instance.WriteErrorLog("test4");
             }
 
             if (model == null)
             {
-                dp2WeiXinService.Instance.WriteErrorLog("test5");
                 strError = "model为null,返回值为" + nRet + "，error为" + strError;
                 goto ERROR1;
             }
 
-            dp2WeiXinService.Instance.WriteErrorLog("test6");
             return View(model);
 
         ERROR1:
 
-            dp2WeiXinService.Instance.WriteErrorLog("test7");
             if (strError == "")
             {
                 strError = "error怎么没赋值呢？ret=" + nRet;

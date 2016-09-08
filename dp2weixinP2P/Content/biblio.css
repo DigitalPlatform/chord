@@ -6,7 +6,15 @@
             background-color:white;
         }
 
+        TABLE.result-biblio {   
+            padding:0px;
+            margin:0px;
+        }
 
+        TABLE.result-biblio td{   
+            padding:0px;
+            margin:0px;
+        }
 
     /*信息行*/
       DIV.biblio TABLE.info{

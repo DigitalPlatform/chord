@@ -1,11 +1,14 @@
 ﻿@section style {
-    <link href="@Url.Content("~/Content/biblio.css?a=6")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/biblio.css?a=7")" rel="stylesheet">
 }
 @section Scripts {
     <script>
 
         //浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
+
+
+
 
             // 打回车检索
             $('#txtWord').bind('keypress', function (event) {
@@ -27,6 +30,48 @@
 
             // 设顶部菜单不固定
             $("#myheader").css("position", "absolute");
+
+
+
+
+
+
+            $(window).scroll(function () {
+
+                if ($("#more") != null && $("#more").offset() !=null ) {
+
+                    var itemOffsetTop = $("#more").offset().top;
+                    var itemOuterHeight = $("#more").outerHeight(true);
+                    var winHeight = $(window).height();
+                    var winScrollTop = $(window).scrollTop();
+
+                    //$("#test").text("itemOffsetTop=" + itemOffsetTop
+                    //    + " itemOuterHeight=" + itemOuterHeight
+                    //    + " winHeight=" + winHeight
+                    //    + " winScrollTop=" + winScrollTop);
+
+                    //$("#test1").text("itemOffsetTop=" + itemOffsetTop
+                    //    + " itemOuterHeight=" + itemOuterHeight
+                    //    + " winHeight=" + winHeight
+                    //    + " winScrollTop=" + winScrollTop);
+
+                    //if (!(winScrollTop > itemOffsetTop + itemOuterHeight) && !(winScrollTop < itemOffsetTop - winHeight))
+                    //    {
+                    //    alert('出现了');
+                    //} else {
+                    //    alert('消失了');
+                    //}
+
+
+                    //var a = document.getElementById("eq").offsetTop;
+                    if (itemOffsetTop >= $(window).scrollTop() && itemOffsetTop < ($(window).scrollTop() + $(window).height())) {
+                        //alert("div在可视范围");
+                        searchN();
+                    }
+                }
+            })
+
+
 
             redoSearch();
         });
@@ -178,7 +223,12 @@
                         var record = result.records[i];
                         var id = "record-" + (start + i);
                         var li = "<li class='mui-table-view-cell mui-collapse' id='" + id + "'> "
-                            + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\"" + id + "\")'>" + record.no + " " + record.name + "</a>"
+                            + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\"" + id + "\")' style='padding-top:5px;padding-bottom:5px'>"
+                            +"<table width='100%' class='result-biblio'>"
+                        + "<tr><td style='width:18px;min-width:18px'>" + record.no + "</td><td>" + record.name + "</td></tr>"
+                        + "<tr><td >&nbsp;</td><td style='color:#cccccc'>" + record.recPath + "</td></tr>"
+                        +"</table>"
+                        +"</a>"
                             + "<div class='mui-collapse-content' style='display:none;padding-top: 0px;'>"
                                 + "<div class='pendingDetail biblio' >"
                                     + "<label>" + record.recPath + "</label>"
@@ -319,7 +369,7 @@
 <span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
 
-
+<!--<span id="test" style="display:block"></span>-->
 <!--关于结果集-->
 <input id="maxNo" type="hidden">
 <input id="resultSet" type="hidden" value="" disabled="disabled">
@@ -400,4 +450,7 @@ else
         <span style="padding-left:10px;" id="searchInfo"></span>
         <ul id="ulResult" class="mui-table-view "></ul>
     </div>
+    
+    <!--<span id="test1" style="display:block"></span>-->
+
 }

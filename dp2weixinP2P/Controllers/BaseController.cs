@@ -116,11 +116,11 @@ namespace dp2weixinWeb.Controllers
                 // 如果session中的code与传进入的code相同，则不再获取weixinid
                 if (sessionCode == code)
                 {
-                    dp2WeiXinService.Instance.WriteLog("传进来的code[" + code + "]与session中保存的code相同，不再获取weixinid了。");
+                    dp2WeiXinService.Instance.WriteLog2("传进来的code[" + code + "]与session中保存的code相同，不再获取weixinid了。");
                 }
                 else
                 {
-                    dp2WeiXinService.Instance.WriteLog("传进来的code[" + code + "]与session中保存的code[" + sessionCode + "]不同，重新获取weixinid了，ip=" + Request.UserHostAddress + "。");
+                    dp2WeiXinService.Instance.WriteLog2("传进来的code[" + code + "]与session中保存的code[" + sessionCode + "]不同，重新获取weixinid了，ip=" + Request.UserHostAddress + "。");
 
                     string weixinIdTemp = "";
                     int nRet = dp2WeiXinService.Instance.GetWeiXinId(code, state, out weixinIdTemp, out strError);
