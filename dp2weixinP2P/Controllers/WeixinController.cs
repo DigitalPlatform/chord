@@ -78,10 +78,10 @@ namespace dp2weixinWeb.Controllers
         public ActionResult Post(PostModel postModel)
         {
             // 本机调试注掉
-            if (!CheckSignature.Check(postModel.Signature, postModel.Timestamp, postModel.Nonce, dp2WeiXinService.Instance.weixin_Token))
-            {
-                return Content("参数错误！");
-            }
+            //if (!CheckSignature.Check(postModel.Signature, postModel.Timestamp, postModel.Nonce, dp2WeiXinService.Instance.weixin_Token))
+            //{
+            //    return Content("参数错误！");
+            //}
 
             // 开始时间
             DateTime start_time = DateTime.Now;

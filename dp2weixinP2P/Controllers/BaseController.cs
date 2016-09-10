@@ -145,7 +145,7 @@ namespace dp2weixinWeb.Controllers
             if (Session[WeiXinConst.C_Session_WeiXinId] == null
                 || (String)Session[WeiXinConst.C_Session_WeiXinId] == "")
             {
-                strError = "页面超时，请点击<a href='"+dp2WeiXinService.C_Url_LibHome+"'>这里</a>或者从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
+                strError = "页面超时，请点击<a href='"+dp2WeiXinService.Instance.Auth2Url_LibHome+"'>这里</a>或者从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
                 return -1;
             }
 
@@ -199,6 +199,11 @@ namespace dp2weixinWeb.Controllers
             ViewBag.LibId = libId;
             ViewBag.showPhoto = showPhoto;
             ViewBag.showCover = showCover;
+
+            if (dp2WeiXinService.Instance.ApplName == "dp2weixin")
+                ViewBag.AppName = "我爱图书馆";
+            else if (dp2WeiXinService.Instance.ApplName == "wxtest")
+                ViewBag.AppName = "数字平台1";
 
 
             ////当前读者

@@ -123,7 +123,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\..\Desktop\还书通知.xml" />
-    <Content Include="App_Data\weixin_data\weixin.xml" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\jquery-ui.css" />
     <Content Include="Content\layer.m.css" />
@@ -267,7 +266,9 @@
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="App_Data\" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj">
       <Project>{441cb814-af78-4503-91ef-dce5f3269502}</Project>

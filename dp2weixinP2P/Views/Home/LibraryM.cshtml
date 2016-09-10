@@ -313,7 +313,9 @@
             var comment = model.editor.comment();
 
             // 参于检索的数据库
-            var searchDbs = model.editor.searchDbs().trim();
+            var searchDbs = "";
+            if (model.editor.searchDbs() != null)
+                searchDbs = model.editor.searchDbs().trim();
 
             //alert("id-[" + model.editor.id() + "]-2");
 

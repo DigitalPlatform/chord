@@ -10,5 +10,8 @@ namespace dp2weixin.service
     {
         public string WeixinId { get; set; }
         public bool IsAdmin = false; // 是否是数字平台管理员
+
+        // 是否mark
+        public bool IsMask = true;
     }
 }

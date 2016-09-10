@@ -66,7 +66,7 @@ namespace dp2weixinWeb.Controllers
 
             if (nRet == -2)
             {
-                ViewBag.RedirectInfo = this.getLinkHtml("二维码", "/Patron/QRcode");
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("二维码", "/Patron/QRcode");
                 return View();
             }
 
@@ -199,7 +199,7 @@ namespace dp2weixinWeb.Controllers
 
             if (nRet == -2)
             {
-                ViewBag.RedirectInfo = this.getLinkHtml("我的信息", "/Patron/PersonalInfo");
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("我的信息", "/Patron/PersonalInfo");
                 return View();
             }
 
@@ -307,22 +307,7 @@ namespace dp2weixinWeb.Controllers
 
         #region 内部函数
 
-        private string getLinkHtml(string menu, string returnUrl)
-        {
-            //string returnUrl = "/Patron/PersonalInfo";
-            string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
-            string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
-            string strRedirectInfo = "您尚未绑定当前图书馆的读者账户，不能查看" + menu + "，" + bindLink;
 
-            strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
-                //+ "<center>"
-                + strRedirectInfo
-                //+ "</center"
-                + "</div>";
-
-
-            return strRedirectInfo;
-        }
 
         /// <summary>
         /// 
