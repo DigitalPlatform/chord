@@ -919,7 +919,6 @@ namespace dp2weixin.service
             return text.Substring(text.Length - 1).PadLeft(text.Length, '*');
         }
 
-        // 发送微信通知
         private int SendWeixinMsg(List<string> weixinIds,
           string template,
           string topColor,
@@ -927,17 +926,37 @@ namespace dp2weixin.service
           string linkUrl,
           out string strError)
         {
+            return this.SendWeixinMsg(weixinIds,
+                template,
+                topColor,
+                msgData,
+                linkUrl,
+                "",
+                out strError);
+        }
+
+        // 发送微信通知
+        private int SendWeixinMsg(List<string> weixinIds,
+          string template,
+          string topColor,
+          object msgData,
+          string linkUrl,
+            string theOperator,
+          out string strError)
+        {
             strError = "";
             try
             {
+
                 var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
 
-                string nowTime = DateTimeUtil.DateTimeToStringNoSec(DateTime.Now);
                 BaseTemplateData templateData = (BaseTemplateData)msgData;
-
                 string oldRemark = templateData.remark.value;
 
+                string nowTime = DateTimeUtil.DateTimeToStringNoSec(DateTime.Now);
                 templateData.remark.value = oldRemark + "\n" + nowTime;
+                if (theOperator != "")
+                    templateData.remark.value = templateData.remark.value + " " + theOperator;
                 foreach (string weixinId in weixinIds)
                 {
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
@@ -971,6 +990,7 @@ namespace dp2weixin.service
           object msgData,
           object markMsgData,
           string linkUrl,
+            string theOperator,
           out string strError)
         {
             strError = "";
@@ -993,6 +1013,7 @@ namespace dp2weixin.service
                     template,
                     topColor, msgData,
                     linkUrl,
+                    theOperator,
                     out strError);
                 if (nRet == -1)
                     return -1;
@@ -1005,6 +1026,7 @@ namespace dp2weixin.service
                     topColor,
                     markMsgData,
                     linkUrl,
+                    theOperator,
                     out strError);
                 if (nRet == -1)
                     return -1;
@@ -1262,12 +1284,24 @@ namespace dp2weixin.service
             XmlNodeList listOverdue = root.SelectNodes("items/overdue");
             string barcodes = "";
             double totalPrice = 0;
+
+            string lastLocation = "";
             foreach (XmlNode node in listOverdue)
             {
                 string oneBarcode = DomUtil.GetAttr(node, "barcode");
 
-                // todo
                 string location = DomUtil.GetAttr(node, "location");
+                if (location != lastLocation)
+                {
+                    // 更新lastLocation
+                    lastLocation = location;
+                }
+                else
+                {
+                    // location与上一item的location相同，则不见显示
+                    location = "";
+                }
+
                 string fullItemBarcode = this.GetFullItemBarcode(oneBarcode, libName, location);
 
                 if (barcodes != "")
@@ -1344,6 +1378,7 @@ namespace dp2weixin.service
                     "#FF0000",
                     msgData,
                     msgData2worker,
+                    "",
                     "",
                     out strError);
                 if (nRet == -1)
@@ -1499,8 +1534,8 @@ namespace dp2weixin.service
             if (nodeOperator != null)
             {
                 theOperator = DomUtil.GetNodeText(nodeOperator);
-                if (String.IsNullOrEmpty(theOperator) == false)
-                    theOperator = " 操作人：" + theOperator;
+                //if (String.IsNullOrEmpty(theOperator) == false)
+                //    theOperator = " 操作者：" + theOperator;
             }
 
             // 备注
@@ -1550,13 +1585,13 @@ namespace dp2weixin.service
                 {
                     // 每个人发送的格式不同。
                     string tempFullPatronBarcode = fullPatronBarcode;
-                    string tempRemark = remark+theOperator;
+                    string tempRemark = remark;// +theOperator;
 
                     if (traceUser.IsMask == true)
                     {
                         tempFullPatronBarcode = this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode, true);
                         string markPatronName = this.markString(patronName);
-                        tempRemark = remark.Replace(patronName, markPatronName) + theOperator; ;
+                        tempRemark = remark.Replace(patronName, markPatronName);// +theOperator; ;
                     }
                     var msgData2worker = new BorrowTemplateData()
                     {
@@ -1577,6 +1612,7 @@ namespace dp2weixin.service
                         "#006400",
                         msgData2worker,
                         "",
+                        theOperator,
                         out strError);
                     if (nRet == -1)
                         return -1;
@@ -1722,8 +1758,8 @@ namespace dp2weixin.service
             if (nodeOperator != null)
             {
                 theOperator = DomUtil.GetNodeText(nodeOperator);
-                if (String.IsNullOrEmpty(theOperator) == false)
-                    theOperator = " 操作人：" + theOperator;
+                //if (String.IsNullOrEmpty(theOperator) == false)
+                //    theOperator = " 操作者：" + theOperator;
             }
 
             // 册条码完整表示 C001 图书馆/馆藏地
@@ -1776,7 +1812,7 @@ namespace dp2weixin.service
             // 发给工作人员
             if (workerWeixinIds.Count > 0)
             {
-                remark = remark.Replace(fullPatronName, markFullPatronName)+theOperator;
+                remark = remark.Replace(fullPatronName, markFullPatronName);
                 var msgData2worker = new ReturnTemplateData()
                 {
                     first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#00008B"),  // 	dark blue//this._msgFirstLeft + "您借出的图书已确认归还。"
@@ -1795,6 +1831,7 @@ namespace dp2weixin.service
                     msgData,
                     msgData2worker,
                     "",
+                    theOperator,
                     out strError);
                 if (nRet == -1)
                     return -1;
@@ -1866,8 +1903,8 @@ namespace dp2weixin.service
             if (nodeOperator != null)
             {
                 theOperator = DomUtil.GetNodeText(nodeOperator);
-                if (String.IsNullOrEmpty(theOperator) == false)
-                    theOperator = " 操作人：" + theOperator;
+                //if (String.IsNullOrEmpty(theOperator) == false)
+                //    theOperator = " 操作者：" + theOperator;
             }
 
             // 备注
@@ -1922,7 +1959,7 @@ namespace dp2weixin.service
                 // 发给工作人员
                 if (workerWeixinIds.Count > 0)
                 {
-                    remark = remark.Replace(fullPatronName, markFullPatronName)+theOperator;
+                    remark = remark.Replace(fullPatronName, markFullPatronName);
 
                     var msgData2worker = new PayTemplateData()
                     {
@@ -1941,6 +1978,7 @@ namespace dp2weixin.service
                         msgData,
                         msgData2worker,
                         "",
+                        theOperator,
                         out strError);
                     if (nRet == -1)
                         return -1;
@@ -2017,8 +2055,8 @@ namespace dp2weixin.service
             if (nodeOperator != null)
             {
                 theOperator = DomUtil.GetNodeText(nodeOperator);
-                if (String.IsNullOrEmpty(theOperator) == false)
-                    theOperator = " 操作人：" + theOperator;
+                //if (String.IsNullOrEmpty(theOperator) == false)
+                //    theOperator = " 操作者：" + theOperator;
             }
 
             // 备注
@@ -2072,7 +2110,7 @@ namespace dp2weixin.service
                 // 发给工作人员
                 if (workerWeixinIds.Count > 0)
                 {
-                    remark = remark.Replace(fullPatronName, markFullPatronName) + theOperator;
+                    remark = remark.Replace(fullPatronName, markFullPatronName) ;
                     var msgData2worker = new CancelPayTemplateData()
                     {
                         first = new TemplateDataItem("✈ ☁ ☁ ☁ ☁ ☁ ☁", "#B8860B"),  // ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
@@ -2090,6 +2128,7 @@ namespace dp2weixin.service
                         msgData,
                         msgData2worker,
                         "",
+                        theOperator,
                         out strError);
                     if (nRet == -1)
                         return -1;
@@ -2226,6 +2265,7 @@ namespace dp2weixin.service
                         "#FF0000",
                         msgData,
                         msgData2worker,
+                        "",
                         "",
                         out strError);
                     if (nRet == -1)
@@ -2456,6 +2496,7 @@ namespace dp2weixin.service
                     "#FF0000",
                     msgData,
                     msgData2worker,
+                    "",
                     "",
                     out strError);
                 if (nRet == -1)
@@ -3489,6 +3530,7 @@ namespace dp2weixin.service
                         msgData,
                         msgData2Worker,
                         dp2WeiXinService.Instance.Auth2Url_AccountIndex,//详情转到账户管理界面
+                        "",
                         out strError);
                     if (nRet == -1)
                     {
@@ -3646,6 +3688,7 @@ namespace dp2weixin.service
                         msgData,
                         msgData2Worker,
                         dp2WeiXinService.Instance.Auth2Url_AccountIndex,//详情转到账户管理界面
+                        "",
                         out strError);
                     if (nRet == -1)
                     {
@@ -6106,6 +6149,7 @@ namespace dp2weixin.service
                                  msgData,
                                  msgData2Worker,
                                  "",
+                                 "",
                                  out strError);
                             if (nRet == -1)
                                 return -1;
@@ -6608,6 +6652,10 @@ namespace dp2weixin.service
                     contentHtml += HttpUtility.HtmlEncode(str);
                 }
             }
+
+
+
+
             return contentHtml;
         }
 
