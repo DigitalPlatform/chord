@@ -28,10 +28,10 @@ namespace dp2Command.Service
             {
                 command = new SearchCommand();
             }
-            else if (cmdName == dp2CommandUtility.C_Command_Set)
-            {
-                command = new SetCommand();
-            }
+            //else if (cmdName == dp2CommandUtility.C_Command_Set)
+            //{
+            //    command = new SetCommand();
+            //}
             else
             {
                 command = new BaseCommand();
