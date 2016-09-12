@@ -7,9 +7,6 @@
         //浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
 
-
-
-
             // 打回车检索
             $('#txtWord').bind('keypress', function (event) {
                 //alert("test");
@@ -40,6 +37,12 @@
 
                 if ($("#more") != null && $("#more").offset() !=null ) {
 
+                    var show = $('#more').css('display');
+                    if (show == "none")
+                        return;
+
+
+
                     var itemOffsetTop = $("#more").offset().top;
                     var itemOuterHeight = $("#more").outerHeight(true);
                     var winHeight = $(window).height();
@@ -64,7 +67,8 @@
 
 
                     //var a = document.getElementById("eq").offsetTop;
-                    if (itemOffsetTop >= $(window).scrollTop() && itemOffsetTop < ($(window).scrollTop() + $(window).height())) {
+                    if (itemOffsetTop >= $(window).scrollTop()
+                        && itemOffsetTop < ($(window).scrollTop() + $(window).height())) {
                         //alert("div在可视范围");
                         searchN();
                     }
@@ -100,7 +104,8 @@
             //alert("走到search");
 
             // 先删除more
-            $("#more").remove();
+            //$("#more").remove();
+            $("#more").css("display", "none");
 
             var from = "";
             var word = "";
@@ -117,6 +122,9 @@
             if (bNext == 'true') {
                 from = "_N";
                 word = $("#maxNo").val();
+
+                $("#wait").css("display", "block");
+
             }
             else if (bNext == '_ReView') {
                 from = "_ReView";
@@ -176,7 +184,9 @@
 
             // 调检索接口
             //显示等待图层
-            var index = loadLayer();
+            var index = -1;
+            if (bNext != 'true')
+                index= loadLayer();
 
             // 调Search api
             var url = "/api/biblio?weixinId=" + encodeURIComponent(weixinId)
@@ -255,10 +265,11 @@
 
                     //有下页的情况
                     if (result.isCanNext == true) {
-                        var li1 = "<li class='mui-table-view-cell'  id='more'>"
-                            + "<center><a href='javascript:void(0)' onclick='searchN()'>点击加载更多</a></center>"
-                            + "</li>";
-                        table.append(li1);
+                        //var li1 = "<li class='mui-table-view-cell'  id='more'>"
+                        //    + "<center><a href='javascript:void(0)' onclick='searchN()'>点击加载更多</a></center>"
+                        //    + "</li>";
+                        //table.append(li1);
+                        $("#more").css("display", "block");
                     }
 
                     // 打开需要展开的项
@@ -270,8 +281,11 @@
                     // 当下页时，自动移动下一行
                     if (from == "_N")
                     {
+                        $("#wait").css("display", "none");
+
+
                         var winScrollTop = $(window).scrollTop();
-                        $('html, body').animate({ scrollTopk: winScrollTop + 40 }, 'medium');
+                        $('html, body').animate({ scrollTopk: winScrollTop + 60 }, 'medium');
                     }
 
                     // 关闭等待层
@@ -465,7 +479,16 @@ else
         <div id="divResult">
             <!--数据列表-->
             <span style="padding-left:10px;" id="searchInfo"></span>
-            <ul id="ulResult" class="mui-table-view "></ul>
+            <ul id="ulResult" class="mui-table-view ">
+
+
+            </ul>
+
+            <div id='more' style="display:none">
+                <center><a href='javascript:void(0)' onclick='searchN()'>点击加载更多</a></center>
+            </div>
+            <div id="wait" style="display:none"><center><img src='../img/wait2.gif' /></center></div>
+
         </div>
 
     <!--<span id="test1" style="display:block"></span>-->

@@ -303,6 +303,24 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
             }
 
+            // 如果当前图书馆是不公开书目，则出现提示
+            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未设置当前图书馆。";
+                goto ERROR1;
+            }
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            if (lib.noShareBiblio == 1)
+            {
+                List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.id, -1);
+                if (users.Count == 0)
+                {
+                    ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", lib.libName);
+                    return View();
+                }
+            }
+
             ViewBag.LibId = libId;
             ViewBag.userName = userName;
             ViewBag.subject = subject;
@@ -363,6 +381,8 @@ namespace dp2weixinWeb.Controllers
             {
                 subject = ViewBag.remeberBookSubject;
             }
+
+
 
             // 栏目html
             ViewBag.SubjectHtml = dp2WeiXinService.Instance.GetSubjectHtml( libId,

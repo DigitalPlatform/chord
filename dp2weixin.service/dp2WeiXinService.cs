@@ -1493,6 +1493,16 @@ namespace dp2weixin.service
             // 册条码完整表示 C001 图书馆/馆藏地
             string fullItemBarcode = this.GetFullItemBarcode(itemBarcode, libName, location);
 
+            // 操作人 operator
+            string theOperator="";
+            XmlNode nodeOperator = root.SelectSingleNode("operator");
+            if (nodeOperator != null)
+            {
+                theOperator = DomUtil.GetNodeText(nodeOperator);
+                if (String.IsNullOrEmpty(theOperator) == false)
+                    theOperator = " 操作人：" + theOperator;
+            }
+
             // 备注
             string remark = patronName + "，祝您阅读愉快。";//，欢迎再借。";
 
@@ -1539,14 +1549,14 @@ namespace dp2weixin.service
                 foreach (TracingOnUser traceUser in workerWeixinIds)
                 {
                     // 每个人发送的格式不同。
-                    string tempFullPatronBarcode = fullItemBarcode;
-                    string tempRemark = remark;
+                    string tempFullPatronBarcode = fullPatronBarcode;
+                    string tempRemark = remark+theOperator;
 
                     if (traceUser.IsMask == true)
                     {
                         tempFullPatronBarcode = this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode, true);
                         string markPatronName = this.markString(patronName);
-                        tempRemark = remark.Replace(patronName, markPatronName);
+                        tempRemark = remark.Replace(patronName, markPatronName) + theOperator; ;
                     }
                     var msgData2worker = new BorrowTemplateData()
                     {
@@ -1706,8 +1716,19 @@ namespace dp2weixin.service
             if (nodeLocation != null)
                 location = DomUtil.GetNodeText(nodeLocation);
 
+            // 操作人 operator
+            string theOperator = "";
+            XmlNode nodeOperator = root.SelectSingleNode("operator");
+            if (nodeOperator != null)
+            {
+                theOperator = DomUtil.GetNodeText(nodeOperator);
+                if (String.IsNullOrEmpty(theOperator) == false)
+                    theOperator = " 操作人：" + theOperator;
+            }
+
             // 册条码完整表示 C001 图书馆/馆藏地
             string fullItemBarcode = this.GetFullItemBarcode(itemBarcode, libName, location);
+
 
             // 备注，检查是否有超期信息
             string remark = fullPatronName + "，感谢还书。";//"，感谢及时归还，欢迎继续借书。";
@@ -1755,7 +1776,7 @@ namespace dp2weixin.service
             // 发给工作人员
             if (workerWeixinIds.Count > 0)
             {
-                remark = remark.Replace(fullPatronName, markFullPatronName);
+                remark = remark.Replace(fullPatronName, markFullPatronName)+theOperator;
                 var msgData2worker = new ReturnTemplateData()
                 {
                     first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#00008B"),  // 	dark blue//this._msgFirstLeft + "您借出的图书已确认归还。"
@@ -1839,8 +1860,19 @@ namespace dp2weixin.service
             string operTime = DomUtil.GetNodeText(nodeOperTime);
             operTime = DateTimeUtil.ToLocalTime(operTime, "yyyy/MM/dd");
 
+            // 操作人 operator
+            string theOperator = "";
+            XmlNode nodeOperator = root.SelectSingleNode("operator");
+            if (nodeOperator != null)
+            {
+                theOperator = DomUtil.GetNodeText(nodeOperator);
+                if (String.IsNullOrEmpty(theOperator) == false)
+                    theOperator = " 操作人：" + theOperator;
+            }
+
             // 备注
-            string remark = "\n" + fullPatronName + "，您已成功交费。";// +this._msgRemark;
+            string remark = "\n" + fullPatronName + "，您已成功交费。" ;// +this._msgRemark;
+
             XmlNodeList listOverdue = root.SelectNodes("items/overdue");
             foreach (XmlNode node in listOverdue)
             {
@@ -1890,7 +1922,8 @@ namespace dp2weixin.service
                 // 发给工作人员
                 if (workerWeixinIds.Count > 0)
                 {
-                    remark = remark.Replace(fullPatronName, markFullPatronName);
+                    remark = remark.Replace(fullPatronName, markFullPatronName)+theOperator;
+
                     var msgData2worker = new PayTemplateData()
                     {
                         first = new TemplateDataItem("💰💰💰💰💰💰💰💰💰💰", "#556B2F"),//★★★★★★★★★★★★★★★ dark olive green//this._msgFirstLeft+"您已交费成功！"
@@ -1978,8 +2011,18 @@ namespace dp2weixin.service
             string operTime = DomUtil.GetNodeText(nodeOperTime);
             operTime = DateTimeUtil.ToLocalTime(operTime, "yyyy/MM/dd");
 
+            // 操作人 operator
+            string theOperator = "";
+            XmlNode nodeOperator = root.SelectSingleNode("operator");
+            if (nodeOperator != null)
+            {
+                theOperator = DomUtil.GetNodeText(nodeOperator);
+                if (String.IsNullOrEmpty(theOperator) == false)
+                    theOperator = " 操作人：" + theOperator;
+            }
+
             // 备注
-            string remark = "\n" + fullPatronName + "，您已成功撤消交费。";// +this._msgRemark;
+            string remark = "\n" + fullPatronName + "，您已成功撤消交费。" ;// +this._msgRemark;
 
             XmlNodeList listOverdue = root.SelectNodes("items/overdue");
             foreach (XmlNode node in listOverdue)
@@ -2029,7 +2072,7 @@ namespace dp2weixin.service
                 // 发给工作人员
                 if (workerWeixinIds.Count > 0)
                 {
-                    remark = remark.Replace(fullPatronName, markFullPatronName);
+                    remark = remark.Replace(fullPatronName, markFullPatronName) + theOperator;
                     var msgData2worker = new CancelPayTemplateData()
                     {
                         first = new TemplateDataItem("✈ ☁ ☁ ☁ ☁ ☁ ☁", "#B8860B"),  // ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
@@ -2613,6 +2656,9 @@ namespace dp2weixin.service
                 }
 
 
+                continue;
+
+
             ERROR1:
                 //将错误写到日志里，继续检索其它图书馆
                 strError = "检查图书馆 " + lib.libName + " 是否在线出错: " + strError;
@@ -2708,7 +2754,7 @@ namespace dp2weixin.service
                     //***，贵图书馆 XXX 桥接服务器失去连接，请及时修复，以免影响读者访问。
                     string title = "图书馆 "+ lib.libName+" 桥接服务器失去连接";
                     string operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                    string text = "图书馆 " + lib.libName + " 桥接服务器失去连接，用户已无法访问，请尽快修复。";
+                    string text = "图书馆 "+lib.libName+" 的桥接服务器已失去连接，请尽快修复。";
                     MessageTemplateData msgData = new MessageTemplateData()
                     {
                         first = new TemplateDataItem("☀☀☀☀☀☀☀☀☀☀", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
@@ -2720,6 +2766,9 @@ namespace dp2weixin.service
 
                     foreach (WxUserItem worker in libWorkers)
                     {
+                        if (worker.weixinId == C_Supervisor)
+                            continue;
+
                         string tempText=worker.userName + "，贵" + text;
                         msgData.keyword3 = new TemplateDataItem(tempText, "#000000");
 
@@ -2733,7 +2782,7 @@ namespace dp2weixin.service
                              out strError);
                         if (nRet == -1)
                         {
-                            WriteErrorLog1(strError);
+                            WriteErrorLog1("给工作人员 "+worker.userName+" 发送图书馆不在线通知出错："+strError);
                             continue;  //goto ERROR1;                            
                         }
                     }
@@ -2741,7 +2790,6 @@ namespace dp2weixin.service
                     // 给数字平台工作人员发通知
                     foreach (WxUserItem worker in dp2003Workers)
                     {
-                        string tempText = worker.userName + "，" + text;
                         msgData.keyword3 = new TemplateDataItem(text, "#000000");
 
                         List<string> ids = new List<string>();
