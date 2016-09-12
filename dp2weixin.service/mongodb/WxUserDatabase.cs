@@ -424,6 +424,7 @@ namespace dp2weixin.service
         但我觉得不应该在你的 mongodb 数据库中记忆这个字符串。因为dp2library里面随时可以修改这个账户的权限，
         如果没有良好的同步机制，那么公众号模块不如每次需要的时候去临时获取这个字符串。
          */
+        public string rights { get; set; }
     }
 
 

@@ -182,19 +182,31 @@ namespace dp2weixin
                 if (workerList == null || workerList.Count == 0)
                 {
                     return this.CreateTextResponseMessage("您尚未绑定图书馆工作人员账户，不能使用tracing功能。"
-                       + "\n点击 <a href='" + dp2WeiXinService.C_Url_AccountIndex + "'>绑定账户</a>。");
+                       + "\n点击 <a href='" + dp2WeiXinService.Instance.Auth2Url_AccountIndex + "'>绑定账户</a>。");
                 }
 
-                if (parameter == "off")
+                string paramLeft = parameter;
+                string paramRight = "";
+                nIndex = parameter.IndexOf(' ');
+                if (nIndex > 0)
+                {
+                    paramLeft = parameter.Substring(0, nIndex);
+                    paramRight = parameter.Substring(nIndex + 1);
+                }
+
+                if (paramLeft == "off")
                 {
                     dp2WeiXinService.Instance.TracingOnUsers.Remove(this.WeixinOpenId);
                     string text = "set tracing off 成功，您将不再收到非本人的微信通知。";
                     return this.CreateTextResponseMessage(text);
                 }
-                else if (parameter == "on")
+                else if (paramLeft == "on")
                 {
                     TracingOnUser tracingOnUser = new TracingOnUser();
                     tracingOnUser.WeixinId = this.WeixinOpenId;
+
+                    if (paramRight == "-mask")
+                        tracingOnUser.IsMask = false;
 
                     // 检查有没有绑 数字平台,绑了的话，设为公司管理员
                     foreach (WxUserItem user in workerList)
@@ -213,11 +225,16 @@ namespace dp2weixin
                     // 设到hashtable里
                     dp2WeiXinService.Instance.TracingOnUsers[this.WeixinOpenId] = tracingOnUser;
 
-                    string text = "set tracing on 成功，您将会收到本馆的全部微信通知。";
+                    string text = "set " + strParam + " 成功，您将会收到本馆的全部微信通知";
                     if (tracingOnUser.IsAdmin == true)
                     {
-                        text = "set tracing on 成功，您是数字平台工作人员，您将会收到全部图书馆的微信通知。";
+                        text = "set "+strParam+" 成功，您是数字平台工作人员，您将会收到全部图书馆的微信通知";
                     }
+                    if (tracingOnUser.IsMask == false)
+                        text += "，且指定对读者敏感信息不做马赛克处理。";
+                    else
+                        text += "，系统默认对读者敏感信息做马赛克处理。";
+
                     return this.CreateTextResponseMessage(text);
                 }
                 else
@@ -228,7 +245,17 @@ namespace dp2weixin
                     }
                     else
                     {
-                        return this.CreateTextResponseMessage("您当前是 tracing on 状态。");
+                        string text = "您当前是 tracing on 状态";
+                        TracingOnUser user = (TracingOnUser)dp2WeiXinService.Instance.TracingOnUsers[this.WeixinOpenId];
+                        if (user.IsAdmin)
+                            text += "，且是数据平台管理员";
+
+                        if (user.IsMask == true)
+                            text += "，系统默认对读者敏感信息做马赛克处理。";
+                        else
+                            text += "，且指定了对读者敏感信息不做马赛克处理。";
+
+                        return this.CreateTextResponseMessage("text");
                     }
                 }
             }

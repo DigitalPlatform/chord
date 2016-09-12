@@ -78,12 +78,10 @@ namespace dp2weixinWeb.Controllers
         public ActionResult Post(PostModel postModel)
         {
             // 本机调试注掉
-            /*
-            if (!CheckSignature.Check(postModel.Signature, postModel.Timestamp, postModel.Nonce, Token))
-            {
-                return Content("参数错误！");
-            }
-             */
+            //if (!CheckSignature.Check(postModel.Signature, postModel.Timestamp, postModel.Nonce, dp2WeiXinService.Instance.weixin_Token))
+            //{
+            //    return Content("参数错误！");
+            //}
 
             // 开始时间
             DateTime start_time = DateTime.Now;
@@ -154,9 +152,13 @@ namespace dp2weixinWeb.Controllers
                 string info = "处理[" + messageHandler.RequestMessage.CreateTime + "-" + messageHandler.RequestMessage.MsgType.ToString() + "-" + strMsgContext + "]消息，time span: " + time_length.TotalSeconds.ToString() + " secs";
                 if (time_length.TotalSeconds > 5)
                 {
-                    info="请求超时:"+info;
+                    info = "请求超时:" + info;
+                    dp2WeiXinService.Instance.WriteLog1(info);
                 }
-                dp2WeiXinService.Instance.WriteLog(info);
+                else
+                {
+                    dp2WeiXinService.Instance.WriteLog3(info);
+                }
 
                 // 发送客服消息
                 //messageHandler.SendCustomeMessage(info);
@@ -189,7 +191,7 @@ namespace dp2weixinWeb.Controllers
                 }
 
                 //将程序运行中发生的错误记录到日志
-                dp2WeiXinService.Instance.WriteErrorLog(error);
+                dp2WeiXinService.Instance.WriteErrorLog1(error);
 
                 // 返回error信息
                 return new WeixinResult(error);

@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 
 namespace dp2weixin.service
 {
-
-
     /// <summary>
     /// 用户数据库
     /// </summary>
@@ -58,21 +56,16 @@ namespace dp2weixin.service
             _libCollection = this._database.GetCollection<LibItem>("item");
 
             //todo
-            //CreateIndex();
+            // 创建索引
             
         }
 
-        // 创建索引
-        public  void CreateIndex()
-        {
-            var options = new CreateIndexOptions() { Unique = true };
-            _libCollection.Indexes.CreateOneAsync(
-                Builders<LibItem>.IndexKeys.Ascending("libCode"),
-                options);
-        }
 
         public LibItem GetLibById(string id)
         {
+            if (string.IsNullOrEmpty(id) == true)
+                return null;
+
             var filter = Builders<LibItem>.Filter.Eq("id", id);
 
             List<LibItem> list = this.LibCollection.Find(filter).ToList();
@@ -100,7 +93,18 @@ namespace dp2weixin.service
 
                 return item;
             }
+            return null;
+        }
 
+        public LibItem GetLibByName(string libName)
+        {
+            var filter = Builders<LibItem>.Filter.Eq("libName", libName);
+            List<LibItem> list = this.LibCollection.Find(filter).ToList();
+            if (list.Count > 0)
+            {
+                LibItem item = list[0];
+                return item;
+            }
             return null;
         }
 
@@ -132,19 +136,6 @@ namespace dp2weixin.service
             return list;
         }
 
-        //public LibItem GetOneLib()
-        //{
-        //    LibItem item = null;
-        //    List<LibItem> list = this.LibCollection.Find(new BsonDocument()).ToListAsync().Result;
-        //    if (list != null && list.Count > 0)
-        //    {
-        //        item = list[0];
-        //        //解密
-        //        if (String.IsNullOrEmpty(item.wxPassword) == false)
-        //            item.wxPassword = Cryptography.Decrypt(item.wxPassword, WeiXinConst.EncryptKey);
-        //    }
-        //    return item;
-        //}
 
         public LibItem Add(LibItem item)
         {

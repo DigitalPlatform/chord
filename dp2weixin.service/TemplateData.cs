@@ -96,28 +96,38 @@ namespace dp2weixin.service
     }
 
 
-    //{{first.DATA}}
-    //图书书名：{{keyword1.DATA}}
-    //应还日期：{{keyword2.DATA}}
-    //超期天数：{{keyword3.DATA}}
-    //{{remark.DATA}}
-    public class CaoQiTemplateData:BaseTemplateData
+    //您好，您借出的图书已超期。
+    //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
+    //册条码号：C0000001
+    //借书日期：2016-07-01
+    //应还日期：2016-07-31
+    //超期情况：已超期30天
+    //任延华，您借出的图书已超期，请尽快归还。
+    public class CaoQiTemplateData1 : BaseTemplateData
     {
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
+        public TemplateDataItem keyword4 { get; set; }
+        public TemplateDataItem keyword5 { get; set; }
     }
 
-    //{{first.DATA}}
-    //图书书名：{{keyword1.DATA}}
-    //到书日期：{{keyword2.DATA}}
-    //保留期限：{{keyword3.DATA}}
-    //{{remark.DATA}}
-    public class ArrivedTemplateData:BaseTemplateData
+
+
+    //您好，您预约的图书已经到书。
+    //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
+    //册条码号：C00001
+    //预约日期：2016-08-15
+    //到书日期：2016-09-05
+    //保留期限：2016-09-07（保留2天）
+    //XXX，您预约的图书到了，请尽快来图书馆办理借书手续，请尽快来图书馆办理借书手续。如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。
+    public class ArrivedTemplateData1:BaseTemplateData
     {
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
+        public TemplateDataItem keyword4 { get; set; }
+        public TemplateDataItem keyword5 { get; set; }
     }
 
 

@@ -609,6 +609,9 @@ function getMsgViewHtml(msgItem, bContainEditDiv) {
 function deleteMsg(msgId) {
     //alert(msgId);
 
+    // 检查下是否选中多个
+
+
     //alert(autoDeleteParent);
     var group = $("#_group").text();
     if (group == null || group == "" ||

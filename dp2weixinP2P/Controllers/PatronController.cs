@@ -1,4 +1,5 @@
 ﻿using DigitalPlatform.IO;
+using DigitalPlatform.Text;
 using DigitalPlatform.Xml;
 using dp2Command.Service;
 using dp2weixin.service;
@@ -18,7 +19,7 @@ namespace dp2weixinWeb.Controllers
 {
     public class PatronController : BaseController
     {
-        public ActionResult Setting(string code, string state,string returnUrl)
+        public ActionResult Setting(string code, string state, string returnUrl)
         {
             // 检查是否从微信入口进来
             string strError = "";
@@ -30,7 +31,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.returnUrl = returnUrl;
 
             // 图书馆html
-            ViewBag.LibHtml = this.GetLibSelectHtml(ViewBag.LibId, weixinId,false);
+            ViewBag.LibHtml = this.GetLibSelectHtml(ViewBag.LibId, weixinId, false);
 
             string photoChecked = "";
             if (ViewBag.showPhoto == 1)
@@ -54,25 +55,25 @@ namespace dp2weixinWeb.Controllers
 
         // 二维码
         public ActionResult QRcode(string code, string state)
-        {       
+        {
             string strError = "";
 
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml,out strError);
+            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml, out strError);
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
 
-            if (nRet==-2)
+            if (nRet == -2)
             {
-                ViewBag.RedirectInfo = this.getLinkHtml("二维码", "/Patron/QRcode");
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("二维码", "/Patron/QRcode");
                 return View();
             }
 
             string qrcodeUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(activeUserItem.libId)
                 + "&type=pqri"
                 + "&barcode=" + HttpUtility.UrlEncode(activeUserItem.readerBarcode);
-                //+ "&width=400&height=400";
+            //+ "&width=400&height=400";
             ViewBag.qrcodeUrl = qrcodeUrl;
             return View(activeUserItem);
 
@@ -82,132 +83,98 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 图片
-        public ActionResult GetPhoto(string libId, string type, string barcode,string objectPath)
+        public ActionResult GetPhoto(string libId, string type, string barcode, string objectPath)
         {
             MemoryStream ms = new MemoryStream(); ;
             string strError = "";
+            int nRet = 0;
 
-            string strWidth = Request.QueryString["width"];
-            string strHeight = Request.QueryString["height"];
-            int nWidth = 0;
-            if (string.IsNullOrEmpty(strWidth) == false)
-            {
-                if (Int32.TryParse(strWidth, out nWidth) == false)
-                {
-                    strError = "width 参数 '" + strWidth + "' 格式不合法";
-                    goto ERROR1;
-                }
-            }
-            int nHeight = 0;
-            if (string.IsNullOrEmpty(strHeight) == false)
-            {
-                if (Int32.TryParse(strHeight, out nHeight) == false)
-                {
-                    strError = "height 参数 '" + strHeight + "' 格式不合法";
-                    goto ERROR1;
-                }
-            }
 
+            // 读者二维码
             if (type == "pqri")
-            {
-                // 读者证号二维码
-                string strCode = "";
+            {                
+                // 设置媒体类型
+                Response.ContentType = "image/jpeg";
+
                 // 获得读者证号二维码字符串
-                int nRet = dp2WeiXinService.Instance.GetQRcode(libId,
+                string strCode = "";
+                nRet = dp2WeiXinService.Instance.GetQRcode(libId,
                     barcode,
                     out strCode,
                     out strError);
-                if (nRet == -1 || nRet==0)
-                    goto ERROR1;    // 把出错信息作为图像返回
-
-                Response.ContentType = "image/jpeg";
+                if (nRet == -1 || nRet == 0)
+                    goto ERROR1;
 
                 // 获得二维码图片
-                 dp2WeiXinService.Instance.GetQrImage(strCode,
-                    nWidth,
-                    nHeight,
-                    Response.OutputStream,
-                    out strError);
+                string strWidth = Request.QueryString["width"];
+                string strHeight = Request.QueryString["height"];
+                int nWidth = 0;
+                if (string.IsNullOrEmpty(strWidth) == false)
+                {
+                    if (Int32.TryParse(strWidth, out nWidth) == false)
+                    {
+                        strError = "width 参数 '" + strWidth + "' 格式不合法";
+                        goto ERROR1;
+                    }
+                }
+                int nHeight = 0;
+                if (string.IsNullOrEmpty(strHeight) == false)
+                {
+                    if (Int32.TryParse(strHeight, out nHeight) == false)
+                    {
+                        strError = "height 参数 '" + strHeight + "' 格式不合法";
+                        goto ERROR1;
+                    }
+                }
+                dp2WeiXinService.Instance.GetQrImage(strCode,
+                   nWidth,
+                   nHeight,
+                   Response.OutputStream,
+                   out strError);
                 if (strError != "")
                     goto ERROR1;
                 return null;
-               // return File(Response.OutputStream, "image/jpeg");
-                //return File(ms.ToArray(), "image/jpeg");  
             }
 
-            // 取头像
-            if (type == "photo")
-            {
-                // 先取出metadata
-                string metadata = "";
-                string timestamp = "";
-                string outputpath = "";
-                int nRet = dp2WeiXinService.Instance.GetObjectMetadata(libId,
-                    objectPath,
-                    "metadata",
-                    null,
-                    out metadata,
-                    out timestamp,
-                    out outputpath,
-                    out strError);
-                if (nRet == -1)
-                    goto ERROR1;    // 把出错信息作为图像返回
+            // 取头像 或 封面
+            nRet = dp2WeiXinService.GetObject0(this, libId, objectPath, out strError);
+            if (nRet == -1)
+                goto ERROR1;
 
+            return null;
 
-                // 找出mimetype
-                XmlDocument dom = new XmlDocument();
-                try
-                {
-                    dom.LoadXml(metadata);
-                }
-                catch (Exception ex)
-                {
-                    strError = ex.Message;
-                    goto ERROR1;
-                }
-
-                //Response.OutputStream.Flush();
-
-                string mimetype = DomUtil.GetAttr(dom.DocumentElement, "mimetype");
-                Response.ContentType = mimetype;
-                Response.Clear();
-
-                //ms = dp2WeiXinService.Instance.GetErrorImg(mimetype);
-                //return File(ms.ToArray(), "image/jpeg");  
-
-
-
-                // 输出数据流
-                nRet = dp2WeiXinService.Instance.GetObjectMetadata(libId,
-                    objectPath,
-                    "metadata,timestamp,data,outputpath",
-                    //"metadata,data",
-                    Response.OutputStream, //ms,//
-                    out metadata,
-                    out timestamp,
-                    out outputpath,
-                    out strError);
-                if (nRet == -1)
-                    goto ERROR1;    // 把出错信息作为图像返回
-
-                Response.OutputStream.Flush();
-
-                return null;
-
-                //ms.Seek(0, SeekOrigin.Begin);
-                //return File(ms, mimetype);
-                
-            }
-
-            ms = dp2WeiXinService.Instance.GetErrorImg("不支持");
-            return File(ms.ToArray(), "image/jpeg");  
 
         ERROR1:
 
             ms = dp2WeiXinService.Instance.GetErrorImg(strError);
-            return File(ms.ToArray(), "image/jpeg");              
+            return File(ms.ToArray(), "image/jpeg");
         }
 
+        // 资源
+        public ActionResult GetObject(string libId,string uri)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            //处理 dp2 系统外部的 URL
+            Uri tempUri = dp2WeiXinService.GetUri(uri);
+            if (tempUri != null
+                && (tempUri.Scheme == "http" || tempUri.Scheme == "https"))
+            {
+                return Redirect(uri);
+            }
+
+            nRet = dp2WeiXinService.GetObject0(this, libId, uri, out strError);
+            if (nRet == -1)
+                goto ERROR1;
+ 
+            return null;
+
+
+        ERROR1:
+            MemoryStream ms =  dp2WeiXinService.Instance.GetErrorImg(strError);
+            return File(ms.ToArray(), "image/jpeg");
+        }
 
 
         #endregion
@@ -226,41 +193,32 @@ namespace dp2weixinWeb.Controllers
 
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml,out strError);
-            dp2WeiXinService.Instance.WriteErrorLog("test0");
+            int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml, out strError);
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
 
-            dp2WeiXinService.Instance.WriteErrorLog("test1");
-
             if (nRet == -2)
             {
-                dp2WeiXinService.Instance.WriteErrorLog("test2");
-                ViewBag.RedirectInfo = this.getLinkHtml("我的信息", "/Patron/PersonalInfo");
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("我的信息", "/Patron/PersonalInfo");
                 return View();
             }
 
-            dp2WeiXinService.Instance.WriteErrorLog("test3");
             PersonalInfoModel model = null;
             if (activeUserItem != null)
             {
                 model = this.ParseXml(activeUserItem.libId, strXml, activeUserItem.recPath);
-                dp2WeiXinService.Instance.WriteErrorLog("test4");
             }
 
             if (model == null)
             {
-                dp2WeiXinService.Instance.WriteErrorLog("test5");
                 strError = "model为null,返回值为" + nRet + "，error为" + strError;
                 goto ERROR1;
             }
 
-            dp2WeiXinService.Instance.WriteErrorLog("test6");
             return View(model);
 
         ERROR1:
 
-            dp2WeiXinService.Instance.WriteErrorLog("test7");
             if (strError == "")
             {
                 strError = "error怎么没赋值呢？ret=" + nRet;
@@ -275,7 +233,7 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "xml", out activeUserItem, out strXml,out strError);
+            int nRet = this.GetReaderXml(code, state, "xml", out activeUserItem, out strXml, out strError);
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
 
@@ -285,7 +243,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             string strWarningText = "";
-            List<OverdueInfo> overdueList= dp2WeiXinService.Instance.GetOverdueInfo(strXml, out strWarningText);
+            List<OverdueInfo> overdueList = dp2WeiXinService.Instance.GetOverdueInfo(strXml, out strWarningText);
 
             return View(overdueList);
 
@@ -305,7 +263,7 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "",out activeUserItem, out strXml,out strError);
+            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml, out strError);
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
             if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
@@ -319,7 +277,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.Error = strError;
             return View();
         }
-      
+
         /// <summary>
         /// 在借续借界面
         /// </summary>
@@ -331,7 +289,7 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml,out strError);
+            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml, out strError);
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
 
@@ -349,22 +307,7 @@ namespace dp2weixinWeb.Controllers
 
         #region 内部函数
 
-        private string getLinkHtml(string menu, string returnUrl)
-        {
-            //string returnUrl = "/Patron/PersonalInfo";
-            string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
-            string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
-            string strRedirectInfo = "您尚未绑定当前图书馆的读者账户，不能查看" + menu + "，" + bindLink;
 
-            strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
-                //+ "<center>"
-                + strRedirectInfo
-                //+ "</center"
-                + "</div>";
-
-
-            return strRedirectInfo;
-        }
 
         /// <summary>
         /// 
@@ -398,7 +341,7 @@ namespace dp2weixinWeb.Controllers
             // 未绑定读者账户,不会出现未激活的情况
             if (activeUserItem == null)
                 return -2;
-            
+
 
             // 有的调用处不需要获取读者xml，例如预约
             if (String.IsNullOrEmpty(strFormat) == false)
@@ -419,7 +362,7 @@ namespace dp2weixinWeb.Controllers
             return 1;
         }
 
-        private PersonalInfoModel ParseXml(string libId,string strXml,string recPath)
+        private PersonalInfoModel ParseXml(string libId, string strXml, string recPath)
         {
             PersonalInfoModel model = new PersonalInfoModel();
             XmlDocument dom = new XmlDocument();
@@ -558,10 +501,7 @@ namespace dp2weixinWeb.Controllers
                 {
                     string strPhotoPath = recPath + "/object/" + DomUtil.GetAttr(fileNodes[0], "id");
 
-                    dp2WeiXinService.Instance.WriteLog("photoPath:" + strPhotoPath);
-
                     imageUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(libId)
-                    + "&type=photo"
                     + "&objectPath=" + HttpUtility.UrlEncode(strPhotoPath);
                 }
             }
@@ -628,7 +568,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             if (text != "")
-                text = "("+text+")";
+                text = "(" + text + ")";
             return text;
         }
 

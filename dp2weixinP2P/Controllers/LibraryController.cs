@@ -203,24 +203,44 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 goto ERROR1;
 
-            //绑定的工作人员账号 需要有权限
-            string userName = "";
+            // weixin id 与图书馆id
             string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             if (String.IsNullOrEmpty(libId)==true)
                 libId = ViewBag.LibId;
+
+            // 如果当前图书馆是不公开书目，则出现提示
+            LibItem lib = LibDatabase.Current.GetLibById(ViewBag.LibId);
+            if (lib == null)
+            {
+                strError = "未设置当前图书馆。";
+                goto ERROR1;
+            }
+            if (lib.noShareBiblio == 1)
+            {
+                List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.id, -1);
+                if (users.Count == 0)
+                {
+                    ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", lib.libName);
+                    return View();
+                }
+            }
+
+
+            //绑定的工作人员账号 需要有权限
             // 查找当前微信用户绑定的工作人员账号
+            string userName = "";
             WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
             // 2016-8-13 加了当前工作所在图书馆与设置图书馆的判断
             if (user != null && user.libId== libId)
             {
                 // 检索是否有权限 _wx_setHomePage
                 string needRight = dp2WeiXinService.C_Right_SetBook;
-                LibItem lib = LibDatabase.Current.GetLibById(libId);
-                if (lib == null)
-                {
-                    strError = "未找到id为[" + libId + "]的图书馆定义。";
-                    goto ERROR1;
-                }
+                //LibItem lib = LibDatabase.Current.GetLibById(libId);
+                //if (lib == null)
+                //{
+                //    strError = "未找到id为[" + libId + "]的图书馆定义。";
+                //    goto ERROR1;
+                //}
 
                 int nHasRights = dp2WeiXinService.Instance.CheckRights(lib,
                     user.userName,

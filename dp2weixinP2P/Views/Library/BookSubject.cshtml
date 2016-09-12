@@ -87,42 +87,51 @@
 }
 else
 {
-    if (Model == null || Model.Count == 0)
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
     {
-        <div class="mui-card" id="divNo" style="margin-top:10px;">
-            <center>
-                <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
-                <div>目前没有好书推荐。</div>
-            </center>
-        </div>
+        @Html.Raw(ViewBag.RedirectInfo);
     }
-
-    if (String.IsNullOrEmpty(ViewBag.userName) == false)
+    else
     {
-        <div id="divNew" class="mui-content-padded">
-            <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoBookEdit()">
-                新推荐好书
-            </button>
-        </div>
-    }
 
-    <ul class="mui-table-view" data-bind=" foreach:model.list">
-        @if (Model != null)
+        if (Model == null || Model.Count == 0)
         {
-            foreach (dp2weixin.service.SubjectItem subject in Model)
-            {
-                if (subject.count == 0)
-                {
-                    continue;
-                }
-
-                <li class="mui-table-view-cell">
-                    <a class="mui-navigate-right" title="@subject.name" href='javascript:void(0)' onclick='gotoBookMsg(this)'>
-                        <span>@subject.name</span>
-                        (<span>@subject.count</span>)
-                    </a>
-                </li>
-            }
+            <div class="mui-card" id="divNo" style="margin-top:10px;">
+                <center>
+                    <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+                    <div>目前没有好书推荐。</div>
+                </center>
+            </div>
         }
-    </ul>
+
+        if (String.IsNullOrEmpty(ViewBag.userName) == false)
+        {
+            <div id="divNew" class="mui-content-padded">
+                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoBookEdit()">
+                    新推荐好书
+                </button>
+            </div>
+        }
+
+        <ul class="mui-table-view" data-bind=" foreach:model.list">
+            @if (Model != null)
+            {
+                foreach (dp2weixin.service.SubjectItem subject in Model)
+                {
+                    if (subject.count == 0)
+                    {
+                        continue;
+                    }
+
+                    <li class="mui-table-view-cell">
+                        <a class="mui-navigate-right" title="@subject.name" href='javascript:void(0)' onclick='gotoBookMsg(this)'>
+                            <span>@subject.name</span>
+                            (<span>@subject.count</span>)
+                        </a>
+                    </li>
+                }
+            }
+        </ul>
+
+    }
 }

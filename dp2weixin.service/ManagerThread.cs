@@ -26,7 +26,9 @@ namespace dp2weixin.service
             // 清理图书馆参于检索数据库
             WeixinService.LibDbs.Clear();
 
-            // todo 检查有没有不在线的图书馆，给工作人员发通知
+            // 检查不在线的图书馆，给工作人员发通知
+            WeixinService.WarnOfflineLib();
+
         }
     }
 }
