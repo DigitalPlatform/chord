@@ -71,6 +71,16 @@ namespace dp2Capo
             e.Cancel = true;
         }
 
+        /// <summary>
+        /// 向控制台输出纯文本
+        /// </summary>
+        /// <param name="strText">要输出的纯文本字符串</param>
+        /// <param name="nWarningLevel">警告级别。0 正常文本(白色背景) 1 警告文本(黄色背景) >=2 错误文本(红色背景)</param>
+        public override void OutputText(string strText, int nWarningLevel = 0)
+        {
+            // Console.WriteLine(strText);  // 用于观察重新连接情况
+        }
+
         public LibraryChannel GetChannel()
         {
             string strServerUrl = this.dp2library.Url;

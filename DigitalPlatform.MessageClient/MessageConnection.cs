@@ -114,16 +114,30 @@ namespace DigitalPlatform.MessageClient
         }
 #endif
 
+
+        int _inTimer = 0;   // 防止 _timer_Elapsed() 重叠运行
+
         async void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            if (this.Connection != null)
-                AddInfoLine("tick connection state = " + this.Connection.State.ToString());
-
-            if (this.Connection == null ||
-                this.Connection.State == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
+            if (_inTimer == 0)
             {
-                AddInfoLine("自动重新连接 ...");
-                await this.EnsureConnect();
+                _inTimer++;
+                try
+                {
+                    if (this.Connection != null)
+                        AddInfoLine("tick connection state = " + this.Connection.State.ToString());
+
+                    if (this.Connection == null ||
+                        this.Connection.State == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
+                    {
+                        AddInfoLine("自动重新连接 ...");
+                        await this.EnsureConnect();
+                    }
+                }
+                finally
+                {
+                    _inTimer--;
+                }
             }
         }
 
@@ -376,14 +390,27 @@ errorInfo)
             try
             {
                 await Connection.Start();
+#if NO
+                if (Connection.Start().Wait(TimeSpan.FromSeconds(60)) == false)
+                {
+                    AddInfoLine("连接超时");
+                    MessageResult result = new MessageResult();
+                    result.Value = -1;
+                    result.ErrorInfo = "Connection Start() Timeout";
+                    result.String = "ConnectionStartTimeout";
+                    return result;
+                }
+#endif
 
-                MessageResult result = new MessageResult();
-                AddInfoLine("停止 Timer");
-                _timer.Stop();
-                _exiting = false;
-                AddInfoLine("成功连接到 " + this.ServerUrl);
-                TriggerConnectionStateChange("Connected");
-                return result;
+                {
+                    MessageResult result = new MessageResult();
+                    AddInfoLine("停止 Timer");
+                    _timer.Stop();
+                    _exiting = false;
+                    AddInfoLine("成功连接到 " + this.ServerUrl);
+                    TriggerConnectionStateChange("Connected");
+                    return result;
+                }
             }
             catch (HttpRequestException ex)
             {
