@@ -1,28 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Threading;
 using System.ServiceProcess;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
-using System.Security.Principal;
-// using System.Configuration;
-using System.IO;
 
 using Owin;
 using Microsoft.Owin.Cors;
 using Microsoft.Owin.Hosting;
 using Microsoft.AspNet.SignalR;
-
-using dp2MServer.Properties;
+using Microsoft.Owin;
 
 using DigitalPlatform.MessageServer;
 using DigitalPlatform.ServiceProcess;
-using DigitalPlatform.Xml;
-using Microsoft.Owin;
+using System.IO;
+using DigitalPlatform.IO;
 
 namespace dp2MServer
 {
@@ -116,7 +107,17 @@ namespace dp2MServer
                         AutoTriggerUrl = strValue;
                 }
 
+                string strCfgFileName = Path.Combine(DataDir, "config.xml");
+
                 SaveConfig();
+
+                // 创建数据目录中的 config.xml 配置文件
+                if (File.Exists(strCfgFileName) == false)
+                {
+                    PathUtil.CreateDirIfNeed(Path.GetDirectoryName(strCfgFileName));
+                    ServerInfo.CreateCfgFile(strCfgFileName);
+                    Console.WriteLine("首次创建配置文件 " + strCfgFileName);
+                }
 #if NO
                 Console.WriteLine("(直接回车表示不修改当前值)");
                 Console.WriteLine("请输入服务器 URI: (当前值为 " + Settings.Default.ServerURI + ")");

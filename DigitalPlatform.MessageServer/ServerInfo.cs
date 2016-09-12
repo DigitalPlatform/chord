@@ -57,6 +57,28 @@ namespace DigitalPlatform.MessageServer
             set;
         }
 
+        public static void CreateCfgFile(string strCfgFileName,
+            string strMongoDbConnStr = "",
+            string strMongoDbInstancePrefix = "")
+        {
+            // 默认值
+            if (string.IsNullOrEmpty(strMongoDbConnStr))
+                strMongoDbConnStr = "mongodb://localhost";
+            if (string.IsNullOrEmpty(strMongoDbInstancePrefix))
+                strMongoDbInstancePrefix = "mserver";
+
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml("<root />");
+
+            XmlElement mongoDB = dom.CreateElement("mongoDB");
+            dom.DocumentElement.AppendChild(mongoDB);
+
+            mongoDB.SetAttribute("connectionString", strMongoDbConnStr);
+            mongoDB.SetAttribute("instancePrefix", strMongoDbInstancePrefix);
+
+            dom.Save(strCfgFileName);
+        }
+
         public static void Initial(InitialParam param)
         {
             AutoTriggerUrl = param.AutoTriggerUrl;
