@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.ServiceProcess;
 using System.Diagnostics;
+using System.IO;
 
 using Owin;
 using Microsoft.Owin.Cors;
@@ -12,7 +13,6 @@ using Microsoft.Owin;
 
 using DigitalPlatform.MessageServer;
 using DigitalPlatform.ServiceProcess;
-using System.IO;
 using DigitalPlatform.IO;
 
 namespace dp2MServer
@@ -148,8 +148,10 @@ namespace dp2MServer
             // 创建超级用户账户
             if (args.Length == 1 && args[0].Equals("createuser"))
             {
-                if (Initial() == false)
+                if (Initial(false) == false)
                     return;
+
+                ServerInfo.InitialMongoDb(true);
 
                 string strUserName = "supervisor";
                 string strPassword = "";
@@ -256,7 +258,7 @@ namespace dp2MServer
         // return:
         //      true    初始化成功
         //      false   初始化失败
-        static bool Initial()
+        static bool Initial(bool bStartThread = true)
         {
             try
             {
@@ -266,7 +268,7 @@ namespace dp2MServer
                 InitialParam param = new InitialParam();
                 param.DataDir = DataDir;
                 param.AutoTriggerUrl = AutoTriggerUrl;
-                ServerInfo.Initial(param);
+                ServerInfo.Initial(param, bStartThread);
 
                 return true;
             }
