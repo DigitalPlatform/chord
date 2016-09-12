@@ -21,7 +21,7 @@ namespace dp2weixinWeb.ApiControllers
             //result.info = "test";
 
 
-            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = LibDatabase.Current.GetLibById(libId);
             if (lib == null)
             {
                 result.errorCode = -1;
@@ -168,7 +168,7 @@ namespace dp2weixinWeb.ApiControllers
                     else if (group == dp2WeiXinService.C_Group_HomePage)
                         needRight = dp2WeiXinService.C_Right_SetHomePage;
 
-                    LibItem lib = LibDatabase.Current.GetLibById(libId);
+                    LibEntity lib = LibDatabase.Current.GetLibById(libId);
                     if (lib == null)
                     {
                         result.errorInfo = "未找到id为[" + libId + "]的图书馆定义。";

@@ -113,7 +113,7 @@ namespace dp2weixin.service
             return this.Get(weixinId, libId,null, type,true);
         }
 
-        // 获取指定了读者账户,针对一个图书馆可绑定多个读者账户
+        // 获取指定的读者账户,针对一个图书馆可绑定多个读者账户
         public List<WxUserItem> GetPatron(string weixinId, string libId, string readerBarcode)
         {
             return this.Get(weixinId, libId, readerBarcode, C_Type_Patron, true);

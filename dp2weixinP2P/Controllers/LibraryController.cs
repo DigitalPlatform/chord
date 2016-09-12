@@ -38,7 +38,7 @@ namespace dp2weixinWeb.Controllers
                 {
                     // 检索是否有权限 _wx_setHomePage
                     string needRight = dp2WeiXinService.C_Right_SetBb;
-                    LibItem lib = LibDatabase.Current.GetLibById(libId);
+                    LibEntity lib = LibDatabase.Current.GetLibById(libId);
                     if (lib == null)
                     {
                         strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -139,7 +139,7 @@ namespace dp2weixinWeb.Controllers
                 {
                     // 检索是否有权限 _wx_setHomePage
                     string needRight = dp2WeiXinService.C_Right_SetHomePage;
-                    LibItem lib = LibDatabase.Current.GetLibById(libId);
+                    LibEntity lib = LibDatabase.Current.GetLibById(libId);
                     if (lib == null)
                     {
                         strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -209,7 +209,7 @@ namespace dp2weixinWeb.Controllers
                 libId = ViewBag.LibId;
 
             // 如果当前图书馆是不公开书目，则出现提示
-            LibItem lib = LibDatabase.Current.GetLibById(ViewBag.LibId);
+            LibEntity lib = LibDatabase.Current.GetLibById(ViewBag.LibId);
             if (lib == null)
             {
                 strError = "未设置当前图书馆。";
@@ -235,13 +235,6 @@ namespace dp2weixinWeb.Controllers
             {
                 // 检索是否有权限 _wx_setHomePage
                 string needRight = dp2WeiXinService.C_Right_SetBook;
-                //LibItem lib = LibDatabase.Current.GetLibById(libId);
-                //if (lib == null)
-                //{
-                //    strError = "未找到id为[" + libId + "]的图书馆定义。";
-                //    goto ERROR1;
-                //}
-
                 int nHasRights = dp2WeiXinService.Instance.CheckRights(lib,
                     user.userName,
                     needRight,
@@ -304,7 +297,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 如果当前图书馆是不公开书目，则出现提示
-            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = LibDatabase.Current.GetLibById(libId);
             if (lib == null)
             {
                 strError = "未设置当前图书馆。";

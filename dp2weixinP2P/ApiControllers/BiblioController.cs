@@ -109,7 +109,7 @@ namespace dp2weixinWeb.ApiControllers
         {
             string strSummary = "未实现";
 
-            LibItem lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = LibDatabase.Current.GetLibById(libId);
             if (lib == null)
             {
                 return "未找到id为[" + libId + "]的图书馆定义。";

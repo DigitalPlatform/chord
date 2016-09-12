@@ -13,46 +13,66 @@ namespace dp2weixinWeb.ApiControllers
         private LibDatabase libDb = LibDatabase.Current;    
 
         // GET api/<controller>
-        public IEnumerable<LibItem> Get()
+        public IEnumerable<LibEntity> Get()
         {
-            List<LibItem> list = libDb.GetLibs();//"*", 0, -1).Result;
+            List<LibEntity> list = libDb.GetLibs();//"*", 0, -1).Result;
             return list;
         }
 
         // GET api/<controller>/5
-        public LibItem Get(string id)
+        public LibEntity Get(string id)
         {
             return libDb.GetLibById(id);
         }
 
         // POST api/<controller>
-        public LibSetResult Post(LibItem item)
+        public LibSetResult Post(LibEntity item)
         {
             LibSetResult result = new LibSetResult();
             string strError = "";
-            LibItem outputItem = null;
+            LibEntity outputItem = null;
             int nRet= dp2WeiXinService.Instance.AddLib(item,out outputItem, out strError);// libDb.Add(item);
             if (nRet == -1)
             {
                 result.errorCode = -1;
                 result.errorInfo = strError;
             }
-            result.libItem = outputItem;
+            result.lib = outputItem;
+
+            // 更新内存 2016-9-13 jane
+            dp2WeiXinService.Instance.LibManager.AddLib(item);
+
+
             return result;
 
         }
 
         // PUT api/<controller>/5
-        public long Put(string id,LibItem item)
+        public long Put(string id, LibEntity item)
         {
-            return libDb.Update(id,item);
+            long ret = libDb.Update(id, item);
+
+            if (ret > 0)
+            {
+                // 更新内存 2016-9-13 jane
+                dp2WeiXinService.Instance.LibManager.UpdateLib(id);
+            }
+
+            return ret;
         }
 
         // DELETE api/<controller>/5
         [HttpDelete]
         public ApiResult Delete(string id)
         {
-            return dp2WeiXinService.Instance.deleteLib(id);
+            ApiResult result= dp2WeiXinService.Instance.deleteLib(id);
+            if (result.errorCode != -1)
+            {
+                // 更新内存 2016-9-13 jane
+                dp2WeiXinService.Instance.LibManager.UpdateLib(id);
+            }
+
+            return result;
         }
 
         [HttpPost]

@@ -97,6 +97,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LibraryManager.cs" />
     <Compile Include="ManagerThread.cs" />
     <Compile Include="MessageItem.cs" />
     <Compile Include="ApiResult.cs" />

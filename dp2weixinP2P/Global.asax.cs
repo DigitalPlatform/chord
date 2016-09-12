@@ -46,7 +46,8 @@ namespace dp2weixinWeb
 
             dp2WeiXinService.Instance.WriteLog1("走进Application_Start");
 
-            throw new Exception("test");
+            // 测试application_error
+            //throw new Exception("test");
 
             //Application["app"] = "test";
         }
