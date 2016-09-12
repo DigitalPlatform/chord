@@ -57,7 +57,29 @@ namespace DigitalPlatform.MessageServer
             set;
         }
 
-        public static void Initial(InitialParam param)
+        public static void CreateCfgFile(string strCfgFileName,
+            string strMongoDbConnStr = "",
+            string strMongoDbInstancePrefix = "")
+        {
+            // 默认值
+            if (string.IsNullOrEmpty(strMongoDbConnStr))
+                strMongoDbConnStr = "mongodb://localhost";
+            if (string.IsNullOrEmpty(strMongoDbInstancePrefix))
+                strMongoDbInstancePrefix = "mserver";
+
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml("<root />");
+
+            XmlElement mongoDB = dom.CreateElement("mongoDB");
+            dom.DocumentElement.AppendChild(mongoDB);
+
+            mongoDB.SetAttribute("connectionString", strMongoDbConnStr);
+            mongoDB.SetAttribute("instancePrefix", strMongoDbInstancePrefix);
+
+            dom.Save(strCfgFileName);
+        }
+
+        public static void Initial(InitialParam param, bool bStartThread = true)
         {
             AutoTriggerUrl = param.AutoTriggerUrl;
 
@@ -95,7 +117,8 @@ namespace DigitalPlatform.MessageServer
                 WriteErrorLog("装载配置文件 '" + strCfgFileName + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
             }
 
-            BackThread.BeginThread();
+            if (bStartThread)
+                BackThread.BeginThread();
         }
 
         static string strMongoDbConnStr = "";
@@ -148,9 +171,9 @@ namespace DigitalPlatform.MessageServer
                 // 删除 1 天以前失效的消息
                 MessageDatabase.DeleteExpired(DateTime.Now - new TimeSpan(1, 0, 0, 0)).Wait();
                 // 删除一年前发布的消息
-                MessageDatabase.DeleteByPublishTime(DateTime.Now - new TimeSpan(365,0,0,0)).Wait();
+                MessageDatabase.DeleteByPublishTime(DateTime.Now - new TimeSpan(365, 0, 0, 0)).Wait();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 WriteErrorLog("清理失效消息时出现异常: " + ExceptionUtil.GetDebugText(ex));
             }

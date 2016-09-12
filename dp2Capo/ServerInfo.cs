@@ -115,6 +115,11 @@ namespace dp2Capo
                     else
                         instance.BeginConnnect();   // 在获得了图书馆 UID 以后再发起 SignalR 连接
                 }
+                else
+                {
+                    if (instance.MessageConnection.IsConnected == false)
+                        instance.BeginConnnect();
+                }
             }
         }
     }

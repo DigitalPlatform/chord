@@ -134,6 +134,10 @@
     <Content Include="Scripts\jquery.signalR-2.2.0.min.js" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj">
+      <Project>{441cb814-af78-4503-91ef-dce5f3269502}</Project>
+      <Name>DigitalPlatform.IO</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.MessageServer\DigitalPlatform.MessageServer.csproj">
       <Project>{9565e12a-5d62-4eb1-a265-0559b9d46334}</Project>
       <Name>DigitalPlatform.MessageServer</Name>
