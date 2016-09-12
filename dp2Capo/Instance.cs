@@ -154,11 +154,19 @@ namespace dp2Capo
                 this.MessageConnection.Parameters = GetParameters();
 
                 // this.MessageConnection.InitialAsync();
-                await this.MessageConnection.ConnectAsync();
+                MessageResult result = await this.MessageConnection.ConnectAsync();
+                if (result.Value == -1)
+                {
+                    string strError = "BeginConnect() 出错: " + result.ErrorInfo;
+                    this.WriteErrorLog(strError);
+                    Console.WriteLine(strError);
+                }
             }
             catch (Exception ex)
             {
-                this.WriteErrorLog("BeginConnect() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                string strError = "BeginConnect() 出现异常: " + ExceptionUtil.GetExceptionText(ex);
+                this.WriteErrorLog(strError);
+                Console.WriteLine(strError);
             }
         }
 
