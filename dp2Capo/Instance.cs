@@ -301,6 +301,15 @@ namespace dp2Capo
             }
         }
 
+        void TryResetConnection(string strErrorCode)
+        {
+            if (strErrorCode == "_connectionNotFound")
+            {
+                this.MessageConnection.CloseConnection();
+                this.WriteErrorLog("Connection 已经被重置");
+            }
+        }
+
         public void Notify()
         {
             this.MessageConnection.CleanWebDataTable();
@@ -401,7 +410,8 @@ namespace dp2Capo
                         if (result.Value == -1)
                         {
                             this.WriteErrorLog("Instance.Notify() 中 SetMessageAsync() 出错: " + result.ErrorInfo);
-                            Thread.Sleep(5*1000);   // 拖延 5 秒
+                            TryResetConnection(result.String);
+                            Thread.Sleep(5 * 1000);   // 拖延 5 秒
                             return;
                         }
 
