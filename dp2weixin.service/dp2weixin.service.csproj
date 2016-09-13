@@ -97,11 +97,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LibraryManager.cs" />
     <Compile Include="ManagerThread.cs" />
     <Compile Include="MessageItem.cs" />
     <Compile Include="ApiResult.cs" />
     <Compile Include="Command\BaseCommand.cs" />
-    <Compile Include="Command\SetCommand.cs" />
     <Compile Include="Command\CommandContainer.cs" />
     <Compile Include="Command\dp2CommandUtility.cs" />
     <Compile Include="Command\SearchCommand.cs" />

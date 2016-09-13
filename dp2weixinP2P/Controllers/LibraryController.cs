@@ -38,7 +38,7 @@ namespace dp2weixinWeb.Controllers
                 {
                     // 检索是否有权限 _wx_setHomePage
                     string needRight = dp2WeiXinService.C_Right_SetBb;
-                    LibItem lib = LibDatabase.Current.GetLibById(libId);
+                    LibEntity lib = LibDatabase.Current.GetLibById(libId);
                     if (lib == null)
                     {
                         strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -139,7 +139,7 @@ namespace dp2weixinWeb.Controllers
                 {
                     // 检索是否有权限 _wx_setHomePage
                     string needRight = dp2WeiXinService.C_Right_SetHomePage;
-                    LibItem lib = LibDatabase.Current.GetLibById(libId);
+                    LibEntity lib = LibDatabase.Current.GetLibById(libId);
                     if (lib == null)
                     {
                         strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -209,7 +209,7 @@ namespace dp2weixinWeb.Controllers
                 libId = ViewBag.LibId;
 
             // 如果当前图书馆是不公开书目，则出现提示
-            LibItem lib = LibDatabase.Current.GetLibById(ViewBag.LibId);
+            LibEntity lib = LibDatabase.Current.GetLibById(ViewBag.LibId);
             if (lib == null)
             {
                 strError = "未设置当前图书馆。";
@@ -235,13 +235,6 @@ namespace dp2weixinWeb.Controllers
             {
                 // 检索是否有权限 _wx_setHomePage
                 string needRight = dp2WeiXinService.C_Right_SetBook;
-                //LibItem lib = LibDatabase.Current.GetLibById(libId);
-                //if (lib == null)
-                //{
-                //    strError = "未找到id为[" + libId + "]的图书馆定义。";
-                //    goto ERROR1;
-                //}
-
                 int nHasRights = dp2WeiXinService.Instance.CheckRights(lib,
                     user.userName,
                     needRight,
@@ -301,6 +294,24 @@ namespace dp2weixinWeb.Controllers
             {
                 strError = "subject参数不能为空";
                 goto ERROR1;
+            }
+
+            // 如果当前图书馆是不公开书目，则出现提示
+            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未设置当前图书馆。";
+                goto ERROR1;
+            }
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            if (lib.noShareBiblio == 1)
+            {
+                List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.id, -1);
+                if (users.Count == 0)
+                {
+                    ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", lib.libName);
+                    return View();
+                }
             }
 
             ViewBag.LibId = libId;
@@ -363,6 +374,8 @@ namespace dp2weixinWeb.Controllers
             {
                 subject = ViewBag.remeberBookSubject;
             }
+
+
 
             // 栏目html
             ViewBag.SubjectHtml = dp2WeiXinService.Instance.GetSubjectHtml( libId,

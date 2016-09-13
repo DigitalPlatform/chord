@@ -211,7 +211,7 @@ namespace dp2weixin
                     // 检查有没有绑 数字平台,绑了的话，设为公司管理员
                     foreach (WxUserItem user in workerList)
                     {
-                        LibItem lib = LibDatabase.Current.GetLibById(user.libId);
+                        LibEntity lib = LibDatabase.Current.GetLibById(user.libId);
                         if (lib != null)
                         {
                             if (lib.libName == WeiXinConst.C_Dp2003LibName)
@@ -255,7 +255,7 @@ namespace dp2weixin
                         else
                             text += "，且指定了对读者敏感信息不做马赛克处理。";
 
-                        return this.CreateTextResponseMessage("text");
+                        return this.CreateTextResponseMessage(text);
                     }
                 }
             }

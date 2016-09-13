@@ -15,6 +15,7 @@ using dp2weixin;
 using System.IO;
 using System.Web.Caching;
 using dp2weixin.service;
+using DigitalPlatform;
 
 namespace dp2weixinWeb
 {
@@ -45,8 +46,10 @@ namespace dp2weixinWeb
 
             dp2WeiXinService.Instance.WriteLog1("走进Application_Start");
 
+            // 测试application_error
+            //throw new Exception("test");
 
-            Application["app"] = "test";
+            //Application["app"] = "test";
         }
 
 
@@ -64,9 +67,48 @@ namespace dp2weixinWeb
             dp2WeiXinService.Instance.Close();
 
             dp2WeiXinService.Instance.WriteLog1("走进Application_End");
-        }       
+        }
+
+        protected void Application_Error(Object sender, EventArgs e)
+        {
+            Exception ex = HttpContext.Current.Server.GetLastError();
+
+            string strText = ExceptionUtil.GetDebugText(ex);
+
+            try
+            {
+                strText += "\r\n"
+                + "\r\nUserHostAddres=" + HttpContext.Current.Request.UserHostAddress
+                + "\r\nRequest.RawUrl=" + HttpContext.Current.Request.RawUrl
+                + "\r\nForm Data=" + HttpContext.Current.Request.Form.ToString()
+                + "\r\nForm Data(Decoded)=" + HttpUtility.UrlDecode(HttpContext.Current.Request.Form.ToString())
+                + "\r\n\r\n版本: " + System.Reflection.Assembly.GetAssembly(typeof(dp2WeiXinService)).GetName().ToString();
+            }
+            catch (Exception ex1)
+            {
+                strText += "获取Request信息出错：" + ex1.Message;
+            }
 
 
+            string strError = "";
+            try
+            {
+                string strSender = HttpContext.Current.Server.MachineName;
+                //// 崩溃报告
+                //int nRet = LibraryChannel.CrashReport(
+                //    strSender,
+                //    "dp2OPAC",
+                //    strText,
+                //    out strError);
+
+                dp2WeiXinService.Instance.WriteErrorLog1(strText);
+            }
+            catch (Exception ex0)
+            {
+                strError = "CrashReport() 过程出现异常: " + ExceptionUtil.GetDebugText(ex0);
+                // nRet = -1;
+            }
+        }
 
     }
 }

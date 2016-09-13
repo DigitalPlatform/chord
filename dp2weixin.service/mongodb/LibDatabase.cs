@@ -29,8 +29,8 @@ namespace dp2weixin.service
         MongoClient _mongoClient = null;
         IMongoDatabase _database = null;
         string _libDbName = "";
-        IMongoCollection<LibItem> _libCollection = null;
-        public IMongoCollection<LibItem> LibCollection
+        IMongoCollection<LibEntity> _libCollection = null;
+        public IMongoCollection<LibEntity> LibCollection
         {
             get
             {
@@ -53,25 +53,23 @@ namespace dp2weixin.service
             this._database = this._mongoClient.GetDatabase(this._libDbName);
 
             //图书馆点对点账号
-            _libCollection = this._database.GetCollection<LibItem>("item");
+            _libCollection = this._database.GetCollection<LibEntity>("item");
 
             //todo
-            // 创建索引
-            
+            // 创建索引            
         }
 
-
-        public LibItem GetLibById(string id)
+        public LibEntity GetLibById(string id)
         {
             if (string.IsNullOrEmpty(id) == true)
                 return null;
 
-            var filter = Builders<LibItem>.Filter.Eq("id", id);
+            var filter = Builders<LibEntity>.Filter.Eq("id", id);
 
-            List<LibItem> list = this.LibCollection.Find(filter).ToList();
+            List<LibEntity> list = this.LibCollection.Find(filter).ToList();
             if (list.Count > 0)
             {
-                LibItem item = list[0];
+                LibEntity item = list[0];
                 //解密
                 if (String.IsNullOrEmpty(item.wxPassword)== false)
                     item.wxPassword= Cryptography.Decrypt( item.wxPassword, WeiXinConst.EncryptKey);
@@ -80,13 +78,13 @@ namespace dp2weixin.service
             }
             return null;
         }
-        public LibItem GetLibByCapoUserName(string capoUserName)
+        public LibEntity GetLibByCapoUserName(string capoUserName)
         {
-            var filter = Builders<LibItem>.Filter.Eq("capoUserName", capoUserName);
-            List<LibItem> list = this.LibCollection.Find(filter).ToList();
+            var filter = Builders<LibEntity>.Filter.Eq("capoUserName", capoUserName);
+            List<LibEntity> list = this.LibCollection.Find(filter).ToList();
             if (list.Count > 0)
             {
-                LibItem item = list[0];
+                LibEntity item = list[0];
                 //解密
                 if (String.IsNullOrEmpty(item.wxPassword) == false)
                     item.wxPassword = Cryptography.Decrypt(item.wxPassword, WeiXinConst.EncryptKey);
@@ -96,24 +94,24 @@ namespace dp2weixin.service
             return null;
         }
 
-        public LibItem GetLibByName(string libName)
+        public LibEntity GetLibByName(string libName)
         {
-            var filter = Builders<LibItem>.Filter.Eq("libName", libName);
-            List<LibItem> list = this.LibCollection.Find(filter).ToList();
+            var filter = Builders<LibEntity>.Filter.Eq("libName", libName);
+            List<LibEntity> list = this.LibCollection.Find(filter).ToList();
             if (list.Count > 0)
             {
-                LibItem item = list[0];
+                LibEntity item = list[0];
                 return item;
             }
             return null;
         }
 
-        public List<LibItem> GetLibs()
+        public List<LibEntity> GetLibs()
         {
-            List<LibItem> list  =this.LibCollection.Find(new BsonDocument()).ToListAsync().Result;
+            List<LibEntity> list  =this.LibCollection.Find(new BsonDocument()).ToListAsync().Result;
             if (list != null && list.Count > 0)
             {
-                foreach (LibItem item in list)
+                foreach (LibEntity item in list)
                 {
                     //解密
                     if (String.IsNullOrEmpty(item.wxPassword) == false)
@@ -137,7 +135,7 @@ namespace dp2weixin.service
         }
 
 
-        public LibItem Add(LibItem item)
+        public LibEntity Add(LibEntity item)
         {
             item.OperTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
             item.wxPasswordView = "*".PadRight(item.wxPassword.Length, '*');
@@ -150,7 +148,7 @@ namespace dp2weixin.service
         }
 
         // 更新
-        public long Update(string id,LibItem item)
+        public long Update(string id,LibEntity item)
         {
             if (String.IsNullOrEmpty(item.wxPassword) == false)
             {
@@ -160,8 +158,8 @@ namespace dp2weixin.service
                 item.wxPassword = encryptPassword;
             }
 
-            var filter = Builders<LibItem>.Filter.Eq("id", id);
-            var update = Builders<LibItem>.Update
+            var filter = Builders<LibEntity>.Filter.Eq("id", id);
+            var update = Builders<LibEntity>.Update
                 //.Set("libCode", item.libCode)
                 .Set("libName", item.libName)
                 .Set("capoUserName", item.capoUserName)
@@ -188,13 +186,13 @@ namespace dp2weixin.service
         /// <param name="item"></param>
         public void Delete(String id)
         {
-            var filter = Builders<LibItem>.Filter.Eq("id", id);
+            var filter = Builders<LibEntity>.Filter.Eq("id", id);
             this.LibCollection.DeleteOne(filter);
         }
 
     }
 
-    public class LibItem
+    public class LibEntity
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]

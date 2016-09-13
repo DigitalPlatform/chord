@@ -260,7 +260,7 @@
 
 
                 if (result.errorCode == -1) {
-                    alert("检测用户时出错:" + result.errorInfo);
+                    alert("创建用户时出错:" + result.errorInfo);
                     return;
                 }
 
@@ -337,10 +337,15 @@
 
 
             sendAjaxRequest(url, actionType,
-                function () {
+                function (result) {
 
                     // 关闭等待层
                     layer.close(index);
+
+                    if (result.errorCode == -1) {
+                        alert("保存出错:" + result.errorInfo);
+                        return;
+                    }
 
                     //model.librarys.push(newItem);
                     model.displaySummary(true);

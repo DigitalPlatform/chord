@@ -22,7 +22,7 @@ namespace dp2weixin.service
 
     public class LibSetResult : ApiResult
     {
-        public LibItem libItem { get; set; }
+        public LibEntity lib { get; set; }
     }
 
     public class WxUserResult:ApiResult

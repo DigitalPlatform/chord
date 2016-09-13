@@ -167,47 +167,53 @@
 }
 else
 {
-    
-    
-    if (String.IsNullOrEmpty(ViewBag.userName) == false)
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
     {
-        <div id="divNew" class="mui-content-padded" style="display:block">
-            <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('')">
-                新推荐好书
-            </button>
-        </div>
+        @Html.Raw(ViewBag.RedirectInfo);
     }
-
-    if (Model != null)
+    else
     {
-        foreach (dp2weixin.service.MessageItem item in Model)
+
+        if (String.IsNullOrEmpty(ViewBag.userName) == false)
         {
-            <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv('@item.id')">
-                <div class="view">
-                <table class="view-top">
-                        <tr>
-                            <td class="title" id="title-@item.id">@item.title</td>
-                            <td class="btn">
-                                @if (String.IsNullOrEmpty(ViewBag.userName) == false)
-{
-                        <div id="btnEdit" style="display: none;">
-                            <button class="mui-btn mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>&nbsp;
-                            <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
-                        </div>
-}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="time" colspan="2">
-                                <span>@item.publishTime</span>-<span>@item.creator</span>
-                            </td>
-                        </tr>
-                </table>
-                <div class="content">@Html.Raw(item.contentHtml)</div>
-                <div class="remark">@Html.Raw(item.remarkHtml)</div>
-                </div>
+            <div id="divNew" class="mui-content-padded" style="display:block">
+                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('')">
+                    新推荐好书
+                </button>
             </div>
         }
+
+        if (Model != null)
+        {
+            foreach (dp2weixin.service.MessageItem item in Model)
+            {
+                <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv('@item.id')">
+                    <div class="view">
+                        <table class="view-top">
+                            <tr>
+                                <td class="title" id="title-@item.id">@item.title</td>
+                                <td class="btn">
+                                    @if (String.IsNullOrEmpty(ViewBag.userName) == false)
+                                    {
+                                        <div id="btnEdit" style="display: none;">
+                                            <button class="mui-btn mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>&nbsp;
+                                            <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="time" colspan="2">
+                                    <span>@item.publishTime</span>-<span>@item.creator</span>
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="content">@Html.Raw(item.contentHtml)</div>
+                        <div class="remark">@Html.Raw(item.remarkHtml)</div>
+                    </div>
+                </div>
+            }
+        }
+        <br />
     }
-    <br />
 }

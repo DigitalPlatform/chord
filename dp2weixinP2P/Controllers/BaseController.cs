@@ -13,7 +13,7 @@ namespace dp2weixinWeb.Controllers
     {
         public string GetLibSelectHtml(string selLibId, string weixinId,bool bContainEmptyLine)
         {
-            List<LibItem> list1 = LibDatabase.Current.GetLibs();
+            List<LibEntity> list1 = LibDatabase.Current.GetLibs();
 
             string curLib = "";
             UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
@@ -29,17 +29,17 @@ namespace dp2weixinWeb.Controllers
             List<string> libs = WxUserDatabase.Current.GetLibsByWeixinId(weixinId);
 
             // 将所有图书馆分为2组：绑定过账户与未绑定过
-            List<LibItem> bindList = new List<LibItem>();
-            List<LibItem> unbindList = new List<LibItem>();
-            foreach (LibItem libItem in list1)
+            List<LibEntity> bindList = new List<LibEntity>();
+            List<LibEntity> unbindList = new List<LibEntity>();
+            foreach (LibEntity lib in list1)
             {
-                if (libs.Contains(libItem.id) == true)
+                if (libs.Contains(lib.id) == true)
                 {
-                    bindList.Add(libItem);
+                    bindList.Add(lib);
                 }
                 else
                 {
-                    unbindList.Add(libItem);
+                    unbindList.Add(lib);
                 }
             }
 
@@ -116,11 +116,11 @@ namespace dp2weixinWeb.Controllers
                 // 如果session中的code与传进入的code相同，则不再获取weixinid
                 if (sessionCode == code)
                 {
-                    dp2WeiXinService.Instance.WriteLog2("传进来的code[" + code + "]与session中保存的code相同，不再获取weixinid了。");
+                    dp2WeiXinService.Instance.WriteLog1("传进来的code[" + code + "]与session中保存的code相同，不再获取weixinid了。");
                 }
                 else
                 {
-                    dp2WeiXinService.Instance.WriteLog2("传进来的code[" + code + "]与session中保存的code[" + sessionCode + "]不同，重新获取weixinid了，ip=" + Request.UserHostAddress + "。");
+                    dp2WeiXinService.Instance.WriteLog1("传进来的code[" + code + "]与session中保存的code[" + sessionCode + "]不同，重新获取weixinid了，ip=" + Request.UserHostAddress + "。");
 
                     string weixinIdTemp = "";
                     int nRet = dp2WeiXinService.Instance.GetWeiXinId(code, state, out weixinIdTemp, out strError);
@@ -162,7 +162,7 @@ namespace dp2weixinWeb.Controllers
             UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
             if (settingItem != null)
             {
-                LibItem lib = LibDatabase.Current.GetLibById(settingItem.libId);
+                LibEntity lib = LibDatabase.Current.GetLibById(settingItem.libId);
                 if (lib == null)
                 {
                     strError = "未找到id为'" + settingItem.libId + "'对应的图书馆"; //这里lib为null竟然用了lib.id，一个bug 2016-8-11
@@ -184,14 +184,14 @@ namespace dp2weixinWeb.Controllers
             }
             if (libName == "" || libId=="")
             {
-                List<LibItem> libs = LibDatabase.Current.GetLibs();
+                List<LibEntity> libs = LibDatabase.Current.GetLibs();
                 if (libs == null || libs.Count == 0)
                 {
                     strError = "当前系统未配置图书馆";
                     return -1;
                 }
 
-                LibItem lib = libs[0]; // 第一个是数字平台
+                LibEntity lib = libs[0]; // 第一个是数字平台
                 libName = lib.libName;
                 libId = lib.id;
             }
