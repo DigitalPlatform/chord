@@ -8,13 +8,13 @@ using System.Xml;
 using System.Collections;
 using System.Messaging;
 using System.Diagnostics;
+using System.Threading;
 
 using DigitalPlatform;
 using DigitalPlatform.Text;
 using DigitalPlatform.Message;
 using DigitalPlatform.IO;
 using DigitalPlatform.LibraryClient.localhost;
-using System.Threading;
 
 namespace dp2Capo
 {
@@ -46,6 +46,9 @@ namespace dp2Capo
 
         public void Initial(string strXmlFileName)
         {
+            _cancel = new CancellationTokenSource();
+            SetShortDelay();
+
             Console.WriteLine();
             Console.WriteLine("*** 初始化实例: " + strXmlFileName);
 
@@ -182,6 +185,8 @@ namespace dp2Capo
 
         public void Close()
         {
+            _cancel.Cancel();
+
             if (this._notifyThread != null)
                 _notifyThread.StopThread(true);
 
@@ -272,6 +277,21 @@ namespace dp2Capo
             dom.Save(strXmlFileName);
         }
 
+        // 监控 MSMQ 新消息的循环中的停顿时间。防止 CPU 过分耗用
+        TimeSpan _delay = TimeSpan.FromMilliseconds(500);
+
+        // 设为较长的等待时间
+        void SetLongDelay()
+        {
+            _delay = TimeSpan.FromSeconds(3);
+        }
+
+        // 设为较短的等待时间
+        void SetShortDelay()
+        {
+            _delay = TimeSpan.FromMilliseconds(500);
+        }
+
         private void OnMessageAdded(IAsyncResult ar)
         {
             if (this._queue != null)
@@ -280,6 +300,8 @@ namespace dp2Capo
                 {
                     if (_queue.EndPeek(ar) != null)
                         this._notifyThread.Activate();
+
+                    Wait(_delay);
 
                     _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
                 }
@@ -301,12 +323,32 @@ namespace dp2Capo
             }
         }
 
+        void TryResetConnection(string strErrorCode)
+        {
+            if (strErrorCode == "_connectionNotFound")
+            {
+                this.MessageConnection.CloseConnection();
+                this.WriteErrorLog("Connection 已经被重置");
+            }
+        }
+
+        // 中断信号
+        CancellationTokenSource _cancel = new CancellationTokenSource();
+
+        // 等待一段时间，或者提前遇到中断信号返回
+        void Wait(TimeSpan delta)
+        {
+            WaitHandle.WaitAny(new[] { _cancel.Token.WaitHandle }, delta);
+        }
+
         public void Notify()
         {
+            // TODO: 要增加判断，防止过分频繁地被调用
             this.MessageConnection.CleanWebDataTable();
 
             if (this.dp2library.DefaultQueue == "!api")
             {
+                bool bSucceed = false;
                 try
                 {
                     if (this.MessageConnection.IsConnected == false)
@@ -352,6 +394,8 @@ namespace dp2Capo
                             this.WriteErrorLog("Instance.Notify() 中 RemoveMsmqMessage() 出错: " + strError);
                             return;
                         }
+
+                        bSucceed = true;
                     }
 
                     this._notifyThread.Activate();
@@ -360,6 +404,13 @@ namespace dp2Capo
                 catch (Exception ex)
                 {
                     this.WriteErrorLog("Instance.Notify() 出现异常1: " + ExceptionUtil.GetDebugText(ex));
+                }
+                finally
+                {
+                    if (bSucceed == false)
+                        SetShortDelay();
+                    else
+                        SetLongDelay();
                 }
             }
 
@@ -380,6 +431,7 @@ namespace dp2Capo
                     return;
                 }
 
+                bool bSucceed = false;
                 try
                 {
                     MessageEnumerator iterator = _queue.GetMessageEnumerator2();
@@ -401,7 +453,8 @@ namespace dp2Capo
                         if (result.Value == -1)
                         {
                             this.WriteErrorLog("Instance.Notify() 中 SetMessageAsync() 出错: " + result.ErrorInfo);
-                            Thread.Sleep(5*1000);   // 拖延 5 秒
+                            TryResetConnection(result.String);
+                            Thread.Sleep(5 * 1000);   // 拖延 5 秒
                             return;
                         }
 
@@ -415,6 +468,8 @@ namespace dp2Capo
                             iterator.Reset();
                         }
                     }
+
+                    bSucceed = true;
                 }
                 catch (MessageQueueException ex)
                 {
@@ -440,6 +495,11 @@ namespace dp2Capo
                 finally
                 {
                     ServerInfo._recordLocks.UnlockForWrite(this._queue.Path);
+
+                    if (bSucceed == false)
+                        SetShortDelay();
+                    else
+                        SetLongDelay();
                 }
             }
         }
