@@ -15,6 +15,7 @@ using DigitalPlatform.Text;
 using DigitalPlatform.Message;
 using DigitalPlatform.IO;
 using DigitalPlatform.LibraryClient.localhost;
+using System.Reflection;
 
 namespace dp2Capo
 {
@@ -57,8 +58,10 @@ namespace dp2Capo
             this.LogDir = Path.Combine(Path.GetDirectoryName(strXmlFileName), "log");
             PathUtil.CreateDirIfNeed(this.LogDir);
 
+            string strVersion = Assembly.GetAssembly(typeof(Instance)).GetName().Version.ToString();
+
             // 验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
-            this.DetectWriteErrorLog("*** 实例 " + this.Name + " 开始启动");
+            this.DetectWriteErrorLog("*** 实例 " + this.Name + " 开始启动 (dp2Capo 版本: "+strVersion+")");
 
             XmlDocument dom = new XmlDocument();
             dom.Load(strXmlFileName);
@@ -162,9 +165,16 @@ namespace dp2Capo
                 MessageResult result = await this.MessageConnection.ConnectAsync();
                 if (result.Value == -1)
                 {
-                    string strError = "BeginConnect() 出错: " + result.ErrorInfo;
+                    string strError = "BeginConnect() 连接 " + this.MessageConnection.ServerUrl + " 时出错: " + result.ErrorInfo;
                     this.WriteErrorLog(strError);
-                    Console.WriteLine(strError);
+                    Console.WriteLine(DateTime.Now.ToString() + " " + strError);
+                }
+                else
+                {
+                    // 2016/9/14
+                    string strText = "连接 " + this.MessageConnection.ServerUrl + " 成功";
+                    this.WriteErrorLog(strText);
+                    Console.WriteLine(DateTime.Now.ToString() + " " + strText);
                 }
             }
             catch (Exception ex)
