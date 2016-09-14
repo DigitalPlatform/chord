@@ -46,8 +46,8 @@ namespace dp2Capo
 
         public void Initial(string strXmlFileName)
         {
-            _cancel = new CancellationTokenSource();
-            SetShortDelay();
+            // _cancel = new CancellationTokenSource();
+            // SetShortDelay();
 
             Console.WriteLine();
             Console.WriteLine("*** 初始化实例: " + strXmlFileName);
@@ -119,7 +119,9 @@ namespace dp2Capo
                 {
                     _queue = new MessageQueue(this.dp2library.DefaultQueue);    // TODO: 不知道当 Queue 尚未创建的时候，这个语句是否可能抛出异常?
                     _queue.Formatter = new XmlMessageFormatter(new Type[] { typeof(string) });
-                    _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
+                    
+                    // _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
+                    this.BeginPeek();
 
                     if (bFirst == false)
                     {
@@ -185,7 +187,7 @@ namespace dp2Capo
 
         public void Close()
         {
-            _cancel.Cancel();
+            // _cancel.Cancel();
 
             if (this._notifyThread != null)
                 _notifyThread.StopThread(true);
@@ -277,6 +279,7 @@ namespace dp2Capo
             dom.Save(strXmlFileName);
         }
 
+#if NO
         // 监控 MSMQ 新消息的循环中的停顿时间。防止 CPU 过分耗用
         TimeSpan _delay = TimeSpan.FromMilliseconds(500);
 
@@ -291,7 +294,9 @@ namespace dp2Capo
         {
             _delay = TimeSpan.FromMilliseconds(500);
         }
+#endif
 
+#if NO
         private void OnMessageAdded(IAsyncResult ar)
         {
             if (this._queue != null)
@@ -322,6 +327,42 @@ namespace dp2Capo
                 }
             }
         }
+#endif
+
+        // 第二个版本
+        private void OnMessageAdded(IAsyncResult ar)
+        {
+            if (this._queue != null)
+            {
+                try
+                {
+                    if (EndPeek(ar) != null)
+                        this._notifyThread.Activate();  // 被激活的线程中会再次 BeginPeek()
+#if NO
+                    if (_queue.EndPeek(ar) != null)
+                        this._notifyThread.Activate();  // 被激活的线程中会再次 BeginPeek()
+#endif
+                }
+                catch (MessageQueueException ex)
+                {
+                    if (ex.MessageQueueErrorCode == MessageQueueErrorCode.IOTimeout)
+                    {
+                        // _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
+                        BeginPeek();
+                    }
+                    else
+                    {
+                        // Program.WriteWindowsLog("针对 '" + this.dp2library.DefaultQueue + "' OnMessageAdded() 出现异常: " + ex.Message);
+                        this.WriteErrorLog("针对 '" + this.dp2library.DefaultQueue + "' 的 OnMessageAdded() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Program.WriteWindowsLog("针对 '" + this.dp2library.DefaultQueue + "' OnMessageAdded() 出现异常: " + ex.Message);
+                    this.WriteErrorLog("针对 '" + this.dp2library.DefaultQueue + "' 的 OnMessageAdded() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                }
+            }
+        }
 
         void TryResetConnection(string strErrorCode)
         {
@@ -332,6 +373,7 @@ namespace dp2Capo
             }
         }
 
+#if NO
         // 中断信号
         CancellationTokenSource _cancel = new CancellationTokenSource();
 
@@ -339,6 +381,31 @@ namespace dp2Capo
         void Wait(TimeSpan delta)
         {
             WaitHandle.WaitAny(new[] { _cancel.Token.WaitHandle }, delta);
+        }
+#endif
+        private static readonly Object _syncRoot = new Object();
+        bool _peekOn = false;
+
+        void BeginPeek()
+        {
+            lock (_syncRoot)
+            {
+                if (_peekOn == true || _queue == null)
+                    return;
+                _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
+                _peekOn = true;
+            }
+        }
+
+        Message EndPeek(IAsyncResult ar)
+        {
+            lock (_syncRoot)
+            {
+                if (_peekOn == false || _queue == null)
+                    return null;
+                _peekOn = false;
+                return _queue.EndPeek(ar);
+            }
         }
 
         public void Notify()
@@ -348,7 +415,6 @@ namespace dp2Capo
 
             if (this.dp2library.DefaultQueue == "!api")
             {
-                bool bSucceed = false;
                 try
                 {
                     if (this.MessageConnection.IsConnected == false)
@@ -394,8 +460,6 @@ namespace dp2Capo
                             this.WriteErrorLog("Instance.Notify() 中 RemoveMsmqMessage() 出错: " + strError);
                             return;
                         }
-
-                        bSucceed = true;
                     }
 
                     this._notifyThread.Activate();
@@ -404,13 +468,6 @@ namespace dp2Capo
                 catch (Exception ex)
                 {
                     this.WriteErrorLog("Instance.Notify() 出现异常1: " + ExceptionUtil.GetDebugText(ex));
-                }
-                finally
-                {
-                    if (bSucceed == false)
-                        SetShortDelay();
-                    else
-                        SetLongDelay();
                 }
             }
 
@@ -496,10 +553,13 @@ namespace dp2Capo
                 {
                     ServerInfo._recordLocks.UnlockForWrite(this._queue.Path);
 
-                    if (bSucceed == false)
-                        SetShortDelay();
-                    else
-                        SetLongDelay();
+                    // 只有当发送到 dp2mserver 成功的情况下才立即重新监控最新 MQ
+                    // 否则就等下一轮 Worker() 来处理
+                    if (bSucceed == true)
+                    {
+                        // _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
+                        BeginPeek();
+                    }
                 }
             }
         }
