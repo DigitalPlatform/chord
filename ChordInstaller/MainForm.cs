@@ -1242,11 +1242,15 @@ MessageBoxDefaultButton.Button1);
             //this.toolStripProgressBar_main.Style = ProgressBarStyle.Marquee;
             //this.toolStripProgressBar_main.Visible = true;
 
+            string strTempDir = this.TempDir;
+
             try
             {
-                string strTempDir = this.TempDir;
-
-                PathUtil.TryClearDir(strTempDir);
+                if (PathUtil.TryClearDir(strTempDir) == false)
+                {
+                    strError = "删除临时文件目录 '"+strTempDir+"' 时出错。请先手动删除此目录，然后再重试打包功能";
+                    return -1;
+                }
 
                 List<string> filenames = new List<string>();
 
@@ -1300,19 +1304,20 @@ MessageBoxDefaultButton.Button1);
                 if (string.IsNullOrEmpty(strExePath) == false)
                 {
 
-                    string strLibraryTempDir = Path.Combine(strTempDir, "dp2capo");
-                    PathUtil.CreateDirIfNeed(strLibraryTempDir);
+                    string strCapoTempDir = Path.Combine(strTempDir, "dp2capo");
+                    PathUtil.DeleteDirectory(strCapoTempDir);
+                    PathUtil.CreateDirIfNeed(strCapoTempDir);
 
                     List<string> data_dirs = InstallDialog.GetInstanceDataDirByBinDir(Path.GetDirectoryName(strExePath));
 
                     int i = 0;
                     foreach (string data_dir in data_dirs)
                     {
-                        string strInstanceDir = strLibraryTempDir;
+                        string strInstanceDir = strCapoTempDir;
                         string strInstanceName = (i + 1).ToString();
                         if (string.IsNullOrEmpty(strInstanceName) == false)
                         {
-                            strInstanceDir = Path.Combine(strLibraryTempDir, "instance_" + strInstanceName);
+                            strInstanceDir = Path.Combine(strCapoTempDir, "instance_" + strInstanceName);
                             PathUtil.CreateDirIfNeed(strInstanceDir);
                         }
 
@@ -1342,6 +1347,8 @@ MessageBoxDefaultButton.Button1);
                             File.Copy(strFilePath, strTargetFilePath);
                             filenames.Add(strTargetFilePath);
                         }
+
+                        i++;    // 2016/9/15
                     }
                 }
 
@@ -1365,7 +1372,6 @@ MessageBoxDefaultButton.Button1);
                             string directoryPathInArchive = Path.GetDirectoryName(strShortFileName);
                             zip.AddFile(filename, directoryPathInArchive);
                         }
-
 
                         this._floatingMessage.Text = ("正在写入压缩文件 ...");
 
@@ -1406,8 +1412,6 @@ MessageBoxDefaultButton.Button1);
                         File.Delete(filename);
                     }
 
-                    // 删除子目录
-                    PathUtil.DeleteDirectory(Path.Combine(strTempDir, "dp2capo"));
                 }
             }
             catch (Exception ex)
@@ -1418,6 +1422,12 @@ MessageBoxDefaultButton.Button1);
             finally
             {
                 // this.toolStripProgressBar_main.Style = ProgressBarStyle.Continuous;
+
+                // 删除子目录
+                if (string.IsNullOrEmpty(strTempDir) == false)
+                {
+                    PathUtil.DeleteDirectory(Path.Combine(strTempDir, "dp2capo"));
+                }
             }
 
             return 0;

@@ -129,7 +129,6 @@ namespace dp2Router
                 // 这是被当作 service 启动的情况
                 ServiceBase.Run(new Program());
             }
-
         }
 
         // return:
