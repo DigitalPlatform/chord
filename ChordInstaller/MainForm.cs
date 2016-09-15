@@ -10,7 +10,10 @@ using System.IO;
 using System.Deployment.Application;
 using System.Web;
 using System.Threading;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
+using Microsoft.Win32;
 using Ionic.Zip;
 
 using dp2Capo.Install;
@@ -22,9 +25,9 @@ using DigitalPlatform.IO;
 using DigitalPlatform.Text;
 using DigitalPlatform.Drawing;
 using DigitalPlatform.ServiceProcess;
-using System.Diagnostics;
-using Microsoft.Win32;
-using System.Threading.Tasks;
+
+// TODO: 自动升级 dp2mserver
+// TODO: 自动升级 dp2router
 
 namespace ChordInstaller
 {
@@ -1291,49 +1294,54 @@ MessageBoxDefaultButton.Button1);
                 List<string> dates = MakeDates(strRangeName); // "最近31天""最近十年""最近七天"
 
                 // *** dp2Capo 各个 instance
-                string strLibraryTempDir = Path.Combine(strTempDir, "dp2capo");
-                PathUtil.CreateDirIfNeed(strLibraryTempDir);
                 string strExePath = ServiceUtil.GetPathOfService("dp2CapoService");
                 strExePath = StringUtil.Unquote(strExePath, "\"\"");
 
-                List<string> data_dirs = InstallDialog.GetInstanceDataDirByBinDir(Path.GetDirectoryName(strExePath));
-
-                int i = 0;
-                foreach (string data_dir in data_dirs)
+                if (string.IsNullOrEmpty(strExePath) == false)
                 {
-                    string strInstanceDir = strLibraryTempDir;
-                    string strInstanceName = (i + 1).ToString();
-                    if (string.IsNullOrEmpty(strInstanceName) == false)
-                    {
-                        strInstanceDir = Path.Combine(strLibraryTempDir, "instance_" + strInstanceName);
-                        PathUtil.CreateDirIfNeed(strInstanceDir);
-                    }
 
-                    // 复制 capo.xml
+                    string strLibraryTempDir = Path.Combine(strTempDir, "dp2capo");
+                    PathUtil.CreateDirIfNeed(strLibraryTempDir);
+
+                    List<string> data_dirs = InstallDialog.GetInstanceDataDirByBinDir(Path.GetDirectoryName(strExePath));
+
+                    int i = 0;
+                    foreach (string data_dir in data_dirs)
                     {
-                        string strFilePath = Path.Combine(data_dir, "capo.xml");
-                        string strTargetFilePath = Path.Combine(strInstanceDir, "capo.xml");
-                        if (File.Exists(strFilePath) == true)
+                        string strInstanceDir = strLibraryTempDir;
+                        string strInstanceName = (i + 1).ToString();
+                        if (string.IsNullOrEmpty(strInstanceName) == false)
                         {
-                            File.Copy(strFilePath,
-                                strTargetFilePath);
+                            strInstanceDir = Path.Combine(strLibraryTempDir, "instance_" + strInstanceName);
+                            PathUtil.CreateDirIfNeed(strInstanceDir);
+                        }
+
+                        // 复制 capo.xml
+                        {
+                            string strFilePath = Path.Combine(data_dir, "capo.xml");
+                            string strTargetFilePath = Path.Combine(strInstanceDir, "capo.xml");
+                            if (File.Exists(strFilePath) == true)
+                            {
+                                File.Copy(strFilePath,
+                                    strTargetFilePath);
+                                filenames.Add(strTargetFilePath);
+                            }
+                        }
+
+                        foreach (string date in dates)
+                        {
+                            _cancel.Token.ThrowIfCancellationRequested();
+
+                            string strFilePath = Path.Combine(data_dir, "log/log_" + date + ".txt");
+                            if (File.Exists(strFilePath) == false)
+                                continue;
+                            string strTargetFilePath = Path.Combine(strInstanceDir, "log_" + date + ".txt");
+
+                            this._floatingMessage.Text = ("正在复制文件 " + strFilePath);
+
+                            File.Copy(strFilePath, strTargetFilePath);
                             filenames.Add(strTargetFilePath);
                         }
-                    }
-
-                    foreach (string date in dates)
-                    {
-                        _cancel.Token.ThrowIfCancellationRequested();
-
-                        string strFilePath = Path.Combine(data_dir, "log/log_" + date + ".txt");
-                        if (File.Exists(strFilePath) == false)
-                            continue;
-                        string strTargetFilePath = Path.Combine(strInstanceDir, "log_" + date + ".txt");
-
-                        this._floatingMessage.Text = ("正在复制文件 " + strFilePath);
-
-                        File.Copy(strFilePath, strTargetFilePath);
-                        filenames.Add(strTargetFilePath);
                     }
                 }
 
@@ -1401,6 +1409,11 @@ MessageBoxDefaultButton.Button1);
                     // 删除子目录
                     PathUtil.DeleteDirectory(Path.Combine(strTempDir, "dp2capo"));
                 }
+            }
+            catch (Exception ex)
+            {
+                strError = "PackageEventLog() 出现异常: " + ExceptionUtil.GetExceptionMessage(ex);
+                return -1;
             }
             finally
             {
