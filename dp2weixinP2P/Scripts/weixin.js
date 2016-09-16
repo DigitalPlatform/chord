@@ -610,6 +610,7 @@ function deleteMsg(msgId) {
     //alert(msgId);
 
     // 检查下是否选中多个
+    var bMutiple = false;
 
 
     //alert(autoDeleteParent);
@@ -664,6 +665,9 @@ function deleteMsg(msgId) {
 
         alert("删除成功");
 
+        //如果包括多项删除，整个页面reload 2016-9-15
+
+        
         // 将界面上的div删除
 
         // 找到父亲
