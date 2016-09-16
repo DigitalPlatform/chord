@@ -171,7 +171,9 @@ namespace dp2Router
             base.Close();
 
             ServerInfo.Exit();
+            StopServer();
 
+            // Thread.Sleep(2000);
 #if NO
             if (SignalR != null)
             {
@@ -216,13 +218,14 @@ namespace dp2Router
             }
         }
 #endif
+        static HttpServer _httpServer = null;
 
         static void StartServer()
         {
             int nPort = Convert.ToInt32(ServerInfo.ServerPort);
-            HttpServer httpServer = new HttpServer(nPort);
+            _httpServer = new HttpServer(nPort);
 
-            Thread thread = new Thread(new ThreadStart(httpServer.Listen));
+            Thread thread = new Thread(new ThreadStart(_httpServer.Listen));
             thread.Start();
 
 #if NO
@@ -237,6 +240,11 @@ namespace dp2Router
             }
             WriteToConsole("Server started at " + ServerURI + ServerPath);
 #endif
+        }
+
+        static void StopServer()
+        {
+            _httpServer.Close();
         }
 
         /// <summary>

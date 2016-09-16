@@ -5,22 +5,22 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
-using System.Threading;
 
-using DigitalPlatform.Text;
-using DigitalPlatform.MessageClient;
-using DigitalPlatform.Forms;
 using DigitalPlatform.Drawing;
+using DigitalPlatform.Forms;
 using DigitalPlatform.Message;
+using DigitalPlatform.MessageClient;
+using DigitalPlatform.Text;
 
-namespace dp2Capo.Install
+namespace dp2Router.Install
 {
     public partial class dp2MServerDialog : Form
     {
-        // capo.xml
+        // config.xml
         public XmlDocument CfgDom { get; set; }
 
         // dp2mserver 超级用户账户名
@@ -35,6 +35,33 @@ namespace dp2Capo.Install
         private void dp2MServerDialog_Load(object sender, EventArgs e)
         {
             FillInfo();
+        }
+
+        private async void button_detect_Click(object sender, EventArgs e)
+        {
+            if (this.textBox_password.Text != this.textBox_confirmPassword.Text)
+            {
+                MessageBox.Show(this, "密码 和 确认密码 不一致。请重新输入");
+                return;
+            }
+
+            if (await DetectUser() == true)
+            {
+                this.Invoke(new Action(() =>
+                {
+                    MessageBox.Show(this, "账户存在");
+                }));
+            }
+        }
+
+        private async void button_createUser_Click(object sender, EventArgs e)
+        {
+            if (this.textBox_confirmPassword.Text != this.textBox_password.Text)
+            {
+                MessageBox.Show(this, "密码 和 确认密码 不一致，请重新输入");
+                return;
+            }
+            await CreateRouterUser();
         }
 
         private async void button_OK_Click(object sender, EventArgs e)
@@ -75,37 +102,89 @@ namespace dp2Capo.Install
         {
             this.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.Close();
+
         }
+
+        public static string EncryptKey = "_dp2routerpassword";
+
+        // 从 CfgDom 中填充信息到控件
+        void FillInfo()
+        {
+            XmlDocument dom = this.CfgDom;
+
+            XmlElement element = dom.DocumentElement.SelectSingleNode("messageServer") as XmlElement;
+            if (element == null)
+            {
+                element = dom.CreateElement("messageServer");
+                dom.DocumentElement.AppendChild(element);
+
+                FillDefaultValue();
+                return;
+            }
+
+            this.textBox_url.Text = element.GetAttribute("url");
+
+            this.textBox_userName.Text = element.GetAttribute("userName");
+
+            string strPassword = Cryptography.Decrypt(element.GetAttribute("password"), EncryptKey);
+            this.textBox_password.Text = strPassword;
+        }
+
+        public static string GetDisplayText(XmlDocument CfgDom)
+        {
+            StringBuilder text = new StringBuilder();
+            XmlDocument dom = CfgDom;
+
+            XmlElement element = dom.DocumentElement.SelectSingleNode("messageServer") as XmlElement;
+            if (element == null)
+                return "";
+
+            text.Append("url=" + element.GetAttribute("url") + "\r\n");
+            text.Append("userName=" + element.GetAttribute("userName") + "\r\n");
+            return text.ToString();
+        }
+
+        void FillDefaultValue()
+        {
+            this.textBox_url.Text = "http://dp2003.com:8083/dp2mserver";
+            this.textBox_userName.Text = "";
+            this.textBox_password.Text = "";
+        }
+
+        // 从控件到 CfgDom
+        bool SaveToCfgDom()
+        {
+            XmlDocument dom = this.CfgDom;
+
+            XmlElement element = dom.DocumentElement.SelectSingleNode("messageServer") as XmlElement;
+            if (element == null)
+            {
+                element = dom.CreateElement("messageServer");
+                dom.DocumentElement.AppendChild(element);
+            }
+
+            element.SetAttribute("url", this.textBox_url.Text);
+
+            element.SetAttribute("userName", this.textBox_userName.Text);
+
+            string strPassword = Cryptography.Encrypt(this.textBox_password.Text, EncryptKey);
+            element.SetAttribute("password", strPassword);
+            return true;
+        }
+
 
         void EnableControls(bool bEnable)
         {
             this.textBox_url.Enabled = bEnable;
             this.textBox_userName.Enabled = bEnable;
             this.textBox_password.Enabled = bEnable;
-            this.textBox_confirmManagePassword.Enabled = bEnable;
+            this.textBox_confirmPassword.Enabled = bEnable;
             this.button_detect.Enabled = bEnable;
             this.button_createUser.Enabled = bEnable;
             this.button_OK.Enabled = bEnable;
         }
 
         CancellationTokenSource _cancel = new CancellationTokenSource();
-
-        private async void button_detect_Click(object sender, EventArgs e)
-        {
-            if (this.textBox_password.Text != this.textBox_confirmManagePassword.Text)
-            {
-                MessageBox.Show(this, "密码 和 确认密码 不一致。请重新输入");
-                return;
-            }
-
-            if (await DetectUser() == true)
-            {
-                this.Invoke(new Action(() =>
-                {
-                    MessageBox.Show(this, "账户存在");
-                }));
-            }
-        }
 
         async Task<bool> DetectUser()
         {
@@ -205,125 +284,7 @@ namespace dp2Capo.Install
             e.Parameters = "propertyList=biblio_search,libraryUID=install";
         }
 
-        public static string EncryptKey = "dp2capopassword";
-
-        void FillDefaultValue()
-        {
-            this.textBox_url.Text = "http://dp2003.com:8083/dp2mserver";
-            this.textBox_userName.Text = "";
-            this.textBox_password.Text = "";
-        }
-
-        // 从 CfgDom 中填充信息到控件
-        void FillInfo()
-        {
-            XmlDocument dom = this.CfgDom;
-
-            XmlElement element = dom.DocumentElement.SelectSingleNode("dp2mserver") as XmlElement;
-            if (element == null)
-            {
-                element = dom.CreateElement("dp2mserver");
-                dom.DocumentElement.AppendChild(element);
-
-                FillDefaultValue();
-                return;
-            }
-
-            this.textBox_url.Text = element.GetAttribute("url");
-
-            this.textBox_userName.Text = element.GetAttribute("userName");
-
-            string strPassword = Cryptography.Decrypt(element.GetAttribute("password"), EncryptKey);
-            this.textBox_password.Text = strPassword;
-        }
-
-        public static string GetDisplayText(XmlDocument CfgDom)
-        {
-            StringBuilder text = new StringBuilder();
-            XmlDocument dom = CfgDom;
-
-            XmlElement element = dom.DocumentElement.SelectSingleNode("dp2mserver") as XmlElement;
-            if (element == null)
-                return "";
-
-            text.Append("url=" + element.GetAttribute("url") + "\r\n");
-            text.Append("userName=" + element.GetAttribute("userName") + "\r\n");
-            return text.ToString();
-        }
-
-        // 从控件到 CfgDom
-        bool SaveToCfgDom()
-        {
-            XmlDocument dom = this.CfgDom;
-
-            XmlElement element = dom.DocumentElement.SelectSingleNode("dp2mserver") as XmlElement;
-            if (element == null)
-            {
-                element = dom.CreateElement("dp2mserver");
-                dom.DocumentElement.AppendChild(element);
-            }
-
-            element.SetAttribute("url", this.textBox_url.Text);
-
-            element.SetAttribute("userName", this.textBox_userName.Text);
-
-            string strPassword = Cryptography.Encrypt(this.textBox_password.Text, EncryptKey);
-            element.SetAttribute("password", strPassword);
-            return true;
-        }
-
-        private void textBox_userName_TextChanged(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(this.textBox_userName.Text) == true)
-            {
-                this.button_detect.Enabled = false;
-            }
-            else
-            {
-                this.button_detect.Enabled = true;
-            }
-        }
-
-        private void dp2MServerDialog_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            _cancel.Cancel();
-        }
-
-        private void dp2MServerDialog_FormClosed(object sender, FormClosedEventArgs e)
-        {
-
-        }
-
-        private async void button_createUser_Click(object sender, EventArgs e)
-        {
-            if (this.textBox_confirmManagePassword.Text != this.textBox_password.Text)
-            {
-                MessageBox.Show(this, "密码 和 确认密码 不一致，请重新输入");
-                return;
-            }
-            await CreateCapoUser();
-        }
-
-        /*
-微信公众号新图书馆dp2mserver账号
-命名：weixin_图书馆英文或中文简称（如weixin_cctb,weixin_tjsyzx）
-权限：getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes
-义务：空
-单位：图书馆名称
-群组：gn:_lib_bb
-gn:_lib_book
-gn:_lib_homePage
-
-===
-新图书馆安装dp2capo时创建的dp2mserver账号
-命名：capo_图书馆英文或中文简称（如capo_cctb,capo_tjsyzx）
-权限：空
-义务：getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes
-单位：图书馆名称
-群组：gn:_patronNotify
-         * */
-
-        async Task<bool> CreateCapoUser()
+        async Task<bool> CreateRouterUser()
         {
             string strError = "";
             EnableControls(false);
@@ -343,24 +304,16 @@ gn:_lib_homePage
 
                 string id = Guid.NewGuid().ToString();
 
-                string strDepartment = InputDlg.GetInput(
-this,
-"图书馆名",
-"请指定图书馆名: ",
-"",
-this.Font);
-                if (strDepartment == null)
-                    return false;
-
                 List<User> users = new List<User>();
 
                 User user = new User();
                 user.userName = this.textBox_userName.Text;
                 user.password = this.textBox_password.Text;
-                user.rights = "";
-                user.duty = "getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes,getSystemParameter";
-                user.groups = new string[] { "gn:_patronNotify" };
-                user.department = strDepartment;
+                user.rights = "webCall";
+                user.duty = "";
+                user.groups = null;
+                user.comment = "dp2Router 专用账号";
+                user.binding = "ip:[current]";
 
                 users.Add(user);
 
@@ -452,6 +405,23 @@ this.Font);
 
             e.Password = dlg.Password;
             e.Parameters = "propertyList=biblio_search,libraryUID=install";
+        }
+
+        private void textBox_userName_TextChanged(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(this.textBox_userName.Text) == true)
+            {
+                this.button_detect.Enabled = false;
+            }
+            else
+            {
+                this.button_detect.Enabled = true;
+            }
+        }
+
+        private void dp2MServerDialog_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            _cancel.Cancel();
         }
 
     }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Web;
 using System.Net;
+using System.Reflection;
 
 using DigitalPlatform;
 using DigitalPlatform.IO;
@@ -144,8 +145,10 @@ namespace dp2Router
             LogDir = Path.Combine(strDataDir, "log");   // 日志目录
             PathUtil.CreateDirIfNeed(LogDir);
 
+            string strVersion = Assembly.GetAssembly(typeof(ServerInfo)).GetName().Version.ToString();
+
             // 验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
-            DetectWriteErrorLog("*** dp2Router 开始启动");
+            DetectWriteErrorLog("*** dp2Router 开始启动 (dp2Router 版本: " + strVersion + ")");
 
             string strCfgFileName = Path.Combine(strDataDir, "config.xml");
             try
@@ -196,7 +199,6 @@ namespace dp2Router
 
             _channels.Login += _channels_Login;
             _channels.AddMessage += _channels_AddMessage;
-
 
             // BackThread.BeginThread();
         }
