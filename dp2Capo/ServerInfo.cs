@@ -100,6 +100,8 @@ namespace dp2Capo
         // 执行一些后台管理任务
         public static void BackgroundWork()
         {
+            List<Task> tasks = new List<Task>();
+
             foreach (Instance instance in _instances)
             {
                 string strError = "";
@@ -113,14 +115,24 @@ namespace dp2Capo
                         instance.WriteErrorLog("获得 dp2library 配置时出错: " + strError);
                     }
                     else
-                        instance.BeginConnnect();   // 在获得了图书馆 UID 以后再发起 SignalR 连接
+                    {
+                        // instance.BeginConnnect();   // 在获得了图书馆 UID 以后再发起 SignalR 连接
+                        tasks.Add(instance.BeginConnectTask());
+                    }
                 }
                 else
                 {
                     if (instance.MessageConnection.IsConnected == false)
-                        instance.BeginConnnect();
+                    {
+                        // instance.BeginConnnect();
+                        tasks.Add(instance.BeginConnectTask());
+                    }
                 }
             }
+
+            // 阻塞，直到全部任务完成。避免 BeginConnect() 函数被重叠调用
+            if (tasks.Count > 0)
+                Task.WaitAll(tasks.ToArray());
         }
     }
 }

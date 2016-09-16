@@ -1,5 +1,4 @@
-﻿using log4net;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,7 +8,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using log4net;
+
 using DigitalPlatform.HTTP;
+using DigitalPlatform;
 
 namespace dp2Router
 {
@@ -51,15 +53,30 @@ namespace dp2Router
 
             while (this.IsActive)
             {
-                TcpClient s = this.Listener.AcceptTcpClient();
-                Thread thread = new Thread(() =>
+                try
                 {
-                    // this.Processor.TestHandleClient(s);
-                    TestHandleClient(s);
-                });
-                thread.Start();
+                    TcpClient s = this.Listener.AcceptTcpClient();
+                    Thread thread = new Thread(() =>
+                    {
+                        // this.Processor.TestHandleClient(s);
+                        TestHandleClient(s);
+                    });
+                    thread.Start();
+                }
+                catch(Exception ex)
+                {
+                    if (this.IsActive == false)
+                        break;
+                    ServerInfo.WriteErrorLog("Listen() 出现异常: " + ExceptionUtil.GetExceptionMessage(ex));
+                }
                 Thread.Sleep(1);
             }
+        }
+
+        public void Close()
+        {
+            this.IsActive = false;
+            this.Listener.Stop();
         }
 
         public void TestHandleClient(TcpClient tcpClient)

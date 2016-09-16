@@ -30,7 +30,7 @@
     <SuiteName>Chord</SuiteName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>8</ApplicationRevision>
+    <ApplicationRevision>16</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -131,6 +131,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Content Include="router_app.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj">
@@ -169,12 +172,26 @@
       <Project>{96b0196a-5622-4f6f-9409-9bbe266ddafe}</Project>
       <Name>dp2Capo.Install</Name>
     </ProjectReference>
+    <ProjectReference Include="..\dp2Router.Install\dp2Router.Install.csproj">
+      <Project>{34cebdd7-2804-4440-8334-e5f701a9b9aa}</Project>
+      <Name>dp2Router.Install</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Ionic.Zip.xml" />
   </ItemGroup>
   <ItemGroup>
     <PublishFile Include="capo_app.zip">
+      <Visible>False</Visible>
+      <Group>
+      </Group>
+      <TargetPath>
+      </TargetPath>
+      <PublishState>DataFile</PublishState>
+      <IncludeHash>True</IncludeHash>
+      <FileType>File</FileType>
+    </PublishFile>
+    <PublishFile Include="router_app.zip">
       <Visible>False</Visible>
       <Group>
       </Group>
@@ -207,7 +224,7 @@
     <PreBuildEvent>echo 准备安装包 .zip 文件 ...
 CD /D $(ProjectDir)
 CALL copycapo.bat
-</PreBuildEvent>
+CALL copyrouter.bat</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

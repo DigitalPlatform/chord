@@ -1437,6 +1437,9 @@ ex.GetType().ToString());
         // groups 的每一个元素，都是一个完整的群名定义
         void CanonicalizeUserItemGroups(UserItem item)
         {
+            if (item.groups == null)
+                return;
+
             if (item.groups != null && item.groups.Length == 1
                 && string.IsNullOrEmpty(item.groups[0]))
             {
@@ -1473,6 +1476,46 @@ ex.GetType().ToString());
 
                 item.groups[i] = segment.ToStringUnQuote();
             }
+        }
+
+        static bool AutoBindingIP(UserItem info, string strClientAddress)
+        {
+            string strBinding = info.binding;
+            if (string.IsNullOrEmpty(strBinding))
+                return false;
+
+            bool bChanged = false;
+            List<string> temp = StringUtil.ParseTwoPart(strClientAddress, "@");
+            string ip = temp[0];
+
+            if (ip == "::1" || ip == "127.0.0.1")
+                ip = "localhost";
+
+            List<string> results = new List<string>();
+            string[] parts = strBinding.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string s in parts)
+            {
+                string strLine = s.Trim();
+                if (string.IsNullOrEmpty(strLine))
+                    continue;
+                string strLeft = "";
+                string strRight = "";
+                StringUtil.ParseTwoPart(strLine, ":", out strLeft, out strRight);
+                if (strLeft == "ip")
+                {
+                    if (strRight == "[current]")
+                    {
+                        // 替换为当前前端的 ip 地址
+                        results.Add("ip:" + ip);
+                        bChanged = true;
+                        continue;
+                    }
+                }
+                results.Add(strLine);
+            }
+
+            info.binding = StringUtil.MakePathList(results, ",");
+            return bChanged;
         }
 
         // 设置用户。包括增删改功能
@@ -1531,6 +1574,9 @@ true);
                             result.ErrorInfo = "create 命令失败: 用户名为 '"+item.userName+"' 的账户已经存在";
                             return result;
                         }
+
+                        // 2016/9/16
+                        AutoBindingIP(item, connection_info.ClientIP);
 
                         ServerInfo.UserDatabase.Add(item).Wait();
                     }

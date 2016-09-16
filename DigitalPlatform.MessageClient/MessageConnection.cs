@@ -318,6 +318,14 @@ errorInfo)
             // string strServerUrl
             )
         {
+            // 2016/9/15
+            // 防范本函数被重叠调用时形成多个连接
+            if (this.Connection != null)
+            {
+                this.Connection.Dispose();
+                this.Connection = null;
+            }
+
             _exiting = true;
 
             // 一直到真正连接前才触发登录事件

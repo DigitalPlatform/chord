@@ -46,6 +46,8 @@
             this.comboBox_msmqPath = new System.Windows.Forms.ComboBox();
             this.comboBox_url = new System.Windows.Forms.ComboBox();
             this.button_workerRights = new System.Windows.Forms.Button();
+            this.comboBox_webURL = new System.Windows.Forms.ComboBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -54,7 +56,7 @@
             this.button_Cancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button_Cancel.AutoSize = true;
             this.button_Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.button_Cancel.Location = new System.Drawing.Point(286, 357);
+            this.button_Cancel.Location = new System.Drawing.Point(324, 393);
             this.button_Cancel.Margin = new System.Windows.Forms.Padding(2);
             this.button_Cancel.Name = "button_Cancel";
             this.button_Cancel.Size = new System.Drawing.Size(56, 23);
@@ -67,7 +69,7 @@
             // 
             this.button_OK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button_OK.AutoSize = true;
-            this.button_OK.Location = new System.Drawing.Point(225, 357);
+            this.button_OK.Location = new System.Drawing.Point(263, 393);
             this.button_OK.Margin = new System.Windows.Forms.Padding(2);
             this.button_OK.Name = "button_OK";
             this.button_OK.Size = new System.Drawing.Size(56, 23);
@@ -93,7 +95,7 @@
             this.groupBox1.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Padding = new System.Windows.Forms.Padding(2);
-            this.groupBox1.Size = new System.Drawing.Size(333, 170);
+            this.groupBox1.Size = new System.Drawing.Size(371, 170);
             this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = " 代理帐户(针对上述dp2Library) ";
@@ -145,7 +147,7 @@
             this.textBox_confirmManagePassword.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_confirmManagePassword.Name = "textBox_confirmManagePassword";
             this.textBox_confirmManagePassword.PasswordChar = '*';
-            this.textBox_confirmManagePassword.Size = new System.Drawing.Size(155, 21);
+            this.textBox_confirmManagePassword.Size = new System.Drawing.Size(193, 21);
             this.textBox_confirmManagePassword.TabIndex = 5;
             // 
             // label3
@@ -166,7 +168,7 @@
             this.textBox_managePassword.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_managePassword.Name = "textBox_managePassword";
             this.textBox_managePassword.PasswordChar = '*';
-            this.textBox_managePassword.Size = new System.Drawing.Size(155, 21);
+            this.textBox_managePassword.Size = new System.Drawing.Size(193, 21);
             this.textBox_managePassword.TabIndex = 3;
             // 
             // label2
@@ -186,7 +188,7 @@
             this.textBox_manageUserName.Location = new System.Drawing.Point(112, 33);
             this.textBox_manageUserName.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_manageUserName.Name = "textBox_manageUserName";
-            this.textBox_manageUserName.Size = new System.Drawing.Size(155, 21);
+            this.textBox_manageUserName.Size = new System.Drawing.Size(193, 21);
             this.textBox_manageUserName.TabIndex = 1;
             this.textBox_manageUserName.TextChanged += new System.EventHandler(this.textBox_manageUserName_TextChanged);
             // 
@@ -223,7 +225,7 @@
             // 
             this.button_getQueuePath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button_getQueuePath.AutoSize = true;
-            this.button_getQueuePath.Location = new System.Drawing.Point(286, 259);
+            this.button_getQueuePath.Location = new System.Drawing.Point(324, 259);
             this.button_getQueuePath.Margin = new System.Windows.Forms.Padding(2);
             this.button_getQueuePath.Name = "button_getQueuePath";
             this.button_getQueuePath.Size = new System.Drawing.Size(57, 23);
@@ -241,18 +243,20 @@
             "!api"});
             this.comboBox_msmqPath.Location = new System.Drawing.Point(9, 261);
             this.comboBox_msmqPath.Name = "comboBox_msmqPath";
-            this.comboBox_msmqPath.Size = new System.Drawing.Size(273, 20);
+            this.comboBox_msmqPath.Size = new System.Drawing.Size(311, 20);
             this.comboBox_msmqPath.TabIndex = 4;
             // 
             // comboBox_url
             // 
+            this.comboBox_url.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.comboBox_url.FormattingEnabled = true;
             this.comboBox_url.Items.AddRange(new object[] {
             "http://localhost:8001/dp2Library",
             "net.pipe://localhost/dp2library/xe"});
             this.comboBox_url.Location = new System.Drawing.Point(9, 26);
             this.comboBox_url.Name = "comboBox_url";
-            this.comboBox_url.Size = new System.Drawing.Size(334, 20);
+            this.comboBox_url.Size = new System.Drawing.Size(372, 20);
             this.comboBox_url.TabIndex = 1;
             // 
             // button_workerRights
@@ -261,11 +265,34 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.button_workerRights.Location = new System.Drawing.Point(9, 305);
             this.button_workerRights.Name = "button_workerRights";
-            this.button_workerRights.Size = new System.Drawing.Size(333, 23);
+            this.button_workerRights.Size = new System.Drawing.Size(371, 23);
             this.button_workerRights.TabIndex = 6;
             this.button_workerRights.Text = "为工作人员添加管理公众号的权限";
             this.button_workerRights.UseVisualStyleBackColor = true;
             this.button_workerRights.Click += new System.EventHandler(this.button_workerRights_Click);
+            // 
+            // comboBox_webURL
+            // 
+            this.comboBox_webURL.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.comboBox_webURL.FormattingEnabled = true;
+            this.comboBox_webURL.Items.AddRange(new object[] {
+            "http://localhost:8001/dp2Library",
+            "net.pipe://localhost/dp2library/xe"});
+            this.comboBox_webURL.Location = new System.Drawing.Point(9, 358);
+            this.comboBox_webURL.Name = "comboBox_webURL";
+            this.comboBox_webURL.Size = new System.Drawing.Size(372, 20);
+            this.comboBox_webURL.TabIndex = 10;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(7, 343);
+            this.label6.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(275, 12);
+            this.label6.TabIndex = 9;
+            this.label6.Text = "用于 dp2Router 的，dp2Library 服务器 URL (&U):";
             // 
             // dp2LibraryDialog
             // 
@@ -273,7 +300,9 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.button_Cancel;
-            this.ClientSize = new System.Drawing.Size(351, 390);
+            this.ClientSize = new System.Drawing.Size(389, 426);
+            this.Controls.Add(this.comboBox_webURL);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.button_workerRights);
             this.Controls.Add(this.comboBox_url);
             this.Controls.Add(this.comboBox_msmqPath);
@@ -315,5 +344,7 @@
         private System.Windows.Forms.ComboBox comboBox_msmqPath;
         private System.Windows.Forms.ComboBox comboBox_url;
         private System.Windows.Forms.Button button_workerRights;
+        private System.Windows.Forms.ComboBox comboBox_webURL;
+        private System.Windows.Forms.Label label6;
     }
 }

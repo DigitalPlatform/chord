@@ -10,7 +10,10 @@ using System.IO;
 using System.Deployment.Application;
 using System.Web;
 using System.Threading;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
+using Microsoft.Win32;
 using Ionic.Zip;
 
 using dp2Capo.Install;
@@ -22,9 +25,9 @@ using DigitalPlatform.IO;
 using DigitalPlatform.Text;
 using DigitalPlatform.Drawing;
 using DigitalPlatform.ServiceProcess;
-using System.Diagnostics;
-using Microsoft.Win32;
-using System.Threading.Tasks;
+
+// TODO: 自动升级 dp2mserver
+// TODO: 自动升级 dp2router
 
 namespace ChordInstaller
 {
@@ -83,6 +86,7 @@ FormWindowState.Normal);
             DisplayCopyRight();
 
             Refresh_dp2capo_MenuItems();
+            Refresh_dp2router_MenuItems();
 
             this.BeginInvoke(new Action<object, EventArgs>(MenuItem_autoUpgrade_Click), this, new EventArgs());
         }
@@ -751,8 +755,60 @@ MessageBoxDefaultButton.Button2);
             return strPath.Substring(nRet + 1);
         }
 
+        void StartOrStopService(string strName, bool bStart)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            AppendString("正在获得可执行文件目录 ...\r\n");
+
+            Application.DoEvents();
+
+            string strExePath = ServiceUtil.GetPathOfService(strName + "Service");
+            if (string.IsNullOrEmpty(strExePath) == true)
+            {
+                strError = strName + " 未曾安装过";
+                goto ERROR1;
+            }
+            strExePath = StringUtil.Unquote(strExePath, "\"\"");
+
+            if (bStart == true)
+            {
+                AppendString("正在启动 " + strName + " 服务 ...\r\n");
+                Application.DoEvents();
+
+                nRet = ServiceUtil.StartService(strName + "Service",
+                    TimeSpan.FromMinutes(2),
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+                AppendString(strName + " 服务成功启动\r\n");
+            }
+            else
+            {
+                AppendString("正在停止 " + strName + " 服务 ...\r\n");
+                Application.DoEvents();
+
+                nRet = ServiceUtil.StopService(strName + "Service",
+                    TimeSpan.FromMinutes(2),
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+                AppendString(strName + " 服务已经停止\r\n");
+            }
+
+            AppendString("\r\n");
+            return;
+        ERROR1:
+            AppendString("出错: " + strError + "\r\n");
+            MessageBox.Show(this, strError);
+        }
+
+
         private void MenuItem_dp2capo_startService_Click(object sender, EventArgs e)
         {
+            StartOrStopService("dp2Capo", true);
+#if NO
             string strError = "";
             int nRet = 0;
 
@@ -780,10 +836,13 @@ MessageBoxDefaultButton.Button2);
             return;
         ERROR1:
             MessageBox.Show(this, strError);
+#endif
         }
 
         private void MenuItem_dp2capo_stopService_Click(object sender, EventArgs e)
         {
+            StartOrStopService("dp2Capo", false);
+#if NO
             string strError = "";
             int nRet = 0;
 
@@ -811,10 +870,76 @@ MessageBoxDefaultButton.Button2);
             return;
         ERROR1:
             MessageBox.Show(this, strError);
+#endif
         }
+
+        void InstallOrUninstallService(string strName, bool bInstall)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            if (bInstall)
+                AppendSectionTitle("注册 Windows Service 开始");
+            else
+                AppendSectionTitle("注销 Windows Service 开始");
+
+            Application.DoEvents();
+
+            string strExePath = ServiceUtil.GetPathOfService(strName + "Service");
+            if (bInstall == true)
+            {
+                if (string.IsNullOrEmpty(strExePath) == false)
+                {
+                    strError = strName + " 已经注册为 Windows Service，无法重复进行注册";
+                    goto ERROR1;
+                }
+                // program files (x86)/digitalplatform/dp2capo
+                string strProgramDir = Global.GetProductDirectory(strName);
+
+                strExePath = Path.Combine(strProgramDir, strName + ".exe");
+                if (File.Exists(strExePath) == false)
+                {
+                    strError = strName + ".exe 尚未复制到目标位置，无法进行注册";
+                    goto ERROR1;
+                }
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(strExePath) == true)
+                {
+                    strError = strName + " 尚未安装和注册为 Windows Service，无法进行注销";
+                    goto ERROR1;
+                }
+                strExePath = StringUtil.Unquote(strExePath, "\"\"");
+            }
+
+            nRet = ServiceUtil.InstallService(strExePath,
+                bInstall,
+                out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            if (bInstall)
+                AppendSectionTitle("注册 Windows Service 结束");
+            else
+                AppendSectionTitle("注销 Windows Service 结束");
+
+            if (strName == "dp2Capo")
+                this.Refresh_dp2capo_MenuItems();
+            if (strName == "dp2Router")
+                this.Refresh_dp2router_MenuItems();
+
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
+
+        }
+
 
         private void MenuItem_dp2capo_tools_installService_Click(object sender, EventArgs e)
         {
+            InstallOrUninstallService("dp2Capo", true);
+#if NO
             string strError = "";
             int nRet = 0;
 
@@ -852,11 +977,14 @@ MessageBoxDefaultButton.Button2);
             return;
         ERROR1:
             MessageBox.Show(this, strError);
-
+#endif
         }
 
         private void MenuItem_dp2capo_tools_uninstallService_Click(object sender, EventArgs e)
         {
+            InstallOrUninstallService("dp2Capo", false);
+
+#if NO
             string strError = "";
             int nRet = 0;
 
@@ -885,6 +1013,7 @@ MessageBoxDefaultButton.Button2);
             return;
         ERROR1:
             MessageBox.Show(this, strError);
+#endif
         }
 
         private void MenuItem_dp2capo_uninstall_Click(object sender, EventArgs e)
@@ -1124,6 +1253,15 @@ MessageBoxDefaultButton.Button2);
                     names.Add("dp2Capo");
             }
 
+            // ---
+            strExePath = ServiceUtil.GetPathOfService("dp2RouterService");
+            if (string.IsNullOrEmpty(strExePath) == false)
+            {
+                strZipFileName = Path.Combine(this.DataDir, "router_app.zip");
+                if (DetectChange(strZipFileName) == true)
+                    names.Add("dp2Router");
+            }
+
             if (names.Count > 0)
             {
                 DialogResult result = MessageBox.Show(this,
@@ -1138,6 +1276,8 @@ MessageBoxDefaultButton.Button1);
                 {
                     if (name == "dp2Capo")
                         MenuItem_dp2capo_upgrade_Click(this, new EventArgs());
+                    if (name == "dp2Router")
+                        MenuItem_dp2Router_upgrade_Click(this, new EventArgs());
                 }
             }
             else
@@ -1239,11 +1379,15 @@ MessageBoxDefaultButton.Button1);
             //this.toolStripProgressBar_main.Style = ProgressBarStyle.Marquee;
             //this.toolStripProgressBar_main.Visible = true;
 
+            string strTempDir = this.TempDir;
+
             try
             {
-                string strTempDir = this.TempDir;
-
-                PathUtil.TryClearDir(strTempDir);
+                if (PathUtil.TryClearDir(strTempDir) == false)
+                {
+                    strError = "删除临时文件目录 '" + strTempDir + "' 时出错。请先手动删除此目录，然后再重试打包功能";
+                    return -1;
+                }
 
                 List<string> filenames = new List<string>();
 
@@ -1291,49 +1435,57 @@ MessageBoxDefaultButton.Button1);
                 List<string> dates = MakeDates(strRangeName); // "最近31天""最近十年""最近七天"
 
                 // *** dp2Capo 各个 instance
-                string strLibraryTempDir = Path.Combine(strTempDir, "dp2capo");
-                PathUtil.CreateDirIfNeed(strLibraryTempDir);
                 string strExePath = ServiceUtil.GetPathOfService("dp2CapoService");
                 strExePath = StringUtil.Unquote(strExePath, "\"\"");
 
-                List<string> data_dirs = InstallDialog.GetInstanceDataDirByBinDir(Path.GetDirectoryName(strExePath));
-
-                int i = 0;
-                foreach (string data_dir in data_dirs)
+                if (string.IsNullOrEmpty(strExePath) == false)
                 {
-                    string strInstanceDir = strLibraryTempDir;
-                    string strInstanceName = (i + 1).ToString();
-                    if (string.IsNullOrEmpty(strInstanceName) == false)
-                    {
-                        strInstanceDir = Path.Combine(strLibraryTempDir, "instance_" + strInstanceName);
-                        PathUtil.CreateDirIfNeed(strInstanceDir);
-                    }
 
-                    // 复制 capo.xml
+                    string strCapoTempDir = Path.Combine(strTempDir, "dp2capo");
+                    PathUtil.DeleteDirectory(strCapoTempDir);
+                    PathUtil.CreateDirIfNeed(strCapoTempDir);
+
+                    List<string> data_dirs = InstallDialog.GetInstanceDataDirByBinDir(Path.GetDirectoryName(strExePath));
+
+                    int i = 0;
+                    foreach (string data_dir in data_dirs)
                     {
-                        string strFilePath = Path.Combine(data_dir, "capo.xml");
-                        string strTargetFilePath = Path.Combine(strInstanceDir, "capo.xml");
-                        if (File.Exists(strFilePath) == true)
+                        string strInstanceDir = strCapoTempDir;
+                        string strInstanceName = (i + 1).ToString();
+                        if (string.IsNullOrEmpty(strInstanceName) == false)
                         {
-                            File.Copy(strFilePath,
-                                strTargetFilePath);
+                            strInstanceDir = Path.Combine(strCapoTempDir, "instance_" + strInstanceName);
+                            PathUtil.CreateDirIfNeed(strInstanceDir);
+                        }
+
+                        // 复制 capo.xml
+                        {
+                            string strFilePath = Path.Combine(data_dir, "capo.xml");
+                            string strTargetFilePath = Path.Combine(strInstanceDir, "capo.xml");
+                            if (File.Exists(strFilePath) == true)
+                            {
+                                File.Copy(strFilePath,
+                                    strTargetFilePath);
+                                filenames.Add(strTargetFilePath);
+                            }
+                        }
+
+                        foreach (string date in dates)
+                        {
+                            _cancel.Token.ThrowIfCancellationRequested();
+
+                            string strFilePath = Path.Combine(data_dir, "log/log_" + date + ".txt");
+                            if (File.Exists(strFilePath) == false)
+                                continue;
+                            string strTargetFilePath = Path.Combine(strInstanceDir, "log_" + date + ".txt");
+
+                            this._floatingMessage.Text = ("正在复制文件 " + strFilePath);
+
+                            File.Copy(strFilePath, strTargetFilePath);
                             filenames.Add(strTargetFilePath);
                         }
-                    }
 
-                    foreach (string date in dates)
-                    {
-                        _cancel.Token.ThrowIfCancellationRequested();
-
-                        string strFilePath = Path.Combine(data_dir, "log/log_" + date + ".txt");
-                        if (File.Exists(strFilePath) == false)
-                            continue;
-                        string strTargetFilePath = Path.Combine(strInstanceDir, "log_" + date + ".txt");
-
-                        this._floatingMessage.Text = ("正在复制文件 " + strFilePath);
-
-                        File.Copy(strFilePath, strTargetFilePath);
-                        filenames.Add(strTargetFilePath);
+                        i++;    // 2016/9/15
                     }
                 }
 
@@ -1357,7 +1509,6 @@ MessageBoxDefaultButton.Button1);
                             string directoryPathInArchive = Path.GetDirectoryName(strShortFileName);
                             zip.AddFile(filename, directoryPathInArchive);
                         }
-
 
                         this._floatingMessage.Text = ("正在写入压缩文件 ...");
 
@@ -1398,13 +1549,22 @@ MessageBoxDefaultButton.Button1);
                         File.Delete(filename);
                     }
 
-                    // 删除子目录
-                    PathUtil.DeleteDirectory(Path.Combine(strTempDir, "dp2capo"));
                 }
+            }
+            catch (Exception ex)
+            {
+                strError = "PackageEventLog() 出现异常: " + ExceptionUtil.GetExceptionMessage(ex);
+                return -1;
             }
             finally
             {
                 // this.toolStripProgressBar_main.Style = ProgressBarStyle.Continuous;
+
+                // 删除子目录
+                if (string.IsNullOrEmpty(strTempDir) == false)
+                {
+                    PathUtil.DeleteDirectory(Path.Combine(strTempDir, "dp2capo"));
+                }
             }
 
             return 0;
@@ -1728,5 +1888,393 @@ MessageBoxDefaultButton.Button1);
         {
             this.Close();
         }
+
+        // 安装 dp2Router
+        private void MenuItem_dp2Router_install_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            this._floatingMessage.Text = "正在安装 dp2Router - V2 网关模块 ...";
+
+            try
+            {
+                AppendSectionTitle("安装 dp2Router 开始");
+
+                AppendString("正在获得可执行文件目录 ...\r\n");
+
+                Application.DoEvents();
+
+                string strExePath = ServiceUtil.GetPathOfService("dp2RouterService");
+                if (string.IsNullOrEmpty(strExePath) == false)
+                {
+                    strError = "dp2Router 已经安装过了，不能重复安装";
+                    goto ERROR1;
+                }
+
+                // program files (x86)/digitalplatform/dp2capo
+                string strProgramDir = Global.GetProductDirectory("dp2router");
+
+                PathUtil.CreateDirIfNeed(strProgramDir);
+
+                string strZipFileName = Path.Combine(this.DataDir, "router_app.zip");
+
+                AppendString("安装可执行文件 ...\r\n");
+
+                // 更新可执行目录
+                // return:
+                //      -1  出错
+                //      0   没有必要刷新
+                //      1   已经刷新
+                nRet = RefreshBinFiles(
+                    false,
+                    strZipFileName,
+                    strProgramDir,
+                    null,
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+
+                // 创建实例
+                AppendString("创建实例 ...\r\n");
+
+                try
+                {
+                    dp2Router.Install.InstanceDialog dlg = new dp2Router.Install.InstanceDialog();
+                    FontUtil.AutoSetDefaultFont(dlg);
+
+                    // dlg.BinDir = strProgramDir;
+                    dlg.DataDir = "c:\\router_data";
+                    dlg.StartPosition = FormStartPosition.CenterScreen;
+                    dlg.ShowDialog(this);
+
+                    if (dlg.DialogResult == DialogResult.Cancel)
+                    {
+                        AppendSectionTitle("放弃创建实例 ...");
+                        return;
+                    }
+
+#if NO
+                    if (string.IsNullOrEmpty(dlg.DebugInfo) == false)
+                        AppendString("创建实例时的调试信息:\r\n" + dlg.DebugInfo + "\r\n");
+#endif
+
+                    // 将数据目录写入
+                    {
+                        string strSettingFileName = Path.Combine(strProgramDir, "settings.xml");
+                        ConfigSetting config = new ConfigSetting(strSettingFileName, true);
+                        config.Set("default", "data_dir", dlg.DataDir);
+                        config.Save();
+                    }
+                }
+                finally
+                {
+                    AppendString("创建实例结束 ...\r\n");
+                }
+
+                // 注册为 Windows Service
+                strExePath = Path.Combine(strProgramDir, "dp2router.exe");
+
+                AppendString("注册 Windows Service ...\r\n");
+
+                nRet = ServiceUtil.InstallService(strExePath,
+        true,
+        out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+
+                AppendString("启动 dp2Router 服务 ...\r\n");
+                nRet = ServiceUtil.StartService("dp2RouterService",
+                    TimeSpan.FromMinutes(2),
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+                AppendString("dp2Router 服务启动成功\r\n");
+
+                AppendSectionTitle("安装 dp2Router 结束");
+                Refresh_dp2router_MenuItems();
+            }
+            finally
+            {
+                this._floatingMessage.Text = "";
+            }
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
+        }
+
+        // 刷新菜单状态
+        void Refresh_dp2router_MenuItems()
+        {
+            string strExePath = ServiceUtil.GetPathOfService("dp2RouterService");
+            if (string.IsNullOrEmpty(strExePath) == true)
+            {
+                this.MenuItem_dp2Router_install.Enabled = true;
+                this.MenuItem_dp2Router_upgrade.Enabled = false;
+            }
+            else
+            {
+                this.MenuItem_dp2Router_install.Enabled = false;
+                this.MenuItem_dp2Router_upgrade.Enabled = true;
+            }
+
+            // TODO: 观察数据目录是否存在
+            this.MenuItem_dp2Router_openDataDir.DropDownItems.Clear();
+        }
+
+        private void MenuItem_dp2Router_upgrade_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            this._floatingMessage.Text = "正在升级 dp2Router - V2 网关模块 ...";
+
+            try
+            {
+                AppendSectionTitle("升级 dp2Router 开始");
+
+                AppendString("正在获得可执行文件目录 ...\r\n");
+
+                Application.DoEvents();
+
+                string strExePath = ServiceUtil.GetPathOfService("dp2RouterService");
+                if (string.IsNullOrEmpty(strExePath) == true)
+                {
+                    strError = "dp2Router 未曾安装过";
+                    goto ERROR1;
+                }
+                strExePath = StringUtil.Unquote(strExePath, "\"\"");
+
+                AppendString("正在停止 dp2Router 服务 ...\r\n");
+                nRet = ServiceUtil.StopService("dp2RouterService",
+                    TimeSpan.FromMinutes(2),
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+                AppendString("dp2Router 服务已经停止\r\n");
+
+                string strZipFileName = Path.Combine(this.DataDir, "router_app.zip");
+
+                AppendString("更新可执行文件 ...\r\n");
+
+                // 更新可执行目录
+                // return:
+                //      -1  出错
+                //      0   没有必要刷新
+                //      1   已经刷新
+                nRet = RefreshBinFiles(
+                    false,
+                    strZipFileName,
+                    Path.GetDirectoryName(strExePath),
+                    null,
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+
+                AppendString("正在重新启动 dp2Router 服务 ...\r\n");
+                nRet = ServiceUtil.StartService("dp2RouterService",
+                    TimeSpan.FromMinutes(2),
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+                AppendString("dp2Router 服务启动成功\r\n");
+
+                AppendSectionTitle("升级 dp2Router 结束");
+            }
+            finally
+            {
+                this._floatingMessage.Text = "";
+            }
+            return;
+        ERROR1:
+            AppendString("出错: " + strError + "\r\n");
+            MessageBox.Show(this, strError);
+        }
+
+        private void MenuItem_dp2Router_openDataDir_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+
+            string strExePath = ServiceUtil.GetPathOfService("dp2RouterService");
+            if (string.IsNullOrEmpty(strExePath) == true)
+            {
+                strError = "dp2Router 未曾安装过";
+                goto ERROR1;
+            }
+            strExePath = StringUtil.Unquote(strExePath, "\"\"");
+            string strProgramDir = Path.GetDirectoryName(strExePath);
+
+            string strSettingFileName = Path.Combine(strProgramDir, "settings.xml");
+            ConfigSetting config = new ConfigSetting(strSettingFileName, false);
+            string strDataDir = config.Get("default", "data_dir", "c:\\router_data");
+
+            try
+            {
+                System.Diagnostics.Process.Start(strDataDir);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ExceptionUtil.GetAutoText(ex));
+            }
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
+        }
+
+        private void MenuItem_dp2Router_openAppDir_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+
+            string strExePath = ServiceUtil.GetPathOfService("dp2RouterService");
+            if (string.IsNullOrEmpty(strExePath) == true)
+            {
+                strError = "dp2Router 未曾安装过";
+                goto ERROR1;
+            }
+            strExePath = StringUtil.Unquote(strExePath, "\"\"");
+            string strProgramDir = Path.GetDirectoryName(strExePath);
+
+            try
+            {
+                System.Diagnostics.Process.Start(strProgramDir);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ExceptionUtil.GetAutoText(ex));
+            }
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
+        }
+
+        // dp2Router 配置实例
+        private void MenuItem_dp2Router_instanceManagement_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            bool bControl = Control.ModifierKeys == Keys.Control;
+            bool bInstalled = true;
+
+            this._floatingMessage.Text = "正在配置 dp2Router 实例 ...";
+
+            try
+            {
+                AppendSectionTitle("配置实例开始");
+
+                AppendString("正在获得可执行文件目录 ...\r\n");
+
+                Application.DoEvents();
+
+                string strExePath = ServiceUtil.GetPathOfService("dp2RouterService");
+                strExePath = StringUtil.Unquote(strExePath, "\"\"");
+                if (string.IsNullOrEmpty(strExePath) == true)
+                {
+                    if (bControl == false)
+                    {
+                        strError = "dp2Router 未曾安装过";
+                        goto ERROR1;
+                    }
+                    bInstalled = false;
+                }
+
+                if (bInstalled == true)
+                {
+                    AppendString("正在停止 dp2Router 服务 ...\r\n");
+
+                    nRet = ServiceUtil.StopService("dp2RouterService",
+                        TimeSpan.FromMinutes(2),
+                        out strError);
+                    if (nRet == -1)
+                        goto ERROR1;
+
+                    AppendString("dp2Router 服务已经停止\r\n");
+                }
+                string strProgramDir = Path.GetDirectoryName(strExePath);
+                string strSettingFileName = Path.Combine(strProgramDir, "settings.xml");
+                ConfigSetting config = new ConfigSetting(strSettingFileName, false);
+                string strDataDir = config.Get("default", "data_dir", "c:\\router_data");
+
+                try
+                {
+                    dp2Router.Install.InstanceDialog dlg = new dp2Router.Install.InstanceDialog();
+                    FontUtil.AutoSetDefaultFont(dlg);
+
+                    dlg.EnableDataDir = false;  // 不允许修改数据目录
+                    dlg.DataDir = strDataDir;
+                    dlg.StartPosition = FormStartPosition.CenterScreen;
+                    dlg.ShowDialog(this);
+
+                    if (dlg.DialogResult == DialogResult.Cancel)
+                    {
+                        AppendSectionTitle("放弃配置实例 ...");
+                        return;
+                    }
+
+#if NO
+                    if (string.IsNullOrEmpty(dlg.DebugInfo) == false)
+                        AppendString("创建实例时的调试信息:\r\n" + dlg.DebugInfo + "\r\n");
+#endif
+                }
+                finally
+                {
+                    if (bInstalled == true)
+                    {
+                        AppendString("启动 dp2Router 服务 ...\r\n");
+                        nRet = ServiceUtil.StartService("dp2RouterService",
+                            TimeSpan.FromMinutes(2),
+                            out strError);
+                        if (nRet == -1)
+                        {
+                            AppendString("dp2Capo 服务启动失败: " + strError + "\r\n");
+                            MessageBox.Show(this, strError);
+                        }
+                        else
+                        {
+                            AppendString("dp2Capo 服务启动成功\r\n");
+                        }
+                    }
+
+                    AppendString("配置实例结束\r\n");
+                }
+
+                Refresh_dp2router_MenuItems();
+            }
+            finally
+            {
+                this._floatingMessage.Text = "";
+            }
+            return;
+        ERROR1:
+            AppendString("出错: " + strError + "\r\n");
+            MessageBox.Show(this, strError);
+        }
+
+        private void MenuItem_dp2Router_startService_Click(object sender, EventArgs e)
+        {
+            StartOrStopService("dp2Router", true);
+        }
+
+        private void MenuItem_dp2Router_stopService_Click(object sender, EventArgs e)
+        {
+            StartOrStopService("dp2Router", false);
+        }
+
+        private void MenuItem_dp2Router_installService_Click(object sender, EventArgs e)
+        {
+            InstallOrUninstallService("dp2Router", true);
+
+        }
+
+        private void MenuItem_dp2Router_uninstallService_Click(object sender, EventArgs e)
+        {
+            InstallOrUninstallService("dp2Router", false);
+        }
+
+        private void MenuItem_dp2Router_uninstall_Click(object sender, EventArgs e)
+        {
+
+        }
+
     }
 }

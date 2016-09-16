@@ -9,13 +9,13 @@ using System.Collections;
 using System.Messaging;
 using System.Diagnostics;
 using System.Threading;
+using System.Reflection;
 
 using DigitalPlatform;
 using DigitalPlatform.Text;
 using DigitalPlatform.Message;
 using DigitalPlatform.IO;
 using DigitalPlatform.LibraryClient.localhost;
-using System.Reflection;
 
 namespace dp2Capo
 {
@@ -61,7 +61,7 @@ namespace dp2Capo
             string strVersion = Assembly.GetAssembly(typeof(Instance)).GetName().Version.ToString();
 
             // 验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
-            this.DetectWriteErrorLog("*** 实例 " + this.Name + " 开始启动 (dp2Capo 版本: "+strVersion+")");
+            this.DetectWriteErrorLog("*** 实例 " + this.Name + " 开始启动 (dp2Capo 版本: " + strVersion + ")");
 
             XmlDocument dom = new XmlDocument();
             dom.Load(strXmlFileName);
@@ -122,7 +122,7 @@ namespace dp2Capo
                 {
                     _queue = new MessageQueue(this.dp2library.DefaultQueue);    // TODO: 不知道当 Queue 尚未创建的时候，这个语句是否可能抛出异常?
                     _queue.Formatter = new XmlMessageFormatter(new Type[] { typeof(string) });
-                    
+
                     // _queue.BeginPeek(new TimeSpan(0, 1, 0), null, OnMessageAdded);
                     this.BeginPeek();
 
@@ -151,7 +151,43 @@ namespace dp2Capo
             }
         }
 
-        public async void BeginConnnect()
+        public async Task BeginConnectTask()
+        {
+            // return Task.Run(() => BeginConnnect());
+
+            try
+            {
+                this.MessageConnection.ServerUrl = this.dp2mserver.Url;
+
+                this.MessageConnection.UserName = this.dp2mserver.UserName;
+                this.MessageConnection.Password = this.dp2mserver.Password;
+                this.MessageConnection.Parameters = GetParameters();
+
+                // this.MessageConnection.InitialAsync();
+                MessageResult result = await this.MessageConnection.ConnectAsync();
+                if (result.Value == -1)
+                {
+                    string strError = "BeginConnect() 连接 " + this.MessageConnection.ServerUrl + " 时出错: " + result.ErrorInfo;
+                    this.WriteErrorLog(strError);
+                    Console.WriteLine(DateTime.Now.ToString() + " " + strError);
+                }
+                else
+                {
+                    // 2016/9/14
+                    string strText = "连接 " + this.MessageConnection.ServerUrl + " 成功";
+                    this.WriteErrorLog(strText);
+                    Console.WriteLine(DateTime.Now.ToString() + " " + strText);
+                }
+            }
+            catch (Exception ex)
+            {
+                string strError = "BeginConnect() 出现异常: " + ExceptionUtil.GetExceptionText(ex);
+                this.WriteErrorLog(strError);
+                Console.WriteLine(strError);
+            }
+        }
+
+        public async void BeginConnect()
         {
             try
             {
