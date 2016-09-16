@@ -1248,7 +1248,7 @@ MessageBoxDefaultButton.Button1);
             {
                 if (PathUtil.TryClearDir(strTempDir) == false)
                 {
-                    strError = "删除临时文件目录 '"+strTempDir+"' 时出错。请先手动删除此目录，然后再重试打包功能";
+                    strError = "删除临时文件目录 '" + strTempDir + "' 时出错。请先手动删除此目录，然后再重试打包功能";
                     return -1;
                 }
 
@@ -1751,5 +1751,141 @@ MessageBoxDefaultButton.Button1);
         {
             this.Close();
         }
+
+        // 安装 dp2Router
+        private void MenuItem_dp2Router_install_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            this._floatingMessage.Text = "正在安装 dp2Router - V2 网关模块 ...";
+
+            try
+            {
+                AppendSectionTitle("安装 dp2Router 开始");
+
+                AppendString("正在获得可执行文件目录 ...\r\n");
+
+                Application.DoEvents();
+
+                string strExePath = ServiceUtil.GetPathOfService("dp2RouterService");
+                if (string.IsNullOrEmpty(strExePath) == false)
+                {
+                    strError = "dp2Router 已经安装过了，不能重复安装";
+                    goto ERROR1;
+                }
+
+                // program files (x86)/digitalplatform/dp2capo
+                string strProgramDir = Global.GetProductDirectory("dp2router");
+
+                PathUtil.CreateDirIfNeed(strProgramDir);
+
+                string strZipFileName = Path.Combine(this.DataDir, "router_app.zip");
+
+                AppendString("安装可执行文件 ...\r\n");
+
+                // 更新可执行目录
+                // return:
+                //      -1  出错
+                //      0   没有必要刷新
+                //      1   已经刷新
+                nRet = RefreshBinFiles(
+                    false,
+                    strZipFileName,
+                    strProgramDir,
+                    null,
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+
+                // 创建实例
+                AppendString("创建实例 ...\r\n");
+
+                try
+                {
+
+                    // dp2Router setting
+
+                    dp2Capo.Install.InstallDialog dlg = new dp2Capo.Install.InstallDialog();
+                    FontUtil.AutoSetDefaultFont(dlg);
+
+                    dlg.BinDir = strProgramDir;
+                    // dlg.DataZipFileName = Path.Combine(this.DataDir, "kernel_data.zip");
+                    dlg.StartPosition = FormStartPosition.CenterScreen;
+                    dlg.ShowDialog(this);
+
+                    // TODO: 是否必须要创建至少一个实例?
+                    if (dlg.DialogResult == DialogResult.Cancel)
+                    {
+                        AppendSectionTitle("放弃创建实例 ...");
+                        return;
+                    }
+
+                    if (string.IsNullOrEmpty(dlg.DebugInfo) == false)
+                        AppendString("创建实例时的调试信息:\r\n" + dlg.DebugInfo + "\r\n");
+
+#if NO
+                    if (dlg.Changed == true)
+                    {
+                        // 兑现修改
+
+                    }
+#endif
+                }
+                finally
+                {
+                    AppendString("创建实例结束 ...\r\n");
+                }
+
+                // 注册为 Windows Service
+                strExePath = Path.Combine(strProgramDir, "dp2router.exe");
+
+                AppendString("注册 Windows Service ...\r\n");
+
+                nRet = ServiceUtil.InstallService(strExePath,
+        true,
+        out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+
+                AppendString("启动 dp2Router 服务 ...\r\n");
+                nRet = ServiceUtil.StartService("dp2RouterService",
+                    TimeSpan.FromMinutes(2),
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+                AppendString("dp2Router 服务启动成功\r\n");
+
+                AppendSectionTitle("安装 dp2Router 结束");
+                Refresh_dp2router_MenuItems();
+            }
+            finally
+            {
+                this._floatingMessage.Text = "";
+            }
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
+        }
+
+        // 刷新菜单状态
+        void Refresh_dp2router_MenuItems()
+        {
+            string strExePath = ServiceUtil.GetPathOfService("dp2RouterService");
+            if (string.IsNullOrEmpty(strExePath) == true)
+            {
+                this.MenuItem_dp2Router_install.Enabled = true;
+                this.MenuItem_dp2Router_upgrade.Enabled = false;
+            }
+            else
+            {
+                this.MenuItem_dp2Router_install.Enabled = false;
+                this.MenuItem_dp2Router_upgrade.Enabled = true;
+            }
+
+            // TODO: 观察数据目录是否存在
+            this.MenuItem_dp2Router_openDataDir.DropDownItems.Clear();
+        }
+
     }
 }

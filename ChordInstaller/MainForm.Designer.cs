@@ -61,6 +61,23 @@
             this.MenuItem_copyright = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.MenuItem_dp2Router = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_dp2Router_install = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_dp2Router_upgrade = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.MenuItem_dp2Router_openDataDir = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_dp2Router_openAppDir = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.MenuItem_dp2Router_instanceManagement = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
+            this.MenuItem_dp2Router_tools = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_dp2Router_startService = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_dp2Router_stopService = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
+            this.MenuItem_dp2Router_installService = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_dp2Router_uninstallService = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator12 = new System.Windows.Forms.ToolStripSeparator();
+            this.MenuItem_dp2Router_uninstall = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -69,6 +86,7 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.MenuItem_file,
             this.MenuItem_dp2Capo,
+            this.MenuItem_dp2Router,
             this.MenuItem_help});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -314,6 +332,122 @@
             this.webBrowser1.Size = new System.Drawing.Size(553, 257);
             this.webBrowser1.TabIndex = 2;
             // 
+            // MenuItem_dp2Router
+            // 
+            this.MenuItem_dp2Router.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.MenuItem_dp2Router_install,
+            this.MenuItem_dp2Router_upgrade,
+            this.toolStripSeparator1,
+            this.MenuItem_dp2Router_openDataDir,
+            this.MenuItem_dp2Router_openAppDir,
+            this.toolStripSeparator2,
+            this.MenuItem_dp2Router_instanceManagement,
+            this.toolStripSeparator5,
+            this.MenuItem_dp2Router_tools});
+            this.MenuItem_dp2Router.Name = "MenuItem_dp2Router";
+            this.MenuItem_dp2Router.Size = new System.Drawing.Size(82, 21);
+            this.MenuItem_dp2Router.Text = "dp2Router";
+            // 
+            // MenuItem_dp2Router_install
+            // 
+            this.MenuItem_dp2Router_install.Name = "MenuItem_dp2Router_install";
+            this.MenuItem_dp2Router_install.Size = new System.Drawing.Size(166, 22);
+            this.MenuItem_dp2Router_install.Text = "安装 dp2Router";
+            this.MenuItem_dp2Router_install.Click += new System.EventHandler(this.MenuItem_dp2Router_install_Click);
+            // 
+            // MenuItem_dp2Router_upgrade
+            // 
+            this.MenuItem_dp2Router_upgrade.Name = "MenuItem_dp2Router_upgrade";
+            this.MenuItem_dp2Router_upgrade.Size = new System.Drawing.Size(166, 22);
+            this.MenuItem_dp2Router_upgrade.Text = "升级 dp2Router";
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(163, 6);
+            // 
+            // MenuItem_dp2Router_openDataDir
+            // 
+            this.MenuItem_dp2Router_openDataDir.Name = "MenuItem_dp2Router_openDataDir";
+            this.MenuItem_dp2Router_openDataDir.Size = new System.Drawing.Size(166, 22);
+            this.MenuItem_dp2Router_openDataDir.Text = "打开数据文件夹";
+            // 
+            // MenuItem_dp2Router_openAppDir
+            // 
+            this.MenuItem_dp2Router_openAppDir.Name = "MenuItem_dp2Router_openAppDir";
+            this.MenuItem_dp2Router_openAppDir.Size = new System.Drawing.Size(166, 22);
+            this.MenuItem_dp2Router_openAppDir.Text = "打开程序文件夹";
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(163, 6);
+            // 
+            // MenuItem_dp2Router_instanceManagement
+            // 
+            this.MenuItem_dp2Router_instanceManagement.Name = "MenuItem_dp2Router_instanceManagement";
+            this.MenuItem_dp2Router_instanceManagement.Size = new System.Drawing.Size(166, 22);
+            this.MenuItem_dp2Router_instanceManagement.Text = "配置实例";
+            // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(163, 6);
+            // 
+            // MenuItem_dp2Router_tools
+            // 
+            this.MenuItem_dp2Router_tools.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.MenuItem_dp2Router_startService,
+            this.MenuItem_dp2Router_stopService,
+            this.toolStripSeparator7,
+            this.MenuItem_dp2Router_installService,
+            this.MenuItem_dp2Router_uninstallService,
+            this.toolStripSeparator12,
+            this.MenuItem_dp2Router_uninstall});
+            this.MenuItem_dp2Router_tools.Name = "MenuItem_dp2Router_tools";
+            this.MenuItem_dp2Router_tools.Size = new System.Drawing.Size(166, 22);
+            this.MenuItem_dp2Router_tools.Text = "工具";
+            // 
+            // MenuItem_dp2Router_startService
+            // 
+            this.MenuItem_dp2Router_startService.Name = "MenuItem_dp2Router_startService";
+            this.MenuItem_dp2Router_startService.Size = new System.Drawing.Size(202, 22);
+            this.MenuItem_dp2Router_startService.Text = "启动 Windows Service";
+            // 
+            // MenuItem_dp2Router_stopService
+            // 
+            this.MenuItem_dp2Router_stopService.Name = "MenuItem_dp2Router_stopService";
+            this.MenuItem_dp2Router_stopService.Size = new System.Drawing.Size(202, 22);
+            this.MenuItem_dp2Router_stopService.Text = "停止 Windows Service";
+            // 
+            // toolStripSeparator7
+            // 
+            this.toolStripSeparator7.Name = "toolStripSeparator7";
+            this.toolStripSeparator7.Size = new System.Drawing.Size(199, 6);
+            // 
+            // MenuItem_dp2Router_installService
+            // 
+            this.MenuItem_dp2Router_installService.Name = "MenuItem_dp2Router_installService";
+            this.MenuItem_dp2Router_installService.Size = new System.Drawing.Size(202, 22);
+            this.MenuItem_dp2Router_installService.Text = "注册 Windows Service";
+            // 
+            // MenuItem_dp2Router_uninstallService
+            // 
+            this.MenuItem_dp2Router_uninstallService.Name = "MenuItem_dp2Router_uninstallService";
+            this.MenuItem_dp2Router_uninstallService.Size = new System.Drawing.Size(202, 22);
+            this.MenuItem_dp2Router_uninstallService.Text = "注销 Windows Service";
+            // 
+            // toolStripSeparator12
+            // 
+            this.toolStripSeparator12.Name = "toolStripSeparator12";
+            this.toolStripSeparator12.Size = new System.Drawing.Size(199, 6);
+            // 
+            // MenuItem_dp2Router_uninstall
+            // 
+            this.MenuItem_dp2Router_uninstall.Name = "MenuItem_dp2Router_uninstall";
+            this.MenuItem_dp2Router_uninstall.Size = new System.Drawing.Size(202, 22);
+            this.MenuItem_dp2Router_uninstall.Text = "卸载 dp2Router";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -371,6 +505,23 @@
         private System.Windows.Forms.ToolStripMenuItem MenuItem_openProgramFolder;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         internal System.Windows.Forms.ToolStripMenuItem MenuItem_copyright;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router_install;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router_upgrade;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router_openDataDir;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router_openAppDir;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router_instanceManagement;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router_tools;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router_startService;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router_stopService;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router_installService;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router_uninstallService;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator12;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router_uninstall;
     }
 }
 
