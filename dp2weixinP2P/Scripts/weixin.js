@@ -610,7 +610,7 @@ function deleteMsg(msgId) {
     //alert(msgId);
 
     // 检查下是否选中多个
-    var bMutiple = false;
+    var mutiple = false;
 
 
     //alert(autoDeleteParent);
