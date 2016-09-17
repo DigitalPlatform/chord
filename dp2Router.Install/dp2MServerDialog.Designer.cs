@@ -92,13 +92,13 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = " 帐户(针对上述dp2MServer) ";
             // 
-            // textBox_confirmManagePassword
+            // textBox_confirmPassword
             // 
             this.textBox_confirmPassword.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_confirmPassword.Location = new System.Drawing.Point(112, 95);
             this.textBox_confirmPassword.Margin = new System.Windows.Forms.Padding(2);
-            this.textBox_confirmPassword.Name = "textBox_confirmManagePassword";
+            this.textBox_confirmPassword.Name = "textBox_confirmPassword";
             this.textBox_confirmPassword.PasswordChar = '*';
             this.textBox_confirmPassword.Size = new System.Drawing.Size(155, 21);
             this.textBox_confirmPassword.TabIndex = 5;
@@ -168,6 +168,7 @@
             this.textBox_userName.Name = "textBox_userName";
             this.textBox_userName.Size = new System.Drawing.Size(155, 21);
             this.textBox_userName.TabIndex = 1;
+            this.textBox_userName.Text = "router";
             this.textBox_userName.TextChanged += new System.EventHandler(this.textBox_userName_TextChanged);
             // 
             // label4
@@ -189,7 +190,7 @@
             this.textBox_url.Name = "textBox_url";
             this.textBox_url.Size = new System.Drawing.Size(334, 21);
             this.textBox_url.TabIndex = 6;
-            this.textBox_url.Text = "http://dp2003.com:8083/dp2mserver";
+            this.textBox_url.Text = "http://localhost:8083/dp2mserver";
             // 
             // label1
             // 
