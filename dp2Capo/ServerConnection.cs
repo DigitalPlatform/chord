@@ -1009,6 +1009,9 @@ strError);
                 strResultSetName = "#" + strResultSetName;  // 如果请求方指定了结果集名，则在 dp2library 中处理为全局结果集名
 
             LibraryChannel channel = GetChannel();
+            TimeSpan old_timeout = channel.Timeout;
+            if (searchParam.Timeout != TimeSpan.FromMilliseconds(0))
+                channel.Timeout = searchParam.Timeout;
             try
             {
                 string strQueryXml = "";
@@ -1119,7 +1122,10 @@ strErrorCode));
             finally
             {
                 if (channel != null)
+                {
+                    channel.Timeout = old_timeout;
                     this._channelPool.ReturnChannel(channel);
+                }
             }
 
             this.AddInfoLine("search and response end");

@@ -267,6 +267,7 @@ namespace DigitalPlatform.Message
         public long Start { get; set; } // 本次获得结果的开始位置
         public long Count { get; set; } // 本次获得结果的个数。 -1表示尽可能多
         public string ServerPushEncoding { get; set; }
+        public TimeSpan Timeout { get; set; }   // 超时参数。默认为一分钟 2016/9/17
 
         public SearchRequest()
         {
@@ -300,6 +301,35 @@ namespace DigitalPlatform.Message
             this.ServerPushEncoding = serverPushEncoding;
         }
 
+        public SearchRequest(string taskID,
+    string operation,
+    string dbNameList,
+    string queryWord,
+    string useList,
+    string matchStyle,
+    string resultSetName,
+    string formatList,
+    long maxResults,
+    long start,
+    long count,
+            TimeSpan timeout,
+    string serverPushEncoding = "")
+        {
+            this.TaskID = taskID;
+            this.Operation = operation;
+            this.DbNameList = dbNameList;
+            this.QueryWord = queryWord;
+            this.UseList = useList;
+            this.MatchStyle = matchStyle;
+            this.ResultSetName = resultSetName;
+            this.FormatList = formatList;
+            this.MaxResults = maxResults;
+            this.Start = start;
+            this.Count = count;
+            this.ServerPushEncoding = serverPushEncoding;
+            this.Timeout = timeout;
+        }
+
         public string Dump()
         {
             StringBuilder text = new StringBuilder();
@@ -314,6 +344,7 @@ namespace DigitalPlatform.Message
             text.Append("MaxResults=" + this.MaxResults + "\r\n");
             text.Append("Start=" + this.Start + "\r\n");
             text.Append("Count=" + this.Count + "\r\n");
+            text.Append("Timeout=" + this.Timeout.ToString() + "\r\n");
             text.Append("ServerPushEncoding=" + this.ServerPushEncoding + "\r\n");
             return text.ToString();
         }
