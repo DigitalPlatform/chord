@@ -59,7 +59,8 @@
         //用于所有微信用户
         function getBorrowInfos() {
             //显示等待图层
-            var index = loadLayer();
+            //var index = loadLayer();
+            showMaskLayer();
 
             // 先删除可观察数组中的已有数据
             model.borrowInfos.removeAll();
@@ -73,7 +74,8 @@
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
-                layer.close(index);
+                //layer.close(index);
+                hideMaskLayer();
 
                 // 出错或未命中
                 if (result.errorCode == -1 || result.errorCode == 0) {
@@ -100,9 +102,12 @@
 
             }, function (xhq, textStatus, errorThrown) {
 
-                alert(errorThrown);
                 // 关闭等待层
-                layer.close(index);
+                //layer.close(index);
+                hideMaskLayer();
+
+                alert(errorThrown);
+
             });
         }
 
@@ -124,7 +129,8 @@
             var patronBarcode = $("#patronBarcode").text();
 
             //显示等待图层
-            var index = loadLayer();
+            //var index = loadLayer();
+            showMaskLayer();
 
             var url = "/api/BorrowInfo?libId=" + encodeURIComponent(libId)
                 + "&action=renew"
@@ -134,7 +140,8 @@
             sendAjaxRequest(url, "POST", function (result) {
 
                 // 关闭等待层
-                layer.close(index);
+                //layer.close(index);
+                hideMaskLayer();
 
                 // 显示续借结果
                 var infoDiv = $(btn).parent().children("div");
@@ -165,7 +172,8 @@
             }, function (xhq, textStatus, errorThrown) {
 
                 // 关闭等待层
-                layer.close(index);
+                //layer.close(index);
+                hideMaskLayer();
 
                 // 显示预约结果
                 var info = "访问服务器出错：[" + errorThrown + "]";

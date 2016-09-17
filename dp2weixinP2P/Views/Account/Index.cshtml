@@ -11,7 +11,8 @@
         //用于所有微信用户
         function getBindList(weixinId) {
             //显示等待图层
-            var index = loadLayer();
+            //var index = loadLayer();
+            showLoading();
 
             // 先删除可观察数组中的已有数据
             model.wxPatrons.removeAll();
@@ -22,7 +23,8 @@
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
-                layer.close(index);
+                //layer.close(index);
+                hideLoading();
 
                 if (result.errorCode == -1)
                 {
@@ -50,10 +52,13 @@
 
             }, function (xhq, textStatus, errorThrown) {
 
+                // 关闭等待层
+                //layer.close(index);
+                hideLoading();
+
                 alert(errorThrown);
 
-                // 关闭等待层
-                layer.close(index);
+
             });
         }
 
@@ -70,14 +75,16 @@
             }
 
             //显示等待图层
-            var index = loadLayer();
+            //var index = loadLayer();
+            showMaskLayer();
 
             //alert("remove-"+item.libId);
             var url = "/api/wxuser/" + item.id;
             sendAjaxRequest(url, "DELETE", function (result) {
 
                 // 关闭等待层
-                layer.close(index);
+                //layer.close(index);
+                hideMaskLayer();
 
                 if (result.errorCode == -1) {
                     alert("解绑出错："+result.errorInfo);
@@ -92,7 +99,9 @@
             }, function (xhq, textStatus, errorThrown) {
 
                 // 关闭等待层
-                layer.close(index);
+                //layer.close(index);
+                hideMaskLayer();
+
                 alert(errorThrown);
             });
         }

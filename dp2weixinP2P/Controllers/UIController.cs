@@ -27,6 +27,13 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
+
+        // GET: UI
+        public ActionResult Loading()
+        {
+            return View();
+        }
+
         // GET: UI
         public ActionResult BiblioIndex()
         {

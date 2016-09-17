@@ -142,6 +142,7 @@
     <Content Include="img\emptyBind.png" />
     <Content Include="img\error.jpg" />
     <Content Include="img\library.jpg" />
+    <Content Include="img\loading.gif" />
     <Content Include="img\nonePhoto.png" />
     <Content Include="img\empty2.jpg" />
     <Content Include="img\wait2.gif" />
@@ -259,6 +260,7 @@
     <Content Include="Views\Shared\_LayoutManager.cshtml" />
     <Content Include="Views\Home\Manager.cshtml" />
     <Content Include="Views\Home\Login.cshtml" />
+    <Content Include="Views\UI\Loading.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

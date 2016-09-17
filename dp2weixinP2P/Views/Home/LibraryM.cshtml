@@ -69,7 +69,8 @@
         //用于获取图书馆
         function getAllLib() {
             //显示等待图层
-            var index = loadLayer();
+            //var index = loadLayer();
+            showLoading();
 
             //alert("getAllLib");
 
@@ -85,13 +86,17 @@
                 }
 
                 // 关闭等待层
-                layer.close(index);
+                //layer.close(index);
+                hideLoading();
 
             }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                //layer.close(index);
+                hideLoading();
 
                 alert(errorThrown);
-                // 关闭等待层
-                layer.close(index);
+
+
             });
         }
 
@@ -104,7 +109,8 @@
             }
 
             //显示等待图层
-            var index = loadLayer();
+            //var index = loadLayer();
+            showMaskLayer();
 
             //alert("remove-"+item.libId);
             var url = "/api/LibrarySetting/" + item.id;
@@ -112,7 +118,8 @@
                 //getAllLib();
 
                 // 关闭等待层
-                layer.close(index);
+                //layer.close(index);
+                hideMaskLayer();
 
                 if (result.errorCode == -1) {
                     alert(result.errorInfo);
@@ -127,7 +134,13 @@
                 }
 
             }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭图层
+                hideMaskLayer();
+
                 alert(errorThrown);
+
+
             });
         }
 
@@ -166,13 +179,15 @@
             //}
 
             //显示等待图层
-            var index = loadLayer();
+            //var index = loadLayer();
+            showMaskLayer();
+
             var url = "/api/LibrarySetting?username=" + wxUserName
                 +"&password="+wxPassword;
             sendAjaxRequest(url, "POST", function (result) {
                 // 关闭等待层
-                layer.close(index);
-
+                //layer.close(index);
+                hideMaskLayer();
 
 
                 if (result.errorCode == -1) {
@@ -184,7 +199,8 @@
 
             }, function (xhq, textStatus, errorThrown) {
                 // 关闭等待层
-                layer.close(index);
+                //layer.close(index);
+                hideMaskLayer();
 
                 alert(errorThrown);
             });
@@ -244,7 +260,9 @@
 
 
             //显示等待图层
-            var index = loadLayer();
+            //var index = loadLayer();
+            showMaskLayer();
+
             var url = "/api/LibrarySetting?username=" + encodeURIComponent(wxUserName)
                 + "&password=" + encodeURIComponent(wxPassword)
             + "&department=" + encodeURIComponent(libName)
@@ -253,7 +271,8 @@
 
             sendAjaxRequest(url, "POST", function (result) {
                 // 关闭等待层
-                layer.close(index);
+                //layer.close(index);
+                hideMaskLayer();
 
                 $("#supervisorDiv").css('display', 'none');
                 $("#wxPassword2").val("");
@@ -268,7 +287,8 @@
 
             }, function (xhq, textStatus, errorThrown) {
                 // 关闭等待层
-                layer.close(index);
+                //layer.close(index);
+                hideMaskLayer();
 
                 alert(errorThrown);
             });
@@ -320,7 +340,8 @@
             //alert("id-[" + model.editor.id() + "]-2");
 
             //显示等待图层
-            var index = loadLayer();
+            //var index = loadLayer();
+            showMaskLayer();
 
             var url = "";
             var actionType = "";
@@ -340,7 +361,8 @@
                 function (result) {
 
                     // 关闭等待层
-                    layer.close(index);
+                    //layer.close(index);
+                    hideMaskLayer();
 
                     if (result.errorCode == -1) {
                         alert("保存出错:" + result.errorInfo);
@@ -356,9 +378,12 @@
 
                 },
                 function (xhq, textStatus, errorThrown) {
-                    alert(errorThrown);
                     // 关闭等待层
                     layer.close(index);
+                    hideMaskLayer();
+
+                    alert(errorThrown);
+
                 },
                 {
                     id: id,

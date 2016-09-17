@@ -58,7 +58,9 @@
 
 
             //显示等待图层
-            var index = loadLayer();
+            //var index = loadLayer();
+            showMaskLayer();
+
 
             var id = $("#id").val();
             var action = "";
@@ -82,7 +84,8 @@
                 function (result) {
 
                     // 关闭等待层
-                    layer.close(index);
+                    //layer.close(index);
+                    hideMaskLayer();
 
                     if (result.errorCode == -1) {
                         alert("操作失败：" + result.errorInfo);
@@ -115,9 +118,13 @@
                     }
                 },
                 function (xhq, textStatus, errorThrown) {
-                    alert(errorThrown);
+
                     // 关闭等待层
-                    layer.close(index);
+                    //layer.close(index);
+                    hideMaskLayer();
+
+                    alert(errorThrown);
+
                 },
                 {
                     id: id,

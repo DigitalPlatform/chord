@@ -1,4 +1,23 @@
-﻿function setImgSize(obj)
+﻿function showLoading()
+{
+    $("#loading").show();//显示loading
+}
+
+function hideLoading() {
+    $("#loading").hide();//关闭loading
+}
+
+function showMaskLayer() {
+    var bg = $("#mask-background,#mask-progressBar");
+    bg.show();
+}
+
+function hideMaskLayer() {
+    var bg = $("#mask-background,#mask-progressBar");
+    bg.hide();
+}
+
+function setImgSize(obj)
 {
     var parentObj = $(obj).parent();
     if (parentObj != null) {
@@ -192,7 +211,8 @@ function reservation(obj, barcode, style) {
     //}
 
     //显示等待图层
-    var index = loadLayer();
+    //var index = loadLayer();
+    showLoading();
 
     var url = "/api/Reservation"
         + "?weixinId=" + weixinId
@@ -207,7 +227,8 @@ function reservation(obj, barcode, style) {
 
 
         // 关闭等待层
-        layer.close(index);
+        //layer.close(index);
+        hideLoading();
 
         // 显示预约结果
 
@@ -255,7 +276,8 @@ function reservation(obj, barcode, style) {
     }, function (xhq, textStatus, errorThrown) {
 
         // 关闭等待层
-        layer.close(index);
+        //layer.close(index);
+        hideLoading();
 
         // 显示预约结果
         var info = "访问服务器出错：[" + errorThrown + "]";
@@ -298,7 +320,8 @@ function renew(itemBarcode) {
     }
 
     //显示等待图层
-    var index = loadLayer();
+    //var index = loadLayer();
+    showLoading();
 
     var url = "/api/BorrowInfo?libId=" + encodeURIComponent(libId)
         + "&action=renew"
@@ -308,7 +331,8 @@ function renew(itemBarcode) {
     sendAjaxRequest(url, "POST", function (result) {
 
         // 关闭等待层
-        layer.close(index);
+        //layer.close(index);
+        hideLoading();
 
         // 显示续借结果
         var divId = "#renewInfo-" + itemBarcode;
@@ -338,7 +362,8 @@ function renew(itemBarcode) {
     }, function (xhq, textStatus, errorThrown) {
 
         // 关闭等待层
-        layer.close(index);
+        //layer.close(index);
+        hideLoading();
 
         // 显示预约结果
         var info = "访问服务器出错：[" + errorThrown + "]";
@@ -605,6 +630,26 @@ function getMsgViewHtml(msgItem, bContainEditDiv) {
     return html;
 }
 
+function getSelectedMsgIds() {
+    var ids="";
+    $(".msgEditable").each(function () {
+        if (ids != "")
+            ids += ",";
+        var id = $(this).attr('id');
+        id = id.substring(6);
+        ids += id;
+    });
+    return ids;
+}
+
+function getSelectedMsgCount() {
+    var count = 0;
+    $(".msgEditable").each(function () {
+        count ++;
+    });
+    return count
+}
+
 // 删除msg
 function deleteMsg(msgId) {
     //alert(msgId);
@@ -612,17 +657,37 @@ function deleteMsg(msgId) {
     // 检查下是否选中多个
     var mutiple = false;
 
+    var ids = getSelectedMsgIds();
+    if (ids.indexOf(",") != -1) {
+        mutiple = true;
+        msgId = ids;
+        alert(msgId);
+        //return;
+    }
 
-    //alert(autoDeleteParent);
     var group = $("#_group").text();
     if (group == null || group == "" ||
         (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
         alert("异常情况：group参数值不正确[" + group + "]。");
         return;
     }
-    var autoDeleteParent = false;
-    if (group == "gn:_lib_homePage") {
-        autoDeleteParent = true;
+    var confirmInfo = "";
+    if (mutiple == false) {
+        var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+        var title = $(divId).find(".title").html();
+        var confirmInfo = "你确定要删除该项吗?";
+        if (title != null && title != "") {
+            confirmInfo = "你确认要删除[" + title + "]吗?";
+        }
+    }
+    else
+    {
+        confirmInfo = "你确认要删除所选定的 "+getSelectedMsgCount()+" 个事项？";
+    }
+
+    var gnl = confirm(confirmInfo);
+    if (gnl == false) {
+        return false;
     }
 
     var libId = getLibId(); //$("#selLib").val();
@@ -636,27 +701,19 @@ function deleteMsg(msgId) {
         return;
     }
 
-    var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
-    var title = $(divId).find(".title").html();
-    //alert(title);
-
-    var gnl = confirm("你确定要删除[" + title + "]吗?");
-    if (gnl == false) {
-        return false;
-    }
-
     //显示等待图层
-    var index = loadLayer();
-    var url = "/api/LibMessage?libId=" + libId
-        + "&group=" + encodeURIComponent("gn:_lib_homePage")
+    //var index = loadLayer();
+    showLoading();
+
+    var url = "/api/LibMessage?libId=" +  encodeURIComponent(libId)
+        + "&group=" + encodeURIComponent(group)
         + "&msgId=" + msgId
         + "&userName=" + userName
-
-    //alert(url);
     sendAjaxRequest(url, "DELETE", function (result) {
 
         // 关闭等待层
-        layer.close(index);
+        //layer.close(index);
+        hideLoading();
 
         if (result.errorCode == -1) {
             alert("操作失败：" + result.errorInfo);
@@ -665,31 +722,35 @@ function deleteMsg(msgId) {
 
         alert("删除成功");
 
-        //如果包括多项删除，整个页面reload 2016-9-15
-
-        
-        // 将界面上的div删除
-
-        // 找到父亲
-        var subjectDiv = $(divId).parent();
-        // 删除自己;
-        $(divId).remove();
-
-        // 当消息分栏目显示时，没有消息时自动删除栏目
-        if (autoDeleteParent == true) {
-            // 如果父亲下级没有message，父亲也删除
-            if ($(subjectDiv).children(".message").length == 0) {
-                // 移除栏目div
-                subjectDiv.remove();
+        if (mutiple == true) {
+            //多项删除时，直接重新加载页面
+            window.location.reload();
+            return;
+        }
+        else {
+            // 删除界面        
+            var subjectDiv = $(divId).parent();// 找到父亲        
+            $(divId).remove();// 删除自己;
+            if (group == "gn:_lib_homePage") {
+                // 如果父亲下级没有message，父亲也删除
+                if ($(subjectDiv).children(".message").length == 0) {
+                    // 移除栏目div
+                    subjectDiv.remove();
+                    // 置空subject,再打开编辑界面时，会重刷subject列表
+                    model.subjectHtml("");
+                }
             }
         }
 
     }, function (xhq, textStatus, errorThrown) {
 
         // 关闭等待层
-        layer.close(index);
+        //layer.close(index);
+        hideLoading();
 
         alert(errorThrown);
+
+
     });
 
 }
@@ -896,7 +957,8 @@ function save(msgId) {
     //var group = "gn:_lib_bb";
 
     //显示等待图层
-    var index = loadLayer();
+    //var index = loadLayer();
+    showMaskLayer();
 
     var id = "";
     if (msgId != "new")
@@ -917,7 +979,8 @@ function save(msgId) {
         function (result) {
 
             // 关闭等待层
-            layer.close(index);
+            //layer.close(index);
+            hideMaskLayer();
 
             if (result.errorCode == -1) {
                 alert("操作失败：" + result.errorInfo);
@@ -938,9 +1001,11 @@ function save(msgId) {
 
         },
         function (xhq, textStatus, errorThrown) {
-            alert(errorThrown);
             // 关闭等待层
-            layer.close(index);
+            //layer.close(index);
+            hideMaskLayer();
+
+            alert(errorThrown);
         },
         {
             id: id,
@@ -955,88 +1020,7 @@ function save(msgId) {
 
 }
 
-// 删除msg
-function deleteMsg(msgId) {
-    //alert(msgId);
 
-    var group = $("#_group").text();
-    if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
-        alert("异常情况：group参数值不正确[" + group + "]。");
-        return;
-    }
-
-    var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
-    var title = $(divId).find(".title").html();
-    //alert(title);
-
-    var confirmInfo = "你确定要删除该项吗?";
-    if (title != null && title != "") {
-        confirmInfo = "你确定要删除[" + title + "]吗?";
-    }
-
-    var gnl = confirm(confirmInfo);
-    if (gnl == false) {
-        return false;
-    }
-
-    var libId = getLibId(); //$("#selLib").val();
-    if (libId == "") {
-        alert("异常情况：libId为空。");
-        return;
-    }
-    var userName = $("#_userName").text();
-    if (userName == "") {
-        alert("异常情况：userName为空。");
-        return;
-    }
-
-    //显示等待图层
-    var index = loadLayer();
-
-    var url = "/api/LibMessage?libId=" + libId
-        + "&group=" + encodeURIComponent(group)
-        + "&msgId=" + msgId
-        + "&userName=" + userName
-    sendAjaxRequest(url, "DELETE", function (result) {
-
-        // 关闭等待层
-        layer.close(index);
-
-        if (result.errorCode == -1) {
-            alert("操作失败：" + result.errorInfo);
-            return;
-        }
-
-        alert("删除成功");
-
-        // 删除界面
-
-        // 找到父亲
-        var subjectDiv = $(divId).parent();
-        // 删除自己;
-        $(divId).remove();
-
-        if (group == "gn:_lib_homePage") {
-            // 如果父亲下级没有message，父亲也删除
-            if ($(subjectDiv).children(".message").length == 0) {
-
-                // 移除栏目div
-                subjectDiv.remove();
-
-                // 置空subject,再打开编辑界面时，会重刷subject列表
-                model.subjectHtml("");
-            }
-        }
-
-    }, function (xhq, textStatus, errorThrown) {
-        alert(errorThrown);
-
-        // 关闭等待层
-        layer.close(index);
-    });
-
-}
 
 // 获取编辑态html
 function getMsgEditHtml(msgItem) {
@@ -1170,7 +1154,10 @@ function getSubjectHtml(msgId) {
     model.subjectHtml("");
 
     //显示等待图层
-    var index = loadLayer();
+    //var index = loadLayer();
+    showLoading();
+
+
     // 调web api
     var url = "/api/LibMessage?weixinId=" + weixinId
         + "&group=" + encodeURIComponent(group)
@@ -1179,7 +1166,8 @@ function getSubjectHtml(msgId) {
     + "&param=html";
     sendAjaxRequest(url, "GET", function (result) {
         // 关闭等待层
-        layer.close(index);
+        //layer.close(index);
+        hideLoading();
 
         if (result.errorCode == -1) {
             alert(result.errorInfo);
@@ -1198,9 +1186,12 @@ function getSubjectHtml(msgId) {
     },
     function (xhq, textStatus, errorThrown) {
 
-        alert("访问服务器出错：\r\n" + errorThrown);
         // 关闭等待层
-        layer.close(index);
+        //layer.close(index);
+        hideLoading();
+
+        alert("访问服务器出错：\r\n" + errorThrown);
+
     }); // 同步调用
 }
 
@@ -1291,7 +1282,9 @@ function cancelEdit(msgId) {
         return;
     }
     //显示等待图层
-    var index = loadLayer();
+    //var index = loadLayer();
+    showLoading();
+
     var style = "browse";
     /*
     GetMessage(string weixinId, 
@@ -1310,7 +1303,8 @@ function cancelEdit(msgId) {
                 + "&style=" + style;
     sendAjaxRequest(url, "GET", function (result) {
         // 关闭等待层
-        layer.close(index);
+        //layer.close(index);
+        hideLoading();
 
         //alert("回来-"+result.errorCode);
         if (result.errorCode == -1) {
@@ -1326,10 +1320,12 @@ function cancelEdit(msgId) {
         }
 
     }, function (xhq, textStatus, errorThrown) {
+        // 关闭等待层
+        //layer.close(index);
+        hideLoading();
 
         alert("访问服务器出错：\r\n" + errorThrown);
-        // 关闭等待层
-        layer.close(index);
+
     });
 
 }
@@ -1406,7 +1402,9 @@ function gotoEdit(msgId) {
         return;
     }
     //显示等待图层
-    var index = loadLayer();
+    //var index = loadLayer();
+    showLoading();
+
     var style = "original";
     /*
     GetMessage(string weixinId, 
@@ -1426,7 +1424,8 @@ function gotoEdit(msgId) {
                 + "&style=" + style;
     sendAjaxRequest(url, "GET", function (result) {
         // 关闭等待层
-        layer.close(index);
+        //layer.close(index);
+        hideLoading();
 
         //alert("gotoEdit 2\n"+url);
 
@@ -1476,9 +1475,12 @@ function gotoEdit(msgId) {
 
     }, function (xhq, textStatus, errorThrown) {
 
-        alert("访问服务器出错：\r\n" + errorThrown);
         // 关闭等待层
-        layer.close(index);
+        //layer.close(index);
+        hideLoading();
+
+        alert("访问服务器出错：\r\n" + errorThrown);
+
     });
 }
 
@@ -1523,7 +1525,9 @@ function getTemplate(subject) {
     }
 
     //显示等待图层
-    var index = loadLayer();
+    //var index = loadLayer();
+    showMaskLayer();
+
     // 调web api
     var url = "/api/LibMessage?group=" + encodeURIComponent(group)
         + "&libId=" + libId
@@ -1531,7 +1535,8 @@ function getTemplate(subject) {
     //alert(url);
     sendAjaxRequest(url, "GET", function (result) {
         // 关闭等待层
-        layer.close(index);
+        //layer.close(index);
+        hideMaskLayer();
 
         if (result.errorCode == -1) {
             alert(result.errorInfo);
@@ -1542,20 +1547,23 @@ function getTemplate(subject) {
 
     }, function (xhq, textStatus, errorThrown) {
 
-        alert("访问服务器出错：\r\n" + errorThrown);
         // 关闭等待层
-        layer.close(index);
+        //layer.close(index);
+        hideMaskLayer();
+
+        alert("访问服务器出错：\r\n" + errorThrown);
+
     });
 }
 
 //===========等待图层============
-// 显示等待图层
-function loadLayer() {
-    return layer.open({
-        type: 2,
-        shadeClose: false
-    });
-}
+//// 显示等待图层
+//function loadLayer() {
+//    return layer.open({
+//        type: 2,
+//        shadeClose: false
+//    });
+//}
 
 
 //=======ajax==============

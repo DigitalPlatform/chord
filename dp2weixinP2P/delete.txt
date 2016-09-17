@@ -1,4 +1,93 @@
-﻿@section style {
+﻿// 删除msg
+function deleteMsg(msgId) {
+    //alert(msgId);
+
+    // 检查下是否选中多个
+    var mutiple = false;
+
+
+    //alert(autoDeleteParent);
+    var group = $("#_group").text();
+    if (group == null || group == "" ||
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        alert("异常情况：group参数值不正确[" + group + "]。");
+        return;
+    }
+    var autoDeleteParent = false;
+    if (group == "gn:_lib_homePage") {
+        autoDeleteParent = true;
+    }
+
+    var libId = getLibId(); //$("#selLib").val();
+    if (libId == "") {
+        alert("异常情况：libId为空。");
+        return;
+    }
+    var userName = $("#_userName").text();
+    if (userName == "") {
+        alert("异常情况：userName为空。");
+        return;
+    }
+
+    var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+    var title = $(divId).find(".title").html();
+    //alert(title);
+
+    var gnl = confirm("你确定要删除[" + title + "]吗?");
+    if (gnl == false) {
+        return false;
+    }
+
+    //显示等待图层
+    var index = loadLayer();
+    var url = "/api/LibMessage?libId=" + libId
+        + "&group=" + encodeURIComponent("gn:_lib_homePage")
+        + "&msgId=" + msgId
+        + "&userName=" + userName
+
+    //alert(url);
+    sendAjaxRequest(url, "DELETE", function (result) {
+
+        // 关闭等待层
+        layer.close(index);
+
+        if (result.errorCode == -1) {
+            alert("操作失败：" + result.errorInfo);
+            return;
+        }
+
+        alert("删除成功");
+
+        //如果包括多项删除，整个页面reload 2016-9-15
+
+        
+        // 将界面上的div删除
+
+        // 找到父亲
+        var subjectDiv = $(divId).parent();
+        // 删除自己;
+        $(divId).remove();
+
+        // 当消息分栏目显示时，没有消息时自动删除栏目
+        if (autoDeleteParent == true) {
+            // 如果父亲下级没有message，父亲也删除
+            if ($(subjectDiv).children(".message").length == 0) {
+                // 移除栏目div
+                subjectDiv.remove();
+            }
+        }
+
+    }, function (xhq, textStatus, errorThrown) {
+
+        // 关闭等待层
+        layer.close(index);
+
+        alert(errorThrown);
+    });
+
+}
+=================
+@section style {
     <link href="@Url.Content("~/Content/biblio.css?a=7")" rel="stylesheet">
 }
 @section Scripts {
