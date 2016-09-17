@@ -172,6 +172,8 @@ namespace dp2Capo.Install
             this.textBox_confirmManagePassword.Text = "";
 
             this.comboBox_msmqPath.Text = "";   // @".\private$\myQueue";
+
+            this.textBox_webURL.Text = "";
         }
 
         // 从 CfgDom 中填充信息到控件
@@ -198,6 +200,8 @@ namespace dp2Capo.Install
             this.textBox_confirmManagePassword.Text = strPassword;
 
             this.comboBox_msmqPath.Text = element.GetAttribute("defaultQueue");
+
+            this.textBox_webURL.Text = element.GetAttribute("webURL").Replace(";", "\r\n");
         }
 
         public static string GetDisplayText(XmlDocument CfgDom)
@@ -212,6 +216,7 @@ namespace dp2Capo.Install
             text.Append("url=" + element.GetAttribute("url") + "\r\n");
             text.Append("userName=" + element.GetAttribute("userName") + "\r\n");
             text.Append("defaultQueue=" + element.GetAttribute("defaultQueue") + "\r\n");
+            text.Append("webURL=" + element.GetAttribute("webURL") + "\r\n");
             return text.ToString();
         }
 
@@ -242,6 +247,7 @@ namespace dp2Capo.Install
 
             element.SetAttribute("defaultQueue", this.comboBox_msmqPath.Text);
 
+            element.SetAttribute("webURL", this.textBox_webURL.Text.Replace("\r\n", ";"));
             return true;
         }
 
@@ -251,6 +257,7 @@ namespace dp2Capo.Install
             this.textBox_managePassword.Enabled = bEnable;
             this.textBox_manageUserName.Enabled = bEnable;
             this.comboBox_url.Enabled = bEnable;
+            this.textBox_webURL.Enabled = bEnable;
 
             this.button_OK.Enabled = bEnable;
             this.button_Cancel.Enabled = bEnable;
@@ -474,7 +481,7 @@ namespace dp2Capo.Install
                 user.UserName = this.textBox_manageUserName.Text;
                 user.Password = this.textBox_managePassword.Text;
                 user.SetPassword = true;
-                user.Binding = "ip:[current]";  // 绑定当前请求者的 IP
+                user.Binding = "ip:[current]";  // 自动绑定当前请求者的 IP
                 // default_capo_rights
                 user.Rights = "getsystemparameter,getres,search,getbiblioinfo,setbiblioinfo,getreaderinfo,writeobject,getbibliosummary,listdbfroms,simulatereader,simulateworker"
                     + ",getiteminfo,getorderinfo,getissueinfo,getcommentinfo"
@@ -715,7 +722,6 @@ out strError);
 
                     channel.Logout(out strError);
                 }
-
             }
             finally
             {

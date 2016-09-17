@@ -352,6 +352,19 @@ this.Font);
                 if (strDepartment == null)
                     return false;
 
+                bool bEanbleWebCall = false;
+                this.Invoke(new Action(() =>
+                {
+                    DialogResult temp_result = MessageBox.Show(this,
+"是否允许 webCall (通过 dp2Router 访问 dp2library)?",
+"安装 dp2Capo",
+MessageBoxButtons.YesNo,
+MessageBoxIcon.Question,
+MessageBoxDefaultButton.Button2);
+                    if (temp_result == System.Windows.Forms.DialogResult.Yes)
+                        bEanbleWebCall = true;
+                }));
+
                 List<User> users = new List<User>();
 
                 User user = new User();
@@ -359,6 +372,8 @@ this.Font);
                 user.password = this.textBox_password.Text;
                 user.rights = "";
                 user.duty = "getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes,getSystemParameter";
+                if (bEanbleWebCall)
+                    user.duty += "webCall";
                 user.groups = new string[] { "gn:_patronNotify" };
                 user.department = strDepartment;
 
