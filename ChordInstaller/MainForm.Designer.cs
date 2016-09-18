@@ -78,6 +78,23 @@
             this.MenuItem_copyright = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.MenuItem_dp2MServer = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_dp2MServer_install = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_dp2MServer_upgrade = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator13 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator15 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripMenuItem6 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator16 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripMenuItem7 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem8 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem9 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator17 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripMenuItem10 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem11 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator18 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripMenuItem12 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -87,6 +104,7 @@
             this.MenuItem_file,
             this.MenuItem_dp2Capo,
             this.MenuItem_dp2Router,
+            this.MenuItem_dp2MServer,
             this.MenuItem_help});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -457,6 +475,127 @@
             this.webBrowser1.Size = new System.Drawing.Size(553, 257);
             this.webBrowser1.TabIndex = 2;
             // 
+            // MenuItem_dp2MServer
+            // 
+            this.MenuItem_dp2MServer.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.MenuItem_dp2MServer_install,
+            this.MenuItem_dp2MServer_upgrade,
+            this.toolStripSeparator13,
+            this.toolStripMenuItem4,
+            this.toolStripMenuItem5,
+            this.toolStripSeparator15,
+            this.toolStripMenuItem6,
+            this.toolStripSeparator16,
+            this.toolStripMenuItem7});
+            this.MenuItem_dp2MServer.Name = "MenuItem_dp2MServer";
+            this.MenuItem_dp2MServer.Size = new System.Drawing.Size(92, 21);
+            this.MenuItem_dp2MServer.Text = "dp2MServer";
+            // 
+            // MenuItem_dp2MServer_install
+            // 
+            this.MenuItem_dp2MServer_install.Name = "MenuItem_dp2MServer_install";
+            this.MenuItem_dp2MServer_install.Size = new System.Drawing.Size(176, 22);
+            this.MenuItem_dp2MServer_install.Text = "安装 dp2MServer";
+            this.MenuItem_dp2MServer_install.Visible = false;
+            // 
+            // MenuItem_dp2MServer_upgrade
+            // 
+            this.MenuItem_dp2MServer_upgrade.Name = "MenuItem_dp2MServer_upgrade";
+            this.MenuItem_dp2MServer_upgrade.Size = new System.Drawing.Size(176, 22);
+            this.MenuItem_dp2MServer_upgrade.Text = "升级 dp2MServer";
+            this.MenuItem_dp2MServer_upgrade.Click += new System.EventHandler(this.MenuItem_dp2MServer_upgrade_Click);
+            // 
+            // toolStripSeparator13
+            // 
+            this.toolStripSeparator13.Name = "toolStripSeparator13";
+            this.toolStripSeparator13.Size = new System.Drawing.Size(173, 6);
+            // 
+            // toolStripMenuItem4
+            // 
+            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(176, 22);
+            this.toolStripMenuItem4.Text = "打开数据文件夹";
+            this.toolStripMenuItem4.Visible = false;
+            // 
+            // toolStripMenuItem5
+            // 
+            this.toolStripMenuItem5.Name = "toolStripMenuItem5";
+            this.toolStripMenuItem5.Size = new System.Drawing.Size(176, 22);
+            this.toolStripMenuItem5.Text = "打开程序文件夹";
+            this.toolStripMenuItem5.Visible = false;
+            // 
+            // toolStripSeparator15
+            // 
+            this.toolStripSeparator15.Name = "toolStripSeparator15";
+            this.toolStripSeparator15.Size = new System.Drawing.Size(173, 6);
+            // 
+            // toolStripMenuItem6
+            // 
+            this.toolStripMenuItem6.Name = "toolStripMenuItem6";
+            this.toolStripMenuItem6.Size = new System.Drawing.Size(176, 22);
+            this.toolStripMenuItem6.Text = "配置实例";
+            this.toolStripMenuItem6.Visible = false;
+            // 
+            // toolStripSeparator16
+            // 
+            this.toolStripSeparator16.Name = "toolStripSeparator16";
+            this.toolStripSeparator16.Size = new System.Drawing.Size(173, 6);
+            // 
+            // toolStripMenuItem7
+            // 
+            this.toolStripMenuItem7.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem8,
+            this.toolStripMenuItem9,
+            this.toolStripSeparator17,
+            this.toolStripMenuItem10,
+            this.toolStripMenuItem11,
+            this.toolStripSeparator18,
+            this.toolStripMenuItem12});
+            this.toolStripMenuItem7.Name = "toolStripMenuItem7";
+            this.toolStripMenuItem7.Size = new System.Drawing.Size(176, 22);
+            this.toolStripMenuItem7.Text = "工具";
+            this.toolStripMenuItem7.Visible = false;
+            // 
+            // toolStripMenuItem8
+            // 
+            this.toolStripMenuItem8.Name = "toolStripMenuItem8";
+            this.toolStripMenuItem8.Size = new System.Drawing.Size(202, 22);
+            this.toolStripMenuItem8.Text = "启动 Windows Service";
+            // 
+            // toolStripMenuItem9
+            // 
+            this.toolStripMenuItem9.Name = "toolStripMenuItem9";
+            this.toolStripMenuItem9.Size = new System.Drawing.Size(202, 22);
+            this.toolStripMenuItem9.Text = "停止 Windows Service";
+            // 
+            // toolStripSeparator17
+            // 
+            this.toolStripSeparator17.Name = "toolStripSeparator17";
+            this.toolStripSeparator17.Size = new System.Drawing.Size(199, 6);
+            // 
+            // toolStripMenuItem10
+            // 
+            this.toolStripMenuItem10.Name = "toolStripMenuItem10";
+            this.toolStripMenuItem10.Size = new System.Drawing.Size(202, 22);
+            this.toolStripMenuItem10.Text = "注册 Windows Service";
+            // 
+            // toolStripMenuItem11
+            // 
+            this.toolStripMenuItem11.Name = "toolStripMenuItem11";
+            this.toolStripMenuItem11.Size = new System.Drawing.Size(202, 22);
+            this.toolStripMenuItem11.Text = "注销 Windows Service";
+            // 
+            // toolStripSeparator18
+            // 
+            this.toolStripSeparator18.Name = "toolStripSeparator18";
+            this.toolStripSeparator18.Size = new System.Drawing.Size(199, 6);
+            // 
+            // toolStripMenuItem12
+            // 
+            this.toolStripMenuItem12.Name = "toolStripMenuItem12";
+            this.toolStripMenuItem12.Size = new System.Drawing.Size(202, 22);
+            this.toolStripMenuItem12.Text = "卸载 dp2MServer";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -531,6 +670,23 @@
         private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router_uninstallService;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator12;
         private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2Router_uninstall;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2MServer;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2MServer_install;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_dp2MServer_upgrade;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator13;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem4;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem5;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator15;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem6;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator16;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem7;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem8;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem9;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator17;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem10;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem11;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator18;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem12;
     }
 }
 

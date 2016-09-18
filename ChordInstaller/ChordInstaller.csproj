@@ -120,6 +120,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="ChordInstaller_TemporaryKey.pfx" />
+    <Content Include="mserver_app.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
     <None Include="Properties\app.manifest" />
     <None Include="Properties\Settings.settings">
@@ -191,6 +194,16 @@
       <IncludeHash>True</IncludeHash>
       <FileType>File</FileType>
     </PublishFile>
+    <PublishFile Include="mserver_app.zip">
+      <Visible>False</Visible>
+      <Group>
+      </Group>
+      <TargetPath>
+      </TargetPath>
+      <PublishState>DataFile</PublishState>
+      <IncludeHash>True</IncludeHash>
+      <FileType>File</FileType>
+    </PublishFile>
     <PublishFile Include="router_app.zip">
       <Visible>False</Visible>
       <Group>
@@ -224,7 +237,8 @@
     <PreBuildEvent>echo 准备安装包 .zip 文件 ...
 CD /D $(ProjectDir)
 CALL copycapo.bat
-CALL copyrouter.bat</PreBuildEvent>
+CALL copyrouter.bat
+CALL copymserver.bat</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

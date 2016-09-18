@@ -87,6 +87,7 @@ FormWindowState.Normal);
 
             Refresh_dp2capo_MenuItems();
             Refresh_dp2router_MenuItems();
+            Refresh_dp2mserver_MenuItems();
 
             this.BeginInvoke(new Action<object, EventArgs>(MenuItem_autoUpgrade_Click), this, new EventArgs());
         }
@@ -1262,6 +1263,15 @@ MessageBoxDefaultButton.Button2);
                     names.Add("dp2Router");
             }
 
+            // ---
+            strExePath = ServiceUtil.GetPathOfService("dp2MessageService");
+            if (string.IsNullOrEmpty(strExePath) == false)
+            {
+                strZipFileName = Path.Combine(this.DataDir, "mserver_app.zip");
+                if (DetectChange(strZipFileName) == true)
+                    names.Add("dp2MServer");
+            }
+
             if (names.Count > 0)
             {
                 DialogResult result = MessageBox.Show(this,
@@ -1278,6 +1288,8 @@ MessageBoxDefaultButton.Button1);
                         MenuItem_dp2capo_upgrade_Click(this, new EventArgs());
                     if (name == "dp2Router")
                         MenuItem_dp2Router_upgrade_Click(this, new EventArgs());
+                    if (name == "dp2MServer")
+                        MenuItem_dp2MServer_upgrade_Click(this, new EventArgs());
                 }
             }
             else
@@ -2274,6 +2286,95 @@ MessageBoxDefaultButton.Button1);
         private void MenuItem_dp2Router_uninstall_Click(object sender, EventArgs e)
         {
 
+        }
+
+        // 升级 dp2MServer
+        private void MenuItem_dp2MServer_upgrade_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            this._floatingMessage.Text = "正在升级 dp2MServer - 消息服务器 ...";
+
+            try
+            {
+                AppendSectionTitle("升级 dp2MServer 开始");
+
+                AppendString("正在获得可执行文件目录 ...\r\n");
+
+                Application.DoEvents();
+
+                string strExePath = ServiceUtil.GetPathOfService("dp2MessageService");
+                if (string.IsNullOrEmpty(strExePath) == true)
+                {
+                    strError = "dp2MServer 未曾安装过";
+                    goto ERROR1;
+                }
+                strExePath = StringUtil.Unquote(strExePath, "\"\"");
+
+                AppendString("正在停止 dp2MServer 服务 ...\r\n");
+                nRet = ServiceUtil.StopService("dp2MessageService",
+                    TimeSpan.FromMinutes(2),
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+                AppendString("dp2MServer 服务已经停止\r\n");
+
+                string strZipFileName = Path.Combine(this.DataDir, "mserver_app.zip");
+
+                AppendString("更新可执行文件 ...\r\n");
+
+                // 更新可执行目录
+                // return:
+                //      -1  出错
+                //      0   没有必要刷新
+                //      1   已经刷新
+                nRet = RefreshBinFiles(
+                    false,
+                    strZipFileName,
+                    Path.GetDirectoryName(strExePath),
+                    null,
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+
+                AppendString("正在重新启动 dp2MServer 服务 ...\r\n");
+                nRet = ServiceUtil.StartService("dp2MessageService",
+                    TimeSpan.FromMinutes(2),
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+                AppendString("dp2MServer 服务启动成功\r\n");
+
+                AppendSectionTitle("升级 dp2MServer 结束");
+            }
+            finally
+            {
+                this._floatingMessage.Text = "";
+            }
+            return;
+        ERROR1:
+            AppendString("出错: " + strError + "\r\n");
+            MessageBox.Show(this, strError);
+        }
+
+        // 刷新菜单状态
+        void Refresh_dp2mserver_MenuItems()
+        {
+            string strExePath = ServiceUtil.GetPathOfService("dp2MessageService");
+            if (string.IsNullOrEmpty(strExePath) == true)
+            {
+                this.MenuItem_dp2MServer_install.Enabled = true;
+                this.MenuItem_dp2MServer_upgrade.Enabled = false;
+            }
+            else
+            {
+                this.MenuItem_dp2MServer_install.Enabled = false;
+                this.MenuItem_dp2MServer_upgrade.Enabled = true;
+            }
+
+            // TODO: 观察数据目录是否存在
+            // this.MenuItem_dp2MServer_openDataDir.DropDownItems.Clear();
         }
 
     }
