@@ -66,7 +66,7 @@ namespace dp2weixin.service
 
 
         // 日志级别
-        public int LogLevel = 1;
+        public int LogLevel = 2;
 
         // 微信数据目录
         public string weiXinDataDir = "";
@@ -461,26 +461,6 @@ namespace dp2weixin.service
         {
             return this.password;
         }
-
-
-
-        //public void SetActivePatron(WxUserItem userItem)
-        //{
-        //    // 更新数据库
-        //    WxUserDatabase.Current.SetActivePatron(userItem.weixinId, userItem.id);
-
-        //    return;
-        //}
-
-        //public void DeletePatron(string userId)
-        //{
-        //    // 删除mongodb库的记录
-        //    WxUserItem newActivePatron = null;
-        //    WxUserDatabase.Current.Delete(userId, out newActivePatron);
-        //    return;
-        //}
-
-
 
         #endregion
 
@@ -1274,6 +1254,8 @@ namespace dp2weixin.service
             {
                 string oneBarcode = DomUtil.GetAttr(node, "barcode");
 
+                string tempLibName = libName;
+
                 string location = DomUtil.GetAttr(node, "location");
                 if (location != lastLocation)
                 {
@@ -1283,10 +1265,11 @@ namespace dp2weixin.service
                 else
                 {
                     // location与上一item的location相同，则不见显示
+                    tempLibName = "";
                     location = "";
                 }
 
-                string fullItemBarcode = this.GetFullItemBarcode(oneBarcode, libName, location);
+                string fullItemBarcode = this.GetFullItemBarcode(oneBarcode, tempLibName, location);
 
                 if (barcodes != "")
                     barcodes += ",";
@@ -2635,22 +2618,33 @@ namespace dp2weixin.service
                 {
                     CancellationToken cancel_token = new CancellationToken();
                     string id = Guid.NewGuid().ToString();
+                    //SearchRequest request = new SearchRequest(id,
+                    //    "searchBiblio",
+                    //    "<全部>",
+                    //    "test",//strWord,
+                    //    "",//strFrom,
+                    //    "middle",//match,
+                    //    "",//resultSet,
+                    //    "id,cols",
+                    //    WeiXinConst.C_Search_MaxCount,  //最大数量200
+                    //    0,  //每次获取范围
+                    //    1);
+
                     SearchRequest request = new SearchRequest(id,
-                        "searchBiblio",
-                        "<全部>",
-                        "test",//strWord,
-                        "",//strFrom,
-                        "middle",//match,//"middle",
-                        "",//resultSet,//"weixin",
-                        "id,cols",
-                        WeiXinConst.C_Search_MaxCount,  //最大数量
-                        0,  //每次获取范围
-                        1);
+                        "getSystemParameter",
+                        "",
+                        "cfgs",//queryWord,
+                        "",
+                        "",
+                        "",
+                        "getDataDir",//formatList,//
+                        1,
+                        0,
+                        -1);
 
                     MessageConnection connection = this._channels.GetConnectionTaskAsync(
                         this.dp2MServerUrl,
                         lib.capoUserName).Result;
-
                     SearchResult result = connection.SearchTaskAsync(
                         lib.capoUserName,
                         request,
@@ -2660,6 +2654,10 @@ namespace dp2weixin.service
                     {
                         if (result.ErrorCode == "TargetNotFound")
                         {
+                            // 总是漏掉江西警察学校，这里输出日志看看。
+                            this.WriteLog2("检查 " + lib.libName + " 为离线状态。");
+
+
                             offlineLibs.Add(lib);
                             continue;
                         }
@@ -2668,6 +2666,9 @@ namespace dp2weixin.service
                         strError = result.ErrorInfo;
                         goto ERROR1;
                     }
+
+                    // 总是漏掉江西警察学校，这里输出日志看看。
+                    this.WriteLog2("检查 "+lib.libName+" 为在线状态。");
                 }
                 catch (AggregateException ex)
                 {
@@ -2715,6 +2716,7 @@ namespace dp2weixin.service
                 else
                 {
                     // 已经恢复在线的图书馆，要从内存不在线图书馆中删除 
+                    List<string> removeIds = new List<string>();
                     foreach(string libid in this._offlineLibs.Keys)
                     {
                         bool bFound = false;
@@ -2730,8 +2732,16 @@ namespace dp2weixin.service
                         // 在本次的未在线图书馆中不出现，则删除内存中的
                         if (bFound == false)
                         {
-                            this._offlineLibs.Remove(libid);
+                            removeIds.Add(libid);
+                            // 2016-9-27  不能这样使用，会报集合已修改，可能无法执行枚举操作
+                            //this._offlineLibs.Remove(libid);
                         }
+                    }
+
+                    // 移除已经连线的图书馆
+                    foreach (string oneId in removeIds)
+                    {
+                        this._offlineLibs.Remove(oneId);
                     }
                 }
 
@@ -3377,6 +3387,9 @@ namespace dp2weixin.service
                 // 分馆代码，读者与工作人员共有
                 string libraryCode = "";
 
+                // 权限
+                string rights = "";
+
                 // 账户类型
                 int type = 0;//账户类型：0表示读者 1表示工作人员
 
@@ -3386,7 +3399,7 @@ namespace dp2weixin.service
                     type = 1;// 工作人员账户
 
                     List<string> weixinIds = null;
-                    this.GetWorkerInfoByXml(xml, out weixinIds, out userName, out libraryCode);
+                    this.GetWorkerInfoByXml(xml, out weixinIds, out userName, out libraryCode, out rights);
                 }
                 else
                 {
@@ -3440,6 +3453,7 @@ namespace dp2weixin.service
                 // 2016-8-26 新增
                 userItem.state = 1;
                 userItem.remark = strFullWord;
+                userItem.rights = rights;
 
                 if (bNew == true)
                 {
@@ -7645,7 +7659,8 @@ namespace dp2weixin.service
                 List<string> weixinIds = null;
                 string name = "";
                 string libraryCode = "";
-                this.GetWorkerInfoByXml(xml, out weixinIds, out name, out libraryCode);
+                string rights = "";
+                this.GetWorkerInfoByXml(xml, out weixinIds, out name, out libraryCode,out rights);
                 foreach (string oneWeixinId in weixinIds)
                 {
                     WxUserItem userItem = new WxUserItem();
@@ -7670,6 +7685,7 @@ namespace dp2weixin.service
 
                     userItem.state = WxUserDatabase.C_State_Temp;
                     userItem.remark = "";
+                    userItem.rights = rights;
 
                     WxUserDatabase.Current.Add(userItem);
                 }
@@ -7723,6 +7739,12 @@ namespace dp2weixin.service
             if (node != null)
                 libraryCode = DomUtil.GetNodeText(node);
 
+            // 权限
+            string rights = "";
+            node = root.SelectSingleNode("rights");
+            if (node != null)
+                rights = DomUtil.GetNodeText(node);
+
 
             WxUserItem userItem = new WxUserItem();
             userItem.readerBarcode = readerBarcode;
@@ -7731,6 +7753,7 @@ namespace dp2weixin.service
             userItem.refID = refID;
             userItem.libraryCode = libraryCode;
             userItem.xml = xml;
+            userItem.rights = rights;
 
             // 取email
             string email = "";
@@ -7744,7 +7767,8 @@ namespace dp2weixin.service
 
         private void GetWorkerInfoByXml(string xml, out List<string> weixinIds,
             out string name,
-            out string libraryCode)
+            out string libraryCode,
+            out string rights)
         {
             weixinIds = new List<string>();
 
@@ -7754,6 +7778,7 @@ namespace dp2weixin.service
 
             name = DomUtil.GetAttr(root, "name");
             libraryCode = DomUtil.GetAttr(root, "libraryCode");
+            rights = DomUtil.GetAttr(root, "rights");
 
             // 取出binding="weixinid:o4xvUviTxj2HbRqbQb9W2nMl4fGg" 
             string binding = DomUtil.GetAttr(root, "binding");

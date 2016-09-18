@@ -1,0 +1,49 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_LayoutManager.cshtml";
+}
+
+@section style {
+    <style>
+
+
+    </style>
+}
+
+@section Scripts {
+<script type="text/javascript">
+    $(document).ready(function () {
+        //$("#loading").show();//显示loading
+
+        // setTimeout("$('#loading').hide();", 5000);//隐藏loading
+
+
+        //var ajaxbg = $("#mask-background,#mask-progressBar");
+          //  ajaxbg.show();
+
+        // 打回车检索
+        $('#mask-background').bind('click', function (event) {
+            hideMaskLayer();
+        });
+    });
+
+
+
+</script>
+}
+
+
+
+
+
+<body>
+
+    <!--<div id="loading" ></div>-->
+
+    <div id="mask-background"  style="display: none; "></div>
+    <div id="mask-progressBar"  style="display: none; ">数据处理中，请稍候...</div>
+
+    <button onclick="showMaskLayer()">显示图层</button>
+    <button onclick="hideMaskLayer()">关闭图层</button>
+</body>
+

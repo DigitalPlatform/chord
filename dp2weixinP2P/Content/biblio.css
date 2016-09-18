@@ -9,11 +9,15 @@
         TABLE.result-biblio {   
             padding:0px;
             margin:0px;
+
+            width:100%;
+            table-layout:fixed;
         }
 
         TABLE.result-biblio td{   
             padding:0px;
             margin:0px;
+
         }
 
     /*信息行*/

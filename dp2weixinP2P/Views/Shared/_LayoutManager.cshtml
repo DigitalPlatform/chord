@@ -5,15 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>我爱图书馆-后台管理系统</title>
     <!--CSS -->
-    <link href="@Url.Content("~/Content/mui.min.css")" rel="stylesheet">
-    <link href="@Url.Content("~/Content/style.css")" rel="stylesheet" type="text/css" />
-    <link href="@Url.Content("~/Content/layer.m.css")" type="text/css" rel="stylesheet" />
-    <script src="@Url.Content("~/Scripts/layer.js")"></script>
+    <link href="@Url.Content("~/Content/mui.min.css?test=3")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/style.css?a=9")" rel="stylesheet" type="text/css" />
     <link href="@Url.Content("~/Content/jquery-ui.css")" rel="stylesheet">
     <script src='@Url.Content("~/Scripts/jquery-3.1.0.js")'></script>
     <script src='@Url.Content("~/Scripts/jquery-ui-1.12.0.js")'></script>
     <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/Scripts/weixin.js?test=1.1")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/weixin.js?test=1.8")"></script>
     @RenderSection("style", required: false)
     @RenderSection("scripts", required: false)
     @RenderSection("HeaderContent", false)
@@ -70,6 +68,9 @@
             <div class="bt-name">UI demo</div>
             <div class="new-sub">
                 <ul>
+                    <li>
+                        <a href="~/UI/Loading">加载</a>
+                    </li>
                         <li>
                             <a href="~/UI/PersonalInfo">我的信息</a>
                         </li>

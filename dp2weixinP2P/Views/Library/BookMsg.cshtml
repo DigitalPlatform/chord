@@ -31,7 +31,8 @@
             }
 
             //显示等待图层
-            var index = loadLayer();
+            //var index = loadLayer();
+            showMaskLayer();
 
             var url = "/api/LibMessage?libId=" + libId
                 + "&group=" + encodeURIComponent("gn:_lib_book")
@@ -40,7 +41,8 @@
             sendAjaxRequest(url, "DELETE", function (result) {
 
                 // 关闭等待层
-                layer.close(index);
+                //layer.close(index);
+                hideMaskLayer();
 
                 if (result.errorCode == -1) {
                     alert("操作失败：" + result.errorInfo);
@@ -67,7 +69,13 @@
                 }
 
             }, function (xhq, textStatus, errorThrown) {
+
+                //关闭图层
+                hideMaskLayer();
+
                 alert(errorThrown);
+
+
             });
         }
 

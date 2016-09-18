@@ -36,12 +36,9 @@
             $(window).scroll(function () {
 
                 if ($("#more") != null && $("#more").offset() !=null ) {
-
                     var show = $('#more').css('display');
                     if (show == "none")
                         return;
-
-
 
                     var itemOffsetTop = $("#more").offset().top;
                     var itemOuterHeight = $("#more").outerHeight(true);
@@ -185,8 +182,12 @@
             // 调检索接口
             //显示等待图层
             var index = -1;
-            if (bNext != 'true')
-                index= loadLayer();
+            if (bNext != 'true') {
+                //index= loadLayer();
+                //showMaskLayer();
+                showLoading();
+
+            }
 
             // 调Search api
             var url = "/api/biblio?weixinId=" + encodeURIComponent(weixinId)
@@ -203,7 +204,9 @@
                     //alert("回来");
 
                     // 关闭等待层
-                    layer.close(index);
+                    //layer.close(index);
+                    //hideMaskLayer();
+                    hideLoading();
 
                     //alert("2");
                     if (result.apiResult.errorCode == -1) {
@@ -238,7 +241,7 @@
                         var li = "<li class='mui-table-view-cell mui-collapse' id='" + id + "'> "
                             + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\"" + id + "\")' style='padding-top:5px;padding-bottom:5px'>"
                             +"<table width='100%' class='result-biblio'>"
-                        + "<tr><td style='width:18px;min-width:18px'>" + record.no + "</td><td>" + record.name + "</td></tr>"
+                        + "<tr><td style='width:18px;min-width:18px'>" + record.no + "</td><td style='padding-right:10px'><div style='width:100%; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; ' >" + record.name + "</div></td></tr>"
                         + "<tr><td >&nbsp;</td><td style='color:#cccccc'>" + record.recPath + "</td></tr>"
                         +"</table>"
                         +"</a>"
@@ -288,14 +291,16 @@
                         $('html, body').animate({ scrollTopk: winScrollTop + 60 }, 'medium');
                     }
 
-                    // 关闭等待层
-                    //layer.close(index);
 
                 }, function (xhq, textStatus, errorThrown) {
 
-                    alert(errorThrown);
                     // 关闭等待层
-                    layer.close(index);
+                    //layer.close(index);
+                    //hideMaskLayer();                    
+                    hideLoading();
+
+                    alert(errorThrown);
+
                 });
         }
 
@@ -352,7 +357,7 @@
 
         //必须要换一个名称，被下一页使用，直接用search("true")不行
         function searchN() {
-            search("true");
+            search("true"); 
         }
 
 
@@ -399,6 +404,7 @@
 <input id="maxNo" type="hidden">
 <input id="resultSet" type="hidden" value="" disabled="disabled">
 <input id="expandId" type="hidden" value="" disabled="disabled">
+
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
     <div class="mui-content-padded">
