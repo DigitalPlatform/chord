@@ -66,7 +66,7 @@ namespace dp2weixin.service
 
 
         // 日志级别
-        public int LogLevel = 2;
+        public int LogLevel = 1;
 
         // 微信数据目录
         public string weiXinDataDir = "";
@@ -2769,15 +2769,24 @@ namespace dp2weixin.service
                 //给图书馆发通知
                 foreach(LibEntity lib in warningLibs)
                 {
+                    this.WriteLog2("准备发送 "+lib.libName+" 不在线通知");
+
                     // 数据平台工作人员 weixinid
                     List<WxUserItem> dp2003Workers = this.GetDp2003WorkerWeixinIds();
+                    WriteLog2("找到 "+dp2003Workers.Count.ToString()+" 位数字平台工作人员");
+
 
                     // 图书馆工作人员 weixinid
                     List<WxUserItem> libWorkers = this.getWarningWorkerWeixinIds(lib);
+                    WriteLog2("找到 " + libWorkers.Count.ToString() + " 位图书馆 " + lib.libName + " 工作人员");
+
 
                     // 当工作人员与数字平台都没有 可收警告的工作人员，则不再发送通知
                     if (libWorkers.Count == 0 && dp2003Workers.Count == 0)
+                    {
+                        this.WriteLog2("没有可接收到工作人员");
                         continue;
+                    }
 
                     //{{first.DATA}}
                     //标题：{{keyword1.DATA}}
@@ -2820,6 +2829,9 @@ namespace dp2weixin.service
                             WriteErrorLog1("给工作人员 "+worker.userName+" 发送图书馆不在线通知出错："+strError);
                             continue;  //goto ERROR1;                            
                         }
+
+                        WriteLog2("给图书馆工作人员 " + worker.userName + " 发送图书馆 " + lib.libName + " 不在线通知完成");
+
                     }
 
                     // 给数字平台工作人员发通知
@@ -2840,6 +2852,8 @@ namespace dp2weixin.service
                             WriteErrorLog1(strError);
                             continue;  //goto ERROR1;                            
                         }
+
+                        WriteLog2("给数字平台工作人员 " + worker.userName + " 发送图书馆 " + lib.libName + " 不在线通知完成");
                     }
 
                     // 加到内存中
