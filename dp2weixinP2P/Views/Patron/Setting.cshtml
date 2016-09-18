@@ -25,7 +25,8 @@
             //alert("photo=["+showPhoto+"] cover=["+showCover+"]");
 
             //显示等待图层
-            var index = loadLayer();
+            //var index = loadLayer();
+            showMaskLayer();
 
             // setting()
             var url = "/api/wxuser?weixinId=" + weixinId;
@@ -35,7 +36,8 @@
                     //cbBlur();
 
                     // 关闭等待层
-                    layer.close(index);
+                    //layer.close(index);
+                    hideMaskLayer();
 
                     if (result.errorCode == -1) {
                         alert(result.errorInfo);
@@ -70,9 +72,13 @@
                     }
                 },
                 function (xhq, textStatus, errorThrown) {
-                    alert(errorThrown);
+
                     // 关闭等待层
-                    layer.close(index);
+                    //layer.close(index);
+                    hideMaskLayer();
+
+                    alert(errorThrown);
+
                 },
                 {
                     weixinId: weixinId,

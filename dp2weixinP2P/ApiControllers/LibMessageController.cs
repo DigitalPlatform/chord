@@ -256,11 +256,19 @@ namespace dp2weixinWeb.ApiControllers
         [HttpDelete]
         public WxMessageResult Delete(string group, string libId, string msgId,string userName)
         {
-            MessageItem item = new MessageItem();
-            item.id = msgId;
-            item.creator = userName;
-            //style == delete
-            return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "delete","");
+            WxMessageResult result = null;
+            string[] ids = msgId.Split(new char[] { ','});
+            foreach (string id in ids)
+            {
+                MessageItem item = new MessageItem();
+                item.id = id;
+                item.creator = userName;
+                //style == delete
+                result = dp2WeiXinService.Instance.CoverMessage(group, libId, item, "delete", "");
+                if (result.errorCode == -1)
+                    return result;
+            }
+            return result;
         }
     }
 }

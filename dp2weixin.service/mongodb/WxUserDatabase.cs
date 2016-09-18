@@ -378,6 +378,7 @@ namespace dp2weixin.service
                 // 2016-8-26 jane 加
                 .Set("state", item.state)
                 .Set("remark", item.remark)
+                .Set("rights", item.rights)
                 ;
 
             UpdateResult ret = this.wxUserCollection.UpdateOne(filter, update);
