@@ -1,19 +1,6 @@
 ﻿@model dp2weixinWeb.Models.BookEditModel
 @section Scripts {
     <script>
-        // 绑定方式变化，账号提示信息跟着变化
-        function prefixChange() {
-            var curText = $('#selPrefix option:checked').text();
-            if (curText == "请选择 绑定方式")
-                curText = "账号";
-
-            if (curText == "工作人员账户")
-                curText = "账户名";
-
-            $('#account').prop("placeholder", "请输入 " + curText);
-            $('#lblAccount').html(curText)
-        }
-
 
         function submitForm()
         {

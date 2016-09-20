@@ -1,5 +1,5 @@
-﻿@section style {
-    <link href="@Url.Content("~/Content/biblio.css?a=7")" rel="stylesheet">
+﻿        @section style {
+    <link href="@Url.Content("~/Content/biblio.css?a=8")" rel="stylesheet">
 }
 @section Scripts {
     <script>
@@ -235,13 +235,21 @@
                     if (bNext == 'true') {
                         start = parseInt($("#maxNo").val());
                     }
+
+                    var noWidth = '18px';
+
+
                     for (var i = 0; i < result.records.length; i++) {
                         var record = result.records[i];
                         var id = "record-" + (start + i);
+
+                        if (start + i >= 99)
+                            noWidth = "25px";
+
                         var li = "<li class='mui-table-view-cell mui-collapse' id='" + id + "'> "
                             + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\"" + id + "\")' style='padding-top:5px;padding-bottom:5px'>"
                             +"<table width='100%' class='result-biblio'>"
-                        + "<tr><td style='width:18px;min-width:18px'>" + record.no + "</td><td style='padding-right:10px'><div style='width:100%; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; ' >" + record.name + "</div></td></tr>"
+                        + "<tr><td style='width:"+noWidth+";min-width:18px'>" + record.no + "</td><td style='padding-right:10px'><div style='width:100%; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; ' >" + record.name + "</div></td></tr>"
                         + "<tr><td >&nbsp;</td><td style='color:#cccccc'>" + record.recPath + "</td></tr>"
                         +"</table>"
                         +"</a>"
@@ -286,6 +294,12 @@
                     {
                         $("#wait").css("display", "none");
 
+
+                        //var maxno = parseInt($("#maxNo").val());
+                        //if (maxno > 100) {
+                        //    $(".no").css("width", "25");
+                        //    //alert("maxno=" + maxno)
+                        //}
 
                         var winScrollTop = $(window).scrollTop();
                         $('html, body').animate({ scrollTopk: winScrollTop + 60 }, 'medium');

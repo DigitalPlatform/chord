@@ -661,19 +661,20 @@ function deleteMsg(msgId) {
     if (ids.indexOf(",") != -1) {
         mutiple = true;
         msgId = ids;
-        alert(msgId);
-        //return;
+        //alert(msgId);
     }
 
     var group = $("#_group").text();
     if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
         alert("异常情况：group参数值不正确[" + group + "]。");
         return;
     }
+
+    var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
     var confirmInfo = "";
+    var delCount =getSelectedMsgCount();
     if (mutiple == false) {
-        var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
         var title = $(divId).find(".title").html();
         var confirmInfo = "你确定要删除该项吗?";
         if (title != null && title != "") {
@@ -682,7 +683,7 @@ function deleteMsg(msgId) {
     }
     else
     {
-        confirmInfo = "你确认要删除所选定的 "+getSelectedMsgCount()+" 个事项？";
+        confirmInfo = "你确认要删除所选定的 "+delCount+" 个事项？";
     }
 
     var gnl = confirm(confirmInfo);
@@ -722,24 +723,47 @@ function deleteMsg(msgId) {
 
         alert("删除成功");
 
+        // 处理界面显示
+        var subjectDiv = $(divId).parent();// 找到父亲
+        
+
         if (mutiple == true) {
-            //多项删除时，直接重新加载页面
-            window.location.reload();
+
+            var msgCount = $(subjectDiv).children(".message").length;
+            //alert("msgcount=" + msgCount);
+            if (msgCount == delCount && group == "gn:_lib_book")
+            {
+                var url = "/Library/BookSubject?libId=" + libId;
+                gotoUrl(url);
+            }
+            else
+            {
+                //多项删除时，直接重新加载页面
+                window.location.reload();
+            }
+
             return;
         }
         else {
-            // 删除界面        
-            var subjectDiv = $(divId).parent();// 找到父亲        
+
             $(divId).remove();// 删除自己;
-            if (group == "gn:_lib_homePage") {
-                // 如果父亲下级没有message，父亲也删除
-                if ($(subjectDiv).children(".message").length == 0) {
+
+            // 没有同级兄弟时
+            if ($(subjectDiv).children(".message").length == 0) {
+
+                if (group == "gn:_lib_homePage") {
                     // 移除栏目div
                     subjectDiv.remove();
                     // 置空subject,再打开编辑界面时，会重刷subject列表
                     model.subjectHtml("");
                 }
+                else if (group == "gn:_lib_book") {
+                    var url = "/Library/BookSubject?libId=" + libId;
+                    gotoUrl(url);
+                }
             }
+
+
         }
 
     }, function (xhq, textStatus, errorThrown) {

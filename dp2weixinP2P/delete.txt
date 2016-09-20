@@ -1,4 +1,80 @@
-﻿// 删除msg
+﻿bookmsg页面
+        function deleteMsg(msgId)
+        {
+            //alert(msgId);
+
+            var titleDiv = "#title-" + msgId;
+            var title = $(titleDiv).html();
+
+            var gnl = confirm("你确定要删除公告[" + title + "]吗?");
+            if (gnl == false) {
+                return false;
+            }
+
+            var libId = $("#libId").text();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            var userName = $("#_userName").text();
+            if (userName == "") {
+                alert("异常情况：userName为空。");
+                return;
+            }
+
+            //显示等待图层
+            //var index = loadLayer();
+            showMaskLayer();
+
+            var url = "/api/LibMessage?libId=" + libId
+                + "&group=" + encodeURIComponent("gn:_lib_book")
+                + "&msgId=" + msgId
+            + "&userName=" + userName
+            sendAjaxRequest(url, "DELETE", function (result) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideMaskLayer();
+
+                if (result.errorCode == -1) {
+                    alert("操作失败：" + result.errorInfo);
+                    return;
+                }
+
+                alert("删除成功");
+
+                // edit div id
+                var divEditId = "#_edit_" + msgId;
+
+                // 先找到父亲，方便后面查看有没有下级message
+                var msgParent = $(divEditId).parent();
+
+                // 删除当前msg
+                $(divEditId).remove();
+
+                // 2016-8-13 jane 如果全部删除了，转到subject页面
+                //alert(msgId);
+                if ($(msgParent).children(".message").length == 0) {
+                    //alert("没有下级了");
+                    var url = "/Library/BookSubject?libId=" + libId;// + "&userName=" + userName;
+                    gotoUrl(url);
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                //关闭图层
+                hideMaskLayer();
+
+                alert(errorThrown);
+
+
+            });
+        }
+
+
+===========================
+// 删除msg
 function deleteMsg(msgId) {
     //alert(msgId);
 
