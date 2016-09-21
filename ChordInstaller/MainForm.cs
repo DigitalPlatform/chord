@@ -1446,59 +1446,105 @@ MessageBoxDefaultButton.Button1);
                 // 复制错误日志文件和其他重要文件
                 List<string> dates = MakeDates(strRangeName); // "最近31天""最近十年""最近七天"
 
-                // *** dp2Capo 各个 instance
-                string strExePath = ServiceUtil.GetPathOfService("dp2CapoService");
-                strExePath = StringUtil.Unquote(strExePath, "\"\"");
+                string[] service_names = new string[] {
+                    "dp2CapoService",
+                    "dp2RouterService",
+                    "dp2MessageService"
+                };
+                string[] dir_names = new string[] { 
+                "dp2capo",
+                "dp2router",
+                "dp2mserver"};
+                string[] xml_filenames = new string[] { 
+                "capo.xml",
+                "config.xml",
+                "config.xml"
+                };
 
-                if (string.IsNullOrEmpty(strExePath) == false)
+                for (int s = 0; s < service_names.Length; s++)
                 {
+                    string service_name = service_names[s];
+                    string dir_name = dir_names[s];
+                    string xml_filename = xml_filenames[s];
 
-                    string strCapoTempDir = Path.Combine(strTempDir, "dp2capo");
-                    PathUtil.DeleteDirectory(strCapoTempDir);
-                    PathUtil.CreateDirIfNeed(strCapoTempDir);
+                    // *** dp2Capo 各个 instance
+                    string strExePath = ServiceUtil.GetPathOfService(service_name);
+                    strExePath = StringUtil.Unquote(strExePath, "\"\"");
 
-                    List<string> data_dirs = InstallDialog.GetInstanceDataDirByBinDir(Path.GetDirectoryName(strExePath));
-
-                    int i = 0;
-                    foreach (string data_dir in data_dirs)
+                    if (string.IsNullOrEmpty(strExePath) == false)
                     {
-                        string strInstanceDir = strCapoTempDir;
-                        string strInstanceName = (i + 1).ToString();
-                        if (string.IsNullOrEmpty(strInstanceName) == false)
+                        string strCapoTempDir = Path.Combine(strTempDir, dir_name); // "dp2capo"
+                        PathUtil.DeleteDirectory(strCapoTempDir);
+                        PathUtil.CreateDirIfNeed(strCapoTempDir);
+
+                        List<string> data_dirs = null;
+
+                        if (service_name == "dp2CapoService")
+                            data_dirs = dp2Capo.Install.InstallDialog.GetInstanceDataDirByBinDir(Path.GetDirectoryName(strExePath));
+                        else if (service_name == "dp2RouterService")
                         {
-                            strInstanceDir = Path.Combine(strCapoTempDir, "instance_" + strInstanceName);
-                            PathUtil.CreateDirIfNeed(strInstanceDir);
+                            string strSettingFileName = Path.Combine(Path.GetDirectoryName(strExePath), "settings.xml");
+                            string strDataDir = GetRouterDataDir(strSettingFileName);
+                            data_dirs = new List<string>() {strDataDir};
+                        }
+                        else if (service_name == "dp2MessageService")
+                        {
+                            string strSettingFileName = Path.Combine(Path.GetDirectoryName(strExePath), "settings.xml");
+                            string strDataDir = GetMServerDataDir(strSettingFileName);
+                            data_dirs = new List<string>() {strDataDir};
+                        }
+                        else
+                        {
+                            Debug.Assert(false, "");
+                            strError = "未知的 service_name '"+service_name+"'";
+                            return -1;
                         }
 
-                        // 复制 capo.xml
+                        int i = 0;
+                        foreach (string data_dir in data_dirs)
                         {
-                            string strFilePath = Path.Combine(data_dir, "capo.xml");
-                            string strTargetFilePath = Path.Combine(strInstanceDir, "capo.xml");
-                            if (File.Exists(strFilePath) == true)
+                            string strInstanceDir = strCapoTempDir;
+                            string strInstanceName = "";
+                            if (service_name == "dp2CapoService")
+                                strInstanceName = (i + 1).ToString();
+
+                            if (string.IsNullOrEmpty(strInstanceName) == false)
                             {
-                                File.Copy(strFilePath,
-                                    strTargetFilePath);
+                                strInstanceDir = Path.Combine(strCapoTempDir, "instance_" + strInstanceName);
+                                PathUtil.CreateDirIfNeed(strInstanceDir);
+                            }
+
+                            // 复制 capo.xml
+                            {
+                                string strFilePath = Path.Combine(data_dir, xml_filename);
+                                string strTargetFilePath = Path.Combine(strInstanceDir, xml_filename);
+                                if (File.Exists(strFilePath) == true)
+                                {
+                                    File.Copy(strFilePath,
+                                        strTargetFilePath);
+                                    filenames.Add(strTargetFilePath);
+                                }
+                            }
+
+                            foreach (string date in dates)
+                            {
+                                _cancel.Token.ThrowIfCancellationRequested();
+
+                                string strFilePath = Path.Combine(data_dir, "log/log_" + date + ".txt");
+                                if (File.Exists(strFilePath) == false)
+                                    continue;
+                                string strTargetFilePath = Path.Combine(strInstanceDir, "log_" + date + ".txt");
+
+                                this._floatingMessage.Text = ("正在复制文件 " + strFilePath);
+
+                                File.Copy(strFilePath, strTargetFilePath);
                                 filenames.Add(strTargetFilePath);
                             }
+
+                            i++;    // 2016/9/15
                         }
-
-                        foreach (string date in dates)
-                        {
-                            _cancel.Token.ThrowIfCancellationRequested();
-
-                            string strFilePath = Path.Combine(data_dir, "log/log_" + date + ".txt");
-                            if (File.Exists(strFilePath) == false)
-                                continue;
-                            string strTargetFilePath = Path.Combine(strInstanceDir, "log_" + date + ".txt");
-
-                            this._floatingMessage.Text = ("正在复制文件 " + strFilePath);
-
-                            File.Copy(strFilePath, strTargetFilePath);
-                            filenames.Add(strTargetFilePath);
-                        }
-
-                        i++;    // 2016/9/15
                     }
+
                 }
 
                 if (filenames.Count == 0)
@@ -1576,6 +1622,8 @@ MessageBoxDefaultButton.Button1);
                 if (string.IsNullOrEmpty(strTempDir) == false)
                 {
                     PathUtil.DeleteDirectory(Path.Combine(strTempDir, "dp2capo"));
+                    PathUtil.DeleteDirectory(Path.Combine(strTempDir, "dp2router"));
+                    PathUtil.DeleteDirectory(Path.Combine(strTempDir, "dp2mserver"));
                 }
             }
 
@@ -2117,8 +2165,9 @@ MessageBoxDefaultButton.Button1);
             string strProgramDir = Path.GetDirectoryName(strExePath);
 
             string strSettingFileName = Path.Combine(strProgramDir, "settings.xml");
-            ConfigSetting config = new ConfigSetting(strSettingFileName, false);
-            string strDataDir = config.Get("default", "data_dir", "c:\\router_data");
+            //ConfigSetting config = new ConfigSetting(strSettingFileName, false);
+            //string strDataDir = config.Get("default", "data_dir", "c:\\router_data");
+            string strDataDir = GetRouterDataDir(strSettingFileName);
 
             try
             {
@@ -2157,6 +2206,18 @@ MessageBoxDefaultButton.Button1);
             return;
         ERROR1:
             MessageBox.Show(this, strError);
+        }
+
+        static string GetRouterDataDir(string strSettingFileName)
+        {
+            ConfigSetting config = new ConfigSetting(strSettingFileName, false);
+            return config.Get("default", "data_dir", "c:\\router_data");
+        }
+
+        static string GetMServerDataDir(string strSettingFileName)
+        {
+            ConfigSetting config = new ConfigSetting(strSettingFileName, false);
+            return config.Get("default", "data_dir", "c:\\mserver_data");
         }
 
         // dp2Router 配置实例
@@ -2204,9 +2265,9 @@ MessageBoxDefaultButton.Button1);
                 }
                 string strProgramDir = Path.GetDirectoryName(strExePath);
                 string strSettingFileName = Path.Combine(strProgramDir, "settings.xml");
-                ConfigSetting config = new ConfigSetting(strSettingFileName, false);
-                string strDataDir = config.Get("default", "data_dir", "c:\\router_data");
-
+                //ConfigSetting config = new ConfigSetting(strSettingFileName, false);
+                //string strDataDir = config.Get("default", "data_dir", "c:\\router_data");
+                string strDataDir = GetRouterDataDir(strSettingFileName);
                 try
                 {
                     dp2Router.Install.InstanceDialog dlg = new dp2Router.Install.InstanceDialog();
