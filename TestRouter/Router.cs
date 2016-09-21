@@ -57,7 +57,7 @@ namespace TestRouter
 
         public void Stop()
         {
-            this.StopThread(false);
+            this.StopThread(true);
         }
 
         void _channels_Login(object sender, LoginEventArgs e)
