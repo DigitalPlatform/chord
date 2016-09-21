@@ -207,7 +207,7 @@ namespace DigitalPlatform.MessageServer
         {
             _cancel.Cancel();
 
-            BackThread.StopThread(false);
+            BackThread.StopThread(true);    // 强制停止
             BackThread.Dispose();
 
             SearchTable.Exit();

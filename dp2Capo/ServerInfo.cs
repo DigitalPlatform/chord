@@ -85,7 +85,7 @@ namespace dp2Capo
         // 准备退出
         public static void Exit()
         {
-            _defaultThread.StopThread(false);
+            _defaultThread.StopThread(true);    // 强制退出
             _defaultThread.Dispose();
 
             // 保存配置

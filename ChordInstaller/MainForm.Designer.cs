@@ -70,14 +70,6 @@
             this.MenuItem_dp2Router_uninstallService = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator12 = new System.Windows.Forms.ToolStripSeparator();
             this.MenuItem_dp2Router_uninstall = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuItem_help = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuItem_openUserFolder = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuItem_openDataFolder = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuItem_openProgramFolder = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-            this.MenuItem_copyright = new System.Windows.Forms.ToolStripMenuItem();
-            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.MenuItem_dp2MServer = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuItem_dp2MServer_install = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuItem_dp2MServer_upgrade = new System.Windows.Forms.ToolStripMenuItem();
@@ -95,6 +87,14 @@
             this.toolStripMenuItem11 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator18 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripMenuItem12 = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_help = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_openUserFolder = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_openDataFolder = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_openProgramFolder = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.MenuItem_copyright = new System.Windows.Forms.ToolStripMenuItem();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -412,69 +412,6 @@
             this.MenuItem_dp2Router_uninstall.Text = "卸载 dp2Router";
             this.MenuItem_dp2Router_uninstall.Click += new System.EventHandler(this.MenuItem_dp2Router_uninstall_Click);
             // 
-            // MenuItem_help
-            // 
-            this.MenuItem_help.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.MenuItem_openUserFolder,
-            this.MenuItem_openDataFolder,
-            this.MenuItem_openProgramFolder,
-            this.toolStripSeparator3,
-            this.MenuItem_copyright});
-            this.MenuItem_help.Name = "MenuItem_help";
-            this.MenuItem_help.Size = new System.Drawing.Size(61, 21);
-            this.MenuItem_help.Text = "帮助(&H)";
-            // 
-            // MenuItem_openUserFolder
-            // 
-            this.MenuItem_openUserFolder.Name = "MenuItem_openUserFolder";
-            this.MenuItem_openUserFolder.Size = new System.Drawing.Size(265, 22);
-            this.MenuItem_openUserFolder.Text = "打开 chordInstaller 用户文件夹(&U)";
-            this.MenuItem_openUserFolder.Click += new System.EventHandler(this.MenuItem_openUserFolder_Click);
-            // 
-            // MenuItem_openDataFolder
-            // 
-            this.MenuItem_openDataFolder.Name = "MenuItem_openDataFolder";
-            this.MenuItem_openDataFolder.Size = new System.Drawing.Size(265, 22);
-            this.MenuItem_openDataFolder.Text = "打开 chordInstaller 数据文件夹(&D)";
-            this.MenuItem_openDataFolder.Click += new System.EventHandler(this.MenuItem_openDataFolder_Click);
-            // 
-            // MenuItem_openProgramFolder
-            // 
-            this.MenuItem_openProgramFolder.Name = "MenuItem_openProgramFolder";
-            this.MenuItem_openProgramFolder.Size = new System.Drawing.Size(265, 22);
-            this.MenuItem_openProgramFolder.Text = "打开 chordInstaller 程序文件夹(&P)";
-            this.MenuItem_openProgramFolder.Click += new System.EventHandler(this.MenuItem_openProgramFolder_Click);
-            // 
-            // toolStripSeparator3
-            // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(262, 6);
-            this.toolStripSeparator3.Visible = false;
-            // 
-            // MenuItem_copyright
-            // 
-            this.MenuItem_copyright.Name = "MenuItem_copyright";
-            this.MenuItem_copyright.Size = new System.Drawing.Size(265, 22);
-            this.MenuItem_copyright.Text = "版权(&C)...";
-            this.MenuItem_copyright.Visible = false;
-            // 
-            // statusStrip1
-            // 
-            this.statusStrip1.Location = new System.Drawing.Point(0, 282);
-            this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(553, 22);
-            this.statusStrip1.TabIndex = 1;
-            this.statusStrip1.Text = "statusStrip1";
-            // 
-            // webBrowser1
-            // 
-            this.webBrowser1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.webBrowser1.Location = new System.Drawing.Point(0, 25);
-            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
-            this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(553, 257);
-            this.webBrowser1.TabIndex = 2;
-            // 
             // MenuItem_dp2MServer
             // 
             this.MenuItem_dp2MServer.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -596,6 +533,69 @@
             this.toolStripMenuItem12.Size = new System.Drawing.Size(202, 22);
             this.toolStripMenuItem12.Text = "卸载 dp2MServer";
             // 
+            // MenuItem_help
+            // 
+            this.MenuItem_help.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.MenuItem_openUserFolder,
+            this.MenuItem_openDataFolder,
+            this.MenuItem_openProgramFolder,
+            this.toolStripSeparator3,
+            this.MenuItem_copyright});
+            this.MenuItem_help.Name = "MenuItem_help";
+            this.MenuItem_help.Size = new System.Drawing.Size(61, 21);
+            this.MenuItem_help.Text = "帮助(&H)";
+            // 
+            // MenuItem_openUserFolder
+            // 
+            this.MenuItem_openUserFolder.Name = "MenuItem_openUserFolder";
+            this.MenuItem_openUserFolder.Size = new System.Drawing.Size(265, 22);
+            this.MenuItem_openUserFolder.Text = "打开 chordInstaller 用户文件夹(&U)";
+            this.MenuItem_openUserFolder.Click += new System.EventHandler(this.MenuItem_openUserFolder_Click);
+            // 
+            // MenuItem_openDataFolder
+            // 
+            this.MenuItem_openDataFolder.Name = "MenuItem_openDataFolder";
+            this.MenuItem_openDataFolder.Size = new System.Drawing.Size(265, 22);
+            this.MenuItem_openDataFolder.Text = "打开 chordInstaller 数据文件夹(&D)";
+            this.MenuItem_openDataFolder.Click += new System.EventHandler(this.MenuItem_openDataFolder_Click);
+            // 
+            // MenuItem_openProgramFolder
+            // 
+            this.MenuItem_openProgramFolder.Name = "MenuItem_openProgramFolder";
+            this.MenuItem_openProgramFolder.Size = new System.Drawing.Size(265, 22);
+            this.MenuItem_openProgramFolder.Text = "打开 chordInstaller 程序文件夹(&P)";
+            this.MenuItem_openProgramFolder.Click += new System.EventHandler(this.MenuItem_openProgramFolder_Click);
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(262, 6);
+            this.toolStripSeparator3.Visible = false;
+            // 
+            // MenuItem_copyright
+            // 
+            this.MenuItem_copyright.Name = "MenuItem_copyright";
+            this.MenuItem_copyright.Size = new System.Drawing.Size(265, 22);
+            this.MenuItem_copyright.Text = "版权(&C)...";
+            this.MenuItem_copyright.Visible = false;
+            // 
+            // statusStrip1
+            // 
+            this.statusStrip1.Location = new System.Drawing.Point(0, 282);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(553, 22);
+            this.statusStrip1.TabIndex = 1;
+            this.statusStrip1.Text = "statusStrip1";
+            // 
+            // webBrowser1
+            // 
+            this.webBrowser1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.webBrowser1.Location = new System.Drawing.Point(0, 25);
+            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
+            this.webBrowser1.Name = "webBrowser1";
+            this.webBrowser1.Size = new System.Drawing.Size(553, 257);
+            this.webBrowser1.TabIndex = 2;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -607,7 +607,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.ShowIcon = false;
-            this.Text = "Chord 安装工具";
+            this.Text = "ChordInstaller -- Chord 安装工具";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
