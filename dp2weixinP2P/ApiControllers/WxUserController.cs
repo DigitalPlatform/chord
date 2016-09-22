@@ -17,7 +17,7 @@ namespace dp2weixinWeb.ApiControllers
         public WxUserResult Get()
         {
             WxUserResult result = new WxUserResult();
-            List<WxUserItem> list = wxUserDb.Get(null,null,null,-1,false);//.GetUsers();
+            List<WxUserItem> list = wxUserDb.Get(null,null,-1,null,null,false);//.GetUsers();
             result.users = list;
             return result;
         }
