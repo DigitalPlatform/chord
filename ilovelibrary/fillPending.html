@@ -1,0 +1,185 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <script src="/Scripts/jquery-1.9.1.js"></script>
+    <script src="/Scripts/layer.js"></script>
+    <script src="/Scripts/layer.ext.js"></script>
+    <link href="/skin/layer.css" type="text/css" rel="stylesheet" />
+    <style type="text/css">
+        /*所有需要后面填充内容的元素样式*/
+        .pending {
+            /*设为背景图影响效果太大了，还是元素里面加个img吧*/
+            /*background-image:url("img/wait.gif");*/
+        }
+
+
+
+    </style>
+
+    <script>
+
+        // 万能函数，给样式为pending的元素填充内容
+        function fillPending() {
+
+            // 选取第一个样式为pending的元素
+            var o = $(".pending:first");
+            if (o.length == 0) {
+                // 没有pending类型元素则返回
+                return;
+            }
+
+            // 找到下级的标签，里面存储的线索
+            var mylable = o.children("label");
+            // 如果没有定义标签label，则去掉pending状态，继续下一个pending
+            if (mylable.length == 0) {
+                o.removeClass("pending");
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
+
+            // 取出label设置的线索信息
+            var keyword = mylable.text();
+            // 未给label设值，去掉pending状态，继续下一个pending
+            if (keyword.length == 0) {
+                o.removeClass("pending");
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
+
+            // bs-为书目summary，rs-为读者summary
+            // 线索信息不足，去掉pending状态，继续下一个pending
+            if (keyword.length <= 3) {
+                o.removeClass("pending");
+                window.setTimeout("fillPending()", 1);
+                return;
+            }
+
+            // 取出线索类型和值
+            var mytype = keyword.substring(0, 3);
+            var myvalue = keyword.substring(3);
+            //alert("type["+mytype + "]-value["+myvalue+"]");
+
+            var mycontent = "";
+            if (mytype == "bs-")
+            {
+                //调书目摘要api
+                mycontent = "这是图书[" +myvalue+ "]的摘要。";
+            }
+            else if (mytype == "rs-")
+            {
+                //调读者摘要api
+                mycontent = "这是读者[" + myvalue + "]的摘要。";
+            }
+
+            //换成实际的值，去掉pending状态，继续下一个pending
+            o.html(mycontent);
+            o.removeClass("pending");
+            window.setTimeout("fillPending()", 1);
+            
+            return;
+        }
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行
+        $(document).ready(function () {
+
+             // 给装载按钮绑click事件
+            $("#btnLoad").click(function () {
+                 //加载层
+                 layer.load(2, { shade: [0.6, '#dddddd'], time: 3000 })
+             });
+
+            // 给填充按钮绑click事件
+            $("#btnFill").click(function () {
+                 fillPending();
+             });
+
+        })
+
+
+        $(document).ready(function () {
+            $("#sample tr").click(function () {
+                //change the background color to red before removing
+                $(this).css("background-color", "#FF3700");
+                $(this).fadeOut(400, function () {
+                    $(this).remove();
+                });
+            });
+        });
+    
+    </script>
+</head>
+<body>
+
+
+    <table style="width:100%;background-color:red;table-layout:fixed;">
+        <tr>
+            <td valign="top" style="width:20%;background-color:yellow">C10 </td>
+            <td valign="top" style="width:80%;background-color:gray;" align="left" title="ilovelibary">
+                <div title="test" style="width: 100%; white-space:nowrap;overflow: hidden;text-overflow: ellipsis;">
+                    中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
+                </div>
+            </td>
+        </tr>
+    </table>
+
+
+
+
+    <br />
+    <br/>
+
+        <table border="1" cellspacing="0" summary="测试">
+            <thead>
+                <tr>
+                    <th class="col1"><strong>产品名称</strong></th>
+                    <th class="col2"><strong>产品介绍</strong></th>
+                    <th class="col3"><strong>产品备注</strong></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>神舟 优雅Q400N</td>
+                    <td>优雅Q400N，2007年7月上市，采用Intel Core2 Duo(Merom) T5450(1.66G)处理器</td>
+                    <td>迅驰4平台，突出的性价比，漂亮的外观</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <br />
+        <div style="width: 220px; height: 50px;">
+            <div style="width:100%;overflow:hidden; text-overflow:ellipsis" title="">
+                <nobr>就是比如有一行文字，很长，表格内一行显示不下就是比如有一行文字，很长，表格内一行显示不下就是比如有一行文字，很长，表格内一行显示不下就是比如有一行文字，很长，表格内一行显示不下就是比如有一行文字，很长，表格内一行显示不下就是比如有一行文字，很长，表格内一行显示不下</nobr>
+            </div>
+
+        </div>
+        <div style="width: 120px; height: 50px; border: 1px solid blue; overflow: hidden; text-overflow:ellipsis" title="test">
+            就是比如有一行文字，很长，表格内一行显示不下.
+        </div>
+
+        <div class="pending">
+            <label style="display:none">rs-R001</label>
+            <img src="img/wait2.gif" />
+        </div>
+        <div class="pending">
+            <label style="display:none">bs-C001</label>
+            <img src="img/wait2.gif" />
+        </div>
+        <p>
+            一段文字开始
+            <span class="pending">
+                <label style="display:none">bs-C002</label>
+                <img src="img/wait.gif" />
+            </span>
+            文字结束
+        </p>
+
+        <input id="btnFill" type="button" value="填充" />
+        <br />
+        <br />
+        <input id="btnLoad" type="button" value="测试 loading遮罩图层" />
+</body>
+</html>

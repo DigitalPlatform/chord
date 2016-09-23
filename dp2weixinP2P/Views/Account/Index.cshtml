@@ -1,0 +1,290 @@
+﻿@section Scripts {
+    <script>
+
+        //观察模型
+        var model = {
+            wxPatrons: ko.observableArray(),
+            wxWorkers: ko.observableArray(),
+        }
+
+
+        //用于所有微信用户
+        function getBindList(weixinId) {
+            //显示等待图层
+            //var index = loadLayer();
+            showLoading();
+
+            // 先删除可观察数组中的已有数据
+            model.wxPatrons.removeAll();
+            model.wxWorkers.removeAll();
+
+            // 调web api
+            var url = "/api/wxuser?weixinId=" + weixinId;
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideLoading();
+
+                if (result.errorCode == -1)
+                {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                if (result.users==null || result.users.length == 0)
+                    $("#divNoBind").css('display', 'block');
+                else
+                    $("#divNoBind").css('display', 'none');
+
+                for (var i = 0; i < result.users.length; i++) {
+
+                    var user = result.users[i];
+
+                    // 根据类型，放在不同的数组里
+                    if (user.type == 0)
+                        model.wxPatrons.push(user);
+                    else
+                        model.wxWorkers.push(user);
+                }
+
+
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideLoading();
+
+                alert(errorThrown);
+
+
+            });
+        }
+
+        // 删除一项
+        function removeUser(item) {
+
+            var name = item.readerName;
+            if (name == "")
+                name = item.userName;
+
+            var gnl = confirm("你确定要对账号[" + name + "]解除绑定吗?");
+            if (gnl == false) {
+                return false;
+            }
+
+            //显示等待图层
+            //var index = loadLayer();
+            showMaskLayer();
+
+            //alert("remove-"+item.libId);
+            var url = "/api/wxuser/" + item.id;
+            sendAjaxRequest(url, "DELETE", function (result) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideMaskLayer();
+
+                if (result.errorCode == -1) {
+                    alert("解绑出错："+result.errorInfo);
+                    return;
+                }
+
+                alert("解除[" + name + "]绑定成功。");
+
+                // 刷新绑定列表
+                getBindList(item.weixinId);
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideMaskLayer();
+
+                alert(errorThrown);
+            });
+        }
+
+        // 设为活动账户
+        function activeUser(item) {
+
+            var name = item.readerName;
+
+            // 调ActivePatron api
+            var url = "/api/wxuser?weixinId=" + item.weixinId + "&id=" + item.id;
+            sendAjaxRequest(url, "POST", function () {
+
+                // 因为有可能更新当前图书馆，所以reload保险，todo
+                //window.location.reload();
+
+                alert("成功设置["+name+"]为活动账户。");
+
+                gotoUrl("/Patron/PersonalInfo");//2016-8-30 读者绑完转到我的信息  /Library/Home
+
+            }, function (xhq, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+        }
+
+
+        // 跳转到新增绑定
+        function goToBind() {
+            var myUrl = getRootPath() + "/account/bind";
+            window.location = myUrl;
+        }
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 获取所有的操作命令
+            var weixinId = $("#weixinId").text();
+            getBindList(weixinId);
+
+            ko.applyBindings(model);
+        });
+
+
+
+    </script>
+}
+@section style {
+    <style>
+        .title {
+            /*上外边距是 10px 右外边距和左外边距是 5px 下外边距是 15px*/
+            margin: 10px 10px 0px;
+            color: #666666;
+        }
+
+        TABLE.accountTable {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+        }
+
+        TABLE.accountTable TR TD {
+            border-width: 0px;
+            /*border-top-width: 1px;
+                border-color: #dddddd;
+                border-style: dotted;*/
+            padding: 2px;
+        }
+
+        TABLE.accountTable TR TD.value {
+            border-left: 1px solid #CCCCCC;
+            padding-left: 5px;
+        }
+
+        TABLE.accountTable TR TD.label {
+            width: 70px;
+            /*background-color:#eeeeee;*/
+            color: #999999;
+            padding-left: 5px;
+            padding-right: 5px;
+            text-align: right;
+        }
+    </style>
+}
+@section header {
+    <h1 class="mui-title">账号管理</h1>
+}
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+    <div class="mui-content-padded">
+        您可以绑定多个图书馆账号，前方有红色勾号的表示活动账号，个人信息以及预约续借功能都是针对当前活动账户的。
+    </div>
+    <div class="mui-content-padded" id="divNoBind" style="display:none;">
+        <center>
+            <img src='../img/emptyBind.png' width='100' height='100' style=" padding-top:5px" />
+            <div>您尚未绑定图书馆账号。</div>
+        </center>
+    </div>
+
+    <div id="divPatron" data-bind="visible: model.wxPatrons().length>0">
+        <div class="title">
+            读者账号
+        </div>
+        <div class="mui-card">
+            <ul class="mui-table-view " data-bind=" foreach:model.wxPatrons">
+                <li class="mui-table-view-cell">
+                    <table class="accountTable">
+                        <tr>
+                            <td class="label">
+                                <span data-bind="if: isActive==1" style="color:red;font-weight:bold;padding-left:0px">√</span>
+                                <span> 读者</span>
+                            </td>
+                            <td class="value">
+                                <span data-bind="text:readerName" style="font-size:22px"></span>
+                                <span data-bind="text:readerBarcode" style="color:darkgreen;font-weight:bold;font-size:24px"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label">图书馆</td>
+                            <td class="value">
+                                <span data-bind="text:libName"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="right">
+                                <span data-bind="ifnot: isActive==1"><button class="mui-btn  " data-bind="click: activeUser">设为活动账号</button></span>
+                                <button type="button" class="mui-btn mui-btn-danger" data-bind="click: removeUser">
+                                    X&nbsp;解绑
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="divWorker" data-bind="visible: model.wxWorkers().length>0">
+        <div class="title">
+            工作人员账号
+        </div>
+        <div class="mui-card">
+            <ul class="mui-table-view " data-bind=" foreach:model.wxWorkers">
+                <li class="mui-table-view-cell">
+                    <table class="accountTable">
+                        <tr>
+                            <td class="label">
+                                <span data-bind="if: isActiveWorker==1" style="color:red;font-weight:bold;padding-left:0px">√</span>
+                                <span> 账号名</span>
+                            </td>
+                            <td class="value">
+                                <span data-bind="text:userName" style="font-size:22px"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label">图书馆</td>
+                            <td class="value">
+                                <span data-bind="text:libName"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="right">
+                                <button type="button" class="mui-btn mui-btn-danger" data-bind="click: removeUser">
+                                    X&nbsp;解绑
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="mui-content-padded">
+        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="goToBind()">新增绑定账号</button>
+    </div>
+}

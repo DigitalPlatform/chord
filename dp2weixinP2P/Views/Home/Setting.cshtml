@@ -1,0 +1,57 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutManager.cshtml";
+}
+@model  dp2weixinWeb.Models.SettingModel
+
+@section header {
+    <h1 class="mui-title">参数配置</h1>
+}
+
+
+@using (Html.BeginForm("Setting", "home", FormMethod.Post, new { @class = "mui-input-group", @defaultbutton = "btnSave" }))
+{
+    <div class="mui-card mui-content-padded">
+        <div class="mui-input-row ">
+            <label style="color:#999999">dp2MServer Url</label>
+            <input type="text" class="mui-input mui-input-clear" id="dp2MServerUrl" name="dp2MServerUrl" placeholder="dp2MServer Url" value=@Model.dp2MserverUrl>
+        </div>
+
+        <div class="mui-input-row ">
+            <label style="color:#999999">User name</label>
+            <input type="text" class="mui-input mui-input-clear" id="userName" name="userName" placeholder="User name" value=@Model.userName>
+        </div>
+
+        <div class="mui-input-row ">
+            <label style="color:#999999">Password</label>
+            <input type="password" class="mui-input mui-input-clear" id="password" name="password" placeholder="Password" value=@Model.password>
+        </div>
+        <div class="mui-input-row " style="background-color:#eeeeee;height:20px">
+
+            </div>
+            <div class="mui-input-row ">
+                <label style="color:#999999">mongoDB connection</label>
+                <input type="text" class="mui-input mui-input-clear" name="mongoDbConnection" value=@Model.mongoDbConnection>
+            </div>
+            <div class="mui-input-row ">
+                <label style="color:#999999">mongoDB prefix</label>
+                <input type="text" class="mui-input mui-input-clear" name="mongoDbPrefix" value=@Model.mongoDbPrefix>
+            </div>
+        </div>
+
+    <div class="mui-content-padded">
+        <button type="submit" id="btnSave" class="mui-btn mui-btn-block  mui-btn-primary">保存</button>
+    </div>
+}
+
+@if (ViewBag.success==true)
+    { 
+@Html.Raw("<script>alert('保存成功');</script>");
+    <div class="mui-content-padded">保存成功</div>
+    }
+else if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    @Html.Raw("<script>alert(\"保存失败\");</script>");
+    <div class="mui-content-padded" style="color:red">保存失败,原因：<br />@ViewBag.Error</div>
+}
+
+  

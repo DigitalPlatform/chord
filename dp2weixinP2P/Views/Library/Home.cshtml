@@ -1,0 +1,87 @@
+﻿@model List<dp2weixin.service.SubjectItem>
+@section style {
+    <link href="@Url.Content("~/Content/message.css?a=6")" rel="stylesheet">
+}
+@section Scripts {
+    <script>
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            ko.applyBindings(model);
+
+            // 设顶部菜单不固定
+            $("#myheader").css("position", "absolute");
+
+            // 填充subject内容
+            window.setTimeout("fillPending()", 1);
+        })
+
+        var model = {
+            subjectHtml: ko.observable("")
+        }
+
+    </script>
+}
+@section header {
+    <h1 class="mui-title">图书馆介绍</h1>
+}
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="_userName" style="display:none">@ViewBag.userName</span>
+<span id="_group" style="display:none">gn:_lib_homePage</span>
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+    if (Model == null || Model.Count == 0)
+    {
+        <div class="mui-card" id="divNo" style="margin-top:10px;">
+            <center>
+                <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+                <div>目前没有栏目。</div>
+            </center>
+        </div>
+    }
+
+    if (String.IsNullOrEmpty(ViewBag.userName) == false)
+    {
+        <div id="divNew">
+            <div id='_edit_new' class="mui-card message" style="display:none"></div>
+            <div class="mui-content-padded">
+                <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
+                    新发布信息
+                </button>
+            </div>
+        </div>
+    }
+
+    <div id="_subject_main">
+        @if (Model != null && Model.Count > 0)
+        {
+            foreach (dp2weixin.service.SubjectItem subject in Model)
+            {
+                if (subject.count == 0)
+                {
+                    continue;
+                }
+
+                <div id='_subject_@subject.name' class='subject'>
+                    <div id='_subject_title' class='firstline'><span class='title'>@subject.pureName</span></div>
+                    <div class='pending'>
+                        <label>su-@subject.name</label>
+                        <img src='../img/wait2.gif' />
+                        <span>@ViewBag.LibId</span>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+}

@@ -1,0 +1,146 @@
+﻿@section Scripts {
+    <script>
+
+        // 绑定账号
+        function save() {
+
+            // 图书馆
+            var libId = $("#selLib").val();
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+
+            // 微信id
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "") {
+                alert("weixinId不能为空。");
+                return;
+            }
+
+            // 显示图片
+            var showPhoto = getShowPhoto();
+            var showCover = getShowCover();
+
+            //alert("photo=["+showPhoto+"] cover=["+showCover+"]");
+
+            //显示等待图层
+            //var index = loadLayer();
+            showMaskLayer();
+
+            // setting()
+            var url = "/api/wxuser?weixinId=" + weixinId;
+            sendAjaxRequest(url, "POST",
+                function (result) {
+
+                    //cbBlur();
+
+                    // 关闭等待层
+                    //layer.close(index);
+                    hideMaskLayer();
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }
+
+                    // 更新到顶部
+                    var oldName = $("#_libName").text();
+                    var libName = $("#selLib  option:selected").text();
+                    libName = "[" + libName + "]"
+                    $("#_libName").text(libName);
+
+                    alert("保存成功");
+
+                    // 返回到来源页
+                    var returnUrl = $("#returnUrl").text();
+                    if (returnUrl == null || returnUrl == "") {
+                        returnUrl = "/Library/Home"; //转到图书馆介绍
+                        gotoUrl(returnUrl);
+                    }
+                    else {
+                        if (returnUrl.indexOf("/Biblio/Index") != -1 && oldName == libName) {
+                            //alert("1");
+                            window.history.go(-1);
+                        }
+                        else {
+                            //gotoUrl(returnUrl);
+
+                            var myUrl = window.location.protocol + '//' + window.location.host + returnUrl;
+                            window.location = myUrl;
+                        }
+                    }
+                },
+                function (xhq, textStatus, errorThrown) {
+
+                    // 关闭等待层
+                    //layer.close(index);
+                    hideMaskLayer();
+
+                    alert(errorThrown);
+
+                },
+                {
+                    weixinId: weixinId,
+                    libId: libId,
+                    showPhoto: showPhoto,
+                    showCover: showCover
+                }
+            );
+        }
+
+
+        function getShowPhoto() {
+            var count = 0;
+            $("#ckbPhoto:checked").each(function () {
+                count = 1;
+            });
+            return count
+        }
+
+
+        function getShowCover() {
+            var count = 0;
+            $("#ckbCover:checked").each(function () {
+                count = 1;
+            });
+            return count
+        }
+
+
+    </script>
+}
+@section header {
+    <h1 class="mui-title">设置</h1>
+}
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="returnUrl" style="display:none">@ViewBag.returnUrl</span>
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+    <div class="mui-input-group">
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">当前图书馆</label>
+            @Html.Raw(ViewBag.LibHtml)
+        </div>
+        <div class='mui-input-row mui-checkbox mui-left'>
+            <label>显示头像</label>
+            <input id='ckbPhoto' type='checkbox' @ViewBag.photoChecked />
+        </div>
+        <div class='mui-input-row mui-checkbox mui-left'>
+            <label>显示图书封面</label>
+            <input id='ckbCover' type='checkbox' @ViewBag.coverChecked />
+        </div>
+    </div>
+    <div class="mui-content-padded">
+        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>
+    </div>
+}

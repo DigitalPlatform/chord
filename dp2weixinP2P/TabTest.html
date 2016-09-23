@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width = device-width, initial-scale = 1.0, minimum-scale = 1.0, maximum-scale = 1.0, user-scalable = no"/>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="format-detection" content="telephone=no">
+<title>jQuery手机微信底部菜单代码</title>
+
+    <link rel="stylesheet" type="text/css" href="Content/style.css" />
+    <script src="Scripts/jquery-2.2.3.min.js"></script>
+  
+</head>
+<body>
+
+
+            <div style="position:relative;">
+                <span style="margin-left:100px;width:18px;height:26px; overflow:hidden;">
+                    <select style="width:118px;margin-left:-100px;height:26px; " onchange="this.parentNode.nextSibling.value=this.value">
+                        <option value="www.aspxhome.com"> Aspxhome.COM</option>
+                        <option value="www.llkyx.com"> 小游戏</option>
+                        <option value="WEB开发者"> WEB开发者 </option>
+                    </select>
+                </span>
+                <input name="box" style="width:100px; height:20px;position:absolute;left:0px;" />
+            </div>
+
+ 
+
+<!--↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓3列菜单开始↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓-->
+<div class="btn3 clearfix">
+    <div class="menu">
+        <div class="bt-name"><a href="javascript:;">首页</a></div>
+    </div><!--menu-->
+    <div class="menu">
+        <div class="bt-name">第二个菜单</div>
+        <div class="sanjiao"></div>
+        <div class="new-sub">
+            <ul >
+                <li><a href="javascript:;">二、第一个</a></li>
+                <li><a href="javascript:;" >二、第二个</a></li>
+            </ul>
+            <div class="tiggle"></div>
+            <div class="innertiggle"></div>
+        </div>               
+    </div><!--menu-->
+
+
+    <div class="menu" >
+     <div class="bt-name">第三个菜单</div>
+    <div class="sanjiao"></div>
+    <div  class="new-sub">
+        <ul>
+            <li><a href="javascript:;">三、第一个</a></li>
+            <li><a href="javascript:;" >三、第二个</a></li>
+            <li><a href="javascript:;" >三、第三个</a></li>
+        </ul>
+        <div class="tiggle"></div>
+        <div class="innertiggle"></div>
+    </div>
+    </div><!--menu-->
+
+</div><!--btn3-->
+<!--↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑3列菜单end↑↑↑↑↑↑↑↑↑↑↑↑↑↑-->
+<script type="text/javascript">
+//弹出垂直菜单
+$(".menu").click(function() {
+    if ($(this).hasClass("cura")) {
+        $(this).children(".new-sub").hide(); //当前菜单下的二级菜单隐藏
+        $(".menu").removeClass("cura"); //同一级的菜单项
+    } else {
+        $(".menu").removeClass("cura"); //移除所有的样式
+        $(this).addClass("cura"); //给当前菜单添加特定样式
+        $(".menu").children(".new-sub").slideUp("fast"); //隐藏所有的二级菜单
+        $(this).children(".new-sub").slideDown("fast"); //展示当前的二级菜单
+    }
+});
+
+function selectChanged()
+{
+
+}
+</script>
+
+<div style="text-align:center;margin:50px 0; font:normal 14px/24px 'MicroSoft YaHei';">
+<p>适用浏览器：IE8、360、FireFox、Chrome、Safari、Opera、傲游、搜狗、世界之窗.</p>
+</div>
+</body>
+</html>

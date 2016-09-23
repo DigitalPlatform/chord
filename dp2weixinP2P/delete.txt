@@ -1,0 +1,4846 @@
+﻿==============
+                    // 当下页时，自动移动下一行
+                    if (from == "_N")
+                    {
+                        //$("#wait").css("display", "none");
+
+
+                        //var maxno = parseInt($("#maxNo").val());
+                        //if (maxno > 100) {
+                        //    $(".no").css("width", "25");
+                        //    //alert("maxno=" + maxno)
+                        //}
+
+                        //var winScrollTop = $(window).scrollTop();
+                        //$('html, body').animate({ scrollTopk: winScrollTop + 60 }, 'medium');
+                    }
+=============
+bookmsg页面
+        function deleteMsg(msgId)
+        {
+            //alert(msgId);
+
+            var titleDiv = "#title-" + msgId;
+            var title = $(titleDiv).html();
+
+            var gnl = confirm("你确定要删除公告[" + title + "]吗?");
+            if (gnl == false) {
+                return false;
+            }
+
+            var libId = $("#libId").text();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            var userName = $("#_userName").text();
+            if (userName == "") {
+                alert("异常情况：userName为空。");
+                return;
+            }
+
+            //显示等待图层
+            //var index = loadLayer();
+            showMaskLayer();
+
+            var url = "/api/LibMessage?libId=" + libId
+                + "&group=" + encodeURIComponent("gn:_lib_book")
+                + "&msgId=" + msgId
+            + "&userName=" + userName
+            sendAjaxRequest(url, "DELETE", function (result) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideMaskLayer();
+
+                if (result.errorCode == -1) {
+                    alert("操作失败：" + result.errorInfo);
+                    return;
+                }
+
+                alert("删除成功");
+
+                // edit div id
+                var divEditId = "#_edit_" + msgId;
+
+                // 先找到父亲，方便后面查看有没有下级message
+                var msgParent = $(divEditId).parent();
+
+                // 删除当前msg
+                $(divEditId).remove();
+
+                // 2016-8-13 jane 如果全部删除了，转到subject页面
+                //alert(msgId);
+                if ($(msgParent).children(".message").length == 0) {
+                    //alert("没有下级了");
+                    var url = "/Library/BookSubject?libId=" + libId;// + "&userName=" + userName;
+                    gotoUrl(url);
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                //关闭图层
+                hideMaskLayer();
+
+                alert(errorThrown);
+
+
+            });
+        }
+
+
+===========================
+// 删除msg
+function deleteMsg(msgId) {
+    //alert(msgId);
+
+    // 检查下是否选中多个
+    var mutiple = false;
+
+
+    //alert(autoDeleteParent);
+    var group = $("#_group").text();
+    if (group == null || group == "" ||
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        alert("异常情况：group参数值不正确[" + group + "]。");
+        return;
+    }
+    var autoDeleteParent = false;
+    if (group == "gn:_lib_homePage") {
+        autoDeleteParent = true;
+    }
+
+    var libId = getLibId(); //$("#selLib").val();
+    if (libId == "") {
+        alert("异常情况：libId为空。");
+        return;
+    }
+    var userName = $("#_userName").text();
+    if (userName == "") {
+        alert("异常情况：userName为空。");
+        return;
+    }
+
+    var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+    var title = $(divId).find(".title").html();
+    //alert(title);
+
+    var gnl = confirm("你确定要删除[" + title + "]吗?");
+    if (gnl == false) {
+        return false;
+    }
+
+    //显示等待图层
+    var index = loadLayer();
+    var url = "/api/LibMessage?libId=" + libId
+        + "&group=" + encodeURIComponent("gn:_lib_homePage")
+        + "&msgId=" + msgId
+        + "&userName=" + userName
+
+    //alert(url);
+    sendAjaxRequest(url, "DELETE", function (result) {
+
+        // 关闭等待层
+        layer.close(index);
+
+        if (result.errorCode == -1) {
+            alert("操作失败：" + result.errorInfo);
+            return;
+        }
+
+        alert("删除成功");
+
+        //如果包括多项删除，整个页面reload 2016-9-15
+
+        
+        // 将界面上的div删除
+
+        // 找到父亲
+        var subjectDiv = $(divId).parent();
+        // 删除自己;
+        $(divId).remove();
+
+        // 当消息分栏目显示时，没有消息时自动删除栏目
+        if (autoDeleteParent == true) {
+            // 如果父亲下级没有message，父亲也删除
+            if ($(subjectDiv).children(".message").length == 0) {
+                // 移除栏目div
+                subjectDiv.remove();
+            }
+        }
+
+    }, function (xhq, textStatus, errorThrown) {
+
+        // 关闭等待层
+        layer.close(index);
+
+        alert(errorThrown);
+    });
+
+}
+=================
+@section style {
+    <link href="@Url.Content("~/Content/biblio.css?a=7")" rel="stylesheet">
+}
+@section Scripts {
+    <script>
+
+        //浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 打回车检索
+            $('#txtWord').bind('keypress', function (event) {
+                //alert("test");
+                if (event.keyCode == "13") {
+                    // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+                    search('');
+                }
+            });
+
+            // 打回车检索
+            $('#txtWordSimple').bind('keypress', function (event) {
+                //alert("test");
+                if (event.keyCode == "13") {
+                    // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+                    search('simple');
+                }
+            });
+
+            // 设顶部菜单不固定
+            $("#myheader").css("position", "absolute");
+
+
+
+
+
+
+            $(window).scroll(function () {
+
+                if ($("#more") != null && $("#more").offset() !=null ) {
+
+                    var itemOffsetTop = $("#more").offset().top;
+                    var itemOuterHeight = $("#more").outerHeight(true);
+                    var winHeight = $(window).height();
+                    var winScrollTop = $(window).scrollTop();
+
+                    //$("#test").text("itemOffsetTop=" + itemOffsetTop
+                    //    + " itemOuterHeight=" + itemOuterHeight
+                    //    + " winHeight=" + winHeight
+                    //    + " winScrollTop=" + winScrollTop);
+
+                    //$("#test1").text("itemOffsetTop=" + itemOffsetTop
+                    //    + " itemOuterHeight=" + itemOuterHeight
+                    //    + " winHeight=" + winHeight
+                    //    + " winScrollTop=" + winScrollTop);
+
+                    //if (!(winScrollTop > itemOffsetTop + itemOuterHeight) && !(winScrollTop < itemOffsetTop - winHeight))
+                    //    {
+                    //    alert('出现了');
+                    //} else {
+                    //    alert('消失了');
+                    //}
+
+
+                    //var a = document.getElementById("eq").offsetTop;
+                    if (itemOffsetTop >= $(window).scrollTop() && itemOffsetTop < ($(window).scrollTop() + $(window).height())) {
+                        //alert("div在可视范围");
+                        searchN();
+                    }
+                }
+            })
+
+
+
+            redoSearch();
+        });
+
+        // 重新检索
+        function redoSearch() {
+            //alert("redoSearch1");
+
+            // 当按浏览器返回按钮时，要显示原来的数据
+            var word = $('#txtWord').val();
+            if (word == "")
+                word = $('#txtWordSimple').val();
+
+            //alert("word=["+word+"]");
+            if (word!=null && word != "") {
+                //alert("maxNo=" + $("#maxNo").val());
+                var expandId = $('#expandId').val();
+                search("_ReView", expandId);
+                ///alert("redoSearch3");
+            }
+        }
+
+        // 检索
+        function search(bNext, expandId) {
+
+            //alert("走到search");
+
+            // 先删除more
+            $("#more").remove();
+
+            var from = "";
+            var word = "";
+            var match = "";
+
+            // 图书馆
+            var libId = getLibId();//$("#selLib").val();
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+
+
+            if (bNext == 'true') {
+                from = "_N";
+                word = $("#maxNo").val();
+            }
+            else if (bNext == '_ReView') {
+                from = "_ReView";
+                word = $("#maxNo").val();
+            }
+            else if (bNext == 'simple') {
+                // 检索途径
+                from = "title,ISBN,contributor,subjec,clc,_class,publishtime,publisher";
+                match = "left";
+
+                // 检查检索词
+                word = $("#txtWordSimple").val();
+                if (word == "") {
+                    alert("您尚未输入检索词。");
+                    return;
+                }
+                var table = $("#ulResult");//$('.mui-table-view');
+                table.html("");
+            }
+            else {
+
+                // 检查是否选择的检索途径
+                from = $("#selFrom").val();
+                if (from == "") {
+                    alert("您尚未选择检索途径。");
+                    return;
+                }
+
+                // 检查检索词
+                word = $("#txtWord").val();
+                if (word == "") {
+                    alert("您尚未输入检索词。");
+                    return;
+                }
+                //alert("[" + from + "]-[" + word + "]");
+
+                match = $("#selMatch").val();
+                if (match == "") {
+                    alert("您尚未选择匹配方式。");
+                    return;
+                }
+                var table = $("#ulResult");//$('.mui-table-view');
+                table.html("");
+                $("#searchInfo").text("");
+
+            }
+
+            //resultSet 如果为空，服务器生成一个
+            var resultSet = $("#resultSet").val();
+
+
+            var weixinId = $("#weixinId").text();
+            if (weixinId == null || weixinId == "") {
+                alert("weixinId参数为空");
+                return;
+            }
+
+            // 调检索接口
+            //显示等待图层
+            var index = loadLayer();
+
+            // 调Search api
+            var url = "/api/biblio?weixinId=" + encodeURIComponent(weixinId)
+                + "&libId=" + encodeURIComponent(libId)
+                + "&from=" + encodeURIComponent(from)
+                + "&word=" + encodeURIComponent(word)
+                + "&match=" + encodeURIComponent(match)
+                + "&resultSet=" + encodeURIComponent(resultSet);
+
+            //alert(url);
+            sendAjaxRequest(url, "GET",
+                function (result) {
+
+                    //alert("回来");
+
+                    // 关闭等待层
+                    layer.close(index);
+
+                    //alert("2");
+                    if (result.apiResult.errorCode == -1) {
+                        $("#searchInfo").text("检索出错：" + result.apiResult.errorInfo);
+                        $("#searchInfo").css("color", "red");  //设置p元素的样式颜色为红色
+                    }
+                    else if (result.apiResult.errorCode == 0) {
+                        $("#searchInfo").text("未命中");
+                        $("#searchInfo").css("color", "red");  //设置p元素的样式颜色为红色
+                    }
+                    else {
+                        $("#searchInfo").text("命中" + result.apiResult.errorCode + "条记录。");
+                        $("#searchInfo").css("color", "darkgreen");  //设置p元素的样式颜色为红色
+                    }
+
+                    // 出错或未命中
+                    if (result.apiResult.errorCode == -1 || result.apiResult.errorCode == 0) {
+                        alert(result.apiResult.errorInfo);
+                        return;
+                    }
+
+                    //alert("1");
+
+                    var table = $("#ulResult");//$('.mui-table-view');
+                    var start = 0;
+                    if (bNext == 'true') {
+                        start = parseInt($("#maxNo").val());
+                    }
+                    for (var i = 0; i < result.records.length; i++) {
+                        var record = result.records[i];
+                        var id = "record-" + (start + i);
+                        var li = "<li class='mui-table-view-cell mui-collapse' id='" + id + "'> "
+                            + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\"" + id + "\")' style='padding-top:5px;padding-bottom:5px'>"
+                            +"<table width='100%' class='result-biblio'>"
+                        + "<tr><td style='width:18px;min-width:18px'>" + record.no + "</td><td>" + record.name + "</td></tr>"
+                        + "<tr><td >&nbsp;</td><td style='color:#cccccc'>" + record.recPath + "</td></tr>"
+                        +"</table>"
+                        +"</a>"
+                            + "<div class='mui-collapse-content' style='display:none;padding-top: 0px;'>"
+                                + "<div class='pendingDetail biblio' >"
+                                    + "<label>" + record.recPath + "</label>"
+                                    + "<img src='../img/wait2.gif' />"
+                                + "</div>"
+                            + "</div>"
+                            + "</li>";
+                        table.append(li);
+
+                        if (i == result.records.length - 1) {
+                            $("#maxNo").val(record.no);
+                            $("#resultSet").val(result.resultSetName);
+                        }
+                    }
+
+                    //<li class="mui-table-view-cell mui-collapse">
+                    //<a class="mui-navigate-right" href="#">表单</a>
+                    //<div class="mui-collapse-content">
+
+
+
+                    //有下页的情况
+                    if (result.isCanNext == true) {
+                        var li1 = "<li class='mui-table-view-cell'  id='more'>"
+                            + "<center><a href='javascript:void(0)' onclick='searchN()'>点击加载更多</a></center>"
+                            + "</li>";
+                        table.append(li1);
+                    }
+
+                    // 打开需要展开的项
+                    if (expandId != null && expandId != "") {
+                        expand(expandId);
+                    }
+
+
+                    // 当下页时，自动移动下一行
+                    if (from == "_N")
+                    {
+                        var winScrollTop = $(window).scrollTop();
+                        $('html, body').animate({ scrollTopk: winScrollTop + 40 }, 'medium');
+                    }
+
+                    // 关闭等待层
+                    //layer.close(index);
+
+                }, function (xhq, textStatus, errorThrown) {
+
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                });
+        }
+
+
+        // 2016-6-17 jane 为了返回时记住展开项，expand函数由原来传一个对象，改为传一个id
+        function expand(expId) {
+            //根据id找到<li>元素
+            var id = "#" + expId;
+            var obj = $(id);
+
+            // 如果自己是展开状态，则收缩
+            var state = $(obj).find(".mui-collapse-content").first().css("display");
+            if (state == "block") { //自己本来是展开状态，要关闭
+                $(obj).find(".mui-collapse-content").css("display", "none");
+                $(obj).removeClass("mui-active");
+            }
+            else {
+                //其它收缩
+                //$(".mui-collapse-content").css("display", "none");
+                //$(".mui-collapse").removeClass("mui-active");
+
+                //自己展开
+                $(obj).find(".mui-collapse-content").css("display", "block");
+                $(obj).addClass("mui-active");
+
+                // 记住展开项
+                $("#expandId").val(expId);
+
+                //alert("走进0");
+                //检查是否已经加载过了
+                var o = $(obj).find(".pendingDetail:first");
+                if (o.length == 0) {
+                    return;
+                }
+                else {
+                    //alert("走进1");
+
+                    var recPath = o.children("label").text();
+                    //alert(recPath);
+                    if (recPath != null && recPath != "") {
+
+                        //alert("走进2");
+
+                        // 图书馆
+                        var libId = getLibId();
+                        var myhtml = getDetail(libId, recPath, o, "index");
+
+                        // 去掉css
+                        o.removeClass("pendingDetail");
+                    }
+                }
+            }
+        }
+
+        //必须要换一个名称，被下一页使用，直接用search("true")不行
+        function searchN() {
+            search("true");
+        }
+
+
+
+        // 切换简单检索与高级检索
+        function changeType() {
+            var type = $("#searchType").text();
+            //alert(type);
+
+            // 2016-8-11 置空结果集
+            var table = $("#ulResult");//$('.mui-table-view');
+            table.html("");
+            $("#searchInfo").text("");
+            $('#txtWordSimple').val("");
+            $('#txtWord').val("");
+
+            if (type == "高级检索") {
+                //$('#txtWordSimple').focus();
+                $("#divAdvance").css("display", "block");
+                $("#divSimple").css("display", "none");
+                $("#searchType").text("简单检索");
+            }
+            else {
+                //$('#txtWord').focus();
+                $("#divAdvance").css("display", "none");
+                $("#divSimple").css("display", "block");
+                $("#searchType").text("高级检索");
+            }
+        }
+
+
+    </script>
+}
+
+
+@section header {
+    <h1 class="mui-title">书目查询</h1>
+}
+<span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
+
+<!--<span id="test" style="display:block"></span>-->
+<!--关于结果集-->
+<input id="maxNo" type="hidden">
+<input id="resultSet" type="hidden" value="" disabled="disabled">
+<input id="expandId" type="hidden" value="" disabled="disabled">
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span id="error" class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+        <div id="divSimple" class="search" style="padding:10px">
+            <table style="width:100%" class="simple">
+                <tr>
+                    <td style="vertical-align:middle;width:100%">
+                        <input class="mui-input mui-input-clear" style="border-top-left-radius:4px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:4px;border-right:0px" id="txtWordSimple" type="text" value="" placeholder="请输入检索词">
+                    </td>
+                    <td style="vertical-align:top"><span class="mui-icon mui-icon-search" style="padding-top:10px;height:40px; border:1px solid #cccccc;border-left:0px;border-top-left-radius:0px;border-top-right-radius:4px;border-bottom-right-radius:4px;border-bottom-left-radius:0px;width:30px;cursor:pointer; background-color:white" onclick="search('simple')"></span></td>
+                </tr>
+            </table>
+        </div>
+        <div id="divAdvance" class="search" style="display:none">
+            <table class="advance">
+                <tr>
+                    <td class="label">检索途径</td>
+                    <td>
+                        <div style="border:1px solid #cccccc">
+                            <select id="selFrom" name="selFrom">
+                                <option value="title,ISBN,contributor,subjec,clc,_class,publishtime,publisher" selected>全部</option>
+                                <option value="title" selected>书名</option>
+                                <option value="ISBN">ISBN</option>
+                                <option value="contributor">作者</option>
+                                <option value="subject">主题词</option>
+                                <option value="clc,_class">分类号</option>
+                                <option value="publishtime">出版时间</option>
+                                <option value="publisher">出版社</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">检索词</td>
+                    <td>
+                        <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">匹配方式</td>
+                    <td>
+                        <div style="border:1px solid #cccccc">
+                            <!--left/middle/right/exact-->
+                            <select id="selMatch">
+                                <option value="left" selected>前方一致</option>
+                                <option value="middle">中间一致</option>
+                                <option value="right">后方一致</option>
+                                <option value="exact">精确一致</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="padding:10px">
+
+            <a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a>
+        </div>
+        <div id="divResult">
+            <!--数据列表-->
+            <span style="padding-left:10px;" id="searchInfo"></span>
+            <ul id="ulResult" class="mui-table-view ">
+
+            </ul>
+        </div>
+
+    <!--<span id="test1" style="display:block"></span>-->
+    }
+}
+
+=======
+        <table>
+            <tr>
+                <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnAdd" data-bind="click: save" style="display:none">新增</button></td>
+                <td style="padding-left:5px"><button class="mui-btn mui-btn-default" id="btnEdit" data-bind="click: save" style="display:none">保存</button></td>
+                <td style="padding-left:5px"><button class="mui-btn mui-btn-default" data-bind="click:handleCancelClick">取消</button></td>
+            </tr>
+        </table>
+
+================            
+        /*
+
+        public ActionResult GetObject(string code, string state, string weixinId,
+            string strURI,
+            string style,
+            string biblioRecPath,
+            string saveas)
+        {
+            // 登录账户?
+
+
+
+            string strError = "";
+            int nRet = 0;
+
+            //string strURI = uri;//Request.QueryString["uri"];
+            string strStyle = style;// Request.QueryString["style"];
+            string strBiblioRecPath = biblioRecPath;// Request.QueryString["biblioRecPath"];
+
+            Uri uri = GetUri(strURI);
+
+            //处理 dp2 系统外部的 URL
+            if (uri != null
+                && (uri.Scheme == "http" || uri.Scheme == "https"))
+            {
+                return Redirect(strURI);
+            }
+
+
+            // *** 以下是处理 dp2 系统内部对象
+            // TODO: dp2 系统内部对象总是有访问计数功能的，
+
+            string strSaveAs = saveas;
+            bool bSaveAs = false;
+            if (strSaveAs == "true")
+                bSaveAs = true;
+
+            // FlushOutput flushdelegate = new FlushOutput(MyFlushOutput);
+
+            // this.Response.BufferOutput = false;
+            this.Server.ScriptTimeout = 10 * 60 * 60;    // 10 个小时
+
+            nRet = app.DownloadObject(
+                this,
+                // flushdelegate,
+                // sessioninfo.Channels,
+                channel,
+                strURI,
+                bSaveAs,
+                strStyle,
+                out strError);
+            if (nRet == -1)
+            {
+                // Response.Write(strError);
+               MemoryStream  ms = dp2WeiXinService.Instance.GetErrorImg(strError);
+                return File(ms.ToArray(), "image/jpeg");    
+            }
+
+            Response.End();
+            return null;
+
+        }
+
+        // 下载对象资源
+        // parameters:
+        //      strStyle    如果包含 hitcount，表示希望获取访问计数的数字，返回图像格式。否则是希望返回对象本身
+        // return:
+        //      -1  出错
+        //      0   304返回
+        //      1   200返回
+        public int DownloadObject0(System.Web.UI.Page Page,
+            string strPath,
+            bool bSaveAs,
+            string strStyle,
+            out string strError)
+        {
+            strError = "";
+
+
+            // 先取出metadata
+            string metadata = "";
+            string timestamp = "";
+            string outputpath = "";
+            int nRet = dp2WeiXinService.Instance.GetObjectMetadata(libId,
+                objectPath,
+                "metadata",
+                null,
+                out metadata,
+                out timestamp,
+                out outputpath,
+                out strError);
+            if (nRet == -1)
+                goto ERROR1;    // 把出错信息作为图像返回
+
+
+            // 找出mimetype
+            XmlDocument dom = new XmlDocument();
+            try
+            {
+                dom.LoadXml(metadata);
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+
+            //Response.OutputStream.Flush();
+
+            string mimetype = DomUtil.GetAttr(dom.DocumentElement, "mimetype");
+            Response.ContentType = mimetype;
+            Response.Clear();
+
+
+
+            WebPageStop stop = new WebPageStop(Page);
+
+            // strPath = boards.GetCanonicalUri(strPath);
+
+            // 获得资源。写入文件的版本。特别适用于获得资源，也可用于获得主记录体。
+            // parameters:
+            //		fileTarget	文件。注意在调用函数前适当设置文件指针位置。函数只会在当前位置开始向后写，写入前不会主动改变文件指针。
+            //		strStyleParam	一般设置为"content,data,metadata,timestamp,outputpath";
+            //		input_timestamp	若!=null，则本函数会把第一个返回的timestamp和本参数内容比较，如果不相等，则报错
+            // return:
+            //		-1	出错。具体出错原因在this.ErrorCode中。this.ErrorInfo中有出错信息。
+            //		0	成功
+            string strMetaData = "";
+            string strOutputPath;
+            byte[] baOutputTimeStamp = null;
+            byte[] baContent = null;
+            // 只获得媒体类型
+            long lRet = channel.GetRes(
+                stop,
+                strPath,
+                0,
+                0,
+                "metadata",
+                out baContent,
+                out strMetaData,
+                out strOutputPath,
+                out baOutputTimeStamp,
+                out strError);
+            if (lRet == -1)
+            {
+                if (StringUtil.IsInList("hitcount", strStyle))
+                {
+                    OutputImage(Page,
+                        Color.FromArgb(100, Color.Red),
+                        "?");
+                    return 1;
+                }
+
+                if (channel.ErrorCode == ErrorCode.AccessDenied)
+                {
+                    // 权限不够
+                    return -1;
+                }
+
+                strError = "GetRes() (for metadata) Error : " + strError;
+                return -1;
+            }
+
+            if (Page.Response.IsClientConnected == false)
+                return -1;
+
+            // 取 metadata 中的 mime 类型信息
+            Hashtable values = StringUtil.ParseMedaDataXml(strMetaData,
+                out strError);
+            if (values == null)
+            {
+                strError = "ParseMedaDataXml() Error :" + strError;
+                return -1;
+            }
+
+            if (StringUtil.IsInList("hitcount", strStyle))
+            {
+                string strReadCount = (string)values["readCount"];
+                if (string.IsNullOrEmpty(strReadCount) == true)
+                    strReadCount = "?";
+                OutputImage(Page,
+                    Color.FromArgb(200, Color.DarkGreen),
+                    strReadCount);
+                return 1;
+            }
+
+
+            string strLastModifyTime = (string)values["lastmodifytime"];
+            if (String.IsNullOrEmpty(strLastModifyTime) == false)
+            {
+                DateTime lastmodified = DateTime.Parse(strLastModifyTime).ToUniversalTime();
+                string strIfHeader = Page.Request.Headers["If-Modified-Since"];
+
+                if (String.IsNullOrEmpty(strIfHeader) == false)
+                {
+                    DateTime isModifiedSince = DateTimeUtil.FromRfc1123DateTimeString(strIfHeader); // .ToLocalTime();
+
+                    if (DateTimeUtil.CompareHeaderTime(isModifiedSince, lastmodified) != 0)
+                    {
+                        // 修改过
+                    }
+                    else
+                    {
+                        // 没有修改过
+                        Page.Response.StatusCode = 304;
+                        Page.Response.SuppressContent = true;
+                        return 0;
+                    }
+                }
+
+                Page.Response.AddHeader("Last-Modified", DateTimeUtil.Rfc1123DateTimeString(lastmodified)); // .ToUniversalTime()
+
+            }
+
+            string strMime = (string)values["mimetype"];
+            string strClientPath = (string)values["localpath"];
+            if (strClientPath != "")
+                strClientPath = PathUtil.PureName(strClientPath);
+
+            // TODO: 如果是非image/????类型，都要加入content-disposition
+            // 是否出现另存为对话框
+            if (bSaveAs == true)
+            {
+                string strEncodedFileName = HttpUtility.UrlEncode(strClientPath, Encoding.UTF8);
+                Page.Response.AddHeader("content-disposition", "attachment; filename=" + strEncodedFileName);
+            }
+
+
+
+            // 用 text/plain IE XML 搜索google
+            // http://support.microsoft.com/kb/329661
+            // http://support.microsoft.com/kb/239750/EN-US/
+
+
+
+            // 设置媒体类型
+            if (strMime == "text/plain")
+                strMime = "text";
+            Page.Response.ContentType = strMime;
+
+            string strSize = (string)values["size"];
+            if (String.IsNullOrEmpty(strSize) == false)
+            {
+                Page.Response.AddHeader("Content-Length", strSize);
+            }
+
+            if (Page.Response.IsClientConnected == false)
+                return -1;
+
+            string strGetStyle = "content,data,incReadCount";
+            if (StringUtil.IsInList("log", this.SearchLogEnable) == false)
+                strGetStyle += ",skipLog";
+            else
+                strGetStyle += ",clientAddress:" + Page.Request.UserHostAddress;
+
+            // 传输数据
+            lRet = channel.GetRes(
+                stop,
+                strPath,
+                Page.Response.OutputStream,
+                strGetStyle,
+                null,	// byte [] input_timestamp,
+                out strMetaData,
+                out baOutputTimeStamp,
+                out strOutputPath,
+                out strError);
+            if (lRet == -1)
+            {
+                // Page.Response.ContentType = "text/plain";    // 可能因为 Page.Response.OutputStream 已经写入了部分内容，这时候设置 ContentType 会抛出异常
+                strError = "GetRes() (for res) Error : " + strError;
+                return -1;
+            }
+            return 1;
+        }
+        */
+===========			
+			// 取头像
+            if (type == "photo")
+            {                
+                // 先取出metadata
+                string metadata = "";
+                string timestamp = "";
+                string outputpath = "";
+                int nRet = dp2WeiXinService.Instance.GetObjectMetadata(libId,
+                    objectPath,
+                    "metadata",
+                    null,
+                    out metadata,
+                    out timestamp,
+                    out outputpath,
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;   
+
+                XmlDocument dom = new XmlDocument();
+                try
+                {
+                    dom.LoadXml(metadata);
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+
+                // 检查是否有更新，没更新直接用浏览器缓存数据
+                string strLastModifyTime = DomUtil.GetAttr(dom.DocumentElement, "lastmodified");//lastmodifytime");
+                if (String.IsNullOrEmpty(strLastModifyTime) == false)
+                {
+                    DateTime lastmodified = DateTime.Parse(strLastModifyTime).ToUniversalTime();
+
+                    string strIfHeader = Request.Headers["If-Modified-Since"];
+                    if (String.IsNullOrEmpty(strIfHeader) == false)
+                    {
+                        DateTime isModifiedSince = DateTimeUtil.FromRfc1123DateTimeString(strIfHeader); // .ToLocalTime();
+
+                        if (DateTimeUtil.CompareHeaderTime(isModifiedSince, lastmodified) != 0)
+                        {
+                            // 修改过
+                        }
+                        else
+                        {
+                            // 没有修改过
+                            Response.StatusCode = 304;
+                            Response.SuppressContent = true;
+                            return null;
+                        }
+                    }
+                    Response.AddHeader("Last-Modified", DateTimeUtil.Rfc1123DateTimeString(lastmodified)); // .ToUniversalTime()
+                }
+
+                // 设置媒体类型
+                string mimetype = DomUtil.GetAttr(dom.DocumentElement, "mimetype");
+                Response.ContentType = mimetype;               
+
+
+
+                // 输出数据流
+                nRet = dp2WeiXinService.Instance.GetObjectMetadata(libId,
+                    objectPath,
+                    "metadata,timestamp,data,outputpath",
+                    //"metadata,data",
+                    Response.OutputStream, //ms,//
+                    out metadata,
+                    out timestamp,
+                    out outputpath,
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;    // 把出错信息作为图像返回
+
+                Response.OutputStream.Flush();
+                Response.End();
+
+                return null;
+
+                //ms.Seek(0, SeekOrigin.Begin);
+                //return File(ms, mimetype);
+
+            }
+
+
+==========
+
+                  string[] emailList = email.Split(new char[] { ',' });
+                  for (int i = 0; i < emailList.Length; i++)
+                  {
+                      string oneEmail = emailList[i].Trim();
+                      if (oneEmail.Length > 9 && oneEmail.Substring(0, 9) == WeiXinConst.C_WeiXinIdPrefix)
+                      {
+                          string weiwinId = oneEmail.Substring(9).Trim();
+                          if (weiwinId != "")
+                              weixinIdList.Add(weiwinId);
+                      }
+                  }
+
+
+==========
+
+                // ====给工作人员发通知===
+
+                // 先找到公司管理员
+                List<string> toWorkerWeixinIds = this.GetAdminWeixinIds();
+                
+                // 再查找绑定本馆工作人员账户;
+                if (String.IsNullOrEmpty(libId) == false)
+                {
+                    List<WxUserItem> userList = WxUserDatabase.Current.Get(null, libId, WxUserDatabase.C_Type_Worker);
+                    if (userList != null && userList.Count > 0)
+                    {
+                        foreach (WxUserItem user in userList)
+                        {
+                            if (toWorkerWeixinIds.Contains(user.weixinId) == false)
+                            {
+                                // 检查是否设为tracing on
+                                if (this.TracingOnUsers.ContainsKey(user.weixinId) == true)
+                                {
+                                    toWorkerWeixinIds.Add(user.weixinId);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 发通知
+                foreach (string weixinId in toWorkerWeixinIds)
+                {
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weixinId,
+                        template,
+                        topColor,
+                        linkUrl,
+                        msgData2worker);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
+                }
+
+===LibraryM=======
+        // 新增一项
+        function addLib() {
+
+            var libName = model.editor.libName().trim();
+            if (libName == "") {
+                alert("尚未输入图书馆名称。");
+                return;
+            }
+            var capoUserName = model.editor.capoUserName().trim();
+            if (capoUserName == "") {
+                alert("尚未输入图书馆dp2capo账号名。");
+                return;
+            }
+
+            // 图书馆联系人员手机
+            var capoContactPhone = model.editor.capoContactPhone().trim();
+
+            // 微信端本方账户
+            var wxUserName = model.editor.wxUserName().trim();
+            if (wxUserName == "") {
+                alert("尚未输入图书馆微信本方账号名。");
+                return;
+            }
+            var wxPassword = model.editor.wxPassword().trim();
+            if (wxPassword == "") {
+                alert("尚未输入图书馆微信本方密码。");
+                return;
+            }
+            //微信本方联系人
+            var wxContactPhone = model.editor.wxContactPhone().trim();
+
+            // 备注
+            var comment = model.editor.comment().trim();
+
+            // 参于检索的数据库
+            var searchDbs = model.editor.searchDbs().trim();
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/LibrarySetting";
+            sendAjaxRequest(url, "POST",
+                function (result) {
+                    // 关闭等待层
+                    layer.close(index);
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }
+
+                    model.librarys.push(result.libItem);
+                    model.displaySummary(true);
+
+                    //清空编辑界面信息
+                    //model.editor.libCode("");
+                    model.editor.libName("");
+                    model.editor.capoUserName("");
+                    model.editor.capoContactPhone("");
+
+                    model.editor.wxUserName("");
+                    model.editor.wxPassword("");
+                    model.editor.wxContactPhone("");
+
+                    model.editor.comment("");
+                    model.editor.noShareBiblio(0);
+                    model.editor.searchDbs("");
+
+
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    //libCode: libCode,
+                    libName: libName,
+                    capoUserName: capoUserName,
+                    capoContactPhone: capoContactPhone,
+                    wxUserName: wxUserName,
+                    wxPassword: wxPassword,
+                    wxContactPhone: wxContactPhone,
+                    comment: comment,
+                    noShareBiblio: getNoShareBiblio(),
+                    searchDbs: searchDbs
+                }
+            );
+        }
+
+
+===模板消息===
+
+===以停代金
+
+            foreach (string weixinId in weixinIdList)
+            {
+                try
+                {
+                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                    //{{first.DATA}}
+                    //标题：{{keyword1.DATA}}
+                    //时间：{{keyword2.DATA}}
+                    //内容：{{keyword3.DATA}}
+                    //{{remark.DATA}}
+                    var msgData = new BorrowTemplateData()
+                    {
+                        first = new TemplateDataItem("☀☀☀☀☀☀☀☀☀☀", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
+                        keyword1 = new TemplateDataItem("以停代金到期", "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                        keyword2 = new TemplateDataItem(operTime, "#000000"),
+                        keyword3 = new TemplateDataItem(strText, "#000000"),
+                        remark = new TemplateDataItem(remark, "#CCCCCC")
+                    };
+
+                    // 发送模板消息
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weixinId,
+                        WeiXinConst.C_Template_Message,
+                        "#FF0000",
+                        "",//不出现详细了
+                        msgData);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.WriteErrorLog("给读者" + patronName + "发送'以停代金到期'通知异常：" + ex.Message);
+                }
+            }
+
+===预约
+
+            foreach (string weixinId in weixinIdList)
+            {
+                try
+                {
+                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                    //{{first.DATA}}
+                    //图书书名：{{keyword1.DATA}}
+                    //到书日期：{{keyword2.DATA}}
+                    //保留期限：{{keyword3.DATA}}
+                    //{{remark.DATA}}
+                    var msgData = new ArrivedTemplateData()
+                    {
+                        first = new TemplateDataItem("📗📗📗📗📗📗📗📗📗📗", "#FF8C00"),//  dark orange   	yellow 	#FFFF00
+                        keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                        keyword2 = new TemplateDataItem(today, "#000000"),
+                        keyword3 = new TemplateDataItem("保留" + reserveTime, "#000000"),
+                        remark = new TemplateDataItem(end, "#CCCCCC")
+                    };
+
+                    // 发送预约模板消息
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weixinId,
+                        WeiXinConst.C_Template_Arrived,
+                        "#FF0000",
+                        this.C_Url_PersonalInfo,//详情转到个人信息界面
+                        msgData);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.WriteErrorLog("给读者" + patronName + "发送预约到书通知异常：" + ex.Message);
+                }
+            }
+
+===取消交费==
+
+                foreach (string weixinId in weixinIdList)
+                {
+                    try
+                    {
+                        var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                        //{{first.DATA}}
+                        //书刊摘要：{{keyword1.DATA}}
+                        //册条码号：{{keyword2.DATA}}
+                        //交费原因：{{keyword3.DATA}}
+                        //撤消金额：{{keyword4.DATA}}
+                        //撤消时间：{{keyword5.DATA}}
+                        //{{remark.DATA}}
+                        var msgData = new ReturnPayTemplateData()
+                        {
+                            first = new TemplateDataItem("✈ ☁ ☁ ☁ ☁ ☁ ☁", "#B8860B"),  // ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
+                            //summary
+                            keyword1 = new TemplateDataItem(summary, "#000000"),
+                            keyword2 = new TemplateDataItem(oneBarcode, "#000000"),
+                            keyword3 = new TemplateDataItem(reason, "#000000"),
+                            keyword4 = new TemplateDataItem(price, "#000000"), 
+                            keyword5 = new TemplateDataItem(operTime, "#000000"), 
+                            remark = new TemplateDataItem(remark, "#CCCCCC")
+                        };
+
+                        // 发送模板消息
+                        var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                            weixinId,
+                            WeiXinConst.C_Template_CancelPay,
+                            "#FF0000",
+                            this.C_Url_PersonalInfo,//详情转到个人信息界面
+                            msgData);
+                        if (result1.errcode != 0)
+                        {
+                            strError = result1.errmsg;
+                            return -1;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        this.WriteErrorLog("给读者" + patronName + "发送'撤消交费成功'通知异常：" + ex.Message);
+                    }
+                }
+
+===
+交费
+
+
+                foreach (string weixinId in weixinIdList)
+                {
+
+                    try
+                    {
+                        var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                        //尊敬的读者，您已成功交费。
+                        //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
+                        //册条码号：C0000001
+                        //交费金额：CNY 10元
+                        //交费原因：超期。超1天，违约金因子：CNY1.0/Day
+                        //交费时间：2015-12-27 13:15
+                        //如有疑问，请联系系统管理员。
+                        var msgData = new PayTemplateData()
+                        {
+                            first = new TemplateDataItem("💰💰💰💰💰💰💰💰💰💰", "#556B2F"),//★★★★★★★★★★★★★★★ dark olive green//this._msgFirstLeft+"您已交费成功！"
+                            keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                            keyword2 = new TemplateDataItem(oneBarcode, "#000000"),
+                            keyword3 = new TemplateDataItem(price, "#000000"),
+                            keyword4 = new TemplateDataItem(reason, "#000000"),
+                            keyword5 = new TemplateDataItem(operTime, "#000000"),
+                            remark = new TemplateDataItem(remark, "#CCCCCC")
+                        };
+
+                        // 发送模板消息
+                        var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                            weixinId,
+                            WeiXinConst.C_Template_Pay,
+                            "#FF0000",
+                            this.C_Url_PersonalInfo,//详情转到个人信息界面
+                            msgData);
+                        if (result1.errcode != 0)
+                        {
+                            strError = result1.errmsg;
+                            return -1;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        this.WriteErrorLog("给读者" + patronName + "发送交费成功通知异常：" + ex.Message);
+                    }
+                }
+            }
+
+
+===
+还书
+
+            foreach (string weixinId in weixinIdList)
+            {
+                try
+                {
+                    var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+                    /*
+                    尊敬的读者，您已成功还书。
+                    书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00 
+                    册条码号：C0000001
+                    借书日期：2016-5-27
+                    借阅期限：31天
+                    还书日期：2016-6-27
+                    谢谢您及时归还，欢迎再借。
+                    */
+
+                    var msgData = new ReturnTemplateData()
+                    {
+                        first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#00008B"),  // 	dark blue//this._msgFirstLeft + "您借出的图书已确认归还。"
+                        keyword1 = new TemplateDataItem(summary, "#000000"),
+                        keyword2 = new TemplateDataItem(itemBarcode, "#000000"),
+                        keyword3 = new TemplateDataItem(borrowDate, "#000000"),
+                        keyword4 = new TemplateDataItem(borrowPeriod, "#000000"),
+                        keyword5 = new TemplateDataItem(operTime, "#000000"),
+
+                        remark = new TemplateDataItem(remark, "#CCCCCC")
+                    };
+
+                    // 发送模板消息
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weixinId,
+                        WeiXinConst.C_Template_Return,
+                        "#00008B",
+                        this.C_Url_PersonalInfo,//详情转到个人信息界面
+                        msgData);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
+                        return -1;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.WriteErrorLog("给读者" + patronName + "发送还书成功通知异常：" + ex.Message);
+                }
+            }
+
+===
+借书
+            //foreach (string weixinId in weixinIdList)
+            //{
+            //    try
+            //    {
+            //        //var accessToken = AccessTokenContainer.GetAccessToken(this.weiXinAppId);
+
+            //        // 发送模板消息
+            //        //var result1 = TemplateApi.SendTemplateMessage(accessToken,
+            //        //    weixinId,
+            //        //    WeiXinConst.C_Template_Borrow,
+            //        //    "#006400",  //FF0000
+            //        //    this.C_Url_PersonalInfo,//详情转到个人信息界面
+            //        //    msgData);
+            //        //if (result1.errcode != 0)
+            //        //{
+            //        //    strError = result1.errmsg;
+            //        //    return -1;
+            //        //}
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        this.WriteErrorLog("给读者" + patronName + "发送借书成功通知异常：" + ex.Message);
+            //    }
+            //}
+
+
+===bind======
+                    // 证条码号
+                    readerBarcode = DomUtil.GetNodeText(rootNode.SelectSingleNode("barcode"));
+                    // 姓名
+                    XmlNode nodeName = rootNode.SelectSingleNode("name");
+                    if (nodeName != null)
+                        readerName = DomUtil.GetNodeText(nodeName);
+                    //参考id
+                    XmlNode nodeRefID = rootNode.SelectSingleNode("refID");
+                    if (nodeRefID != null)
+                        refID = DomUtil.GetNodeText(nodeRefID);
+                    // 部门
+                    XmlNode nodeDept = rootNode.SelectSingleNode("department");
+                    if (nodeDept != null)
+                        department = DomUtil.GetNodeText(nodeDept);
+                    // 分馆代码
+                    XmlNode nodelibraryCode = rootNode.SelectSingleNode("libraryCode");
+                    if (nodelibraryCode != null)
+                        libraryCode = DomUtil.GetNodeText(nodelibraryCode);
+
+
+===WxUserDatabase===
+            
+            //bool bExist = false;
+            //var indexes = _wxUserCollection.Indexes.ListAsync().Result.ToListAsync().Result;
+            //foreach (BsonDocument doc in indexes)
+            //{
+            //}
+            //// _logCollection.DropAllIndexes();
+            //if (bExist == false)
+            //{
+            //    CreateIndex();
+            //}
+
+        // 创建索引
+        //public void CreateIndex()
+        //{
+        //    var options = new CreateIndexOptions() { Unique = false };  //不唯一，一个微信用户可能对应多个读者
+        //    _wxUserCollection.Indexes.CreateOne(
+        //        Builders<WxUserItem>.IndexKeys.Ascending("weixinId"),
+        //        options);
+        //}
+
+
+
+        //// 根据图书馆id获取绑定的账户
+        //public List<WxUserItem> GetByLibId(String libId)
+        //{
+        //    if (string.IsNullOrEmpty(libId) == true || libId == "null")
+        //        return null;
+
+        //    IMongoCollection<WxUserItem> collection = this.wxUserCollection;
+        //    var filter = Builders<WxUserItem>.Filter.Eq("libId", libId);
+        //    List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+        //    return list;
+        //}
+
+        ///// <summary>
+        ///// 获取绑定的所有账户，不区分读者与工作人员
+        ///// </summary>
+        ///// <param name="weixinId"></param>
+        ///// <returns></returns>
+        //public List<WxUserItem> GetAllByWeixinId(string weixinId)
+        //{
+        //    var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId);
+        //    return this.wxUserCollection.Find(filter).ToList();
+        //}
+
+
+        ///// <summary>
+        ///// 获取微信用户绑定的所有读者账户
+        ///// </summary>
+        ///// <param name="weixinId"></param>
+        ///// <returns></returns>
+        //public List<WxUserItem> GetPatronsByWeixinId(string weixinId)
+        //{
+        //    var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
+        //         & Builders<WxUserItem>.Filter.Eq("type", C_Type_Patron);  // 2016-6-16 jane 查读者账户
+
+        //    return this.wxUserCollection.Find(filter).ToList();//.ToListAsync().Result;
+        //}
+
+
+========
+bookedit的mvc方式保存
+
+        [HttpPost]
+        [ValidateInput(false)]
+        public ActionResult BookEdit(BookEditModel model)
+        {
+            string strError = "";
+            // 实际保存
+            string libId = model._libId;
+            string userName = model._userName;
+            string subject =model._subject;
+            string returnUrl1 = model._returnUrl;
+
+            MessageItem returnItem = null;
+
+            MessageItem item = new MessageItem();
+            item.id = model.id;
+            item.title = model.title;
+            item.content = model.content;
+            item.remark = model.remark;
+            item.creator = model._userName;
+            item.subject = model.subject;
+            if (String.IsNullOrEmpty(item.id) == true)
+            {
+                int nRet =dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_Group_Book,
+                    libId,
+                    item,
+                    "create",
+                    "",//parameters
+                    out returnItem,
+                    out strError);
+                if (nRet == -1)
+                    return Content(strError);
+            }
+            else 
+            {
+                int nRet = dp2WeiXinService.Instance.CoverMessage(dp2WeiXinService.C_Group_Book,
+                    libId,
+                    item,
+                    "change",
+                    "",//parameters
+                    out returnItem,
+                    out strError);
+                if (nRet == -1)
+                    return Content(strError);
+            }
+
+            // 2016-8-13 jane 记住选择的subject
+            if (model.subject != ViewBag.remeberBookSubject)
+            {
+                ViewBag.remeberBookSubject = model.subject;
+
+                // todo 保存到mongo库里
+            }
+
+            // 如果没有传入返回路径，保存完转到BookSubject
+            if (String.IsNullOrEmpty(model._returnUrl) == true)
+            {
+                return this.RedirectToAction("BookSubject", "Library");
+            }
+            else
+            {
+                if (model._returnUrl == "/Biblio/Index")  // 直接跳转没有数据,改为javascript返回，注意是-2
+                    return Content("<script>window.history.go(-2);</script>");
+                else
+                {
+                    string url =Url.Content("~" + model._returnUrl);
+                    return Redirect(url);
+                }
+            }
+
+            //// 如果我们进行到这一步时某个地方出错，则重新显示表单
+            //ModelState.AddModelError("", strError);//"提供的用户名或密码不正确。");
+            //return View(model);
+
+        }
+
+
+==========
+        // 公告
+        public ActionResult MsgManage(string code, string state,string group)
+        {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                return Content(strError);
+
+            if (String.IsNullOrEmpty(group) == true)
+                group = dp2WeiXinService.C_Group_Bb;
+
+            if (group != dp2WeiXinService.C_Group_Bb
+                && group != dp2WeiXinService.C_Group_Book)
+            {
+                return Content("不支持的群" + group);
+            }
+
+
+
+
+            // 图书馆html
+            //ViewBag.LibHtml = this.GetLibHtml("");
+
+            ViewBag.group = group;
+            if (group == dp2WeiXinService.C_Group_Bb)
+                ViewBag.groupTitle = "公告";
+            else
+                ViewBag.groupTitle = "新书推荐";
+
+            return View();
+        }
+
+===========
+        private string getLinkHtml(int nRet,string menu,string returnUrl)
+        {
+            //string returnUrl = "/Patron/PersonalInfo";
+            string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+            string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
+            string strRedirectInfo = "";
+            if (nRet == -4) // 任何帐户都未绑定
+            {
+                strRedirectInfo = "您尚未绑定读者帐号，不能查看" + menu + "，" + bindLink;
+            }
+            else if (nRet == -2)// 未绑定的情况，转到绑定界面
+            {
+                strRedirectInfo = "您虽然绑定了工作人员帐号，但尚未绑定读者帐号，不能查看" + menu + "，" + bindLink;
+            }
+            // 没有设置默认账户，转到帐户管理界面
+            if (nRet == -3)
+            {
+                //string indexUrl = "/Account/Index";
+                //string indexLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + indexUrl + "\")'>这里</a>进行设置。";
+                //strRedirectInfo = "您虽然绑定了读者帐号，但当前活动账户与当前设置的图书馆不同，不能查看" + menu + "，" + indexLink;
+
+                strRedirectInfo = "您尚未绑定当前图书馆的读者账户，不能查看" + menu + "，" + bindLink;
+            }
+
+            if (strRedirectInfo != "")
+            {
+                strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
+                    //+ "<center>"
+                    + strRedirectInfo
+                    //+ "</center"
+                    + "</div>";
+            }
+
+            return strRedirectInfo;
+        }
+
+
+
+===============
+
+            // 检查微信用户是否已经绑定账号
+            List<WxUserItem> userList = WxUserDatabase.Current.GetAllByWeixinId(weiXinId);
+            if (userList.Count == 0)// 未绑定读者的情况，转到绑定界面
+                return -4;
+
+            // 检查微信用户是否已经绑定的读者
+            userList = WxUserDatabase.Current.GetPatronsByWeixinId(weiXinId);
+            if (userList.Count == 0)// 未绑定读者的情况，转到绑定界面
+                return -2;
+
+
+            // 检查是否设置了默认账户
+            activeUserItem = null;
+            foreach (WxUserItem item in userList)
+            {
+                if (item.isActive == 1)
+                {
+                    activeUserItem = item;
+                    break;
+                }
+            }
+            // 没有设置默认账户，转到帐户管理界面
+            if (activeUserItem == null || activeUserItem.libId != ViewBag.LibId)
+                return -3;
+
+============
+        private string GetLibHtml(string libId)
+        {
+            if (String.IsNullOrEmpty(libId) == true)
+            {
+                // 找工作人员帐户
+                string weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+                WxUserItem userItem = WxUserDatabase.Current.GetOneWorker(weiXinId);
+                if (userItem == null)
+                {
+                    // 找读者帐户
+                    userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
+                }
+                if (userItem != null)
+                    libId = userItem.libId;
+            }
+
+            return this.GetLibSelectHtml(libId);
+        }
+
+
+
+
+===home/index===
+
+            /*
+           if (String.IsNullOrEmpty(admin) == false && admin == "1")
+           {
+               Session["userType"] = "admin";
+           }
+           // 用于测试，如果传了一个weixin id参数，则存到session里
+           if (String.IsNullOrEmpty(weiXinId) == false)
+           {
+               // 记下微信id
+               Session[WeiXinConst.C_Session_WeiXinId] = weiXinId;
+           }
+
+           // 检查是否从微信入口进来
+           string strError = "";
+           int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+           if (nRet == -1)
+               return Content(strError);
+
+
+           
+           weiXinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            
+           WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weiXinId);
+
+           LibInfoModel libInfo = null;
+           if (userItem!=null)
+           {
+               string libName = userItem.libName;
+               libInfo = new LibInfoModel();
+               libInfo.Title = libName+" 主页";
+
+               string htmlFile = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + userItem.libId+"/index.html";
+               if (System.IO.File.Exists(htmlFile) == false)
+               {
+                   // 先缺省html文件
+                   htmlFile = dp2WeiXinService.Instance.weiXinDataDir + "/lib/index.html";
+               }
+
+               string strHtml = "";
+               // 文件存在，取出文件 的内容
+               if (System.IO.File.Exists(htmlFile) == true)
+               {
+                   Encoding encoding;
+                   // 能自动识别文件内容的编码方式的读入文本文件内容模块
+                   // parameters:
+                   //      lMaxLength  装入的最大长度。如果超过，则超过的部分不装入。如果为-1，表示不限制装入长度
+                   // return:
+                   //      -1  出错 strError中有返回值
+                   //      0   文件不存在 strError中有返回值
+                   //      1   文件存在
+                   //      2   读入的内容不是全部
+                   nRet = FileUtil.ReadTextFileContent(htmlFile,
+                       -1,
+                       out strHtml,
+                       out encoding,
+                       out strError);
+                   if (nRet == -1 || nRet == 0)
+                       throw new Exception(strError);
+                   if (nRet == 2)
+                       throw new Exception("FileUtil.ReadTextFileContent() error");
+
+                   // 替换关键词
+                   strHtml = strHtml.Replace("%libName%", userItem.libName);
+               }
+               else
+               {
+                   strHtml=@"<div class='mui-content-padded'>"
+                       +"欢迎访问 "+libName+" 图书馆"
+                       +"</div>";
+               }
+
+               libInfo.Content = strHtml;
+           }
+
+           return View(libInfo);
+            */
+
+=====web 菜单修改=========
+                    @if (Session[dp2weixin.service.WeiXinConst.C_Session_IsBind] != null && (int)Session[dp2weixin.service.WeiXinConst.C_Session_IsBind] == 1)
+                    {
+                        <li><a href="~/Account/Index">账号管理</a></li>
+                    }
+                    else
+                    {
+                        <li><a href="~/Account/Bind">绑定账号</a></li>
+                    }
+
+=========WxUserController============
+
+        /*
+        public List<WxUserItem> Get(string libId,
+            string weixinId,
+            string style)
+        {
+            List<WxUserItem> list = new List<WxUserItem>();
+
+            if (style == "active")
+            {
+                WxUserItem user=  wxUserDb.GetActivePatron(weixinId);
+                if (user != null)
+                    list.Add(user);
+            }
+            else if (style == "activeAndWorker")
+            {
+                // 目前各图书馆只有一个活动账户
+                WxUserItem user = wxUserDb.GetActivePatron(weixinId);
+                if (user != null)
+                    list.Add(user);
+
+                user = wxUserDb.GetWorker(weixinId, libId);
+                if (user != null)
+                    list.Add(user);
+            }
+
+            return list;
+        }
+        */
+
+
+=========
+                string strOutMarcSyntax = "";
+                // 将XML格式转换为MARC格式
+                // 自动从数据记录中获得MARC语法
+                nRet = MarcUtil.Xml2Marc(strXml2,
+                    MarcUtil.Xml2MarcStyle.Warning | MarcUtil.Xml2MarcStyle.OutputFragmentXml,
+                    "",
+                    out strOutMarcSyntax,
+                    out strNewMARC,
+                    out strNewFragmentXml,
+                    out strError);
+                if (nRet == -1)
+                {
+                    strError = "XML转换到MARC记录时出错: " + strError;
+                    return -1;
+                }
+
+
+===========dp2获取资源==========
+        public int DownloadObject0(System.Web.UI.Page Page,
+            LibraryChannel channel,
+            string strPath,
+            bool bSaveAs,
+            string strStyle,
+            out string strError)
+        {
+            strError = "";
+
+            if (StringUtil.IsInList("hitcount", strStyle) == true
+                && StringUtil.IsInList("hitcount", this.SearchLogEnable) == false)
+            {
+                OpacApplication.OutputImage(Page,
+                    Color.FromArgb(200, Color.Blue),
+                    "*"); // 星号表示尚未启用内部对象计数功能
+                return 1;
+            }
+
+            WebPageStop stop = new WebPageStop(Page);
+
+            // strPath = boards.GetCanonicalUri(strPath);
+
+            // 获得资源。写入文件的版本。特别适用于获得资源，也可用于获得主记录体。
+            // parameters:
+            //		fileTarget	文件。注意在调用函数前适当设置文件指针位置。函数只会在当前位置开始向后写，写入前不会主动改变文件指针。
+            //		strStyleParam	一般设置为"content,data,metadata,timestamp,outputpath";
+            //		input_timestamp	若!=null，则本函数会把第一个返回的timestamp和本参数内容比较，如果不相等，则报错
+            // return:
+            //		-1	出错。具体出错原因在this.ErrorCode中。this.ErrorInfo中有出错信息。
+            //		0	成功
+            string strMetaData = "";
+            string strOutputPath;
+            byte[] baOutputTimeStamp = null;
+            byte[] baContent = null;
+            // 只获得媒体类型
+            long lRet = channel.GetRes(
+                stop,
+                strPath,
+                0,
+                0,
+                "metadata",
+                out baContent,
+                out strMetaData,
+                out strOutputPath,
+                out baOutputTimeStamp,
+                out strError);
+            if (lRet == -1)
+            {
+                if (StringUtil.IsInList("hitcount", strStyle))
+                {
+                    OutputImage(Page,
+                        Color.FromArgb(100, Color.Red),
+                        "?");
+                    return 1;
+                }
+
+                if (channel.ErrorCode == ErrorCode.AccessDenied)
+                {
+                    // 权限不够
+                    return -1;
+                }
+
+                strError = "GetRes() (for metadata) Error : " + strError;
+                return -1;
+            }
+
+            if (Page.Response.IsClientConnected == false)
+                return -1;
+
+            // 取 metadata 中的 mime 类型信息
+            Hashtable values = StringUtil.ParseMedaDataXml(strMetaData,
+                out strError);
+            if (values == null)
+            {
+                strError = "ParseMedaDataXml() Error :" + strError;
+                return -1;
+            }
+
+            if (StringUtil.IsInList("hitcount", strStyle))
+            {
+                string strReadCount = (string)values["readCount"];
+                if (string.IsNullOrEmpty(strReadCount) == true)
+                    strReadCount = "?";
+                OutputImage(Page,
+                    Color.FromArgb(200, Color.DarkGreen),
+                    strReadCount);
+                return 1;
+            }
+#if NO
+            RETURN_IMAGE:
+            if (StringUtil.IsInList("hitcount", strStyle))
+            {
+                string strReadCount = (string)values["readCount"];
+                if (string.IsNullOrEmpty(strReadCount) == true)
+                    strReadCount = "?";
+
+                // 文字图片
+                using (MemoryStream image = ArtText.BuildArtText(
+                    strReadCount,
+                    "Microsoft YaHei",
+                    (float)12,
+                                FontStyle.Regular,
+                Color.Black,
+                Color.White,
+                Color.Gray,
+                ArtEffect.None,
+                ImageFormat.Jpeg,
+                100))
+                {
+                    Page.Response.ContentType = "image/jpeg";
+                    Page.Response.AddHeader("Content-Length", image.Length.ToString());
+
+                    Page.Response.AddHeader("Pragma", "no-cache");
+                    Page.Response.AddHeader("Cache-Control", "no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
+                    Page.Response.AddHeader("Expires", "0");
+
+                    // FlushOutput flushdelegate = new FlushOutput(MyFlushOutput);
+
+                    image.Seek(0, SeekOrigin.Begin);
+                    StreamUtil.DumpStream(image, Page.Response.OutputStream/*, flushdelegate*/);
+
+                }
+                Page.Response.Flush();
+                return 1;
+            }
+#endif
+
+            string strLastModifyTime = (string)values["lastmodifytime"];
+            if (String.IsNullOrEmpty(strLastModifyTime) == false)
+            {
+                DateTime lastmodified = DateTime.Parse(strLastModifyTime).ToUniversalTime();
+                string strIfHeader = Page.Request.Headers["If-Modified-Since"];
+
+                if (String.IsNullOrEmpty(strIfHeader) == false)
+                {
+                    DateTime isModifiedSince = DateTimeUtil.FromRfc1123DateTimeString(strIfHeader); // .ToLocalTime();
+
+                    if (DateTimeUtil.CompareHeaderTime(isModifiedSince, lastmodified) != 0)
+                    {
+                        // 修改过
+                    }
+                    else
+                    {
+                        // 没有修改过
+                        Page.Response.StatusCode = 304;
+                        Page.Response.SuppressContent = true;
+                        return 0;
+                    }
+                }
+
+                Page.Response.AddHeader("Last-Modified", DateTimeUtil.Rfc1123DateTimeString(lastmodified)); // .ToUniversalTime()
+                /*
+                                Page.Response.Cache.SetLastModified(lastmodified);
+                                Page.Response.Cache.SetCacheability(HttpCacheability.Public);
+                 * */
+            }
+
+            string strMime = (string)values["mimetype"];
+            string strClientPath = (string)values["localpath"];
+            if (strClientPath != "")
+                strClientPath = PathUtil.PureName(strClientPath);
+
+            // TODO: 如果是非image/????类型，都要加入content-disposition
+            // 是否出现另存为对话框
+            if (bSaveAs == true)
+            {
+                string strEncodedFileName = HttpUtility.UrlEncode(strClientPath, Encoding.UTF8);
+                Page.Response.AddHeader("content-disposition", "attachment; filename=" + strEncodedFileName);
+            }
+
+            /*
+            Page.Response.AddHeader("Accept-Ranges", "bytes");
+            Page.Response.AddHeader("Last-Modified", "Wed, 21 Nov 2007 07:10:54 GMT");
+             * */
+
+            // 用 text/plain IE XML 搜索google
+            // http://support.microsoft.com/kb/329661
+            // http://support.microsoft.com/kb/239750/EN-US/
+            /*
+To use this fix, you must add the following registry value to the key listed below: 
+Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings
+
+Value name: IsTextPlainHonored
+Value type: DWORD
+Value data: HEX 0x1 
+             * */
+
+            /*
+
+            Page.Response.CacheControl = "no-cache";    // 如果不用此句，text/plain会被当作xml文件打开
+            Page.Response.AddHeader("Pragma", "no-cache");
+            Page.Response.AddHeader("Cache-Control", "no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
+//            Page.Response.AddHeader("Cache-Control", "public");
+            Page.Response.AddHeader("Expires", "0");
+            Page.Response.AddHeader("Content-Transfer-Encoding", "binary");
+             * */
+
+            // 设置媒体类型
+            if (strMime == "text/plain")
+                strMime = "text";
+            Page.Response.ContentType = strMime;
+
+            string strSize = (string)values["size"];
+            if (String.IsNullOrEmpty(strSize) == false)
+            {
+                Page.Response.AddHeader("Content-Length", strSize);
+            }
+
+            if (Page.Response.IsClientConnected == false)
+                return -1;
+
+            string strGetStyle = "content,data,incReadCount";
+            if (StringUtil.IsInList("log", this.SearchLogEnable) == false)
+                strGetStyle += ",skipLog";
+            else
+                strGetStyle += ",clientAddress:" + Page.Request.UserHostAddress;
+
+            // 传输数据
+            lRet = channel.GetRes(
+                stop,
+                strPath,
+                Page.Response.OutputStream,
+                strGetStyle,
+                null,	// byte [] input_timestamp,
+                out strMetaData,
+                out baOutputTimeStamp,
+                out strOutputPath,
+                out strError);
+            if (lRet == -1)
+            {
+                // Page.Response.ContentType = "text/plain";    // 可能因为 Page.Response.OutputStream 已经写入了部分内容，这时候设置 ContentType 会抛出异常
+                strError = "GetRes() (for res) Error : " + strError;
+                return -1;
+            }
+            return 1;
+        }
+
+===bookEdit=====
+        // 将选择的subject设到输入框中
+        function subjectChanged()
+        {
+            var subValue = $("#selSubject").val();
+
+            //alert(subValue);
+
+            if (subValue == "new") {
+                $("#divNewSubject").css('display', 'block');
+                $("#_val_subject").val("");
+            }
+            else {
+                $("#divNewSubject").css('display', 'none');
+                $("#_val_subject").val(subValue);
+            }            
+        }
+
+
+
+===BookSubject=====
+@section style {
+    <style>
+        .leftLabel {
+            color: #999999;
+        }
+
+        .msg-title {
+            line-height: 1;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-size: 20px;
+        }
+    </style>
+}
+@section Scripts {
+    <script>
+        var model = {
+            list: ko.observableArray(),
+            userName: ko.observable("")
+        }
+
+        //用于获取图书馆
+        function getBookSubject() {
+            var libId = getLibId();//$("#selLib").val();
+            var weixinId = $("#weixinId").text();
+
+            // 先删除可观察数组中的已有数据
+            model.list.removeAll();
+            model.userName("");
+
+            // 先把这些项隐藏
+            $("#divNo").css('display', 'none');
+            if (libId == "") {
+                return;
+            }
+            if (weixinId == "") {
+                alert("异常情况：weixinId为空");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+            // 调web api
+            var url = "/api/LibMessage?weixinId=" + weixinId
+                        + "&group=" + encodeURIComponent("gn:_lib_book")
+                        + "&libId=" + libId
+            + "&selSubject="
+            + "&param=list";
+            sendAjaxRequest(url, "GET", function (result) {
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                // 显示列表
+                if (result.list == null || result.list.length == 0)
+                    $("#divNo").css('display', 'block');
+                else
+                    $("#divNo").css('display', 'none');
+
+                // 把返回的数组加到观察数组
+                if (result.list != null) {
+                    for (var i = 0; i < result.list.length; i++) {
+                        model.list.push(result.list[i]);
+                    }
+                }
+                model.userName(result.userName);
+
+                // 设置发布按钮是否可用
+                if (result.userName != "" && result.userName != null) {
+                    //
+                    $("#divNew").css('display', 'block');
+                }
+                else {
+                    $("#divNew").css('display', 'none');
+                }
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert("访问服务器出错：\r\n"+errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        //// 改变图书馆
+        //function libChanged() {
+        //    getBookSubject();
+        //}
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            ko.applyBindings(model);
+
+            // 获取所有的操作命令
+            getBookSubject();
+
+            // 设顶部菜单不固定
+            $("#myheader").css("position", "absolute");
+
+            //$("#selLib").change(function () {
+            //    libChanged();
+            //});
+        })
+
+        function gotoBookMsg(obj)
+        {            
+            var libId = getLibId();//$("#selLib").val();
+            var userName = model.userName();
+            var subject = $(obj).prop("title");
+
+            if (userName == null)
+                userName = "";
+
+            //var returnUrl = "/Library/BookSubject?libId=" + libId;
+            var url = "/Library/BookMsg?libId=" + libId
+                + "&userName=" + encodeURIComponent(userName)
+                + "&subject=" + encodeURIComponent(subject);
+            //+ "&returnUrl=" + encodeURIComponent(returnUrl);
+
+            //alert(url);
+            gotoUrl(url);
+        }
+
+        function gotoBookEdit() {
+            var libId = getLibId();//$("#selLib").val();
+            if (libId == "")
+            {
+                alert("请选择图书馆");
+                return;
+            }
+
+            var userName = model.userName();
+            if (userName == null || userName == "")
+            {
+                alert("userName不能为空");
+                return;
+            }
+
+            var returnUrl = "/Library/BookSubject?libId=" + libId;
+            var url = "/Library/BookEdit?libId=" + libId
+                + "&userName=" + encodeURIComponent(userName)
+                + "&returnUrl=" + encodeURIComponent(returnUrl);
+
+            //alert(url);
+            gotoUrl(url);
+        }
+
+    </script>
+}
+@section header {
+    <h1 class="mui-title">好书推荐</h1>
+}
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+
+<div class="mui-card" id="divNo" style="margin-top:10px;display:none">
+    <center>
+        <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+        <div>目前没有好书推荐。</div>
+    </center>
+</div>
+
+<div id="divNew" class="mui-content-padded" style="display:none">
+    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoBookEdit()">
+        新推荐好书
+    </button>
+</div>
+
+<ul class="mui-table-view" data-bind=" foreach:model.list">
+    <li class="mui-table-view-cell">
+        <a class="mui-navigate-right" data-bind="attr: { title:name}" href='javascript:void(0)' onclick='gotoBookMsg(this)'>
+            <span data-bind=" text:name"></span>
+            (<span data-bind="text:count"></span>)
+        </a>
+    </li>
+</ul>
+
+
+===homepage===
+@section style {
+    <style>
+        /*================栏目div============*/
+        DIV.subject {
+            padding: 0px;
+            /* background-color: blue;*/
+            padding-bottom: 10px;
+        }
+
+            DIV.subject .firstline {
+                padding: 10px;
+            }
+
+                DIV.subject .firstline .title {
+                    font-size: 24px;
+                }
+
+                DIV.subject .firstline .count {
+                    font-size: 18px;
+                    color: #999999;
+                }
+
+        /*=======消息div===========*/
+        DIV.message {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            padding: 10px;
+            /*background-color: green;*/
+        }
+
+            /*消息div下的table*/
+            DIV.message TABLE {
+                width: 100%;
+                /*background-color: red;*/
+            }
+
+                /*=======消息查看态===========*/
+
+                /*消息标题*/
+                DIV.message TABLE.view .title {
+                    font-size: 18px;
+                }
+
+                /*标题右侧的按钮*/
+                DIV.message TABLE.view .btn {
+                    text-align: right;
+                    padding-right: 10px;
+                }
+
+                /*消息发布时间*/
+                DIV.message TABLE.view .time {
+                    color: gray;
+                    font-size: 12px;
+                }
+
+        /*消息内容*/
+        DIV.messageTABLE.view .content {
+        }
+
+
+
+
+        /*=============*/
+        /*消息编辑态标题*/
+        DIV.message INPUT, SELECT {
+            margin-bottom: 0px;
+        }
+
+        DIV.message TABLE.edit tr td {
+            padding: 5px;
+        }
+
+            DIV.message TABLE.edit tr td.label {
+                color: #999999;
+                width: 40px;
+            }
+
+            DIV.message TABLE.edit tr td span.label {
+                color: #999999;
+            }
+
+        DIV.message TABLE.edit select {
+            font-size: 17px;
+            height: 37px;
+            padding: 0px;
+            margin: 0px;
+        }
+
+        DIV.message TABLE.edit input, textarea {
+            padding: 5px;
+            margin: 0px;
+        }
+
+        /*======是否可编辑态样式=============*/
+        .msgEditable {
+            background-color: #CCFF99;
+        }
+    </style>
+}
+@section Scripts {
+    <script>
+        var model = {
+            subjects: ko.observableArray(),
+            selSubject: ko.observable("")
+        }
+
+        //用于获取栏目
+        function getSubject() {
+            var libId = getLibId();//$("#selLib").val();
+            var weixinId = $("#weixinId").text();
+
+            // 先删除可观察数组中的已有数据
+            model.subjects.removeAll();
+
+            // 删除所有下级
+            $("#_subject_main").children("*").remove();
+
+            // 先把这些项隐藏
+            $("#divNo").css('display', 'none');
+            $("#divNew").css('display', 'none');
+            if (libId == "") {
+                return;
+            }
+            if (weixinId == "") {
+                alert("异常情况：weixinId为空");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+            // 调web api
+            var url = "/api/LibMessage?weixinId=" + weixinId
+                + "&group=" + encodeURIComponent("gn:_lib_homePage")
+                + "&libId=" + libId
+            sendAjaxRequest(url, "GET", function (result) {
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                // 显示列表
+                if (result.list == null || result.list.length == 0)
+                    $("#divNo").css('display', 'block');
+                else
+                    $("#divNo").css('display', 'none');
+
+                // 把返回的数组加到观察数组
+                if (result.list != null) {
+
+                    for (var i = 0; i < result.list.length; i++) {
+
+                        var subject = result.list[i].name;
+                        var subjectFullName = encodeURIComponent(result.list[i].fullName);
+                        var count = result.list[i].count;
+
+                        // 加载栏目数组里
+                        model.subjects.push(subject);
+                        if ( count > 0) {
+                            var subjectDiv =
+                                "<div id='_subject_" + subjectFullName + "'  class='subject'>"
+                                    + "<div id='_subject_title' class='firstline'><span class='title'>" + subject + "</span></div>" //<span class='count'>(" + count + ")</span>
+                                    + "<div  class='pending' >"
+                                        + "<label>su-" + subjectFullName + "</label>"
+                                        + "<img src='../img/wait2.gif' />"
+                                        + "<span>" + libId + "</span>"
+                                    + "</div>"
+                                + "</div>";
+
+                            //alert(subjectDiv);
+                            $("#_subject_main").prepend(subjectDiv);
+                        }
+                    }
+                }
+
+                // 设置发布按钮是否可用
+                if (result.userName != "" && result.userName != null) {
+                    //
+                    $("#divNew").css('display', 'block');
+                }
+                else {
+                    $("#divNew").css('display', 'none');
+                }
+
+                // 填充subject内容
+                window.setTimeout("fillPending()", 1);
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert("访问服务器出错：\r\n"+errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            ko.applyBindings(model);
+
+            // 获取所有的操作命令
+            getSubject();
+
+            // 设顶部菜单不固定
+            $("#myheader").css("position", "absolute");
+
+            //$("#selLib").change(function () {
+            //    libChanged();
+            //});
+        })
+
+
+
+
+
+
+        // 生成栏目html
+        function getSubjectHtml(selSubject, disabledStr) {
+            var opt = "<option value=''>请选择 栏目</option>";
+
+            if (selSubject == null || selSubject == "")
+            {
+                selSubject=model.selSubject() ;
+            }
+
+            for (var i = 0; i < model.subjects().length; i++) {
+                var subject = model.subjects()[i];
+
+                var selectedString = "";
+                if (selSubject != "" && selSubject == subject) {
+                    selectedString = " selected='selected' ";
+                }
+                opt += "<option value='" + subject + "' " + selectedString + ">" + subject + "</option>";
+            }
+
+            //加自定义栏目
+            opt += "<option value='new'>自定义栏目</option>";
+            var onchange = " onchange='subjectChanged(true)' ";
+
+            return "<select id='selSubject' " + onchange + "  " + disabledStr + ">" + opt + "</select>";
+
+        }
+
+
+
+        // 栏目切换，将选择的subject设到输入框中
+        function subjectChanged(bGetTemplate) {
+            var subValue = $("#selSubject").val();
+
+            //alert(subValue);
+
+            if (subValue == "new") {
+                $("#divNewSubject").css('display', 'block');
+                $("#_val_subject").val("");
+                //$("#txtSubject").css('display', 'block');
+            }
+            else {
+                $("#divNewSubject").css('display', 'none');
+                $("#_val_subject").val(subValue);
+
+                if (bGetTemplate == true)
+                {
+                    // 取模板
+                    getTemplate(subValue);
+                    
+                }
+
+            }
+
+
+        }
+
+        //用于获取栏目
+        function getTemplate(subject) {
+            var libId = getLibId(); //$("#selLib").val();
+            if (libId == "") {
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+            // 调web api
+            var url = "/api/LibMessage?group=" + encodeURIComponent("gn:_lib_homePage")
+                + "&libId=" + libId
+            + "&subject=" + encodeURIComponent(subject);
+            //alert(url);
+            sendAjaxRequest(url, "GET", function (result) {
+                // 关闭等待层
+                layer.close(index);
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                $("#_val_content").val(result.info);
+                
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert("访问服务器出错：\r\n" + errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+
+
+
+
+
+    </script>
+}
+@section header {
+    <h1 class="mui-title">图书馆主页</h1>
+}
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="_userName" style="display:none">@ViewBag.userName</span>
+<span id="_group" style="display:none">gn:_lib_homePage</span>
+<!--
+<div>
+    <div class="mui-input-group">
+        <div class="mui-input-row">
+            <label style="color:#cccccc;">图书馆</label>
+            @Html.Raw(ViewBag.LibHtml)
+        </div>
+    </div>
+</div>
+-->
+
+<div class="mui-card" id="divNo" style="margin-top:10px;display:none">
+    <center>
+        <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+        <div>目前没有栏目。</div>
+    </center>
+</div>
+
+@if (String.IsNullOrEmpty(ViewBag.userName) == false)
+{
+<div id="divNew" style="display:none">
+    <div id='_edit_new' class="mui-card message" style="display:none"></div>
+    <div class="mui-content-padded">
+        <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
+            新发布信息
+        </button>
+    </div>
+</div>
+}
+
+<div  id="_subject_main">
+
+</div>
+
+
+
+===图书馆主页，老代码====
+        // 单击msg进行只读态与编辑态的切换
+        function clickMsgDiv(msgId)
+        {
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
+                return;
+            }
+
+            if (model.userName() == "")
+            {
+                return;
+            }
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+            var editBtn = $(divId).find("#btnEdit");
+
+            // 这时候已经不是在浏览界面，应该是编辑态了
+            var viewTable = $(divId).children(".view").html();
+            if (viewTable==null || viewTable=="")
+            {
+                return;
+            }
+
+            var editStateClass="msgEditable";
+            var editState = $(divId).hasClass(editStateClass);
+            if (editState == true) {
+                $(divId).removeClass(editStateClass);
+
+                $(editBtn).css("display", "none");
+            }
+            else {
+                $(divId).addClass(editStateClass);
+
+                $(editBtn).css("display", "block");
+            }
+        }
+
+
+		        // 在新增消息，点击取消
+        function cancelEdit(msgId) {
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
+                return;
+            }
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+
+
+            //显示态html
+            var viewHtml = "";
+
+            if (msgId == "new") {
+                //创建按钮不可见
+                $("#btnCreate").css('display', 'block');
+                $(divId).css('display', 'none');
+                $(divId).html("");
+                return;
+            }
+
+            // 根据id从服务器取记录，并只读态
+            var libId = getLibId(); //$("#selLib").val();
+            var weixinId = $("#weixinId").text();
+            if (libId == "") {
+                alert("请选择图书馆");
+                return;
+            }
+            if (weixinId == "") {
+                alert("异常情况：weixinId为空");
+                return;
+            }
+            var group = "gn:_lib_homePage";
+            //显示等待图层
+            var index = loadLayer();
+            var style = "browse";
+            /*
+            GetMessage(string weixinId, 
+            string group,
+            string libId, 
+            string msgId,
+            string subject,
+            string style)
+            */
+            // 调web api
+            var url = "/api/LibMessage?weixinId=" + weixinId
+                        + "&group=" + group
+                        + "&libId=" + libId
+                        + "&msgId=" + msgId
+                        + "&subject="
+                        + "&style=" + style;
+            sendAjaxRequest(url, "GET", function (result) {
+                // 关闭等待层
+                layer.close(index);
+
+                //alert("回来-"+result.errorCode);
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+                // 把返回的数组加到观察数组
+                if (result.items != null && result.items.length > 0) {
+
+                    // 把数据填在编辑界面
+                    var item = result.items[0];
+                    var html = getMsgViewHtml(item,false);
+                    $(divId).html(html);
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert("访问服务器出错：\r\n" + errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+
+        }
+
+		        // 进入编辑态
+        function gotoEdit(msgId) {
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
+                return;
+            }
+
+            //alert(msgId);
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+            if (msgId == "new")
+            {
+                //创建按钮不可见
+                $("#btnCreate").css('display', 'none');
+                $(divId).css('display', 'block');
+                var html = getMsgEditHtml(null);
+                $(divId).html(html);
+
+                //由于一进来没有显示编辑界面，所以这里要重新设一下
+                setShowTopButton();
+                return;
+            }
+
+
+            //根据id从服务器上取记录
+            var libId = getLibId(); //$("#selLib").val();
+            var weixinId = $("#weixinId").text();
+            if (libId == "") {
+                alert("请选择图书馆");
+                return;
+            }
+            if (weixinId == "") {
+                alert("异常情况：weixinId为空");
+                return;
+            }
+            var group = "gn:_lib_homePage";
+            //显示等待图层
+            var index = loadLayer();
+            var style = "original";
+            /*
+            GetMessage(string weixinId, 
+            string group,
+            string libId, 
+            string msgId,
+            string subject,
+            string style)
+            */
+            // 调web api
+            var url = "/api/LibMessage?weixinId=" + weixinId
+                        + "&group=" + group
+                        + "&libId=" + libId
+                        + "&msgId=" + msgId
+                        + "&subject="
+                        + "&style=" + style;
+            sendAjaxRequest(url, "GET", function (result) {
+                // 关闭等待层
+                layer.close(index);
+
+                //alert("回来-"+result.errorCode);
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+                // 把返回的数组加到观察数组
+                if (result.items != null && result.items.length > 0) {
+
+                    // 把数据填在编辑界面
+                    var item = result.items[0];
+                    var html = getMsgEditHtml(item);
+                    $(divId).html(html);
+
+                    //由于一进来没有显示编辑界面，所以这里要重新设一下
+                    setShowTopButton();
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert("访问服务器出错：\r\n" + errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+
+        // 获取编辑态html
+        function getMsgEditHtml(msgItem) {
+            // 工作人员账号
+            var userName = model.userName();
+            if (userName == null || userName == "")
+            {
+                alert("异常情况，没有绑定工作人员不可能走到这里");
+                return;
+            }
+            //alert(msgItem);
+
+            var formatTextStr = " selected ";// 默认文本格式选中
+            var formatMarkdownStr = "";
+
+            var saveBtnName = "新增";
+            var disabledStr = "";// "disabled"
+            var subject = model.selSubject();
+            var msgId = "new"; //默认新建的情况
+            var title = "";
+            var remark = "";
+            var content = "";
+            if (msgItem != null)
+            {
+                msgId = msgItem.id;
+                title = msgItem.title;
+                remark = msgItem.remark;
+                content = msgItem.content;
+                subject = msgItem.subject;
+
+                disabledStr = " disabled='disabled' ";
+
+                if (msgItem.contentFormat == "markdown")
+                    formatMarkdownStr = " selected ";
+            }
+
+            //alert(subject);
+
+            var subjectHtml = getSubjectHtml(subject, disabledStr);
+            var html = "<table class='edit'>"
+            + "<tr>"
+                + "<td class='label'>栏目</td>"
+                + "<td>"
+                    + "<div style='border:1px solid #cccccc'>"
+                    + subjectHtml
+                    + "</div>"
+                    + "<div id='divNewSubject' style='display:none;margin-top:5px'>"
+                        + "<input id='_val_subject' type='text' value='"+subject+"' placeholder='请输入自定义栏目'>"
+                    + "</div>"
+                + "</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='label'>标题</td>"
+                + "<td>"
+                    + "<input class='mui-input mui-input-clear' id='_val_title' type='text' value='"+title+"'>"
+                + "</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='label'>内容</td>"
+                + "<td>"
+                    + "<div style='border:1px solid #cccccc;'>"
+                        + "<select id='_selFormat'>"
+                            + "<option value='text' " + formatTextStr + ">文本格式</option>"
+                            + "<option value='markdown' " + formatMarkdownStr + ">Markdown格式</option>"
+                        + "</select>"
+                    + "</div>"
+                + "</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td colspan='2'>"
+                    + "<textarea id='_val_content' rows='5'>" + content + "</textarea>"
+                + "</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td colspan='2' >"
+                    + "<span class='label'>注释</span>"
+                    + "<textarea id='_val_remark' rows='3'>"+remark+"</textarea>"
+                + "</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td colspan='2'>"
+                    + "<button class='mui-btn mui-btn-primary' onclick=\"save('" + msgId + "')\">发布</button>&nbsp;&nbsp;"
+                    + "<button class='mui-btn mui-btn-default' onclick=\"cancelEdit('" + msgId + "')\">取消</button>"
+                + "</td>"
+            + "</tr>"
+        + "</table>";
+
+            /*
+            var inputHtml = "<div class='mui-input-group' >"
+                + "<div class='mui-input-row' style='border-bottom:0px'>"
+                    + "<label class='leftLabel'>栏目</label>"
+                    + subjectHtml
+                + "</div>"
+               + "<div class='mui-input-row' id='divNewSubject' style='display:none;border-bottom:0px'>"
+                    + "<label class='leftLabel'>&nbsp;</label>"
+                    + "<input type='text' id='_val_subject' name='subject' style='border:1px solid #CCCCCC;border-bottom:0px' value='" + subject + "' />"
+                + "</div>"
+                + "<div class='mui-input-row' style='border-bottom:0px'>"
+                    + "<label class='leftLabel'>标题</label>"
+                    + "<input type='text' id='_val_title' class='mui-input mui-input-clear' style='border:1px solid #CCCCCC'  value='" + title + "'>"
+                + "</div>"
+                + "<div class='mui-input-row' style='border-bottom:0px;height:100px'>"
+                    + "<label class='leftLabel' style='width:20%;'>注释</label>"
+                    + "<textarea rows='6' id='_val_remark' style='border:1px solid #CCCCCC;border-top:0px;   padding:2px'>" + remark + "</textarea>"
+                + "</div>"
+                + "<div class='mui-input-row' style='border-bottom:0px;height:100px'>"
+                    + "<label class='leftLabel'>内容</label>"
+                    + "<textarea rows='6' id='_val_content' style='border:1px solid #cccccc'>" + content + "</textarea>"
+                + "</div>"
+                + "<div class='mui-input-row ' style='border-bottom:0px;'>"
+                    + "<label class='leftLabel'>发布人</label>"
+                    + "<input type='text' class='mui-input mui-input-clear' style='border:1px solid #cccccc;background-color:#dddddd' disabled='disabled' value='" + userName + "'>"
+                + "</div>";
+            var btnHtml = "<div class='mui-content-padded'>"
+                + "<button class='mui-btn mui-btn-primary' onclick=\"save('" + msgId + "')\">发布</button>&nbsp;&nbsp;"
+                + "<button class='mui-btn mui-btn-default' onclick=\"cancelEdit('" + msgId + "')\">取消</button>"
+                + "</div>";
+
+            var html = "<div class='divForm'>"+inputHtml + btnHtml+"</div>";
+            */
+            return html;
+        }
+
+		        // 保存完后，显示一条消息
+        function viewMsg(msgId,msgItem)
+        {
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+            if (msgId == "new") {
+
+                // 得到完整的div
+                var msgViewHtml = getMsgViewHtml(msgItem, true);
+
+                var subject = $("#_val_subject").val(); //
+                // 要先找下同名的subject，如果不存在，新创建一个subject div放在最上面
+                var subjectObj = $("#_subject_main").children("#_subject_" + subject);
+                if (subjectObj.html() != null) {  //注意这里要用html()
+                    var titleObj = $(subjectObj).find("#_subject_title");
+                    $(msgViewHtml).insertAfter(titleObj);
+                }
+                else {
+                    // 给框架加一条栏目
+                    model.subjects.push(subject);
+                    model.selSubject(subject); // 设当前选择的栏目
+
+                    //alert("2");
+                    var subjectDiv = "<div id='_subject_" + subject + "'  class='subject'>"
+                        + "<div id='_subject_title' class='firstline'><span class='title'>" + subject + "<span></div>"  
+                        + msgViewHtml
+                        + "</div>";
+
+                    //alert(subjectDiv);
+                    $("#_subject_main").prepend(subjectDiv);
+                }
+
+                //创建按钮不可见
+                $("#btnCreate").css('display', 'block');
+                $(divId).css('display', 'none');
+                $(divId).html("");
+
+                return;
+            }
+
+
+            // 拼出内部的html，直接替换原来内容
+            var msgViewHtml = getMsgViewHtml(msgItem, false);
+
+            //alert("返回的item-" + msgItem.subject);
+            $(divId).html(msgViewHtml);
+        }
+        
+        // 保存
+        function save(msgId)
+        {
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
+                return;
+            }
+
+            // subject
+            var subject = $("#_val_subject").val(); //
+            if (subject == "")
+            {
+                alert("请先选择栏目");
+                return;
+            }
+
+            //alert(subject);
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+
+            var action = "";
+            if (msgId == "new") {
+                action = "POST";
+            }
+            else {
+                action = "PUT";
+            }
+
+            
+            var title = $("#_val_title").val();
+            // 对于图书馆主页，标题允许为空，因为已经有了栏目标题
+                //if (title == "") {
+                //    alert("请输入标题。");
+                //    return;
+                //}
+                var remark = $("#_val_remark").val();
+
+                var content = $("#_val_content").val();
+                if (content == "") {
+                    alert("请输入内容。");
+                    return;
+                }
+
+                var format = $("#_selFormat").val();
+                //alert(format);
+
+                var libId = getLibId(); //$("#selLib").val();
+                if (libId == "") {
+                    alert("异常情况：libId为空。");
+                    return;
+                }
+                var userName = model.userName(); 
+                if (userName == "") {
+                    alert("异常情况：userName为空。");
+                    return;
+                }
+                var group = "gn:_lib_homePage";
+
+                //显示等待图层
+                var index = loadLayer();
+
+                var id = "";
+                if (msgId != "new")
+                    id = msgId;
+
+                var url = "/api/LibMessage"
+                    + "?group=" + group
+                    + "&libId=" + libId;
+                sendAjaxRequest(url, action,
+                    function (result) {
+
+                        // 关闭等待层
+                        layer.close(index);
+
+                        if (result.errorCode == -1) {
+                            alert("操作失败：" + result.errorInfo);
+                            return;
+                        }
+
+                        alert("操作成功");
+
+                        if (result.items == null || result.items.length == 0)
+                        {
+                            alert("未返回保存后的消息对象");
+                        }
+
+                        var item = result.items[0];
+
+                        //alert("回来的消息标题:"+item.title);
+                        viewMsg(msgId,item);
+
+                    },
+                    function (xhq, textStatus, errorThrown) {
+                        alert(errorThrown);
+                        // 关闭等待层
+                        layer.close(index);
+                    },
+                    {
+                        id: id,
+                        title: title,
+                        content: content,
+                        contentFormat:format,
+                        creator: userName,
+                        subject: subject,
+                        remark: remark
+                    }
+                );      
+
+        }
+
+
+===检索界面展开书目代码===
+
+        //观察模型l
+        var model = {
+            reservations: ko.observableArray()    //预约列表
+        }
+
+        //2016-6-17 jane 获得当前绑定读者，为了解决普通浏览器返回时，读者信息没更新的问题,iphone倒是更新了
+        function getActivePatron() {
+
+            //alert("getActivePatron1");
+
+            // 先删除可观察数组中的已有数据
+            model.reservations.removeAll();
+
+            $("#patronBarcode").text("");
+            $("#patronName").text("");
+            $("#workerUserName").text("");
+
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "")
+                return;
+
+            // 图书馆
+            var libId = getLibId();//$("#selLib").val();
+            if (libId == "" || libId == null) {
+                return;
+            }
+
+            //alert("getActivePatron2");
+
+            //显示等待图层
+            var index = loadLayer();
+
+            // 调web api
+            var url = "/api/wxuser?libId=" + encodeURIComponent(libId)
+                + "&weixinId=" + weixinId
+                + "&style=activeAndWorker";
+            sendAjaxRequest(url, "GET", function (data) {
+
+                // alert("getActivePatron3");
+
+                // 关闭等待层
+                layer.close(index);
+
+                if (data == null)
+                    return;
+
+                if (data.length > 0) {
+                    for (var i = 0; i < data.length; i++) {
+                        var user = data[i];
+                        // 读者
+                        if (user.type == 0) {
+                            $("#patronBarcode").text(user.readerBarcode);
+                            $("#patronName").text(user.readerName);
+
+                            //alert("getActivePatron4");
+                        }
+                        else if (user.type == 1) {
+                            $("#workerUserName").text(user.userName);
+
+                            //alert("getActivePatron5");
+                        }
+                    }
+                }
+
+                // alert("getActivePatron6");
+
+
+                // 获取预约列表
+                getReservations();
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        //获取预约列表
+        function getReservations(checkBarcode, obj, info, bWarn) {
+
+            //alert("getReservations1");
+
+            // 先删除可观察数组中的已有数据
+            model.reservations.removeAll();
+
+            // 图书馆
+            var libId = getLibId();//$("#selLib").val();
+            if (libId == "" || libId == null) {
+
+                //alert("getReservations1-1");
+                return;
+            }
+
+            var patronBarcode = $("#patronBarcode").text();
+            if (patronBarcode == "") {
+                //alert("getReservations1-2");
+
+                return;// 未绑定
+            }
+
+            // alert("getReservations2");
+
+
+            //显示等待图层
+            var index = loadLayer();
+
+            // 调web api
+            var url = "/api/Reservation?libId=" + encodeURIComponent(libId)
+                + "&patronBarcode=" + encodeURIComponent(patronBarcode);
+            sendAjaxRequest(url, "GET", function (result) {
+                //alert("getReservations3");
+
+
+                // 关闭等待层
+                layer.close(index);
+
+                // 出错或未命中
+                if (result.errorCode == -1 || result.errorCode == 0) {
+                    openMsg(result.errorInfo);
+                    return;
+                }
+
+                for (var i = 0; i < result.reservations.length; i++) {
+                    //加到观察数组中
+                    model.reservations.push(result.reservations[i]);
+                }
+
+                //alert("getReservations4");
+
+
+                if (checkBarcode != null && checkBarcode != "" && obj != null) {
+
+                    //alert("getReservations5");
+
+                    var myhtml = getReservationHtml(checkBarcode)
+                    //alert("myhtml ["+myhtml+"]");
+
+                    $(obj)[0].innerHTML = myhtml;  // 不能直接设html
+                    //$("#responsediv")[0].innerHTML = msg就可以获得这个Dom对象使用innerHTML。
+
+                    var infoDiv = $(obj).parent().find(".resultInfo").first();
+                    //alert(infoDiv);
+                    // alert("["+info+"]");
+
+                    $(infoDiv)[0].innerHTML = info;//.text(info);
+                    if (bWarn == true)
+                        $(infoDiv).css("background-color", "yellow");  //设为绿色
+                    else
+                        $(infoDiv).css("color", "darkgreen");  //设为绿色
+
+                    //alert($(infoDiv).attr('id'));
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+        // 得到预约状态
+        function getReservationState(barcode) {
+            //alert("getReservationState1");
+            if (model.reservations().length == 0)
+                return "未预约";
+
+            //alert("getReservationState2");
+
+            for (var i = 0; i < model.reservations().length; i++) {
+
+                //alert("getReservationState3-"+i);
+                var oneReservation = model.reservations()[i];
+                var barcodeList = oneReservation.pureBarcodes;
+                var arrivedBarcode = oneReservation.arrivedBarcode;
+                var nIndex = barcodeList.indexOf(barcode);
+
+                //alert(barcodeList + "-" + arrivedBarcode);
+                if (nIndex >= 0) {
+                    if (barcode == arrivedBarcode)
+                        return "已到书";
+                    else
+                        return "已预约";
+                }
+            }
+
+            return "未预约";
+        }
+
+        // 得到预约状态和操作按钮
+        function getReservationHtml(barcode) {
+            myReserHtml = "";
+            var reservationState = getReservationState(barcode);
+            //alert("[" + reservationState + "]");
+            var btn = "";
+            if (reservationState == "未预约") {
+                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','new')\">预约</button>";
+            }
+            else if (reservationState == "已预约") {
+                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','delete')\">取消预约</button>";
+            }
+            else if (reservationState == "已到书") {
+                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','delete')\">放弃取书</button>";
+            }
+            if (reservationState != "") {
+                myReserHtml = "<div class='info'>" + reservationState + "</div>"
+                    + "<div class='btn'>" + btn + "</div>";
+            }
+            return myReserHtml;
+        }
+
+        // 获取详细书目记录
+        function getDetail(o) {
+            // 找到下级的标签，里面存储的线索
+            var mylable = o.children("label");
+
+            // pendingDetail没有定义标签label,去掉pendingDetail状态
+            if (mylable.length == 0) {
+                o.html("没找到存放线索信息的lable标签");
+                o.removeClass("pendingDetail");
+                return;
+            }
+
+            // 取出label设置的线索信息
+            var keyword = mylable.text();
+            // 未给label设值，去掉pendingDetail状态
+            if (keyword.length == 0) {
+                o.html("线索信息为空");
+                o.removeClass("pendingDetail");
+                return;
+            }
+
+            // 取出图书馆账号与记录路径
+            var nIndex = keyword.indexOf('|');
+            var libId = keyword.substring(0, nIndex);
+            var biblioPath = keyword.substring(nIndex + 1);
+            //alert("type[" + mytype + "]-value[" + myvalue + "]");
+            if (libId == "" || biblioPath == "") {
+                o.html("记录路径值[" + keyword + "]不对，格式应该为[图书馆id|记录路径]");
+                o.removeClass("pendingDetail");
+                return;
+            }
+
+            // 调api
+            var url = "/api/biblio?libId=" + encodeURIComponent(libId) + "&biblioPath=" + encodeURIComponent(biblioPath);
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 出错或未命中
+                if (result.errorCode == -1 || result.errorCode == 0) {
+                    o.html(result.errorInfo);
+                    $(o).css("color", "red");  //设置p元素的样式颜色为红色
+                    o.removeClass("pendingDetail");
+                    return;
+                }
+
+                var itemTables = "";
+                if (result.itemList.length == 0)
+                    itemTables = "<div class='mui-card item'>"
+                        + "<span class='remark'>没有册信息</span>"
+                        + "</div>"
+
+                var patronBarcode = $("#patronBarcode").text();
+                var bCanReservation = false;
+                var returnUrl = "/Biblio/Index";
+                var info = "<span class='remark'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl=" + encodeURIComponent(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>"
+                if (patronBarcode != null && patronBarcode != "") // 有绑定的读者
+                {
+                    bCanReservation = true;
+                    info = "";
+                }
+                //alert(info);
+
+                var curPatronBarcode = $("#patronBarcode").text();
+                var curPatronName = $("#patronName").text();
+
+                for (var i = 0; i < result.itemList.length; i++) {
+                    var record = result.itemList[i];
+                    var myReserHtml = info;
+                    if (bCanReservation == true) {
+                        myReserHtml = "<div>" + getReservationHtml(record.barcode) + "</div>"
+                            + "<br/><div class='resultInfo'></div>";
+                    }
+
+                    var strBorrowInfo = "在架";
+                    // 检查是不是当前读者借的
+                    if (record.borrower != null && record.borrower != "") {
+                        if (curPatronBarcode != record.borrower) {
+                            strBorrowInfo = "借阅者:***<br/>"
+                            + "借阅时间:" + record.borrowDate + "<br/>"
+                            + "借期:" + record.borrowPeriod;
+                        }
+                        else {
+                            strBorrowInfo = "<div>"
+                                    + "<div class='info'>借阅者:" + curPatronName + "<br/>"
+                                                              + "借阅时间:" + record.borrowDate + "<br/>"
+                                                              + "借期:" + record.borrowPeriod
+                                     + "</div>"
+                                    + "<div class='btn'>"
+                                    + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + record.barcode + "')\">续借</button>"
+                                    + "</div>"
+                                + "</div><br/>"
+                                + "<div id='renewInfo-" + record.barcode + "'/>";
+
+                            // 此时不能预约
+                            myReserHtml = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
+                        }
+                    }
+
+                    itemTables += "<div class='mui-card item' >"
+                    + "<div class='title'>" + record.barcode + "</div>"
+                     + "<table>"
+                    + "<tr>"
+                    + "<td class='label'>状态</td>"
+                    + "<td class='value'>" + record.state + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>卷册</td>"
+                    + "<td class='value'>" + record.volumn + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>馆藏地</td>"
+                    + "<td class='value'>" + record.location + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>价格</td>"
+                    + "<td class='value'>" + record.price + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>在借情况</td>"
+                    + "<td class='value'>" + strBorrowInfo + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>预约信息</td>"
+                    + "<td class='value' >" + myReserHtml + "</td>"
+                    + "</tr>"
+                    //
+                    + "</table>"
+                    + "</div>";
+                }
+
+
+
+                var worker = $("#workerUserName").text();
+                var recommendBtn = "";
+                if (worker != null && worker != "") {
+                    var recommPath = "/Library/BookEdit?libId=" + libId
+                        + "&userName=" + worker
+                        + "&biblioPath=" + encodeURIComponent(biblioPath)
+                        + "&returnUrl=" + encodeURIComponent('/Biblio/Index')
+                    recommendBtn = "<div class='btnRow'><button class='mui-btn  mui-btn-default' "
+                        + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button></div>";
+                }
+
+                var myHtml = "<span>" + result.summary + "</span>" + recommendBtn + itemTables;
+
+
+                //换成实际的值，去掉pendingDetail状态，
+                o.html(myHtml);
+                o.removeClass("pendingDetail");
+            }, function (xhq, textStatus, errorThrown) {
+                //出错，去掉pendingDetail状态
+                o.html("访问服务器出错：[" + errorThrown + "]");
+                o.removeClass("pendingDetail");
+            });
+
+            return;
+        }
+
+
+====检索界面代码===
+
+    <div class="mui-input-group">
+        <!--
+                    <div class="mui-input-row ">
+                        <label style="color:#cccccc;">图书馆</label>
+                        @Html.Raw(ViewBag.LibHtml)
+                    </div>
+        -->
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">检索途径</label>
+            <select id="selFrom" name="selFrom">
+                <option value="title" selected>书名</option>
+                <option value="ISBN">ISBN</option>
+                <option value="contributor">作者</option>
+            </select>
+        </div>
+    </div>
+    <div class="mui-input-row">
+        <label style="color:#cccccc">检索词</label>
+        <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
+    </div>
+    <div class="mui-content-padded">
+        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
+    </div>
+</div>
+
+
+====BookMsg部分代码====
+        <div class="mui-content-padded">
+            <div class="msg-title" id="title-@item.id">@item.title</div>
+            <p style="color:gray;font-size:12px">
+                <span>@item.publishTime</span>-
+                <span>@item.creator</span>
+            </p>
+            <div>@Html.Raw(item.contentHtml)</div>
+            @if (String.IsNullOrEmpty(ViewBag.userName) == false)
+            {
+                <div style="text-align:right">
+                    <button class="mui-btn  mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>
+                    <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
+                </div>
+            }
+        </div>
+
+
+======好书推荐部分代码========
+
+    <div class='mui-input-group'>
+        <div class='mui-input-row' style='border-bottom:0px'>
+            <label class="leftLabel">栏目</label>
+            @Html.Raw(ViewBag.SubjectHtml)
+        </div>
+        <div class='mui-input-row' id='divNewSubject' style='display:none;border-bottom:0px'>
+            <label class="leftLabel">&nbsp;</label>
+            <input type="text" id='txtSubject' name="subject" style="border:1px solid #CCCCCC;border-bottom:0px" value="@Model._subject" />
+        </div>
+
+        <div class="mui-input-row" style="border-bottom:0px">
+            <label class="leftLabel">标题</label>
+            <input type="text" id="title" class="mui-input mui-input-clear" style="border:1px solid #CCCCCC" name="title" value="@Model.title">
+        </div>
+        <div class="mui-input-row" style="border-bottom:0px;height:100px">
+            <label class="leftLabel" style="width:20%;">注释</label>
+            <textarea rows="6" id="remark" style="border:1px solid #CCCCCC;border-top:0px;   padding:2px" name="remark">@Model.remark</textarea>
+        </div>
+        <div class="mui-input-row" style="border-bottom:0px;height:100px">
+            <label class="leftLabel">书目路径</label>
+            <textarea rows="6" id="content" style="border:1px solid #cccccc" name="content">@Model.content</textarea>
+        </div>
+        <div class="mui-input-row " style="border-bottom:0px;">
+            <label class="leftLabel">发布时间</label>
+            <input type="text" class="mui-input mui-input-clear" style="border:1px solid #cccccc;background-color:#dddddd" disabled="disabled" name="publishTime" value="@Model.publishTime">
+        </div>
+        <div class="mui-input-row " style="border-bottom:0px;">
+            <label class="leftLabel">发布人</label>
+            <input type="text" class="mui-input mui-input-clear" style="border:1px solid #cccccc;background-color:#dddddd" disabled="disabled" name="creator" value="@Model._userName">
+        </div>
+    </div>
+
+    <div class="mui-content-padded">
+        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="submitForm()">
+            @if (String.IsNullOrEmpty(Model.id) == true) //( .id == "" || Model.id==null)
+            {
+                <span>发布</span>
+            }
+            else
+            {
+                <span>更新</span>
+            }
+
+        </button>
+
+    </div>
+
+
+============
+        #region 不再使用
+
+        /*
+        public  long SearchOnePatronByWeiXinId(string remoteUserName,
+            string libCode,
+            string strWeiXinId,
+            out string strBarcode,
+            out string strError)
+        {
+            strError = "";
+            strBarcode = "";
+
+            // 从mongodb中检查是否绑定了用户
+            WxUserItem userItem = WxUserDatabase.Current.GetActiveOrFirst(strWeiXinId, libCode);
+            if (userItem == null)
+            {
+                strError = "异常的情况，未怎么图书馆时不应走到SearchPatronByWeiXinId函数。";
+                return -1;
+            }
+
+            // mongodb存在
+            if (String.IsNullOrEmpty(userItem.readerBarcode) == false)
+            {
+                strBarcode = userItem.readerBarcode;
+                return 1;
+            }
+
+            // 从远程dp2library中查
+            string strWord = WeiXinConst.C_WeiXinIdPrefix + strWeiXinId;
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            SearchRequest request = new SearchRequest(id,
+                "searchPatron",
+                "<全部>",
+                strWord,
+                "email",
+                "left",
+                "wx-patron",
+                "id,cols",
+                1000,
+                0,
+                WeiXinConst.C_Search_MaxCount);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionAsync(
+                    this.dp2MServerUrl,
+                    remoteUserName).Result;
+
+                SearchResult result = connection.SearchAsync(
+                    remoteUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.ResultCount == -1)
+                {
+                    strError = result.ErrorInfo;
+                    return -1;
+                }
+                if (result.ResultCount == 0)
+                    return 0;
+
+                // 找到对应的读者记录
+                if (result.ResultCount > 0)
+                {
+                    LibItem libItem = LibDatabase.Current.GetLibByLibCode(libCode);
+                    string libName = libItem.libName;
+                    for (int i = 0; i < result.ResultCount; i++)
+                    {
+                        // 可能会检索出多笔记录，先取第一笔 todo
+                        string strXml = result.Records[i].Data;
+                        XmlDocument dom = new XmlDocument();
+                        dom.LoadXml(strXml);
+                        string strTempBarcode = DomUtil.GetNodeText(dom.DocumentElement.SelectSingleNode("barcode"));
+
+                        // 更新到mongodb库
+                        string name = "";
+                        XmlNode node = dom.DocumentElement.SelectSingleNode("name");
+                        if (node != null)
+                            name = DomUtil.GetNodeText(node);
+                        string refID = "";
+                        node = dom.DocumentElement.SelectSingleNode("refID");
+                        if (node != null)
+                            refID = DomUtil.GetNodeText(node);
+
+                        if (i == 0)
+                        {
+                            userItem.readerBarcode = strTempBarcode;
+                            userItem.readerName = name;
+                            userItem.xml = strXml;
+                            userItem.refID = refID;
+                            userItem.updateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                            WxUserDatabase.Current.Update(userItem);
+                            //将第一笔设为活动状态
+                            WxUserDatabase.Current.SetActive(userItem);
+                            //返回的strBarcode //todo refID
+                            strBarcode = strTempBarcode;
+                        }
+                        else
+                        {
+                            userItem = new WxUserItem();
+                            userItem.weixinId = strWeiXinId;
+                            userItem.libCode = libCode;
+                            userItem.libUserName = remoteUserName;
+                            userItem.libName = libName;
+                            userItem.readerBarcode = strTempBarcode;
+                            userItem.readerName = name;
+                            userItem.xml = strXml;
+                            userItem.refID = refID;
+                            userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                            userItem.updateTime = userItem.createTime;
+                            WxUserDatabase.Current.Add(userItem);
+                        }
+                    }
+
+                    return 1;
+                }
+
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+        ERROR1:
+            return -1;
+        }
+        */
+        #endregion
+
+
+============
+        #region del
+        // GET: Patron
+        public ActionResult Index(string code, string state)
+        {
+            string strError = "";
+            string strXml = "";
+            WxUserItem activeUserItem = null;
+            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml);
+            if (nRet == -1 || nRet == 0)
+                return Content(strError);
+
+            if (nRet == -2)// 未绑定的情况，转到绑定界面
+            {
+                return RedirectToAction("Bind", "Account");
+            }
+            // 没有设置默认账户，转到帐户管理界面
+            if (nRet == -3)
+            {
+                return RedirectToAction("Index", "Account");
+            }
+            
+            // 获取当前账户的信息
+            PatronInfo patronInfo =null;
+            nRet = dp2WeiXinService.Instance.GetPatron(activeUserItem.libUserName,
+                activeUserItem.readerBarcode,
+                out patronInfo,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+            {
+                return Content(strError);
+            }
+            ViewBag.LibUserName = activeUserItem.libUserName;
+            return View(patronInfo);
+        }
+
+        #endregion
+
+
+===列表方式的公告
+
+    <ul class="mui-table-view" data-bind=" foreach:model.list">
+        <li class="mui-table-view-cell">
+
+            <table class="libTable">
+                <tr>
+                    <td class="label">标题</td>
+                    <td class="value" data-bind="text:title"></td>
+                </tr>
+                <tr>
+                    <td class="label">内容</td>
+                    <td class="value" data-bind="text:content"></td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td class="button">
+                        <button class="mui-btn  mui-btn-default" data-bind="click: handleEditClick">编辑</button>
+                        <button class="mui-btn mui-btn-danger" data-bind="click: remove">X&nbsp;删除</button>
+                    </td>
+                </tr>
+            </table>
+        </li>
+    </ul>
+
+====
+
+@section Scripts {
+    <script>
+
+        //观察模型
+        var model = {
+            // 图书馆列表
+            librarys: ko.observableArray(),
+            selectedLib: ko.observable(),
+            // 界面输入值
+            prefix: ko.observable("-1"),
+            word: ko.observable(""),
+            password: ko.observable("")
+        }
+
+        //用于获取图书馆
+        function getAllLib() {
+            //显示等待图层
+            var index = loadLayer();
+
+            // 先删除观察数组中的已有数据
+            model.librarys.removeAll();
+
+            // 调web api
+            var url = "/api/library";
+            sendAjaxRequest(url, "GET", function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    model.librarys.push(data[i]);
+                }
+
+                // 默认选中激活帐号的图书馆
+                var libCode = $("#spanLibCode").text();
+                if (libCode != null && libCode != "") {
+                    $("#selLib option[value='" + libCode + "']").attr("selected", "selected");
+                }
+
+                // 关闭等待层
+                layer.close(index);
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            //绑定观察模块
+            ko.applyBindings(model);
+            //获取图书馆列表
+            getAllLib();
+
+
+
+            // 密码框打回车时，进行绑定
+            $('#password').bind('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+                    model.password($('#password').val());
+                    bind();
+                }
+            });
+
+
+        })
+
+        // 绑定账号
+        function bind() {
+
+            // 图书馆
+            var lib = model.selectedLib();
+            if (lib == "" || lib==null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+            //alert(lib);
+            var nIndex = lib.indexOf("*");
+            var libCode = lib.substr(0, nIndex);
+            var libUserName = lib.substr(nIndex + 1);
+            //alert("libcode:["+libCode+"] libUserName:[" + libUserName+"]");        
+
+            // 绑定方式
+            var prefix = model.prefix().trim();
+            if (prefix == "-1") {
+                alert("您尚未选择绑定方式。");
+                return;
+            }
+
+            //账号
+            //alert("prefix[" + prefix + "]");
+            var curText = $('#selPrefix option:checked').text();
+            var word = model.word().trim();
+            if (word == "") {
+                alert("您尚未输入" + curText + "。");
+                return;
+            }
+            //alert("word[" + word + "]");
+
+            //密码
+            var password = model.password().trim();
+            if (password == "") {
+                alert("您尚未输入密码。");
+                return;
+            }
+            //alert("password[" + password + "]");
+
+            // 微信id
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "") {
+                alert("weixinId不能为空。");
+                return;
+            }
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/wxuser";
+            sendAjaxRequest(url, "POST",
+                function (result) {
+
+                    // 关闭等待层
+                    layer.close(index);
+
+                    if (result.apiResult.errorCode == -1) {
+                        openMsg(result.apiResult.errorInfo);
+                        return;
+                    }                    
+
+                    //清空编辑界面信息,前两项可以不清除
+                    //model.selectedLib("");
+                    //model.prefix("-1");
+                    model.word("");
+                    model.password("");
+
+                    //openMsg("绑定成功");
+                    //mui.alert('绑定成功', 'ILoveLibrary');
+
+                    alert("绑定成功");
+                   
+                    //2016-5-17改为统一返回账号管理界面
+                    returnUrl = "/Home/Index"; 
+                    var myUrl = getRootPath() + returnUrl;
+                    //mui.openWindow({
+                    //    url: myUrl,
+                    //    id: 'info'
+                    //});
+                    window.location = myUrl;
+                },
+                function (xhq, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                },
+                {
+                    weixinId: weixinId,
+                    prefix: prefix,
+                    word: word,
+                    password: password,
+                    libCode: libCode,
+                    libUserName: libUserName
+                }
+            );
+        }
+
+        // 绑定方式变化，账号提示信息跟着变化
+        function prefixChange() {
+            var curText = $('#selPrefix option:checked').text();
+            if (curText == "请选择 绑定方式")
+                curText = "账号";
+
+            if (curText == "工作人员账户")
+                curText = "账户名";
+
+            $('#account').prop("placeholder", "请输入 " + curText);
+            $('#lblAccount').html(curText)
+        }
+
+        // 跳转到新增绑定
+        function gotoResetPassword() {
+
+            var name = "";
+            if (model.prefix() == "NB")
+                name = model.word();
+
+            var lib = "";
+            if (model.selectedLib() != null && model.selectedLib() != "")
+                lib = model.selectedLib();
+
+            var myUrl = getRootPath()
+                + '/Account/ResetPassword?libCode=' + encodeURIComponent(lib) + "&readerName=" + encodeURIComponent(name);
+
+            //alert(myUrl);
+            //mui.openWindow({
+            //    url: myUrl,
+            //    id: 'info'
+            //});
+            window.location = myUrl;//"/account/bind";
+
+        }
+
+    </script>
+}
+
+@section header {
+        <h1 class="mui-title">绑定账号</h1>
+}
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="returnUrl" style="display:none">@ViewBag.ReturnUrl</span>
+<span id="spanLibCode" style="display:block">@ViewBag.LibCode</span>
+
+    <div class="mui-input-group">
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">图书馆</label>
+            <select id="selLib" style="padding-left: 0px;width: 65%" data-bind="options:librarys,optionsText:function(item) {
+                       return  item.libName; },optionsValue:function(item) {
+                       return item.libCode + '*' + item.libUserName; },optionsCaption:'请选择 图书馆',value:selectedLib"></select>
+        </div>
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">绑定方式</label>
+            <select id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.prefix">
+                <option value="NB">姓名</option>
+                <option value="">证条码号</option>
+                <option value="EM">email</option>
+                <option value="TP">电话号码</option>
+                <option value="ID">身份证号</option>
+                <option value="CN">证号</option>
+                <option value="UN">工作人员账户</option>
+            </select>
+        </div>
+        <div class="mui-input-row ">
+            <label id="lblAccount" style="color:#cccccc">账号</label>
+            <input id='account' type="text" class="mui-input mui-input-clear" placeholder="请输入 账号" data-bind="value:model.word">
+        </div>
+        <div class="mui-input-row">
+            <label style="color:#cccccc">密码</label>
+            <input id="password" type="password" class="mui-input-password" placeholder="请输入 密码" data-bind="value:model.password">
+        </div>
+    </div>
+
+    <div class="mui-content-padded">
+        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="bind()">绑定</button>
+        <div class="link-area">
+            <center><a href="JavaScript:void(0)" onclick="gotoResetPassword()">找回密码</a></center>
+        </div>
+    </div>
+
+=======
+<div class="mui-card">
+    <ul class="mui-table-view " data-bind=" foreach:model.wxPatrons" style="padding-left:0px;text-align:left">
+        <li class="mui-table-view-cell" style="padding-left:10px;text-align:left">
+            <table style="width:100%;padding:10px">
+                <tr>
+                    <td style="min-width:80px;text-align:right">
+                    <span data-bind="if: isActive==1" style="color:red;font-weight:bold;padding-left:0px">√</span>
+                    <span style="color:#CCCCCC;padding-left:0px"> 读者：</span>
+                    </td>
+                    <td style="text-align:left;width:80%">
+                        <span data-bind="text:readerName" style="font-size:22px"></span>
+                        <span data-bind="text:readerBarcode" style="color:darkgreen;font-weight:bold;font-size:24px"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color:#CCCCCC;padding-top:5px;min-width:80px;text-align:right">图书馆：</td>
+                    <td style="text-align:left">
+                        <span data-bind="text:libName"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="width:100%;padding-top:5px">
+                        <table style="width:100%;">
+                            <tr>
+                                <td style="min-width:70px;text-align:right">
+                                    <span data-bind="ifnot: isActive==1"><button class="mui-btn  " data-bind="click: activeUser">设为默认账号</button></span>
+                                </td>
+                                <td width="100%" align="right">
+                                    <button type="button" class="mui-btn mui-btn-danger" data-bind="click: removeUser">
+                                        X&nbsp;删除
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <br />
+        </li>
+    </ul>
+</div>
+===============
+        $(document).ready(function () {
+
+            //$("#idTest").html(" 是否为iPhone: " + browser.versions.iPhone);
+
+            //$(window).scroll(function () {
+            //    alert("scroll");
+            //    /*
+            //    //获取滚动条的滑动距离
+            //    var scroH = $(this).scrollTop();
+            //    //滚动条的滑动距离大于等于定位元素距离浏览器顶部的距离，就固定，反之就不固定
+            //    if (scroH >= navH) {
+            //        $(".nav").css({ "position": "fixed", "top": 0 });
+
+            //    } else if (scroH < navH) {
+            //        $(".nav").css({ "position": "static" });
+            //    }
+            //    */
+            //});
+
+            $(window).resize(function () {
+
+                var h = $(window).height();
+                $("#idTest").text(h);
+            });
+
+            if (browser.versions.iPhone == true) {
+                $("input").focus(function () {
+                    showTopBottom(false);
+                    // window.setTimeout("showTopBottom(false)", 1);
+                });
+                $("input").blur(function () {                   
+
+                    window.setTimeout("showTopBottom(true)", 1);
+                    //showTopBottom(true);
+                });
+
+                $("select").focus(function () {
+                    showTopBottom(false);
+                    //window.setTimeout("showTopBottom(false)", 1);
+                });
+                $("select").blur(function () {
+                    window.setTimeout("showTopBottom(true)", 1);
+                    //showTopBottom(true);
+                });
+            }
+            else {
+                //// 非iphone时，浏览器窗口变矮时，隐藏头尾栏
+                //$(window).resize(function () {
+
+                //    window.setTimeout("adjust()", 1);
+                //    //adjust();
+                //});
+            }
+        });
+
+
+
+
+        function adjust() {
+            // var w = $(document).width();
+            // var h = $(document).height();
+            // $("#idTest").html("[" + w + "]-[" + h + "]");
+            var h = $(window).height();
+            if (h <= 150) {
+                showTopBottom(false);
+            }
+            else {
+                showTopBottom(true);
+            }
+        }
+
+        function showTopBottom(bShow) {
+            if (bShow == true) {
+                $("#divBottonTab").css('display', 'block');
+                $("#myheader").css('display', 'block');
+            }
+            else {
+                //var h = $(window).height();
+                ////$("#idTest").html(h);
+                //if (h > 960)
+                //    return;
+                $("#divBottonTab").css('display', 'none');
+                $("#myheader").css('display', 'none');
+            }
+        }
+
+=====
+    <ul class="mui-table-view">
+        <li class="mui-table-view-cell">
+            <a class="mui-navigate-right" href="./OverdueInfo">
+                @if (Model.OverdueCount>0)
+                {<span class="mui-badge mui-badge-danger">@Model.OverdueCount</span>}
+                您有<span>@Model.OverdueCount</span>条违约待交费记录。
+            </a>
+        </li>
+        <li class="mui-table-view-cell">
+            <a class="mui-navigate-right" href="./BorrowInfo">
+                <table style="width:100%;vertical-align:central">
+                    <tr>
+                        <td style="text-align:left"><span>您有</span>@Model.BorrowCount<span>本在借册</span>，@Model.CaoQiCount<span>本超期。</span></td>
+                        <td style="text-align:right;padding-right:20px">
+@if (Model.CaoQiCount > 0)
+{ 
+                            <span class="mui-badge mui-badge-warning">@Model.CaoQiCount</span>
+                            <span style="color:#cccccc;font-weight:bold">/</span>
+}
+@if (Model.BorrowCount > 0)
+{
+                            <span class="mui-badge" style="background-color:#CCCCCC;color:#333333">@Model.BorrowCount</span>
+}
+                        </td>
+                    </tr>
+                </table> 
+            </a>
+        </li>
+        <li class="mui-table-view-cell">
+            <a class="mui-navigate-right" href="./Reservation">
+                <table style="width:100%;vertical-align:central">
+                    <tr>
+                        <td style="text-align:left"><span>您有</span>@Model.ReservationCount<span>条预约请求</span>，@Model.DaoQiCount<span>条到书</span>。</td>
+                        <td style="text-align:right;padding-right:20px">
+@if (Model.DaoQiCount > 0)
+{
+                            <span class="mui-badge mui-badge-primary">@Model.DaoQiCount</span>
+                            <span style="color:#cccccc;font-weight:bold">/</span>
+}
+@if (Model.ReservationCount > 0)
+{
+                            <span class="mui-badge" style="background-color:#CCCCCC;color:#333333">@Model.ReservationCount</span>
+}
+                        </td>
+                    </tr>
+                </table>            
+            </a>
+        </li>
+    </ul>
+
+
+====index====
+@section Scripts {
+    <script>
+
+        //观察模型
+        var model = {
+            // 图书馆列表
+            librarys: ko.observableArray(),
+            selectedLib: ko.observable(),
+        }
+
+        //用于获取图书馆
+        function getAllLib() {
+            //显示等待图层
+            var index = loadLayer();
+
+            // 先删除观察数组中的已有数据
+            model.librarys.removeAll();
+
+            // 调web api
+            var url = "/api/library";
+            sendAjaxRequest(url, "GET", function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    model.librarys.push(data[i]);
+                }
+
+                // 设上传进来的libcode
+                var libCode = $("#spanLibCode").text();
+                if (libCode != null && libCode != "") {
+                    $("#selLib option[value='" + libCode + "']").attr("selected", "selected");
+                    model.selectedLib(libCode);
+                }
+
+                // 关闭等待层
+                layer.close(index);
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                alert(errorThrown);
+                // 关闭等待层
+                layer.close(index);
+            });
+        }
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            //alert("ready");
+            //获取图书馆列表
+            getAllLib();
+
+            //绑定观察模块
+            ko.applyBindings(model);
+
+            // 密码框打回车时，进行绑定
+            $('#txtWord').bind('keypress', function (event) {
+                //alert("test");
+                if (event.keyCode == "13") {
+                    // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+                    search();
+                }
+            });
+
+            // 设一下style
+            $("#myheader").css("position", "absolute");  //设置p元素的样式颜色为红色
+
+        });
+
+
+
+        // 检索
+        function search(bNext) {
+
+            // 先删除more
+            $("#more").remove();
+
+            var libUserName = "";
+            var from = "";
+            var word = "";
+
+            // 图书馆
+            var lib = model.selectedLib();
+            if (lib == "" || lib == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+            //alert(lib);
+            var nIndex = lib.indexOf("*");
+            var libCode = lib.substr(0, nIndex);
+            var libUserName = lib.substr(nIndex + 1);
+
+            if (bNext == 'true') {
+                from = "_N";
+                word = $("#maxNo").text();
+            }
+            else {
+
+                // 检查是否选择的检索途径
+                from = $("#selFrom").val();
+                if (from == "") {
+                    alert("您尚未选择检索途径。");
+                    return;
+                }
+
+                // 检查检索词
+                word = $("#txtWord").val();
+                if (word == "") {
+                    alert("您尚未输入检索词。");
+                    return;
+                }
+                //alert("[" + from + "]-[" + word + "]");
+
+                var table = $("#ulResult");//$('.mui-table-view');
+                table.html("");
+
+            }
+
+            // 调检索接口
+            //显示等待图层
+            var index = loadLayer();
+
+            // 调web api
+            var url = "/api/biblio?libUserName=" + encodeURIComponent(libUserName) + "&from=" + encodeURIComponent(from) + "&word=" + encodeURIComponent(word);
+            sendAjaxRequest(url, "GET",
+                function (result) {
+
+                    // 关闭等待层
+                    layer.close(index);
+
+                    //alert("2");
+                    if (result.apiResult.errorCode == -1) {
+                        $("#searchInfo").text("检索出错:" + result.apiResult.errorInfo);
+                        $("#searchInfo").css("color", "red");  //设置p元素的样式颜色为红色
+                    }
+                    else if (result.apiResult.errorCode == 0) {
+                        $("#searchInfo").text("未命中");
+                        $("#searchInfo").css("color", "red");  //设置p元素的样式颜色为红色
+                    }
+                    else {
+                        $("#searchInfo").text("命中" + result.apiResult.errorCode + "条记录。");
+                        $("#searchInfo").css("color", "darkgreen");  //设置p元素的样式颜色为红色
+                    }
+
+
+
+                    // 出错或未命中
+                    if (result.apiResult.errorCode == -1 || result.apiResult.errorCode == 0) {
+                        openMsg(result.apiResult.errorInfo);
+                        return;
+                    }
+
+                    //alert("1");
+
+                    var table = $("#ulResult");//$('.mui-table-view');
+                    for (var i = 0; i < result.records.length; i++) {
+                        var record = result.records[i];
+                        var li = "<li class='mui-table-view-cell mui-collapse' > "
+                            + "<a class='mui-navigate-right' href='javascript:void(0)' onclick='expand(this)'>" + record.no + " " + record.name + "</a>"
+                            + "<div class='mui-collapse-content' style='display:none;'>"
+                                + "<span class='pendingDetail' >"
+                                    + "<label>"+record.libUserName+"|"+record.recPath+"</label>"
+                                    + "<img src='../img/wait2.gif' />"
+                                + "</span>"
+                            + "</div>"
+                            + "</li>";
+                        table.append(li);
+
+                        if (i == result.records.length - 1) {
+                            $("#maxNo").text(record.no);
+                        }
+                    }
+
+                    //<li class="mui-table-view-cell mui-collapse">
+                    //<a class="mui-navigate-right" href="#">表单</a>
+                    //<div class="mui-collapse-content">
+
+
+
+                    //有下页的情况
+                    if (result.isCanNext == true) {
+                        var li1 = "<li class='mui-table-view-cell'  id='more'>"
+                            + "<center><a href='javascript:void(0)' onclick='searchN()'>点击加载更多</a></center>"
+                            + "</li>";
+                        table.append(li1);
+                    }
+
+                    //adjust();
+
+                    // 关闭等待层
+                    //layer.close(index);
+
+                }, function (xhq, textStatus, errorThrown) {
+
+                    alert(errorThrown);
+                    // 关闭等待层
+                    layer.close(index);
+                });
+        }
+
+
+
+        //预约
+        function reservation(obj) {
+            //alert($("input[name='ckbBarcode']:checked").length);
+
+            var selLib = model.selectedLib();
+            var myLib = $("#spanLibCode").text();
+            if (selLib != myLib) //应该不会走到这里，因为当前选择的图书馆不是绑定对应的图书馆的时候，不会走到这里
+            {
+                alert("您绑定的图书馆与选择的图书馆不一致");
+                return;
+            }
+            //alert(lib);
+            var nIndex = myLib.indexOf("*");
+            var libCode = myLib.substr(0, nIndex);
+            var libUserName = myLib.substr(nIndex + 1);
+
+
+            var patron = $("#patronBarcode").text();//todo 初始页面时，把绑定的patron的隐藏在一个span里
+            if (patron == "")
+            {
+                alert("您尚未绑定图书馆账户，请先绑定账户。");
+                return;
+            }
+
+            var items="";     
+            $("input[name='ckbBarcode']:checked").each(function () {                
+                if (items != "")
+                    items += ",";
+                items += $(this).val();
+            });
+            if (items == "") {
+                alert("您尚未选择要预约的册记录。");
+                return;
+            }
+            //alert(items);
+
+            //显示等待图层
+            var index = loadLayer();
+
+            var url = "/api/Reservation?libUserName=" + encodeURIComponent(libUserName)
+                + "&patron=" + encodeURIComponent(patron)
+                + "&items=" + encodeURIComponent(items)
+                + "&style=new";//创建一个预约请求
+            // 调api
+            sendAjaxRequest(url, "POST", function (result) {
+
+
+                // 关闭等待层
+                layer.close(index);
+
+                // 显示预约结果
+                var infoDiv = $(obj).parent().find(".reservationInfo").first();
+                //alert(infoDiv);
+                var info = result.errorInfo;
+
+                $("input[name='ckbBarcode']").removeAttr("checked");//取消全选 
+
+                // 出错
+                if (result.errorCode == -1) {
+                    $(infoDiv).text(info);
+                    $(infoDiv).css("color", "red");  //设为红色
+
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                if (info == "")
+                    info = "提交预约申请成功";
+
+                $(infoDiv).text(info);
+                $(infoDiv).css("color", "darkgreen");  //设为绿色
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                layer.close(index);
+
+                // 显示预约结果
+                var infoDiv = $(obj).parent().find("reservationInfo").first();
+                var info = "访问服务器出错：[" + errorThrown + "]";
+                alert(info);
+
+                $(infoDiv).text(info);
+                $(infoDiv).css("color", "red");  //设为红色                
+            });
+        }
+
+
+        function expand(obj)
+        {
+            // 如果自己是展开状态，则收缩
+            obj = $(obj).parent();
+            var  state=$(obj).find(".mui-collapse-content").first().css("display");
+            if (state == "block") { //自己本来是展开状态，要关闭   
+                    $(obj).find(".mui-collapse-content").css("display", "none");
+                    $(obj).removeClass("mui-active");
+            }
+            else {
+                //其它收缩
+                $(".mui-collapse-content").css("display", "none");
+                $(".mui-collapse").removeClass("mui-active");
+
+                //自己展开
+                $(obj).find(".mui-collapse-content").css("display", "block");
+                $(obj).addClass("mui-active");
+
+
+                //检查是否已经加载过了
+                var o = $(obj).find(".pendingDetail:first");
+                if (o.length == 0) {
+                    return;
+                }
+                else {
+                    getDetail(o);
+                }
+            }
+        }
+
+        function getDetail(o) {
+            // 找到下级的标签，里面存储的线索
+            var mylable = o.children("label");
+
+            // pendingDetail没有定义标签label,去掉pendingDetail状态
+            if (mylable.length == 0) {
+                o.html("没找到存放线索信息的lable标签");
+                o.removeClass("pendingDetail");
+                return;
+            }
+
+            // 取出label设置的线索信息
+            var keyword = mylable.text();
+            // 未给label设值，去掉pendingDetail状态
+            if (keyword.length == 0) {
+                o.html("线索信息为空");
+                o.removeClass("pendingDetail");
+                return;
+            }
+
+            // 取出图书馆账号与记录路径
+            var nIndex = keyword.indexOf('|');
+            var libUserName = keyword.substring(0, nIndex);
+            var biblioPath = keyword.substring(nIndex + 1);
+            //alert("type[" + mytype + "]-value[" + myvalue + "]");
+            if (libUserName == "" || biblioPath == "") {
+                o.html("记录路径值[" + keyword + "]不对，格式应该为[图书馆账号|记录路径]");
+                o.removeClass("pendingDetail");
+                return;
+            }
+
+            // 调api
+            var url = "/api/biblio?libUserName=" + encodeURIComponent(libUserName) + "&biblioPath=" + encodeURIComponent(biblioPath);
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 出错或未命中
+                if (result.errorCode == -1 || result.errorCode == 0) {
+                    o.html(result.errorInfo);
+                    $(o).css("color", "red");  //设置p元素的样式颜色为红色
+                    o.removeClass("pendingDetail");
+                    return;
+                }
+
+                var itemTables = "";
+                if (result.itemList.length == 0)
+                    itemTables="<div>该书没有下级册信息。</div>"
+
+                var selLib = model.selectedLib();
+                var myLib = $("#spanLibCode").text();
+                var bCanReservation = false;
+                var disabledAttr = " disabled='disabled' ";
+                var info ="<span style='color:#cccccc;font-size:9pt'>（您尚未绑定当前选择的图书馆的账户，不能进行预约。）</span>"
+                if (myLib != "" && selLib == myLib) //应该不会走到这里，因为当前选择的图书馆不是绑定对应的图书馆的时候，不会走到这里
+                {
+                    bCanReservation = true;
+                    disabledAttr = "";
+                    info = "";
+                }
+
+                for (var i = 0; i < result.itemList.length; i++) {
+                    var record = result.itemList[i];
+
+                    itemTables += "<table class='itemTable'>"
+                    +"<tr>"
+                    + "<td class='label'>"
+                    +"        <div class='mui-input-row mui-checkbox mui-left'>"
+                    +"            <label style='padding-left:30px;padding-right:0px'>册条码：</label>"
+                    + "            <input name='ckbBarcode' " + disabledAttr + "  value='" + record.barcode + "' type='checkbox' style='left:0px;' />"
+                    +"        </div>"
+                    +"</td>"
+                    +    "<td class='value'>" + record.barcode + "</td>"
+                    +"</tr>"
+                    +"<tr>"
+                    + "<td class='label'>状态：</td>"
+                    + "<td class='value'>" + record.state + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>卷册：</td>"
+                    + "<td class='value'>" + record.volumn + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>馆藏地：</td>"
+                    + "<td class='value'>" + record.location + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>价格：</td>"
+                    + "<td class='value'>" + record.price + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td class='label'>在借情况：</td>"
+                    + "<td class='value'>" + record.borrowInfo + "</td>"
+                    + "</tr>"
+                    +"</table>";
+                }
+
+                var myHtml = "<span>" + result.summary + "</span>" + itemTables;
+                if (result.itemList.length >0) {
+                    myHtml += "<div class='mui-content-padded'>"
+                        + "<button class='mui-btn  mui-btn-default' style='color:blue' " + disabledAttr + " onclick='reservation(this)'>加入预约列表</button>"
+                        + "<div class='reservationInfo'>"+info+"</div>"
+                        + "</div>";
+                }
+
+                //换成实际的值，去掉pendingDetail状态，
+                o.html(myHtml);
+                o.removeClass("pendingDetail");
+            }, function (xhq, textStatus, errorThrown) {
+                //出错，去掉pendingDetail状态
+                o.html("访问服务器出错：[" + errorThrown+"]");
+                o.removeClass("pendingDetail");
+            });
+
+            return;
+        }
+
+
+        //必须要换一个名称，被下一页使用，直接用search("true")不行
+        function searchN() {
+            search("true");
+        }
+
+
+    </script>
+}
+
+@section style {
+<style type="text/css">
+
+        TABLE.itemTable {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+
+        }
+
+    TABLE.itemTable TR TD {
+        border-width: 0px;
+        border-top-width: 1px;
+        border-color: #dddddd;
+        border-style: dotted;
+        padding: 2px;
+    }
+
+        TABLE.itemTable TR TD.value {
+            /*border-left-width: 2px;*/
+            border-left:1px solid #dddddd;
+            padding-left:4px;
+        }
+
+        TABLE.itemTable TR TD.arrived {
+            font-weight: bolder;
+                        border-left:1px solid #dddddd;
+                        padding-left:4px;
+        }
+
+        TABLE.itemTable TR TD.label {
+           width:100px;
+           background-color:#ffffff;
+           color:#666666;
+        }
+        
+        .reservationInfo {
+            /*显示预约结果的span*/
+        }
+    </style>
+}
+
+@section header {
+    <h1 class="mui-title">书目查询</h1>
+    }
+<span id="spanLibCode" style="display:none">@ViewBag.LibCode</span>
+<span id="maxNo" style="display:none"></span>
+<span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
+
+
+<div id="divForm">
+    <div class="mui-input-group">
+        <div class="mui-input-row ">
+            <label style="color:#cccccc;">图书馆</label>
+            <select id="selLib" style="padding-left: 0px;width: 65%" data-bind="options:librarys,optionsText:function(item) {
+                       return  item.libName; },optionsValue:function(item) {
+                       return item.libCode + '*' + item.libUserName; },optionsCaption:'请选择 图书馆',value:selectedLib"></select>
+        </div>
+
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">检索途径</label>
+            <select id="selFrom" name="selFrom">
+                <option value="title" selected>书名</option>
+                <option value="ISBN">ISBN</option>
+                <option value="contributor">作者</option>
+            </select>
+        </div>
+        <div class="mui-input-row">
+            <label style="color:#cccccc">检索词</label>
+            <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
+        </div>
+    </div>
+
+    <div class="mui-content-padded">
+        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
+
+
+    </div>
+</div>
+
+<div id="divResult">
+    <!--数据列表-->
+    <span style="padding-left:10px" id="searchInfo"></span>
+    <ul id="ulResult" class="mui-table-view ">
+
+    </ul>
+
+
+</div>
+
+
+=====checkbox========
+    <ul id="ulResult" class="mui-table-view mui-table-view-chevron">
+        <li class='mui-table-view-cell mui-collapse' >
+
+
+                <table style='width:100%;padding:10px;text-align:left'>
+                    <tr>
+                        <td style="width:100px;text-align:right; ">
+                            <div class="mui-input-row mui-checkbox mui-left">
+                                <label style="padding-left:30px;padding-right:0px">册条码：</label>
+                                <input name="checkbox" value="Item 1" type="checkbox" style="left:0px;">
+                            </div>
+                        </td>
+                        <td>aaaa</td>
+                    </tr>
+                    <tr>
+                        <td style="width:100px;text-align:right; ">
+                            状态：
+                        </td>
+                        <td>bbbbbbbb</td>
+                    </tr>
+                </table>
+
+
+
+
+                <table style='width:100%;padding:10px;text-align:left'>
+                    <tr>
+                        <td style="width:100px;text-align:right; ">
+                            <div class="mui-input-row mui-checkbox mui-left">
+                                <label style="padding-left:30px;padding-right:0px">册条码：</label>
+                                <input name="checkbox" value="Item 1" type="checkbox" style="left:0px;">
+                            </div>
+                        </td>
+                        <td>aaaa</td>
+                    </tr>
+                    <tr>
+                        <td style="width:100px;text-align:right; ">
+                            状态：
+                        </td>
+                        <td>bbbbbbbb</td>
+                    </tr>
+                </table>
+
+
+
+                <table style='width:100%;padding:10px;text-align:left'>
+                    <tr>
+                        <td style="width:100px;text-align:right; ">
+                            <div class="mui-input-row mui-checkbox mui-left mui-disabled">
+                                <label style="padding-left:30px;padding-right:0px">册条码：</label>
+                                <input name="checkbox" value="Item 1" type="checkbox" style="left:0px;" disabled="disabled">
+                            </div>
+                        </td>
+                        <td>aaaa</td>
+                    </tr>
+                    <tr>
+                        <td style="width:100px;text-align:right; ">
+                            状态：
+                        </td>
+                        <td>bbbbbbbb</td>
+                    </tr>
+                </table>
+                </li>
+</ul>

@@ -1,0 +1,30 @@
+﻿@model dp2weixinWeb.Models.LibInfoModel
+@{
+    ViewBag.Title = "Index";
+}
+@section header {
+@if (Model == null || Model.Content == "")
+{
+        <h1 class="mui-title">主页</h1>
+}
+else
+{
+    <h1 class="mui-title">@Model.Title</h1>
+}
+
+}
+
+@if (Model == null || Model.Content=="")
+{ 
+<div class="mui-content-padded">
+    欢迎使用“我爱图书馆”系统。
+</div>
+}
+else
+{
+    @Html.Raw(Model.Content); 
+}
+
+
+
+

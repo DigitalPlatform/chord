@@ -1,0 +1,234 @@
+﻿
+        // 新版 API，测试中
+        public Task<SearchResult> SearchAsync(
+    string strRemoteUserName,
+    SearchRequest request,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            return Task.Run<SearchResult>(
+                () =>
+                {
+                    // DateTime start_time = DateTime.Now;
+                    ResultManager manager = new ResultManager();
+                    List<string> errors = new List<string>();
+                    List<string> codes = new List<string>();
+
+                    SearchResult result = new SearchResult();
+                    if (result.Records == null)
+                        result.Records = new List<Record>();
+
+                    if (string.IsNullOrEmpty(request.TaskID) == true)
+                        request.TaskID = Guid.NewGuid().ToString();
+
+                    using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+                    {
+                        using (var handler = HubProxy.On<SearchResponse>(
+                            "responseSearch",
+                            (responseParam
+                                // taskID, resultCount, start, records, errorInfo, errorCode
+                                ) =>
+                            {
+                                if (responseParam.TaskID != request.TaskID)
+                                    return;
+
+#if NO
+                                if (responseParam.Records != null)
+                                {
+                                    foreach (Record record in responseParam.Records)
+                                    {
+                                        // 校验一下 MD5
+                                        if (string.IsNullOrEmpty(record.MD5) == false)
+                                        {
+                                            string strMD5 = StringUtil.GetMd5(record.Data);
+                                            if (record.MD5 != strMD5)
+                                            {
+                                                record.RecPath = "testclient1 : 记录 '" + record.RecPath + "' Data 的 MD5 校验出现异常";
+                                                // throw new Exception("testclient1 : 记录 '" + record.RecPath + "' Data 的 MD5 校验出现异常");
+                                            }
+                                        }
+
+                                        record.Data = "";   // testing
+                                    }
+                                }
+#endif
+
+                                // start_time = DateTime.Now;  // 重新计算超时
+
+                                // 装载命中结果
+                                if (responseParam.ResultCount == -1 && responseParam.Start == -1)
+                                {
+                                    if (result.ResultCount != -1)
+                                        result.ResultCount = manager.GetTotalCount();
+                                    //result.ErrorInfo = responseParam.ErrorInfo;
+                                    //result.ErrorCode = responseParam.ErrorCode;
+                                    result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                    result.ErrorCode = StringUtil.MakePathList(codes, ",");
+
+                                    wait_events.finish_event.Set();
+                                    return;
+                                }
+
+                                // TODO: 似乎应该关注 start 位置
+                                if (responseParam.Records != null)
+                                    AddLibraryUID(responseParam.Records, responseParam.LibraryUID);
+
+                                result.Records.AddRange(responseParam.Records);
+                                if (string.IsNullOrEmpty(responseParam.ErrorInfo) == false
+                                    && errors.IndexOf(responseParam.ErrorInfo) == -1)
+                                {
+                                    errors.Add(responseParam.ErrorInfo);
+                                    result.ErrorInfo = StringUtil.MakePathList(errors, "; ");
+                                }
+                                if (string.IsNullOrEmpty(responseParam.ErrorCode) == false
+                                    && codes.IndexOf(responseParam.ErrorCode) == -1)
+                                {
+                                    codes.Add(responseParam.ErrorCode);
+                                    result.ErrorCode = StringUtil.MakePathList(codes, ",");
+                                }
+
+                                // 标记结束一个检索目标
+                                // return:
+                                //      0   尚未结束
+                                //      1   结束
+                                //      2   全部结束
+                                int nRet = manager.CompleteTarget(responseParam.LibraryUID,
+                                    responseParam.ResultCount,
+                                    responseParam.Records == null ? 0 : responseParam.Records.Count);
+
+                                if (responseParam.ResultCount == -1)
+                                    result.ResultCount = -1;
+                                else
+                                    result.ResultCount = manager.GetTotalCount();
+
+                                if (nRet == 2)
+                                    wait_events.finish_event.Set();
+                                else
+                                    wait_events.active_event.Set();
+                            }))
+                        {
+                            MessageResult message = HubProxy.Invoke<MessageResult>(
+                "RequestSearch",
+                strRemoteUserName,
+                request).Result;
+                            if (message.Value == -1 || message.Value == 0)
+                            {
+                                result.ErrorInfo = message.ErrorInfo;
+                                result.ResultCount = -1;
+                                return result;
+                            }
+
+                            if (manager.SetTargetCount(message.Value) == true)
+                                return result;
+
+                            // start_time = DateTime.Now;
+
+                            try
+                            {
+                                Wait(
+                request.TaskID,
+                wait_events,
+                timeout,
+                token);
+                            }
+                            catch (TimeoutException)
+                            {
+                                // 超时的时候实际上有结果了
+                                if (result.Records != null
+                                    && result.Records.Count > 0)
+                                {
+                                    result.ErrorCode += ",_timeout";    // 附加一个错误码，表示虽然返回了结果，但是已经超时
+                                    return result;
+                                }
+                                throw;
+                            }
+
+                            return result;
+                        }
+                    }
+                },
+            token);
+        }
+
+
+		~~~~
+
+		#if NO
+        public Task<BindPatronResult> BindPatronAsync(
+            string strRemoteUserName,
+            BindPatronRequest request,
+            TimeSpan timeout,
+            CancellationToken token)
+        {
+            return Task.Factory.StartNew<BindPatronResult>(() =>
+            {
+                BindPatronResult result = new BindPatronResult();
+
+                if (string.IsNullOrEmpty(request.TaskID) == true)
+                    request.TaskID = Guid.NewGuid().ToString();
+
+                MessageResult message = HubProxy.Invoke<MessageResult>(
+    "RequestBindPatron",
+    strRemoteUserName,
+    request).Result;
+                if (message.Value == -1
+                    || message.Value == 0)
+                {
+                    result.ErrorInfo = message.ErrorInfo;
+                    result.Value = -1;
+                    return result;
+                }
+
+                DateTime start_time = DateTime.Now;
+
+                // 循环，取出得到的检索结果
+                for (; ; )
+                {
+                    if (token != null)
+                        token.ThrowIfCancellationRequested();
+
+                    if (DateTime.Now - start_time >= timeout)
+                        throw new TimeoutException("已超时 " + timeout.ToString());
+
+                    BindPatronResult result0 = (BindPatronResult)_resultTable[request.TaskID];
+                    if (result0 != null)
+                    {
+                        ClearResultFromTable(request.TaskID);
+                        return result0;
+                    }
+
+                    Thread.Sleep(200);
+                }
+            }, token);
+
+            // TODO: 超时以后到来的结果，放入 hashtable 以后，时间长了谁来清理？可能还是需要一个专门的线程来做清理
+            // 或者超时的时候，在 Hashtable 中放入一个占位事项，后面响应到来的时候看到这个占位事项就知道已经超时了，需要把事项清除。但，如果响应始终不来呢？
+        }
+#endif
+
+#if NO
+        // 当 server 发来检索响应的时候被调用。重载时可以显示收到的记录
+        // 按照 searchID 把返回的唯一结果存储起来。消费线程一旦发现有了这个事项，就表明请求得到了响应，可取走结果，注意要从 Hashtable 里面删除结果，避免长期运行后堆积占据空间
+        public virtual void OnResponseBindPatronRecieved(string taskID,
+    long resultValue,
+    IList<string> results,
+    string errorInfo)
+        {
+            lock (_resultTable)
+            {
+                BindPatronResult result = (BindPatronResult)_resultTable[taskID];
+                if (result == null)
+                {
+                    result = new BindPatronResult();
+                    _resultTable[taskID] = result;
+                }
+
+                if (result.Results == null)
+                    result.Results = new List<string>();
+
+                result.Results.AddRange(results);
+                result.Value = resultValue;
+                result.ErrorInfo = errorInfo;
+            }
+        }
+#endif

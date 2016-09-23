@@ -1,0 +1,26 @@
+﻿<root>
+        <item>
+            <Title>新闻公告</Title>
+            <Description></Description>
+            <PicUrl>/img/notice.jpg</PicUrl>
+            <Url></Url>
+        </item>
+        <item>
+            <Title>11.18本馆讲座：如何检索学术论文</Title>
+            <Description></Description>
+            <PicUrl></PicUrl>
+            <Url>http://dp2003.com</Url>
+        </item>
+        <item>
+            <Title>NoteExpress文献管理软件</Title>
+            <Description></Description>
+            <PicUrl></PicUrl>
+            <Url>http://dp2003.com</Url>
+        </item>
+        <item>
+            <Title>点击查看更多新闻公告</Title>
+            <Description></Description>
+            <PicUrl></PicUrl>
+            <Url>http://dp2003.com</Url>
+        </item>
+</root>

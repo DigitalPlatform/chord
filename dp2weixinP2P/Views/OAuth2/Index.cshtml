@@ -1,0 +1,28 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>OAuth2.0授权测试</title>
+    @System.Web.Optimization.Scripts.Render("~/bundles/modernizr")
+    @System.Web.Optimization.Scripts.Render("~/bundles/jquery")
+</head>
+<body>
+
+    <h2>OAuth2.0授权测试</h2>
+    <p><a href="@ViewData["UrlUserInfo"]">点击这里测试snsapi_userinfo</a></p>
+    <p>
+        将要链接到的地址：<br />
+        <textarea rows="10" cols="40">@ViewData["UrlUserInfo"]</textarea>
+    </p>
+    <p><a href="@ViewData["UrlBase"]">点击这里测试snsapi_base</a></p>
+    <p>
+        将要链接到的地址：<br />
+        <textarea rows="10" cols="40">@ViewData["UrlBase"]</textarea>
+    </p>
+</body>
+</html>

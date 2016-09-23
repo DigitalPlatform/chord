@@ -1,0 +1,309 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutManager.cshtml";
+}
+@section style {
+    <style type="text/css">
+
+        /*书目*/
+        DIV.biblio {
+            padding:10px;
+            background-color:white;
+        }
+
+      DIV.biblio TABLE.info{
+            text-align: left;
+            background-color: white;
+            width: 100%;
+            margin-bottom:5px;
+        }
+
+        DIV.biblio TABLE.info td.cover{
+   
+            padding:4px;
+            vertical-align:top;
+            width:108px;
+        }
+
+                DIV.biblio TABLE.info td.biblio_info{
+            vertical-align:top;
+            padding:2px;
+        }
+
+        DIV.biblio TABLE.info td.biblio_info .summary{
+            vertical-align:middle;
+        }
+
+    DIV.biblio TABLE.info td.biblio_info table.biblio_table{
+            width: 100%;
+        }
+
+     DIV.biblio TABLE.info td.biblio_info table.biblio_table .name{
+            color: #999999;
+            padding-right: 4px;
+            text-align: right;
+            min-width:74px;
+            width:74px;
+            vertical-align:top;
+        }
+          DIV.biblio TABLE.info td.biblio_info table.biblio_table .value{
+
+        }
+
+                    DIV.biblio TABLE.info td.biblio_info table.biblio_table .titlevalue{
+                        font-weight:bold;
+                        font-size:16px;
+        }
+
+        /*书目操作按钮行，现在有好书推荐按钮*/
+        DIV.biblio DIV.btnRow{
+             text-align:right
+        }
+
+        /*整个册块*/
+        DIV.item {
+            margin: 3px 0px 0px; padding: 2px;
+        }
+
+        /*册块标题，一般barcode使用该样式*/
+        DIV.item .title {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            padding-left: 10px;
+            font-size: 20px;
+        }
+
+        /*册块备注，没有册文字使用该样式*/
+        DIV.item .remark {
+            color:#999999;
+            padding:2px;
+        }
+
+        /*一条一条的册table*/
+        DIV.item TABLE {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        /*册td*/
+        DIV.item TABLE TR TD {
+            border-width: 0px;
+            border-top-width: 1px;
+            border-color: #dddddd;
+            border-style: dotted;
+            padding: 2px;
+        }
+
+        /*册右值数据td*/
+        DIV.item TABLE TR TD.value {
+            padding-left: 5px;
+        }
+
+        /*册右值数据td*/
+        DIV.item TABLE TR TD.value  DIV.info{
+            float:left; 
+            padding-top:5px
+        }
+
+        /*册右值数据td*/
+        DIV.item TABLE TR TD.value  DIV.btn{
+            float:right; 
+        }
+
+        /*册左侧标题td*/
+        DIV.item TABLE TR TD.label {
+            width: 75px;
+            background-color: #ffffff;
+            color: #999999;
+            padding-right: 5px;
+            text-align: right;
+        }
+
+        /*册里面的操作提示*/
+        DIV.item TABLE TR TD .resultInfo {
+            /*显示预约结果的span*/
+        }
+    </style>
+}
+
+
+
+
+
+<ul class="mui-table-view " id="ulResult">
+    <li class="mui-table-view-cell mui-collapse mui-active" id="record-0">
+        <a class="mui-navigate-right" onclick='expand("record-0")' href="javascript:void(0)">1 欧美经典儿歌《唱歌啦！》WEE SING （风行美国几十年，企鹅经典童书，贯穿奥尔夫音乐教学理念，高品质伴奏和童声演唱CD，性价比最高的五线琴谱、钢琴谱,全9册）</a>
+        <div class="mui-collapse-content" style="display: block;">
+            <div class="biblio">
+                <table class="info">
+                    <tbody>
+                        <tr>
+                            <td class="biblio_info">
+                                <table class="biblio_table">
+                                    <tbody>
+                                        <tr><td class="name"></td><td class="value"><img width="100" height="100" src="http://www.hongniba.com.cn/bookclub/images/books/book_20005451_s.jpg"></td></tr>
+                                        <tr><td class="name">题名与责任说明拼音</td><td class="titlevalue">dang wo xiang shui de shi hou</td></tr>
+                                        <tr><td class="name">题名与责任说明</td><td class="titlevalue">当我想睡的时候 [专著]  / (美)简·R. 霍华德文 ; (美)琳内·彻丽图 ; 林芳萍翻译</td></tr>
+                                        <tr><td class="name">责任者</td><td class="value">霍华德; 林芳萍; 彻丽</td></tr>
+                                        <tr><td class="name">出版发行</td><td class="value">石家庄 : 河北教育出版社, 2010</td></tr>
+                                        <tr><td class="name">载体形态</td><td class="value">1册 ; 26cm</td></tr>
+                                        <tr><td class="name">主题分析</td><td class="value">图画故事-美国-现代</td></tr>
+                                        <tr><td class="name">分类号</td><td class="value">中图法分类号: I712.85</td></tr>
+                                        <tr><td class="name">附注</td><td class="value">启发精选世界优秀畅销绘本版权页英文题名：When I'm sleepy</td></tr>
+                                        <tr><td class="name">获得方式</td><td class="value">ISBN 978-7-5434-7754-4 (精装 ) : CNY27.80</td></tr>
+                                        <tr><td class="name">提要文摘</td><td class="value">临睡前，带着孩子一起环游世界，看看他可不可以像长颈鹿一样站着睡，和蝙蝠一起倒挂着睡，或者像企鹅一样睡在好冷好冷的地方。</td></tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="info">
+                    <tbody>
+                        <tr>
+                            <td class="cover">
+                                <img width="100" height="100" src="http://www.hongniba.com.cn/bookclub/images/books/book_20005451_s.jpg">
+                            </td>
+                            <td class="biblio_info">
+                                <table class="biblio_table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="name">题名与责任说明拼音</td>
+                                            <td class="value">dang wo xiang shui de shi hou</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="name">题名与责任说明</td>
+                                            <td class="value">当我想睡的时候 [专著]  / (美)简·R. 霍华德文 ; (美)琳内·彻丽图 ; 林芳萍翻译</td>
+                                        </tr>
+                                        <tr><td class="name">责任者</td><td class="value">霍华德; 林芳萍; 彻丽</td></tr>
+                                        <tr><td class="name">出版发行</td><td class="value">石家庄 : 河北教育出版社, 2010</td></tr>
+                                        <tr><td class="name">载体形态</td><td class="value">1册 ; 26cm</td></tr>
+                                        <tr><td class="name">主题分析</td><td class="value">图画故事-美国-现代</td></tr>
+                                        <tr><td class="name">分类号</td><td class="value">中图法分类号: I712.85</td></tr>
+                                        <tr><td class="name">附注</td><td class="value">启发精选世界优秀畅销绘本版权页英文题名：When I'm sleepy</td></tr>
+                                        <tr><td class="name">获得方式</td><td class="value">ISBN 978-7-5434-7754-4 (精装 ) : CNY27.80</td></tr>
+                                        <tr><td class="name">提要文摘</td><td class="value">临睡前，带着孩子一起环游世界，看看他可不可以像长颈鹿一样站着睡，和蝙蝠一起倒挂着睡，或者像企鹅一样睡在好冷好冷的地方。</td></tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="btnRow"><button class="mui-btn  mui-btn-default" onclick="gotoUrl('/Library/BookEdit?libId=576cad8883cbdc15ac6ce94c&amp;userName=jane&amp;biblioPath=%e4%b8%ad%e6%96%87%e5%9b%be%e4%b9%a6%2f3&amp;returnUrl=%2fBiblio%2fIndex')">好书推荐</button></div>
+                <div class="mui-card item" id="_item_C100">
+                    <div class="title">C100</div><table>
+                        <tbody>
+                            <tr><td class="label">状态</td><td class="value"></td></tr>
+                            <tr>
+                                <td class="label">卷册</td>
+                                <td class="value"></td>
+                            </tr>
+                            <tr>
+                                <td class="label">馆藏地</td>
+                                <td class="value">流通库</td>
+                            </tr>
+                            <tr><td class="label">价格</td><td class="value">CNY27.80</td></tr>
+                            <tr><td class="label">在借情况</td><td class="value"><table style="border: 0px currentColor; border-image: none; width: 100%;"><tbody><tr><td class="info" style="border: 0px currentColor; border-image: none;">借阅者：任1<br>借阅时间：2016/07/24<br>借期：31天</td><td class="btn" style="border: 0px currentColor; border-image: none;"><button class="mui-btn  mui-btn-default" onclick="renew('C100')">续借</button></td></tr><tr><td colspan="2"><div id="renewInfo-C100"></div></td></tr></tbody></table></td></tr>
+                            <tr><td class="label">预约信息</td><td class="value"><div class="remark">该册目前是您在借中，不能预约。</div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="biblio">
+                <table class='info'>
+                    <tr>
+                        <td class='cover'><img src='../img/empty2.jpg' width='100' height='100' /></td>
+                        <td class="biblio_info"><span class="summary">aaa</span></td>
+                    </tr>
+                </table>
+                
+                
+                <div class="btnRow">
+                    <button class="mui-btn  mui-btn-default" onclick="gotoUrl('/Library/BookEdit?libId=576cad8883cbdc15ac6ce94c&amp;userName=jane&amp;biblioPath=%E4%B8%AD%E6%96%87%E5%9B%BE%E4%B9%A6%2F8&amp;returnUrl=%2FBiblio%2FIndex')">好书推荐</button>
+                </div>
+                <div class="mui-card item">
+                    <span class='remark'>没有册信息。</span>
+                </div>
+            </div>
+        </div>
+    </li>
+    <li class="mui-table-view-cell mui-collapse mui-active" id="record-1">
+        <a class="mui-navigate-right" onclick='expand("record-1")' href="javascript:void(0)">2 蜗牛、青蛙、蜜蜂找雪</a><div class="mui-collapse-content" style="display: block;">
+            <div class="biblio">
+                <span>蜗牛、青蛙、蜜蜂找雪 [专著]  / (荷)卢克·库普曼斯图/文 ; 孙青昊译. -- ISBN 978-7-5309-7677-7 (精装 ) : CNY25.00</span>
+                <div class="btnRow">
+                    <button class="mui-btn  mui-btn-default" onclick="gotoUrl('/Library/BookEdit?libId=576cad8883cbdc15ac6ce94c&amp;userName=jane&amp;biblioPath=%E4%B8%AD%E6%96%87%E5%9B%BE%E4%B9%A6%2F10&amp;returnUrl=%2FBiblio%2FIndex')">
+                        好书推荐
+                    </button>
+                </div>
+                <div class="mui-card item">
+                    <div class="title">C500</div>
+                    <table>
+                        <tbody>
+                            <tr><td class="label">状态</td><td class="value"></td></tr>
+                            <tr><td class="label">卷册</td><td class="value"></td></tr>
+                            <tr><td class="label">馆藏地</td><td class="value">流通库</td></tr>
+                            <tr><td class="label">价格</td><td class="value">CNY25.00</td></tr>
+                            <tr>
+                                <td class="label">在借情况</td>
+                                <td class="value">
+                                    <div>
+                                        <div class="info">借阅者:任1 借阅时间:2016/06/26 借期:31天&nbsp;</div>
+                                        <div class="btn">
+                                            <button class="mui-btn  mui-btn-default" onclick="renew('C500')">续借</button>
+                                        </div>
+                                    </div>
+                                    <div id="renewInfo-C500"></div>
+
+
+                                </td>
+                            </tr>
+
+
+                            <tr><td class="label">预约信息</td><td class="value"><div class="remark">该册目前是您在借中，不能预约。</div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </li>
+
+    <li class="mui-table-view-cell mui-collapse mui-active" id="record-1">
+        <a class="mui-navigate-right" onclick='expand("record-1")' href="javascript:void(0)">2 蜗牛、青蛙、蜜蜂找雪</a>
+        <div class="mui-collapse-content" style="display: block;">
+            <div class="biblio">
+                <span>蜗牛、青蛙、蜜蜂找雪 [专著]  / (荷)卢克·库普曼斯图/文 ; 孙青昊译. -- ISBN 978-7-5309-7677-7 (精装 ) : CNY25.00</span>
+                <div class="btnRow">
+                    <button class="mui-btn  mui-btn-default" onclick="gotoUrl('/Library/BookEdit?libId=576cad8883cbdc15ac6ce94c&amp;userName=jane&amp;biblioPath=%E4%B8%AD%E6%96%87%E5%9B%BE%E4%B9%A6%2F10&amp;returnUrl=%2FBiblio%2FIndex')">好书推荐</button>
+                </div>
+                <div class='mui-card item'>
+                    <div class='title'>refID:439ae9bf-ba80-4eda-901e-9adeef8408d7</div>
+                    <table>
+                        <tbody>
+                            <tr><td class="label">状态</td><td class="value"></td></tr>
+                            <tr><td class="label">卷册</td><td class="value"></td></tr>
+                            <tr><td class="label">馆藏地</td><td class="value">流通库</td></tr>
+                            <tr><td class="label">价格</td><td class="value">CNY25.00</td></tr>
+                            <tr><td class="label">在借情况</td><td class="value">在架</td></tr>
+                            <tr>
+                                <td class="label">预约信息</td>
+                                <td class="value">
+                                    <div>
+                                        <div class="info">未预约</div>
+                                        <div class="btn">
+                                            <button class="mui-btn  mui-btn-default" onclick="reservation(this,'refID:439ae9bf-ba80-4eda-901e-9adeef8408d7','new')">
+                                                预约
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="resultInfo"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </li>
+</ul>

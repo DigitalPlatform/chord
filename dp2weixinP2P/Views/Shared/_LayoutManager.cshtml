@@ -1,0 +1,220 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>我爱图书馆-后台管理系统</title>
+    <!--CSS -->
+    <link href="@Url.Content("~/Content/mui.min.css?test=3")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/style.css?a=9")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/jquery-ui.css")" rel="stylesheet">
+    <script src='@Url.Content("~/Scripts/jquery-3.1.0.js")'></script>
+    <script src='@Url.Content("~/Scripts/jquery-ui-1.12.0.js")'></script>
+    <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/weixin.js?test=1.8")"></script>
+    @RenderSection("style", required: false)
+    @RenderSection("scripts", required: false)
+    @RenderSection("HeaderContent", false)
+
+</head>
+<body style="padding-bottom:50px;font-family: 'Microsoft YaHei',微软雅黑!important">
+    <header class="mui-bar mui-bar-nav" id="myheader">
+        @RenderSection("header", required: false)
+        <a class=" mui-icon mui-pull-left"  href='javascript:void(0)'  style="color:#cccccc">
+        <span style="font-size:10pt" id="_libName">我爱图书馆-后台管理系统</span>
+        </a>
+    </header>
+
+    <div class="btn3 clearfix" id="divBottonTab">
+        <div class="menu">
+            <div class="bt-name">公众号管理</div>
+            <div class="new-sub">
+                <ul>
+                    <li>
+                        <a href="~/home/Setting">参数配置</a>
+                    </li>
+                    <li>
+                        <a href="~/home/LibraryM">图书馆管理</a>
+                    </li>
+                    <li>
+                        <a href="~/home/WeixinUser">用户管理</a>
+                    </li>
+                    <li>
+                        <a href="~/Library/Home?weixinId=_supervisor_">图书馆介绍</a>
+                    </li>
+                </ul>
+                <div class="tiggle"></div>
+                <div class="innertiggle"></div>
+            </div>
+        </div><!--menu-->
+
+        <div class="menu">
+            <div class="bt-name">微信</div>
+            <div class="new-sub">
+                <ul>
+                    <li>
+                        <a href="~/Menu/Index">微信菜单</a>
+                    </li>
+                    <li>
+                        <a href="~/home/WeixinMessage">微信消息</a>
+                    </li>
+                </ul>
+                <div class="tiggle"></div>
+                <div class="innertiggle"></div>
+            </div>
+        </div><!--menu-->
+
+        <div class="menu">
+            <div class="bt-name">UI demo</div>
+            <div class="new-sub">
+                <ul>
+                    <li>
+                        <a href="~/UI/Loading">加载</a>
+                    </li>
+                        <li>
+                            <a href="~/UI/PersonalInfo">我的信息</a>
+                        </li>
+                    <li>
+                        <a href="~/UI/BiblioIndex">书目</a>
+                    </li>
+                    <li>
+                        <a href="~/UI/Message">消息</a>
+                    </li>
+                    <li>
+                        <a href="~/UI/MsgEdit">消息编辑</a>
+                    </li>
+                    <li>
+                        <a href="~/Library/Home?weixinId=o4xvUviTxj2HbRqbQb9W2nMl4fGg">任延华微信测试</a>
+                    </li>
+                </ul>
+                <div class="tiggle"></div>
+                <div class="innertiggle"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="mui-content" style="padding-top:50px">
+        <span id="idTest" style="display:block"></span>
+        <!--部分页占位符 -->
+        @RenderBody()
+    </div>
+
+    <script>
+        //弹出垂直菜单
+        $(".menu").click(function () {
+            if ($(this).hasClass("cura")) {
+                $(this).children(".new-sub").hide(); //当前菜单下的二级菜单隐藏
+                $(".menu").removeClass("cura"); //同一级的菜单项
+            } else {
+                $(".menu").removeClass("cura"); //移除所有的样式
+                $(this).addClass("cura"); //给当前菜单添加特定样式
+                $(".menu").children(".new-sub").slideUp("fast"); //隐藏所有的二级菜单
+                //class="bt-name"
+                var menuText = $(this).children(".bt-name").html();
+                if (menuText == "更多") {
+                    var dw = $(document).width();
+                    var myval = dw / 3 - 120;
+                    if (myval < 0) {
+                        //alert(myval);
+                        $(this).children(".new-sub").css("left", myval + "px");
+                    }
+                }
+                $(this).children(".new-sub").slideDown("fast"); //展示当前的二级菜单
+            }
+        });
+
+
+        var browser = {
+            versions: function () {
+                var u = navigator.userAgent, app = navigator.appVersion;
+                return {         //移动终端浏览器版本信息
+                    trident: u.indexOf('Trident') > -1, //IE内核
+                    presto: u.indexOf('Presto') > -1, //opera内核
+                    webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+                    gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+                    mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+                    ios: !!u.match("/\\(i[^;]+;( U;)? CPU.+Mac OS X/"), //ios终端
+                    android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或uc浏览器
+                    iPhone: u.indexOf('iPhone') > -1, //是否为iPhone或者QQHD浏览器
+                    iPad: u.indexOf('iPad') > -1, //是否iPad
+                    webApp: u.indexOf('Safari') == -1, //是否web应该程序，没有头部与底部
+                    weixin: u.indexOf('MicroMessenger') > -1, //是否微信 （2015-01-22新增）
+                    qq: u.match(/\\sQQ/i) == " qq" //是否QQ
+                };
+            }(),
+            language: (navigator.browserLanguage || navigator.language).toLowerCase()
+        };
+
+        $(document).ready(function () {
+
+            //$("#idTest").html(" 是否为iPhone: " + browser.versions.iPhone);
+            //browser.versions.iPhone
+            if (browser.versions.iPhone == true) {
+                $("input").focus(function () {
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("input").blur(function () {                   
+                    setShowValue(true);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+
+                $("select").focus(function () {
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("select").blur(function () {
+                    setShowValue(true);
+                    window.setTimeout("showTopBottom(true)", 1);
+                });
+
+                $("textarea").focus(function () {
+                    setShowValue(false);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+                $("textarea").blur(function () {
+                    setShowValue(true);
+                    window.setTimeout("showTopBottom()", 1);
+                });
+            }
+            else {
+                //// 非iphone时，浏览器窗口变矮时，隐藏头尾栏
+                //$(window).resize(function () {
+
+                //    window.setTimeout("adjust()", 1);
+                //    //adjust();
+                //});
+            }
+        });
+
+        
+        // 设置是否显示头尾参数的值，同时改变背景
+        function setShowValue(value) {
+            bShowTopBottom = value;
+
+            // 正式发布 去掉背景色
+            //if (bShowTopBottom == true) {
+            //    $('body').css('background-color', 'green');
+            //}
+            //else {
+            //    $('body').css('background-color', 'red');
+            //}
+        };
+
+        // 真正做事，隐藏或显示头尾菜单
+        var bShowTopBottom = true;
+        function showTopBottom() {
+            if (bShowTopBottom == true) {
+                $("#divBottonTab").css('display', 'block');
+                $("#myheader").css('display', 'block');
+            }
+            else {
+                $("#divBottonTab").css('display', 'none');
+                $("#myheader").css('display', 'none');
+            }
+        };
+
+    </script>
+</body>
+</html>

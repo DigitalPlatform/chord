@@ -1,0 +1,129 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>无标题文档</title>
+    <script src="/Scripts/jquery-1.9.1.js"></script>
+    <script src="/Scripts/layer.js"></script>
+    <script src="/Scripts/layer.ext.js"></script>
+    <link href="/skin/layer.css" type="text/css" rel="stylesheet" />
+    <style>
+        #tab {
+            border-collapse: collapse;
+            font-family: "宋体",Arial, Helvetica, sans-serif;
+            font-size: 12px;
+        }
+
+            #tab td {
+                height: 20px;
+                padding: 0 2px;
+                border: 1px #6FB0D0 solid;
+            }
+        
+        .selected-bg {
+            background: #DDdddd;
+        }
+        
+        .over {
+            cursor:pointer;
+            background: #E0EEF5;
+        }
+    </style>
+    <script>
+
+        /*
+        var index = parent.layer.getFrameIndex(window.name); //获取窗口索引
+
+        //在父层弹出一个层
+        $('#new').on('click', function () {
+            parent.layer.msg('Hi, man', { shade: 0.3 })
+        });
+        //给父页面传值
+        $('#transmit').on('click', function () {
+            parent.$('#parentIframe').text('我被改变了');
+            parent.layer.tips('Look here', '#parentIframe', { time: 5000 });
+            parent.layer.close(index);
+        });
+        //关闭iframe
+        $('#closeIframe').click(function () {
+            var val = $('#name').val();
+            if (val === '') {
+                parent.layer.msg('请填写标记');
+                return;
+            }
+            parent.layer.msg('您将标记 [ ' + val + ' ] 成功传送给了父窗口');
+            parent.layer.close(index);
+        });
+        */
+
+
+
+
+
+        $(document).ready(function () {       
+
+
+
+            //单击选中每一行
+            $("#btnLayer").click(function () {
+
+                var myhtml = "<table width='80%' border='0' cellspacing='0' cellpadding='0' id='tab'>"
+        + "<tr>"
+            + "<td>R10</td>"
+            + "<td>开发商主动降价</td>"
+            + "<td>有20%的降价空间</td>"
+            + "</tr>"
+        + "<tr>"
+            + "<td>R11</td>"
+            + "<td>开发商主动降价</td>"
+            + "<td>有20%的降价空间</td>"
+        + "</tr>"
+    + "</table>";
+
+                $("#myDiv").html(myhtml);
+                $("#myDiv").show();
+
+                //单击选中每一行
+                $("#tab tr").click(function () {
+                    $("#tab tr").removeClass("selected-bg");
+                    $(this).addClass("selected-bg");
+                });
+
+                //滑过表格
+                $("#tab tr").hover(function () {
+                    $(this).addClass("over")
+                }, function () {
+                    $(this).removeClass("over")
+                });
+
+                // 双击行
+                $("#tab tr").dblclick(function () {
+
+                    var myValue = $(this).find("td").first().text();//.html();
+                    //alert(myValue);
+
+                    $('#readerBarcode').text(myValue);
+                    layer.close(index1);
+
+                });
+                
+                //页面层
+               var index1= layer.open({
+                   type: 1,
+                   title:"请选择一个读者记录",
+                    skin: 'layui-layer-rim', //加上边框
+                    area: ['420px', '240px'], //宽高
+                    content:$("#tab")
+                });
+                
+            });
+
+        })
+    </script>
+</head>
+<body>
+    <div  id="myDiv" style="display:none"></div>
+    <div  id="btnLayer">弹出图层</div>
+    <span id="readerBarcode" />
+</body>
+</html>

@@ -1,0 +1,704 @@
+﻿
+
+        static void Main(string[] args)
+        {
+#if NO
+            // Task.Run(() => StartServer());
+            StartServer();
+
+            Console.WriteLine("Server running on {0}", ServerURI);
+
+            Console.WriteLine("press 'x' to exit");
+            // Keep going until somebody hits 'x'
+            while (true)
+            {
+                ConsoleKeyInfo ki = Console.ReadKey(true);
+                if (ki.Key == ConsoleKey.X)
+                {
+                    Console.WriteLine("exiting ...");
+                    ServerInfo.Exit();
+                    break;
+                }
+            }
+
+            if (SignalR != null)
+            {
+                SignalR.Dispose();
+                SignalR = null;
+            }
+#endif
+            var wi = WindowsIdentity.GetCurrent();
+            var wp = new WindowsPrincipal(wi);
+
+            bool runAsAdmin = wp.IsInRole(WindowsBuiltInRole.Administrator);
+
+            if (!runAsAdmin)
+            {
+                // It is not possible to launch a ClickOnce app as administrator directly,
+                // so instead we launch the app as administrator in a new process.
+                var processInfo = new ProcessStartInfo(Assembly.GetExecutingAssembly().CodeBase);
+
+                // The following properties run the new process as administrator
+                processInfo.UseShellExecute = true;
+                processInfo.Verb = "runas";
+                if (args.Length > 0)
+                    processInfo.Arguments = string.Join(" ", args);
+
+                // 在切换为 Administrator 权限运行时，要在运行结束时等待回车键，以便让用户看清楚运行结果
+
+                // Start the new process
+                try
+                {
+                    Process.Start(processInfo);
+                }
+                catch (Exception)
+                {
+                    // The user did not allow the application to run as administrator
+                    //MessageBox.Show("Sorry, but I don't seem to be able to start " +
+                    //   "this program with administrator rights!");
+                    Console.WriteLine("dp2MServer 无法运行。\r\n\r\n因为安装和配置 Windows Service 程序的需要，必须在 Administrator 权限下才能运行");
+                }
+
+                // Shut down the current process
+                return;
+            }
+            else
+            {
+                if (args.Length == 1
+                    && (args[0].Equals("install") || args[0].Equals("uninstall"))
+                    )
+                {
+                    bool bInstall = true;
+
+                    if (args[0].Equals("uninstall"))
+                        bInstall = false;
+
+                    // 注册为 Windows Service
+                    // string strExePath = System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase;
+                    string strExePath = Assembly.GetExecutingAssembly().Location;
+                    Console.WriteLine((bInstall ? "注册" : "注销") + " Windows Service ...");
+
+                    string strError = "";
+                    int nRet = ServiceUtil.InstallService(strExePath,
+            bInstall,
+            out strError);
+                    if (nRet == -1)
+                        Console.WriteLine("error: " + strError);
+                    return;
+                }
+
+                if (args.Length == 1 && args[0].Equals("console"))
+                {
+                    new Program().ConsoleRun();
+                }
+                else
+                {
+                    ServiceBase.Run(new Program());
+                }
+            }
+
+        }
+
+
+
+		~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+		using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace dp2MServer
+{
+    /// <summary>
+    /// 存储 ConnectionInfo 对象的集合
+    /// </summary>
+    public class ConnectionTable : Dictionary<string, ConnectionInfo>
+    {
+        internal ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+
+#if NO
+        // connection UID --> connection ID 的查找表
+        static Dictionary<string, string> UidTable = new Dictionary<string, string>();
+#endif
+
+#if NO
+        // connection ID  --> ConnectionInfo 的查找表。同时也是 ConnectionInfo 对象的存储机制
+        static Dictionary<string, ConnectionInfo> ConnectionTable = new Dictionary<string, ConnectionInfo>();
+#endif
+
+#if NO
+        // 根据 UID 查找 connection id
+        public static string GetConnectionID(string strUID)
+        {
+            if (UidTable.ContainsKey(strUID) == false)
+                return null;
+
+            return UidTable[strUID];
+        }
+
+        // 根据 connection ID 查找 UID
+        public static string GetUID(string strConnectionID)
+        {
+            if (ConnectionTable.ContainsKey(strConnectionID) == false)
+                return null;
+
+            ConnectionInfo info = ConnectionTable[strConnectionID];
+            if (info == null)
+                return null;
+
+            return info.UID;
+        }
+#endif
+        // TODO: 限制集合的最大元素数。防止被攻击
+        // 新增一个 ConnectionInfo 对象
+        public ConnectionInfo AddConnection(string strConnectionID)
+        {
+            this._lock.EnterWriteLock();
+            try
+            {
+                ConnectionInfo info = null;
+                if (this.ContainsKey(strConnectionID) == true)
+                {
+                    info = this[strConnectionID];
+                    if (info != null)
+                        return info;    // 已经存在
+                }
+
+                info = new ConnectionInfo();
+                info.UID = Guid.NewGuid().ToString();
+                info.ConnectionID = strConnectionID;
+                this[strConnectionID] = info;
+                return info;
+            }
+            finally
+            {
+                this._lock.ExitWriteLock();
+            }
+        }
+
+        // 移走一个 ConnectionInfo 对象
+        public ConnectionInfo RemoveConnection(string strConnectionID)
+        {
+            this._lock.EnterWriteLock();
+            try
+            {
+                if (this.ContainsKey(strConnectionID) == false)
+                    return null;
+
+                ConnectionInfo info = this[strConnectionID];
+
+                this.Remove(strConnectionID);
+                // UidTable.Remove(info.UID);
+
+                return info;
+            }
+            finally
+            {
+                this._lock.ExitWriteLock();
+            }
+        }
+
+        // 获得一个 ConnectionInfo 对象
+        public ConnectionInfo GetConnection(string strConnectionID)
+        {
+            this._lock.EnterReadLock();
+            try
+            {
+                if (this.ContainsKey(strConnectionID) == false)
+                    return null;
+                return this[strConnectionID];
+            }
+            finally
+            {
+                this._lock.ExitReadLock();
+            }
+        }
+
+        // 获得书目检索的目标 connection 的 id 集合
+        // parameters:
+        //      strRequestLibraryUID    发起检索的人所在的图书馆的 UID。本函数要在返回结果中排除这个 UID 的图书馆的连接
+        // return:
+        //      -1  出错
+        //      0   成功
+        public int GetBiblioSearchTargets(
+            string strRequestLibraryUID,
+            out List<string> connectionIds,
+            out string strError)
+        {
+            strError = "";
+
+            connectionIds = new List<string>();
+            List<ConnectionInfo> infos = new List<ConnectionInfo>();
+
+            this._lock.EnterReadLock();
+            try
+            {
+
+                foreach (string key in this.Keys)
+                {
+                    ConnectionInfo info = this[key];
+
+                    // 不检索来自同一图书馆的连接
+                    if (info.LibraryUID == strRequestLibraryUID)
+                        continue;
+
+                    if (Global.Contains(info.PropertyList, "biblio_search") == false)
+                        continue;
+
+                    infos.Add(info);
+                }
+            }
+            finally
+            {
+                this._lock.ExitReadLock();
+            }
+
+            if (infos.Count == 0)
+                return 0;
+
+            infos.Sort((a, b) =>
+            {
+                int nRet = string.Compare(a.LibraryUID, b.LibraryUID);
+                if (nRet != 0)
+                    return nRet;
+                return (int)a.SearchCount - (int)b.SearchCount;
+            });
+
+            // 对于每个目标图书馆，只选择一个连接。经过排序后，使用次数较小的在前
+            string strPrevUID = "";
+            foreach (ConnectionInfo info in infos)
+            {
+                if (strPrevUID != info.LibraryUID)
+                {
+                    connectionIds.Add(info.ConnectionID);
+                    info.SearchCount++;
+                }
+                strPrevUID = info.LibraryUID;
+            }
+
+            return 0;
+        }
+
+    }
+
+    // Connection 查找表的一个事项
+    public class ConnectionInfo
+    {
+        public string UID = "";
+        public string ConnectionID = "";
+
+        public string PropertyList = "";    // 属性值列表 biblio_search
+        public string LibraryUID = "";      // 用户所属图书馆的 UID。用它可以避免给若干同属一个图书馆的连接发送检索请求，因为这样势必会得到完全重复的命中结果
+        public string LibraryName = "";     // 图书馆名
+
+        public long SearchCount = 0;    // 响应检索请求的累积次数
+    }
+
+}
+
+
+
+~~~~~~~~~~~~~~~~~~~~
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace dp2MServer
+{
+    // TODO: 定期清除已超时的对象
+    // 检索请求集合
+    // search request UID --> SearchInfo 的查找表。同时也是 SearchInfo 对象的存储机制
+    public class SearchTable : Dictionary<string, SearchInfo>
+    {
+        internal ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+
+        CleanThread CleanThread = new CleanThread();
+
+        public SearchTable(bool bEnable)
+        {
+            this.CleanThread.Container = this;
+            this.CleanThread.BeginThread();
+        }
+
+        // 准备退出
+        public void Exit()
+        {
+            this.CleanThread.StopThread(true);
+        }
+
+        // TODO: 限制集合的最大元素数。防止被攻击
+        // 新增一个 SearchInfo 对象
+        public SearchInfo AddSearch(string strConnectionID, string strSearchID = "")
+        {
+            this._lock.EnterWriteLock();
+            try
+            {
+                // 查重
+                if (string.IsNullOrEmpty(strSearchID) == false)
+                {
+                    if (this.ContainsKey(strSearchID) == true)
+                        throw new ArgumentException("strSearchID", "strSearchID 已经存在了");
+                }
+
+                SearchInfo info = new SearchInfo();
+                info.CreateTime = DateTime.Now;
+                if (string.IsNullOrEmpty(strSearchID) == true)
+                    info.UID = Guid.NewGuid().ToString();
+                else
+                    info.UID = strSearchID;
+
+                info.RequestConnectionID = strConnectionID;
+                this[info.UID] = info;
+                return info;
+            }
+            finally
+            {
+                this._lock.ExitWriteLock();
+            }
+        }
+
+        // 移走一个 Search 对象
+        public SearchInfo RemoveSearch(string strSearchUID)
+        {
+            this._lock.EnterWriteLock();
+            try
+            {
+                if (this.ContainsKey(strSearchUID) == false)
+                    return null;
+                SearchInfo info = this[strSearchUID];
+
+                this.Remove(strSearchUID);
+                return info;
+            }
+            finally
+            {
+                this._lock.ExitWriteLock();
+            }
+        }
+
+        // 根据 search request UID 查找 SearchInfo 对象
+        public SearchInfo GetSearchInfo(string strUID)
+        {
+            this._lock.EnterReadLock();
+            try
+            {
+                if (this.ContainsKey(strUID) == false)
+                    return null;
+
+                return this[strUID];
+            }
+            finally
+            {
+                this._lock.ExitReadLock();
+            }
+        }
+
+        // 清除已经(超时)失效的对象
+        public void Clean()
+        {
+            // Console.WriteLine("do clean ...");
+
+            // 首先找到那些已经失效的对象
+            List<string> keys = new List<string>();
+            this._lock.EnterReadLock();
+            try
+            {
+                foreach(string key in this.Keys)
+                {
+                    SearchInfo info = this[key];
+                    if (info.IsTimeout() == true)
+                        keys.Add(key);
+                }
+            }
+            finally
+            {
+                this._lock.ExitReadLock();
+            }
+
+            // 然后从集合中移走这些对象
+            if (keys.Count > 0)
+            {
+                this._lock.EnterWriteLock();
+                try
+                {
+                    foreach (string key in keys)
+                    {
+                        if (this.ContainsKey(key) == true)
+                        {
+                            this.Remove(key);
+                        }
+                    }
+                }
+                finally
+                {
+                    this._lock.ExitWriteLock();
+                }
+            }
+        }
+
+    }
+
+    // 一个检索请求的相关信息
+    public class SearchInfo
+    {
+        public string UID = "";
+        public DateTime CreateTime; // 请求的时刻
+        public string RequestConnectionID = "";    // 请求者的 connection ID
+
+        public List<string> TargetIDs = new List<string>(); // 检索目标的 connection id 集合
+
+        public bool IsTimeout()
+        {
+            if ((DateTime.Now - CreateTime) > new TimeSpan(0, 30, 0))
+                return true;
+            return false;
+        }
+
+        // 标记结束一个检索目标
+        // return:
+        //      false   尚余某些目标没有完成
+        //      true    全部目标都已经完成
+        public bool CompleteTarget(string strConnectionID)
+        {
+            this.TargetIDs.Remove(strConnectionID);
+            if (this.TargetIDs.Count == 0)
+                return true;
+            return false;
+        }
+    }
+
+    class CleanThread : ThreadBase
+    {
+        public SearchTable Container = null;
+
+        public CleanThread()
+        {
+            this.PerTime = 60 * 1000;
+        }
+
+        // 工作线程每一轮循环的实质性工作
+        public override void Worker()
+        {
+            if (this.Stopped == true)
+                return;
+
+            this.Container.Clean();
+        }
+
+    }
+
+}
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace dp2MServer
+{
+    public static class ServerInfo
+    {
+        public static SearchTable SearchTable = new SearchTable(true);
+
+        public static ConnectionTable ConnectionTable = new ConnectionTable();
+
+        // 准备退出
+        public static void Exit()
+        {
+            SearchTable.Exit();
+        }
+    }
+
+}
+
+
+~~~~~~~~~~~~~~~~~~~
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace dp2MServer
+{
+    /// <summary>
+    /// 线程基础类
+    /// </summary>
+    public class ThreadBase
+    {
+        private bool m_bStopThread = true;
+        protected Thread _thread = null;
+
+        public AutoResetEvent eventClose = new AutoResetEvent(false);	// true : initial state is signaled 
+        public AutoResetEvent eventActive = new AutoResetEvent(false);	// 激活信号
+        // internal AutoResetEvent eventFinished = new AutoResetEvent(false);	// true : initial state is signaled 
+
+        public int PerTime = 1000;   // 1 秒 5 * 60 * 1000;	// 5 分钟
+
+#if NO
+        public virtual void Clear()
+        {
+        }
+#endif
+
+        void ThreadMain()
+        {
+            m_bStopThread = false;
+            try
+            {
+                WaitHandle[] events = new WaitHandle[2];
+
+                events[0] = eventClose;
+                events[1] = eventActive;
+
+                while (m_bStopThread == false)
+                {
+                    int index = 0;
+                    try
+                    {
+                        index = WaitHandle.WaitAny(events, PerTime, false);
+                    }
+                    catch (System.Threading.ThreadAbortException /*ex*/)
+                    {
+                        break;
+                    }
+
+                    if (index == WaitHandle.WaitTimeout)
+                    {
+                        // 超时
+                        eventActive.Reset();
+                        Worker();
+                        // eventActive.Reset(); // 这一句会造成 Worker 中的 Activate 无效
+
+                    }
+                    else if (index == 0)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        // 得到激活信号
+                        eventActive.Reset();
+                        Worker();
+                        // eventActive.Reset(); // 这一句会造成 Worker 中的 Activate 无效
+                    }
+                }
+
+                return;
+            }
+            finally
+            {
+                m_bStopThread = true;
+                this._thread = null;
+            }
+        }
+
+        public virtual void Worker()
+        {
+        }
+
+        public bool Stopped
+        {
+            get
+            {
+                return m_bStopThread;
+            }
+            set
+            {
+                m_bStopThread = value;
+            }
+        }
+
+        public virtual void StopThread(bool bForce)
+        {
+            if (this._thread == null)
+                return;
+
+            // 如果以前在做，立即停止
+            // this.Clear();
+
+            m_bStopThread = true;
+            this.eventClose.Set();
+
+            if (bForce == true)
+            {
+                if (this._thread != null)
+                {
+                    if (!this._thread.Join(2000))
+                        this._thread.Abort();
+                    this._thread = null;
+                }
+            }
+        }
+
+        public void BeginThread()
+        {
+            if (this._thread != null)
+                return;
+
+            // 如果以前在做，立即停止
+            StopThread(true);
+
+            this.eventActive.Set();
+            this.eventClose.Reset();
+
+            this._thread = new Thread(new ThreadStart(this.ThreadMain));
+            this._thread.Start();
+        }
+
+        public void Activate()
+        {
+            eventActive.Set();
+        }
+
+    }
+
+}
+
+
+~~~~~~~~~~~~~~~~~~
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace dp2MServer
+{
+    /// <summary>
+    /// 一些实用函数
+    /// </summary>
+    public static class Global
+    {
+        /// <summary>
+        /// 检测一个列表字符串是否包含一个具体的值
+        /// </summary>
+        /// <param name="strList">列表字符串。用逗号分隔多个子串</param>
+        /// <param name="strOne">要检测的一个具体的值</param>
+        /// <returns>false 没有包含; true 包含</returns>
+        public static bool Contains(string strList, string strOne)
+        {
+            if (string.IsNullOrEmpty(strList) == true)
+                return false;
+            string[] list = strList.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach(string s in list)
+            {
+                if (strOne == s)
+                    return true;
+            }
+
+            return false;
+        }
+    }
+}

@@ -1,0 +1,223 @@
+﻿@section Scripts {
+    <script>
+
+        //观察模型
+        var model = {
+            // 界面输入值
+            prefix: ko.observable("-1"),
+            word: ko.observable(""),
+            password: ko.observable("")
+        }
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            //绑定观察模块
+            ko.applyBindings(model);
+
+
+            // 密码框打回车时，进行绑定
+            $('#password').bind('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+                    model.password($('#password').val());
+                    bind();
+                }
+            });
+
+
+        })
+
+        // 绑定账号
+        function bind() {
+
+            // 图书馆
+            var libId = $("#selLib").val();  // 2016-8-13 jane加入选择图书馆项，而不是从设置来 getLibId();//
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }  
+
+            // 绑定方式
+            var prefix = model.prefix().trim();
+            if (prefix == "-1") {
+                alert("您尚未选择绑定方式。");
+                return;
+            }
+
+            //账号
+            //alert("prefix[" + prefix + "]");
+            var curText = $('#selPrefix option:checked').text();
+            var word = model.word().trim();
+            if (word == "") {
+                alert("您尚未输入" + curText + "。");
+                return;
+            }
+            //alert("word[" + word + "]");
+
+            //密码
+            var password = model.password().trim();
+            if (password == "") {
+                alert("您尚未输入密码。");
+                return;
+            }
+            //alert("password[" + password + "]");
+
+            // 微信id
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "") {
+                alert("weixinId不能为空。");
+                return;
+            }
+
+            //显示等待图层
+            //var index = loadLayer();
+            showMaskLayer();
+
+            // 调WxUser的Bind()
+            var url = "/api/wxuser";
+            sendAjaxRequest(url, "POST",
+                function (result) {
+
+                    // 关闭等待层
+                    //layer.close(index);
+                    hideMaskLayer();
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }                    
+                    alert("绑定成功");
+
+                    //清空编辑界面信息,前两项可以不清除
+                    // 2016-8-30 反正也要跳转了，不用清除了。
+                    //model.word("");
+                    //model.password("");                
+                    
+                    returnUrl = $("#returnUrl").text();
+                    if (returnUrl == "") {
+                        if (prefix == "UN")
+                            returnUrl = "/Library/Home"; //工作人员转到图书馆介绍
+                        else
+                            returnUrl = "/Patron/PersonalInfo"; //2016-8-30 读者绑完转到我的信息
+                    }
+
+                    if (returnUrl == "/Biblio/Index") {
+                        window.history.back(-1); //返回不刷新
+                    }
+                    else {
+                        gotoUrl(returnUrl);
+                    }
+                },
+                function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    //layer.close(index);
+                    hideMaskLayer();
+
+                    alert(errorThrown);
+
+                },
+                {
+                    weixinId: weixinId,
+                    prefix: prefix,
+                    word: word,
+                    password: password,
+                    libId: libId
+                }
+            );
+        }
+
+        // 绑定方式变化，账号提示信息跟着变化
+        function prefixChange() {
+            var curText = $('#selPrefix option:checked').text();
+            if (curText == "请选择 绑定方式")
+                curText = "账号";
+
+            if (curText == "工作人员账户")
+                curText = "账户名";
+
+            $('#account').prop("placeholder", "请输入 " + curText);
+            $('#lblAccount').html(curText)
+        }
+
+        // 跳转到新增绑定
+        function gotoResetPassword() {
+
+            var name = "";
+            if (model.prefix() == "NB")
+                name = model.word();
+            //if (name == null)
+            //    name = "";
+
+            var lib = "";
+            var lib = $("#selLib").val();  // 2016-8-13 jane加入选择图书馆项，而不是从设置来  getLibId();//
+            if (lib == null)
+                lib = "";
+
+            var myUrl = getRootPath()
+                + '/Account/ResetPassword?libId=' + encodeURIComponent(lib) + "&readerName=" + encodeURIComponent(name);
+
+            //alert(myUrl);
+            //mui.openWindow({
+            //    url: myUrl,
+            //    id: 'info'
+            //});
+            window.location = myUrl;//"/account/bind";
+
+        }
+
+    </script>
+}
+
+@section header {
+        <h1 class="mui-title">绑定账号</h1>
+}
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="returnUrl" style="display:none">@ViewBag.ReturnUrl</span>
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+
+    <div class="mui-input-group">
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">图书馆</label>
+            @Html.Raw(ViewBag.LibHtml)
+        </div>
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">绑定方式</label>
+            <select id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.prefix">
+                <option value="NB">姓名</option>
+                <option value="">证条码号</option>
+                <option value="EM">email</option>
+                <option value="TP">电话号码</option>
+                <option value="ID">身份证号</option>
+                <option value="CN">证号</option>
+                <option value="UN">工作人员账户</option>
+            </select>
+        </div>
+        <div class="mui-input-row ">
+            <label id="lblAccount" style="color:#cccccc">账号</label>
+            <input id='account' type="text" class="mui-input mui-input-clear" placeholder="请输入 账号" data-bind="value:model.word">
+        </div>
+        <div class="mui-input-row">
+            <label style="color:#cccccc">密码</label>
+            <input id="password" type="password" class="mui-input-password" placeholder="请输入 密码" data-bind="value:model.password">
+        </div>
+    </div>
+
+    <div class="mui-content-padded">
+        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="bind()">绑定</button>
+        <div class="link-area">
+            <center><a href="JavaScript:void(0)" onclick="gotoResetPassword()">找回密码</a></center>
+        </div>
+    </div>
+}

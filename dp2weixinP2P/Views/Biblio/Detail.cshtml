@@ -1,0 +1,52 @@
+﻿@section style {
+    <link href="@Url.Content("~/Content/biblio.css?a=7")" rel="stylesheet">
+}
+@section Scripts {
+    <script>
+
+        //浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 设顶部菜单不固定
+            $("#myheader").css("position", "absolute");
+
+            //检查是否已经加载过了
+            var o = $(".biblio");
+            if (o.length > 0) {
+                var recPath = $("#biblioPath").text();
+                //alert(recPath);
+                if (recPath != null && recPath != "") {
+                    // 图书馆
+                    var libId = getLibId();
+                    var myhtml = getDetail(libId, recPath, o, "detail");
+                }
+            }
+        });
+
+    </script>
+}
+
+@section header {
+    <h1 class="mui-title">书目信息</h1>
+}
+<span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
+<span id="biblioPath" style="display:none;">@ViewBag.BiblioPath</span>
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+
+    <div style="padding:10px">
+        <div class='biblio'>
+        </div>
+    </div>
+}
+

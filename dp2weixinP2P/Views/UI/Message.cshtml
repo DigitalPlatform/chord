@@ -1,0 +1,272 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutManager.cshtml";
+}
+@section style {
+    <style>
+          /*================栏目div============*/
+        DIV.subject {
+            padding: 0px;
+            /* background-color: blue;*/
+            padding-bottom: 10px;
+        }
+
+            DIV.subject .firstline {
+                padding: 10px;
+            }
+
+                DIV.subject .firstline .title {
+                    font-size: 24px;
+                }
+
+                DIV.subject .firstline .count {
+                    font-size: 18px;
+                    color: #999999;
+                }
+
+        /*=======消息div===========*/
+        DIV.message {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            padding: 10px;
+            /*background-color: green;*/
+        }
+
+            /*消息div下的table*/
+            DIV.message TABLE {
+                width: 100%;
+                /*background-color: red;*/
+            }
+
+                /*=======消息查看态===========*/
+            DIV.message DIV.view {  
+                                             
+                                /*background-color:blue;*/
+
+            }
+                DIV.message DIV.view TABLE.view-top {                    
+                    /*background-color:green;*/
+                }
+
+                /*消息标题*/
+                DIV.message DIV.view TABLE.view-top .title {
+                    font-size: 18px;
+                }
+
+                /*标题右侧的按钮*/
+                DIV.message DIV.view TABLE.view-top .btn {
+                    text-align: right;
+                    padding-right: 10px;
+                }
+
+                /*消息发布时间*/
+                DIV.message DIV.view TABLE.view-top .time {
+                    color: gray;
+                    font-size: 12px;
+                }
+
+        /*消息内容*/
+        DIV.message DIV.view DIV.content {
+        }
+
+
+                                /*备注*/
+                DIV.message DIV.view DIV.remark {
+                    color: gray;
+                    font-size: 12px;
+                }
+
+
+        /*=============*/
+        /*消息编辑态标题*/
+        DIV.message INPUT, SELECT {
+            margin-bottom: 0px;
+        }
+
+        DIV.message TABLE.edit tr td {
+            padding: 5px;
+        }
+
+            DIV.message TABLE.edit tr td.label {
+                color: #999999;
+                width: 40px;
+            }
+
+            DIV.message TABLE.edit tr td span.label {
+                color: #999999;
+            }
+
+        DIV.message TABLE.edit select {
+            font-size: 17px;
+            height: 37px;
+            padding: 0px;
+            margin: 0px;
+        }
+
+        DIV.message TABLE.edit input, textarea {
+            padding: 5px;
+            margin: 0px;
+        }
+
+        /*======是否可编辑态样式=============*/
+        .msgEditable {
+            background-color: #CCFF99;
+        }
+    </style>
+}
+
+<table border="1">
+    <tr style="background-color:gray">
+        <td>读者类型</td>
+        <td>借书总量</td>
+        <td>借书期限</td>
+    </tr>
+    <tr>
+        <td>在编人员</td>
+        <td>20册</td>
+        <td>5个月</td>
+    </tr>
+    <tr>
+        <td>研究生</td>
+        <td>15册</td>
+        <td>2个月</td>
+    </tr>
+    <tr>
+        <td>本科生</td>
+        <td>10册</td>
+        <td>1个月</td>
+    </tr>
+</table>
+
+
+
+<div class="mui-card message msgEditable" id="_edit_e4e0ed5b-0535-47d4-8d00-ca3919a4755e" onclick="clickMsgDiv('e4e0ed5b-0535-47d4-8d00-ca3919a4755e')">
+    <div class="view">
+        <table class="view-top">
+            <tbody>
+                <tr><td class="title"></td><td class="btn"><div id="btnEdit" style="display: block;"><button class="mui-btn mui-btn-default" onclick="gotoEdit('e4e0ed5b-0535-47d4-8d00-ca3919a4755e')">编辑</button>&nbsp;<button class="mui-btn mui-btn-danger" onclick="deleteMsg('e4e0ed5b-0535-47d4-8d00-ca3919a4755e')">X&nbsp;删除</button></div></td></tr>
+                <tr>
+                    <td class="content" colspan="2"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="view-content">
+            **燕山大学图书馆** 前身为东北重型机械学院图书馆，1997年正式更名为燕山大学图书馆。图书馆舍主体面积1.45万平方米，设有7部一室，分别为流通部、阅览部、采编部、科技查新与参考咨询部、信息技术部、CALIS资源管理部、情报数字化部和办公室。现有馆员70余人，其中具有大学以上学历人员80%以上，一批具有多学科专业知识的博硕士馆员工作在各个岗位。
+            目前，图书馆主馆收藏有中外文图书100余万册，期刊2200余种；电子图书130万余种，网络数据库91个，自建“重型机械数字图书馆”等特色数据库6个；馆藏覆盖了我校所有学科，尤以重型机械及其相关专业文献收藏最具特色，形成了比较系统、完整的综合性的藏书体系和提供网络、电子、书刊、信息情报等资源的多方位的服务体系。
+            燕山大学图书馆是河北省第一家获批教育部部级科技查新站的省属高校图书馆，同时还承担着中国高等教育文献保障系统(CALIS)河北省文献信息服务中心，河北省高等学校数字图书馆联盟管理中心，河北省高等学校图书馆数字化工作委员会，河北省高校精品课程网站等职责。
+            科学发展，文明服务是图书馆工作的永恒主题。在全体馆员的共同努力下，燕山大学图书馆屡获全国巾帼文明示范岗、华北地区先进图书馆、秦皇岛市优秀图书馆、燕山大学优秀单位等荣誉称号。
+            燕山大学图书馆正向着高水平现代化图书馆目标前进，将会以更丰富的资源、更优越的环境、更优质的服务
+
+
+        </div>
+        <div class="view-remark">
+            remark
+        </div>
+    </div>
+</div>
+
+<div class="subject" id="_subject_我">
+    <div class="firstline" id="_subject_title"><span class="title">我</span></div>
+    <div class="mui-card message" id="_edit_e4e0ed5b-0535-47d4-8d00-ca3919a4755e" onclick="clickMsgDiv('e4e0ed5b-0535-47d4-8d00-ca3919a4755e')">
+        <div class="view">
+            <table class="view-top">
+                <tbody>
+                    <tr><td class="title"></td><td class="btn"><div id="btnEdit" style="display: block;"><button class="mui-btn mui-btn-default" onclick="gotoEdit('e4e0ed5b-0535-47d4-8d00-ca3919a4755e')">编辑</button>&nbsp;<button class="mui-btn mui-btn-danger" onclick="deleteMsg('e4e0ed5b-0535-47d4-8d00-ca3919a4755e')">X&nbsp;删除</button></div></td></tr>
+                    <tr>
+                        <td class="content" colspan="2"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="content">
+                <pre><code>  **燕山大学图书馆** 前身为东北重型机械学院图书馆，1997年正式更名为燕山大学图书馆。图书馆舍主体面积1.45万平方米，设有7部一室，分别为流通部、阅览部、采编部、科技查新与参考咨询部、信息技术部、CALIS资源管理部、情报数字化部和办公室。现有馆员70余人，其中具有大学以上学历人员80%以上，一批具有多学科专业知识的博硕士馆员工作在各个岗位。
+  目前，图书馆主馆收藏有中外文图书100余万册，期刊2200余种；电子图书130万余种，网络数据库91个，自建“重型机械数字图书馆”等特色数据库6个；馆藏覆盖了我校所有学科，尤以重型机械及其相关专业文献收藏最具特色，形成了比较系统、完整的综合性的藏书体系和提供网络、电子、书刊、信息情报等资源的多方位的服务体系。
+  燕山大学图书馆是河北省第一家获批教育部部级科技查新站的省属高校图书馆，同时还承担着中国高等教育文献保障系统(CALIS)河北省文献信息服务中心，河北省高等学校数字图书馆联盟管理中心，河北省高等学校图书馆数字化工作委员会，河北省高校精品课程网站等职责。 
+  科学发展，文明服务是图书馆工作的永恒主题。在全体馆员的共同努力下，燕山大学图书馆屡获全国巾帼文明示范岗、华北地区先进图书馆、秦皇岛市优秀图书馆、燕山大学优秀单位等荣誉称号。 
+ 燕山大学图书馆正向着高水平现代化图书馆目标前进，将会以更丰富的资源、更优越的环境、更优质的服务
+</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id='_subject_测试1' class="subject">
+    <div id='_subject_title' class="firstline"><span class='title'>测试1</span><span class='count'>(1)</span></div>
+
+        <div class='mui-card message' id='_edit_838293fb-5706-4393-b9eb-1c2cdf2d1edf' onclick="clickMsgDiv(' 838293fb-5706-4393-b9eb-1c2cdf2d1edf')">
+            <table>
+                <tr>
+                    <td class='title'>顶戴df</td>
+                    <td class="btn">
+                        <div id='btnEdit'>
+                            <button class='mui-btn mui-btn-default' onclick="gotoEdit('838293fb-5706-4393-b9eb-1c2cdf2d1edf')">编辑</button>
+                            <button class='mui-btn mui-btn-danger' onclick="deleteMsg('838293fb-5706-4393-b9eb-1c2cdf2d1edf')">X&nbsp;删除</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan='2' class="time">
+                        <span>2016-06-28 11:39:40</span>-<span>jane</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan='2' class="content">
+                        sdfsafasdf
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    <div class='mui-card message' id='_edit_838293fb-5706-4393-b9eb-1c2cdf2d1edf' onclick="clickMsgDiv(' 838293fb-5706-4393-b9eb-1c2cdf2d1edf')">
+        <table>
+            <tr>
+                <td class='title'>顶戴df</td>
+                <td class="btn">
+                    <div id='btnEdit'>
+                        <button class='mui-btn mui-btn-default' onclick="gotoEdit('838293fb-5706-4393-b9eb-1c2cdf2d1edf')">编辑</button>
+                        <button class='mui-btn mui-btn-danger' onclick="deleteMsg('838293fb-5706-4393-b9eb-1c2cdf2d1edf')">X&nbsp;删除</button>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan='2' class="time">
+                    <span>2016-06-28 11:39:40</span>-<span>jane</span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan='2' class="content">
+                    sdfsafasdf
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</div>
+
+<div id='_subject_测试1' class="subject">
+    <div id='_subject_title' class="firstline"><span class="title">测试1</span><span class="count">(1)</span></div>
+    <div>
+        <div class='mui-card message' id='_edit_838293fb-5706-4393-b9eb-1c2cdf2d1edf' onclick="clickMsgDiv(' 838293fb-5706-4393-b9eb-1c2cdf2d1edf')">
+            <table>
+                <tr>
+                    <td class='title'>顶戴df</td>
+                    <td class="btn">
+                        <div id='btnEdit'>
+                            <button class='mui-btn mui-btn-default' onclick="gotoEdit('838293fb-5706-4393-b9eb-1c2cdf2d1edf')">编辑</button>
+                            <button class='mui-btn mui-btn-danger' onclick="deleteMsg('838293fb-5706-4393-b9eb-1c2cdf2d1edf')">X&nbsp;删除</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan='2' class="time">
+                        <span>2016-06-28 11:39:40</span>-<span>jane</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan='2' class="content">
+                        sdfsafasdf
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,512 @@
+﻿        @section style {
+    <link href="@Url.Content("~/Content/biblio.css?a=8")" rel="stylesheet">
+}
+@section Scripts {
+    <script>
+
+        //浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 打回车检索
+            $('#txtWord').bind('keypress', function (event) {
+                //alert("test");
+                if (event.keyCode == "13") {
+                    // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+                    search('');
+                }
+            });
+
+            // 打回车检索
+            $('#txtWordSimple').bind('keypress', function (event) {
+                //alert("test");
+                if (event.keyCode == "13") {
+                    // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+                    search('simple');
+                }
+            });
+
+            // 设顶部菜单不固定
+            $("#myheader").css("position", "absolute");
+
+
+
+
+
+
+            $(window).scroll(function () {
+
+                if ($("#more") != null && $("#more").offset() !=null ) {
+                    var show = $('#more').css('display');
+                    if (show == "none")
+                        return;
+
+                    var itemOffsetTop = $("#more").offset().top;
+                    var itemOuterHeight = $("#more").outerHeight(true);
+                    var winHeight = $(window).height();
+                    var winScrollTop = $(window).scrollTop();
+
+                    //$("#test").text("itemOffsetTop=" + itemOffsetTop
+                    //    + " itemOuterHeight=" + itemOuterHeight
+                    //    + " winHeight=" + winHeight
+                    //    + " winScrollTop=" + winScrollTop);
+
+                    //$("#test1").text("itemOffsetTop=" + itemOffsetTop
+                    //    + " itemOuterHeight=" + itemOuterHeight
+                    //    + " winHeight=" + winHeight
+                    //    + " winScrollTop=" + winScrollTop);
+
+                    //if (!(winScrollTop > itemOffsetTop + itemOuterHeight) && !(winScrollTop < itemOffsetTop - winHeight))
+                    //    {
+                    //    alert('出现了');
+                    //} else {
+                    //    alert('消失了');
+                    //}
+
+
+                    //var a = document.getElementById("eq").offsetTop;
+                    if (itemOffsetTop >= $(window).scrollTop()
+                        && itemOffsetTop < ($(window).scrollTop() + $(window).height())) {
+                        //alert("div在可视范围");
+                        searchN();
+                    }
+                }
+            })
+
+
+
+            redoSearch();
+        });
+
+        // 重新检索
+        function redoSearch() {
+            //alert("redoSearch1");
+
+            // 当按浏览器返回按钮时，要显示原来的数据
+            var word = $('#txtWord').val();
+            if (word == "")
+                word = $('#txtWordSimple').val();
+
+            //alert("word=["+word+"]");
+            if (word!=null && word != "") {
+                //alert("maxNo=" + $("#maxNo").val());
+                var expandId = $('#expandId').val();
+                search("_ReView", expandId);
+                ///alert("redoSearch3");
+            }
+        }
+
+        // 检索
+        function search(bNext, expandId) {
+
+            //$("#more").css("display", "none");
+
+            var from = "";
+            var word = "";
+            var match = "";
+
+            // 图书馆
+            var libId = getLibId();//$("#selLib").val();
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+
+
+            if (bNext == 'true') {
+                from = "_N";
+                word = $("#maxNo").val();
+
+                $("#wait").css("display", "block");
+
+            }
+            else if (bNext == '_ReView') {
+                from = "_ReView";
+                word = $("#maxNo").val();
+            }
+            else if (bNext == 'simple') {
+                // 检索途径
+                from = "title,ISBN,contributor,subjec,clc,_class,publishtime,publisher";
+                match = "left";
+
+                // 检查检索词
+                word = $("#txtWordSimple").val();
+                if (word == "") {
+                    alert("您尚未输入检索词。");
+                    return;
+                }
+                var table = $("#ulResult");//$('.mui-table-view');
+                table.html("");
+            }
+            else {
+
+                // 检查是否选择的检索途径
+                from = $("#selFrom").val();
+                if (from == "") {
+                    alert("您尚未选择检索途径。");
+                    return;
+                }
+
+                // 检查检索词
+                word = $("#txtWord").val();
+                if (word == "") {
+                    alert("您尚未输入检索词。");
+                    return;
+                }
+                //alert("[" + from + "]-[" + word + "]");
+
+                match = $("#selMatch").val();
+                if (match == "") {
+                    alert("您尚未选择匹配方式。");
+                    return;
+                }
+                var table = $("#ulResult");//$('.mui-table-view');
+                table.html("");
+                $("#searchInfo").text("");
+
+            }
+
+            //resultSet 如果为空，服务器生成一个
+            var resultSet = $("#resultSet").val();
+
+
+            var weixinId = $("#weixinId").text();
+            if (weixinId == null || weixinId == "") {
+                alert("weixinId参数为空");
+                return;
+            }
+
+            // 调检索接口
+            //显示等待图层
+            var index = -1;
+            if (bNext != 'true') {
+                //index= loadLayer();
+                //showMaskLayer();
+                showLoading();
+
+            }
+
+            // 调Search api
+            var url = "/api/biblio?weixinId=" + encodeURIComponent(weixinId)
+                + "&libId=" + encodeURIComponent(libId)
+                + "&from=" + encodeURIComponent(from)
+                + "&word=" + encodeURIComponent(word)
+                + "&match=" + encodeURIComponent(match)
+                + "&resultSet=" + encodeURIComponent(resultSet);
+
+            //alert(url);
+            sendAjaxRequest(url, "GET",
+                function (result) {
+
+                    //alert("回来");
+
+                    // 关闭等待层
+                    //layer.close(index);
+                    //hideMaskLayer();
+                    hideLoading();
+
+                    var totalCount = 0;
+                    //alert("2");
+                    if (result.apiResult.errorCode == -1) {
+                        $("#searchInfo").text("检索出错：" + result.apiResult.errorInfo);
+                        $("#searchInfo").css("color", "red");  //设置p元素的样式颜色为红色
+                    }
+                    else if (result.apiResult.errorCode == 0) {
+                        $("#searchInfo").text("未命中");
+                        $("#searchInfo").css("color", "red");  //设置p元素的样式颜色为红色
+                    }
+                    else {
+                        totalCount = result.apiResult.errorCode;
+                        $("#searchInfo").text("命中" + totalCount  + "条记录。");
+                        $("#searchInfo").css("color", "darkgreen");  //设置p元素的样式颜色为红色
+                    }
+
+                    // 出错或未命中
+                    if (result.apiResult.errorCode == -1 || result.apiResult.errorCode == 0) {
+                        alert(result.apiResult.errorInfo);
+                        return;
+                    }
+
+                    //alert("1");
+
+                    var table = $("#ulResult");//$('.mui-table-view');
+                    var start = 0;
+                    if (bNext == 'true') {
+                        start = parseInt($("#maxNo").val());
+                    }
+
+                    var noWidth = '18px';
+
+
+                    for (var i = 0; i < result.records.length; i++) {
+                        var record = result.records[i];
+                        var id = "record-" + (start + i);
+
+                        if (start + i >= 99)
+                            noWidth = "25px";
+
+                        var li = "<li class='mui-table-view-cell mui-collapse' id='" + id + "'> "
+                            + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\"" + id + "\")' style='padding-top:5px;padding-bottom:5px'>"
+                            +"<table width='100%' class='result-biblio'>"
+                        + "<tr><td style='width:"+noWidth+";min-width:18px'>" + record.no + "</td><td style='padding-right:10px'><div style='width:100%; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; ' >" + record.name + "</div></td></tr>"
+                        + "<tr><td >&nbsp;</td><td style='color:#cccccc'>" + record.recPath + "</td></tr>"
+                        +"</table>"
+                        +"</a>"
+                            + "<div class='mui-collapse-content' style='display:none;padding-top: 0px;'>"
+                                + "<div class='pendingDetail biblio' >"
+                                    + "<label>" + record.recPath + "</label>"
+                                    + "<img src='../img/wait2.gif' />"
+                                + "</div>"
+                            + "</div>"
+                            + "</li>";
+                        table.append(li);
+
+                        if (i == result.records.length - 1) {
+                            $("#maxNo").val(record.no);
+                            $("#resultSet").val(result.resultSetName);
+                        }
+                    }
+
+                    //<li class="mui-table-view-cell mui-collapse">
+                    //<a class="mui-navigate-right" href="#">表单</a>
+                    //<div class="mui-collapse-content">
+
+
+
+                    //有下页的情况
+                    if (result.isCanNext == true) {
+                        //var li1 = "<li class='mui-table-view-cell'  id='more'>"
+                        //    + "<center><a href='javascript:void(0)' onclick='searchN()'>点击加载更多</a></center>"
+                        //    + "</li>";
+                        //table.append(li1);
+                        $("#more").css("display", "block");
+
+                        var begin = start + result.records.length + 1;
+                        var end = begin + 9;
+                        if (totalCount < end)
+                            end = totalCount;
+
+                        var text = "正在加载..." + begin + "-" + end + "/" + totalCount;
+                        //alert(text);
+                        $("#moretext").text(text);
+                    }
+                    else {
+                        $("#more").css("display", "none");
+
+                    }
+
+                    // 打开需要展开的项
+                    if (expandId != null && expandId != "") {
+                        expand(expandId);
+                    }
+
+
+
+
+
+                }, function (xhq, textStatus, errorThrown) {
+
+                    // 关闭等待层
+                    //layer.close(index);
+                    //hideMaskLayer();                    
+                    hideLoading();
+
+                    alert(errorThrown);
+
+                });
+        }
+
+
+        // 2016-6-17 jane 为了返回时记住展开项，expand函数由原来传一个对象，改为传一个id
+        function expand(expId) {
+            //根据id找到<li>元素
+            var id = "#" + expId;
+            var obj = $(id);
+
+            // 如果自己是展开状态，则收缩
+            var state = $(obj).find(".mui-collapse-content").first().css("display");
+            if (state == "block") { //自己本来是展开状态，要关闭
+                $(obj).find(".mui-collapse-content").css("display", "none");
+                $(obj).removeClass("mui-active");
+            }
+            else {
+                //其它收缩
+                //$(".mui-collapse-content").css("display", "none");
+                //$(".mui-collapse").removeClass("mui-active");
+
+                //自己展开
+                $(obj).find(".mui-collapse-content").css("display", "block");
+                $(obj).addClass("mui-active");
+
+                // 记住展开项
+                $("#expandId").val(expId);
+
+                //alert("走进0");
+                //检查是否已经加载过了
+                var o = $(obj).find(".pendingDetail:first");
+                if (o.length == 0) {
+                    return;
+                }
+                else {
+                    //alert("走进1");
+
+                    var recPath = o.children("label").text();
+                    //alert(recPath);
+                    if (recPath != null && recPath != "") {
+
+                        //alert("走进2");
+
+                        // 图书馆
+                        var libId = getLibId();
+                        var myhtml = getDetail(libId, recPath, o, "index");
+
+                        // 去掉css
+                        o.removeClass("pendingDetail");
+                    }
+                }
+            }
+        }
+
+        //必须要换一个名称，被下一页使用，直接用search("true")不行
+        function searchN() {
+            search("true"); 
+        }
+
+
+
+        // 切换简单检索与高级检索
+        function changeType() {
+            var type = $("#searchType").text();
+            //alert(type);
+
+            // 2016-8-11 置空结果集
+            var table = $("#ulResult");//$('.mui-table-view');
+            table.html("");
+            $("#searchInfo").text("");
+            $('#txtWordSimple').val("");
+            $('#txtWord').val("");
+
+            if (type == "高级检索") {
+                //$('#txtWordSimple').focus();
+                $("#divAdvance").css("display", "block");
+                $("#divSimple").css("display", "none");
+                $("#searchType").text("简单检索");
+            }
+            else {
+                //$('#txtWord').focus();
+                $("#divAdvance").css("display", "none");
+                $("#divSimple").css("display", "block");
+                $("#searchType").text("高级检索");
+            }
+        }
+
+
+    </script>
+}
+
+
+@section header {
+    <h1 class="mui-title">书目查询</h1>
+}
+<span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
+
+<!--<span id="test" style="display:block"></span>-->
+<!--关于结果集-->
+<input id="maxNo" type="hidden">
+<input id="resultSet" type="hidden" value="" disabled="disabled">
+<input id="expandId" type="hidden" value="" disabled="disabled">
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span id="error" class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+        <div id="divSimple" class="search" style="padding:10px">
+            <table style="width:100%" class="simple">
+                <tr>
+                    <td style="vertical-align:middle;width:100%">
+                        <input class="mui-input mui-input-clear" style="border-top-left-radius:4px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:4px;border-right:0px" id="txtWordSimple" type="text" value="" placeholder="请输入检索词">
+                    </td>
+                    <td style="vertical-align:top"><span class="mui-icon mui-icon-search" style="padding-top:10px;height:40px; border:1px solid #cccccc;border-left:0px;border-top-left-radius:0px;border-top-right-radius:4px;border-bottom-right-radius:4px;border-bottom-left-radius:0px;width:30px;cursor:pointer; background-color:white" onclick="search('simple')"></span></td>
+                </tr>
+            </table>
+        </div>
+        <div id="divAdvance" class="search" style="display:none">
+            <table class="advance">
+                <tr>
+                    <td class="label">检索途径</td>
+                    <td>
+                        <div style="border:1px solid #cccccc">
+                            <select id="selFrom" name="selFrom">
+                                <option value="title,ISBN,contributor,subjec,clc,_class,publishtime,publisher" selected>全部</option>
+                                <option value="title" selected>书名</option>
+                                <option value="ISBN">ISBN</option>
+                                <option value="contributor">作者</option>
+                                <option value="subject">主题词</option>
+                                <option value="clc,_class">分类号</option>
+                                <option value="publishtime">出版时间</option>
+                                <option value="publisher">出版社</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">检索词</td>
+                    <td>
+                        <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">匹配方式</td>
+                    <td>
+                        <div style="border:1px solid #cccccc">
+                            <!--left/middle/right/exact-->
+                            <select id="selMatch">
+                                <option value="left" selected>前方一致</option>
+                                <option value="middle">中间一致</option>
+                                <option value="right">后方一致</option>
+                                <option value="exact">精确一致</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="padding:10px">
+
+            <a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a>
+        </div>
+        <div id="divResult">
+            <!--数据列表-->
+            <span style="padding-left:10px;" id="searchInfo"></span>
+            <ul id="ulResult" class="mui-table-view ">
+
+
+            </ul>
+
+            <div id='more' style="display:none">
+                <center><a href='javascript:void(0)' onclick='searchN()'><img src='../img/loading.gif' />&nbsp;<span id="moretext">加载中...</span></a></center>
+            </div>
+
+        </div>
+
+    <!--<span id="test1" style="display:block"></span>-->
+    }
+}

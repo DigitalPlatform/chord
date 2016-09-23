@@ -1,0 +1,60 @@
+﻿<root>
+  <type>还书成功</type>
+  <libraryCode></libraryCode>
+  <operation>return</operation>
+  <action>return</action>
+  <itemBarcode>C300</itemBarcode>
+  <readerBarcode>R00001</readerBarcode>
+  <operator>supervisor</operator>
+  <operTime>Thu, 30 Jun 2016 07:31:49 +0800</operTime>
+  <overdues>&lt;overdue barcode="C300" reason="超期。超 2天; 违约金因子: CNY1.0/day" overduePeriod="2day" price="CNY2" borrowDate="Sat, 28 May 2016 07:31:23 +0800" borrowPeriod="31day" returnDate="Thu, 30 Jun 2016 07:31:49 +0800" borrowOperator="supervisor" operator="supervisor" id="636000175557814183-1" /&gt;</overdues>
+  <clientAddress>::1</clientAddress>
+  <version>1.02</version>
+  <time></time>
+  <uid>24710d76-a9ac-42ea-9b5e-e762e6bc57fb</uid>
+  <patronRecord>
+    <barcode>R00001</barcode>
+    <readerType>教职工</readerType>
+    <name>任1</name>
+    <refID>63aeb890-8936-4471-bfc5-8e72d5c7fe94</refID>
+    <borrows></borrows>
+    <email>renyh1013@163.com,weixinid:o4xvUviTxj2HbRqbQb9W2nMl4fGg</email>
+    <hire expireDate="" period=""></hire>
+    <createDate>Fri, 01 Apr 2016 00:00:00 +0800</createDate>
+    <expireDate>Thu, 30 Jun 2016 00:00:00 +0800</expireDate>
+    <department>宣明学校</department>
+    <overdues>
+      <overdue barcode="C300" reason="超期。超 2天; 违约金因子: CNY1.0/day" overduePeriod="2day" price="CNY2" borrowDate="Sat, 28 May 2016 07:31:23 +0800" borrowPeriod="31day" returnDate="Thu, 30 Jun 2016 07:31:49 +0800" borrowOperator="supervisor" operator="supervisor" id="636000175557814183-1" pauseStart="Thu, 30 Jun 2016 07:31:49 +0800" />
+    </overdues>
+    <reservations></reservations>
+    <tel>13862157151</tel>
+    <libraryCode></libraryCode>
+  </patronRecord>
+  <itemRecord>
+    <parent>7</parent>
+    <refID>a6d18a44-df5a-4493-8022-d0636a22456d</refID>
+    <barcode>C300</barcode>
+    <state></state>
+    <publishTime></publishTime>
+    <location>流通库</location>
+    <seller></seller>
+    <source></source>
+    <price>CNY29.80</price>
+    <bindingCost></bindingCost>
+    <bookType>普通</bookType>
+    <registerNo></registerNo>
+    <comment></comment>
+    <mergeComment></mergeComment>
+    <batchNo></batchNo>
+    <volume></volume>
+    <accessNo>I521.85/H023</accessNo>
+    <intact></intact>
+    <binding />
+    <operations>
+      <operation name="create" time="Wed, 23 Mar 2016 15:04:41 +0800" operator="supervisor" />
+      <operation name="lastModified" time="Tue, 24 May 2016 04:54:47 +0800" operator="supervisor" />
+    </operations>
+    <reservations></reservations>
+    <summary>我爱我的爷爷 [专著]  / (奥)沃尔夫·哈兰斯(Wolf W. Harranth)文 ; (奥)克里斯蒂娜·奥珀曼·迪莫(C. O. Dimow)图 ; 赖雅静翻译. -- ISBN 978-7-5434-7080-4 (精装 ) : CNY29.80</summary>
+  </itemRecord>
+</root>
