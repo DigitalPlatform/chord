@@ -192,37 +192,39 @@ namespace dp2Router.Install
             EnableControls(false);
             try
             {
-                MessageConnectionCollection _channels = new MessageConnectionCollection();
-                _channels.Login += _channels_Login;
-
-                MessageConnection connection = await _channels.GetConnectionAsyncLite(
-        this.textBox_url.Text,
-        "");
-                CancellationToken cancel_token = _cancel.Token;
-
-                string id = Guid.NewGuid().ToString();
-                GetMessageRequest request = new GetMessageRequest(id,
-                    "",
-                    "gn:<default>", // "" 表示默认群组
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    0,
-                    1);
-                GetMessageResult result = await connection.GetMessageAsyncLite(
-        request,
-        new TimeSpan(0, 1, 0),
-        cancel_token);
-
-                if (result.Value == -1)
+                using (MessageConnectionCollection _channels = new MessageConnectionCollection())
                 {
-                    strError = "检测用户时出错: " + result.ErrorInfo;
-                    goto ERROR1;
-                }
+                    _channels.Login += _channels_Login;
 
-                return true;
+                    MessageConnection connection = await _channels.GetConnectionAsyncLite(
+            this.textBox_url.Text,
+            "");
+                    CancellationToken cancel_token = _cancel.Token;
+
+                    string id = Guid.NewGuid().ToString();
+                    GetMessageRequest request = new GetMessageRequest(id,
+                        "",
+                        "gn:<default>", // "" 表示默认群组
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        0,
+                        1);
+                    GetMessageResult result = await connection.GetMessageAsyncLite(
+            request,
+            new TimeSpan(0, 1, 0),
+            cancel_token);
+
+                    if (result.Value == -1)
+                    {
+                        strError = "检测用户时出错: " + result.ErrorInfo;
+                        goto ERROR1;
+                    }
+
+                    return true;
+                }
             }
             catch (MessageException ex)
             {
@@ -290,45 +292,47 @@ namespace dp2Router.Install
             EnableControls(false);
             try
             {
-                MessageConnectionCollection _channels = new MessageConnectionCollection();
-                _channels.Login += _channels_LoginSupervisor;
-
-                MessageConnection connection = await _channels.GetConnectionAsyncLite(
-        this.textBox_url.Text,
-        "supervisor");
-                // 记忆用过的超级用户名和密码
-                this.ManagerUserName = connection.UserName;
-                this.ManagerPassword = connection.Password;
-
-                CancellationToken cancel_token = _cancel.Token;
-
-                string id = Guid.NewGuid().ToString();
-
-                List<User> users = new List<User>();
-
-                User user = new User();
-                user.userName = this.textBox_userName.Text;
-                user.password = this.textBox_password.Text;
-                user.rights = "webCall";
-                user.duty = "";
-                user.groups = null;
-                user.comment = "dp2Router 专用账号";
-                user.binding = "ip:[current]";
-
-                users.Add(user);
-
-                MessageResult result = await connection.SetUsersAsyncLite("create",
-                    users,
-                    new TimeSpan(0, 1, 0),
-                    cancel_token);
-
-                if (result.Value == -1)
+                using (MessageConnectionCollection _channels = new MessageConnectionCollection())
                 {
-                    strError = "创建用户 '" + this.textBox_userName.Text + "' 时出错: " + result.ErrorInfo;
-                    goto ERROR1;
-                }
+                    _channels.Login += _channels_LoginSupervisor;
 
-                return true;
+                    MessageConnection connection = await _channels.GetConnectionAsyncLite(
+            this.textBox_url.Text,
+            "supervisor");
+                    // 记忆用过的超级用户名和密码
+                    this.ManagerUserName = connection.UserName;
+                    this.ManagerPassword = connection.Password;
+
+                    CancellationToken cancel_token = _cancel.Token;
+
+                    string id = Guid.NewGuid().ToString();
+
+                    List<User> users = new List<User>();
+
+                    User user = new User();
+                    user.userName = this.textBox_userName.Text;
+                    user.password = this.textBox_password.Text;
+                    user.rights = "webCall";
+                    user.duty = "";
+                    user.groups = null;
+                    user.comment = "dp2Router 专用账号";
+                    user.binding = "ip:[current]";
+
+                    users.Add(user);
+
+                    MessageResult result = await connection.SetUsersAsyncLite("create",
+                        users,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+
+                    if (result.Value == -1)
+                    {
+                        strError = "创建用户 '" + this.textBox_userName.Text + "' 时出错: " + result.ErrorInfo;
+                        goto ERROR1;
+                    }
+
+                    return true;
+                }
             }
             catch (MessageException ex)
             {
