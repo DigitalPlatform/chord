@@ -20,6 +20,13 @@
 
         }
 
+        TABLE.result-biblio td.no{   
+            padding:0px;
+            margin:0px;
+            min-width:18px;
+            width:18px;
+        }
+
     /*信息行*/
       DIV.biblio TABLE.info{
             text-align: left;

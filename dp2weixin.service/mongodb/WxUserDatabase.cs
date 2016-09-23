@@ -72,8 +72,9 @@ namespace dp2weixin.service
         // 获取绑定账户
         public List<WxUserItem> Get(string weixinId, 
             string libId,
-            string readerBarcode,
             int type,
+            string patronBarcode,
+            string userName,
             bool bOnlyAvailable)
         {
             var filter = Builders<WxUserItem>.Filter.Empty;
@@ -93,15 +94,22 @@ namespace dp2weixin.service
                 filter = filter & Builders<WxUserItem>.Filter.Eq("libId", libId);
             }
 
-            if (string.IsNullOrEmpty(readerBarcode) == false)
-            {
-                filter = filter & Builders<WxUserItem>.Filter.Eq("readerBarcode", readerBarcode);
-            }
-
             if (type != -1)
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("type", type);
             }
+
+            if (string.IsNullOrEmpty(patronBarcode) == false)
+            {
+                filter = filter & Builders<WxUserItem>.Filter.Eq("readerBarcode", patronBarcode);
+            }
+
+            if (string.IsNullOrEmpty(userName) == false)
+            {
+                filter = filter & Builders<WxUserItem>.Filter.Eq("userName", userName);
+            }
+
+
 
             List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
             return list;
@@ -110,13 +118,18 @@ namespace dp2weixin.service
         // 获取有效的绑定账户
         public List<WxUserItem> Get(string weixinId, string libId, int type)
         {
-            return this.Get(weixinId, libId,null, type,true);
+            return this.Get(weixinId, libId,type,null,null, true);
         }
 
         // 获取指定的读者账户,针对一个图书馆可绑定多个读者账户
         public List<WxUserItem> GetPatron(string weixinId, string libId, string readerBarcode)
         {
-            return this.Get(weixinId, libId, readerBarcode, C_Type_Patron, true);
+            return this.Get(weixinId, libId, C_Type_Patron, readerBarcode,null, true);
+        }
+
+        public List<WxUserItem> GetWorkers(string weixinId, string libId, string userName)
+        {
+            return this.Get(weixinId, libId, C_Type_Worker,  null,userName, true);
         }
 
         // 获取工作人员账户，目前设计是：针对一个图书馆只绑定一个账户
@@ -268,7 +281,7 @@ namespace dp2weixin.service
 
 
         // 根据libId与状态删除记录
-        public void delete(string libId,int state)
+        public void Delete(string libId,int state)
         {
             if (String.IsNullOrEmpty(libId) == true)
                 return;

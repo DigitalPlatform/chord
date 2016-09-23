@@ -56,7 +56,7 @@ namespace dp2weixin.service
             Channels.AddMessage -= _channels_AddMessage;
             Channels.ConnectionStateChange -= _channels_ConnectionStateChange;
 
-            this.StopThread(false);
+            this.StopThread(true);//2016-9-22 StopThread() 的参数最好修改为 true，以便在重启之类情况下尽快关闭线程。
         }
 
         void _channels_ConnectionStateChange(object sender, ConnectionEventArgs e)

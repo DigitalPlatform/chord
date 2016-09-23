@@ -6,81 +6,10 @@
 @section Scripts {
     <script>
 
-        function deleteMsg(msgId)
-        {
-            //alert(msgId);
 
-            var titleDiv = "#title-" + msgId;
-            var title = $(titleDiv).html();
-
-            var gnl = confirm("你确定要删除公告[" + title + "]吗?");
-            if (gnl == false) {
-                return false;
-            }
-
-            var libId = $("#libId").text();
-            if (libId == "") {
-                alert("异常情况：libId为空。");
-                return;
-            }
-
-            var userName = $("#userName").text();
-            if (userName == "") {
-                alert("异常情况：userName为空。");
-                return;
-            }
-
-            //显示等待图层
-            //var index = loadLayer();
-            showMaskLayer();
-
-            var url = "/api/LibMessage?libId=" + libId
-                + "&group=" + encodeURIComponent("gn:_lib_book")
-                + "&msgId=" + msgId
-            + "&userName=" + userName
-            sendAjaxRequest(url, "DELETE", function (result) {
-
-                // 关闭等待层
-                //layer.close(index);
-                hideMaskLayer();
-
-                if (result.errorCode == -1) {
-                    alert("操作失败：" + result.errorInfo);
-                    return;
-                }
-
-                alert("删除成功");
-
-                // edit div id
-                var divEditId = "#_edit_" + msgId;
-
-                // 先找到父亲，方便后面查看有没有下级message
-                var msgParent = $(divEditId).parent();
-
-                // 删除当前msg
-                $(divEditId).remove();
-
-                // 2016-8-13 jane 如果全部删除了，转到subject页面
-                //alert(msgId);
-                if ($(msgParent).children(".message").length == 0) {
-                    //alert("没有下级了");
-                    var url = "/Library/BookSubject?libId=" + libId;// + "&userName=" + userName;
-                    gotoUrl(url);
-                }
-
-            }, function (xhq, textStatus, errorThrown) {
-
-                //关闭图层
-                hideMaskLayer();
-
-                alert(errorThrown);
-
-
-            });
-        }
 
         // 单击msg进行只读态与编辑态的切换
-        function clickMsgDiv(msgId) {
+        function clickMsgDiv1(msgId) {
 
             //alert(1);
 
@@ -90,44 +19,18 @@
                 return;
             }
 
-            if (msgId == null || msgId == "") {
-                alert("未传入msgId");
-                return;
-            }
+            // 调weixin.js中的clickMsgDiv()函数
+            clickMsgDiv(msgId);
 
-            var userName = $("#userName").text();
-            if (userName == "") {
-                return;
-            }
+            //alert(2);
 
-            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
-            var editBtn = $(divId).find("#btnEdit");
-
-            // 这时候已经不是在浏览界面，应该是编辑态了
-            var viewTable = $(divId).children(".view").html();
-            if (viewTable == null || viewTable == "") {
-                return;
-            }
-
-            var editStateClass = "msgEditable";
-            var editState = $(divId).hasClass(editStateClass);
-            if (editState == true) {
-                $(divId).removeClass(editStateClass);
-
-                $(editBtn).css("display", "none");
-            }
-            else {
-                $(divId).addClass(editStateClass);
-
-                $(editBtn).css("display", "block");
-            }
         }
 
-        function gotoEdit(msgId)
+        function gotoEdit1(msgId)
         {
             //alert(msgId);
             var libId = $("#libId").text();
-            var userName = $("#userName").text();
+            var userName = $("#_userName").text();
             var subject = $("#subject").text();
             gotoUrl("/Library/BookEdit?libId="+libId
                 +"&userName="+userName
@@ -157,7 +60,8 @@
     </script>
 }
 <span id="libId" style="display:none">@ViewBag.libId</span>
-<span id="userName" style="display:none">@ViewBag.userName</span>
+<span id="_userName" style="display:none">@ViewBag.userName</span>
+<span id="_group" style="display:none">gn:_lib_book</span>
 <span id="subject" style="display:none">@ViewBag.subject</span>
 
 
@@ -185,7 +89,7 @@ else
         if (String.IsNullOrEmpty(ViewBag.userName) == false)
         {
             <div id="divNew" class="mui-content-padded" style="display:block">
-                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('')">
+                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit1('')">
                     新推荐好书
                 </button>
             </div>
@@ -195,7 +99,7 @@ else
         {
             foreach (dp2weixin.service.MessageItem item in Model)
             {
-                <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv('@item.id')">
+                <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv1('@item.id')">
                     <div class="view">
                         <table class="view-top">
                             <tr>
@@ -204,7 +108,7 @@ else
                                     @if (String.IsNullOrEmpty(ViewBag.userName) == false)
                                     {
                                         <div id="btnEdit" style="display: none;">
-                                            <button class="mui-btn mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>&nbsp;
+                                            <button class="mui-btn mui-btn-default" onclick="gotoEdit1('@item.id')">编辑</button>&nbsp;
                                             <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
                                         </div>
                                     }
