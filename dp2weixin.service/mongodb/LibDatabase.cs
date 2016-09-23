@@ -59,7 +59,7 @@ namespace dp2weixin.service
             // 创建索引            
         }
 
-        public LibEntity GetLibById(string id)
+        public LibEntity GetLibById1(string id)
         {
             if (string.IsNullOrEmpty(id) == true)
                 return null;

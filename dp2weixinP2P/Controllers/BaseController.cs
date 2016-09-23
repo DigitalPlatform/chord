@@ -162,7 +162,7 @@ namespace dp2weixinWeb.Controllers
             UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
             if (settingItem != null)
             {
-                LibEntity lib = LibDatabase.Current.GetLibById(settingItem.libId);
+                LibEntity lib = dp2WeiXinService.Instance.GetLibById(settingItem.libId);
                 if (lib == null)
                 {
                     strError = "未找到id为'" + settingItem.libId + "'对应的图书馆"; //这里lib为null竟然用了lib.id，一个bug 2016-8-11

@@ -10,19 +10,18 @@ namespace dp2weixinWeb.ApiControllers
 {
     public class LibrarySettingController : ApiController
     {
-        private LibDatabase libDb = LibDatabase.Current;    
 
         // GET api/<controller>
         public IEnumerable<LibEntity> Get()
         {
-            List<LibEntity> list = libDb.GetLibs();//"*", 0, -1).Result;
+            List<LibEntity> list = LibDatabase.Current.GetLibs();//"*", 0, -1).Result;
             return list;
         }
 
         // GET api/<controller>/5
         public LibEntity Get(string id)
         {
-            return libDb.GetLibById(id);
+            return dp2WeiXinService.Instance.GetLibById(id);
         }
 
         // POST api/<controller>
@@ -50,7 +49,7 @@ namespace dp2weixinWeb.ApiControllers
         // PUT api/<controller>/5
         public long Put(string id, LibEntity item)
         {
-            long ret = libDb.Update(id, item);
+            long ret = LibDatabase.Current.Update(id, item);
 
             if (ret > 0)
             {

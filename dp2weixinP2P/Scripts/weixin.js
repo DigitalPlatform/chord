@@ -702,11 +702,18 @@ function deleteMsg(msgId) {
         return;
     }
 
+    var weixinId = $("#weixinId").text();
+    if (weixinId == "") {
+        alert("异常情况：weixinId为空");
+        return;
+    }
+
     //显示等待图层
     //var index = loadLayer();
     showLoading();
 
-    var url = "/api/LibMessage?libId=" +  encodeURIComponent(libId)
+    var url = "/api/LibMessage?weixinId="+weixinId
+        + "&libId=" +  encodeURIComponent(libId)
         + "&group=" + encodeURIComponent(group)
         + "&msgId=" + msgId
         + "&userName=" + userName

@@ -85,7 +85,7 @@ namespace dp2weixin.service
         {
             this.DeleteLib(libId);
 
-            LibEntity entity = LibDatabase.Current.GetLibById(libId);
+            LibEntity entity = LibDatabase.Current.GetLibById1(libId);
             this.AddLib(entity);
         }
 
@@ -126,9 +126,9 @@ namespace dp2weixin.service
 
     }
 
-    public class Library
+    public class Library//:LibEntity
     {
-        // 对应mongodb的结构
+        //// 对应mongodb的结构
         public LibEntity Entity { get; set; }
 
         // 绑定的读者数量

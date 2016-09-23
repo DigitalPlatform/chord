@@ -21,7 +21,7 @@ namespace dp2weixinWeb.ApiControllers
             //result.info = "test";
 
 
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
             if (lib == null)
             {
                 result.errorCode = -1;
@@ -160,15 +160,9 @@ namespace dp2weixinWeb.ApiControllers
                 if (user != null)
                 {
                     // 检索是否有权限 _wx_setbbj
-                    string needRight = "";
-                    if (group == dp2WeiXinService.C_Group_Bb)
-                        needRight = dp2WeiXinService.C_Right_SetBb;
-                    else if (group == dp2WeiXinService.C_Group_Book)
-                        needRight = dp2WeiXinService.C_Right_SetBook;
-                    else if (group == dp2WeiXinService.C_Group_HomePage)
-                        needRight = dp2WeiXinService.C_Right_SetHomePage;
+                    string needRight =dp2WeiXinService.GetNeedRight(group);
 
-                    LibEntity lib = LibDatabase.Current.GetLibById(libId);
+                    LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
                     if (lib == null)
                     {
                         result.errorInfo = "未找到id为[" + libId + "]的图书馆定义。";
@@ -176,8 +170,8 @@ namespace dp2weixinWeb.ApiControllers
                         return result;
                     }
 
-                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib,
-                        user.userName,
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(user,
+                        lib,
                         needRight,
                         out strError);
                     if (nHasRights == -1)
@@ -235,7 +229,8 @@ namespace dp2weixinWeb.ApiControllers
 
 
             // 服务器会自动产生id
-            return dp2WeiXinService.Instance.CoverMessage(group, libId, item,"create",parameters );
+            return dp2WeiXinService.Instance.CoverMessage(weixinId,
+                group, libId, item,"create",parameters );
         }
 
         // 修改消息
@@ -249,12 +244,14 @@ namespace dp2weixinWeb.ApiControllers
             {
                 dp2WeiXinService.Instance.UpdateUserSetting(weixinId, libId, item.subject,false,null);
             }
-            return dp2WeiXinService.Instance.CoverMessage(group, libId, item, "change", "");
+            return dp2WeiXinService.Instance.CoverMessage(weixinId,
+                group, libId, item, "change", "");
         }
 
         // DELETE api/<controller>/5
         [HttpDelete]
-        public WxMessageResult Delete(string group, string libId, string msgId,string userName)
+        public WxMessageResult Delete(string weixinId, 
+            string group, string libId, string msgId, string userName)
         {
             WxMessageResult result = null;
             string[] ids = msgId.Split(new char[] { ','});
@@ -264,7 +261,7 @@ namespace dp2weixinWeb.ApiControllers
                 item.id = id;
                 item.creator = userName;
                 //style == delete
-                result = dp2WeiXinService.Instance.CoverMessage(group, libId, item, "delete", "");
+                result = dp2WeiXinService.Instance.CoverMessage(weixinId, group, libId, item, "delete", "");
                 if (result.errorCode == -1)
                     return result;
             }

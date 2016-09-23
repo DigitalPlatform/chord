@@ -211,7 +211,7 @@ namespace dp2weixin
                     // 检查有没有绑 数字平台,绑了的话，设为公司管理员
                     foreach (WxUserItem user in workerList)
                     {
-                        LibEntity lib = LibDatabase.Current.GetLibById(user.libId);
+                        LibEntity lib = dp2WeiXinService.Instance.GetLibById(user.libId);
                         if (lib != null)
                         {
                             if (lib.libName == WeiXinConst.C_Dp2003LibName)

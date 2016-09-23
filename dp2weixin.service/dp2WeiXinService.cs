@@ -428,7 +428,7 @@ namespace dp2weixin.service
             {
                 // 需要使用当前图书馆的微信端本方帐户
                 string libId = connName.Substring(prefix.Length);
-                LibEntity lib = LibDatabase.Current.GetLibById(libId);
+                LibEntity lib = this.GetLibById(libId);
                 if (lib == null)
                 {
                     throw new Exception("异常的情况:根据id[" + libId + "]未找到图书馆对象。");
@@ -3092,7 +3092,7 @@ namespace dp2weixin.service
             strError = "";
             patronBarcode = "";
 
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -3285,7 +3285,7 @@ namespace dp2weixin.service
             out string strError)
         {
             strError = "";
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -3374,7 +3374,7 @@ namespace dp2weixin.service
             strError = "";
             long lRet = -1;
 
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -3621,7 +3621,7 @@ namespace dp2weixin.service
             }
             string weixinId = userItem.weixinId;
 
-            LibEntity lib = LibDatabase.Current.GetLibById(userItem.libId);
+            LibEntity lib = this.GetLibById(userItem.libId);
             if (lib == null)
             {
                 strError = "未找到id为[" + userItem.libId + "]的图书馆定义。";
@@ -3917,7 +3917,7 @@ namespace dp2weixin.service
             records = new List<BiblioRecord>();
             bNext = false;
 
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -4287,7 +4287,7 @@ namespace dp2weixin.service
 
             string strError = "";
 
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
                 result.errorInfo = "未找到id为[" + libId + "]的图书馆定义。";
@@ -4379,8 +4379,8 @@ namespace dp2weixin.service
                     {
                         // 检索是否有权限 _wx_setHomePage
                         string needRight = dp2WeiXinService.C_Right_SetHomePage;
-                        int nHasRights = dp2WeiXinService.Instance.CheckRights(lib,
-                            worker.userName,
+                        int nHasRights = dp2WeiXinService.Instance.CheckRights(worker,
+                            lib,
                             needRight,
                             out strError);
                         if (nHasRights == -1)
@@ -4901,7 +4901,7 @@ namespace dp2weixin.service
             itemList = new List<BiblioItem>();
             strError = "";
 
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -4922,8 +4922,8 @@ namespace dp2weixin.service
                 {
                     // 检索是否有权限 _wx_setHomePage
                     string needRight = dp2WeiXinService.C_Right_SetHomePage;
-                    int nHasRights = dp2WeiXinService.Instance.CheckRights(lib,
-                        worker.userName,
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(worker,
+                        lib,
                         needRight,
                         out strError);
                     if (nHasRights == -1)
@@ -5341,7 +5341,7 @@ namespace dp2weixin.service
             result.errorCode = 0;
             result.errorInfo = "";
 
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
                 result.errorCode = -1;
@@ -5820,7 +5820,7 @@ namespace dp2weixin.service
             strError = "";
             recPath = "";
 
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -6020,7 +6020,7 @@ namespace dp2weixin.service
         {
             strError = "";
 
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -6085,7 +6085,7 @@ namespace dp2weixin.service
             strError = "";
             reserRowHtml = "";
 
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -6230,8 +6230,6 @@ namespace dp2weixin.service
         #endregion
 
 
-
-
         #region 静态函数
 
         // 把整个字符串中的时间单位变换为可读的形态
@@ -6333,17 +6331,16 @@ namespace dp2weixin.service
 
         #endregion
 
-
         #region 二维码
         public int GetQRcode(string libId,
-    string patronBarcode,
-    out string code,
-    out string strError)
+            string patronBarcode,
+            out string code,
+            out string strError)
         {
             strError = "";
             code = "";
 
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -6481,7 +6478,7 @@ namespace dp2weixin.service
             timestamp = "";
             outputpath = "";
 
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
@@ -6550,9 +6547,6 @@ namespace dp2weixin.service
 
 
         #endregion
-
-
-
 
         #region 消息：公告，好书，图书馆介绍
 
@@ -6788,7 +6782,7 @@ namespace dp2weixin.service
             string connName = C_ConnPrefix_Myself + libId;
 
             // 取出用户名
-            LibEntity lib = LibDatabase.Current.GetLibById(libId);
+            LibEntity lib = this.GetLibById(libId);
             string wxUserName = lib.wxUserName;
 
             // 这里要转换一下，接口传进来的是转义后的
@@ -6843,8 +6837,9 @@ namespace dp2weixin.service
         }
 
 
-        public WxMessageResult CoverMessage(string group,
-            string libId,
+        public WxMessageResult CoverMessage(string weixinId, 
+            string group,
+            string libId,            
             MessageItem item,
             string style,
             string parameters)
@@ -6852,7 +6847,8 @@ namespace dp2weixin.service
             WxMessageResult result = new WxMessageResult();
             string strError = "";
             MessageItem returnItem = null;
-            int nRet = this.CoverMessage(group,
+            int nRet = this.CoverMessage(weixinId,
+                group,
                 libId,
                 item,
                 style,
@@ -6879,7 +6875,8 @@ namespace dp2weixin.service
         /// <param name="style"></param>
         /// <param name="item"></param>
         /// <returns></returns>
-        public int CoverMessage(string group,
+        public int CoverMessage(string weixinId, 
+            string group,
             string libId,
             MessageItem item,
             string style,
@@ -6910,20 +6907,16 @@ namespace dp2weixin.service
                 && item.creator == dp2WeiXinService.C_Supervisor))
             {
                 // 检索工作人员是否有权限 _wx_setbb
-                string needRight = "";
-                if (group == C_Group_Bb)
-                    needRight = C_Right_SetBb;
-                else if (group == C_Group_Book)
-                    needRight = C_Right_SetBook;
-                else if (group == C_Group_HomePage)
-                    needRight = C_Right_SetHomePage;
-                LibEntity lib = LibDatabase.Current.GetLibById(libId);
+                string needRight = dp2WeiXinService.GetNeedRight(group);
+ 
+                LibEntity lib = this.GetLibById(libId);
                 if (lib == null)
                 {
                     strError = "根据id[" + libId + "]未找到对应的图书馆配置";
                     goto ERROR1;
                 }
-                int nHasRights = this.CheckRights(lib, item.creator, needRight, out strError);
+                WxUserItem worker= WxUserDatabase.Current.GetWorker(weixinId, libId);
+                int nHasRights = this.CheckRights(worker,lib, needRight, out strError);
                 if (nHasRights == -1)
                 {
                     strError = "用账户名'" + item.creator + "'获取工作人员账户出错：" + strError;
@@ -7050,17 +7043,28 @@ namespace dp2weixin.service
         /// 0   无权限
         /// 1   有权限
         /// </returns>
-        public int CheckRights(LibEntity lib, string worker, string needRight, out string strError)
+        public int CheckRights(WxUserItem user,
+            LibEntity lib, 
+            string needRight, 
+            out string strError)
         {
             strError = "";
-            string rights = "";
-            int nRet = this.GetUserRights(lib,
-                worker,
-                out rights,
-                out strError);
-            if (nRet == -1 || nRet == 0)
+            string rights = user.rights;
+
+            if (String.IsNullOrEmpty(rights) == true)
             {
-                return -1;
+                // 当发现mongodb中没有存权限信息时，从dp2library中查找
+                int nRet = this.GetUserRights(lib,
+                    user.userName,
+                    out rights,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                {
+                    return -1;
+                }
+                // 更新到mongodb中
+                user.rights = rights;
+                WxUserDatabase.Current.Update(user);
             }
 
 
@@ -7270,7 +7274,7 @@ namespace dp2weixin.service
             // 如果是图书馆介绍，需要加一些默认模板
             if (group == dp2WeiXinService.C_Group_HomePage)
             {
-                LibEntity lib = LibDatabase.Current.GetLibById(libId);
+                LibEntity lib = this.GetLibById(libId);
                 string dir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + "template/home";// +lib.capoUserName + "/home";
                 if (Directory.Exists(dir) == true)
                 {
@@ -7496,7 +7500,6 @@ namespace dp2weixin.service
         }
 
         #endregion
-
 
         #region 恢复绑定账户
 
@@ -8169,7 +8172,7 @@ namespace dp2weixin.service
             }
 
             // 删除配置目录
-            LibEntity lib = LibDatabase.Current.GetLibById(id);
+            LibEntity lib = this.GetLibById(id);
             if (lib != null)
             {
                 try
@@ -8386,6 +8389,7 @@ namespace dp2weixin.service
             return;
         }
 
+        // 创建mserver账号
         public bool CreateMserverUser(string username,
             string password,
             string strDepartment,
@@ -8474,6 +8478,7 @@ namespace dp2weixin.service
             return false;
         }
 
+        // 测试账号与密码
         private string DetectUserName = "";
         private string DetectPassword = "";
 
@@ -8487,7 +8492,6 @@ namespace dp2weixin.service
             e.Parameters = "propertyList=biblio_search,libraryUID=weixin";
             return;
         }
-
 
         public bool DetectMserverUser(string username, string password, out string strError)
         {
@@ -8569,7 +8573,6 @@ namespace dp2weixin.service
             return false;
         }
 
-
         private string GetFriendlyException(MessageException ex)
         {
             string strError = "";
@@ -8589,5 +8592,27 @@ namespace dp2weixin.service
         }
 
         #endregion
+
+        public static string GetNeedRight(string group)
+        {
+            string needRight = "";
+            if (group == dp2WeiXinService.C_Group_Bb)
+                needRight = dp2WeiXinService.C_Right_SetBb;
+            else if (group == dp2WeiXinService.C_Group_Book)
+                needRight = dp2WeiXinService.C_Right_SetBook;
+            else if (group == dp2WeiXinService.C_Group_HomePage)
+                needRight = dp2WeiXinService.C_Right_SetHomePage;
+
+            return needRight;
+        }
+
+        public LibEntity GetLibById(string libId)
+        {
+            Library lib = this.LibManager.GetLibrary(libId);
+            if (lib != null)
+                return lib.Entity;
+
+            return null;
+        }
     }
 }

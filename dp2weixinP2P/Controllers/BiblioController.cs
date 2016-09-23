@@ -19,7 +19,7 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
 
             // 如果当前图书馆是不公开书目，则出现提示
-            LibEntity lib = LibDatabase.Current.GetLibById(ViewBag.LibId);
+            LibEntity lib = dp2WeiXinService.Instance.GetLibById(ViewBag.LibId);
             if (lib == null)
             {
                 strError = "未设置当前图书馆。";

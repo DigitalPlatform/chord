@@ -1,4 +1,21 @@
-﻿bookmsg页面
+﻿==============
+                    // 当下页时，自动移动下一行
+                    if (from == "_N")
+                    {
+                        //$("#wait").css("display", "none");
+
+
+                        //var maxno = parseInt($("#maxNo").val());
+                        //if (maxno > 100) {
+                        //    $(".no").css("width", "25");
+                        //    //alert("maxno=" + maxno)
+                        //}
+
+                        //var winScrollTop = $(window).scrollTop();
+                        //$('html, body').animate({ scrollTopk: winScrollTop + 60 }, 'medium');
+                    }
+=============
+bookmsg页面
         function deleteMsg(msgId)
         {
             //alert(msgId);

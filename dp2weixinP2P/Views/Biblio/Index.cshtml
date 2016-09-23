@@ -98,11 +98,7 @@
         // 检索
         function search(bNext, expandId) {
 
-            //alert("走到search");
-
-            // 先删除more
-            //$("#more").remove();
-            $("#more").css("display", "none");
+            //$("#more").css("display", "none");
 
             var from = "";
             var word = "";
@@ -208,6 +204,7 @@
                     //hideMaskLayer();
                     hideLoading();
 
+                    var totalCount = 0;
                     //alert("2");
                     if (result.apiResult.errorCode == -1) {
                         $("#searchInfo").text("检索出错：" + result.apiResult.errorInfo);
@@ -218,7 +215,8 @@
                         $("#searchInfo").css("color", "red");  //设置p元素的样式颜色为红色
                     }
                     else {
-                        $("#searchInfo").text("命中" + result.apiResult.errorCode + "条记录。");
+                        totalCount = result.apiResult.errorCode;
+                        $("#searchInfo").text("命中" + totalCount  + "条记录。");
                         $("#searchInfo").css("color", "darkgreen");  //设置p元素的样式颜色为红色
                     }
 
@@ -281,6 +279,19 @@
                         //    + "</li>";
                         //table.append(li1);
                         $("#more").css("display", "block");
+
+                        var begin = start + result.records.length + 1;
+                        var end = begin + 9;
+                        if (totalCount < end)
+                            end = totalCount;
+
+                        var text = "正在加载..." + begin + "-" + end + "/" + totalCount;
+                        //alert(text);
+                        $("#moretext").text(text);
+                    }
+                    else {
+                        $("#more").css("display", "none");
+
                     }
 
                     // 打开需要展开的项
@@ -289,21 +300,7 @@
                     }
 
 
-                    // 当下页时，自动移动下一行
-                    if (from == "_N")
-                    {
-                        $("#wait").css("display", "none");
 
-
-                        //var maxno = parseInt($("#maxNo").val());
-                        //if (maxno > 100) {
-                        //    $(".no").css("width", "25");
-                        //    //alert("maxno=" + maxno)
-                        //}
-
-                        var winScrollTop = $(window).scrollTop();
-                        $('html, body').animate({ scrollTopk: winScrollTop + 60 }, 'medium');
-                    }
 
 
                 }, function (xhq, textStatus, errorThrown) {
@@ -505,9 +502,8 @@ else
             </ul>
 
             <div id='more' style="display:none">
-                <center><a href='javascript:void(0)' onclick='searchN()'>点击加载更多</a></center>
+                <center><a href='javascript:void(0)' onclick='searchN()'><img src='../img/loading.gif' />&nbsp;<span id="moretext">加载中...</span></a></center>
             </div>
-            <div id="wait" style="display:none"><center><img src='../img/wait2.gif' /></center></div>
 
         </div>
 
