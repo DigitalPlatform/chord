@@ -373,7 +373,7 @@ MessageBoxDefaultButton.Button2);
                 user.rights = "";
                 user.duty = "getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes,getSystemParameter";
                 if (bEanbleWebCall)
-                    user.duty += "webCall";
+                    user.duty += ",webCall";
                 user.groups = new string[] { "gn:_patronNotify" };
                 user.department = strDepartment;
 
