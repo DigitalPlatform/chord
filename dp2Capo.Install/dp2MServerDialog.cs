@@ -113,37 +113,39 @@ namespace dp2Capo.Install
             EnableControls(false);
             try
             {
-                MessageConnectionCollection _channels = new MessageConnectionCollection();
-                _channels.Login += _channels_Login;
-
-                MessageConnection connection = await _channels.GetConnectionAsyncLite(
-        this.textBox_url.Text,
-        "");
-                CancellationToken cancel_token = _cancel.Token;
-
-                string id = Guid.NewGuid().ToString();
-                GetMessageRequest request = new GetMessageRequest(id,
-                    "",
-                    "gn:<default>", // "" 表示默认群组
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    0,
-                    1);
-                GetMessageResult result = await connection.GetMessageAsyncLite(
-        request,
-        new TimeSpan(0, 1, 0),
-        cancel_token);
-
-                if (result.Value == -1)
+                using (MessageConnectionCollection _channels = new MessageConnectionCollection())
                 {
-                    strError = "检测用户时出错: " + result.ErrorInfo;
-                    goto ERROR1;
-                }
+                    _channels.Login += _channels_Login;
 
-                return true;
+                    MessageConnection connection = await _channels.GetConnectionAsyncLite(
+            this.textBox_url.Text,
+            "");
+                    CancellationToken cancel_token = _cancel.Token;
+
+                    string id = Guid.NewGuid().ToString();
+                    GetMessageRequest request = new GetMessageRequest(id,
+                        "",
+                        "gn:<default>", // "" 表示默认群组
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        0,
+                        1);
+                    GetMessageResult result = await connection.GetMessageAsyncLite(
+            request,
+            new TimeSpan(0, 1, 0),
+            cancel_token);
+
+                    if (result.Value == -1)
+                    {
+                        strError = "检测用户时出错: " + result.ErrorInfo;
+                        goto ERROR1;
+                    }
+
+                    return true;
+                }
             }
             catch (MessageException ex)
             {
@@ -329,68 +331,70 @@ gn:_lib_homePage
             EnableControls(false);
             try
             {
-                MessageConnectionCollection _channels = new MessageConnectionCollection();
-                _channels.Login += _channels_LoginSupervisor;
-
-                MessageConnection connection = await _channels.GetConnectionAsyncLite(
-        this.textBox_url.Text,
-        "supervisor");
-                // 记忆用过的超级用户名和密码
-                this.ManagerUserName = connection.UserName;
-                this.ManagerPassword = connection.Password;
-
-                CancellationToken cancel_token = _cancel.Token;
-
-                string id = Guid.NewGuid().ToString();
-
-                string strDepartment = InputDlg.GetInput(
-this,
-"图书馆名",
-"请指定图书馆名: ",
-"",
-this.Font);
-                if (strDepartment == null)
-                    return false;
-
-                bool bEanbleWebCall = false;
-                this.Invoke(new Action(() =>
+                using (MessageConnectionCollection _channels = new MessageConnectionCollection())
                 {
-                    DialogResult temp_result = MessageBox.Show(this,
-"是否允许 webCall (通过 dp2Router 访问 dp2library)?",
-"安装 dp2Capo",
-MessageBoxButtons.YesNo,
-MessageBoxIcon.Question,
-MessageBoxDefaultButton.Button2);
-                    if (temp_result == System.Windows.Forms.DialogResult.Yes)
-                        bEanbleWebCall = true;
-                }));
+                    _channels.Login += _channels_LoginSupervisor;
 
-                List<User> users = new List<User>();
+                    MessageConnection connection = await _channels.GetConnectionAsyncLite(
+            this.textBox_url.Text,
+            "supervisor");
+                    // 记忆用过的超级用户名和密码
+                    this.ManagerUserName = connection.UserName;
+                    this.ManagerPassword = connection.Password;
 
-                User user = new User();
-                user.userName = this.textBox_userName.Text;
-                user.password = this.textBox_password.Text;
-                user.rights = "";
-                user.duty = "getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes,getSystemParameter";
-                if (bEanbleWebCall)
-                    user.duty += ",webCall";
-                user.groups = new string[] { "gn:_patronNotify" };
-                user.department = strDepartment;
+                    CancellationToken cancel_token = _cancel.Token;
 
-                users.Add(user);
+                    string id = Guid.NewGuid().ToString();
 
-                MessageResult result = await connection.SetUsersAsyncLite("create",
-                    users,
-                    new TimeSpan(0, 1, 0),
-                    cancel_token);
+                    string strDepartment = InputDlg.GetInput(
+    this,
+    "图书馆名",
+    "请指定图书馆名: ",
+    "",
+    this.Font);
+                    if (strDepartment == null)
+                        return false;
 
-                if (result.Value == -1)
-                {
-                    strError = "创建用户 '" + this.textBox_userName.Text + "' 时出错: " + result.ErrorInfo;
-                    goto ERROR1;
+                    bool bEanbleWebCall = false;
+                    this.Invoke(new Action(() =>
+                    {
+                        DialogResult temp_result = MessageBox.Show(this,
+    "是否允许 webCall (通过 dp2Router 访问 dp2library)?",
+    "安装 dp2Capo",
+    MessageBoxButtons.YesNo,
+    MessageBoxIcon.Question,
+    MessageBoxDefaultButton.Button2);
+                        if (temp_result == System.Windows.Forms.DialogResult.Yes)
+                            bEanbleWebCall = true;
+                    }));
+
+                    List<User> users = new List<User>();
+
+                    User user = new User();
+                    user.userName = this.textBox_userName.Text;
+                    user.password = this.textBox_password.Text;
+                    user.rights = "";
+                    user.duty = "getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes,getSystemParameter";
+                    if (bEanbleWebCall)
+                        user.duty += ",webCall";
+                    user.groups = new string[] { "gn:_patronNotify" };
+                    user.department = strDepartment;
+
+                    users.Add(user);
+
+                    MessageResult result = await connection.SetUsersAsyncLite("create",
+                        users,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token);
+
+                    if (result.Value == -1)
+                    {
+                        strError = "创建用户 '" + this.textBox_userName.Text + "' 时出错: " + result.ErrorInfo;
+                        goto ERROR1;
+                    }
+
+                    return true;
                 }
-
-                return true;
             }
             catch (MessageException ex)
             {
