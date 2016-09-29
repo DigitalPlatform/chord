@@ -137,6 +137,7 @@
     </Content>
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
+    <Content Include="img\barcode.png" />
     <Content Include="img\empty3.png" />
     <Content Include="img\empty.jpg" />
     <Content Include="img\emptyBind.png" />
@@ -162,6 +163,7 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\jweixin-1.0.0.js" />
     <Content Include="TabTest.html" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
@@ -261,6 +263,8 @@
     <Content Include="Views\Home\Manager.cshtml" />
     <Content Include="Views\Home\Login.cshtml" />
     <Content Include="Views\UI\Loading.cshtml" />
+    <Content Include="Views\UI\Scan.cshtml" />
+    <Content Include="Views\UI\jssdkdemo.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -1,5 +1,17 @@
 
 /*书目*/
+
+/*自动加载中，把class设一下，防止重复加载*/
+.nextdisabled {
+    color:gray;
+}
+
+.nextdisabled A {
+    color:gray;
+    
+}
+
+
         DIV.biblio {
             top:0px;
             padding:10px;

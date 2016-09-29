@@ -5,6 +5,7 @@ using dp2Command.Service;
 using dp2weixin;
 using dp2weixin.service;
 using dp2weixinWeb.Models;
+using Senparc.Weixin.MP.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -203,6 +204,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.WeixinIds = "";
             if (dp2WeiXinService.Instance.TracingOnUsers != null && dp2WeiXinService.Instance.TracingOnUsers.Count > 0)
                 ViewBag.WeixinIds = dp2WeiXinService.Instance.TracingOnUsers.Count.ToString();
+
 
 
             return View();

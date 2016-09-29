@@ -66,7 +66,7 @@ namespace dp2weixin.service
 
 
         // 日志级别
-        public int LogLevel = 2;
+        public int LogLevel = 1;
 
         // 微信数据目录
         public string weiXinDataDir = "";
@@ -2770,6 +2770,9 @@ namespace dp2weixin.service
                     }
                 }
 
+                this.WriteLog2("本轮检查有"+thisOfflineLibs.Count+"个不在线图书馆");
+
+
                 // 处理本次的未在线图书馆
                 if (thisOfflineLibs.Count > 0)
                 {
@@ -2779,16 +2782,25 @@ namespace dp2weixin.service
                     {
                         if (this._offlineLibs.ContainsKey(lib.id) == false)
                         {
+                            this.WriteLog2("不在线图书馆 "+lib.libName+" 本来不在内存中，加到发通知列表");
+
                             warningLibs.Add(lib);
                         }
                         else
                         {
-                            //warningLibs.Add(lib);
-
                             // 检查上次发通知时间,超过一小时，继续通知
                             DateTime lastTime = (DateTime)this._offlineLibs[lib.id];
-                            if (lastTime - now > delta)
+                            if (now-lastTime > delta) //2016/9/25 jane 改bug 比较的2个时间写反了 lastTime-now
+                            {
                                 warningLibs.Add(lib);
+                                this.WriteLog2("不在线图书馆 " + lib.libName + " 本来在内存中，上次发送时间超过1小时，需再次发通知，加到发通知列表中。");
+
+                            }
+                            else
+                            {
+                                this.WriteLog2("不在线图书馆 " + lib.libName + " 本来在内存中，上次发送时间小于1小时，此轮不发通知。");
+
+                            }
                         } 
                     }
                 }
@@ -2885,6 +2897,8 @@ namespace dp2weixin.service
 
                     // 加到内存中
                     this._offlineLibs[lib.id] = DateTime.Now;
+                    this.WriteLog2("记下图书馆 " + lib.libName + " 最后发送通知时间" + DateTimeUtil.DateTimeToString(((DateTime)this._offlineLibs[lib.id])));
+
                 }
 
                 // 返回
@@ -4026,6 +4040,8 @@ namespace dp2weixin.service
                 // 检查是否有下页
                 if (start + records.Count < result.ResultCount)
                     bNext = true;
+
+                //Thread.Sleep(1000 * 5);
 
                 return result.ResultCount;// records.Count;
             }

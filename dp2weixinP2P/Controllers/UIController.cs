@@ -1,4 +1,6 @@
-﻿using System;
+﻿using dp2weixin.service;
+using Senparc.Weixin.MP.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -8,6 +10,19 @@ namespace dp2weixinWeb.Controllers
 {
     public class UIController : Controller
     {
+        public ActionResult Scan()
+        {
+            JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(dp2WeiXinService.Instance.weiXinAppId,
+                dp2WeiXinService.Instance.weiXinSecret,
+                Request.Url.AbsoluteUri);
+
+            ViewData["AppId"] = dp2WeiXinService.Instance.weiXinAppId;
+            ViewData["Timestamp"] = package.Timestamp;
+            ViewData["NonceStr"] = package.NonceStr;
+            ViewData["Signature"] = package.Signature;
+            return View();
+        }
+
         public ActionResult MsgEdit()
         {
 
