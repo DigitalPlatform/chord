@@ -19,6 +19,7 @@ using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
 using DigitalPlatform.LibraryClient.localhost;
 using DigitalPlatform.HTTP;
+using DigitalPlatform.Common;
 
 namespace dp2Capo
 {
@@ -123,7 +124,7 @@ namespace dp2Capo
                     if (string.IsNullOrEmpty(strVersion) == true)
                         strVersion = "2.0";
 
-                    string base_version = "2.80";   // 2.80 ChangeReaderPassword() API 做了修改 // 2.75 允许用 GetMessage() API 获取 MSMQ 消息
+                    string base_version = ProductUtil.dp2library_base_version;   // 2.85 2.80 ChangeReaderPassword() API 做了修改 // 2.75 允许用 GetMessage() API 获取 MSMQ 消息
                     if (StringUtil.CompareVersion(strVersion, base_version) < 0)   // 2.12
                     {
                         strError = "dp2Capo 所所连接的 dp2library 服务器 '" + channel.Url + "' 其版本必须升级为 " + base_version + " 以上时才能使用 (当前 dp2library 版本为 " + strVersion + ")\r\n\r\n请立即升级 dp2Library 到最新版本";

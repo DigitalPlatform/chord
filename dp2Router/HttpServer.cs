@@ -96,7 +96,7 @@ namespace dp2Router
 
                 HttpProcessor.WriteResponse(outputStream, response);
             }
-            catch (Exception ex)
+            catch (Exception /*ex*/)
             {
                 // TODO: 写入日志? 哪些不写入日志?
             }

@@ -15,6 +15,7 @@ using DigitalPlatform.Forms;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.LibraryClient.localhost;
 using DigitalPlatform.Text;
+using DigitalPlatform.Common;
 
 namespace dp2Capo.Install
 {
@@ -473,7 +474,9 @@ namespace dp2Capo.Install
                 //      -1  出错
                 //      0   dp2library 版本太低
                 //      1   成功
-                nRet = CheckVersion(channel, "2.81", out strError);
+                nRet = CheckVersion(channel, 
+                    ProductUtil.dp2library_base_version, 
+                    out strError);
                 if (nRet == -1 || nRet == 0)
                     return -1;
 
@@ -630,7 +633,9 @@ out strError);
                 //      -1  出错
                 //      0   dp2library 版本太低
                 //      1   成功
-                nRet = CheckVersion(channel, "2.81", out strError);
+                nRet = CheckVersion(channel, 
+                    ProductUtil.dp2library_base_version,
+                    out strError);
                 if (nRet == -1 || nRet == 0)
                     return -1;
 
