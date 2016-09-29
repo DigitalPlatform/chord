@@ -2625,26 +2625,21 @@ namespace dp2weixin.service
 
             string strError = "";
 
+            
+
             List<LibEntity> libs = LibDatabase.Current.GetLibs();
             foreach (LibEntity lib in libs)
             {
+                int doCount = 0;
+
+            REDO:
+                
+
 
                 try
                 {
                     CancellationToken cancel_token = new CancellationToken();
                     string id = Guid.NewGuid().ToString();
-                    //SearchRequest request = new SearchRequest(id,
-                    //    "searchBiblio",
-                    //    "<全部>",
-                    //    "test",//strWord,
-                    //    "",//strFrom,
-                    //    "middle",//match,
-                    //    "",//resultSet,
-                    //    "id,cols",
-                    //    WeiXinConst.C_Search_MaxCount,  //最大数量200
-                    //    0,  //每次获取范围
-                    //    1);
-
                     SearchRequest request = new SearchRequest(id,
                         "getSystemParameter",
                         "",
@@ -2667,14 +2662,10 @@ namespace dp2weixin.service
                         cancel_token).Result;
                     if (result.ResultCount == -1)
                     {
-
-
-
                         if (result.ErrorCode == "TargetNotFound")
                         {
                             // 总是漏掉江西警察学校，这里输出日志看看。
                             this.WriteLog2("检查 " + lib.libName + " 为离线状态。");
-
 
                             offlineLibs.Add(lib);
                             continue;
@@ -2692,6 +2683,7 @@ namespace dp2weixin.service
                 {
                     strError = MessageConnection.GetExceptionText(ex);
                     goto ERROR1;
+
                 }
                 catch (Exception ex)
                 {
@@ -2705,8 +2697,16 @@ namespace dp2weixin.service
 
             ERROR1:
                 //将错误写到日志里，继续检索其它图书馆
-                strError = "检查图书馆 " + lib.libName + " 是否在线出错: " + strError;
+                strError = "检查图书馆 " + lib.libName + " 是否在线(重试次数"+doCount+")出错: " + strError;
                 WriteErrorLog1(strError);
+
+                if (doCount == 0)
+                {
+                    doCount++;                   
+
+                    goto REDO;
+                }
+
             }
 
 
@@ -3399,6 +3399,11 @@ namespace dp2weixin.service
             string strFullWord = strWord;
             if (string.IsNullOrEmpty(strPrefix) == false)
                 strFullWord = strPrefix + ":" + strWord;
+
+
+            if (strPrefix=="PQR")
+                strPassword = Cryptography.GetSHA1(strFullWord);
+
 
             CancellationToken cancel_token = new CancellationToken();
 

@@ -167,6 +167,27 @@
 
         }
 
+
+
+        // 跳转到图书馆柜台绑定
+        function gotoScanQRCodeBind() {
+
+            var lib = $("#selLib").val();  // 2016-8-13 jane加入选择图书馆项，而不是从设置来  getLibId();//
+            if (lib == null)
+                lib = "";
+
+            var myUrl = getRootPath()
+                + '/Account/ScanQRCodeBind?libId=' + encodeURIComponent(lib) ;
+
+            //alert(myUrl);
+            //mui.openWindow({
+            //    url: myUrl,
+            //    id: 'info'
+            //});
+            window.location = myUrl;//"/account/bind";
+
+        }
+
     </script>
 }
 
@@ -217,7 +238,10 @@ else
     <div class="mui-content-padded">
         <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="bind()">绑定</button>
         <div class="link-area">
-            <center><a href="JavaScript:void(0)" onclick="gotoResetPassword()">找回密码</a></center>
+            <center><a href="JavaScript:void(0)" onclick="gotoResetPassword()">找回密码</a>
+            &nbsp;&nbsp;
+                <a href="JavaScript:void(0)" onclick="gotoScanQRCodeBind()">图书馆柜台绑定</a>
+            </center>
         </div>
     </div>
 }

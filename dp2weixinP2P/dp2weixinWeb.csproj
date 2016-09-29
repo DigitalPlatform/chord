@@ -265,6 +265,7 @@
     <Content Include="Views\UI\Loading.cshtml" />
     <Content Include="Views\UI\Scan.cshtml" />
     <Content Include="Views\UI\jssdkdemo.cshtml" />
+    <Content Include="Views\Account\ScanQRCodeBind.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
