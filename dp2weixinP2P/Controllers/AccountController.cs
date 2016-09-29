@@ -85,7 +85,9 @@ namespace dp2weixinWeb.Controllers
             // 图书馆html
             string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             ViewBag.LibHtml = this.GetLibSelectHtml(libId, weixinId, true);
-            
+
+            ViewBag.LibVersions = dp2WeiXinService.Instance.LibManager.GetLibVersiongString();
+
             return View();
 
         ERROR1:

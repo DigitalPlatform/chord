@@ -24,11 +24,13 @@ namespace dp2weixin.service
                 return;
 
             // 清理图书馆参于检索数据库
-            WeixinService.LibDbs.Clear();
+            WeixinService.LibDbs.Clear();  //todo 超过一定时间再清除
 
             // 检查不在线的图书馆，给工作人员发通知
             WeixinService.WarnOfflineLib();
 
+            // 对上次未成功获取版本号的图书馆重新获取版本号。
+            WeixinService.LibManager.RedoGetVersion();
         }
     }
 }

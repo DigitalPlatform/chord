@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalPlatform.Text;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,8 @@ namespace dp2weixin.service
         public const string M_Lib_PatronCount = "%PatronCount%";
         public const string M_Lib_WorkerCount = "%WorkerCount%";
         public const string M_Lib_BindTotalCount = "%BindTotalCount%";
+
+        public const string C_RequestVersion = "2.85";
 
         /// <summary>
         /// 初始化
@@ -53,6 +56,9 @@ namespace dp2weixin.service
             // 获取绑定的工作人员数量
             List<WxUserItem> workers = WxUserDatabase.Current.Get("", entity.id, WxUserDatabase.C_Type_Worker);
             library.WorkerCount = workers.Count;
+
+            // 获取版本号
+            library.Version = this.GetVersion(entity);
 
             // 加到内存中
             this.Librarys.Add(library);
@@ -124,6 +130,93 @@ namespace dp2weixin.service
             return null;
         }
 
+
+        internal void RedoGetVersion()
+        {
+            if (this.Librarys == null || this.Librarys.Count == 0)
+                return;
+
+            foreach (Library lib in this.Librarys)
+            {
+                if (lib.Version == "-1")
+                {
+                    lib.Version = this.GetVersion(lib.Entity);
+                }
+            }
+        }
+
+        public string GetVersion(LibEntity lib)
+        {
+            string version = "";
+
+            // 获取版本号
+            string strError = "";
+            List<string> dataList = new List<string>();
+            int nRet = dp2WeiXinService.Instance.GetSystemParameter(lib,
+                "system",
+                "version",
+                out dataList,
+                out strError);
+            if (nRet == -1)
+            {
+                // 设为-1，表示获取时出错，工作线程会自动重新获取
+                version = "-1";
+
+                // 记到日志里
+                dp2WeiXinService.Instance.WriteErrorLog1("获取 " + lib.libName + " 版本出错：" + strError);
+                return version;
+            }
+            else if (nRet == 0)
+            { 
+                // 未命中的情况，当空处理
+                version = "";
+            }
+            else
+            {
+                version = dataList[0];
+            }
+
+            if (version == "")
+                version = "0.0";//dp2library 本身如果太旧，这个获得版本号的过程会返回空字符串，把空字符串当作 0.0 版看待即可。
+
+
+            return version;
+        }
+
+
+        public string GetLibVersiongString()
+        {
+            string versionStr = "";
+
+            if (this.Librarys == null || this.Librarys.Count == 0)
+                return "";
+
+            foreach (Library lib in this.Librarys)
+            {
+                if (versionStr != "")
+                    versionStr += ";";
+
+                int ok = 0;
+                if (lib.Version != "-1")
+                {
+                    int nRet = StringUtil.CompareVersion(lib.Version, C_RequestVersion);
+                    if (nRet >= 0)
+                        ok = 1;
+                    else
+                        ok = 0;
+                }
+                else
+                {
+                    ok = -1;
+                }
+
+                versionStr += lib.Entity.id + ":" + ok.ToString();
+            }
+
+            return versionStr;
+        }
+
+
     }
 
     public class Library//:LibEntity
@@ -146,6 +239,8 @@ namespace dp2weixin.service
             }
         }
 
+        // dp2library版本号
+        public string Version { get; set; }
 
     }
 }
