@@ -420,7 +420,7 @@
         function handleCreateClick() {
             model.displaySummary(false);
 
-            $("#libName").focus();
+            $("#capo_username").focus();//libName
 
             // 清空输入项
             clearEditModel();
@@ -438,7 +438,7 @@
         function handleEditClick(item) {
             model.displaySummary(false);
 
-            $("#libName").focus();
+            $("#capo_username").focus();//libName
 
 
             $("#btnAdd").css('display', 'none');
@@ -469,7 +469,46 @@
             // 设顶部菜单不固定
             $("#myheader").css("position", "absolute");
 
+
+
+
         })
+
+
+        function getLibName()
+        {
+            var capo = $("#capo_username").val();
+            if (capo != null && capo != "")
+            {
+                //显示等待图层
+                //var index = loadLayer();
+                showMaskLayer();
+
+                var url = "/api/LibrarySetting?username=" + wxUserName
+                    + "&password=" + wxPassword;
+                sendAjaxRequest(url, "POST", function (result) {
+                    // 关闭等待层
+                    //layer.close(index);
+                    hideMaskLayer();
+
+
+                    if (result.errorCode == -1) {
+                        alert("检测用户时出错:" + result.errorInfo);
+                        return;
+                    }
+
+                    alert("用户已存在");
+
+                }, function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    //layer.close(index);
+                    hideMaskLayer();
+
+                    alert(errorThrown);
+                });
+            }
+            alert(capo);
+        }
 
 
     </script>
@@ -547,13 +586,14 @@
 
     <div class="mui-card">
         <div class="mui-input-row ">
+            <label class="leftLabel">图书馆dp2capo帐号</label>
+            <input id="capo_username" onblur="getLibName()" type="text" class="mui-input mui-input-clear" placeholder="请输入  dp2capo帐号" data-bind="value:model.editor.capoUserName">
+        </div>
+        <div class="mui-input-row ">
             <label class="leftLabel">图书馆名称</label>
             <input id="libName" type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆名称" data-bind="value:model.editor.libName">
         </div>
-        <div class="mui-input-row ">
-            <label class="leftLabel">图书馆dp2capo帐号</label>
-            <input type="text" class="mui-input mui-input-clear" placeholder="请输入  dp2capo帐号" data-bind="value:model.editor.capoUserName">
-        </div>
+
         <div class="mui-input-row ">
             <label class="leftLabel">图书馆联系人手机号</label>
             <input type="text" class="mui-input mui-input-clear" placeholder="请输入  图书馆联系人手机号" data-bind="value:model.editor.capoContactPhone">

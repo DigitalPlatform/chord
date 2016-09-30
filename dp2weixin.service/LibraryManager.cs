@@ -138,7 +138,7 @@ namespace dp2weixin.service
 
             foreach (Library lib in this.Librarys)
             {
-                if (lib.Version == "-1")
+                if (lib.Version == "-1" || lib.Version=="0.0") //2016/9/30
                 {
                     lib.Version = this.GetVersion(lib.Entity);
                 }
