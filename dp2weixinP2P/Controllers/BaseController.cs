@@ -1,5 +1,6 @@
 ﻿using DigitalPlatform.Xml;
 using dp2weixin.service;
+using Senparc.Weixin.MP.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -211,8 +212,15 @@ namespace dp2weixinWeb.Controllers
 
             // 当前工作人员
             //WxUserItem curWorker = WxUserDatabase.Current.GetOneWorker(weixinId);
-            
-            
+
+            JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(dp2WeiXinService.Instance.weiXinAppId,
+dp2WeiXinService.Instance.weiXinSecret,
+Request.Url.AbsoluteUri);
+
+            ViewData["AppId"] = dp2WeiXinService.Instance.weiXinAppId;
+            ViewData["Timestamp"] = package.Timestamp;
+            ViewData["NonceStr"] = package.NonceStr;
+            ViewData["Signature"] = package.Signature;
 
             return 0;
         }

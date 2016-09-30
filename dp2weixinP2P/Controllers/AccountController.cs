@@ -69,6 +69,32 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
+        //
+        public ActionResult ScanQRCodeBind(string code, string state,
+            string libId)
+        {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            if (libId == null)
+                libId = "";
+
+            // 图书馆html
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            ViewBag.LibHtml = this.GetLibSelectHtml(libId, weixinId, true);
+
+            ViewBag.LibVersions = dp2WeiXinService.Instance.LibManager.GetLibVersiongString();
+
+            return View();
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
         /// <summary>
         /// 找回密码
         /// </summary>
@@ -87,12 +113,6 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 goto ERROR1;
             
-            // 如果是从绑定界面过来的，会传来绑定界面使用的图书馆
-            // 如果未传进图书馆，使用设置的图书馆
-            //if (string.IsNullOrEmpty(libId) == true)
-            //{
-            //    libId=ViewBag.LibId;
-            //}    
             if (libId == null)
                 libId = "";
 

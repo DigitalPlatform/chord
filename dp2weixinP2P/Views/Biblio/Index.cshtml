@@ -1,8 +1,78 @@
 ﻿        @section style {
-    <link href="@Url.Content("~/Content/biblio.css?a=8")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/biblio.css?a=9")" rel="stylesheet">
 }
 @section Scripts {
     <script>
+
+
+        function scanIsbn(bSimple) {
+            //alert("begin");
+
+            if (jssdkReady == -1) {
+                alert('JSSDK config信息验证失败，不能使用扫码功能。');
+                return;
+            }
+            else if (jssdkReady == -1) {
+                alert('JSSDK config未初始化完成，请稍候再试。');
+                return;
+            }
+
+            try {
+                wx.scanQRCode({
+                    needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+                    scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+                    success: function (res) {
+                        var code = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+
+
+                        //alert("得到的isbn=" + isbn);
+                        var left = "";
+                        var isbn = "";
+                        if (code.indexOf(",") != -1) {
+                            left = code.substring(0, code.indexOf(","))//EAN_13
+                            isbn = code.substring(code.indexOf(",") + 1)
+                        }
+                        if (left != "EAN_13" || isbn=="")
+                        {
+                            alert("抱歉，您扫描的不是合法的ISBN条码。\n扫描返回字符串为[" + code + "]，");
+                            return;
+                        }
+                        
+
+                        //alert("扫到的isbn=" + isbn);
+
+
+                        if (isbn != null && isbn != "") {
+                            if (bSimple == true)
+                            {
+                                $("#txtWordSimple").val(isbn);
+                                window.setTimeout("search('simple')", 1);
+                            }
+                            else
+                            {
+                                $("#selFrom").val("ISBN");
+                                $("#txtWord").val(isbn);
+
+                                window.setTimeout("search('')", 1);
+
+                                //search('');
+                            }
+                            
+                        }
+                    },
+                    fail: function (res) {
+                        alert("error:"+JSON.stringify(res));
+                        return "";
+                    }
+                });
+            }
+            catch (err) {
+                alert("扫码出错："+err);
+            }
+            //alert("end");
+        }
+
+
 
         //浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
@@ -40,6 +110,8 @@
                     if (show == "none")
                         return;
 
+
+
                     var itemOffsetTop = $("#more").offset().top;
                     var itemOuterHeight = $("#more").outerHeight(true);
                     var winHeight = $(window).height();
@@ -67,6 +139,12 @@
                     if (itemOffsetTop >= $(window).scrollTop()
                         && itemOffsetTop < ($(window).scrollTop() + $(window).height())) {
                         //alert("div在可视范围");
+                        if ($("#more").hasClass("nextdisabled") == true)
+                        {
+                            //alert("未加载完，不能继续加载");
+                            return;
+                        }
+
                         searchN();
                     }
                 }
@@ -116,7 +194,10 @@
                 from = "_N";
                 word = $("#maxNo").val();
 
-                $("#wait").css("display", "block");
+                //$("#more").css("color", "#cccccc");
+
+                // 不能再继续加载
+                $("#more").addClass("nextdisabled");
 
             }
             else if (bNext == '_ReView') {
@@ -279,6 +360,8 @@
                         //    + "</li>";
                         //table.append(li1);
                         $("#more").css("display", "block");
+                        //$("#more").css("color", "black");
+                        $("#more").removeClass("nextdisabled");
 
                         var begin = start + result.records.length + 1;
                         var end = begin + 9;
@@ -436,10 +519,14 @@ else
         <div id="divSimple" class="search" style="padding:10px">
             <table style="width:100%" class="simple">
                 <tr>
-                    <td style="vertical-align:middle;width:100%">
+                    <td><img src='../img/barcode.png' onclick="scanIsbn(true)" /></td>
+                    <td style="padding-left:3px; vertical-align:middle;width:100%">                        
                         <input class="mui-input mui-input-clear" style="border-top-left-radius:4px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:4px;border-right:0px" id="txtWordSimple" type="text" value="" placeholder="请输入检索词">
                     </td>
-                    <td style="vertical-align:top"><span class="mui-icon mui-icon-search" style="padding-top:10px;height:40px; border:1px solid #cccccc;border-left:0px;border-top-left-radius:0px;border-top-right-radius:4px;border-bottom-right-radius:4px;border-bottom-left-radius:0px;width:30px;cursor:pointer; background-color:white" onclick="search('simple')"></span></td>
+                    <td style="vertical-align:top">
+                    <span class="mui-icon mui-icon-search" style="padding-top:10px;height:40px; border:1px solid #cccccc;border-left:0px;border-top-left-radius:0px;border-top-right-radius:4px;border-bottom-right-radius:4px;border-bottom-left-radius:0px;width:30px;cursor:pointer; background-color:white" onclick="search('simple')"></span>
+                    </td>
+                    <!--<td><img src='../img/barcode.png' onclick="scanIsbn(true)" /></td>-->
                 </tr>
             </table>
         </div>
@@ -463,7 +550,7 @@ else
                     </td>
                 </tr>
                 <tr>
-                    <td class="label">检索词</td>
+                    <td class="label">检索词<img src='../img/barcode.png'  onclick="scanIsbn(false)"/></td>
                     <td>
                         <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
                     </td>
@@ -501,7 +588,7 @@ else
 
             </ul>
 
-            <div id='more' style="display:none">
+            <div id='more' style="display:none;color:black">
                 <center><a href='javascript:void(0)' onclick='searchN()'><img src='../img/loading.gif' />&nbsp;<span id="moretext">加载中...</span></a></center>
             </div>
 

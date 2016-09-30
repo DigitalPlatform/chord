@@ -66,7 +66,7 @@ namespace dp2weixin.service
 
 
         // 日志级别
-        public int LogLevel = 2;
+        public int LogLevel = 1;
 
         // 微信数据目录
         public string weiXinDataDir = "";
@@ -217,15 +217,15 @@ namespace dp2weixin.service
         }
 
         public int GetSystemParameter(LibEntity lib,
-            string queryWord,
-            string formatList,
+            string catgory,
+            string name,
             out List<string> dataList,
             out string strError)
         {
             return this.GetInfo(lib,
                 "getSystemParameter",
-                queryWord,
-                formatList,
+                catgory,
+                name,
                 out dataList,
                 out strError);
         }
@@ -329,6 +329,10 @@ namespace dp2weixin.service
             LibDatabase.Current.Open(this.monodbConnectionString, this.monodbPrefixString);
             UserSettingDb.Current.Open(this.monodbConnectionString, this.monodbPrefixString);
 
+            // 挂上登录事件
+            _channels.Login -= _channels_Login;
+            _channels.Login += _channels_Login;
+
             // 将mongodb库中的图书馆加载到内存中
             nRet = this.LibManager.Init(out strError);
             if (nRet ==-1)
@@ -362,8 +366,7 @@ namespace dp2weixin.service
             AccessTokenContainer.Register(this.weiXinAppId, this.weiXinSecret);
 
 
-            _channels.Login -= _channels_Login;
-            _channels.Login += _channels_Login;
+
 
             if (bTrace == true)
             {
@@ -2625,26 +2628,21 @@ namespace dp2weixin.service
 
             string strError = "";
 
+            
+
             List<LibEntity> libs = LibDatabase.Current.GetLibs();
             foreach (LibEntity lib in libs)
             {
+                int doCount = 0;
+
+            REDO:
+                
+
 
                 try
                 {
                     CancellationToken cancel_token = new CancellationToken();
                     string id = Guid.NewGuid().ToString();
-                    //SearchRequest request = new SearchRequest(id,
-                    //    "searchBiblio",
-                    //    "<全部>",
-                    //    "test",//strWord,
-                    //    "",//strFrom,
-                    //    "middle",//match,
-                    //    "",//resultSet,
-                    //    "id,cols",
-                    //    WeiXinConst.C_Search_MaxCount,  //最大数量200
-                    //    0,  //每次获取范围
-                    //    1);
-
                     SearchRequest request = new SearchRequest(id,
                         "getSystemParameter",
                         "",
@@ -2667,14 +2665,10 @@ namespace dp2weixin.service
                         cancel_token).Result;
                     if (result.ResultCount == -1)
                     {
-
-
-
                         if (result.ErrorCode == "TargetNotFound")
                         {
                             // 总是漏掉江西警察学校，这里输出日志看看。
                             this.WriteLog2("检查 " + lib.libName + " 为离线状态。");
-
 
                             offlineLibs.Add(lib);
                             continue;
@@ -2692,6 +2686,7 @@ namespace dp2weixin.service
                 {
                     strError = MessageConnection.GetExceptionText(ex);
                     goto ERROR1;
+
                 }
                 catch (Exception ex)
                 {
@@ -2705,8 +2700,16 @@ namespace dp2weixin.service
 
             ERROR1:
                 //将错误写到日志里，继续检索其它图书馆
-                strError = "检查图书馆 " + lib.libName + " 是否在线出错: " + strError;
+                strError = "检查图书馆 " + lib.libName + " 是否在线(重试次数"+doCount+")出错: " + strError;
                 WriteErrorLog1(strError);
+
+                if (doCount == 0)
+                {
+                    doCount++;                   
+
+                    goto REDO;
+                }
+
             }
 
 
@@ -2770,6 +2773,9 @@ namespace dp2weixin.service
                     }
                 }
 
+                this.WriteLog2("本轮检查有"+thisOfflineLibs.Count+"个不在线图书馆");
+
+
                 // 处理本次的未在线图书馆
                 if (thisOfflineLibs.Count > 0)
                 {
@@ -2779,16 +2785,25 @@ namespace dp2weixin.service
                     {
                         if (this._offlineLibs.ContainsKey(lib.id) == false)
                         {
+                            this.WriteLog2("不在线图书馆 "+lib.libName+" 本来不在内存中，加到发通知列表");
+
                             warningLibs.Add(lib);
                         }
                         else
                         {
-                            //warningLibs.Add(lib);
-
                             // 检查上次发通知时间,超过一小时，继续通知
                             DateTime lastTime = (DateTime)this._offlineLibs[lib.id];
-                            if (lastTime - now > delta)
+                            if (now-lastTime > delta) //2016/9/25 jane 改bug 比较的2个时间写反了 lastTime-now
+                            {
                                 warningLibs.Add(lib);
+                                this.WriteLog2("不在线图书馆 " + lib.libName + " 本来在内存中，上次发送时间超过1小时，需再次发通知，加到发通知列表中。");
+
+                            }
+                            else
+                            {
+                                this.WriteLog2("不在线图书馆 " + lib.libName + " 本来在内存中，上次发送时间小于1小时，此轮不发通知。");
+
+                            }
                         } 
                     }
                 }
@@ -2885,6 +2900,8 @@ namespace dp2weixin.service
 
                     // 加到内存中
                     this._offlineLibs[lib.id] = DateTime.Now;
+                    this.WriteLog2("记下图书馆 " + lib.libName + " 最后发送通知时间" + DateTimeUtil.DateTimeToString(((DateTime)this._offlineLibs[lib.id])));
+
                 }
 
                 // 返回
@@ -2951,24 +2968,26 @@ namespace dp2weixin.service
             if (result.String == "TargetNotFound")
             {
 
-                // 激活后面处理线程，可以给工作人员发通知
-                this._managerThread.Activate();
+                // 2016/9/30 在需要的地方再激活吧，放在这里都受影响了。// 激活后面处理线程，可以给工作人员发通知
+                //this._managerThread.Activate();
 
-                return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问";
+                return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问。";
             }
 
             return result.ErrorInfo;
         }
 
         //SearchRequest
-        private string GetFriendlyErrorInfo(SearchResult result, string libName)
+        private string GetFriendlyErrorInfo(SearchResult result, string libName,out bool bOffline)
         {
+            bOffline=false;
             if (result.ErrorCode == "TargetNotFound")
             {
-                // 激活后面处理线程，可以给工作人员发通知
-                this._managerThread.Activate();
+                // 2016/9/30 在需要的地方再激活吧，放在这里都受影响了。//激活后面处理线程，可以给工作人员发通知
+                //this._managerThread.Activate();
+                bOffline = true;
 
-                return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问";
+                return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问。";
             }
 
             return result.ErrorInfo;
@@ -3385,6 +3404,11 @@ namespace dp2weixin.service
             string strFullWord = strWord;
             if (string.IsNullOrEmpty(strPrefix) == false)
                 strFullWord = strPrefix + ":" + strWord;
+
+
+            if (strPrefix=="PQR")
+                strPassword = Cryptography.GetSHA1(strFullWord);
+
 
             CancellationToken cancel_token = new CancellationToken();
 
@@ -3974,20 +3998,15 @@ namespace dp2weixin.service
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = this.GetFriendlyErrorInfo(result, lib.libName);
+                    bool bOffline = false;
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName,out bOffline);
+                    if (bOffline == true)
+                    {
+                        // 激活工作线程，为了给工作人员发通知。
+                        // todo 但发通知是超过一小时才会发通知，工作线程是10分钟一次，好像这里激活一下意义也不太大。
+                        this._managerThread.Activate();
+                    }
                     return -1;
-
-                    //if (result.ErrorCode == "TargetNotFound")
-                    //{
-                    //    strError = "SearchBiblioInternal()出错：图书馆[" + lib.libName + "]当前不在线，不能访问。";
-                    //}
-                    //else
-                    //{
-                    //    strError = "SearchBiblioInternal()出错：" + result.ErrorInfo
-                    //        + "\n本方账号:" + connection.UserName
-                    //        + "\n目标账号:" + lib.capoUserName
-                    //        + "\nErrorCode:[" + result.ErrorCode + "]";
-                    //}
                 }
                 if (result.ResultCount == 0)
                 {
@@ -4026,6 +4045,8 @@ namespace dp2weixin.service
                 // 检查是否有下页
                 if (start + records.Count < result.ResultCount)
                     bNext = true;
+
+                //Thread.Sleep(1000 * 5);
 
                 return result.ResultCount;// records.Count;
             }
@@ -4782,7 +4803,8 @@ namespace dp2weixin.service
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "GetInfo() 出错：" + this.GetFriendlyErrorInfo(result, lib.libName);// result.ErrorInfo;
+                    bool bOffline = false;
+                    strError = "GetInfo() 出错：" + this.GetFriendlyErrorInfo(result, lib.libName,out bOffline);// result.ErrorInfo;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -4862,7 +4884,8 @@ namespace dp2weixin.service
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "GetBiblioSummary()出错：" + this.GetFriendlyErrorInfo(result, lib.libName); //result.ErrorInfo ;
+                    bool bOffline = false;
+                    strError = "GetBiblioSummary()出错：" + this.GetFriendlyErrorInfo(result, lib.libName,out bOffline); //result.ErrorInfo ;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -4990,7 +5013,8 @@ namespace dp2weixin.service
                 //this.WriteLog("GetItemInfo3");
                 if (result.ResultCount == -1 && result.ErrorCode != "ItemDbNotDef") // 2016-8-19 过滤到未定义实体库的情况
                 {
-                    strError = "GetItemInfo()出错：" + this.GetFriendlyErrorInfo(result, lib.libName);//result.ErrorInfo;
+                    bool bOffline = false;
+                    strError = "GetItemInfo()出错：" + this.GetFriendlyErrorInfo(result, lib.libName,out bOffline);//result.ErrorInfo;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -5855,7 +5879,8 @@ namespace dp2weixin.service
 
                 if (result.ResultCount == -1)
                 {
-                    strError = this.GetFriendlyErrorInfo(result, lib.libName);//result.ErrorInfo;
+                    bool bOffline = false;
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName,out bOffline);//result.ErrorInfo;
                     return -1;
                 }
 
@@ -7169,7 +7194,8 @@ namespace dp2weixin.service
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = "GetUserInfo()出错：" + this.GetFriendlyErrorInfo(result, lib.libName);// result.ErrorInfo;// +" \n dp2mserver账户:" + connection.UserName;
+                    bool bOffline = false;
+                    strError = "GetUserInfo()出错：" + this.GetFriendlyErrorInfo(result, lib.libName,out bOffline);// result.ErrorInfo;// +" \n dp2mserver账户:" + connection.UserName;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -7624,7 +7650,8 @@ namespace dp2weixin.service
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    strError = this.GetFriendlyErrorInfo(result, lib.libName);// result.ErrorInfo;
+                    bool bOffline = false;
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName,out bOffline);// result.ErrorInfo;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -8614,5 +8641,6 @@ namespace dp2weixin.service
 
             return null;
         }
+
     }
 }

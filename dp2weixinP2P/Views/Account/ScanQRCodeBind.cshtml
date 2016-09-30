@@ -1,0 +1,195 @@
+﻿
+@{
+    ViewBag.Title = "ScanQRCodeBind";
+}
+
+@section Scripts {
+    <script>
+
+        // 绑定账号
+        function scanBind() {
+            // 图书馆
+            var libId = $("#selLib").val();  //2016-8-13 jane 找回密码界面加入选择图书馆 getLibId();//
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+            var libName=$("#selLib").find("option:selected").text();
+            //alert("libName=" + libName);
+
+            // 微信id
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "") {
+                alert("weixinId不能为空。");
+                return;
+            }
+
+            // 检查版本号
+            var _libversions = $("#_libversions").text();
+            //alert("_libversions=" + _libversions);
+            var nIndex = _libversions.indexOf(libId);
+            var libversion = _libversions.substring(nIndex);
+            nIndex = libversion.indexOf(";");
+            if (nIndex > 0)
+                libversion = libversion.substring(0, nIndex);
+            //alert("libversion=" + libversion);
+            var version = libversion.substring(libId.length + 1);
+            //alert("version=" + version);
+
+            var error = "";
+            if (version == "0")
+            {
+                error = libName + " 的dp2library版本不够新，请先升级dp2library。";
+            }
+            else if (version == "-1") {
+                error = libName + " 的桥接服务器失去连接，无法访问。";
+            }
+            if (error != "")
+            {
+                $("#errorInfo").text(error);
+                $("#errorInfo").css('display', 'block');
+                alert(error);
+
+                return;
+            }
+
+            // 隐掉错误提示
+            $("#errorInfo").text("");
+            $("#errorInfo").css('display', 'none');
+
+            if (jssdkReady == -1) {
+                alert('JSSDK config信息验证失败，不能使用扫码功能。');
+                return;
+            }
+            else if (jssdkReady == -1) {
+                alert('JSSDK config未初始化完成，请稍候再试。');
+                return;
+            }
+
+            try {
+                wx.scanQRCode({
+                    needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+                    scanType: ["qrCode"], // 可以指定扫二维码还是一维码，默认二者都有 "qrCode", "barCode"
+                    success: function (res) {
+                        var code = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+                        var word = "";
+                        //PQR:R0000001@OULTPG6IDX2LZU20JVJMY1NR08
+                        if (code.length > 4 && code.substring(0, 4) == "PQR:")
+                        {
+                            word = code.substring(4);
+                        }
+                        else
+                        {
+                            alert("抱歉，您扫描的不是合法的读者二维码。\n扫描返回字符串为[" + code + "]，");
+                            return;
+                        }
+
+                        //显示等待图层
+                        //var index = loadLayer();
+                        showMaskLayer();
+
+                        // bind() api
+                        var url = "/api/wxuser";
+                        sendAjaxRequest(url, "POST",
+                            function (result) {
+
+                                // 关闭等待层
+                                //layer.close(index);
+                                hideMaskLayer();
+
+                                if (result.errorCode == -1) {
+                                    alert(result.errorInfo);
+                                    return;
+                                }
+
+                                alert("绑定成功");
+                                // 回到账户管理页面
+                                var returnUrl = "/Patron/PersonalInfo"; //2016-8-30 读者绑完转到我的信息"/Library/Home";
+                                gotoUrl(returnUrl);
+
+                                //var myUrl = getRootPath() + returnUrl;
+                                //window.location = myUrl;
+                            },
+                            function (xhq, textStatus, errorThrown) {
+
+                                // 关闭等待层
+                                //layer.close(index);
+                                hideMaskLayer();
+
+                                alert(errorThrown);
+
+                            },
+                            {
+                                weixinId: weixinId,
+                                prefix: "PQR",
+                                word: word,
+                                password: "",
+                                libId: libId
+                            }
+                        );
+
+
+                    },
+                    fail: function (res) {
+                        alert("扫码出错:" + JSON.stringify(res));
+                        return "";
+                    }
+                });
+            }
+            catch (err) {
+                alert("扫码异常：" + err);
+            }
+
+            
+        }
+
+    </script>
+}
+
+@section style {
+    <style>
+        .comment {
+            border-style: dotted;
+            border-color: #cccc00;
+            border-width: 2px;
+            padding: 4px;
+            background-color: white;
+            margin: 4px;
+            font-size: 12px;
+        }
+    </style>
+}
+
+@section header {
+        <h1 class="mui-title">图书馆柜台绑定</h1>
+    }
+
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="_libversions" style="display:none">@ViewBag.LibVersions</span>
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+            <span class="errorinfo">
+                @Html.Raw(ViewBag.Error)
+            </span>
+        </div>
+}
+else
+{
+    <div class="mui-input-group">
+
+            <div class="mui-input-row ">
+                <label style="color:#cccccc">图书馆</label>
+                @Html.Raw(ViewBag.LibHtml)
+            </div>
+
+        </div>
+    <div class="comment">（请先选择图书馆，然后点击 扫码并绑定 按钮，系统将打开扫描二维码界面，请对准图书馆系统显示的读者二维码，扫描成功后自动绑定读者账号。）</div>
+
+    <div class="mui-content-padded">
+            <button id='btnScanBind' class="mui-btn mui-btn-block mui-btn-primary" onclick="scanBind()">扫码并绑定</button>
+        </div>
+        <div class="mui-content-padded" id="errorInfo" style="display:none;color:red">
+            </div>
+}
