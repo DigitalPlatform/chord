@@ -272,6 +272,103 @@ namespace dp2weixinWeb.Controllers
         }
 
 
+
+        public ActionResult Book(string code, string state,
+            string libId,
+            string userName,
+            string subject,
+            string biblioPath,
+            string isNew)
+        {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+
+            if (String.IsNullOrEmpty(libId) == true)
+            {
+                strError = "libId参数不能为空";
+                goto ERROR1;
+            }
+            //if (String.IsNullOrEmpty(subject) == true)
+            //{
+            //    strError = "subject参数不能为空";
+            //    goto ERROR1;
+            //}
+
+            if (String.IsNullOrEmpty(subject) == true)
+            {
+                subject = ViewBag.remeberBookSubject;
+            }
+            if (subject == null)
+                subject = "";
+
+            // 如果当前图书馆是不公开书目，则出现提示
+            LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未设置当前图书馆。";
+                goto ERROR1;
+            }
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            if (lib.noShareBiblio == 1)
+            {
+                List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.id, -1);
+                if (users.Count == 0)
+                {
+                    ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", lib.libName);
+                    return View();
+                }
+            }
+
+            // 是否新建
+            if (isNew == "1")
+            {
+                isNew = "1";
+                // 栏目html
+                ViewBag.SubjectHtml = dp2WeiXinService.Instance.GetSubjectHtml(libId,
+                    dp2WeiXinService.C_Group_Book,
+                   subject,
+                   true,
+                   null);
+
+                if (String.IsNullOrEmpty(biblioPath) == false)
+                    ViewBag.content = biblioPath;
+            }
+            else
+            {
+                isNew = "0";
+            }
+            ViewBag.isNew = isNew;
+
+            ViewBag.LibId = libId;
+            ViewBag.userName = userName;
+            ViewBag.subject = subject;
+            List<MessageItem> list = new List<MessageItem>();
+
+            if (String.IsNullOrEmpty(subject) == false)
+            {
+                nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_Group_Book,
+                    libId,
+                    "",
+                    subject,
+                    "browse",
+                    out list,
+                    out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+            }
+
+            return View(list);
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();//Content(strError);
+        }
+
         public ActionResult BookMsg(string code, string state,
             string libId,
             string userName,
@@ -426,7 +523,6 @@ namespace dp2weixinWeb.Controllers
             
 
 
-            // todo 根据id获取消息  //msgId
             if (String.IsNullOrEmpty(biblioPath) == false)
                 model.content = biblioPath;
 

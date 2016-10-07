@@ -35,7 +35,7 @@
                 userName = "";
 
             //var returnUrl = "/Library/BookSubject?libId=" + libId;
-            var url = "/Library/BookMsg?libId=" + libId
+            var url = "/Library/Book?libId=" + libId
                 + "&userName=" + encodeURIComponent(userName)
                 + "&subject=" + encodeURIComponent(subject);
             //+ "&returnUrl=" + encodeURIComponent(returnUrl);
@@ -59,10 +59,11 @@
                 return;
             }
 
-            var returnUrl = "/Library/BookSubject?libId=" + libId;
-            var url = "/Library/BookEdit?libId=" + libId
+            //var returnUrl = "/Library/BookSubject?libId=" + libId;
+            var url = "/Library/Book?libId=" + libId
                 + "&userName=" + encodeURIComponent(userName)
-                + "&returnUrl=" + encodeURIComponent(returnUrl);
+            + "&isNew=1";
+                //+ "&returnUrl=" + encodeURIComponent(returnUrl);
 
             //alert(url);
             gotoUrl(url);
