@@ -1,0 +1,127 @@
+﻿@model List<dp2weixin.service.MessageItem>
+
+@section style {
+    <link href="@Url.Content("~/Content/message.css?a=6")" rel="stylesheet">
+}
+@section Scripts {
+    <script>
+
+        // 单击msg进行只读态与编辑态的切换
+        function clickMsgDiv1(msgId) {
+            //alert(1);
+            if (bClickBiblioDetail == true)
+            {
+                bClickBiblioDetail = false;
+                return;
+            }
+            // 调weixin.js中的clickMsgDiv()函数
+            clickMsgDiv(msgId);
+            //alert(2);
+        }
+
+        // 当点击路径时，转到详细界面，该参数防止走到编辑态。
+        var bClickBiblioDetail = false;
+        function gotoBiblioDetail(url)
+        {
+            //alert("2");
+            bClickBiblioDetail = true;
+            gotoUrl(url);
+        }
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+            model.subjectHtml("");
+
+            if ($("#_isNew").text() == "1") {
+
+                model.subjectHtml("@Html.Raw(ViewBag.SubjectHtml)");
+                gotoEdit('new')
+            }
+
+            //更新消息
+            window.setTimeout("fillPending()", 1);
+
+        })
+
+        var model = {
+            subjectHtml: ko.observable("")
+        }
+
+    </script>
+}
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="libId" style="display:none">@ViewBag.libId</span>
+<span id="_userName" style="display:none">@ViewBag.userName</span>
+<span id="_group" style="display:none">gn:_lib_book</span>
+<span id="_subject" style="display:none">@ViewBag.subject</span>
+<span id="_isNew" style="display:none">@ViewBag.isNew</span>
+<span id="_content" style="display:none">@ViewBag.content</span>
+
+@section header {
+    <h1 class="mui-title">@ViewBag.Subject</h1>
+}
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span style="color:red">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+
+        if (String.IsNullOrEmpty(ViewBag.userName) == false)
+        {
+            <div id="divNew" class="mui-content-padded" style="display:block">
+                <div id='_edit_new' class="mui-card message" style="display:none"></div>
+                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
+                    新推荐好书
+                </button>
+            </div>
+        }
+        <div id="_subject_main">
+            @if (Model != null)
+            {
+                foreach (dp2weixin.service.MessageItem item in Model)
+                {
+                    <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv1('@item.id')">
+                        <div class="view">
+                            <table class="view-top">
+                                <tr>
+                                    <td class="title" id="title-@item.id">@item.title</td>
+                                    <td class="btn">
+                                        @if (String.IsNullOrEmpty(ViewBag.userName) == false)
+                                        {
+                                            <div id="btnEdit" style="display: none;">
+                                                <button class="mui-btn mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>&nbsp;
+                                                <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
+                                            </div>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="time" colspan="2">
+                                        <span>@item.publishTime</span>-<span>@item.creator</span>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div class="content">@Html.Raw(item.contentHtml)</div>
+                            <div class="remark">@Html.Raw(item.remarkHtml)</div>
+                        </div>
+                    </div>
+                }
+            }
+
+        </div>
+        <br />
+    }
+}

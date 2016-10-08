@@ -176,7 +176,7 @@ namespace dp2weixinWeb.Controllers
                     showPhoto = settingItem.showPhoto;
                     showCover = settingItem.showCover;
 
-                    if (Request.Path.Contains("/Library/BookEdit") == true)
+                    if (Request.Path=="/Library/Book")//) == true)///Library/BookEdit
                     {
                         string xml = settingItem.xml;
                         ViewBag.remeberBookSubject = UserSettingDb.getBookSubject(xml);

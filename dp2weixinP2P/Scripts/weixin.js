@@ -573,7 +573,7 @@ function fillPending() {
 function getMsgViewHtml(msgItem, bContainEditDiv) {
     var group = $("#_group").text();
     if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
         alert("异常情况：group参数值不正确[" + group + "]。");
         return;
     }
@@ -791,7 +791,7 @@ function viewMsg(msgId, msgItem) {
 
     var group = $("#_group").text();
     if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
         alert("异常情况：group参数值不正确[" + group + "]。");
         return;
     }
@@ -802,8 +802,36 @@ function viewMsg(msgId, msgItem) {
         bShowTime = false;
     }
 
+    // book显示时是没有栏目的
+    //if (group == "gn:_lib_book") {
+    //    bContainSubject = true;
+    //}
 
     var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+
+
+    // 新增的好书推荐是新栏目
+    if (group == "gn:_lib_book") {
+        // 编辑时更新了栏目，要重刷界面
+        var pageSubject = $("#_subject").text();
+        //if (pageSubject == null)
+        //    alert("出现_subject为null的情况");
+
+        if (msgItem.subject != pageSubject) {
+            //alert("栏目不同,转到新栏目的页面-" + msgItem.subject + "-old subject:" + pageSubject);
+
+            var libId = getLibId();//$("#selLib").val();
+            var userName = $("#_userName").text();//model.userName();
+            if (userName == null)
+                userName = "";
+            var url = "/Library/Book?libId=" + libId
+                + "&userName=" + encodeURIComponent(userName)
+                + "&subject=" + encodeURIComponent(msgItem.subject);
+            gotoUrl(url);
+            return;
+        }
+    }
+
     if (msgId == "new") {
 
         // 得到完整的div
@@ -816,8 +844,9 @@ function viewMsg(msgId, msgItem) {
         }
         else {
 
-            //alert("序号=" + msgItem.subjectIndex);
 
+            //===============================
+            //alert("序号=" + msgItem.subjectIndex);
             var myDiv = null;
             if (msgItem.subjectIndex >= 0)
                 myDiv = $("#_subject_main").children(".subject:eq(" + msgItem.subjectIndex + ")");
@@ -831,7 +860,6 @@ function viewMsg(msgId, msgItem) {
                 // 如果subject相同，则加入item，如果不同，则要把subject插在之前
                 if (myId == msgItem.subject) {
                     //alert("相同");
-
                     if (group == "gn:_lib_homePage") {
                         $(myDiv).append(msgViewHtml);//插在后面
                     }
@@ -842,10 +870,8 @@ function viewMsg(msgId, msgItem) {
                 }
                 else {
                     //alert("不同");
-
                     // 置空
                     model.subjectHtml("");
-
                     var subjectDiv = "<div id='_subject_" + msgItem.subject + "'  class='subject'>"
                         + "<div id='_subject_title' class='firstline'><span class='title'>" + msgItem.subjectPureName + "<span></div>"
                         + msgViewHtml
@@ -865,6 +891,7 @@ function viewMsg(msgId, msgItem) {
                 //alert(subjectDiv);
                 $("#_subject_main").append(subjectDiv);//插在后面
             }
+            //=========================
 
         }
 
@@ -876,6 +903,10 @@ function viewMsg(msgId, msgItem) {
         return;
     }
 
+
+    // 编辑
+
+
     if (group == "gn:_lib_homePage") {
         // 编辑时更新了栏目，要重刷界面
         var parentId = $(divId).parent().attr('id');
@@ -886,6 +917,10 @@ function viewMsg(msgId, msgItem) {
             return;
         }
     }
+
+
+
+
     // 拼出内部的html，直接替换原来内容
     var msgViewHtml = getMsgViewHtml(msgItem, false);
 
@@ -898,13 +933,13 @@ function save(msgId) {
 
     var group = $("#_group").text();
     if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
         alert("异常情况：group参数值不正确[" + group + "]。");
         return;
     }
     var bContainSubject = false;
     var titleCanEmpty = false;
-    if (group == "gn:_lib_homePage") {
+    if (group == "gn:_lib_homePage" || group == "gn:_lib_book") {
         bContainSubject = true;
         titleCanEmpty = true;
     }
@@ -951,8 +986,9 @@ function save(msgId) {
     var parameters = "";
     if (msgId == "new") {
         action = "POST";
-        if (bContainSubject == true)
+        if (bContainSubject == true && group == "gn:_lib_homePage") {
             parameters = "checkSubjectIndex,";
+        }
     }
     else {
         action = "PUT";
@@ -1005,7 +1041,7 @@ function save(msgId) {
         + "&group=" + group
         + "&libId=" + libId
         + "&parameters=" + parameters;
-    //alert(parameters);
+    //alert(url);
     sendAjaxRequest(url, action,
         function (result) {
 
@@ -1028,6 +1064,11 @@ function save(msgId) {
 
             //alert("回来的消息标题:"+item.title);
             viewMsg(msgId, item);
+
+            if (group == "gn:_lib_book") {
+                //加载书目summary
+                window.setTimeout("fillPending()", 1);
+            }
 
 
         },
@@ -1058,13 +1099,21 @@ function getMsgEditHtml(msgItem) {
 
     var group = $("#_group").text();
     if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
         alert("异常情况：group参数值不正确[" + group + "]。");
         return;
     }
+
+    var subject = "";//model.selSubject();
+
     var bContainSubject = false;
-    if (group == "gn:_lib_homePage") {
+    if (group == "gn:_lib_homePage" || group == "gn:_lib_book") {
         bContainSubject = true;
+
+        // 当前subject
+        var subject = $("#_subject").text();
+        if (subject == null)
+            subject = "";
     }
 
     var bContainRemark = true;
@@ -1076,11 +1125,15 @@ function getMsgEditHtml(msgItem) {
 
     var saveBtnName = "新增";
     var disabledStr = "";// "disabled"
-    var subject = "";//model.selSubject();
     var msgId = "new"; //默认新建的情况
     var title = "";
     var remark = "";
     var content = "";
+    if (group == "gn:_lib_book")
+    {
+        content = $("#_content").text();
+    }
+
     if (msgItem != null) {
         msgId = msgItem.id;
         title = msgItem.title;
@@ -1104,6 +1157,9 @@ function getMsgEditHtml(msgItem) {
 
     // 加选择栏目行
     if (bContainSubject == true) {
+
+
+
         var subjectHtml = model.subjectHtml();
         //alert("2==" + subjectHtml);
         html += "<tr>"
@@ -1165,7 +1221,7 @@ function getMsgEditHtml(msgItem) {
 function getSubjectHtml(msgId) {
     var group = $("#_group").text();
     if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
         alert("异常情况：group参数值不正确[" + group + "]。");
         return;
     }
@@ -1188,12 +1244,16 @@ function getSubjectHtml(msgId) {
     //var index = loadLayer();
     showLoading();
 
+    // 当前subject
+    var selSubject = $("#_subject").text();
+    if (selSubject == null)
+        selSubject = "";
 
     // 调web api
     var url = "/api/LibMessage?weixinId=" + weixinId
         + "&group=" + encodeURIComponent(group)
         + "&libId=" + libId
-    + "&selSubject=" //msgid-"+msgId
+    + "&selSubject=" + encodeURIComponent(selSubject)
     + "&param=html";
     sendAjaxRequest(url, "GET", function (result) {
         // 关闭等待层
@@ -1369,12 +1429,12 @@ function gotoEdit(msgId) {
 
     var group = $("#_group").text();
     if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
+        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
         alert("异常情况：group参数值不正确[" + group + "]。");
         return;
     }
 
-    if (group == "gn:_lib_homePage") {
+    if (group == "gn:_lib_homePage" || group == "gn:_lib_book") {
         if (model.subjectHtml() == "") {
             //alert("subjectHtml为空，需要从服务器获取。");
             getSubjectHtml(msgId);

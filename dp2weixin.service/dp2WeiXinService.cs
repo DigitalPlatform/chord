@@ -4427,10 +4427,11 @@ namespace dp2weixin.service
                     if (from == "detail")
                         returnUrl = "/Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(biblioPath);
 
-                    string recommPath = "/Library/BookEdit?libId=" + libId
+                    string recommPath = "/Library/Book?libId=" + libId //BookEdit
                         + "&userName=" + workerUserName
                         + "&biblioPath=" + HttpUtility.UrlEncode(biblioPath)
-                        + "&returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+                        +"&isNew=1";
+                       // + "&returnUrl=" + HttpUtility.UrlEncode(returnUrl);
                     recommendBtn = "<div class='btnRow'><button class='mui-btn  mui-btn-default' "
                         + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button></div>";
 
