@@ -489,9 +489,18 @@ function fillPending() {
         var libId = o.children("span").text();
 
         //alert("["+myvalue+"]");
+
+        //检查group
+        var group = $("#_group").text();
+        var error = checkGroud(group);
+        if (error != "") {
+            window.setTimeout("fillPending()", 1);
+            return;
+        }
+
         // 调web api
         var url = "/api/LibMessage?weixinId=" //+ weixinId
-                    + "&group=gn:_lib_homePage"
+                    + "&group=" + group //gn:_lib_homePage"
                     + "&libId=" + libId
                     + "&msgId="
                     + "&subject=" + encodeURIComponent(myvalue)
@@ -505,25 +514,6 @@ function fillPending() {
                 alert(result.errorInfo);
                 return;
             }
-
-
-            /*
-    public class MessageItem
-    {
-        public string id { get; set; }
-        public string title { get; set; }
-        public string content { get; set; }
-        public string contentFormat { get; set; }  // 2016-6-20 text/markdown
-        public string contentHtml { get; set; }  // 2016-6-20 html形态
-        public string publishTime { get; set; } // 2016-6-20 jane 发布时间，服务器消息的时间
-
-        public string creator { get; set; }  //创建消息的工作人员帐户
-
-        public string subject { get; set; } // 栏目
-        public string remark { get; set; } //注释
-    }
-            */
-
 
             //换成实际的值，
             var msgHtml = "";
@@ -572,9 +562,9 @@ function fillPending() {
 
 function getMsgViewHtml(msgItem, bContainEditDiv) {
     var group = $("#_group").text();
-    if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
-        alert("异常情况：group参数值不正确[" + group + "]。");
+    var error = checkGroud(group);
+    if (error != "") {
+        alert(error);
         return;
     }
 
@@ -584,7 +574,7 @@ function getMsgViewHtml(msgItem, bContainEditDiv) {
     }
 
     var bContainSubject = false;
-    if (group == "gn:_lib_homePage") {
+    if (group == "gn:_lib_homePage" || group == "gn:_dp_home") {
         bContainSubject = true;
     }
 
@@ -665,9 +655,9 @@ function deleteMsg(msgId) {
     }
 
     var group = $("#_group").text();
-    if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
-        alert("异常情况：group参数值不正确[" + group + "]。");
+    var error = checkGroud(group);
+    if (error != "") {
+        alert(error);
         return;
     }
 
@@ -758,7 +748,7 @@ function deleteMsg(msgId) {
             // 没有同级兄弟时
             if ($(subjectDiv).children(".message").length == 0) {
 
-                if (group == "gn:_lib_homePage") {
+                if (group == "gn:_lib_homePage" || group == "gn:_dp_home") {
                     // 移除栏目div
                     subjectDiv.remove();
                     // 置空subject,再打开编辑界面时，会重刷subject列表
@@ -786,18 +776,35 @@ function deleteMsg(msgId) {
 
 }
 
+function checkGroud(group)
+{
+    if (group == null || group == "" ||
+    (group != "gn:_lib_bb"
+        && group != "gn:_lib_homePage"
+        && group != "gn:_lib_book"
+        && group != "gn:_dp_home"
+        ))
+    {
+        return "异常情况：group参数值不正确[" + group + "]。";
+    }
+
+    return "";
+}
+
 // 保存完后，显示一条消息
 function viewMsg(msgId, msgItem) {
 
     var group = $("#_group").text();
-    if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
-        alert("异常情况：group参数值不正确[" + group + "]。");
+    var error = checkGroud(group);
+    if (error != "")
+    {
+        alert(error);
         return;
     }
+
     var bContainSubject = false;
     var bShowTime = true;
-    if (group == "gn:_lib_homePage") {
+    if (group == "gn:_lib_homePage" || group=="gn:_dp_home") {
         bContainSubject = true;
         bShowTime = false;
     }
@@ -860,7 +867,7 @@ function viewMsg(msgId, msgItem) {
                 // 如果subject相同，则加入item，如果不同，则要把subject插在之前
                 if (myId == msgItem.subject) {
                     //alert("相同");
-                    if (group == "gn:_lib_homePage") {
+                    if (group == "gn:_lib_homePage" || group == "gn:_dp_home") {
                         $(myDiv).append(msgViewHtml);//插在后面
                     }
                     else {
@@ -907,7 +914,7 @@ function viewMsg(msgId, msgItem) {
     // 编辑
 
 
-    if (group == "gn:_lib_homePage") {
+    if (group == "gn:_lib_homePage" || group == "gn:_dp_home") {
         // 编辑时更新了栏目，要重刷界面
         var parentId = $(divId).parent().attr('id');
         var thisSubject = "_subject_" + msgItem.subject;
@@ -932,20 +939,21 @@ function viewMsg(msgId, msgItem) {
 function save(msgId) {
 
     var group = $("#_group").text();
-    if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
-        alert("异常情况：group参数值不正确[" + group + "]。");
+    var error = checkGroud(group);
+    if (error != "") {
+        alert(error);
         return;
     }
+
     var bContainSubject = false;
     var titleCanEmpty = false;
-    if (group == "gn:_lib_homePage" || group == "gn:_lib_book") {
+    if (group == "gn:_lib_homePage" || group == "gn:_dp_home" || group == "gn:_lib_book") {
         bContainSubject = true;
         titleCanEmpty = true;
     }
 
     var bContainRemark = true;
-    if (group == "gn:_lib_bb" || group == "gn:_lib_homePage")
+    if (group == "gn:_lib_bb" || group == "gn:_lib_homePage" || group == "gn:_dp_home")
         bContainRemark = false;
 
     var libId = getLibId(); //$("#selLib").val();
@@ -986,7 +994,7 @@ function save(msgId) {
     var parameters = "";
     if (msgId == "new") {
         action = "POST";
-        if (bContainSubject == true && group == "gn:_lib_homePage") {
+        if (group == "gn:_lib_homePage" || group == "gn:_dp_home") {
             parameters = "checkSubjectIndex,";
         }
     }
@@ -1098,16 +1106,16 @@ function save(msgId) {
 function getMsgEditHtml(msgItem) {
 
     var group = $("#_group").text();
-    if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
-        alert("异常情况：group参数值不正确[" + group + "]。");
+    var error = checkGroud(group);
+    if (error != "") {
+        alert(error);
         return;
     }
 
     var subject = "";//model.selSubject();
 
     var bContainSubject = false;
-    if (group == "gn:_lib_homePage" || group == "gn:_lib_book") {
+    if (group == "gn:_lib_homePage" || group == "gn:_dp_home" || group == "gn:_lib_book") {
         bContainSubject = true;
 
         // 当前subject
@@ -1117,7 +1125,7 @@ function getMsgEditHtml(msgItem) {
     }
 
     var bContainRemark = true;
-    if (group == "gn:_lib_bb" || group == "gn:_lib_homePage")
+    if (group == "gn:_lib_bb" || group == "gn:_lib_homePage" || group == "gn:_dp_home")
         bContainRemark = false;
 
     var formatTextStr = " selected ";// 默认文本格式选中
@@ -1220,9 +1228,9 @@ function getMsgEditHtml(msgItem) {
 //用于获取栏目
 function getSubjectHtml(msgId) {
     var group = $("#_group").text();
-    if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
-        alert("异常情况：group参数值不正确[" + group + "]。");
+    var error = checkGroud(group);
+    if (error != "") {
+        alert(error);
         return;
     }
 
@@ -1428,13 +1436,13 @@ function gotoEdit(msgId) {
     //alert($("#divNo"));
 
     var group = $("#_group").text();
-    if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage" && group != "gn:_lib_book")) {
-        alert("异常情况：group参数值不正确[" + group + "]。");
+    var error = checkGroud(group);
+    if (error != "") {
+        alert(error);
         return;
     }
 
-    if (group == "gn:_lib_homePage" || group == "gn:_lib_book") {
+    if (group == "gn:_lib_homePage" || group == "gn:_dp_home" || group == "gn:_lib_book") {
         if (model.subjectHtml() == "") {
             //alert("subjectHtml为空，需要从服务器获取。");
             getSubjectHtml(msgId);
@@ -1604,9 +1612,9 @@ function subjectChanged(bGetTemplate, obj) {
 //用于获取栏目
 function getTemplate(subject) {
     var group = $("#_group").text();
-    if (group == null || group == "" ||
-        (group != "gn:_lib_bb" && group != "gn:_lib_homePage")) {
-        alert("异常情况：group参数值不正确[" + group + "]。");
+    var error = checkGroud(group);
+    if (error != "") {
+        alert(error);
         return;
     }
 

@@ -138,17 +138,16 @@ namespace dp2weixinWeb.ApiControllers
             string style)
         {
             WxMessageResult result = new WxMessageResult();
+            string strError = "";
 
-            if (group != dp2WeiXinService.C_Group_Bb
-                && group != dp2WeiXinService.C_Group_Book
-                && group != dp2WeiXinService.C_Group_HomePage)
+            strError = dp2WeiXinService.checkGroup(group);
+            if (strError !="")
             {
-                result.errorInfo = "不支持的群" + group;
+                result.errorInfo = strError;
                 result.errorCode = -1;
                 return result;
             }
 
-            string strError="";
 
             // 检查下有无绑定工作人员账号
             result.userName = "";

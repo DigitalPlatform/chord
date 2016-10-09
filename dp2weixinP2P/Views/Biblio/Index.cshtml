@@ -176,7 +176,7 @@
         // 检索
         function search(bNext, expandId) {
 
-            //$("#more").css("display", "none");
+            $("#more").css("display", "none");
 
             var from = "";
             var word = "";
@@ -198,8 +198,11 @@
 
                 // 不能再继续加载
                 $("#more").addClass("nextdisabled");
+                $("#more").css("display", "block");
 
             }
+            
+
             else if (bNext == '_ReView') {
                 from = "_ReView";
                 word = $("#maxNo").val();
