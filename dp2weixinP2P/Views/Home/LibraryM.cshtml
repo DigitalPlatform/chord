@@ -478,7 +478,8 @@
         function getLibName()
         {
             
-            $("#libName").val("");
+            //$("#libName").val("");
+            model.editor.libName("");
 
 
             var capo = $("#capo_username").val();
@@ -501,7 +502,8 @@
                         return;
                     }
 
-                    $("#libName").val(result.info);
+                    //$("#libName").val(result.info);
+                    model.editor.libName(result.info);
 
                     $("#capoContactPhone").focus();//libName
 
