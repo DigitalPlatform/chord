@@ -155,6 +155,8 @@ namespace dp2Capo
         {
             // return Task.Run(() => BeginConnnect());
 
+            this.WriteErrorLog("BeginConnect() 开始");    // 这样写入日志，是观察 BeginConnectTask() 的 task 到底多久完成
+
             try
             {
                 this.MessageConnection.ServerUrl = this.dp2mserver.Url;
@@ -184,6 +186,10 @@ namespace dp2Capo
                 string strError = "BeginConnect() 出现异常: " + ExceptionUtil.GetExceptionText(ex);
                 this.WriteErrorLog(strError);
                 Console.WriteLine(strError);
+            }
+            finally
+            {
+                this.WriteErrorLog("BeginConnect() 结束");
             }
         }
 
