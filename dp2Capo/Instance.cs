@@ -569,7 +569,7 @@ namespace dp2Capo
                         {
                             this.WriteErrorLog("Instance.Notify() 中 SetMessageAsync() 出错: " + result.ErrorInfo);
                             TryResetConnection(result.String);
-                            Thread.Sleep(5 * 1000);   // 拖延 5 秒
+                            // Thread.Sleep(5 * 1000);   // 拖延 5 秒
                             return;
                         }
 
@@ -595,21 +595,21 @@ namespace dp2Capo
                     // 记入错误日志
                     // Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                     this.WriteErrorLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
-                    Thread.Sleep(5 * 1000);   // 拖延 5 秒
+                    // Thread.Sleep(5 * 1000);   // 拖延 5 秒
                 }
                 catch (InvalidCastException ex)
                 {
                     // 记入错误日志
                     // Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                     this.WriteErrorLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
-                    Thread.Sleep(5 * 1000);   // 拖延 5 秒
+                    // Thread.Sleep(5 * 1000);   // 拖延 5 秒
                 }
                 catch (Exception ex)
                 {
                     // 记入错误日志
                     // Program.WriteWindowsLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                     this.WriteErrorLog("Instance.Notify() 出现异常: " + ExceptionUtil.GetDebugText(ex));
-                    Thread.Sleep(5 * 1000);   // 拖延 5 秒
+                    // Thread.Sleep(5 * 1000);   // 拖延 5 秒
                 }
                 finally
                 {
