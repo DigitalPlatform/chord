@@ -47,7 +47,7 @@ namespace dp2Capo
 
         public void Initial(string strXmlFileName)
         {
-            // _cancel = new CancellationTokenSource();
+            _cancel = new CancellationTokenSource();
             // SetShortDelay();
 
             Console.WriteLine();
@@ -239,7 +239,7 @@ namespace dp2Capo
 
         public void Close()
         {
-            // _cancel.Cancel();
+            _cancel.Cancel();
 
             if (this._notifyThread != null)
                 _notifyThread.StopThread(true);
@@ -425,9 +425,9 @@ namespace dp2Capo
             }
         }
 
-#if NO
         // 中断信号
         CancellationTokenSource _cancel = new CancellationTokenSource();
+#if NO
 
         // 等待一段时间，或者提前遇到中断信号返回
         void Wait(TimeSpan delta)
@@ -496,7 +496,8 @@ namespace dp2Capo
                                 new DigitalPlatform.Message.SetMessageRequest("create",
                                 "dontNotifyMe",
                                 records);
-                            SetMessageResult result = this.MessageConnection.SetMessageTaskAsync(param, new System.Threading.CancellationToken()).Result;
+                            SetMessageResult result = this.MessageConnection.SetMessageTaskAsync(param, 
+                                _cancel.Token).Result;
                             if (result.Value == -1)
                             {
                                 this.WriteErrorLog("Instance.Notify() 中 SetMessageAsync() 出错: " + result.ErrorInfo);
@@ -515,6 +516,10 @@ namespace dp2Capo
                     }
 
                     this._notifyThread.Activate();
+                    return;
+                }
+                catch (ThreadAbortException)
+                {
                     return;
                 }
                 catch (Exception ex)
@@ -558,7 +563,8 @@ namespace dp2Capo
                             new DigitalPlatform.Message.SetMessageRequest("create",
                             "dontNotifyMe",
                             records);
-                        SetMessageResult result = this.MessageConnection.SetMessageTaskAsync(param, new System.Threading.CancellationToken()).Result;
+                        SetMessageResult result = this.MessageConnection.SetMessageTaskAsync(param, 
+                            _cancel.Token).Result;
                         if (result.Value == -1)
                         {
                             this.WriteErrorLog("Instance.Notify() 中 SetMessageAsync() 出错: " + result.ErrorInfo);
@@ -579,6 +585,10 @@ namespace dp2Capo
                     }
 
                     bSucceed = true;
+                }
+                catch (ThreadAbortException)
+                {
+                    return;
                 }
                 catch (MessageQueueException ex)
                 {
