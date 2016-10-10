@@ -9,6 +9,9 @@
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
 
+            // 右上角的图书馆名称不显示
+            $("#_libName").css("display", "none");
+
             ko.applyBindings(model);
 
             // 设顶部菜单不固定
@@ -25,7 +28,7 @@
     </script>
 }
 @section header {
-    <h1 class="mui-title">关于我们</h1>
+    <h1 class="mui-title">数字平台</h1>
 }
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
 <span id="_userName" style="display:none">@ViewBag.userName</span>

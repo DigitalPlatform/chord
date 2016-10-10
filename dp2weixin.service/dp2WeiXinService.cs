@@ -233,6 +233,28 @@ namespace dp2weixin.service
                 out strError);
         }
 
+        public int GetLibName(string capoUserName,
+            out string libName,
+            out string strError)
+        {
+            libName = "";
+            strError = "";
+            List<string> dataList = new List<string>();
+
+            LibEntity lib = new LibEntity();
+            lib.capoUserName = capoUserName;
+            int nRet = this.GetSystemParameter(lib, "library", "name", out dataList, out strError);
+            if (nRet == -1 || nRet==0)
+            {
+               if (strError == "TargetNotFound")
+                    strError = "账户 "+capoUserName+" 在dp2mserver服务器中不存在 或者对应的桥接服务器失去联系，无法获得图书馆名称。";
+                return -1;
+            }
+
+            libName = dataList[0];
+            return 1;
+        }
+
         #endregion
 
         #region 单一实例
@@ -2989,6 +3011,9 @@ namespace dp2weixin.service
                 // 2016/9/30 在需要的地方再激活吧，放在这里都受影响了。// 激活后面处理线程，可以给工作人员发通知
                 //this._managerThread.Activate();
 
+                if (string.IsNullOrEmpty(libName) ==true)
+                    return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问。";
+
                 return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问。";
             }
 
@@ -3004,6 +3029,11 @@ namespace dp2weixin.service
                 // 2016/9/30 在需要的地方再激活吧，放在这里都受影响了。//激活后面处理线程，可以给工作人员发通知
                 //this._managerThread.Activate();
                 bOffline = true;
+
+                if (String.IsNullOrEmpty(libName) == true)
+                {
+                    return "TargetNotFound";
+                }
 
                 return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问。";
             }
@@ -4823,7 +4853,7 @@ namespace dp2weixin.service
                 if (result.ResultCount == -1)
                 {
                     bool bOffline = false;
-                    strError = "GetInfo() 出错：" + this.GetFriendlyErrorInfo(result, lib.libName,out bOffline);// result.ErrorInfo;
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName,out bOffline);// result.ErrorInfo;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -4854,6 +4884,7 @@ namespace dp2weixin.service
         ERROR1:
             return -1;
         }
+
 
         /// <summary>
         /// 获取summary

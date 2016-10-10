@@ -1,8 +1,11 @@
-﻿using DigitalPlatform.Text;
+﻿using DigitalPlatform.Message;
+using DigitalPlatform.MessageClient;
+using DigitalPlatform.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace dp2weixin.service
@@ -215,6 +218,9 @@ namespace dp2weixin.service
 
             return versionStr;
         }
+
+
+
 
 
     }

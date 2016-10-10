@@ -477,7 +477,10 @@
 
         function getLibName()
         {
-            /*
+            
+            $("#libName").val("");
+
+
             var capo = $("#capo_username").val();
             if (capo != null && capo != "")
             {
@@ -485,8 +488,8 @@
                 //var index = loadLayer();
                 showMaskLayer();
 
-                var url = "/api/LibrarySetting?username=" + capo
-                    + "&password=" + wxPassword;
+                //GetLibName api
+                var url = "/api/LibrarySetting?capoUserName=" + capo
                 sendAjaxRequest(url, "POST", function (result) {
                     // 关闭等待层
                     //layer.close(index);
@@ -494,11 +497,14 @@
 
 
                     if (result.errorCode == -1) {
-                        alert("检测用户时出错:" + result.errorInfo);
+                        alert(result.errorInfo);
                         return;
                     }
 
-                    alert("用户已存在");
+                    $("#libName").val(result.info);
+
+                    $("#capoContactPhone").focus();//libName
+
 
                 }, function (xhq, textStatus, errorThrown) {
                     // 关闭等待层
@@ -508,8 +514,8 @@
                     alert(errorThrown);
                 });
             }
-            alert(capo);
-            */
+            //alert(capo);
+            
         }
 
 
@@ -593,12 +599,12 @@
         </div>
         <div class="mui-input-row ">
             <label class="leftLabel">图书馆名称</label>
-            <input id="libName" type="text" class="mui-input mui-input-clear" placeholder="请输入 图书馆名称" data-bind="value:model.editor.libName">
+            <input id="libName"  style="background-color:#EEEEEE" type="text" class="mui-input mui-input-clear"  data-bind="value:model.editor.libName">
         </div>
 
         <div class="mui-input-row ">
             <label class="leftLabel">图书馆联系人手机号</label>
-            <input type="text" class="mui-input mui-input-clear" placeholder="请输入  图书馆联系人手机号" data-bind="value:model.editor.capoContactPhone">
+            <input id="capoContactPhone" type="text" class="mui-input mui-input-clear" placeholder="请输入  图书馆联系人手机号" data-bind="value:model.editor.capoContactPhone">
         </div>
     </div>
     <br />
