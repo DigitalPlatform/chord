@@ -44,6 +44,10 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.PatronBarcode = userItem1.readerBarcode;
             }
 
+            string match = lib.match;
+            if (String.IsNullOrEmpty(match) == true)
+                match = "left";
+            ViewBag.Match = match;
             return View();
 
         ERROR1:

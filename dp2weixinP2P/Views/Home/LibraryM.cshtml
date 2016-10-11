@@ -337,6 +337,13 @@
             if (model.editor.searchDbs() != null)
                 searchDbs = model.editor.searchDbs().trim();
 
+
+            var match = $("#selMatch").val();
+            if (match == "") {
+                alert("您尚未选择匹配方式。");
+                return;
+            }
+
             //alert("id-[" + model.editor.id() + "]-2");
 
             //显示等待图层
@@ -395,7 +402,8 @@
                     wxContactPhone: wxContactPhone,
                     comment: comment,
                     noShareBiblio: getNoShareBiblio(),
-                    searchDbs: searchDbs
+                    searchDbs: searchDbs,
+                    match:match
                 }
             );
         }
@@ -414,6 +422,8 @@
 
             model.editor.noShareBiblio(0);
             model.editor.searchDbs("");
+
+            $("#selMatch").val("left");
         }
 
         // 点击新增图书馆按钮
@@ -456,6 +466,12 @@
 
             model.editor.noShareBiblio(item.noShareBiblio);
             model.editor.searchDbs(item.searchDbs);
+            
+            var match = item.match;
+            if (match == null || match == "")
+                match = "left";
+
+            $("#selMatch").val(match);
         }
 
 
@@ -569,6 +585,10 @@
                     <td class="value" data-bind="text:searchDbs"></td>
                 </tr>
                 <tr>
+                    <td class="label">简单检索匹配方式</td>
+                    <td class="value" data-bind="text:match"></td>
+                </tr>
+                <tr>
                     <td class="label">备注</td>
                     <td class="value" data-bind="text:comment"></td>
                 </tr>
@@ -652,13 +672,24 @@
             <textarea rows="2" data-bind="value:model.editor.searchDbs" placeholder="请输入  数据库名称(以逗号分隔)"></textarea>
         </div>
         <div class="mui-input-row">
-            <label class="leftLabel">备注</label>
-            <textarea rows="5" data-bind="value:model.editor.comment" placeholder="请输入  备注"></textarea>
+            <label class="leftLabel">简单检索匹配方式</label>
+            <select id="selMatch">
+                <option value="left" selected>前方一致</option>
+                <option value="middle">中间一致</option>
+                <option value="right">后方一致</option>
+                <option value="exact">精确一致</option>
+            </select>
         </div>
         <div class='mui-input-row mui-checkbox mui-left'>
             <label>不对外公开书目</label>
             <input id='ckbNoShareBiblio' type='checkbox' data-bind="checked:model.editor.noShareBiblio" />
         </div>
+        <div class="mui-input-row">
+            <label class="leftLabel">备注</label>
+            <textarea rows="5" data-bind="value:model.editor.comment" placeholder="请输入  备注"></textarea>
+        </div>
+
+
     </div>
     <div class="mui-content-padded">
         <table>
