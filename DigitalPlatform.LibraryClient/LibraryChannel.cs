@@ -5606,10 +5606,10 @@ out strError);
         public long GetIssues(
             // DigitalPlatform.Stop stop,
             string strBiblioRecPath,
-                   long lStart,
-                   long lCount,
-                   string strStyle,
-                   string strLang,
+            long lStart,
+            long lCount,
+            string strStyle,
+            string strLang,
             out EntityInfo[] issueinfos,
             out string strError)
         {
@@ -5620,7 +5620,7 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetIssues(
-                                        strBiblioRecPath,
+                    strBiblioRecPath,
                     lStart,
                     lCount,
                     strStyle,
