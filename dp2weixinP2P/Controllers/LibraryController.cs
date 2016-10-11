@@ -193,6 +193,77 @@ namespace dp2weixinWeb.Controllers
             return View();//Content(strError);
         }
 
+        // 图书馆介绍
+        public ActionResult dpHome(string code, string state, string weixinId)
+        {
+            // 如果是超级管理员，支持传一个weixin id参数
+            if (String.IsNullOrEmpty(weixinId) == false)
+            {
+                if (this.CheckSupervisorLogin() == true)
+                {
+                    // 记下微信id
+                    Session[WeiXinConst.C_Session_WeiXinId] = weixinId;
+                }
+                else
+                {
+                    // 转到登录界面
+                    return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Library/Home?weixinId=" + weixinId));
+                }
+            }
+
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+
+            //绑定的工作人员账号 需要有权限
+            string userName = "";
+
+            // 微信id
+            weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+
+            // 图书馆id
+            string libId = ViewBag.LibId;
+
+
+            // 2016-8-24 超级管理员可修改任何图书馆的介绍与公告
+            if (weixinId == dp2WeiXinService.C_Supervisor)
+            {
+                userName = weixinId;
+            }
+            
+
+            // 设到ViewBag
+            ViewBag.userName = userName;
+
+            // 获取栏目
+            List<SubjectItem> list1 = null;
+            nRet = dp2WeiXinService.Instance.GetSubject(libId,
+                dp2WeiXinService.C_Group_dp_home,
+                out list1, out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+            List<SubjectItem> list = new List<SubjectItem>();
+            foreach (SubjectItem item in list1)
+            {
+                if (item.count == 0)
+                    continue;
+                list.Add(item);
+            }
+
+            return View(list);
+
+        ERROR1:
+
+            ViewBag.Error = strError;
+            return View();//Content(strError);
+        }
+
 
         // 好书推荐
         public ActionResult BookSubject(string code, string state,string libId)
@@ -368,6 +439,8 @@ namespace dp2weixinWeb.Controllers
             ViewBag.Error = strError;
             return View();//Content(strError);
         }
+
+
 
         public ActionResult BookMsg(string code, string state,
             string libId,

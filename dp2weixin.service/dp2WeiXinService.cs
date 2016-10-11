@@ -33,12 +33,15 @@ namespace dp2weixin.service
         // 通道常量
         public const string C_ConnName_TraceMessage = "_traceMessage";
         public const string C_ConnPrefix_Myself = "<myself>:";
+        public const string C_ConnName_dp = "_dp_";
 
         // 群组常量
         public const string C_Group_Bb = "gn:_lib_bb";
         public const string C_Group_Book = "gn:_lib_book";
         public const string C_Group_HomePage = "gn:_lib_homePage"; //图书馆介绍
         public const string C_Group_PatronNotity = "gn:_patronNotify";
+        // 公司公告
+        public const string C_Group_dp_home = "gn:_dp_home";
 
         // 消息权限
         public const string C_Right_SetBb = "_wx_setbb";
@@ -228,6 +231,28 @@ namespace dp2weixin.service
                 name,
                 out dataList,
                 out strError);
+        }
+
+        public int GetLibName(string capoUserName,
+            out string libName,
+            out string strError)
+        {
+            libName = "";
+            strError = "";
+            List<string> dataList = new List<string>();
+
+            LibEntity lib = new LibEntity();
+            lib.capoUserName = capoUserName;
+            int nRet = this.GetSystemParameter(lib, "library", "name", out dataList, out strError);
+            if (nRet == -1 || nRet==0)
+            {
+               if (strError == "TargetNotFound")
+                    strError = "账户 "+capoUserName+" 在dp2mserver服务器中不存在 或者对应的桥接服务器失去联系，无法获得图书馆名称。";
+                return -1;
+            }
+
+            libName = dataList[0];
+            return 1;
         }
 
         #endregion
@@ -431,16 +456,31 @@ namespace dp2weixin.service
             {
                 // 需要使用当前图书馆的微信端本方帐户
                 string libId = connName.Substring(prefix.Length);
-                LibEntity lib = this.GetLibById(libId);
-                if (lib == null)
+                
+                // 全局的联系我们
+                if (libId == C_ConnName_dp)
                 {
-                    throw new Exception("异常的情况:根据id[" + libId + "]未找到图书馆对象。");
-                }
+                    
+                    e.UserName = GetUserName();
+                    if (string.IsNullOrEmpty(e.UserName) == true)
+                        throw new Exception("尚未指定用户名，无法进行登录");
 
-                e.UserName = lib.wxUserName;
-                if (string.IsNullOrEmpty(e.UserName) == true)
-                    throw new Exception("尚未指定微信本方用户名，无法进行登录");
-                e.Password = lib.wxPassword;
+                    e.Password = GetPassword();
+                }
+                else
+                {
+
+                    LibEntity lib = this.GetLibById(libId);
+                    if (lib == null)
+                    {
+                        throw new Exception("异常的情况:根据id[" + libId + "]未找到图书馆对象。");
+                    }
+
+                    e.UserName = lib.wxUserName;
+                    if (string.IsNullOrEmpty(e.UserName) == true)
+                        throw new Exception("尚未指定微信本方用户名，无法进行登录");
+                    e.Password = lib.wxPassword;
+                }
 
             }
             else
@@ -2971,6 +3011,9 @@ namespace dp2weixin.service
                 // 2016/9/30 在需要的地方再激活吧，放在这里都受影响了。// 激活后面处理线程，可以给工作人员发通知
                 //this._managerThread.Activate();
 
+                if (string.IsNullOrEmpty(libName) ==true)
+                    return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问。";
+
                 return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问。";
             }
 
@@ -2986,6 +3029,11 @@ namespace dp2weixin.service
                 // 2016/9/30 在需要的地方再激活吧，放在这里都受影响了。//激活后面处理线程，可以给工作人员发通知
                 //this._managerThread.Activate();
                 bOffline = true;
+
+                if (String.IsNullOrEmpty(libName) == true)
+                {
+                    return "TargetNotFound";
+                }
 
                 return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问。";
             }
@@ -4805,7 +4853,7 @@ namespace dp2weixin.service
                 if (result.ResultCount == -1)
                 {
                     bool bOffline = false;
-                    strError = "GetInfo() 出错：" + this.GetFriendlyErrorInfo(result, lib.libName,out bOffline);// result.ErrorInfo;
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName,out bOffline);// result.ErrorInfo;
                     return -1;
                 }
                 if (result.ResultCount == 0)
@@ -4836,6 +4884,7 @@ namespace dp2weixin.service
         ERROR1:
             return -1;
         }
+
 
         /// <summary>
         /// 获取summary
@@ -6677,7 +6726,7 @@ namespace dp2weixin.service
                 item.content = "";
 
                 string contentHtml = "";
-                if (group == C_Group_Bb || group == C_Group_HomePage)
+                if (group == C_Group_Bb || group == C_Group_HomePage || group == C_Group_dp_home)
                 {
                     contentHtml = GetMsgHtml(format, content,libId);
                 }
@@ -6794,7 +6843,7 @@ namespace dp2weixin.service
         // 从 dp2mserver 获得消息
         // 每次最多获得 100 条
         private int GetMessageInternal(string action,
-            string groupName,
+            string group,
             string libId,
             string msgId,
             string subjectCondition,
@@ -6806,16 +6855,22 @@ namespace dp2weixin.service
 
             // string connName
             string connName = C_ConnPrefix_Myself + libId;
+            if (group == C_Group_dp_home)
+                connName = C_ConnPrefix_Myself + C_ConnName_dp;
+
 
             // 取出用户名
             LibEntity lib = this.GetLibById(libId);
             string wxUserName = lib.wxUserName;
 
+            if (group == C_Group_dp_home)
+                wxUserName = this.GetUserName();
+
             // 这里要转换一下，接口传进来的是转义后的
             //subjectCondition = HttpUtility.HtmlDecode(subjectCondition);
 
             string sortCondition = "publishTime|desc";
-            if (groupName == dp2WeiXinService.C_Group_HomePage)
+            if (group == dp2WeiXinService.C_Group_HomePage)
                 sortCondition = "publishTime|asc";
 
 
@@ -6823,7 +6878,7 @@ namespace dp2weixin.service
             string id = Guid.NewGuid().ToString();
             GetMessageRequest request = new GetMessageRequest(id,
                 action,
-                groupName,
+                group,
                 wxUserName,
                 "", // strTimeRange,
                 sortCondition,//sortCondition 按发布时间倒序排
@@ -6914,11 +6969,9 @@ namespace dp2weixin.service
 
             returnItem = null;
 
-            if (group != dp2WeiXinService.C_Group_Bb
-                && group != dp2WeiXinService.C_Group_Book
-                && group != dp2WeiXinService.C_Group_HomePage)
+            strError = checkGroup(group);
+            if (strError!="")
             {
-                strError = "不支持的群" + group;
                 goto ERROR1;
             }
 
@@ -6929,7 +6982,7 @@ namespace dp2weixin.service
             }
 
             // 2016-8-24 超级管理员可以编辑任何图书馆介绍与公告,注意这个条件判断是取反
-            if (!((group == dp2WeiXinService.C_Group_Bb || group == dp2WeiXinService.C_Group_HomePage)
+            if (!((group == dp2WeiXinService.C_Group_Bb || group == dp2WeiXinService.C_Group_HomePage || group == dp2WeiXinService.C_Group_dp_home)
                 && item.creator == dp2WeiXinService.C_Supervisor))
             {
                 // 检索工作人员是否有权限 _wx_setbb
@@ -6942,6 +6995,13 @@ namespace dp2weixin.service
                     goto ERROR1;
                 }
                 WxUserItem worker= WxUserDatabase.Current.GetWorker(weixinId, libId);
+                if (worker == null)
+                {
+                    strError = "内部错误：未绑定工作人员账户，不应走到编辑消息这里。";
+                    goto ERROR1;
+
+                }
+
                 int nHasRights = this.CheckRights(worker,lib, needRight, out strError);
                 if (nHasRights == -1)
                 {
@@ -6957,6 +7017,9 @@ namespace dp2weixin.service
 
 
             string connName = C_ConnPrefix_Myself + libId;
+            if (group == dp2WeiXinService.C_Group_dp_home)
+                connName = C_ConnPrefix_Myself + C_ConnName_dp;// "_dp_";
+
             string strText = "";
             if (style != "delete")
             {
@@ -7226,7 +7289,18 @@ namespace dp2weixin.service
 
         public const string C_Active_EnumSubject = "enumSubject";
 
+        public static string checkGroup(string group)
+        {
+            if (group != dp2WeiXinService.C_Group_Bb
+               && group != dp2WeiXinService.C_Group_Book
+               && group != dp2WeiXinService.C_Group_HomePage
+                && group != dp2WeiXinService.C_Group_dp_home)
+            {
+                return "不支持的群" + group;
+            }
 
+            return "";
+        }
 
         /// <summary>
         /// 获取栏目
@@ -7245,10 +7319,9 @@ namespace dp2weixin.service
             strError = "";
             list = new List<SubjectItem>();
 
-            if (group != C_Group_Book
-                && group != C_Group_HomePage)
+            strError = checkGroup(group);
+            if (strError!="")
             {
-                strError = "不支持的群" + group;
                 return -1;
             }
 

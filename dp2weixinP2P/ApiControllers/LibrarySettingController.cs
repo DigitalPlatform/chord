@@ -113,5 +113,25 @@ namespace dp2weixinWeb.ApiControllers
 
             return result;
         }
+
+
+        [HttpPost]
+        public ApiResult GetLibName(string capoUserName)
+        {
+            WxUserResult result = new WxUserResult();
+
+            string libName = "";
+            string strError = "";
+            int nRet = dp2WeiXinService.Instance.GetLibName(capoUserName,out libName, out strError);
+            if (nRet ==-1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+            }
+
+            result.info = libName;
+
+            return result;
+        }
     }
 }
