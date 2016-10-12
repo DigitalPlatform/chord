@@ -322,8 +322,10 @@ errorInfo)
             // 防范本函数被重叠调用时形成多个连接
             if (this.Connection != null)
             {
-                this.Connection.Dispose();
+                var temp = this.Connection;
                 this.Connection = null;
+                if (temp != null)
+                    temp.Dispose();
             }
 
             _exiting = true;
@@ -879,6 +881,9 @@ CancellationToken token)
         public virtual void OnCloseRecieved(CloseRequest param)
         {
             this.CloseConnection();
+            // TODO: 可否改造为 Task.Run() ? 规定一个最长的等待时间
+
+
             if (param.Action == "reconnect")
             {
                 ConnectAsync(); // 不用等待完成
@@ -2575,51 +2580,70 @@ CancellationToken token)
 
         #endregion
 
+        int _inCloseConnection = 0;
+
         // 关闭连接，并且不会引起自动重连接
-        public void CloseConnection()
+        public virtual void CloseConnection()
         {
-            if (this.Connection != null)
+            _inCloseConnection++;
+            try
             {
-                // HubProxy.Invoke<MessageResult>("Logout").Wait(500);
+                // 防止本函数重入
+                if (_inCloseConnection > 1)
+                    return;
 
-                Connection.Closed -= new Action(Connection_Closed);
-                /*
-操作类型 crashReport -- 异常报告 
-主题 dp2circulation 
-发送者 xxxxxxx
-媒体类型 text 
-内容 发生未捕获的界面线程异常: 
-Type: System.NullReferenceException
-Message: 未将对象引用设置到对象的实例。
-Stack:
-在 Microsoft.AspNet.SignalR.Client.Connection.Stop(TimeSpan timeout)
-在 dp2Circulation.MessageHub.CloseConnection()
-在 dp2Circulation.MessageHub.Close()
-在 dp2Circulation.MainForm.MainForm_FormClosed(Object sender, FormClosedEventArgs e)
-在 System.Windows.Forms.Form.OnFormClosed(FormClosedEventArgs e)
-在 System.Windows.Forms.Form.WmClose(Message& m)
-在 System.Windows.Forms.Form.WndProc(Message& m)
-在 dp2Circulation.MainForm.WndProc(Message& m)
-在 System.Windows.Forms.Control.ControlNativeWindow.OnMessage(Message& m)
-在 System.Windows.Forms.Control.ControlNativeWindow.WndProc(Message& m)
-在 System.Windows.Forms.NativeWindow.Callback(IntPtr hWnd, Int32 msg, IntPtr wparam, IntPtr lparam)
-
-
-dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, PublicKeyToken=null
-操作系统：Microsoft Windows NT 5.1.2600 Service Pack 3 
-操作时间 2015/8/7 10:51:56 (Fri, 07 Aug 2015 10:51:56 +0800) 
-前端地址 xxxxx 经由 http://dp2003.com/dp2library 
-
-                 * 
-                 * */
-                try
+                if (this.Connection != null)
                 {
-                    this.Connection.Stop(new TimeSpan(0, 0, 5));
+                    // HubProxy.Invoke<MessageResult>("Logout").Wait(500);
+
+                    Connection.Closed -= new Action(Connection_Closed);
+                    /*
+    操作类型 crashReport -- 异常报告 
+    主题 dp2circulation 
+    发送者 xxxxxxx
+    媒体类型 text 
+    内容 发生未捕获的界面线程异常: 
+    Type: System.NullReferenceException
+    Message: 未将对象引用设置到对象的实例。
+    Stack:
+    在 Microsoft.AspNet.SignalR.Client.Connection.Stop(TimeSpan timeout)
+    在 dp2Circulation.MessageHub.CloseConnection()
+    在 dp2Circulation.MessageHub.Close()
+    在 dp2Circulation.MainForm.MainForm_FormClosed(Object sender, FormClosedEventArgs e)
+    在 System.Windows.Forms.Form.OnFormClosed(FormClosedEventArgs e)
+    在 System.Windows.Forms.Form.WmClose(Message& m)
+    在 System.Windows.Forms.Form.WndProc(Message& m)
+    在 dp2Circulation.MainForm.WndProc(Message& m)
+    在 System.Windows.Forms.Control.ControlNativeWindow.OnMessage(Message& m)
+    在 System.Windows.Forms.Control.ControlNativeWindow.WndProc(Message& m)
+    在 System.Windows.Forms.NativeWindow.Callback(IntPtr hWnd, Int32 msg, IntPtr wparam, IntPtr lparam)
+
+
+    dp2Circulation 版本: dp2Circulation, Version=2.4.5697.17821, Culture=neutral, PublicKeyToken=null
+    操作系统：Microsoft Windows NT 5.1.2600 Service Pack 3 
+    操作时间 2015/8/7 10:51:56 (Fri, 07 Aug 2015 10:51:56 +0800) 
+    前端地址 xxxxx 经由 http://dp2003.com/dp2library 
+
+                     * 
+                     * */
+                    try
+                    {
+                        this.Connection.Stop(new TimeSpan(0, 0, 5));
+                    }
+                    catch (System.NullReferenceException)
+                    {
+                    }
+                    var temp = this.Connection;
+                    this.Connection = null;
+
+                    // 2016/10/12
+                    if (temp != null)
+                        temp.Dispose();
                 }
-                catch (System.NullReferenceException)
-                {
-                }
-                this.Connection = null;
+            }
+            finally
+            {
+                _inCloseConnection--;
             }
         }
 

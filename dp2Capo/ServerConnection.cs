@@ -82,6 +82,22 @@ namespace dp2Capo
             // Console.WriteLine(strText);  // 用于观察重新连接情况
         }
 
+        public override void CloseConnection()
+        {
+            if (this.Instance != null)
+            {
+                this.Instance.WriteErrorLog("--- CloseConnection 被触发开始");
+            }
+
+            base.CloseConnection();
+
+            if (this.Instance != null)
+            {
+                this.Instance.WriteErrorLog("--- CloseConnection 被触发结束");
+            }
+        }
+
+
         public LibraryChannel GetChannel()
         {
             string strServerUrl = this.dp2library.Url;
