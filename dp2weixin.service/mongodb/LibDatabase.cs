@@ -173,7 +173,9 @@ namespace dp2weixin.service
                 .Set("comment", item.comment)
                 .Set("OperTime", item.OperTime)
                 .Set("noShareBiblio", item.noShareBiblio)
-                .Set("searchDbs", item.searchDbs);
+                .Set("searchDbs", item.searchDbs)
+                .Set("match", item.match)
+                ;
 
             UpdateResult ret = this.LibCollection.UpdateOneAsync(filter, update).Result;
             return ret.ModifiedCount;
@@ -217,6 +219,7 @@ namespace dp2weixin.service
 
 
         public string searchDbs { get; set; }  // 参于检索的书目库
+        public string match { get; set; }  // 简单检索匹配方式
 
         public int no = 0;
 
