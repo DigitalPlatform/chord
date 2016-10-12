@@ -322,8 +322,10 @@ errorInfo)
             // 防范本函数被重叠调用时形成多个连接
             if (this.Connection != null)
             {
-                this.Connection.Dispose();
+                var temp = this.Connection;
                 this.Connection = null;
+                if (temp != null)
+                    temp.Dispose();
             }
 
             _exiting = true;
@@ -2581,7 +2583,7 @@ CancellationToken token)
         int _inCloseConnection = 0;
 
         // 关闭连接，并且不会引起自动重连接
-        public void CloseConnection()
+        public virtual void CloseConnection()
         {
             _inCloseConnection++;
             try
@@ -2631,7 +2633,12 @@ CancellationToken token)
                     catch (System.NullReferenceException)
                     {
                     }
+                    var temp = this.Connection;
                     this.Connection = null;
+
+                    // 2016/10/12
+                    if (temp != null)
+                        temp.Dispose();
                 }
             }
             finally
