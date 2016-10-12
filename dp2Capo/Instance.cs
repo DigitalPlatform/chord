@@ -420,7 +420,12 @@ namespace dp2Capo
         {
             if (strErrorCode == "_connectionNotFound")
             {
+#if NO
                 this.MessageConnection.CloseConnection();
+                this.WriteErrorLog("Connection 已经被重置");
+#endif
+                this.WriteErrorLog("Connection 开始重置。最长等待 6 秒");
+                Task.Run(() => this.MessageConnection.CloseConnection(), _cancel.Token).Wait(new TimeSpan(0, 0, 6));
                 this.WriteErrorLog("Connection 已经被重置");
             }
         }
