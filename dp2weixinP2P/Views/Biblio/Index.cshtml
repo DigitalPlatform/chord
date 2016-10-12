@@ -12,7 +12,7 @@
                 alert('JSSDK config信息验证失败，不能使用扫码功能。');
                 return;
             }
-            else if (jssdkReady == -1) {
+            else if (jssdkReady == 0) {
                 alert('JSSDK config未初始化完成，请稍候再试。');
                 return;
             }
