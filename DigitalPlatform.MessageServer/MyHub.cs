@@ -31,6 +31,11 @@ namespace DigitalPlatform.MessageServer
             Clients.All.addMessage(name, message);
         }
 
+        public string echo(string text)
+        {
+            return text;
+        }
+
         #region 辅助函数
 
         // 判断响应是否为(顺次发回的)最后一个响应

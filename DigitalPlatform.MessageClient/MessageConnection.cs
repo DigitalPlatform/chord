@@ -2580,6 +2580,27 @@ CancellationToken token)
 
         #endregion
 
+        #region Echo() API
+
+        public Task<string> EchoTaskAsync(
+string text,
+TimeSpan timeout,
+CancellationToken token)
+        {
+            return TaskRun<string>(
+                () =>
+                {
+                    Task<string> task = echo(text);
+                    if (task.Wait(timeout) == true)
+                        return task.Result;
+
+                    return null;    // timeout
+                },
+            token);
+        }
+
+        #endregion
+
         int _inCloseConnection = 0;
 
         // 关闭连接，并且不会引起自动重连接
@@ -2741,6 +2762,11 @@ CancellationToken token)
 #endif
 
         #region 调用 Server 端函数 (直接调用的浅包装)
+
+        public Task<string> echo(string text)
+        {
+            return HubProxy.Invoke<string>("echo", text);
+        }
 
         // 发起一次书目检索
         // 这是比较原始的 API，并不负责接收对方传来的消息

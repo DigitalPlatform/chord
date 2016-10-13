@@ -227,6 +227,26 @@ namespace dp2Capo
             }
         }
 
+        // 获得调试状态
+        public string GetDebugState()
+        {
+            StringBuilder text = new StringBuilder();
+
+            text.Append("instance name: " + this.Name + "\r\n");
+
+            if (this.MessageConnection != null)
+            {
+                text.Append("connection connected: " + this.MessageConnection.IsConnected.ToString() + "\r\n");
+            }
+
+            if (this.dp2library != null)
+            {
+                text.Append("libraryUID: " + this.dp2library.LibraryUID + "\r\n");
+            }
+
+            return text.ToString();
+        }
+
         string GetParameters()
         {
             Hashtable table = new Hashtable();
