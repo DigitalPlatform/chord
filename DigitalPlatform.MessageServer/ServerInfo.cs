@@ -12,6 +12,7 @@ using System.Net;
 using MongoDB.Driver;
 
 using DigitalPlatform.IO;
+using System.Reflection;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -93,8 +94,10 @@ namespace DigitalPlatform.MessageServer
             LogDir = Path.Combine(param.DataDir, "log");   // 日志目录
             PathUtil.CreateDirIfNeed(LogDir);
 
+            string strVersion = Assembly.GetAssembly(typeof(ServerInfo)).GetName().Version.ToString();
+
             // 验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
-            DetectWriteErrorLog("*** dp2MServer 开始启动");
+            DetectWriteErrorLog("*** dp2MServer 开始启动 (dp2MServer 版本: " + strVersion + ")");
 
             string strCfgFileName = Path.Combine(param.DataDir, "config.xml");
             try

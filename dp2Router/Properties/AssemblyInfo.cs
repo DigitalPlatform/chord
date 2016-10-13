@@ -32,7 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.1.*")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.2.*")]
+[assembly: AssemblyFileVersion("1.2.0.0")]
 
 // 1.1 (2016/9/16) 第一个可以被 chordInstaller 安装的版本
+// 1.2 (2016/10/13) 在日志中记载 HTTP request，对方的 IP。以观察 CPU 耗用过高情况的原因

@@ -56,6 +56,10 @@ namespace dp2Router
                 try
                 {
                     TcpClient s = this.Listener.AcceptTcpClient();
+
+                    string ip = ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
+                    ServerInfo.WriteErrorLog("*** ip [" + ip + "] request");
+
                     Thread thread = new Thread(() =>
                     {
                         // this.Processor.TestHandleClient(s);
