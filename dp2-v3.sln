@@ -75,6 +75,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.HTTP", "Dig
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2Router.Install", "dp2Router.Install\dp2Router.Install.csproj", "{34CEBDD7-2804-4440-8334-E5F701A9B9AA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.Net", "DigitalPlatform.Net\DigitalPlatform.Net.csproj", "{449B12C3-D209-4E54-8E0A-E4661F75E7DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -287,6 +289,12 @@ Global
 		{34CEBDD7-2804-4440-8334-E5F701A9B9AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34CEBDD7-2804-4440-8334-E5F701A9B9AA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{34CEBDD7-2804-4440-8334-E5F701A9B9AA}.Release|x86.ActiveCfg = Release|Any CPU
+		{449B12C3-D209-4E54-8E0A-E4661F75E7DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{449B12C3-D209-4E54-8E0A-E4661F75E7DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{449B12C3-D209-4E54-8E0A-E4661F75E7DB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{449B12C3-D209-4E54-8E0A-E4661F75E7DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{449B12C3-D209-4E54-8E0A-E4661F75E7DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{449B12C3-D209-4E54-8E0A-E4661F75E7DB}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
