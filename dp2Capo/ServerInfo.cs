@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using DigitalPlatform.Common;
+using DigitalPlatform.Net;
 
 namespace dp2Capo
 {
@@ -103,6 +104,16 @@ namespace dp2Capo
             {
                 // instance.BeginConnnect();
                 tasks.Add(instance.BeginConnectTask());
+                string strInformation = "";
+                Uri uri = new Uri(instance.dp2mserver.Url);
+                if (NetUtil.Ping(uri.DnsSafeHost, out strInformation) == true)
+                {
+                    instance.WriteErrorLog("ping '"+uri.DnsSafeHost+"' success");
+                }
+                else
+                {
+                    instance.WriteErrorLog("ping '" + uri.DnsSafeHost + "' fail: " + strInformation);
+                }
             }
             else
             {

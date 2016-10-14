@@ -311,56 +311,77 @@ errorInfo)
         }
 
 #endif
+        void AddConnectionEvents(bool bAdd)
+        {
+            if (bAdd)
+            {
+                Connection.Closed += Connection_Closed;
+                Connection.Reconnecting += Connection_Reconnecting;
+                Connection.Reconnected += Connection_Reconnected;
+            }
+            else
+            {
+                Connection.Closed -= Connection_Closed;
+                Connection.Reconnecting -= Connection_Reconnecting;
+                Connection.Reconnected -= Connection_Reconnected;
+            }
+        }
+
+        private static readonly Object _syncRoot = new Object();
 
         // 连接 server
         // 要求调用前设置好 this.ServerUrl this.UserName this.Password this.Parameters
-        public async Task<MessageResult> ConnectAsync(
-            // string strServerUrl
-            )
+        public async Task<MessageResult> ConnectAsync()
         {
-            // 2016/9/15
-            // 防范本函数被重叠调用时形成多个连接
-            if (this.Connection != null)
+            lock (_syncRoot)
             {
-                var temp = this.Connection;
-                this.Connection = null;
-                if (temp != null)
-                    temp.Dispose();
-            }
+                // 2016/9/15
+                // 防范本函数被重叠调用时形成多个连接
+                if (this.Connection != null)
+                {
+                    var temp = this.Connection;
+                    this.Connection = null;
+                    if (temp != null)
+                        temp.Dispose();
+                }
 
-            _exiting = true;
+                _exiting = true;
 
-            // 一直到真正连接前才触发登录事件
-            if (this.Container != null)
-                this.Container.TriggerLogin(this);
+                // 一直到真正连接前才触发登录事件
+                if (this.Container != null)
+                    this.Container.TriggerLogin(this);
 
-            AddInfoLine("正在连接服务器 " + this.ServerUrl + " ...");
-            Connection = new HubConnection(this.ServerUrl);
+                AddInfoLine("正在连接服务器 " + this.ServerUrl + " ...");
+                Connection = new HubConnection(this.ServerUrl);
 
-            Connection.Closed += new Action(Connection_Closed);
+                AddConnectionEvents(true);
+#if NO
+            Connection.Closed += Connection_Closed;
+            // Connection.Closed += new Action(Connection_Closed);
             Connection.Reconnecting += Connection_Reconnecting;
             Connection.Reconnected += Connection_Reconnected;
             // Connection.Error += Connection_Error;
+#endif
 
-            if (this.Container != null && this.Container.TraceWriter != null)
-                Connection.TraceWriter = this.Container.TraceWriter;
+                if (this.Container != null && this.Container.TraceWriter != null)
+                    Connection.TraceWriter = this.Container.TraceWriter;
 
-            // Connection.Credentials = new NetworkCredential("testusername", "testpassword");
-            Connection.Headers.Add("username", this.UserName);
-            Connection.Headers.Add("password", this.Password);
-            Connection.Headers.Add("parameters", this.Parameters);
+                // Connection.Credentials = new NetworkCredential("testusername", "testpassword");
+                Connection.Headers.Add("username", this.UserName);
+                Connection.Headers.Add("password", this.Password);
+                Connection.Headers.Add("parameters", this.Parameters);
 
-            HubProxy = Connection.CreateHubProxy("MyHub");
+                HubProxy = Connection.CreateHubProxy("MyHub");
 
-            HubProxy.On<string, IList<MessageRecord>>("addMessage",
-                (name, messages) =>
-                OnAddMessageRecieved(name, messages)
-                );
+                HubProxy.On<string, IList<MessageRecord>>("addMessage",
+                    (name, messages) =>
+                    OnAddMessageRecieved(name, messages)
+                    );
 
-            // *** search
-            HubProxy.On<SearchRequest>("search",
-                (param) => OnSearchRecieved(param)
-                );
+                // *** search
+                HubProxy.On<SearchRequest>("search",
+                    (param) => OnSearchRecieved(param)
+                    );
 
 #if FIX_HANDLER
             HubProxy.On<SearchResponse>("responseSearch",
@@ -368,35 +389,37 @@ errorInfo)
 );
 #endif
 
-            // *** bindPatron
-            HubProxy.On<BindPatronRequest>("bindPatron",
-                (param) => OnBindPatronRecieved(param)
-                );
+                // *** bindPatron
+                HubProxy.On<BindPatronRequest>("bindPatron",
+                    (param) => OnBindPatronRecieved(param)
+                    );
 
-            // *** setInfo
-            HubProxy.On<SetInfoRequest>("setInfo",
-                (param) => OnSetInfoRecieved(param)
-                );
+                // *** setInfo
+                HubProxy.On<SetInfoRequest>("setInfo",
+                    (param) => OnSetInfoRecieved(param)
+                    );
 
-            // *** circulation
-            HubProxy.On<CirculationRequest>("circulation",
-                (param) => OnCirculationRecieved(param)
-                );
+                // *** circulation
+                HubProxy.On<CirculationRequest>("circulation",
+                    (param) => OnCirculationRecieved(param)
+                    );
 
-            // *** getRes
-            HubProxy.On<GetResRequest>("getRes",
-                (param) => OnGetResRecieved(param)
-                );
+                // *** getRes
+                HubProxy.On<GetResRequest>("getRes",
+                    (param) => OnGetResRecieved(param)
+                    );
 
-            // *** webCall
-            HubProxy.On<WebCallRequest>("webCall",
-                (param) => OnWebCallRecieved(param)
-                );
+                // *** webCall
+                HubProxy.On<WebCallRequest>("webCall",
+                    (param) => OnWebCallRecieved(param)
+                    );
 
-            // *** close
-            HubProxy.On<CloseRequest>("close",
-                (param) => OnCloseRecieved(param)
-                );
+                // *** close
+                HubProxy.On<CloseRequest>("close",
+                    (param) => OnCloseRecieved(param)
+                    );
+            }
+
             try
             {
                 await Connection.Start();
@@ -2601,23 +2624,18 @@ CancellationToken token)
 
         #endregion
 
-        int _inCloseConnection = 0;
-
         // 关闭连接，并且不会引起自动重连接
         public virtual void CloseConnection()
         {
-            _inCloseConnection++;
-            try
+            lock (_syncRoot)
             {
-                // 防止本函数重入
-                if (_inCloseConnection > 1)
-                    return;
-
                 if (this.Connection != null)
                 {
                     // HubProxy.Invoke<MessageResult>("Logout").Wait(500);
 
-                    Connection.Closed -= new Action(Connection_Closed);
+                    AddConnectionEvents(false);
+                    // Connection.Closed -= new Action(Connection_Closed);
+
                     /*
     操作类型 crashReport -- 异常报告 
     主题 dp2circulation 
@@ -2661,10 +2679,6 @@ CancellationToken token)
                     if (temp != null)
                         temp.Dispose();
                 }
-            }
-            finally
-            {
-                _inCloseConnection--;
             }
         }
 
