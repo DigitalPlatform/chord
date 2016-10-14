@@ -97,13 +97,35 @@ namespace dp2Capo
             }
         }
 
+        static void Process(Instance instance, List<Task> tasks)
+        {
+            if (instance.MessageConnection.IsConnected == false)
+            {
+                // instance.BeginConnnect();
+                tasks.Add(instance.BeginConnectTask());
+            }
+            else
+            {
+                // 验证一次请求
+                string text = Guid.NewGuid().ToString();
+                instance.WriteErrorLog("Begin echo: " + text);
+                string result = instance.MessageConnection.echo(text).Result;
+                instance.WriteErrorLog("End   echo: " + result);
+            }
+        }
+
         // 执行一些后台管理任务
         public static void BackgroundWork()
         {
             List<Task> tasks = new List<Task>();
 
+            Instance first_instance = null;
+            if (_instances.Count > 0)
+                first_instance = _instances[0];
             foreach (Instance instance in _instances)
             {
+                instance.WriteErrorLog("<<< BackgroundWork 开始一轮处理\r\n状态:\r\n" + instance.GetDebugState());
+
                 string strError = "";
                 // 利用 dp2library API 获取一些配置信息
                 if (string.IsNullOrEmpty(instance.dp2library.LibraryUID) == true)
@@ -116,23 +138,48 @@ namespace dp2Capo
                     }
                     else
                     {
-                        // instance.BeginConnnect();   // 在获得了图书馆 UID 以后再发起 SignalR 连接
-                        tasks.Add(instance.BeginConnectTask());
+#if NO
+                        if (instance.MessageConnection.IsConnected == false)
+                        {
+                            tasks.Add(instance.BeginConnectTask()); // 2016/10/13 以前没有 if 语句，那样就容易导致重复 BeginConnect()
+                        }
+#endif
+                        Process(instance, tasks);
                     }
                 }
                 else
                 {
+#if NO
                     if (instance.MessageConnection.IsConnected == false)
                     {
                         // instance.BeginConnnect();
                         tasks.Add(instance.BeginConnectTask());
                     }
+                    else
+                    {
+                        // TODO: 验证一次请求
+                    }
+#endif
+                    Process(instance, tasks);
+
                 }
             }
 
             // 阻塞，直到全部任务完成。避免 BeginConnect() 函数被重叠调用
             if (tasks.Count > 0)
+            {
+                if (first_instance != null)
+                    first_instance.WriteErrorLog("-- BackgroundWork - 等待 " + tasks.Count + " 个 Connect 任务完成");
+
                 Task.WaitAll(tasks.ToArray());
+
+                if (first_instance != null)
+                    first_instance.WriteErrorLog("-- BackgroundWork - " + tasks.Count + " 个 Connect 任务已经完成");
+            }
+
+            if (first_instance != null)
+                first_instance.WriteErrorLog(">>> BackgroundWork 结束一轮处理\r\n");
+
         }
     }
 }

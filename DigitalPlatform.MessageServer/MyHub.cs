@@ -31,6 +31,11 @@ namespace DigitalPlatform.MessageServer
             Clients.All.addMessage(name, message);
         }
 
+        public string echo(string text)
+        {
+            return text;
+        }
+
         #region 辅助函数
 
         // 判断响应是否为(顺次发回的)最后一个响应
@@ -3456,10 +3461,16 @@ ex.GetType().ToString());
             connection_info.LibraryUserName = (string)table["libraryUserName"];
 
             // 2016/8/11
+            // TODO: 以下这一段是否会抛出异常? 需要测试验证一下
+            try
             {
                 object ipAddress;
                 Context.Request.Environment.TryGetValue("server.RemoteIpAddress", out ipAddress);
                 connection_info.ClientIP = (string)ipAddress;
+            }
+            catch(Exception ex)
+            {
+                ServerInfo.WriteErrorLog("AddConnection() 中获取 ClientIP 时出现异常: " + ExceptionUtil.GetDebugText(ex));
             }
 
             AddToSignalRGroup(connection_info, true);
@@ -3650,6 +3661,7 @@ ex.GetType().ToString());
 
         static string GetIpAddress(IRequest request)
         {
+            // TODO: 以下这一段是否会抛出异常?
             object ipAddress;
             request.Environment.TryGetValue("server.RemoteIpAddress", out ipAddress);
             return (string)ipAddress;

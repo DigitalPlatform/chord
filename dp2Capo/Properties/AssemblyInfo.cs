@@ -32,11 +32,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.5.*")]
-[assembly: AssemblyFileVersion("1.5.0.0")]
+[assembly: AssemblyVersion("1.6.*")]
+[assembly: AssemblyFileVersion("1.6.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
 // 1.3 (2016/9/15) 修正连接 dp2mserver 时重叠调用 BeginConnect() 的问题
 // 1.4 (2016/10/10) 增加 _cancel, 让退出更敏捷
 // 1.5 (2016/10/12) 增加了防止 MessageConnection.CloseConnection() 函数重入的机制
+// 1.6 (2016/10/13) 为后台线程增加了 echo 机制，并详细化了日志信息

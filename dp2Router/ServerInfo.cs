@@ -290,7 +290,7 @@ namespace dp2Router
                     code = "401";
                 }
 
-                WriteErrorLog(error);
+                WriteErrorLog("1: " + error);
 
                 // 构造一个错误代码响应包
                 return new DigitalPlatform.HTTP.HttpResponse(
@@ -300,7 +300,7 @@ namespace dp2Router
             }
             catch (Exception ex)
             {
-                WriteErrorLog(ExceptionUtil.GetExceptionText(ex));
+                WriteErrorLog("2: " + ExceptionUtil.GetExceptionText(ex));
 
                 // 构造一个 500 错误响应包
                 return new DigitalPlatform.HTTP.HttpResponse(
