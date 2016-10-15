@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using DigitalPlatform.Common;
 using DigitalPlatform.Net;
+using DigitalPlatform;
 
 namespace dp2Capo
 {
@@ -120,8 +121,22 @@ namespace dp2Capo
                 // 验证一次请求
                 string text = Guid.NewGuid().ToString();
                 instance.WriteErrorLog("Begin echo: " + text);
-                string result = instance.MessageConnection.echo(text).Result;
-                instance.WriteErrorLog("End   echo: " + result);
+
+                try
+                {
+                    string result = instance.MessageConnection.EchoTaskAsync(text, TimeSpan.FromSeconds(5), instance._cancel.Token).Result;
+
+                    // 此用法在 dp2mserver 不存在 echo() API 的时候会挂起当前线程
+                    // string result = instance.MessageConnection.echo(text).Result;
+
+                    if (result == null)
+                        result = "(timeout)";
+                    instance.WriteErrorLog("End   echo: " + result);
+                }
+                catch(Exception ex)
+                {
+                    instance.WriteErrorLog("echo 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                }
             }
         }
 

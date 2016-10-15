@@ -451,7 +451,7 @@ namespace dp2Capo
         }
 
         // 中断信号
-        CancellationTokenSource _cancel = new CancellationTokenSource();
+        internal CancellationTokenSource _cancel = new CancellationTokenSource();
 #if NO
 
         // 等待一段时间，或者提前遇到中断信号返回

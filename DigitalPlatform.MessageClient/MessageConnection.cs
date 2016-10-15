@@ -96,6 +96,14 @@ namespace DigitalPlatform.MessageClient
             set;
         }
 
+        // 最近使用时间
+        // 不是太精确，是 GetConnection() 每次的时刻
+        public DateTime LastTime
+        {
+            get;
+            set;
+        }
+
         public MessageConnection()
         {
             _timer.Interval = 1000 * 30;

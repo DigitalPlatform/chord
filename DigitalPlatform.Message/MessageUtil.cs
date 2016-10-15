@@ -471,6 +471,7 @@ namespace DigitalPlatform.Message
         public string LibraryUID { get; set; }
         public string LibraryName { get; set; }
         public string LibraryUserName { get; set; }
+        public string Notes { get; set; }
 
         public string PropertyList { get; set; }
 
@@ -486,7 +487,8 @@ namespace DigitalPlatform.Message
             string libraryName,
             string libraryUserName,
             string propertyList,
-            string clientIP)
+            string clientIP,
+            string notes)
         {
             User user = new User();
             user.userName = userName;
@@ -502,6 +504,7 @@ namespace DigitalPlatform.Message
             this.LibraryUserName = libraryUserName;
             this.PropertyList = propertyList;
             this.ClientIP = clientIP;
+            this.Notes = notes;
         }
     }
 
