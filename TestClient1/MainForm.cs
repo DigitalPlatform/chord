@@ -1183,6 +1183,8 @@ string strHtml)
                         text.Append("PropertyList=" + record.PropertyList + "\r\n");
                     if (string.IsNullOrEmpty(record.ClientIP) == false)
                         text.Append("ClientIP=" + record.ClientIP + "\r\n");
+                    if (string.IsNullOrEmpty(record.Notes) == false)
+                        text.Append("Notes=" + record.Notes + "\r\n");
 
                     i++;
                 }

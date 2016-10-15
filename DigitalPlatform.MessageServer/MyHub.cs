@@ -2072,7 +2072,8 @@ true);
             info.LibraryName,
             info.LibraryUserName,
             info.PropertyList,
-            info.ClientIP);
+            info.ClientIP,
+            info.Notes);
                     records.Add(record);
                     if (records.Count >= batch_size
                         || i == count - 1)
@@ -3459,7 +3460,7 @@ ex.GetType().ToString());
             connection_info.LibraryUID = (string)table["libraryUID"];
             connection_info.LibraryName = (string)table["libraryName"];
             connection_info.LibraryUserName = (string)table["libraryUserName"];
-
+            connection_info.Notes = (string)table["notes"];   // 前端给出的识别用的注释 2016/10/15
             // 2016/8/11
             // TODO: 以下这一段是否会抛出异常? 需要测试验证一下
             try

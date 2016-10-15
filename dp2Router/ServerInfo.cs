@@ -22,6 +22,9 @@ namespace dp2Router
 {
     public static class ServerInfo
     {
+        // 管理线程
+        public static DefaultThread _defaultThread = new DefaultThread();
+
         static MessageConnectionCollection _channels = new MessageConnectionCollection();
 
         // 配置文件 XmlDocument
@@ -200,7 +203,7 @@ namespace dp2Router
             _channels.Login += _channels_Login;
             _channels.AddMessage += _channels_AddMessage;
 
-            // BackThread.BeginThread();
+            _defaultThread.BeginThread();
         }
 
         static void _channels_Login(object sender, LoginEventArgs e)
@@ -212,7 +215,7 @@ namespace dp2Router
                 throw new Exception("尚未指定用户名，无法进行登录");
 
             e.Password = Password;
-            e.Parameters = "";  // "propertyList=biblio_search,libraryUID=xxx";
+            e.Parameters = "notes=" + HttpUtility.UrlEncode(connection.Name);  // "propertyList=biblio_search,libraryUID=xxx";
         }
 
         static void _channels_AddMessage(object sender, AddMessageEventArgs e)
@@ -222,8 +225,14 @@ namespace dp2Router
         // 准备退出
         public static void Exit()
         {
+            _cancel.Cancel();
+
+            _defaultThread.StopThread(true);    // 强制退出
+            _defaultThread.Dispose();
+
             _channels.Login -= _channels_Login;
             _channels.AddMessage -= _channels_AddMessage;
+            _channels.Dispose();
         }
 
         public static DigitalPlatform.HTTP.HttpResponse WebCall(DigitalPlatform.HTTP.HttpRequest request,
@@ -244,12 +253,12 @@ namespace dp2Router
             WebData data = MessageUtility.BuildWebData(request, transferEncoding);
 
             string id = Guid.NewGuid().ToString();
-            WebCallRequest param = new WebCallRequest(id, 
+            WebCallRequest param = new WebCallRequest(id,
                 transferEncoding,
-                data, 
+                data,
                 true,
                 true);
-            CancellationToken cancel_token = new CancellationToken();
+            // CancellationToken cancel_token = new CancellationToken();
 
             try
             {
@@ -257,12 +266,12 @@ namespace dp2Router
 
                 MessageConnection connection = _channels.GetConnectionTaskAsync(
                     Url,
-                    request.Url).Result;
+                    remoteUserName).Result;
                 WebCallResult result = connection.WebCallTaskAsync(
                     remoteUserName,
                     param,
                     new TimeSpan(0, 1, 10), // 10 秒
-                    cancel_token).Result;
+                    _cancel.Token).Result;
 
                 // Console.WriteLine("End WebCall result=" + result.Dump());
 
@@ -286,7 +295,7 @@ namespace dp2Router
                 MessageException ex1 = ExceptionUtil.FindInnerException(ex, typeof(MessageException)) as MessageException;
                 if (ex1 != null && ex1.ErrorCode.ToLower() == "unauthorized")
                 {
-                    error = "dp2Router 针对 dp2MServer 的账户 '"+ex1.UserName+"' 登录失败";
+                    error = "dp2Router 针对 dp2MServer 的账户 '" + ex1.UserName + "' 登录失败";
                     code = "401";
                 }
 
@@ -388,6 +397,11 @@ namespace dp2Router
 
         #endregion
 
+        // 执行一些后台管理任务
+        public static void BackgroundWork()
+        {
+            _channels.ClearIdleConnections(TimeSpan.FromMinutes(60));
+        }
     }
 
 #if NO

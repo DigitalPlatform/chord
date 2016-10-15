@@ -42,6 +42,7 @@ namespace DigitalPlatform.MessageClient
                     if (current_connection.ServerUrl == url && current_connection.Name == strName)
                     {
                         connection = current_connection;
+                        connection.LastTime = DateTime.Now;
                         goto FOUND;
                     }
                 }
@@ -49,6 +50,7 @@ namespace DigitalPlatform.MessageClient
                 connection = new MessageConnection();
                 connection.ServerUrl = url;
                 connection.Name = strName;
+                connection.LastTime = DateTime.Now;
                 connection.Container = this;
                 this._lock.EnterWriteLock();
                 try
@@ -148,6 +150,7 @@ bool autoConnect = true)
                     if (current_connection.ServerUrl == url && current_connection.Name == strName)
                     {
                         connection = current_connection;
+                        connection.LastTime = DateTime.Now;
                         goto FOUND;
                     }
                 }
@@ -155,6 +158,7 @@ bool autoConnect = true)
                 connection = new MessageConnection();
                 connection.ServerUrl = url;
                 connection.Name = strName;
+                connection.LastTime = DateTime.Now;
                 connection.Container = this;
                 this._lock.EnterWriteLock();
                 try
@@ -260,6 +264,37 @@ bool autoConnect = true)
             finally
             {
                 this._lock.ExitWriteLock();
+            }
+        }
+
+        // 清除休闲长达一定时段的通道
+        public void ClearIdleConnections(TimeSpan delta)
+        {
+            DateTime now = DateTime.Now;
+            List<MessageConnection> connections = new List<MessageConnection>();
+            foreach (MessageConnection connection in this._connections)
+            {
+                if (now - connection.LastTime > delta)
+                {
+                    connection.CloseConnection();
+                    connections.Add(connection);
+                }
+            }
+
+            if (connections.Count > 0)
+            {
+                this._lock.EnterWriteLock();
+                try
+                {
+                    foreach (MessageConnection connection in connections)
+                    {
+                        this._connections.Remove(connection);
+                    }
+                }
+                finally
+                {
+                    this._lock.ExitWriteLock();
+                }
             }
         }
 

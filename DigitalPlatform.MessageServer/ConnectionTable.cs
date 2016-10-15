@@ -428,6 +428,7 @@ namespace DigitalPlatform.MessageServer
             text.Append("LibraryName=" + this.LibraryName + strDelimiter);
             text.Append("Rights=" + this.Rights + strDelimiter);
             text.Append("Duty=" + this.Duty + strDelimiter);
+            text.Append("Notes=" + this.Notes + strDelimiter);
             return text.ToString();
         }
 
@@ -442,6 +443,8 @@ namespace DigitalPlatform.MessageServer
 
         public string LibraryUID = "";      // 用户所属图书馆的 UID。用它可以避免给若干同属一个图书馆的连接发送检索请求，因为这样势必会得到完全重复的命中结果
         public string LibraryName = "";     // 图书馆名
+
+        public string Notes = "";       // 前端给出的注释，用于识别不同的通道实例。2016/10/15
 
         public long SearchCount = 0;    // 响应检索请求的累积次数
 
