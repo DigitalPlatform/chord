@@ -12,7 +12,7 @@ namespace dp2weixinWeb.Controllers
 {
     public class BaseController : Controller
     {
-        public string GetLibSelectHtml(string selLibId, string weixinId,bool bContainEmptyLine)
+        public string GetLibSelectHtml(string selLibId, string weixinId, bool bContainEmptyLine)
         {
             List<LibEntity> list1 = LibDatabase.Current.GetLibs();
 
@@ -47,8 +47,8 @@ namespace dp2weixinWeb.Controllers
 
             var opt = "";
 
-            if (bContainEmptyLine==true)
-                opt= "<option style='color:#aaaaaa' value=''>请选择图书馆</option>";
+            if (bContainEmptyLine == true)
+                opt = "<option style='color:#aaaaaa' value=''>请选择图书馆</option>";
 
             // 先加绑定的
             if (bindList.Count > 0)
@@ -101,7 +101,7 @@ namespace dp2weixinWeb.Controllers
             string libHtml = "<select id='selLib' style='padding-left: 0px;width: 65%;border:1px solid #eeeeee'  >" + opt + "</select>";
             return libHtml;
         }
-        public int CheckIsFromWeiXin(string code, string state,out string strError)
+        public int CheckIsFromWeiXin(string code, string state, out string strError)
         {
             strError = "";
 
@@ -146,60 +146,9 @@ namespace dp2weixinWeb.Controllers
             if (Session[WeiXinConst.C_Session_WeiXinId] == null
                 || (String)Session[WeiXinConst.C_Session_WeiXinId] == "")
             {
-                strError = "页面超时，请点击<a href='"+dp2WeiXinService.Instance.Auth2Url_LibHome+"'>这里</a>或者从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
+                strError = "页面超时，请点击<a href='" + dp2WeiXinService.Instance.Auth2Url_LibHome + "'>这里</a>或者从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
                 return -1;
             }
-
-
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-
-
-            // 微信用户设置的图书馆
-            string libName = "";
-            string libId = "";
-            int showPhoto = 0; //显示头像
-            int showCover = 0;//显示封面
-            
-            UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
-            if (settingItem != null)
-            {
-                LibEntity lib = dp2WeiXinService.Instance.GetLibById(settingItem.libId);
-                if (lib == null)
-                {
-                    strError = "未找到id为'" + settingItem.libId + "'对应的图书馆"; //这里lib为null竟然用了lib.id，一个bug 2016-8-11
-                    return -1;
-                }
-                if (lib != null)
-                {
-                    libName = lib.libName;
-                    libId = lib.id;
-                    showPhoto = settingItem.showPhoto;
-                    showCover = settingItem.showCover;
-
-                    if (Request.Path=="/Library/Book")//) == true)///Library/BookEdit
-                    {
-                        string xml = settingItem.xml;
-                        ViewBag.remeberBookSubject = UserSettingDb.getBookSubject(xml);
-                    }
-                }
-            }
-            if (libName == "" || libId=="")
-            {
-                List<LibEntity> libs = LibDatabase.Current.GetLibs();
-                if (libs == null || libs.Count == 0)
-                {
-                    strError = "当前系统未配置图书馆";
-                    return -1;
-                }
-
-                LibEntity lib = libs[0]; // 第一个是数字平台
-                libName = lib.libName;
-                libId = lib.id;
-            }
-            ViewBag.LibName = "["+libName+"]";
-            ViewBag.LibId = libId;
-            ViewBag.showPhoto = showPhoto;
-            ViewBag.showCover = showCover;
 
             if (dp2WeiXinService.Instance.ApplName == "dp2weixin")
                 ViewBag.AppName = "我爱图书馆";
@@ -207,16 +156,67 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.AppName = "数字平台1";
 
 
-            ////当前读者
-            //WxUserItem curPatron = WxUserDatabase.Current.GetActivePatron(weixinId);
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
 
-            // 当前工作人员
-            //WxUserItem curWorker = WxUserDatabase.Current.GetOneWorker(weixinId);
+            // 微信用户设置的图书馆
+            string libName = "";
+            string libId = "";
+            int showPhoto = 0; //显示头像
+            int showCover = 0;//显示封面
+            Library lib = null;
+            UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
+            if (settingItem != null)
+            {
+                lib = dp2WeiXinService.Instance.LibManager.GetLibrary(settingItem.libId);//.GetLibById(settingItem.libId);
+                if (lib == null)
+                {
+                    strError = "未找到id为'" + settingItem.libId + "'对应的图书馆"; //这里lib为null竟然用了lib.id，一个bug 2016-8-11
+                    return -1;
+                }
 
+                showPhoto = settingItem.showPhoto;
+                showCover = settingItem.showCover;
+                if (Request.Path == "/Library/Book")//) == true)///Library/BookEdit
+                {
+                    string xml = settingItem.xml;
+                    ViewBag.remeberBookSubject = UserSettingDb.getBookSubject(xml);
+                }
+
+            }
+
+            if (lib==null) // 找第一个
+            {
+                List<Library> libs = dp2WeiXinService.Instance.LibManager.Librarys;//  LibDatabase.Current.GetLibs();
+                if (libs == null || libs.Count == 0)
+                {
+                    strError = "当前系统未配置图书馆";
+                    return -1;
+                }
+
+                lib = libs[0]; // 第一个是数字平台
+            }
+
+            if (lib != null)
+            {
+                libName = lib.Entity.libName;
+                libId = lib.Entity.id;
+            }
+
+            ViewBag.LibName = "[" + libName + "]";
+            ViewBag.LibId = libId;
+            ViewBag.showPhoto = showPhoto;
+            ViewBag.showCover = showCover;
+            ViewBag.LibState = lib.State;
+            if (lib.State == LibraryManager.C_State_Hangup)
+            {
+                strError = libName+" 的桥接服务器dp2capo版本不够新，已为挂起状态，请尽快升级。";
+                return -1;
+            }            
+
+            // 注意这里有时异常
             JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(dp2WeiXinService.Instance.weiXinAppId,
-dp2WeiXinService.Instance.weiXinSecret,
-Request.Url.AbsoluteUri);
-
+                dp2WeiXinService.Instance.weiXinSecret,
+                Request.Url.AbsoluteUri);
             ViewData["AppId"] = dp2WeiXinService.Instance.weiXinAppId;
             ViewData["Timestamp"] = package.Timestamp;
             ViewData["NonceStr"] = package.NonceStr;

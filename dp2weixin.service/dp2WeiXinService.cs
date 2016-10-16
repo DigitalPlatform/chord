@@ -489,6 +489,7 @@ namespace dp2weixin.service
                 e.UserName = GetUserName();
                 if (string.IsNullOrEmpty(e.UserName) == true)
                     throw new Exception("尚未指定用户名，无法进行登录");
+               
 
                 e.Password = GetPassword();
 

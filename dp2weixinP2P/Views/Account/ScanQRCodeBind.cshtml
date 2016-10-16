@@ -39,11 +39,9 @@
             var error = "";
             if (version == "0")
             {
-                error = libName + " 的dp2library版本不够新，请先升级dp2library。";
+                error = libName + " 的桥接服务器dp2capo版本不够新，请尽快升级。";
             }
-            else if (version == "-1") {
-                error = libName + " 的桥接服务器失去连接，无法访问。";
-            }
+
             if (error != "")
             {
                 $("#errorInfo").text(error);

@@ -12,14 +12,15 @@ namespace dp2weixin.service
 {
     public class LibraryManager
     {
-        List<Library> Librarys = null;
+        public List<Library> Librarys = null;
 
         // 宏macro
         public const string M_Lib_PatronCount = "%PatronCount%";
         public const string M_Lib_WorkerCount = "%WorkerCount%";
         public const string M_Lib_BindTotalCount = "%BindTotalCount%";
 
-        public const string C_RequestVersion = "2.85";
+        public const string C_RequestCapoVersion = "1.9";
+        public const string C_State_Hangup = "hang-up";
 
         /// <summary>
         /// 初始化
@@ -62,6 +63,7 @@ namespace dp2weixin.service
 
             // 获取版本号
             library.Version = this.GetVersion(entity);
+            library.SetState(); //根据版本设置状态
 
             // 加到内存中
             this.Librarys.Add(library);
@@ -141,23 +143,30 @@ namespace dp2weixin.service
 
             foreach (Library lib in this.Librarys)
             {
-                if (lib.Version == "-1" || lib.Version=="0.0") //2016/9/30
+                if (lib.State == LibraryManager.C_State_Hangup) // 20161017 统一改为用挂起状态判断 //.Version == "-1" || lib.Version=="0.0") //2016/9/30
                 {
                     lib.Version = this.GetVersion(lib.Entity);
                 }
             }
         }
 
-        public string GetVersion(LibEntity lib)
+        private string GetVersion(LibEntity lib)
         {
             string version = "";
 
             // 获取版本号
             string strError = "";
             List<string> dataList = new List<string>();
+            //int nRet = dp2WeiXinService.Instance.GetSystemParameter(lib,
+            //    "system",
+            //    "version",
+            //    out dataList,
+            //    out strError);
+
+            //(较早的dp2Capo在上述功能被调用时会返回ErrorInfo=未知的 category '_clock' 和 name '',ErrorCode=NotFound)
             int nRet = dp2WeiXinService.Instance.GetSystemParameter(lib,
-                "system",
-                "version",
+                "_capoVersion",
+                "",
                 out dataList,
                 out strError);
             if (nRet == -1)
@@ -200,18 +209,8 @@ namespace dp2weixin.service
                     versionStr += ";";
 
                 int ok = 0;
-                if (lib.Version != "-1")
-                {
-                    int nRet = StringUtil.CompareVersion(lib.Version, C_RequestVersion);
-                    if (nRet >= 0)
-                        ok = 1;
-                    else
-                        ok = 0;
-                }
-                else
-                {
-                    ok = -1;
-                }
+                if (lib.State == "")//正常状态
+                    ok = 1;
 
                 versionStr += lib.Entity.id + ":" + ok.ToString();
             }
@@ -246,7 +245,26 @@ namespace dp2weixin.service
         }
 
         // dp2library版本号
-        public string Version { get; set; }
+        public string Version{ get; set; }
+
+        public void SetState()
+        {
+                if (Version != "-1")
+                {
+                    int nRet = StringUtil.CompareVersion(Version, LibraryManager.C_RequestCapoVersion);
+                    if (nRet > 0)
+                        this.State = "";
+                    else
+                        this.State = LibraryManager.C_State_Hangup;
+                }
+                else
+                {
+                    this.State = LibraryManager.C_State_Hangup; 
+                }            
+        }
+
+        // 图书馆，目前主要有用值为 hang-up
+        public string State { get; private set; }
 
     }
 }
