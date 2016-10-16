@@ -1925,11 +1925,27 @@ strErrorCode));
             {
                 string strValue = "";
 
-                long lRet = channel.GetSystemParameter(// null,
-                    searchParam.QueryWord,
-                    searchParam.FormatList,
-                    out strValue,
-                    out strError);
+                long lRet = 0;
+                if (searchParam.QueryWord == "_clock")
+                {
+                    // 返回 0 表示成功
+                    lRet = channel.GetClock(out strValue, out strError);
+                    if (lRet != -1)
+                        lRet = 1;
+                }
+                else if (searchParam.QueryWord == "_capoVersion")
+                {
+                    strValue = ServerInfo.Version;
+                    lRet = 1;
+                }
+                else
+                {
+                    lRet = channel.GetSystemParameter(// null,
+                        searchParam.QueryWord,
+                        searchParam.FormatList,
+                        out strValue,
+                        out strError);
+                }
                 strErrorCode = channel.ErrorCode.ToString();
                 if (lRet == -1 || lRet == 0)
                 {

@@ -58,10 +58,10 @@ namespace dp2Capo
             this.LogDir = Path.Combine(Path.GetDirectoryName(strXmlFileName), "log");
             PathUtil.CreateDirIfNeed(this.LogDir);
 
-            string strVersion = Assembly.GetAssembly(typeof(Instance)).GetName().Version.ToString();
+            // string strVersion = Assembly.GetAssembly(typeof(Instance)).GetName().Version.ToString();
 
             // 验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
-            this.DetectWriteErrorLog("*** 实例 " + this.Name + " 开始启动 (dp2Capo 版本: " + strVersion + ")");
+            this.DetectWriteErrorLog("*** 实例 " + this.Name + " 开始启动 (dp2Capo 版本: " + ServerInfo.Version + ")");
 
             XmlDocument dom = new XmlDocument();
             dom.Load(strXmlFileName);

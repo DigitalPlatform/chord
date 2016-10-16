@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using DigitalPlatform.Common;
 using DigitalPlatform.Net;
 using DigitalPlatform;
+using System.Reflection;
 
 namespace dp2Capo
 {
@@ -206,6 +207,14 @@ namespace dp2Capo
             if (first_instance != null)
                 first_instance.WriteErrorLog(">>> BackgroundWork 结束一轮处理\r\n");
 
+        }
+
+        public static string Version
+        {
+            get
+            {
+                return Assembly.GetAssembly(typeof(Instance)).GetName().Version.ToString();
+            }
         }
     }
 }
