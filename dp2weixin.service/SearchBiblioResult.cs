@@ -56,7 +56,7 @@ namespace dp2weixin.service
 
         public string barcode { get; set; }
         public string state { get; set; }
-        public string volumn { get; set; }
+        public string volume { get; set; }
         public string location { get; set; }
         public string price { get; set; }
 
@@ -74,5 +74,7 @@ namespace dp2weixin.service
          public string borrowPeriod { get; set; }
 
          public string reservationInfo { get; set; }
+
+         public string imgHtml { get; set; }
     }
 }
