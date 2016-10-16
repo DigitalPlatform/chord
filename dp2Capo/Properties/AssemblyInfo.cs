@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.8.*")]
-[assembly: AssemblyFileVersion("1.8.0.0")]
+[assembly: AssemblyVersion("1.9.*")]
+[assembly: AssemblyFileVersion("1.9.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -43,3 +43,4 @@ using System.Runtime.InteropServices;
 // 1.6 (2016/10/13) 为后台线程增加了 echo 机制，并详细化了日志信息
 // 1.7 (2016/10/14) 增加了 ping 机制
 // 1.8 (2016/10/15) 对 dp2Capo 调用 echo 的方法进行了加固，增加了超时返回机制，进行了异常捕获
+// 1.9 (2016/10/16) search() API 的 getSystemParameter 功能增加了 QueryWord 为 _lock 和 _capoVersion 两种参数
