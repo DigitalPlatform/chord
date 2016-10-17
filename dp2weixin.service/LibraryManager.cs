@@ -356,6 +356,7 @@ namespace dp2weixin.service
                 }
             }
 
+            return;
 
             ERROR1:
             dp2WeiXinService.Instance.WriteErrorLog1("获取库信息出错:" + strError);

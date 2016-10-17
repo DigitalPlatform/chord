@@ -228,6 +228,14 @@ namespace dp2weixinWeb.Controllers
 
             bool bJsReg = JsApiTicketContainer.CheckRegistered(dp2WeiXinService.Instance.weiXinAppId);
 
+            ////获取时间戳
+            //var timestamp = JSSDKHelper.GetTimestamp();
+            ////获取随机码
+            //string nonceStr = JSSDKHelper.GetNoncestr();
+            //string ticket = JsApiTicketContainer.GetJsApiTicket(dp2WeiXinService.Instance.weiXinAppId);
+            ////.TryGetJsApiTicket(appId,appSecret);
+            ////获取签名
+            //string signature = JSSDKHelper.GetSignature(ticket, nonceStr, timestamp, Request.Url.AbsoluteUri);
 
             // 注意这里有时异常
             JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(dp2WeiXinService.Instance.weiXinAppId,
