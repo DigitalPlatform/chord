@@ -347,6 +347,8 @@ errorInfo)
                 // 防范本函数被重叠调用时形成多个连接
                 if (this.Connection != null)
                 {
+                    AddConnectionEvents(false);
+
                     var temp = this.Connection;
                     this.Connection = null;
                     if (temp != null)
@@ -2647,6 +2649,32 @@ CancellationToken token)
 
             return ok.Wait(timeout);
         }
+
+#if NO
+        public virtual bool CloseConnection(TimeSpan timeout)
+        {
+            ManualResetEventSlim ok = new ManualResetEventSlim();
+            Thread thread = new Thread(() =>
+            {
+                // do work here
+                CloseConnection();
+                ok.Set();
+            });
+            thread.Start();
+            try
+            {
+                bool bRet = ok.Wait(timeout);
+                if (bRet == false)
+                    thread = null;
+                return bRet;
+            }
+            finally
+            {
+                if (thread != null)
+                    thread.Abort();
+            }
+        }
+#endif
 
         // 关闭连接，并且不会引起自动重连接
         public virtual void CloseConnection()

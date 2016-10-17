@@ -452,8 +452,15 @@ namespace dp2Capo
                 Task.Run(() => this.MessageConnection.CloseConnection(), _cancel.Token).Wait(new TimeSpan(0, 0, 6));
                 this.WriteErrorLog("Connection 已经被重置");
 #endif
+#if NO
+                // 用单独线程的方法
                 this.WriteErrorLog("Connection 开始重置。最长等待 6 秒");
                 this.MessageConnection.CloseConnection(TimeSpan.FromSeconds(6));
+                this.WriteErrorLog("Connection 已经被重置");
+#endif
+                // 缺点是可能会在 dp2mserver 一端遗留原有通道。需要测试验证一下
+                this.WriteErrorLog("Connection 开始重置。方法是重新连接。最长等待 6 秒");
+                this.MessageConnection.ConnectAsync().Wait(TimeSpan.FromSeconds(6));
                 this.WriteErrorLog("Connection 已经被重置");
             }
         }
