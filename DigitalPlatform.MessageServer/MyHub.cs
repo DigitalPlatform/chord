@@ -1576,7 +1576,7 @@ true);
                         {
                             result.String = "AlreadyExist";
                             result.Value = -1;
-                            result.ErrorInfo = "create 命令失败: 用户名为 '"+item.userName+"' 的账户已经存在";
+                            result.ErrorInfo = "create 命令失败: 用户名为 '" + item.userName + "' 的账户已经存在";
                             return result;
                         }
 
@@ -1727,7 +1727,7 @@ ex.GetType().ToString());
                     CloseRequest request = new CloseRequest("");
                     Clients.Client(info.ConnectionID).close(request);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.Write("切断前端通讯通道时出现异常: " + ExceptionUtil.GetExceptionText(ex));
                 }
@@ -1993,6 +1993,33 @@ ex.GetType().ToString());
 
         #region GetConnectionInfo() API
 
+        MessageResult ClearConnection(string connection_id)
+        {
+            MessageResult result = new MessageResult();
+
+            if (connection_id != "*")
+            {
+                ConnectionInfo connection_info = GetConnection(connection_id,
+    result,
+    "RequestGetGroup()",
+    false);
+                if (connection_info == null)
+                {
+                    result.ErrorInfo = "拟清除的 id 为 '" + connection_id + "' 的 connection 没有找到";
+                    result.Value = -1;
+                    result.String = "";
+                    return result;
+                }
+            }
+
+            if (connection_id == "*")
+                ServerInfo.ConnectionTable.Clear();
+            else
+                ServerInfo.ConnectionTable.RemoveConnection(connection_id);
+            result.Value = 0;
+            return result;
+        }
+
         public MessageResult RequestGetConnectionInfo(GetConnectionInfoRequest param)
         {
             MessageResult result = new MessageResult();
@@ -2018,6 +2045,31 @@ result,
 true);
             if (connection_info == null)
                 return result;
+
+            // 2016/10/17
+            if (param.Operation == "clear")
+            {
+                return ClearConnection(param.QueryWord);
+            }
+            else if (param.Operation == "close")
+            {
+                try
+                {
+                    CloseRequest request = new CloseRequest("");
+                    Clients.Client(param.QueryWord).close(request);
+                }
+                catch (Exception ex)
+                {
+                    string strError = "dp2mserver 切断前端通讯通道 '"+param.QueryWord+"' 时出现异常: " + ExceptionUtil.GetExceptionText(ex);
+                    Console.Write(strError);
+                    result.Value = -1;
+                    result.ErrorInfo = strError;
+                    return result;
+                }
+
+                result.Value = 0;
+                return result;
+            }
 
             SearchInfo search_info = null;
             try
@@ -2062,7 +2114,9 @@ true);
                 foreach (ConnectionInfo info in ServerInfo.ConnectionTable)
                 {
                     // TODO: 根据请求者的级别不同，所获得的信息详尽程度不同
-                    ConnectionRecord record = new ConnectionRecord(info.UserName,
+                    ConnectionRecord record = new ConnectionRecord(
+                        info.ConnectionID,
+                        info.UserName,
             info.Rights,
             info.Duty,
             info.Department, // department,
@@ -3469,7 +3523,7 @@ ex.GetType().ToString());
                 Context.Request.Environment.TryGetValue("server.RemoteIpAddress", out ipAddress);
                 connection_info.ClientIP = (string)ipAddress;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ServerInfo.WriteErrorLog("AddConnection() 中获取 ClientIP 时出现异常: " + ExceptionUtil.GetDebugText(ex));
             }

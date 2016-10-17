@@ -2632,6 +2632,22 @@ CancellationToken token)
 
         #endregion
 
+        // return:
+        //      true    超时返回
+        //      false   正常返回
+        public virtual bool CloseConnection(TimeSpan timeout)
+        {
+            ManualResetEventSlim ok = new ManualResetEventSlim();
+            new Thread(() =>
+            {
+                // do work here
+                CloseConnection();
+                ok.Set();
+            }).Start();
+
+            return ok.Wait(timeout);
+        }
+
         // 关闭连接，并且不会引起自动重连接
         public virtual void CloseConnection()
         {
@@ -2685,7 +2701,10 @@ CancellationToken token)
 
                     // 2016/10/12
                     if (temp != null)
+                    {
                         temp.Dispose();
+                        GC.Collect();
+                    }
                 }
             }
         }

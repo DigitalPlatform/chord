@@ -24,6 +24,9 @@ namespace dp2Capo
     /// </summary>
     public class Instance
     {
+        // 最近一次检查的时间
+        public DateTime LastCheckTime { get; set; }
+
         public LibraryHostInfo dp2library { get; set; }
         public HostInfo dp2mserver { get; set; }
 
@@ -444,8 +447,13 @@ namespace dp2Capo
                 this.MessageConnection.CloseConnection();
                 this.WriteErrorLog("Connection 已经被重置");
 #endif
+#if NO
                 this.WriteErrorLog("Connection 开始重置。最长等待 6 秒");
                 Task.Run(() => this.MessageConnection.CloseConnection(), _cancel.Token).Wait(new TimeSpan(0, 0, 6));
+                this.WriteErrorLog("Connection 已经被重置");
+#endif
+                this.WriteErrorLog("Connection 开始重置。最长等待 6 秒");
+                this.MessageConnection.CloseConnection(TimeSpan.FromSeconds(6));
                 this.WriteErrorLog("Connection 已经被重置");
             }
         }
