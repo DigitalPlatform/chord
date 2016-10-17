@@ -2644,19 +2644,27 @@ namespace dp2weixin.service
         public Hashtable _offlineLibs = new Hashtable();
 
         /// <summary>
-        /// 获取不在线的图书馆
+        /// 获取不在线的图书馆,包含2类
+        /// 1是由于版本低挂起状态的图书馆
+        /// 2是版本正常，真不在线的图书馆
         /// </summary>
         /// <returns></returns>
-        public List<LibEntity> GetOfflineLibs()
+        public List<Library> GetOfflineLibs()
         {
-            List<LibEntity> offlineLibs = new List<LibEntity>();
+            List<Library> offlineLibs = new List<Library>();
             string strError = "";
 
-            List<LibEntity> libs = LibDatabase.Current.GetLibs();  // 20161016 jane 这里应该用内存的数据库集合是好了 todo
-            foreach (LibEntity lib in libs)
+            List<Library> libs = dp2WeiXinService.Instance.LibManager.Librarys; //LibDatabase.Current.GetLibs();  // 20161016 jane 这里应该用内存的数据库集合是好了 todo
+            foreach (Library lib in libs)
             {
-                int doCount = 0;
-            REDO:
+                // 如果是挂起状态，直接加入不在线列表
+                if (lib.State == LibraryManager.C_State_Hangup)
+                {
+                    offlineLibs.Add(lib);
+                    continue;
+                }
+
+                LibEntity libEntity = lib.Entity;
                 try
                 {
                     CancellationToken cancel_token = new CancellationToken();
@@ -2664,11 +2672,11 @@ namespace dp2weixin.service
                     SearchRequest request = new SearchRequest(id,
                         "getSystemParameter",
                         "",
-                        "cfgs",//queryWord,
+                        "_clock",//"cfgs",//queryWord,
                         "",
                         "",
                         "",
-                        "getDataDir",//formatList,//
+                        "",//"getDataDir",//formatList,//
                         1,
                         0,
                         -1);
@@ -2695,7 +2703,7 @@ namespace dp2weixin.service
                         C_ConnName_CheckOfflineLibs).Result;//lib.capoUserName 2016/10/16 jane 改为一根通道了
 
                     SearchResult result = connection.SearchTaskAsync(
-                        lib.capoUserName,
+                        libEntity.capoUserName,
                         request,
                         new TimeSpan(0, 1, 0),
                         cancel_token).Result;
@@ -2704,7 +2712,7 @@ namespace dp2weixin.service
                         if (result.ErrorCode == "TargetNotFound")
                         {
                             // 总是漏掉江西警察学校，这里输出日志看看。
-                            this.WriteLog2("检查 " + lib.libName + " 为离线状态。");
+                            this.WriteLog2("检查 " + libEntity.libName + " 为离线状态。");
 
                             offlineLibs.Add(lib);
                             continue;
@@ -2716,7 +2724,7 @@ namespace dp2weixin.service
                     }
 
                     // 总是漏掉江西警察学校，这里输出日志看看。
-                    this.WriteLog2("检查 " + lib.libName + " 为在线状态。");
+                    this.WriteLog2("检查 " + libEntity.libName + " 为在线状态。");
                 }
                 catch (AggregateException ex)
                 {
@@ -2736,13 +2744,9 @@ namespace dp2weixin.service
 
             ERROR1:
                 //将错误写到日志里，继续检索其它图书馆
-                strError = "检查图书馆 " + lib.libName + " 是否在线(重试次数" + doCount + ")出错: " + strError;
+                strError = "检查图书馆 " + libEntity.libName + " 是否在线出错: " + strError;
                 WriteErrorLog1(strError);
-                if (doCount == 0)
-                {
-                    doCount++;
-                    goto REDO;
-                }
+
             }
             return offlineLibs;
         }
@@ -2757,7 +2761,7 @@ namespace dp2weixin.service
             try
             {
                 // 本次不在线的图书馆
-                List<LibEntity> thisOfflineLibs = this.GetOfflineLibs();
+                List<Library> thisOfflineLibs = this.GetOfflineLibs();
                 this.WriteLog2("本轮检查有" + thisOfflineLibs.Count + "个不在线图书馆");
 
                 // 整理缓存中不在线的图书馆
@@ -2777,9 +2781,9 @@ namespace dp2weixin.service
                     foreach (string libid in this._offlineLibs.Keys)
                     {
                         bool bFound = false;
-                        foreach (LibEntity lib in thisOfflineLibs)
+                        foreach (Library lib in thisOfflineLibs)
                         {
-                            if (libid == lib.id)
+                            if (libid == lib.Entity.id)
                             {
                                 bFound = true;
                                 break;
@@ -2802,30 +2806,30 @@ namespace dp2weixin.service
                 }
 
                 // 处理本次的未在线图书馆，得到需要发通知的图书馆
-                List<LibEntity> warningLibs = new List<LibEntity>();                
+                List<Library> warningLibs = new List<Library>();                
                 if (thisOfflineLibs.Count > 0)
                 {
                     DateTime now = DateTime.Now;
                     TimeSpan delta = new TimeSpan(1, 0, 0);
-                    foreach (LibEntity lib in thisOfflineLibs)
+                    foreach (Library lib in thisOfflineLibs)
                     {
-                        if (this._offlineLibs.ContainsKey(lib.id) == false)
+                        if (this._offlineLibs.ContainsKey(lib.Entity.id) == false)
                         {
-                            this.WriteLog2("不在线图书馆 " + lib.libName + " 本来不在内存中，加到发通知列表");
+                            this.WriteLog2("不在线图书馆 " + lib.Entity.libName + " 本来不在内存中，加到发通知列表");
                             warningLibs.Add(lib);
                         }
                         else
                         {
                             // 检查上次发通知时间,超过一小时，继续通知
-                            DateTime lastTime = (DateTime)this._offlineLibs[lib.id];
+                            DateTime lastTime = (DateTime)this._offlineLibs[lib.Entity.id];
                             if (now - lastTime > delta) //2016/9/25 jane 改bug 比较的2个时间写反了 lastTime-now
                             {
                                 warningLibs.Add(lib);
-                                this.WriteLog2("不在线图书馆 " + lib.libName + " 本来在内存中，上次发送时间超过1小时，需再次发通知，加到发通知列表中。");
+                                this.WriteLog2("不在线图书馆 " + lib.Entity.libName + " 本来在内存中，上次发送时间超过1小时，需再次发通知，加到发通知列表中。");
                             }
                             else
                             {
-                                this.WriteLog2("不在线图书馆 " + lib.libName + " 本来在内存中，上次发送时间小于1小时，此轮不发通知。");
+                                this.WriteLog2("不在线图书馆 " + lib.Entity.libName + " 本来在内存中，上次发送时间小于1小时，此轮不发通知。");
 
                             }
                         }
@@ -2842,13 +2846,13 @@ namespace dp2weixin.service
                     WriteLog2("找到 " + dp2003Workers.Count.ToString() + " 位数字平台工作人员");
                 }
 
-                foreach (LibEntity lib in warningLibs)
+                foreach (Library lib in warningLibs)
                 {
-                    this.WriteLog2("准备发送 " + lib.libName + " 不在线通知");
+                    this.WriteLog2("准备发送 " + lib.Entity.libName + " 不在线通知");
 
                     // 图书馆工作人员 weixinid
-                    List<WxUserItem> libWorkers = this.getWarningWorkerWeixinIds(lib);
-                    WriteLog2("找到 " + libWorkers.Count.ToString() + " 位图书馆 " + lib.libName + " 工作人员");
+                    List<WxUserItem> libWorkers = this.getWarningWorkerWeixinIds(lib.Entity);
+                    WriteLog2("找到 " + libWorkers.Count.ToString() + " 位图书馆 " + lib.Entity.libName + " 工作人员");
 
                     // 当工作人员与数字平台都没有 可收警告的工作人员，则不再发送通知
                     if (libWorkers.Count == 0 && dp2003Workers.Count == 0)
@@ -2856,6 +2860,8 @@ namespace dp2weixin.service
                         this.WriteLog2("没有可接收到工作人员");
                         continue;
                     }
+
+                    string libName = lib.Entity.libName;
 
                     //{{first.DATA}}
                     //标题：{{keyword1.DATA}}
@@ -2865,9 +2871,26 @@ namespace dp2weixin.service
                     //图书馆桥接服务器失去连接
                     //2016-9-8 15:04
                     //***，贵图书馆 XXX 桥接服务器失去连接，请及时修复，以免影响读者访问。
-                    string title = "图书馆 " + lib.libName + " 桥接服务器失去连接";
+                    string title =  libName + " 桥接服务器dp2capo失去连接";
+
                     string operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                    string text = "图书馆 " + lib.libName + " 的桥接服务器已失去连接，请尽快修复。";
+                    string text =  libName + " 的桥接服务器dp2capo已失去连接，请尽快修复。";
+
+                    if (lib.State == LibraryManager.C_State_Hangup)
+                    {
+                        if (lib.Version == "-1")
+                        {
+                            title = libName + " 桥接服务器dp2capo挂起状态";
+                            text = libName + " 的桥接服务器dp2capo已失去连接，公众号功能已被挂起，请尽快修复。";
+                        }
+                        else
+                        {
+                            title = libName + " 桥接服务器dp2capo挂起状态";
+                            text = libName + " 的桥接服务器dp2capo版本不够新，公众号功能已被挂起，请尽快升级。";
+                        }
+                    }
+                    
+
                     MessageTemplateData msgData = new MessageTemplateData()
                     {
                         first = new TemplateDataItem("☀☀☀☀☀☀☀☀☀☀", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
@@ -2882,7 +2905,7 @@ namespace dp2weixin.service
                         if (worker.weixinId == C_Supervisor)
                             continue;
 
-                        string tempText = worker.userName + "，贵" + text;
+                        string tempText = worker.userName + "，贵馆 " + text;
                         msgData.keyword3 = new TemplateDataItem(tempText, "#000000");
 
                         List<string> ids = new List<string>();
@@ -2899,7 +2922,7 @@ namespace dp2weixin.service
                             continue;  //goto ERROR1;                            
                         }
 
-                        WriteLog2("给图书馆工作人员 " + worker.userName + " 发送图书馆 " + lib.libName + " 不在线通知完成");
+                        WriteLog2("给图书馆工作人员 " + worker.userName + " 发送图书馆 " + libName + " 不在线通知完成");
 
                     }
 
@@ -2922,12 +2945,12 @@ namespace dp2weixin.service
                             continue;  //goto ERROR1;                            
                         }
 
-                        WriteLog2("给数字平台工作人员 " + worker.userName + " 发送图书馆 " + lib.libName + " 不在线通知完成");
+                        WriteLog2("给数字平台工作人员 " + worker.userName + " 发送图书馆 " + libName + " 不在线通知完成");
                     }
 
                     // 加到内存中
-                    this._offlineLibs[lib.id] = DateTime.Now;
-                    this.WriteLog2("记下图书馆 " + lib.libName + " 最后发送通知时间" + DateTimeUtil.DateTimeToString(((DateTime)this._offlineLibs[lib.id])));
+                    this._offlineLibs[lib.Entity.id] = DateTime.Now;
+                    this.WriteLog2("记下图书馆 " + libName + " 最后发送通知时间" + DateTimeUtil.DateTimeToString(((DateTime)this._offlineLibs[lib.Entity.id])));
                 }
 
                 // 返回
@@ -5245,40 +5268,48 @@ namespace dp2weixin.service
                 }
                 item.reservationInfo = reservationInfo;
 
-                // 封面图片
-                // 得到检索期的字符串
-                List<IssueString> issueList = dp2StringUtil.GetIssueQueryStringFromItemXml(dom);
-                if (issueList != null && issueList.Count > 0)// todo 为啥会有多项？
+
+                // 检查数据库是否为期刊库
+                string biblioDbName = "";
+                string biblioId = "";
+                int index = biblioPath.LastIndexOf("/");
+                biblioDbName = biblioPath.Substring(0, index);
+                biblioId = biblioPath.Substring(index + 1);
+
+                Library thisLib = this.LibManager.GetLibrary(lib.id);
+                DbCfg db= thisLib.GetDb(biblioDbName);
+                if (db != null && String.IsNullOrEmpty(db.IssueDbName) == false)
                 {
-                    IssueString issueStr = issueList[0];
-
-                    // 得到期
-                    string biblioId="";
-                    int index = biblioPath.LastIndexOf("/");
-                    biblioId=biblioPath.Substring(index+1);
-
-                    string style = "query:父记录+期号|"+biblioId+"|" + issueStr.Query;
-                    string issueXml = "";
-                    string issuePath = "";
-                    long ret = this.GetIssue(lib,
-                        biblioPath,
-                        style,
-                        out issuePath,
-                        out issueXml,
-                        out strError);
-                    if (ret == -1)
+                    // 封面图片
+                    // 得到检索期的字符串
+                    List<IssueString> issueList = dp2StringUtil.GetIssueQueryStringFromItemXml(dom);
+                    if (issueList != null && issueList.Count > 0)// todo 为啥会有多项？
                     {
-                        goto ERROR1;
+                        IssueString issueStr = issueList[0];
+
+                        // 获取期记录
+                        string style = "query:父记录+期号|" + biblioId + "|" + issueStr.Query;
+                        string issueXml = "";
+                        string issuePath = "";
+                        long ret = this.GetIssue(lib,
+                            biblioPath,
+                            style,
+                            out issuePath,
+                            out issueXml,
+                            out strError);
+                        if (ret == -1)
+                        {
+                            goto ERROR1;
+                        }
+
+                        // 从期中取出图片url
+                        XmlDocument issueDom = new XmlDocument();
+                        issueDom.LoadXml(issueXml);
+                        string imgId = dp2StringUtil.GetCoverImageIDFromIssueRecord(issueDom, "LargeImage");
+                        //string issueImgUrl = issuePath + "/object/"+imgId;
+                        string imgHtml = dp2WeiXinService.GetImageHtmlFragment(lib.id, issuePath, imgId, true);
+                        item.imgHtml = imgHtml;
                     }
-
-                    // 从期中取出图片url
-                    XmlDocument issueDom = new XmlDocument();
-                    issueDom.LoadXml(issueXml);
-                    string imgId = dp2StringUtil.GetCoverImageIDFromIssueRecord(issueDom, "LargeImage");
-                    //string issueImgUrl = issuePath + "/object/"+imgId;
-                    string imgHtml = dp2WeiXinService.GetImageHtmlFragment(lib.id, issuePath, imgId, true);
-                    item.imgHtml = imgHtml;
-
                 }
 
                 // 加到数组里

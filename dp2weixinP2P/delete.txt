@@ -1,4 +1,110 @@
-﻿===dp2WeixinService=========
+﻿==============
+        /// <summary>
+        /// 获取不在线的图书馆
+        /// </summary>
+        /// <returns></returns>
+        public List<LibEntity> GetOfflineLibs()
+        {
+            List<LibEntity> offlineLibs = new List<LibEntity>();
+            string strError = "";
+
+            List<LibEntity> libs = LibDatabase.Current.GetLibs();  // 20161016 jane 这里应该用内存的数据库集合是好了 todo
+            foreach (LibEntity lib in libs)
+            {
+                int doCount = 0;
+            REDO:
+                try
+                {
+                    CancellationToken cancel_token = new CancellationToken();
+                    string id = Guid.NewGuid().ToString();
+                    SearchRequest request = new SearchRequest(id,
+                        "getSystemParameter",
+                        "",
+                        "cfgs",//queryWord,
+                        "",
+                        "",
+                        "",
+                        "getDataDir",//formatList,//
+                        1,
+                        0,
+                        -1);
+/*2016/10/16
+光光(2820725526) 20:59:53
+我看你的代码中 GetOfflineLibs() 函数中，有这么一段：
+                    MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                        this.dp2MServerUrl,
+                        lib.capoUserName).Result;
+你在获得 Connection 的时候，用的名字字符串是“对方账户名”。这是出于什么考虑呢？
+光光(2820725526) 21:05:59
+提醒一下，你检测若干对方 dp2library 连通状态的过程，是个循环。每一次做完再做下一个。而且是十分钟一次循环。使用频率不是很高，对对方服务器发起请求不存在互相重叠。这样，用一根通道就可以了。也就是说，甚至可以在循环外面 GetConnection() ，然后在循环里面集中使用这一根通道。
+光光(2820725526) 21:06:53
+那么 GetConnection() 时候要获得的通道的名字，就不必和对方或者本方账号名字挂钩了，用个死名字即可。
+光光(2820725526) 21:08:19
+打个比方，你和对方一个屋子里面的人循序讲话，你接通电话以后，他们一个一个顺序过来和你对话即可，不必用多个电话机。
+光光(2820725526) 21:10:41
+这里屋子的比方，就是 dp2mserver。你把请求到达 dp2mserver 即可，它会通过你给 SearchTaskAsync() 的 strRemoteUser 参数分发。你这一侧的通道不必用多条。
+光光(2820725526) 21:13:28
+记住，无论你和远端多少 dp2Capo 联系，都是中间通过 dp2mserver 分发的。有时候我们在微信公众号这一侧启用多根通道(通过名字参数区分)，是为了并发，或者其他需要。并不是意味着微信公众号和 dp2Capo “直连”了。
+*/
+                    MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                        this.dp2MServerUrl,
+                        C_ConnName_CheckOfflineLibs).Result;//lib.capoUserName 2016/10/16 jane 改为一根通道了
+
+                    SearchResult result = connection.SearchTaskAsync(
+                        lib.capoUserName,
+                        request,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token).Result;
+                    if (result.ResultCount == -1)
+                    {
+                        if (result.ErrorCode == "TargetNotFound")
+                        {
+                            // 总是漏掉江西警察学校，这里输出日志看看。
+                            this.WriteLog2("检查 " + lib.libName + " 为离线状态。");
+
+                            offlineLibs.Add(lib);
+                            continue;
+                        }
+
+                        // 注意这里不要用GetFriendlyErrorInfo
+                        strError = result.ErrorInfo;
+                        goto ERROR1;
+                    }
+
+                    // 总是漏掉江西警察学校，这里输出日志看看。
+                    this.WriteLog2("检查 " + lib.libName + " 为在线状态。");
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+
+
+                continue;
+
+
+            ERROR1:
+                //将错误写到日志里，继续检索其它图书馆
+                strError = "检查图书馆 " + lib.libName + " 是否在线(重试次数" + doCount + ")出错: " + strError;
+                WriteErrorLog1(strError);
+                if (doCount == 0)
+                {
+                    doCount++;
+                    goto REDO;
+                }
+            }
+            return offlineLibs;
+        }
+
+
+===dp2WeixinService=========
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString(); 
