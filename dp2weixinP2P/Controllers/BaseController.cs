@@ -1,5 +1,6 @@
 ﻿using DigitalPlatform.Xml;
 using dp2weixin.service;
+using Senparc.Weixin.MP.Containers;
 using Senparc.Weixin.MP.Helpers;
 using System;
 using System.Collections.Generic;
@@ -216,14 +217,17 @@ namespace dp2weixinWeb.Controllers
                 if (lib.Version == "-1")
                 {
                     //的桥接服务器dp2capo已失去连接，请尽快修复。
-                    strError = libName + " 的桥接服务器dp2capo已失去连接，公众号功能已被挂起，请尽快修复。";
+                    strError = libName + " 的桥接服务器dp2capo失去连接，公众号功能已被挂起，请尽快修复。";
                 }
                 else
                 {
                     strError = libName + " 的桥接服务器dp2capo版本不够新，公众号功能已被挂起，请尽快升级。";
                 }
                 return -1;
-            }            
+            }
+
+            bool bJsReg = JsApiTicketContainer.CheckRegistered(dp2WeiXinService.Instance.weiXinAppId);
+
 
             // 注意这里有时异常
             JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(dp2WeiXinService.Instance.weiXinAppId,
@@ -233,6 +237,7 @@ namespace dp2weixinWeb.Controllers
             ViewData["Timestamp"] = package.Timestamp;
             ViewData["NonceStr"] = package.NonceStr;
             ViewData["Signature"] = package.Signature;
+
 
             return 0;
         }

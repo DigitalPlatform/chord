@@ -11,6 +11,7 @@ using Senparc.Weixin;
 using Senparc.Weixin.MP.AdvancedAPIs;
 using Senparc.Weixin.MP.AdvancedAPIs.TemplateMessage;
 using Senparc.Weixin.MP.CommonAPIs;
+using Senparc.Weixin.MP.Containers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -946,15 +947,13 @@ namespace dp2weixin.service
         }
 
         private int SendWeixinMsg(List<string> weixinIds,
-          string template,
-          string topColor,
+          string templateId,
           object msgData,
           string linkUrl,
           out string strError)
         {
             return this.SendWeixinMsg(weixinIds,
-                template,
-                topColor,
+                templateId,
                 msgData,
                 linkUrl,
                 "",
@@ -963,8 +962,7 @@ namespace dp2weixin.service
 
         // 发送微信通知
         private int SendWeixinMsg(List<string> weixinIds,
-          string template,
-          string topColor,
+          string templateId,
           object msgData,
           string linkUrl,
             string theOperator,
@@ -987,8 +985,7 @@ namespace dp2weixin.service
                 {
                     var result1 = TemplateApi.SendTemplateMessage(accessToken,
                         weixinId,
-                        template,
-                        topColor,
+                        templateId,                        
                         linkUrl,
                         templateData); //msgData
                     if (result1.errcode != 0)
@@ -1011,8 +1008,7 @@ namespace dp2weixin.service
         }
 
         private int SendWeixinMsg(List<TracingOnUser> users,
-          string template,
-          string topColor,
+          string templateId,
           object msgData,
           object markMsgData,
           string linkUrl,
@@ -1036,8 +1032,8 @@ namespace dp2weixin.service
             if (weixinIds.Count > 0)
             {
                 nRet = this.SendWeixinMsg(weixinIds,
-                    template,
-                    topColor, msgData,
+                    templateId,
+                    msgData,
                     linkUrl,
                     theOperator,
                     out strError);
@@ -1048,8 +1044,7 @@ namespace dp2weixin.service
             if (maskWeixinIds.Count > 0)
             {
                 nRet = this.SendWeixinMsg(maskWeixinIds,
-                    template,
-                    topColor,
+                    templateId,
                     markMsgData,
                     linkUrl,
                     theOperator,
@@ -1381,7 +1376,6 @@ namespace dp2weixin.service
             {
                 nRet = this.SendWeixinMsg(bindWeixinIds,
                     this.Template_Message,
-                    "#FF0000",
                     msgData,
                     "",
                     out strError);
@@ -1404,7 +1398,6 @@ namespace dp2weixin.service
 
                 nRet = this.SendWeixinMsg(workerWeixinIds,
                     this.Template_Message,
-                    "#FF0000",
                     msgData,
                     msgData2worker,
                     "",
@@ -1599,7 +1592,6 @@ namespace dp2weixin.service
                 // 发送消息
                 nRet = this.SendWeixinMsg(bindWeixinIds,
                     this.Template_Borrow,
-                    "#006400",
                     msgData,
                     "",
                     out strError);
@@ -1638,7 +1630,6 @@ namespace dp2weixin.service
                     tempWeixinIds.Add(traceUser.WeixinId);
                     nRet = this.SendWeixinMsg(tempWeixinIds,
                         this.Template_Borrow,
-                        "#006400",
                         msgData2worker,
                         "",
                         theOperator,
@@ -1830,7 +1821,6 @@ namespace dp2weixin.service
                 // 发送消息
                 nRet = this.SendWeixinMsg(bindWeixinIds,
                     this.Template_Return,
-                    "#00008B",
                     msgData,
                     "",
                     out strError);
@@ -1856,7 +1846,6 @@ namespace dp2weixin.service
                 // 发送消息
                 nRet = this.SendWeixinMsg(workerWeixinIds,
                     this.Template_Return,
-                    "#00008B",
                     msgData,
                     msgData2worker,
                     "",
@@ -1977,7 +1966,6 @@ namespace dp2weixin.service
                 {
                     nRet = this.SendWeixinMsg(bindWeixinIds,
                         this.Template_Pay,
-                        "#FF0000",
                         msgData,
                         "",
                         out strError);
@@ -2003,7 +1991,6 @@ namespace dp2weixin.service
 
                     nRet = this.SendWeixinMsg(workerWeixinIds,
                         this.Template_Pay,
-                        "#FF0000",
                         msgData,
                         msgData2worker,
                         "",
@@ -2128,7 +2115,6 @@ namespace dp2weixin.service
                 {
                     nRet = this.SendWeixinMsg(bindWeixinIds,
                         this.Template_CancelPay,
-                        "#FF0000",
                         msgData,
                         "",
                         out strError);
@@ -2153,7 +2139,6 @@ namespace dp2weixin.service
 
                     nRet = this.SendWeixinMsg(workerWeixinIds,
                         this.Template_CancelPay,
-                        "#FF0000",
                         msgData,
                         msgData2worker,
                         "",
@@ -2266,7 +2251,6 @@ namespace dp2weixin.service
                 {
                     nRet = this.SendWeixinMsg(bindWeixinIds,
                         templateId,
-                        "#FF0000",
                         msgData,
                         "",
                         out strError);
@@ -2291,7 +2275,6 @@ namespace dp2weixin.service
 
                     nRet = this.SendWeixinMsg(workerWeixinIds,
                         templateId,
-                        "#FF0000",
                         msgData,
                         msgData2worker,
                         "",
@@ -2498,7 +2481,6 @@ namespace dp2weixin.service
             {
                 nRet = this.SendWeixinMsg(bindWeixinIds,
                     this.Template_Arrived,
-                    "#FF0000",
                     msgData,
                     "",
                     out strError);
@@ -2522,7 +2504,6 @@ namespace dp2weixin.service
                 };
                 nRet = this.SendWeixinMsg(workerWeixinIds,
                     this.Template_Arrived,
-                    "#FF0000",
                     msgData,
                     msgData2worker,
                     "",
@@ -2880,12 +2861,12 @@ namespace dp2weixin.service
                     {
                         if (lib.Version == "-1")
                         {
-                            title = libName + " 桥接服务器dp2capo挂起状态";
+                            title = libName + " 桥接服务器被挂起";
                             text = libName + " 的桥接服务器dp2capo已失去连接，公众号功能已被挂起，请尽快修复。";
                         }
                         else
                         {
-                            title = libName + " 桥接服务器dp2capo挂起状态";
+                            title = libName + " 桥接服务器被挂起";
                             text = libName + " 的桥接服务器dp2capo版本不够新，公众号功能已被挂起，请尽快升级。";
                         }
                     }
@@ -2912,7 +2893,6 @@ namespace dp2weixin.service
                         ids.Add(worker.weixinId);
                         int nRet = this.SendWeixinMsg(ids,
                             this.Template_Message,
-                             "#FF0000",
                              msgData,
                              "",
                              out strError);
@@ -2935,7 +2915,6 @@ namespace dp2weixin.service
                         ids.Add(worker.weixinId);
                         int nRet = this.SendWeixinMsg(ids,
                             this.Template_Message,
-                             "#FF0000",
                              msgData,
                              "",
                              out strError);
@@ -3651,7 +3630,6 @@ namespace dp2weixin.service
                 };
                 int nRet = this.SendWeixinMsg(bindWeixinIds,
                     this.Template_Bind,
-                    "#FF0000",
                     msgData,
                     dp2WeiXinService.Instance.Auth2Url_AccountIndex,//详情转到账户管理界面
                     out strError);
@@ -3680,7 +3658,6 @@ namespace dp2weixin.service
 
                     nRet = this.SendWeixinMsg(workerWeixinIds,
                         this.Template_Bind,
-                        "#FF0000",
                         msgData,
                         msgData2Worker,
                         dp2WeiXinService.Instance.Auth2Url_AccountIndex,//详情转到账户管理界面
@@ -3813,7 +3790,6 @@ namespace dp2weixin.service
                 };
                 int nRet = this.SendWeixinMsg(bindWeixinIds,
                     this.Template_UnBind,
-                    "#FF0000",
                     msgData,
                     dp2WeiXinService.Instance.Auth2Url_AccountIndex,//详情转到账户管理界面
                     out strError);
@@ -3842,7 +3818,6 @@ namespace dp2weixin.service
 
                     nRet = this.SendWeixinMsg(workerWeixinIds,
                         this.Template_UnBind,
-                        "#FF0000",
                         msgData,
                         msgData2Worker,
                         dp2WeiXinService.Instance.Auth2Url_AccountIndex,//详情转到账户管理界面
@@ -6358,7 +6333,6 @@ namespace dp2weixin.service
                         };
                         int nRet = this.SendWeixinMsg(bindWeixinIds,
                             this.Template_Message,
-                             "#FF0000",
                              msgData,
                              "",
                              out strError);
@@ -6382,7 +6356,6 @@ namespace dp2weixin.service
                             };
                             nRet = this.SendWeixinMsg(workerWeixinIds,
                                 this.Template_Message,
-                                 "#FF0000",
                                  msgData,
                                  msgData2Worker,
                                  "",

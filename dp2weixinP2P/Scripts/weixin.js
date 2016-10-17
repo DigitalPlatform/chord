@@ -105,7 +105,6 @@ function getDetail(libId, recPath, obj, from) {
                 //alert(tempBarcode+"前");
                 tempBarcode = tempBarcode.replace("@refID:", "refID-");
                 //alert(tempBarcode + "后");
-
             }
 
             itemTables += "<div class='mui-card item' id='_item_" + tempBarcode + "'>"
