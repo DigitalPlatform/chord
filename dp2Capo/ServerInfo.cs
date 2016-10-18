@@ -123,6 +123,38 @@ namespace dp2Capo
             return false;
         }
 
+        static void Echo(Instance instance, bool writeLog)
+        {
+            if (instance.MessageConnection.IsConnected == false)
+                return;
+
+            // 验证一次请求
+            // string text = Guid.NewGuid().ToString();
+            string text = "!verify";
+
+            if (writeLog)
+                instance.WriteErrorLog("Begin echo: " + text);
+
+            try
+            {
+                string result = instance.MessageConnection.EchoTaskAsync(text, TimeSpan.FromSeconds(5), instance._cancel.Token).Result;
+
+                // 此用法在 dp2mserver 不存在 echo() API 的时候会挂起当前线程
+                // string result = instance.MessageConnection.echo(text).Result;
+
+                if (result == null)
+                    result = "(timeout)";
+
+                if (writeLog)
+                    instance.WriteErrorLog("End   echo: " + result);
+            }
+            catch (Exception ex)
+            {
+                instance.WriteErrorLog("echo 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
+
+        }
+
         static void Check(Instance instance, List<Task> tasks)
         {
             if (instance.MessageConnection.IsConnected == false)
@@ -143,25 +175,7 @@ namespace dp2Capo
             }
             else
             {
-                // 验证一次请求
-                string text = Guid.NewGuid().ToString();
-                instance.WriteErrorLog("Begin echo: " + text);
-
-                try
-                {
-                    string result = instance.MessageConnection.EchoTaskAsync(text, TimeSpan.FromSeconds(5), instance._cancel.Token).Result;
-
-                    // 此用法在 dp2mserver 不存在 echo() API 的时候会挂起当前线程
-                    // string result = instance.MessageConnection.echo(text).Result;
-
-                    if (result == null)
-                        result = "(timeout)";
-                    instance.WriteErrorLog("End   echo: " + result);
-                }
-                catch (Exception ex)
-                {
-                    instance.WriteErrorLog("echo 出现异常: " + ExceptionUtil.GetExceptionText(ex));
-                }
+                Echo(instance, true);
             }
         }
 
@@ -177,6 +191,9 @@ namespace dp2Capo
                 first_instance = _instances[0];
             foreach (Instance instance in _instances)
             {
+                // 向 dp2mserver 发送心跳消息
+                // instance.SendHeartBeat();
+
                 bool bNeedCheck = NeedCheck(instance);
 
                 if (bNeedCheck)
@@ -205,6 +222,8 @@ namespace dp2Capo
 #endif
                         if (bNeedCheck)
                             Check(instance, tasks);
+                        else
+                            Echo(instance, false);
                     }
                 }
                 else
@@ -220,9 +239,11 @@ namespace dp2Capo
                         // TODO: 验证一次请求
                     }
 #endif
+
                     if (bNeedCheck)
                         Check(instance, tasks);
-
+                    else
+                        Echo(instance, false);
                 }
             }
 

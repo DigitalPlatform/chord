@@ -913,13 +913,14 @@ CancellationToken token)
         // 当 server 发来 Close 请求的时候被调用。
         public virtual void OnCloseRecieved(CloseRequest param)
         {
-            this.CloseConnection();
-            // TODO: 可否改造为 Task.Run() ? 规定一个最长的等待时间
-
 
             if (param.Action == "reconnect")
             {
                 ConnectAsync(); // 不用等待完成
+            }
+            else
+            {
+                this.CloseConnection(TimeSpan.FromMinutes(1));
             }
         }
 

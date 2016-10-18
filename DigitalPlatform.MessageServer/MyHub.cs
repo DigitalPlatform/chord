@@ -33,6 +33,18 @@ namespace DigitalPlatform.MessageServer
 
         public string echo(string text)
         {
+            if (text == "!verify")
+            {
+                // 验证 ConnectionId 是否在 ConnectionTable 中存在，如果不存在则自动触发前端重连接
+                MessageResult result = new MessageResult();
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+    result,
+    "echo()",
+    true);
+                if (result.String == "_connectionNotFound")
+                    return result.String;
+            }
+
             return text;
         }
 
@@ -83,18 +95,38 @@ namespace DigitalPlatform.MessageServer
             return false;
         }
 
+        void CallClientClose(string connection_id,
+            string strAction,
+            TimeSpan delay)
+        {
+            try
+            {
+                Thread.Sleep(delay);
+                CloseRequest request = new CloseRequest(strAction);
+                Clients.Client(connection_id).close(request);
+            }
+            catch (Exception ex)
+            {
+                Console.Write("切断前端通讯通道时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
+        }
+
         // 获得通道信息，并顺便检查状态
         ConnectionInfo GetConnection(string id,
             MessageResult result,
             string strFunctionName,
-            bool checkLogin = true)
+            bool checkLogin = true,
+            bool reconnect = true)
         {
-            ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
+            ConnectionInfo info = ServerInfo.ConnectionTable.GetConnection(id);   // Context.ConnectionId
             if (info == null)
             {
                 result.Value = -1;
                 result.ErrorInfo = "connection ID 为 '" + Context.ConnectionId + "' 的 ConnectionInfo 对象没有找到。" + strFunctionName + " 操作失败";
                 result.String = "_connectionNotFound";
+                // 延迟两秒以后让前端重连这个通道
+                if (reconnect)
+                    Task.Run(() => CallClientClose(id, "reconnect", TimeSpan.FromSeconds(2)));
                 return null;
             }
 
@@ -1721,7 +1753,9 @@ ex.GetType().ToString());
             foreach (ConnectionInfo info in delete_connections)
             {
                 ServerInfo.ConnectionTable.RemoveConnection(info.ConnectionID);
-                // TODO: 要让 SignalR 层的连接删除
+                // 要让 SignalR 层的连接删除
+                CallClientClose(info.ConnectionID, "", TimeSpan.FromTicks(0));
+#if NO
                 try
                 {
                     CloseRequest request = new CloseRequest("");
@@ -1731,6 +1765,7 @@ ex.GetType().ToString());
                 {
                     Console.Write("切断前端通讯通道时出现异常: " + ExceptionUtil.GetExceptionText(ex));
                 }
+#endif
             }
 
             // TODO: dp2Capo 遇到中途报错没有登录的情况，会自动重试登录么?
@@ -1999,10 +2034,7 @@ ex.GetType().ToString());
 
             if (connection_id != "*")
             {
-                ConnectionInfo connection_info = GetConnection(connection_id,
-    result,
-    "RequestGetGroup()",
-    false);
+                ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(connection_id);
                 if (connection_info == null)
                 {
                     result.ErrorInfo = "拟清除的 id 为 '" + connection_id + "' 的 connection 没有找到";
@@ -2046,21 +2078,38 @@ true);
             if (connection_info == null)
                 return result;
 
-            // 2016/10/17
             if (param.Operation == "clear")
             {
+                // 检查请求者是否具备操作的权限
+                if (StringUtil.Contains(connection_info.Rights, "clearConnection") == false)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + "clearConnection" + "' 操作的权限";
+                    return result;
+                }
                 return ClearConnection(param.QueryWord);
             }
-            else if (param.Operation == "close")
+            else if (param.Operation == "close" || param.Operation == "reconnect")
             {
+                // 检查请求者是否具备操作的权限
+                if (StringUtil.Contains(connection_info.Rights, "clearConnection") == false)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + "clearConnection" + "' 操作的权限";
+                    return result;
+                }
+
                 try
                 {
-                    CloseRequest request = new CloseRequest("");
+                    string strAction = "";
+                    if (param.Operation == "reconnect")
+                        strAction = "reconnect";
+                    CloseRequest request = new CloseRequest(strAction);
                     Clients.Client(param.QueryWord).close(request);
                 }
                 catch (Exception ex)
                 {
-                    string strError = "dp2mserver 切断前端通讯通道 '"+param.QueryWord+"' 时出现异常: " + ExceptionUtil.GetExceptionText(ex);
+                    string strError = "dp2mserver 切断前端通讯通道 '" + param.QueryWord + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex);
                     Console.Write(strError);
                     result.Value = -1;
                     result.ErrorInfo = strError;

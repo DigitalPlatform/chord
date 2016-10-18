@@ -536,7 +536,7 @@ namespace dp2Capo
                                 new DigitalPlatform.Message.SetMessageRequest("create",
                                 "dontNotifyMe",
                                 records);
-                            SetMessageResult result = this.MessageConnection.SetMessageTaskAsync(param, 
+                            SetMessageResult result = this.MessageConnection.SetMessageTaskAsync(param,
                                 _cancel.Token).Result;
                             if (result.Value == -1)
                             {
@@ -603,13 +603,12 @@ namespace dp2Capo
                             new DigitalPlatform.Message.SetMessageRequest("create",
                             "dontNotifyMe",
                             records);
-                        SetMessageResult result = this.MessageConnection.SetMessageTaskAsync(param, 
+                        SetMessageResult result = this.MessageConnection.SetMessageTaskAsync(param,
                             _cancel.Token).Result;
                         if (result.Value == -1)
                         {
                             this.WriteErrorLog("Instance.Notify() 中 SetMessageAsync() 出错: " + result.ErrorInfo);
-                            TryResetConnection(result.String);
-                            // Thread.Sleep(5 * 1000);   // 拖延 5 秒
+                            // TryResetConnection(result.String);
                             return;
                         }
 
@@ -663,6 +662,57 @@ namespace dp2Capo
                         BeginPeek();
                     }
                 }
+            }
+        }
+
+        // 发送心跳消息给 dp2mserver
+        /*
+<root>
+    <type>patronNotify</type>
+    <recipient>R0000001@LUID:62637a12-1965-4876-af3a-fc1d3009af8a</recipient>
+    <mime>xml</mime>
+    <body>...</body>
+</root>
+
+         * */
+        public bool SendHeartBeat()
+        {
+            if (this.MessageConnection == null || this.MessageConnection.IsConnected == false)
+                return false;
+
+            try
+            {
+                XmlDocument dom = new XmlDocument();
+                dom.LoadXml("<root><type>heartbeat</type></root>");
+                MessageRecord record = new MessageRecord();
+                record.groups = new string[1] { "gn:_patronNotify" };  // gn 表示 group name
+                record.data = dom.DocumentElement.OuterXml;
+                record.format = "xml";
+                List<MessageRecord> records = new List<MessageRecord> { record };
+
+                DigitalPlatform.Message.SetMessageRequest param =
+        new DigitalPlatform.Message.SetMessageRequest("create",
+        "dontNotifyMe",
+        records);
+                SetMessageResult result = this.MessageConnection.SetMessageTaskAsync(param,
+                    _cancel.Token).Result;
+                if (result.Value == -1)
+                {
+                    this.WriteErrorLog("Instance.SendHeartBeat() 中 SetMessageAsync() [heartbeat] 出错: " + result.ErrorInfo);
+                    // TryResetConnection(result.String);
+                    return false;
+                }
+
+                return true;
+            }
+            catch (ThreadAbortException)
+            {
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.WriteErrorLog("Instance.SendHeartBeat() 出现异常: " + ExceptionUtil.GetDebugText(ex));
+                return false;
             }
         }
 
