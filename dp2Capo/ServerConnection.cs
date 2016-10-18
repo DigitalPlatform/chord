@@ -97,6 +97,22 @@ namespace dp2Capo
             }
         }
 
+        public override void OnCloseRecieved(CloseRequest param)
+        {
+            if (this.Instance != null)
+            {
+                this.Instance.WriteErrorLog("--- OnCloseRecieved 被触发开始 param.Action='"
+                    + (param == null ? "" : param.Action)
+                    + "'");
+            }
+
+            base.OnCloseRecieved(param);
+
+            if (this.Instance != null)
+            {
+                this.Instance.WriteErrorLog("--- OnCloseRecieved 被触发结束");
+            }
+        }
 
         public LibraryChannel GetChannel()
         {

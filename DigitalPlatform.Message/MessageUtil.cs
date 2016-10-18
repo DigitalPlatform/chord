@@ -477,7 +477,11 @@ namespace DigitalPlatform.Message
 
         public string ClientIP { get; set; }
 
-        public ConnectionRecord(string userName,
+        public string ConnectionID { get; set; }
+
+        public ConnectionRecord(
+            string connectionID,
+            string userName,
             string rights,
             string duty,
             string department,
@@ -505,6 +509,7 @@ namespace DigitalPlatform.Message
             this.PropertyList = propertyList;
             this.ClientIP = clientIP;
             this.Notes = notes;
+            this.ConnectionID = connectionID;
         }
     }
 

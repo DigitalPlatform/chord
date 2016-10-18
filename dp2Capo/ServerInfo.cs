@@ -100,7 +100,62 @@ namespace dp2Capo
             }
         }
 
-        static void Process(Instance instance, List<Task> tasks)
+        static TimeSpan LongTime = TimeSpan.FromMinutes(5);    // 10
+
+        static bool NeedCheck(Instance instance)
+        {
+            DateTime now = DateTime.Now;
+
+            if (instance.MessageConnection.IsConnected == false)
+            {
+                instance.LastCheckTime = now;
+                return true;
+            }
+            else
+            {
+                if (now - instance.LastCheckTime >= LongTime)
+                {
+                    instance.LastCheckTime = now;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static void Echo(Instance instance, bool writeLog)
+        {
+            if (instance.MessageConnection.IsConnected == false)
+                return;
+
+            // 验证一次请求
+            // string text = Guid.NewGuid().ToString();
+            string text = "!verify";
+
+            if (writeLog)
+                instance.WriteErrorLog("Begin echo: " + text);
+
+            try
+            {
+                string result = instance.MessageConnection.EchoTaskAsync(text, TimeSpan.FromSeconds(5), instance._cancel.Token).Result;
+
+                // 此用法在 dp2mserver 不存在 echo() API 的时候会挂起当前线程
+                // string result = instance.MessageConnection.echo(text).Result;
+
+                if (result == null)
+                    result = "(timeout)";
+
+                if (writeLog)
+                    instance.WriteErrorLog("End   echo: " + result);
+            }
+            catch (Exception ex)
+            {
+                instance.WriteErrorLog("echo 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
+
+        }
+
+        static void Check(Instance instance, List<Task> tasks)
         {
             if (instance.MessageConnection.IsConnected == false)
             {
@@ -110,34 +165,17 @@ namespace dp2Capo
                 Uri uri = new Uri(instance.dp2mserver.Url);
                 if (NetUtil.Ping(uri.DnsSafeHost, out strInformation) == true)
                 {
-                    instance.WriteErrorLog("ping '"+uri.DnsSafeHost+"' success");
+                    instance.WriteErrorLog("ping '" + uri.DnsSafeHost + "' success");
                 }
                 else
                 {
                     instance.WriteErrorLog("ping '" + uri.DnsSafeHost + "' fail: " + strInformation);
                 }
+
             }
             else
             {
-                // 验证一次请求
-                string text = Guid.NewGuid().ToString();
-                instance.WriteErrorLog("Begin echo: " + text);
-
-                try
-                {
-                    string result = instance.MessageConnection.EchoTaskAsync(text, TimeSpan.FromSeconds(5), instance._cancel.Token).Result;
-
-                    // 此用法在 dp2mserver 不存在 echo() API 的时候会挂起当前线程
-                    // string result = instance.MessageConnection.echo(text).Result;
-
-                    if (result == null)
-                        result = "(timeout)";
-                    instance.WriteErrorLog("End   echo: " + result);
-                }
-                catch(Exception ex)
-                {
-                    instance.WriteErrorLog("echo 出现异常: " + ExceptionUtil.GetExceptionText(ex));
-                }
+                Echo(instance, true);
             }
         }
 
@@ -146,12 +184,23 @@ namespace dp2Capo
         {
             List<Task> tasks = new List<Task>();
 
+            bool bOutputBegin = false;
+
             Instance first_instance = null;
             if (_instances.Count > 0)
                 first_instance = _instances[0];
             foreach (Instance instance in _instances)
             {
-                instance.WriteErrorLog("<<< BackgroundWork 开始一轮处理\r\n状态:\r\n" + instance.GetDebugState());
+                // 向 dp2mserver 发送心跳消息
+                // instance.SendHeartBeat();
+
+                bool bNeedCheck = NeedCheck(instance);
+
+                if (bNeedCheck)
+                {
+                    instance.WriteErrorLog("<<< BackgroundWork 开始一轮处理\r\n状态:\r\n" + instance.GetDebugState());
+                    bOutputBegin = true;
+                }
 
                 string strError = "";
                 // 利用 dp2library API 获取一些配置信息
@@ -171,7 +220,10 @@ namespace dp2Capo
                             tasks.Add(instance.BeginConnectTask()); // 2016/10/13 以前没有 if 语句，那样就容易导致重复 BeginConnect()
                         }
 #endif
-                        Process(instance, tasks);
+                        if (bNeedCheck)
+                            Check(instance, tasks);
+                        else
+                            Echo(instance, false);
                     }
                 }
                 else
@@ -187,8 +239,11 @@ namespace dp2Capo
                         // TODO: 验证一次请求
                     }
 #endif
-                    Process(instance, tasks);
 
+                    if (bNeedCheck)
+                        Check(instance, tasks);
+                    else
+                        Echo(instance, false);
                 }
             }
 
@@ -204,7 +259,7 @@ namespace dp2Capo
                     first_instance.WriteErrorLog("-- BackgroundWork - " + tasks.Count + " 个 Connect 任务已经完成");
             }
 
-            if (first_instance != null)
+            if (bOutputBegin == true && first_instance != null)
                 first_instance.WriteErrorLog(">>> BackgroundWork 结束一轮处理\r\n");
 
         }

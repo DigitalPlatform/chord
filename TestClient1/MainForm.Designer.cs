@@ -536,7 +536,8 @@
             "getItemInfo",
             "getBrowseRecords",
             "getUserInfo",
-            "GetConnectionInfo"});
+            "GetConnectionInfo",
+            "clearConnection"});
             this.comboBox_search_method.Location = new System.Drawing.Point(130, 6);
             this.comboBox_search_method.Name = "comboBox_search_method";
             this.comboBox_search_method.Size = new System.Drawing.Size(161, 20);
@@ -1137,7 +1138,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_sortCondition.Location = new System.Drawing.Point(77, 91);
             this.textBox_message_sortCondition.Name = "textBox_message_sortCondition";
-            this.textBox_message_sortCondition.Size = new System.Drawing.Size(368, 21);
+            this.textBox_message_sortCondition.Size = new System.Drawing.Size(372, 21);
             this.textBox_message_sortCondition.TabIndex = 49;
             // 
             // label46
@@ -1155,7 +1156,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_userRange.Location = new System.Drawing.Point(77, 38);
             this.textBox_message_userRange.Name = "textBox_message_userRange";
-            this.textBox_message_userRange.Size = new System.Drawing.Size(368, 21);
+            this.textBox_message_userRange.Size = new System.Drawing.Size(372, 21);
             this.textBox_message_userRange.TabIndex = 47;
             // 
             // label41
@@ -1213,7 +1214,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 65);
             this.textBox_message_timeRange.Name = "textBox_message_timeRange";
-            this.textBox_message_timeRange.Size = new System.Drawing.Size(368, 21);
+            this.textBox_message_timeRange.Size = new System.Drawing.Size(372, 21);
             this.textBox_message_timeRange.TabIndex = 41;
             // 
             // label39
@@ -1232,7 +1233,7 @@
             this.textBox_message_text.Location = new System.Drawing.Point(54, 118);
             this.textBox_message_text.Multiline = true;
             this.textBox_message_text.Name = "textBox_message_text";
-            this.textBox_message_text.Size = new System.Drawing.Size(391, 62);
+            this.textBox_message_text.Size = new System.Drawing.Size(395, 62);
             this.textBox_message_text.TabIndex = 3;
             // 
             // textBox_message_groupName
@@ -1241,7 +1242,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_groupName.Location = new System.Drawing.Point(77, 11);
             this.textBox_message_groupName.Name = "textBox_message_groupName";
-            this.textBox_message_groupName.Size = new System.Drawing.Size(368, 21);
+            this.textBox_message_groupName.Size = new System.Drawing.Size(372, 21);
             this.textBox_message_groupName.TabIndex = 39;
             // 
             // label37

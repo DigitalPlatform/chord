@@ -308,8 +308,9 @@ namespace TestClient1
 
             if (this.tabControl_main.SelectedTab == this.tabPage_search)
             {
-                if (this.comboBox_search_method.Text == "GetConnectionInfo")
-                    DoGetConnectionInfo();
+                if (this.comboBox_search_method.Text == "GetConnectionInfo"
+                    || this.comboBox_search_method.Text == "clearConnection")
+                    DoGetConnectionInfo(this.comboBox_search_method.Text);
                 else
                     DoSearch();
             }
@@ -545,7 +546,7 @@ namespace TestClient1
             this.Invoke((Action)(() => MessageBox.Show(this, strError)));
         }
 
-        async void DoGetConnectionInfo()
+        async void DoGetConnectionInfo(string strOper)
         {
             string strError = "";
 
@@ -564,7 +565,7 @@ namespace TestClient1
 
                 string id = Guid.NewGuid().ToString();
                 GetConnectionInfoRequest request = new GetConnectionInfoRequest(id,
-                    this.textBox_search_dbNameList.Text,    // operation
+                    strOper == "clearConnection" ? "clear" : this.textBox_search_dbNameList.Text,    // operation
                     this.textBox_search_queryWord.Text,
                     this.textBox_search_formatList.Text,
                     1000,
@@ -1185,6 +1186,8 @@ string strHtml)
                         text.Append("ClientIP=" + record.ClientIP + "\r\n");
                     if (string.IsNullOrEmpty(record.Notes) == false)
                         text.Append("Notes=" + record.Notes + "\r\n");
+                    if (string.IsNullOrEmpty(record.ConnectionID) == false)
+                        text.Append("ConnectionID=" + record.ConnectionID + "\r\n");
 
                     i++;
                 }

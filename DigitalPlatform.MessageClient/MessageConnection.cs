@@ -347,6 +347,8 @@ errorInfo)
                 // 防范本函数被重叠调用时形成多个连接
                 if (this.Connection != null)
                 {
+                    AddConnectionEvents(false);
+
                     var temp = this.Connection;
                     this.Connection = null;
                     if (temp != null)
@@ -911,13 +913,14 @@ CancellationToken token)
         // 当 server 发来 Close 请求的时候被调用。
         public virtual void OnCloseRecieved(CloseRequest param)
         {
-            this.CloseConnection();
-            // TODO: 可否改造为 Task.Run() ? 规定一个最长的等待时间
-
 
             if (param.Action == "reconnect")
             {
                 ConnectAsync(); // 不用等待完成
+            }
+            else
+            {
+                this.CloseConnection(TimeSpan.FromMinutes(1));
             }
         }
 
@@ -2632,6 +2635,48 @@ CancellationToken token)
 
         #endregion
 
+        // return:
+        //      true    超时返回
+        //      false   正常返回
+        public virtual bool CloseConnection(TimeSpan timeout)
+        {
+            ManualResetEventSlim ok = new ManualResetEventSlim();
+            new Thread(() =>
+            {
+                // do work here
+                CloseConnection();
+                ok.Set();
+            }).Start();
+
+            return ok.Wait(timeout);
+        }
+
+#if NO
+        public virtual bool CloseConnection(TimeSpan timeout)
+        {
+            ManualResetEventSlim ok = new ManualResetEventSlim();
+            Thread thread = new Thread(() =>
+            {
+                // do work here
+                CloseConnection();
+                ok.Set();
+            });
+            thread.Start();
+            try
+            {
+                bool bRet = ok.Wait(timeout);
+                if (bRet == false)
+                    thread = null;
+                return bRet;
+            }
+            finally
+            {
+                if (thread != null)
+                    thread.Abort();
+            }
+        }
+#endif
+
         // 关闭连接，并且不会引起自动重连接
         public virtual void CloseConnection()
         {
@@ -2685,7 +2730,10 @@ CancellationToken token)
 
                     // 2016/10/12
                     if (temp != null)
+                    {
                         temp.Dispose();
+                        GC.Collect();
+                    }
                 }
             }
         }
