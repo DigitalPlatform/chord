@@ -216,7 +216,8 @@ namespace dp2weixinWeb.Controllers
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
             {
-                goto ERROR1;
+                if (ViewBag.LibState != LibraryManager.C_State_Hangup)//图书馆挂起，数字平台界面可用
+                    goto ERROR1;
             }
 
             //绑定的工作人员账号 需要有权限

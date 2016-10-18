@@ -1,6 +1,296 @@
-﻿============
+﻿==============
+        /// <summary>
+        /// 获取不在线的图书馆
+        /// </summary>
+        /// <returns></returns>
+        public List<LibEntity> GetOfflineLibs()
+        {
+            List<LibEntity> offlineLibs = new List<LibEntity>();
+            string strError = "";
+
+            List<LibEntity> libs = LibDatabase.Current.GetLibs();  // 20161016 jane 这里应该用内存的数据库集合是好了 todo
+            foreach (LibEntity lib in libs)
+            {
+                int doCount = 0;
+            REDO:
+                try
+                {
+                    CancellationToken cancel_token = new CancellationToken();
+                    string id = Guid.NewGuid().ToString();
+                    SearchRequest request = new SearchRequest(id,
+                        "getSystemParameter",
+                        "",
+                        "cfgs",//queryWord,
+                        "",
+                        "",
+                        "",
+                        "getDataDir",//formatList,//
+                        1,
+                        0,
+                        -1);
+/*2016/10/16
+光光(2820725526) 20:59:53
+我看你的代码中 GetOfflineLibs() 函数中，有这么一段：
+                    MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                        this.dp2MServerUrl,
+                        lib.capoUserName).Result;
+你在获得 Connection 的时候，用的名字字符串是“对方账户名”。这是出于什么考虑呢？
+光光(2820725526) 21:05:59
+提醒一下，你检测若干对方 dp2library 连通状态的过程，是个循环。每一次做完再做下一个。而且是十分钟一次循环。使用频率不是很高，对对方服务器发起请求不存在互相重叠。这样，用一根通道就可以了。也就是说，甚至可以在循环外面 GetConnection() ，然后在循环里面集中使用这一根通道。
+光光(2820725526) 21:06:53
+那么 GetConnection() 时候要获得的通道的名字，就不必和对方或者本方账号名字挂钩了，用个死名字即可。
+光光(2820725526) 21:08:19
+打个比方，你和对方一个屋子里面的人循序讲话，你接通电话以后，他们一个一个顺序过来和你对话即可，不必用多个电话机。
+光光(2820725526) 21:10:41
+这里屋子的比方，就是 dp2mserver。你把请求到达 dp2mserver 即可，它会通过你给 SearchTaskAsync() 的 strRemoteUser 参数分发。你这一侧的通道不必用多条。
+光光(2820725526) 21:13:28
+记住，无论你和远端多少 dp2Capo 联系，都是中间通过 dp2mserver 分发的。有时候我们在微信公众号这一侧启用多根通道(通过名字参数区分)，是为了并发，或者其他需要。并不是意味着微信公众号和 dp2Capo “直连”了。
+*/
+                    MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                        this.dp2MServerUrl,
+                        C_ConnName_CheckOfflineLibs).Result;//lib.capoUserName 2016/10/16 jane 改为一根通道了
+
+                    SearchResult result = connection.SearchTaskAsync(
+                        lib.capoUserName,
+                        request,
+                        new TimeSpan(0, 1, 0),
+                        cancel_token).Result;
+                    if (result.ResultCount == -1)
+                    {
+                        if (result.ErrorCode == "TargetNotFound")
+                        {
+                            // 总是漏掉江西警察学校，这里输出日志看看。
+                            this.WriteLog2("检查 " + lib.libName + " 为离线状态。");
+
+                            offlineLibs.Add(lib);
+                            continue;
+                        }
+
+                        // 注意这里不要用GetFriendlyErrorInfo
+                        strError = result.ErrorInfo;
+                        goto ERROR1;
+                    }
+
+                    // 总是漏掉江西警察学校，这里输出日志看看。
+                    this.WriteLog2("检查 " + lib.libName + " 为在线状态。");
+                }
+                catch (AggregateException ex)
+                {
+                    strError = MessageConnection.GetExceptionText(ex);
+                    goto ERROR1;
+
+                }
+                catch (Exception ex)
+                {
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
 
 
+                continue;
+
+
+            ERROR1:
+                //将错误写到日志里，继续检索其它图书馆
+                strError = "检查图书馆 " + lib.libName + " 是否在线(重试次数" + doCount + ")出错: " + strError;
+                WriteErrorLog1(strError);
+                if (doCount == 0)
+                {
+                    doCount++;
+                    goto REDO;
+                }
+            }
+            return offlineLibs;
+        }
+
+
+===dp2WeixinService=========
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString(); 
+            SearchRequest request = new SearchRequest(id,
+                "getItemInfo",
+                "entity",
+                biblioPath,
+                "",
+                "",
+                "",
+                "opac",
+                10,
+                0,
+                -1);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    lib.capoUserName).Result; 
+
+                SearchResult result = connection.SearchTaskAsync(
+                       lib.capoUserName,
+                       request,
+                       new TimeSpan(0, 1, 0),
+                       cancel_token).Result;
+
+                if (result.ResultCount == -1 && result.ErrorCode != "ItemDbNotDef") // 2016-8-19 过滤到未定义实体库的情况
+                {
+                    bool bOffline = false;
+                    strError = "GetItemInfo()出错：" + this.GetFriendlyErrorInfo(result, lib.libName,out bOffline);//result.ErrorInfo;
+                    return -1;
+                }
+                if (result.ResultCount == 0)
+                {
+                    strError = "未命中";
+                    return 0;
+                }
+
+
+                bool bCanReservation = false;
+                string returnUrl = "/Biblio/Index";
+                string reservationInfo = "<span class='remark'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，"
+                    + "点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl="
+                    + HttpUtility.UrlEncode(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>";
+
+                if (patronBarcode != null && patronBarcode != "") // 有绑定的读者
+                {
+                    bCanReservation = true;
+                    reservationInfo = "";
+                }
+
+                for (int i = 0; i < result.Records.Count; i++)
+                {
+                    BiblioItem item = new BiblioItem();
+
+                    string xml = result.Records[i].Data;
+                    XmlDocument dom = new XmlDocument();
+                    dom.LoadXml(xml);
+
+                    string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
+                    string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
+                    // 册条码号
+                    string strViewBarcode = "";
+                    if (string.IsNullOrEmpty(strBarcode) == false)
+                        strViewBarcode = strBarcode;
+                    else
+                        strViewBarcode = "@refID:" + strRefID;  //"@refID:"
+                    item.barcode = strViewBarcode;
+
+                    //状态
+                    item.state = DomUtil.GetElementText(dom.DocumentElement, "state");
+
+                    //卷册
+                    item.volumn = DomUtil.GetElementText(dom.DocumentElement, "volumn");
+
+
+                    // 馆藏地
+                    item.location = DomUtil.GetElementText(dom.DocumentElement, "location");
+                    // 索引号
+                    item.accessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
+
+                    // 出版日期
+                    item.publishTime = DomUtil.GetElementText(dom.DocumentElement, "publishTime");
+                    // 价格
+                    item.price = DomUtil.GetElementText(dom.DocumentElement, "price");
+                    // 注释
+                    item.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");
+
+                    // 借阅情况
+
+                    /*
+                     <borrower>R00001</borrower>
+    <borrowerReaderType>教职工</borrowerReaderType>
+    <borrowerRecPath>读者/1</borrowerRecPath>
+    <borrowDate>Sun, 17 Apr 2016 23:57:40 +0800</borrowDate>
+    <borrowPeriod>31day</borrowPeriod>
+    <returningDate>Wed, 18 May 2016 12:00:00 +0800</returningDate>
+                     */
+                    string strBorrower = DomUtil.GetElementText(dom.DocumentElement, "borrower");
+                    string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
+    "borrowDate"), "yyyy/MM/dd");
+                    string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
+                    borrowPeriod = GetDisplayTimePeriodStringEx(borrowPeriod);
+
+                    item.borrower = strBorrower;
+                    item.borrowDate = borrowDate;
+                    item.borrowPeriod = borrowPeriod;
+
+                    string strBorrowInfo = "在架";
+                    bool bOwnBorrow = false;
+                    // 检查是不是当前读者借的
+                    if (string.IsNullOrEmpty(strBorrower) == false)
+                    {
+                        if (patronBarcode != item.borrower)
+                        {
+                            strBorrowInfo = "借阅者：***<br/>"
+                            + "借阅时间：" + item.borrowDate + "<br/>"
+                            + "借期：" + item.borrowPeriod;
+                        }
+                        else
+                        {
+                            // 2016-8-16 修改isbn不能预约的情况
+                            string tempBarcode = item.barcode;
+                            if (tempBarcode.Contains("@refID:") == true)
+                                tempBarcode = tempBarcode.Replace("@refID:", "refID-");
+
+                            strBorrowInfo =
+                                "<table style='width:100%;border:0px'>"
+                                + "<tr>"
+                                    + "<td class='info' style='border:0px'>借阅者：" + patronName + "<br/>"
+                                                                + "借阅时间：" + item.borrowDate + "<br/>"
+                                                                + "借期：" + item.borrowPeriod
+                                        + "</td>"
+                                    + "<td class='btn' style='border:0px'>"
+                                        + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + tempBarcode + "')\">续借</button>"
+                                    + "</td>"
+                            + "</tr>"
+                            + "<tr><td colspan='2'><div id='renewInfo-" + tempBarcode + "'/></td></tr>"
+                            + "</table>";
+
+                            // 此时不能预约
+                            bOwnBorrow = true;
+                            reservationInfo = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
+                        }
+                    }
+                    item.borrowInfo = strBorrowInfo;
+
+                    // 预约信息
+                    if (bCanReservation == true && bOwnBorrow == false)
+                    {
+                        string state = this.getReservationState(reserList, item.barcode);
+                        reservationInfo = getReservationHtml(state, item.barcode, false);
+                    }
+                    item.reservationInfo = reservationInfo;
+
+
+                    // 封面图片
+                    
+                    // 得到检索期的字符串
+                    List<IssueString> issueList = dp2StringUtil.GetIssueQueryStringFromItemXml(dom);
+                    if (issueList != null && issueList.Count > 0)
+                    {
+                        IssueString issueStr = issueList[0];
+
+
+                    }
+
+                    
+
+
+                    itemList.Add(item);
+                }
+
+                ///this.WriteLog("GetItemInfo5");
+                return result.Records.Count;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
 
 
 ==============

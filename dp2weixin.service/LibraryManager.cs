@@ -1,25 +1,28 @@
 ﻿using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.Text;
+using DigitalPlatform.Xml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace dp2weixin.service
 {
     public class LibraryManager
     {
-        List<Library> Librarys = null;
+        public List<Library> Librarys = null;
 
         // 宏macro
         public const string M_Lib_PatronCount = "%PatronCount%";
         public const string M_Lib_WorkerCount = "%WorkerCount%";
         public const string M_Lib_BindTotalCount = "%BindTotalCount%";
 
-        public const string C_RequestVersion = "2.85";
+        public const string C_RequestCapoVersion = "1.9";
+        public const string C_State_Hangup = "hang-up";
 
         /// <summary>
         /// 初始化
@@ -61,7 +64,9 @@ namespace dp2weixin.service
             library.WorkerCount = workers.Count;
 
             // 获取版本号
-            library.Version = this.GetVersion(entity);
+            string version = this.GetVersion(entity);
+            library.SetVersion(entity, version);
+
 
             // 加到内存中
             this.Librarys.Add(library);
@@ -134,30 +139,54 @@ namespace dp2weixin.service
         }
 
 
-        internal void RedoGetVersion()
+        public void RedoGetVersion(Library library)
         {
             if (this.Librarys == null || this.Librarys.Count == 0)
                 return;
 
+            // 如果传入lib，则只处理当前一个图书馆
+            if (library != null)
+            {
+                this.RedoGetVersionOneLib(library);
+                return;
+            }
+
+            //如果未传入图书馆，则检查所有图书馆
             foreach (Library lib in this.Librarys)
             {
-                if (lib.Version == "-1" || lib.Version=="0.0") //2016/9/30
+                this.RedoGetVersionOneLib(lib);
+            }
+        }
+
+        public void RedoGetVersionOneLib(Library library)
+        {
+            if (library != null)
+            {
+                if (library.State == LibraryManager.C_State_Hangup) // 20161017 统一改为用挂起状态判断 //.Version == "-1" || lib.Version=="0.0") //2016/9/30
                 {
-                    lib.Version = this.GetVersion(lib.Entity);
+                    string version = this.GetVersion(library.Entity);
+                    library.SetVersion(library.Entity,version);
                 }
             }
         }
 
-        public string GetVersion(LibEntity lib)
+        private string GetVersion(LibEntity lib)
         {
             string version = "";
 
             // 获取版本号
             string strError = "";
             List<string> dataList = new List<string>();
+            //int nRet = dp2WeiXinService.Instance.GetSystemParameter(lib,
+            //    "system",
+            //    "version",
+            //    out dataList,
+            //    out strError);
+
+            //(较早的dp2Capo在上述功能被调用时会返回ErrorInfo=未知的 category '_clock' 和 name '',ErrorCode=NotFound)
             int nRet = dp2WeiXinService.Instance.GetSystemParameter(lib,
-                "system",
-                "version",
+                "_capoVersion",
+                "",
                 out dataList,
                 out strError);
             if (nRet == -1)
@@ -200,18 +229,8 @@ namespace dp2weixin.service
                     versionStr += ";";
 
                 int ok = 0;
-                if (lib.Version != "-1")
-                {
-                    int nRet = StringUtil.CompareVersion(lib.Version, C_RequestVersion);
-                    if (nRet >= 0)
-                        ok = 1;
-                    else
-                        ok = 0;
-                }
-                else
-                {
-                    ok = -1;
-                }
+                if (lib.State == "")//正常状态
+                    ok = 1;
 
                 versionStr += lib.Entity.id + ":" + ok.ToString();
             }
@@ -236,6 +255,18 @@ namespace dp2weixin.service
         // 绑定的工作人员数量
         public int WorkerCount { get; set; }
 
+        public List<DbCfg> DbList = new List<DbCfg>();
+
+        public DbCfg GetDb(string dbName)
+        {
+            foreach (DbCfg db in this.DbList)
+            {
+                if(db.BiblioDbName == dbName)
+                    return db;
+            }
+            return null;
+        }
+
         // 绑定总数量
         public int BindTotalCount
         {
@@ -246,7 +277,131 @@ namespace dp2weixin.service
         }
 
         // dp2library版本号
-        public string Version { get; set; }
+        private string _version = "";
+        public string Version
+        {
+            get
+            {
+                return this._version;
+            }
+        }
 
+        public void SetVersion(LibEntity libEntity, string version)
+        {
+            string strError = "";
+
+            // 设置版本
+            this._version = version;
+
+            // 更新状态
+            this.UpdateState();
+
+
+            // 获取数据库信息
+            if (this.State != LibraryManager.C_State_Hangup
+                || (this.State == LibraryManager.C_State_Hangup && this.Version != "-1"))
+            {
+                // 得到期库
+                //用点对点的 getSystemParameter 功能。category 为 "system", name 为 "biblioDbGroup"，
+                //可以获得一段 XML 字符串，格式和 library.xml 中的 itemdbgroup 元素相仿，
+                //但每个 database 元素的 name 属性名字变为 itemDbName。
+                // item.IssueDbName = DomUtil.GetAttr(node, "issueDbName");
+                List<string> dataList = new List<string>();
+                //(较早的dp2Capo在上述功能被调用时会返回ErrorInfo=未知的 category '_clock' 和 name '',ErrorCode=NotFound)
+                int nRet = dp2WeiXinService.Instance.GetSystemParameter(libEntity,
+                    "system",
+                    "biblioDbGroup",
+                    out dataList,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                {
+                    goto ERROR1;
+                }
+
+                // 取出数据库配置xml
+                this.BiblioDbGroup = "<root>"+dataList[0]+"</root>";
+
+                XmlDocument dom = new XmlDocument();
+                dom.LoadXml(this.BiblioDbGroup);
+                XmlNodeList databaseList = dom.DocumentElement.SelectNodes("database");
+                foreach (XmlNode node in databaseList)
+                {
+                    DbCfg db = new DbCfg();
+
+                    db.DbName = DomUtil.GetAttr(node, "itemDbName");
+                    db.BiblioDbName = DomUtil.GetAttr(node, "biblioDbName");
+                    db.BiblioDbSyntax = DomUtil.GetAttr(node, "syntax");
+                    db.IssueDbName = DomUtil.GetAttr(node, "issueDbName");
+
+                    db.OrderDbName = DomUtil.GetAttr(node, "orderDbName");
+                    db.CommentDbName = DomUtil.GetAttr(node, "commentDbName");
+                    db.UnionCatalogStyle = DomUtil.GetAttr(node, "unionCatalogStyle");
+
+                    // 2008/6/4
+                    bool bValue = true;
+                    nRet = DomUtil.GetBooleanParam(node,
+                        "inCirculation",
+                        true,
+                        out bValue,
+                        out strError);
+                    if (nRet == -1)
+                    {
+                        throw new Exception("元素<//biblioDbGroup/database>属性inCirculation读入时发生错误: " + strError);
+                    }
+                    db.InCirculation = bValue;
+
+                    db.Role = DomUtil.GetAttr(node, "role");
+
+                    this.DbList.Add(db);
+                }
+            }
+
+            return;
+
+            ERROR1:
+            dp2WeiXinService.Instance.WriteErrorLog1("获取库信息出错:" + strError);
+
+        
+        }
+
+        private void UpdateState()
+        {
+                if (Version != "-1")
+                {
+                    int nRet = StringUtil.CompareVersion(Version, LibraryManager.C_RequestCapoVersion);
+                    if (nRet > 0)
+                        this.State = "";
+                    else
+                        this.State = LibraryManager.C_State_Hangup;
+                }
+                else
+                {
+                    this.State = LibraryManager.C_State_Hangup; 
+                }            
+        }
+
+        // 图书馆，目前主要有用值为 hang-up
+        public string State { get; private set; }
+
+
+        public string BiblioDbGroup { get; set; }
+
+    }
+
+    public class DbCfg
+    {
+        public string DbName = "";  // 实体库名
+        public string BiblioDbName = "";    // 书目库名
+        public string BiblioDbSyntax = "";  // 书目库MARC语法
+
+        public string IssueDbName = ""; // 期库
+        public string OrderDbName = ""; // 订购库 
+        public string CommentDbName = "";   // 评注库
+
+        public string UnionCatalogStyle = "";   // 联合编目特性 905 
+
+        public bool InCirculation = true;   
+
+        public string Role = "";    // 角色 biblioSource/orderWork 
     }
 }

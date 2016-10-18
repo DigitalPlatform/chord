@@ -23,6 +23,7 @@ using Senparc.Weixin.MP.Entities.Request;
 using Senparc.Weixin.MP.MessageHandlers;
 using Senparc.Weixin.MP.Helpers;
 using Senparc.Weixin.MP.Sample.CommonService.Utilities;
+using Senparc.Weixin.MP.Containers;
 
 namespace Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler
 {
@@ -276,7 +277,7 @@ namespace Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler
         {
             var responseMessage = CreateResponseMessage<ResponseMessageMusic>();
             //上传缩略图
-            var accessToken = CommonAPIs.AccessTokenContainer.TryGetAccessToken(appId, appSecret);
+            var accessToken = AccessTokenContainer.GetAccessToken(appId);//.TryGetAccessToken(appId, appSecret);
             var uploadResult = AdvancedAPIs.MediaApi.UploadTemporaryMedia(accessToken, UploadMediaFileType.image,
                                                          Server.GetMapPath("~/Images/Logo.jpg"));
 

@@ -105,21 +105,35 @@ function getDetail(libId, recPath, obj, from) {
                 //alert(tempBarcode+"前");
                 tempBarcode = tempBarcode.replace("@refID:", "refID-");
                 //alert(tempBarcode + "后");
-
             }
 
             itemTables += "<div class='mui-card item' id='_item_" + tempBarcode + "'>"
             + "<div class='title'>" + record.barcode + "</div>"
              + "<table>"
-            + "<tr>"
-            + "<td class='label'>状态</td>"
-            + "<td class='value'>" + record.state + "</td>"
-            + "</tr>"
-            + "<tr>"
-            + "<td class='label'>卷册</td>"
-            + "<td class='value'>" + record.volumn + "</td>"
-            + "</tr>"
-            + "<tr>"
+            + "<tr>";
+
+            // 有图片才显示
+            if (record.imgHtml != null && record.imgHtml != "") {
+                itemTables += "<td class='label'></td>"
+                + "<td class='value'>" + record.imgHtml + "</td>"
+                + "</tr>";
+            }
+
+            if (record.state != null && record.state != "") {
+                itemTables += "<tr>"
+                + "<td class='label'>状态</td>"
+                + "<td class='value'  style='font-weight:bold'>" + record.state + "</td>"
+                + "</tr>";
+            }
+
+            if (record.volume != null && record.volume != "") {
+                itemTables += "<tr>"
+                + "<td class='label'>卷册</td>"
+                + "<td class='value'>" + record.volume + "</td>"
+                + "</tr>";
+            }
+
+            itemTables += "<tr>"
             + "<td class='label'>馆藏地</td>"
             + "<td class='value'>" + record.location + "</td>"
             + "</tr>"
