@@ -678,7 +678,7 @@ namespace dp2weixin.service
                 int nRet = this.InternalDoMessage(record, lib, out strError);
                 if (nRet == -1)
                 {
-                    this.WriteErrorLog1("[" + record.id + "]未发送成功:" + strError);
+                    this.WriteLog2("[" + record.id + "]未发送成功:" + strError);
                 }
                 else if (nRet == 0)
                 {
