@@ -913,7 +913,6 @@ CancellationToken token)
         // 当 server 发来 Close 请求的时候被调用。
         public virtual void OnCloseRecieved(CloseRequest param)
         {
-
             if (param.Action == "reconnect")
             {
                 ConnectAsync(); // 不用等待完成
@@ -2689,6 +2688,7 @@ CancellationToken token)
                     AddConnectionEvents(false);
                     // Connection.Closed -= new Action(Connection_Closed);
 
+#if NO
                     /*
     操作类型 crashReport -- 异常报告 
     主题 dp2circulation 
@@ -2725,6 +2725,7 @@ CancellationToken token)
                     catch (System.NullReferenceException)
                     {
                     }
+#endif
                     var temp = this.Connection;
                     this.Connection = null;
 
@@ -2732,7 +2733,7 @@ CancellationToken token)
                     if (temp != null)
                     {
                         temp.Dispose();
-                        GC.Collect();
+                        // GC.Collect();
                     }
                 }
             }
