@@ -1,5 +1,5 @@
 ﻿        @section style {
-    <link href="@Url.Content("~/Content/biblio.css?a=9")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/biblio.css?a=4")" rel="stylesheet">
 }
 @section Scripts {
     <script>
@@ -71,7 +71,6 @@
             }
             //alert("end");
         }
-
 
 
         //浏览器加载并处理了文档的所有HTML元素之后才会执行。
@@ -176,7 +175,10 @@
         // 检索
         function search(bNext, expandId) {
 
+            //alert("search");
+
             $("#more").css("display", "none");
+            $("#searchInfo").text("");
 
             var from = "";
             var word = "";
@@ -199,7 +201,6 @@
                 // 不能再继续加载
                 $("#more").addClass("nextdisabled");
                 $("#more").css("display", "block");
-
             }
             
 
@@ -247,7 +248,7 @@
                 }
                 var table = $("#ulResult");//$('.mui-table-view');
                 table.html("");
-                $("#searchInfo").text("");
+                //$("#searchInfo").text(""); //统一放在函数开头了
 
             }
 
@@ -472,6 +473,8 @@
             $("#searchInfo").text("");
             $('#txtWordSimple').val("");
             $('#txtWord').val("");
+            $("#more").css("display", "none");
+
 
             if (type == "高级检索") {
                 //$('#txtWordSimple').focus();

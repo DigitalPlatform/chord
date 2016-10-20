@@ -1,4 +1,53 @@
-﻿==============
+﻿====
+
+XmlNode node = item.SelectSingleNode("volume/text()");
+                string strVolumeString = "";
+                if (node != null)
+                    strVolumeString = node.Value;
+
+                if (string.IsNullOrEmpty(strVolumeString) == true)
+                {
+                    XmlAttribute attr = item.Attributes["volume"];
+                    if (attr != null)
+                        strVolumeString = attr.Value;
+                }
+
+                if (string.IsNullOrEmpty(strVolumeString) == true)
+                    continue;
+
+                string strYear = "";
+                string strIssue = "";
+                string strZong = "";
+                string strVolume = "";
+
+                // 解析当年期号、总期号、卷号的字符串
+                VolumeInfo.ParseItemVolumeString(strVolumeString,
+                    out strYear,
+                    out strIssue,
+                    out strZong,
+                    out strVolume);
+
+                // 若 volume 元素中不包含年份，则从 publishTime 元素中取
+                if (string.IsNullOrEmpty(strYear))
+                {
+                    node = dom.DocumentElement.SelectSingleNode("publishTime/text()");
+
+                    string strPublishTime = "";
+                    if (node != null)
+                        strPublishTime = node.Value;
+
+                    if (string.IsNullOrEmpty(strPublishTime) == true)
+                    {
+                        XmlAttribute attr = item.Attributes["publishTime"];
+                        if (attr != null)
+                            strPublishTime = attr.Value;
+                    }
+
+                    strYear = dp2StringUtil.GetYearPart(strPublishTime);
+                }
+
+
+==============
         /// <summary>
         /// 获取不在线的图书馆
         /// </summary>

@@ -76,5 +76,7 @@ namespace dp2weixin.service
          public string reservationInfo { get; set; }
 
          public string imgHtml { get; set; }
+
+         public bool disable { get; set; }
     }
 }

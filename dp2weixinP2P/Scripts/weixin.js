@@ -99,16 +99,30 @@ function getDetail(libId, recPath, obj, from) {
         for (var i = 0; i < result.itemList.length; i++) {
             var record = result.itemList[i];
 
+            var titleClass = "title";
+
+            //alert("disable="+record.disable);
+
+            var addStyle = "";  /*删除线*/
+            if (record.disable ==true)
+            {
+                
+                addStyle = "style='color:#cccccc;text-decoration:line-through;'";  /*发灰，删除线*/
+            }
+
+
             var tempBarcode = record.barcode;
             if (tempBarcode.indexOf("@refID:") != -1)
             {
                 //alert(tempBarcode+"前");
                 tempBarcode = tempBarcode.replace("@refID:", "refID-");
                 //alert(tempBarcode + "后");
+
+                titleClass = "titleGray";
             }
 
             itemTables += "<div class='mui-card item' id='_item_" + tempBarcode + "'>"
-            + "<div class='title'>" + record.barcode + "</div>"
+            //+ "<div class='"+titleClass+"'>" + record.barcode + "</div>"
              + "<table>"
             + "<tr>";
 
@@ -119,39 +133,45 @@ function getDetail(libId, recPath, obj, from) {
                 + "</tr>";
             }
 
+            // 册条码
+                itemTables += "<tr>"
+                + "<td class='label'>册条码</td>"
+                + "<td class='title' " + addStyle + ">" + record.barcode + "</td>"
+                + "</tr>";
+
             if (record.state != null && record.state != "") {
                 itemTables += "<tr>"
                 + "<td class='label'>状态</td>"
-                + "<td class='value'  style='font-weight:bold'>" + record.state + "</td>"
+                + "<td class='value'  " + addStyle + ">" + record.state + "</td>"
                 + "</tr>";
             }
 
             if (record.volume != null && record.volume != "") {
                 itemTables += "<tr>"
                 + "<td class='label'>卷册</td>"
-                + "<td class='value'>" + record.volume + "</td>"
+                + "<td class='value' " + addStyle + ">" + record.volume + "</td>"
                 + "</tr>";
             }
 
             itemTables += "<tr>"
             + "<td class='label'>馆藏地</td>"
-            + "<td class='value'>" + record.location + "</td>"
+            + "<td class='value' " + addStyle + ">" + record.location + "</td>"
             + "</tr>"
             + "<tr>"
             + "<td class='label'>索取号</td>"
-            + "<td class='value'>" + record.accessNo + "</td>"
+            + "<td class='value' " + addStyle + ">" + record.accessNo + "</td>"
             + "</tr>"
             + "<tr>"
             + "<td class='label'>价格</td>"
-            + "<td class='value'>" + record.price + "</td>"
+            + "<td class='value' " + addStyle + ">" + record.price + "</td>"
             + "</tr>"
             + "<tr>"
             + "<td class='label'>在借情况</td>"
-            + "<td class='value'>" + record.borrowInfo + "</td>"
+            + "<td class='value' " + addStyle + ">" + record.borrowInfo + "</td>"
             + "</tr>"
             + "<tr>"
             + "<td class='label'>预约信息</td>"
-            + "<td class='value' >" + record.reservationInfo + "</td>"
+            + "<td class='value' " + addStyle + ">" + record.reservationInfo + "</td>"
             + "</tr>"
             //
             + "</table>"

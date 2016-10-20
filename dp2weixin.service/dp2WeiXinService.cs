@@ -71,7 +71,7 @@ namespace dp2weixin.service
 
 
         // 日志级别
-        public int LogLevel = 1;
+        public int LogLevel = 2;
 
         // 微信数据目录
         public string weiXinDataDir = "";
@@ -2638,6 +2638,10 @@ namespace dp2weixin.service
             List<Library> libs = dp2WeiXinService.Instance.LibManager.Librarys; //LibDatabase.Current.GetLibs();  // 20161016 jane 这里应该用内存的数据库集合是好了 todo
             foreach (Library lib in libs)
             {
+                // 可以图书馆的备注信息设为
+                if (lib.Entity.comment == "notwarn") // 任延华测试用的图书馆
+                    continue;
+
                 // 如果是挂起状态，直接加入不在线列表
                 if (lib.State == LibraryManager.C_State_Hangup)
                 {
@@ -2729,6 +2733,8 @@ namespace dp2weixin.service
                 WriteErrorLog1(strError);
 
             }
+
+
             return offlineLibs;
         }
 
@@ -3002,6 +3008,11 @@ namespace dp2weixin.service
                     }
                 }
 
+                /*
+                2016-10-20 任延华
+                修改起因：南开徐老师被不在线通知烦到了，提出改进这个功能，少给图书馆工作人员发通知。
+                修改为：如果图书馆工作人员都没有设_wx_getWarning，就不通知了图书馆人员了，只通知数字平台人员。
+
                 // 如果没有一个人配置 接收警告信息 的权限，则发给所有的工作人员
                 if (adminWeixinIds.Count == 0)
                 {
@@ -3010,6 +3021,7 @@ namespace dp2weixin.service
                         adminWeixinIds.Add(user);
                     }
                 }
+                 */
             }
 
             return adminWeixinIds;
@@ -5163,7 +5175,30 @@ namespace dp2weixin.service
                 item.barcode = strViewBarcode;
 
                 //状态
-                item.state = DomUtil.GetElementText(dom.DocumentElement, "state");
+                string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+
+                //// strState = strMessageText + strState;
+                //string strStateMessage = DomUtil.GetElementText(dom.DocumentElement,
+                //    "stateMessage");
+                //if (String.IsNullOrEmpty(strStateMessage) == false)
+                //    item.state = strStateMessage;
+
+                XmlNode nodeBindingParent = dom.DocumentElement.SelectSingleNode("binding/bindingParent");
+                if (nodeBindingParent != null)
+                {
+                    StringUtil.SetInList(ref strState, "已装入合订册", true);
+                }
+
+                item.state = strState;
+
+                bool disable =false;
+                if (StringUtil.IsInList("加工中", item.state) == true
+                    || StringUtil.IsInList("已装入合订册", item.state) == true)
+                {
+                    disable = true;
+                }
+                item.disable = disable;
+
                 //卷册
                 item.volume = DomUtil.GetElementText(dom.DocumentElement, "volume");
                 // 馆藏地
@@ -5239,7 +5274,7 @@ namespace dp2weixin.service
                 if (bCanReservation == true && bOwnBorrow == false)
                 {
                     string state = this.getReservationState(reserList, item.barcode);
-                    reservationInfo = getReservationHtml(state, item.barcode, false);
+                    reservationInfo = getReservationHtml(state, item.barcode, false,disable);
                 }
                 item.reservationInfo = reservationInfo;
 
@@ -5255,36 +5290,45 @@ namespace dp2weixin.service
                 DbCfg db= thisLib.GetDb(biblioDbName);
                 if (db != null && String.IsNullOrEmpty(db.IssueDbName) == false)
                 {
+                    string totalImgs = "";
+
                     // 封面图片
                     // 得到检索期的字符串
                     List<IssueString> issueList = dp2StringUtil.GetIssueQueryStringFromItemXml(dom);
                     if (issueList != null && issueList.Count > 0)// todo 为啥会有多项？
                     {
-                        IssueString issueStr = issueList[0];
-
-                        // 获取期记录
-                        string style = "query:父记录+期号|" + biblioId + "|" + issueStr.Query;
-                        string issueXml = "";
-                        string issuePath = "";
-                        long ret = this.GetIssue(lib,
-                            biblioPath,
-                            style,
-                            out issuePath,
-                            out issueXml,
-                            out strError);
-                        if (ret == -1)
+                        foreach (IssueString issueStr in issueList)
                         {
-                            goto ERROR1;
-                        }
 
-                        // 从期中取出图片url
-                        XmlDocument issueDom = new XmlDocument();
-                        issueDom.LoadXml(issueXml);
-                        string imgId = dp2StringUtil.GetCoverImageIDFromIssueRecord(issueDom, "LargeImage");
-                        //string issueImgUrl = issuePath + "/object/"+imgId;
-                        string imgHtml = dp2WeiXinService.GetImageHtmlFragment(lib.id, issuePath, imgId, true);
-                        item.imgHtml = imgHtml;
+                            // 获取期记录
+                            string style = "query:父记录+期号|" + biblioId + "|" + issueStr.Query;
+                            string issueXml = "";
+                            string issuePath = "";
+                            long ret = this.GetIssue(lib,
+                                biblioPath,
+                                style,
+                                out issuePath,
+                                out issueXml,
+                                out strError);
+                            if (ret == -1)
+                            {
+                                goto ERROR1;
+                            }
+
+                            // 从期中取出图片url
+                            XmlDocument issueDom = new XmlDocument();
+                            issueDom.LoadXml(issueXml);
+                            string imgId = dp2StringUtil.GetCoverImageIDFromIssueRecord(issueDom, "LargeImage");
+                            //string issueImgUrl = issuePath + "/object/"+imgId;
+                            string imgHtml = dp2WeiXinService.GetImageHtmlFragment(lib.id, issuePath, imgId, true);
+
+                            if (totalImgs != "")
+                                totalImgs += "&nbsp;";
+                            totalImgs += imgHtml;
+                        }
                     }
+
+                    item.imgHtml = totalImgs;
                 }
 
                 // 加到数组里
@@ -5322,8 +5366,14 @@ namespace dp2weixin.service
         }
 
         // 得到预约状态和操作按钮
-        private string getReservationHtml(string reservationState, string barcode, bool bOnlyReserRow)//List<ReservationInfo> list, string barcode)
+        private string getReservationHtml(string reservationState, string barcode, bool bOnlyReserRow,bool disable)//List<ReservationInfo> list, string barcode)
         {
+            string disabledStr = "";
+            if (disable == true)
+            {
+                disabledStr = " disabled='disabled' ";
+            }
+
             // 2016-8-16 修改isbn不能预约的情况
             if (barcode.Contains("@refID:") == true)
                 barcode = barcode.Replace("@refID:", "refID-");
@@ -5333,7 +5383,7 @@ namespace dp2weixin.service
             string btn = "";
             if (reservationState == "未预约")
             {
-                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','new')\">预约</button>";
+                btn = "<button class='mui-btn  mui-btn-default' " + disabledStr + " onclick=\"reservation(this,'" + barcode + "','new')\">预约</button>";
             }
             else if (reservationState == "已预约")
             {
@@ -6286,15 +6336,15 @@ namespace dp2weixin.service
 
                 if (style == "delete")
                 {
-                    reserRowHtml = this.getReservationHtml("未预约", items, true);
+                    reserRowHtml = this.getReservationHtml("未预约", items, true,false);
                 }
                 else if (style == "new")
                 {
                     // 根据result.ErrorInfo区分是否到书 todo这个区分可靠吗？
                     if (strError != "")
-                        reserRowHtml = this.getReservationHtml("已到书", items, true);
+                        reserRowHtml = this.getReservationHtml("已到书", items, true, false);
                     else
-                        reserRowHtml = this.getReservationHtml("已预约", items, true);
+                        reserRowHtml = this.getReservationHtml("已预约", items, true, false);
                 }
 
 
