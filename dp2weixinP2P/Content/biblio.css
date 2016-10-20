@@ -147,6 +147,14 @@ DIV.item {
     DIV.item TABLE TR TD.title  {
                 padding-left: 5px;
         font-size: 20px;
+
+    }
+
+    DIV.item TABLE TR TD.titleGray  {
+                padding-left: 5px;
+
+        font-size: 12px;
+        color:#cccccc;
     }
 
                 /*册右值数据td*/

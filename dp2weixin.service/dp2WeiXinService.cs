@@ -5166,12 +5166,16 @@ namespace dp2weixin.service
 
                 string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
                 string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
+
+                item.refID = "@refID:" + strRefID;
+                item.pureBarcode = strBarcode;
+
                 // 册条码号
                 string strViewBarcode = "";
                 if (string.IsNullOrEmpty(strBarcode) == false)
                     strViewBarcode = strBarcode;
                 else
-                    strViewBarcode = "@refID:" + strRefID;  //"@refID:"
+                    strViewBarcode = item.refID;// "@refID:" + strRefID;  //"@refID:"
                 item.barcode = strViewBarcode;
 
                 //状态
@@ -5182,18 +5186,22 @@ namespace dp2weixin.service
                 //    "stateMessage");
                 //if (String.IsNullOrEmpty(strStateMessage) == false)
                 //    item.state = strStateMessage;
-
+                bool bMember = false;
                 XmlNode nodeBindingParent = dom.DocumentElement.SelectSingleNode("binding/bindingParent");
                 if (nodeBindingParent != null)
                 {
-                    StringUtil.SetInList(ref strState, "已装入合订册", true);
-                }
+                    bMember = true;
 
+                    string parentRefID = DomUtil.GetAttr(nodeBindingParent, "refID");
+                    string info = "已装入合订册(从属于@refID:" + parentRefID + ")";
+                    StringUtil.SetInList(ref strState, info, true);
+                }
                 item.state = strState;
+
 
                 bool disable =false;
                 if (StringUtil.IsInList("加工中", item.state) == true
-                    || StringUtil.IsInList("已装入合订册", item.state) == true)
+                    || bMember==true)
                 {
                     disable = true;
                 }
@@ -5231,52 +5239,56 @@ namespace dp2weixin.service
                 item.borrowDate = borrowDate;
                 item.borrowPeriod = borrowPeriod;
 
-                string strBorrowInfo = "在架";
-                bool bOwnBorrow = false;
-                // 检查是不是当前读者借的
-                if (string.IsNullOrEmpty(strBorrower) == false)
+                // 成员册 不显示“在借情况”和“预约信息”
+                if (bMember == false)
                 {
-                    if (patronBarcode != item.borrower)
+                    string strBorrowInfo = "在架";
+                    bool bOwnBorrow = false;
+                    // 检查是不是当前读者借的
+                    if (string.IsNullOrEmpty(strBorrower) == false)
                     {
-                        strBorrowInfo = "借阅者：***<br/>"
-                        + "借阅时间：" + item.borrowDate + "<br/>"
-                        + "借期：" + item.borrowPeriod;
-                    }
-                    else
-                    {
-                        // 2016-8-16 修改isbn不能预约的情况
-                        string tempBarcode = item.barcode;
-                        if (tempBarcode.Contains("@refID:") == true)
-                            tempBarcode = tempBarcode.Replace("@refID:", "refID-");
+                        if (patronBarcode != item.borrower)
+                        {
+                            strBorrowInfo = "借阅者：***<br/>"
+                            + "借阅时间：" + item.borrowDate + "<br/>"
+                            + "借期：" + item.borrowPeriod;
+                        }
+                        else
+                        {
+                            // 2016-8-16 修改isbn不能预约的情况
+                            string tempBarcode = item.barcode;
+                            if (tempBarcode.Contains("@refID:") == true)
+                                tempBarcode = tempBarcode.Replace("@refID:", "refID-");
 
-                        strBorrowInfo =
-                            "<table style='width:100%;border:0px'>"
-                            + "<tr>"
-                                + "<td class='info' style='border:0px'>借阅者：" + patronName + "<br/>"
-                                                            + "借阅时间：" + item.borrowDate + "<br/>"
-                                                            + "借期：" + item.borrowPeriod
+                            strBorrowInfo =
+                                "<table style='width:100%;border:0px'>"
+                                + "<tr>"
+                                    + "<td class='info' style='border:0px'>借阅者：" + patronName + "<br/>"
+                                                                + "借阅时间：" + item.borrowDate + "<br/>"
+                                                                + "借期：" + item.borrowPeriod
+                                        + "</td>"
+                                    + "<td class='btn' style='border:0px'>"
+                                        + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + tempBarcode + "')\">续借</button>"
                                     + "</td>"
-                                + "<td class='btn' style='border:0px'>"
-                                    + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + tempBarcode + "')\">续借</button>"
-                                + "</td>"
-                        + "</tr>"
-                        + "<tr><td colspan='2'><div id='renewInfo-" + tempBarcode + "'/></td></tr>"
-                        + "</table>";
+                            + "</tr>"
+                            + "<tr><td colspan='2'><div id='renewInfo-" + tempBarcode + "'/></td></tr>"
+                            + "</table>";
 
-                        // 此时不能预约
-                        bOwnBorrow = true;
-                        reservationInfo = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
+                            // 此时不能预约
+                            bOwnBorrow = true;
+                            reservationInfo = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
+                        }
                     }
-                }
-                item.borrowInfo = strBorrowInfo;
+                    item.borrowInfo = strBorrowInfo;
 
-                // 预约信息
-                if (bCanReservation == true && bOwnBorrow == false)
-                {
-                    string state = this.getReservationState(reserList, item.barcode);
-                    reservationInfo = getReservationHtml(state, item.barcode, false,disable);
+                    // 预约信息
+                    if (bCanReservation == true && bOwnBorrow == false)
+                    {
+                        string state = this.getReservationState(reserList, item.barcode);
+                        reservationInfo = getReservationHtml(state, item.barcode, false, disable);
+                    }
+                    item.reservationInfo = reservationInfo;
                 }
-                item.reservationInfo = reservationInfo;
 
 
                 // 检查数据库是否为期刊库

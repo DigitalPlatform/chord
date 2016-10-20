@@ -136,7 +136,7 @@ function getDetail(libId, recPath, obj, from) {
             // 册条码
                 itemTables += "<tr>"
                 + "<td class='label'>册条码</td>"
-                + "<td class='title' " + addStyle + ">" + record.barcode + "</td>"
+                + "<td class='title' " + addStyle + ">" + record.pureBarcode + "</td>"  //record.barcode
                 + "</tr>";
 
             if (record.state != null && record.state != "") {
@@ -166,15 +166,28 @@ function getDetail(libId, recPath, obj, from) {
             + "<td class='value' " + addStyle + ">" + record.price + "</td>"
             + "</tr>"
             + "<tr>"
-            + "<td class='label'>在借情况</td>"
-            + "<td class='value' " + addStyle + ">" + record.borrowInfo + "</td>"
-            + "</tr>"
-            + "<tr>"
-            + "<td class='label'>预约信息</td>"
-            + "<td class='value' " + addStyle + ">" + record.reservationInfo + "</td>"
-            + "</tr>"
+            + "<td class='label'>参考ID</td>"
+            + "<td class='titleGray' " + addStyle + ">" + record.refID + "</td>"
+            + "</tr>";
+            
+            // 成员册 不显示在借情况
+            if (record.borrowInfo != null && record.borrowInfo != "") {
+                itemTables += "<tr>"
+                + "<td class='label'>在借情况</td>"
+                + "<td class='value' " + addStyle + ">" + record.borrowInfo + "</td>"
+                + "</tr>";
+            }
+
+            // 成员册 不显示预约信息
+            if (record.reservationInfo != null && record.reservationInfo != "") {
+                itemTables += "<tr>"
+                + "<td class='label'>预约信息</td>"
+                + "<td class='value' " + addStyle + ">" + record.reservationInfo + "</td>"
+                + "</tr>"
+            }
+
             //
-            + "</table>"
+            itemTables += "</table>"
             + "</div>";
         }
 

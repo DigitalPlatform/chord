@@ -54,7 +54,9 @@ namespace dp2weixin.service
 册记录路径
         */
 
-        public string barcode { get; set; }
+        public string barcode { get; set; }//这个barcode值：如果有册条码号为册条码，没有值为@refID:
+        public string pureBarcode { get; set; }//册条码号 2016/10/21
+
         public string state { get; set; }
         public string volume { get; set; }
         public string location { get; set; }
@@ -78,5 +80,7 @@ namespace dp2weixin.service
          public string imgHtml { get; set; }
 
          public bool disable { get; set; }
+
+         public string refID { get; set; }
     }
 }
