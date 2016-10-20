@@ -86,7 +86,7 @@ namespace dp2Capo
         {
             if (this.Instance != null)
             {
-                this.Instance.WriteErrorLog("--- CloseConnection 被触发开始");
+                this.Instance.WriteErrorLog("--- CloseConnection 被触发开始\r\n调用栈: " + Environment.StackTrace);
             }
 
             base.CloseConnection();
