@@ -108,6 +108,7 @@ namespace DigitalPlatform.MessageServer
             catch (Exception ex)
             {
                 Console.Write("切断前端通讯通道时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                ServerInfo.WriteErrorLog("切断前端通讯通道时出现异常: " + ExceptionUtil.GetExceptionText(ex));   // 2016/10/21
             }
         }
 
@@ -2037,17 +2038,27 @@ ex.GetType().ToString());
                 ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(connection_id);
                 if (connection_info == null)
                 {
-                    result.ErrorInfo = "拟清除的 id 为 '" + connection_id + "' 的 connection 没有找到";
-                    result.Value = -1;
-                    result.String = "";
-                    return result;
+                    connection_info = ServerInfo.ConnectionTable.GetConnectionByUserName(connection_id);
+                    if (connection_info == null)
+                    {
+                        result.ErrorInfo = "拟清除的 id 或 用户名 为 '" + connection_id + "' 的 connection 没有找到";
+                        result.Value = -1;
+                        result.String = "";
+                        return result;
+                    }
                 }
             }
 
             if (connection_id == "*")
                 ServerInfo.ConnectionTable.Clear();
             else
-                ServerInfo.ConnectionTable.RemoveConnection(connection_id);
+            {
+                ConnectionInfo info = ServerInfo.ConnectionTable.GetConnectionByUserName(connection_id);
+                if (info == null)
+                    ServerInfo.ConnectionTable.RemoveConnection(connection_id);
+                else
+                    ServerInfo.ConnectionTable.RemoveConnection(info.ConnectionID);
+            }
             result.Value = 0;
             return result;
         }
@@ -2099,13 +2110,21 @@ true);
                     return result;
                 }
 
+                string id = "";
+                // 试探一下看看是不是用户名
+                ConnectionInfo info = ServerInfo.ConnectionTable.GetConnectionByUserName(param.QueryWord);
+                if (info != null)
+                    id = info.ConnectionID;
+                else
+                    id = param.QueryWord;
+
                 try
                 {
                     string strAction = "";
                     if (param.Operation == "reconnect")
                         strAction = "reconnect";
                     CloseRequest request = new CloseRequest(strAction);
-                    Clients.Client(param.QueryWord).close(request);
+                    Clients.Client(id).close(request);
                 }
                 catch (Exception ex)
                 {

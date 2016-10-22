@@ -180,6 +180,9 @@ namespace TestClient1
             this.textBox_config_messageServerUrl.Text = Settings.Default.config_url;
             this.textBox_config_userName.Text = Settings.Default.config_userName;
             this.textBox_config_password.Text = Settings.Default.config_password;
+            this.textBox_config_libraryUserName.Text = Settings.Default.config_libraryUserName;
+            this.textBox_config_libraryPassword.Text = Settings.Default.config_libraryPassword;
+            this.checkBox_config_isPatron.Checked = Settings.Default.config_isPatron;
 
             this.comboBox_getInfo_method.Text = Settings.Default.getInfo_method;
             this.textBox_getInfo_remoteUserName.Text = Settings.Default.getInfo_remoteUserName;
@@ -239,6 +242,9 @@ namespace TestClient1
             Settings.Default.config_url = this.textBox_config_messageServerUrl.Text;
             Settings.Default.config_userName = this.textBox_config_userName.Text;
             Settings.Default.config_password = this.textBox_config_password.Text;
+            Settings.Default.config_libraryUserName = this.textBox_config_libraryUserName.Text;
+            Settings.Default.config_libraryPassword = this.textBox_config_libraryPassword.Text;
+            Settings.Default.config_isPatron = this.checkBox_config_isPatron.Checked;
 
             Settings.Default.getInfo_method = this.comboBox_getInfo_method.Text;
             Settings.Default.getInfo_remoteUserName = this.textBox_getInfo_remoteUserName.Text;
@@ -353,6 +359,17 @@ namespace TestClient1
             this.toolStrip1.Enabled = bEnable;
         }
 
+        LoginInfo GetLoginInfo()
+        {
+            string strPassword = this.textBox_config_libraryPassword.Text;
+            if (string.IsNullOrEmpty(strPassword))
+                strPassword = null;
+            return new LoginInfo(this.textBox_config_libraryUserName.Text, 
+                this.checkBox_config_isPatron.Checked,
+                strPassword,
+                "");
+        }
+
         async void DoCirculation()
         {
             string strError = "";
@@ -372,6 +389,7 @@ namespace TestClient1
 
                 string id = Guid.NewGuid().ToString();
                 CirculationRequest request = new CirculationRequest(id,
+                    GetLoginInfo(),
                     this.comboBox_circulation_operation.Text,
                     this.textBox_circulation_patron.Text,
                     this.textBox_circulation_item.Text,
@@ -440,6 +458,7 @@ namespace TestClient1
 
                 string id = Guid.NewGuid().ToString();
                 SetInfoRequest request = new SetInfoRequest(id,
+                    GetLoginInfo(),
                     this.comboBox_setInfo_method.Text,
                     this.textBox_setInfo_biblioRecPath.Text,
                     entities);
@@ -501,6 +520,7 @@ namespace TestClient1
 
                 string id = Guid.NewGuid().ToString();
                 BindPatronRequest request = new BindPatronRequest(id,
+                    GetLoginInfo(),
                     this.comboBox_bindPatron_action.Text,
                     this.textBox_bindPatron_queryWord.Text,
                     this.textBox_bindPatron_password.Text,
@@ -631,6 +651,7 @@ namespace TestClient1
 
                 string id = Guid.NewGuid().ToString();
                 SearchRequest request = new SearchRequest(id,
+                    GetLoginInfo(),
                     this.comboBox_search_method.Text,
                     this.textBox_search_dbNameList.Text,
                     this.textBox_search_queryWord.Text,
@@ -701,6 +722,7 @@ namespace TestClient1
                 // 获取书目记录
                 string id1 = Guid.NewGuid().ToString();
                 SearchRequest request1 = new SearchRequest(id1,
+                    GetLoginInfo(),
                     this.comboBox_getInfo_method.Text,
                     "",
                     this.textBox_getInfo_queryWord.Text,
@@ -714,6 +736,7 @@ namespace TestClient1
                 // 获取下属记录
                 string id2 = Guid.NewGuid().ToString();
                 SearchRequest request2 = new SearchRequest(id2,
+                    GetLoginInfo(),
     "getItemInfo",
     "entity",
     this.textBox_getInfo_queryWord.Text,
@@ -798,6 +821,7 @@ namespace TestClient1
 
                 string id = Guid.NewGuid().ToString();
                 SearchRequest request = new SearchRequest(id,
+                    GetLoginInfo(),
                     this.comboBox_getInfo_method.Text,
                     "",
                     this.textBox_getInfo_queryWord.Text,
@@ -2008,6 +2032,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
+                    GetLoginInfo(),
                 "getBiblioInfo",
                 "<全部>",
                 biblioPath,
@@ -2071,6 +2096,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
+                    GetLoginInfo(),
                 "getItemInfo",
                 "entity",
                 biblioPath,
@@ -2199,6 +2225,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
                 string id = Guid.NewGuid().ToString();
                 GetResRequest request = new GetResRequest(id,
+                    GetLoginInfo(),
                     this.comboBox_getRes_operation.Text,
                     this.textBox_getRes_path.Text,
                     start,
@@ -2282,6 +2309,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
                 string id = Guid.NewGuid().ToString();
                 GetResRequest request = new GetResRequest(id,
+                    GetLoginInfo(),
                     this.comboBox_getRes_operation.Text,
                     this.textBox_getRes_path.Text,
                     start,

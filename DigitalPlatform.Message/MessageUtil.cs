@@ -12,6 +12,53 @@ namespace DigitalPlatform.Message
 
     }
 
+    // 2016/10/23
+    public class LoginInfo
+    {
+        public string UserName { get; set; }    // 用户名。指 dp2library 的用户名。如果 Type 为 "Patron"，表示这是一个读者。2016/10/21
+        public string UserType { get; set; }    // 用户类型。patron 表示读者，其他表示工作人员
+        public string Password { get; set; }    // 密码。如果为 null，表示用代理方式登录
+        public string Style { get; set; }       // 登录方式
+
+        public LoginInfo()
+        {
+
+        }
+
+        public LoginInfo(string userName, bool isPatron)
+        {
+            this.UserName = userName;
+            if (isPatron)
+                this.UserType = "patron";
+        }
+
+        public LoginInfo(string userName,
+            bool isPatron,
+            string password,
+            string style)
+        {
+            this.UserName = userName;
+            if (isPatron)
+                this.UserType = "patron";
+            this.Password = password;
+            this.Style = style;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder text = new StringBuilder();
+            if (string.IsNullOrEmpty(this.UserName) == false)
+                text.Append("UserName=" + this.UserName + ";");
+            if (string.IsNullOrEmpty(this.UserType) == false)
+                text.Append("UserType=" + this.UserType + ";");
+            if (string.IsNullOrEmpty(this.Password) == false)
+                text.Append("Password=" + this.Password + ";");
+            if (string.IsNullOrEmpty(this.Style) == false)
+                text.Append("Style=" + this.Style + ";");
+            return text.ToString();
+        }
+    }
+
     // 通用的 API 返回值结构
     public class MessageResult
     {
@@ -256,6 +303,7 @@ namespace DigitalPlatform.Message
     public class SearchRequest
     {
         public string TaskID { get; set; }    // 本次检索的任务 ID。由于一个 Connection 可以用于同时进行若干检索操作，本参数用于区分不同的检索操作
+        public LoginInfo LoginInfo { get; set; }    // 登录信息 2016/10/22
         public string Operation { get; set; }   // 操作名。
         public string DbNameList { get; set; }  // 数据库名列表。一般为 "<全部>"
         public string QueryWord { get; set; }   // 检索词。若为 !getResult 表示不检索、从已有结果集中获取记录
@@ -275,6 +323,7 @@ namespace DigitalPlatform.Message
         }
 
         public SearchRequest(string taskID,
+            LoginInfo loginInfo,
             string operation,
             string dbNameList,
             string queryWord,
@@ -288,6 +337,7 @@ namespace DigitalPlatform.Message
             string serverPushEncoding = "")
         {
             this.TaskID = taskID;
+            this.LoginInfo = loginInfo;
             this.Operation = operation;
             this.DbNameList = dbNameList;
             this.QueryWord = queryWord;
@@ -302,6 +352,7 @@ namespace DigitalPlatform.Message
         }
 
         public SearchRequest(string taskID,
+            LoginInfo loginInfo,
     string operation,
     string dbNameList,
     string queryWord,
@@ -316,6 +367,7 @@ namespace DigitalPlatform.Message
     string serverPushEncoding = "")
         {
             this.TaskID = taskID;
+            this.LoginInfo = loginInfo;
             this.Operation = operation;
             this.DbNameList = dbNameList;
             this.QueryWord = queryWord;
@@ -334,6 +386,8 @@ namespace DigitalPlatform.Message
         {
             StringBuilder text = new StringBuilder();
             text.Append("TaskID=" + this.TaskID + "\r\n");
+            if (this.LoginInfo != null)
+                text.Append("LoginInfo=" + this.LoginInfo.ToString() + "\r\n");
             text.Append("Operation=" + this.Operation + "\r\n");
             text.Append("DbNameList=" + this.DbNameList + "\r\n");
             text.Append("QueryWord=" + this.QueryWord + "\r\n");
@@ -520,6 +574,7 @@ namespace DigitalPlatform.Message
     public class SetInfoRequest
     {
         public string TaskID { get; set; }    // 任务 ID。由于一个 Connection 可以用于同时执行多个任务，本参数用于区分不同的任务
+        public LoginInfo LoginInfo { get; set; }    // 登录信息 2016/10/22
         public string Operation { get; set; }   // 操作名。
 
         public string BiblioRecPath { get; set; }
@@ -531,11 +586,13 @@ namespace DigitalPlatform.Message
         }
 
         public SetInfoRequest(string taskID,
+            LoginInfo loginInfo,
             string operation,
             string biblioRecPath,
             List<Entity> entities)
         {
             this.TaskID = taskID;
+            this.LoginInfo = loginInfo;
             this.Operation = operation;
             this.BiblioRecPath = biblioRecPath;
             this.Entities = entities;
@@ -571,6 +628,7 @@ namespace DigitalPlatform.Message
     public class BindPatronRequest
     {
         public string TaskID { get; set; }    // 任务 ID。由于一个 Connection 可以用于同时执行多个任务，本参数用于区分不同的任务
+        public LoginInfo LoginInfo { get; set; }    // 登录信息 2016/10/22
         public string Action { get; set; }   // 动作名。
 
         public string QueryWord { get; set; }
@@ -586,6 +644,7 @@ namespace DigitalPlatform.Message
         }
 
         public BindPatronRequest(string taskID,
+            LoginInfo loginInfo,
             string action,
             string queryWord,
             string password,
@@ -594,6 +653,7 @@ namespace DigitalPlatform.Message
             string resultTypeList)
         {
             this.TaskID = taskID;
+            this.LoginInfo = loginInfo;
             this.Action = action;
             this.QueryWord = queryWord;
             this.Password = password;
@@ -619,6 +679,7 @@ namespace DigitalPlatform.Message
     public class CirculationRequest
     {
         public string TaskID { get; set; }    // 本次检索的任务 ID。由于一个 Connection 可以用于同时进行若干检索操作，本参数用于区分不同的检索操作
+        public LoginInfo LoginInfo { get; set; }    // 登录信息 2016/10/22
         public string Operation { get; set; }   // 操作名。
         public string Patron { get; set; }  // strReaderBarcode
         public string Item { get; set; }   // strItemBarcode 和 strConfirmItemRecPath 都包含
@@ -633,6 +694,7 @@ namespace DigitalPlatform.Message
         }
 
         public CirculationRequest(string taskID,
+            LoginInfo loginInfo,
             string operation,
             string patron,
             string item,
@@ -642,6 +704,7 @@ namespace DigitalPlatform.Message
             string outputBiblioFormatList)
         {
             this.TaskID = taskID;
+            this.LoginInfo = loginInfo;
             this.Operation = operation;
             this.Patron = patron;
             this.Item = item;
@@ -721,6 +784,7 @@ namespace DigitalPlatform.Message
     public class GetResRequest
     {
         public string TaskID { get; set; }    // 本次任务 ID。
+        public LoginInfo LoginInfo { get; set; }    // 登录信息 2016/10/22
         public string Operation { get; set; }   // 操作名。
         public string Path { get; set; }
         public long Start { get; set; }   // strItemBarcode 和 strConfirmItemRecPath 都包含
@@ -733,6 +797,7 @@ namespace DigitalPlatform.Message
         }
 
         public GetResRequest(string taskID,
+            LoginInfo loginInfo,
             string operation,
             string path,
             long start,
@@ -740,6 +805,7 @@ namespace DigitalPlatform.Message
             string style)
         {
             this.TaskID = taskID;
+            this.LoginInfo = loginInfo;
             this.Operation = operation;
             this.Path = path;
             this.Start = start;

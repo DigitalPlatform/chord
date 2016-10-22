@@ -51,7 +51,10 @@ namespace DigitalPlatform.LibraryClient
                 wrapper = this._findChannel(strUrl, strUserName, strLang, true);
 
                 if (wrapper != null)
-                    return wrapper.Channel;
+                {
+                    LibraryChannel result = wrapper.Channel;
+                    return result;
+                }
 
                 if (this.Count >= MaxCount)
                 {
@@ -154,7 +157,9 @@ namespace DigitalPlatform.LibraryClient
             {
                 wrapper = _findChannel(channel);
                 if (wrapper != null)
+                {
                     wrapper.InUsing = false;
+                }
             }
             finally
             {
