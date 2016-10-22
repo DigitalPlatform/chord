@@ -1,4 +1,528 @@
-﻿====
+﻿=========
+
+@model dp2weixin.service.WxUserItem
+@section style {
+    <style type="text/css">
+        /*所有需要后面填充内容的元素样式*/
+        .pending {
+            /*设为背景图影响效果太大了，还是元素里面加个img吧*/
+            /*background-image:url("img/wait.gif");*/
+        }
+
+        TABLE.borrowTable {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+        }
+
+        TABLE.borrowTable TR TD {
+            border-width: 0px;
+            border-top-width: 1px;
+            border-color: #dddddd;
+            border-style: dotted;
+            padding: 2px;
+        }
+
+        TABLE.borrowTable TR TD.value {
+            /*border-left-width: 2px;*/
+            border-left:1px solid #CCCCCC;
+            padding-left:5px;
+        }
+
+        TABLE.borrowTable TR TD.returnDate {
+            font-weight: bolder;
+            border-left:1px solid #CCCCCC;
+            padding-left:5px;
+        }
+
+        TABLE.borrowTable TR TD.label {
+           width: 70px;
+           max-width:70px;
+           min-width:70px;
+           background-color:#eeeeee;
+           color:#999999;
+           padding-left:5px;
+           text-align:right;
+        }
+
+    </style>
+}
+@section Scripts {
+    <script>
+
+        //观察模型
+        var model = {
+            maxBorrowCount: ko.observable(""),
+            curBorrowCount: ko.observable(""),
+            borrowInfos: ko.observableArray()
+        }
+
+
+        //用于所有微信用户
+        function getBorrowInfos() {
+
+            //显示等待图层
+            //var index = loadLayer();
+            showMaskLayer();
+
+            // 先删除可观察数组中的已有数据
+            model.borrowInfos.removeAll();
+
+            var libId = $("#libId").text();;
+            var patronBarcode = $("#patronBarcode").text();;
+
+            // 调web api
+            var url = "/api/BorrowInfo?libId=" + encodeURIComponent(libId)
+                + "&patronBarcode=" + encodeURIComponent(patronBarcode);
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideMaskLayer();
+
+                // 出错或未命中
+                if (result.errorCode == -1 || result.errorCode == 0) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                if (result.borrowInfos.length == 0)
+                    $("#divNo").css('display', 'block');
+                else
+                    $("#divNo").css('display', 'none');
+
+                //
+                model.maxBorrowCount(result.maxBorrowCount);
+                model.curBorrowCount(result.curBorrowCount);
+
+                //
+                for (var i = 0; i < result.borrowInfos.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    model.borrowInfos.push(result.borrowInfos[i]);
+                }
+
+                //window.setTimeout("fillPending()", 1);
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideMaskLayer();
+
+                alert(errorThrown);
+
+            });
+        }
+
+        function renew(btn) {
+
+            var barcordSpan = $(btn).parent().children("span");
+            var itemBarcode = barcordSpan.text();
+            if (itemBarcode == "") {
+                alert("尚未传入册条码号。");
+                return;
+            }
+
+            var gnl = confirm("您确认续借册[" + itemBarcode + "]吗?");
+            if (gnl == false) {
+                return false;
+            }
+
+            var libId = $("#libId").text();;
+            var patronBarcode = $("#patronBarcode").text();
+
+            //显示等待图层
+            //var index = loadLayer();
+            showMaskLayer();
+
+            var url = "/api/BorrowInfo?libId=" + encodeURIComponent(libId)
+                + "&action=renew"
+                + "&patron=" + encodeURIComponent(patronBarcode)
+                + "&item=" + encodeURIComponent(itemBarcode)
+            // 调api
+            sendAjaxRequest(url, "POST", function (result) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideMaskLayer();
+
+                // 显示续借结果
+                var infoDiv = $(btn).parent().children("div");
+                var info = result.errorInfo;
+
+
+                // 出错
+                if (result.errorCode == -1) {
+                    $(infoDiv).text(info);
+                    $(infoDiv).css("color", "red");  //设为红色
+
+                    alert(result.errorInfo);
+                    return;
+                }
+
+
+                if (info == "")
+                    info = "续借成功";
+
+                alert(info);
+
+                $(infoDiv).text(info);
+                $(infoDiv).css("color", "darkgreen");  //设为绿色
+
+                // 更新列表
+                getBorrowInfos();
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideMaskLayer();
+
+                // 显示预约结果
+                var info = "访问服务器出错：[" + errorThrown + "]";
+                alert(info);
+
+                var infoDiv = $(btn).parent.children("div");
+
+                $(infoDiv).text(info);
+                $(infoDiv).css("color", "red");  //设为红色
+            });
+        }
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            ko.applyBindings(model);
+
+            // 获取在借册
+            getBorrowInfos();
+
+
+        });
+
+
+
+    </script>
+}
+@section header {
+    <h1 class="mui-title">在借续借</h1>
+}
+
+<span id="patronBarcode" style="display:none">@ViewBag.readerBarcode</span>
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+    <div class="mui-content-padded" style="text-align:right">
+        <span data-bind="text:model.maxBorrowCount"></span>&nbsp;
+        <span data-bind="text:model.curBorrowCount"></span>&nbsp;&nbsp;
+    </div>
+    <div class="mui-content-padded" id="divNo" style="display:none;">
+        <center>
+            <img src='../img/empty2.jpg' width='100' height='100' style='padding-top:5px' />
+            <div>您目前没有借书记录。</div>
+        </center>
+    </div>
+    
+    <ul class="mui-table-view" data-bind=" foreach:model.borrowInfos">
+        <li class="mui-table-view-cell" style="border-bottom:0px;">
+            <table class="borrowTable">
+                <tr>
+                    <td class="label">册条码号</td>
+                    <td class="value"><a data-bind="attr: { href: barcodeUrl}" target="_blank"><span data-bind="text: barcode"></span></a></td>
+                </tr>
+                <tr>
+                    <td class="label">续借次</td>
+                    <td class="value" data-bind="text:renewNo"></td>
+                </tr>
+                <tr>
+                    <td class="label">借阅日期</td>
+                    <td class="value" data-bind="text:borrowDate"></td>
+                </tr>
+                <tr>
+                    <td class="label">期限</td>
+                    <td class="value" data-bind="text:period"></td>
+                </tr>
+                <tr>
+                    <td class="label">操作者</td>
+                    <td class="value" data-bind="text:borrowOperator"></td>
+                </tr>
+                <tr>
+                    <td class="label">应还日期</td>
+                    <td class="returnDate" data-bind="text:returnDate"></td>
+                </tr>
+                <tr>
+                    <td class="label">摘要</td>
+                    <td class="value">
+                        <span class="pending">
+                            <label style="display:inline" data-bind="text:barcode=='' ? '' : 'bs-'+barcode">
+                            </label>
+                            <img src="~/img/wait2.gif" height="10" width="10" />
+                            <span>@Model.libId</span>
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">操作</td>
+                    <td class="value">
+                        <button type="button" class="mui-btn  mui-btn-default" onclick="renew(this)" data-bind="visible:rowCss!='borrowinfo-overdue' ">
+                            续借
+                        </button>
+                        <span style="display:none" data-bind="text: barcode"></span>
+                        <div></div>
+                    </td>
+                </tr>
+
+            </table>
+        </li>
+    </ul>
+}
+
+
+
+===原来的个人信息===
+
+        private PersonalInfoModel ParseXml(string libId, string strXml, string recPath)
+        {
+            PersonalInfoModel model = new PersonalInfoModel();
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(strXml);
+
+
+            // 证条码号
+            string strBarcode = DomUtil.GetElementText(dom.DocumentElement,
+    "barcode");
+            model.barcode = strBarcode;
+
+            // 显示名
+            string strDisplayName = DomUtil.GetElementText(dom.DocumentElement,
+    "displayName");
+            model.displayName = strDisplayName;
+
+            // 二维码
+            string qrcodeUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(libId)
+                + "&type=pqri"
+                + "&barcode=" + HttpUtility.UrlEncode(strBarcode);
+            model.qrcodeUrl = qrcodeUrl;
+
+            // 姓名
+            string strName = DomUtil.GetElementText(dom.DocumentElement,
+                "name");
+            model.name = strName;
+
+            // 性别
+            string strGender = DomUtil.GetElementText(dom.DocumentElement,
+                "gender");
+            model.gender = strGender;
+
+            // 出生日期
+            string strDateOfBirth = DomUtil.GetElementText(dom.DocumentElement,
+                "dateOfBirth");
+            if (string.IsNullOrEmpty(strDateOfBirth) == true)
+                strDateOfBirth = DomUtil.GetElementText(dom.DocumentElement,
+   "birthday");
+            strDateOfBirth = DateTimeUtil.LocalDate(strDateOfBirth);
+            model.dateOfBirth = strDateOfBirth;
+
+            // 证号 2008/11/11
+            string strCardNumber = DomUtil.GetElementText(dom.DocumentElement,
+    "cardNumber");
+            model.cardNumber = strCardNumber;
+
+            // 身份证号
+            string strIdCardNumber = DomUtil.GetElementText(dom.DocumentElement,
+    "idCardNumber");
+            model.idCardNumber = strIdCardNumber;
+
+            // 单位
+            string strDepartment = DomUtil.GetElementText(dom.DocumentElement,
+"department");
+            model.department = strDepartment;
+
+            // 职务
+            string strPost = DomUtil.GetElementText(dom.DocumentElement,
+"post");
+            model.post = strPost;
+
+            // 地址
+            string strAddress = DomUtil.GetElementText(dom.DocumentElement,
+"address");
+            model.address = strAddress;
+
+            // 电话
+            string strTel = DomUtil.GetElementText(dom.DocumentElement,
+"tel");
+            model.tel = strTel;
+
+            // email
+            string strEmail = DomUtil.GetElementText(dom.DocumentElement,
+"email");
+            model.email = this.RemoveWeiXinId(strEmail);//过滤掉微信id
+
+
+
+            // 读者类型
+            string strReaderType = DomUtil.GetElementText(dom.DocumentElement,
+"readerType");
+            model.readerType = strReaderType;
+
+            // 证状态
+            string strState = DomUtil.GetElementText(dom.DocumentElement,
+"state");
+            model.state = strState;
+
+            // 发证日期
+            string strCreateDate = DomUtil.GetElementText(dom.DocumentElement,
+                "createDate");
+            strCreateDate = DateTimeUtil.LocalDate(strCreateDate);
+            model.createDate = strCreateDate;
+
+            // 证失效期
+            string strExpireDate = DomUtil.GetElementText(dom.DocumentElement,
+                "expireDate");
+            strExpireDate = DateTimeUtil.LocalDate(strExpireDate);
+            model.expireDate = strExpireDate;
+
+            // 租金 2008/11/11
+            string strHireExpireDate = "";
+            string strHirePeriod = "";
+            XmlNode nodeHire = dom.DocumentElement.SelectSingleNode("hire");
+            string strHire = "";
+            if (nodeHire != null)
+            {
+                strHireExpireDate = DomUtil.GetAttr(nodeHire, "expireDate");
+                strHirePeriod = DomUtil.GetAttr(nodeHire, "period");
+
+                strHireExpireDate = DateTimeUtil.LocalDate(strHireExpireDate);
+                strHirePeriod = dp2WeiXinService.GetDisplayTimePeriodStringEx(strHirePeriod);
+
+                strHire = "周期" + ": " + strHirePeriod + "; "
+                + "失效期" + ": " + strHireExpireDate;
+            }
+            model.hire = strHire;
+
+            // 押金 2008/11/11
+            string strForegift = DomUtil.GetElementText(dom.DocumentElement,
+                "foregift");
+            model.foregift = strForegift;
+
+            //头像
+            //recPath
+            string imageUrl = "";
+            if (ViewBag.showPhoto == 1)
+            {
+                //dprms:file
+                // 看看是不是已经有图像对象
+                XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
+                nsmgr.AddNamespace("dprms", DpNs.dprms);
+                // 全部<dprms:file>元素
+                XmlNodeList fileNodes = dom.DocumentElement.SelectNodes("//dprms:file[@usage='cardphoto']", nsmgr);
+                if (fileNodes.Count > 0)
+                {
+                    string strPhotoPath = recPath + "/object/" + DomUtil.GetAttr(fileNodes[0], "id");
+
+                    imageUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(libId)
+                    + "&objectPath=" + HttpUtility.UrlEncode(strPhotoPath);
+                }
+            }
+
+            model.imageUrl = imageUrl;
+
+
+            // 违约
+            List<OverdueInfo> overdueLit = new List<OverdueInfo>();
+            XmlNodeList nodes = dom.DocumentElement.SelectNodes("overdues/overdue");
+            model.OverdueCount = nodes.Count;
+            model.OverdueCountHtml = ConvertToString(model.OverdueCount);
+
+            // 在借
+            nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
+            model.BorrowCount = nodes.Count;
+            model.BorrowCountHtml = ConvertToString(model.BorrowCount);
+            int caoQiCount = 0;
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                XmlNode node = nodes[i];
+                string strIsOverdue = DomUtil.GetAttr(node, "isOverdue");
+                if (strIsOverdue == "yes")
+                {
+                    caoQiCount++;
+                }
+            }
+            model.CaoQiCount = caoQiCount;
+
+            // 预约
+            nodes = dom.DocumentElement.SelectNodes("reservations/request");
+            model.ReservationCount = nodes.Count;
+            model.ReservationCountHtml = ConvertToString(model.ReservationCount);
+            int daoQiCount = 0;
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                XmlNode node = nodes[i];
+                string state = DomUtil.GetAttr(node, "state");
+                if (state == "arrived")
+                {
+                    daoQiCount++;
+                }
+            }
+            model.DaoQiCount = daoQiCount;
+
+            // 返回读者信息对象
+            return model;
+        }
+
+        private string ConvertToString(int num)
+        {
+            string text = "";
+            if (num > 0 && num <= 5)
+            {
+                text = "<span class='leftNum'>" + "▪".PadRight(num, '▪') + "</span>";
+            }
+            else if (num == 0)
+            {
+                text = "";
+            }
+            else
+            {
+                text = num.ToString();
+            }
+
+            if (text != "")
+                text = "(" + text + ")";
+            return text;
+        }
+
+        private string RemoveWeiXinId(string email)
+        {
+            //<email>test@163.com,123,weixinid:o4xvUviTxj2HbRqbQb9W2nMl4fGg,weixinid:o4xvUvnLTg6NnflbYdcS-sxJCGFo,weixinid:testid</email>
+            string[] emailList = email.Split(new char[] { ',' });
+            string clearEmail = "";
+            for (int i = 0; i < emailList.Length; i++)
+            {
+                string oneEmail = emailList[i].Trim();
+                if (oneEmail.Length > 9 && oneEmail.Substring(0, 9) == WeiXinConst.C_WeiXinIdPrefix)
+                {
+                    continue;
+                }
+
+                if (clearEmail != "")
+                    clearEmail += ",";
+
+                clearEmail += oneEmail;
+            }
+
+            return clearEmail;
+        }
+
+
+====
 
 XmlNode node = item.SelectSingleNode("volume/text()");
                 string strVolumeString = "";

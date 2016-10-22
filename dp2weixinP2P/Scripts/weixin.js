@@ -164,11 +164,9 @@ function getDetail(libId, recPath, obj, from) {
             + "<tr>"
             + "<td class='label'>价格</td>"
             + "<td class='value' " + addStyle + ">" + record.price + "</td>"
-            + "</tr>"
-            + "<tr>"
-            + "<td class='label'>参考ID</td>"
-            + "<td class='titleGray' " + addStyle + ">" + record.refID + "</td>"
             + "</tr>";
+
+
             
             // 成员册 不显示在借情况
             if (record.borrowInfo != null && record.borrowInfo != "") {
@@ -183,7 +181,20 @@ function getDetail(libId, recPath, obj, from) {
                 itemTables += "<tr>"
                 + "<td class='label'>预约信息</td>"
                 + "<td class='value' " + addStyle + ">" + record.reservationInfo + "</td>"
-                + "</tr>"
+                + "</tr>";
+            }
+
+            itemTables += "<tr>"
+            + "<td class='label'>参考ID</td>"
+            + "<td class='titleGray' " + addStyle + ">" + record.refID + "</td>"
+            + "</tr>";
+
+            //从属于
+            if (record.parentInfo != null && record.parentInfo != "") {
+                itemTables += "<tr>"
+                + "<td class='label'>从属于</td>"
+                + "<td class='value' " + addStyle + ">" + record.parentInfo + "</td>"
+                + "</tr>";
             }
 
             //

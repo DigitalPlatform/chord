@@ -82,5 +82,6 @@ namespace dp2weixin.service
          public bool disable { get; set; }
 
          public string refID { get; set; }
+         public string parentInfo { get; set; }  //从属于，一般成员册会有该信息
     }
 }

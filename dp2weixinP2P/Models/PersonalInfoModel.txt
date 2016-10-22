@@ -42,7 +42,7 @@ namespace dp2weixinWeb.Models
         // 电话
         public string tel { get; set; }
 
-        // email   todo,这里有微信id信息要过滤掉
+        // email 
         public string email { get; set; }
 
         // 读者类型

@@ -3,93 +3,89 @@
 
 /*自动加载中，把class设一下，防止重复加载*/
 .nextdisabled {
-    color:gray;
+    color: gray;
 }
 
-.nextdisabled A {
-    color:gray;
-    
-}
-
-
-        DIV.biblio {
-            top:0px;
-            padding:10px;
-            background-color:white;
-        }
-
-        TABLE.result-biblio {   
-            padding:0px;
-            margin:0px;
-
-            width:100%;
-            table-layout:fixed;
-        }
-
-        TABLE.result-biblio td{   
-            padding:0px;
-            margin:0px;
-
-        }
-
-        TABLE.result-biblio td.no{   
-            padding:0px;
-            margin:0px;
-            min-width:18px;
-            width:18px;
-        }
-
-    /*信息行*/
-      DIV.biblio TABLE.info{
-            text-align: left;
-            background-color: white;
-            width: 100%;
-            margin-bottom:5px;
-        }
-
-
-        DIV.biblio TABLE.info td.cover{
-   
-            padding:4px;
-            vertical-align:top;
-            width:108px;
-        }
-        
-                DIV.biblio TABLE.info td.biblio_info{
-            vertical-align:top;
-            padding:2px;
-        }
-
-        DIV.biblio TABLE.info td.biblio_info .summary{
-            vertical-align:middle;
-        }
-
-    DIV.biblio TABLE.info td.biblio_info table.biblio_table{
-            width: 100%;
-        }
-
-     DIV.biblio TABLE.info td.biblio_info table.biblio_table .name{
-            color: #bbbbbb;
-            padding-right: 4px;
-            padding-bottom:4px;
-            text-align: right;
-            min-width:60px;
-            width:60px;
-            vertical-align:top;
-        }
-          DIV.biblio TABLE.info td.biblio_info table.biblio_table .value{
-                          padding-bottom:4px;
-        }
-
-                    DIV.biblio TABLE.info td.biblio_info table.biblio_table .titlevalue{
-                        font-weight:bold;
-                         font-size:16px;
-        }
-
-    /*书目操作按钮行，现在有好书推荐按钮*/
-    DIV.biblio DIV.btnRow {
-        text-align: right;
+    .nextdisabled A {
+        color: gray;
     }
+
+DIV.biblio {
+    top: 0px;
+    padding: 10px;
+    background-color: white;
+}
+
+TABLE.result-biblio {
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+    table-layout: fixed;
+}
+
+    TABLE.result-biblio td {
+        padding: 0px;
+        margin: 0px;
+    }
+
+        TABLE.result-biblio td.no {
+            padding: 0px;
+            margin: 0px;
+            min-width: 18px;
+            width: 18px;
+        }
+
+/*信息行*/
+DIV.biblio TABLE.info {
+    text-align: left;
+    background-color: white;
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+
+    DIV.biblio TABLE.info td.cover {
+        padding: 4px;
+        vertical-align: top;
+        width: 108px;
+    }
+
+    DIV.biblio TABLE.info td.biblio_info {
+        vertical-align: top;
+        padding: 2px;
+    }
+
+        DIV.biblio TABLE.info td.biblio_info .summary {
+            vertical-align: middle;
+        }
+
+        DIV.biblio TABLE.info td.biblio_info table.biblio_table {
+            width: 100%;
+        }
+
+            DIV.biblio TABLE.info td.biblio_info table.biblio_table .name {
+                color: #bbbbbb;
+                padding-right: 4px;
+                padding-bottom: 4px;
+                text-align: right;
+                min-width: 60px;
+                width: 60px;
+                vertical-align: top;
+            }
+
+            DIV.biblio TABLE.info td.biblio_info table.biblio_table .value {
+                padding-bottom: 4px;
+            }
+
+            DIV.biblio TABLE.info td.biblio_info table.biblio_table .titlevalue {
+                font-weight: bold;
+                font-size: 16px;
+            }
+
+/*书目操作按钮行，现在有好书推荐按钮*/
+DIV.biblio DIV.btnRow {
+    text-align: right;
+}
 
 /*整个册块*/
 DIV.item {
@@ -110,7 +106,7 @@ DIV.item {
         margin-bottom: 5px;
         padding-left: 10px;
         font-size: 14px;
-        color:#cccccc;
+        color: #cccccc;
     }
 
 
@@ -136,7 +132,7 @@ DIV.item {
             border-color: #dddddd;
             border-style: dotted;
             padding: 1px;
-            vertical-align:top;
+            vertical-align: top;
         }
 
             /*册右值数据td*/
@@ -144,39 +140,37 @@ DIV.item {
                 padding-left: 5px;
             }
 
-    DIV.item TABLE TR TD.title  {
+            DIV.item TABLE TR TD.title {
                 padding-left: 5px;
-        font-size: 20px;
+                font-size: 20px;
+            }
 
-    }
-
-    DIV.item TABLE TR TD.titleGray  {
+            DIV.item TABLE TR TD.titleGray {
                 padding-left: 5px;
+                font-size: 12px;
+                color: #cccccc;
+            }
 
-        font-size: 12px;
-        color:#cccccc;
-    }
-
-                /*册右值数据td*/
-                DIV.item TABLE TR TD.value .info {
-                    /*float: left;*/
-                    padding-top: 0px;
-                    text-align: left;
-                }
-
+            /*册右值数据td*/
+            DIV.item TABLE TR TD.value .info {
+                /*float: left;*/
+                padding-top: 0px;
+                text-align: left;
+            }
 
 
-                /*册右值数据td*/
-                DIV.item TABLE TR TD.value .btn {
-                    /*float: right;*/
-                    text-align: right;
-                }
+
+            /*册右值数据td*/
+            DIV.item TABLE TR TD.value .btn {
+                /*float: right;*/
+                text-align: right;
+            }
 
             /*册左侧标题td*/
             DIV.item TABLE TR TD.label {
                 width: 65px;
-                max-width:65px;
-                min-width:65px;
+                max-width: 65px;
+                min-width: 65px;
                 background-color: #ffffff;
                 color: #999999;
                 padding-right: 2px;
