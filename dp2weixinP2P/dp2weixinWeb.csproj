@@ -122,9 +122,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\icons-extra.css" />
     <Content Include="Content\patron.css" />
     <Content Include="Content\bootstrap.min.css" />
-    <Content Include="Content\icons-extra.css" />
     <Content Include="Content\jquery-ui.css" />
     <Content Include="Content\layer.css" />
     <Content Include="Content\layer.m.css" />
@@ -191,6 +191,7 @@
     <Content Include="img\empty2.jpg" />
     <Content Include="img\wait2.gif" />
     <Content Include="img\guide.pdf" />
+    <Content Include="fonts\mui-icons-extra.ttf" />
     <None Include="Scripts\jquery-3.1.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.1.1.js" />
     <Content Include="Scripts\jquery-3.1.1.min.js" />
