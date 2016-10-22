@@ -37,8 +37,17 @@ namespace dp2Capo
 ");
         }
 
+#if NO
+        static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
+        {
+            Program.WriteWindowsLog("全局异常: " + ExceptionUtil.GetExceptionText(e.ExceptionObject as Exception), EventLogEntryType.Error);
+        }
+#endif
+
         static void Main(string[] args)
         {
+            // System.AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
+
             ServiceShortName = "dp2CapoService";
 
 

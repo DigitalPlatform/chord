@@ -411,6 +411,18 @@ namespace DigitalPlatform.MessageServer
 
             return null;
         }
+
+        public ConnectionInfo GetConnectionByUserName(string userName)
+        {
+            foreach (string key in this.Keys)
+            {
+                ConnectionInfo info = this[key];
+                if (info.UserName == userName)
+                    return info;
+            }
+
+            return null;
+        }
     }
 
     // Connection 查找表的一个事项
