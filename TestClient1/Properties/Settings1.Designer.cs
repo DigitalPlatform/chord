@@ -610,5 +610,41 @@ namespace TestClient1.Properties {
                 this["getMessageDialog_ui"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string config_libraryUserName {
+            get {
+                return ((string)(this["config_libraryUserName"]));
+            }
+            set {
+                this["config_libraryUserName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool config_isPatron {
+            get {
+                return ((bool)(this["config_isPatron"]));
+            }
+            set {
+                this["config_isPatron"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string config_libraryPassword {
+            get {
+                return ((string)(this["config_libraryPassword"]));
+            }
+            set {
+                this["config_libraryPassword"] = value;
+            }
+        }
     }
 }

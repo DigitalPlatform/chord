@@ -104,6 +104,8 @@ namespace DigitalPlatform.MessageClient
             set;
         }
 
+        List<IDisposable> _handlers = new List<IDisposable>();
+
         public MessageConnection()
         {
             _timer.Interval = 1000 * 30;
@@ -337,9 +339,20 @@ errorInfo)
 
         private static readonly Object _syncRoot = new Object();
 
+        void DisposeHandlers()
+        {
+            foreach (IDisposable handler in _handlers)
+            {
+                if (handler != null)
+                    handler.Dispose();
+            }
+
+            _handlers.Clear();
+        }
+
         // 连接 server
         // 要求调用前设置好 this.ServerUrl this.UserName this.Password this.Parameters
-        public async Task<MessageResult> ConnectAsync()
+        public virtual async Task<MessageResult> ConnectAsync()
         {
             lock (_syncRoot)
             {
@@ -349,10 +362,13 @@ errorInfo)
                 {
                     AddConnectionEvents(false);
 
+                    DisposeHandlers();
                     var temp = this.Connection;
                     this.Connection = null;
                     if (temp != null)
+                    {
                         temp.Dispose();
+                    }
                 }
 
                 _exiting = true;
@@ -383,16 +399,21 @@ errorInfo)
 
                 HubProxy = Connection.CreateHubProxy("MyHub");
 
-                HubProxy.On<string, IList<MessageRecord>>("addMessage",
-                    (name, messages) =>
-                    OnAddMessageRecieved(name, messages)
-                    );
+                {
+                    var handler = HubProxy.On<string, IList<MessageRecord>>("addMessage",
+                        (name, messages) =>
+                        OnAddMessageRecieved(name, messages)
+                        );
+                    _handlers.Add(handler);
+                }
 
                 // *** search
-                HubProxy.On<SearchRequest>("search",
+                {
+                    var handler = HubProxy.On<SearchRequest>("search",
                     (param) => OnSearchRecieved(param)
                     );
-
+                    _handlers.Add(handler);
+                }
 #if FIX_HANDLER
             HubProxy.On<SearchResponse>("responseSearch",
     (param) => OnResponseSearchRecieved(param)
@@ -400,34 +421,51 @@ errorInfo)
 #endif
 
                 // *** bindPatron
-                HubProxy.On<BindPatronRequest>("bindPatron",
+                {
+                    var handler = HubProxy.On<BindPatronRequest>("bindPatron",
                     (param) => OnBindPatronRecieved(param)
                     );
+                    _handlers.Add(handler);
+                }
 
                 // *** setInfo
-                HubProxy.On<SetInfoRequest>("setInfo",
+                {
+                    var handler = HubProxy.On<SetInfoRequest>("setInfo",
                     (param) => OnSetInfoRecieved(param)
                     );
+                    _handlers.Add(handler);
+                }
 
                 // *** circulation
-                HubProxy.On<CirculationRequest>("circulation",
+                {
+                    var handler = HubProxy.On<CirculationRequest>("circulation",
                     (param) => OnCirculationRecieved(param)
                     );
-
+                    _handlers.Add(handler);
+                }
                 // *** getRes
-                HubProxy.On<GetResRequest>("getRes",
+                {
+                    var handler = HubProxy.On<GetResRequest>("getRes",
                     (param) => OnGetResRecieved(param)
                     );
+                    _handlers.Add(handler);
+                }
 
                 // *** webCall
-                HubProxy.On<WebCallRequest>("webCall",
+                {
+                    var handler = HubProxy.On<WebCallRequest>("webCall",
                     (param) => OnWebCallRecieved(param)
                     );
+                    _handlers.Add(handler);
+                }
 
                 // *** close
-                HubProxy.On<CloseRequest>("close",
+                {
+                    var handler = HubProxy.On<CloseRequest>("close",
                     (param) => OnCloseRecieved(param)
                     );
+                    _handlers.Add(handler);
+                }
             }
 
             try
@@ -2726,6 +2764,7 @@ CancellationToken token)
                     {
                     }
 #endif
+                    DisposeHandlers();
                     var temp = this.Connection;
                     this.Connection = null;
 

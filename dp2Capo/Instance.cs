@@ -267,7 +267,8 @@ namespace dp2Capo
             if (this._notifyThread != null)
                 _notifyThread.StopThread(true);
 
-            this.MessageConnection.CloseConnection();
+            // this.MessageConnection.CloseConnection();
+            this.MessageConnection.Close();
 
             this.WriteErrorLog("*** 实例 " + this.Name + " 成功降落。");
         }

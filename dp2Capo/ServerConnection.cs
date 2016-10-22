@@ -42,6 +42,7 @@ namespace dp2Capo
             this._channelPool.BeforeLogin += new BeforeLoginEventHandle(_channelPool_BeforeLogin);
         }
 
+#if NO
         void _channelPool_BeforeLogin(object sender, BeforeLoginEventArgs e)
         {
             if (e.FirstTry == true)
@@ -70,6 +71,83 @@ namespace dp2Capo
             // TODO: 可以出现对话框，但要注意跨线程的问题
             // TODO: 当首次登录对话框没有输入密码的时候，这里就必须出现对话框询问密码了
             e.Cancel = true;
+        }
+#endif
+
+        void _channelPool_BeforeLogin(object sender, BeforeLoginEventArgs e)
+        {
+            string strError = "";
+
+            if (e.FirstTry == true)
+            {
+                LibraryChannel channel = sender as LibraryChannel;
+                if (!(channel.Param is ChannelExtData))
+                {
+                    strError = "channel.Param 不是 ChannelExtData 类型";
+                    goto ERROR1;
+                }
+                ChannelExtData data = channel.Param as ChannelExtData;
+
+                if (string.IsNullOrEmpty(channel.UserName) == true)
+                {
+                    strError = "_channelPool_BeforeLogin() 中 channel.UserName 不应为空";
+                    goto ERROR1;
+                }
+                if (channel.UserName[0] == '!')
+                {
+                    strError = "_channelPool_BeforeLogin() 中 channel.UserName('" + channel.UserName + "') 第一字符不应为 '!'";
+                    goto ERROR1;
+                }
+
+                e.LibraryServerUrl = this.dp2library.Url;
+
+                if (channel.UserName == this.dp2library.UserName)
+                {
+                    // 直接用代理账户本身正常登录
+                    e.UserName = this.dp2library.UserName;
+                    e.Password = this.dp2library.Password;
+                    data.IsPatron = false;
+                }
+                else if (data.Password != null)
+                {
+                    e.UserName = channel.UserName;
+                    e.Password = data.Password;
+                }
+                else
+                {
+                    // 模拟登录
+                    e.UserName = channel.UserName;
+                    e.Password = this.dp2library.UserName + "," + this.dp2library.Password;
+                    e.Parameters += ",simulate=yes";
+                }
+
+                // e.Parameters = "location=" + strLocation;
+                if (data.IsPatron == true)
+                    e.Parameters += ",type=reader";
+
+                e.Parameters += ",client=dp2capo|" + "0.01";    // +Program.ClientVersion;
+
+                if (String.IsNullOrEmpty(e.UserName) == false)
+                    return; // 立即返回, 以便作第一次 不出现 对话框的自动登录
+            }
+
+            // TODO: 可以出现对话框，但要注意跨线程的问题
+            // TODO: 当首次登录对话框没有输入密码的时候，这里就必须出现对话框询问密码了
+            e.Cancel = true;
+            return;
+        ERROR1:
+            e.ErrorInfo = strError;
+            e.Cancel = true;
+        }
+
+        public void Close()
+        {
+            this.CloseConnection();
+
+            if (this._channelPool != null)
+            {
+                this._channelPool.Close();
+            }
         }
 
         /// <summary>
@@ -114,15 +192,104 @@ namespace dp2Capo
             }
         }
 
-        public LibraryChannel GetChannel()
+        public override async Task<MessageResult> ConnectAsync()
         {
-            string strServerUrl = this.dp2library.Url;
-            string strUserName = this.dp2library.UserName;
+            if (this.Instance != null)
+            {
+                this.Instance.WriteErrorLog("--- ConnectAsync 被触发开始");
+            }
+            try
+            {
+                return await base.ConnectAsync();
+            }
+            finally
+            {
+                if (this.Instance != null)
+                {
+                    this.Instance.WriteErrorLog("--- ConnectAsync 被触发结束");
+                }
+            }
+        }
 
-            return this._channelPool.GetChannel(strServerUrl, strUserName);
+#if NO
+        public LibraryChannel GetChannel(string strUserName)
+        {
+            if (string.IsNullOrEmpty(strUserName) == true)
+            {
+                throw new ArgumentException("GetChannel() 的 strUserName 参数不应为空", "strUserName");
+                // strUserName = this.dp2library.UserName;
+            }
+
+            if (strUserName == "!")
+            {
+                throw new ArgumentException("GetChannel() 的 strUserName 参数不应为 '!'", "strUserName");
+                // strUserName = this.dp2library.UserName;
+            }
+
+            bool bReader = false;
+            if (strUserName[0] == '!')
+            {
+                strUserName = strUserName.Substring(1);
+                bReader = true;
+            }
+
+            string strServerUrl = this.dp2library.Url;
+            LibraryChannel channel = this._channelPool.GetChannel(strServerUrl, strUserName);
+            if (channel == null)
+                return null;
+            channel.UserName = strUserName;  // 因为 GetChannel 可能会得到 UserName 为空的通道
+            channel.Param = bReader;
+            return channel;
+        }
+#endif
+        // LibraryChannel 的附加数据
+        class ChannelExtData
+        {
+            public bool IsPatron { get; set; }
+            public string Password { get; set; }    // 如果不为 null，表示使用这个密码，就不是代理登录方式了
+        }
+
+        public LibraryChannel GetChannel(LoginInfo loginInfo)
+        {
+            if (loginInfo == null)
+            {
+                throw new ArgumentException("GetChannel() 的 loginInfo 参数不应为空", "strUserName");
+                // loginInfo = GetManagerLoginInfo();
+            }
+
+            if (loginInfo.UserName == "")
+                loginInfo = GetManagerLoginInfo();
+
+            ChannelExtData data = new ChannelExtData();
+            if (loginInfo.Password != null)
+                data.Password = loginInfo.Password;
+
+            string strUserName = loginInfo.UserName;
+            if (loginInfo.UserType == "patron")
+                data.IsPatron = true;
+
+            string strServerUrl = this.dp2library.Url;
+            LibraryChannel channel = this._channelPool.GetChannel(strServerUrl, strUserName);
+            if (channel == null)
+                return null;
+
+            channel.UserName = strUserName;  // 因为 GetChannel 可能会得到 UserName 为空的通道，所以这里要特意设置一下
+            channel.Param = data;
+            return channel;
+        }
+
+        public void ReturnChannel(LibraryChannel channel)
+        {
+            this._channelPool.ReturnChannel(channel);
         }
 
         #region 针对 dp2library 服务器的一些功能
+
+        // 获得 dp2library 代理账号的 LoginInfo
+        LoginInfo GetManagerLoginInfo()
+        {
+            return new LoginInfo(this.dp2library.UserName, false);
+        }
 
         // TODO: 可以返回 -2 表示为致命错误，永远不再重试
         // 利用 dp2library API 获取一些配置信息
@@ -131,62 +298,65 @@ namespace dp2Capo
             strError = "";
             long lRet = 0;
 
-            LibraryChannel channel = GetChannel();
             try
             {
+                LibraryChannel channel = GetChannel(GetManagerLoginInfo());
+                try
                 {
-                    string strVersion = "";
-                    string strUID = "";
-                    lRet = channel.GetVersion(
-        out strVersion,
-        out strUID,
-        out strError);
-                    if (lRet == -1)
-                        return -1;
-
-                    if (string.IsNullOrEmpty(strUID) == true)
                     {
-                        strError = "dp2Capo 所所连接的 dp2library 服务器 '" + channel.Url + "' 没有配置 图书馆 UID，无法被 dp2Capo 正常使用。请为 dp2library 增配 图书馆 UID";
-                        return -1;
+                        string strVersion = "";
+                        string strUID = "";
+                        lRet = channel.GetVersion(
+            out strVersion,
+            out strUID,
+            out strError);
+                        if (lRet == -1)
+                            return -1;
+
+                        if (string.IsNullOrEmpty(strUID) == true)
+                        {
+                            strError = "dp2Capo 所所连接的 dp2library 服务器 '" + channel.Url + "' 没有配置 图书馆 UID，无法被 dp2Capo 正常使用。请为 dp2library 增配 图书馆 UID";
+                            return -1;
+                        }
+
+                        this.dp2library.LibraryUID = strUID;
+
+                        // 检查 dp2library 版本
+                        if (string.IsNullOrEmpty(strVersion) == true)
+                            strVersion = "2.0";
+
+                        string base_version = ProductUtil.dp2library_base_version;   // 2.85 2.80 ChangeReaderPassword() API 做了修改 // 2.75 允许用 GetMessage() API 获取 MSMQ 消息
+                        if (StringUtil.CompareVersion(strVersion, base_version) < 0)   // 2.12
+                        {
+                            strError = "dp2Capo 所所连接的 dp2library 服务器 '" + channel.Url + "' 其版本必须升级为 " + base_version + " 以上时才能使用 (当前 dp2library 版本为 " + strVersion + ")\r\n\r\n请立即升级 dp2Library 到最新版本";
+                            return -1;
+                        }
                     }
 
-                    this.dp2library.LibraryUID = strUID;
-
-                    // 检查 dp2library 版本
-                    if (string.IsNullOrEmpty(strVersion) == true)
-                        strVersion = "2.0";
-
-                    string base_version = ProductUtil.dp2library_base_version;   // 2.85 2.80 ChangeReaderPassword() API 做了修改 // 2.75 允许用 GetMessage() API 获取 MSMQ 消息
-                    if (StringUtil.CompareVersion(strVersion, base_version) < 0)   // 2.12
                     {
-                        strError = "dp2Capo 所所连接的 dp2library 服务器 '" + channel.Url + "' 其版本必须升级为 " + base_version + " 以上时才能使用 (当前 dp2library 版本为 " + strVersion + ")\r\n\r\n请立即升级 dp2Library 到最新版本";
-                        return -1;
+                        string strValue = "";
+                        lRet = channel.GetSystemParameter(
+                            "library",
+                            "name",
+                            out strValue,
+                            out strError);
+                        if (lRet == -1)
+                            return -1;
+
+                        this.dp2library.LibraryName = strValue;
                     }
-                }
 
+                    return 0;
+                }
+                finally
                 {
-                    string strValue = "";
-                    lRet = channel.GetSystemParameter(
-                        "library",
-                        "name",
-                        out strValue,
-                        out strError);
-                    if (lRet == -1)
-                        return -1;
-
-                    this.dp2library.LibraryName = strValue;
+                    this.ReturnChannel(channel);
                 }
-
-                return 0;
             }
             catch (Exception ex)
             {
                 strError = "GetConfigInfo() 出现异常: " + ExceptionUtil.GetExceptionText(ex);
                 return -1;
-            }
-            finally
-            {
-                this._channelPool.ReturnChannel(channel);
             }
         }
 
@@ -198,34 +368,37 @@ namespace dp2Capo
             strError = "";
             long lRet = 0;
 
-            LibraryChannel channel = GetChannel();
-            TimeSpan old_timeout = channel.Timeout;
-            channel.Timeout = new TimeSpan(0, 2, 0);    // dp2library 服务器这个 API 是最多等待一分钟
             try
             {
-                Hashtable table = new Hashtable();
-                table["action"] = "get";
-                table["count"] = "1";
-                string strParameters = StringUtil.BuildParameterString(table);
-                string[] message_ids = new string[] { "!msmq", strParameters };
-                lRet = channel.GetMessage(message_ids,
-                    MessageLevel.Full,
-                    out messages,
-                    out strError);
-                if (lRet == -1)
-                    return -1;
+                LibraryChannel channel = GetChannel(GetManagerLoginInfo());
+                TimeSpan old_timeout = channel.Timeout;
+                channel.Timeout = new TimeSpan(0, 2, 0);    // dp2library 服务器这个 API 是最多等待一分钟
+                try
+                {
+                    Hashtable table = new Hashtable();
+                    table["action"] = "get";
+                    table["count"] = "1";
+                    string strParameters = StringUtil.BuildParameterString(table);
+                    string[] message_ids = new string[] { "!msmq", strParameters };
+                    lRet = channel.GetMessage(message_ids,
+                        MessageLevel.Full,
+                        out messages,
+                        out strError);
+                    if (lRet == -1)
+                        return -1;
 
-                return 0;
+                    return 0;
+                }
+                finally
+                {
+                    channel.Timeout = old_timeout;
+                    this.ReturnChannel(channel);
+                }
             }
             catch (Exception ex)
             {
                 strError = "GetMsmqMessage() 出现异常: " + ExceptionUtil.GetExceptionText(ex);
                 return -1;
-            }
-            finally
-            {
-                channel.Timeout = old_timeout;
-                this._channelPool.ReturnChannel(channel);
             }
         }
 
@@ -238,33 +411,37 @@ namespace dp2Capo
             if (nCount == 0)
                 return 0;
 
-            LibraryChannel channel = GetChannel();
             try
             {
-                Hashtable table = new Hashtable();
-                table["action"] = "remove";
-                table["count"] = nCount.ToString();
-                string strParameters = StringUtil.BuildParameterString(table);
-                string[] message_ids = new string[] { "!msmq", strParameters };
+                LibraryChannel channel = GetChannel(GetManagerLoginInfo());
+                try
+                {
+                    Hashtable table = new Hashtable();
+                    table["action"] = "remove";
+                    table["count"] = nCount.ToString();
+                    string strParameters = StringUtil.BuildParameterString(table);
+                    string[] message_ids = new string[] { "!msmq", strParameters };
 
-                MessageData[] messages = null;
-                lRet = channel.GetMessage(message_ids,
-                    MessageLevel.Full,
-                    out messages,
-                    out strError);
-                if (lRet == -1)
-                    return -1;
+                    MessageData[] messages = null;
+                    lRet = channel.GetMessage(message_ids,
+                        MessageLevel.Full,
+                        out messages,
+                        out strError);
+                    if (lRet == -1)
+                        return -1;
 
-                return 0;
+                    return 0;
+                }
+
+                finally
+                {
+                    this.ReturnChannel(channel);
+                }
             }
             catch (Exception ex)
             {
                 strError = "RemoveMsmqMessage() 出现异常: " + ExceptionUtil.GetExceptionText(ex);
                 return -1;
-            }
-            finally
-            {
-                this._channelPool.ReturnChannel(channel);
             }
         }
 
@@ -288,101 +465,109 @@ namespace dp2Capo
             if (StringUtil.IsInList("timestamp", strStyle) == false)
                 StringUtil.SetInList(ref strStyle, "timestamp", true);  // 为了每次 GetRes() 以后比对
 
-            LibraryChannel channel = GetChannel();
+            LibraryChannel channel = null;
             try
             {
-                long lTotalLength = 0;  // 对象的总长度
-                long send = 0;  // 累计发送了多少 byte
-                long chunk_size = -1;   // 每次从 dp2library 获取的分片大小
-                long length = -1;    // 本次点对点 API 希望获得的长度
-
-                if (param.Length != -1)
+                channel = GetChannel(param.LoginInfo);
+                try
                 {
-                    chunk_size = Math.Min(100 * 1024, (int)param.Length);
-                    length = param.Length;
-                }
+                    long lTotalLength = 0;  // 对象的总长度
+                    long send = 0;  // 累计发送了多少 byte
+                    long chunk_size = -1;   // 每次从 dp2library 获取的分片大小
+                    long length = -1;    // 本次点对点 API 希望获得的长度
 
-                byte[] timestamp = null;
-                for (; ; )
-                {
-                    long lRet = 0;
-                    byte[] baContent = null;
-                    string strMetadata = "";
-                    string strOutputResPath = "";
-                    byte[] baOutputTimestamp = null;
-
-                    if (param.Operation == "getRes")
+                    if (param.Length != -1)
                     {
-                        Console.WriteLine("getRes() start=" + (param.Start + send)
-                            + " length=" + chunk_size);
-                        // Thread.Sleep(500);
-
-                        lRet = channel.GetRes(param.Path,
-                            param.Start + send,
-                            (int)chunk_size, // (int)param.Length,
-                            strStyle,   // param.Style,
-                            out baContent,
-                            out strMetadata,
-                            out strOutputResPath,
-                            out baOutputTimestamp,
-                            out strError);
-                    }
-                    else
-                    {
-                        strError = "无法识别的 Operation 值 '" + param.Operation + "'";
-                        goto ERROR1;
+                        chunk_size = Math.Min(100 * 1024, (int)param.Length);
+                        length = param.Length;
                     }
 
-                    if (timestamp != null)
+                    byte[] timestamp = null;
+                    for (; ; )
                     {
-                        if (ByteArray.Compare(timestamp, baOutputTimestamp) != 0)
+                        long lRet = 0;
+                        byte[] baContent = null;
+                        string strMetadata = "";
+                        string strOutputResPath = "";
+                        byte[] baOutputTimestamp = null;
+
+                        if (param.Operation == "getRes")
                         {
-                            strError = "获取对象过程中发现时间戳发生了变化，本次获取操作无效";
+                            Console.WriteLine("getRes() start=" + (param.Start + send)
+                                + " length=" + chunk_size);
+                            // Thread.Sleep(500);
+
+                            lRet = channel.GetRes(param.Path,
+                                param.Start + send,
+                                (int)chunk_size, // (int)param.Length,
+                                strStyle,   // param.Style,
+                                out baContent,
+                                out strMetadata,
+                                out strOutputResPath,
+                                out baOutputTimestamp,
+                                out strError);
+                        }
+                        else
+                        {
+                            strError = "无法识别的 Operation 值 '" + param.Operation + "'";
                             goto ERROR1;
                         }
-                    }
 
-                    // 记忆下来供下一轮比对之用
-                    timestamp = baOutputTimestamp;
+                        if (timestamp != null)
+                        {
+                            if (ByteArray.Compare(timestamp, baOutputTimestamp) != 0)
+                            {
+                                strError = "获取对象过程中发现时间戳发生了变化，本次获取操作无效";
+                                goto ERROR1;
+                            }
+                        }
 
-                    lTotalLength = lRet;
-                    if (length == -1)
-                        length = lRet;
+                        // 记忆下来供下一轮比对之用
+                        timestamp = baOutputTimestamp;
 
-                    DigitalPlatform.Message.GetResResponse result = new DigitalPlatform.Message.GetResResponse();
-                    result.TaskID = param.TaskID;
-                    result.TotalLength = lRet;
-                    result.Start = param.Start + send;
-                    result.Path = strOutputResPath;
-                    result.Data = baContent;
-                    if (send == 0)
-                    {
-                        result.Metadata = strMetadata;
-                        if (StringUtil.IsInList("timestamp", param.Style) == true)
-                            result.Timestamp = ByteArray.GetHexTimeStampString(baOutputTimestamp);
-                    }
-                    result.ErrorInfo = strError;
-                    result.ErrorCode = channel.ErrorCode == ErrorCode.NoError ? "" : channel.ErrorCode.ToString();
+                        lTotalLength = lRet;
+                        if (length == -1)
+                            length = lRet;
 
-                    bool bRet = TryResponseGetRes(result,
-        ref batch_size);
-                    if (bRet == false
-                        || result.Data == null || result.Data.Length == 0
-                        || length == -1)
-                        return;
+                        DigitalPlatform.Message.GetResResponse result = new DigitalPlatform.Message.GetResResponse();
+                        result.TaskID = param.TaskID;
+                        result.TotalLength = lRet;
+                        result.Start = param.Start + send;
+                        result.Path = strOutputResPath;
+                        result.Data = baContent;
+                        if (send == 0)
+                        {
+                            result.Metadata = strMetadata;
+                            if (StringUtil.IsInList("timestamp", param.Style) == true)
+                                result.Timestamp = ByteArray.GetHexTimeStampString(baOutputTimestamp);
+                        }
+                        result.ErrorInfo = strError;
+                        result.ErrorCode = channel.ErrorCode == ErrorCode.NoError ? "" : channel.ErrorCode.ToString();
 
-                    if (param.Start + send >= length)
-                        return;
-
-                    send += result.Data.Length;
-
-                    {
-                        chunk_size = length - param.Start - send;
-                        if (chunk_size <= 0)
+                        bool bRet = TryResponseGetRes(result,
+            ref batch_size);
+                        if (bRet == false
+                            || result.Data == null || result.Data.Length == 0
+                            || length == -1)
                             return;
-                        if (chunk_size >= Int32.MaxValue)
-                            chunk_size = 100 * 1024;
+
+                        if (param.Start + send >= length)
+                            return;
+
+                        send += result.Data.Length;
+
+                        {
+                            chunk_size = length - param.Start - send;
+                            if (chunk_size <= 0)
+                                return;
+                            if (chunk_size >= Int32.MaxValue)
+                                chunk_size = 100 * 1024;
+                        }
                     }
+                }
+                finally
+                {
+                    this.ReturnChannel(channel);
                 }
             }
             catch (Exception ex)
@@ -390,10 +575,6 @@ namespace dp2Capo
                 AddErrorLine("GetResAndResponse() 出现异常: " + ex.Message);
                 strError = ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
-            }
-            finally
-            {
-                this._channelPool.ReturnChannel(channel);
             }
 
         ERROR1:
@@ -403,7 +584,8 @@ namespace dp2Capo
                 result.TaskID = param.TaskID;
                 result.TotalLength = -1;
                 result.ErrorInfo = strError;
-                result.ErrorCode = channel.ErrorCode.ToString();
+                if (channel != null)
+                    result.ErrorCode = channel.ErrorCode.ToString();
 
                 ResponseGetRes(result);
             }
@@ -469,128 +651,132 @@ namespace dp2Capo
             string strError = "";
             IList<string> results = new List<string>();
 
-            LibraryChannel channel = GetChannel();
+            LibraryChannel channel = null;
             try
             {
-                long lRet = 0;
-                string[] item_records = null;
-                string[] reader_records = null;
-                string[] biblio_records = null;
-                string[] dup_paths = null;
-                string strOutputReaderBarcode = "";
-                DigitalPlatform.LibraryClient.localhost.BorrowInfo borrow_info = null;
-                DigitalPlatform.LibraryClient.localhost.ReturnInfo return_info = null;
+                channel = GetChannel(param.LoginInfo);
+                try
+                {
+                    long lRet = 0;
+                    string[] item_records = null;
+                    string[] reader_records = null;
+                    string[] biblio_records = null;
+                    string[] dup_paths = null;
+                    string strOutputReaderBarcode = "";
+                    DigitalPlatform.LibraryClient.localhost.BorrowInfo borrow_info = null;
+                    DigitalPlatform.LibraryClient.localhost.ReturnInfo return_info = null;
 
-                string strStyle = param.Style;
-                if (string.IsNullOrEmpty(param.PatronFormatList) == false)
-                    StringUtil.SetInList(ref strStyle, "reader", true);
-                if (string.IsNullOrEmpty(param.ItemFormatList) == false)
-                    StringUtil.SetInList(ref strStyle, "item", true);
-                if (string.IsNullOrEmpty(param.BiblioFormatList) == false)
-                    StringUtil.SetInList(ref strStyle, "biblio", true);
+                    string strStyle = param.Style;
+                    if (string.IsNullOrEmpty(param.PatronFormatList) == false)
+                        StringUtil.SetInList(ref strStyle, "reader", true);
+                    if (string.IsNullOrEmpty(param.ItemFormatList) == false)
+                        StringUtil.SetInList(ref strStyle, "item", true);
+                    if (string.IsNullOrEmpty(param.BiblioFormatList) == false)
+                        StringUtil.SetInList(ref strStyle, "biblio", true);
 
-                if (param.Operation == "borrow"
-                    || param.Operation == "renew")
-                {
-                    lRet = channel.Borrow(param.Operation == "renew",
-                        param.Patron,
-                        GetItemBarcode(param.Item),
-                        GetItemConfirmPath(param.Item),
-                        false,
-                        null,
-                        strStyle,   // param.Style,
-                        param.ItemFormatList,
-                        out item_records,
-                        param.PatronFormatList,
-                        out reader_records,
-                        param.BiblioFormatList,
-                        out biblio_records,
-                        out dup_paths,
-                        out strOutputReaderBarcode,
-                        out borrow_info,
-                        out strError);
-                }
-                else if (param.Operation == "return"
-                    || param.Operation == "lost"
-                    || param.Operation == "inventory"
-                    || param.Operation == "read")
-                {
-                    lRet = channel.Return(param.Operation,
-                        param.Patron,
-                        GetItemBarcode(param.Item),
-                        GetItemConfirmPath(param.Item),
-                        false,
-                        strStyle,   // param.Style,
-                        param.ItemFormatList,
-                        out item_records,
-                        param.PatronFormatList,
-                        out reader_records,
-                        param.BiblioFormatList,
-                        out biblio_records,
-                        out dup_paths,
-                        out strOutputReaderBarcode,
-                        out return_info,
-                        out strError);
-                }
-                else if (param.Operation == "reservation")
-                {
-                    lRet = channel.Reservation(param.Style,
-                        param.Patron,
-                        param.Item,
-                        out strError);
-                }
-                else if (param.Operation == "resetPassword")
-                {
-                    lRet = channel.ResetPassword(param.Patron,  // strPatameters
-                        param.Item, // strMessageTemplate
-                        out strOutputReaderBarcode,
-                        out strError);
-                }
-                else if (param.Operation == "changePassword")
-                {
-                    Hashtable table = StringUtil.ParseParameters(param.Item, ',', '=', "url");
-                    lRet = channel.ChangeReaderPassword(param.Patron,  // strPatameters
-                        (string)table["old"],
-                        (string)table["new"],
-                        out strError);
-                }
-                else if (param.Operation == "verifyPassword")
-                {
-                    lRet = channel.VerifyReaderPassword(param.Patron,
-                        param.Item,
-                        out strError);
-                }
-                else
-                {
-                    strError = "无法识别的 Operation 值 '" + param.Operation + "'";
-                    goto ERROR1;
-                }
+                    if (param.Operation == "borrow"
+                        || param.Operation == "renew")
+                    {
+                        lRet = channel.Borrow(param.Operation == "renew",
+                            param.Patron,
+                            GetItemBarcode(param.Item),
+                            GetItemConfirmPath(param.Item),
+                            false,
+                            null,
+                            strStyle,   // param.Style,
+                            param.ItemFormatList,
+                            out item_records,
+                            param.PatronFormatList,
+                            out reader_records,
+                            param.BiblioFormatList,
+                            out biblio_records,
+                            out dup_paths,
+                            out strOutputReaderBarcode,
+                            out borrow_info,
+                            out strError);
+                    }
+                    else if (param.Operation == "return"
+                        || param.Operation == "lost"
+                        || param.Operation == "inventory"
+                        || param.Operation == "read")
+                    {
+                        lRet = channel.Return(param.Operation,
+                            param.Patron,
+                            GetItemBarcode(param.Item),
+                            GetItemConfirmPath(param.Item),
+                            false,
+                            strStyle,   // param.Style,
+                            param.ItemFormatList,
+                            out item_records,
+                            param.PatronFormatList,
+                            out reader_records,
+                            param.BiblioFormatList,
+                            out biblio_records,
+                            out dup_paths,
+                            out strOutputReaderBarcode,
+                            out return_info,
+                            out strError);
+                    }
+                    else if (param.Operation == "reservation")
+                    {
+                        lRet = channel.Reservation(param.Style,
+                            param.Patron,
+                            param.Item,
+                            out strError);
+                    }
+                    else if (param.Operation == "resetPassword")
+                    {
+                        lRet = channel.ResetPassword(param.Patron,  // strPatameters
+                            param.Item, // strMessageTemplate
+                            out strOutputReaderBarcode,
+                            out strError);
+                    }
+                    else if (param.Operation == "changePassword")
+                    {
+                        Hashtable table = StringUtil.ParseParameters(param.Item, ',', '=', "url");
+                        lRet = channel.ChangeReaderPassword(param.Patron,  // strPatameters
+                            (string)table["old"],
+                            (string)table["new"],
+                            out strError);
+                    }
+                    else if (param.Operation == "verifyPassword")
+                    {
+                        lRet = channel.VerifyReaderPassword(param.Patron,
+                            param.Item,
+                            out strError);
+                    }
+                    else
+                    {
+                        strError = "无法识别的 Operation 值 '" + param.Operation + "'";
+                        goto ERROR1;
+                    }
 
-                CirculationResult circulation_result = new CirculationResult();
-                circulation_result.Value = lRet;
-                circulation_result.ErrorInfo = strError;
-                circulation_result.String = channel.ErrorCode.ToString();
-                circulation_result.DupPaths = dup_paths == null ? null : dup_paths.ToList();
-                circulation_result.PatronResults = reader_records == null ? null : reader_records.ToList();
-                circulation_result.ItemResults = item_records == null ? null : item_records.ToList();
-                circulation_result.BiblioResults = biblio_records == null ? null : biblio_records.ToList();
-                circulation_result.PatronBarcode = strOutputReaderBarcode;
-                circulation_result.ReturnInfo = BuildReturnInfo(return_info);
-                circulation_result.BorrowInfo = BuildBorrowInfo(borrow_info);
+                    CirculationResult circulation_result = new CirculationResult();
+                    circulation_result.Value = lRet;
+                    circulation_result.ErrorInfo = strError;
+                    circulation_result.String = channel.ErrorCode.ToString();
+                    circulation_result.DupPaths = dup_paths == null ? null : dup_paths.ToList();
+                    circulation_result.PatronResults = reader_records == null ? null : reader_records.ToList();
+                    circulation_result.ItemResults = item_records == null ? null : item_records.ToList();
+                    circulation_result.BiblioResults = biblio_records == null ? null : biblio_records.ToList();
+                    circulation_result.PatronBarcode = strOutputReaderBarcode;
+                    circulation_result.ReturnInfo = BuildReturnInfo(return_info);
+                    circulation_result.BorrowInfo = BuildBorrowInfo(borrow_info);
 
-                TryResponseCirculation(param.TaskID,
-    circulation_result);
-                return;
+                    TryResponseCirculation(param.TaskID,
+        circulation_result);
+                    return;
+                }
+                finally
+                {
+                    this.ReturnChannel(channel);
+                }
             }
             catch (Exception ex)
             {
                 AddErrorLine("CirculationAndResponse() 出现异常: " + ex.Message);
                 strError = ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
-            }
-            finally
-            {
-                this._channelPool.ReturnChannel(channel);
             }
 
         ERROR1:
@@ -599,7 +785,8 @@ namespace dp2Capo
                 CirculationResult circulation_result = new CirculationResult();
                 circulation_result.Value = -1;
                 circulation_result.ErrorInfo = strError;
-                circulation_result.String = channel.ErrorCode.ToString();
+                if (channel != null)
+                    circulation_result.String = channel.ErrorCode.ToString();
 
                 TryResponseCirculation(
     param.TaskID,
@@ -679,36 +866,39 @@ namespace dp2Capo
                 entities.Add(BuildEntityInfo(entity));
             }
 
-            LibraryChannel channel = GetChannel();
             try
             {
-                DigitalPlatform.LibraryClient.localhost.EntityInfo[] errorinfos = null;
-                long lRet = channel.SetEntities(param.BiblioRecPath,
-                    entities.ToArray(),
-                    out errorinfos,
-                    out strError);
-                if (errorinfos != null)
+                LibraryChannel channel = GetChannel(param.LoginInfo);
+                try
                 {
-                    foreach (DigitalPlatform.LibraryClient.localhost.EntityInfo error in errorinfos)
+                    DigitalPlatform.LibraryClient.localhost.EntityInfo[] errorinfos = null;
+                    long lRet = channel.SetEntities(param.BiblioRecPath,
+                        entities.ToArray(),
+                        out errorinfos,
+                        out strError);
+                    if (errorinfos != null)
                     {
-                        results.Add(BuildEntity(error));
+                        foreach (DigitalPlatform.LibraryClient.localhost.EntityInfo error in errorinfos)
+                        {
+                            results.Add(BuildEntity(error));
+                        }
                     }
+                    ResponseSetInfo(param.TaskID,
+        lRet,
+        results,
+        strError);
+                    return;
                 }
-                ResponseSetInfo(param.TaskID,
-    lRet,
-    results,
-    strError);
-                return;
+                finally
+                {
+                    this.ReturnChannel(channel);
+                }
             }
             catch (Exception ex)
             {
                 AddErrorLine("SetInfoAndResponse() 出现异常: " + ex.Message);
                 strError = ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
-            }
-            finally
-            {
-                this._channelPool.ReturnChannel(channel);
             }
 
         ERROR1:
@@ -735,40 +925,43 @@ strError);
             string strError = "";
             IList<string> results = new List<string>();
 
-            LibraryChannel channel = GetChannel();
             try
             {
-                string[] temp_results = null;
-                long lRet = channel.BindPatron(param.Action,
-                    param.QueryWord,
-                    param.Password,
-                    param.BindingID,
-                    param.Style,
-                    param.ResultTypeList,
-                    out temp_results,
-                    out strError);
-                if (temp_results != null)
+                LibraryChannel channel = GetChannel(param.LoginInfo);
+                try
                 {
-                    foreach (string s in temp_results)
+                    string[] temp_results = null;
+                    long lRet = channel.BindPatron(param.Action,
+                        param.QueryWord,
+                        param.Password,
+                        param.BindingID,
+                        param.Style,
+                        param.ResultTypeList,
+                        out temp_results,
+                        out strError);
+                    if (temp_results != null)
                     {
-                        results.Add(s);
+                        foreach (string s in temp_results)
+                        {
+                            results.Add(s);
+                        }
                     }
+                    ResponseBindPatron(param.TaskID,
+        lRet,
+        results,
+        strError);
+                    return;
                 }
-                ResponseBindPatron(param.TaskID,
-    lRet,
-    results,
-    strError);
-                return;
+                finally
+                {
+                    this.ReturnChannel(channel);
+                }
             }
             catch (Exception ex)
             {
                 AddErrorLine("BindPatronAndResponse() 出现异常: " + ex.Message);
                 strError = ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
-            }
-            finally
-            {
-                this._channelPool.ReturnChannel(channel);
             }
 
         ERROR1:
@@ -1041,110 +1234,125 @@ strError);
             else
                 strResultSetName = "#" + strResultSetName;  // 如果请求方指定了结果集名，则在 dp2library 中处理为全局结果集名
 
-            LibraryChannel channel = GetChannel();
-            TimeSpan old_timeout = channel.Timeout;
-            if (searchParam.Timeout != TimeSpan.FromMilliseconds(0))
-                channel.Timeout = searchParam.Timeout;
             try
             {
-                string strQueryXml = "";
-                long lRet = 0;
+                LibraryChannel channel = GetChannel(searchParam.LoginInfo);
+                TimeSpan old_timeout = channel.Timeout;
+                if (searchParam.Timeout != TimeSpan.FromMilliseconds(0))
+                    channel.Timeout = searchParam.Timeout;
+                try
+                {
+                    string strQueryXml = "";
+                    long lRet = 0;
 
-                if (searchParam.QueryWord == "!getResult")
-                {
-                    lRet = -1;
-                }
-                else
-                {
-                    if (searchParam.Operation == "searchBiblio")
+                    if (searchParam.QueryWord == "!getResult")
                     {
-                        lRet = channel.SearchBiblio(// null,
-                             searchParam.DbNameList,
-                             searchParam.QueryWord,
-                             (int)searchParam.MaxResults,
-                             searchParam.UseList,
-                             searchParam.MatchStyle,
-                             "zh",
-                             strResultSetName,
-                             "", // strSearchStyle
-                             "", // strOutputStyle
-                             "",
-                             out strQueryXml,
-                             out strError);
-                        writeDebug("searchBiblio() lRet=" + lRet
-                            + ", strQueryXml=" + strQueryXml
-                            + ", strError=" + strError
-                            + ",errorcode=" + channel.ErrorCode.ToString());
-                    }
-                    else if (searchParam.Operation == "searchPatron")
-                    {
-                        lRet = channel.SearchReader(// null,
-                            searchParam.DbNameList,
-                            searchParam.QueryWord,
-                            (int)searchParam.MaxResults,
-                            searchParam.UseList,
-                            searchParam.MatchStyle,
-                            "zh",
-                            strResultSetName,
-                            "",
-                            out strError);
+                        lRet = -1;
                     }
                     else
                     {
-                        lRet = -1;
-                        strError = "无法识别的 Operation 值 '" + searchParam.Operation + "'";
+                        if (searchParam.Operation == "searchBiblio")
+                        {
+                            lRet = channel.SearchBiblio(// null,
+                                 searchParam.DbNameList,
+                                 searchParam.QueryWord,
+                                 (int)searchParam.MaxResults,
+                                 searchParam.UseList,
+                                 searchParam.MatchStyle,
+                                 "zh",
+                                 strResultSetName,
+                                 "", // strSearchStyle
+                                 "", // strOutputStyle
+                                 "",
+                                 out strQueryXml,
+                                 out strError);
+                            writeDebug("searchBiblio() lRet=" + lRet
+                                + ", strQueryXml=" + strQueryXml
+                                + ", strError=" + strError
+                                + ",errorcode=" + channel.ErrorCode.ToString());
+                        }
+                        else if (searchParam.Operation == "searchPatron")
+                        {
+                            lRet = channel.SearchReader(// null,
+                                searchParam.DbNameList,
+                                searchParam.QueryWord,
+                                (int)searchParam.MaxResults,
+                                searchParam.UseList,
+                                searchParam.MatchStyle,
+                                "zh",
+                                strResultSetName,
+                                "",
+                                out strError);
+                        }
+                        else
+                        {
+                            lRet = -1;
+                            strError = "无法识别的 Operation 值 '" + searchParam.Operation + "'";
+                        }
+
+                        strErrorCode = channel.ErrorCode.ToString();
+
+                        if (lRet == -1 || lRet == 0)
+                        {
+                            if (lRet == 0
+                                || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                            {
+                                // 没有命中
+                                TryResponseSearch(
+                                    new SearchResponse(
+        searchParam.TaskID,
+        0,
+        0,
+        this.dp2library.LibraryUID,
+        records,
+        strError,  // 出错信息大概为 not found。
+        strErrorCode));
+                                return;
+                            }
+                            goto ERROR1;
+                        }
                     }
 
-                    strErrorCode = channel.ErrorCode.ToString();
 
-                    if (lRet == -1 || lRet == 0)
                     {
-                        if (lRet == 0
-                            || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                        long lHitCount = lRet;
+
+                        if (searchParam.Count == 0)
                         {
-                            // 没有命中
+                            // 返回命中数
                             TryResponseSearch(
                                 new SearchResponse(
-    searchParam.TaskID,
-    0,
+                                searchParam.TaskID,
+                                lHitCount,
     0,
     this.dp2library.LibraryUID,
     records,
-    strError,  // 出错信息大概为 not found。
+    "本次没有返回任何记录",
     strErrorCode));
                             return;
                         }
-                        goto ERROR1;
+
+                        // 注: SendResults() 负责 ReturnChannel()
+                        LibraryChannel temp_channel = channel;
+                        channel = null;
+                        Task.Run(() => SendResults(
+                            temp_channel,
+                            searchParam,
+                        strResultSetName,
+                        lHitCount));
                     }
                 }
-
-
+                finally
                 {
-                    long lHitCount = lRet;
-
-                    if (searchParam.Count == 0)
+                    if (channel != null)
                     {
-                        // 返回命中数
-                        TryResponseSearch(
-                            new SearchResponse(
-                            searchParam.TaskID,
-                            lHitCount,
-0,
-this.dp2library.LibraryUID,
-records,
-"本次没有返回任何记录",
-strErrorCode));
-                        return;
+                        channel.Timeout = old_timeout;
+                        this.ReturnChannel(channel);
                     }
-
-                    LibraryChannel temp_channel = channel;
-                    channel = null;
-                    Task.Run(() => SendResults(
-                        temp_channel,
-                        searchParam,
-                    strResultSetName,
-                    lHitCount));
                 }
+
+                this.AddInfoLine("search and response end");
+                return;
             }
             catch (Exception ex)
             {
@@ -1152,17 +1360,7 @@ strErrorCode));
                 strError = ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
             }
-            finally
-            {
-                if (channel != null)
-                {
-                    channel.Timeout = old_timeout;
-                    this._channelPool.ReturnChannel(channel);
-                }
-            }
 
-            this.AddInfoLine("search and response end");
-            return;
         ERROR1:
             // 报错
             TryResponseSearch(
@@ -1176,6 +1374,7 @@ strError,
 strErrorCode));
         }
 
+        // 注: 本函数最后要主动 ReturnChannel()
         void SendResults(
             LibraryChannel channel,
             SearchRequest searchParam,
@@ -1293,7 +1492,7 @@ strErrorCode));
             }
             finally
             {
-                this._channelPool.ReturnChannel(channel);
+                this.ReturnChannel(channel);
             }
 
             return;
@@ -1316,47 +1515,49 @@ strErrorCode));
             string strErrorCode = "";
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
 
-            LibraryChannel channel = GetChannel();
             try
             {
-                DigitalPlatform.LibraryClient.localhost.Record[] searchresults = null;
-                // return:
-                //      result.Value    -1 出错；0 成功
-                long lRet = channel.GetBrowseRecords(
-                    searchParam.QueryWord.Split(new char[] { ',' }),
-                    searchParam.FormatList,
-                    out searchresults,
-                    out strError);
-                strErrorCode = channel.ErrorCode.ToString();
-                if (lRet == -1)
+                LibraryChannel channel = GetChannel(searchParam.LoginInfo);
+                try
                 {
-                    if (lRet == 0
-                        || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                    DigitalPlatform.LibraryClient.localhost.Record[] searchresults = null;
+                    // return:
+                    //      result.Value    -1 出错；0 成功
+                    long lRet = channel.GetBrowseRecords(
+                        searchParam.QueryWord.Split(new char[] { ',' }),
+                        searchParam.FormatList,
+                        out searchresults,
+                        out strError);
+                    strErrorCode = channel.ErrorCode.ToString();
+                    if (lRet == -1)
                     {
-                        // 没有命中
-                        TryResponseSearch(
-                                                            new SearchResponse(
-searchParam.TaskID,
-0,
-0,
-this.dp2library.LibraryUID,
-records,
-strError,   // 出错信息大概为 not found。
-strErrorCode));
-                        return;
+                        if (lRet == 0
+                            || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                        {
+                            // 没有命中
+                            TryResponseSearch(
+                                                                new SearchResponse(
+    searchParam.TaskID,
+    0,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    strError,   // 出错信息大概为 not found。
+    strErrorCode));
+                            return;
+                        }
+                        goto ERROR1;
                     }
-                    goto ERROR1;
-                }
 
-                records.Clear();
+                    records.Clear();
 
-                // TODO: 根据 format list 选择返回哪些信息
+                    // TODO: 根据 format list 选择返回哪些信息
 
-                foreach (DigitalPlatform.LibraryClient.localhost.Record record in searchresults)
-                {
-                    DigitalPlatform.Message.Record biblio = FillBiblio(record);
-                    records.Add(biblio);
-                }
+                    foreach (DigitalPlatform.LibraryClient.localhost.Record record in searchresults)
+                    {
+                        DigitalPlatform.Message.Record biblio = FillBiblio(record);
+                        records.Add(biblio);
+                    }
 
 #if NO
                 ResponseSearch(
@@ -1367,29 +1568,30 @@ strErrorCode));
                     "",
                     strErrorCode);
 #endif
-                long batch_size = -1;
-                bool bRet = TryResponseSearch(
-searchParam.TaskID,
-records.Count,
-0,
-this.dp2library.LibraryUID,
-records,
-"",
-strErrorCode,
-ref batch_size);
-                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
-                if (bRet == false)
-                    return;
+                    long batch_size = -1;
+                    bool bRet = TryResponseSearch(
+    searchParam.TaskID,
+    records.Count,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    "",
+    strErrorCode,
+    ref batch_size);
+                    Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                    if (bRet == false)
+                        return;
+                }
+                finally
+                {
+                    this.ReturnChannel(channel);
+                }
             }
             catch (Exception ex)
             {
                 AddErrorLine("GetBrowseRecords() 出现异常: " + ex.Message);
                 strError = "GetBrowseRecords() 异常：" + ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
-            }
-            finally
-            {
-                this._channelPool.ReturnChannel(channel);
             }
 
             this.AddInfoLine("search and response end");
@@ -1487,132 +1689,139 @@ strErrorCode));
             // long batch_size = -1;   // 50 比较合适
             long batch_size = 10;   // 50 比较合适
 
-            LibraryChannel channel = GetChannel();
             try
             {
-            // TODO: 若一次调用不足以满足 searchParam.Count 所要求的数量，要能反复多次发出响应数据，直到满足要求的数量未为止。这样的好处是让调用者比较简单，可以假定请求的数量一定会被满足
-
-                BEGIN:
-                DigitalPlatform.LibraryClient.localhost.EntityInfo[] entities = null;
-
-                long lRet = 0;
-
-                if (searchParam.DbNameList == "entity")
-                    lRet = channel.GetEntities(
-                         searchParam.QueryWord,  // strBiblioRecPath
-                         searchParam.Start,
-                        // searchParam.Count == -1 ? 20 : searchParam.Count,  // 为何这里直接用 -1 导致检索命中 100 个记录后，dp2mserver 收不到？
-                         searchParam.Count,  // 为何这里直接用 -1 导致检索命中 100 个记录后，dp2mserver 收不到？
-                         searchParam.FormatList,
-                         "zh",
-                         out entities,
-                         out strError);
-                else if (searchParam.DbNameList == "order")
-                    lRet = channel.GetOrders(
-                         searchParam.QueryWord,  // strBiblioRecPath
-                         searchParam.Start,
-                         searchParam.Count,
-                         searchParam.FormatList,
-                         "zh",
-                         out entities,
-                         out strError);
-                else if (searchParam.DbNameList == "issue")
-                    lRet = channel.GetIssues(
-                         searchParam.QueryWord,  // strBiblioRecPath
-                         searchParam.Start,
-                         searchParam.Count,
-                         searchParam.FormatList,
-                         "zh",
-                         out entities,
-                         out strError);
-                else if (searchParam.DbNameList == "comment")
-                    lRet = channel.GetComments(
-                         searchParam.QueryWord,  // strBiblioRecPath
-                         searchParam.Start,
-                         searchParam.Count,
-                         searchParam.FormatList,
-                         "zh",
-                         out entities,
-                         out strError);
-                else
+                LibraryChannel channel = GetChannel(searchParam.LoginInfo);
+                try
                 {
-                    strError = "无法识别的 DbNameList 参数值 '" + searchParam.DbNameList + "'";
-                    goto ERROR1;
-                }
+                // TODO: 若一次调用不足以满足 searchParam.Count 所要求的数量，要能反复多次发出响应数据，直到满足要求的数量未为止。这样的好处是让调用者比较简单，可以假定请求的数量一定会被满足
 
-                strErrorCode = channel.ErrorCode.ToString();
+                    BEGIN:
+                    DigitalPlatform.LibraryClient.localhost.EntityInfo[] entities = null;
 
-                if (lRet == -1 || lRet == 0)
-                {
-                    if (lRet == 0
-                        || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                    long lRet = 0;
+
+                    if (searchParam.DbNameList == "entity")
+                        lRet = channel.GetEntities(
+                             searchParam.QueryWord,  // strBiblioRecPath
+                             searchParam.Start,
+                            // searchParam.Count == -1 ? 20 : searchParam.Count,  // 为何这里直接用 -1 导致检索命中 100 个记录后，dp2mserver 收不到？
+                             searchParam.Count,  // 为何这里直接用 -1 导致检索命中 100 个记录后，dp2mserver 收不到？
+                             searchParam.FormatList,
+                             "zh",
+                             out entities,
+                             out strError);
+                    else if (searchParam.DbNameList == "order")
+                        lRet = channel.GetOrders(
+                             searchParam.QueryWord,  // strBiblioRecPath
+                             searchParam.Start,
+                             searchParam.Count,
+                             searchParam.FormatList,
+                             "zh",
+                             out entities,
+                             out strError);
+                    else if (searchParam.DbNameList == "issue")
+                        lRet = channel.GetIssues(
+                             searchParam.QueryWord,  // strBiblioRecPath
+                             searchParam.Start,
+                             searchParam.Count,
+                             searchParam.FormatList,
+                             "zh",
+                             out entities,
+                             out strError);
+                    else if (searchParam.DbNameList == "comment")
+                        lRet = channel.GetComments(
+                             searchParam.QueryWord,  // strBiblioRecPath
+                             searchParam.Start,
+                             searchParam.Count,
+                             searchParam.FormatList,
+                             "zh",
+                             out entities,
+                             out strError);
+                    else
                     {
-                        // 没有命中
-                        TryResponseSearch(
-                                                            new SearchResponse(
-searchParam.TaskID,
-0,
-0,
-this.dp2library.LibraryUID,
-records,
-strError,  // 出错信息大概为 not found。
-strErrorCode));
-                        return;
+                        strError = "无法识别的 DbNameList 参数值 '" + searchParam.DbNameList + "'";
+                        goto ERROR1;
                     }
-                    // TODO: 如何返回 channel.ErrorCode ?
-                    // 或者把 ErrorCode.ItemDbNotDef 当作没有命中来返回
-                    goto ERROR1;
-                }
 
-                long lHitCount = lRet;
+                    strErrorCode = channel.ErrorCode.ToString();
 
-                if (entities == null)
-                    entities = new DigitalPlatform.LibraryClient.localhost.EntityInfo[0];
+                    if (lRet == -1 || lRet == 0)
+                    {
+                        if (lRet == 0
+                            || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                        {
+                            // 没有命中
+                            TryResponseSearch(
+                                                                new SearchResponse(
+    searchParam.TaskID,
+    0,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    strError,  // 出错信息大概为 not found。
+    strErrorCode));
+                            return;
+                        }
+                        // TODO: 如何返回 channel.ErrorCode ?
+                        // 或者把 ErrorCode.ItemDbNotDef 当作没有命中来返回
+                        goto ERROR1;
+                    }
 
-                records.Clear();
-                int i = 0;
-                foreach (DigitalPlatform.LibraryClient.localhost.EntityInfo entity in entities)
-                {
-                    DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
+                    long lHitCount = lRet;
 
-                    biblio.RecPath = entity.OldRecPath;
-                    biblio.Data = entity.OldRecord;
-                    biblio.Timestamp = ByteArray.GetHexTimeStampString(entity.OldTimestamp);
-                    biblio.Format = "xml";
+                    if (entities == null)
+                        entities = new DigitalPlatform.LibraryClient.localhost.EntityInfo[0];
 
-                    records.Add(biblio);
-                    i++;
-                }
+                    records.Clear();
+                    int i = 0;
+                    foreach (DigitalPlatform.LibraryClient.localhost.EntityInfo entity in entities)
+                    {
+                        DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
 
-                // TODO: 如何限定 records 的总尺寸在 64K 以内？一种办法是每次减少一半的数量重新发送
-                bool bRet = TryResponseSearch(
-                        searchParam.TaskID,
-                        lHitCount,
-                        searchParam.Start, // lStart,
-                        this.dp2library.LibraryUID,
-                        records,
-                        "",
-                        strErrorCode,
-                        ref batch_size);
-                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
-                if (bRet == false)
-                    return;
+                        biblio.RecPath = entity.OldRecPath;
+                        biblio.Data = entity.OldRecord;
+                        biblio.Timestamp = ByteArray.GetHexTimeStampString(entity.OldTimestamp);
+                        biblio.Format = "xml";
 
-                if (searchParam.Start + records.Count < lHitCount)
-                {
-                    searchParam.Start += records.Count;
+                        records.Add(biblio);
+                        i++;
+                    }
+
+                    // TODO: 如何限定 records 的总尺寸在 64K 以内？一种办法是每次减少一半的数量重新发送
+                    bool bRet = TryResponseSearch(
+                            searchParam.TaskID,
+                            lHitCount,
+                            searchParam.Start, // lStart,
+                            this.dp2library.LibraryUID,
+                            records,
+                            "",
+                            strErrorCode,
+                            ref batch_size);
+                    Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                    if (bRet == false)
+                        return;
+
+                    if (searchParam.Start + records.Count < lHitCount)
+                    {
+                        searchParam.Start += records.Count;
 #if NO
                     if (searchParam.Start >= lHitCount)
                         goto END1;
 #endif
-                    if (searchParam.Count != -1)
-                    {
-                        searchParam.Count -= records.Count;
-                        if (searchParam.Count <= 0)
-                            goto END1;
-                    }
+                        if (searchParam.Count != -1)
+                        {
+                            searchParam.Count -= records.Count;
+                            if (searchParam.Count <= 0)
+                                goto END1;
+                        }
 
-                    goto BEGIN;
+                        goto BEGIN;
+                    }
+                }
+                finally
+                {
+                    this.ReturnChannel(channel);
                 }
             }
             catch (Exception ex)
@@ -1620,10 +1829,6 @@ strErrorCode));
                 AddErrorLine("GetItemInfo() 出现异常: " + ex.Message);
                 strError = "GetItemInfo() 异常：" + ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
-            }
-            finally
-            {
-                this._channelPool.ReturnChannel(channel);
             }
 
         END1:
@@ -1675,48 +1880,50 @@ strErrorCode));
             string strErrorCode = "";
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
 
-            LibraryChannel channel = GetChannel();
             try
             {
-                string strBiblioRecPath = "";
-                string strSummary = "";
-
-                long lRet = channel.GetBiblioSummary(
-                    searchParam.QueryWord,
-                    searchParam.UseList,
-                    searchParam.MatchStyle,
-                    out strBiblioRecPath,
-                    out strSummary,
-                    out strError);
-                strErrorCode = channel.ErrorCode.ToString();
-                if (lRet == -1 || lRet == 0)
+                LibraryChannel channel = GetChannel(searchParam.LoginInfo);
+                try
                 {
-                    if (lRet == 0
-                        || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                    string strBiblioRecPath = "";
+                    string strSummary = "";
+
+                    long lRet = channel.GetBiblioSummary(
+                        searchParam.QueryWord,
+                        searchParam.UseList,
+                        searchParam.MatchStyle,
+                        out strBiblioRecPath,
+                        out strSummary,
+                        out strError);
+                    strErrorCode = channel.ErrorCode.ToString();
+                    if (lRet == -1 || lRet == 0)
                     {
-                        // 没有命中
-                        TryResponseSearch(
-                                                            new SearchResponse(
-searchParam.TaskID,
-0,
-0,
-this.dp2library.LibraryUID,
-records,
-strError,   // 出错信息大概为 not found。
-strErrorCode));
-                        return;
+                        if (lRet == 0
+                            || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                        {
+                            // 没有命中
+                            TryResponseSearch(
+                                                                new SearchResponse(
+    searchParam.TaskID,
+    0,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    strError,   // 出错信息大概为 not found。
+    strErrorCode));
+                            return;
+                        }
+                        goto ERROR1;
                     }
-                    goto ERROR1;
-                }
 
-                records.Clear();
-                {
-                    DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
-                    biblio.RecPath = strBiblioRecPath;
-                    biblio.Data = strSummary;
-                    biblio.Format = "";
-                    records.Add(biblio);
-                }
+                    records.Clear();
+                    {
+                        DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
+                        biblio.RecPath = strBiblioRecPath;
+                        biblio.Data = strSummary;
+                        biblio.Format = "";
+                        records.Add(biblio);
+                    }
 
 #if NO
                 ResponseSearch(
@@ -1727,30 +1934,31 @@ strErrorCode));
                     "",
                     strErrorCode);
 #endif
-                // TODO: 是否按照 searchParam.Count 来返回？似乎没有必要，因为调用者可以控制请求参数中的路径个数
-                long batch_size = -1;
-                bool bRet = TryResponseSearch(
-searchParam.TaskID,
-records.Count,
-0,
-this.dp2library.LibraryUID,
-records,
-"",
-strErrorCode,
-ref batch_size);
-                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
-                if (bRet == false)
-                    return;
+                    // TODO: 是否按照 searchParam.Count 来返回？似乎没有必要，因为调用者可以控制请求参数中的路径个数
+                    long batch_size = -1;
+                    bool bRet = TryResponseSearch(
+    searchParam.TaskID,
+    records.Count,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    "",
+    strErrorCode,
+    ref batch_size);
+                    Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                    if (bRet == false)
+                        return;
+                }
+                finally
+                {
+                    this.ReturnChannel(channel);
+                }
             }
             catch (Exception ex)
             {
                 AddErrorLine("GetBiblioSummary() 出现异常: " + ex.Message);
                 strError = "GetBiblioSummary() 异常：" + ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
-            }
-            finally
-            {
-                this._channelPool.ReturnChannel(channel);
             }
 
             this.AddInfoLine("search and response end");
@@ -1794,86 +2002,88 @@ strErrorCode));
                 goto ERROR1;
             }
 
-            LibraryChannel channel = GetChannel();
             try
             {
-                string[] formats = searchParam.FormatList.Split(new char[] { ',' });
-                int nPathFormatIndex = -1;  // formats 中 “outputpath” 元素的下标
-                if (formats.Length > 0)
+                LibraryChannel channel = GetChannel(searchParam.LoginInfo);
+                try
                 {
-                    ConnonicalizeFormats(formats);
-
-                    nPathFormatIndex = Array.IndexOf(formats, "outputpath");
-                }
-
-                string[] results = null;
-                // string strRecPath = "";
-                byte[] baTimestamp = null;
-
-                long lRet = channel.GetBiblioInfos(
-                    searchParam.QueryWord,
-                    searchParam.UseList, // strBiblioXml
-                    formats,
-                    out results,
-                    out baTimestamp,
-                    out strError);
-                strErrorCode = channel.ErrorCode.ToString();
-                if (lRet == -1 || lRet == 0)
-                {
-                    if (lRet == 0
-                        || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                    string[] formats = searchParam.FormatList.Split(new char[] { ',' });
+                    int nPathFormatIndex = -1;  // formats 中 “outputpath” 元素的下标
+                    if (formats.Length > 0)
                     {
-                        // 没有命中
-                        TryResponseSearch(
-                                                            new SearchResponse(
+                        ConnonicalizeFormats(formats);
 
-searchParam.TaskID,
-0,
-0,
-this.dp2library.LibraryUID,
-records,
-strError,  // 出错信息大概为 not found。
-strErrorCode));
-                        return;
+                        nPathFormatIndex = Array.IndexOf(formats, "outputpath");
                     }
-                    goto ERROR1;
-                }
 
-                if (results == null)
-                    results = new string[0];
+                    string[] results = null;
+                    // string strRecPath = "";
+                    byte[] baTimestamp = null;
 
-                records.Clear();
-                int i = 0;
-                foreach (string result in results)
-                {
-                    DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
-
-                    // 注：可以在 formatlist 中包含 outputpath(recpath) 要求获得记录路径，这时记录路径会返回在对应元素的 Data 成员中
-                    biblio.RecPath = "";
-                    biblio.Data = result;
-
-                    // 当 strBiblioRecPath 用 @path-list: 方式调用时，formats 格式个数 X 路径个数 = results 中元素数
-                    // 要将 formats 均匀分配到 records 元素中
-                    if (formats != null && formats.Length > 0)
-                        biblio.Format = formats[i % formats.Length];
-
-                    records.Add(biblio);
-                    i++;
-                }
-
-
-                // 为每个元素的 RecPath 填充值，如果 formats 中出现过 outputpath 的话
-                if (nPathFormatIndex != -1)
-                {
-                    for (int j = 0; j < records.Count / formats.Length; j++)
+                    long lRet = channel.GetBiblioInfos(
+                        searchParam.QueryWord,
+                        searchParam.UseList, // strBiblioXml
+                        formats,
+                        out results,
+                        out baTimestamp,
+                        out strError);
+                    strErrorCode = channel.ErrorCode.ToString();
+                    if (lRet == -1 || lRet == 0)
                     {
-                        string path = records[j * formats.Length + nPathFormatIndex].Data;
-                        for (int k = 0; k < formats.Length; k++)
+                        if (lRet == 0
+                            || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
                         {
-                            records[j * formats.Length + k].RecPath = path;
+                            // 没有命中
+                            TryResponseSearch(
+                                                                new SearchResponse(
+
+    searchParam.TaskID,
+    0,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    strError,  // 出错信息大概为 not found。
+    strErrorCode));
+                            return;
+                        }
+                        goto ERROR1;
+                    }
+
+                    if (results == null)
+                        results = new string[0];
+
+                    records.Clear();
+                    int i = 0;
+                    foreach (string result in results)
+                    {
+                        DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
+
+                        // 注：可以在 formatlist 中包含 outputpath(recpath) 要求获得记录路径，这时记录路径会返回在对应元素的 Data 成员中
+                        biblio.RecPath = "";
+                        biblio.Data = result;
+
+                        // 当 strBiblioRecPath 用 @path-list: 方式调用时，formats 格式个数 X 路径个数 = results 中元素数
+                        // 要将 formats 均匀分配到 records 元素中
+                        if (formats != null && formats.Length > 0)
+                            biblio.Format = formats[i % formats.Length];
+
+                        records.Add(biblio);
+                        i++;
+                    }
+
+
+                    // 为每个元素的 RecPath 填充值，如果 formats 中出现过 outputpath 的话
+                    if (nPathFormatIndex != -1)
+                    {
+                        for (int j = 0; j < records.Count / formats.Length; j++)
+                        {
+                            string path = records[j * formats.Length + nPathFormatIndex].Data;
+                            for (int k = 0; k < formats.Length; k++)
+                            {
+                                records[j * formats.Length + k].RecPath = path;
+                            }
                         }
                     }
-                }
 
 #if NO
                 ResponseSearch(
@@ -1884,29 +2094,30 @@ strErrorCode));
                     "",
                     strErrorCode);
 #endif
-                long batch_size = -1;
-                bool bRet = TryResponseSearch(
-searchParam.TaskID,
-records.Count,
-0,
-this.dp2library.LibraryUID,
-records,
-strError,
-strErrorCode,
-ref batch_size);
-                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
-                if (bRet == false)
-                    return;
+                    long batch_size = -1;
+                    bool bRet = TryResponseSearch(
+    searchParam.TaskID,
+    records.Count,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    strError,
+    strErrorCode,
+    ref batch_size);
+                    Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                    if (bRet == false)
+                        return;
+                }
+                finally
+                {
+                    this.ReturnChannel(channel);
+                }
             }
             catch (Exception ex)
             {
                 AddErrorLine("GetBiblioInfo() 出现异常: " + ex.Message);
                 strError = "GetBiblioInfo() 异常：" + ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
-            }
-            finally
-            {
-                this._channelPool.ReturnChannel(channel);
             }
 
             this.AddInfoLine("search and response end");
@@ -1936,84 +2147,87 @@ strErrorCode));
                 goto ERROR1;
             }
 
-            LibraryChannel channel = GetChannel();
             try
             {
-                string strValue = "";
+                LibraryChannel channel = GetChannel(searchParam.LoginInfo);
+                try
+                {
+                    string strValue = "";
 
-                long lRet = 0;
-                if (searchParam.QueryWord == "_clock")
-                {
-                    // 返回 0 表示成功
-                    lRet = channel.GetClock(out strValue, out strError);
-                    if (lRet != -1)
-                        lRet = 1;
-                }
-                else if (searchParam.QueryWord == "_capoVersion")
-                {
-                    strValue = ServerInfo.Version;
-                    lRet = 1;
-                }
-                else
-                {
-                    lRet = channel.GetSystemParameter(// null,
-                        searchParam.QueryWord,
-                        searchParam.FormatList,
-                        out strValue,
-                        out strError);
-                }
-                strErrorCode = channel.ErrorCode.ToString();
-                if (lRet == -1 || lRet == 0)
-                {
-                    if (lRet == 0
-                        || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                    long lRet = 0;
+                    if (searchParam.QueryWord == "_clock")
                     {
-                        // 没有命中
-                        TryResponseSearch(
-                            new SearchResponse(
-searchParam.TaskID,
-0,
-0,
-this.dp2library.LibraryUID,
-records,
-strError,  // 出错信息大概为 not found。
-strErrorCode));
-                        return;
+                        // 返回 0 表示成功
+                        lRet = channel.GetClock(out strValue, out strError);
+                        if (lRet != -1)
+                            lRet = 1;
                     }
-                    goto ERROR1;
-                }
+                    else if (searchParam.QueryWord == "_capoVersion")
+                    {
+                        strValue = ServerInfo.Version;
+                        lRet = 1;
+                    }
+                    else
+                    {
+                        lRet = channel.GetSystemParameter(// null,
+                            searchParam.QueryWord,
+                            searchParam.FormatList,
+                            out strValue,
+                            out strError);
+                    }
+                    strErrorCode = channel.ErrorCode.ToString();
+                    if (lRet == -1 || lRet == 0)
+                    {
+                        if (lRet == 0
+                            || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                        {
+                            // 没有命中
+                            TryResponseSearch(
+                                new SearchResponse(
+    searchParam.TaskID,
+    0,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    strError,  // 出错信息大概为 not found。
+    strErrorCode));
+                            return;
+                        }
+                        goto ERROR1;
+                    }
 
-                records.Clear();
+                    records.Clear();
+                    {
+                        DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
+                        biblio.RecPath = "";
+                        biblio.Data = strValue;
+                        biblio.Format = "";
+                        records.Add(biblio);
+                    }
+
+                    long batch_size = -1;
+                    bool bRet = TryResponseSearch(
+    searchParam.TaskID,
+    records.Count,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    "",
+    strErrorCode,
+    ref batch_size);
+                    Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                    if (bRet == false)
+                        return;
+                }
+                finally
                 {
-                    DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
-                    biblio.RecPath = "";
-                    biblio.Data = strValue;
-                    biblio.Format = "";
-                    records.Add(biblio);
+                    this.ReturnChannel(channel);
                 }
-
-                long batch_size = -1;
-                bool bRet = TryResponseSearch(
-searchParam.TaskID,
-records.Count,
-0,
-this.dp2library.LibraryUID,
-records,
-"",
-strErrorCode,
-ref batch_size);
-                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
-                if (bRet == false)
-                    return;
             }
             catch (Exception ex)
             {
                 strError = "GetSystemParameter() 异常：" + ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
-            }
-            finally
-            {
-                this._channelPool.ReturnChannel(channel);
             }
             return;
         ERROR1:
@@ -2042,56 +2256,58 @@ strErrorCode));
                 goto ERROR1;
             }
 
-            LibraryChannel channel = GetChannel();
             try
             {
-                string[] results = null;
-                string strRecPath = "";
-                byte[] baTimestamp = null;
-
-                long lRet = channel.GetReaderInfo(// null,
-                    searchParam.QueryWord,
-                    searchParam.FormatList,
-                    out results,
-                    out strRecPath,
-                    out baTimestamp,
-                    out strError);
-                strErrorCode = channel.ErrorCode.ToString();
-                if (lRet == -1 || lRet == 0)
+                LibraryChannel channel = GetChannel(searchParam.LoginInfo);
+                try
                 {
-                    if (lRet == 0
-                        || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                    string[] results = null;
+                    string strRecPath = "";
+                    byte[] baTimestamp = null;
+
+                    long lRet = channel.GetReaderInfo(// null,
+                        searchParam.QueryWord,
+                        searchParam.FormatList,
+                        out results,
+                        out strRecPath,
+                        out baTimestamp,
+                        out strError);
+                    strErrorCode = channel.ErrorCode.ToString();
+                    if (lRet == -1 || lRet == 0)
                     {
-                        // 没有命中
-                        TryResponseSearch(
-                                                            new SearchResponse(
-searchParam.TaskID,
-0,
-0,
-this.dp2library.LibraryUID,
-records,
-strError,  // 出错信息大概为 not found。
-strErrorCode));
-                        return;
+                        if (lRet == 0
+                            || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                        {
+                            // 没有命中
+                            TryResponseSearch(
+                                                                new SearchResponse(
+    searchParam.TaskID,
+    0,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    strError,  // 出错信息大概为 not found。
+    strErrorCode));
+                            return;
+                        }
+                        goto ERROR1;
                     }
-                    goto ERROR1;
-                }
 
-                if (results == null)
-                    results = new string[0];
+                    if (results == null)
+                        results = new string[0];
 
-                records.Clear();
-                string[] formats = searchParam.FormatList.Split(new char[] { ',' });
-                int i = 0;
-                foreach (string result in results)
-                {
-                    DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
-                    biblio.RecPath = strRecPath;
-                    biblio.Data = result;
-                    biblio.Format = formats[i];
-                    records.Add(biblio);
-                    i++;
-                }
+                    records.Clear();
+                    string[] formats = searchParam.FormatList.Split(new char[] { ',' });
+                    int i = 0;
+                    foreach (string result in results)
+                    {
+                        DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
+                        biblio.RecPath = strRecPath;
+                        biblio.Data = result;
+                        biblio.Format = formats[i];
+                        records.Add(biblio);
+                        i++;
+                    }
 
 #if NO
                 ResponseSearch(
@@ -2102,29 +2318,30 @@ strErrorCode));
                     "",
                     strErrorCode);
 #endif
-                long batch_size = -1;
-                bool bRet = TryResponseSearch(
-searchParam.TaskID,
-records.Count,
-0,
-this.dp2library.LibraryUID,
-records,
-"",
-strErrorCode,
-ref batch_size);
-                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
-                if (bRet == false)
-                    return;
+                    long batch_size = -1;
+                    bool bRet = TryResponseSearch(
+    searchParam.TaskID,
+    records.Count,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    "",
+    strErrorCode,
+    ref batch_size);
+                    Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                    if (bRet == false)
+                        return;
+                }
+                finally
+                {
+                    this.ReturnChannel(channel);
+                }
             }
             catch (Exception ex)
             {
                 AddErrorLine("GetPatronInfo() 出现异常: " + ex.Message);
                 strError = "GetPatronInfo() 异常：" + ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
-            }
-            finally
-            {
-                this._channelPool.ReturnChannel(channel);
             }
 
             this.AddInfoLine("search and response end");
@@ -2173,82 +2390,84 @@ strErrorCode));
                 goto ERROR1;
             }
 #endif
-
-            LibraryChannel channel = GetChannel();
             try
             {
-                UserInfo[] results = null;
-
-                long lRet = channel.GetUser(// null,
-                    "",
-                    searchParam.QueryWord,
-                    (int)searchParam.Start,
-                    (int)searchParam.Count,
-                    out results,
-                    out strError);
-                strErrorCode = channel.ErrorCode.ToString();
-                if (lRet == -1 || lRet == 0)
+                LibraryChannel channel = GetChannel(searchParam.LoginInfo);
+                try
                 {
-                    if (lRet == 0
-                        || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                    UserInfo[] results = null;
+
+                    long lRet = channel.GetUser(// null,
+                        "",
+                        searchParam.QueryWord,
+                        (int)searchParam.Start,
+                        (int)searchParam.Count,
+                        out results,
+                        out strError);
+                    strErrorCode = channel.ErrorCode.ToString();
+                    if (lRet == -1 || lRet == 0)
                     {
-                        // 没有命中
-                        TryResponseSearch(
-                                                            new SearchResponse(
-searchParam.TaskID,
-0,
-0,
-this.dp2library.LibraryUID,
-records,
-strError,  // 出错信息大概为 not found。
-strErrorCode));
-                        return;
+                        if (lRet == 0
+                            || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                        {
+                            // 没有命中
+                            TryResponseSearch(
+                                                                new SearchResponse(
+    searchParam.TaskID,
+    0,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    strError,  // 出错信息大概为 not found。
+    strErrorCode));
+                            return;
+                        }
+                        goto ERROR1;
                     }
-                    goto ERROR1;
+
+                    if (results == null)
+                        results = new UserInfo[0];
+
+                    records.Clear();
+                    int i = 0;
+                    foreach (UserInfo userinfo in results)
+                    {
+                        XmlDocument dom = new XmlDocument();
+                        dom.LoadXml("<account />");
+                        SetUserXml(userinfo, dom.DocumentElement);
+
+                        DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
+                        biblio.RecPath = "";
+                        biblio.Data = dom.DocumentElement.OuterXml;
+                        biblio.Format = "xml";
+                        records.Add(biblio);
+                        i++;
+                    }
+
+                    long batch_size = 10;
+                    bool bRet = TryResponseSearch(
+    searchParam.TaskID,
+    records.Count,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    "",
+    strErrorCode,
+    ref batch_size);
+                    Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                    if (bRet == false)
+                        return;
                 }
-
-                if (results == null)
-                    results = new UserInfo[0];
-
-                records.Clear();
-                int i = 0;
-                foreach (UserInfo userinfo in results)
+                finally
                 {
-                    XmlDocument dom = new XmlDocument();
-                    dom.LoadXml("<account />");
-                    SetUserXml(userinfo, dom.DocumentElement);
-
-                    DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
-                    biblio.RecPath = "";
-                    biblio.Data = dom.DocumentElement.OuterXml;
-                    biblio.Format = "xml";
-                    records.Add(biblio);
-                    i++;
+                    this.ReturnChannel(channel);
                 }
-
-                long batch_size = 10;
-                bool bRet = TryResponseSearch(
-searchParam.TaskID,
-records.Count,
-0,
-this.dp2library.LibraryUID,
-records,
-"",
-strErrorCode,
-ref batch_size);
-                Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
-                if (bRet == false)
-                    return;
             }
             catch (Exception ex)
             {
                 AddErrorLine("GetUserInfo() 出现异常: " + ex.Message);
                 strError = "GetUserInfo() 异常：" + ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
-            }
-            finally
-            {
-                this._channelPool.ReturnChannel(channel);
             }
 
             this.AddInfoLine("search and response end");
