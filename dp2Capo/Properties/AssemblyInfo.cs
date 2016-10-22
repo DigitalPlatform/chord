@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.12.*")]
-[assembly: AssemblyFileVersion("1.12.0.0")]
+[assembly: AssemblyVersion("1.13.*")]
+[assembly: AssemblyFileVersion("1.13.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -47,3 +47,4 @@ using System.Runtime.InteropServices;
 // 1.10 (2016/10/17) 在 Connection 处于连接状态的情况下，轮询检查为十分钟一轮；处于未连接状态下，一分钟检查一轮。这样日志输出文字量大大减少了
 // 1.11 (2016/10/18) SetMessageAsync() 调用后不直接 ResetConnection()，因为 dp2mserver 新版具备自动 Reset Connection 功能了。每分钟调用一次 echo() 能做 ConnectionInfo 丢失自动修复
 // 1.12 详细了日志信息，handlers 做了释放
+// 1.13 (2016/10/22) 点对点 API 增加了 LoginInfo 机制

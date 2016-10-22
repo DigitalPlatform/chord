@@ -11,6 +11,6 @@ namespace DigitalPlatform.Common
     /// </summary>
     public static class ProductUtil
     {
-        public static string dp2library_base_version = "2.85"; // dp2library 的最新版本。安装(各种依赖 dp2library 的产品)时作此要求
+        public static string dp2library_base_version = "2.87"; // dp2library 的最新版本。安装(各种依赖 dp2library 的产品)时作此要求
     }
 }
