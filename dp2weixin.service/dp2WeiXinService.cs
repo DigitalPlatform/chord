@@ -2652,9 +2652,13 @@ namespace dp2weixin.service
                 LibEntity libEntity = lib.Entity;
                 try
                 {
+                    // 使用代理账号capo 20161024 jane
+                    LoginInfo loginInfo = new LoginInfo(null, false);
+
                     CancellationToken cancel_token = new CancellationToken();
                     string id = Guid.NewGuid().ToString();
                     SearchRequest request = new SearchRequest(id,
+                        loginInfo,
                         "getSystemParameter",
                         "",
                         "_clock",//"cfgs",//queryWord,
@@ -3198,10 +3202,14 @@ namespace dp2weixin.service
                 + "queryword=NB:" + name + "|,"
                 + "tel=" + tel + ","
                 + "name=" + name;
-            CancellationToken cancel_token = new CancellationToken();
 
+            // 使用代理账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(null, false);
+
+            CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             CirculationRequest request = new CirculationRequest(id,
+                loginInfo,
                 "resetPassword",
                 patronParam,
                 "",//this.textBox_circulation_item.Text,
@@ -3391,9 +3399,13 @@ namespace dp2weixin.service
             // 省略子参数的用法是有意义的，但不该被用在这个修改读者密码的场合。
             string item = "old=" + oldPassword + ",new=" + newPassword;
 
+            // 使用读者账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(patron, true);
+
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             CirculationRequest request = new CirculationRequest(id,
+                loginInfo,
                 "changePassword",
                 patron,
                 item,
@@ -3484,12 +3496,15 @@ namespace dp2weixin.service
             if (strPrefix=="PQR")
                 strPassword = Cryptography.GetSHA1(strFullWord);
 
+            // 使用代理账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(null, false);
 
             CancellationToken cancel_token = new CancellationToken();
 
             string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + weixinId;
             string id = Guid.NewGuid().ToString();
             BindPatronRequest request = new BindPatronRequest(id,
+                loginInfo,
                 "bind",
                 strFullWord,
                 strPassword,
@@ -3731,12 +3746,15 @@ namespace dp2weixin.service
             else
                 queryWord = "UN:" + userItem.userName;
 
+            // 使用代理账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(null, false);
 
             // 调点对点解绑接口
             string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + userItem.weixinId;
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             BindPatronRequest request = new BindPatronRequest(id,
+                loginInfo,
                 "unbind",
                 queryWord,//userItem.readerBarcode,
                 "",//password  todo
@@ -4044,9 +4062,13 @@ namespace dp2weixin.service
             try
             {
 
+                // 使用代理账号capo 20161024 jane
+                LoginInfo loginInfo = new LoginInfo(null, false);
+
                 CancellationToken cancel_token = new CancellationToken();
                 string id = Guid.NewGuid().ToString();
                 SearchRequest request = new SearchRequest(id,
+                    loginInfo,
                     "searchBiblio",
                     dbnames,
                     strWord,
@@ -4846,9 +4868,13 @@ namespace dp2weixin.service
             strError = "";
             dataList = new List<string>();
 
+            // 使用代理账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(null, false);
+
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
+                loginInfo,
                 method,
                 "",
                 queryWord,
@@ -4926,10 +4952,13 @@ namespace dp2weixin.service
             strError = "";
             strRecPath = "";
 
+            // 使用代理账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(null, false);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
+                loginInfo,
                 "getBiblioSummary",
                 "<全部>",
                 word,
@@ -4994,10 +5023,13 @@ namespace dp2weixin.service
             strError = "";
             dataList = new List<Record>();
 
+            // 使用代理账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(null, false);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
+                loginInfo,
                 "getItemInfo",
                 dbNameList,
                 biblioPath,
@@ -6201,9 +6233,13 @@ namespace dp2weixin.service
                 goto ERROR1;
             }
 
+            // 使用代理账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(null, false);
+
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
+                loginInfo,
                 "getPatronInfo",
                 "",
                 strReaderBarocde,
@@ -6400,7 +6436,7 @@ namespace dp2weixin.service
         #region 续借
 
         public int Renew1(string libId,
-            //string patron,
+            string patron,
             string item,
             out string strError)
         {
@@ -6413,9 +6449,13 @@ namespace dp2weixin.service
                 return -1;
             }
 
+            // 使用读者账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(patron, true);
+
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             CirculationRequest request = new CirculationRequest(id,
+                loginInfo,
                 "renew",
                 "",
                 item,
@@ -6478,9 +6518,13 @@ namespace dp2weixin.service
                 return -1;
             }
 
+            // 使用读者账号 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(patron, true);
+
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             CirculationRequest request = new CirculationRequest(id,
+                loginInfo,
                 "reservation",
                 patron,
                 items,
@@ -6739,9 +6783,14 @@ namespace dp2weixin.service
 
             string patron = "!getpatrontempid:" + patronBarcode;
 
+
+            // 使用读者账号 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(patron, true);
+
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             CirculationRequest request = new CirculationRequest(id,
+                loginInfo,
                 "verifyPassword",
                 patron,
                 "",
@@ -6869,12 +6918,14 @@ namespace dp2weixin.service
                 goto ERROR1;
             }
 
-
+            // 使用代理账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(null, false);
 
             CancellationToken cancel_token = new CancellationToken();
 
             string id = Guid.NewGuid().ToString();
             GetResRequest request = new GetResRequest(id,
+                loginInfo,
                 "getRes",
                 objectPath,
                 0,
@@ -7541,10 +7592,13 @@ namespace dp2weixin.service
             //long count = 10;
             try
             {
+                // 使用代理账号capo 20161024 jane
+                LoginInfo loginInfo = new LoginInfo(null, false);
 
                 CancellationToken cancel_token = new CancellationToken();
                 string id = Guid.NewGuid().ToString();
                 SearchRequest request = new SearchRequest(id,
+                    loginInfo,
                     "getUserInfo",
                     "",
                     strWord,
@@ -8005,11 +8059,15 @@ namespace dp2weixin.service
         {
             strError = "";
 
+            // 使用代理账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(null, false);
+
             // 从远程dp2library中查
             string strWord = WeiXinConst.C_WeiXinIdPrefix;// +weixinId;
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
+                loginInfo,
                 "searchPatron",
                 "<全部>",
                 strWord,
