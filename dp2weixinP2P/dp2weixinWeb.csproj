@@ -122,6 +122,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\icons-extra.css" />
+    <Content Include="Content\patron.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\jquery-ui.css" />
     <Content Include="Content\layer.css" />
@@ -189,6 +191,7 @@
     <Content Include="img\empty2.jpg" />
     <Content Include="img\wait2.gif" />
     <Content Include="img\guide.pdf" />
+    <Content Include="fonts\mui-icons-extra.ttf" />
     <None Include="Scripts\jquery-3.1.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.1.1.js" />
     <Content Include="Scripts\jquery-3.1.1.min.js" />
@@ -228,6 +231,7 @@
     <Compile Include="ApiControllers\BiblioController.cs" />
     <Compile Include="ApiControllers\BorrowInfoController.cs" />
     <Compile Include="ApiControllers\LibrarySettingController.cs" />
+    <Compile Include="ApiControllers\PatronController.cs" />
     <Compile Include="ApiControllers\ReservationController.cs" />
     <Compile Include="ApiControllers\WxUserController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
@@ -254,7 +258,7 @@
     <Compile Include="Models\LibInfoModel.cs" />
     <Compile Include="Models\LoginModel.cs" />
     <Compile Include="Models\MessageModel.cs" />
-    <Compile Include="Models\PersonalInfoModel.cs" />
+    <Content Include="Models\PersonalInfoModel.txt" />
     <Compile Include="Models\SettingModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Results\WeixinResult.cs" />
@@ -309,6 +313,7 @@
     <Content Include="Views\Account\ScanQRCodeBind.cshtml" />
     <Content Include="Views\Library\Book.cshtml" />
     <Content Include="Views\Library\dpHome.cshtml" />
+    <Content Include="Views\Library\Charge.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

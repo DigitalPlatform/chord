@@ -11,6 +11,32 @@ namespace dp2weixinWeb.Controllers
 {
     public class LibraryController : BaseController
     {
+
+        // 内务
+        public ActionResult Charge(string code, string state)
+        {
+            // 检查是否从微信入口进来
+            string strError = "";
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            //绑定的工作人员账号 需要有权限
+            string userName = "";
+            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string libId = ViewBag.LibId;
+            //设到ViewBag里
+            ViewBag.userName = userName;
+
+
+            return View();
+
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
         // 公告
         public ActionResult BB(string code, string state)
         {

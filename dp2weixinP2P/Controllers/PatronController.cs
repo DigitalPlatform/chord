@@ -206,15 +206,18 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
-            PersonalInfoModel model = null;
+            Patron model = null;
             if (activeUserItem != null)
             {
-                model = this.ParseXml(activeUserItem.libId, strXml, activeUserItem.recPath);
+                model = dp2WeiXinService.Instance.ParsePatronXml(activeUserItem.libId,
+                    strXml,
+                    activeUserItem.recPath,
+                    ViewBag.showPhoto);
             }
 
             if (model == null)
             {
-                strError = "model为null,返回值为" + nRet + "，error为" + strError;
+                strError = "patron为null,返回值为" + nRet + "，error为" + strError;
                 goto ERROR1;
             }
 
@@ -292,7 +295,7 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             string strXml = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml, out strError);
+            int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml, out strError);
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
 
@@ -300,8 +303,21 @@ namespace dp2weixinWeb.Controllers
             {
                 return RedirectToAction("Bind", "Account");
             }
+            ViewBag.readerBarcode = activeUserItem.readerBarcode;
 
-            return View(activeUserItem);
+            string strWarningText = "";
+            string maxBorrowCountString="";
+            string curBorrowCountString="";
+            List<BorrowInfo2> overdueList = dp2WeiXinService.Instance.GetBorrowInfo(strXml, out strWarningText,
+                out maxBorrowCountString,
+                out curBorrowCountString);
+            ViewBag.maxBorrowCount = maxBorrowCountString;
+            ViewBag.curBorrowCount = curBorrowCountString;
+
+
+
+
+            return View(overdueList);
 
         ERROR1:
             ViewBag.Error = strError;
@@ -365,237 +381,6 @@ namespace dp2weixinWeb.Controllers
             return 1;
         }
 
-        private PersonalInfoModel ParseXml(string libId, string strXml, string recPath)
-        {
-            PersonalInfoModel model = new PersonalInfoModel();
-            XmlDocument dom = new XmlDocument();
-            dom.LoadXml(strXml);
-
-
-            // 证条码号
-            string strBarcode = DomUtil.GetElementText(dom.DocumentElement,
-    "barcode");
-            model.barcode = strBarcode;
-
-            // 显示名
-            string strDisplayName = DomUtil.GetElementText(dom.DocumentElement,
-    "displayName");
-            model.displayName = strDisplayName;
-
-            // 二维码
-            string qrcodeUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(libId)
-                + "&type=pqri"
-                + "&barcode=" + HttpUtility.UrlEncode(strBarcode);
-            model.qrcodeUrl = qrcodeUrl;
-
-            // 姓名
-            string strName = DomUtil.GetElementText(dom.DocumentElement,
-                "name");
-            model.name = strName;
-
-            // 性别
-            string strGender = DomUtil.GetElementText(dom.DocumentElement,
-                "gender");
-            model.gender = strGender;
-
-            // 出生日期
-            string strDateOfBirth = DomUtil.GetElementText(dom.DocumentElement,
-                "dateOfBirth");
-            if (string.IsNullOrEmpty(strDateOfBirth) == true)
-                strDateOfBirth = DomUtil.GetElementText(dom.DocumentElement,
-   "birthday");
-            strDateOfBirth = DateTimeUtil.LocalDate(strDateOfBirth);
-            model.dateOfBirth = strDateOfBirth;
-
-            // 证号 2008/11/11
-            string strCardNumber = DomUtil.GetElementText(dom.DocumentElement,
-    "cardNumber");
-            model.cardNumber = strCardNumber;
-
-            // 身份证号
-            string strIdCardNumber = DomUtil.GetElementText(dom.DocumentElement,
-    "idCardNumber");
-            model.idCardNumber = strIdCardNumber;
-
-            // 单位
-            string strDepartment = DomUtil.GetElementText(dom.DocumentElement,
-"department");
-            model.department = strDepartment;
-
-            // 职务
-            string strPost = DomUtil.GetElementText(dom.DocumentElement,
-"post");
-            model.post = strPost;
-
-            // 地址
-            string strAddress = DomUtil.GetElementText(dom.DocumentElement,
-"address");
-            model.address = strAddress;
-
-            // 电话
-            string strTel = DomUtil.GetElementText(dom.DocumentElement,
-"tel");
-            model.tel = strTel;
-
-            // email
-            string strEmail = DomUtil.GetElementText(dom.DocumentElement,
-"email");
-            model.email = this.RemoveWeiXinId(strEmail);//过滤掉微信id
-
-
-
-            // 读者类型
-            string strReaderType = DomUtil.GetElementText(dom.DocumentElement,
-"readerType");
-            model.readerType = strReaderType;
-
-            // 证状态
-            string strState = DomUtil.GetElementText(dom.DocumentElement,
-"state");
-            model.state = strState;
-
-            // 发证日期
-            string strCreateDate = DomUtil.GetElementText(dom.DocumentElement,
-                "createDate");
-            strCreateDate = DateTimeUtil.LocalDate(strCreateDate);
-            model.createDate = strCreateDate;
-
-            // 证失效期
-            string strExpireDate = DomUtil.GetElementText(dom.DocumentElement,
-                "expireDate");
-            strExpireDate = DateTimeUtil.LocalDate(strExpireDate);
-            model.expireDate = strExpireDate;
-
-            // 租金 2008/11/11
-            string strHireExpireDate = "";
-            string strHirePeriod = "";
-            XmlNode nodeHire = dom.DocumentElement.SelectSingleNode("hire");
-            string strHire = "";
-            if (nodeHire != null)
-            {
-                strHireExpireDate = DomUtil.GetAttr(nodeHire, "expireDate");
-                strHirePeriod = DomUtil.GetAttr(nodeHire, "period");
-
-                strHireExpireDate = DateTimeUtil.LocalDate(strHireExpireDate);
-                strHirePeriod = dp2WeiXinService.GetDisplayTimePeriodStringEx(strHirePeriod);
-
-                strHire = "周期" + ": " + strHirePeriod + "; "
-                + "失效期" + ": " + strHireExpireDate;
-            }
-            model.hire = strHire;
-
-            // 押金 2008/11/11
-            string strForegift = DomUtil.GetElementText(dom.DocumentElement,
-                "foregift");
-            model.foregift = strForegift;
-
-            //头像
-            //recPath
-            string imageUrl = "";
-            if (ViewBag.showPhoto == 1)
-            {
-                //dprms:file
-                // 看看是不是已经有图像对象
-                XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
-                nsmgr.AddNamespace("dprms", DpNs.dprms);
-                // 全部<dprms:file>元素
-                XmlNodeList fileNodes = dom.DocumentElement.SelectNodes("//dprms:file[@usage='cardphoto']", nsmgr);
-                if (fileNodes.Count > 0)
-                {
-                    string strPhotoPath = recPath + "/object/" + DomUtil.GetAttr(fileNodes[0], "id");
-
-                    imageUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(libId)
-                    + "&objectPath=" + HttpUtility.UrlEncode(strPhotoPath);
-                }
-            }
-
-            model.imageUrl = imageUrl;
-
-
-            // 违约
-            List<OverdueInfo> overdueLit = new List<OverdueInfo>();
-            XmlNodeList nodes = dom.DocumentElement.SelectNodes("overdues/overdue");
-            model.OverdueCount = nodes.Count;
-            model.OverdueCountHtml = ConvertToString(model.OverdueCount);
-
-            // 在借
-            nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
-            model.BorrowCount = nodes.Count;
-            model.BorrowCountHtml = ConvertToString(model.BorrowCount);
-            int caoQiCount = 0;
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                XmlNode node = nodes[i];
-                string strIsOverdue = DomUtil.GetAttr(node, "isOverdue");
-                if (strIsOverdue == "yes")
-                {
-                    caoQiCount++;
-                }
-            }
-            model.CaoQiCount = caoQiCount;
-
-            // 预约
-            nodes = dom.DocumentElement.SelectNodes("reservations/request");
-            model.ReservationCount = nodes.Count;
-            model.ReservationCountHtml = ConvertToString(model.ReservationCount);
-            int daoQiCount = 0;
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                XmlNode node = nodes[i];
-                string state = DomUtil.GetAttr(node, "state");
-                if (state == "arrived")
-                {
-                    daoQiCount++;
-                }
-            }
-            model.DaoQiCount = daoQiCount;
-
-            // 返回读者信息对象
-            return model;
-        }
-
-        private string ConvertToString(int num)
-        {
-            string text = "";
-            if (num > 0 && num <= 5)
-            {
-                text = "<span class='leftNum'>" + "▪".PadRight(num, '▪') + "</span>";
-            }
-            else if (num == 0)
-            {
-                text = "";
-            }
-            else
-            {
-                text = num.ToString();
-            }
-
-            if (text != "")
-                text = "(" + text + ")";
-            return text;
-        }
-
-        private string RemoveWeiXinId(string email)
-        {
-            //<email>test@163.com,123,weixinid:o4xvUviTxj2HbRqbQb9W2nMl4fGg,weixinid:o4xvUvnLTg6NnflbYdcS-sxJCGFo,weixinid:testid</email>
-            string[] emailList = email.Split(new char[] { ',' });
-            string clearEmail = "";
-            for (int i = 0; i < emailList.Length; i++)
-            {
-                string oneEmail = emailList[i].Trim();
-                if (oneEmail.Length > 9 && oneEmail.Substring(0, 9) == WeiXinConst.C_WeiXinIdPrefix)
-                {
-                    continue;
-                }
-
-                if (clearEmail != "")
-                    clearEmail += ",";
-
-                clearEmail += oneEmail;
-            }
-
-            return clearEmail;
-        }
 
         #endregion
     }

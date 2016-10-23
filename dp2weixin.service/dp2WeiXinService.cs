@@ -71,7 +71,7 @@ namespace dp2weixin.service
 
 
         // 日志级别
-        public int LogLevel = 1;
+        public int LogLevel = 2;
 
         // 微信数据目录
         public string weiXinDataDir = "";
@@ -678,7 +678,7 @@ namespace dp2weixin.service
                 int nRet = this.InternalDoMessage(record, lib, out strError);
                 if (nRet == -1)
                 {
-                    this.WriteErrorLog1("[" + record.id + "]未发送成功:" + strError);
+                    this.WriteLog2("[" + record.id + "]未发送成功:" + strError);
                 }
                 else if (nRet == 0)
                 {
@@ -2638,6 +2638,10 @@ namespace dp2weixin.service
             List<Library> libs = dp2WeiXinService.Instance.LibManager.Librarys; //LibDatabase.Current.GetLibs();  // 20161016 jane 这里应该用内存的数据库集合是好了 todo
             foreach (Library lib in libs)
             {
+                // 可以图书馆的备注信息设为
+                if (lib.Entity.comment == "notwarn") // 任延华测试用的图书馆
+                    continue;
+
                 // 如果是挂起状态，直接加入不在线列表
                 if (lib.State == LibraryManager.C_State_Hangup)
                 {
@@ -2729,6 +2733,8 @@ namespace dp2weixin.service
                 WriteErrorLog1(strError);
 
             }
+
+
             return offlineLibs;
         }
 
@@ -2947,32 +2953,6 @@ namespace dp2weixin.service
         }
 
 
-        #endregion
-
-        #region 错误友好提示
-
-        /// <summary>
-        /// 提示信息
-        /// </summary>
-        /// <param name="menu"></param>
-        /// <param name="returnUrl"></param>
-        /// <returns></returns>
-        public static string GetLinkHtml(string menu, string returnUrl,string libName="")
-        {
-            string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
-            string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
-            string strRedirectInfo = "您尚未绑定当前图书馆的读者账户，不能查看" + menu + "，" + bindLink;
-
-            if (menu=="书目查询" || menu=="好书推荐")
-                strRedirectInfo = "图书馆 " + libName + " 不对外公开书目，您需要先<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>绑定图书馆账户</a>，才能进入"+menu;
-
-            strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
-                + strRedirectInfo
-                + "</div>";
-            return strRedirectInfo;
-        }
-
-
 
 
         /// <summary>
@@ -3002,6 +2982,11 @@ namespace dp2weixin.service
                     }
                 }
 
+                /*
+                2016-10-20 任延华
+                修改起因：南开徐老师被不在线通知烦到了，提出改进这个功能，少给图书馆工作人员发通知。
+                修改为：如果图书馆工作人员都没有设_wx_getWarning，就不通知了图书馆人员了，只通知数字平台人员。
+
                 // 如果没有一个人配置 接收警告信息 的权限，则发给所有的工作人员
                 if (adminWeixinIds.Count == 0)
                 {
@@ -3010,9 +2995,35 @@ namespace dp2weixin.service
                         adminWeixinIds.Add(user);
                     }
                 }
+                 */
             }
 
             return adminWeixinIds;
+        }
+
+        #endregion
+
+        #region 错误友好提示
+
+        /// <summary>
+        /// 提示信息
+        /// </summary>
+        /// <param name="menu"></param>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
+        public static string GetLinkHtml(string menu, string returnUrl,string libName="")
+        {
+            string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+            string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
+            string strRedirectInfo = "您尚未绑定当前图书馆的读者账户，不能查看" + menu + "，" + bindLink;
+
+            if (menu=="书目查询" || menu=="好书推荐")
+                strRedirectInfo = "图书馆 " + libName + " 不对外公开书目，您需要先<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>绑定图书馆账户</a>，才能进入"+menu;
+
+            strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
+                + strRedirectInfo
+                + "</div>";
+            return strRedirectInfo;
         }
 
         /// <summary>
@@ -5154,16 +5165,47 @@ namespace dp2weixin.service
 
                 string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
                 string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
+
+                item.refID = strRefID;
+                item.pureBarcode = strBarcode;
+
                 // 册条码号
                 string strViewBarcode = "";
                 if (string.IsNullOrEmpty(strBarcode) == false)
                     strViewBarcode = strBarcode;
                 else
-                    strViewBarcode = "@refID:" + strRefID;  //"@refID:"
+                    strViewBarcode =  "@refID:" + strRefID;  //"@refID:"
                 item.barcode = strViewBarcode;
 
                 //状态
-                item.state = DomUtil.GetElementText(dom.DocumentElement, "state");
+                string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+
+                //// strState = strMessageText + strState;
+                //string strStateMessage = DomUtil.GetElementText(dom.DocumentElement,
+                //    "stateMessage");
+                //if (String.IsNullOrEmpty(strStateMessage) == false)
+                //    item.state = strStateMessage;
+                bool bMember = false;
+                XmlNode nodeBindingParent = dom.DocumentElement.SelectSingleNode("binding/bindingParent");
+                if (nodeBindingParent != null)
+                {
+                    bMember = true;
+                    StringUtil.SetInList(ref strState, "已装入合订册", true);
+
+                    string parentRefID = DomUtil.GetAttr(nodeBindingParent, "refID");
+                    item.parentInfo = "@refID:"+parentRefID;
+                }
+                item.state = strState;
+
+
+                bool disable =false;
+                if (StringUtil.IsInList("加工中", item.state) == true
+                    || bMember==true)
+                {
+                    disable = true;
+                }
+                item.disable = disable;
+
                 //卷册
                 item.volume = DomUtil.GetElementText(dom.DocumentElement, "volume");
                 // 馆藏地
@@ -5196,52 +5238,56 @@ namespace dp2weixin.service
                 item.borrowDate = borrowDate;
                 item.borrowPeriod = borrowPeriod;
 
-                string strBorrowInfo = "在架";
-                bool bOwnBorrow = false;
-                // 检查是不是当前读者借的
-                if (string.IsNullOrEmpty(strBorrower) == false)
+                // 成员册 不显示“在借情况”和“预约信息”
+                if (bMember == false)
                 {
-                    if (patronBarcode != item.borrower)
+                    string strBorrowInfo = "在架";
+                    bool bOwnBorrow = false;
+                    // 检查是不是当前读者借的
+                    if (string.IsNullOrEmpty(strBorrower) == false)
                     {
-                        strBorrowInfo = "借阅者：***<br/>"
-                        + "借阅时间：" + item.borrowDate + "<br/>"
-                        + "借期：" + item.borrowPeriod;
-                    }
-                    else
-                    {
-                        // 2016-8-16 修改isbn不能预约的情况
-                        string tempBarcode = item.barcode;
-                        if (tempBarcode.Contains("@refID:") == true)
-                            tempBarcode = tempBarcode.Replace("@refID:", "refID-");
+                        if (patronBarcode != item.borrower)
+                        {
+                            strBorrowInfo = "借阅者：***<br/>"
+                            + "借阅时间：" + item.borrowDate + "<br/>"
+                            + "借期：" + item.borrowPeriod;
+                        }
+                        else
+                        {
+                            // 2016-8-16 修改isbn不能预约的情况
+                            string tempBarcode = item.barcode;
+                            if (tempBarcode.Contains("@refID:") == true)
+                                tempBarcode = tempBarcode.Replace("@refID:", "refID-");
 
-                        strBorrowInfo =
-                            "<table style='width:100%;border:0px'>"
-                            + "<tr>"
-                                + "<td class='info' style='border:0px'>借阅者：" + patronName + "<br/>"
-                                                            + "借阅时间：" + item.borrowDate + "<br/>"
-                                                            + "借期：" + item.borrowPeriod
+                            strBorrowInfo =
+                                "<table style='width:100%;border:0px'>"
+                                + "<tr>"
+                                    + "<td class='info' style='border:0px'>借阅者：" + patronName + "<br/>"
+                                                                + "借阅时间：" + item.borrowDate + "<br/>"
+                                                                + "借期：" + item.borrowPeriod
+                                        + "</td>"
+                                    + "<td class='btn' style='border:0px'>"
+                                        + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + tempBarcode + "')\">续借</button>"
                                     + "</td>"
-                                + "<td class='btn' style='border:0px'>"
-                                    + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + tempBarcode + "')\">续借</button>"
-                                + "</td>"
-                        + "</tr>"
-                        + "<tr><td colspan='2'><div id='renewInfo-" + tempBarcode + "'/></td></tr>"
-                        + "</table>";
+                            + "</tr>"
+                            + "<tr><td colspan='2'><div id='renewInfo-" + tempBarcode + "'/></td></tr>"
+                            + "</table>";
 
-                        // 此时不能预约
-                        bOwnBorrow = true;
-                        reservationInfo = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
+                            // 此时不能预约
+                            bOwnBorrow = true;
+                            reservationInfo = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
+                        }
                     }
-                }
-                item.borrowInfo = strBorrowInfo;
+                    item.borrowInfo = strBorrowInfo;
 
-                // 预约信息
-                if (bCanReservation == true && bOwnBorrow == false)
-                {
-                    string state = this.getReservationState(reserList, item.barcode);
-                    reservationInfo = getReservationHtml(state, item.barcode, false);
+                    // 预约信息
+                    if (bCanReservation == true && bOwnBorrow == false)
+                    {
+                        string state = this.getReservationState(reserList, item.barcode);
+                        reservationInfo = getReservationHtml(state, item.barcode, false, disable);
+                    }
+                    item.reservationInfo = reservationInfo;
                 }
-                item.reservationInfo = reservationInfo;
 
 
                 // 检查数据库是否为期刊库
@@ -5255,36 +5301,45 @@ namespace dp2weixin.service
                 DbCfg db= thisLib.GetDb(biblioDbName);
                 if (db != null && String.IsNullOrEmpty(db.IssueDbName) == false)
                 {
+                    string totalImgs = "";
+
                     // 封面图片
                     // 得到检索期的字符串
                     List<IssueString> issueList = dp2StringUtil.GetIssueQueryStringFromItemXml(dom);
                     if (issueList != null && issueList.Count > 0)// todo 为啥会有多项？
                     {
-                        IssueString issueStr = issueList[0];
-
-                        // 获取期记录
-                        string style = "query:父记录+期号|" + biblioId + "|" + issueStr.Query;
-                        string issueXml = "";
-                        string issuePath = "";
-                        long ret = this.GetIssue(lib,
-                            biblioPath,
-                            style,
-                            out issuePath,
-                            out issueXml,
-                            out strError);
-                        if (ret == -1)
+                        foreach (IssueString issueStr in issueList)
                         {
-                            goto ERROR1;
-                        }
 
-                        // 从期中取出图片url
-                        XmlDocument issueDom = new XmlDocument();
-                        issueDom.LoadXml(issueXml);
-                        string imgId = dp2StringUtil.GetCoverImageIDFromIssueRecord(issueDom, "LargeImage");
-                        //string issueImgUrl = issuePath + "/object/"+imgId;
-                        string imgHtml = dp2WeiXinService.GetImageHtmlFragment(lib.id, issuePath, imgId, true);
-                        item.imgHtml = imgHtml;
+                            // 获取期记录
+                            string style = "query:父记录+期号|" + biblioId + "|" + issueStr.Query;
+                            string issueXml = "";
+                            string issuePath = "";
+                            long ret = this.GetIssue(lib,
+                                biblioPath,
+                                style,
+                                out issuePath,
+                                out issueXml,
+                                out strError);
+                            if (ret == -1)
+                            {
+                                goto ERROR1;
+                            }
+
+                            // 从期中取出图片url
+                            XmlDocument issueDom = new XmlDocument();
+                            issueDom.LoadXml(issueXml);
+                            string imgId = dp2StringUtil.GetCoverImageIDFromIssueRecord(issueDom, "LargeImage");
+                            //string issueImgUrl = issuePath + "/object/"+imgId;
+                            string imgHtml = dp2WeiXinService.GetImageHtmlFragment(lib.id, issuePath, imgId, true);
+
+                            if (totalImgs != "")
+                                totalImgs += "&nbsp;";
+                            totalImgs += imgHtml;
+                        }
                     }
+
+                    item.imgHtml = totalImgs;
                 }
 
                 // 加到数组里
@@ -5322,8 +5377,14 @@ namespace dp2weixin.service
         }
 
         // 得到预约状态和操作按钮
-        private string getReservationHtml(string reservationState, string barcode, bool bOnlyReserRow)//List<ReservationInfo> list, string barcode)
+        private string getReservationHtml(string reservationState, string barcode, bool bOnlyReserRow,bool disable)//List<ReservationInfo> list, string barcode)
         {
+            string disabledStr = "";
+            if (disable == true)
+            {
+                disabledStr = " disabled='disabled' ";
+            }
+
             // 2016-8-16 修改isbn不能预约的情况
             if (barcode.Contains("@refID:") == true)
                 barcode = barcode.Replace("@refID:", "refID-");
@@ -5333,7 +5394,7 @@ namespace dp2weixin.service
             string btn = "";
             if (reservationState == "未预约")
             {
-                btn = "<button class='mui-btn  mui-btn-default'  onclick=\"reservation(this,'" + barcode + "','new')\">预约</button>";
+                btn = "<button class='mui-btn  mui-btn-default' " + disabledStr + " onclick=\"reservation(this,'" + barcode + "','new')\">预约</button>";
             }
             else if (reservationState == "已预约")
             {
@@ -5446,6 +5507,19 @@ namespace dp2weixin.service
 
         #region 个人信息
 
+        public int GetPatronInfo(string patronBarcode,
+            string formate,
+            out string info,
+            out string strError)
+        {
+            strError = "";
+            info = "";
+
+
+
+            return 1;
+        }
+
 
         /// <summary>
         /// 获取读者的预约信息
@@ -5541,68 +5615,215 @@ namespace dp2weixin.service
             return result;
         }
 
-        public PatronInfo ParseReaderXml(string strXml)
+        public Patron ParsePatronXml(string libId,string strPatronXml,string recPath,int showPhoto)
         {
-            PatronInfo patronResult = new PatronInfo();
-
             // 取出个人信息
             Patron patron = new Patron();
             XmlDocument dom = new XmlDocument();
-            dom.LoadXml(strXml);
-            patron.barcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
-            patron.name = DomUtil.GetElementText(dom.DocumentElement, "name");
-            patron.department = DomUtil.GetElementText(dom.DocumentElement, "department");
-            patron.readerType = DomUtil.GetElementText(dom.DocumentElement, "readerType");
-            patron.state = DomUtil.GetElementText(dom.DocumentElement, "state");
-            patron.createDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement, "createDate"), "yyyy/MM/dd");
-            patron.expireDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement, "expireDate"), "yyyy/MM/dd");
-            patron.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");// +"测试革skdslfjsalfjsda;dfsajf;k;lllllllaslkjdfasssssfffffffffffffffffffffffffffffffsal;sdjflsafjsla;fdjadsl;fjsal;fjaslfjdaslfjaslfjlsafjsadlj我们枯叶sksdlfjasfljsaf;lasjf;aslfjsda;lfjsadlf";
+            dom.LoadXml(strPatronXml);
 
-            string strError = "";
-            int nRet = CheckReaderExpireAndState(dom, out strError);
-            if (nRet != 0)
-                patron.isWarning = 1;
+            // 证条码号
+            string strBarcode = DomUtil.GetElementText(dom.DocumentElement,"barcode");
+            patron.barcode = strBarcode;
+
+            // 显示名
+            string strDisplayName = DomUtil.GetElementText(dom.DocumentElement,"displayName");
+            patron.displayName = strDisplayName;
+
+            // 姓名
+            string strName = DomUtil.GetElementText(dom.DocumentElement,"name");
+            patron.name = strName;
+
+            // 性别
+            string strGender = DomUtil.GetElementText(dom.DocumentElement,"gender");
+            patron.gender = strGender;
+
+            // 出生日期
+            string strDateOfBirth = DomUtil.GetElementText(dom.DocumentElement,"dateOfBirth");
+            if (string.IsNullOrEmpty(strDateOfBirth) == true)
+                strDateOfBirth = DomUtil.GetElementText(dom.DocumentElement,"birthday");
+            strDateOfBirth = DateTimeUtil.LocalDate(strDateOfBirth);
+            patron.dateOfBirth = strDateOfBirth;
+
+            // 证号 2008/11/11
+            string strCardNumber = DomUtil.GetElementText(dom.DocumentElement,"cardNumber");
+            patron.cardNumber = strCardNumber;
+
+            // 身份证号
+            string strIdCardNumber = DomUtil.GetElementText(dom.DocumentElement,"idCardNumber");
+            patron.idCardNumber = strIdCardNumber;
+
+            // 单位
+            string strDepartment = DomUtil.GetElementText(dom.DocumentElement,"department");
+            patron.department = strDepartment;
+
+            // 职务
+            string strPost = DomUtil.GetElementText(dom.DocumentElement,"post");
+            patron.post = strPost;
+
+            // 地址
+            string strAddress = DomUtil.GetElementText(dom.DocumentElement,"address");
+            patron.address = strAddress;
+
+            // 电话
+            string strTel = DomUtil.GetElementText(dom.DocumentElement,"tel");
+            patron.tel = strTel;
+
+            // email
+            string strEmail = DomUtil.GetElementText(dom.DocumentElement,"email");
+            patron.email = this.RemoveWeiXinId(strEmail);//过滤掉微信id
+
+            // 读者类型
+            string strReaderType = DomUtil.GetElementText(dom.DocumentElement,"readerType");
+            patron.readerType = strReaderType;
+
+            // 证状态
+            string strState = DomUtil.GetElementText(dom.DocumentElement,"state");
+            patron.state = strState;
+
+            // 发证日期
+            string strCreateDate = DomUtil.GetElementText(dom.DocumentElement,"createDate");
+            strCreateDate = DateTimeUtil.LocalDate(strCreateDate);
+            patron.createDate = strCreateDate;
+
+            // 证失效期
+            string strExpireDate = DomUtil.GetElementText(dom.DocumentElement,"expireDate");
+            strExpireDate = DateTimeUtil.LocalDate(strExpireDate);
+            patron.expireDate = strExpireDate;
+
+            // 租金 
+            string strHireExpireDate = "";
+            string strHirePeriod = "";
+            XmlNode nodeHire = dom.DocumentElement.SelectSingleNode("hire");
+            string strHire = "";
+            if (nodeHire != null)
+            {
+                strHireExpireDate = DomUtil.GetAttr(nodeHire, "expireDate");
+                strHirePeriod = DomUtil.GetAttr(nodeHire, "period");
+
+                strHireExpireDate = DateTimeUtil.LocalDate(strHireExpireDate);
+                strHirePeriod = dp2WeiXinService.GetDisplayTimePeriodStringEx(strHirePeriod);
+
+                strHire = "周期" + ": " + strHirePeriod + "; "
+                + "失效期" + ": " + strHireExpireDate;
+            }
+            patron.hire = strHire;
+
+            // 押金 2008/11/11
+            string strForegift = DomUtil.GetElementText(dom.DocumentElement,
+                "foregift");
+            patron.foregift = strForegift;
+
+            // 二维码
+            string qrcodeUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(libId)
+                + "&type=pqri"
+                + "&barcode=" + HttpUtility.UrlEncode(strBarcode);
+            patron.qrcodeUrl = qrcodeUrl;
+
+            //头像
+            //recPath
+            string imageUrl = "";
+            if (showPhoto == 1)
+            {
+                //dprms:file
+                // 看看是不是已经有图像对象
+                XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
+                nsmgr.AddNamespace("dprms", DpNs.dprms);
+                // 全部<dprms:file>元素
+                XmlNodeList fileNodes = dom.DocumentElement.SelectNodes("//dprms:file[@usage='cardphoto']", nsmgr);
+                if (fileNodes.Count > 0)
+                {
+                    string strPhotoPath = recPath + "/object/" + DomUtil.GetAttr(fileNodes[0], "id");
+
+                    imageUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(libId)
+                    + "&objectPath=" + HttpUtility.UrlEncode(strPhotoPath);
+                }
+            }
+            patron.imageUrl = imageUrl;
 
 
-            // 赋给返回对象
-            patronResult.patron = patron;
+            // 违约
+            List<OverdueInfo> overdueLit = new List<OverdueInfo>();
+            XmlNodeList nodes = dom.DocumentElement.SelectNodes("overdues/overdue");
+            patron.OverdueCount = nodes.Count;
+            patron.OverdueCountHtml = ConvertToString(patron.OverdueCount);
 
-            // 警告信息，显示在头像旁边
-            string strWarningText = "";
+            // 在借
+            nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
+            patron.BorrowCount = nodes.Count;
+            patron.BorrowCountHtml = ConvertToString(patron.BorrowCount);
+            int caoQiCount = 0;
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                XmlNode node = nodes[i];
+                string strIsOverdue = DomUtil.GetAttr(node, "isOverdue");
+                if (strIsOverdue == "yes")
+                {
+                    caoQiCount++;
+                }
+            }
+            patron.CaoQiCount = caoQiCount;
 
-            // ***
-            // 违约/交费信息
-            string strOverdueWarningText = "";
-            List<OverdueInfo> overdueList = GetOverdueInfo(strXml, out strOverdueWarningText);
-            if (strOverdueWarningText != "")
-                strWarningText += strOverdueWarningText;
-            patronResult.overdueList = overdueList;
+            // 预约
+            nodes = dom.DocumentElement.SelectNodes("reservations/request");
+            patron.ReservationCount = nodes.Count;
+            patron.ReservationCountHtml = ConvertToString(patron.ReservationCount);
+            int daoQiCount = 0;
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                XmlNode node = nodes[i];
+                string state = DomUtil.GetAttr(node, "state");
+                if (state == "arrived")
+                {
+                    daoQiCount++;
+                }
+            }
+            patron.DaoQiCount = daoQiCount;
 
+            return patron;
+        }
 
-            //在借册
-            string strBorrowWarningText = "";
-            string maxBorrowCountString = "";
-            string curBorrowCountString = "";
-            List<BorrowInfo2> borrowList = GetBorrowInfo(strXml, out strBorrowWarningText, out maxBorrowCountString, out curBorrowCountString);
-            if (strBorrowWarningText != "")
-                strWarningText += strBorrowWarningText;
-            patronResult.borrowList = borrowList;
-            patron.maxBorrowCount = maxBorrowCountString;
-            patron.curBorrowCount = curBorrowCountString;
+        private string ConvertToString(int num)
+        {
+            string text = "";
+            if (num > 0 && num <= 5)
+            {
+                text = "<span class='leftNum'>" + "▪".PadRight(num, '▪') + "</span>";
+            }
+            else if (num == 0)
+            {
+                text = "";
+            }
+            else
+            {
+                text = num.ToString();
+            }
 
+            if (text != "")
+                text = "(" + text + ")";
+            return text;
+        }
 
-            // 预约请求
-            string strReservationWarningText = "";
-            List<ReservationInfo> reservationList = GetReservations(strXml, out strReservationWarningText);
-            if (strReservationWarningText != "")
-                strWarningText += strReservationWarningText;
-            patronResult.reservationList = reservationList;
+        private string RemoveWeiXinId(string email)
+        {
+            //<email>test@163.com,123,weixinid:o4xvUviTxj2HbRqbQb9W2nMl4fGg,weixinid:o4xvUvnLTg6NnflbYdcS-sxJCGFo,weixinid:testid</email>
+            string[] emailList = email.Split(new char[] { ',' });
+            string clearEmail = "";
+            for (int i = 0; i < emailList.Length; i++)
+            {
+                string oneEmail = emailList[i].Trim();
+                if (oneEmail.Length > 9 && oneEmail.Substring(0, 9) == WeiXinConst.C_WeiXinIdPrefix)
+                {
+                    continue;
+                }
 
+                if (clearEmail != "")
+                    clearEmail += ",";
 
-            //提醒 信息
-            patronResult.patron.warningText = strWarningText;
+                clearEmail += oneEmail;
+            }
 
-            return patronResult;
+            return clearEmail;
         }
 
         public List<BorrowInfo2> GetBorrowInfo(string strXml, out string strWarningText,
@@ -6174,6 +6395,8 @@ namespace dp2weixin.service
 
         #endregion
 
+
+
         #region 续借
 
         public int Renew1(string libId,
@@ -6286,15 +6509,15 @@ namespace dp2weixin.service
 
                 if (style == "delete")
                 {
-                    reserRowHtml = this.getReservationHtml("未预约", items, true);
+                    reserRowHtml = this.getReservationHtml("未预约", items, true,false);
                 }
                 else if (style == "new")
                 {
                     // 根据result.ErrorInfo区分是否到书 todo这个区分可靠吗？
                     if (strError != "")
-                        reserRowHtml = this.getReservationHtml("已到书", items, true);
+                        reserRowHtml = this.getReservationHtml("已到书", items, true, false);
                     else
-                        reserRowHtml = this.getReservationHtml("已预约", items, true);
+                        reserRowHtml = this.getReservationHtml("已预约", items, true, false);
                 }
 
 
