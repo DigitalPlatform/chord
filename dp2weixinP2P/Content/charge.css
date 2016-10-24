@@ -1,0 +1,42 @@
+
+/*出纳界面*/
+
+        TABLE.command {
+            width:100%;
+            line-height: 1.2;
+            background-color:white;
+        }
+
+        TABLE.command TD.leftLine {
+            width:2px;
+            background-color:darkgreen;
+            
+        }
+
+        TABLE.command TD.resultIcon {
+            width:35px;
+            vertical-align:top;
+        }
+
+        TABLE.command TD.info {
+            
+        }
+
+        TABLE.command TD.info  .title{
+           
+        }
+
+        TABLE.command TD.info  .patronBarcode{
+           color:darkgreen;
+           font-size:18pt;
+        }
+
+        TABLE.command TD.info  .name{
+           font-size:28pt;
+           font-weight:bold;
+        }
+
+        TABLE.command TD.info  .department{
+           color:#cccccc;
+           font-size:14.8px;
+        }

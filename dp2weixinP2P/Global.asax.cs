@@ -59,9 +59,16 @@ namespace dp2weixinWeb
         {
             // 2016.8.7 web api不需要session，检索到第几页是通过页面传过去的。
             // 对web api启用session，主要用于检索下一页
-            //this.PostAuthenticateRequest += (sender, e) => HttpContext.Current.SetSessionStateBehavior(SessionStateBehavior.Required);
+            
+            // 2016.10.25 再次启用session 用于出纳窗命令
+            this.PostAuthenticateRequest += (sender, e) => HttpContext.Current.SetSessionStateBehavior(SessionStateBehavior.Required);
             
             base.Init();
+        }
+
+        void Session_Start(object sender, EventArgs e)
+        {
+            Session[WeiXinConst.C_Session_CmdContainer] = new ChargeCommandContainer();
         }
 
         void Application_End(object sender, EventArgs e)

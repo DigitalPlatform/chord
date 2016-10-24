@@ -98,6 +98,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChargeCommand.cs" />
+    <Compile Include="ChargeCommandContainer.cs" />
     <Compile Include="LibraryManager.cs" />
     <Compile Include="ManagerThread.cs" />
     <Compile Include="MessageItem.cs" />

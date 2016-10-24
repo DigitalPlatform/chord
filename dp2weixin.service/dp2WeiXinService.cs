@@ -6540,7 +6540,7 @@ namespace dp2weixin.service
             CirculationRequest request = new CirculationRequest(id,
                 loginInfo,
                 "renew",
-                "",
+                patron,
                 item,
                 "",
                 "",
