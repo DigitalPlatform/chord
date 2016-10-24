@@ -186,6 +186,7 @@
     <Content Include="img\empty.jpg" />
     <Content Include="img\emptyBind.png" />
     <Content Include="img\error.jpg" />
+    <Content Include="img\error.png" />
     <Content Include="img\library.jpg" />
     <Content Include="img\loading.gif" />
     <Content Include="img\nonePhoto.png" />

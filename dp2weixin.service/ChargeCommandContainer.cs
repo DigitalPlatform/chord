@@ -41,7 +41,7 @@ namespace dp2weixin.service
 
             // 执行这个命令
             int nRet = -1;
-            string strOutputReaderBarcode = "";
+            string strOutputReaderBarcode = cmd.patron;
             string strPatronXml = "";
             string patronRecPath = "";
             // 借书或续借
@@ -158,7 +158,7 @@ namespace dp2weixin.service
             // 解析读者信息
             if (string.IsNullOrEmpty(strPatronXml) == false)
             {
-                
+
                 int showPhoto = 0;//todo
                 Patron patron = dp2WeiXinService.Instance.ParsePatronXml(libId,
                     strPatronXml,
@@ -168,6 +168,50 @@ namespace dp2weixin.service
             }
 
 
+            string cmdHtml = "";
+            string title = "";
+            string info = "";
+            if (cmd.type == ChargeCommand.C_Command_LoadPatron)
+            {
+                title = "装载读者信息" + "&nbsp;" + cmd.patronBarcode;
+                if (cmd.state != -1)
+                {
+                    info = "<div class='patronBarcode'>R00001</div>"
+                            + "<div class='name'>任1</div>"
+                            + "<div class='department'>苏州学校</div>";
+                }
+            }
+            else
+            {
+                title = cmd.patronBarcode + cmd.typeString + "&nbsp;" + cmd.item;
+                if (cmd.state != -1)
+                {
+                    info = "<div class='summary'>书目摘要</div>";
+                }
+            }
+
+            string lineClass = "rightLine";
+            string imgName = "right.png";
+            if (cmd.state == -1)
+            {
+                imgName = "error.png";
+                info = "<div class='error'>===<br/>"
+                    + strError
+                    + "</div>";
+                lineClass = "errorLine";
+            }
+
+
+            cmdHtml = "<table class='command'>"
+                            + "<tr>"
+                                + "<td class='"+lineClass+"' ></td>"
+                                + "<td class='resultIcon'><img src='../img/" + imgName + "' /> </td>"
+                                + "<td class='info'><div class='title'>" + title + "</div>"
+                                + info
+                                + "</td>"
+                            + "</tr>"
+                        + "</table>";
+            cmd.cmdHtml = cmdHtml;
 
             // 加到集合里
             this.Insert(0, cmd);

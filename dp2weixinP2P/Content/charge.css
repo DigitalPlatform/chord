@@ -5,11 +5,18 @@
             width:100%;
             line-height: 1.2;
             background-color:white;
+            margin-top:10px;
         }
 
-        TABLE.command TD.leftLine {
+        TABLE.command TD.rightLine {
             width:2px;
             background-color:darkgreen;
+            
+        }
+
+                TABLE.command TD.errorLine {
+            width:2px;
+            background-color:red;
             
         }
 

@@ -55,7 +55,7 @@ namespace dp2weixin.service
         public static string getTypeString(string type)
         {
             if (type == C_Command_LoadPatron)
-                return "加载";
+                return "装载";
             if (type == C_Command_Borrow)
                 return "借";
             if (type == C_Command_Return)
