@@ -2653,7 +2653,7 @@ namespace dp2weixin.service
                 try
                 {
                     // 使用代理账号capo 20161024 jane
-                    LoginInfo loginInfo = new LoginInfo(null, false);
+                    LoginInfo loginInfo = new LoginInfo("", false);
 
                     CancellationToken cancel_token = new CancellationToken();
                     string id = Guid.NewGuid().ToString();
@@ -3204,7 +3204,7 @@ namespace dp2weixin.service
                 + "name=" + name;
 
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo(null, false);
+            LoginInfo loginInfo = new LoginInfo("", false);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -3399,7 +3399,7 @@ namespace dp2weixin.service
             // 省略子参数的用法是有意义的，但不该被用在这个修改读者密码的场合。
             string item = "old=" + oldPassword + ",new=" + newPassword;
 
-            // 使用读者账号capo 20161024 jane
+            // 使用读者账号 20161024 jane
             LoginInfo loginInfo = new LoginInfo(patron, true);
 
             CancellationToken cancel_token = new CancellationToken();
@@ -3497,7 +3497,7 @@ namespace dp2weixin.service
                 strPassword = Cryptography.GetSHA1(strFullWord);
 
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo(null, false);
+            LoginInfo loginInfo = new LoginInfo("", false);
 
             CancellationToken cancel_token = new CancellationToken();
 
@@ -3747,7 +3747,7 @@ namespace dp2weixin.service
                 queryWord = "UN:" + userItem.userName;
 
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo(null, false);
+            LoginInfo loginInfo = new LoginInfo("", false);
 
             // 调点对点解绑接口
             string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + userItem.weixinId;
@@ -4063,7 +4063,7 @@ namespace dp2weixin.service
             {
 
                 // 使用代理账号capo 20161024 jane
-                LoginInfo loginInfo = new LoginInfo(null, false);
+                LoginInfo loginInfo = new LoginInfo("", false);
 
                 CancellationToken cancel_token = new CancellationToken();
                 string id = Guid.NewGuid().ToString();
@@ -4869,7 +4869,7 @@ namespace dp2weixin.service
             dataList = new List<string>();
 
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo(null, false);
+            LoginInfo loginInfo = new LoginInfo("", false);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -4953,7 +4953,7 @@ namespace dp2weixin.service
             strRecPath = "";
 
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo(null, false);
+            LoginInfo loginInfo = new LoginInfo("", false);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -5024,7 +5024,7 @@ namespace dp2weixin.service
             dataList = new List<Record>();
 
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo(null, false);
+            LoginInfo loginInfo = new LoginInfo("", false);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -6317,7 +6317,7 @@ namespace dp2weixin.service
             }
 
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo(null, false);
+            LoginInfo loginInfo = new LoginInfo("", false);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -6532,7 +6532,7 @@ namespace dp2weixin.service
                 return -1;
             }
 
-            // 使用读者账号capo 20161024 jane
+            // 使用读者账号 20161024 jane
             LoginInfo loginInfo = new LoginInfo(patron, true);
 
             CancellationToken cancel_token = new CancellationToken();
@@ -6868,7 +6868,7 @@ namespace dp2weixin.service
 
 
             // 使用读者账号 20161024 jane
-            LoginInfo loginInfo = new LoginInfo(patron, true);
+            LoginInfo loginInfo = new LoginInfo(patronBarcode, true);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -7002,7 +7002,7 @@ namespace dp2weixin.service
             }
 
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo(null, false);
+            LoginInfo loginInfo = new LoginInfo("", false);
 
             CancellationToken cancel_token = new CancellationToken();
 
@@ -7676,7 +7676,7 @@ namespace dp2weixin.service
             try
             {
                 // 使用代理账号capo 20161024 jane
-                LoginInfo loginInfo = new LoginInfo(null, false);
+                LoginInfo loginInfo = new LoginInfo("", false);
 
                 CancellationToken cancel_token = new CancellationToken();
                 string id = Guid.NewGuid().ToString();
@@ -8143,7 +8143,7 @@ namespace dp2weixin.service
             strError = "";
 
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo(null, false);
+            LoginInfo loginInfo = new LoginInfo("", false);
 
             // 从远程dp2library中查
             string strWord = WeiXinConst.C_WeiXinIdPrefix;// +weixinId;

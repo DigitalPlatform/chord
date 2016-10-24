@@ -314,6 +314,7 @@
     <Content Include="Views\Library\Book.cshtml" />
     <Content Include="Views\Library\dpHome.cshtml" />
     <Content Include="Views\Library\Charge.cshtml" />
+    <Content Include="Views\Library\Charge1.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
