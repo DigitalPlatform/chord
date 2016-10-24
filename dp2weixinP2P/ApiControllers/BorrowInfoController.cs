@@ -33,6 +33,7 @@ namespace dp2weixinWeb.ApiControllers
             { 
             string strError = "";
             int nRet = dp2WeiXinService.Instance.Renew1(libId,
+                patron,
                 item,
                 out strError);
             result.errorCode = nRet;
