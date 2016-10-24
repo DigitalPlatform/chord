@@ -18,6 +18,9 @@ namespace dp2weixin.service
 
         // 信息
         public string info = "";
+
+        // 返回的对象
+        public object obj = "";
     }
 
     public class LibSetResult : ApiResult

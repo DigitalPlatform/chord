@@ -71,7 +71,7 @@ namespace dp2weixin.service
 
 
         // 日志级别
-        public int LogLevel = 2;
+        public int LogLevel = 1;
 
         // 微信数据目录
         public string weiXinDataDir = "";
@@ -5539,17 +5539,100 @@ namespace dp2weixin.service
 
         #region 个人信息
 
-        public int GetPatronInfo(string patronBarcode,
-            string formate,
+        public int GetPatronInfo(string libId,
+            string patronBarcode,
+            string style,
+            out Patron patron,
             out string info,
             out string strError)
         {
+            patron = null;
             strError = "";
             info = "";
 
+            // 获取当前账户的信息
+            string strXml = "";
+            string recPath = "";
+            int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                patronBarcode,
+                "advancexml",
+                out recPath,
+                out strXml,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+                return nRet;
 
+            int showPhoto = 0;
+            if (StringUtil.IsInList("img", style) == true)
+                showPhoto = 1;
+            patron = this.ParsePatronXml(libId,
+                strXml,
+                recPath,
+                showPhoto);
+
+            if (StringUtil.IsInList("html", style) == true)
+            {
+                info = this.GetPatronHtml(patron);
+            }
+            else if (StringUtil.IsInList("summary", style) == true)
+            {
+                info = this.GetPatronSummary(patron);
+            }
 
             return 1;
+        }
+
+        // 获取读者的html
+        public string GetPatronHtml(Patron patron)
+        {
+            string html = "";
+
+            html = "<table class='personalinfo'>"
+            + "<tr class='person_name'> <td class='name'>姓名</td> <td class='value'>"+patron.name+"</td> </tr>"
+            + "<tr> <td class='name'>性别</td> <td class='value'>"+patron.gender+"</td> </tr>"
+            + "<tr> <td class='name'>出生日期</td> <td class='value'>"+patron.dateOfBirth+"</td> </tr>"
+            + "<tr> <td class='name'>证号</td> <td class='value'>"+patron.cardNumber+"</td> </tr>"
+            + "<tr> <td class='name'>身份证号</td> <td class='value'>"+patron.idCardNumber+"</td> </tr>"
+            + "<tr> <td class='name'>单位</td> <td class='value'>"+patron.department+"</td> </tr>"
+            + "<tr> <td class='name'>职务</td> <td class='value'>"+patron.post+"</td> </tr>"
+            + "<tr> <td class='name'>地址</td> <td class='value'>"+patron.address+"</td> </tr>"
+            + "<tr> <td class='name'>电话</td> <td class='value'>"+patron.tel+"</td> </tr>"
+            + "<tr> <td class='name'>Email</td> <td class='value'>"+patron.email+"</td> </tr>"
+            + "<tr class='barcode'> <td class='name'>证条码号</td> <td class='value'>"+patron.barcode+"</td> </tr>"
+            + "<tr> <td class='name'>读者类型</td> <td class='value'>"+patron.readerType+"</td> </tr>"
+            + "<tr class='state'> <td class='name'> 证状态</td> <td class='value'>"+patron.state+"</td> </tr>"
+            + "<tr class='createdate'> <td class='name'>发证日期</td> <td class='value'>"+patron.createDate+"</td> </tr>"
+            + "<tr class='expiredate'> <td class='name'>证失效期</td> <td class='value'>"+patron.expireDate+"</td> </tr>"
+            + "<tr class='hire'> <td class='name'>租金</td> <td class='value'>"+patron.hire+"</td> </tr>";
+
+            if (string.IsNullOrEmpty(patron.imageUrl) == false)
+            {
+                html += "<tr class='photo'>"
+                   + "<td class='name'>头像</td>"
+                   + "<td class='value'>"
+                   + "<img src='"+patron.imageUrl+"' style='max-width:200px' />"
+                   + "</td>"
+                   + "</tr>";
+            }
+            html += "</table>";
+
+            // 二维码
+            html += "<div class='mui-content-padded'>"
+                            + "<center>"
+                                + "<img id='qrcode' src='"+patron.qrcodeUrl+"' alt='QRCode image' />"
+                                + "<div style='font-size:9pt'>(不要把二维码展示和提供给无关人员，以免账号被窃。)</div>"
+                            + "</center>"
+                       + "</div>";
+
+            return html;
+        }
+
+        // 获取读者的summary
+        public string GetPatronSummary(Patron patron)
+        {
+            string summary = "";
+              
+            return summary;
         }
 
 
@@ -5747,7 +5830,7 @@ namespace dp2weixin.service
             patron.foregift = strForegift;
 
             // 二维码
-            string qrcodeUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(libId)
+            string qrcodeUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
                 + "&type=pqri"
                 + "&barcode=" + HttpUtility.UrlEncode(strBarcode);
             patron.qrcodeUrl = qrcodeUrl;
@@ -5767,7 +5850,7 @@ namespace dp2weixin.service
                 {
                     string strPhotoPath = recPath + "/object/" + DomUtil.GetAttr(fileNodes[0], "id");
 
-                    imageUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(libId)
+                    imageUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
                     + "&objectPath=" + HttpUtility.UrlEncode(strPhotoPath);
                 }
             }
@@ -8888,12 +8971,13 @@ namespace dp2weixin.service
                 List<User> users = new List<User>();
 
                 User user = new User();
-                user.userName = username;
+                user.userName = username;  // 这个名称必须是weixin_***
                 user.password = password;
                 user.rights = "getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes,getSystemParameter";
                 user.duty = "";
                 user.groups = new string[] { "gn:_lib_bb", "gn:_lib_book", "gn:_lib_homePage" };
                 user.department = strDepartment;
+                user.binding = "ip:[current]";   //20161024 jane 绑定本机ip
                 users.Add(user);
 
                 // todo

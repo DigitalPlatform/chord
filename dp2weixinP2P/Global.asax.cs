@@ -23,6 +23,7 @@ namespace dp2weixinWeb
     {
         void Application_Start(object sender, EventArgs e)
         {
+
             // 在应用程序启动时运行的代码
             AreaRegistration.RegisterAllAreas();
             GlobalConfiguration.Configure(WebApiConfig.Register);
@@ -44,7 +45,8 @@ namespace dp2weixinWeb
             // 初始化命令服务类
             dp2WeiXinService.Instance.Init(dataDir);
 
-            dp2WeiXinService.Instance.WriteLog1("走进Application_Start");
+            dp2WeiXinService.Instance.WriteLog1("Application_Start完成");
+
 
             // 测试application_error
             //throw new Exception("test");
@@ -72,41 +74,36 @@ namespace dp2weixinWeb
         protected void Application_Error(Object sender, EventArgs e)
         {
             Exception ex = HttpContext.Current.Server.GetLastError();
-
-            string strText = ExceptionUtil.GetDebugText(ex);
-
             try
             {
+                string strText = ExceptionUtil.GetDebugText(ex);
+
                 strText += "\r\n"
                 + "\r\nUserHostAddres=" + HttpContext.Current.Request.UserHostAddress
                 + "\r\nRequest.RawUrl=" + HttpContext.Current.Request.RawUrl
                 + "\r\nForm Data=" + HttpContext.Current.Request.Form.ToString()
                 + "\r\nForm Data(Decoded)=" + HttpUtility.UrlDecode(HttpContext.Current.Request.Form.ToString())
                 + "\r\n\r\n版本: " + System.Reflection.Assembly.GetAssembly(typeof(dp2WeiXinService)).GetName().ToString();
-            }
-            catch (Exception ex1)
-            {
-                strText += "获取Request信息出错：" + ex1.Message;
-            }
-
-
-            string strError = "";
-            try
-            {
-                string strSender = HttpContext.Current.Server.MachineName;
-                //// 崩溃报告
-                //int nRet = LibraryChannel.CrashReport(
-                //    strSender,
-                //    "dp2OPAC",
-                //    strText,
-                //    out strError);
 
                 dp2WeiXinService.Instance.WriteErrorLog1(strText);
+
+                if (ex is Senparc.Weixin.Exceptions.ErrorJsonResultException)
+                {
+                    Server.ClearError(); //清除异常 2016-10-24，不加这句话，还会继续抛黄页                    
+
+                    //重启web应用
+                    dp2WeiXinService.Instance.WriteLog1("遇到微信400001错误，重启web应用。");
+                    string binDir = Server.MapPath("~/bin");//"~/App_Data"
+                    string strTempFile = binDir + "\\temp";
+                    if (File.Exists(strTempFile) == true)
+                        File.Delete(strTempFile);
+                    else
+                        File.Create(strTempFile);
+                }
             }
             catch (Exception ex0)
             {
-                strError = "CrashReport() 过程出现异常: " + ExceptionUtil.GetDebugText(ex0);
-                // nRet = -1;
+                string strError = "application写错误日志时异常: " + ExceptionUtil.GetDebugText(ex0);
             }
         }
 

@@ -115,6 +115,7 @@
     <Compile Include="mongodb\LibDatabase.cs" />
     <Compile Include="mongodb\UserSettingDb.cs" />
     <Compile Include="MsgRouter.cs" />
+    <Compile Include="MyException.cs" />
     <Compile Include="Patron.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchBiblioResult.cs" />
