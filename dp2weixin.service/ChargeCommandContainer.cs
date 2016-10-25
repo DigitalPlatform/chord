@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace dp2weixin.service
 {
@@ -16,6 +17,9 @@ namespace dp2weixin.service
             Debug.Assert(cmd != null, "AddCmd传进的cmd不能为空。");
             Debug.Assert(String.IsNullOrEmpty(cmd.type) == false, "命令类型不能为空。");
 
+            if (cmd.userName == null)
+                cmd.userName = "";
+
             string strError = "";
             // 一般传进来只有3个值 type,patron,item
             cmd.patronBarcode = cmd.patron;
@@ -23,7 +27,6 @@ namespace dp2weixin.service
 
             // 补充命令信息
             cmd.id = this.Count + 1;
-            cmd.description = cmd.patronBarcode + "-" + cmd.type + "-" + cmd.itemBarcode;
             cmd.operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
             cmd.typeString = ChargeCommand.getTypeString(cmd.type);
 
@@ -41,89 +44,85 @@ namespace dp2weixin.service
 
             // 执行这个命令
             int nRet = -1;
-            string strOutputReaderBarcode = cmd.patron;
-            string strPatronXml = "";
+            string outputReaderBarcode = cmd.patron;
+            string patronXml = "";
             string patronRecPath = "";
-            // 借书或续借
-            if (cmd.type == ChargeCommand.C_Command_Borrow
-                || cmd.type == ChargeCommand.C_Command_Renew
-                || cmd.type == ChargeCommand.C_Command_VerifyRenew)
-            {
-                bool bRenew = false;
-                if (cmd.type == ChargeCommand.C_Command_Renew
-                    || cmd.type == ChargeCommand.C_Command_VerifyRenew)
-                {
-                    bRenew = true;
-                }
-                //DigitalPlatform.LibraryRestClient.BorrowInfo borrowInfo = null;
-                //lRet = channel.Borrow(bRenew,
-                //                    item.readerBarcode,
-                //                    item.itemBarcode,
-                //                    out strOutputReaderBarcode,
-                //                    out strReaderXml,
-                //                    out borrowInfo,
-                //                    out strError);
-            }
-            else if (cmd.type == ChargeCommand.C_Command_Return
-                || cmd.type == ChargeCommand.C_Command_VerifyReturn
-                || cmd.type == ChargeCommand.C_Command_Read)
-            {
-                string strAction = "";
-                if (cmd.type == ChargeCommand.C_Command_Return
-                    || cmd.type == ChargeCommand.C_Command_VerifyReturn)
-                    strAction = "return";
-                else
-                    strAction = "read";
 
 
-                //ReturnInfo returnInfo = null;
-                //lRet = channel.Return(strAction,
-                //    item.readerBarcode,
-                //    item.itemBarcode,
-                //    out strOutputReaderBarcode,
-                //    out strReaderXml,
-                //    out returnInfo,
-                //    out strError);
-            }
-            else if (cmd.type == ChargeCommand.C_Command_LoadPatron)
+            if (cmd.type == ChargeCommand.C_Command_LoadPatron) //加载读者
             {
                 nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                     cmd.patronBarcode,
                     "advancexml",
                     out patronRecPath,
-                    out strPatronXml,
+                    out patronXml,
                     out strError);
                 if (nRet == -1 || nRet == 0)
                 {
                     nRet = -1;
                 }
             }
+            else if (cmd.type == ChargeCommand.C_Command_Borrow) //借书
+            {
+                nRet = dp2WeiXinService.Instance.CirculationByWorker(libId,
+                    cmd.userName,
+                    "borrow",
+                    cmd.patron,
+                    cmd.item,
+                    out outputReaderBarcode,
+                    out strError);
+                if (nRet == -1)
+                {
+                    goto ERROR1;
+                }
+            }
+            else if (cmd.type == ChargeCommand.C_Command_Return) // 还书
+            {
+                nRet = dp2WeiXinService.Instance.CirculationByWorker(libId,
+                    cmd.userName,
+                    "return",
+                    cmd.patron,
+                    cmd.item,
+                    out outputReaderBarcode,
+                    out strError);
+                if (nRet == -1)
+                {
+                    goto ERROR1;
+                }
+
+                // 取一下读者记录
+                nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                    outputReaderBarcode,
+                    "advancexml",
+                    out patronRecPath,
+                    out patronXml,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                {
+                    nRet = -1;
+                }                
+            }
 
 
 
             // 设上实际的读者证条码
-            cmd.patronBarcode = strOutputReaderBarcode;
+            cmd.patronBarcode = outputReaderBarcode;
 
-            // 读者重复
-            if (nRet == 2)
+            // 解析读者信息
+            if (string.IsNullOrEmpty(patronXml) == false)
             {
-                cmd.state = (int)nRet;
-                cmd.resultInfo = cmd.typeString + "书操作失败：" + strError;
 
-                //直接返回了，因为不会加到操作历史里
-                return cmd;
+                int showPhoto = 0;//todo
+                Patron patron = dp2WeiXinService.Instance.ParsePatronXml(libId,
+                    patronXml,
+                    patronRecPath,
+                    showPhoto);
+                cmd.patronHtml = dp2WeiXinService.Instance.GetPatronHtml(patron);
+                cmd.patronBarcode = patron.barcode;
+
             }
 
-            // 册重复
-            if (nRet == 3)
-            {
-                cmd.state = (int)nRet;
-                cmd.resultInfo = strError;//item.typeString + "书操作失败：" + strError;
-
-                //直接返回了，因为不会加到操作历史里
-                return cmd;
-            }
-
+ERROR1:
 
             if (nRet == -1)
             {
@@ -141,31 +140,21 @@ namespace dp2weixin.service
                 cmd.resultInfo = strError;
             }
 
-            // 检索是否与前面同一个读者，不加要加线
-            if (this.Count > 0)
-            {
-                ChargeCommand firstCmd = this[0];
-                if (firstCmd.patronBarcode != cmd.patronBarcode
-                    && String.IsNullOrEmpty(cmd.patronBarcode) == false
-                    && String.IsNullOrEmpty(firstCmd.patronBarcode) == false)
-                {
-                    cmd.isAddLine = 1;
-                }
-            }
-            // 设链接地址 链到书的详细信息
-            cmd.itemBarcodeUrl = cmd.itemBarcode;
+            //// 检索是否与前面同一个读者，不加要加线
+            //if (this.Count > 0)
+            //{
+            //    ChargeCommand firstCmd = this[0];
+            //    if (firstCmd.patronBarcode != cmd.patronBarcode
+            //        && String.IsNullOrEmpty(cmd.patronBarcode) == false
+            //        && String.IsNullOrEmpty(firstCmd.patronBarcode) == false)
+            //    {
+            //        cmd.isAddLine = 1;
+            //    }
+            //}
+            //// 设链接地址 链到书的详细信息
+            //cmd.itemBarcodeUrl = cmd.itemBarcode;
 
-            // 解析读者信息
-            if (string.IsNullOrEmpty(strPatronXml) == false)
-            {
 
-                int showPhoto = 0;//todo
-                Patron patron = dp2WeiXinService.Instance.ParsePatronXml(libId,
-                    strPatronXml,
-                    patronRecPath,
-                    showPhoto);
-                cmd.patronHtml = dp2WeiXinService.Instance.GetPatronHtml(patron);
-            }
 
 
             string cmdHtml = "";
@@ -183,10 +172,21 @@ namespace dp2weixin.service
             }
             else
             {
-                title = cmd.patronBarcode + cmd.typeString + "&nbsp;" + cmd.item;
+                title = cmd.patronBarcode + "&nbsp;" + cmd.typeString + "&nbsp;" + cmd.item;
                 if (cmd.state != -1)
                 {
-                    info = "<div class='summary'>书目摘要</div>";
+                    //info = "<div class='summary'>书目摘要</div>";
+                    string biblioPath = "";
+                    string detalUrl = "/Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(biblioPath);
+                    string itemLink = "<a href='javascript:void(0)' onclick='gotoBiblioDetail(\"" + detalUrl + "\")'>" + cmd.itemBarcode + "</a>";
+                    title = cmd.patronBarcode + "&nbsp;" + cmd.typeString + "&nbsp;" + itemLink;
+
+
+                    info = "<div  class='pending' style='padding-bottom:4px'>"
+                                           + "<label>bs-" + cmd.itemBarcode + "</label>"
+                                           + "<img src='../img/loading.gif' />"
+                                           + "<span>" + libId + "</span>"
+                                       + "</div>";
                 }
             }
 
@@ -214,7 +214,7 @@ namespace dp2weixin.service
             cmd.cmdHtml = cmdHtml;
 
             // 加到集合里
-            this.Insert(0, cmd);
+            this.Add(cmd); //this.Insert(0, cmd);
 
             return cmd;
 

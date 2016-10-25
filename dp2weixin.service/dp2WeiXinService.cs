@@ -3017,12 +3017,21 @@ namespace dp2weixin.service
         /// <returns></returns>
         public static string GetLinkHtml(string menu, string returnUrl,string libName="")
         {
+            return GetLinkHtml(menu, returnUrl, false, libName);
+        }
+
+        public static string GetLinkHtml(string menu, string returnUrl, bool bNeedWorker,string libName = "")
+        {
+            string name = "读者";
+            if (bNeedWorker == true)
+                name = "工作人员";
+
             string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
             string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
-            string strRedirectInfo = "您尚未绑定当前图书馆的读者账户，不能查看" + menu + "，" + bindLink;
+            string strRedirectInfo = "您尚未绑定当前图书馆的"+name+"账户，不能查看" + menu + "，" + bindLink;
 
-            if (menu=="书目查询" || menu=="好书推荐")
-                strRedirectInfo = "图书馆 " + libName + " 不对外公开书目，您需要先<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>绑定图书馆账户</a>，才能进入"+menu;
+            if (menu == "书目查询" || menu == "好书推荐")
+                strRedirectInfo = libName + " 不对外公开书目，您需要先<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>绑定图书馆账户</a>，才能进入" + menu;
 
             strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
                 + strRedirectInfo
@@ -6517,6 +6526,108 @@ namespace dp2weixin.service
 
 
         #region 续借
+
+
+        public int CirculationByWorker(string libId,
+            string userName,
+            string operation,
+            string patron,
+            string item,
+            out string patronBarcode,
+            out string strError)
+        {
+            strError = "";
+            patronBarcode = "";
+
+            ReturnInfo resultInfo = null;
+
+
+
+            int nRet= Circulation(libId,
+                userName,
+                false,
+                operation,
+                patron,
+                item,
+                out patronBarcode,
+                out resultInfo,
+                
+                out strError);
+
+            return nRet;
+
+        }
+
+        private int Circulation(string libId,
+            string loginUserName,
+            bool isPatron,
+            string operation,
+            string patron,
+            string item,
+            out string patronBarcode,
+            out ReturnInfo resultInfo,
+            out string strError)
+        {
+            strError = "";
+            resultInfo = null;
+            patronBarcode = "";
+
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
+
+            // 使用的登录账号 20161025 jane
+            LoginInfo loginInfo = new LoginInfo(loginUserName, isPatron);
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            CirculationRequest request = new CirculationRequest(id,
+                loginInfo,
+                operation,
+                patron,
+                item,
+                "",
+                "",
+                "",
+                "");
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    lib.capoUserName).Result;
+
+                CirculationResult result = connection.CirculationTaskAsync(
+                    lib.capoUserName,
+                    request,
+                    new TimeSpan(0, 1, 10), // 10 秒
+                    cancel_token).Result;
+                if (result.Value == -1)
+                {
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName);
+                    return -1;
+                }
+
+                resultInfo = result.ReturnInfo;
+
+                patronBarcode=result.PatronBarcode;
+
+                strError = result.ErrorInfo;
+                return (int)result.Value;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                return -1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+        }
 
         public int Renew1(string libId,
             string patron,

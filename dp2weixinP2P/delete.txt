@@ -1,4 +1,27 @@
-﻿=====charge getPatron=====
+﻿====出纳窗===
+
+            // 读者重复
+            if (nRet == 2)
+            {
+                cmd.state = (int)nRet;
+                cmd.resultInfo = cmd.typeString + "书操作失败：" + strError;
+
+                //直接返回了，因为不会加到操作历史里
+                return cmd;
+            }
+
+            // 册重复
+            if (nRet == 3)
+            {
+                cmd.state = (int)nRet;
+                cmd.resultInfo = strError;//item.typeString + "书操作失败：" + strError;
+
+                //直接返回了，因为不会加到操作历史里
+                return cmd;
+            }
+
+
+=====charge getPatron=====
         function getPatron() {
             //alert("getPatron()");
 
