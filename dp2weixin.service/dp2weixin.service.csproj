@@ -98,6 +98,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChargeCommand.cs" />
+    <Compile Include="ChargeCommandContainer.cs" />
     <Compile Include="LibraryManager.cs" />
     <Compile Include="ManagerThread.cs" />
     <Compile Include="MessageItem.cs" />
@@ -115,6 +117,7 @@
     <Compile Include="mongodb\LibDatabase.cs" />
     <Compile Include="mongodb\UserSettingDb.cs" />
     <Compile Include="MsgRouter.cs" />
+    <Compile Include="MyException.cs" />
     <Compile Include="Patron.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchBiblioResult.cs" />

@@ -122,6 +122,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\charge.css" />
     <Content Include="Content\icons-extra.css" />
     <Content Include="Content\patron.css" />
     <Content Include="Content\bootstrap.min.css" />
@@ -185,10 +186,12 @@
     <Content Include="img\empty.jpg" />
     <Content Include="img\emptyBind.png" />
     <Content Include="img\error.jpg" />
+    <Content Include="img\error.png" />
     <Content Include="img\library.jpg" />
     <Content Include="img\loading.gif" />
     <Content Include="img\nonePhoto.png" />
     <Content Include="img\empty2.jpg" />
+    <Content Include="img\right.png" />
     <Content Include="img\wait2.gif" />
     <Content Include="img\guide.pdf" />
     <Content Include="fonts\mui-icons-extra.ttf" />
@@ -227,6 +230,7 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiControllers\ChargeCommandController.cs" />
     <Compile Include="ApiControllers\LibMessageController.cs" />
     <Compile Include="ApiControllers\BiblioController.cs" />
     <Compile Include="ApiControllers\BorrowInfoController.cs" />
@@ -314,6 +318,8 @@
     <Content Include="Views\Library\Book.cshtml" />
     <Content Include="Views\Library\dpHome.cshtml" />
     <Content Include="Views\Library\Charge.cshtml" />
+    <Content Include="Views\Library\Charge1.cshtml" />
+    <Content Include="Views\UI\charge.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

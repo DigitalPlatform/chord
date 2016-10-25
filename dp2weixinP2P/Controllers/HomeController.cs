@@ -36,6 +36,7 @@ namespace dp2weixinWeb.Controllers
         {
             ViewBag.ReturnUrl = returnUrl;
 
+            //throw new MyException("test exception");
 
             return View();
         }

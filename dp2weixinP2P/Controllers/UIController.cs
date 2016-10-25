@@ -10,6 +10,13 @@ namespace dp2weixinWeb.Controllers
 {
     public class UIController : Controller
     {
+
+        public ActionResult Charge()
+        {
+           
+            return View();
+        }
+
         public ActionResult Scan()
         {
             JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(dp2WeiXinService.Instance.weiXinAppId,

@@ -1,4 +1,60 @@
-﻿=========
+﻿=====charge getPatron=====
+        function getPatron() {
+            //alert("getPatron()");
+
+            // 将读者信息置空
+            $("#patron").html("");
+
+            // 图书馆
+            var libId = getLibId();//$("#selLib").val();
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+
+            var patronBarcode = $('#barcode').val();
+            if (patronBarcode == null || patronBarcode == "") {
+                alert("尚未输入读者 证条码号");
+                return;
+            }
+
+            var style = "html,img";
+
+            //显示等待图层
+            showMaskLayer();
+
+            // 调GetPatron
+            var url = "/api/patron?libId=" + encodeURIComponent(libId)
+                + "&patronBarcode=" + encodeURIComponent(patronBarcode)
+                + "&style=" + encodeURIComponent(style)
+            //alert(url);
+            sendAjaxRequest(url, "GET",
+                function (result) {
+
+                    // 关闭等待层
+                    hideMaskLayer();
+
+                    if (result.errorCode == -1) {
+                        alert("获取读者信息出错：" + result.errorInfo);
+                        return;
+                    }
+
+                    // 显示读者信息
+                    $("#patron").html(result.info);
+
+                    // 换成册条码
+                    setInput(2);
+
+
+
+                }, function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    hideMaskLayer();
+                    alert(errorThrown);
+                });
+        }
+
+=========
 
 @model dp2weixin.service.WxUserItem
 @section style {
