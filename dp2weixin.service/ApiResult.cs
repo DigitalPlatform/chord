@@ -23,6 +23,12 @@ namespace dp2weixin.service
         public object obj = "";
     }
 
+    public class ChargeCommandResult:ApiResult
+    {
+        public List<ChargeCommand> cmds = null;
+    }
+
+
     public class LibSetResult : ApiResult
     {
         public LibEntity lib { get; set; }

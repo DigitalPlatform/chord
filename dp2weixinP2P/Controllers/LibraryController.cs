@@ -22,13 +22,20 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
 
             //绑定的工作人员账号 需要有权限
-            string userName = "";
             string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             string libId = ViewBag.LibId;
+
+            WxUserItem worker = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
+            // 未绑定工作人员，
+            if (worker == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge");
+                return View();
+            }
+
+
             //设到ViewBag里
-            ViewBag.userName = userName;
-
-
+            ViewBag.userName = worker.userName;
             return View();
 
 

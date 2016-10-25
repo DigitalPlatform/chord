@@ -11,6 +11,17 @@ namespace dp2weixinWeb.ApiControllers
 {
     public class ChargeCommandController : ApiController
     {
+        [HttpGet]
+        public ChargeCommandResult GetCommands(string libId)
+        {
+            ChargeCommandResult result = new ChargeCommandResult();
+
+            ChargeCommandContainer cmdContainer = (ChargeCommandContainer)HttpContext.Current.Session[WeiXinConst.C_Session_CmdContainer];
+            result.cmds = cmdContainer;
+
+            return result;
+        }
+
         [HttpPost]
         public ChargeCommand CreateCmd(string libId,
             ChargeCommand cmd)

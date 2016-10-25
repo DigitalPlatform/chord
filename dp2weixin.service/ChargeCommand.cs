@@ -20,38 +20,24 @@ namespace dp2weixin.service
 
         public int id { get; set; }
         public string type { get; set; }
-        public string typeString { get; set; }
         public string patron { get; set; } //传进来的值，不一定全是barcode，有可能姓名与二维码
         public string item { get; set; }//传进来的值，不一定全是barcode，有可能isbn
-        public string description { get; set; }
         public string operTime { get; set; }
+        public string userName { get; set; }  //操作人
 
-        public string patronBarcode { get; set; }
-        public string itemBarcode { get; set; }
+        public string patronBarcode { get; set; }  // 正式的读者证 条码号
+        public string itemBarcode { get; set; }     //正式的册条码号
 
-        public string cmdCss
-        {
-            get
-            {
-                if (state == -1)
-                    return "cmderror";
-                if (state == 0)
-                    return "cmdsuccess";
-                if (state == 1)
-                    return "cmdwarning";
+        public int state { get; set; } //命令处理结果
+        public string resultInfo { get; set; } //结果信息
 
-                // 其它
-                return "cmdwarning";
-            }
-        }
-
-        // 处理状态
-        public int state { get; set; }
-        public string resultInfo { get; set; }
-
+        /*
         // 是否需要划横线，不同读者间画线
         public int isAddLine = 0;
         public string itemBarcodeUrl { get; set; }
+        */
+
+        public string typeString { get; set; }
         public static string getTypeString(string type)
         {
             if (type == C_Command_LoadPatron)
