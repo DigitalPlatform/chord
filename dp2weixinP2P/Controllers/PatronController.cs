@@ -227,6 +227,13 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
+            ViewBag.userName = loginUserName;
+            ViewBag.patronBarcode = patronBarcode;
+
+            ViewBag.overdueUrl = "../Patron/OverdueInfo?loginUserName="+loginUserName+"&patronBarcode="+patronBarcode;
+            ViewBag.borrowUrl = "../Patron/BorrowInfo?loginUserName=" + loginUserName + "&patronBarcode=" + patronBarcode;
+            ViewBag.reservationUrl = "../Patron/Reservation?loginUserName=" + loginUserName + "&patronBarcode=" + patronBarcode;
+
             string libId = ViewBag.LibId;
             Patron patron = null;
             patron = dp2WeiXinService.Instance.ParsePatronXml(libId,

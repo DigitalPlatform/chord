@@ -26,8 +26,8 @@ else
     {
         <ul class="mui-table-view">
             <li class="mui-table-view-cell">
-                <a class="mui-navigate-right" href="./OverdueInfo">
-                    <table class="patronSubMenu" >
+                <a class="mui-navigate-right" href="@ViewBag.overdueUrl">
+                    <table class="patronSubMenu">
                         <tr>
                             <td class="left">交费<span>@Html.Raw(Model.OverdueCountHtml)</span></td>
                             <td class="right">
@@ -42,7 +42,7 @@ else
                 </a>
             </li>
             <li class="mui-table-view-cell">
-                <a class="mui-navigate-right" href="./BorrowInfo">
+                <a class="mui-navigate-right" href="@ViewBag.borrowUrl">
                     <table class="patronSubMenu">
                         <tr>
                             <td class="left">在借<span>@Html.Raw(Model.BorrowCountHtml)</span></td>
@@ -58,7 +58,7 @@ else
                 </a>
             </li>
             <li class="mui-table-view-cell">
-                <a class="mui-navigate-right" href="./Reservation">
+                <a class="mui-navigate-right" href="@ViewBag.reservationUrl">
                     <table class="patronSubMenu">
                         <tr>
                             <td class="left">预约<span>@Html.Raw(Model.ReservationCountHtml)</span></td>
