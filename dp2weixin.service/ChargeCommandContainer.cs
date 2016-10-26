@@ -16,6 +16,7 @@ namespace dp2weixin.service
         {
             Debug.Assert(cmd != null, "AddCmd传进的cmd不能为空。");
             Debug.Assert(String.IsNullOrEmpty(cmd.type) == false, "命令类型不能为空。");
+            Patron patron = null;
 
             if (cmd.userName == null)
                 cmd.userName = "";
@@ -52,6 +53,8 @@ namespace dp2weixin.service
             if (cmd.type == ChargeCommand.C_Command_LoadPatron) //加载读者
             {
                 nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                    cmd.userName,
+                    false,
                     cmd.patronBarcode,
                     "advancexml",
                     out patronRecPath,
@@ -92,6 +95,8 @@ namespace dp2weixin.service
 
                 // 取一下读者记录
                 nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                    cmd.userName,
+                    false,
                     outputReaderBarcode,
                     "advancexml",
                     out patronRecPath,
@@ -109,15 +114,15 @@ namespace dp2weixin.service
             cmd.patronBarcode = outputReaderBarcode;
 
             // 解析读者信息
+
             if (string.IsNullOrEmpty(patronXml) == false)
             {
-
                 int showPhoto = 0;//todo
-                Patron patron = dp2WeiXinService.Instance.ParsePatronXml(libId,
+                patron = dp2WeiXinService.Instance.ParsePatronXml(libId,
                     patronXml,
                     patronRecPath,
                     showPhoto);
-                cmd.patronHtml = dp2WeiXinService.Instance.GetPatronHtml(patron);
+                cmd.patronHtml = dp2WeiXinService.Instance.GetPatronSummary(patron,cmd.userName);//GetPatronHtml(patron,false);
                 cmd.patronBarcode = patron.barcode;
 
             }
@@ -163,11 +168,11 @@ ERROR1:
             if (cmd.type == ChargeCommand.C_Command_LoadPatron)
             {
                 title = "装载读者信息" + "&nbsp;" + cmd.patronBarcode;
-                if (cmd.state != -1)
+                if (cmd.state != -1 && patron != null)
                 {
-                    info = "<div class='patronBarcode'>R00001</div>"
-                            + "<div class='name'>任1</div>"
-                            + "<div class='department'>苏州学校</div>";
+                    info = "<div class='patronBarcode'>"+patron.barcode+"</div>"
+                            + "<div class='name'>"+patron.name+"</div>"
+                            + "<div class='department'>"+patron.department+"</div>";
                 }
             }
             else
@@ -214,7 +219,7 @@ ERROR1:
             cmd.cmdHtml = cmdHtml;
 
             // 加到集合里
-            this.Add(cmd); //this.Insert(0, cmd);
+            this.Insert(0, cmd); //this.Add(cmd); //
 
             return cmd;
 

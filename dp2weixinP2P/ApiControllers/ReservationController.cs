@@ -10,6 +10,7 @@ namespace dp2weixinWeb.ApiControllers
 {
     public class ReservationController : ApiController
     {
+        /*
         // GET api/<controller>
         public ReservationResult GetReservations(string libId, 
             string patronBarcode)
@@ -31,6 +32,7 @@ namespace dp2weixinWeb.ApiControllers
 
             return result;
         }
+         */
 
         // POST api/<controller>
         [HttpPost]

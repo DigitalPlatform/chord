@@ -1,7 +1,68 @@
-﻿@model List<dp2weixin.service.ReservationInfo>
+﻿@model dp2weixin.service.WxUserItem
 @section Scripts {
     <script>
 
+        //观察模型
+        var model = {
+            reservations: ko.observableArray()
+        }
+
+        //获取预约列表
+        function getReservations() {
+            //显示等待图层
+            //var index = loadLayer();
+            showMaskLayer();
+
+            // 先删除可观察数组中的已有数据
+            model.reservations.removeAll();
+
+            var libId = $("#libId").text();
+            var patronBarcode = $("#patronBarcode").text();
+
+            // 调web api
+            var url = "/api/Reservation?libId=" + encodeURIComponent(libId)
+                + "&patronBarcode=" + encodeURIComponent(patronBarcode);
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideMaskLayer();
+
+                // 出错或未命中
+                if (result.errorCode == -1 || result.errorCode == 0) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                if (result.reservations.length == 0) {
+                    $("#divNo").css('display', 'block');
+                    $("#divMerge").css('display', 'none');
+                }
+                else {
+                    $("#divNo").css('display', 'none');
+                    $("#divMerge").css('display', 'block');
+                }
+
+                for (var i = 0; i < result.reservations.length; i++) {
+                    //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                    model.reservations.push(result.reservations[i]);
+                }
+
+                // 更新合并按钮的文字和状态
+                changeBarcord();
+
+                window.setTimeout("fillPending()", 1);
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideMaskLayer();
+
+                alert(errorThrown);
+
+            });
+        }
 
         function doThing(style, items, opeName) {
             if (style == "") {
@@ -14,7 +75,7 @@
                 return false;
             }
 
-            var libId = getLibId(); //$("#libId").text();
+            var libId = $("#libId").text();
             var patronBarcode = $("#patronBarcode").text();
 
             if (items == "") {
@@ -69,11 +130,8 @@
 
                 alert(info);
 
-                // 重新加载页面
-                window.location.reload();
-
                 //刷新界面
-                //getReservations();
+                getReservations();
 
             }, function (xhq, textStatus, errorThrown) {
 
@@ -156,8 +214,10 @@
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
 
-            window.setTimeout("fillPending()", 1);
+            // 获取预约请求
+            getReservations();
 
+            ko.applyBindings(model);
 
         });
 
@@ -214,7 +274,8 @@
     <h1 class="mui-title">预约请求</h1>
 }
 <span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
-<span id="patronBarcode" style="display:none">@ViewBag.patronBarcode</span>
+<span id="libId" style="display:none">@Model.libId</span>
+<span id="patronBarcode" style="display:none">@Model.readerBarcode</span>
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
     <div class="mui-content-padded">
@@ -225,89 +286,62 @@
 }
 else
 {
-    
-    if (Model == null || Model.Count == 0)
-    {    
-        <div class="mui-content-padded" id="divNo" >
-            <center>
-                <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
-                <div>您目前没有预约记录。</div>
-            </center>
-        </div>
-    }
-    else
-    { 
-        foreach (dp2weixin.service.ReservationInfo item in Model)
-        {    
-            <div class="mui-card" style="margin-bottom:10px ">
+    <div class="mui-content-padded" id="divNo" style="display:none;">
+        <center>
+            <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+            <div>您目前没有预约记录。</div>
+        </center>
+    </div>
+    <ul class="mui-table-view" data-bind=" foreach:model.reservations">
+        <li class="mui-table-view-cell" data-bind="css: {'reservation-active': state=='arrived'}" style="border-bottom:0px;">
             <table class="borderTable">
                 <tr>
                     <td class="label">
                         <div class='mui-input-row mui-checkbox mui-left' style="border-bottom:0px;">
                             <label style='padding-left:26px;padding-right:0px'>册条码号</label>
-                            @{
-                                string disabled="";
-                                if (item.state !="")
-                                {
-                                    disabled=" disabled='true' ";
-                                }
-                                <input name='ckbBarcode' @disabled  value="@item.pureBarcodes" type='checkbox' style='left:0px;' onchange="changeBarcord()" />
-                            }
-                            
+                            <input name='ckbBarcode' data-bind="value:pureBarcodes,enable:state=='' " type='checkbox' style='left:0px;' onchange="changeBarcord()" />
                         </div>
                     </td>
-                    <td class="value" >@Html.Raw(item.barcodes)</td>
+                    <td class="value" data-bind="html: barcodes"></td>
                 </tr>
                 <tr>
                     <td class="label">请求日期</td>
-                    <td class="value">@item.requestdate</td>
+                    <td class="value" data-bind="text:requestdate"></td>
                 </tr>
                 <tr>
                     <td class="label">操作者</td>
-                    <td class="value" >@item.operatorAccount</td>
+                    <td class="value" data-bind="text:operatorAccount"></td>
                 </tr>
                 <tr>
                     <td class="label">到达情况</td>
-                    <td class="arrived" >@item.stateText</td>
+                    <td class="arrived" data-bind="text:stateText"></td>
                 </tr>
                 <tr>
                     <td class="label">摘要</td>
                     <td class="value">
                         <span class="pending">
-                            <label style="display:inline">ms-@item.fullBarcodes</label>
+                            <label style="display:inline" data-bind="text:fullBarcodes=='' ? '' : 'ms-'+fullBarcodes"></label>
                             <img src="~/img/wait2.gif" height="10" width="10" />
-                            <span style="display:none">@ViewBag.libId</span>
+                            <span style="display:none">@Model.libId</span>
                         </span>
                     </td>
                 </tr>
                 <tr>
                     <td class="label">操作</td>
                     <td class="value">
-                        @{
-                            string name="取消预约";
-                            if (String.IsNullOrEmpty(item.stateText)==false)
-                            { 
-                                name="放弃取书";
-                            }
-                        <button class='mui-btn  mui-btn-default' onclick="deleteReservation(this)" >@name</button>
-                        }
-
-                        @if (item.stateText == "" && item.pureBarcodes.IndexOf(',') > 0)
-                        { 
-                        <button class='mui-btn  mui-btn-default' onclick='splitReservation(this)' >拆散预约</button>
-                        }
-                        <span style="display:none" >@item.pureBarcodes</span>
+                        <button class='mui-btn  mui-btn-default' onclick="deleteReservation(this)" data-bind="text:stateText=='' ? '取消预约' : '放弃取书' "></button>
+                        <button class='mui-btn  mui-btn-default' onclick='splitReservation(this)' data-bind="visible:stateText == '' && pureBarcodes.indexOf(',')>0">拆散预约</button>
+                        <span style="display:none" data-bind="text:pureBarcodes" />
                     </td>
                 </tr>
             </table>
-            </div>
-        }
+        </li>
+    </ul>
 
-        <div class='mui-content-padded' id="divMerge" >
-            <div>
-                <button id="btnMerge" class='mui-btn  mui-btn-primary' onclick='mergeReservation()' disabled="disabled">合并预约，请勾选需要合并的预约项。</button>
-            </div>
-            <div id="info"></div>
+    <div class='mui-content-padded' id="divMerge" style="display:none;">
+        <div>
+            <button id="btnMerge" class='mui-btn  mui-btn-primary' onclick='mergeReservation()' disabled="disabled">合并预约，请勾选需要合并的预约项。</button>
         </div>
-    }
+        <div id="info"></div>
+    </div>
 }

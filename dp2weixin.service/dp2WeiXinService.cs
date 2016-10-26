@@ -3023,12 +3023,16 @@ namespace dp2weixin.service
         public static string GetLinkHtml(string menu, string returnUrl, bool bNeedWorker,string libName = "")
         {
             string name = "读者";
+            string action = "查看";
             if (bNeedWorker == true)
+            {
                 name = "工作人员";
+                action = "使用";
+            }
 
             string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
             string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
-            string strRedirectInfo = "您尚未绑定当前图书馆的"+name+"账户，不能查看" + menu + "，" + bindLink;
+            string strRedirectInfo = "您尚未绑定当前图书馆的"+name+"账户，不能"+action + menu + "，" + bindLink;
 
             if (menu == "书目查询" || menu == "好书推荐")
                 strRedirectInfo = libName + " 不对外公开书目，您需要先<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>绑定图书馆账户</a>，才能进入" + menu;
@@ -5164,6 +5168,8 @@ namespace dp2weixin.service
                     patronName = patron.readerName;
 
                     int nRet = this.GetPatronReservation(lib.id,
+                        "",
+                        false,
                         patronBarcode,
                         out reserList,
                         out strError);
@@ -5404,8 +5410,10 @@ namespace dp2weixin.service
                 ReservationInfo reservation = list[i];
                 string barcodeList = reservation.pureBarcodes;
                 string arrivedBarcode = reservation.arrivedBarcode;
-                int nIndex = barcodeList.IndexOf(barcode);
-                if (nIndex >= 0)
+
+                //int nIndex = barcodeList.IndexOf(barcode);
+                //if (nIndex >= 0)
+                if (StringUtil.IsInList(barcode,barcodeList)==true)
                 {
                     if (barcode == arrivedBarcode)
                         return "已到书";
@@ -5548,6 +5556,7 @@ namespace dp2weixin.service
 
         #region 个人信息
 
+        /*
         public int GetPatronInfo(string libId,
             string patronBarcode,
             string style,
@@ -5590,9 +5599,9 @@ namespace dp2weixin.service
 
             return 1;
         }
-
+        */
         // 获取读者的html
-        public string GetPatronHtml(Patron patron)
+        public string GetPatronHtml(Patron patron, bool showQrcode=true)
         {
             string html = "";
 
@@ -5625,21 +5634,36 @@ namespace dp2weixin.service
             }
             html += "</table>";
 
-            // 二维码
-            html += "<div class='mui-content-padded'>"
-                            + "<center>"
-                                + "<img id='qrcode' src='"+patron.qrcodeUrl+"' alt='QRCode image' />"
-                                + "<div style='font-size:9pt'>(不要把二维码展示和提供给无关人员，以免账号被窃。)</div>"
-                            + "</center>"
-                       + "</div>";
+            if (showQrcode == true)
+            {
+                // 二维码
+                html += "<div class='mui-content-padded'>"
+                                + "<center>"
+                                    + "<img id='qrcode' src='" + patron.qrcodeUrl + "' alt='QRCode image' />"
+                                    + "<div style='font-size:9pt'>(不要把二维码展示和提供给无关人员，以免账号被窃。)</div>"
+                                + "</center>"
+                           + "</div>";
+            }
 
             return html;
         }
 
         // 获取读者的summary
-        public string GetPatronSummary(Patron patron)
+        public string GetPatronSummary(Patron patron,string userName)
         {
             string summary = "";
+
+            summary += "<div onclick='gotoUrl(\"/patron/PersonalInfo?loginUserName=" + HttpUtility.UrlEncode(userName) + "&patronBarcode=" + HttpUtility.UrlEncode(patron.barcode) + "\")'>";
+
+            summary += "<span style='font-size: 14.8px;font-weight:bold'>" + patron.barcode + "</span>"
+                + "&nbsp;"
+                + "<span style='font-size: 14.8px;font-weight:bold'>" + patron.name + "</span>";
+            if (String.IsNullOrEmpty(patron.department)==false)
+                summary += "<span style='font-size: 14.8px;color:gray'>(" + patron.department + ")</span>";
+
+            summary += "&nbsp;&nbsp;>";
+
+            summary += "<div>";
               
             return summary;
         }
@@ -5649,12 +5673,14 @@ namespace dp2weixin.service
         /// 获取读者的预约信息
         /// </summary>
         /// <param name="libId"></param>
-        /// <param name="readerBarcode"></param>
+        /// <param name="patronBarcode"></param>
         /// <param name="reservations"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
         public int GetPatronReservation(string libId,
-            string readerBarcode,
+            string userName,
+            bool isPatron,
+            string patronBarcode,
             out List<ReservationInfo> reservations,
             out string strError)
         {
@@ -5664,7 +5690,9 @@ namespace dp2weixin.service
             string xml = "";
             string recPath = "";
             int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
-                readerBarcode,
+                userName,
+                isPatron,
+                patronBarcode,
                 "xml",
                 out recPath,
                 out xml,
@@ -5674,7 +5702,7 @@ namespace dp2weixin.service
 
             if (nRet == 0)
             {
-                strError = "从dp2library未找到证条码号为'" + readerBarcode + "'的记录";
+                strError = "从dp2library未找到证条码号为'" + patronBarcode + "'的记录";
                 return 0;
             }
 
@@ -5685,6 +5713,7 @@ namespace dp2weixin.service
             return 1;
         }
 
+        /*
         public BorrowInfoResult GetPatronBorrowInfos1(string libId,
             string readerBarcode)
         {
@@ -5738,7 +5767,7 @@ namespace dp2weixin.service
 
             return result;
         }
-
+        */
         public Patron ParsePatronXml(string libId,string strPatronXml,string recPath,int showPhoto)
         {
             // 取出个人信息
@@ -6302,14 +6331,16 @@ namespace dp2weixin.service
         /// 获取读者信息
         /// </summary>
         /// <param name="libId"></param>
-        /// <param name="strReaderBarocde"></param>
-        /// <param name="strFormat"></param>
+        /// <param name="patronBarocde"></param>
+        /// <param name="format"></param>
         /// <param name="xml"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
         public int GetPatronXml(string libId,
-            string strReaderBarocde,  //todo refID
-            string strFormat,
+            string userName,
+            bool isPatron,
+            string patronBarocde,  //todo refID
+            string format,
             out string recPath,
             out string xml,
             out string strError)
@@ -6325,8 +6356,8 @@ namespace dp2weixin.service
                 goto ERROR1;
             }
 
-            // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo("", false);
+            // 使用传进来的账户，有可以是工作人员，也有可以是读者自己
+            LoginInfo loginInfo = new LoginInfo(userName, isPatron);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -6334,11 +6365,11 @@ namespace dp2weixin.service
                 loginInfo,
                 "getPatronInfo",
                 "",
-                strReaderBarocde,
+                patronBarocde,
                 "",
                 "",
                 "",
-                strFormat,
+                format,
                 1,
                 0,
                 -1);
@@ -6741,6 +6772,10 @@ namespace dp2weixin.service
                 {
                     strError = this.GetFriendlyErrorInfo(result, lib.libName);
                     return -1;
+                }
+                else
+                {
+                    strError = result.ErrorInfo;
                 }
 
 
