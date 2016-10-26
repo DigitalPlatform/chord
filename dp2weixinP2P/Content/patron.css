@@ -1,0 +1,81 @@
+
+/*读者*/
+
+        TABLE.personalinfo {
+            font-size: 14px;
+            text-align: left;
+            background-color: white;
+            border-style: solid;
+            border-left-width: 8px;
+            border-right-width: 8px;
+            border-color: white;
+            width: 100%;
+        }
+
+        TABLE.personalinfo TR TD {
+            border-width: 0px;
+            border-top-width: 1px;
+            border-color: #dddddd;
+            border-style: dotted;
+            padding: 2px;
+        }
+
+        TABLE.personalinfo TR TD.value {
+            border-left-width: 2px;
+            font-size: 14px;
+        }                           
+
+        TABLE.personalinfo TR.person_name TD {
+            min-width: 80pt;
+            font-weight: bolder;
+        }
+
+        TABLE.personalinfo TR.barcode TD {
+            font-weight: bolder;
+        }
+
+        TABLE.personalinfo TR.barcode TD.value {
+            font-weight: bolder;
+            font-size: 14px;
+        }
+
+
+        /*===============*/
+
+        TABLE.patronSubMenu {
+            width:100%;
+            vertical-align:central;
+        }
+
+        TABLE.patronSubMenu TD.left {
+            text-align:left;
+       }
+
+        TABLE.patronSubMenu TD.right {
+            text-align:right;
+            padding-right:20px
+       }
+
+        TABLE.patronSubMenu TD.right .amerceNum {
+            background-color: #B8860B;
+            color: white;
+        }
+
+        TABLE.patronSubMenu TD.right .amerceNum {
+            background-color: #B8860B;
+            color: white;
+        }
+
+       TABLE.patronSubMenu TD.right .arriveNum {
+            background-color: #006400;
+            color: white;
+        }
+
+        TABLE.patronSubMenu TD.right .overdueNum {
+            background-color: #8B0000;
+            color: white;
+        }
+
+       TABLE.patronSubMenu TD.right .rightText {
+            color: #bbbbbb;
+        }

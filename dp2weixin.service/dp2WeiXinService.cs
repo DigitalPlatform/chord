@@ -5556,8 +5556,10 @@ namespace dp2weixin.service
 
         #region 个人信息
 
-        /*
+        
         public int GetPatronInfo(string libId,
+            string userName,
+            bool isPatron,
             string patronBarcode,
             string style,
             out Patron patron,
@@ -5572,6 +5574,8 @@ namespace dp2weixin.service
             string strXml = "";
             string recPath = "";
             int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                userName,
+                isPatron,
                 patronBarcode,
                 "advancexml",
                 out recPath,
@@ -5594,12 +5598,12 @@ namespace dp2weixin.service
             }
             else if (StringUtil.IsInList("summary", style) == true)
             {
-                info = this.GetPatronSummary(patron);
+                info = this.GetPatronSummary(patron,userName);
             }
 
             return 1;
         }
-        */
+        
         // 获取读者的html
         public string GetPatronHtml(Patron patron, bool showQrcode=true)
         {
