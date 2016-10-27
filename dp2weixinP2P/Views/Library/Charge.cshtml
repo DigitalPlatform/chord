@@ -119,7 +119,77 @@
         // 扫码
         function sweep()
         {
-            alert("打开扫码功能");
+            if (jssdkReady == -1) {
+                alert('JSSDK config信息验证失败，不能使用扫码功能。');
+                return;
+            }
+            else if (jssdkReady == 0) {
+                alert('JSSDK config未初始化完成，请稍候再试。');
+                return;
+            }
+
+
+            var _charge_operation = $("#_charge_operation").val();
+            var _charge_inputType = $("#_charge_inputType").val();
+            var _patron = $("#_patron").val();
+
+            var desc = "";
+            if (_charge_inputType == 1) {
+                desc = "请扫 证条码号";
+            }
+            else {
+                desc = "请扫 册条码号";
+            }
+            // 根据借 还 做操作
+            if (_charge_operation == "borrow") {
+                desc = "借书 " + desc;
+            }
+            else {
+                desc = "还书 " + desc;
+            }
+
+
+            try {
+                wx.scanQRCode({
+                    desc: desc,
+                    needResult: 1, // 默认为0扫描结果由微信处理，1则直接返回扫描结果，
+                    scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+                    success: function (res) {
+                        var code = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+                        $("#barcode").val(code);
+
+
+                        if (_charge_inputType == 2) {
+                            var item = $("#barcode").val();
+                            var left = "";
+                            var isbn = "";
+                            if (item.indexOf(",") != -1) {
+                                left = item.substring(0, code.indexOf(","))//EAN_13
+                                isbn = item.substring(code.indexOf(",") + 1)
+                            }
+                            if (left != "EAN_13" || isbn == "") {
+                                alert("抱歉，您扫描的不是合法的ISBN条码。\n扫描返回字符串为[" + code + "]，");
+                                return;
+                            }
+                            $("#barcode").val(item);
+                        }
+
+
+
+                        window.setTimeout("addCmd('')", 1);
+
+
+                    },
+                    fail: function (res) {
+                        alert("error:" + JSON.stringify(res));
+                        return "";
+                    }
+                });
+            }
+            catch (err) {
+                alert("扫码出错：" + err);
+            }
+            //alert("end");
         }
 
         //设置输入框类型
@@ -344,19 +414,23 @@
                 viewCmd(cmd);                
 
                 // 清掉输入框
-                $("#barcode").val(""); //清掉输入框               
+                         
                 if (cmdType == "loadPatron") {
                     $("#patron").html(""); //清掉读者信息
 
                     if (cmd.state == 1) {
-
+                        $("#barcode").val(""); //清掉输入框      
                         setInput(2);
 
                         // 显示读者信息
                         $("#patron").html(cmd.patronHtml);
                     }
+                    else {
+                        $("#barcode").select();
+                    }
                 }
                 else {
+                    $("#barcode").val(""); //清掉输入框      
                     if (cmd.patronHtml != "" && cmd.patronHtml != null) {
                         // 显示读者信息
                         $("#patron").html(cmd.patronHtml);
