@@ -18,6 +18,8 @@ namespace ilovelibrary.Controllers
                 return this.RedirectToAction("Login", "Account", new { ReturnUrl = "~/Charging/Main"});
             }
 
+            //throw new Exception("test");
+
             return View();
         }
     }

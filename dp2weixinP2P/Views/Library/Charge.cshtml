@@ -4,13 +4,38 @@
 
 @section Scripts {
     <script>
+
+        var f = function (event) {
+
+            //alert("a2");
+            $timeout(function () { // angular way, setTimeout is OK
+                //event.preventDefault();
+                alert("abc");
+                $('#barcode').val("");
+                $('#barcode').focus();
+
+            })
+        };
+
         //浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
             // 读者证条码 打回车
             $('#barcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
                     addCmd();
+                    //alert("a1");
+                    //f(event);
                 }
+            });
+
+            $('#opeName').click(function (e) {
+                //
+
+                e.preventDefault();
+                addCmd();
+                //$("#barcode").val("");
+                //doFocus();
+
             });
 
             // 设顶部菜单不固定
@@ -186,6 +211,8 @@
                     viewCmd(cmd);
                 }
 
+                // 更新summary
+                window.setTimeout("fillPending()", 1);
 
 
             }, function (xhq, textStatus, errorThrown) {
@@ -217,6 +244,7 @@
         // 执行命令
         function addCmd() {
 
+
             // 图书馆
             var libId = getLibId();//$("#selLib").val();
             if (libId == "" || libId == null) {
@@ -239,6 +267,7 @@
                     if (patron == null || patron == "")
                     {
                         alert("请输入 证 条码号");
+                        $("barcode").focus();
                         return;
                     }
 
@@ -265,6 +294,7 @@
                 }
             }
 
+
             //alert(_patron);
 
             //登录身份
@@ -281,6 +311,8 @@
                 item: item,
                 userName:userName
             };
+
+
 
             sendAjaxRequest(url, "POST", function (cmd) {
 
@@ -301,6 +333,9 @@
                 //    openSelectItemLayer(cmdModel.editor.type(), newItem.resultInfo);
                 //    return;
                 //}
+
+                //alert("b1");
+
 
                 
                 // 加入操作历史
@@ -328,10 +363,15 @@
 
                 // 如果返回的读者 证条码与 界面上的不一致，刷新读者信息。
 
-                $("#barcode").focus(); // 设上焦点
-               // alert('a');
+                //setTimeout(doFocus, 3000);
+                //$("#barcode").focus(); // 设上焦点
+                // alert('a');
+                //doFocus();
+
+                //$("#barcode").val("123");
+
                 // 更新summary
-               // window.setTimeout("fillPending()", 1);
+                window.setTimeout("fillPending()", 1);
 
             }, function (xhq, textStatus, errorThrown) {
 
@@ -342,6 +382,17 @@
 
             },
             data);
+
+            // 调焦点
+            //window.setTimeout("doFocus()", 200);
+            doFocus();
+            //return;
+        }
+
+        function doFocus() {
+            //alert('test1');
+            //$('#barcode').focus().css('border', '1px solid red');
+            $('#barcode').focus()
         }
 
     </script>
@@ -433,7 +484,7 @@ else
                 </tr>
             <tr>
                 <td ><input id="barcode" type="text" class="mui-input mui-input-clear" placeholder=""></td>
-                <td ><span id="opeName" class="operationName" onclick="addCmd()">借</span></td>
+                <td ><span id="opeName" class="operationName" >借</span></td>
             </tr>
         </table>
         <button style="display:none" id='sweep' class="mui-btn mui-btn-block mui-btn-primary" onclick="sweep()">扫码操作</button>

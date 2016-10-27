@@ -6562,9 +6562,10 @@ namespace dp2weixin.service
 
         #region 续借
 
-
+        /*
         public int CirculationByWorker(string libId,
             string userName,
+            bool isPatron,
             string operation,
             string patron,
             string item,
@@ -6580,7 +6581,7 @@ namespace dp2weixin.service
 
             int nRet= Circulation(libId,
                 userName,
-                false,
+                isPatron,
                 operation,
                 patron,
                 item,
@@ -6592,9 +6593,9 @@ namespace dp2weixin.service
             return nRet;
 
         }
-
-        private int Circulation(string libId,
-            string loginUserName,
+        */
+        public int Circulation(string libId,
+            string userName,
             bool isPatron,
             string operation,
             string patron,
@@ -6615,7 +6616,7 @@ namespace dp2weixin.service
             }
 
             // 使用的登录账号 20161025 jane
-            LoginInfo loginInfo = new LoginInfo(loginUserName, isPatron);
+            LoginInfo loginInfo = new LoginInfo(userName, isPatron);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();

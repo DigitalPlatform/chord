@@ -1,4 +1,5 @@
 ﻿using DigitalPlatform.IO;
+using DigitalPlatform.Message;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -45,10 +46,10 @@ namespace dp2weixin.service
 
             // 执行这个命令
             int nRet = -1;
-            string outputReaderBarcode = cmd.patron;
+            string outPatronBarcode = cmd.patron;
             string patronXml = "";
             string patronRecPath = "";
-
+            ReturnInfo resultInfo = null;
 
             if (cmd.type == ChargeCommand.C_Command_LoadPatron) //加载读者
             {
@@ -67,12 +68,14 @@ namespace dp2weixin.service
             }
             else if (cmd.type == ChargeCommand.C_Command_Borrow) //借书
             {
-                nRet = dp2WeiXinService.Instance.CirculationByWorker(libId,
+                nRet = dp2WeiXinService.Instance.Circulation(libId,
                     cmd.userName,
+                    false,
                     "borrow",
                     cmd.patron,
                     cmd.item,
-                    out outputReaderBarcode,
+                    out outPatronBarcode,
+                    out resultInfo,
                     out strError);
                 if (nRet == -1)
                 {
@@ -81,12 +84,14 @@ namespace dp2weixin.service
             }
             else if (cmd.type == ChargeCommand.C_Command_Return) // 还书
             {
-                nRet = dp2WeiXinService.Instance.CirculationByWorker(libId,
+                nRet = dp2WeiXinService.Instance.Circulation(libId,
                     cmd.userName,
+                    false,
                     "return",
                     cmd.patron,
                     cmd.item,
-                    out outputReaderBarcode,
+                    out outPatronBarcode,
+                    out resultInfo,
                     out strError);
                 if (nRet == -1)
                 {
@@ -97,7 +102,7 @@ namespace dp2weixin.service
                 nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                     cmd.userName,
                     false,
-                    outputReaderBarcode,
+                    outPatronBarcode,
                     "advancexml",
                     out patronRecPath,
                     out patronXml,
@@ -111,7 +116,7 @@ namespace dp2weixin.service
 
 
             // 设上实际的读者证条码
-            cmd.patronBarcode = outputReaderBarcode;
+            cmd.patronBarcode = outPatronBarcode;
 
             // 解析读者信息
 
