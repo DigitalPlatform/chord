@@ -118,7 +118,9 @@
 
         // 扫码
         function sweep()
-        { }
+        {
+            alert("打开扫码功能");
+        }
 
         //设置输入框类型
         function setInput(type) {
@@ -343,8 +345,7 @@
 
                 // 清掉输入框
                 $("#barcode").val(""); //清掉输入框               
-                if (cmdType=="loadPatron")
-                {
+                if (cmdType == "loadPatron") {
                     $("#patron").html(""); //清掉读者信息
 
                     if (cmd.state == 1) {
@@ -355,8 +356,11 @@
                         $("#patron").html(cmd.patronHtml);
                     }
                 }
-                else if (cmdType == "return")
-                {
+                else {
+                    if (cmd.patronHtml != "" && cmd.patronHtml != null) {
+                        // 显示读者信息
+                        $("#patron").html(cmd.patronHtml);
+                    }
                     // 显示读者信息
                     $("#patron").html(cmd.patronHtml);
                 }
@@ -400,7 +404,7 @@
 
 @section style {
 
-<link href="@Url.Content("~/Content/charge.css?a=2")" rel="stylesheet">
+<link href="@Url.Content("~/Content/charge.css?a=6")" rel="stylesheet">
     <link href="@Url.Content("~/Content/patron.css?a=1")" rel="stylesheet">
     <style>
         TABLE.chargeform {
@@ -470,7 +474,10 @@ else
                     &nbsp;&nbsp;
                     <span class="operationLink"><a onclick="setOperation('return')">还</a></span>
                 </td>
-                <td style="text-align:right;color:gray;font-size:12px">流通账号：@ViewBag.userName</td>
+                <td style="text-align:right;">
+                    <span class="mui-icon-extra mui-icon-extra-sweep" onclick="sweep()"></span>&nbsp;&nbsp;
+                        <span style="text-align:right;color:gray;font-size:12px">流通账号：@ViewBag.userName</span>
+</td>
             </tr>
         </table>
     </div>
@@ -487,19 +494,18 @@ else
                 <td ><span id="opeName" class="operationName" >借</span></td>
             </tr>
         </table>
-        <button style="display:none" id='sweep' class="mui-btn mui-btn-block mui-btn-primary" onclick="sweep()">扫码操作</button>
 
     </div>
-    <div id="patron" style="padding-left:10px">
+    <div id="patron" style="padding-left:10px;padding-right:10px">
 
     </div>
-    
-    <br />
-    
+
+
+
         <div id="cmdContainer" class="mui-content-padded" >
         <div id="cmds"></div>
 
     </div>
-}
+    }
 
 }

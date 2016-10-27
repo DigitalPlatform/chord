@@ -63,9 +63,9 @@ else
                         <tr>
                             <td class="left">预约<span>@Html.Raw(Model.ReservationCountHtml)</span></td>
                             <td class="right">
-                                @if (Model.DaoQiCount > 0)
+                                @if (Model.ArrivedCount > 0)
                                 {
-                                    <span class="mui-badge arriveNum">@Model.DaoQiCount </span>
+                                    <span class="mui-badge arriveNum">@Model.ArrivedCount </span>
                                     <span class="rightText">到书</span>
                                 }
                             </td>

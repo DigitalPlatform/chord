@@ -408,11 +408,11 @@ namespace dp2weixinWeb.Controllers
             }
             else
             {
-                if (string.IsNullOrEmpty(patronBarcode) == false)
-                {
-                    strError = "异常：当未传loginUserName参数时，则不需传patronBarcode参数";
-                    return -1;
-                }
+                //if (string.IsNullOrEmpty(patronBarcode) == false)
+                //{
+                //    strError = "异常：当未传loginUserName参数时，则不需传patronBarcode参数";
+                //    return -1;
+                //}
                 string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
                 activeUserItem = WxUserDatabase.Current.GetActivePatron(weixinId, libId);
                 // 未绑定读者账户,不会出现未激活的情况

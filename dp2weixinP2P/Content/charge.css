@@ -47,3 +47,69 @@
            color:#cccccc;
            font-size:14.8px;
         }
+
+
+
+ /*===============*/
+
+        TABLE.simplepatron {
+            width:100%;
+            vertical-align:central;
+            
+        }
+        TABLE.simplepatron TD SPAN{
+
+       }
+
+        TABLE.simplepatron TD.left {
+            text-align:left;
+       }
+
+        TABLE.simplepatron TD  .barcode{
+            /*color:darkgreen;*/
+            font-weight:bold;
+            color:gray;
+       }
+
+        TABLE.simplepatron TD  .name{
+            font-weight:bold;
+            font-size:18pt;
+       }
+
+        TABLE.simplepatron TD  .department{
+color: gray; 
+       }
+
+        TABLE.simplepatron TD.right {
+            text-align:right;
+            padding-right:20px
+       }
+
+        TABLE.simplepatron TD .amerceNum {
+            background-color: #B8860B;
+            color: white;
+        }
+
+       TABLE.simplepatron TD .arriveNum {
+            background-color: #006400;
+            color: white;
+        }
+
+        TABLE.simplepatron TD .overdueNum {
+            background-color: #8B0000;
+            color: white;
+        }
+
+       TABLE.simplepatron TD .rightText {
+            color: #bbbbbb;
+            font-size:11px;
+            /*margin-left:-3px;*/
+        }
+
+       /*===========*/
+
+.chargeLink     a, a:active, a:hover {
+        outline: 0;
+        color: inherit;
+    }
+

@@ -97,9 +97,9 @@ namespace dp2weixin.service
         public int CaoQiCount { get; set; }
         public string BorrowCountHtml { get; set; }
 
-        //在借 超期数量
+        //预约 到书数量
         public int ReservationCount { get; set; }
-        public int DaoQiCount { get; set; }
+        public int ArrivedCount { get; set; }
         public string ReservationCountHtml { get; set; }
     }
 

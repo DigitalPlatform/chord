@@ -81,6 +81,20 @@ namespace dp2weixin.service
                 {
                     goto ERROR1;
                 }
+
+                // 取一下读者记录
+                nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                    cmd.userName,
+                    false,
+                    outPatronBarcode,
+                    "advancexml",
+                    out patronRecPath,
+                    out patronXml,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                {
+                    nRet = -1;
+                }    
             }
             else if (cmd.type == ChargeCommand.C_Command_Return) // 还书
             {
@@ -175,7 +189,10 @@ ERROR1:
                 title = "装载读者信息" + "&nbsp;" + cmd.patronBarcode;
                 if (cmd.state != -1 && patron != null)
                 {
-                    info = "<div class='patronBarcode'>"+patron.barcode+"</div>"
+                    string url = "../patron/PersonalInfo?loginUserName=" + HttpUtility.UrlEncode(cmd.userName) + "&patronBarcode=" + HttpUtility.UrlEncode(patron.barcode);
+                    title = "装载读者信息" + "&nbsp;<a href='" + url + "'>" + cmd.patronBarcode + "</a>";
+
+                    info = "<div class='patronBarcode'>" + patron.barcode + "</div>"
                             + "<div class='name'>"+patron.name+"</div>"
                             + "<div class='department'>"+patron.department+"</div>";
                 }
@@ -185,11 +202,14 @@ ERROR1:
                 title = cmd.patronBarcode + "&nbsp;" + cmd.typeString + "&nbsp;" + cmd.item;
                 if (cmd.state != -1)
                 {
-                    //info = "<div class='summary'>书目摘要</div>";
-                    string biblioPath = "";
-                    string detalUrl = "/Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(biblioPath);
-                    string itemLink = "<a href='javascript:void(0)' onclick='gotoBiblioDetail(\"" + detalUrl + "\")'>" + cmd.itemBarcode + "</a>";
-                    title = cmd.patronBarcode + "&nbsp;" + cmd.typeString + "&nbsp;" + itemLink;
+                    string patronUrl = "../patron/PersonalInfo?loginUserName=" + HttpUtility.UrlEncode(cmd.userName) + "&patronBarcode=" + HttpUtility.UrlEncode(patron.barcode);
+                    string patronLink = "<a href='" + patronUrl + "'>" + cmd.patronBarcode + "</a>";
+
+                    string biblioPath = "@itemBarcode:"+cmd.itemBarcode;
+                    string detalUrl = "../Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(biblioPath);                  
+                    string itemLink = "<a href='"+detalUrl+"'>" + cmd.itemBarcode + "</a>";
+
+                    title = patronLink + "&nbsp;" + cmd.typeString + "&nbsp;" + itemLink;
 
 
                     info = "<div  class='pending' style='padding-bottom:4px'>"
@@ -224,7 +244,7 @@ ERROR1:
             cmd.cmdHtml = cmdHtml;
 
             // 加到集合里
-            this.Insert(0, cmd); //this.Add(cmd); //
+            this.Add(cmd); //this.Insert(0, cmd); //
 
             return cmd;
 
