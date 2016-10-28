@@ -5,23 +5,170 @@
 @section Scripts {
     <script>
 
-        var f = function (event) {
+        // 播放声音
+        function playAudio(name)
+        {
+            var audio = document.getElementById(name);
+            audio.play();
+        }
 
-            //alert("a2");
-            $timeout(function () { // angular way, setTimeout is OK
-                //event.preventDefault();
-                alert("abc");
-                $('#barcode').val("");
-                $('#barcode').focus();
+        // 播放 扫描证条码号
+        var _patronAudio = null;
+        function playPatron() {
+            stopAll();
+            if (_patronAudio == null)
+            {
+                _patronAudio = document.getElementById("patronAudio");
+            }
+            _patronAudio.play();
+        }
 
-            })
-        };
+        function stopPatron() {
+            if (_patronAudio != null) {
+                _patronAudio.stop();
+            }            
+        }
+
+        // 播放 扫描册条码号
+        var _itemAudio = null;
+        function playItem() {
+            stopAll();
+            if (_itemAudio == null) {
+                _itemAudio = document.getElementById("itemAudio");
+            }
+            _itemAudio.play();
+        }
+        function stopItem() {
+            if (_itemAudio != null) {
+                _itemAudio.stop();
+            }
+        }
+
+        // 播放 借书失败
+        var _borrowError = null;
+        function playBorrowError() {
+
+            alert("playBorrowError");
+
+            stopAll();
+            if (_borrowError == null) {
+                _borrowError = document.getElementById("borrowError");
+            }
+            _borrowError.play();
+        }
+        function stopBorrowError() {
+
+            alert("stopBorrowError");
+            if (_borrowError != null) {
+                _borrowError.stop();
+            }
+        }
+
+        // 播放 借书成功
+        var _borrowSuccess = null;
+        function playBorrowSuccess() {
+            alert("playBorrowSuccess");
+
+            stopAll();
+            if (_borrowSuccess == null) {
+                _borrowSuccess = document.getElementById("borrowSuccess");
+            }
+            _borrowSuccess.play();
+        }
+        function stopBorrowSuccess() {
+            alert("stopBorrowSuccess");
+
+            if (_borrowSuccess != null) {
+                _borrowSuccess.stop();
+            }
+        }
+
+        // 播放 还书失败
+        var _returnError = null;
+        function playReturnError() {
+            stopAll();
+            if (_returnError == null) {
+                _returnError = document.getElementById("returnError");
+            }
+            _returnError.play();
+        }
+        function stopReturnError() {
+            if (_returnError != null) {
+                _returnError.stop();
+            }
+        }
+
+        // 播放 还书成功
+        var _returnSuccess = null;
+        function playReturnSuccess() {
+            stopAll();
+            if (_returnSuccess == null) {
+                _returnSuccess = document.getElementById("returnSuccess");
+            }
+            _returnSuccess.play();
+        }
+        function stopReturnSuccess() {
+            if (_returnSuccess != null) {
+                _returnSuccess.stop();
+            }
+        }
+
+        // 播放 加载失败
+        var _loadError = null;
+        function playLoadError() {
+            alert("playLoadError");
+            stopAll();
+            if (_loadError == null) {
+                _loadError = document.getElementById("loadError");
+            }
+            _loadError.play();
+        }
+        function stopLoadError() {
+            if (_loadError != null) {
+                _loadError.stop();
+            }
+        }
+
+        // 播放 加载成功
+        var _loadSuccess = null;
+        function playLoadSuccess() {
+            alert("playLoadSuccess");
+            stopAll();
+            if (_loadSuccess == null) {
+                _loadSuccess = document.getElementById("loadSuccess");
+            }
+            _loadSuccess.play();
+        }
+        function stopLoadSuccess() {
+            if (_loadSuccess != null) {
+                _loadSuccess.stop();
+            }
+        }
+
+        function stopAll()
+        {
+            //stopPatron();
+            //stopItem();
+            //stopBorrowError();
+            //stopBorrowSuccess();
+            //stopReturnError();
+            //stopReturnSuccess();
+            //stopLoadError();
+            //stopLoadSuccess();
+        }
 
 
         // 全局变量
         var _error = "";
+        var _lastMothed = "1"; //1是手工输入，2是扫码
+
+
         // 扫码
         function sweep() {
+
+            // 设上次操作方法为 扫码
+            _lastMothed = 2;
+
             if (jssdkReady == -1) {
                 alert('JSSDK config信息验证失败，不能使用扫码功能。');
                 return;
@@ -39,9 +186,11 @@
             var desc = "";
             if (_charge_inputType == 1) {
                 desc = "请扫 证条码号";
+                playPatron();//播放语音
             }
             else {
                 desc = "请扫 册条码号";
+                playItem();//播放语音
             }
             // 根据借 还 做操作
             if (_charge_operation == "borrow") {
@@ -64,18 +213,18 @@
 
                         if (_charge_inputType == 2) {
                             var item = $("#barcode").val();
-                            var left = "";
-                            var isbn = "";
                             if (item.indexOf(",") != -1) {
+                                var left = "";
+                                var right = "";
                                 left = item.substring(0, code.indexOf(","))//EAN_13
-                                isbn = item.substring(code.indexOf(",") + 1)
+                                right = item.substring(code.indexOf(",") + 1)
+
+                                if (left != "EAN_13" && left == "CODE_39") {
+                                    $("#errorInfo").text("扫描的不是册条码或者ISBN号");
+                                }
+                                $("#barcode").val(right);
                             }
-                            if (left != "EAN_13" || isbn == "") {
-                                error = "抱歉，您扫描的不是合法的ISBN条码。\n扫描返回字符串为[" + code + "]";
-                                $("#errorInfo").text(error);
-                                return;
-                            }
-                            $("#barcode").val(item);
+
                         }
 
                         window.setTimeout("addCmd('')", 1);
@@ -101,6 +250,10 @@
             // 读者证条码 打回车
             $('#barcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
+
+                    // 设上次操作方法为 手动回车
+                    _lastMothed = 1;
+
                     addCmd();
                     //alert("a1");
                     //f(event);
@@ -109,6 +262,9 @@
 
             $('#opeName').click(function (e) {
                 //
+
+                // 设上次操作方法为 手动回车
+                _lastMothed = 1;
 
                 e.preventDefault();
                 addCmd();
@@ -352,6 +508,8 @@
 
                     //_patron = patron;
                     $("#_patron").val(patron);
+
+
                 }
                 else {
                     cmdType = "borrow";
@@ -361,6 +519,8 @@
                         alert("请输入 册 条码号");
                         return;
                     }
+
+
                 }
             }
             else if (_charge_operation == "return")
@@ -415,10 +575,12 @@
 
                 //alert("b1");
 
+                //window.setTimeout("playResult("+cmd+")", 1);
 
-                
+                //playResult(cmd);
                 // 加入操作历史
-                viewCmd(cmd);                
+                viewCmd(cmd);
+          
 
                 // 清掉输入框
                 $("#barcode").val(""); //清掉输入框    
@@ -436,19 +598,52 @@
 
                         // 显示读者信息
                         $("#patron").html(cmd.patronHtml);
+
+                        // 播放声音
+                        //playLoadSuccess();
                     }
                     else {
-                        $("#barcode").select();
+                        //$("#barcode").select();
+
+                        // 播放声音
+                        //playLoadError();
                     }
                 }
                 else {
                     $("#barcode").val(""); //清掉输入框      
+
+                    // 更新读者信息
                     if (cmd.patronHtml != "" && cmd.patronHtml != null) {
-                        // 显示读者信息
                         $("#patron").html(cmd.patronHtml);
                     }
-                    // 显示读者信息
-                    $("#patron").html(cmd.patronHtml);
+
+                    //if (cmd.state == -1) {
+                    //    if (cmdType == "borrow") {
+                    //        playBorrowError();
+                    //    }
+                    //    else if (cmdType == "return") {
+                    //        playReturnError();
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    if (cmdType == "borrow") {
+                    //        playBorrowSuccess();
+                    //    }
+                    //    else if (cmdType == "return") {
+                    //        playReturnSuccess();
+                    //    }
+                    //}
+                }
+
+
+
+
+                //如果是扫码方法，继续打开扫描
+                if (_lastMothed == 2) {
+                    sweep();
+
+                    //window.setTimeout("sweep()", 100)
                 }
 
                 // 如果返回的读者 证条码与 界面上的不一致，刷新读者信息。
@@ -479,6 +674,40 @@
             //return;
         }
 
+        function playResult(cmd)
+        {
+            alert(cmd.type);
+            if (cmd.type == "loadPatron") {
+
+                if (cmd.state == 1) {
+                    playLoadSuccess();
+                }
+                else {
+                    playLoadError();
+                }
+            }
+            else {
+                if (cmd.state == -1) {
+                    if (cmd.type == "borrow") {
+                        playBorrowError();
+                    }
+                    else if (cmd.type == "return") {
+                        playReturnError();
+                    }
+                }
+                else {
+                    if (cmd.type == "borrow") {
+                        playBorrowSuccess();
+                    }
+                    else if (cmd.type == "return") {
+                        playReturnSuccess();
+                    }
+                }
+            }
+        }
+            
+
+
         function doFocus() {
             //alert('test1');
             //$('#barcode').focus().css('border', '1px solid red');
@@ -490,7 +719,7 @@
 
 @section style {
 
-<link href="@Url.Content("~/Content/charge.css?a=6")" rel="stylesheet">
+<link href="@Url.Content("~/Content/charge.css?a=1")" rel="stylesheet">
     <link href="@Url.Content("~/Content/patron.css?a=1")" rel="stylesheet">
     <style>
         TABLE.chargeform {
@@ -514,6 +743,8 @@
             
             cursor:pointer;
             font-size:16pt;
+            width:200px;
+            color:#007aff;
         }
 
         .operationName {
@@ -556,9 +787,8 @@ else
         <table style="width:100%;">
             <tr>
                 <td style="text-align:left">
-                    <span class="operationLink"><a onclick="setOperation('borrow')">借</a></span>
-                    &nbsp;&nbsp;
-                    <span class="operationLink"><a onclick="setOperation('return')">还</a></span>
+                    <span class="operationLink" onclick="setOperation('borrow')">借&nbsp;</span>
+                    <span class="operationLink" onclick="setOperation('return')">&nbsp;还&nbsp;</span>
                 </td>
                 <td style="text-align:right;">
                     <span class="mui-icon-extra mui-icon-extra-sweep" onclick="sweep()"></span>&nbsp;&nbsp;
@@ -597,6 +827,32 @@ else
         <div id="cmds"></div>
 
     </div>
+    
+    <audio id="patronAudio">
+        <source src="~/audio/patron.mp3" type="audio/mp3">
+    </audio>
+    <audio id="itemAudio">
+        <source src="~/audio/item.mp3" type="audio/mp3">
+    </audio>  
+    <audio id="borrowError">
+        <source src="~/audio/borrow_error.mp3" type="audio/mp3">
+    </audio>
+    <audio id="borrowSuccess">
+        <source src="~/audio/borrow_success.mp3" type="audio/mp3">
+    </audio>  
+    <audio id="returnError">
+        <source src="~/audio/return_error.mp3" type="audio/mp3">
+    </audio>
+    <audio id="returnSuccess">
+        <source src="~/audio/return_success.mp3" type="audio/mp3">
+    </audio>      
+    <audio id="loadError">
+        <source src="~/audio/load_error.mp3" type="audio/mp3">
+    </audio>
+    <audio id="loadSuccess">
+        <source src="~/audio/load_success.mp3" type="audio/mp3">
+    </audio> 
+             
     }
 
 }

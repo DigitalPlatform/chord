@@ -22,7 +22,6 @@ namespace dp2weixin.service
             if (cmd.userName == null)
                 cmd.userName = "";
 
-            string strError = "";
             // 一般传进来只有3个值 type,patron,item
             cmd.patronBarcode = cmd.patron;
             cmd.itemBarcode = cmd.item;
@@ -32,43 +31,38 @@ namespace dp2weixin.service
             cmd.operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
             cmd.typeString = ChargeCommand.getTypeString(cmd.type);
 
-            if (cmd.type == ChargeCommand.C_Command_Borrow
-                || cmd.type == ChargeCommand.C_Command_LoadPatron
-                || cmd.type == ChargeCommand.C_Command_VerifyRenew
-                || cmd.type == ChargeCommand.C_Command_VerifyReturn)
-            {
-                if (String.IsNullOrEmpty(cmd.patron) == true)
-                {
-                    cmd.state = -1;
-                    cmd.resultInfo = "读者证条码号不能为空。";
-                }
-            }
+            string loadPatronError = "";
 
-            // 执行这个命令
-            int nRet = -1;
+
             string outPatronBarcode = cmd.patron;
             string patronXml = "";
             string patronRecPath = "";
             ReturnInfo resultInfo = null;
+            int cmdRet = -1;
+            string cmdError = "";
 
-            if (cmd.type == ChargeCommand.C_Command_LoadPatron) //加载读者
+            //加载读者
+            if (cmd.type == ChargeCommand.C_Command_LoadPatron) 
             {
-                nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                cmdRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                     cmd.userName,
                     false,
                     cmd.patronBarcode,
                     "advancexml",
                     out patronRecPath,
                     out patronXml,
-                    out strError);
-                if (nRet == -1 || nRet == 0)
+                    out cmdError);
+                if (cmdRet == -1 || cmdRet == 0)  //未找到认为出错
                 {
-                    nRet = -1;
+                    cmdRet = -1;
                 }
+                goto END1;
             }
-            else if (cmd.type == ChargeCommand.C_Command_Borrow) //借书
+
+            // 流通命令
+             if (cmd.type == ChargeCommand.C_Command_Borrow) //借书
             {
-                nRet = dp2WeiXinService.Instance.Circulation(libId,
+                cmdRet = dp2WeiXinService.Instance.Circulation(libId,
                     cmd.userName,
                     false,
                     "borrow",
@@ -76,29 +70,11 @@ namespace dp2weixin.service
                     cmd.item,
                     out outPatronBarcode,
                     out resultInfo,
-                    out strError);
-                if (nRet == -1)
-                {
-                    goto ERROR1;
-                }
-
-                // 取一下读者记录
-                nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
-                    cmd.userName,
-                    false,
-                    outPatronBarcode,
-                    "advancexml",
-                    out patronRecPath,
-                    out patronXml,
-                    out strError);
-                if (nRet == -1 || nRet == 0)
-                {
-                    nRet = -1;
-                }    
+                    out cmdError);   
             }
             else if (cmd.type == ChargeCommand.C_Command_Return) // 还书
             {
-                nRet = dp2WeiXinService.Instance.Circulation(libId,
+                cmdRet = dp2WeiXinService.Instance.Circulation(libId,
                     cmd.userName,
                     false,
                     "return",
@@ -106,34 +82,32 @@ namespace dp2weixin.service
                     cmd.item,
                     out outPatronBarcode,
                     out resultInfo,
-                    out strError);
-                if (nRet == -1)
-                {
-                    goto ERROR1;
-                }
-
-                // 取一下读者记录
-                nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
-                    cmd.userName,
-                    false,
-                    outPatronBarcode,
-                    "advancexml",
-                    out patronRecPath,
-                    out patronXml,
-                    out strError);
-                if (nRet == -1 || nRet == 0)
-                {
-                    nRet = -1;
-                }                
+                    out cmdError);               
             }
 
+             if (cmdRet == 1)
+             {
+                 // 取一下读者记录
+                 int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                     cmd.userName,
+                     false,
+                     outPatronBarcode,
+                     "advancexml",
+                     out patronRecPath,
+                     out patronXml,
+                     out loadPatronError);
+                 if (nRet == -1 || nRet == 0) 
+                 {
+                     //命令成功的，但加载读者不成功，一般这种情况不可能有
+                 }
+             }
 
+END1:
 
             // 设上实际的读者证条码
             cmd.patronBarcode = outPatronBarcode;
 
             // 解析读者信息
-
             if (string.IsNullOrEmpty(patronXml) == false)
             {
                 int showPhoto = 0;//todo
@@ -143,43 +117,11 @@ namespace dp2weixin.service
                     showPhoto);
                 cmd.patronHtml = dp2WeiXinService.Instance.GetPatronSummary(patron,cmd.userName);//GetPatronHtml(patron,false);
                 cmd.patronBarcode = patron.barcode;
-
             }
 
-ERROR1:
-
-            if (nRet == -1)
-            {
-                cmd.state = -1;
-                cmd.resultInfo = cmd.typeString + " 操作失败：" + strError;
-            }
-            else if (nRet == 0)
-            {
-                cmd.state = 0;
-                cmd.resultInfo = cmd.typeString + " 操作成功。";
-            }
-            else
-            {
-                cmd.state = 1;
-                cmd.resultInfo = strError;
-            }
-
-            //// 检索是否与前面同一个读者，不加要加线
-            //if (this.Count > 0)
-            //{
-            //    ChargeCommand firstCmd = this[0];
-            //    if (firstCmd.patronBarcode != cmd.patronBarcode
-            //        && String.IsNullOrEmpty(cmd.patronBarcode) == false
-            //        && String.IsNullOrEmpty(firstCmd.patronBarcode) == false)
-            //    {
-            //        cmd.isAddLine = 1;
-            //    }
-            //}
-            //// 设链接地址 链到书的详细信息
-            //cmd.itemBarcodeUrl = cmd.itemBarcode;
-
-
-
+            cmd.state = cmdRet;
+            //cmdError=""
+            
 
             string cmdHtml = "";
             string title = "";
@@ -199,7 +141,7 @@ ERROR1:
             }
             else
             {
-                title = cmd.patronBarcode + "&nbsp;" + cmd.typeString + "&nbsp;" + cmd.item;
+                title = cmd.patronBarcode + "&nbsp;" + cmd.typeString + "&nbsp;" + cmd.itemBarcode;
                 if (cmd.state != -1)
                 {
                     string patronUrl = "../patron/PersonalInfo?loginUserName=" + HttpUtility.UrlEncode(cmd.userName) + "&patronBarcode=" + HttpUtility.UrlEncode(patron.barcode);
@@ -208,9 +150,7 @@ ERROR1:
                     string biblioPath = "@itemBarcode:"+cmd.itemBarcode;
                     string detalUrl = "../Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(biblioPath);                  
                     string itemLink = "<a href='"+detalUrl+"'>" + cmd.itemBarcode + "</a>";
-
                     title = patronLink + "&nbsp;" + cmd.typeString + "&nbsp;" + itemLink;
-
 
                     info = "<div  class='pending' style='padding-bottom:4px'>"
                                            + "<label>bs-" + cmd.itemBarcode + "</label>"
@@ -220,23 +160,45 @@ ERROR1:
                 }
             }
 
-            string lineClass = "rightLine";
-            string imgName = "right.png";
-            if (cmd.state == -1)
+            if (string.IsNullOrEmpty(info) == false)
             {
-                imgName = "error.png";
-                info = "<div class='error'>===<br/>"
-                    + strError
-                    + "</div>";
-                lineClass = "errorLine";
+                info = "---" + info;
             }
 
 
-            cmdHtml = "<table class='command'>"
+            string cmdClass = "command";
+            string lineClass = "rightLine";
+            string imgName = "charge_success_24.png";
+            if (cmd.state == -1)
+            {
+                imgName = "charge_error_24.png";
+                lineClass = "errorLine";
+            }
+            else if (cmdError != "")
+            {
+                lineClass = "warnLine";
+                cmdClass += " commandWarn ";
+            }
+
+            //依据cmdError判断完了，再加了loadPatronError
+            if (String.IsNullOrEmpty(loadPatronError) == false)
+            {
+                if (String.IsNullOrEmpty(cmdError) == false)
+                    cmdError += "<br/>";
+                cmdError += loadPatronError;
+            }
+            if (String.IsNullOrEmpty(cmdError) == false)
+            {
+                info += "<div class='error'>===<br/>"
+                    + cmdError
+                    + "</div>";
+            }
+
+            cmdHtml = "<table class='"+cmdClass+"'>"
                             + "<tr>"
                                 + "<td class='"+lineClass+"' ></td>"
                                 + "<td class='resultIcon'><img src='../img/" + imgName + "' /> </td>"
-                                + "<td class='info'><div class='title'>" + title + "</div>"
+                                + "<td class='info'><div class='title' style='word-wrap:break-word;word-break:break-all;white-space:pre-wrap'>" + title + "</div>"
                                 + info
                                 + "</td>"
                             + "</tr>"

@@ -1,4 +1,18 @@
-﻿======
+﻿====
+        var f = function (event) {
+
+            //alert("a2");
+            $timeout(function () { // angular way, setTimeout is OK
+                //event.preventDefault();
+                alert("abc");
+                $('#barcode').val("");
+                $('#barcode').focus();
+
+            })
+        };
+
+
+======
 
 using DigitalPlatform.IO;
 using DigitalPlatform.Text;

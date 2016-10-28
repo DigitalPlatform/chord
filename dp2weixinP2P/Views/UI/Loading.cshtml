@@ -27,7 +27,18 @@
         });
     });
 
+    // 播放扫描证条码号
+    function playPatron()
+    {
+        var audio = document.getElementById("patronAudio");
+        audio.play();
+    }
 
+    // 播放扫描册条码号
+    function playItem() {
+        var audio = document.getElementById("itemAudio");
+        audio.play();
+    }
 
 </script>
 }
@@ -45,5 +56,17 @@
 
     <button onclick="showMaskLayer()">显示图层</button>
     <button onclick="hideMaskLayer()">关闭图层</button>
+
+    <button id='playPatron' class="mui-btn mui-btn-default" onclick="playPatron()">播放 证条码号</button>
+    <button id='playItem' class="mui-btn mui-btn-default" onclick="playItem()">播放 册条码号</button>
+
+
+
+    <audio id="patronAudio">
+        <source src="~/audio/patron.mp3" type="audio/mp3">
+    </audio>
+    <audio id="itemAudio">
+        <source src="~/audio/item.mp3" type="audio/mp3">
+    </audio>
 </body>
 

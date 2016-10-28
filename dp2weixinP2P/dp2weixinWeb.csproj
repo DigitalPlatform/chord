@@ -122,6 +122,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="audio\borrow_error.mp3" />
+    <Content Include="audio\borrow_success.mp3" />
+    <Content Include="audio\item.mp3" />
+    <Content Include="audio\load_error.mp3" />
+    <Content Include="audio\load_success.mp3" />
+    <Content Include="audio\patron.mp3" />
+    <Content Include="audio\return_error.mp3" />
+    <Content Include="audio\return_success.mp3" />
     <Content Include="Content\charge.css" />
     <Content Include="Content\icons-extra.css" />
     <Content Include="Content\patron.css" />
@@ -182,18 +190,18 @@
     </Content>
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
+    <Content Include="img\charge_success_24.png" />
     <Content Include="img\barcode.png" />
     <Content Include="img\Book.png" />
+    <Content Include="img\charge_error_24.png" />
     <Content Include="img\empty3.png" />
     <Content Include="img\empty.jpg" />
     <Content Include="img\emptyBind.png" />
     <Content Include="img\error.jpg" />
-    <Content Include="img\error.png" />
     <Content Include="img\library.jpg" />
     <Content Include="img\loading.gif" />
     <Content Include="img\nonePhoto.png" />
     <Content Include="img\empty2.jpg" />
-    <Content Include="img\right.png" />
     <Content Include="img\wait2.gif" />
     <Content Include="img\guide.pdf" />
     <Content Include="fonts\mui-icons-extra.ttf" />
