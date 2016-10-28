@@ -1,11 +1,14 @@
 ﻿
 @{
     ViewBag.Title = "charge";
-    Layout = "~/Views/Shared/_LayoutManager.cshtml";
 }
 
 @section style {
+
+<link href="@Url.Content("~/Content/patron.css?a=1")" rel="stylesheet">
+
     <style type="text/css">
+
 
         TABLE.command {
             width:100%;
@@ -47,8 +50,123 @@
            font-size:14.8px;
         }
 
+
+ /*===============*/
+
+        TABLE.simplepatron {
+            width:100%;
+            vertical-align:central;
+        }
+
+        TABLE.simplepatron TD.left {
+            text-align:left;
+       }
+
+        TABLE.simplepatron TD  .barcode{
+            color:darkgreen;
+            font-size:16pt;
+       }
+
+        TABLE.simplepatron TD  .name{
+            font-weight:bold;
+            font-size:18pt;
+       }
+
+        TABLE.simplepatron TD  .department{
+color: gray; 
+       }
+
+        TABLE.simplepatron TD.right {
+            text-align:right;
+            padding-right:20px
+       }
+
+        TABLE.simplepatron TD .amerceNum {
+            background-color: #B8860B;
+            color: white;
+        }
+
+       TABLE.simplepatron TD .arriveNum {
+            background-color: #006400;
+            color: white;
+        }
+
+        TABLE.simplepatron TD .overdueNum {
+            background-color: #8B0000;
+            color: white;
+        }
+
+       TABLE.simplepatron TD .rightText {
+            color: #bbbbbb;
+            font-size:11px;
+            margin-left:-3px;
+        }
+
+       /*===========*/
+
+                DIV.simplepatron {
+            padding-left:10px;
+        }
+
         </style>
     }
+
+<div id="patron" class="simplepatron">
+    <div onclick='gotoUrl("/patron/PersonalInfo?loginUserName=jane&amp;patronBarcode=R00001")'>
+        <span style="font-size: 14.8px; font-weight: bold;">R00001</span>&nbsp;
+        <span style="font-size: 14.8px; font-weight: bold;">任1</span>
+        <span style="color: gray; font-size: 14.8px;">(宣明学校)</span>&nbsp;&nbsp;&gt;
+        <div>
+        </div>
+    </div>
+</div>
+
+
+
+<ul class='mui-table-view'>
+    <li class='mui-table-view-cell'>
+        <a class='mui-navigate-right' href='../Patron/PersonalInfo?loginUserName=jane&patronBarcode=R00001'>
+            <table class='simplepatron'>
+                <tbody>
+                    <tr>
+                        <td>
+                            <span class='barcode'>R00001</span>
+                            <span class='name'>任1</span>
+                            <span class='department'>(宣明学校)</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span>在借(<span class='leftNum'>▪▪▪▪</span>)</span>
+                            <span class='mui-badge overdueNum'>4</span>
+                            <span class='rightText'>超期</span>
+                            <span class='mui-badge amerceNum'>1</span>
+                            <span class='rightText'>待交费</span>
+                            <span class='mui-badge arriveNum'>2</span>
+                            <span class='rightText'>预约到书</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </a>
+    </li>
+</ul>
+
+<ul class="mui-table-view">            
+            <li class="mui-table-view-cell">
+                <a class="mui-navigate-right" href="../Patron/BorrowInfo?loginUserName=jane&amp;patronBarcode=R00001">
+                    <table class="patronSubMenu">
+                        <tbody><tr>
+                            <td class="left">在借<span>(<span class="leftNum">▪▪▪▪</span>)</span></td>
+                            <td class="right">
+                                    <span class="mui-badge overdueNum">4</span>
+                                    <span class="rightText">超期</span>
+                            </td>
+                        </tr>
+                    </tbody></table>
+                </a>
+            </li>
+        </ul>
 
 <table class='command'>
     <tr>

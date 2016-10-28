@@ -136,7 +136,7 @@
     <h1 class="mui-title">在借续借</h1>
 }
 
-<span id="patronBarcode" style="display:none">@ViewBag.readerBarcode</span>
+<span id="patronBarcode" style="display:none">@ViewBag.patronBarcode</span>
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
     <div class="mui-content-padded">
@@ -151,68 +151,73 @@ else
         <span>@ViewBag.maxBorrowCount</span>&nbsp;
         <span>@ViewBag.curBorrowCount</span>&nbsp;&nbsp;
     </div>
-    <div class="mui-content-padded" id="divNo" style="display:none;">
-        <center>
-            <img src='../img/empty2.jpg' width='100' height='100' style='padding-top:5px' />
-            <div>您目前没有借书记录。</div>
-        </center>
-    </div>
 
-
-    foreach (dp2weixin.service.BorrowInfo2 item in Model)
+    if (Model == null || Model.Count == 0)
     {
-<div class="mui-card" style="margin-bottom:10px ">
-        <table class="borrowTable">
-            <tr>
-                <td class="label">册条码号</td>
-                <td class="value"><a href="@item.barcodeUrl" target="_blank"><span>@item.barcode</span></a></td>
-            </tr>
-            <tr>
-                <td class="label">续借次</td>
-                <td class="value">@item.renewNo</td>
-            </tr>
-            <tr>
-                <td class="label">借阅日期</td>
-                <td class="value">@item.borrowDate</td>
-            </tr>
-            <tr>
-                <td class="label">期限</td>
-                <td class="value">@item.period</td>
-            </tr>
-            <tr>
-                <td class="label">操作者</td>
-                <td class="value">@item.borrowOperator</td>
-            </tr>
-            <tr>
-                <td class="label">应还日期</td>
-                <td class="returnDate">@item.returnDate</td>
-            </tr>
-            <tr>
-                <td class="label">摘要</td>
-                <td class="value">
-                    <span class="pending">
-                        <label style="display:inline">bs-@item.barcode</label>
-                        <img src="~/img/wait2.gif" height="10" width="10" />
-                        <span>@ViewBag.LibId</span>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="label">操作</td>
-                <td class="value">
-                    @if (item.rowCss != "borrowinfo-overdue")
-                    {
-                        <button type="button" class="mui-btn  mui-btn-default" onclick="renew(this)">
-                            续借
-                        </button>
-                        <span style="display:none">@item.barcode</span>
-                        <div></div>
-                    }
-                </td>
-            </tr>
+        <div class="mui-content-padded" id="divNo">
+            <center>
+                <img src='../img/empty2.jpg' width='100' height='100' style='padding-top:5px' />
+                <div>您目前没有借书记录。</div>
+            </center>
+        </div>
+    }
+    else
+    {
+        foreach (dp2weixin.service.BorrowInfo2 item in Model)
+        {
+            <div class="mui-card" style="margin-bottom:10px ">
+                <table class="borrowTable">
+                    <tr>
+                        <td class="label">册条码号</td>
+                        <td class="value"><a href="@item.barcodeUrl" target="_blank"><span>@item.barcode</span></a></td>
+                    </tr>
+                    <tr>
+                        <td class="label">续借次</td>
+                        <td class="value">@item.renewNo</td>
+                    </tr>
+                    <tr>
+                        <td class="label">借阅日期</td>
+                        <td class="value">@item.borrowDate</td>
+                    </tr>
+                    <tr>
+                        <td class="label">期限</td>
+                        <td class="value">@item.period</td>
+                    </tr>
+                    <tr>
+                        <td class="label">操作者</td>
+                        <td class="value">@item.borrowOperator</td>
+                    </tr>
+                    <tr>
+                        <td class="label">应还日期</td>
+                        <td class="returnDate">@item.returnDate</td>
+                    </tr>
+                    <tr>
+                        <td class="label">摘要</td>
+                        <td class="value">
+                            <span class="pending">
+                                <label style="display:inline">bs-@item.barcode</label>
+                                <img src="~/img/wait2.gif" height="10" width="10" />
+                                <span>@ViewBag.LibId</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">操作</td>
+                        <td class="value">
+                            @if (item.rowCss != "borrowinfo-overdue")
+                            {
+                                <button type="button" class="mui-btn  mui-btn-default" onclick="renew(this)">
+                                    续借
+                                </button>
+                                <span style="display:none">@item.barcode</span>
+                                <div></div>
+                            }
+                        </td>
+                    </tr>
 
-        </table>
+                </table>
 
-    </div>
+            </div>
+        }
     }
 }

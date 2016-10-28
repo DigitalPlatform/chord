@@ -62,8 +62,18 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
 
             string strXml = "";
+            string patronBarcode = "";
+            string recPath = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml, out strError);
+            int nRet = this.GetReaderXml(code, 
+                state,
+                null,
+                ref patronBarcode,
+                "", 
+                out activeUserItem, 
+                out strXml,
+                out recPath,
+                out strError);
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
 
@@ -190,13 +200,24 @@ namespace dp2weixinWeb.Controllers
         /// <param name="code"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public ActionResult PersonalInfo(string code, string state)
+        public ActionResult PersonalInfo(string code, string state,
+            string loginUserName,
+            string patronBarcode)
         {
             string strError = "";
 
-            string strXml = "";
+            string patronXml = "";
+            string recPath = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml, out strError);
+            int nRet = this.GetReaderXml(null, 
+                null,
+                loginUserName,
+                ref patronBarcode,
+                "advancexml",
+                out activeUserItem,
+                out patronXml,
+                out recPath,
+                out strError);
             if (nRet == -1 || nRet == 0)
                 goto ERROR1;
 
@@ -206,50 +227,47 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
-            Patron model = null;
-            if (activeUserItem != null)
-            {
-                model = dp2WeiXinService.Instance.ParsePatronXml(activeUserItem.libId,
-                    strXml,
-                    activeUserItem.recPath,
+            ViewBag.userName = loginUserName;
+            ViewBag.patronBarcode = patronBarcode;
+
+            ViewBag.overdueUrl = "../Patron/OverdueInfo?loginUserName="+loginUserName+"&patronBarcode="+patronBarcode;
+            ViewBag.borrowUrl = "../Patron/BorrowInfo?loginUserName=" + loginUserName + "&patronBarcode=" + patronBarcode;
+            ViewBag.reservationUrl = "../Patron/Reservation?loginUserName=" + loginUserName + "&patronBarcode=" + patronBarcode;
+
+            string libId = ViewBag.LibId;
+            Patron patron = null;
+            patron = dp2WeiXinService.Instance.ParsePatronXml(libId,
+                    patronXml,
+                    recPath,
                     ViewBag.showPhoto);
-            }
-
-            if (model == null)
-            {
-                strError = "patron为null,返回值为" + nRet + "，error为" + strError;
-                goto ERROR1;
-            }
-
-            return View(model);
+            return View(patron);
 
         ERROR1:
-
-            if (strError == "")
-            {
-                strError = "error怎么没赋值呢？ret=" + nRet;
-            }
             ViewBag.Error = strError;
             return View();
         }
 
         //违约交费信息
-        public ActionResult OverdueInfo(string code, string state)
+        public ActionResult OverdueInfo(string loginUserName, string patronBarcode)
         {
             string strError = "";
-            string strXml = "";
+            string patronXml = "";
+            string recPath = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "xml", out activeUserItem, out strXml, out strError);
-            if (nRet == -1 || nRet == 0)
+            int nRet = this.GetReaderXml(null, null,
+                loginUserName,
+                ref patronBarcode,
+                "advancexml",
+                out activeUserItem,
+                out patronXml,
+                out recPath,
+                out strError);
+            if (nRet == -1 || nRet == 0 || nRet == -2)
                 goto ERROR1;
 
-            if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
-            {
-                return RedirectToAction("Bind", "Account");
-            }
-
             string strWarningText = "";
-            List<OverdueInfo> overdueList = dp2WeiXinService.Instance.GetOverdueInfo(strXml, out strWarningText);
+            List<OverdueInfo> overdueList = dp2WeiXinService.Instance.GetOverdueInfo(patronXml, 
+                out strWarningText);
 
             return View(overdueList);
 
@@ -264,20 +282,33 @@ namespace dp2weixinWeb.Controllers
         /// <param name="code"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public ActionResult Reservation(string code, string state)
+        public ActionResult Reservation(string loginUserName, string patronBarcode)
         {
             string strError = "";
-            string strXml = "";
+            string patronXml = "";
+            string recPath = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "", out activeUserItem, out strXml, out strError);
-            if (nRet == -1 || nRet == 0)
+            int nRet = this.GetReaderXml(null, null,
+                loginUserName,
+                ref patronBarcode,
+                "advancexml",
+                out activeUserItem,
+                out patronXml,
+                out recPath,
+                out strError);
+            if (nRet == -1 || nRet == 0 || nRet == -2)
                 goto ERROR1;
-            if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
-            {
-                return RedirectToAction("Bind", "Account");
-            }
 
-            return View(activeUserItem);
+            // 放到界面的变量
+            ViewBag.patronBarcode = patronBarcode;
+
+            // 预约请求
+            string strReservationWarningText = "";
+            List<ReservationInfo> reservations = dp2WeiXinService.Instance.GetReservations(patronXml,
+                out strReservationWarningText);
+
+
+            return View(reservations);
 
         ERROR1:
             ViewBag.Error = strError;
@@ -290,31 +321,35 @@ namespace dp2weixinWeb.Controllers
         /// <param name="code"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public ActionResult BorrowInfo(string code, string state)
+        public ActionResult BorrowInfo(string loginUserName,string patronBarcode)
         {
             string strError = "";
-            string strXml = "";
+            string patronXml = "";
+            string recPath = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(code, state, "advancexml", out activeUserItem, out strXml, out strError);
-            if (nRet == -1 || nRet == 0)
+            int nRet = this.GetReaderXml(null, null,
+                loginUserName,
+                ref patronBarcode,
+                "advancexml", 
+                out activeUserItem,
+                out patronXml,
+                out recPath,
+                out strError);
+            if (nRet == -1 || nRet == 0 || nRet==-2)
                 goto ERROR1;
 
-            if (nRet == -2)// 未绑定当前图书馆的读者，转到绑定界面
-            {
-                return RedirectToAction("Bind", "Account");
-            }
-            ViewBag.readerBarcode = activeUserItem.readerBarcode;
+            // 放到界面的变量
+            ViewBag.patronBarcode = patronBarcode;
 
             string strWarningText = "";
             string maxBorrowCountString="";
             string curBorrowCountString="";
-            List<BorrowInfo2> overdueList = dp2WeiXinService.Instance.GetBorrowInfo(strXml, out strWarningText,
+            List<BorrowInfo2> overdueList = dp2WeiXinService.Instance.GetBorrowInfo(patronXml,
+                out strWarningText,
                 out maxBorrowCountString,
                 out curBorrowCountString);
             ViewBag.maxBorrowCount = maxBorrowCountString;
             ViewBag.curBorrowCount = curBorrowCountString;
-
-
 
 
             return View(overdueList);
@@ -340,44 +375,78 @@ namespace dp2weixinWeb.Controllers
         /// 0 未找到读者记录
         /// 1 成功
         /// </returns>
-        private int GetReaderXml(string code, string state,
+        private int GetReaderXml(string code, 
+            string state,
+            string loginUserName,
+            ref string patronBarcode,
             string strFormat,
             out WxUserItem activeUserItem,
-            out string strXml,
+            out string patronXml,
+            out string recPath,
             out string strError)
         {
-            strXml = "";
+            patronXml = "";
             activeUserItem = null;
             strError = "";
+            recPath = "";
 
             // 检查是否从微信入口进来
             int nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
                 return -1;
 
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
-            activeUserItem = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
-            // 未绑定读者账户,不会出现未激活的情况
-            if (activeUserItem == null)
-                return -2;
-
-
-            // 有的调用处不需要获取读者xml，例如预约
-            if (String.IsNullOrEmpty(strFormat) == false)
+            string libId=ViewBag.LibId;
+            bool isPatron = false;
+            if (String.IsNullOrEmpty(loginUserName) == false)
             {
-                // 获取当前账户的信息
-                string recPath = "";
-                nRet = dp2WeiXinService.Instance.GetPatronXml(activeUserItem.libId,
-                    activeUserItem.readerBarcode,
-                    strFormat,
+                isPatron = false;
+                if (string.IsNullOrEmpty(patronBarcode) == true)
+                {
+                    strError = "异常：当传了loginUserName参数时，必须传patronBarcode叁数";
+                    return -1;
+                }
+            }
+            else
+            {
+                //if (string.IsNullOrEmpty(patronBarcode) == false)
+                //{
+                //    strError = "异常：当未传loginUserName参数时，则不需传patronBarcode参数";
+                //    return -1;
+                //}
+                string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+                activeUserItem = WxUserDatabase.Current.GetActivePatron(weixinId, libId);
+                // 未绑定读者账户,不会出现未激活的情况
+                if (activeUserItem == null)
+                {
+                    strError = "当前没有活动读者账户";
+                    return -2;
+                }
+                patronBarcode = activeUserItem.readerBarcode;
+
+                // 登录人是读者自己
+                loginUserName = activeUserItem.readerBarcode;
+                isPatron = true;
+            }
+
+            if (string.IsNullOrEmpty(strFormat) == false)
+            {
+                // 获取读者记录
+                nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                    loginUserName,
+                    isPatron,
+                    patronBarcode,
+                    "advancexml",
                     out recPath,
-                    out strXml,
+                    out patronXml,
                     out strError);
                 if (nRet == -1 || nRet == 0)
-                    return nRet;
+                    return -1;
 
-                activeUserItem.recPath = recPath;
+                if (activeUserItem != null)
+                    activeUserItem.recPath = recPath; // todo 应该在绑定的时候赋值，但绑定时没有返回路径
+
             }
+
             return 1;
         }
 

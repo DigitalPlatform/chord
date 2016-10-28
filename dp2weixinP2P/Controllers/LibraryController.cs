@@ -29,7 +29,7 @@ namespace dp2weixinWeb.Controllers
             // 未绑定工作人员，
             if (worker == null)
             {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge");
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge",true);
                 return View();
             }
 

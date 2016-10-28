@@ -11,14 +11,14 @@ namespace dp2weixinWeb.ApiControllers
     public class BorrowInfoController : ApiController
     {
 
-        // GET api/<controller>
-        public BorrowInfoResult GetBorrowInfos(string libId,
-            string patronBarcode)
-        {
+        //// GET api/<controller>
+        //public BorrowInfoResult GetBorrowInfos(string libId,
+        //    string patronBarcode)
+        //{
 
-            return  dp2WeiXinService.Instance.GetPatronBorrowInfos1(libId,
-                 patronBarcode);
-        }
+        //    return  dp2WeiXinService.Instance.GetPatronBorrowInfos1(libId,
+        //         patronBarcode);
+        //}
 
         // POST api/<controller>
         [HttpPost]
