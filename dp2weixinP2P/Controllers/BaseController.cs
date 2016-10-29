@@ -239,8 +239,8 @@ namespace dp2weixinWeb.Controllers
 
             // 注意这里有时异常
             JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(dp2WeiXinService.Instance.weiXinAppId,
-                dp2WeiXinService.Instance.weiXinSecret,
-                Request.Url.AbsoluteUri);
+                dp2WeiXinService.Instance.weiXinSecret,                
+                Request.Url.AbsoluteUri);//http://localhost:15794/Library/Charge  //http://www.dp2003.com/dp2weixin/Library/Charge
             ViewData["AppId"] = dp2WeiXinService.Instance.weiXinAppId;
             ViewData["Timestamp"] = package.Timestamp;
             ViewData["NonceStr"] = package.NonceStr;

@@ -1003,7 +1003,10 @@ namespace dp2weixin.service
             catch (Exception ex)
             {
                 strError = "发送模板消息异常:" + ex.Message;
-                return -1;
+                //return -1;
+                this.WriteErrorLog1(strError);
+
+                return 0;
             }
         }
 

@@ -7,15 +7,25 @@
             margin-top:10px;
         }
 
+        TABLE.commandWarn {
+            background-color:yellow;
+        }
+
         TABLE.command TD.rightLine {
-            width:2px;
+            width:6px;
             background-color:darkgreen;
             
         }
 
                 TABLE.command TD.errorLine {
-            width:2px;
+            width:6px;
             background-color:red;
+            
+        }
+
+                TABLE.command TD.warnLine {
+            width:6px;
+            background-color:yellow;
             
         }
 
