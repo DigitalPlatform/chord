@@ -100,6 +100,7 @@
   <ItemGroup>
     <Compile Include="ChargeCommand.cs" />
     <Compile Include="ChargeCommandContainer.cs" />
+    <Compile Include="IsbnSplitter.cs" />
     <Compile Include="LibraryManager.cs" />
     <Compile Include="ManagerThread.cs" />
     <Compile Include="MessageItem.cs" />
@@ -143,10 +144,6 @@
     <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj">
       <Project>{441cb814-af78-4503-91ef-dce5f3269502}</Project>
       <Name>DigitalPlatform.IO</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DigitalPlatform.LibraryRestClient\DigitalPlatform.LibraryRestClient.csproj">
-      <Project>{1b74d69a-530f-4275-845b-8ca6d1463bdd}</Project>
-      <Name>DigitalPlatform.LibraryRestClient</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.MarcKernel\DigitalPlatform.MarcKernel.csproj">
       <Project>{74242530-ef96-457e-852d-5c21a3ea8449}</Project>

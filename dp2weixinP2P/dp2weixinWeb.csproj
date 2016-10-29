@@ -136,7 +136,6 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\jquery-ui.css" />
     <Content Include="Content\layer.css" />
-    <Content Include="Content\layer.m.css" />
     <Content Include="Content\biblio.css" />
     <Content Include="Content\mui.min.css" />
     <Content Include="Content\sticky-footer-navbar.css" />
@@ -330,6 +329,7 @@
     <Content Include="Views\Library\Charge.cshtml" />
     <Content Include="Views\Library\Charge1.cshtml" />
     <Content Include="Views\UI\charge.cshtml" />
+    <Content Include="Views\Library\SearchItem.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

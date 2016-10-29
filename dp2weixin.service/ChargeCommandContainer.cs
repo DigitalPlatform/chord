@@ -1,4 +1,5 @@
 ﻿using DigitalPlatform.IO;
+//using DigitalPlatform.LibraryRestClient;
 using DigitalPlatform.Message;
 using System;
 using System.Collections.Generic;
@@ -59,6 +60,15 @@ namespace dp2weixin.service
                 goto END1;
             }
 
+             //检查item是否为isbn
+            string strTemp = cmd.itemBarcode;
+            if (IsbnSplitter.IsISBN(ref strTemp) == true)
+            {
+                loadPatronError = strTemp;
+                cmdRet = -3;
+                goto END1;
+            }
+
             // 流通命令
              if (cmd.type == ChargeCommand.C_Command_Borrow) //借书
             {
@@ -103,6 +113,25 @@ namespace dp2weixin.service
              }
 
 END1:
+            // 设返回值
+             cmd.state = cmdRet;
+
+
+            //========以下两种情况直接返回，不加到操作历史中===
+
+             // 读者姓名重复的情况
+             if (cmdRet == -2)
+             {
+                 return cmd;
+             }
+
+            // isbn的情况
+             if (cmdRet == -3)
+             {
+                 return cmd;
+             }
+
+            //=================
 
             // 设上实际的读者证条码
             cmd.patronBarcode = outPatronBarcode;
@@ -119,7 +148,6 @@ END1:
                 cmd.patronBarcode = patron.barcode;
             }
 
-            cmd.state = cmdRet;
             //cmdError=""
             
 

@@ -477,6 +477,18 @@
         // 执行命令
         function addCmd() {
 
+
+            // 如果是选择item打开状态，则不能进行操作
+            var display = $("#selItem").css("display");
+            if (display == "block") {
+                var opeName = $("#opeName").text();
+
+                alert("请先选择要"+opeName+"的册");
+                return;
+            }
+
+
+
             // 先清掉扫码错误信息
             $("#errorInfo").text("");
 
@@ -558,29 +570,26 @@
                 // 关闭等待层
                 hideMaskLayer();
 
+                if (cmd.state == -2)
+                {
+                    alert("姓名重复");
+                    return;
+                }
 
-                //// 返回值2表示多个读者，弹出选择读者对话框
-                //if (newItem.state == 2) {
-                //    //有多笔读者的情况
-                //    loadPatron(null, true);
-                //    return;
-                //}
+                if (cmd.state == -3)
+                {
+                    //alert("isbn");
 
-                ////返回值3表示通过ISBN借书，弹出选择册对话框
-                //if (newItem.state == 3) {
-                //    //弹出选0择册图层
-                //    openSelectItemLayer(cmdModel.editor.type(), newItem.resultInfo);
-                //    return;
-                //}
+                    showSelectItem();
+                    return;
+                }
 
-                //alert("b1");
-
+                // 插入结果声音
                 //window.setTimeout("playResult("+cmd+")", 1);
-
                 //playResult(cmd);
+
                 // 加入操作历史
-                viewCmd(cmd);
-          
+                viewCmd(cmd);          
 
                 // 清掉输入框
                 $("#barcode").val(""); //清掉输入框    
@@ -639,8 +648,8 @@
 
 
 
-                //如果是扫码方法，继续打开扫描
-                if (_lastMothed == 2) {
+                //如果是扫码方法，且操作成功，才继续打开扫描
+                if (_lastMothed == 2 && cmd.state == 1) {
                     sweep();
 
                     //window.setTimeout("sweep()", 100)
@@ -672,6 +681,64 @@
             //window.setTimeout("doFocus()", 200);
             doFocus();
             //return;
+        }
+
+        function showSelectItem()
+        {
+
+            var html = "<div class='mui-card' style='padding:0px;margin:0px;margin-bottom:10px;' id='item-C100' ondblclick='selectItemOK(this)' >"
+                +"<table class='item' >"
+        + "<tbody>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>册条码号</td>"
+                + "<td class='value'>C001</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>状态</td>"
+                + "<td class='value'></td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>在借情况</td>"
+                + "<td class='borrowInfo'>任1</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>书目摘要</td>"
+                + "<td class='value'>"
+                    + "<div class='summary' style='' title='我从彩虹那边来 [专著]  : 如何养育 978-7-5110-2049-9'>我从彩虹8-7-5110-2049-9</div>"
+                + "</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>卷册</td>"
+                + "<td class='value'></td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>馆藏地</td>"
+                + "<td class='value'>流通库</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>价格</td>"
+                + "<td class='value'></td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>册记录路径</td>"
+               + "<td class='value'>中文图书实体/53</td>"
+            + "</tr>"
+        + "</tbody>"
+    + "</table>"
+            +"</div>";
+
+            $("#selItem").css("display", "block");
+            $("#items").append(html);
+
+            $("#items").append(html);
         }
 
         function playResult(cmd)
@@ -708,11 +775,26 @@
             
 
 
-        function doFocus() {
-            //alert('test1');
-            //$('#barcode').focus().css('border', '1px solid red');
-            $('#barcode').focus()
-        }
+            function doFocus() {
+                //alert('test1');\
+                //$('#barcode').focus().css('border', '1px solid red');
+                $('#barcode').focus()
+            }
+
+
+            function selectItemOK(obj)
+            {
+                $("#selItem").css("display", "none");
+
+                var id = $(obj).attr('id'); //item-C001
+                var item = id.substring(5);
+                //alert(item);
+
+                //设到textbox
+                $("#barcode").val(item);
+                addCmd();
+
+            }
 
     </script>
 }
@@ -815,6 +897,20 @@ else
                 </td>
             </tr>
         </table>
+
+        <div id="selPatron" style="display:none;border:1px dotted #1E90FF">
+            <div >请选择一个读者</div>
+            <div id="patrons"></div>
+        </div>
+
+        <div id="selItem" style="display:none;border:2px dotted #333333;margin-top:10px;padding:4px;background-color:gray">
+            <div style="margin-bottom:5px"><span style="background-color:#FFD700;font-size:14.8px;font-weight:bold">请 <span style="color:blue">双击</span> 选择要借的册</span></div>
+            <div id="items">
+
+
+
+            </div>
+        </div>
 
     </div>
     <div id="patron" style="padding-left:10px;padding-right:10px">

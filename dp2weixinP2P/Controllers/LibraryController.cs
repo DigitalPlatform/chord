@@ -12,6 +12,26 @@ namespace dp2weixinWeb.Controllers
     public class LibraryController : BaseController
     {
 
+
+        // 内务
+        public ActionResult SearchItem(string from,string word)
+        {
+            string strError = "";
+            
+            //// 检查是否从微信入口进来
+            //int nRet = this.CheckIsFromWeiXin(null, null, out strError);
+            //if (nRet == -1)
+            //    goto ERROR1;
+
+
+            return View();
+
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
         // 内务
         public ActionResult Charge(string code, string state)
         {

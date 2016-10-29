@@ -16,7 +16,6 @@ using DigitalPlatform.IO;
 using System.Diagnostics;
 using DigitalPlatform;
 using DigitalPlatform.Text;
-using DigitalPlatform.LibraryRestClient;
 using Senparc.Weixin.MP.AdvancedAPIs;
 using Senparc.Weixin.MP.CommonAPIs;
 using System.Web.Mvc.Async;
