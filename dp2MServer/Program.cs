@@ -14,6 +14,7 @@ using Microsoft.Owin;
 using DigitalPlatform.MessageServer;
 using DigitalPlatform.ServiceProcess;
 using DigitalPlatform.IO;
+using DigitalPlatform;
 
 namespace dp2MServer
 {
@@ -533,7 +534,8 @@ InvalidOperationException : "Connection started reconnecting before invocation r
             }
             catch (Exception ex)
             {
-                ServerInfo.WriteErrorLog("unhandled exception("+ex.GetType().ToString()+"): " + ex.Message + "\r\n" + ex.StackTrace.ToString());
+                // ServerInfo.WriteErrorLog("unhandled exception("+ex.GetType().ToString()+"): " + ex.Message + "\r\n" + ex.StackTrace.ToString());
+                ServerInfo.WriteErrorLog("*** 未能明确捕获的异常: " + ExceptionUtil.GetExceptionText(ex));   // 2016/10/29
             }
         }
     }

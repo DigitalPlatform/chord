@@ -288,6 +288,9 @@ namespace dp2Router
             catch (AggregateException ex)
             {
                 string code = "500";
+
+                WriteErrorLog("1(测试): " + ex.ToString());   // 2016/10/29
+
                 string error = ExceptionUtil.GetExceptionText(ex);
 
                 Console.WriteLine("Exception: " + error);

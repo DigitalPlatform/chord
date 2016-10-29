@@ -306,6 +306,19 @@ namespace dp2Capo.Install
             await CreateCapoUser();
         }
 
+        // 根据 capo_xxx 用户名构造出对应的 weixin_xxx 用户名
+        static string MakeWeixinUserName(string strCapoUserName)
+        {
+            string strName = "";
+            List<string> parts = StringUtil.ParseTwoPart(strCapoUserName, "_");
+            if (string.IsNullOrEmpty(parts[1]) == false)
+                strName = parts[1];
+            else
+                strName = strCapoUserName;
+
+            return "weixin_" + strName;
+        }
+
         /*
 微信公众号新图书馆dp2mserver账号
 命名：weixin_图书馆英文或中文简称（如weixin_cctb,weixin_tjsyzx）
@@ -374,11 +387,14 @@ gn:_lib_homePage
                     user.userName = this.textBox_userName.Text;
                     user.password = this.textBox_password.Text;
                     user.rights = "";
-                    user.duty = "getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes,getSystemParameter";
+                    // TODO: 看看除了 weixin_xxx 以外是否还有其他请求者需要许可
+                    user.duty = ":weixinclient|" + MakeWeixinUserName(this.textBox_userName.Text) + ",getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes,getSystemParameter";
                     if (bEanbleWebCall)
-                        user.duty += ",webCall";
+                        user.duty += ",webCall:router";
                     user.groups = new string[] { "gn:_patronNotify" };
                     user.department = strDepartment;
+                    user.binding = "ip:[current]";
+                    user.comment = "dp2Capo 专用账号";
 
                     users.Add(user);
 

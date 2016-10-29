@@ -609,7 +609,7 @@ namespace dp2Capo
                         if (result.Value == -1)
                         {
                             this.WriteErrorLog("Instance.Notify() 中 SetMessageAsync() 出错: " + result.ErrorInfo);
-                            // TryResetConnection(result.String);
+                            TryResetConnection(result.String);
                             return;
                         }
 
@@ -700,7 +700,7 @@ namespace dp2Capo
                 if (result.Value == -1)
                 {
                     this.WriteErrorLog("Instance.SendHeartBeat() 中 SetMessageAsync() [heartbeat] 出错: " + result.ErrorInfo);
-                    // TryResetConnection(result.String);
+                    TryResetConnection(result.String);
                     return false;
                 }
 
