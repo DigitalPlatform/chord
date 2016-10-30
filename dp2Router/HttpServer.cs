@@ -44,6 +44,11 @@ namespace dp2Router
 #endif
         }
 
+        static string GetClientIP(TcpClient s)
+        {
+            return ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
+        }
+
         public void Listen()
         {
             this.Listener = new TcpListener(IPAddress.Any, this.Port);
@@ -57,7 +62,8 @@ namespace dp2Router
                 {
                     TcpClient s = this.Listener.AcceptTcpClient();
 
-                    string ip = ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
+                    // string ip = ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
+                    string ip = GetClientIP(s);
                     ServerInfo.WriteErrorLog("*** ip [" + ip + "] request");
 
                     Thread thread = new Thread(() =>
@@ -67,7 +73,7 @@ namespace dp2Router
                     });
                     thread.Start();
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     if (this.IsActive == false)
                         break;
@@ -90,6 +96,10 @@ namespace dp2Router
             try
             {
                 HttpRequest request = HttpProcessor.GetIncomingRequest(inputStream);
+
+                // 添加头字段 _dp2router_clientip
+                string ip = GetClientIP(tcpClient);
+                request.Headers.Add("_dp2router_clientip", ip);
 
                 // Console.WriteLine("=== request ===\r\n" + request.Dump());
 
