@@ -337,7 +337,7 @@ errorInfo)
             }
         }
 
-        private static readonly Object _syncRoot = new Object();
+        // private static readonly Object _syncRoot = new Object();
 
         void DisposeHandlers()
         {
@@ -354,8 +354,17 @@ errorInfo)
         // 要求调用前设置好 this.ServerUrl this.UserName this.Password this.Parameters
         public virtual async Task<MessageResult> ConnectAsync()
         {
-            lock (_syncRoot)
+            _inCritical++;
+            try
             {
+                if (_inCritical > 1)
+                {
+                    MessageResult result = new MessageResult();
+                    result.Value = -1;
+                    result.ErrorInfo = "放弃重入";
+                    result.String = "abortReenter";
+                    return result;
+                }
                 // 2016/9/15
                 // 防范本函数被重叠调用时形成多个连接
                 if (this.Connection != null)
@@ -466,6 +475,10 @@ errorInfo)
                     );
                     _handlers.Add(handler);
                 }
+            }
+            finally
+            {
+                _inCritical--;
             }
 
             try
@@ -2713,12 +2726,17 @@ CancellationToken token)
             }
         }
 #endif
+        int _inCritical = 0;
 
         // 关闭连接，并且不会引起自动重连接
         public virtual void CloseConnection()
         {
-            lock (_syncRoot)
+            _inCritical++;
+            try
             {
+                if (_inCritical > 1)
+                    return; // 放弃重入
+
                 if (this.Connection != null)
                 {
                     // HubProxy.Invoke<MessageResult>("Logout").Wait(500);
@@ -2775,6 +2793,10 @@ CancellationToken token)
                         // GC.Collect();
                     }
                 }
+            }
+            finally
+            {
+                _inCritical--;
             }
         }
 
