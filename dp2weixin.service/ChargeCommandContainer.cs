@@ -79,6 +79,7 @@ namespace dp2weixin.service
                     "ISBN",
                     strTemp,
                     "left",
+                    cmd.type,
                     out items,
                     out  error);
                 if (lRet == -1 || lRet == 0)

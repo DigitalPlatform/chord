@@ -85,5 +85,8 @@ namespace dp2weixin.service
          public string parentInfo { get; set; }  //从属于，一般成员册会有该信息
 
          public string recPath { get; set; }
+
+
+         public bool isGray = false;
     }
 }

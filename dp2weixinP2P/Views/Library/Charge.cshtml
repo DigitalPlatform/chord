@@ -715,8 +715,11 @@
             for (var i = 0; i < itemList.length; i++) {
 
                 var item = itemList[i];
+                var myClass = "";
+                if (item.isGray == true)
+                    myClass += " item-gray ";
 
-                var html = "<div class='mui-card' style='padding:0px;margin:0px;margin-bottom:10px;' id='item-" + item.barcode + "' ondblclick='selectItemOK(this)' >"
+                var html = "<div class='mui-card " + myClass + "' style='padding:0px;margin:0px;margin-bottom:10px;' id='item-" + item.barcode + "' onclick='selectItemOK(this)' >"
                     + "<table class='item' >"
             + "<tbody>"
                 + "<tr>"
@@ -822,6 +825,14 @@
 
             function selectItemOK(obj)
             {
+                var gray = $(obj).hasClass("item-gray");
+                if (gray == true)
+                {
+                    var opeName = $("#opeName").text();
+                    alert("您点击的行不可 " + opeName +"。");
+                    return;
+                }
+
                 $("#selItem").css("display", "none");
 
                 var id = $(obj).attr('id'); //item-C001
@@ -870,6 +881,10 @@
         .operationName {
             font-size: 40pt;
             cursor:pointer;
+        }
+
+                .item-gray {
+            color: #cccccc;
         }
     </style>
 }
@@ -944,7 +959,7 @@ else
         </div>
 
         <div id="selItem" style="display:none;border:2px dotted #333333;margin-top:10px;padding:4px;background-color:gray">
-            <div style="margin-bottom:5px"><span style="background-color:#FFD700;font-size:14.8px;font-weight:bold">请 <span style="color:blue">双击</span> 选择要<span id="_opeName">借</span>的册</span></div>
+            <div style="margin-bottom:5px"><span style="background-color:#FFD700;font-size:14.8px;font-weight:bold">请 <span style="color:blue">单击</span> 选择要<span id="_opeName">借</span>的册</span></div>
             <div id="items">
 
 

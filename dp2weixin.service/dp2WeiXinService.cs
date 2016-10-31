@@ -4470,6 +4470,7 @@ namespace dp2weixin.service
             string from,
             string word,
             string match,
+            string cmdType,
             out List<BiblioItem> items,
             out string strError)
         {
@@ -4504,6 +4505,7 @@ namespace dp2weixin.service
                     userName,
                     isPatron,
                     biblioPath,
+                    cmdType,
                     out itemList,
                     out strError);
                 if (nRet == -1) //0的情况表示没有册，不是错误
@@ -4612,13 +4614,13 @@ namespace dp2weixin.service
                 // 得到绑定工作人员账号，并检查是否有权限，进行好书推荐
                 string workerUserName = "";
                 string userName = "";
-                bool isPatron = false;
+                bool isPatron = true;
                 if (string.IsNullOrEmpty(weixinId) == false)
                 {
                     WxUserItem patron = WxUserDatabase.Current.GetActivePatron(weixinId, libId);
                     if (patron !=null)
                     {
-                        userName = patron.userName;
+                        userName = patron.readerBarcode;
                     }
 
                     // 查找当前微信用户绑定的工作人员账号，条件满足出来推荐图书按钮
@@ -4683,6 +4685,7 @@ namespace dp2weixin.service
                     userName,
                     isPatron,
                     biblioPath,
+                    "",
                     out itemList,
                     out strError);
                 if (nRet == -1) //0的情况表示没有册，不是错误
@@ -5267,6 +5270,7 @@ namespace dp2weixin.service
             string userName,
             bool isPatron,
             string biblioPath,
+            string cmdType,
             out List<BiblioItem> itemList,
             out string strError)
         {
@@ -5349,6 +5353,9 @@ namespace dp2weixin.service
 
                 //状态
                 string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+                if (cmdType == "borrow")
+                { 
+                }
 
                 //// strState = strMessageText + strState;
                 //string strStateMessage = DomUtil.GetElementText(dom.DocumentElement,
@@ -5404,10 +5411,28 @@ namespace dp2weixin.service
 "borrowDate"), "yyyy/MM/dd");
                 string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
                 borrowPeriod = GetDisplayTimePeriodStringEx(borrowPeriod);
-
                 item.borrower = strBorrower;
                 item.borrowDate = borrowDate;
                 item.borrowPeriod = borrowPeriod;
+
+                item.isGray = false;
+                if (isPatron == false)
+                {
+                    if (cmdType == "borrow")
+                    {
+                        if (string.IsNullOrEmpty(strBorrower) == false
+                            || String.IsNullOrEmpty(strState) == false)
+                        {
+                            item.isGray = true;
+                        }
+                    }
+                    else if (cmdType == "return")
+                    {
+                        // 没有在借的册需要显示为灰色
+                        if (string.IsNullOrEmpty(strBorrower) == true)
+                            item.isGray = true;
+                    }
+                }
 
                 // 成员册 不显示“在借情况”和“预约信息”
                 if (bMember == false)
@@ -6836,17 +6861,18 @@ namespace dp2weixin.service
                     request,
                     new TimeSpan(0, 1, 10), // 10 秒
                     cancel_token).Result;
+
+                resultInfo = result.ReturnInfo;
+                patronBarcode = result.PatronBarcode;
+                strError = result.ErrorInfo;
+
                 if (result.Value == -1)
                 {
                     strError = this.GetFriendlyErrorInfo(result, lib.libName);
                     return -1;
                 }
 
-                resultInfo = result.ReturnInfo;
 
-                patronBarcode = result.PatronBarcode;
-
-                strError = result.ErrorInfo;
                 return (int)result.Value;
             }
             catch (AggregateException ex)
@@ -6983,15 +7009,15 @@ namespace dp2weixin.service
 
                 if (style == "delete")
                 {
-                    reserRowHtml = this.getReservationHtml("未预约", items, true, false);
+                    reserRowHtml = this.getReservationHtml("未预约", items, true, true);
                 }
                 else if (style == "new")
                 {
                     // 根据result.ErrorInfo区分是否到书 todo这个区分可靠吗？
                     if (strError != "")
-                        reserRowHtml = this.getReservationHtml("已到书", items, true, false);
+                        reserRowHtml = this.getReservationHtml("已到书", items, true, true);
                     else
-                        reserRowHtml = this.getReservationHtml("已预约", items, true, false);
+                        reserRowHtml = this.getReservationHtml("已预约", items, true, true);
                 }
 
 

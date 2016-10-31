@@ -1,6 +1,18 @@
 ﻿function showLoading()
 {
+    //$("#loading").css("top", "50%");
+    //$("#loading").css("left", "50%");
+
+    //var totalHeight = $(document).height();
+    //$("#loading").css("top", totalHeight/2);
+
     $("#loading").show();//显示loading
+
+
+
+
+    //alert($("#loading"));
+    //alert("123");
 }
 
 function hideLoading() {
@@ -10,6 +22,7 @@ function hideLoading() {
 function showMaskLayer() {
     var bg = $("#mask-background,#mask-progressBar");
     bg.show();
+    //alert("223");
 }
 
 function hideMaskLayer() {
@@ -271,6 +284,8 @@ function reservation(obj, barcode, style) {
     //显示等待图层
     //var index = loadLayer();
     showLoading();
+    //showMaskLayer();
+    
 
     var url = "/api/Reservation"
         + "?weixinId=" + weixinId
@@ -287,6 +302,7 @@ function reservation(obj, barcode, style) {
         // 关闭等待层
         //layer.close(index);
         hideLoading();
+        //hideMaskLayer();
 
         // 显示预约结果
 
@@ -336,6 +352,7 @@ function reservation(obj, barcode, style) {
         // 关闭等待层
         //layer.close(index);
         hideLoading();
+        //hideMaskLayer();
 
         // 显示预约结果
         var info = "访问服务器出错：[" + errorThrown + "]";
