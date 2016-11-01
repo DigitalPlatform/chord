@@ -9,7 +9,7 @@
 
         $(document).ready(function () {
 
-
+            //alert("test");
             //doThing();
 
         });
@@ -46,7 +46,7 @@
         function warn(text,next)
         {
             var html = "<div class='middle'>" + text
-                + "<br><br><a href='javascript:;' onclick='layer.closeAll();'>继续</a>"
+                + "<br><br><a href='javascript:;' onclick='layer.closeAll();'>跳过</a>"
                 +"</div>";
             html += "<button class='mui-btn mui-btn-primary' onclick='_stop=true;layer.closeAll();'>停止</button>";
             var ope = "";
@@ -63,17 +63,19 @@
             var pageii = layer.open({
                 type: 1
                 , content: html
-                , anim: 'up'
+                //, anim: 'up'
                 , time: 3
-                , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:gray'
+                , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'
                 ,end: function(index){
 
-                    if(_stop==true)
+                    layer.close(index);
+
+                    if (_stop == true || next==null || next=="")
                     {
+                        showPage();
                         return;
                     }
 
-                    layer.close(index);
 
                     if (next == "dothing")
                     {
@@ -84,15 +86,25 @@
                     // 扫码
                         sweep();
                     }
+
+
+
             }   
             });
 
 
         }
 
+        function showPage()
+        {
+            $("#mybody").css("background-color", "");
+            $("#mypage").css("display", "block");
+        }
+
         // 扫码
         function sweep() {
 
+            _stop = true;
             //alert("扫码");
             //addCmd();
             //return;
@@ -110,10 +122,11 @@
 
             try {
                 wx.scanQRCode({
-                    desc: desc,
                     needResult: 1, // 默认为0扫描结果由微信处理，1则直接返回扫描结果，
                     scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
                     success: function (res) {
+                        _stop = false;
+
                         var code = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
                         $("#_barcode").val(code);
 
@@ -137,16 +150,38 @@
                         window.setTimeout("addCmd('')", 1);
                     },
                     fail: function (res) {
+                        
                         error = "扫码返回出错:" + JSON.stringify(res);
-                        $("#errorInfo").text(error);
+                        //$("#errorInfo").text(error);
+                        warn(error, "");
 
                         return;
-                    }
+                    },
+                    //trigger: function (res) {
+                    //    alert('tigger');
+                    //},
+                    complete: function (res) {
+                        alert("com-" + _stop);
+                        if (_stop == true)
+                        {
+                            //showPage();
+                            window.setTimeout("showPage()", 1);
+
+                        }
+                    },
+                    //cancel: function (res) {
+                    //    alert('cancel');
+                    //    _stop = true;
+                    //    showPage();
+                    //    return;
+                    //}
+
                 });
             }
             catch (err) {
                 error = "扫码异常:" + err;
-                $("#errorInfo").text(error);
+                //$("#errorInfo").text(error);
+                warn(error, "");
                 return;
             }
             //alert("end");
@@ -299,6 +334,11 @@
 
         function start(ope)
         {
+            $("#mybody").css("background-color", "black");
+            $("#mypage").css("display", "none");
+            //background-color:black;color:white
+
+
             _stop = false;
 
             $("#_charge_operation").val(ope);
@@ -346,8 +386,9 @@
 <input id="_patron" type="hidden" value="">
 <input id="_barcode" type="hidden" value="1">
 
-<div class="mui-content-padded">
-    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="start(1)">开始借书</button>
-    <button  class="mui-btn mui-btn-block mui-btn-primary" onclick="start(2)">开始还书</button>
-
+<div id="mypage" >
+    <div style="padding:10px">
+        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="start(1)">开始借书</button>
+        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="start(2)">开始还书</button>
+    </div>
 </div>
