@@ -189,6 +189,7 @@
     </Content>
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
+    <Content Include="img\arrowdown.png" />
     <Content Include="img\book2.png" />
     <Content Include="img\charge_success_24.png" />
     <Content Include="img\barcode.png" />
