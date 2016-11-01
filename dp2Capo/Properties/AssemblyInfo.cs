@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.15.*")]
-[assembly: AssemblyFileVersion("1.15.0.0")]
+[assembly: AssemblyVersion("1.16.*")]
+[assembly: AssemblyFileVersion("1.16.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -50,3 +50,4 @@ using System.Runtime.InteropServices;
 // 1.13 (2016/10/22) 点对点 API 增加了 LoginInfo 机制
 // 1.14 (2016/10/28) 加回去了两处 TryResetConnection(result.String);
 // 1.15 (2016/10/31) ConnectAsync() 和 CloseConnection() 改为采用整数防止重入。实际上是发现重入以后会直接跳出。另外每隔二十分钟自动清除 ChannelPool 中闲置的 LibraryChannel，此举主要是考虑到微信公众号模块采用读者身份进行各种操作了，因而申请的 LibraryChannel 可能数量较多。
+// 1.16 (2016/11/2) ConnectAsync() 和 CloseConection() 又改回 lock 方法。注释掉 Timer 相关的语句。ServerConnection 中的 virtual ConnectAsync() 也被注释掉了
