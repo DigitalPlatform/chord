@@ -68,7 +68,9 @@ namespace DigitalPlatform.MessageClient
             set;
         }
 
+#if TIMER
         System.Timers.Timer _timer = new System.Timers.Timer();
+#endif
 
         bool _exiting = false;  // 是否处在正在退出过程
 
@@ -108,8 +110,10 @@ namespace DigitalPlatform.MessageClient
 
         public MessageConnection()
         {
+#if TIMER
             _timer.Interval = 1000 * 30;
             _timer.Elapsed += _timer_Elapsed;
+#endif
         }
 
 #if NO
@@ -124,7 +128,7 @@ namespace DigitalPlatform.MessageClient
         }
 #endif
 
-
+#if TIMER
         int _inTimer = 0;   // 防止 _timer_Elapsed() 重叠运行
 
         async void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -150,6 +154,7 @@ namespace DigitalPlatform.MessageClient
                 }
             }
         }
+#endif
 
         public bool IsConnected
         {
@@ -179,8 +184,10 @@ namespace DigitalPlatform.MessageClient
 
         public virtual void Destroy()
         {
+#if TIMER
             _timer.Stop();
             _exiting = true;
+#endif
             CloseConnection();
         }
 
@@ -337,7 +344,7 @@ errorInfo)
             }
         }
 
-        // private static readonly Object _syncRoot = new Object();
+        private static readonly Object _syncRoot = new Object();
 
         void DisposeHandlers()
         {
@@ -354,9 +361,9 @@ errorInfo)
         // 要求调用前设置好 this.ServerUrl this.UserName this.Password this.Parameters
         public virtual async Task<MessageResult> ConnectAsync()
         {
-            _inCritical++;
-            try
+            lock(_syncRoot)
             {
+#if NO
                 if (_inCritical > 1)
                 {
                     MessageResult result = new MessageResult();
@@ -365,6 +372,8 @@ errorInfo)
                     result.String = "abortReenter";
                     return result;
                 }
+#endif
+
                 // 2016/9/15
                 // 防范本函数被重叠调用时形成多个连接
                 if (this.Connection != null)
@@ -476,10 +485,6 @@ errorInfo)
                     _handlers.Add(handler);
                 }
             }
-            finally
-            {
-                _inCritical--;
-            }
 
             try
             {
@@ -499,7 +504,9 @@ errorInfo)
                 {
                     MessageResult result = new MessageResult();
                     AddInfoLine("停止 Timer");
+#if TIMER
                     _timer.Stop();
+#endif
                     _exiting = false;
                     AddInfoLine("成功连接到 " + this.ServerUrl);
                     TriggerConnectionStateChange("Connected");
@@ -588,7 +595,9 @@ errorInfo)
             if (_exiting == false)
             {
                 AddInfoLine("开启 Timer");
+#if TIMER
                 _timer.Start();
+#endif
             }
 
             TriggerConnectionStateChange("Closed");
@@ -2726,16 +2735,17 @@ CancellationToken token)
             }
         }
 #endif
-        int _inCritical = 0;
+        // int _inCritical = 0;
 
         // 关闭连接，并且不会引起自动重连接
         public virtual void CloseConnection()
         {
-            _inCritical++;
-            try
+            lock(_syncRoot)
             {
+#if NO
                 if (_inCritical > 1)
                     return; // 放弃重入
+#endif
 
                 if (this.Connection != null)
                 {
@@ -2793,10 +2803,6 @@ CancellationToken token)
                         // GC.Collect();
                     }
                 }
-            }
-            finally
-            {
-                _inCritical--;
             }
         }
 

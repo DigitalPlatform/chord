@@ -198,6 +198,7 @@ namespace dp2Capo
             }
         }
 
+#if NO
         public override async Task<MessageResult> ConnectAsync()
         {
             if (this.Instance != null)
@@ -216,6 +217,7 @@ namespace dp2Capo
                 }
             }
         }
+#endif
 
 #if NO
         public LibraryChannel GetChannel(string strUserName)

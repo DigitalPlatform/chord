@@ -459,10 +459,18 @@ namespace dp2Capo
                 this.MessageConnection.CloseConnection(TimeSpan.FromSeconds(6));
                 this.WriteErrorLog("Connection 已经被重置");
 #endif
+
+#if NO
                 // 缺点是可能会在 dp2mserver 一端遗留原有通道。需要测试验证一下
                 this.WriteErrorLog("Connection 开始重置。方法是重新连接。最长等待 6 秒");
                 this.MessageConnection.ConnectAsync().Wait(TimeSpan.FromSeconds(6));
                 this.WriteErrorLog("Connection 已经被重置");
+#endif
+                // 缺点是可能会在 dp2mserver 一端遗留原有通道。需要测试验证一下
+                this.WriteErrorLog("Connection 开始重置。方法是重新连接。");
+                this.MessageConnection.ConnectAsync().Wait();
+                this.WriteErrorLog("Connection 已经被重置");
+
             }
         }
 
