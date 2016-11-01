@@ -737,5 +737,85 @@ out strError);
             MessageBox.Show(this, strError);
         }
 
+        private void button_createDpAccount_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+            int nRet = CreateDpUser(out strError);
+            if (nRet == -1)
+                goto ERROR1;
+            return;
+        ERROR1:
+            MessageBox.Show(this, strError);
+        }
+
+        int CreateDpUser(out string strError)
+        {
+            strError = "";
+            if (this.comboBox_url.Text == "")
+            {
+                strError = "尚未指定 dp2Library 服务器 URL";
+                return -1;
+            }
+
+            using (LibraryChannel channel = new LibraryChannel())
+            {
+                channel.Url = this.comboBox_url.Text;
+
+                channel.BeforeLogin -= new BeforeLoginEventHandle(channel_BeforeLogin);
+                channel.BeforeLogin += new BeforeLoginEventHandle(channel_BeforeLogin);
+
+                strError = "请用超级用户身份登录，以便创建 dp 帐户。";
+                int nRet = channel.DoNotLogin(ref strError);
+                if (nRet == -1 || nRet == 0)
+                {
+                    strError = "以超级用户身份登录失败: " + strError;
+                    return -1;
+                }
+
+                // 2.81
+                // 检查 dp2library 版本
+                // return:
+                //      -1  出错
+                //      0   dp2library 版本太低
+                //      1   成功
+                nRet = CheckVersion(channel,
+                    ProductUtil.dp2library_base_version,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                    return -1;
+
+                CreateDpUserDialog dlg = new CreateDpUserDialog();
+                dlg.UserName = "dp";
+                dlg.StartPosition = FormStartPosition.CenterScreen;
+                dlg.ShowDialog(this);
+                if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
+                {
+                    strError = "放弃创建 dp 用户";
+                    return -1;
+                }
+
+                UserInfo user = new UserInfo();
+                user.UserName = dlg.UserName;
+                user.Password = dlg.Password;
+                user.SetPassword = true;
+                user.Binding = "ip:[current]"   // 自动绑定当前请求者的 IP
+                    + ",router_ip:" + StringUtil.MakePathList(dlg.IpList, "|");
+                user.Rights = "changeuser,getcalendar,getchannelinfo,getoperlog,getreaderinfo,getres,getsystemparameter,getuser,listbibliodbfroms,listdbfroms,managedatabase,order,searchreader,setsystemparameter,writeres,managechannel";
+                user.Comment = "数字平台远程维护用账号";
+
+                long lRet = channel.SetUser(
+        "new",
+        user,
+        out strError);
+                if (lRet == -1)
+                {
+                    strError = "创建代理帐户时发生错误: " + strError;
+                    return -1;
+                }
+
+                channel.Logout(out strError);
+                return 0;
+            }
+        }
     }
 }

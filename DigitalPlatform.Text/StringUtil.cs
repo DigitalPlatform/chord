@@ -14,6 +14,62 @@ namespace DigitalPlatform.Text
     /// </summary>
     public static class StringUtil
     {
+        // 去掉列表中的空字符串，并且去掉每个元素的首尾空白
+        public static void RemoveBlank(ref List<string> list)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                string strText = list[i].Trim();
+                if (string.IsNullOrEmpty(strText) == true)
+                {
+                    list.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                if (strText != list[i])
+                    list[i] = strText;
+            }
+        }
+
+        // 把一个字符串数组去重。调用前，不要求已经排序
+        public static void RemoveDupNoSort(ref List<string> list)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                string strItem = list[i];
+                for (int j = i + 1; j < list.Count; j++)
+                {
+                    if (strItem == list[j])
+                    {
+                        list.RemoveAt(j);
+                        j--;
+                    }
+                }
+            }
+        }
+
+        // 把一个字符串数组去重。调用前，应当已经排序
+        public static void RemoveDup(ref List<string> list)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                string strItem = list[i];
+                for (int j = i + 1; j < list.Count; j++)
+                {
+                    if (strItem == list[j])
+                    {
+                        list.RemoveAt(j);
+                        j--;
+                    }
+                    else
+                    {
+                        i = j - 1;
+                        break;
+                    }
+                }
+            }
+        }
+
         public static string EscapeString(string strText, string speical_chars)
         {
             if (string.IsNullOrEmpty(strText) == true)

@@ -150,6 +150,12 @@ namespace dp2Capo
             }
         }
 
+        public void CleanLibraryChannel()
+        {
+            if (this._channelPool != null)
+                this._channelPool.CleanChannel();
+        }
+
         /// <summary>
         /// 向控制台输出纯文本
         /// </summary>

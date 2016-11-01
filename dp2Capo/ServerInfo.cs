@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
 
 using DigitalPlatform.Common;
 using DigitalPlatform.Net;
 using DigitalPlatform;
-using System.Reflection;
 
 namespace dp2Capo
 {
@@ -179,6 +179,8 @@ namespace dp2Capo
             }
         }
 
+        static DateTime _lastCleanTime = DateTime.Now;
+
         // 执行一些后台管理任务
         public static void BackgroundWork()
         {
@@ -244,6 +246,20 @@ namespace dp2Capo
                         Check(instance, tasks);
                     else
                         Echo(instance, false);
+
+                    // 每隔二十分钟清理一次闲置的 dp2library 通道
+                    if (DateTime.Now - _lastCleanTime >= TimeSpan.FromMinutes(20))
+                    {
+                        try
+                        {
+                            instance.MessageConnection.CleanLibraryChannel();
+                        }
+                        catch(Exception ex)
+                        {
+                            instance.WriteErrorLog("CleanLibraryChannel() 异常: " + ExceptionUtil.GetExceptionText(ex));
+                        }
+                        _lastCleanTime = DateTime.Now;
+                    }
                 }
             }
 

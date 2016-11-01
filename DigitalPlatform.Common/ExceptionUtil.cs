@@ -72,7 +72,7 @@ namespace DigitalPlatform
                 return GetAggregateExceptionText(ex as AggregateException);
 
             return ex.GetType().ToString() + ":" + ex.Message + "\r\n"
-                + ex.StackTrace;
+                + ex.StackTrace.ToString();
         }
 
         public static string GetAggregateExceptionText(AggregateException exception)
@@ -83,7 +83,7 @@ namespace DigitalPlatform
                 if (ex is AggregateException)   // 2016/7/5
                     text.Append(GetAggregateExceptionText(ex as AggregateException) + "\r\n");
                 else
-                    text.Append(ex.GetType().ToString() + ":" + ex.Message + "\r\n");
+                    text.Append(ex.GetType().ToString() + ":" + ex.Message + "\r\n{stack-trace-begin}" + ex.StackTrace.ToString() + "{stack-trace-end}\r\n");
                 // text.Append(ex.ToString() + "\r\n");
             }
 

@@ -52,8 +52,9 @@
             this.tabPage_msmq = new System.Windows.Forms.TabPage();
             this.tabPage_weixin = new System.Windows.Forms.TabPage();
             this.tabPage_router = new System.Windows.Forms.TabPage();
-            this.textBox_webURL = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
+            this.textBox_webURL = new System.Windows.Forms.TextBox();
+            this.button_createDpAccount = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage_general.SuspendLayout();
@@ -317,7 +318,7 @@
             this.tabPage_general.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage_general.Size = new System.Drawing.Size(379, 287);
             this.tabPage_general.TabIndex = 0;
-            this.tabPage_general.Text = "代理账户";
+            this.tabPage_general.Text = "capo 代理账户";
             this.tabPage_general.UseVisualStyleBackColor = true;
             // 
             // tabPage_msmq
@@ -345,6 +346,7 @@
             // 
             // tabPage_router
             // 
+            this.tabPage_router.Controls.Add(this.button_createDpAccount);
             this.tabPage_router.Controls.Add(this.label7);
             this.tabPage_router.Controls.Add(this.textBox_webURL);
             this.tabPage_router.Controls.Add(this.label6);
@@ -354,6 +356,16 @@
             this.tabPage_router.TabIndex = 3;
             this.tabPage_router.Text = "dp2Router";
             this.tabPage_router.UseVisualStyleBackColor = true;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(2, 201);
+            this.label7.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(113, 12);
+            this.label7.TabIndex = 12;
+            this.label7.Text = "注: 每行一个 URL。";
             // 
             // textBox_webURL
             // 
@@ -367,15 +379,15 @@
             this.textBox_webURL.Size = new System.Drawing.Size(372, 166);
             this.textBox_webURL.TabIndex = 11;
             // 
-            // label7
+            // button_createDpAccount
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(2, 201);
-            this.label7.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(113, 12);
-            this.label7.TabIndex = 12;
-            this.label7.Text = "注: 每行一个 URL。";
+            this.button_createDpAccount.Location = new System.Drawing.Point(4, 226);
+            this.button_createDpAccount.Name = "button_createDpAccount";
+            this.button_createDpAccount.Size = new System.Drawing.Size(273, 23);
+            this.button_createDpAccount.TabIndex = 13;
+            this.button_createDpAccount.Text = "在 dp2library 上创建 dp 账户 ...";
+            this.button_createDpAccount.UseVisualStyleBackColor = true;
+            this.button_createDpAccount.Click += new System.EventHandler(this.button_createDpAccount_Click);
             // 
             // dp2LibraryDialog
             // 
@@ -435,5 +447,6 @@
         private System.Windows.Forms.TabPage tabPage_router;
         private System.Windows.Forms.TextBox textBox_webURL;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Button button_createDpAccount;
     }
 }
