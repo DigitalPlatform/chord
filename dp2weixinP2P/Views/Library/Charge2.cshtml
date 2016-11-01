@@ -1,0 +1,353 @@
+﻿
+@{
+    ViewBag.Title = "Charge2";
+    Layout = "~/Views/Shared/_LayoutEmpty.cshtml";
+}
+
+@section Scripts {
+    <script>
+
+        $(document).ready(function () {
+
+
+            //doThing();
+
+        });
+
+
+        function dothing()
+        {
+            //alert("dothing()");
+
+            var _charge_operation = $("#_charge_operation").val();
+            var _charge_inputType = $("#_charge_inputType").val();
+            var _patron = $("#_patron").val();
+
+            var desc = "";
+            if (_charge_inputType == 1) {
+                desc = "请扫 证条码号";
+            }
+            else {
+                desc = "请扫 册条码号";
+            }
+
+
+            // 先提示,该扫码
+            warn(desc,"sweep");
+
+
+            // 扫码
+            //sweep();
+
+        }
+
+        var _stop=false;
+
+        function warn(text,next)
+        {
+            var html = "<div class='middle'>" + text
+                + "<br><br><a href='javascript:;' onclick='layer.closeAll();'>继续</a>"
+                +"</div>";
+            html += "<button class='mui-btn mui-btn-primary' onclick='_stop=true;layer.closeAll();'>停止</button>";
+            var ope = "";
+            // 根据借 还 做操作
+            if (_charge_operation == "borrow") {
+                ope = "借书环境";
+            }
+            else {
+                ope = "还书环境";
+            }
+            html += "<span>&nbsp;&nbsp;" + ope + "</span>";
+
+
+            var pageii = layer.open({
+                type: 1
+                , content: html
+                , anim: 'up'
+                , time: 3
+                , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:gray'
+                ,end: function(index){
+
+                    if(_stop==true)
+                    {
+                        return;
+                    }
+
+                    layer.close(index);
+
+                    if (next == "dothing")
+                    {
+                        dothing();
+                    }
+                    else if (next == "sweep")
+                        {
+                    // 扫码
+                        sweep();
+                    }
+            }   
+            });
+
+
+        }
+
+        // 扫码
+        function sweep() {
+
+            //alert("扫码");
+            //addCmd();
+            //return;
+
+            if (jssdkReady == -1) {
+                alert('JSSDK config信息验证失败，不能使用扫码功能。');
+                return;
+            }
+            else if (jssdkReady == 0) {
+                alert('JSSDK config未初始化完成，请稍候再试。');
+                return;
+            }
+
+            var error = "";
+
+            try {
+                wx.scanQRCode({
+                    desc: desc,
+                    needResult: 1, // 默认为0扫描结果由微信处理，1则直接返回扫描结果，
+                    scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+                    success: function (res) {
+                        var code = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+                        $("#_barcode").val(code);
+
+                        var _charge_inputType = $("#_charge_inputType").val();
+                        if (_charge_inputType == 2) {
+                            var item = code;
+                            if (item.indexOf(",") != -1) {
+                                var left = "";
+                                var right = "";
+                                left = item.substring(0, code.indexOf(","))//EAN_13
+                                right = item.substring(code.indexOf(",") + 1)
+
+                                if (left != "EAN_13" && left == "CODE_39") {
+                                    $("#errorInfo").text("扫描的不是册条码或者ISBN号");
+                                }
+                                $("#_barcode").val(right);
+                            }
+
+                        }
+
+                        window.setTimeout("addCmd('')", 1);
+                    },
+                    fail: function (res) {
+                        error = "扫码返回出错:" + JSON.stringify(res);
+                        $("#errorInfo").text(error);
+
+                        return;
+                    }
+                });
+            }
+            catch (err) {
+                error = "扫码异常:" + err;
+                $("#errorInfo").text(error);
+                return;
+            }
+            //alert("end");
+        }
+
+
+        // 执行命令
+        function addCmd() {
+
+            // 输出提示
+            warn("addCmd","dothing");
+
+
+            return;
+
+            //// 先清掉扫码错误信息
+            //$("#errorInfo").text("");
+
+            // 图书馆
+            var libId = getLibId();//$("#selLib").val();
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+
+            // 微信id
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "") {
+                alert("weixinId不能为空。");
+                return;
+            }
+
+            var patron = "";
+            var item = "";
+            var cmdType = "";
+
+            var _charge_operation = $("#_charge_operation").val();
+            var _charge_inputType = $("#_charge_inputType").val();
+
+            if (_charge_operation == "borrow") {
+                if (_charge_inputType == 1) {
+                    cmdType = "loadPatron";
+                    patron = $("#_barcode").val(); //从输入框取值
+                    if (patron == null || patron == "") {
+                        alert("请输入 证 条码号");
+                        $("barcode").focus();
+                        return;
+                    }
+
+                    //_patron = patron;
+                    $("#_patron").val(patron);
+
+
+                }
+                else {
+                    cmdType = "borrow";
+                    patron = $("#_patron").val();//_patron; //从变量取值
+                    item = $("#_barcode").val();
+                    if (item == null || item == "") {
+                        alert("请输入 册 条码号");
+                        return;
+                    }
+
+
+                }
+            }
+            else if (_charge_operation == "return") {
+                cmdType = "return";
+                item = $("#_barcode").val();
+                if (item == null || item == "") {
+                    alert("请输入 册 条码号");
+                    return;
+                }
+            }
+
+
+            //alert(_patron);
+
+            //登录身份
+            var userName = $("#_userName").text();
+
+            //显示等待图层
+            showMaskLayer();
+
+            //调 web api
+            var url = "/api/ChargeCommand?weixinId=" + weixinId
+                + "&libId=" + libId;
+            var data = {
+                type: cmdType,
+                patron: patron,
+                item: item,
+                userName: userName
+            };
+
+
+
+            sendAjaxRequest(url, "POST", function (cmd) {
+
+                // 关闭等待层
+                hideMaskLayer();
+
+                // 清掉输入框
+                $("#_barcode").val(""); //清掉输入框    
+
+                if (cmd.state == -2) {
+                    alert("姓名重复");
+                    return;
+                }
+
+                if (cmd.state == -3) {
+                    showSelectItem(cmd.itemList);
+                    return;
+                }
+
+                // 加入操作历史
+                viewCmd(cmd);
+
+                $("#_barcode").val(""); //清掉输入框      
+
+                if (cmdType == "loadPatron") {
+                    $("#patron").html(""); //清掉读者信息
+                    if (cmd.state == 1) {
+                        setInput(2);
+                        $("#_patron").val(patron);
+                        // 显示读者信息
+                        $("#patron").html(cmd.patronHtml);
+                    }
+                }
+                else {  
+                    // 更新读者信息
+                    if (cmd.patronHtml != "" && cmd.patronHtml != null) {
+                        $("#patron").html(cmd.patronHtml);
+                    }
+                }
+
+                ////如果是扫码方法，且操作成功，才继续打开扫描
+                //if (cmd.state == 1) {
+                //    sweep();
+                //}
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                hideMaskLayer();
+                alert(errorThrown);
+            },
+            data);
+
+
+        }
+
+        function start(ope)
+        {
+            _stop = false;
+
+            $("#_charge_operation").val(ope);
+            if (ope = "borrow") {
+                $("#_charge_inputType").val(1);
+            }
+            else {
+                $("#_charge_inputType").val(2);
+
+            }
+
+            // 开始做事
+            dothing();
+        }
+
+        </script>
+    }
+
+@section style {
+<style>
+
+    .middle {
+            border: solid 2px #86A5AD;
+            display: block;
+            width: 160px;
+            height: 50px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            margin-left: -80px;
+            margin-top: -25px;
+            padding: 10px 10px 10px 30px;
+            text-align: left;
+            line-height: 15px;
+            /*font-weight:bold;*/
+            position: absolute;
+            z-index: 2001;
+            vertical-align:top;
+}
+    </style>
+    }
+
+<input id="_charge_operation" type="hidden" value="borrow">
+<input id="_charge_inputType" type="hidden" value="1">
+<input id="_patron" type="hidden" value="">
+<input id="_barcode" type="hidden" value="1">
+
+<div class="mui-content-padded">
+    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="start(1)">开始借书</button>
+    <button  class="mui-btn mui-btn-block mui-btn-primary" onclick="start(2)">开始还书</button>
+
+</div>

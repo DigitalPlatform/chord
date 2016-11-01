@@ -333,6 +333,8 @@
     <Content Include="Views\Library\Charge1.cshtml" />
     <Content Include="Views\UI\charge.cshtml" />
     <Content Include="Views\Library\SearchItem.cshtml" />
+    <Content Include="Views\Shared\_LayoutEmpty.cshtml" />
+    <Content Include="Views\Library\Charge2.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

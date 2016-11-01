@@ -33,6 +33,40 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 内务
+        public ActionResult Charge2(string code, string state)
+        {
+            string strError = "";
+
+
+            //// 检查是否从微信入口进来
+            //int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            //if (nRet == -1)
+            //    goto ERROR1;
+
+            ////绑定的工作人员账号 需要有权限
+            //string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            //string libId = ViewBag.LibId;
+
+            //WxUserItem worker = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
+            //// 未绑定工作人员，
+            //if (worker == null)
+            //{
+            //    ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge", true);
+            //    return View();
+            //}
+
+
+            ////设到ViewBag里
+            //ViewBag.userName = worker.userName;
+            return View();
+
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
+        // 内务
         public ActionResult Charge(string code, string state)
         {
             // 检查是否从微信入口进来
