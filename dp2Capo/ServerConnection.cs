@@ -1178,7 +1178,7 @@ strError);
 
         void writeDebug(string strText)
         {
-            // this.Instance.WriteErrorLog("debug: " + strText);
+            this.Instance.WriteErrorLog("debug: " + strText);
         }
 
         // TODO: 本函数最好放在一个工作线程内执行
@@ -2155,6 +2155,7 @@ strErrorCode));
                 goto ERROR1;
             }
 
+            writeDebug("GetSystemParameter() begin");
             try
             {
                 LibraryChannel channel = GetChannel(searchParam.LoginInfo);
@@ -2236,6 +2237,10 @@ strErrorCode));
             {
                 strError = "GetSystemParameter() 异常：" + ExceptionUtil.GetDebugText(ex);
                 goto ERROR1;
+            }
+            finally
+            {
+                writeDebug("GetSystemParameter() end");
             }
             return;
         ERROR1:
