@@ -813,12 +813,13 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.Login(
-                    strUserName,
-                    strPassword,
-                    strParameters,
                     out strOutputUserName,
                     out strRights,
-                    out strLibraryCode);
+                    out strLibraryCode,
+                    strUserName,
+                    strPassword,
+                    strParameters
+                    );
                 strError = result.ErrorInfo;
                 this.ErrorCode = result.ErrorCode;
                 this.ClearRedoCount();
@@ -1274,8 +1275,9 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SetLang(
-                    strLang,
-                    out strOldLang);
+                    out strOldLang,
+                    strLang
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -1519,12 +1521,13 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetSearchResult(
+                    out searchresults,
                     strResultSetName,
                     0,
                     0,
                     "@" + strAction + ":" + strGlobalResultName,
-                    "zh",
-                    out searchresults);
+                    "zh"
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -1595,12 +1598,13 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetSearchResult(
+                    out searchresults,
                     strResultSetName,
                     lStart,
                     lCount,
                     strBrowseInfoStyle,
-                    strLang,
-                    out searchresults);
+                    strLang
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -1659,9 +1663,10 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetBrowseRecords(
-                                        paths,
-                    strBrowseInfoStyle,
-                    out searchresults);
+                    out searchresults,
+                    paths,
+                    strBrowseInfoStyle
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -1717,9 +1722,10 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetRecord(
-                                        strPath,
                     out timestamp,
-                    out strXml);
+                    out strXml,
+                    strPath
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -1788,17 +1794,17 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SetReaderInfo(
-                                        strAction,
-                    strRecPath,
-                    strNewXml,
-                    strOldXml,
-                    baOldTimestamp,
-
                     out strExistingXml,
                     out strSavedXml,
                     out strSavedRecPath,
                     out baNewTimestamp,
-                    out kernel_errorcode);
+                    out kernel_errorcode,
+                    strAction,
+                    strRecPath,
+                    strNewXml,
+                    strOldXml,
+                    baOldTimestamp
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -1890,13 +1896,15 @@ out strError);
         REDO:
             try
             {
-                LibraryServerResult result = this.ws.GetReaderInfo(
-                                        strBarcode,
-                    strResultTypeList,
+                // localhost.dp2libraryREST _ws = ws as localhost.dp2libraryREST;
 
+                LibraryServerResult result = this.ws.GetReaderInfo(
                     out results,
                     out strRecPath,
-                    out baTimestamp);
+                    out baTimestamp,
+                    strBarcode,
+                    strResultTypeList
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -2116,16 +2124,17 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetItemInfo(
-                                        strItemDbType,
-                    strBarcode,
-                    strItemXml,
-                    strResultType,
-                    strBiblioType,
                     out strResult,
                     out strItemRecPath,
                     out item_timestamp,
                     out strBiblio,
-                    out strBiblioRecPath);
+                    out strBiblioRecPath,
+                    strItemDbType,
+                    strBarcode,
+                    strItemXml,
+                    strResultType,
+                    strBiblioType
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -2205,6 +2214,12 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.Borrow(
+                    out item_records,
+                    out reader_records,
+                    out biblio_records,
+                    out borrow_info,
+                    out aDupPath,
+                    out strOutputReaderBarcode,
                                         bRenew,
                     strReaderBarcode,
                     strItemBarcode,
@@ -2214,14 +2229,8 @@ out strError);
                     strStyle,
                     strItemFormatList,
                     strReaderFormatList,
-                    strBiblioFormatList,
-
-                    out item_records,
-                    out reader_records,
-                    out biblio_records,
-                    out borrow_info,
-                    out aDupPath,
-                    out strOutputReaderBarcode);
+                    strBiblioFormatList
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -2303,6 +2312,12 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.Return(
+                    out item_records,
+                    out reader_records,
+                    out biblio_records,
+                    out aDupPath,
+                    out strOutputReaderBarcode,
+                    out return_info,
                                         strAction,
                     strReaderBarcode,
                     strItemBarcode,
@@ -2311,14 +2326,8 @@ out strError);
                     strStyle,
                     strItemFormatList,
                     strReaderFormatList,
-                    strBiblioFormatList,
-
-                    out item_records,
-                    out reader_records,
-                    out biblio_records,
-                    out aDupPath,
-                    out strOutputReaderBarcode,
-                    out return_info);
+                    strBiblioFormatList
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -2369,9 +2378,10 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SetEntities(
-                                        strBiblioRecPath,
-                    entityinfos,
-                    out errorinfos);
+                    out errorinfos,
+                    strBiblioRecPath,
+                    entityinfos
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -2429,9 +2439,10 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.ListBiblioDbFroms(
-                                        strDbType,
-                    strLang,
-                    out infos);
+                    out infos,
+                    strDbType,
+                    strLang
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -2510,6 +2521,7 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SearchBiblio(
+                    out strQueryXml,
                     strBiblioDbNames,
                     strQueryWord,
                     nPerMax,
@@ -2519,8 +2531,8 @@ out strError);
                     strResultSetName,
                     strSearchStyle,
                     strOutputStyle,
-                    strLocationFilter,
-                    out strQueryXml);
+                    strLocationFilter
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -2575,10 +2587,11 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetBiblioInfo(
-                                        strBiblioRecPath,
+                    out strBiblio,
+                    strBiblioRecPath,
                     strBiblioXml,
-                    strBiblioType,
-                    out strBiblio);
+                    strBiblioType
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -2626,9 +2639,10 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetValueTable(
-                                        strTableName,
-                    strDbName,
-                    out values);
+                    out values,
+                    strTableName,
+                    strDbName
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -2690,13 +2704,14 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetOperLogs(
-                                        strFileName,
+                    out records,
+                    strFileName,
                     lIndex,
                     lHint,
                     nCount,
                     strStyle,
-                    strFilter,
-                    out records);
+                    strFilter
+                    );
                 strError = result.ErrorInfo;
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
@@ -2774,17 +2789,17 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetOperLog(
-                                        strFileName,
+                    out strXml,
+                    out lHintNext,
+                    out attachment_data,
+                    out lAttachmentTotalLength,                                        strFileName,
                     lIndex,
                     lHint,
                     strStyle,
                     strFilter,
                     lAttachmentFragmentStart,
-                    nAttachmentFragmentLength,
-                    out strXml,
-                    out lHintNext,
-                    out attachment_data,
-                    out lAttachmentTotalLength);
+                    nAttachmentFragmentLength
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -2836,12 +2851,12 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetCalendar(
+                    out contents,
                                         strAction,
                     strName,
                     nStart,
-                    nCount,
-
-                    out contents);
+                    nCount
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -2937,10 +2952,11 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.BatchTask(
+                    out resultInfo,
                     strName,
                     strAction,
-                    info,
-                    out resultInfo);
+                    info
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -3060,11 +3076,12 @@ out strError);
                     try
                     {
                         LibraryServerResult result = this.ws.GetBiblioSummary(
-                                                        strItemBarcode,
-                            strConfirmItemRecPath,
-                            strBiblioRecPathExclude,
                             out strBiblioRecPath,
-                            out strSummary);
+                            out strSummary,
+                            strItemBarcode,
+                            strConfirmItemRecPath,
+                            strBiblioRecPathExclude
+                            );
                         if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                         {
                             if (DoNotLogin(ref strError) == 1)
@@ -3314,9 +3331,11 @@ out strError);
         REDO:
             try
             {
-                LibraryServerResult result = this.ws.ResetPassword(strParameters,
-                    strMessageTemplate,
-                    out strMessage);
+                LibraryServerResult result = this.ws.ResetPassword(
+                    out strMessage,
+                    strParameters,
+                    strMessageTemplate
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -3354,13 +3373,14 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.BindPatron(
+                    out results,
                     strAction,
                     strQueryWord,
                     strPassword,
                     strBindingID,
                     strStyle,
-                    strResultTypeList,
-                    out results);
+                    strResultTypeList
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -3410,10 +3430,11 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.ManageDatabase(
+                    out strOutputInfo,
                     strAction,
                     strDatabaseName,
-                    strDatabaseInfo,
-                    out strOutputInfo);
+                    strDatabaseInfo
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -3465,11 +3486,12 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetUser(
-                                        strAction,
+                    out contents,
+                    strAction,
                     strName,
                     nStart,
-                    nCount,
-                    out contents);
+                    nCount
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -3564,11 +3586,12 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetChannelInfo(
+                    out contents,
                                         strQuery,
                     strStyle,
                     nStart,
-                    nCount,
-                    out contents);
+                    nCount
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -3618,10 +3641,11 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.ManageChannel(
+                    out results,
                                         strAction,
                     strStyle,
-                    requests,
-                    out results);
+                    requests
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -3851,12 +3875,13 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.ListFile(
-                                        strAction,
+                    out infos,
+                    strAction,
                     strCategory,
                     strFileName,
                     lStart,
-                    lLength,
-                    out infos);
+                    lLength
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -3919,12 +3944,13 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetFile(
-                                        strCategory,
+                    out baContent,
+                    out strFileTime,
+                    strCategory,
                     strFileName,
                     lStart,
-                    lLength,
-                    out baContent,
-                    out strFileTime);
+                    lLength
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -3971,9 +3997,10 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetSystemParameter(
-                                        strCategory,
-                    strName,
-                    out strValue);
+                    out strValue,
+                    strCategory,
+                    strName
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4097,16 +4124,17 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.RepairBorrowInfo(
-                                        strAction,
+                    out nProcessedBorrowItems,
+                    out nTotalBorrowItems,
+                    out strOutputReaderBarcode,
+                    out aDupPath,
+                    strAction,
                     strReaderBarcode,
                     strItemBarcode,
                     strConfirmItemRecPath,
                     nStart,
-                    nCount,
-                    out nProcessedBorrowItems,
-                    out nTotalBorrowItems,
-                    out strOutputReaderBarcode,
-                    out aDupPath);
+                    nCount
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4157,11 +4185,12 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetBiblioInfos(
-                                        strBiblioRecPath,
-                    strBiblioXml,
-                    formats,
                     out results,
-                    out baTimestamp);
+                    out baTimestamp,
+                    strBiblioRecPath,
+                    strBiblioXml,
+                    formats
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4203,14 +4232,15 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SetBiblioInfo(
-                                        strAction,
+                    out strOutputBiblioRecPath,
+                    out baOutputTimestamp,
+                     strAction,
                     strBiblioRecPath,
                     strBiblioType,
                     strBiblio,
                     baTimestamp,
-                    strComment,
-                    out strOutputBiblioRecPath,
-                    out baOutputTimestamp);
+                    strComment
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4256,17 +4286,18 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.CopyBiblioInfo(
-                                        strAction,
+                    out strOutputBiblio,
+                    out strOutputBiblioRecPath,
+                    out baOutputTimestamp,
+                    strAction,
                     strBiblioRecPath,
                     strBiblioType,
                     strBiblio,
                     baTimestamp,
                     strNewBiblioRecPath,
                     strNewBiblio,
-                    strMergeStyle,
-                    out strOutputBiblio,
-                    out strOutputBiblioRecPath,
-                    out baOutputTimestamp);
+                    strMergeStyle
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4303,10 +4334,11 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.PassGate(
-                                        strReaderBarcode,
+                    out results,
+                    strReaderBarcode,
                     strGateName,
-                    strResultTypeList,
-                    out results);
+                    strResultTypeList
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4348,10 +4380,11 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.Foregift(
-                                        strAction,
-                    strReaderBarcode,
                     out strOutputReaderXml,
-                    out strOutputID);
+                    out strOutputID,
+                    strAction,
+                    strReaderBarcode
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4389,10 +4422,11 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.Hire(
-                    strAction,
-                    strReaderBarcode,
                     out strOutputReaderXml,
-                    out strOutputID);
+                    out strOutputID,
+                    strAction,
+                    strReaderBarcode
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4464,10 +4498,11 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SearchOneClassCallNumber(
-                                        strArrangeGroupName,
+                    out strQueryXml,
+                    strArrangeGroupName,
                     strClass,
-                    strResultSetName,
-                    out strQueryXml);
+                    strResultSetName
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4507,13 +4542,14 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetCallNumberSearchResult(
-                                        strArrangeGroupName,
+                    out searchresults,
+                    strArrangeGroupName,
                     strResultSetName,
                     lStart,
                     lCount,
                     strBrowseInfoStyle,
-                    strLang,
-                    out searchresults);
+                    strLang
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4548,9 +4584,10 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetOneClassTailNumber(
-                                        strArrangeGroupName,
-                    strClass,
-                    out strTailNumber);
+                    out strTailNumber,
+                    strArrangeGroupName,
+                    strClass
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4588,11 +4625,12 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SetOneClassTailNumber(
-                                        strAction,
+                    out strOutputNumber,
+                    strAction,
                     strArrangeGroupName,
                     strClass,
-                    strTestNumber,
-                    out strOutputNumber);
+                    strTestNumber
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4629,10 +4667,11 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SearchUsedZhongcihao(
-                                        strZhongcihaoGroupName,
+                    out strQueryXml,
+                    strZhongcihaoGroupName,
                     strClass,
-                    strResultSetName,
-                    out strQueryXml);
+                    strResultSetName
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4672,12 +4711,13 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetZhongcihaoSearchResult(
-                                        strZhongcihaoGroupName,
+                    out searchresults,
+                    strZhongcihaoGroupName,
                     strResultSetName, lStart,
                     lCount,
                     strBrowseInfoStyle,
-                    strLang,
-                    out searchresults);
+                    strLang
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4712,9 +4752,10 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetZhongcihaoTailNumber(
-                                        strZhongcihaoGroupName,
-                    strClass,
-                    out strTailNumber);
+                    out strTailNumber,
+                    strZhongcihaoGroupName,
+                    strClass
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4752,11 +4793,12 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SetZhongcihaoTailNumber(
+                    out strOutputNumber,
                                         strAction,
                     strZhongcihaoGroupName,
                     strClass,
-                    strTestNumber,
-                    out strOutputNumber);
+                    strTestNumber
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4797,11 +4839,12 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SearchDup(
-                                        strOriginBiblioRecPath,
+                    out strUsedProjectName,
+                    strOriginBiblioRecPath,
                     strOriginBiblioRecXml,
                     strProjectName,
-                    strStyle,
-                    out strUsedProjectName);
+                    strStyle
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4840,8 +4883,9 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.ListDupProjectInfos(
-                                        strOriginBiblioDbName,
-                    out results);
+                    out results,
+                    strOriginBiblioDbName
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4878,10 +4922,11 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetDupSearchResult(
-                                        lStart,
+                    out searchresults,
+                    lStart,
                     lCount,
-                    strBrowseInfoStyle,
-                    out searchresults);
+                    strBrowseInfoStyle
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4919,12 +4964,13 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetUtilInfo(
+                    out strValue,
                                         strAction,
                     strDbName,
                     strFrom,
                     strKey,
-                    strValueAttrName,
-                    out strValue);
+                    strValueAttrName
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -5032,14 +5078,15 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetRes(
-                                        strResPath,
-                    lStart,
-                    nLength,
-                    strStyle,
                     out baContent,
                     out strMetadata,
                     out strOutputResPath,
-                    out baOutputTimestamp);
+                    out baOutputTimestamp,
+                    strResPath,
+                    lStart,
+                    nLength,
+                    strStyle
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -5389,15 +5436,16 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.WriteRes(
-                                        strResPath,
+                    out strOutputResPath,
+                    out baOutputTimestamp,
+                    strResPath,
                     strRanges,
                     lTotalLength,
                     baContent,
                     strMetadata,
                     strStyle,
-                    baInputTimestamp,
-                    out strOutputResPath,
-                    out baOutputTimestamp);
+                    baInputTimestamp
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -5692,12 +5740,13 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetEntities(
+                    out entityinfos,
                     strBiblioRecPath,
                     lStart,
                     lCount,
                     strStyle,
-                    strLang,
-                    out entityinfos);
+                    strLang
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -5741,12 +5790,13 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetIssues(
+                    out issueinfos,
                     strBiblioRecPath,
                     lStart,
                     lCount,
                     strStyle,
-                    strLang,
-                    out issueinfos);
+                    strLang
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -5785,9 +5835,10 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SetIssues(
-                                        strBiblioRecPath,
-                    issueinfos,
-                    out errorinfos);
+                    out errorinfos,
+                    strBiblioRecPath,
+                    issueinfos
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -5894,16 +5945,17 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetIssueInfo(
-                                        strRefID,
-                    // strBiblioRecPath,
-                    strItemXml,
-                    strResultType,
-                    strBiblioType,
                     out strResult,
                     out strIssueRecPath,
                     out issue_timestamp,
                     out strBiblio,
-                    out strOutputBiblioRecPath);
+                    out strOutputBiblioRecPath,
+                                        strRefID,
+                    // strBiblioRecPath,
+                    strItemXml,
+                    strResultType,
+                    strBiblioType
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -6019,12 +6071,13 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetOrders(
+                    out orderinfos,
                                         strBiblioRecPath,
                     lStart,
                     lCount,
                     strStyle,
-                    strLang,
-                    out orderinfos);
+                    strLang
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -6063,9 +6116,10 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SetOrders(
-                                        strBiblioRecPath,
-                    orderinfos,
-                    out errorinfos);
+                    out errorinfos,
+                    strBiblioRecPath,
+                    orderinfos
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -6185,16 +6239,17 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetOrderInfo(
-                                        strRefID,
-                    // strBiblioRecPath,
-                    strItemXml,
-                    strResultType,
-                    strBiblioType,
                     out strResult,
                     out strItemRecPath,
                     out item_timestamp,
                     out strBiblio,
-                    out strOutputBiblioRecPath);
+                    out strOutputBiblioRecPath,
+                                        strRefID,
+                    // strBiblioRecPath,
+                    strItemXml,
+                    strResultType,
+                    strBiblioType
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -6310,12 +6365,13 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetComments(
-                                        strBiblioRecPath,
+                    out commentinfos,
+                    strBiblioRecPath,
                     lStart,
                     lCount,
                     strStyle,
-                    strLang,
-                    out commentinfos);
+                    strLang
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -6354,9 +6410,10 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SetComments(
-                                        strBiblioRecPath,
-                    commentinfos,
-                    out errorinfos);
+                    out errorinfos,
+                    strBiblioRecPath,
+                    commentinfos
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -6477,16 +6534,17 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetCommentInfo(
-                                        strRefID,
-                    // strBiblioRecPath,
-                    strItemXml,
-                    strResultType,
-                    strBiblioType,
                     out strResult,
                     out strCommentRecPath,
                     out comment_timestamp,
                     out strBiblio,
-                    out strOutputBiblioRecPath);
+                    out strOutputBiblioRecPath,
+                                        strRefID,
+                    // strBiblioRecPath,
+                    strItemXml,
+                    strResultType,
+                    strBiblioType
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -6629,9 +6687,10 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetMessage(
-                                        message_ids,
-                    messagelevel,
-                    out messages);
+                    out messages,
+                    message_ids,
+                    messagelevel
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -6671,14 +6730,15 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.ListMessage(
-                                        strStyle,
+                    out nTotalCount,
+                    out messages,
+                    strStyle,
             strResultsetName,
             strBoxType,
             messagelevel,
             nStart,
-            nCount,
-                    out nTotalCount,
-                    out messages);
+            nCount
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -6735,10 +6795,11 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SetMessage(
-                                        strAction,
+                    out output_messages,
+                    strAction,
                     strStyle,
-                    messages,
-                    out output_messages);
+                    messages
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -6773,10 +6834,11 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.GetStatisInfo(
-                    strDateRangeString,
-                    strStyle,
                     out info,
-                    out strXml);
+                    out strXml,
+                    strDateRangeString,
+                    strStyle
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -6808,8 +6870,9 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.ExistStatisInfo(
-                    strDateRangeString,
-                    out dates);
+                    out dates,
+                    strDateRangeString
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -6843,10 +6906,11 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.HitCounter(
-                                        strAction,
+                    out lValue,
+                    strAction,
                     strName,
-                    strClientAddress,
-                    out lValue);
+                    strClientAddress
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -6886,13 +6950,14 @@ out strError);
             try
             {
                 LibraryServerResult result = this.ws.SearchCharging(
+                    out results,
                                         patronBarcode,
                         timeRange,
                         actions,
                         order,
                         start,
-                        count,
-                    out results);
+                        count
+                    );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
