@@ -38,6 +38,7 @@
     <Reference Include="System.IdentityModel" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -62,37 +63,13 @@
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.AmerceItem.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.AmerceResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.AmerceResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.BatchTaskInfo.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.BatchTaskResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.BatchTaskResponse1.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.BiblioDbFromInfo.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.BindPatronResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.BindPatronResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.BorrowInfo.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.BorrowResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.BorrowResponse1.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.CalenderInfo.datasource">
@@ -105,12 +82,6 @@
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ChargingItemWrapper.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.CopyBiblioInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.CopyBiblioInfoResponse1.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.DateExist.datasource">
@@ -128,298 +99,16 @@
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ErrorCodeValue.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ExistStatisInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ExistStatisInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.FileItemInfo.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ForegiftResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ForegiftResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetBiblioInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetBiblioInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetBiblioInfosResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetBiblioInfosResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetBiblioSummaryResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetBiblioSummaryResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetBrowseRecordsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetBrowseRecordsResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetCalendarResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetCalendarResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetCallNumberSearchResultResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetCallNumberSearchResultResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetChannelInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetChannelInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetClockResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetClockResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetCommentInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetCommentInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetCommentsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetCommentsResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetDupSearchResultResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetDupSearchResultResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetEntitiesResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetEntitiesResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetFileResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetFileResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetIssueInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetIssueInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetIssuesResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetIssuesResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetItemInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetItemInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetMessageResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetMessageResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetOneClassTailNumberResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetOneClassTailNumberResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetOperLogResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetOperLogResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetOperLogsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetOperLogsResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetOrderInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetOrderInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetOrdersResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetOrdersResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetReaderInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetReaderInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetRecordResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetRecordResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetResResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetResResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetSearchResultResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetSearchResultResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetStatisInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetStatisInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetSystemParameterResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetSystemParameterResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetUserResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetUserResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetUtilInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetUtilInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetValueTableResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetValueTableResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetVersionResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetVersionResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetZhongcihaoSearchResultResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetZhongcihaoSearchResultResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetZhongcihaoTailNumberResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.GetZhongcihaoTailNumberResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.HireResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.HireResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.HitCounterResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.HitCounterResponse1.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.LibraryServerResult.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ListBiblioDbFromsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ListBiblioDbFromsResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ListDupProjectInfosResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ListDupProjectInfosResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ListFileResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ListFileResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ListMessageResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ListMessageResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.LoginResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.LoginResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ManageChannelResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ManageChannelResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ManageDatabaseResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ManageDatabaseResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.MessageData.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.MoveReaderInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.MoveReaderInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.OperLogInfo.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.PassGateResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.PassGateResponse1.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.RangeStatisInfo.datasource">
@@ -428,148 +117,13 @@
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.Record.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.RepairBorrowInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.RepairBorrowInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ResetPasswordResponse1.datasource">
+    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ResInfoItem.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ReturnInfo.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ReturnResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ReturnResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchBiblioResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchBiblioResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchChargingResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchChargingResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchCommentDupResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchCommentDupResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchDupResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchDupResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchIssueDupResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchIssueDupResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchItemDupResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchItemDupResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchOneClassCallNumberResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchOneClassCallNumberResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchOrderDupResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchOrderDupResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchUsedZhongcihaoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SearchUsedZhongcihaoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetBiblioInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetBiblioInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetCommentsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetCommentsResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetEntitiesResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetEntitiesResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetIssuesResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetIssuesResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetLangResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetLangResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetMessageResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetMessageResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetOneClassTailNumberResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetOneClassTailNumberResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetOrdersResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetOrdersResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetReaderInfoResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetReaderInfoResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetZhongcihaoTailNumberResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.SetZhongcihaoTailNumberResponse1.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.UserInfo.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.WriteResResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.WriteResResponse1.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.ZhongcihaoSearchResult.datasource">
