@@ -47,8 +47,10 @@
         {
             var html = "<div class='middle'>" + text
                 + "<br><br><a href='javascript:;' onclick='layer.closeAll();'>跳过</a>"
-                +"</div>";
-            html += "<button class='mui-btn mui-btn-primary' onclick='_stop=true;layer.closeAll();'>停止</button>";
+                + "</div>";
+
+
+            //html += 
             var ope = "";
             // 根据借 还 做操作
             if (_charge_operation == "borrow") {
@@ -57,7 +59,14 @@
             else {
                 ope = "还书环境";
             }
-            html += "<span>&nbsp;&nbsp;" + ope + "</span>";
+            html += "<table width='100%;padding-top:0px'><tr>"
+                +"<td style='width:100%;text-align:center'>"
+                + "<span style='font-size:14.8px'>" + ope + "</span>"
+                + "</td>"
+                + "<td style='width:80px;padding-right:10px'>"
+                + "<button class='mui-btn mui-btn-primary' onclick='_stop=true;layer.closeAll();'>停止</button>";
+                + "</td>"
+                +"</tr></table>"
 
 
             var pageii = layer.open({
@@ -67,16 +76,12 @@
                 , time: 3
                 , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'
                 ,end: function(index){
-
                     layer.close(index);
-
                     if (_stop == true || next==null || next=="")
                     {
                         showPage();
                         return;
                     }
-
-
                     if (next == "dothing")
                     {
                         dothing();
@@ -86,10 +91,7 @@
                     // 扫码
                         sweep();
                     }
-
-
-
-            }   
+                }   
             });
 
 
@@ -101,8 +103,41 @@
             $("#mypage").css("display", "block");
         }
 
+        function ok()
+        {
+            var barcode = $("#mybarcode").val();
+            alert(barcode);
+            layer.closeAll();
+        }
+
+        var _type = 1; //1 扫码方式  2输入框方式
+
+        function sweep2()
+        {
+            var html = "<br><br><table style='width:100%'><tr>"
+                + "<td><input id='mybarcode' style='color:black;padding:0px;margin:0px' type='text' /></td>"
+                + "<td ><button onclick='ok()' style='margin:0px'>确认</button></td>"
+            + "</tr></table>";
+            var pageii = layer.open({
+                type: 1
+                , content: html
+                //, anim: 'up'
+                , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'
+                , end: function (index) {
+                    layer.close(index);
+                    addCmd();
+                }
+            });
+        }
+
         // 扫码
         function sweep() {
+
+            if (_type == 2)
+            {
+                sweep2();
+                return;
+            }
 
             _stop = true;
             //alert("扫码");
@@ -353,6 +388,17 @@
             dothing();
         }
 
+
+        function setType() {
+            var type = 1;
+            $("#ckbPhoto:checked").each(function () {
+                type = 2;
+            });
+            
+
+            _type = type;
+        }
+
         </script>
     }
 
@@ -362,13 +408,13 @@
     .middle {
             border: solid 2px #86A5AD;
             display: block;
-            width: 160px;
-            height: 50px;
+            width: 200px;
+            height: 200px;
             position: fixed;
             top: 50%;
             left: 50%;
-            margin-left: -80px;
-            margin-top: -25px;
+            margin-left: -100px;
+            margin-top: -100px;
             padding: 10px 10px 10px 30px;
             text-align: left;
             line-height: 15px;
@@ -389,5 +435,11 @@
     <div style="padding:10px">
         <button class="mui-btn mui-btn-block mui-btn-primary" onclick="start(1)">开始借书</button>
         <button class="mui-btn mui-btn-block mui-btn-primary" onclick="start(2)">开始还书</button>
+
+        <input id='ckbPhoto' onchange="setType()" type='checkbox' />输入框方式
+
     </div>
+
+
+
 </div>

@@ -209,8 +209,8 @@ namespace dp2weixinWeb.Controllers
             string patronXml = "";
             string recPath = "";
             WxUserItem activeUserItem = null;
-            int nRet = this.GetReaderXml(null, 
-                null,
+            int nRet = this.GetReaderXml(code, 
+                state,
                 loginUserName,
                 ref patronBarcode,
                 "advancexml",
