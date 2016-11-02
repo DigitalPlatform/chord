@@ -13,7 +13,7 @@ namespace dp2weixinWeb.Controllers
 {
     public class BaseController : Controller
     {
-        public string GetLibSelectHtml(string selLibId, string weixinId, bool bContainEmptyLine)
+        public string GetLibSelectHtml(string selLibId, string weixinId, bool bContainEmptyLine,bool bFull=false)
         {
             List<LibEntity> list1 = LibDatabase.Current.GetLibs();
 
@@ -99,7 +99,17 @@ namespace dp2weixinWeb.Controllers
                 }
             }
 
-            string libHtml = "<select id='selLib' style='padding-left: 0px;width: 65%;border:1px solid #eeeeee'  >" + opt + "</select>";
+            string width = "width: 65%;";
+            string clickEvent = "";
+            if (bFull == true)
+            {
+                width = "width: 100%;margin-bottom:0px;padding:0px";
+                clickEvent = " onchange='save()' ";
+            }
+
+
+
+            string libHtml = "<select id='selLib' "+clickEvent+" style='background-color:transparent;display:inline;padding-left: 0px;" + width + "border:1px solid #eeeeee'  >" + opt + "</select>";
             return libHtml;
         }
         public int CheckIsFromWeiXin(string code, string state, out string strError)

@@ -23,14 +23,17 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         [HttpPost]
-        public ChargeCommand CreateCmd(string libId,
+        public ChargeCommand CreateCmd(string weixinId, 
+            string libId,
             ChargeCommand cmd)
         {
 
             ChargeCommandContainer cmdContainer = (ChargeCommandContainer)HttpContext.Current.Session[WeiXinConst.C_Session_CmdContainer];
 
             // 执行命令
-            return cmdContainer.AddCmd(libId,cmd);
+            return cmdContainer.AddCmd(weixinId,
+                libId,
+                cmd);
         }
     }
 }

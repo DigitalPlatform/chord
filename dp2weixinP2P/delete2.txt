@@ -1,4 +1,64 @@
-﻿@model dp2weixin.service.WxUserItem
+﻿================
+
+        function showSelectItem()
+        {
+
+            var html = "<div class='mui-card' style='padding:0px;margin:0px;margin-bottom:10px;' id='item-C100' ondblclick='selectItemOK(this)' >"
+                +"<table class='item' >"
+        + "<tbody>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>册条码号</td>"
+                + "<td class='value'>C001</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>状态</td>"
+                + "<td class='value'></td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>在借情况</td>"
+                + "<td class='borrowInfo'>任1</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>书目摘要</td>"
+                + "<td class='value'>"
+                    + "<div class='summary' style='' title='我从彩虹那边来 [专著]  : 如何养育 978-7-5110-2049-9'>我从彩虹8-7-5110-2049-9</div>"
+                + "</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>卷册</td>"
+                + "<td class='value'></td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>馆藏地</td>"
+                + "<td class='value'>流通库</td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>价格</td>"
+                + "<td class='value'></td>"
+            + "</tr>"
+            + "<tr>"
+                + "<td class='first'></td>"
+                + "<td class='name'>册记录路径</td>"
+               + "<td class='value'>中文图书实体/53</td>"
+            + "</tr>"
+        + "</tbody>"
+    + "</table>"
+            +"</div>";
+
+            $("#selItem").css("display", "block");
+            $("#items").append(html);
+        }
+
+===================
+
+@model dp2weixin.service.WxUserItem
 @section Scripts {
     <script>
 

@@ -1,4 +1,5 @@
 ﻿using DigitalPlatform.IO;
+//using DigitalPlatform.LibraryRestClient;
 using DigitalPlatform.Message;
 using System;
 using System.Collections.Generic;
@@ -12,11 +13,15 @@ namespace dp2weixin.service
 {
     public class ChargeCommandContainer:List<ChargeCommand>
     {
-        public ChargeCommand AddCmd(string libId,
+        public ChargeCommand AddCmd(string weixinId,
+            string libId,
             ChargeCommand cmd)
         {
             Debug.Assert(cmd != null, "AddCmd传进的cmd不能为空。");
             Debug.Assert(String.IsNullOrEmpty(cmd.type) == false, "命令类型不能为空。");
+
+            cmd.itemList = new List<BiblioItem>();
+
             Patron patron = null;
 
             if (cmd.userName == null)
@@ -31,7 +36,8 @@ namespace dp2weixin.service
             cmd.operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
             cmd.typeString = ChargeCommand.getTypeString(cmd.type);
 
-            string loadPatronError = "";
+            // 其它错误信息
+            string otherError = "";
 
 
             string outPatronBarcode = cmd.patron;
@@ -56,6 +62,37 @@ namespace dp2weixin.service
                 {
                     cmdRet = -1;
                 }
+                goto END1;
+            }
+
+             //检查item是否为isbn
+            string strTemp = cmd.itemBarcode;
+            if (IsbnSplitter.IsISBN(ref strTemp) == true)
+            {
+                // 根据isbn检索item
+                List<BiblioItem> items=null;
+                string error="";
+                long lRet= dp2WeiXinService.Instance.SearchItem(weixinId,
+                    libId,
+                    cmd.userName,
+                    false,
+                    "ISBN",
+                    strTemp,
+                    "left",
+                    cmd.type,
+                    out items,
+                    out  error);
+                if (lRet == -1 || lRet == 0)
+                {
+                    cmdError = "根据ISBN检索书目出错:" + error;
+                    cmd.state = -1;
+                }
+                else
+                {
+                    cmd.itemList = items;
+                    cmdRet = -3;
+                }
+
                 goto END1;
             }
 
@@ -85,7 +122,7 @@ namespace dp2weixin.service
                     out cmdError);               
             }
 
-             if (cmdRet == 1)
+             if (cmdRet == 1 || cmdRet==0)
              {
                  // 取一下读者记录
                  int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
@@ -95,7 +132,7 @@ namespace dp2weixin.service
                      "advancexml",
                      out patronRecPath,
                      out patronXml,
-                     out loadPatronError);
+                     out otherError);
                  if (nRet == -1 || nRet == 0) 
                  {
                      //命令成功的，但加载读者不成功，一般这种情况不可能有
@@ -103,6 +140,25 @@ namespace dp2weixin.service
              }
 
 END1:
+            // 设返回值
+             cmd.state = cmdRet;
+
+
+            //========以下两种情况直接返回，不加到操作历史中===
+
+             // 读者姓名重复的情况
+             if (cmdRet == -2)
+             {
+                 return cmd;
+             }
+
+            // isbn的情况
+             if (cmdRet == -3)
+             {
+                 return cmd;
+             }
+
+            //=================
 
             // 设上实际的读者证条码
             cmd.patronBarcode = outPatronBarcode;
@@ -119,7 +175,6 @@ END1:
                 cmd.patronBarcode = patron.barcode;
             }
 
-            cmd.state = cmdRet;
             //cmdError=""
             
 
@@ -176,16 +231,19 @@ END1:
             }
             else if (cmdError != "")
             {
-                lineClass = "warnLine";
-                cmdClass += " commandWarn ";
+                if (cmdRet == 1)
+                {
+                    lineClass = "warnLine";
+                    cmdClass += " commandWarn ";
+                }
             }
 
             //依据cmdError判断完了，再加了loadPatronError
-            if (String.IsNullOrEmpty(loadPatronError) == false)
+            if (String.IsNullOrEmpty(otherError) == false)
             {
                 if (String.IsNullOrEmpty(cmdError) == false)
                     cmdError += "<br/>";
-                cmdError += loadPatronError;
+                cmdError += otherError;
             }
             if (String.IsNullOrEmpty(cmdError) == false)
             {

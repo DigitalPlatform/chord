@@ -1,6 +1,40 @@
 ﻿function showLoading()
 {
+    //$("#loading").css("top", "50%");
+    //$("#loading").css("left", "50%");
+
+    //var totalHeight = $(document).height();
+    //$("#loading").css("top", totalHeight/2);
+
+
+    //var s = "";
+    //s += "\r\n文档高：" + $(document).height();
+    ////s += "\r\n网页可见区域宽：" + document.body.clientWidth;
+    //s += "\r\n网页可见区域高clientHeight：" + document.body.clientHeight;
+    ////s += "\r\n网页可见区域宽：" + document.body.offsetWidth + " (包括边线的宽)";
+    //s += "\r\n网页可见区域高offsetTop：" + document.body.offsetTop + " (包括边线的宽)";
+    ////s += "\r\n网页正文全文宽：" + document.body.scrollWidth;
+    //s += "\r\n网页正文全文高scrollHeight：" + document.body.scrollHeight;
+    //s += "\r\n网页被卷去的高scrollTop：" + document.body.scrollTop;
+    ////s += "\r\n网页被卷去的左：" + document.body.scrollLeft;
+    //s += "\r\n网页正文部分上screenTop：" + window.screenTop;
+    ////s += "\r\n网页正文部分左：" + window.screenLeft;
+    //s += "\r\n屏幕分辨率的高：" + window.screen.height;
+    ////s += "\r\n屏幕分辨率的宽：" + window.screen.width;
+    //s += "\r\nscrollTop：" + $(window).scrollTop();;
+    //s += "\r\n屏幕可用工作区高度availHeight：" + window.screen.availHeight;
+    //alert(s);
+
+    var height = window.screen.availHeight;
+    var scrollTop = $(window).scrollTop();
+    var mytop = scrollTop + height / 2;
+    $("#loading").css("top", mytop);
+
     $("#loading").show();//显示loading
+
+
+    //alert($("#loading"));
+    //alert("123");
 }
 
 function hideLoading() {
@@ -9,7 +43,22 @@ function hideLoading() {
 
 function showMaskLayer() {
     var bg = $("#mask-background,#mask-progressBar");
+
+    var background = $("#mask-background");
+    var progressBar = $("#mask-progressBar");
+
+    // 设背景高度
+    var docHeight = $(document).height();
+    $(background).css("height", docHeight);
+
+    // 设进度条
+    var screenHeight = window.screen.availHeight;
+    var scrollTop = $(window).scrollTop();
+    var mytop = scrollTop + screenHeight / 2;
+    $(progressBar).css("top", mytop);
+
     bg.show();
+    //alert("223");
 }
 
 function hideMaskLayer() {
@@ -271,6 +320,8 @@ function reservation(obj, barcode, style) {
     //显示等待图层
     //var index = loadLayer();
     showLoading();
+    //showMaskLayer();
+    
 
     var url = "/api/Reservation"
         + "?weixinId=" + weixinId
@@ -287,6 +338,7 @@ function reservation(obj, barcode, style) {
         // 关闭等待层
         //layer.close(index);
         hideLoading();
+        //hideMaskLayer();
 
         // 显示预约结果
 
@@ -336,6 +388,7 @@ function reservation(obj, barcode, style) {
         // 关闭等待层
         //layer.close(index);
         hideLoading();
+        //hideMaskLayer();
 
         // 显示预约结果
         var info = "访问服务器出错：[" + errorThrown + "]";

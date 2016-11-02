@@ -372,13 +372,18 @@
             if (type != oldType)
             {
                 if (type == 1) {
-                    $(icon).removeClass("mui-icon-extra-xiaoshuo");
-                    $(icon).addClass("mui-icon-extra-people");
+                    //$(icon).removeClass("mui-icon-extra-xiaoshuo");
+                    //$(icon).addClass("mui-icon-extra-people");
+
+                    $("#icon1").css("display", "inline");
+                    $("#icon2").css("display", "none");
                     $(title).text("证 条码号");
                 }
                 else {
-                    $(icon).removeClass("mui-icon-extra-people");
-                    $(icon).addClass("mui-icon-extra-xiaoshuo");
+                    //$(icon).removeClass("mui-icon-extra-people");
+                    //$(icon).addClass("mui-icon-extra-xiaoshuo");
+                    $("#icon1").css("display", "none");
+                    $("#icon2").css("display", "inline");
                     $(title).text("册 条码号");
                 }
             }
@@ -391,11 +396,17 @@
 
         // 操作类型
         function setOperation(ope) {
+
+            // 关闭选择item区
+            var display = $("#selItem").css("display","none");
+
+
             //_charge_operation = ope;
             $("#_charge_operation").val(ope);
 
             if (ope == "borrow") {
                 $("#opeName").text("借");
+                $("#_opeName").text("借");
 
                 //if (bSetInput == true)
                     setInput(1);
@@ -403,6 +414,7 @@
             else if (ope == "return") {
 
                 $("#opeName").text("还");
+                $("#_opeName").text("还");
 
                 //if (bSetInput==true)
                     setInput(2);
@@ -477,6 +489,17 @@
         // 执行命令
         function addCmd() {
 
+
+            //// 如果是选择item打开状态，则不能进行操作
+            //var display = $("#selItem").css("display");
+            //if (display == "block") {
+            //    var opeName = $("#opeName").text();
+
+            //    return;
+            //}
+
+
+
             // 先清掉扫码错误信息
             $("#errorInfo").text("");
 
@@ -484,6 +507,13 @@
             var libId = getLibId();//$("#selLib").val();
             if (libId == "" || libId == null) {
                 alert("您尚未选择图书馆。");
+                return;
+            }
+
+            // 微信id
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "") {
+                alert("weixinId不能为空。");
                 return;
             }
 
@@ -543,7 +573,8 @@
             showMaskLayer();
 
             //调 web api
-            var url = "/api/ChargeCommand?libId="+libId;
+            var url = "/api/ChargeCommand?weixinId=" + weixinId
+                +"&libId=" + libId;
             var data = {
                 type: cmdType,
                 patron: patron,
@@ -558,32 +589,32 @@
                 // 关闭等待层
                 hideMaskLayer();
 
-
-                //// 返回值2表示多个读者，弹出选择读者对话框
-                //if (newItem.state == 2) {
-                //    //有多笔读者的情况
-                //    loadPatron(null, true);
-                //    return;
-                //}
-
-                ////返回值3表示通过ISBN借书，弹出选择册对话框
-                //if (newItem.state == 3) {
-                //    //弹出选0择册图层
-                //    openSelectItemLayer(cmdModel.editor.type(), newItem.resultInfo);
-                //    return;
-                //}
-
-                //alert("b1");
-
-                //window.setTimeout("playResult("+cmd+")", 1);
-
-                //playResult(cmd);
-                // 加入操作历史
-                viewCmd(cmd);
-          
-
                 // 清掉输入框
                 $("#barcode").val(""); //清掉输入框    
+
+                if (cmd.state == -2)
+                {
+                    alert("姓名重复");
+                    return;
+                }
+
+                if (cmd.state == -3)
+                {
+                    //alert("isbn");
+
+                    showSelectItem(cmd.itemList);
+                    return;
+                }
+
+                //alert("回来");
+                // 插入结果声音
+                //window.setTimeout("playResult("+cmd+")", 1);
+                //playResult(cmd);
+
+                // 加入操作历史
+                viewCmd(cmd);          
+
+
                 if (cmdType == "loadPatron") {
                     $("#patron").html(""); //清掉读者信息
 
@@ -639,8 +670,8 @@
 
 
 
-                //如果是扫码方法，继续打开扫描
-                if (_lastMothed == 2) {
+                //如果是扫码方法，且操作成功，才继续打开扫描
+                if (_lastMothed == 2 && cmd.state == 1) {
                     sweep();
 
                     //window.setTimeout("sweep()", 100)
@@ -672,6 +703,83 @@
             //window.setTimeout("doFocus()", 200);
             doFocus();
             //return;
+        }
+
+        function showSelectItem(itemList)
+        {
+            var libId = getLibId();//$("#selLib").val();
+            $("#selItem").css("display", "block");
+            $("#items").html("");
+
+
+            for (var i = 0; i < itemList.length; i++) {
+
+                var item = itemList[i];
+                var myClass = "";
+                if (item.isGray == true)
+                    myClass += " item-gray ";
+
+                var html = "<div class='mui-card " + myClass + "' style='padding:0px;margin:0px;margin-bottom:10px;' id='item-" + item.barcode + "' onclick='selectItemOK(this)' >"
+                    + "<table class='item' >"
+            + "<tbody>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>册条码号</td>"
+                    + "<td class='value'>" + item.pureBarcode + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>状态</td>"
+                    + "<td class='value'>" + item.state + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>在借情况</td>"
+                    + "<td class='borrowInfo'>" + item.borrowInfo + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>书目摘要</td>"
+                    + "<td class='value'>";
+
+                html += "<div  class='summary pending' style='padding-bottom:4px'>"
+                                       + "<label>bs-" + item.pureBarcode + "</label>"
+                                       + "<img src='../img/wait2.gif' />"
+                                       + "<span>" + libId + "</span>"
+                                   + "</div>";
+
+                html+= "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>卷册</td>"
+                    + "<td class='value'>" + item.volume + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>馆藏地</td>"
+                    + "<td class='value'>" + item.location + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>价格</td>"
+                    + "<td class='value'>" + item.price + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>册记录路径</td>"
+                   + "<td class='value'>"+item.recPath+"</td>"
+                + "</tr>"
+            + "</tbody>"
+        + "</table>"
+                + "</div>";
+
+
+                $("#items").append(html);
+            }
+
+            // 更新summary
+            window.setTimeout("fillPending()", 1);
         }
 
         function playResult(cmd)
@@ -708,11 +816,34 @@
             
 
 
-        function doFocus() {
-            //alert('test1');
-            //$('#barcode').focus().css('border', '1px solid red');
-            $('#barcode').focus()
-        }
+            function doFocus() {
+                //alert('test1');\
+                //$('#barcode').focus().css('border', '1px solid red');
+                $('#barcode').focus()
+            }
+
+
+            function selectItemOK(obj)
+            {
+                var gray = $(obj).hasClass("item-gray");
+                if (gray == true)
+                {
+                    var opeName = $("#opeName").text();
+                    alert("您点击的行不可 " + opeName +"。");
+                    return;
+                }
+
+                $("#selItem").css("display", "none");
+
+                var id = $(obj).attr('id'); //item-C001
+                var item = id.substring(5);
+                //alert(item);
+
+                //设到textbox
+                $("#barcode").val(item);
+                addCmd();
+
+            }
 
     </script>
 }
@@ -750,6 +881,10 @@
         .operationName {
             font-size: 40pt;
             cursor:pointer;
+        }
+
+                .item-gray {
+            color: #cccccc;
         }
     </style>
 }
@@ -802,7 +937,9 @@ else
         <table class="chargeform">
             <tr>
                 <td colspan="2" id="titleLine">
-                    <span id="icon" class="mui-icon-extra mui-icon-extra-people"></span><span id="title">证 条码号</span><br />
+                    <span><img id="icon1" style="display:inline" src="~/img/person.png" />
+                    <img id="icon2" style="display:inline" src="~/img/book2.png" /></span>
+                    <span id="title" style="padding-left:2px">证 条码号</span><br />
                 </td>
                 </tr>
             <tr>
@@ -815,6 +952,20 @@ else
                 </td>
             </tr>
         </table>
+
+        <div id="selPatron" style="display:none;border:1px dotted #1E90FF">
+            <div >请选择一个读者</div>
+            <div id="patrons"></div>
+        </div>
+
+        <div id="selItem" style="display:none;border:2px dotted #333333;margin-top:10px;padding:4px;background-color:gray">
+            <div style="margin-bottom:5px"><span style="background-color:#FFD700;font-size:14.8px;font-weight:bold">请 <span style="color:blue">单击</span> 选择要<span id="_opeName">借</span>的册</span></div>
+            <div id="items">
+
+
+
+            </div>
+        </div>
 
     </div>
     <div id="patron" style="padding-left:10px;padding-right:10px">

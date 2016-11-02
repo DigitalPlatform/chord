@@ -60,5 +60,7 @@ namespace dp2weixin.service
 
         public string cmdHtml { get; set; }
 
+        public List<BiblioItem> itemList { get; set; }
+
     }
 }

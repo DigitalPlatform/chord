@@ -1,5 +1,6 @@
 ﻿using dp2weixin.service;
 using dp2weixinWeb.Models;
+using Senparc.Weixin.MP.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,69 @@ namespace dp2weixinWeb.Controllers
 {
     public class LibraryController : BaseController
     {
+
+
+        // 内务
+        public ActionResult SearchItem(string from,string word)
+        {
+            string strError = "";
+            
+            //// 检查是否从微信入口进来
+            //int nRet = this.CheckIsFromWeiXin(null, null, out strError);
+            //if (nRet == -1)
+            //    goto ERROR1;
+
+
+            return View();
+
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
+        // 内务
+        public ActionResult Charge2(string code, string state)
+        {
+            string strError = "";
+
+
+            //// 检查是否从微信入口进来
+            //int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            //if (nRet == -1)
+            //    goto ERROR1;
+
+            ////绑定的工作人员账号 需要有权限
+            //string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            //string libId = ViewBag.LibId;
+
+            //WxUserItem worker = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
+            //// 未绑定工作人员，
+            //if (worker == null)
+            //{
+            //    ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge", true);
+            //    return View();
+            //}
+
+
+            ////设到ViewBag里
+            //ViewBag.userName = worker.userName;
+
+            // 注意这里有时异常
+            JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(dp2WeiXinService.Instance.weiXinAppId,
+                dp2WeiXinService.Instance.weiXinSecret,
+                Request.Url.AbsoluteUri);//http://localhost:15794/Library/Charge  //http://www.dp2003.com/dp2weixin/Library/Charge
+            ViewData["AppId"] = dp2WeiXinService.Instance.weiXinAppId;
+            ViewData["Timestamp"] = package.Timestamp;
+            ViewData["NonceStr"] = package.NonceStr;
+            ViewData["Signature"] = package.Signature;
+            return View();
+
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
 
         // 内务
         public ActionResult Charge(string code, string state)

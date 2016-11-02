@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@ViewBag.AppName</title>
+    <!--CSS -->
+    <link href="@Url.Content("~/Content/mui.min.css?test=3")" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="@Url.Content("~/Content/icons-extra.css?test=1")" />
+    <link href="@Url.Content("~/Content/style.css?a=9")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/jquery-ui.css")" rel="stylesheet">
+    <script src='@Url.Content("~/Scripts/jquery-3.1.1.js")'></script>
+    <script src='@Url.Content("~/Scripts/jquery-ui-1.12.1.js")'></script>
+    <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/weixin.js?test=1")"></script>
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <script src="@Url.Content("~/Scripts/layer.js?a=1")"></script>
+    <link href="@Url.Content("~/Content/layer.css?a=1")" rel="stylesheet">
+    @RenderSection("style", required: false)
+    @RenderSection("scripts", required: false)
+    @RenderSection("HeaderContent", false)
+</head>
+<body id="mybody" style="font-family: 'Microsoft YaHei',微软雅黑!important;">
+
+
+    <div class="mui-content" >
+        <span id="idTest" style="display:block"></span>
+        <div id="loading"></div>
+        <div id="mask-background" style="display: none; "></div>
+        <div id="mask-progressBar" style="display: none; ">数据处理中，请稍候...</div>
+        <!--部分页占位符 -->
+        @RenderBody()
+    </div>
+
+    <script>
+
+
+        var jssdkReady = 0;
+        wx.config({
+            debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            appId: '@ViewData["AppId"]', // 必填，公众号的唯一标识
+            timestamp: '@ViewData["Timestamp"]', // 必填，生成签名的时间戳
+            nonceStr: '@ViewData["NonceStr"]', // 必填，生成签名的随机串
+            signature: '@ViewData["Signature"]',// 必填，签名
+            jsApiList: [
+             "checkJsApi",
+             'onMenuShareTimeline',
+             'onMenuShareAppMessage',
+             'onMenuShareQQ',
+             'onMenuShareWeibo',
+             'hideMenuItems',
+             'showMenuItems',
+             'hideAllNonBaseMenuItem',
+             'showAllNonBaseMenuItem',
+             'translateVoice',
+             'startRecord',
+             'stopRecord',
+             'onRecordEnd',
+             'playVoice',
+             'pauseVoice',
+             'stopVoice',
+             'uploadVoice',
+             'downloadVoice',
+             'chooseImage',
+             'previewImage',
+             'uploadImage',
+             'downloadImage',
+             'getNetworkType',
+             'openLocation',
+             'getLocation',
+             'hideOptionMenu',
+             'showOptionMenu',
+             'closeWindow',
+             'scanQRCode',
+             'chooseWXPay',
+             'openProductSpecificView',
+             'addCard',
+             'chooseCard',
+             'openCard'
+            ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2。详见：http://mp.weixin.qq.com/wiki/7/aaa137b55fb2e0456bf8dd9148dd613f.html
+        });
+
+        wx.error(function (res) {
+            //alert('JSSDK config信息验证失败：' + JSON.stringify(res));
+            jssdkReady = -1;
+        });
+
+        wx.ready(function () {
+            jssdkReady = 1;
+        });
+
+    </script>
+</body>
+</html>

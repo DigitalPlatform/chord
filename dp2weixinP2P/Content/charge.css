@@ -118,8 +118,64 @@ color: gray;
 
        /*===========*/
 
-.chargeLink     a, a:active, a:hover {
-        outline: 0;
-        color: inherit;
-    }
+.chargeLink a, a:active, a:hover {
+    outline: 0;
+    color: inherit;
+}
+
+        /*===选择册的样式============*/
+
+        
+        TABLE.item {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        TABLE.item TD {
+            padding-left: 2px;
+        }
+
+
+        TABLE.item TD.first {
+            width: 1px;
+            background-color: #eeeeee;
+            border-right: 0px solid #CCCCCC;
+        }
+
+        TABLE.item TD.first2 {
+            width: 15px;
+            background-color: #eeeeee;
+            border-right: 1px solid #CCCCCC;
+        }
+
+        TABLE.item TD.name {
+            width: 80px;
+            white-space: nowrap;
+            border-right: 1px solid #dddddd;
+            color: gray;
+            padding-left: 2px;
+            background-color: #eeeeee;
+        }
+
+        TABLE.item TD.value {
+        }
+
+        TABLE.item TD.borrowInfo {
+            text-align: center;
+            white-space: nowrap;
+            background-color: #B4B400;
+            color: #FFFFFF;
+            font-size: 14.8px;
+            font-weight: bold;
+        }
+
+        TABLE.item TD.value DIV.summary {
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /*===============*/
+    
 

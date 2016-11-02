@@ -12,9 +12,10 @@
     <script src='@Url.Content("~/Scripts/jquery-3.1.1.js")'></script>
     <script src='@Url.Content("~/Scripts/jquery-ui-1.12.1.js")'></script>
     <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/Scripts/weixin.js?test=1.26")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/weixin.js?test=1")"></script>
     <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
-
+    <script src="@Url.Content("~/Scripts/layer.js?a=1")"></script>
+    <link href="@Url.Content("~/Content/layer.css?a=1")" rel="stylesheet">
     @RenderSection("style", required: false)
     @RenderSection("scripts", required: false)
     @RenderSection("HeaderContent", false)
@@ -64,6 +65,9 @@
                     </li>
                     <li>
                         <a href="~/Library/Charge">出纳窗</a>
+                    </li>
+                    <li>
+                        <a href="~/Library/Charge2">出纳窗2</a>
                     </li>
                     <li>
                         <a href="~/Library/Home">图书馆介绍</a>
