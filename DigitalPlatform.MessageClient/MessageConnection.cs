@@ -546,6 +546,19 @@ errorInfo)
             }
         }
 
+        public static bool IsHttpClientException(Exception ex, out string strErrorCode)
+        {
+            strErrorCode = "";
+            if (ex is Microsoft.AspNet.SignalR.Client.HttpClientException)
+            {
+                Microsoft.AspNet.SignalR.Client.HttpClientException ex0 = ex as Microsoft.AspNet.SignalR.Client.HttpClientException;
+                strErrorCode = ex0.Response.StatusCode.ToString();
+                return true;
+            }
+
+            return false;
+        }
+
 #if NO
         // 连接成功后被调用，执行登录功能。重载时要调用 Login(...) 向 server 发送 login 消息
         public virtual void TriggerLogin()

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using DigitalPlatform.Common;
 using DigitalPlatform.Net;
 using DigitalPlatform;
+using DigitalPlatform.MessageClient;
 
 namespace dp2Capo
 {
@@ -151,6 +152,13 @@ namespace dp2Capo
             catch (Exception ex)
             {
                 instance.WriteErrorLog("echo 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                {
+                    string strErrorCode = "";
+                    if (MessageConnection.IsHttpClientException(ex, out strErrorCode))
+                    {
+                        Task.Run(()=>instance.TryResetConnection(""));
+                    }
+                }
             }
 
         }

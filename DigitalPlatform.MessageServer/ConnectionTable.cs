@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections;
 
 using DigitalPlatform.Text;
-using System.Collections;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -15,6 +15,8 @@ namespace DigitalPlatform.MessageServer
     /// </summary>
     public class ConnectionTable : Dictionary<string, ConnectionInfo>, IEnumerable
     {
+        int _maxConnections = 1000;
+
         internal ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
 #if NO
@@ -64,6 +66,9 @@ namespace DigitalPlatform.MessageServer
                     if (info != null)
                         return info;    // 已经存在
                 }
+
+                if (this.Count >= _maxConnections)
+                    throw new Exception("当前连接总数已超过配额 " + _maxConnections.ToString());
 
                 info = new ConnectionInfo();
                 info.UID = Guid.NewGuid().ToString();
