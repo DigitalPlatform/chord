@@ -440,9 +440,9 @@ namespace dp2Capo
             }
         }
 
-        void TryResetConnection(string strErrorCode)
+        public void TryResetConnection(string strErrorCode)
         {
-            if (strErrorCode == "_connectionNotFound")
+            // if (strErrorCode == "_connectionNotFound")
             {
 #if NO
                 this.MessageConnection.CloseConnection();
@@ -617,7 +617,7 @@ namespace dp2Capo
                         if (result.Value == -1)
                         {
                             this.WriteErrorLog("Instance.Notify() 中 SetMessageAsync() 出错: " + result.ErrorInfo);
-                            TryResetConnection(result.String);
+                            Task.Run(()=>TryResetConnection(result.String));
                             return;
                         }
 
@@ -708,7 +708,7 @@ namespace dp2Capo
                 if (result.Value == -1)
                 {
                     this.WriteErrorLog("Instance.SendHeartBeat() 中 SetMessageAsync() [heartbeat] 出错: " + result.ErrorInfo);
-                    TryResetConnection(result.String);
+                    Task.Run(()=>TryResetConnection(result.String));
                     return false;
                 }
 

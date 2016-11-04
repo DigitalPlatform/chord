@@ -153,68 +153,79 @@ namespace DigitalPlatform.MessageServer
 
             MessageResult result = new MessageResult();
 
-            // 检查参数
-            if (string.IsNullOrEmpty(param.GroupCondition) == true)
+            try
             {
-                result.Value = -1;
-                result.String = "InvalidParam";
-                result.ErrorInfo = "param 成员 GroupCondition 不应为空";
-                return result;
-            }
 
-            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
-result,
-"RequestGetGroup()",
-false);
-            if (connection_info == null)
-                return result;
-
-            bool bSupervisor = (StringUtil.Contains(connection_info.Rights, "supervisor"));
-            if (bSupervisor == false)
-            {
-                if (string.IsNullOrEmpty(connection_info.UserName))
+                // 检查参数
+                if (string.IsNullOrEmpty(param.GroupCondition) == true)
                 {
-                    if (GroupDefinition.IsDefaultGroupName(param.GroupCondition) == false)
+                    result.Value = -1;
+                    result.String = "InvalidParam";
+                    result.ErrorInfo = "param 成员 GroupCondition 不应为空";
+                    return result;
+                }
+
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+    result,
+    "RequestGetGroup()",
+    false);
+                if (connection_info == null)
+                    return result;
+
+                bool bSupervisor = (StringUtil.Contains(connection_info.Rights, "supervisor"));
+                if (bSupervisor == false)
+                {
+                    if (string.IsNullOrEmpty(connection_info.UserName))
+                    {
+                        if (GroupDefinition.IsDefaultGroupName(param.GroupCondition) == false)
+                        {
+                            result.Value = -1;
+                            result.String = "Denied";
+                            result.ErrorInfo = "未注册的用户只允许查看 <default> 群组的消息，不允许查看群组 '" + param.GroupCondition + "' 的消息";
+                            return result;
+                        }
+                    }
+
+                    if (GroupDefinition.IncludeGroup(connection_info.Groups, param.GroupCondition) == false)
                     {
                         result.Value = -1;
                         result.String = "Denied";
-                        result.ErrorInfo = "未注册的用户只允许查看 <default> 群组的消息，不允许查看群组 '" + param.GroupCondition + "' 的消息";
+                        result.ErrorInfo = "当前用户不能查看群组 '" + param.GroupCondition + "' 的消息";
                         return result;
                     }
                 }
 
-                if (GroupDefinition.IncludeGroup(connection_info.Groups, param.GroupCondition) == false)
+                SearchInfo search_info = null;
+                try
+                {
+                    search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                        param.TaskID,
+                        param.Start,
+                        param.Count);
+                }
+                catch (ArgumentException)
                 {
                     result.Value = -1;
-                    result.String = "Denied";
-                    result.ErrorInfo = "当前用户不能查看群组 '" + param.GroupCondition + "' 的消息";
+                    result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
                     return result;
                 }
-            }
 
-            SearchInfo search_info = null;
-            try
+                result.String = search_info.UID;   // 返回检索请求的 UID
+
+                // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
+                // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
+                // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
+                Task.Run(() => SearchGroupAndResponse(param));
+
+                result.Value = 1;   // 成功
+            }
+            catch (Exception ex)
             {
-                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
-                    param.TaskID,
-                    param.Start,
-                    param.Count);
-            }
-            catch (ArgumentException)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
-                return result;
+                result.SetError("RequestGetGroup() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
 
-            result.String = search_info.UID;   // 返回检索请求的 UID
-
-            // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
-            // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
-            // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
-            Task.Run(() => SearchGroupAndResponse(param));
-
-            result.Value = 1;   // 成功
             return result;
         }
 
@@ -2067,6 +2078,8 @@ ex.GetType().ToString());
         {
             MessageResult result = new MessageResult();
 
+            try
+            {
 #if NO
             ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
             if (connection_info == null)
@@ -2082,86 +2095,94 @@ ex.GetType().ToString());
                 result.ErrorInfo = "尚未登录，无法使用 RequestGetConnectionInfo() 功能";
             }
 #endif
-            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
-result,
-"RequestGetConnectionInfo()",
-true);
-            if (connection_info == null)
-                return result;
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+    result,
+    "RequestGetConnectionInfo()",
+    true);
+                if (connection_info == null)
+                    return result;
 
-            if (param.Operation == "clear")
-            {
-                // 检查请求者是否具备操作的权限
-                if (StringUtil.Contains(connection_info.Rights, "clearConnection") == false)
+                if (param.Operation == "clear")
                 {
-                    result.Value = -1;
-                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + "clearConnection" + "' 操作的权限";
+                    // 检查请求者是否具备操作的权限
+                    if (StringUtil.Contains(connection_info.Rights, "clearConnection") == false)
+                    {
+                        result.Value = -1;
+                        result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + "clearConnection" + "' 操作的权限";
+                        return result;
+                    }
+                    return ClearConnection(param.QueryWord);
+                }
+                else if (param.Operation == "close" || param.Operation == "reconnect")
+                {
+                    // 检查请求者是否具备操作的权限
+                    if (StringUtil.Contains(connection_info.Rights, "clearConnection") == false)
+                    {
+                        result.Value = -1;
+                        result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + "clearConnection" + "' 操作的权限";
+                        return result;
+                    }
+
+                    string id = "";
+                    // 试探一下看看是不是用户名
+                    ConnectionInfo info = ServerInfo.ConnectionTable.GetConnectionByUserName(param.QueryWord);
+                    if (info != null)
+                        id = info.ConnectionID;
+                    else
+                        id = param.QueryWord;
+
+                    try
+                    {
+                        string strAction = "";
+                        if (param.Operation == "reconnect")
+                            strAction = "reconnect";
+                        CloseRequest request = new CloseRequest(strAction);
+                        Clients.Client(id).close(request);
+                    }
+                    catch (Exception ex)
+                    {
+                        string strError = "dp2mserver 切断前端通讯通道 '" + param.QueryWord + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex);
+                        Console.Write(strError);
+                        result.Value = -1;
+                        result.ErrorInfo = strError;
+                        return result;
+                    }
+
+                    result.Value = 0;
                     return result;
                 }
-                return ClearConnection(param.QueryWord);
-            }
-            else if (param.Operation == "close" || param.Operation == "reconnect")
-            {
-                // 检查请求者是否具备操作的权限
-                if (StringUtil.Contains(connection_info.Rights, "clearConnection") == false)
-                {
-                    result.Value = -1;
-                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + "clearConnection" + "' 操作的权限";
-                    return result;
-                }
 
-                string id = "";
-                // 试探一下看看是不是用户名
-                ConnectionInfo info = ServerInfo.ConnectionTable.GetConnectionByUserName(param.QueryWord);
-                if (info != null)
-                    id = info.ConnectionID;
-                else
-                    id = param.QueryWord;
-
+                SearchInfo search_info = null;
                 try
                 {
-                    string strAction = "";
-                    if (param.Operation == "reconnect")
-                        strAction = "reconnect";
-                    CloseRequest request = new CloseRequest(strAction);
-                    Clients.Client(id).close(request);
+                    search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                        param.TaskID,
+                        param.Start,
+                        param.Count);
                 }
-                catch (Exception ex)
+                catch (ArgumentException)
                 {
-                    string strError = "dp2mserver 切断前端通讯通道 '" + param.QueryWord + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex);
-                    Console.Write(strError);
                     result.Value = -1;
-                    result.ErrorInfo = strError;
+                    result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
                     return result;
                 }
 
-                result.Value = 0;
-                return result;
-            }
+                result.String = search_info.UID;   // 返回检索请求的 UID
 
-            SearchInfo search_info = null;
-            try
+                // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
+                // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
+                // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
+                Task.Run(() => SearchConnectionInfoAndResponse(param));
+
+                result.Value = 1;   // 成功
+            }
+            catch (Exception ex)
             {
-                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
-                    param.TaskID,
-                    param.Start,
-                    param.Count);
-            }
-            catch (ArgumentException)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
-                return result;
+                result.SetError("RequestGetConnectionInfo() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
 
-            result.String = search_info.UID;   // 返回检索请求的 UID
-
-            // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
-            // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
-            // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
-            Task.Run(() => SearchConnectionInfoAndResponse(param));
-
-            result.Value = 1;   // 成功
             return result;
         }
 
@@ -2936,6 +2957,8 @@ ex.GetType().ToString());
         {
             MessageResult result = new MessageResult();
 
+            try
+            {
 #if NO
             ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
             if (connection_info == null)
@@ -2951,66 +2974,74 @@ ex.GetType().ToString());
                 result.ErrorInfo = "尚未登录，无法使用 RequestSetInfo() 功能";
             }
 #endif
-            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
-result,
-"RequestSetInfo()",
-true);
-            if (connection_info == null)
-                return result;
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+    result,
+    "RequestSetInfo()",
+    true);
+                if (connection_info == null)
+                    return result;
 
-            // 检查请求者是否具备操作的权限
-            if (StringUtil.Contains(connection_info.Rights, setInfoParam.Operation) == false)
+                // 检查请求者是否具备操作的权限
+                if (StringUtil.Contains(connection_info.Rights, setInfoParam.Operation) == false)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + setInfoParam.Operation + "' 操作的权限";
+                    return result;
+                }
+
+                List<string> connectionIds = null;
+                string strError = "";
+                int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
+                    userNameList,
+                    connection_info.UserName,
+                    setInfoParam.Operation,
+                    "all",
+                    out connectionIds,
+                    out strError);
+                if (nRet == -1)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = strError;
+                    return result;
+                }
+
+                if (connectionIds == null || connectionIds.Count == 0)
+                {
+                    result.Value = 0;
+                    result.ErrorInfo = "当前没有任何可操作的目标";
+                    result.String = "TargetNotFound";
+                    return result;
+                }
+
+                SearchInfo search_info = null;
+
+                try
+                {
+                    search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                        setInfoParam.TaskID);
+                }
+                catch (ArgumentException)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "TaskID '" + setInfoParam.TaskID + "' 已经存在了，不允许重复使用";
+                    return result;
+                }
+
+                result.String = search_info.UID;   // 返回检索请求的 UID
+                search_info.SetTargetIDs(connectionIds);
+
+                Clients.Clients(connectionIds).setInfo(
+                    setInfoParam);
+
+                result.Value = 1;   // 表示已经成功发起了操作
+            }
+            catch (Exception ex)
             {
-                result.Value = -1;
-                result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + setInfoParam.Operation + "' 操作的权限";
-                return result;
+                result.SetError("RequestSetInfo() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
 
-            List<string> connectionIds = null;
-            string strError = "";
-            int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
-                userNameList,
-                connection_info.UserName,
-                setInfoParam.Operation,
-                "all",
-                out connectionIds,
-                out strError);
-            if (nRet == -1)
-            {
-                result.Value = -1;
-                result.ErrorInfo = strError;
-                return result;
-            }
-
-            if (connectionIds == null || connectionIds.Count == 0)
-            {
-                result.Value = 0;
-                result.ErrorInfo = "当前没有任何可操作的目标";
-                result.String = "TargetNotFound";
-                return result;
-            }
-
-            SearchInfo search_info = null;
-
-            try
-            {
-                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
-                    setInfoParam.TaskID);
-            }
-            catch (ArgumentException)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "TaskID '" + setInfoParam.TaskID + "' 已经存在了，不允许重复使用";
-                return result;
-            }
-
-            result.String = search_info.UID;   // 返回检索请求的 UID
-            search_info.SetTargetIDs(connectionIds);
-
-            Clients.Clients(connectionIds).setInfo(
-                setInfoParam);
-
-            result.Value = 1;   // 表示已经成功发起了操作
             return result;
         }
 
@@ -3086,6 +3117,8 @@ ex.GetType().ToString());
         {
             MessageResult result = new MessageResult();
 
+            try
+            {
 #if NO
             ConnectionInfo connection_info = ServerInfo.ConnectionTable.GetConnection(Context.ConnectionId);
             if (connection_info == null)
@@ -3101,66 +3134,74 @@ ex.GetType().ToString());
                 result.ErrorInfo = "尚未登录，无法使用 RequestBindPatron() 功能";
             }
 #endif
-            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
-result,
-"RequestBindPatron()",
-true);
-            if (connection_info == null)
-                return result;
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+    result,
+    "RequestBindPatron()",
+    true);
+                if (connection_info == null)
+                    return result;
 
-            // 检查请求者是否具备操作的权限
-            if (StringUtil.Contains(connection_info.Rights, "bindPatron") == false)
+                // 检查请求者是否具备操作的权限
+                if (StringUtil.Contains(connection_info.Rights, "bindPatron") == false)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 'bindPatron' 操作的权限";
+                    return result;
+                }
+
+                List<string> connectionIds = null;
+                string strError = "";
+                int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
+                    userNameList,
+                    connection_info.UserName,
+                    "bindPatron",
+                    "all",
+                    out connectionIds,
+                    out strError);
+                if (nRet == -1)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = strError;
+                    return result;
+                }
+
+                if (connectionIds == null || connectionIds.Count == 0)
+                {
+                    result.Value = 0;
+                    result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
+                    result.String = "TargetNotFound";
+                    return result;
+                }
+
+                SearchInfo search_info = null;
+
+                try
+                {
+                    search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                        bindPatronParam.TaskID);
+                }
+                catch (ArgumentException)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "TaskID '" + bindPatronParam.TaskID + "' 已经存在了，不允许重复使用";
+                    return result;
+                }
+
+                result.String = search_info.UID;   // 返回操作请求的 UID
+                search_info.SetTargetIDs(connectionIds);
+
+                Clients.Clients(connectionIds).bindPatron(
+                    bindPatronParam);
+
+                result.Value = 1;   // 表示已经成功发起了操作
+            }
+            catch (Exception ex)
             {
-                result.Value = -1;
-                result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 'bindPatron' 操作的权限";
-                return result;
+                result.SetError("RequestBindPatron() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
 
-            List<string> connectionIds = null;
-            string strError = "";
-            int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
-                userNameList,
-                connection_info.UserName,
-                "bindPatron",
-                "all",
-                out connectionIds,
-                out strError);
-            if (nRet == -1)
-            {
-                result.Value = -1;
-                result.ErrorInfo = strError;
-                return result;
-            }
-
-            if (connectionIds == null || connectionIds.Count == 0)
-            {
-                result.Value = 0;
-                result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
-                result.String = "TargetNotFound";
-                return result;
-            }
-
-            SearchInfo search_info = null;
-
-            try
-            {
-                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
-                    bindPatronParam.TaskID);
-            }
-            catch (ArgumentException)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "TaskID '" + bindPatronParam.TaskID + "' 已经存在了，不允许重复使用";
-                return result;
-            }
-
-            result.String = search_info.UID;   // 返回操作请求的 UID
-            search_info.SetTargetIDs(connectionIds);
-
-            Clients.Clients(connectionIds).bindPatron(
-                bindPatronParam);
-
-            result.Value = 1;   // 表示已经成功发起了操作
             return result;
         }
 
@@ -3210,89 +3251,99 @@ true);
         {
             MessageResult result = new MessageResult();
 
-            // 检查参数
-            if (userNameList == "*")
-            {
-                result.Value = -1;
-                result.ErrorInfo = "RequestCirculation() 不允许 userNameList 参数值为 '" + userNameList + "'";
-                return result;
-            }
-
-            ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
-result,
-"RequestCirculation()",
-true);
-            if (connection_info == null)
-                return result;
-
-            // 检查请求者是否具备操作的权限
-            if (StringUtil.Contains(connection_info.Rights, "circulation") == false)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 'circulation' 操作的权限";
-                return result;
-            }
-
-            List<string> connectionIds = null;
-            string strError = "";
-            int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
-                userNameList,
-                connection_info.UserName,
-                "circulation",
-                "all",
-                out connectionIds,
-                out strError);
-            if (nRet == -1)
-            {
-                result.Value = -1;
-                result.ErrorInfo = strError;
-                return result;
-            }
-
-            if (connectionIds == null || connectionIds.Count == 0)
-            {
-                result.Value = 0;
-                result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
-                result.String = "TargetNotFound";
-                return result;
-            }
-
-            // 流通操作不允许广播式进行
-            if (connectionIds.Count > 1)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "当前符合条件的操作目标多于 1 个。操作被拒绝";
-                return result;
-            }
-
-            SearchInfo search_info = null;
             try
             {
-                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
-                    circulationParam.TaskID);
-            }
-            catch (ArgumentException)
-            {
-                result.Value = -1;
-                result.ErrorInfo = "TaskID '" + circulationParam.TaskID + "' 已经存在了，不允许重复使用";
-                return result;
-            }
+                // 检查参数
+                if (userNameList == "*")
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "RequestCirculation() 不允许 userNameList 参数值为 '" + userNameList + "'";
+                    return result;
+                }
 
-            result.String = search_info.UID;   // 返回操作请求的 UID
-            search_info.SetTargetIDs(connectionIds);
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+    result,
+    "RequestCirculation()",
+    true);
+                if (connection_info == null)
+                    return result;
 
-            try
-            {
-                Clients.Clients(connectionIds).circulation(
-                    circulationParam);
+                // 检查请求者是否具备操作的权限
+                if (StringUtil.Contains(connection_info.Rights, "circulation") == false)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 'circulation' 操作的权限";
+                    return result;
+                }
+
+                List<string> connectionIds = null;
+                string strError = "";
+                int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
+                    userNameList,
+                    connection_info.UserName,
+                    "circulation",
+                    "all",
+                    out connectionIds,
+                    out strError);
+                if (nRet == -1)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = strError;
+                    return result;
+                }
+
+                if (connectionIds == null || connectionIds.Count == 0)
+                {
+                    result.Value = 0;
+                    result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
+                    result.String = "TargetNotFound";
+                    return result;
+                }
+
+                // 流通操作不允许广播式进行
+                if (connectionIds.Count > 1)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "当前符合条件的操作目标多于 1 个。操作被拒绝";
+                    return result;
+                }
+
+                SearchInfo search_info = null;
+                try
+                {
+                    search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                        circulationParam.TaskID);
+                }
+                catch (ArgumentException)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "TaskID '" + circulationParam.TaskID + "' 已经存在了，不允许重复使用";
+                    return result;
+                }
+
+                result.String = search_info.UID;   // 返回操作请求的 UID
+                search_info.SetTargetIDs(connectionIds);
+
+                try
+                {
+                    Clients.Clients(connectionIds).circulation(
+                        circulationParam);
+                }
+                catch (Exception ex)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "分发 circulation 请求时出现异常: " + ExceptionUtil.GetExceptionText(ex);
+                    return result;
+                }
+                result.Value = 1;   // 表示已经成功发起了操作
             }
             catch (Exception ex)
             {
-                result.Value = -1;
-                result.ErrorInfo = "分发 circulation 请求时出现异常: " + ExceptionUtil.GetExceptionText(ex);
-                return result;
+                result.SetError("RequestCirculation() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
-            result.Value = 1;   // 表示已经成功发起了操作
+
             return result;
         }
 
@@ -3413,7 +3464,7 @@ true);
             }
             catch (Exception ex)
             {
-                result.SetError("RequestSearch() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+                result.SetError("RequestGetRes() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
 ex.GetType().ToString());
                 ServerInfo.WriteErrorLog(result.ErrorInfo);
             }
@@ -3567,36 +3618,43 @@ ex.GetType().ToString());
 
         void AddConnection()
         {
-            ConnectionInfo connection_info = ServerInfo.ConnectionTable.AddConnection(Context.ConnectionId);
-
-            if (Context.Request.Environment.ContainsKey(USERITEM_KEY))
-            {
-                UserItem useritem = (UserItem)Context.Request.Environment[USERITEM_KEY];
-                connection_info.UserItem = useritem;
-            }
-
-            string strParameters = Context.Request.Headers["parameters"];
-
-            Hashtable table = StringUtil.ParseParameters(strParameters, ',', '=', "url");  // "url"
-            connection_info.PropertyList = (string)table["propertyList"];
-            connection_info.LibraryUID = (string)table["libraryUID"];
-            connection_info.LibraryName = (string)table["libraryName"];
-            connection_info.LibraryUserName = (string)table["libraryUserName"];
-            connection_info.Notes = (string)table["notes"];   // 前端给出的识别用的注释 2016/10/15
-            // 2016/8/11
-            // TODO: 以下这一段是否会抛出异常? 需要测试验证一下
             try
             {
-                object ipAddress;
-                Context.Request.Environment.TryGetValue("server.RemoteIpAddress", out ipAddress);
-                connection_info.ClientIP = (string)ipAddress;
+                ConnectionInfo connection_info = ServerInfo.ConnectionTable.AddConnection(Context.ConnectionId);
+
+                if (Context.Request.Environment.ContainsKey(USERITEM_KEY))
+                {
+                    UserItem useritem = (UserItem)Context.Request.Environment[USERITEM_KEY];
+                    connection_info.UserItem = useritem;
+                }
+
+                string strParameters = Context.Request.Headers["parameters"];
+
+                Hashtable table = StringUtil.ParseParameters(strParameters, ',', '=', "url");  // "url"
+                connection_info.PropertyList = (string)table["propertyList"];
+                connection_info.LibraryUID = (string)table["libraryUID"];
+                connection_info.LibraryName = (string)table["libraryName"];
+                connection_info.LibraryUserName = (string)table["libraryUserName"];
+                connection_info.Notes = (string)table["notes"];   // 前端给出的识别用的注释 2016/10/15
+                // 2016/8/11
+                // TODO: 以下这一段是否会抛出异常? 需要测试验证一下
+                try
+                {
+                    object ipAddress;
+                    Context.Request.Environment.TryGetValue("server.RemoteIpAddress", out ipAddress);
+                    connection_info.ClientIP = (string)ipAddress;
+                }
+                catch (Exception ex)
+                {
+                    ServerInfo.WriteErrorLog("AddConnection() 中获取 ClientIP 时出现异常: " + ExceptionUtil.GetDebugText(ex));
+                }
+
+                AddToSignalRGroup(connection_info, true);
             }
             catch (Exception ex)
             {
-                ServerInfo.WriteErrorLog("AddConnection() 中获取 ClientIP 时出现异常: " + ExceptionUtil.GetDebugText(ex));
+                ServerInfo.WriteErrorLog("AddConnection() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
             }
-
-            AddToSignalRGroup(connection_info, true);
         }
 
         void AddToSignalRGroup(ConnectionInfo connection_info, bool add = true)

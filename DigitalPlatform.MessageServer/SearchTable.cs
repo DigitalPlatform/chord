@@ -15,6 +15,8 @@ namespace DigitalPlatform.MessageServer
     // search request UID --> SearchInfo 的查找表。同时也是 SearchInfo 对象的存储机制
     public class SearchTable : Dictionary<string, SearchInfo>, IDisposable
     {
+        int _maxSearch = 1000;
+
         internal ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
         CleanThread CleanThread = new CleanThread();
@@ -37,8 +39,9 @@ namespace DigitalPlatform.MessageServer
             this.CleanThread.StopThread(true);
         }
 
-        // TODO: 限制集合的最大元素数。防止被攻击
         // 新增一个 SearchInfo 对象
+        // exceptions:
+        //      Exception   数量超过配额
         // parameters:
         //      strRequestConnectionID  发起检索一方的 connection id
         public SearchInfo AddSearch(string strRequestConnectionID,
@@ -56,6 +59,9 @@ namespace DigitalPlatform.MessageServer
                     if (this.ContainsKey(strSearchID) == true)
                         throw new ArgumentException("strSearchID", "strSearchID '" + strSearchID + "' 已经存在了");
                 }
+
+                if (this.Count >= _maxSearch)
+                    throw new Exception("SearchInfo 数量已经超过配额 " + _maxSearch.ToString());
 
                 SearchInfo info = new SearchInfo();
                 info.LastTime = DateTime.Now;
@@ -114,9 +120,12 @@ namespace DigitalPlatform.MessageServer
         }
 
         // 清除已经(超时)失效的对象
-        public void Clean()
+        // return:
+        //      返回清除操作后集合中剩余的对象总数
+        public int Clean()
         {
             // Console.WriteLine("do clean ...");
+            int count = 0;
 
             // 首先找到那些已经失效的对象
             List<string> keys = new List<string>();
@@ -129,6 +138,8 @@ namespace DigitalPlatform.MessageServer
                     if (info.IsTimeout() == true)
                         keys.Add(key);
                 }
+
+                count = this.Count;
             }
             finally
             {
@@ -153,7 +164,11 @@ namespace DigitalPlatform.MessageServer
                 {
                     this._lock.ExitWriteLock();
                 }
+
+                count -= keys.Count;
             }
+
+            return count;
         }
     }
 
@@ -202,7 +217,7 @@ namespace DigitalPlatform.MessageServer
 
         public bool IsTimeout()
         {
-            if ((DateTime.Now - LastTime) > new TimeSpan(0, 30, 0))
+            if ((DateTime.Now - LastTime) > TimeSpan.FromMinutes(30))
                 return true;
             return false;
         }
@@ -274,7 +289,7 @@ namespace DigitalPlatform.MessageServer
 
         public CleanThread()
         {
-            this.PerTime = 60 * 1000;
+            this.PerTime = 5 * 60 * 1000;   // 5 分钟
         }
 
         // 工作线程每一轮循环的实质性工作
@@ -283,7 +298,8 @@ namespace DigitalPlatform.MessageServer
             if (this.Stopped == true)
                 return;
 
-            this.Container.Clean();
+            int count = this.Container.Clean();
+            ServerInfo.WriteErrorLog("清除 SearchTable 后剩余的对象数量 " + count.ToString());
         }
     }
 }

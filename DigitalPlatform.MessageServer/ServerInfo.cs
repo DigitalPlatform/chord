@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Threading;
 using System.Net;
+using System.Reflection;
 
 using MongoDB.Driver;
 
 using DigitalPlatform.IO;
-using System.Reflection;
 
 namespace DigitalPlatform.MessageServer
 {
