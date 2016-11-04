@@ -166,6 +166,16 @@ namespace DigitalPlatform.MessageClient
             }
         }
 
+        public ConnectionState ConnectState
+        {
+            get
+            {
+                if (this.Connection == null)
+                    return ConnectionState.Disconnected;
+                return this.Connection.State;
+            }
+        }
+
         // 确保连接和登录
         public async Task<bool> EnsureConnect()
         {

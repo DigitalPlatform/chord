@@ -10,6 +10,7 @@ using DigitalPlatform.Common;
 using DigitalPlatform.Net;
 using DigitalPlatform;
 using DigitalPlatform.MessageClient;
+using Microsoft.AspNet.SignalR.Client;
 
 namespace dp2Capo
 {
@@ -107,7 +108,9 @@ namespace dp2Capo
         {
             DateTime now = DateTime.Now;
 
-            if (instance.MessageConnection.IsConnected == false)
+            ConnectionState state = instance.MessageConnection.ConnectState;
+
+            if (state == ConnectionState.Disconnected)
             {
                 instance.LastCheckTime = now;
                 return true;
@@ -126,7 +129,7 @@ namespace dp2Capo
 
         static void Echo(Instance instance, bool writeLog)
         {
-            if (instance.MessageConnection.IsConnected == false)
+            if (instance.MessageConnection.ConnectState != ConnectionState.Connected)
                 return;
 
             // 验证一次请求
@@ -165,7 +168,7 @@ namespace dp2Capo
 
         static void Check(Instance instance, List<Task> tasks)
         {
-            if (instance.MessageConnection.IsConnected == false)
+            if (instance.MessageConnection.ConnectState != ConnectionState.Connected)
             {
                 // instance.BeginConnnect();
                 tasks.Add(instance.BeginConnectTask());

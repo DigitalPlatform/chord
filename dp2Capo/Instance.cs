@@ -239,7 +239,7 @@ namespace dp2Capo
 
             if (this.MessageConnection != null)
             {
-                text.Append("connection connected: " + this.MessageConnection.IsConnected.ToString() + "\r\n");
+                text.Append("connection state: " + this.MessageConnection.ConnectState.ToString() + "\r\n");
             }
 
             if (this.dp2library != null)
@@ -518,7 +518,7 @@ namespace dp2Capo
             {
                 try
                 {
-                    if (this.MessageConnection.IsConnected == false)
+                    if (this.MessageConnection.ConnectState != Microsoft.AspNet.SignalR.Client.ConnectionState.Connected)
                         return;
 
                     MessageData[] messages = null;
@@ -582,7 +582,7 @@ namespace dp2Capo
 
             // 进行通知处理
             if (_queue != null
-                && this.MessageConnection.IsConnected)
+                && this.MessageConnection.ConnectState == Microsoft.AspNet.SignalR.Client.ConnectionState.Connected)
             {
                 try
                 {
@@ -686,7 +686,7 @@ namespace dp2Capo
          * */
         public bool SendHeartBeat()
         {
-            if (this.MessageConnection == null || this.MessageConnection.IsConnected == false)
+            if (this.MessageConnection == null || this.MessageConnection.ConnectState != Microsoft.AspNet.SignalR.Client.ConnectionState.Connected)
                 return false;
 
             try
