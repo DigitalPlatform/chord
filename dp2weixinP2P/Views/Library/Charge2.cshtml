@@ -21,7 +21,7 @@
 
         // 来源方式常量
         var C_from_scan = 1;
-        var Ch_from_textbox = 2;
+        var C_from_textbox = 2;
 
         // 下一步
         var C_next_dothing = "dothing";
@@ -175,7 +175,7 @@
                                 var right = code.substring(code.indexOf(",") + 1)
                                 if (left != "EAN_13" && left == "CODE_39") {
                                     // 扫描的册条码不对了，提示一下，允许继续输入
-                                    warn("扫描的不是册条码或者ISBN号", "sweep");
+                                    warn("扫描的不是册条码或者ISBN号", C_next_receiveBarcode);
                                     return;
                                 }
 
@@ -238,13 +238,13 @@
                 //, anim: 'up'
                 , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'
                 , end: function (index) {
-                    layer.close(index);
+                    layer.close(index); //todo
                     addCmd();
                 }
             });
+            //===弹层结束===
 
             $("#mybarcode").focus();
-            //===弹层结束===
         }
 
 
@@ -346,8 +346,8 @@
                     return;
                 }
                 if (cmd.state == -3) {
-                    //showSelectItem(cmd.itemList);
-                    warn("未实现功能-isbn", C_next_receiveBarcode);
+                    showSelectItem(cmd.itemList);
+                    //warn("未实现功能-isbn", C_next_receiveBarcode);
                     return;
                 }
 
@@ -367,12 +367,152 @@
                 // 显示一下当前操作结果，结束下一轮
                 warn(html, C_next_dothing)
 
+                // 更新summary
+                window.setTimeout("fillPending()", 1);
+
             }, function (xhq, textStatus, errorThrown) {
                 // 关闭等待层
                 hideLoading();
                 alert(errorThrown);
             },
             data);
+        }
+
+
+        function selectItemOK(obj) {
+
+            if (obj == null || obj == "")
+            {
+                // 关闭图层
+                layer.closeAll();
+
+                warn("您放弃了选择册。", C_next_receiveBarcode);
+            }
+            else
+            {
+                var gray = $(obj).hasClass("item-gray");
+                if (gray == true) {
+                    alert("您点击的行不可用。");
+                    return;
+                }
+
+                var id = $(obj).attr('id'); //item-C001
+                var item = id.substring(5);
+                //alert(item);
+
+
+
+                // 设到条码变量上，以便后面使用
+                setBarcode(item);
+
+                // 关闭图层
+                layer.closeAll();
+
+                // 执行命令
+                addCmd();
+
+
+            }            
+        }
+
+        function showSelectItem(itemList) {
+            var libId = $("#_libId").text();
+            var html = "";
+
+            html +="<div id='selItem' style='background-color:white;color:black;border:2px dotted #333333;margin-top:10px;padding:4px;background-color:gray'>"
+            + "<div style='margin-bottom:5px'>"
+            +"<span style='background-color:#FFD700;font-size:14.8px;font-weight:bold'>"
+            +"请 <span style='color:blue'>单击</span> 选择要<span id='_opeName'>借</span>的册</span>"
+            +"&nbsp;&nbsp;"
+            + "<span style='text-align:right'><a href='javascript:;' onclick='selectItemOK(null)'>跳过</a></span>"
+            +"</div>"
+            +"<div id='items'>";
+
+            for (var i = 0; i < itemList.length; i++) {
+
+                var item = itemList[i];
+                var myClass = "";
+                if (item.isGray == true)
+                    myClass += " item-gray ";
+
+                html += "<div class='mui-card " + myClass + "' style='padding:0px;margin:0px;margin-bottom:10px;' id='item-" + item.barcode + "' onclick='selectItemOK(this)' >"
+                    + "<table class='item' >"
+            + "<tbody>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>册条码号</td>"
+                    + "<td class='value'>" + item.pureBarcode + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>状态</td>"
+                    + "<td class='value'>" + item.state + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>在借情况</td>"
+                    + "<td class='borrowInfo'>" + item.borrowInfo + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>书目摘要</td>"
+                    + "<td class='value'>";
+
+                html += "<div  class='summary pending' style='padding-bottom:4px'>"
+                                       + "<label>bs-" + item.pureBarcode + "</label>"
+                                       + "<img src='../img/wait2.gif' />"
+                                       + "<span>" + libId + "</span>"
+                                   + "</div>";
+
+                html += "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>卷册</td>"
+                    + "<td class='value'>" + item.volume + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>馆藏地</td>"
+                    + "<td class='value'>" + item.location + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>价格</td>"
+                    + "<td class='value'>" + item.price + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>册记录路径</td>"
+                   + "<td class='value'>" + item.recPath + "</td>"
+                + "</tr>"
+            + "</tbody>"
+        + "</table>"
+                + "</div>";
+            }
+
+            html += "</div>"
+                    + "</div>";
+
+            // ===弹层开始===
+            var pageii = layer.open({
+                type: 1
+                , content: html
+                //, anim: 'up'
+                , style: 'overflow:scroll;position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'
+                //, end: function (index) {
+                //    //layer.close(index); //todo 是否需要关闭
+
+                //    alert("走到图层end,选择的item为" + getBarcode());
+                //    return;
+
+                //    //addCmd();
+                //}
+            });
+            //===弹层结束===
+
+            // 更新summary
+            window.setTimeout("fillPending()", 1);
         }
 
 
