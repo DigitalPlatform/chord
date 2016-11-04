@@ -345,12 +345,14 @@ errorInfo)
                 Connection.Closed += Connection_Closed;
                 Connection.Reconnecting += Connection_Reconnecting;
                 Connection.Reconnected += Connection_Reconnected;
+                Connection.ConnectionSlow += Connection_ConnectionSlow;
             }
             else
             {
                 Connection.Closed -= Connection_Closed;
                 Connection.Reconnecting -= Connection_Reconnecting;
                 Connection.Reconnected -= Connection_Reconnected;
+                Connection.ConnectionSlow -= Connection_ConnectionSlow;
             }
         }
 
@@ -471,6 +473,7 @@ errorInfo)
                     );
                     _handlers.Add(handler);
                 }
+
                 // *** getRes
                 {
                     var handler = HubProxy.On<GetResRequest>("getRes",
@@ -498,6 +501,7 @@ errorInfo)
 
             try
             {
+                // Connection.EnsureReconnecting();
                 await Connection.Start();
 #if NO
                 if (Connection.Start().Wait(TimeSpan.FromSeconds(60)) == false)
@@ -611,6 +615,16 @@ errorInfo)
             // Task.Factory.StartNew(() => { Thread.Sleep(1000); this.TriggerLogin(); });
 
             TriggerConnectionStateChange("Reconnected");
+        }
+
+        // 2016/11/4
+        void Connection_ConnectionSlow()
+        {
+            AddInfoLine("Connection_ConnectionSlow");
+            TriggerConnectionStateChange("ConnectionSlow");
+
+            this.Connection.Stop(TimeSpan.FromSeconds(5));
+            this.ConnectAsync();
         }
 
         void Connection_Closed()

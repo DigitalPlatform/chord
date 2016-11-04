@@ -198,6 +198,10 @@ namespace dp2Capo
             }
         }
 
+        public override void TriggerConnectionStateChange(string strAction)
+        {
+            this.Instance.WriteErrorLog("ConnectionStateChange -- " + strAction);
+        }
 #if NO
         public override async Task<MessageResult> ConnectAsync()
         {

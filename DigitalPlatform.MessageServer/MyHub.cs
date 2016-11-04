@@ -1,4 +1,5 @@
 ﻿// #define LOG
+#define LOG_REQUEST_SEARCH
 
 using System;
 using System.Collections.Generic;
@@ -2416,7 +2417,7 @@ ex.GetType().ToString());
                     return result;
 
 #if LOG
-                writeDebug("RequestSearch.2");
+                writeDebug("RequestWebCall.2");
 #endif
 
                 // 检查请求者是否具备操作的权限
@@ -2428,7 +2429,7 @@ ex.GetType().ToString());
                 }
 
 #if LOG
-                writeDebug("RequestSearch.3");
+                writeDebug("RequestWebCall.3");
 #endif
 
                 List<string> connectionIds = null;
@@ -2449,7 +2450,7 @@ ex.GetType().ToString());
                 }
 
 #if LOG
-                writeDebug("RequestSearch.4");
+                writeDebug("RequestWebCall.4");
 #endif
 
                 if (connectionIds == null || connectionIds.Count == 0)
@@ -2460,7 +2461,7 @@ ex.GetType().ToString());
                     return result;
                 }
 #if LOG
-                writeDebug("RequestSearch.5");
+                writeDebug("RequestWebCall.5");
 #endif
 
                 SearchInfo search_info = null;
@@ -2496,7 +2497,7 @@ ex.GetType().ToString());
                 search_info.SetTargetIDs(connectionIds);
 
 #if LOG
-                writeDebug("RequestSearch.6 sendSearch connectionIds=" + StringUtil.MakePathList(connectionIds.ToList<string>()));
+                writeDebug("RequestWebCall.6 sendSearch connectionIds=" + StringUtil.MakePathList(connectionIds.ToList<string>()));
 #endif
                 if (param.Complete == false)
                     SendWebCall(connectionIds, param);
@@ -2624,7 +2625,7 @@ ex.GetType().ToString());
 
             if (searchParam.Count == 0)
                 searchParam.Count = -1;
-#if LOG
+#if LOG || LOG_REQUEST_SEARCH
             writeDebug("RequestSearch.1 userNameList=" + userNameList
                 + ", searchParam=" + searchParam.Dump());
 #endif
@@ -2648,7 +2649,7 @@ ex.GetType().ToString());
                     return result;
                 }
 
-#if LOG
+#if LOG || LOG_REQUEST_SEARCH
                 writeDebug("RequestSearch.2");
 #endif
 
@@ -2669,7 +2670,7 @@ ex.GetType().ToString());
                     }
                 }
 
-#if LOG
+#if LOG || LOG_REQUEST_SEARCH
                 writeDebug("RequestSearch.3");
 #endif
 
@@ -2714,7 +2715,7 @@ ex.GetType().ToString());
                     }
                 }
 
-#if LOG
+#if LOG || LOG_REQUEST_SEARCH
                 writeDebug("RequestSearch.4");
 #endif
 
@@ -2726,7 +2727,7 @@ ex.GetType().ToString());
                     result.String = "TargetNotFound";
                     return result;
                 }
-#if LOG
+#if LOG || LOG_REQUEST_SEARCH
                 writeDebug("RequestSearch.5");
 #endif
 
@@ -2750,7 +2751,7 @@ ex.GetType().ToString());
                 result.String = search_info.UID;   // 返回检索请求的 UID
                 search_info.SetTargetIDs(connectionIds);
 
-#if LOG
+#if LOG || LOG_REQUEST_SEARCH
                 writeDebug("RequestSearch.6 sendSearch connectionIds=" + StringUtil.MakePathList(connectionIds.ToList<string>()));
 #endif
                 Task.Run(() => SendSearch(connectionIds, searchParam));

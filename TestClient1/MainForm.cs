@@ -50,7 +50,8 @@ namespace TestClient1
 
         void _channels_AddMessage(object sender, AddMessageEventArgs e)
         {
-            this.BeginInvoke(new Action<AddMessageEventArgs>(DisplayMessage), e);
+            // 暂时注释掉
+            // this.BeginInvoke(new Action<AddMessageEventArgs>(DisplayMessage), e);
         }
 
         void DisplayMessage(AddMessageEventArgs e)
