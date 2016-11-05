@@ -116,6 +116,7 @@ namespace testSearch
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
+                null,   // TODO:
                 "getBiblioInfo",
                 "<全部>",
                 biblioPath,
@@ -179,6 +180,7 @@ namespace testSearch
             CancellationToken cancel_token = new CancellationToken();
             string id = "2-item";// Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
+                null, // TODO
                 "getItemInfo",
                 "entity",
                 biblioPath,

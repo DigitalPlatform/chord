@@ -9,6 +9,7 @@ namespace DigitalPlatform.Xml
 {
     /// <summary>
     /// 扩展 XML 功能
+    /// 注：将原来 DomUtil 中成熟的函数移动到这里实现
     /// </summary>
     public static class XmlUtil
     {
