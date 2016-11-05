@@ -1,5 +1,4 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Charge2";
     Layout = "~/Views/Shared/_LayoutEmpty.cshtml";
 }
@@ -7,165 +6,198 @@
 @section Scripts {
     <script>
 
-        $(document).ready(function () {
+        //==全局变量====
 
-            //alert("test");
+        // 流程是否停止
+        var _stop = false;
+
+        // 操作类型常量字符串
+        var C_ope_borrow = "borrow";
+        var C_ope_return = "return";
+
+        // 输入框值类型
+        var C_inputType_patron = 1;
+        var C_inputType_item = 2;
+
+        // 来源方式常量
+        var C_from_scan = 1;
+        var C_from_textbox = 2;
+
+        // 下一步
+        var C_next_dothing = "dothing";
+        var C_next_receiveBarcode = "receiveBarcode";
+
+        // 条码来源方式
+        var _from = 2; //1 扫码方式  2输入框方式
+
+        //========================
+
+        // 程序启动
+        $(document).ready(function () {
             //doThing();
 
+            // 设置缺省环境为借书
+            setOpe(C_ope_borrow);
+
+            // 输入框方式根据界面的checkbox来
+            setFrom();
         });
 
+        // 主页界的开始按钮
+        function start(ope) {
 
-        function dothing()
-        {
-            //alert("dothing()");
+            // 先隐藏主页面
+            hideMainPage();
 
-            var _charge_operation = $("#_charge_operation").val();
-            var _charge_inputType = $("#_charge_inputType").val();
-            var _patron = $("#_patron").val();
+            // 设_stop变量开始
+            _stop = false;
 
-            var desc = "";
-            if (_charge_inputType == 1) {
-                desc = "请扫 证条码号";
-            }
-            else {
-                desc = "请扫 册条码号";
-            }
+            // 设置操作类型
+            setOpe(ope);
 
-
-            // 先提示,该扫码
-            warn(desc,"sweep");
-
-
-            // 扫码
-            //sweep();
-
+            // 开始做事
+            dothing();
         }
 
-        var _stop=false;
+        // 做一轮事函数
+        function dothing() {
+            var desc = "<span style='font-size:18pt;line-height:1.3'>"+ getInputTypeDesc(false)+"</span>";
 
-        function warn(text,next)
-        {
-            var html = "<div class='middle'>" + text
+            // 先提示,然后下一步为扫码
+            warn(desc, C_next_receiveBarcode);
+        }
+
+        // 弹出提示界面，next表示下面要做的步骤，如果next为空则停止
+        function warn(text, next) {
+            var html = "";
+
+            // 显示场景+停止按钮
+            var scene = getScene();
+
+            html += "<table width='100%;padding-top:0px'><tr>"
+                + "<td style='width:100%;text-align:center'>"
+                + "<span style='font-size:14.8px'>" + scene + "</span>"
+                + "</td>"
+                + "<td style='width:80px;padding-right:10px'>"
+                + "<button class='mui-btn mui-btn-primary' onclick='_stop=true;layer.closeAll();'>停止</button>";
+            + "</td>"
+            + "</tr></table>"
+
+            // 具体信息 + 跳过
+            html += "<div class='middle'>" + text
                 + "<br><br><a href='javascript:;' onclick='layer.closeAll();'>跳过</a>"
-                +"</div>";
-            html += "<button class='mui-btn mui-btn-primary' onclick='_stop=true;layer.closeAll();'>停止</button>";
-            var ope = "";
-            // 根据借 还 做操作
-            if (_charge_operation == "borrow") {
-                ope = "借书环境";
-            }
-            else {
-                ope = "还书环境";
-            }
-            html += "<span>&nbsp;&nbsp;" + ope + "</span>";
+                + "</div>";
 
-
+            // 弹层开始
             var pageii = layer.open({
                 type: 1
                 , content: html
                 //, anim: 'up'
                 , time: 3
-                , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'
-                ,end: function(index){
+                , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'  // todo style怎么改为class
+                , end: function (index) {
 
+                    // todo，是否需要再次关闭图层？
                     layer.close(index);
 
-                    if (_stop == true || next==null || next=="")
-                    {
-                        showPage();
+                    //如果没有下一步，设为停止状态
+                    if (next == null || next == "") {
+                        _stop = true;
+                    }
+
+                    // 如果是停止状态，或者没有下一步，则不再循环，回到主页面
+                    if (_stop == true) {
+                        showMainPage();
                         return;
                     }
 
-
-                    if (next == "dothing")
-                    {
+                    // 继续下面的操作
+                    if (next == C_next_dothing) {
                         dothing();
                     }
-                    else if (next == "sweep")
-                        {
-                    // 扫码
-                        sweep();
+                    else if (next == C_next_receiveBarcode) {
+                        receiveBarcode();
                     }
-
-
-
-            }   
+                    else {
+                        alert("不认识的下一步命令:" + next);
+                        showMainPage();
+                        return;
+                    }
+                }
             });
-
-
+            //===弹层结束====
         }
 
-        function showPage()
-        {
-            $("#mybody").css("background-color", "");
-            $("#mypage").css("display", "block");
+        // 接收二维码
+        function receiveBarcode() {
+            if (_from == C_from_scan) {
+                openScanBarcode();
+            }
+            else if (_from == C_from_textbox) {
+                openTextBox();
+            }
         }
 
-        // 扫码
-        function sweep() {
+        // 打开扫码界面
+        function openScanBarcode() {
 
+            // 这里先设_stop为true，是为了处理用户在扫描界面，直接按了微信的回车按钮
             _stop = true;
-            //alert("扫码");
-            //addCmd();
-            //return;
 
             if (jssdkReady == -1) {
-                alert('JSSDK config信息验证失败，不能使用扫码功能。');
+                warn('JSSDK config信息验证失败，不能使用扫码功能。', "");
                 return;
             }
             else if (jssdkReady == 0) {
-                alert('JSSDK config未初始化完成，请稍候再试。');
+                warn('JSSDK config未初始化完成，请稍候再试。', "");
                 return;
             }
 
-            var error = "";
             try {
                 wx.scanQRCode({
                     needResult: 1, // 默认为0扫描结果由微信处理，1则直接返回扫描结果，
                     scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
                     success: function (res) {
+
+                        // 设为false
                         _stop = false;
 
                         var code = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
-                        $("#_barcode").val(code);
 
-                        var _charge_inputType = $("#_charge_inputType").val();
-                        if (_charge_inputType == 2) {
-                            var item = code;
-                            if (item.indexOf(",") != -1) {
-                                var left = "";
-                                var right = "";
-                                left = item.substring(0, code.indexOf(","))//EAN_13
-                                right = item.substring(code.indexOf(",") + 1)
+                        // 先将到扫到的code设到条码内部变量上
+                        setBarcode(code);
 
-                                if (left != "EAN_13" && left == "CODE_39") {
-                                    $("#errorInfo").text("扫描的不是册条码或者ISBN号");
+                        // 处理下册条码，去掉,号前面的类型标识
+                        var inputType = getInputType();
+                        if (inputType == C_inputType_item) {
+                            if (code.indexOf(",") != -1) {
+                                var left = code.substring(0, code.indexOf(","))
+                                var right = code.substring(code.indexOf(",") + 1)
+                                if (left != "EAN_13" && left != "CODE_39") {
+                                    // 扫描的册条码不对了，提示一下，允许继续输入
+                                    warn("扫描的不是册条码或者ISBN号", C_next_receiveBarcode);
+                                    return;
                                 }
-                                $("#_barcode").val(right);
-                            }
 
+                                // 设置处理好的册条码
+                                setBarcode(right);
+                            }
                         }
 
+                        // 执行命令 todo 是否可以不用setTimeout
                         window.setTimeout("addCmd('')", 1);
                     },
                     fail: function (res) {
-                        
-                        error = "扫码返回出错:" + JSON.stringify(res);
-                        //$("#errorInfo").text(error);
-                        warn(error, "");
-
+                        var error = "扫码返回出错:" + JSON.stringify(res);
+                        warn(error, ""); // 扫描严重出错的时候，停止循环
                         return;
                     },
-                    //trigger: function (res) {
-                    //    alert('tigger');
-                    //},
                     complete: function (res) {
-                        alert("com-" + _stop);
-                        if (_stop == true)
-                        {
-                            //showPage();
-                            window.setTimeout("showPage()", 1);
-
+                        // 如果未做事，直接返回，则回到主页面，
+                        //对于android其实可以用cancel事件，
+                        //但对于ios不行，todo ios返回时也没走到complete事件里
+                        if (_stop == true) {
+                            showMainPage();
                         }
                     },
                     //cancel: function (res) {
@@ -174,42 +206,63 @@
                     //    showPage();
                     //    return;
                     //}
-
                 });
             }
             catch (err) {
-                error = "扫码异常:" + err;
-                //$("#errorInfo").text(error);
+                // 扫描严重出错的时候，停止循环
+                var error = "扫码异常:" + err;
                 warn(error, "");
                 return;
             }
-            //alert("end");
         }
+
+        // 打开输入框界面
+        function openTextBox() {
+            var desc = getInputTypeDesc(false);
+
+            // 场景提示
+            var html = "<center>" + desc + "</center><br>";
+
+            // 输入框
+            html += "<table style='width:100%'>"
+                + "<tr>"
+                + "<td style='width:100%'><input id='mybarcode'  style='color:black;padding:0px;margin:0px;font-size:36pt;height:100px' type='text'  onkeypress='enter(event)' /></td>"
+                + "<td ><button onclick='ok()' style='margin:0px'>确认</button></td>"
+                + "</tr>"
+                + "</table>";
+
+            // ===弹层开始===
+            var pageii = layer.open({
+                type: 1
+                , content: html
+                //, anim: 'up'
+                , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'
+                , end: function (index) {
+                    layer.close(index); //todo
+                    addCmd();
+                }
+            });
+            //===弹层结束===
+
+            $("#mybarcode").focus();
+        }
+
 
 
         // 执行命令
         function addCmd() {
 
-            // 输出提示
-            warn("addCmd","dothing");
-
-
-            return;
-
-            //// 先清掉扫码错误信息
-            //$("#errorInfo").text("");
-
             // 图书馆
-            var libId = getLibId();//$("#selLib").val();
+            var libId = $("#_libId").text(); //getLibId();
             if (libId == "" || libId == null) {
-                alert("您尚未选择图书馆。");
+                warn("您尚未选择图书馆。",""); // 下一步停止
                 return;
             }
 
             // 微信id
             var weixinId = $("#weixinId").text();
             if (weixinId == "") {
-                alert("weixinId不能为空。");
+                warn("weixinId不能为空。","");
                 return;
             }
 
@@ -217,53 +270,61 @@
             var item = "";
             var cmdType = "";
 
-            var _charge_operation = $("#_charge_operation").val();
-            var _charge_inputType = $("#_charge_inputType").val();
+            var ope = getOpe();
+            var inputType = getInputType();
 
-            if (_charge_operation == "borrow") {
-                if (_charge_inputType == 1) {
+            if (ope == C_ope_borrow) {
+                if (inputType == C_inputType_patron) {
                     cmdType = "loadPatron";
-                    patron = $("#_barcode").val(); //从输入框取值
+                    patron = getBarcode();
                     if (patron == null || patron == "") {
-                        alert("请输入 证 条码号");
-                        $("barcode").focus();
+                        // 提示下，下一步继续获取条码
+                        warnAndNext();
                         return;
                     }
-
-                    //_patron = patron;
-                    $("#_patron").val(patron);
-
-
+                    // 设到内部的读者变量上
+                    setPatron(patron);
                 }
                 else {
                     cmdType = "borrow";
-                    patron = $("#_patron").val();//_patron; //从变量取值
-                    item = $("#_barcode").val();
+                    patron = getPatron();//_patron; //从变量取值
+                    item = getBarcode();
                     if (item == null || item == "") {
-                        alert("请输入 册 条码号");
+                        // 提示下，下一步继续获取条码
+                        warnAndNext();
                         return;
                     }
-
-
                 }
             }
-            else if (_charge_operation == "return") {
+            else if (ope == C_ope_return) {
                 cmdType = "return";
-                item = $("#_barcode").val();
+                item = getBarcode();
                 if (item == null || item == "") {
-                    alert("请输入 册 条码号");
+                    // 提示下，下一步继续获取条码
+                    warnAndNext();
                     return;
                 }
             }
 
+            ////==跑流程测试用==
+            //if (cmdType == "loadPatron") {
+            //    setInputType(C_inputType_item);
+            //}
+            //// 输出提示
+            //warn("addCmd完成", C_next_dothing);
+            //return;
+            ////===
 
-            //alert(_patron);
 
             //登录身份
             var userName = $("#_userName").text();
+            if (userName==null || userName== "") {
+                warn("userName操作人不能不空。", "");
+                return;
+            }
 
             //显示等待图层
-            showMaskLayer();
+            showLoading();
 
             //调 web api
             var url = "/api/ChargeCommand?weixinId=" + weixinId
@@ -275,119 +336,449 @@
                 userName: userName
             };
 
-
-
             sendAjaxRequest(url, "POST", function (cmd) {
 
                 // 关闭等待层
-                hideMaskLayer();
-
-                // 清掉输入框
-                $("#_barcode").val(""); //清掉输入框    
+                hideLoading();
 
                 if (cmd.state == -2) {
-                    alert("姓名重复");
+                    warn("未实现功能-姓名重复",C_next_receiveBarcode);
+                    return;
+                }
+                if (cmd.state == -3) {
+                    showSelectItem(cmd.itemList);
+                    //warn("未实现功能-isbn", C_next_receiveBarcode);
                     return;
                 }
 
-                if (cmd.state == -3) {
-                    showSelectItem(cmd.itemList);
-                    return;
+                if (cmdType == "loadPatron") {
+                    if (cmd.state == 1) {
+                        // 设下面为 册条码输入框
+                        setInputType(C_inputType_item);
+                    }
                 }
 
                 // 加入操作历史
                 viewCmd(cmd);
 
-                $("#_barcode").val(""); //清掉输入框      
+                var html = "<div style='color:black;background-color:white'>" + cmd.cmdHtml + "</div>";
 
-                if (cmdType == "loadPatron") {
-                    $("#patron").html(""); //清掉读者信息
-                    if (cmd.state == 1) {
-                        setInput(2);
-                        $("#_patron").val(patron);
-                        // 显示读者信息
-                        $("#patron").html(cmd.patronHtml);
-                    }
-                }
-                else {  
-                    // 更新读者信息
-                    if (cmd.patronHtml != "" && cmd.patronHtml != null) {
-                        $("#patron").html(cmd.patronHtml);
-                    }
-                }
 
-                ////如果是扫码方法，且操作成功，才继续打开扫描
-                //if (cmd.state == 1) {
-                //    sweep();
-                //}
+                // 显示一下当前操作结果，结束下一轮
+                warn(html, C_next_dothing)
+
+                // 更新summary
+                window.setTimeout("fillPending()", 1);
 
             }, function (xhq, textStatus, errorThrown) {
                 // 关闭等待层
-                hideMaskLayer();
+                hideLoading();
                 alert(errorThrown);
             },
             data);
-
-
         }
 
-        function start(ope)
-        {
-            $("#mybody").css("background-color", "black");
-            $("#mypage").css("display", "none");
-            //background-color:black;color:white
+
+        function selectItemOK(obj) {
+
+            if (obj == null || obj == "")
+            {
+                // 关闭图层
+                layer.closeAll();
+
+                warn("您放弃了选择册。", C_next_receiveBarcode);
+            }
+            else
+            {
+                var gray = $(obj).hasClass("item-gray");
+                if (gray == true) {
+                    alert("您点击的行不可用。");
+                    return;
+                }
+
+                var id = $(obj).attr('id'); //item-C001
+                var item = id.substring(5);
+                //alert(item);
 
 
-            _stop = false;
 
-            $("#_charge_operation").val(ope);
-            if (ope = "borrow") {
-                $("#_charge_inputType").val(1);
+                // 设到条码变量上，以便后面使用
+                setBarcode(item);
+
+                // 关闭图层
+                layer.closeAll();
+
+                // 执行命令
+                addCmd();
+
+
+            }            
+        }
+
+        function showSelectItem(itemList) {
+            var libId = $("#_libId").text();
+            var html = "";
+
+            html +="<div id='selItem' style='background-color:white;color:black;border:2px dotted #333333;margin-top:10px;padding:4px;background-color:gray'>"
+            + "<div style='margin-bottom:5px'>"
+            +"<span style='background-color:#FFD700;font-size:14.8px;font-weight:bold'>"
+            +"请 <span style='color:blue'>单击</span> 选择要<span id='_opeName'>借</span>的册</span>"
+            +"&nbsp;&nbsp;"
+            + "<span style='text-align:right'><a href='javascript:;' onclick='selectItemOK(null)'>跳过</a></span>"
+            +"</div>"
+            +"<div id='items'>";
+
+            for (var i = 0; i < itemList.length; i++) {
+
+                var item = itemList[i];
+                var myClass = "";
+                if (item.isGray == true)
+                    myClass += " item-gray ";
+
+                html += "<div class='mui-card " + myClass + "' style='padding:0px;margin:0px;margin-bottom:10px;' id='item-" + item.barcode + "' onclick='selectItemOK(this)' >"
+                    + "<table class='item' >"
+            + "<tbody>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>册条码号</td>"
+                    + "<td class='value'>" + item.pureBarcode + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>状态</td>"
+                    + "<td class='value'>" + item.state + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>在借情况</td>"
+                    + "<td class='borrowInfo'>" + item.borrowInfo + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>书目摘要</td>"
+                    + "<td class='value'>";
+
+                html += "<div  class='summary pending' style='padding-bottom:4px'>"
+                                       + "<label>bs-" + item.pureBarcode + "</label>"
+                                       + "<img src='../img/wait2.gif' />"
+                                       + "<span>" + libId + "</span>"
+                                   + "</div>";
+
+                html += "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>卷册</td>"
+                    + "<td class='value'>" + item.volume + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>馆藏地</td>"
+                    + "<td class='value'>" + item.location + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>价格</td>"
+                    + "<td class='value'>" + item.price + "</td>"
+                + "</tr>"
+                + "<tr>"
+                    + "<td class='first'></td>"
+                    + "<td class='name'>册记录路径</td>"
+                   + "<td class='value'>" + item.recPath + "</td>"
+                + "</tr>"
+            + "</tbody>"
+        + "</table>"
+                + "</div>";
+            }
+
+            html += "</div>"
+                    + "</div>";
+
+            // ===弹层开始===
+            var pageii = layer.open({
+                type: 1
+                , content: html
+                //, anim: 'up'
+                , style: 'overflow:scroll;position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'
+                //, end: function (index) {
+                //    //layer.close(index); //todo 是否需要关闭
+
+                //    alert("走到图层end,选择的item为" + getBarcode());
+                //    return;
+
+                //    //addCmd();
+                //}
+            });
+            //===弹层结束===
+
+            // 更新summary
+            window.setTimeout("fillPending()", 1);
+        }
+
+
+        function viewCmd(cmd) {
+            //cmds
+            var cmds = $("#cmds");
+
+            // 加到前面
+            cmds.prepend(cmd.cmdHtml); //append(cmdHtml);//
+        }
+
+
+        //==内部公共函数==================
+
+        // 提示重新输入
+        function warnAndNext() {
+            // 提示，下一步继续获取条码
+            var inputTypeDesc = getInputTypeDesc(true);
+            warn(inputTypeDesc, C_next_receiveBarcode);
+        }
+
+        // 获取当前输入条码类型的 描述信息，因为2个地方用，所以提出作为函数
+        function getInputTypeDesc(again) {
+            var desc = "";
+
+            var left = "";
+            var againText = "";
+            if (again == true) {
+                againText = "重新";
+            }
+
+            var actionName = "";
+            if (_from == C_from_scan)
+                actionName = "扫";
+            else
+                actionName = "输入";
+
+            var inputType = getInputType();
+            if (inputType == C_inputType_patron) {
+                desc = "请" + againText + actionName + " 证条码号";
+            }
+            else if (inputType == C_inputType_item) {
+                desc = "请" + againText + actionName + " 册条码号";
             }
             else {
-                $("#_charge_inputType").val(2);
-
+                desc = "请" + againText + actionName + " 不知道！！！";
             }
-
-            // 开始做事
-            dothing();
+            return desc;
         }
 
-        </script>
-    }
+        // 得到操作类型
+        function getOpe() {
+            return $("#_charge_operation").val();
+        }
+        // 设置操作类型
+        function setOpe(value) {
+            $("#_charge_operation").val(value);
+
+            if (value == C_ope_borrow) {
+                setInputType(C_inputType_patron);
+            }
+            else {
+                setInputType(C_inputType_item);
+            }
+
+        }
+
+        // 得到读者证条码
+        function getPatron() {
+            return $("#_patron").val();
+        }
+        // 设置读者证条码
+        function setPatron(value) {
+            return $("#_patron").val(value);
+        }
+
+        // 得到条码
+        function getBarcode() {
+            return $("#_barcode").val();
+        }
+        // 设置条码
+        function setBarcode(value) {
+            return $("#_barcode").val(value);
+        }
+
+        // 得到输入类型,1表示读者证 2表示册条码
+        function getInputType() {
+            return $("#_charge_inputType").val();
+        }
+        // 设置输入类型
+        function setInputType(value) {
+            return $("#_charge_inputType").val(value);
+        }
+
+        // 得到当前场景
+        function getScene() {
+            var text = "";
+
+            var ope = getOpe();
+            // 根据借 还 做操作
+            if (ope == C_ope_borrow) {
+                text = "借书环境";
+            }
+            else if (ope == C_ope_return) {
+                text = "还书环境";
+            }
+            else {
+                text = "不清楚的环境";
+            }
+
+            return text;
+        }
+
+        // 当输入框方式时，点击确认按钮
+        function ok() {
+
+            //取出在界面textbox输入的条码
+            var barcode = $("#mybarcode").val();
+            //alert(barcode);
+            if (barcode == null || barcode == "") {
+                alert("请输入");
+                return;
+            }
+
+            // 设到条码变量上，以便后面使用
+            setBarcode(barcode);
+
+            // 关闭图层
+            layer.closeAll();
+        }
+
+        // 当输入框方式时，在textbox点击回车事件
+        function enter(event) {
+            if (event.keyCode == "13") {
+                ok();
+            }
+        }
+
+        // 显示主页面
+        function showMainPage() {
+            $("#mybody").css("background-color", "");
+            $("#mypage").css("display", "block");
+        }
+
+        // 隐藏主页面
+        function hideMainPage() {
+            $("#mybody").css("background-color", "black");
+            $("#mypage").css("display", "none");
+        }
+
+
+
+        // checkbox设置条码来源方式
+        function setFrom() {
+            var from = 1;
+            $("#ckbFrom:checked").each(function () {
+                from = 2;
+            });
+            _from = from;
+        }
+
+        //====================
+    </script>
+}
 
 @section style {
-<style>
 
-    .middle {
+    <link href="@Url.Content("~/Content/charge.css?a=1")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/patron.css?a=1")" rel="stylesheet">
+    <style>
+        TABLE.chargeform {
+            width: 100%;
+        }
+
+            TABLE.chargeform TD {
+                /*height:62px;*/
+            }
+
+
+                TABLE.chargeform TD INPUT {
+                    height: 50px;
+                    font-size: 28px;
+                    border-radius: 3px;
+                    margin-bottom: 0px;
+                }
+
+        .operationLink {
+            cursor: pointer;
+            font-size: 16pt;
+            width: 200px;
+            color: #007aff;
+        }
+
+        .operationName {
+            font-size: 40pt;
+            cursor: pointer;
+        }
+
+        .item-gray {
+            color: #cccccc;
+        }
+
+        .middle {
             border: solid 2px #86A5AD;
             display: block;
-            width: 160px;
-            height: 50px;
+            width: 200px;
+            height: 200px;
             position: fixed;
             top: 50%;
             left: 50%;
-            margin-left: -80px;
-            margin-top: -25px;
-            padding: 10px 10px 10px 30px;
+            margin-left: -100px;
+            margin-top: -100px;
+            padding: 2px;
             text-align: left;
             line-height: 15px;
             /*font-weight:bold;*/
             position: absolute;
             z-index: 2001;
-            vertical-align:top;
-}
+            vertical-align: top;
+            /*color:black;*/
+            /*background-color:white;*/
+        }
     </style>
-    }
+}
 
-<input id="_charge_operation" type="hidden" value="borrow">
-<input id="_charge_inputType" type="hidden" value="1">
+
+
+<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="_libId" style="display:none">@ViewBag.LibId</span>
+<span id="_userName" style="display:none">@ViewBag.userName</span>
+
+
+<input id="_charge_operation" type="hidden" value="">
+<input id="_charge_inputType" type="hidden" value="">
 <input id="_patron" type="hidden" value="">
-<input id="_barcode" type="hidden" value="1">
+<input id="_barcode" type="hidden" value="">
 
-<div id="mypage" >
-    <div style="padding:10px">
-        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="start(1)">开始借书</button>
-        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="start(2)">开始还书</button>
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
     </div>
-</div>
+}
+else
+{
+
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+        <div id="mypage">
+            <div style="padding:10px">
+                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="start('borrow')">开始借书</button>
+                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="start('return')">开始还书</button>
+                <input style="width:30px;height:30px" id='ckbFrom' onchange="setFrom()" type='checkbox' checked />输入框方式
+            </div>
+
+            <div id="cmdContainer" class="mui-content-padded">
+                <h4><span style="color:#cccccc">操作历史</span></h4>
+                <div id="cmds"></div>
+            </div>
+        </div>
+    }
+}
