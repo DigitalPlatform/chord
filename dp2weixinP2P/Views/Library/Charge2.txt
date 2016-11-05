@@ -363,16 +363,9 @@
                 // 加入操作历史
                 viewCmd(cmd);
 
-                //// 显示一下当前操作结果，结束下一轮
-                //var html = "<div style='color:black;background-color:white'>" + cmd.cmdHtml + "</div>";
-                //warn(html, C_next_dothing);
-
-                var html = "";
-                if (cmd.state == -1)
-                    html = "<img src='../img/error1.jpg'/>";
-                else
-                    html = "<img src='../img/right1.png'/>";
-                warn(html, C_next_dothing)
+                // 显示一下当前操作结果，结束下一轮
+                var html = "<div style='color:black;background-color:white'>" + cmd.cmdHtml + "</div>";
+                warn(html, C_next_dothing);
 
                 // 更新summary
                 window.setTimeout("fillPending()", 1);

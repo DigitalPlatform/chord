@@ -199,11 +199,13 @@
     <Content Include="img\empty.jpg" />
     <Content Include="img\emptyBind.png" />
     <Content Include="img\error.jpg" />
+    <Content Include="img\error1.jpg" />
     <Content Include="img\library.jpg" />
     <Content Include="img\loading.gif" />
     <Content Include="img\nonePhoto.png" />
     <Content Include="img\empty2.jpg" />
     <Content Include="img\person.png" />
+    <Content Include="img\right1.png" />
     <Content Include="img\wait2.gif" />
     <Content Include="img\guide.pdf" />
     <Content Include="fonts\mui-icons-extra.ttf" />
@@ -335,6 +337,7 @@
     <Content Include="Views\Library\SearchItem.cshtml" />
     <Content Include="Views\Shared\_LayoutEmpty.cshtml" />
     <Content Include="Views\Library\Charge2.cshtml" />
+    <Content Include="Views\Library\Charge2.txt" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
