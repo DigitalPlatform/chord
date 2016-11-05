@@ -6,11 +6,12 @@ using System.Text;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.AspNet.SignalR.Client;
+
 using DigitalPlatform.Common;
 using DigitalPlatform.Net;
 using DigitalPlatform;
 using DigitalPlatform.MessageClient;
-using Microsoft.AspNet.SignalR.Client;
 
 namespace dp2Capo
 {
@@ -27,6 +28,8 @@ namespace dp2Capo
         // 从数据目录装载全部实例定义，并连接服务器
         public static void Initial(string strDataDir)
         {
+            _exited = false;
+
             DirectoryInfo root = new DirectoryInfo(strDataDir);
             var dis = root.GetDirectories();
             foreach (DirectoryInfo di in dis)
@@ -87,18 +90,23 @@ namespace dp2Capo
             }
         }
 
+        static bool _exited = false;
         // 准备退出
         public static void Exit()
         {
-            _defaultThread.StopThread(true);    // 强制退出
-            _defaultThread.Dispose();
-
-            // 保存配置
-
-            // 切断连接
-            foreach (Instance instance in _instances)
+            if (_exited == false)
             {
-                instance.Close();
+                _defaultThread.StopThread(true);    // 强制退出
+                _defaultThread.Dispose();
+
+                // 保存配置
+
+                // 切断连接
+                foreach (Instance instance in _instances)
+                {
+                    instance.Close();
+                }
+                _exited = true;
             }
         }
 
@@ -168,7 +176,7 @@ namespace dp2Capo
 
         static void Check(Instance instance, List<Task> tasks)
         {
-            if (instance.MessageConnection.ConnectState != ConnectionState.Connected)
+            if (instance.MessageConnection.ConnectState == ConnectionState.Disconnected)    // 注：如果在 Connecting 和 Reconnecting 状态则不尝试 ConnectAsync
             {
                 // instance.BeginConnnect();
                 tasks.Add(instance.BeginConnectTask());

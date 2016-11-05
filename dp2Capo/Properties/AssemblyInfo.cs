@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.18.*")]
-[assembly: AssemblyFileVersion("1.18.0.0")]
+[assembly: AssemblyVersion("1.19.*")]
+[assembly: AssemblyFileVersion("1.19.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -53,3 +53,4 @@ using System.Runtime.InteropServices;
 // 1.16 (2016/11/2) ConnectAsync() 和 CloseConection() 又改回 lock 方法。注释掉 Timer 相关的语句。ServerConnection 中的 virtual ConnectAsync() 也被注释掉了。为 dp2Capo 的 getSystemParameter 功能增加了日志语句
 // 1.17 (2016/11/3) echo 的时候也可能会遇到  异常 Microsoft.AspNet.SignalR.Client.HttpClientException:StatusCode: 401, 增加了此时 TryResetConnection() 动作。另外原来的 TryResetConnection() 只有在特定 code 情况下才做动作，这次注释掉这个 if，都做动作了
 // 1.18 (2016/11/4) MessageConnection 增加 Connection_ConnectionSlow()，开始重新连接
+// 1.19 (2016/11/5) 在 MessageConnection 的 CloseConnection() 中恢复 Connection.Stop() 语句。TryResetConnection() 里面采用 CloseConnection()

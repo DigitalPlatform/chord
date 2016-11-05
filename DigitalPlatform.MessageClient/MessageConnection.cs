@@ -609,6 +609,7 @@ errorInfo)
         void Connection_Reconnected()
         {
             // tryingToReconnect = false;
+            _slowCount = 0;
 
             AddInfoLine("Connection_Reconnected");
 
@@ -617,14 +618,36 @@ errorInfo)
             TriggerConnectionStateChange("Reconnected");
         }
 
+        // 最近发生的 ConnectionSlow 事件次数
+        int _slowCount = 0;
+
+        public int SlowCount
+        {
+            get
+            {
+                return _slowCount;
+            }
+        }
+
+        // 因为 ConnectionSlow 而切断重连的最近一次操作时间
+        DateTime _slowReconnectTime = DateTime.Now;
+
         // 2016/11/4
         void Connection_ConnectionSlow()
         {
             AddInfoLine("Connection_ConnectionSlow");
             TriggerConnectionStateChange("ConnectionSlow");
 
-            this.Connection.Stop(TimeSpan.FromSeconds(5));
-            this.ConnectAsync();
+            _slowCount++;
+            if (_slowCount >= 6 && DateTime.Now - _slowReconnectTime > TimeSpan.FromMinutes(5)) // 5 分钟内超过 6 次 ConnectionSlow 事件
+            {
+                // https://forums.asp.net/t/2064151.aspx?When+Client+loses+internet+connection+OnDisconnected+event+not+raised
+                this.Connection.Stop(TimeSpan.FromSeconds(5));
+                this.ConnectAsync();
+
+                _slowCount = 0;
+                _slowReconnectTime = DateTime.Now;
+            }
         }
 
         void Connection_Closed()
@@ -2791,7 +2814,7 @@ CancellationToken token)
                     AddConnectionEvents(false);
                     // Connection.Closed -= new Action(Connection_Closed);
 
-#if NO
+                    // 2016/11/5 放开对下列 Stop() 语句的注释
                     /*
     操作类型 crashReport -- 异常报告 
     主题 dp2circulation 
@@ -2828,7 +2851,7 @@ CancellationToken token)
                     catch (System.NullReferenceException)
                     {
                     }
-#endif
+
                     DisposeHandlers();
                     var temp = this.Connection;
                     this.Connection = null;
