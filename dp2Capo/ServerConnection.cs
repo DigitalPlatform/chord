@@ -198,6 +198,15 @@ namespace dp2Capo
             }
         }
 
+        public override void TriggerConnectionStateChange(string strAction)
+        {
+            if (strAction == "ConnectionSlow")
+                this.Instance.WriteErrorLog("ConnectionStateChange -- " + strAction + ", SlowCount=" + this.SlowCount.ToString());
+            else
+                this.Instance.WriteErrorLog("ConnectionStateChange -- " + strAction);
+
+            base.TriggerConnectionStateChange(strAction);
+        }
 #if NO
         public override async Task<MessageResult> ConnectAsync()
         {

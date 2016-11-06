@@ -1,4 +1,5 @@
 ﻿// #define LOG
+#define LOG_REQUEST_SEARCH
 
 using System;
 using System.Collections.Generic;
@@ -2416,7 +2417,7 @@ ex.GetType().ToString());
                     return result;
 
 #if LOG
-                writeDebug("RequestSearch.2");
+                writeDebug("RequestWebCall.2");
 #endif
 
                 // 检查请求者是否具备操作的权限
@@ -2428,7 +2429,7 @@ ex.GetType().ToString());
                 }
 
 #if LOG
-                writeDebug("RequestSearch.3");
+                writeDebug("RequestWebCall.3");
 #endif
 
                 List<string> connectionIds = null;
@@ -2449,7 +2450,7 @@ ex.GetType().ToString());
                 }
 
 #if LOG
-                writeDebug("RequestSearch.4");
+                writeDebug("RequestWebCall.4");
 #endif
 
                 if (connectionIds == null || connectionIds.Count == 0)
@@ -2460,7 +2461,7 @@ ex.GetType().ToString());
                     return result;
                 }
 #if LOG
-                writeDebug("RequestSearch.5");
+                writeDebug("RequestWebCall.5");
 #endif
 
                 SearchInfo search_info = null;
@@ -2496,7 +2497,7 @@ ex.GetType().ToString());
                 search_info.SetTargetIDs(connectionIds);
 
 #if LOG
-                writeDebug("RequestSearch.6 sendSearch connectionIds=" + StringUtil.MakePathList(connectionIds.ToList<string>()));
+                writeDebug("RequestWebCall.6 sendSearch connectionIds=" + StringUtil.MakePathList(connectionIds.ToList<string>()));
 #endif
                 if (param.Complete == false)
                     SendWebCall(connectionIds, param);
@@ -2624,7 +2625,7 @@ ex.GetType().ToString());
 
             if (searchParam.Count == 0)
                 searchParam.Count = -1;
-#if LOG
+#if LOG || LOG_REQUEST_SEARCH
             writeDebug("RequestSearch.1 userNameList=" + userNameList
                 + ", searchParam=" + searchParam.Dump());
 #endif
@@ -2648,7 +2649,7 @@ ex.GetType().ToString());
                     return result;
                 }
 
-#if LOG
+#if LOG || LOG_REQUEST_SEARCH
                 writeDebug("RequestSearch.2");
 #endif
 
@@ -2669,7 +2670,7 @@ ex.GetType().ToString());
                     }
                 }
 
-#if LOG
+#if LOG || LOG_REQUEST_SEARCH
                 writeDebug("RequestSearch.3");
 #endif
 
@@ -2714,7 +2715,7 @@ ex.GetType().ToString());
                     }
                 }
 
-#if LOG
+#if LOG || LOG_REQUEST_SEARCH
                 writeDebug("RequestSearch.4");
 #endif
 
@@ -2726,7 +2727,7 @@ ex.GetType().ToString());
                     result.String = "TargetNotFound";
                     return result;
                 }
-#if LOG
+#if LOG || LOG_REQUEST_SEARCH
                 writeDebug("RequestSearch.5");
 #endif
 
@@ -2750,7 +2751,7 @@ ex.GetType().ToString());
                 result.String = search_info.UID;   // 返回检索请求的 UID
                 search_info.SetTargetIDs(connectionIds);
 
-#if LOG
+#if LOG || LOG_REQUEST_SEARCH
                 writeDebug("RequestSearch.6 sendSearch connectionIds=" + StringUtil.MakePathList(connectionIds.ToList<string>()));
 #endif
                 Task.Run(() => SendSearch(connectionIds, searchParam));
@@ -3868,7 +3869,11 @@ ex.GetType().ToString());
                 // 获得用户信息
                 var results = ServerInfo.UserDatabase.GetUsersByName(userName, 0, 1).Result;
                 if (results.Count != 1)
+                {
+                    ServerInfo.WriteErrorLog("权限认证时，用户名 '"+userName+"' 不存在或多于一个 (" + results.Count.ToString() + ")");
                     return false;
+                }
+
                 var user = results[0];
 
                 if (string.IsNullOrEmpty(user.binding) == false)
@@ -3879,13 +3884,19 @@ ex.GetType().ToString());
                         // 检查 IP 地址
                         string ip = GetIpAddress(request);
                         if (StringUtil.MatchIpAddressList(list, ip) == false)
+                        {
+                            ServerInfo.WriteErrorLog("权限认证时，用户名 '" + user.userName + "' 其前端 IP '" + ip + "' 无法匹配 '" + list + "'");
                             return false;
+                        }
                     }
                 }
 
                 string strHashed = Cryptography.GetSHA1(password);
                 if (user.password != strHashed)
+                {
+                    ServerInfo.WriteErrorLog("权限认证时，用户名 '" + user.userName + "' 其密码不正确");
                     return false;
+                }
 
                 // 需要把 UserItem.groups 正规化
                 // 可以规定，在保存账户信息阶段正规化。这样每次使用的时候就省心了
@@ -3893,6 +3904,7 @@ ex.GetType().ToString());
                 // user.Groups 定义正规化
                 user.groups = CanonicalizeGroups(user.groups);
 
+                // 注： user 对象放在 Environment 里面所占空间何时释放?
                 request.Environment[MyHub.USERITEM_KEY] = user;
                 return true;
             }

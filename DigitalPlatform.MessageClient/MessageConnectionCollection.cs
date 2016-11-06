@@ -87,7 +87,7 @@ namespace DigitalPlatform.MessageClient
             connection.Parameters = e.Parameters;
 #endif
 
-            if (autoConnect && connection.IsConnected == false)
+            if (autoConnect && connection.ConnectState == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
             {
                 return Task.Run<MessageConnection>(async () =>
                 {
@@ -179,7 +179,7 @@ bool autoConnect = true)
             this.TriggerCreated(connection, new ConnectionCreatedEventArgs());
 
         FOUND:
-            if (autoConnect && connection.IsConnected == false)
+            if (autoConnect && connection.ConnectState == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
             {
                 MessageResult result = await connection.ConnectAsync();
                 if (result.Value == -1)
@@ -475,7 +475,7 @@ bool autoConnect = true)
         /// <param name="error"></param>
         /// <param name="strUserName"></param>
         /// <param name="strText"></param>
-        public MessageException(string error, 
+        public MessageException(string error,
             string strUserName,
             string strText)
             : base(strText)

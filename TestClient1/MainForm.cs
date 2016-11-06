@@ -50,7 +50,8 @@ namespace TestClient1
 
         void _channels_AddMessage(object sender, AddMessageEventArgs e)
         {
-            this.BeginInvoke(new Action<AddMessageEventArgs>(DisplayMessage), e);
+            // 暂时注释掉
+            // this.BeginInvoke(new Action<AddMessageEventArgs>(DisplayMessage), e);
         }
 
         void DisplayMessage(AddMessageEventArgs e)
@@ -1179,6 +1180,8 @@ string strHtml)
 
         static string ToString(GetConnectionInfoResult result)
         {
+            List<string> userNameList = new List<string>();
+
             StringBuilder text = new StringBuilder();
             text.Append("ResultCount=" + result.ResultCount + "\r\n");
             text.Append("ErrorInfo=" + result.ErrorInfo + "\r\n");
@@ -1191,7 +1194,10 @@ string strHtml)
                 {
                     text.Append((i + 1).ToString() + ") ===");
                     if (string.IsNullOrEmpty(record.User.userName) == false)
+                    {
                         text.Append("User.userName=" + record.User.userName + "\r\n");
+                        userNameList.Add(record.User.userName);
+                    }
                     if (string.IsNullOrEmpty(record.User.rights) == false)
                         text.Append("User.rights=" + record.User.rights + "\r\n");
                     if (string.IsNullOrEmpty(record.User.duty) == false)
@@ -1215,6 +1221,44 @@ string strHtml)
 
                     i++;
                 }
+            }
+
+            return text.ToString() + "\r\n\r\n" + SortCount(userNameList);
+        }
+
+        static string SortCount(List<string> list)
+        {
+            StringBuilder text = new StringBuilder();
+            list.Sort();
+            string prev = null;
+            int count = 0;
+            foreach(string s in list)
+            {
+                if (s == prev)
+                {
+                    count++;
+                }
+                else if (prev != null)
+                {
+                    // 输出 prev 和 count
+                    text.Append(prev + "(" + count.ToString() + ")\r\n");
+
+                    // 把当前字符串留给下一轮
+                    prev = s;
+                    count = 1;
+                }
+                else
+                {
+                    // 把当前字符串留给下一轮
+                    prev = s;
+                    count = 1;
+                }
+            }
+
+            if (prev != null)
+            {
+                // 输出 prev 和 count
+                text.Append(prev + "(" + count.ToString() + ")\r\n");
             }
 
             return text.ToString();

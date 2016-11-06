@@ -217,7 +217,7 @@ namespace DigitalPlatform.MessageServer
 
         public bool IsTimeout()
         {
-            if ((DateTime.Now - LastTime) > TimeSpan.FromMinutes(30))
+            if ((DateTime.Now - LastTime) > TimeSpan.FromMinutes(3))    // 3 分钟
                 return true;
             return false;
         }

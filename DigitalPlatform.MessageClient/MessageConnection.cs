@@ -166,6 +166,16 @@ namespace DigitalPlatform.MessageClient
             }
         }
 
+        public ConnectionState ConnectState
+        {
+            get
+            {
+                if (this.Connection == null)
+                    return ConnectionState.Disconnected;
+                return this.Connection.State;
+            }
+        }
+
         // 确保连接和登录
         public async Task<bool> EnsureConnect()
         {
@@ -335,12 +345,14 @@ errorInfo)
                 Connection.Closed += Connection_Closed;
                 Connection.Reconnecting += Connection_Reconnecting;
                 Connection.Reconnected += Connection_Reconnected;
+                Connection.ConnectionSlow += Connection_ConnectionSlow;
             }
             else
             {
                 Connection.Closed -= Connection_Closed;
                 Connection.Reconnecting -= Connection_Reconnecting;
                 Connection.Reconnected -= Connection_Reconnected;
+                Connection.ConnectionSlow -= Connection_ConnectionSlow;
             }
         }
 
@@ -461,6 +473,7 @@ errorInfo)
                     );
                     _handlers.Add(handler);
                 }
+
                 // *** getRes
                 {
                     var handler = HubProxy.On<GetResRequest>("getRes",
@@ -488,6 +501,7 @@ errorInfo)
 
             try
             {
+                // Connection.EnsureReconnecting();
                 await Connection.Start();
 #if NO
                 if (Connection.Start().Wait(TimeSpan.FromSeconds(60)) == false)
@@ -595,12 +609,45 @@ errorInfo)
         void Connection_Reconnected()
         {
             // tryingToReconnect = false;
+            _slowCount = 0;
 
             AddInfoLine("Connection_Reconnected");
 
             // Task.Factory.StartNew(() => { Thread.Sleep(1000); this.TriggerLogin(); });
 
             TriggerConnectionStateChange("Reconnected");
+        }
+
+        // 最近发生的 ConnectionSlow 事件次数
+        int _slowCount = 0;
+
+        public int SlowCount
+        {
+            get
+            {
+                return _slowCount;
+            }
+        }
+
+        // 因为 ConnectionSlow 而切断重连的最近一次操作时间
+        DateTime _slowReconnectTime = DateTime.Now;
+
+        // 2016/11/4
+        void Connection_ConnectionSlow()
+        {
+            AddInfoLine("Connection_ConnectionSlow");
+            TriggerConnectionStateChange("ConnectionSlow");
+
+            _slowCount++;
+            if (_slowCount >= 6 && DateTime.Now - _slowReconnectTime > TimeSpan.FromMinutes(5)) // 5 分钟内超过 6 次 ConnectionSlow 事件
+            {
+                // https://forums.asp.net/t/2064151.aspx?When+Client+loses+internet+connection+OnDisconnected+event+not+raised
+                this.Connection.Stop(TimeSpan.FromSeconds(5));
+                this.ConnectAsync();
+
+                _slowCount = 0;
+                _slowReconnectTime = DateTime.Now;
+            }
         }
 
         void Connection_Closed()
@@ -2767,7 +2814,7 @@ CancellationToken token)
                     AddConnectionEvents(false);
                     // Connection.Closed -= new Action(Connection_Closed);
 
-#if NO
+                    // 2016/11/5 放开对下列 Stop() 语句的注释
                     /*
     操作类型 crashReport -- 异常报告 
     主题 dp2circulation 
@@ -2804,7 +2851,7 @@ CancellationToken token)
                     catch (System.NullReferenceException)
                     {
                     }
-#endif
+
                     DisposeHandlers();
                     var temp = this.Connection;
                     this.Connection = null;

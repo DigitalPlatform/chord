@@ -239,7 +239,7 @@ namespace dp2Capo
 
             if (this.MessageConnection != null)
             {
-                text.Append("connection connected: " + this.MessageConnection.IsConnected.ToString() + "\r\n");
+                text.Append("connection state: " + this.MessageConnection.ConnectState.ToString() + "\r\n");
             }
 
             if (this.dp2library != null)
@@ -444,10 +444,10 @@ namespace dp2Capo
         {
             // if (strErrorCode == "_connectionNotFound")
             {
-#if NO
+                this.WriteErrorLog("Connection 开始重置。方法是 CloseConnection()。");
                 this.MessageConnection.CloseConnection();
                 this.WriteErrorLog("Connection 已经被重置");
-#endif
+
 #if NO
                 this.WriteErrorLog("Connection 开始重置。最长等待 6 秒");
                 Task.Run(() => this.MessageConnection.CloseConnection(), _cancel.Token).Wait(new TimeSpan(0, 0, 6));
@@ -466,11 +466,13 @@ namespace dp2Capo
                 this.MessageConnection.ConnectAsync().Wait(TimeSpan.FromSeconds(6));
                 this.WriteErrorLog("Connection 已经被重置");
 #endif
+
+#if NO
                 // 缺点是可能会在 dp2mserver 一端遗留原有通道。需要测试验证一下
                 this.WriteErrorLog("Connection 开始重置。方法是重新连接。");
                 this.MessageConnection.ConnectAsync().Wait();
                 this.WriteErrorLog("Connection 已经被重置");
-
+#endif
             }
         }
 
@@ -518,7 +520,7 @@ namespace dp2Capo
             {
                 try
                 {
-                    if (this.MessageConnection.IsConnected == false)
+                    if (this.MessageConnection.ConnectState != Microsoft.AspNet.SignalR.Client.ConnectionState.Connected)
                         return;
 
                     MessageData[] messages = null;
@@ -582,7 +584,7 @@ namespace dp2Capo
 
             // 进行通知处理
             if (_queue != null
-                && this.MessageConnection.IsConnected)
+                && this.MessageConnection.ConnectState == Microsoft.AspNet.SignalR.Client.ConnectionState.Connected)
             {
                 try
                 {
@@ -686,7 +688,7 @@ namespace dp2Capo
          * */
         public bool SendHeartBeat()
         {
-            if (this.MessageConnection == null || this.MessageConnection.IsConnected == false)
+            if (this.MessageConnection == null || this.MessageConnection.ConnectState != Microsoft.AspNet.SignalR.Client.ConnectionState.Connected)
                 return false;
 
             try

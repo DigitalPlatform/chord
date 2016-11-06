@@ -66,6 +66,27 @@ namespace DigitalPlatform
             return strResult;
         }
 
+        /*
+*
+.NET Runtime 	Error 	2016/11/4 10:24:46
+Application: dp2capo.exe
+Framework Version: v4.0.30319
+Description: The process was terminated due to an unhandled exception.
+Exception Info: System.NullReferenceException
+Stack:
+   at DigitalPlatform.ExceptionUtil.GetAggregateExceptionText(System.AggregateException)
+   at DigitalPlatform.ExceptionUtil.GetAggregateExceptionText(System.AggregateException)
+   at DigitalPlatform.ExceptionUtil.GetExceptionText(System.Exception)
+   at dp2Capo.ServerInfo.Echo(dp2Capo.Instance, Boolean)
+   at dp2Capo.ServerInfo.BackgroundWork()
+   at dp2Capo.DefaultThread.Worker()
+   at DigitalPlatform.ThreadBase.ThreadMain()
+   at System.Threading.ExecutionContext.RunInternal(System.Threading.ExecutionContext, System.Threading.ContextCallback, System.Object, Boolean)
+   at System.Threading.ExecutionContext.Run(System.Threading.ExecutionContext, System.Threading.ContextCallback, System.Object, Boolean)
+   at System.Threading.ExecutionContext.Run(System.Threading.ExecutionContext, System.Threading.ContextCallback, System.Object)
+   at System.Threading.ThreadHelper.ThreadStart()
+
+         * */
         public static string GetExceptionText(Exception ex)
         {
             if (ex is AggregateException)
@@ -77,14 +98,30 @@ namespace DigitalPlatform
 
         public static string GetAggregateExceptionText(AggregateException exception)
         {
+            if (exception == null) // 2016/11/4
+                return "";
+            if (exception.InnerExceptions == null) // 2016/11/4
+                return "";
+
             StringBuilder text = new StringBuilder();
             foreach (Exception ex in exception.InnerExceptions)
             {
+                if (ex == null) // 2016/11/4
+                    continue;
+
                 if (ex is AggregateException)   // 2016/7/5
                     text.Append(GetAggregateExceptionText(ex as AggregateException) + "\r\n");
                 else
-                    text.Append(ex.GetType().ToString() + ":" + ex.Message + "\r\n{stack-trace-begin}" + ex.StackTrace.ToString() + "{stack-trace-end}\r\n");
-                // text.Append(ex.ToString() + "\r\n");
+                {
+                    // 2016/11/4 巩固代码
+                    Type type = ex.GetType();
+                    text.Append((type == null ? "" : type.ToString()) 
+                        + ":"
+                        + (ex.Message == null ? "" : ex.Message)
+                        + (ex.StackTrace == null ? "" : "\r\n{stack-trace-begin}" + ex.StackTrace + "{stack-trace-end}")
+                        + "\r\n");
+                    // text.Append(ex.ToString() + "\r\n");
+                }
             }
 
             return text.ToString();
@@ -96,6 +133,8 @@ namespace DigitalPlatform
             StringBuilder text = new StringBuilder();
             foreach (Exception ex in exception.InnerExceptions)
             {
+                if (ex == null) // 2016/11/4
+                    continue;
                 if (ex.GetType().Equals(innerType))
                     return ex;
             }

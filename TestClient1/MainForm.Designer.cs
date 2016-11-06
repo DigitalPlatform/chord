@@ -42,6 +42,8 @@
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.tabControl_main = new System.Windows.Forms.TabControl();
             this.tabPage_config = new System.Windows.Forms.TabPage();
+            this.textBox_config_libraryPassword = new System.Windows.Forms.TextBox();
+            this.label50 = new System.Windows.Forms.Label();
             this.checkBox_config_isPatron = new System.Windows.Forms.CheckBox();
             this.textBox_config_libraryUserName = new System.Windows.Forms.TextBox();
             this.label49 = new System.Windows.Forms.Label();
@@ -164,8 +166,6 @@
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.textBox_config_libraryPassword = new System.Windows.Forms.TextBox();
-            this.label50 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl_main.SuspendLayout();
@@ -313,6 +313,23 @@
             this.tabPage_config.TabIndex = 2;
             this.tabPage_config.Text = "Config";
             this.tabPage_config.UseVisualStyleBackColor = true;
+            // 
+            // textBox_config_libraryPassword
+            // 
+            this.textBox_config_libraryPassword.Location = new System.Drawing.Point(148, 210);
+            this.textBox_config_libraryPassword.Name = "textBox_config_libraryPassword";
+            this.textBox_config_libraryPassword.PasswordChar = '*';
+            this.textBox_config_libraryPassword.Size = new System.Drawing.Size(161, 21);
+            this.textBox_config_libraryPassword.TabIndex = 9;
+            // 
+            // label50
+            // 
+            this.label50.AutoSize = true;
+            this.label50.Location = new System.Drawing.Point(11, 213);
+            this.label50.Name = "label50";
+            this.label50.Size = new System.Drawing.Size(59, 12);
+            this.label50.TabIndex = 8;
+            this.label50.Text = "Password:";
             // 
             // checkBox_config_isPatron
             // 
@@ -1174,7 +1191,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_sortCondition.Location = new System.Drawing.Point(77, 91);
             this.textBox_message_sortCondition.Name = "textBox_message_sortCondition";
-            this.textBox_message_sortCondition.Size = new System.Drawing.Size(384, 21);
+            this.textBox_message_sortCondition.Size = new System.Drawing.Size(388, 21);
             this.textBox_message_sortCondition.TabIndex = 49;
             // 
             // label46
@@ -1192,7 +1209,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_userRange.Location = new System.Drawing.Point(77, 38);
             this.textBox_message_userRange.Name = "textBox_message_userRange";
-            this.textBox_message_userRange.Size = new System.Drawing.Size(384, 21);
+            this.textBox_message_userRange.Size = new System.Drawing.Size(388, 21);
             this.textBox_message_userRange.TabIndex = 47;
             // 
             // label41
@@ -1250,7 +1267,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 65);
             this.textBox_message_timeRange.Name = "textBox_message_timeRange";
-            this.textBox_message_timeRange.Size = new System.Drawing.Size(384, 21);
+            this.textBox_message_timeRange.Size = new System.Drawing.Size(388, 21);
             this.textBox_message_timeRange.TabIndex = 41;
             // 
             // label39
@@ -1269,7 +1286,7 @@
             this.textBox_message_text.Location = new System.Drawing.Point(54, 118);
             this.textBox_message_text.Multiline = true;
             this.textBox_message_text.Name = "textBox_message_text";
-            this.textBox_message_text.Size = new System.Drawing.Size(407, 62);
+            this.textBox_message_text.Size = new System.Drawing.Size(411, 62);
             this.textBox_message_text.TabIndex = 3;
             // 
             // textBox_message_groupName
@@ -1278,7 +1295,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_groupName.Location = new System.Drawing.Point(77, 11);
             this.textBox_message_groupName.Name = "textBox_message_groupName";
-            this.textBox_message_groupName.Size = new System.Drawing.Size(384, 21);
+            this.textBox_message_groupName.Size = new System.Drawing.Size(388, 21);
             this.textBox_message_groupName.TabIndex = 39;
             // 
             // label37
@@ -1538,23 +1555,6 @@
             this.webBrowser1.Name = "webBrowser1";
             this.webBrowser1.Size = new System.Drawing.Size(334, 288);
             this.webBrowser1.TabIndex = 0;
-            // 
-            // textBox_config_libraryPassword
-            // 
-            this.textBox_config_libraryPassword.Location = new System.Drawing.Point(148, 210);
-            this.textBox_config_libraryPassword.Name = "textBox_config_libraryPassword";
-            this.textBox_config_libraryPassword.PasswordChar = '*';
-            this.textBox_config_libraryPassword.Size = new System.Drawing.Size(161, 21);
-            this.textBox_config_libraryPassword.TabIndex = 9;
-            // 
-            // label50
-            // 
-            this.label50.AutoSize = true;
-            this.label50.Location = new System.Drawing.Point(11, 213);
-            this.label50.Name = "label50";
-            this.label50.Size = new System.Drawing.Size(59, 12);
-            this.label50.TabIndex = 8;
-            this.label50.Text = "Password:";
             // 
             // MainForm
             // 
