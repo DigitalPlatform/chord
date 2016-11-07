@@ -167,7 +167,8 @@ namespace dp2Capo
                     string strErrorCode = "";
                     if (MessageConnection.IsHttpClientException(ex, out strErrorCode))
                     {
-                        Task.Run(()=>instance.TryResetConnection(""));
+                        // echo 的时候有小概率可能会返回用户认证异常？重置连接
+                        Task.Run(()=>instance.TryResetConnection());
                     }
                 }
             }
