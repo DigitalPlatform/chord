@@ -1,4 +1,6 @@
-﻿using com.google.zxing;
+﻿#define LOG_REQUEST_SEARCH
+
+using com.google.zxing;
 using com.google.zxing.common;
 using DigitalPlatform.Interfaces;
 using DigitalPlatform.IO;
@@ -983,15 +985,25 @@ namespace dp2weixin.service
                     templateData.remark.value = templateData.remark.value + " " + theOperator;
                 foreach (string weixinId in weixinIds)
                 {
-                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                        weixinId,
-                        templateId,
-                        linkUrl,
-                        templateData); //msgData
-                    if (result1.errcode != 0)
+                    try
                     {
-                        strError = result1.errmsg;
-                        return -1;
+                        var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                            weixinId,
+                            templateId,
+                            linkUrl,
+                            templateData); //msgData
+                        if (result1.errcode != 0)
+                        {
+                            strError = result1.errmsg;
+                            return -1;
+                        }
+                    }
+                    catch (Exception ex0)
+                    {
+                        strError = "给[" + weixinId + "]发送微信通知异常:" + ex0.Message;
+                        //return -1;
+                        this.WriteErrorLog1(strError);
+                        continue;
                     }
                 }
 
@@ -4096,6 +4108,8 @@ namespace dp2weixin.service
                     start,  //每次获取范围
                     count);
 
+
+
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
                     lib.capoUserName).Result;
@@ -4105,6 +4119,11 @@ namespace dp2weixin.service
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
+// 输出检索语句
+#if LOG_REQUEST_SEARCH
+                writeDebug("search searchParam=" + request.Dump());
+#endif
+
                 if (result.ResultCount == -1)
                 {
                     bool bOffline = false;
@@ -6620,7 +6639,7 @@ namespace dp2weixin.service
 
                 if (result.ResultCount == 0)
                 {
-                    strError = "未命中:" + result.ErrorInfo;
+                    strError = result.ErrorInfo;
                     return 0;
                 }
                 string path = result.Records[0].RecPath;
@@ -7154,6 +7173,10 @@ namespace dp2weixin.service
 
         #region 错误日志
 
+        void writeDebug(string strText)
+        {
+            this.WriteLog("debug:" + strText, 1);
+        }
 
         public void WriteErrorLog1(string strText)
         {

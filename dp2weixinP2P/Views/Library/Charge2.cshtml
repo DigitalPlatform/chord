@@ -41,7 +41,12 @@
 
             // 输入框方式根据界面的checkbox来
             setFrom();
+
+            // 得到全部命令
+            getAllCmd();
         });
+
+
 
         // 主页界的开始按钮
         function start(ope) {
@@ -73,20 +78,25 @@
             var html = "";
 
             // 显示场景+停止按钮
-            var scene = getScene();
+            var scene = "";//getScene();
 
             html += "<table width='100%;padding-top:0px'><tr>"
                 + "<td style='width:100%;text-align:center'>"
                 + "<span style='font-size:14.8px'>" + scene + "</span>"
                 + "</td>"
                 + "<td style='width:80px;padding-right:10px'>"
-                + "<button class='mui-btn mui-btn-primary' onclick='_stop=true;layer.closeAll();'>停止</button>";
-            + "</td>"
-            + "</tr></table>"
+                +"<div id='stop'>"
+                //+ "<button class='mui-btn mui-btn-primary' onclick='_stop=true;layer.closeAll();'>停止</button>"
+                +"</div>"
+                + "</td>"
+                + "</tr></table>"
 
             // 具体信息 + 跳过
-            html += "<div class='middle'>" + text
-                + "<br><br><a href='javascript:;' onclick='layer.closeAll();'>跳过</a>"
+            html += "<div class='middle'>"
+                + text
+                + "<div id='continue' style='padding-top:10px;text-align:right'>"
+                //+"<a href='javascript:;' onclick='layer.closeAll();'>继续</a>"
+                +"<div>"
                 + "</div>";
 
             // 弹层开始
@@ -94,7 +104,7 @@
                 type: 1
                 , content: html
                 //, anim: 'up'
-                , time: 3
+                , time: 5
                 , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'  // todo style怎么改为class
                 , end: function (index) {
 
@@ -127,6 +137,26 @@
                 }
             });
             //===弹层结束====
+
+            // 等待2秒出来stop按钮
+            window.setTimeout("showStop()", 1000 * 2.5);
+
+            // 等待2秒出来continue按钮
+            window.setTimeout("showContinue()", 1000 *2.5);
+
+        }
+
+        // 显示退出按钮
+        function showStop()
+        {
+            var html = "<button class='mui-btn mui-btn-default' onclick='_stop=true;layer.closeAll();'>退出</button>";
+            $("#stop").html(html);
+        }
+
+        // 显示继续按钮
+        function showContinue() {
+            var html = "<a href='javascript:;' onclick='layer.closeAll();'>继续</a>";
+            $("#continue").html(html);
         }
 
         // 接收二维码
@@ -223,10 +253,13 @@
             var desc = getInputTypeDesc(false);
 
             // 场景提示
-            var html = "<center>" + desc + "</center><br>";
+            var html = "";
+
+            // 场景提示
+            //html+="<center>" + desc + "</center><br>";
 
             // 输入框
-            html += "<table style='width:100%'>"
+            html += "<br/><table style='width:100%'>"
                 + "<tr>"
                 + "<td style='width:100%'><input id='mybarcode'  style='color:black;padding:0px;margin:0px;font-size:36pt;height:100px' type='text'  onkeypress='enter(event)' /></td>"
                 + "<td ><button onclick='ok()' style='margin:0px'>确认</button></td>"
@@ -333,8 +366,8 @@
                 + "&libId=" + libId;
             var data = {
                 type: cmdType,
-                patron: patron,
-                item: item,
+                patronInput: patron,
+                itemInput: item,
                 userName: userName
             };
 
@@ -367,11 +400,26 @@
                 //var html = "<div style='color:black;background-color:white'>" + cmd.cmdHtml + "</div>";
                 //warn(html, C_next_dothing);
 
-                var html = "";
-                if (cmd.state == -1)
-                    html = "<img src='../img/error1.jpg'/>";
-                else
-                    html = "<img src='../img/right1.png'/>";
+                var img = ""; var infoStyle ="";
+                if (cmd.state == -1) {
+                    img = "<img src='../img/error3.png' style='width:100px;height:100px' />";
+                }
+                else {
+                    img = "<img src='../img/right1.png' style='width:100px;height:100px'  />";
+                    if (cmd.state == 1 && cmd.type != "loadPatron") {
+                        infoStyle = " style='background-color:yellow;color:black' ";
+                    }
+                }
+
+
+                var html = "<table>"
+                    + "<tr>"
+                    + "<td>"+img+"</td>"
+                    +"<td "+infoStyle+">"+cmd.resultInfo+"</td>"
+                    +"</tr>"
+                +"</table>";
+
+
                 warn(html, C_next_dothing)
 
                 // 更新summary
@@ -383,6 +431,7 @@
                 alert(errorThrown);
             },
             data);
+
         }
 
 
@@ -529,6 +578,59 @@
 
             // 加到前面
             cmds.prepend(cmd.cmdHtml); //append(cmdHtml);//
+
+            var cmdContainer = $("#cmdContainer");
+            var display = $(cmdContainer).css("display");
+            if (display == "none")
+            {
+                $(cmdContainer).css("display","block");
+            }
+        }
+
+        //用于获取所有命令
+        //这个似乎不需要冻结界面 todo
+        function getAllCmd() {
+
+            // 图书馆
+            var libId = $("#_libId").text();
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+
+            //显示等待图层
+            showLoading();
+
+            // 先删除老数据
+
+            // 调web api
+            var url = "/api/ChargeCommand?libId=" + libId;
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 关闭等待层
+                hideLoading();
+
+                //  出错
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                // 显示各个命令
+                for (var i = 0; i < result.cmds.length; i++) {
+                    var cmd = result.cmds[i];
+                    viewCmd(cmd);
+                }
+
+                // 更新summary
+                window.setTimeout("fillPending()", 1);
+
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                hideLoading();
+                alert(errorThrown);
+            });
         }
 
 
@@ -557,15 +659,17 @@
             else
                 actionName = "输入";
 
+            var left = "<span style='font-size:14.8px'>请" + againText + actionName + "</span>";
+
             var inputType = getInputType();
             if (inputType == C_inputType_patron) {
-                desc = "请" + againText + actionName + " 证条码号";
+                desc = left+ " 读者证条码号...";
             }
             else if (inputType == C_inputType_item) {
-                desc = "请" + againText + actionName + " 册条码号";
+                desc = left+ " 册条码号...";
             }
             else {
-                desc = "请" + againText + actionName + " 不知道！！！";
+                desc = left + " 不知道！！！";
             }
             return desc;
         }
@@ -660,25 +764,32 @@
 
         // 显示主页面
         function showMainPage() {
-            $("#mybody").css("background-color", "");
-            $("#mypage").css("display", "block");
+            //$("#mybody").css("background-color", "");
+            //$("#mypage").css("display", "block");
         }
 
         // 隐藏主页面
         function hideMainPage() {
-            $("#mybody").css("background-color", "black");
-            $("#mypage").css("display", "none");
+            //$("#mybody").css("background-color", "black");
+            //$("#mypage").css("display", "none");
         }
 
 
 
         // checkbox设置条码来源方式
         function setFrom() {
-            var from = 1;
-            $("#ckbFrom:checked").each(function () {
-                from = 2;
-            });
-            _from = from;
+            //var from = 1;
+            //$("#ckbFrom:checked").each(function () {
+            //    from = 2;
+            //});
+            //_from = from;
+
+            _from = 1;
+            var val = $('input:radio[name="from"]:checked').val();
+            if (val == null) {
+                alert("什么也没选中!");
+            }
+            _from = val;
         }
 
         //====================
@@ -723,25 +834,96 @@
         }
 
         .middle {
-            border: solid 2px #86A5AD;
             display: block;
-            width: 200px;
-            height: 200px;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            margin-left: -100px;
-            margin-top: -100px;
-            padding: 2px;
-            text-align: left;
-            line-height: 15px;
-            /*font-weight:bold;*/
             position: absolute;
+            top: 100px;
+            margin:10px;
+
             z-index: 2001;
+            text-align: left;
             vertical-align: top;
-            /*color:black;*/
-            /*background-color:white;*/
+
+            /*background-color:green;*/
         }
+
+       /*==================================*/
+        /*整个命令块*/
+        DIV.cmd {
+            margin: 14px 0px 0px;
+            padding: 2px;
+        }
+
+        /*一条一条的册table*/
+        DIV.cmd TABLE {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+            margin-top: 0px;
+        }
+
+        /*册td*/
+        DIV.cmd TABLE TR TD {
+            border-width: 0px;
+            padding: 1px;
+            vertical-align: top;
+        }
+
+        /*册左侧标题td*/
+        DIV.cmd TABLE TR TD.label {
+            width: 53px;
+            max-width: 53px;
+            min-width: 53px;
+            background-color: #ffffff;
+            color: #999999;
+            padding-right: 2px;
+            text-align: right;
+        }
+
+        /*册右值数据td*/
+        DIV.cmd TABLE TR TD.value {
+            padding-left: 5px;
+        }
+
+        DIV.cmd TABLE TR TD.patronBarcode {
+            font-weight:bold;
+            text-align: right;
+
+        }
+
+        DIV.cmd TABLE TR TD.time {
+            color:gray;
+        }
+
+        DIV.cmd TABLE TR TD.itemBarcode {
+            font-weight:bold;
+            text-align: right;
+        }
+
+        DIV.cmd TABLE TR TD .name {
+            padding-left:5px;
+            font-size:16px;
+            font-weight:bold;
+        }
+
+        DIV.cmd TABLE TR TD .department {
+            color:gray;
+        }
+
+        DIV.cmd TABLE TR TD .error {
+            padding-left: 5px;
+            color:red;
+        }
+
+        DIV.cmd TABLE TR TD .success {
+            padding-left: 5px;
+            color:darkgreen;
+        }
+
+        DIV.cmd TABLE TR TD .warn {
+            padding-left: 5px;
+            background-color:yellow;
+        }
+        /*===========*/
     </style>
 }
 
@@ -775,17 +957,22 @@ else
     }
     else
     {
-        <div id="mypage">
+        <div id="mypage" >
             <div style="padding:10px">
-                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="start('borrow')">开始借书</button>
-                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="start('return')">开始还书</button>
-                <input style="width:30px;height:30px" id='ckbFrom' onchange="setFrom()" type='checkbox' checked />输入框方式
+                <button class="mui-btn mui-btn-block" onclick="start('borrow')">开始借书</button>
+                <button class="mui-btn mui-btn-block" onclick="start('return')">开始还书</button>
+                <div style="color:white">
+                    <input name="from" type="radio" value="1" checked onchange="setFrom()" style="width:25px;height:25px">扫码方式
+                    &nbsp;
+                    <input name="from" type="radio" value="2"  onchange="setFrom()" style="width:25px;height:25px">输入框方式
+                </div>
             </div>
 
-            <div id="cmdContainer" class="mui-content-padded">
+            <div id="cmdContainer" class="mui-content-padded" style="display:none">
                 <h4><span style="color:#cccccc">操作历史</span></h4>
                 <div id="cmds"></div>
             </div>
+
         </div>
     }
 }

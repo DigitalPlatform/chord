@@ -189,6 +189,7 @@
     </Content>
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
+    <Content Include="img\ajax-loader.gif" />
     <Content Include="img\arrowdown.png" />
     <Content Include="img\book2.png" />
     <Content Include="img\charge_success_24.png" />
@@ -200,14 +201,16 @@
     <Content Include="img\emptyBind.png" />
     <Content Include="img\error.jpg" />
     <Content Include="img\error1.jpg" />
+    <Content Include="img\error1.png" />
+    <Content Include="img\error3.png" />
     <Content Include="img\library.jpg" />
     <Content Include="img\loading.gif" />
     <Content Include="img\nonePhoto.png" />
     <Content Include="img\empty2.jpg" />
     <Content Include="img\person.png" />
+    <Content Include="img\process_16.png" />
     <Content Include="img\right1.png" />
     <Content Include="img\wait2.gif" />
-    <Content Include="img\guide.pdf" />
     <Content Include="fonts\mui-icons-extra.ttf" />
     <None Include="Scripts\jquery-3.1.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.1.1.js" />

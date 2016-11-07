@@ -151,6 +151,12 @@ DIV.item {
                 color: #cccccc;
             }
 
+            DIV.item TABLE TR TD.error {
+                padding-left: 5px;
+                color:red;
+
+            }
+
             /*册右值数据td*/
             DIV.item TABLE TR TD.value .info {
                 /*float: left;*/

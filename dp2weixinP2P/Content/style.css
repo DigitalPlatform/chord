@@ -6,7 +6,7 @@
             margin-left: -8px;
             margin-top: -8px;
     overflow: hidden;
-    background: url(../img/loading.gif) no-repeat;
+    background: url(../img/ajax-loader.gif) no-repeat;
         position: absolute;
 
     z-index: 100;
