@@ -27,8 +27,16 @@
         var C_next_dothing = "dothing";
         var C_next_receiveBarcode = "receiveBarcode";
 
+        // controlType
+        var C_controlType_manual = "manual";
+        var C_controlType_manualAuto = "manualAuto";
+        var C_controlType_auto = "auto";
+
         // 条码来源方式
         var _from = 2; //1 扫码方式  2输入框方式
+
+        // 流程控制方式
+        var _controlType = "auto";//自动
 
         //========================
 
@@ -41,6 +49,9 @@
 
             // 输入框方式根据界面的checkbox来
             setFrom();
+
+            // 设置流程控制方式
+            setControlType();
 
             // 得到全部命令
             getAllCmd();
@@ -73,8 +84,9 @@
         }
 
         // 弹出提示界面，next表示下面要做的步骤，如果next为空则停止
-        function warn(text, next) {
+        function warn(text, next,isAutoClose) {
             hideMainPage();
+
             var html = "";
 
             // 显示场景+停止按钮
@@ -99,43 +111,45 @@
                 +"<div>"
                 + "</div>";
 
-            // 弹层开始
-            var pageii = layer.open({
-                type: 1
-                , content: html
-                //, anim: 'up'
-                , time: 5
-                , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'  // todo style怎么改为class
-                , end: function (index) {
+            var mystyle = "position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white";  // todo style怎么改为class";
 
-                    // todo，是否需要再次关闭图层？
-                    layer.close(index);
-
-                    //如果没有下一步，设为停止状态
-                    if (next == null || next == "") {
-                        _stop = true;
+            var bTime = false;
+            if (_controlType == C_controlType_manual)
+                bTime = false;
+            else if (_controlType == C_controlType_auto)
+                bTime = true;
+            else if (_controlType == C_controlType_manualAuto)
+            {
+                if (isAutoClose == false)
+                    bTime = false;
+                else
+                    bTime = true;
+            }
+            //====弹层开始============
+            if (bTime == false) {
+                //不自动关闭
+                var pageii = layer.open({
+                    type: 1
+                    , content: html
+                    , style: mystyle
+                    , end: function (index) {
+                        //layer.close(index);// todo，是否需要再次关闭图层？
+                        warnNext(next);
                     }
-
-                    // 如果是停止状态，或者没有下一步，则不再循环，回到主页面
-                    if (_stop == true) {
-                        showMainPage();
-                        return;
+                });
+            }
+            else {
+                var pageii = layer.open({
+                    type: 1
+                    , content: html
+                    , time: 5
+                    , style: mystyle
+                    , end: function (index) {                        
+                        //layer.close(index);// todo，是否需要再次关闭图层？
+                        warnNext(next);
                     }
-
-                    // 继续下面的操作
-                    if (next == C_next_dothing) {
-                        dothing();
-                    }
-                    else if (next == C_next_receiveBarcode) {
-                        receiveBarcode();
-                    }
-                    else {
-                        alert("不认识的下一步命令:" + next);
-                        showMainPage();
-                        return;
-                    }
-                }
-            });
+                });
+            }
             //===弹层结束====
 
             // 等待2秒出来stop按钮
@@ -144,6 +158,34 @@
             // 等待2秒出来continue按钮
             window.setTimeout("showContinue()", 1000 *2.5);
 
+        }
+
+        function warnNext(next)
+        {
+
+            //如果没有下一步，设为停止状态
+            if (next == null || next == "") {
+                _stop = true;
+            }
+
+            // 如果是停止状态，或者没有下一步，则不再循环，回到主页面
+            if (_stop == true) {
+                showMainPage();
+                return;
+            }
+
+            // 继续下面的操作
+            if (next == C_next_dothing) {
+                dothing();
+            }
+            else if (next == C_next_receiveBarcode) {
+                receiveBarcode();
+            }
+            else {
+                alert("不认识的下一步命令:" + next);
+                showMainPage();
+                return;
+            }
         }
 
         // 显示退出按钮
@@ -172,6 +214,13 @@
         // 打开扫码界面
         function openScanBarcode() {
 
+            // 先遮挡
+            hideMainPage();
+            // 1分钟后去掉遮挡
+            window.setTimeout("showMainPage()", 1000);
+
+
+
             // 这里先设_stop为true，是为了处理用户在扫描界面，直接按了微信的回车按钮
             _stop = true;
 
@@ -185,11 +234,11 @@
             }
 
             try {
-                showMainPage();
                 wx.scanQRCode({
                     needResult: 1, // 默认为0扫描结果由微信处理，1则直接返回扫描结果，
                     scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
                     success: function (res) {
+                        hideMainPage();
 
                         // 设为false
                         _stop = false;
@@ -400,14 +449,17 @@
                 //var html = "<div style='color:black;background-color:white'>" + cmd.cmdHtml + "</div>";
                 //warn(html, C_next_dothing);
 
-                var img = ""; var infoStyle ="";
+                var img = ""; var infoStyle = "";
+                var isAutoClose = true;
                 if (cmd.state == -1) {
                     img = "<img src='../img/error3.png' style='width:100px;height:100px' />";
+                    isAutoClose = false;
                 }
                 else {
                     img = "<img src='../img/right1.png' style='width:100px;height:100px'  />";
                     if (cmd.state == 1 && cmd.type != "loadPatron") {
-                        infoStyle = " style='background-color:yellow;color:black' ";
+                        infoStyle = ";background-color:yellow;color:black";
+                        isAutoClose = false;
                     }
                 }
 
@@ -415,12 +467,12 @@
                 var html = "<table>"
                     + "<tr>"
                     + "<td>"+img+"</td>"
-                    +"<td "+infoStyle+">"+cmd.resultInfo+"</td>"
+                    + "<td style='word-wrap:break-word;word-break:break-all;white-space:pre-wrap;" + infoStyle + "'>" + cmd.resultInfo + "</td>"
                     +"</tr>"
                 +"</table>";
 
 
-                warn(html, C_next_dothing)
+                warn(html, C_next_dothing, isAutoClose);
 
                 // 更新summary
                 window.setTimeout("fillPending()", 1);
@@ -765,31 +817,50 @@
         // 显示主页面
         function showMainPage() {
             //$("#mybody").css("background-color", "");
-            //$("#mypage").css("display", "block");
+            $("#mypage").css("display", "block");
         }
 
         // 隐藏主页面
         function hideMainPage() {
+
+            if ($("#mypage").css("display") == "none")
+                return;
+
             //$("#mybody").css("background-color", "black");
-            //$("#mypage").css("display", "none");
+            $("#mypage").css("display", "none");
         }
 
 
 
         // checkbox设置条码来源方式
         function setFrom() {
-            //var from = 1;
-            //$("#ckbFrom:checked").each(function () {
-            //    from = 2;
-            //});
-            //_from = from;
-
             _from = 1;
             var val = $('input:radio[name="from"]:checked').val();
             if (val == null) {
                 alert("什么也没选中!");
             }
             _from = val;
+        }
+
+        function setControlType() {
+            _controlType = $("#controlType").val();
+        }
+
+
+        function showBackground() {
+
+            var background = $("#my-background");
+
+            // 设背景高度
+            var docHeight = $(document).height();
+            $(background).css("height", docHeight);
+
+            background.show();
+        }
+
+        function hideBackground() {
+            var bg = $("#my-background");
+            bg.hide();
         }
 
         //====================
@@ -866,17 +937,21 @@
             border-width: 0px;
             padding: 1px;
             vertical-align: top;
+
+            word-wrap:break-word;word-break:break-all;white-space:pre-wrap
         }
 
         /*册左侧标题td*/
         DIV.cmd TABLE TR TD.label {
-            width: 53px;
-            max-width: 53px;
-            min-width: 53px;
+            width: 65px;
+            max-width: 65px;
+            min-width: 65px;
             background-color: #ffffff;
             color: #999999;
             padding-right: 2px;
             text-align: right;
+
+
         }
 
         /*册右值数据td*/
@@ -927,6 +1002,7 @@
     </style>
 }
 
+<div id="my-background" style="display: none; background-color:black"></div>
 
 
 <span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
@@ -961,10 +1037,28 @@ else
             <div style="padding:10px">
                 <button class="mui-btn mui-btn-block" onclick="start('borrow')">开始借书</button>
                 <button class="mui-btn mui-btn-block" onclick="start('return')">开始还书</button>
-                <div style="color:white">
-                    <input name="from" type="radio" value="1" checked onchange="setFrom()" style="width:25px;height:25px">扫码方式
-                    &nbsp;
-                    <input name="from" type="radio" value="2"  onchange="setFrom()" style="width:25px;height:25px">输入框方式
+
+                <div >
+                    <table style="width:100%; color:white;margin-top:5px">
+                        <tr>
+                            <td style="width:80px;color:gray">输入方式</td>
+                            <td>
+                                <input name="from" type="radio" value="1" checked onchange="setFrom()" style="width:25px;height:25px">扫码
+                                &nbsp;
+                                <input name="from" type="radio" value="2" onchange="setFrom()" style="width:25px;height:25px">输入框
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:86px;color:gray">流程控制方式</td>
+                            <td>
+                                <select id="controlType" style="color:black;padding:5px" onchange="setControlType()">
+                                    <option value="manual">手动</option>
+                                    <option value="manualAuto" selected>有条件的自动</option>
+                                    <option value="auto">完全自动</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             </div>
 

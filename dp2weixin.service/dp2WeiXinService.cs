@@ -319,16 +319,16 @@ namespace dp2weixin.service
             if (string.IsNullOrEmpty(this.password) == false)// 解密
                 this.password = Cryptography.Decrypt(this.password, WeiXinConst.EncryptKey);
 
+            string trace = DomUtil.GetAttr(nodeDp2mserver, "trace");
+            if (trace.ToLower() == "true")
+                this.bTrace = true;
+
             // 取出微信配置信息
             XmlNode nodeDp2weixin = root.SelectSingleNode("dp2weixin");
             this.weiXinAppId = DomUtil.GetAttr(nodeDp2weixin, "AppId"); //WebConfigurationManager.AppSettings["weiXinAppId"];
             this.weiXinSecret = DomUtil.GetAttr(nodeDp2weixin, "Secret"); //WebConfigurationManager.AppSettings["weiXinSecret"];
             this.weixin_Token = DomUtil.GetAttr(nodeDp2weixin, "Token");
             this.weixin_EncodingAESKey = DomUtil.GetAttr(nodeDp2weixin, "EncodingAESKey");
-            string trace = DomUtil.GetAttr(nodeDp2weixin, "trace");
-            if (trace.ToLower() == "true")
-                this.bTrace = true;
-
             this.ApplName = DomUtil.GetAttr(nodeDp2weixin, "AppName");
             if (this.ApplName == "")
                 throw new Exception("尚未定义后台应用名称");

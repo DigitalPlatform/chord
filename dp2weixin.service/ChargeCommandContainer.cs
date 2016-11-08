@@ -34,7 +34,6 @@ namespace dp2weixin.service
             // 补充命令信息
             cmd.id = this.Count + 1;
             cmd.operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-            cmd.typeString = cmd.getTypeString(cmd.type);
 
             // 其它错误信息
             string otherError = "";
@@ -137,13 +136,16 @@ namespace dp2weixin.service
                  {
                      //命令成功的，但加载读者不成功，一般这种情况不可能有
                  }
+
              }
 
 END1:
             // 设返回值
              cmd.state = cmdRet;
             cmd.errorInfo = cmdError;
-            cmd.resultInfo = cmd.GetResultInfo();
+            cmd.typeString = cmd.getTypeString(cmd.type);
+
+
 
 
             //========以下两种情况直接返回，不加到操作历史中===
@@ -177,7 +179,15 @@ END1:
                 cmd.patronBarcode = patron.barcode;
             }
 
-            
+            cmd.typeString = cmd.getTypeString(cmd.type);
+            cmd.resultInfo = cmd.GetResultInfo();
+            if (cmd.type == ChargeCommand.C_Command_LoadPatron && patron!=null)
+            {
+                cmd.resultInfo = "<span style='font-size:20pt'>" + patron.name + "</span>";
+                if (String.IsNullOrEmpty(patron.department) == false)
+                    cmd.resultInfo += "(" + patron.department + ")";
+            }
+     
             // 得到命令html
             string cmdHtml = this.GetCmdHtml2(libId,cmd,patron);//.GetCmdHtml(libId, cmd, patron, otherError);
             cmd.cmdHtml = cmdHtml;

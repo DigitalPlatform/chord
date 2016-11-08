@@ -100,6 +100,7 @@
   <ItemGroup>
     <Compile Include="ChargeCommand.cs" />
     <Compile Include="ChargeCommandContainer.cs" />
+    <Compile Include="GzhCfg.cs" />
     <Compile Include="IsbnSplitter.cs" />
     <Compile Include="LibraryManager.cs" />
     <Compile Include="ManagerThread.cs" />
