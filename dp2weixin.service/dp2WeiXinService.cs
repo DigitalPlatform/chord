@@ -2742,7 +2742,7 @@ namespace dp2weixin.service
                     goto ERROR1;
                 }
 
-
+                Thread.Sleep(1000);
                 continue;
 
 

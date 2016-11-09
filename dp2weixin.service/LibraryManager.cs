@@ -189,6 +189,9 @@ namespace dp2weixin.service
                 "",
                 out dataList,
                 out strError);
+
+            Thread.Sleep(500);//2016/11/9 延尽半秒
+
             if (nRet == -1)
             {
                 // 设为-1，表示获取时出错，工作线程会自动重新获取
