@@ -392,6 +392,14 @@ errorInfo)
                 {
                     AddConnectionEvents(false);
 
+                    // 2016/11/8 加回来 Connection.Stop() 了
+                    try
+                    {
+                        this.Connection.Stop(new TimeSpan(0, 0, 5));
+                    }
+                    catch (System.NullReferenceException)
+                    {
+                    }
                     DisposeHandlers();
                     var temp = this.Connection;
                     this.Connection = null;
@@ -481,6 +489,16 @@ errorInfo)
                     );
                     _handlers.Add(handler);
                 }
+
+#if NO
+                // *** listRes
+                {
+                    var handler = HubProxy.On<ListResRequest>("listRes",
+                    (param) => OnListResRecieved(param)
+                    );
+                    _handlers.Add(handler);
+                }
+#endif
 
                 // *** webCall
                 {
@@ -2750,6 +2768,155 @@ CancellationToken token)
                     return null;    // timeout
                 },
             token);
+        }
+
+        #endregion
+
+        #region ListRes() API
+
+#if NO
+        public virtual void OnListResRecieved(GetResRequest param)
+        {
+
+        }
+#endif
+
+        // await 版本
+        public async Task<ListResResult> ListResAsyncLite(ListResRequest request,
+    TimeSpan timeout,
+    CancellationToken cancel_token)
+        {
+            List<ResInfo> results = new List<ResInfo>();
+            MessageResult result = await this.ListResAsyncLite(
+    request,
+    (response) =>
+    {
+        if (response.Results != null)
+        {
+            foreach (ResInfo record in response.Results)
+            {
+                results.Add(record);
+            }
+        }
+    },
+    timeout,
+    cancel_token);
+            return new ListResResult(result, results);
+        }
+
+        // 包装后的同步函数。注意 request.Length 的使用，要避免一次调用获得的记录太多而导致内存放不下
+        public ListResResult GetMessage(ListResRequest request,
+            TimeSpan timeout,
+            CancellationToken cancel_token)
+        {
+            List<ResInfo> results = new List<ResInfo>();
+            MessageResult result = this.ListResTaskAsync(
+    request,
+    (response) =>
+    {
+        if (response.Results != null)
+        {
+            foreach (ResInfo record in response.Results)
+            {
+                results.Add(record);
+            }
+        }
+    },
+    timeout,
+    cancel_token).Result;
+            return new ListResResult(result, results);
+        }
+
+        public delegate void Delegate_outputRes(ListResResponse response);
+
+        public Task<MessageResult> ListResTaskAsync(
+    ListResRequest request,
+    Delegate_outputRes proc,
+    TimeSpan timeout,
+    CancellationToken token)
+        {
+            return TaskRun<MessageResult>(
+                () =>
+                {
+                    return ListResAsyncLite(request, proc, timeout, token).Result;
+                },
+            token);
+        }
+
+        public async Task<MessageResult> ListResAsyncLite(
+            ListResRequest request,
+            Delegate_outputRes proc,
+            TimeSpan timeout,
+            CancellationToken token)
+        {
+            MessageResult result = new MessageResult();
+
+            if (string.IsNullOrEmpty(request.TaskID) == true)
+                request.TaskID = Guid.NewGuid().ToString();
+
+            long recieved = 0;
+
+            using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
+            {
+                using (var handler = HubProxy.On<ListResResponse>(
+                    "responseListRes",
+                    (response) =>
+                    {
+                        if (response.TaskID != request.TaskID)
+                            return;
+
+                        if (response.TotalLength == -1 || response.Start == -1)
+                        {
+                            if (response.Start == -1)
+                            {
+                                // 表示发送响应过程已经结束。只是起到通知的作用，不携带任何信息
+                                // result.Finished = true;
+                            }
+                            else
+                            {
+                                result.Value = response.TotalLength;
+                                result.ErrorInfo = response.ErrorInfo;
+                                result.String = response.ErrorCode;
+                            }
+                            wait_events.finish_event.Set();
+                            return;
+                        }
+
+                        proc(response);
+
+                        if (response.Results != null)
+                            recieved += response.Results.Count;
+
+                        if (response.ErrorCode == "_complete")
+                        {
+                            result.Value = response.TotalLength;
+                            wait_events.finish_event.Set();
+                            return;
+                        }
+
+                        if (response.TotalLength >= 0 &&
+                            IsComplete(request.Start, request.Length, response.TotalLength, recieved) == true)
+                            wait_events.finish_event.Set();
+                        else
+                            wait_events.active_event.Set();
+                    }))
+                {
+                    MessageResult temp = await HubProxy.Invoke<MessageResult>(
+"RequestListRes",
+request);
+                    if (temp.Value == -1 /*|| temp.Value == 0 || temp.Value == 2*/)
+                        return temp;
+
+                    // result.String 里面是返回的 taskID
+
+                    await WaitAsync(
+    request.TaskID,
+    wait_events,
+    timeout,
+    token);
+                    return result;
+                }
+            }
         }
 
         #endregion
