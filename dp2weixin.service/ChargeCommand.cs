@@ -20,8 +20,8 @@ namespace dp2weixin.service
 
         public int id { get; set; }
         public string type { get; set; }
-        public string patron { get; set; } //传进来的值，不一定全是barcode，有可能姓名与二维码
-        public string item { get; set; }//传进来的值，不一定全是barcode，有可能isbn
+        public string patronInput { get; set; } //传进来的值，不一定全是barcode，有可能姓名与二维码
+        public string itemInput { get; set; }//传进来的值，不一定全是barcode，有可能isbn
         public string operTime { get; set; }
         public string userName { get; set; }  //操作人
 
@@ -29,23 +29,35 @@ namespace dp2weixin.service
         public string itemBarcode { get; set; }     //正式的册条码号
 
         public int state { get; set; } //命令处理结果
-        public string resultInfo { get; set; } //结果信息
-
-        /*
-        // 是否需要划横线，不同读者间画线
-        public int isAddLine = 0;
-        public string itemBarcodeUrl { get; set; }
-        */
+        public string errorInfo { get; set; } //提示信息
+        public string resultInfo { get; set; } //提示信息
+        public string GetResultInfo()
+        {
+            string retInfo = this.typeString + "成功。";
+            if (this.state == -1)
+            {
+                retInfo = this.typeString + "失败。";
+            }
+            //有提示信息
+            if (String.IsNullOrEmpty(this.errorInfo) == false)
+            {
+                if (this.type == C_Command_Return)
+                    retInfo = this.errorInfo;
+                else
+                    retInfo += this.errorInfo;
+            }
+            return retInfo;
+        }
 
         public string typeString { get; set; }
-        public static string getTypeString(string type)
+        public string getTypeString(string type)
         {
             if (type == C_Command_LoadPatron)
-                return "装载";
+                return "加载读者"+this.patronBarcode;
             if (type == C_Command_Borrow)
-                return "借";
+                return "借书";
             if (type == C_Command_Return)
-                return "还";
+                return "还书";
             if (type == C_Command_Renew)
                 return "续借";
             if (type == C_Command_VerifyRenew)

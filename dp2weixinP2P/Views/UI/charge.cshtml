@@ -1,117 +1,228 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "charge";
 }
 
 @section style {
 
-<link href="@Url.Content("~/Content/patron.css?a=1")" rel="stylesheet">
+<link href="@Url.Content("~/Content/biblio.css?a=6")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/patron.css?a=1")" rel="stylesheet">
 
     <style type="text/css">
-
-
         TABLE.command {
-            width:100%;
+            width: 100%;
             line-height: 1.2;
-            background-color:white;
+            background-color: white;
         }
 
-        TABLE.command TD.leftLine {
-            width:2px;
-            background-color:darkgreen;
-            
-        }
+            TABLE.command TD.leftLine {
+                width: 2px;
+                background-color: darkgreen;
+            }
 
-        TABLE.command TD.resultIcon {
-            width:35px;
-            vertical-align:top;
-        }
+            TABLE.command TD.resultIcon {
+                width: 35px;
+                vertical-align: top;
+            }
 
-        TABLE.command TD.info {
-            
-        }
+            TABLE.command TD.info {
+            }
 
-        TABLE.command TD.info  .title{
-           
-        }
+                TABLE.command TD.info .title {
+                }
 
-        TABLE.command TD.info  .patronBarcode{
-           color:darkgreen;
-           font-size:18pt;
-        }
+                TABLE.command TD.info .patronBarcode {
+                    color: darkgreen;
+                    font-size: 18pt;
+                }
 
-        TABLE.command TD.info  .name{
-           font-size:28pt;
-           font-weight:bold;
-        }
+                TABLE.command TD.info .name {
+                    font-size: 28pt;
+                    font-weight: bold;
+                }
 
-        TABLE.command TD.info  .department{
-           color:#cccccc;
-           font-size:14.8px;
-        }
+                TABLE.command TD.info .department {
+                    color: #cccccc;
+                    font-size: 14.8px;
+                }
 
 
- /*===============*/
+        /*===============*/
 
         TABLE.simplepatron {
-            width:100%;
-            vertical-align:central;
+            width: 100%;
+            vertical-align: central;
         }
 
-        TABLE.simplepatron TD.left {
-            text-align:left;
-       }
+            TABLE.simplepatron TD.left {
+                text-align: left;
+            }
 
-        TABLE.simplepatron TD  .barcode{
-            color:darkgreen;
-            font-size:16pt;
-       }
+            TABLE.simplepatron TD .barcode {
+                color: darkgreen;
+                font-size: 16pt;
+            }
 
-        TABLE.simplepatron TD  .name{
+            TABLE.simplepatron TD .name {
+                font-weight: bold;
+                font-size: 18pt;
+            }
+
+            TABLE.simplepatron TD .department {
+                color: gray;
+            }
+
+            TABLE.simplepatron TD.right {
+                text-align: right;
+                padding-right: 20px;
+            }
+
+            TABLE.simplepatron TD .amerceNum {
+                background-color: #B8860B;
+                color: white;
+            }
+
+            TABLE.simplepatron TD .arriveNum {
+                background-color: #006400;
+                color: white;
+            }
+
+            TABLE.simplepatron TD .overdueNum {
+                background-color: #8B0000;
+                color: white;
+            }
+
+            TABLE.simplepatron TD .rightText {
+                color: #bbbbbb;
+                font-size: 11px;
+                margin-left: -3px;
+            }
+
+        /*===========*/
+
+        DIV.simplepatron {
+            padding-left: 10px;
+        }
+
+
+TABLE.borderTable {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+        }
+
+            TABLE.borderTable TR TD {
+                border-width: 0px;
+                border-top-width: 1px;
+                border-color: #dddddd;
+                border-style: dotted;
+                padding: 2px;
+            }
+
+                TABLE.borderTable TR TD.value {
+                    /*border-left-width: 2px;*/
+                    border-left: 1px solid #CCCCCC;
+                    padding-left: 5px;
+                }
+
+                TABLE.borderTable TR TD.arrived {
+                    font-weight: bolder;
+                    border-left: 1px solid #CCCCCC;
+                    padding-left: 5px;
+                }
+
+                TABLE.borderTable TR TD.label {
+                    width: 94px;
+                    max-width: 94px;
+                    min-width: 94px;
+                    background-color: #eeeeee;
+                    color: #999999;
+                    padding-left: 5px;
+                    text-align: right;
+                }
+
+        /*==================================*/
+        /*整个命令块*/
+        DIV.cmd {
+            margin: 14px 0px 0px;
+            padding: 2px;
+        }
+
+        /*一条一条的册table*/
+        DIV.cmd TABLE {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+            margin-top: 0px;
+        }
+
+        /*册td*/
+        DIV.cmd TABLE TR TD {
+            border-width: 0px;
+            padding: 1px;
+            vertical-align: top;
+        }
+
+        /*册左侧标题td*/
+        DIV.cmd TABLE TR TD.label {
+            width: 65px;
+            max-width: 65px;
+            min-width: 65px;
+            background-color: #ffffff;
+            color: #999999;
+            padding-right: 2px;
+            text-align: right;
+        }
+
+        /*册右值数据td*/
+        DIV.cmd TABLE TR TD.value {
+            padding-left: 5px;
+        }
+
+        DIV.cmd TABLE TR TD.patronBarcode {
             font-weight:bold;
-            font-size:18pt;
-       }
+            text-align: right;
 
-        TABLE.simplepatron TD  .department{
-color: gray; 
-       }
-
-        TABLE.simplepatron TD.right {
-            text-align:right;
-            padding-right:20px
-       }
-
-        TABLE.simplepatron TD .amerceNum {
-            background-color: #B8860B;
-            color: white;
         }
 
-       TABLE.simplepatron TD .arriveNum {
-            background-color: #006400;
-            color: white;
+        DIV.cmd TABLE TR TD.time {
+            color:gray;
         }
 
-        TABLE.simplepatron TD .overdueNum {
-            background-color: #8B0000;
-            color: white;
+        DIV.cmd TABLE TR TD.itemBarcode {
+            font-weight:bold;
+            text-align: right;
         }
 
-       TABLE.simplepatron TD .rightText {
-            color: #bbbbbb;
-            font-size:11px;
-            margin-left:-3px;
+        DIV.cmd TABLE TR TD .name {
+            padding-left:5px;
+            font-size:16px;
+            font-weight:bold;
         }
 
-       /*===========*/
-
-                DIV.simplepatron {
-            padding-left:10px;
+        DIV.cmd TABLE TR TD .department {
+            color:gray;
         }
 
+        DIV.cmd TABLE TR TD .error {
+            padding-left: 5px;
+            color:red;
+        }
+
+        DIV.cmd TABLE TR TD .success {
+            padding-left: 5px;
+            color:darkgreen;
+        }
+
+        DIV.cmd TABLE TR TD .warn {
+            padding-left: 5px;
+            background-color:yellow;
+        }
+        /*===========*/
 
 
-        </style>
-    }
+
+    </style>
+}
 
 @section Scripts {
     <script>
@@ -123,109 +234,168 @@ color: gray;
         }
 
 
-        </script>
-    }
+    </script>
+}
+<div >
 
-<table style="width: 100%;">
-    <tbody>
-        <tr>
-            <td><input id="mybarcode" style="color: black;margin:0px" type="text"></td>
-            <td style="background-color: red;">
-                <button onclick="ok()">确认</button>
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-
-<select id="selPrefix" name="selPrefix" >
-    <option value="NB">姓名</option>
-    <option value="">证条码号</option>
-    <option value="EM">email</option>
-    <option value="TP">电话号码</option>
-    <option value="ID">身份证号</option>
-    <option value="CN">证号</option>
-    <option value="UN">工作人员账户</option>
-</select>
-<a><span class="mui-icon mui-icon-arrowdown"></span></a>
-
-
-
-        <div>
-
-            <button onclick="openLayer()">测试弹层</button>
-        </div>
-
-<div id="mylayer" style="z-index: 10;bottom:0px; display :none; width:100%; height:90%;margin:0px;padding:0px">
-
-    <table style='height:1000px;background-color:red'><tr><td>test</td></tr></table>
-</div>
-
-        <div id="patron" class="simplepatron">
-            <div onclick='gotoUrl("/patron/PersonalInfo?loginUserName=jane&amp;patronBarcode=R00001")'>
-                <span style="font-size: 14.8px; font-weight: bold;">R00001</span>&nbsp;
-                <span style="font-size: 14.8px; font-weight: bold;">任1</span>
-                <span style="color: gray; font-size: 14.8px;">(宣明学校)</span>&nbsp;&nbsp;&gt;
-                <div>
-                </div>
-            </div>
-        </div>
-
-
-
-        <ul class='mui-table-view'>
-            <li class='mui-table-view-cell'>
-                <a class='mui-navigate-right' href='../Patron/PersonalInfo?loginUserName=jane&patronBarcode=R00001'>
-                    <table class='simplepatron'>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <span class='barcode'>R00001</span>
-                                    <span class='name'>任1</span>
-                                    <span class='department'>(宣明学校)</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span>在借(<span class='leftNum'>▪▪▪▪</span>)</span>
-                                    <span class='mui-badge overdueNum'>4</span>
-                                    <span class='rightText'>超期</span>
-                                    <span class='mui-badge amerceNum'>1</span>
-                                    <span class='rightText'>待交费</span>
-                                    <span class='mui-badge arriveNum'>2</span>
-                                    <span class='rightText'>预约到书</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </a>
-            </li>
-        </ul>
-
-        <ul class="mui-table-view">
-                    <li class="mui-table-view-cell">
-                        <a class="mui-navigate-right" href="../Patron/BorrowInfo?loginUserName=jane&amp;patronBarcode=R00001">
-                            <table class="patronSubMenu">
-                                <tbody><tr>
-                                    <td class="left">在借<span>(<span class="leftNum">▪▪▪▪</span>)</span></td>
-                                    <td class="right">
-                                            <span class="mui-badge overdueNum">4</span>
-                                            <span class="rightText">超期</span>
-                                    </td>
-                                </tr>
-                            </tbody></table>
-                        </a>
-                    </li>
-                </ul>
-
-        <table class='command'>
+    <div class='mui-card cmd'>
+        <table>
             <tr>
-                <td class='leftLine' style=''></td>
-                <td class='resultIcon'><img src='~/img/right.png' /> </td>
-                <td class='info'><div class='title'>装载读者信息 R00001</div>
-                <div class='patronBarcode'>R00001</div>
-                <div class='name'>任1</div>
-                    <div class='department'>苏州学校</div>
+                <td colspan='2'>
+                    <table>
+                        <tr>
+                            <td style='width:50px'><img src='../img/charge_success_24.png' /></td>
+                            <td style='width:100%' class='warn'>装载失败</td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
+            <tr>
+                <td class='patronBarcode'>R00001</td>
+                <td class='value'>
+                    <span class='name'>任1</span>
+                    <span class='department'>(苏州图书馆)</span>
+                </td>
+            </tr>
+            <tr>
+                <td class='itemBarcode'>C001</td>
+                <td class='value'>我从彩虹那边来</td>
+            </tr>
+            <tr>
+                <td class='label'>操作时间</td>
+                <td class='time'>2016-11-07 15:04</td>
+            </tr>
         </table>
+    </div>
+
+
+    <br />
+    <div class="mui-card" style="margin-bottom:10px ">
+        <table class="borderTable">
+            <tr>
+                <td class="label">操作结果</td>
+                <td class="value" style="color:red">借书失败</td>
+            </tr>
+            <tr>
+                <td class="label">读者</td>
+                <td class="value"> 任1</td>
+            </tr>
+            <tr>
+                <td class="label">册</td>
+                <td class="value">C001 我从彩虹那边来</td>
+            </tr>
+            <tr>
+                <td class="label">操作时间</td>
+                <td class="arrived">2016-11-07 15:04</td>
+            </tr>
+        </table>
+    </div>
+
+
+    <table style="width: 100%;">
+        <tbody>
+            <tr>
+                <td><input id="mybarcode" style="color: black;margin:0px" type="text"></td>
+                <td style="background-color: red;">
+                    <button onclick="ok()">确认</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+
+    <select id="selPrefix" name="selPrefix">
+        <option value="NB">姓名</option>
+        <option value="">证条码号</option>
+        <option value="EM">email</option>
+        <option value="TP">电话号码</option>
+        <option value="ID">身份证号</option>
+        <option value="CN">证号</option>
+        <option value="UN">工作人员账户</option>
+    </select>
+    <a><span class="mui-icon mui-icon-arrowdown"></span></a>
+
+
+
+    <div>
+
+        <button onclick="openLayer()">测试弹层</button>
+    </div>
+
+    <div id="mylayer" style="z-index: 10;bottom:0px; display :none; width:100%; height:90%;margin:0px;padding:0px">
+
+        <table style='height:1000px;background-color:red'><tr><td>test</td></tr></table>
+    </div>
+
+    <div id="patron" class="simplepatron">
+        <div onclick='gotoUrl("/patron/PersonalInfo?loginUserName=jane&amp;patronBarcode=R00001")'>
+            <span style="font-size: 14.8px; font-weight: bold;">R00001</span>&nbsp;
+            <span style="font-size: 14.8px; font-weight: bold;">任1</span>
+            <span style="color: gray; font-size: 14.8px;">(宣明学校)</span>&nbsp;&nbsp;&gt;
+            <div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <ul class='mui-table-view'>
+        <li class='mui-table-view-cell'>
+            <a class='mui-navigate-right' href='../Patron/PersonalInfo?loginUserName=jane&patronBarcode=R00001'>
+                <table class='simplepatron'>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span class='barcode'>R00001</span>
+                                <span class='name'>任1</span>
+                                <span class='department'>(宣明学校)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span>在借(<span class='leftNum'>▪▪▪▪</span>)</span>
+                                <span class='mui-badge overdueNum'>4</span>
+                                <span class='rightText'>超期</span>
+                                <span class='mui-badge amerceNum'>1</span>
+                                <span class='rightText'>待交费</span>
+                                <span class='mui-badge arriveNum'>2</span>
+                                <span class='rightText'>预约到书</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="mui-table-view">
+        <li class="mui-table-view-cell">
+            <a class="mui-navigate-right" href="../Patron/BorrowInfo?loginUserName=jane&amp;patronBarcode=R00001">
+                <table class="patronSubMenu">
+                    <tbody>
+                        <tr>
+                            <td class="left">在借<span>(<span class="leftNum">▪▪▪▪</span>)</span></td>
+                            <td class="right">
+                                <span class="mui-badge overdueNum">4</span>
+                                <span class="rightText">超期</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </a>
+        </li>
+    </ul>
+
+    <table class='command'>
+        <tr>
+            <td class='leftLine' style=''></td>
+            <td class='resultIcon'><img src='~/img/right.png' /> </td>
+            <td class='info'>
+                <div class='title'>装载读者信息 R00001</div>
+                <div class='patronBarcode'>R00001</div>
+                <div class='name'>任1</div>
+                <div class='department'>苏州学校</div>
+            </td>
+        </tr>
+    </table>
+</div>

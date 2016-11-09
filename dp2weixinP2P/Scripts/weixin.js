@@ -41,6 +41,7 @@ function hideLoading() {
     $("#loading").hide();//关闭loading
 }
 
+
 function showMaskLayer() {
     var bg = $("#mask-background,#mask-progressBar");
 
