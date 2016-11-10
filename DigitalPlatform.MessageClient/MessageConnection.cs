@@ -1217,6 +1217,7 @@ CancellationToken token)
                     }))
                 {
                     // 分批发出请求
+                    // 对于 entity 完全为空的 HTTP request 如何处理?
                     WebDataSplitter splitter = new WebDataSplitter();
                     splitter.ChunkSize = MessageUtil.BINARY_CHUNK_SIZE;
                     splitter.TransferEncoding = request.TransferEncoding;
