@@ -168,28 +168,60 @@ namespace dp2Capo
                     if (MessageConnection.IsHttpClientException(ex, out strErrorCode))
                     {
                         // echo 的时候有小概率可能会返回用户认证异常？重置连接
-                        Task.Run(()=>instance.TryResetConnection());
+                        Task.Run(() => instance.TryResetConnection());
                     }
                 }
             }
 
         }
 
+        /*
+*
+.NET Runtime 	Error 	2016/11/4 13:19:54
+Application: dp2capo.exe
+Framework Version: v4.0.30319
+Description: The process was terminated due to an unhandled exception.
+Exception Info: System.Net.Sockets.SocketException
+   at System.Net.Dns.GetAddrInfo(System.String)
+   at System.Net.Dns.InternalGetHostByName(System.String, Boolean)
+   at System.Net.Dns.GetHostAddresses(System.String)
+   at System.Net.NetworkInformation.Ping.Send(System.String, Int32, Byte[], System.Net.NetworkInformation.PingOptions)
+
+Exception Info: System.Net.NetworkInformation.PingException
+   at System.Net.NetworkInformation.Ping.Send(System.String, Int32, Byte[], System.Net.NetworkInformation.PingOptions)
+   at DigitalPlatform.Net.NetUtil.Ping(System.String, System.String ByRef)
+   at dp2Capo.ServerInfo.Check(dp2Capo.Instance, System.Collections.Generic.List`1<System.Threading.Tasks.Task>)
+   at dp2Capo.ServerInfo.BackgroundWork()
+   at dp2Capo.DefaultThread.Worker()
+   at DigitalPlatform.ThreadBase.ThreadMain()
+   at System.Threading.ExecutionContext.RunInternal(System.Threading.ExecutionContext, System.Threading.ContextCallback, System.Object, Boolean)
+   at System.Threading.ExecutionContext.Run(System.Threading.ExecutionContext, System.Threading.ContextCallback, System.Object, Boolean)
+   at System.Threading.ExecutionContext.Run(System.Threading.ExecutionContext, System.Threading.ContextCallback, System.Object)
+   at System.Threading.ThreadHelper.ThreadStart()
+         * */
         static void Check(Instance instance, List<Task> tasks)
         {
             if (instance.MessageConnection.ConnectState == ConnectionState.Disconnected)    // 注：如果在 Connecting 和 Reconnecting 状态则不尝试 ConnectAsync
             {
                 // instance.BeginConnnect();
                 tasks.Add(instance.BeginConnectTask());
-                string strInformation = "";
+
                 Uri uri = new Uri(instance.dp2mserver.Url);
-                if (NetUtil.Ping(uri.DnsSafeHost, out strInformation) == true)
+                try
                 {
-                    instance.WriteErrorLog("ping '" + uri.DnsSafeHost + "' success");
+                    string strInformation = "";
+                    if (NetUtil.Ping(uri.DnsSafeHost, out strInformation) == true)
+                    {
+                        instance.WriteErrorLog("ping '" + uri.DnsSafeHost + "' success");
+                    }
+                    else
+                    {
+                        instance.WriteErrorLog("ping '" + uri.DnsSafeHost + "' fail: " + strInformation);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    instance.WriteErrorLog("ping '" + uri.DnsSafeHost + "' fail: " + strInformation);
+                    instance.WriteErrorLog("ping '" + uri.DnsSafeHost + "' 出现异常: " + ExceptionUtil.GetExceptionText(ex));
                 }
 
             }
@@ -274,7 +306,7 @@ namespace dp2Capo
                         {
                             instance.MessageConnection.CleanLibraryChannel();
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             instance.WriteErrorLog("CleanLibraryChannel() 异常: " + ExceptionUtil.GetExceptionText(ex));
                         }

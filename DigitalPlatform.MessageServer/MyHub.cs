@@ -1,5 +1,5 @@
 ﻿// #define LOG
-#define LOG_REQUEST_SEARCH
+// #define LOG_REQUEST_SEARCH
 
 using System;
 using System.Collections.Generic;
@@ -3401,7 +3401,7 @@ ex.GetType().ToString());
             {
                 ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
     result,
-    "RequestSearch()",
+    "RequestGetRes()",
     false);
                 if (connection_info == null)
                     return result;
@@ -3568,6 +3568,192 @@ ex.GetType().ToString());
 
 #if LOG
             writeDebug("SendGetResResponse.3");
+#endif
+        }
+
+
+        #endregion
+
+        #region ListRes() API
+
+        public MessageResult RequestListRes(
+            string userNameList,
+            ListResRequest param)
+        {
+#if LOG
+            writeDebug("RequestListRes.1 userNameList=" + userNameList
+                + ", param=" + param.Dump());
+#endif
+            MessageResult result = new MessageResult();
+
+            try
+            {
+                ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
+    result,
+    "RequestListRes()",
+    false);
+                if (connection_info == null)
+                    return result;
+
+                if (StringUtil.Contains(connection_info.Rights, param.Operation) == false)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "当前用户 '" + connection_info.UserName + "' 不具备进行 '" + param.Operation + "' 操作的权限";
+                    return result;
+                }
+
+                List<string> connectionIds = null;
+                string strError = "";
+
+                int nRet = ServerInfo.ConnectionTable.GetOperTargetsByUserName(
+    userNameList,
+    connection_info.UserName,
+    param.Operation,
+    "strict_one", // "all",
+    out connectionIds,
+    out strError);
+                if (nRet == -1)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = strError;
+                    return result;
+                }
+
+                if (connectionIds == null || connectionIds.Count == 0)
+                {
+                    result.Value = 0;
+                    // result.ErrorInfo = "当前没有任何可检索的目标 (目标用户名 '"+userNameList+"'; 操作 '"+searchParam.Operation+"')";
+                    result.ErrorInfo = "当前没有发现可操作的目标 (详情 '" + strError + "')";
+                    result.String = "TargetNotFound";
+                    return result;
+                }
+
+                SearchInfo search_info = null;
+                try
+                {
+                    search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                        param.TaskID,
+                        param.Start,
+                        param.Length,
+                        "" //param.ServerPushEncoding
+                        );
+                }
+                catch (ArgumentException)
+                {
+                    result.Value = -1;
+                    result.ErrorInfo = "TaskID '" + param.TaskID + "' 已经存在了，不允许重复使用";
+                    return result;
+                }
+
+                result.String = search_info.UID;   // 返回检索请求的 UID
+                search_info.SetTargetIDs(connectionIds);
+
+                Task.Run(() => SendListRes(connectionIds, param));
+
+                result.Value = connectionIds.Count;   // 表示已经成功发起了检索
+            }
+            catch (Exception ex)
+            {
+                result.SetError("RequestListRes() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
+            }
+            return result;
+        }
+
+        void SendListRes(List<string> connectionIds, ListResRequest param)
+        {
+            Clients.Clients(connectionIds).listRes(param);
+        }
+
+        public MessageResult ResponseListRes(ListResResponse responseParam)
+        {
+#if LOG
+            writeDebug("ResponseListRes.1 responseParam=" + responseParam.Dump());
+#endif
+            MessageResult result = new MessageResult();
+            try
+            {
+                Console.WriteLine("ResponseListRes start=" + responseParam.Start
+                    + ", results.Count=" + (responseParam.Results == null ? "null" : responseParam.Results.Count.ToString())
+                    + ", errorInfo=" + responseParam.ErrorInfo
+                    + ", errorCode=" + responseParam.ErrorCode);
+
+                SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(responseParam.TaskID);
+                if (search_info == null)
+                {
+                    result.ErrorInfo = "ID 为 '" + responseParam.TaskID + "' 的任务对象无法找到";
+                    result.Value = -1;
+                    result.String = "_notFound";
+                    return result;
+                }
+
+                search_info.Activate();
+
+#if LOG
+                writeDebug("ResponseListRes.3 SendListResResponse");
+#endif
+                Task.Run(() =>
+                SendListResResponse(// string taskID,
+    search_info,
+    responseParam));
+            }
+            catch (Exception ex)
+            {
+                result.SetError("ResponseListRes() 时出现异常: " + ExceptionUtil.GetExceptionText(ex),
+ex.GetType().ToString());
+                ServerInfo.WriteErrorLog(result.ErrorInfo);
+            }
+            return result;
+        }
+
+        void SendListResResponse(
+    SearchInfo search_info,
+    ListResResponse responseParam)
+        {
+#if LOG
+            writeDebug("SendListResResponse.1");
+#endif
+            try
+            {
+                Clients.Client(search_info.RequestConnectionID).responseListRes(
+                    responseParam);
+
+#if LOG
+                writeDebug("SendListResResponse.2");
+#endif
+
+                // 标记结束一个检索目标
+                // return:
+                //      0   尚未结束
+                //      1   结束
+                //      2   全部结束
+                int nRet = search_info.CompleteTarget(Context.ConnectionId,
+                    responseParam.TotalLength,
+                    responseParam.Results == null ? 0 : responseParam.Results.Count);
+                if (nRet == 2 || responseParam.Results == null || responseParam.Results.Count == 0)
+                {
+                    // 追加一个消息，表示检索响应已经全部完成
+                    Clients.Client(search_info.RequestConnectionID).responseListRes(
+    new ListResResponse(
+        search_info.UID,
+    -1,
+    -1,
+    null,
+    "",
+    ""));
+                    // 主动清除已经完成的任务对象
+                    ServerInfo.SearchTable.RemoveSearch(search_info.UID);  // taskID
+                    Console.WriteLine("complete");
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerInfo.WriteErrorLog("中心向前端分发 responseListRes() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
+
+#if LOG
+            writeDebug("SendListResResponse.3");
 #endif
         }
 

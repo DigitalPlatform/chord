@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.20.*")]
-[assembly: AssemblyFileVersion("1.20.0.0")]
+[assembly: AssemblyVersion("1.21.*")]
+[assembly: AssemblyFileVersion("1.21.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -55,3 +55,4 @@ using System.Runtime.InteropServices;
 // 1.18 (2016/11/4) MessageConnection 增加 Connection_ConnectionSlow()，开始重新连接
 // 1.19 (2016/11/5) 在 MessageConnection 的 CloseConnection() 中恢复 Connection.Stop() 语句。TryResetConnection() 里面采用 CloseConnection()
 // 1.20 (2016/11/7) 当 SetMessage() 出错的时候，要根据错误码判定是否重置连接，而不是一味重置连接。后者这种处理方法可能会(在 SetMessage() 因为其他原因出错的时候)造成网络繁忙
+// 1.21 (2016/11/8) 在 ConnectAsync() 中释放以前通道的过程中，加回来曾经被去掉的 Connection.Stop() 调用
