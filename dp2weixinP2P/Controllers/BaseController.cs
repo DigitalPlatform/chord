@@ -112,7 +112,7 @@ namespace dp2weixinWeb.Controllers
             string libHtml = "<select id='selLib' "+clickEvent+" style='background-color:transparent;display:inline;padding-left: 0px;" + width + "border:1px solid #eeeeee'  >" + opt + "</select>";
             return libHtml;
         }
-        public int CheckIsFromWeiXin(string code, string state, out string strError)
+        public int CheckIsFromWeiXin(string code, string state, out string strError,bool checkLibState=true)
         {
             strError = "";
 
@@ -218,7 +218,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.showPhoto = showPhoto;
             ViewBag.showCover = showCover;
             ViewBag.LibState = lib.State;
-            if (lib.State == LibraryManager.C_State_Hangup)
+            if (checkLibState==true && lib.State == LibraryManager.C_State_Hangup)
             {
                 // 立即重新检查一下
                 dp2WeiXinService.Instance.LibManager.RedoGetVersion(lib);

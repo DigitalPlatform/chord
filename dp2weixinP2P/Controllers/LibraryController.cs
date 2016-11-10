@@ -113,7 +113,7 @@ namespace dp2weixinWeb.Controllers
         {
             // 检查是否从微信入口进来
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError,false);
             if (nRet == -1)
                 goto ERROR1;
 
@@ -121,6 +121,12 @@ namespace dp2weixinWeb.Controllers
             string userName = "";
             string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
             string libId = ViewBag.LibId;
+            Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                goto ERROR1;
+            }
 
             if (weixinId == dp2WeiXinService.C_Supervisor)
             {
@@ -135,15 +141,8 @@ namespace dp2weixinWeb.Controllers
                 {
                     // 检索是否有权限 _wx_setHomePage
                     string needRight = dp2WeiXinService.C_Right_SetBb;
-                    LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
-                    if (lib == null)
-                    {
-                        strError = "未找到id为[" + libId + "]的图书馆定义。";
-                        goto ERROR1;
-                    }
-
                     int nHasRights = dp2WeiXinService.Instance.CheckRights(user,
-                        lib,
+                        lib.Entity,
                         needRight,
                         out strError);
                     if (nHasRights == -1)
@@ -176,6 +175,31 @@ namespace dp2weixinWeb.Controllers
                 out strError);
             if (nRet == -1)
                 goto ERROR1;
+
+
+            // 如果图书馆是挂起状态，作为警告
+            if (lib.State == LibraryManager.C_State_Hangup)
+            {
+                // 立即重新检查一下
+                dp2WeiXinService.Instance.LibManager.RedoGetVersion(lib);
+                if (lib.Version == "-1")
+                {
+                    //的桥接服务器dp2capo已失去连接，请尽快修复。
+                    strError = lib.Entity.libName + " 的桥接服务器dp2capo失去连接，公众号功能已被挂起，请尽快修复。";
+                }
+                else
+                {
+                    strError = lib.Entity.libName + " 的桥接服务器dp2capo版本不够新，公众号功能已被挂起，请尽快升级。";
+                }
+                ViewBag.Warn = strError;
+            }
+            else
+            {
+                //ViewBag.Warn = "test";
+            }
+
+
+
 
             return View(list);
 

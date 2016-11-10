@@ -15,21 +15,21 @@ namespace dp2weixin.service
         /*
          <gzhs>
             <gzh AppId="wxd24b193130bbaa7c" Secret="137afb49af90a07c2c72b11f520bb4b3" EncodingAESKey="m9WlCouFChERHjpyVciBSza0I1XV51Zs4GVgkhefxDE" Token="dp3weixin" AppName="wxtest">
-<templates>
-<template name='Bind' id="ciMkFC2uP2-i6gLrsuIvgs_4_5RrAxEh0qhJ2XkWWXc"/>
-<template name="UnBind" id="dNnntAgPvPs3YUwsEKREt8TrBJnqYX73J2d7ftPXPL4"/>
+            <templates>
+            <template name='Bind' id="ciMkFC2uP2-i6gLrsuIvgs_4_5RrAxEh0qhJ2XkWWXc"/>
+            <template name="UnBind" id="dNnntAgPvPs3YUwsEKREt8TrBJnqYX73J2d7ftPXPL4"/>
 
-<template name="Borrow" id="uEdYFQrAAIeZxjevVxEkbEV6JsqL2iLQ_c-mme42ZWM"/>
-<template name="Return" id="xxbppjxQIUIuAiS66bA4NuBTjvczNvW8Hb_ot5tEY34"/>
+            <template name="Borrow" id="uEdYFQrAAIeZxjevVxEkbEV6JsqL2iLQ_c-mme42ZWM"/>
+            <template name="Return" id="xxbppjxQIUIuAiS66bA4NuBTjvczNvW8Hb_ot5tEY34"/>
 
-<template name="Pay" id="AOKbOX6OhOfyFLbJig2LpmDaPD0QwHYLfxMP3sPxq4M"/>
-<template name="CancelPay" id="538QqZd7iAB2I_Ob5fCKHn7Ti06UXpflW5dFUCbtv0c"/>
+            <template name="Pay" id="AOKbOX6OhOfyFLbJig2LpmDaPD0QwHYLfxMP3sPxq4M"/>
+            <template name="CancelPay" id="538QqZd7iAB2I_Ob5fCKHn7Ti06UXpflW5dFUCbtv0c"/>
 
-<template name="Message" id="qaPAe8R9UdHBCHPap0DLuFaHNGSBVG1fzkFkQhTFevM"/>
-<template name="Arrived" id="I_SdDXYJRg0wfy2iW7d0pmwnlf0PdmE2ddRqQp2CbOs"/>
-<template name="CaoQi" id="2XcSZ1G7nJRi3X2_oPdYw003x0VzM0UMtLkGD45Dlyc"/>
+            <template name="Message" id="qaPAe8R9UdHBCHPap0DLuFaHNGSBVG1fzkFkQhTFevM"/>
+            <template name="Arrived" id="I_SdDXYJRg0wfy2iW7d0pmwnlf0PdmE2ddRqQp2CbOs"/>
+            <template name="CaoQi" id="2XcSZ1G7nJRi3X2_oPdYw003x0VzM0UMtLkGD45Dlyc"/>
 
-</templates>         
+            </templates>         
             </gzh>
          </gzhs>
          */
