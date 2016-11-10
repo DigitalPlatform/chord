@@ -1343,7 +1343,7 @@ MessageBoxDefaultButton.Button1);
 
                 List<EventLog> logs = new List<EventLog>();
 
-                logs.Add(new EventLog("DigitalPlatform", ".", "*"));
+                // logs.Add(new EventLog("DigitalPlatform", ".", "*")); // 目前 chord 任何服务器模块都不会写入事件日志到这里
                 logs.Add(new EventLog("Application"));
 
                 // "最近31天" "最近十年" "最近七天"

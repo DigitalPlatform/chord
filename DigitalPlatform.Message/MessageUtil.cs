@@ -988,4 +988,106 @@ namespace DigitalPlatform.Message
     }
 
     #endregion
+
+    #region ListRes() 相关
+
+    public class ListResRequest
+    {
+        public string TaskID { get; set; }    // 本次任务 ID。
+        public LoginInfo LoginInfo { get; set; }    // 登录信息
+        public string Operation { get; set; }   // 操作名。
+        public string Category { get; set; }
+        public string Path { get; set; }
+        public long Start { get; set; }
+        public long Length { get; set; }     // 
+        public string Style { get; set; }
+
+        public ListResRequest()
+        {
+
+        }
+
+        public ListResRequest(string taskID,
+            LoginInfo loginInfo,
+            string operation,
+            string category,
+            string path,
+            long start,
+            long length,
+            string style)
+        {
+            this.TaskID = taskID;
+            this.LoginInfo = loginInfo;
+            this.Operation = operation;
+            this.Category = category;
+            this.Path = path;
+            this.Start = start;
+            this.Length = length;
+            this.Style = style;
+        }
+    }
+
+    public class ResInfo
+    {
+
+    }
+
+    public class ListResResponse
+    {
+        public string TaskID { get; set; }    // 本次检索的任务 ID。由于一个 Connection 可以用于同时进行若干检索操作，本参数用于区分不同的检索操作
+        public long TotalLength { get; set; }
+        public long Start { get; set; }    // 本次响应 Data 的偏移
+        public List<ResInfo> Results { get; set; }
+
+        public string ErrorInfo { get; set; }
+        public string ErrorCode { get; set; }
+
+        public ListResResponse()
+        {
+
+        }
+
+        public ListResResponse(string taskID,
+            long totalLength,
+            long start,
+            List<ResInfo> results,
+            string errorInfo,
+            string errorCode)
+        {
+            this.TaskID = taskID;
+            this.TotalLength = totalLength;
+            this.Start = start;
+            this.Results = results;
+            this.ErrorInfo = errorInfo;
+            this.ErrorCode = errorCode;
+        }
+
+        public string Dump()
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("TaskID=" + this.TaskID + "\r\n");
+            text.Append("TotalLength=" + this.TotalLength + "\r\n");
+            text.Append("Start=" + this.Start + "\r\n");
+            text.Append("Results.Count=" + (this.Results != null ? this.Results.Count : 0) + "\r\n");
+            text.Append("ErrorInfo=" + this.ErrorInfo + "\r\n");
+            text.Append("ErrorCode=" + this.ErrorCode + "\r\n");
+            return text.ToString();
+        }
+    }
+
+    public class ListResResult : MessageResult
+    {
+        public List<ResInfo> Results { get; set; }
+
+        public ListResResult(MessageResult result, List<ResInfo> results)
+        {
+            this.String = result.String;
+            this.Value = result.Value;
+            this.ErrorInfo = result.ErrorInfo;
+
+            this.Results = results;
+        }
+    }
+
+    #endregion
 }

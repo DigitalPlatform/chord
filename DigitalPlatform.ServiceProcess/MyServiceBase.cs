@@ -7,9 +7,10 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 using System.Configuration;
-using DigitalPlatform.Xml;
 using System.Reflection;
 using System.IO;
+
+using DigitalPlatform.Xml;
 
 namespace DigitalPlatform.ServiceProcess
 {
@@ -114,9 +115,12 @@ namespace DigitalPlatform.ServiceProcess
         [DllImport("Kernel32")]
         public static extern bool SetConsoleCtrlHandler(CtrlEventHandler handler, bool add);
 
+        public static bool ConsoleMode = false;
+
         public void ConsoleRun()
         {
             // this.m_bConsoleRun = true;
+            ConsoleMode = true;
 
             // Some biolerplate to react to close window event
             _handler += new CtrlEventHandler(Handler);

@@ -217,6 +217,7 @@ namespace dp2MServer
             {
                 if (Initial() == false)
                     return;
+                ServerInfo.ConsoleMode = true;
                 new Program().ConsoleRun();
             }
             else
