@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration.Install;
+using System.Diagnostics;
 using System.Linq;
 using System.ServiceProcess;
 using System.Text;
@@ -12,6 +13,29 @@ namespace DigitalPlatform.ServiceProcess
 {
     public static class ServiceUtil
     {
+        // http://stackoverflow.com/questions/1633429/install-windows-service-with-recovery-action-to-restart
+        public static void SetRecoveryOptions(string serviceName)
+        {
+            int exitCode;
+            using (var process = new Process())
+            {
+                var startInfo = process.StartInfo;
+                startInfo.FileName = "sc";
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+
+                // tell Windows that the service should restart if it fails
+                startInfo.Arguments = string.Format("failure \"{0}\" reset= 0 actions= restart/60000", serviceName);
+
+                process.Start();
+                process.WaitForExit();
+
+                exitCode = process.ExitCode;
+            }
+
+            if (exitCode != 0)
+                throw new InvalidOperationException();
+        }
+
         public static string GetPathOfService(string serviceName)
         {
             using (RegistryKey service = Registry.LocalMachine.CreateSubKey("System\\CurrentControlSet\\Services"))

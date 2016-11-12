@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalPlatform.ServiceProcess;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -77,6 +78,9 @@ namespace dp2Capo
 
             Log.WriteEntry("dp2Capo 安装成功。", EventLogEntryType.Information);
 #endif
+            // 2016/11/12
+            ServiceUtil.SetRecoveryOptions(this.serviceInstaller1.ServiceName);
+
             EventLog.WriteEntry(this.serviceInstaller1.ServiceName,
                 "dp2Capo 安装成功。", EventLogEntryType.Information);
         }

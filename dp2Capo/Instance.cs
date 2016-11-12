@@ -10,6 +10,7 @@ using System.Messaging;
 using System.Diagnostics;
 using System.Threading;
 using System.Reflection;
+using System.Net;
 
 using DigitalPlatform;
 using DigitalPlatform.Text;
@@ -48,6 +49,11 @@ namespace dp2Capo
             set;
         }
 
+        public Instance()
+        {
+            LastCheckTime = DateTime.Now;
+        }
+
         public void Initial(string strXmlFileName)
         {
             _cancel = new CancellationTokenSource();
@@ -65,6 +71,11 @@ namespace dp2Capo
 
             // 验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
             this.DetectWriteErrorLog("*** 实例 " + this.Name + " 开始启动 (dp2Capo 版本: " + ServerInfo.Version + ")");
+
+            this.WriteErrorLog("old ServicePointManager.DefaultConnectionLimit=" + ServicePointManager.DefaultConnectionLimit);
+            // http://stackoverflow.com/questions/5760403/what-to-set-servicepointmanager-defaultconnectionlimit-to
+            ServicePointManager.DefaultConnectionLimit = 12;
+            this.WriteErrorLog("new ServicePointManager.DefaultConnectionLimit=" + ServicePointManager.DefaultConnectionLimit);
 
             XmlDocument dom = new XmlDocument();
             dom.Load(strXmlFileName);
@@ -731,11 +742,13 @@ namespace dp2Capo
 
         #region 日志
 
+        private readonly Object _syncLog = new Object();
+
         bool _errorLogError = false;    // 写入实例的日志文件是否发生过错误
 
         void _writeErrorLog(string strText)
         {
-            lock (this.LogDir)
+            lock (_syncLog)
             {
                 DateTime now = DateTime.Now;
                 // 每天一个日志文件

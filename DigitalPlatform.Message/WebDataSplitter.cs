@@ -48,6 +48,35 @@ namespace DigitalPlatform.Message
             return result;
         }
 
+        /*
+2016/11/9 1:20:05 1(测试): System.AggregateException: 发生一个或多个错误。 ---> System.AggregateException: 发生一个或多个错误。 ---> System.NullReferenceException: 未将对象引用设置到对象的实例。
+   在 DigitalPlatform.ByteArray.Remove(Byte[]& source, Int32 length)
+   在 DigitalPlatform.Message.WebDataSplitter.<GetEnumerator>d__0.MoveNext()
+   在 DigitalPlatform.MessageClient.MessageConnection.<WebCallAsyncLite>d__59.MoveNext()
+   --- 内部异常堆栈跟踪的结尾 ---
+   在 System.Threading.Tasks.Task`1.GetResultCore(Boolean waitCompletionNotification)
+   在 DigitalPlatform.MessageClient.MessageConnection.<>c__DisplayClass51.<WebCallTaskAsync>b__50()
+   在 System.Threading.Tasks.Task`1.InnerInvoke()
+   在 System.Threading.Tasks.Task.Execute()
+   --- 内部异常堆栈跟踪的结尾 ---
+   在 System.Threading.Tasks.Task`1.GetResultCore(Boolean waitCompletionNotification)
+   在 dp2Router.ServerInfo.WebCall(HttpRequest request, String transferEncoding)
+---> (内部异常 #0) System.AggregateException: 发生一个或多个错误。 ---> System.NullReferenceException: 未将对象引用设置到对象的实例。
+   在 DigitalPlatform.ByteArray.Remove(Byte[]& source, Int32 length)
+   在 DigitalPlatform.Message.WebDataSplitter.<GetEnumerator>d__0.MoveNext()
+   在 DigitalPlatform.MessageClient.MessageConnection.<WebCallAsyncLite>d__59.MoveNext()
+   --- 内部异常堆栈跟踪的结尾 ---
+   在 System.Threading.Tasks.Task`1.GetResultCore(Boolean waitCompletionNotification)
+   在 DigitalPlatform.MessageClient.MessageConnection.<>c__DisplayClass51.<WebCallTaskAsync>b__50()
+   在 System.Threading.Tasks.Task`1.InnerInvoke()
+   在 System.Threading.Tasks.Task.Execute()
+---> (内部异常 #0) System.NullReferenceException: 未将对象引用设置到对象的实例。
+   在 DigitalPlatform.ByteArray.Remove(Byte[]& source, Int32 length)
+   在 DigitalPlatform.Message.WebDataSplitter.<GetEnumerator>d__0.MoveNext()
+   在 DigitalPlatform.MessageClient.MessageConnection.<WebCallAsyncLite>d__59.MoveNext()<---
+<---
+        2016/11/10 增强了 content == null 情况
+         * */
         public IEnumerator GetEnumerator()
         {
             if (this.ChunkSize == 0)
@@ -95,12 +124,12 @@ namespace DigitalPlatform.Message
                     {
                         current.Headers = this.WebData.Headers;
                         if (this.WebData.Headers.Length < this.ChunkSize)
-                            current.Content = ByteArray.Remove(ref content, this.ChunkSize - this.WebData.Headers.Length);
+                            current.Content = content == null ? null : ByteArray.Remove(ref content, this.ChunkSize - this.WebData.Headers.Length);
                     }
                     else
                     {
                         current.Headers = null;
-                        current.Content = ByteArray.Remove(ref content, this.ChunkSize);
+                        current.Content = content == null ? null : ByteArray.Remove(ref content, this.ChunkSize);
                     }
 
 #if VERIFY_CHUNK
@@ -109,11 +138,11 @@ namespace DigitalPlatform.Message
                         //
                         content_send += current.Content.Length;
 #endif
-                    _lastOne = content.Length == 0;
+                    _lastOne = (content == null ? 0 : content.Length) == 0;
 
                     yield return current;
 
-                    if (content.Length == 0)
+                    if (content == null || content.Length == 0)
                         yield break;
 
                     _firstOne = false;

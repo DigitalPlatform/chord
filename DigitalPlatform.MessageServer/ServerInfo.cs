@@ -223,11 +223,14 @@ namespace DigitalPlatform.MessageServer
 
         #region 日志
 
+        private static readonly Object _syncRoot = new Object();
+
         static bool _errorLogError = false;    // 写入实例的日志文件是否发生过错误
 
         static void _writeErrorLog(string strText)
         {
-            lock (LogDir)
+            // 注: 当 LogDir 为空的时候会抛出异常
+            lock (_syncRoot)
             {
                 DateTime now = DateTime.Now;
                 // 每天一个日志文件
@@ -267,7 +270,8 @@ namespace DigitalPlatform.MessageServer
             if (ConsoleMode == true)
                 Console.WriteLine(strText);
 
-            if (_errorLogError == true) // 先前写入实例的日志文件发生过错误，所以改为写入 Windows 日志。会加上实例名前缀字符串
+            if (_errorLogError == true // 先前写入实例的日志文件发生过错误，所以改为写入 Windows 日志。会加上实例名前缀字符串
+                || string.IsNullOrEmpty(LogDir) == true)
                 WriteWindowsLog(strText, EventLogEntryType.Error);
             else
             {
