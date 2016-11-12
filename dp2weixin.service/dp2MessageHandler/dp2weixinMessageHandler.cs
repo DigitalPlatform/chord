@@ -181,7 +181,7 @@ namespace dp2weixin
                 if (workerList == null || workerList.Count == 0)
                 {
                     return this.CreateTextResponseMessage("您尚未绑定图书馆工作人员账户，不能使用tracing功能。"
-                       + "\n点击 <a href='" + dp2WeiXinService.Instance.Auth2Url_AccountIndex + "'>绑定账户</a>。");
+                       + "\n点击 <a href='" + dp2WeiXinService.Instance.OAuth2_Url_AccountIndex + "'>绑定账户</a>。");
                 }
 
                 string paramLeft = parameter;

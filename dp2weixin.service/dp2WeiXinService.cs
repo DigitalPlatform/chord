@@ -33,6 +33,8 @@ namespace dp2weixin.service
 {
     public class dp2WeiXinService
     {
+        #region 常量
+
         // 通道常量
         public const string C_ConnName_TraceMessage = "_traceMessage";
         public const string C_ConnPrefix_Myself = "<myself>:";
@@ -64,12 +66,14 @@ namespace dp2weixin.service
         public const int C_LogLevel_2 = 2;
         public const int C_LogLevel_3 = 3;
 
+        #endregion
+
         #region 成员变量
 
-        public string Auth2Url_PersonalInfo = "";//https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fPersonalInfo&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
-        public string Auth2Url_AccountIndex = "";//https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
-        public string Auth2Url_AccountResetPassword = "";//https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fAccount%2fResetPassword&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
-        public string Auth2Url_LibHome = "";//https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fLibrary%2fHome&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+        public string OAuth2_Url_PersonalInfo = "";//https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx57aa3682c59d16c2&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2fPatron%2fPersonalInfo&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
+        public string OAuth2_Url_AccountIndex = "";
+        public string OAuth2_Url_AccountResetPassword = "";
+        public string Auth2Url_LibHome = "";
 
 
         // 日志级别
@@ -373,15 +377,15 @@ namespace dp2weixin.service
                 throw new Exception("初始化接口配置信息出错：" + strError);
 
             // auth2地址
-            this.Auth2Url_PersonalInfo = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="
+            this.OAuth2_Url_PersonalInfo = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="
                 + this.weiXinAppId + "&redirect_uri=http%3a%2f%2fdp2003.com%2f"
                 + this.ApplName + "%2fPatron%2fPersonalInfo&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
 
-            this.Auth2Url_AccountIndex = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="
+            this.OAuth2_Url_AccountIndex = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="
             + this.weiXinAppId + "&redirect_uri=http%3a%2f%2fdp2003.com%2f"
             + this.ApplName + "%2fAccount%2fIndex&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
 
-            this.Auth2Url_AccountResetPassword = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="
+            this.OAuth2_Url_AccountResetPassword = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="
                 + this.weiXinAppId + "redirect_uri=http%3a%2f%2fdp2003.com%2f"
                 + this.ApplName + "%2fAccount%2fResetPassword&response_type=code&scope=snsapi_base&state=dp2weixin#wechat_redirect";
 
@@ -3685,7 +3689,7 @@ namespace dp2weixin.service
                 int nRet = this.SendWeixinMsg(bindWeixinIds,
                     this.Template_Bind,
                     msgData,
-                    dp2WeiXinService.Instance.Auth2Url_AccountIndex,//详情转到账户管理界面
+                    dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
                     out strError);
                 if (nRet == -1)
                 {
@@ -3714,7 +3718,7 @@ namespace dp2weixin.service
                         this.Template_Bind,
                         msgData,
                         msgData2Worker,
-                        dp2WeiXinService.Instance.Auth2Url_AccountIndex,//详情转到账户管理界面
+                        dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
                         "",
                         out strError);
                     if (nRet == -1)
@@ -3848,7 +3852,7 @@ namespace dp2weixin.service
                 int nRet = this.SendWeixinMsg(bindWeixinIds,
                     this.Template_UnBind,
                     msgData,
-                    dp2WeiXinService.Instance.Auth2Url_AccountIndex,//详情转到账户管理界面
+                    dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
                     out strError);
                 if (nRet == -1)
                 {
@@ -3877,7 +3881,7 @@ namespace dp2weixin.service
                         this.Template_UnBind,
                         msgData,
                         msgData2Worker,
-                        dp2WeiXinService.Instance.Auth2Url_AccountIndex,//详情转到账户管理界面
+                        dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
                         "",
                         out strError);
                     if (nRet == -1)
