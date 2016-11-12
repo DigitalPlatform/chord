@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Threading;
 
 using Microsoft.AspNet.SignalR.Client;
 
@@ -22,6 +23,8 @@ namespace dp2Capo
 
         // 管理线程
         public static DefaultThread _defaultThread = new DefaultThread();
+
+        public static LifeThread _lifeThread = new LifeThread();
 
         public static RecordLockCollection _recordLocks = new RecordLockCollection();
 
@@ -51,6 +54,8 @@ namespace dp2Capo
 #endif
 
             _defaultThread.BeginThread();
+
+            _lifeThread.BeginThread();
         }
 
         // 运用控制台显示方式，设置一个实例的基本参数
@@ -96,6 +101,9 @@ namespace dp2Capo
         {
             if (_exited == false)
             {
+                _lifeThread.StopThread(true);
+                _lifeThread.Dispose();
+
                 _defaultThread.StopThread(true);    // 强制退出
                 _defaultThread.Dispose();
 
@@ -231,6 +239,43 @@ Exception Info: System.Net.NetworkInformation.PingException
             }
         }
 
+        // 检测是否发生了死锁
+        // return:
+        //      true    发生了死锁
+        //      false   没有发生死锁
+        public static bool DetectDeadLock()
+        {
+            if (_instances == null || _instances.Count == 0)
+                return false;
+            DateTime now = DateTime.Now;
+            TimeSpan delta = TimeSpan.FromMinutes(10);  // 10 分钟没有动作就表明死锁了
+            foreach (Instance instance in _instances)
+            {
+                if (now - instance.LastCheckTime > delta)
+                    return true;
+            }
+
+            return false;
+        }
+
+        // 向第一个实例的日志文件中写入
+        public static void WriteFirstInstanceErrorLog(string strText)
+        {
+            if (_instances == null || _instances.Count == 0)
+                return;
+            else
+            {
+                try
+                {
+                    _instances[0].WriteErrorLog(strText);
+                }
+                catch
+                {
+                    Program.WriteWindowsLog(strText);
+                }
+            }
+        }
+
         static DateTime _lastCleanTime = DateTime.Now;
 
         // 执行一些后台管理任务
@@ -318,6 +363,9 @@ Exception Info: System.Net.NetworkInformation.PingException
             // 阻塞，直到全部任务完成。避免 BeginConnect() 函数被重叠调用
             if (tasks.Count > 0)
             {
+                // test 这一句可以用来制造死锁测试场景
+                // Thread.Sleep(60 * 60 * 1000);
+
                 if (first_instance != null)
                     first_instance.WriteErrorLog("-- BackgroundWork - 等待 " + tasks.Count + " 个 Connect 任务完成");
 

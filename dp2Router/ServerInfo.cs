@@ -324,11 +324,13 @@ namespace dp2Router
 
         #region 日志
 
+        private static readonly Object _syncRoot = new Object();
+
         static bool _errorLogError = false;    // 写入实例的日志文件是否发生过错误
 
         static void _writeErrorLog(string strText)
         {
-            lock (LogDir)
+            lock (_syncRoot)
             {
                 DateTime now = DateTime.Now;
                 // 每天一个日志文件
