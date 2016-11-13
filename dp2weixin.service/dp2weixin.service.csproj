@@ -123,6 +123,7 @@
     <Compile Include="Patron.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchBiblioResult.cs" />
+    <Compile Include="SessionInfo.cs" />
     <Compile Include="TemplateData.cs" />
     <Compile Include="TraceOnUser.cs" />
     <Compile Include="WeiXinConst.cs" />
@@ -171,7 +172,9 @@
       <Name>DigitalPlatform.Xml</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="weixin.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

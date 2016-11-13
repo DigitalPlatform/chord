@@ -22,10 +22,15 @@ namespace dp2weixin
         /// <returns></returns>
         public override IResponseMessageBase OnEvent_SubscribeRequest(RequestMessageEvent_Subscribe requestMessage)
         {
+            GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(this.AppId);
+
+            string resetPasswordUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh, "Account/ResetPassword");
+            string accountIndex = dp2WeiXinService.Instance.GetOAuth2Url(gzh, "Account/Index");
+
             string strMessage = "☀您好，欢迎关注我爱图书馆公众号。一般情况下，绑定读者账户的流程如下："
                 + "\r\n1) 去图书馆出纳台，找工作人员在图书馆系统中登记存储您的手机号码；"
-                + "\r\n2) 点击 <a href='" + dp2WeiXinService.Instance.Auth2Url_AccountResetPassword + "'>找回密码</a>，获得您的图书馆读者证密码(密码将自动通过短信发送到您的手机)；"
-                + "\r\n3) 点击 <a href='" + dp2WeiXinService.Instance.Auth2Url_AccountIndex + "'>绑定账户</a>，完成绑定。";
+                + "\r\n2) 点击 <a href='" +resetPasswordUrl + "'>找回密码</a>，获得您的图书馆读者证密码(密码将自动通过短信发送到您的手机)；"
+                + "\r\n3) 点击 <a href='" + accountIndex + "'>绑定账户</a>，完成绑定。";
             return this.CreateTextResponseMessage(strMessage,false);
         }
 

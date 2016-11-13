@@ -22,7 +22,7 @@
 @section header {
     <h1 class="mui-title">公告</h1>
 }
-<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="weixinId" style="display:none">@ViewBag.weixinId</span>
 <span id="_userName" style="display:none">@ViewBag.userName</span>
 <span id="_group" style="display:none">gn:_lib_bb</span>
 
@@ -36,6 +36,16 @@
 }
 else
 {
+    // 警告提示
+    if (String.IsNullOrEmpty(ViewBag.Warn) == false)
+    {
+     <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Warn)
+        </span>
+    </div>        
+    }
+    
     if (Model == null || Model.Count == 0)
     {
         <div class="mui-card" id="divNo" style="margin-top:10px;">

@@ -213,7 +213,7 @@
 @section header {
     <h1 class="mui-title">预约请求</h1>
 }
-<span id="weixinId" style="display:none;">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="weixinId" style="display:none;">@ViewBag.weixinId</span>
 <span id="patronBarcode" style="display:none">@ViewBag.patronBarcode</span>
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {

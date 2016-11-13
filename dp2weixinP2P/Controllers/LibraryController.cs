@@ -45,7 +45,7 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
 
             //绑定的工作人员账号 需要有权限
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = ViewBag.weixinId;//(string)Session[WeiXinConst.C_Session_WeiXinId];
             string libId = ViewBag.LibId;
 
             WxUserItem worker = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
@@ -60,14 +60,16 @@ namespace dp2weixinWeb.Controllers
             //设到ViewBag里
             ViewBag.userName = worker.userName;
 
-            // 注意这里有时异常
-            JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(dp2WeiXinService.Instance.weiXinAppId,
-                dp2WeiXinService.Instance.weiXinSecret,
-                Request.Url.AbsoluteUri);//http://localhost:15794/Library/Charge  //http://www.dp2003.com/dp2weixin/Library/Charge
-            ViewData["AppId"] = dp2WeiXinService.Instance.weiXinAppId;
-            ViewData["Timestamp"] = package.Timestamp;
-            ViewData["NonceStr"] = package.NonceStr;
-            ViewData["Signature"] = package.Signature;
+            //SessionInfo sessionInfo = this.GetSessionInfo();
+            //GzhCfg gzh = sessionInfo.gzhCfg;
+            //// 注意这里有时异常
+            //JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(gzh.appId,
+            //    gzh.secret,
+            //    Request.Url.AbsoluteUri);//http://localhost:15794/Library/Charge  //http://www.dp2003.com/dp2weixin/Library/Charge
+            //ViewData["AppId"] = gzh.appId;
+            //ViewData["Timestamp"] = package.Timestamp;
+            //ViewData["NonceStr"] = package.NonceStr;
+            //ViewData["Signature"] = package.Signature;
             return View();
 
 
@@ -86,7 +88,7 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
 
             //绑定的工作人员账号 需要有权限
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
             string libId = ViewBag.LibId;
 
             WxUserItem worker = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
@@ -113,14 +115,20 @@ namespace dp2weixinWeb.Controllers
         {
             // 检查是否从微信入口进来
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError,false);
             if (nRet == -1)
                 goto ERROR1;
 
             //绑定的工作人员账号 需要有权限
             string userName = "";
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
             string libId = ViewBag.LibId;
+            Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                goto ERROR1;
+            }
 
             if (weixinId == dp2WeiXinService.C_Supervisor)
             {
@@ -135,15 +143,8 @@ namespace dp2weixinWeb.Controllers
                 {
                     // 检索是否有权限 _wx_setHomePage
                     string needRight = dp2WeiXinService.C_Right_SetBb;
-                    LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
-                    if (lib == null)
-                    {
-                        strError = "未找到id为[" + libId + "]的图书馆定义。";
-                        goto ERROR1;
-                    }
-
                     int nHasRights = dp2WeiXinService.Instance.CheckRights(user,
-                        lib,
+                        lib.Entity,
                         needRight,
                         out strError);
                     if (nHasRights == -1)
@@ -177,6 +178,31 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 goto ERROR1;
 
+
+            // 如果图书馆是挂起状态，作为警告
+            if (lib.State == LibraryManager.C_State_Hangup)
+            {
+                // 立即重新检查一下
+                dp2WeiXinService.Instance.LibManager.RedoGetVersion(lib);
+                if (lib.Version == "-1")
+                {
+                    //的桥接服务器dp2capo已失去连接，请尽快修复。
+                    strError = lib.Entity.libName + " 的桥接服务器dp2capo失去连接，公众号功能已被挂起，请尽快修复。";
+                }
+                else
+                {
+                    strError = lib.Entity.libName + " 的桥接服务器dp2capo版本不够新，公众号功能已被挂起，请尽快升级。";
+                }
+                ViewBag.Warn = strError;
+            }
+            else
+            {
+                //ViewBag.Warn = "test";
+            }
+
+
+
+
             return View(list);
 
 
@@ -195,7 +221,10 @@ namespace dp2weixinWeb.Controllers
                 if (this.CheckSupervisorLogin() == true)
                 {
                     // 记下微信id
-                    Session[WeiXinConst.C_Session_WeiXinId] = weixinId;
+                    SessionInfo sessionInfo = this.GetSessionInfo();
+                    sessionInfo.weixinId = weixinId;
+                    sessionInfo.gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppName(dp2WeiXinService.C_gzh_ilovelibrary);
+                   // Session[WeiXinConst.C_Session_WeiXinId] = weixinId;
                 }
                 else
                 {
@@ -216,7 +245,7 @@ namespace dp2weixinWeb.Controllers
             string userName = "";
 
             // 微信id
-            weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
 
             // 图书馆id
             string libId = ViewBag.LibId;
@@ -291,22 +320,9 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 图书馆介绍
-        public ActionResult dpHome(string code, string state, string weixinId)
+        public ActionResult dpHome(string code, string state)
         {
-            // 如果是超级管理员，支持传一个weixin id参数
-            if (String.IsNullOrEmpty(weixinId) == false)
-            {
-                if (this.CheckSupervisorLogin() == true)
-                {
-                    // 记下微信id
-                    Session[WeiXinConst.C_Session_WeiXinId] = weixinId;
-                }
-                else
-                {
-                    // 转到登录界面
-                    return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Library/Home?weixinId=" + weixinId));
-                }
-            }
+ 
 
             // 检查是否从微信入口进来
             string strError = "";
@@ -321,7 +337,7 @@ namespace dp2weixinWeb.Controllers
             string userName = "";
 
             // 微信id
-            weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
 
             // 图书馆id
             string libId = ViewBag.LibId;
@@ -373,7 +389,7 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
 
             // weixin id 与图书馆id
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
             if (String.IsNullOrEmpty(libId)==true)
                 libId = ViewBag.LibId;
 
@@ -482,7 +498,7 @@ namespace dp2weixinWeb.Controllers
                 strError = "未设置当前图书馆。";
                 goto ERROR1;
             }
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
             if (lib.noShareBiblio == 1)
             {
                 List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.id, -1);
@@ -571,7 +587,7 @@ namespace dp2weixinWeb.Controllers
                 strError = "未设置当前图书馆。";
                 goto ERROR1;
             }
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = ViewBag.weixinId; // (string)Session[WeiXinConst.C_Session_WeiXinId];
             if (lib.noShareBiblio == 1)
             {
                 List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.id, -1);

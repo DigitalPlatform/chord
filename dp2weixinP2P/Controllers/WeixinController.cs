@@ -54,16 +54,20 @@ namespace dp2weixinWeb.Controllers
         [ActionName("Index")]
         public ActionResult Get(PostModel postModel, string echostr)
         {
+            GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
+            if (gzh == null)
+                throw new Exception("未对到对应的公众号配置信息");
+
             if (CheckSignature.Check(postModel.Signature, 
                 postModel.Timestamp, 
                 postModel.Nonce, 
-                dp2WeiXinService.Instance.weixin_Token))
+                gzh.token))
             {
                 return Content(echostr); //返回随机字符串则表示验证通过
             }
             else
             {
-                return Content("failed:" + postModel.Signature + "," + CheckSignature.GetSignature(postModel.Timestamp, postModel.Nonce, dp2WeiXinService.Instance.weixin_Token) + "。" +
+                return Content("failed:" + postModel.Signature + "," + CheckSignature.GetSignature(postModel.Timestamp, postModel.Nonce, gzh.token) + "。" +
                     "如果你在浏览器中看到这句话，说明此地址可以被作为微信公众账号后台的Url，请注意保持Token一致。");
             }
         }
@@ -83,13 +87,18 @@ namespace dp2weixinWeb.Controllers
             //    return Content("参数错误！");
             //}
 
+            GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
+            if (gzh == null)
+                throw new Exception("未对到对应的公众号配置信息");
+
             // 开始时间
             DateTime start_time = DateTime.Now;
 
             //与公众后台的设置保持一致
-            postModel.Token = dp2WeiXinService.Instance.weixin_Token;
-            postModel.EncodingAESKey = dp2WeiXinService.Instance.weixin_EncodingAESKey;
-            postModel.AppId = dp2WeiXinService.Instance.weiXinAppId;
+            postModel.AppId = gzh.appId;
+            postModel.Token = gzh.token;
+            postModel.EncodingAESKey = gzh.encodingAESKey;
+
 
             //v4.2.2之后的版本，可以设置每个人上下文消息储存的最大数量，防止内存占用过多，如果该参数小于等于0，则不限制
             var maxRecordCount = 10;
@@ -198,64 +207,5 @@ namespace dp2weixinWeb.Controllers
             }
         }
 
-
-        /// <summary>
-        /// 最简化的处理流程（不加密）
-        /// </summary>
-        [HttpPost]
-        [ActionName("MiniPost")]
-        public ActionResult MiniPost(PostModel postModel)
-        {
-            if (!CheckSignature.Check(postModel.Signature, postModel.Timestamp, postModel.Nonce, dp2WeiXinService.Instance.weixin_Token))
-            {
-                return Content("参数错误！");//v0.7-
-                //return new WeixinResult("参数错误！");//v0.8+
-            }
-
-            //以下参数与自己后台的设置保持一致
-            postModel.Token = dp2WeiXinService.Instance.weixin_Token;
-            postModel.EncodingAESKey = dp2WeiXinService.Instance.weixin_EncodingAESKey;
-            postModel.AppId = dp2WeiXinService.Instance.weiXinAppId;
-
-            var messageHandler = new CustomMessageHandler(Request.InputStream, postModel, 10);
-
-            messageHandler.Execute();//执行微信处理过程
-
-            //return Content(messageHandler.ResponseDocument.ToString());//v0.7-
-            //return new FixWeixinBugWeixinResult(messageHandler);//v0.8+
-           return new WeixinResult(messageHandler);//v0.8+
-        }
-
-        /*
-         * v0.3.0之前的原始Post方法见：WeixinController_OldPost.cs
-         * 
-         * 注意：虽然这里提倡使用CustomerMessageHandler的方法，但是MessageHandler基类最终还是基于OldPost的判断逻辑，
-         * 因此如果需要深入了解Senparc.Weixin.MP内部处理消息的机制，可以查看WeixinController_OldPost.cs中的OldPost方法。
-         * 目前为止OldPost依然有效，依然可用于生产。
-         */
-
-        /// <summary>
-        /// 为测试并发性能而建
-        /// </summary>
-        /// <returns></returns>
-        public ActionResult ForTest()
-        {
-            //异步并发测试（提供给单元测试使用）
-            DateTime begin = DateTime.Now;
-            int t1, t2, t3;
-            System.Threading.ThreadPool.GetAvailableThreads(out t1, out t3);
-            System.Threading.ThreadPool.GetMaxThreads(out t2, out t3);
-            System.Threading.Thread.Sleep(TimeSpan.FromSeconds(0.5));
-            DateTime end = DateTime.Now;
-            var thread = System.Threading.Thread.CurrentThread;
-            var result = string.Format("TId:{0}\tApp:{1}\tBegin:{2:mm:ss,ffff}\tEnd:{3:mm:ss,ffff}\tTPool：{4}",
-                    thread.ManagedThreadId,
-                    HttpContext.ApplicationInstance.GetHashCode(),
-                    begin,
-                    end,
-                    t2 - t1
-                    );
-            return Content(result);
-        }
     }
 }

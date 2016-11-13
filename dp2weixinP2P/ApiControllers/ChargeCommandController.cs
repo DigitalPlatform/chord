@@ -16,7 +16,8 @@ namespace dp2weixinWeb.ApiControllers
         {
             ChargeCommandResult result = new ChargeCommandResult();
 
-            ChargeCommandContainer cmdContainer = (ChargeCommandContainer)HttpContext.Current.Session[WeiXinConst.C_Session_CmdContainer];
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            ChargeCommandContainer cmdContainer = sessionInfo.cmdContainer;
             result.cmds = cmdContainer;
 
             return result;
@@ -28,8 +29,8 @@ namespace dp2weixinWeb.ApiControllers
             ChargeCommand cmd)
         {
 
-            ChargeCommandContainer cmdContainer = (ChargeCommandContainer)HttpContext.Current.Session[WeiXinConst.C_Session_CmdContainer];
-
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            ChargeCommandContainer cmdContainer = sessionInfo.cmdContainer;
             // 执行命令
             return cmdContainer.AddCmd(weixinId,
                 libId,
