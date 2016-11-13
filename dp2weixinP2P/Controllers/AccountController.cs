@@ -27,7 +27,7 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
 
             // 检查微信id是否已经绑定的读者
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
             List<WxUserItem> userList = WxUserDatabase.Current.Get(weixinId,null,-1);
             if (userList ==null || userList.Count==0)
             {
@@ -59,7 +59,7 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
 
             // 图书馆html,选中项为设置的图书馆
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
             ViewBag.LibHtml = this.GetLibSelectHtml("", weixinId,true); //2016-9-4 绑定时不支持选中默认图书馆 ViewBag.LibId
 
             return View();
@@ -83,7 +83,7 @@ namespace dp2weixinWeb.Controllers
                 libId = "";
 
             // 图书馆html
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
             ViewBag.LibHtml = this.GetLibSelectHtml(libId, weixinId, true);
 
             ViewBag.LibVersions = dp2WeiXinService.Instance.LibManager.GetLibVersiongString();
@@ -117,7 +117,7 @@ namespace dp2weixinWeb.Controllers
                 libId = "";
 
             // 图书馆html
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
             ViewBag.LibHtml = this.GetLibSelectHtml(libId,weixinId,true);
             
 
@@ -149,7 +149,7 @@ namespace dp2weixinWeb.Controllers
 
             if (String.IsNullOrEmpty(patronBarcode) == true)
             {
-                string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+                string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
                 WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weixinId,ViewBag.LibId);
                 if (userItem != null)
                     patronBarcode = userItem.readerBarcode;

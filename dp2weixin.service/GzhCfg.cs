@@ -49,7 +49,7 @@ namespace dp2weixin.service
         {
             foreach (GzhCfg gzh in this)
             {
-                if (gzh.applName == appName)
+                if (gzh.appName == appName)
                     return gzh;
             }
             return null;
@@ -59,7 +59,8 @@ namespace dp2weixin.service
     //公众号配置信息
     public class GzhCfg
     {
-        public string applName = "";
+        public string appName = "";
+        public string appNameCN = "";
         public string appId { get; set; }
         public string secret { get; set; }
         public string token { get; set; }
@@ -99,12 +100,14 @@ namespace dp2weixin.service
          */
         public GzhCfg(XmlNode node)
         {
-            this.applName = DomUtil.GetAttr(node, "AppName");
-            this.appId = DomUtil.GetAttr(node, "AppId"); 
-            this.secret = DomUtil.GetAttr(node, "Secret"); 
-            this.token = DomUtil.GetAttr(node, "Token");
-            this.encodingAESKey = DomUtil.GetAttr(node, "EncodingAESKey");
-            if (this.applName == "")
+            this.appName = DomUtil.GetAttr(node, "appName");
+            this.appNameCN = DomUtil.GetAttr(node, "appNameCN");
+
+            this.appId = DomUtil.GetAttr(node, "appId"); 
+            this.secret = DomUtil.GetAttr(node, "secret"); 
+            this.token = DomUtil.GetAttr(node, "token");
+            this.encodingAESKey = DomUtil.GetAttr(node, "encodingAESKey");
+            if (this.appName == "")
                 throw new Exception("尚未定义公众号名称");
 
             // 模板id,todo 模板名称有空变成常量，与配置文件对应

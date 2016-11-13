@@ -26,7 +26,7 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
             }
 
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = ViewBag.weixinId; // (string)Session[WeiXinConst.C_Session_WeiXinId];
             if (lib.noShareBiblio == 1)
             {
                 List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.id, -1);
@@ -64,7 +64,7 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 goto ERROR1;
 
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
             WxUserItem userItem1 = WxUserDatabase.Current.GetActivePatron(weixinId,ViewBag.LibId);
             // patron.libId==libId  2016-8-13 jane todo 关于当前账户与设置图书馆这块内容要统一修改
             if (userItem1 != null)// && userItem1.libId== ViewBag.LibId)

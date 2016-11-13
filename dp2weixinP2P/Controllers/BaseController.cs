@@ -112,62 +112,70 @@ namespace dp2weixinWeb.Controllers
             string libHtml = "<select id='selLib' "+clickEvent+" style='background-color:transparent;display:inline;padding-left: 0px;" + width + "border:1px solid #eeeeee'  >" + opt + "</select>";
             return libHtml;
         }
+
+        public SessionInfo GetSessionInfo()
+        {
+            if (Session[WeiXinConst.C_Session_sessioninfo] != null)
+            {
+                SessionInfo myinfo = (SessionInfo)Session[WeiXinConst.C_Session_sessioninfo];
+                return myinfo;
+            }
+
+            return null;
+        }
+
+
         public int CheckIsFromWeiXin(string code, string state, out string strError,bool checkLibState=true)
         {
             strError = "";
 
+            SessionInfo sessionInfo = this.GetSessionInfo();
+
+            string weixinId = "";
+
             // 从微信进入的            
             if (string.IsNullOrEmpty(code) == false)
             {
-                // 取出session中保存的code
-                string sessionCode = "";
-                if (Session[WeiXinConst.C_Session_Code] != null)
-                {
-                    sessionCode = (String)Session[WeiXinConst.C_Session_Code];
-                }
+
                 // 如果session中的code与传进入的code相同，则不再获取weixinid
-                if (sessionCode == code)
+                if ( String.IsNullOrEmpty(sessionInfo.oauth2_return_code)==false
+                    && sessionInfo.oauth2_return_code == code)
                 {
                     dp2WeiXinService.Instance.WriteLog1("传进来的code[" + code + "]与session中保存的code相同，不再获取weixinid了。");
                 }
                 else
                 {
-                    dp2WeiXinService.Instance.WriteLog1("传进来的code[" + code + "]与session中保存的code[" + sessionCode + "]不同，重新获取weixinid了，ip=" + Request.UserHostAddress + "。");
+                    dp2WeiXinService.Instance.WriteLog1("传进来的code[" + code + "]与session中保存的code[" + sessionInfo.oauth2_return_code + "]不同，重新获取weixinid了，ip=" + Request.UserHostAddress + "。");
 
-                    string weixinIdTemp = "";
-                    int nRet = dp2WeiXinService.Instance.GetWeiXinId(code, state, out weixinIdTemp, out strError);
+                    GzhCfg gzh = null;
+                    int nRet = dp2WeiXinService.Instance.GetWeiXinId(code, state, out gzh,out weixinId, out strError);
                     if (nRet == -1)
                     {
                         return -1;
                     }
 
-                    if (String.IsNullOrEmpty(weixinIdTemp) == false)
+                    if (String.IsNullOrEmpty(weixinId) == true || gzh == null)
                     {
-                        // 记下微信id
-                        Session[WeiXinConst.C_Session_WeiXinId] = weixinIdTemp;
-                        // 记下code，因为在iphone点返回按钮，要重新传过来同样的code,再用这code取weixinid就会报40029
-                        Session[WeiXinConst.C_Session_Code] = code;
+                        strError = "异常，未得到微信id 或者 公众号配置信息";
+                        return -1;
                     }
+
+                    sessionInfo.weixinId =weixinId;
+                    sessionInfo.gzhCfg=gzh;
                 }
             }
 
-            //
-
-            // 检查session中是否存在weixinid
-            if (Session[WeiXinConst.C_Session_WeiXinId] == null
-                || (String)Session[WeiXinConst.C_Session_WeiXinId] == "")
+            // 检查session是否超时
+            if (sessionInfo == null || String.IsNullOrEmpty(sessionInfo.weixinId)==true)
             {
                 strError = "页面超时，请点击<a href='" + dp2WeiXinService.Instance.Auth2Url_LibHome + "'>这里</a>或者从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
                 return -1;
             }
 
-            if (dp2WeiXinService.Instance.ApplName == "dp2weixin")
-                ViewBag.AppName = "我爱图书馆";
-            else if (dp2WeiXinService.Instance.ApplName == "wxtest")
-                ViewBag.AppName = "数字平台1";
 
-
-            string weixinId = (string)Session[WeiXinConst.C_Session_WeiXinId];
+            ViewBag.AppName = sessionInfo.gzhCfg.appNameCN;
+            weixinId = sessionInfo.weixinId;
+            ViewBag.weixinId = weixinId; // 存在ViewBag里，省得使用的页面每次从session中取
 
             // 微信用户设置的图书馆
             string libName = "";

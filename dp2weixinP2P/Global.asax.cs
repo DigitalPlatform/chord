@@ -68,7 +68,10 @@ namespace dp2weixinWeb
 
         void Session_Start(object sender, EventArgs e)
         {
-            Session[WeiXinConst.C_Session_CmdContainer] = new ChargeCommandContainer();
+            //Session[WeiXinConst.C_Session_CmdContainer] = new ChargeCommandContainer();
+
+            // 2016-11-13 改造多个公众号用一个虚拟目录
+            Session[WeiXinConst.C_Session_sessioninfo] = new SessionInfo();
         }
 
         void Application_End(object sender, EventArgs e)

@@ -66,6 +66,11 @@ namespace dp2weixin.service
         public const int C_LogLevel_2 = 2;
         public const int C_LogLevel_3 = 3;
 
+        // 公众号名称
+        public const string C_gzh_ilovelibrary = "ilovelibrary";
+        public const string C_gzh_dp = "dp";
+        public const string C_gzh_dpcomm = "dpcomm";
+
         #endregion
 
         #region 成员变量
@@ -93,6 +98,7 @@ namespace dp2weixin.service
         public string monodbPrefixString = "";
 
         // 微信信息
+        public GzhContainer gzhContainer = null;
         public string weiXinAppId { get; set; }
         public string weiXinSecret { get; set; }
         public string weixin_Token { get; set; }
@@ -328,6 +334,7 @@ namespace dp2weixin.service
                 this.bTrace = true;
 
             // 取出微信配置信息
+            this.gzhContainer = new GzhContainer(dom);
             XmlNode nodeDp2weixin = root.SelectSingleNode("dp2weixin");
             this.weiXinAppId = DomUtil.GetAttr(nodeDp2weixin, "AppId"); //WebConfigurationManager.AppSettings["weiXinAppId"];
             this.weiXinSecret = DomUtil.GetAttr(nodeDp2weixin, "Secret"); //WebConfigurationManager.AppSettings["weiXinSecret"];
@@ -6689,23 +6696,28 @@ namespace dp2weixin.service
         /// <param name="weixinId"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int GetWeiXinId(string code, string state, out string weixinId,
+        public int GetWeiXinId(string code, string state, 
+            out GzhCfg gzh,
+            out string weixinId,
             out string strError)
         {
             strError = "";
             weixinId = "";
+            gzh = null;
 
             try
             {
-                //可以传一个state用于校验
-                if (state != "dp2weixin")
+                //根据state确定是哪个公众号进来的
+                if (state != C_gzh_ilovelibrary && state !=C_gzh_dp && state != C_gzh_dpcomm)
                 {
                     strError = "验证失败！非正规途径进入！";
                     return -1;
                 }
 
+                gzh = this.gzhContainer.GetByAppName(state);
+
                 //用code换取access_token
-                var result = OAuthApi.GetAccessToken(this.weiXinAppId, this.weiXinSecret, code);
+                var result = OAuthApi.GetAccessToken(gzh.appId,gzh.secret,code);//this.weiXinAppId, this.weiXinSecret, code);
                 if (result == null)
                 {
                     strError = "GetAccessToken()返回的result为null。";

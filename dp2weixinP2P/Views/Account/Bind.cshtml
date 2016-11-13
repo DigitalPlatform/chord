@@ -194,7 +194,7 @@
 @section header {
         <h1 class="mui-title">绑定账号</h1>
 }
-<span id="weixinId" style="display:none">@Session[dp2weixin.service.WeiXinConst.C_Session_WeiXinId]</span>
+<span id="weixinId" style="display:none">@ViewBag.weixinId</span>
 <span id="returnUrl" style="display:none">@ViewBag.ReturnUrl</span>
 
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)

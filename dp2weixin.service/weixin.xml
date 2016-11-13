@@ -17,8 +17,8 @@
   </templates>
 
   <gzhs>
-    <gzh appName="ilovelibrary" appId="wx57aa3682c59d16c2" 
-         secret="5d1a0507f05be41a56e27c632c0a808d" token="dp3weixin" 
+    <gzh appName="ilovelibrary" appNameCN="我爱图书馆2"
+         appId="wx57aa3682c59d16c2"  secret="5d1a0507f05be41a56e27c632c0a808d" token="dp3weixin" 
          encodingAESKey="ReQ72EHh7KkROvs1AEE5IK76py9oHmhRtVs30ur2DlD" isDefault="true" >
       <templates>
         <template name='Bind' id="hFmNH7on2FqSOAiYPZVJN-FcXBv4xpVLBvHsfpLLQKU"/>
@@ -33,8 +33,8 @@
       </templates>
     </gzh>
 
-    <gzh appName="dp" appId="wxd24b193130bbaa7c" 
-         secret="137afb49af90a07c2c72b11f520bb4b3" token="dp3weixin" 
+    <gzh appName="dp" appNameCN="数字平台2"
+         appId="wxd24b193130bbaa7c" secret="137afb49af90a07c2c72b11f520bb4b3" token="dp3weixin" 
          encodingAESKey="m9WlCouFChERHjpyVciBSza0I1XV51Zs4GVgkhefxDE" isDefault="false" >
         <templates>
           <template name='Bind' id="ciMkFC2uP2-i6gLrsuIvgs_4_5RrAxEh0qhJ2XkWWXc"/>
@@ -49,8 +49,8 @@
         </templates>
     </gzh>
 
-    <gzh appName="dpcomm" appId=""
-         secret="" token=""
+    <gzh appName="dpcomm" appNameCN="数字平台通讯"
+         appId="" secret="" token=""
          encodingAESKey="" isDefault="false" >
     </gzh>
 
