@@ -180,8 +180,11 @@ namespace dp2weixin
                     WxUserDatabase.C_Type_Worker);
                 if (workerList == null || workerList.Count == 0)
                 {
+                    GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(this.AppId);
+                    string accountIndex = dp2WeiXinService.Instance.GetOAuth2Url(gzh, "Account/Index");
+
                     return this.CreateTextResponseMessage("您尚未绑定图书馆工作人员账户，不能使用tracing功能。"
-                       + "\n点击 <a href='" + dp2WeiXinService.Instance.OAuth2_Url_AccountIndex + "'>绑定账户</a>。");
+                       + "\n点击 <a href='" + accountIndex + "'>绑定账户</a>。");
                 }
 
                 string paramLeft = parameter;

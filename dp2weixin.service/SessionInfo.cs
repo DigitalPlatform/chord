@@ -15,7 +15,7 @@ namespace dp2weixin.service
         public string weixinId = "";
         public string oauth2_return_code = "";
         public ChargeCommandContainer cmdContainer = null;
-        public GzhCfg  gzhCfg = null;
+        public GzhCfg  gzh = null;
 
         public SessionInfo()
         {

@@ -132,6 +132,7 @@ namespace dp2weixinWeb.Controllers
             SessionInfo sessionInfo = this.GetSessionInfo();
 
             string weixinId = "";
+            GzhCfg gzh = null;
 
             // 从微信进入的            
             if (string.IsNullOrEmpty(code) == false)
@@ -147,7 +148,6 @@ namespace dp2weixinWeb.Controllers
                 {
                     dp2WeiXinService.Instance.WriteLog1("传进来的code[" + code + "]与session中保存的code[" + sessionInfo.oauth2_return_code + "]不同，重新获取weixinid了，ip=" + Request.UserHostAddress + "。");
 
-                    GzhCfg gzh = null;
                     int nRet = dp2WeiXinService.Instance.GetWeiXinId(code, state, out gzh,out weixinId, out strError);
                     if (nRet == -1)
                     {
@@ -161,19 +161,20 @@ namespace dp2weixinWeb.Controllers
                     }
 
                     sessionInfo.weixinId =weixinId;
-                    sessionInfo.gzhCfg=gzh;
+                    sessionInfo.gzh=gzh;
                 }
             }
 
             // 检查session是否超时
             if (sessionInfo == null || String.IsNullOrEmpty(sessionInfo.weixinId)==true)
             {
-                strError = "页面超时，请点击<a href='" + dp2WeiXinService.Instance.Auth2Url_LibHome + "'>这里</a>或者从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
+                string libHomeUrl = dp2WeiXinService.Instance.GetOAuth2Url(sessionInfo.gzh, "Library/Home");
+                strError = "页面超时，请点击<a href='" + libHomeUrl + "'>这里</a>或者从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
                 return -1;
             }
 
-
-            ViewBag.AppName = sessionInfo.gzhCfg.appNameCN;
+            gzh = sessionInfo.gzh;//重新赋值一下
+            ViewBag.AppName = sessionInfo.gzh.appNameCN;
             weixinId = sessionInfo.weixinId;
             ViewBag.weixinId = weixinId; // 存在ViewBag里，省得使用的页面每次从session中取
 
@@ -244,7 +245,7 @@ namespace dp2weixinWeb.Controllers
                 return -1;
             }
 
-            bool bJsReg = JsApiTicketContainer.CheckRegistered(dp2WeiXinService.Instance.weiXinAppId);
+            bool bJsReg = JsApiTicketContainer.CheckRegistered(gzh.appId);
 
             ////获取时间戳
             //var timestamp = JSSDKHelper.GetTimestamp();
@@ -255,11 +256,12 @@ namespace dp2weixinWeb.Controllers
             ////获取签名
             //string signature = JSSDKHelper.GetSignature(ticket, nonceStr, timestamp, Request.Url.AbsoluteUri);
 
+
             // 注意这里有时异常
-            JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(dp2WeiXinService.Instance.weiXinAppId,
-                dp2WeiXinService.Instance.weiXinSecret,                
+            JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(gzh.appId,
+                gzh.secret,                
                 Request.Url.AbsoluteUri);//http://localhost:15794/Library/Charge  //http://www.dp2003.com/dp2weixin/Library/Charge
-            ViewData["AppId"] = dp2WeiXinService.Instance.weiXinAppId;
+            ViewData["AppId"] = gzh.appId;
             ViewData["Timestamp"] = package.Timestamp;
             ViewData["NonceStr"] = package.NonceStr;
             ViewData["Signature"] = package.Signature;

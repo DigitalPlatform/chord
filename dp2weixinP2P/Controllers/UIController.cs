@@ -19,14 +19,16 @@ namespace dp2weixinWeb.Controllers
 
         public ActionResult Scan()
         {
-            JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(dp2WeiXinService.Instance.weiXinAppId,
-                dp2WeiXinService.Instance.weiXinSecret,
-                Request.Url.AbsoluteUri);
 
-            ViewData["AppId"] = dp2WeiXinService.Instance.weiXinAppId;
-            ViewData["Timestamp"] = package.Timestamp;
-            ViewData["NonceStr"] = package.NonceStr;
-            ViewData["Signature"] = package.Signature;
+
+            //JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(dp2WeiXinService.Instance.weiXinAppId,
+            //    dp2WeiXinService.Instance.weiXinSecret,
+            //    Request.Url.AbsoluteUri);
+
+            //ViewData["AppId"] = dp2WeiXinService.Instance.weiXinAppId;
+            //ViewData["Timestamp"] = package.Timestamp;
+            //ViewData["NonceStr"] = package.NonceStr;
+            //ViewData["Signature"] = package.Signature;
             return View();
         }
 

@@ -60,14 +60,16 @@ namespace dp2weixinWeb.Controllers
             //设到ViewBag里
             ViewBag.userName = worker.userName;
 
-            // 注意这里有时异常
-            JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(dp2WeiXinService.Instance.weiXinAppId,
-                dp2WeiXinService.Instance.weiXinSecret,
-                Request.Url.AbsoluteUri);//http://localhost:15794/Library/Charge  //http://www.dp2003.com/dp2weixin/Library/Charge
-            ViewData["AppId"] = dp2WeiXinService.Instance.weiXinAppId;
-            ViewData["Timestamp"] = package.Timestamp;
-            ViewData["NonceStr"] = package.NonceStr;
-            ViewData["Signature"] = package.Signature;
+            //SessionInfo sessionInfo = this.GetSessionInfo();
+            //GzhCfg gzh = sessionInfo.gzhCfg;
+            //// 注意这里有时异常
+            //JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(gzh.appId,
+            //    gzh.secret,
+            //    Request.Url.AbsoluteUri);//http://localhost:15794/Library/Charge  //http://www.dp2003.com/dp2weixin/Library/Charge
+            //ViewData["AppId"] = gzh.appId;
+            //ViewData["Timestamp"] = package.Timestamp;
+            //ViewData["NonceStr"] = package.NonceStr;
+            //ViewData["Signature"] = package.Signature;
             return View();
 
 
@@ -221,7 +223,7 @@ namespace dp2weixinWeb.Controllers
                     // 记下微信id
                     SessionInfo sessionInfo = this.GetSessionInfo();
                     sessionInfo.weixinId = weixinId;
-                    sessionInfo.gzhCfg = dp2WeiXinService.Instance.gzhContainer.GetByAppName(dp2WeiXinService.C_gzh_ilovelibrary);
+                    sessionInfo.gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppName(dp2WeiXinService.C_gzh_ilovelibrary);
                    // Session[WeiXinConst.C_Session_WeiXinId] = weixinId;
                 }
                 else
