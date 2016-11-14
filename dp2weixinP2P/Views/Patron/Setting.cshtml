@@ -52,6 +52,8 @@
                     libName = "[" + libName + "]"
                     $("#_libName").text(libName);
 
+                    // 不弹出成功提示，保持在本页
+                    /*
                     alert("保存成功");
 
                     // 返回到来源页
@@ -72,6 +74,7 @@
                             window.location = myUrl;
                         }
                     }
+                    */
                 },
                 function (xhq, textStatus, errorThrown) {
 
@@ -134,7 +137,7 @@ else
             <table style="width:100%;">
                 <tr>
                     <td style="width:80px"><label style="color:#cccccc;font-size:14.8px">当前图书馆</label></td>
-                    <td style="padding-left:5px; border:1px solid #CCCCCC; background-image:url('../img/arrowdown.png');background-position:right;background-repeat:no-repeat">
+                    <td style="padding-left:5px; background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
                         @Html.Raw(ViewBag.LibHtml)
                     </td>
                 </tr>
@@ -148,6 +151,10 @@ else
         <div class='mui-input-row mui-checkbox mui-left'>
             <label>显示图书封面</label>
             <input id='ckbCover' onchange="save()" type='checkbox' @ViewBag.coverChecked />
+        </div>
+        <div class='mui-input-row mui-checkbox mui-left' style="display:none">
+            <label>打开监控功能</label>
+            <input id='ckbCover' onchange="save()" type='checkbox' @ViewBag.monitorChecked />
         </div>
     </div>
     <!--

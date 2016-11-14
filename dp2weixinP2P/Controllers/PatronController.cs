@@ -46,6 +46,12 @@ namespace dp2weixinWeb.Controllers
                 coverChecked = " checked='checked' ";
             ViewBag.coverChecked = coverChecked;
 
+            string monitorChecked = "";
+            if (ViewBag.monitorCheckedCover == 1)
+                monitorChecked = " checked='checked' ";
+            ViewBag.monitorChecked = monitorChecked;
+
+
             return View();
 
         ERROR1:

@@ -685,7 +685,7 @@ namespace dp2weixin.service
                 int nRet = this.InternalDoMessage(record, lib, out strError);
                 if (nRet == -1)
                 {
-                    this.WriteLog2("[" + record.id + "]未发送成功:" + strError);
+                    this.WriteErrorLog1("[" + record.id + "]未发送成功:" + strError);
                 }
                 else
                 {
@@ -762,26 +762,7 @@ namespace dp2weixin.service
             <?xml version="1.0" encoding="utf-8"?>
             <root>
                 <type>预约到书通知</type>
-                <itemBarcode>0000001</itemBarcode>
-                <refID> </refID>
-                <opacURL>/book.aspx?barcode=0000001</opacURL>
-                <reserveTime>2天</reserveTime>
-                <today>2016/5/17 10:10:59</today>
-                <summary>船舶柴油机 / 聂云超主编. -- ISBN 7-...</summary>
-                <patronName>张三</patronName>
-                <patronRecord>
-                    <barcode>R0000001</barcode>
-                    <readerType>本科生</readerType>
-                    <name>张三</name>
-                    <refID>be13ecc5-6a9c-4400-9453-a072c50cede1</refID>
-                    <department>数学系</department>
-                    <address>address</address>
-                    <cardNumber>C12345</cardNumber>
-                    <refid>8aa41a9a-fb42-48c0-b9b9-9d6656dbeb76</refid>
-                    <email>email:xietao@dp2003.com,weixinid:testwx2</email>
-                    <tel>13641016400</tel>
-                    <idCardNumber>1234567890123</idCardNumber>
-                </patronRecord>
+                ...
             </root
             */
             XmlDocument bodyDom = new XmlDocument();
@@ -806,18 +787,34 @@ namespace dp2weixin.service
                 return -1;
             }
             string strType = DomUtil.GetNodeText(typeNode);
+
+            //===数据处理消息================
             if (strType == "工作人员账户变动")
             {
                 nRet = this.UpdateWorker(lib, bodyDom, out strError);
                 return nRet;
             }
-            else if (strType == "读者记录变动")
+            if (strType == "读者记录变动")
             {
                 nRet = this.UpdatePatron(lib, bodyDom, out strError);
                 return nRet;
             }
+            if (strType == "登录验证码")
+            {
+                /*
+                 <root>
+                    <type>登录验证码</type>
+                    <phoneNumber>123</phoneNumber>
+                    <text>登录验证码为9999。十分钟以后失效</text>
+                </root>
+                 */
+                nRet = this.SendLoginVerifyCode(lib,bodyDom, out strError);
+                return nRet;
+            }
 
-            //===检查有没有接收消息的微信id====
+
+
+            //===微信通知====
             string libName = "";
             string libId = "";
             if (lib != null)
@@ -849,8 +846,6 @@ namespace dp2weixin.service
                 strError = "未绑定微信id,也没有打开tracing的工作人员";
                 return 0;
             }
-
-
 
             // 根据类型发送不同的模板消息
             if (strType == "预约到书通知")
@@ -933,7 +928,69 @@ namespace dp2weixin.service
             return nRet;
         }
 
+        /// <summary>
+        /// 发送登录验证码
+        /// </summary>
+        /// <param name="bodyDom"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        private int SendLoginVerifyCode(LibEntity lib, XmlDocument bodyDom, out string strError)
+        {
+            strError = "";
+            /*
+             <root>
+                <type>登录验证码</type>
+                <phoneNumber>123</phoneNumber>
+                <text>登录验证码为9999。十分钟以后失效</text>
+            </root>
+             */
+            XmlNode root = bodyDom.DocumentElement;
+            //手机号
+            XmlNode phoneNumberNode = root.SelectSingleNode("phoneNumber");
+            string phone = DomUtil.GetNodeText(phoneNumberNode);
+            //内容
+            XmlNode textNode = root.SelectSingleNode("text");
+            string strBody = DomUtil.GetNodeText(textNode);
 
+            // 得到xml
+            string strXml = "<root><tel>" + phone + "</tel></root>";
+            try
+            {
+                // 发送一条消息
+                // parameters:
+                //      strPatronBarcode    读者证条码号
+                //      strPatronXml    读者记录XML字符串。如果需要除证条码号以外的某些字段来确定消息发送地址，可以从XML记录中取
+                //      strMessageText  消息文字
+                //      strError    [out]返回错误字符串
+                // return:
+                //      -1  发送失败
+                //      0   没有必要发送
+                //      >=1   发送成功，返回实际发送的消息条数
+                string strBarcode = "";
+                string libraryCode = "";
+                if (lib != null)
+                    libraryCode = lib.libName;
+                MessageInterface external_interface = this.GetMessageInterface("sms");
+                int nRet = external_interface.HostObj.SendMessage(
+                    strBarcode,
+                    strXml,
+                    strBody,
+                    libraryCode, //todo,注意这里原来传的code 还是读者的libraryCode
+                    out strError);
+                if (nRet == -1)
+                {
+                    strError = "发送登录验证码出错：" + strError;
+                    return -1;
+                }
+            }
+            catch (Exception ex)
+            {
+                strError = "发送登录验证码 异常: " + ex.Message;
+                return -1;
+            }
+
+            return 0;
+        }
 
         #region 内容函数
 
@@ -3776,7 +3833,7 @@ namespace dp2weixin.service
             LoginInfo loginInfo = new LoginInfo("", false);
 
             // 调点对点解绑接口
-            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + userItem.weixinId + "@*";// +userItem.appId;
+            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + userItem.weixinId + "*";// +userItem.appId;
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             BindPatronRequest request = new BindPatronRequest(id,
@@ -3802,6 +3859,12 @@ namespace dp2weixin.service
                 if (result.Value == -1)
                 {
                     strError = this.GetFriendlyErrorInfo(result, lib.libName);//result.ErrorInfo;
+                    return -1;
+                }
+                // 2016-11-15
+                if (result.Value == 0)
+                {
+                    strError = "未匹配上weixinid。";
                     return -1;
                 }
 

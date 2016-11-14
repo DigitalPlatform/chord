@@ -103,7 +103,7 @@ namespace dp2weixinWeb.Controllers
             string clickEvent = "";
             if (bFull == true)
             {
-                width = "width: 100%;margin-bottom:0px;padding:0px";
+                width = "width: 90%;margin-bottom:0px;padding:0px";
                 clickEvent = " onchange='save()' ";
             }
 
