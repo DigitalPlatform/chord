@@ -130,14 +130,12 @@ namespace dp2weixinWeb.Controllers
             strError = "";
 
             SessionInfo sessionInfo = this.GetSessionInfo();
-
             string weixinId = "";
             GzhCfg gzh = null;
 
             // 从微信进入的            
             if (string.IsNullOrEmpty(code) == false)
             {
-
                 // 如果session中的code与传进入的code相同，则不再获取weixinid
                 if ( String.IsNullOrEmpty(sessionInfo.oauth2_return_code)==false
                     && sessionInfo.oauth2_return_code == code)

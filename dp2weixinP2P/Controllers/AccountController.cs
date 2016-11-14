@@ -62,6 +62,9 @@ namespace dp2weixinWeb.Controllers
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
             ViewBag.LibHtml = this.GetLibSelectHtml("", weixinId,true); //2016-9-4 绑定时不支持选中默认图书馆 ViewBag.LibId
 
+            SessionInfo sessionInfo = this.GetSessionInfo();
+            ViewBag.appId = sessionInfo.gzh.appId;
+
             return View();
 
         ERROR1:

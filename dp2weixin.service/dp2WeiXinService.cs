@@ -379,7 +379,7 @@ namespace dp2weixin.service
             if (nRet == -1)
                 throw new Exception("初始化接口配置信息出错：" + strError);
 
-            
+
 
             ////全局只需注册一次
             //AccessTokenContainer.Register(this.weiXinAppId, this.weiXinSecret);
@@ -410,18 +410,18 @@ namespace dp2weixin.service
         }
 
         //Patron/PersonalInfo,Account/Index,Account/ResetPassword,Library/Home
-        public string GetOAuth2Url(GzhCfg gzh,string func)
+        public string GetOAuth2Url(GzhCfg gzh, string func)
         {
             func = func.Replace("/", "%2f");
 
             // auth2地址
-            string url= "https://open.weixin.qq.com/connect/oauth2/authorize"
-                +"?appid="+ gzh.appId
+            string url = "https://open.weixin.qq.com/connect/oauth2/authorize"
+                + "?appid=" + gzh.appId
                 + "&redirect_uri=http%3a%2f%2fdp2003.com%2f" + func
-                +"&response_type=code"
-                +"&scope=snsapi_base"
-                +"&state="+gzh.appName
-                +"#wechat_redirect";
+                + "&response_type=code"
+                + "&scope=snsapi_base"
+                + "&state=" + gzh.appName
+                + "#wechat_redirect";
             return url;
         }
 
@@ -680,7 +680,6 @@ namespace dp2weixin.service
                 string strError = "";
                 /// <returns>
                 /// -1 不符合条件，不处理
-                /// 0 未绑定微信id，未处理
                 /// 1 成功
                 /// </returns>
                 int nRet = this.InternalDoMessage(record, lib, out strError);
@@ -688,13 +687,9 @@ namespace dp2weixin.service
                 {
                     this.WriteLog2("[" + record.id + "]未发送成功:" + strError);
                 }
-                else if (nRet == 0)
-                {
-                    this.WriteLog3("[" + record.id + "]未发送：" + strError);//未绑定微信id。
-                }
                 else
                 {
-                    this.WriteLog3("[" + record.id + "]发送成功。");
+                    this.WriteLog3("消息[" + record.id + "]处理完成。");
                 }
             }
             catch (Exception ex)
@@ -921,7 +916,7 @@ namespace dp2weixin.service
             }
             else if (strType == "以停代金到期")
             {
-                nRet = this.SendMessageMsg(bodyDom,
+                nRet = this.SendYtdjMsg(bodyDom,
                     libName,
                     bindWeixinIds,
                     fullPatronName,
@@ -954,6 +949,7 @@ namespace dp2weixin.service
             return text.Substring(text.Length - 1).PadLeft(text.Length, '*');
         }
 
+        /*
         private int SendWeixinMsg3(List<string> weixinIds,
           string templateId,
           object msgData,
@@ -967,95 +963,192 @@ namespace dp2weixin.service
                 "",
                 out strError);
         }
+         */
 
-        // 发送微信通知
-        private int SendWeixinMsg1(List<string> weixinIds,
+
+        /// <summary>
+        /// 发送微信通知
+        /// </summary>
+        /// <param name="weixinIds">微信id数组</param>
+        /// <param name="templateName">模板名</param>
+        /// <param name="msgData">发送内容</param>
+        /// <param name="linkUrl">链接地址</param>
+        /// <param name="theOperator">
+        /// 操作人,这里为什么没有把操作人放在内容里，是因为要与日期拼起来
+        /// 而日期是在这里统一加上的
+        /// </param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        private int SendTemplateMsgInternal(List<string> weixinIds,
           string templateName,
           object msgData,
           string linkUrl,
-            string theOperator,
+          string theOperator,
           out string strError)
         {
             strError = "";
-            try
+
+            BaseTemplateData templateData = (BaseTemplateData)msgData;
+            string oldRemark = templateData.remark.value;
+
+            // 加日期与操作人
+            string nowTime = DateTimeUtil.DateTimeToStringNoSec(DateTime.Now);
+            templateData.remark.value = oldRemark + "\n" + nowTime;
+            if (theOperator != "")
+                templateData.remark.value = templateData.remark.value + " " + theOperator;
+
+            // 一个人给微信用户发送通知
+            foreach (string oneWeixinId in weixinIds)
             {
-
-                BaseTemplateData templateData = (BaseTemplateData)msgData;
-                string oldRemark = templateData.remark.value;
-
-                string nowTime = DateTimeUtil.DateTimeToStringNoSec(DateTime.Now);
-                templateData.remark.value = oldRemark + "\n" + nowTime;
-                if (theOperator != "")
-                    templateData.remark.value = templateData.remark.value + " " + theOperator;
-                foreach (string weixinId in weixinIds)
+                try
                 {
-                    try
+                    string weixinId = oneWeixinId;
+                    GzhCfg gzh = null;
+
+                    // 检查weixinid是否包括@
+                    int nIndex = oneWeixinId.IndexOf("@");
+                    if (nIndex > 0)
                     {
-                        string realWeixinId = weixinId;
-                        GzhCfg gzh = null;
-
-                        // 检查weixinid是否包括@
-                        int nIndex = weixinId.IndexOf("@");
-                        if (nIndex > 0)
+                        weixinId = oneWeixinId.Substring(0, nIndex);
+                        string gzhAppId = oneWeixinId.Substring(nIndex + 1);
+                        if (gzhAppId != "")
                         {
-                            realWeixinId = weixinId.Substring(0, nIndex);
-                            string gzhAppId = weixinId.Substring(nIndex + 1);
-                            if (gzhAppId != "")
-                            {
-                                gzh = this.gzhContainer.GetByAppId(gzhAppId);
-                            }
-                        }
-
-                        // 取默认公众号设置
-                        if (gzh == null)
-                        {
-                            gzh = this.gzhContainer.GetDefault();
-                        }
-
-                        if (gzh==null)
-                        {
-                            this.WriteErrorLog1("未找到对应的公众号");
-                            continue;
-                        }
-
-                        string templateId = gzh.GetTemplateId(templateName);
-
-                        var accessToken = AccessTokenContainer.GetAccessToken(gzh.appId);
-                        var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                            weixinId,
-                            templateId,
-                            linkUrl,
-                            templateData); //msgData
-                        if (result1.errcode != 0)
-                        {
-                            strError = result1.errmsg;
-                            return -1;
+                            gzh = this.gzhContainer.GetByAppId(gzhAppId);
                         }
                     }
-                    catch (Exception ex0)
+                    // 如果微信id中没带appid，取默认公众号设置
+                    if (gzh == null)
                     {
-                        strError = "给[" + weixinId + "]发送微信通知异常:" + ex0.Message;
+                        gzh = this.gzhContainer.GetDefault();
+                    }
+                    if (gzh == null)
+                    {
+                        this.WriteErrorLog1("未找到对应的公众号");
+                        continue;
+                    }
+
+                    // 调微信接口发送消息
+                    string templateId = gzh.GetTemplateId(templateName);
+                    var accessToken = AccessTokenContainer.GetAccessToken(gzh.appId);
+                    var result1 = TemplateApi.SendTemplateMessage(accessToken,
+                        weixinId,
+                        templateId,
+                        linkUrl,
+                        templateData);
+                    if (result1.errcode != 0)
+                    {
+                        strError = result1.errmsg;
                         //return -1;
                         this.WriteErrorLog1(strError);
                         continue;
                     }
                 }
-
-                // 还回原来的值
-                templateData.remark.value = oldRemark;
-
-                return 0;
+                catch (Exception ex0)
+                {
+                    strError = "给[" + oneWeixinId + "]发送" + templateName + "微信通知异常:" + ex0.Message;
+                    //return -1;
+                    this.WriteErrorLog1(strError);
+                    continue;
+                }
             }
-            catch (Exception ex)
-            {
-                strError = "发送模板消息异常:" + ex.Message;
-                //return -1;
-                this.WriteErrorLog1(strError);
 
-                return 0;
+            // 还回原来的值，因为是引用型，外面还在用这个data
+            templateData.remark.value = oldRemark;
+
+            return 0;
+        }
+
+
+        /// <summary>
+        /// 发给微信模板消息统一入口
+        /// </summary>
+        /// <param name="templateName">模板名称</param>
+        /// <param name="weixinIds">微信用户id数组</param>
+        /// <param name="workers">工作人员数组</param>
+        /// <param name="msgData">显文消息内容</param>
+        /// <param name="markMsgData">mask消息内容</param>
+        /// <param name="linkUrl">链接</param>
+        /// <param name="theOperator">操作人</param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public int SendTemplateMsg(string templateName,
+            List<string> weixinIds,
+            List<TracingOnUser> workers,
+            object msgData,
+            object maskMsgData,
+            string linkUrl,
+            string theOperator,
+            out string strError)
+        {
+            int nRet = 0;
+            strError = "";
+
+            // 发给本人
+            if (weixinIds.Count > 0)
+            {
+                nRet = this.SendTemplateMsgInternal(weixinIds,
+                    templateName,
+                    msgData,
+                    linkUrl,
+                    "",// theOperator,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+            }
+
+            // 发给工作人员
+            if (workers.Count > 0)
+            {
+                // 将工作人员分成两组，一组是发全文内容，一组是发mask内容
+                List<string> workerIds = null;
+                List<string> maskWorkerIds = null;
+                SplitWorkers(workers, out workerIds, out maskWorkerIds);
+                if (workerIds.Count > 0)
+                {
+                    nRet = this.SendTemplateMsgInternal(workerIds,
+                        templateName,
+                        msgData,
+                        linkUrl,
+                        theOperator,
+                        out strError);
+                    if (nRet == -1)
+                        return -1;
+                }
+
+                if (maskWorkerIds.Count > 0)
+                {
+                    nRet = this.SendTemplateMsgInternal(maskWorkerIds,
+                        templateName,
+                        maskMsgData,
+                        linkUrl,
+                        theOperator,
+                        out strError);
+                    if (nRet == -1)
+                        return -1;
+                }
+            }
+            return 0;
+        }
+
+        private void SplitWorkers(List<TracingOnUser> users,
+             out List<string> workerIds,
+            out List<string> maskWorkerIds)
+        {
+
+            workerIds = new List<string>();
+            maskWorkerIds = new List<string>();
+
+            // 将这边tracing on的工作人员分为2组，一组是mask的，一组是不mask的
+            foreach (TracingOnUser user in users)
+            {
+                if (user.IsMask == false)
+                    workerIds.Add(user.WeixinId);
+                else
+                    maskWorkerIds.Add(user.WeixinId);
             }
         }
 
+        /*
         private int SendWeixinMsg2(List<TracingOnUser> users,
           string templateName,
           object msgData,
@@ -1104,7 +1197,7 @@ namespace dp2weixin.service
 
             return 0;
         }
-
+        */
         /// <summary>
         /// 获取读者记录中绑定的微信id,返回数组
         /// </summary>
@@ -1314,17 +1407,17 @@ namespace dp2weixin.service
 
         #endregion
 
+
+
         /// <returns>
-        /// -1 出错，格式出错或者发送模板消息出错
-        /// 0 未绑定微信id
-        /// 1 成功
+        /// 处理以停代金消息
         /// </returns>
-        private int SendMessageMsg(XmlDocument bodyDom,
+        private int SendYtdjMsg(XmlDocument bodyDom,
             string libName,
             List<string> bindWeixinIds,
             string fullPatronName,
-            string markFullPatronName,
-            List<TracingOnUser> workerWeixinIds,
+            string maskFullPatronName,
+            List<TracingOnUser> workers,
             out string strError)
         {
             strError = "";
@@ -1404,63 +1497,43 @@ namespace dp2weixin.service
             // 备注
             string remark = "\n" + this._msgRemark;
 
-            int nRet = 0;
+            string first_text = "☀☀☀☀☀☀☀☀☀☀";
+            string first_color = "#9400D3";
+            string title = "以停代金到期";
             //{{first.DATA}}
             //标题：{{keyword1.DATA}}
             //时间：{{keyword2.DATA}}
             //内容：{{keyword3.DATA}}
             //{{remark.DATA}}
-            var msgData = new BorrowTemplateData()
-            {
-                first = new TemplateDataItem("☀☀☀☀☀☀☀☀☀☀", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
-                keyword1 = new TemplateDataItem("以停代金到期", "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                keyword2 = new TemplateDataItem(operTime, "#000000"),
-                keyword3 = new TemplateDataItem(strText, "#000000"),
-                remark = new TemplateDataItem(remark, "#CCCCCC")
-            };
+            MessageTemplateData msgData = new MessageTemplateData(first_text,
+                first_color,
+                title,
+                operTime,
+                strText,
+                remark);
 
+            // mask
+            strText = strText.Replace(fullPatronName, maskFullPatronName);
+            MessageTemplateData maskMsgData = new MessageTemplateData(first_text,
+                first_color,
+                title,
+                operTime,
+                strText,
+                remark);
 
-            // 发给本人
-            if (bindWeixinIds.Count > 0)
-            {
-                nRet = this.SendWeixinMsg3(bindWeixinIds,
-                    GzhCfg.C_Template_Message, //this.Template_Message,
-                    msgData,
-                    "",
-                    out strError);
-                if (nRet == -1)
-                    return -1;
-            }
+            int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Message,
+                bindWeixinIds,
+                workers,
+                msgData,
+                maskMsgData,
+                "",//linkurl
+                "",//theOperator,
+                out strError);
+            if (nRet == -1)
+                return -1;
 
-            // 发给工作人员
-            if (workerWeixinIds.Count > 0)
-            {
-                strText = strText.Replace(fullPatronName, markFullPatronName);
-                var msgData2worker = new BorrowTemplateData()
-                {
-                    first = new TemplateDataItem("☀☀☀☀☀☀☀☀☀☀", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
-                    keyword1 = new TemplateDataItem("以停代金到期", "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                    keyword2 = new TemplateDataItem(operTime, "#000000"),
-                    keyword3 = new TemplateDataItem(strText, "#000000"),
-                    remark = new TemplateDataItem(remark, "#CCCCCC")
-                };
-
-                nRet = this.SendWeixinMsg2(workerWeixinIds,
-                    GzhCfg.C_Template_Message,//this.Template_Message,
-                    msgData,
-                    msgData2worker,
-                    "",
-                    "",
-                    out strError);
-                if (nRet == -1)
-                    return -1;
-            }
-
-            return 1;
+            return 0;
         }
-
-
-
 
 
         /// 借书成功
@@ -1475,7 +1548,7 @@ namespace dp2weixin.service
             string patronBarcode,
             string patronName,
             string patronLibraryCode,
-            List<TracingOnUser> workerWeixinIds,
+            List<TracingOnUser> workers,
             out string strError)
         {
             strError = "";
@@ -1614,10 +1687,9 @@ namespace dp2weixin.service
 
 
             // 完整证条码 
-            string fullPatronBarcode = this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode, false);
-
-            int nRet = 0;
+            string fullPatronBarcode = this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode,false);
             summary = this.GetShortSummary(summary);
+
             //您好，您已借书成功。 腾讯工作人员您好，虽然模板库中已存在类似模板，但与我司的字段定义不同，我司为几千家图书馆提供专业服务，需要采用专业术语（例如书刊摘要，册条码号，证条码号等）,以免被行内人士吐槽，请批准，谢谢！
             //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
             //册条码号：C0000001
@@ -1625,70 +1697,44 @@ namespace dp2weixin.service
             //应还日期：2016-07-31
             //证条码号：R0000001
             //xxx，祝您阅读愉快，欢迎再借。
+            string first="▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎";
+            string first_color="#006400";
+            BorrowTemplateData msgData = new BorrowTemplateData(first,
+                first_color,
+                summary,
+                fullItemBarcode,
+                borrowDate,
+                returningDate,
+                fullPatronBarcode,
+                remark);
 
-            if (bindWeixinIds.Count > 0)
-            {
-                var msgData = new BorrowTemplateData()
-                {
-                    first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#006400"), // 	dark green //this._msgFirstLeft + "恭喜您借书成功。"
-                    keyword1 = new TemplateDataItem(summary, "#000000"),
-                    keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
-                    keyword3 = new TemplateDataItem(borrowDate, "#000000"),
-                    keyword4 = new TemplateDataItem(returningDate, "#000000"),
-                    keyword5 = new TemplateDataItem(fullPatronBarcode, "#000000"),
-                    remark = new TemplateDataItem(remark, "#CCCCCC")
-                };
-                // 发送消息
-                nRet = this.SendWeixinMsg3(bindWeixinIds,
-                    GzhCfg.C_Template_Borrow,//this.Template_Borrow,
-                    msgData,
-                    "",
-                    out strError);
-                if (nRet == -1)
-                    return -1;
-            }
+            //mask
+            //证条码号处
+            string tempFullPatronBarcode =this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode, true);
+            //备注姓名
+            string markPatronName = this.markString(patronName);
+            string tempRemark = remark.Replace(patronName, markPatronName);// +theOperator; ;
+            BorrowTemplateData maskMsgData = new BorrowTemplateData(first,
+                first_color,
+                summary,
+                fullItemBarcode,
+                borrowDate,
+                returningDate,
+                tempFullPatronBarcode,
+                tempRemark);
 
-            // 发给工作人员
-            if (workerWeixinIds.Count > 0)
-            {
-                foreach (TracingOnUser traceUser in workerWeixinIds)
-                {
-                    // 每个人发送的格式不同。
-                    string tempFullPatronBarcode = fullPatronBarcode;
-                    string tempRemark = remark;// +theOperator;
+            int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Borrow,
+                bindWeixinIds,
+                workers,
+                msgData,
+                maskMsgData,
+                "",//linkurl
+                "",//theOperator,
+                out strError);
+            if (nRet == -1)
+                return -1;
 
-                    if (traceUser.IsMask == true)
-                    {
-                        tempFullPatronBarcode = this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode, true);
-                        string markPatronName = this.markString(patronName);
-                        tempRemark = remark.Replace(patronName, markPatronName);// +theOperator; ;
-                    }
-                    var msgData2worker = new BorrowTemplateData()
-                    {
-                        first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#006400"), // 	dark green //this._msgFirstLeft + "恭喜您借书成功。"
-                        keyword1 = new TemplateDataItem(summary, "#000000"),
-                        keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
-                        keyword3 = new TemplateDataItem(borrowDate, "#000000"),
-                        keyword4 = new TemplateDataItem(returningDate, "#000000"),
-                        keyword5 = new TemplateDataItem(tempFullPatronBarcode, "#000000"),
-                        remark = new TemplateDataItem(tempRemark, "#CCCCCC")
-                    };
-
-                    // 发送消息
-                    List<string> tempWeixinIds = new List<string>();
-                    tempWeixinIds.Add(traceUser.WeixinId);
-                    nRet = this.SendWeixinMsg1(tempWeixinIds,
-                        GzhCfg.C_Template_Borrow,//this.Template_Borrow,
-                        msgData2worker,
-                        "",
-                        theOperator,
-                        out strError);
-                    if (nRet == -1)
-                        return -1;
-                }
-            }
-
-            return 1;
+            return 0;
         }
 
 
@@ -1703,7 +1749,7 @@ namespace dp2weixin.service
             List<string> bindWeixinIds,
             string fullPatronName,
             string markFullPatronName,
-            List<TracingOnUser> workerWeixinIds,
+            List<TracingOnUser> workers,
             out string strError)
         {
             strError = "";
@@ -1850,60 +1896,42 @@ namespace dp2weixin.service
             //借阅期限：31天
             //还书日期：2016-6-27
             //谢谢您及时归还，欢迎再借。
-            int nRet = 0;
             summary = this.GetShortSummary(summary);
 
-            // 不加mark的消息内容要提前组织好，既然没有绑定工作人员，工作人员-mark也可看到具体内容
-            var msgData = new ReturnTemplateData()
-            {
-                first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#00008B"),  // 	dark blue//this._msgFirstLeft + "您借出的图书已确认归还。"
-                keyword1 = new TemplateDataItem(summary, "#000000"),
-                keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
-                keyword3 = new TemplateDataItem(borrowDate, "#000000"),
-                keyword4 = new TemplateDataItem(borrowPeriod, "#000000"),
-                keyword5 = new TemplateDataItem(operTime, "#000000"),
-                remark = new TemplateDataItem(remark, "#CCCCCC")
-            };
+            // 
+            string first="▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎";
+            string first_color="#00008B";
+            ReturnTemplateData msgData = new ReturnTemplateData(first,
+                first_color,
+                summary,
+                fullItemBarcode,
+                borrowDate,
+                borrowPeriod,
+                operTime,
+                remark);
+            remark = remark.Replace(fullPatronName, markFullPatronName);
+            ReturnTemplateData maskMsgData = new ReturnTemplateData(first,
+                first_color,
+                summary,
+                fullItemBarcode,
+                borrowDate,
+                borrowPeriod,
+                operTime,
+                remark);
 
-            if (bindWeixinIds.Count > 0)
-            {
-                // 发送消息
-                nRet = this.SendWeixinMsg3(bindWeixinIds,
-                    GzhCfg.C_Template_Return,//this.Template_Return,
-                    msgData,
-                    "",
-                    out strError);
-                if (nRet == -1)
-                    return -1;
-            }
+            // 发送消息
+            int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Return,
+                bindWeixinIds,
+                workers,
+                msgData,
+                maskMsgData,
+                "",//linkurl
+                "",//theOperator,
+                out strError);
+            if (nRet == -1)
+                return -1;
 
-            // 发给工作人员
-            if (workerWeixinIds.Count > 0)
-            {
-                remark = remark.Replace(fullPatronName, markFullPatronName);
-                var msgData2worker = new ReturnTemplateData()
-                {
-                    first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#00008B"),  // 	dark blue//this._msgFirstLeft + "您借出的图书已确认归还。"
-                    keyword1 = new TemplateDataItem(summary, "#000000"),
-                    keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
-                    keyword3 = new TemplateDataItem(borrowDate, "#000000"),
-                    keyword4 = new TemplateDataItem(borrowPeriod, "#000000"),
-                    keyword5 = new TemplateDataItem(operTime, "#000000"),
-                    remark = new TemplateDataItem(remark, "#CCCCCC")
-                };
-
-                // 发送消息
-                nRet = this.SendWeixinMsg2(workerWeixinIds,
-                    GzhCfg.C_Template_Return,//this.Template_Return,
-                    msgData,
-                    msgData2worker,
-                    "",
-                    theOperator,
-                    out strError);
-                if (nRet == -1)
-                    return -1;
-            }
-            return 1;
+            return 0;
         }
 
         /// 交费成功
@@ -1917,7 +1945,7 @@ namespace dp2weixin.service
             List<string> bindWeixinIds,
             string fullPatronName,
             string markFullPatronName,
-            List<TracingOnUser> workerWeixinIds,
+            List<TracingOnUser> workers,
             out string strError)
         {
             strError = "";
@@ -1990,7 +2018,6 @@ namespace dp2weixin.service
                 string fullItemBarcode = this.GetFullItemBarcode(oneBarcode, libName, location);
 
 
-                int nRet = 0;
                 summary = this.GetShortSummary(summary);
                 //尊敬的读者，您已成功交费。
                 //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
@@ -1999,58 +2026,43 @@ namespace dp2weixin.service
                 //交费原因：超期。超1天，违约金因子：CNY1.0/Day
                 //交费时间：2015-12-27 13:15
                 //如有疑问，请联系系统管理员。
-                var msgData = new PayTemplateData()
-                {
-                    first = new TemplateDataItem("💰💰💰💰💰💰💰💰💰💰", "#556B2F"),//★★★★★★★★★★★★★★★ dark olive green//this._msgFirstLeft+"您已交费成功！"
-                    keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                    keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
-                    keyword3 = new TemplateDataItem(price, "#000000"),
-                    keyword4 = new TemplateDataItem(reason, "#000000"),
-                    keyword5 = new TemplateDataItem(operTime, "#000000"),
-                    remark = new TemplateDataItem(remark, "#CCCCCC")
-                };
+                string first = "💰💰💰💰💰💰💰💰💰💰";
+                string first_color = "#556B2F";
+                PayTemplateData msgData = new PayTemplateData(first,
+                    first_color,
+                    summary,
+                    fullItemBarcode,
+                    price,
+                    reason,
+                    operTime,
+                    remark);
+                
+                //mask
+                remark = remark.Replace(fullPatronName, markFullPatronName);
+                PayTemplateData maskMsgData = new PayTemplateData(first,
+                    first_color,
+                    summary,
+                    fullItemBarcode,
+                    price,
+                    reason,
+                    operTime,
+                    remark);
 
-                // 给绑定了读者微信用户发消息
-                if (bindWeixinIds.Count > 0)
-                {
-                    nRet = this.SendWeixinMsg3(bindWeixinIds,
-                        GzhCfg.C_Template_Pay,//this.Template_Pay,
-                        msgData,
-                        "",
-                        out strError);
-                    if (nRet == -1)
-                        return -1;
-                }
+                // 发送消息
+                int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Pay,
+                    bindWeixinIds,
+                    workers,
+                    msgData,
+                    maskMsgData,
+                    "",//linkurl
+                    "",//theOperator,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
 
-                // 发给工作人员
-                if (workerWeixinIds.Count > 0)
-                {
-                    remark = remark.Replace(fullPatronName, markFullPatronName);
-
-                    var msgData2worker = new PayTemplateData()
-                    {
-                        first = new TemplateDataItem("💰💰💰💰💰💰💰💰💰💰", "#556B2F"),//★★★★★★★★★★★★★★★ dark olive green//this._msgFirstLeft+"您已交费成功！"
-                        keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                        keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
-                        keyword3 = new TemplateDataItem(price, "#000000"),
-                        keyword4 = new TemplateDataItem(reason, "#000000"),
-                        keyword5 = new TemplateDataItem(operTime, "#000000"),
-                        remark = new TemplateDataItem(remark, "#CCCCCC")
-                    };
-
-                    nRet = this.SendWeixinMsg2(workerWeixinIds,
-                        GzhCfg.C_Template_Pay,//this.Template_Pay,
-                        msgData,
-                        msgData2worker,
-                        "",
-                        theOperator,
-                        out strError);
-                    if (nRet == -1)
-                        return -1;
-                }
             }
 
-            return 1;
+            return 0;
         }
 
         /// 撤消交费成功
@@ -2064,7 +2076,7 @@ namespace dp2weixin.service
             List<string> bindWeixinIds,
             string fullPatronName,
             string markFullPatronName,
-            List<TracingOnUser> workerWeixinIds,
+            List<TracingOnUser> workers,
             out string strError)
         {
             strError = "";
@@ -2139,8 +2151,6 @@ namespace dp2weixin.service
                 string location = DomUtil.GetAttr(node, "location");
                 string fullItemBarcode = this.GetFullItemBarcode(oneBarcode, libName, location);
 
-
-                int nRet = 0;
                 summary = this.GetShortSummary(summary);
                 //{{first.DATA}}
                 //书刊摘要：{{keyword1.DATA}}
@@ -2149,55 +2159,40 @@ namespace dp2weixin.service
                 //撤消金额：{{keyword4.DATA}}
                 //撤消时间：{{keyword5.DATA}}
                 //{{remark.DATA}}
-                var msgData = new CancelPayTemplateData()
-                {
-                    first = new TemplateDataItem("✈ ☁ ☁ ☁ ☁ ☁ ☁", "#B8860B"),  // ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
-                    keyword1 = new TemplateDataItem(summary, "#000000"),
-                    keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
-                    keyword3 = new TemplateDataItem(reason, "#000000"),
-                    keyword4 = new TemplateDataItem(price, "#000000"),
-                    keyword5 = new TemplateDataItem(operTime, "#000000"),
-                    remark = new TemplateDataItem(remark, "#CCCCCC")
-                };
+                string first = "✈ ☁ ☁ ☁ ☁ ☁ ☁";
+                string first_color = "#B8860B";
+                CancelPayTemplateData msgData  = new CancelPayTemplateData(first,
+                    first_color,
+                    summary,
+                    fullItemBarcode,
+                    reason,
+                    price,
+                    operTime,
+                    remark);
+                //mask
+                remark = remark.Replace(fullPatronName, markFullPatronName);
+                CancelPayTemplateData maskMsgData  = new CancelPayTemplateData(first,
+                    first_color,
+                    summary,
+                    fullItemBarcode,
+                    reason,
+                    price,
+                    operTime,
+                    remark);
 
-                if (bindWeixinIds.Count > 0)
-                {
-                    nRet = this.SendWeixinMsg3(bindWeixinIds,
-                        GzhCfg.C_Template_CancelPay,//this.Template_CancelPay,
-                        msgData,
-                        "",
-                        out strError);
-                    if (nRet == -1)
-                        return -1;
-                }
-
-                // 发给工作人员
-                if (workerWeixinIds.Count > 0)
-                {
-                    remark = remark.Replace(fullPatronName, markFullPatronName);
-                    var msgData2worker = new CancelPayTemplateData()
-                    {
-                        first = new TemplateDataItem("✈ ☁ ☁ ☁ ☁ ☁ ☁", "#B8860B"),  // ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 	dark golden rod//this._msgFirstLeft + "撤消交费成功！"
-                        keyword1 = new TemplateDataItem(summary, "#000000"),
-                        keyword2 = new TemplateDataItem(oneBarcode, "#000000"),
-                        keyword3 = new TemplateDataItem(reason, "#000000"),
-                        keyword4 = new TemplateDataItem(price, "#000000"),
-                        keyword5 = new TemplateDataItem(operTime, "#000000"),
-                        remark = new TemplateDataItem(remark, "#CCCCCC")
-                    };
-
-                    nRet = this.SendWeixinMsg2(workerWeixinIds,
-                        GzhCfg.C_Template_CancelPay,//this.Template_CancelPay,
-                        msgData,
-                        msgData2worker,
-                        "",
-                        theOperator,
-                        out strError);
-                    if (nRet == -1)
-                        return -1;
-                }
+                // 发送消息
+                int nRet = this.SendTemplateMsg(GzhCfg.C_Template_CancelPay,
+                    bindWeixinIds,
+                    workers,
+                    msgData,
+                    maskMsgData,
+                    "",//linkurl
+                    "",//theOperator,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
             }
-            return 1;
+            return 0;
         }
 
 
@@ -2210,7 +2205,7 @@ namespace dp2weixin.service
             List<string> bindWeixinIds,
             string fullPatronName,
             string markFullPatronName,
-            List<TracingOnUser> workerWeixinIds,
+            List<TracingOnUser> workers,
             out string strError)
         {
             strError = "";
@@ -2275,7 +2270,6 @@ namespace dp2weixin.service
                     return -1;//整个不处理 //continue;                    
                 }
 
-                int nRet = 0;
                 summary = this.GetShortSummary(summary);
                 //您好，您借出的图书已超期。
                 //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
@@ -2284,56 +2278,42 @@ namespace dp2weixin.service
                 //应还日期：2016-07-31
                 //超期情况：已超期30天
                 //任延华，您借出的图书已超期，请尽快归还。
-                var msgData = new CaoQiTemplateData1()
-                {
-                    first = new TemplateDataItem("📙📙📙📙📙📙📙📙📙📙", "#FFFF00"), //yellow 	#
-                    keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                    keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
-                    keyword3 = new TemplateDataItem(borrowDate, "#000000"),
-                    keyword4 = new TemplateDataItem(timeReturning, "#000000"),
-                    keyword5 = new TemplateDataItem(overdue, "#000000"),
-                    remark = new TemplateDataItem(remark, "#CCCCCC")//"\n点击下方”详情“查看个人详细信息。"
-                };
+                string first = "📙📙📙📙📙📙📙📙📙📙";
+                string first_color = "#FFFF00";
+                CaoQiTemplateData msgData = new CaoQiTemplateData(first,
+                    first_color,
+                    summary,
+                    fullItemBarcode,
+                    borrowDate,
+                    timeReturning,
+                    overdue,
+                    remark);
 
-                // 发给本人
-                if (bindWeixinIds.Count > 0)
-                {
-                    nRet = this.SendWeixinMsg3(bindWeixinIds,
-                        templateName,
-                        msgData,
-                        "",
-                        out strError);
-                    if (nRet == -1)
-                        return -1;
-                }
+                //mask
+                remark = remark.Replace(fullPatronName, markFullPatronName);
+                CaoQiTemplateData maskMsgData = new CaoQiTemplateData(first,
+                    first_color,
+                    summary,
+                    fullItemBarcode,
+                    borrowDate,
+                    timeReturning,
+                    overdue,
+                    remark);
 
-                // 发给工作人员
-                if (workerWeixinIds.Count > 0)
-                {
-                    remark = remark.Replace(fullPatronName, markFullPatronName);
-                    var msgData2worker = new CaoQiTemplateData1()
-                    {
-                        first = new TemplateDataItem("📙📙📙📙📙📙📙📙📙📙", "#FFFF00"), //yellow 	#
-                        keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                        keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
-                        keyword3 = new TemplateDataItem(borrowDate, "#000000"),
-                        keyword4 = new TemplateDataItem(timeReturning, "#000000"),
-                        keyword5 = new TemplateDataItem(overdue, "#000000"),
-                        remark = new TemplateDataItem(remark, "#CCCCCC")//"\n点击下方”详情“查看个人详细信息。"
-                    };
+                // 发送消息
+                int nRet = this.SendTemplateMsg(GzhCfg.C_Template_CaoQi,
+                    bindWeixinIds,
+                    workers,
+                    msgData,
+                    maskMsgData,
+                    "",//linkurl
+                    "",//theOperator,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
 
-                    nRet = this.SendWeixinMsg2(workerWeixinIds,
-                        templateName,
-                        msgData,
-                        msgData2worker,
-                        "",
-                        "",
-                        out strError);
-                    if (nRet == -1)
-                        return -1;
-                }
             }
-            return 1;
+            return 0;
         }
 
         /// <summary>
@@ -2351,7 +2331,7 @@ namespace dp2weixin.service
             List<string> bindWeixinIds,
             string fullPatronName,
             string markFullPatronName,
-            List<TracingOnUser> workerWeixinIds,
+            List<TracingOnUser> workers,
             out string strError)
         {
             strError = "";
@@ -2505,7 +2485,6 @@ namespace dp2weixin.service
                 remark = fullPatronName + "，您预约的图书 " + fullItemBarcode + " 已经在架上，请尽快来图书馆办理借书手续。";//如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或允许其他读者借阅。";
             }
 
-            int nRet = 0;
             summary = this.GetShortSummary(summary);
             //您好，您预约的图书已经到书。
             //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
@@ -2515,53 +2494,40 @@ namespace dp2weixin.service
             //保留期限：2016-09-07（保留2天）
             //XXX，您预约的图书到了，请尽快来图书馆办理借书手续，请尽快来图书馆办理借书手续。
             //如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。
-            var msgData = new ArrivedTemplateData1()
-            {
-                first = new TemplateDataItem("📗📗📗📗📗📗📗📗📗📗", "#FF8C00"),//  dark orange   	yellow 	#FFFF00
-                keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
-                keyword3 = new TemplateDataItem(requestDate, "#000000"),
-                keyword4 = new TemplateDataItem(today, "#000000"),
-                keyword5 = new TemplateDataItem(reserveTime, "#000000"),
-                remark = new TemplateDataItem(remark, "#CCCCCC")
-            };
+            string first = "📗📗📗📗📗📗📗📗📗📗";
+            string first_color = "#FF8C00";
+            ArrivedTemplateData msgData = new ArrivedTemplateData(first,
+                first_color,
+                summary,
+                fullItemBarcode,
+                requestDate,
+                today,
+                reserveTime,
+                remark);
+            //mask
+            remark = remark.Replace(fullPatronName, markFullPatronName);
+            ArrivedTemplateData maskMsgData = new ArrivedTemplateData(first,
+                first_color,
+                summary,
+                fullItemBarcode,
+                requestDate,
+                today,
+                reserveTime,
+                remark);
 
-            if (bindWeixinIds.Count > 0)
-            {
-                nRet = this.SendWeixinMsg3(bindWeixinIds,
-                    GzhCfg.C_Template_Arrived,//this.Template_Arrived,
-                    msgData,
-                    "",
-                    out strError);
-                if (nRet == -1)
-                    return -1;
-            }
+            // 发送消息
+            int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Arrived,
+                bindWeixinIds,
+                workers,
+                msgData,
+                maskMsgData,
+                "",//linkurl
+                "",//theOperator,
+                out strError);
+            if (nRet == -1)
+                return -1;
 
-            // 发给工作人员
-            if (workerWeixinIds.Count > 0)
-            {
-                remark = remark.Replace(fullPatronName, markFullPatronName);
-                var msgData2worker = new ArrivedTemplateData1()
-                {
-                    first = new TemplateDataItem("📗📗📗📗📗📗📗📗📗📗", "#FF8C00"),//  dark orange   	yellow 	#FFFF00
-                    keyword1 = new TemplateDataItem(summary, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                    keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
-                    keyword3 = new TemplateDataItem(requestDate, "#000000"),
-                    keyword4 = new TemplateDataItem(today, "#000000"),
-                    keyword5 = new TemplateDataItem(reserveTime, "#000000"),
-                    remark = new TemplateDataItem(remark, "#CCCCCC")
-                };
-                nRet = this.SendWeixinMsg2(workerWeixinIds,
-                    GzhCfg.C_Template_Arrived,//this.Template_Arrived,
-                    msgData,
-                    msgData2worker,
-                    "",
-                    "",
-                    out strError);
-                if (nRet == -1)
-                    return -1;
-            }
-            return 1;
+            return 0;
         }
 
 
@@ -2930,15 +2896,14 @@ namespace dp2weixin.service
                         }
                     }
 
-
-                    MessageTemplateData msgData = new MessageTemplateData()
-                    {
-                        first = new TemplateDataItem("☀☀☀☀☀☀☀☀☀☀", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
-                        keyword1 = new TemplateDataItem(title, "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                        keyword2 = new TemplateDataItem(operTime, "#000000"),
-                        keyword3 = new TemplateDataItem(text, "#000000"),
-                        remark = new TemplateDataItem("", "#CCCCCC")
-                    };
+                    string first = "☀☀☀☀☀☀☀☀☀☀";
+                    string first_color = "#9400D3";
+                    MessageTemplateData msgData = new MessageTemplateData(first,
+                        first_color,
+                        title,
+                        operTime,
+                        text,
+                        "");
 
                     foreach (WxUserItem worker in libWorkers)
                     {
@@ -2950,10 +2915,11 @@ namespace dp2weixin.service
 
                         List<string> ids = new List<string>();
                         ids.Add(worker.weixinId);
-                        int nRet = this.SendWeixinMsg3(ids,
+                        int nRet = this.SendTemplateMsgInternal(ids,
                             GzhCfg.C_Template_Message,//this.Template_Message,
                              msgData,
                              "",
+                             "",// theOperator,
                              out strError);
                         if (nRet == -1)
                         {
@@ -2972,10 +2938,11 @@ namespace dp2weixin.service
 
                         List<string> ids = new List<string>();
                         ids.Add(worker.weixinId);
-                        int nRet = this.SendWeixinMsg3(ids,
+                        int nRet = this.SendTemplateMsgInternal(ids,
                             GzhCfg.C_Template_Message,//this.Template_Message,
                              msgData,
                              "",
+                             "",// theOperator,
                              out strError);
                         if (nRet == -1)
                         {
@@ -3534,6 +3501,7 @@ namespace dp2weixin.service
             string strPrefix,
             string strWord,
             string strPassword,
+            string appId,
             string weixinId,
             out WxUserItem userItem,
             out string strError)
@@ -3552,7 +3520,7 @@ namespace dp2weixin.service
 
             string strFullWord = strWord;
             if (string.IsNullOrEmpty(strPrefix) == false)
-                strFullWord = strPrefix + ":" + strWord;
+                strFullWord = strPrefix + ":" + strWord ;
 
 
             if (strPrefix == "PQR")
@@ -3563,7 +3531,7 @@ namespace dp2weixin.service
 
             CancellationToken cancel_token = new CancellationToken();
 
-            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + weixinId;
+            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + weixinId +"@"+appId;
             string id = Guid.NewGuid().ToString();
             BindPatronRequest request = new BindPatronRequest(id,
                 loginInfo,
@@ -3705,57 +3673,46 @@ namespace dp2weixin.service
                 }
 
                 string fullLibName = this.GetFullLibName(userItem.libName, userItem.libraryCode, "");
-
-                // 发给本人
+                string linkUrl="";//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
+                // 本人
                 List<string> bindWeixinIds = new List<string>();
-                bindWeixinIds.Add(weixinId);
-                var msgData = new BindTemplateData()
+                string tempfullWeixinId = weixinId + "@" + appId;
+                bindWeixinIds.Add(tempfullWeixinId);
+                // 工作人员
+                List<TracingOnUser> workers = this.getWorkerWeixinIds(libId, userItem.libraryCode);
+                string first_color = "#000000";
+                BindTemplateData msgData = new BindTemplateData(strFirst,
+                    first_color,
+                    strAccount,
+                    fullLibName,
+                    strRemark);
+
+                //mask
+                strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true);//this.markString(userItem.readerName) + " " + this.markString(userItem.readerBarcode) + "";
+                if (type == 1)
                 {
-                    first = new TemplateDataItem(strFirst, "#000000"),
-                    keyword1 = new TemplateDataItem(strAccount, "#000000"),
-                    keyword2 = new TemplateDataItem(fullLibName, "#000000"),//"图书馆[" + userItem.libName + "]"
-                    remark = new TemplateDataItem(strRemark, "#CCCCCC")
-                };
-                int nRet = this.SendWeixinMsg3(bindWeixinIds,
-                    GzhCfg.C_Template_Bind, //this.Template_Bind,
+                    strAccount = this.markString(userItem.userName);
+                }
+                BindTemplateData maskMsgData = new BindTemplateData(strFirst,
+                    first_color,
+                    strAccount,
+                    fullLibName,
+                    strRemark);
+
+                // 发送消息
+                int nRet= this.SendTemplateMsg(GzhCfg.C_Template_Bind,
+                    bindWeixinIds,
+                    workers,
                     msgData,
-                    "",//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
+                    maskMsgData,
+                    linkUrl,
+                    "",
                     out strError);
                 if (nRet == -1)
                 {
                     return -1;
                 }
 
-                // 得到找开tracing功能的工作人员微信id
-                List<TracingOnUser> workerWeixinIds = this.getWorkerWeixinIds(libId, userItem.libraryCode);
-                if (workerWeixinIds.Count > 0)
-                {
-                    // 发给工作人员
-                    strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true);//this.markString(userItem.readerName) + " " + this.markString(userItem.readerBarcode) + "";
-                    if (type == 1)
-                    {
-                        strAccount = this.markString(userItem.userName);
-                    }
-                    var msgData2Worker = new BindTemplateData()
-                    {
-                        first = new TemplateDataItem(strFirst, "#000000"),
-                        keyword1 = new TemplateDataItem(strAccount, "#000000"),
-                        keyword2 = new TemplateDataItem(fullLibName, "#000000"),//"图书馆[" + userItem.libName + "]"
-                        remark = new TemplateDataItem(strRemark, "#CCCCCC")
-                    };
-
-                    nRet = this.SendWeixinMsg2(workerWeixinIds,
-                        GzhCfg.C_Template_Bind, //this.Template_Bind,
-                        msgData,
-                        msgData2Worker,
-                        "",//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
-                        "",
-                        out strError);
-                    if (nRet == -1)
-                    {
-                        return -1;
-                    }
-                }
 
                 return 0;
             }
@@ -3869,56 +3826,46 @@ namespace dp2weixin.service
 
                 string fullLibName = this.GetFullLibName(userItem.libName, userItem.libraryCode, "");
 
-                // 发给本人
+                string linkUrl="";//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
+                                string first_color = "#000000";
+
+                // 本人
                 List<string> bindWeixinIds = new List<string>();
                 bindWeixinIds.Add(weixinId);
-                var msgData = new UnBindTemplateData()
+                List<TracingOnUser> workers = this.getWorkerWeixinIds(lib.id, userItem.libraryCode);
+
+                //显文 
+                UnBindTemplateData msgData = new UnBindTemplateData(strFirst,
+                    first_color,
+                    strAccount,
+                    fullLibName,
+                    strRemark);
+
+                //mask
+                strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true);
+                if (userItem.type == WxUserDatabase.C_Type_Worker)
                 {
-                    first = new TemplateDataItem(strFirst, "#000000"),
-                    keyword1 = new TemplateDataItem(strAccount, "#000000"),
-                    keyword2 = new TemplateDataItem(fullLibName, "#000000"),
-                    remark = new TemplateDataItem(strRemark, "#CCCCCC")
-                };
-                int nRet = this.SendWeixinMsg3(bindWeixinIds,
-                    GzhCfg.C_Template_UnBind,//this.Template_UnBind,
+                    strAccount = this.markString(userItem.userName);
+                }
+                UnBindTemplateData maskMsgData = new UnBindTemplateData(strFirst,
+                    first_color,
+                    strAccount,
+                    fullLibName,
+                    strRemark);
+
+                int nRet = this.SendTemplateMsg(GzhCfg.C_Template_UnBind,
+                    bindWeixinIds,
+                    workers,
                     msgData,
-                    "",//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
+                    maskMsgData,
+                    linkUrl,
+                    "",
                     out strError);
                 if (nRet == -1)
                 {
                     return -1;
                 }
 
-                // 发给工作人员
-                // 得到找开tracing功能的工作人员微信id
-                List<TracingOnUser> workerWeixinIds = this.getWorkerWeixinIds(lib.id, userItem.libraryCode);
-                if (workerWeixinIds.Count > 0)
-                {
-                    strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true);
-                    if (userItem.type == WxUserDatabase.C_Type_Worker)
-                    {
-                        strAccount = this.markString(userItem.userName);
-                    }
-                    var msgData2Worker = new UnBindTemplateData()
-                    {
-                        first = new TemplateDataItem(strFirst, "#000000"),
-                        keyword1 = new TemplateDataItem(strAccount, "#000000"),
-                        keyword2 = new TemplateDataItem(fullLibName, "#000000"),
-                        remark = new TemplateDataItem(strRemark, "#CCCCCC")
-                    };
-
-                    nRet = this.SendWeixinMsg2(workerWeixinIds,
-                        GzhCfg.C_Template_UnBind,//this.Template_UnBind,
-                        msgData,
-                        msgData2Worker,
-                        "",//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
-                        "",
-                        out strError);
-                    if (nRet == -1)
-                    {
-                        return -1;
-                    }
-                }
 
                 // 移除该工作人员的tracing on
                 if (userItem.type == WxUserDatabase.C_Type_Worker)
@@ -4153,7 +4100,7 @@ namespace dp2weixin.service
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
-// 输出检索语句
+                // 输出检索语句
 #if LOG_REQUEST_SEARCH
                 writeDebug("search searchParam=" + request.Dump());
 #endif
@@ -4458,7 +4405,7 @@ namespace dp2weixin.service
 
         #endregion
 
-        public long SearchBiblio(string weixinId, 
+        public long SearchBiblio(string weixinId,
             string libId,
             string from,
             string word,
@@ -4500,7 +4447,7 @@ namespace dp2weixin.service
                     biblioList.AddRange(records);
                 }
 
-                if (bNext == true )
+                if (bNext == true)
                 {
                     word = "!getResult";
                     from = "";
@@ -4671,7 +4618,7 @@ namespace dp2weixin.service
                 if (string.IsNullOrEmpty(weixinId) == false)
                 {
                     WxUserItem patron = WxUserDatabase.Current.GetActivePatron(weixinId, libId);
-                    if (patron !=null)
+                    if (patron != null)
                     {
                         userName = patron.readerBarcode;
                     }
@@ -5384,12 +5331,12 @@ namespace dp2weixin.service
             for (int i = 0; i < recordList.Count; i++)
             {
                 BiblioItem item = new BiblioItem();
-                item.recPath = this.GetPurePath(recordList[i].RecPath); 
+                item.recPath = this.GetPurePath(recordList[i].RecPath);
 
                 string xml = recordList[i].Data;//result.Records[i].Data;
                 XmlDocument dom = new XmlDocument();
                 dom.LoadXml(xml);
-                
+
                 string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
                 string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
 
@@ -5407,7 +5354,7 @@ namespace dp2weixin.service
                 //状态
                 string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
                 if (cmdType == "borrow")
-                { 
+                {
                 }
 
                 //// strState = strMessageText + strState;
@@ -5908,7 +5855,7 @@ namespace dp2weixin.service
 
             if (patron.BorrowCountHtml != "")
             {
-                summary += "<span>在借" + patron.BorrowCountHtml + "</span>" +"\n";
+                summary += "<span>在借" + patron.BorrowCountHtml + "</span>" + "\n";
             }
 
             if (patron.CaoQiCount > 0)
@@ -6719,7 +6666,7 @@ namespace dp2weixin.service
         /// <param name="weixinId"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int GetWeiXinId(string code, string state, 
+        public int GetWeiXinId(string code, string state,
             out GzhCfg gzh,
             out string weixinId,
             out string strError)
@@ -6731,7 +6678,7 @@ namespace dp2weixin.service
             try
             {
                 //根据state确定是哪个公众号进来的
-                if (state != C_gzh_ilovelibrary && state !=C_gzh_dp && state != C_gzh_dpcomm)
+                if (state != C_gzh_ilovelibrary && state != C_gzh_dp && state != C_gzh_dpcomm)
                 {
                     strError = "验证失败！非正规途径进入！";
                     return -1;
@@ -6740,7 +6687,7 @@ namespace dp2weixin.service
                 gzh = this.gzhContainer.GetByAppName(state);
 
                 //用code换取access_token
-                var result = OAuthApi.GetAccessToken(gzh.appId,gzh.secret,code);//this.weiXinAppId, this.weiXinSecret, code);
+                var result = OAuthApi.GetAccessToken(gzh.appId, gzh.secret, code);//this.weiXinAppId, this.weiXinSecret, code);
                 if (result == null)
                 {
                     strError = "GetAccessToken()返回的result为null。";
@@ -7099,53 +7046,45 @@ namespace dp2weixin.service
                         List<string> bindWeixinIds = new List<string>();
                         bindWeixinIds.Add(weixinId);
 
+                        // 得到找开tracing功能的工作人员微信id
+                        List<TracingOnUser> workers = this.getWorkerWeixinIds(lib.id, user.libraryCode);
+
+
                         //{{first.DATA}}
                         //标题：{{keyword1.DATA}}
                         //时间：{{keyword2.DATA}}
                         //内容：{{keyword3.DATA}}
                         //{{remark.DATA}}
-                        var msgData = new BorrowTemplateData()
-                        {
-                            first = new TemplateDataItem("☀☀☀☀☀☀☀☀☀☀", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
-                            keyword1 = new TemplateDataItem("取消预约成功", "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                            keyword2 = new TemplateDataItem(operTime, "#000000"),
-                            keyword3 = new TemplateDataItem(strText, "#000000"),
-                            remark = new TemplateDataItem(remark, "#CCCCCC")
-                        };
-                        int nRet = this.SendWeixinMsg3(bindWeixinIds,
-                            GzhCfg.C_Template_Message,//this.Template_Message,
-                             msgData,
-                             "",
-                             out strError);
+                        string first = "☀☀☀☀☀☀☀☀☀☀";
+                        string first_color = "#9400D3";
+                        string title="取消预约成功";
+                        MessageTemplateData msgData = new MessageTemplateData(first,
+                            first_color,
+                            title,
+                            operTime,
+                            strText,
+                            remark);
+                        //mask
+                        string markFullPatronName = this.GetFullPatronName(user.readerName, user.readerBarcode, lib.libName, user.libraryCode, true);
+                        strText = strText.Replace(fullPatronName, markFullPatronName);
+                        MessageTemplateData maskMsgData = new MessageTemplateData(first,
+                            first_color,
+                            title,
+                            operTime,
+                            strText,
+                            remark);
+
+                        int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Message,
+                            bindWeixinIds,
+                            workers,
+                            msgData,
+                            maskMsgData,
+                            "",
+                            "",
+                            out strError);
                         if (nRet == -1)
                             return -1;
 
-                        // 发给工作人员
-                        // 得到找开tracing功能的工作人员微信id
-                        List<TracingOnUser> workerWeixinIds = this.getWorkerWeixinIds(lib.id, user.libraryCode);
-                        if (workerWeixinIds.Count > 0)
-                        {
-                            string markFullPatronName = this.GetFullPatronName(user.readerName, user.readerBarcode, lib.libName, user.libraryCode, true);
-                            strText = strText.Replace(fullPatronName, markFullPatronName);
-                            var msgData2Worker = new BorrowTemplateData()
-                            {
-                                first = new TemplateDataItem("☀☀☀☀☀☀☀☀☀☀", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
-                                keyword1 = new TemplateDataItem("取消预约成功", "#000000"),//text.ToString()),// "请让我慢慢长大"),
-                                keyword2 = new TemplateDataItem(operTime, "#000000"),
-                                keyword3 = new TemplateDataItem(strText, "#000000"),
-                                remark = new TemplateDataItem(remark, "#CCCCCC")
-                            };
-                            nRet = this.SendWeixinMsg2(workerWeixinIds,
-                                GzhCfg.C_Template_Message,//this.Template_Message,
-                                 msgData,
-                                 msgData2Worker,
-                                 "",
-                                 "",
-                                 out strError);
-                            if (nRet == -1)
-                                return -1;
-
-                        }
                     }
                     catch (Exception ex)
                     {
