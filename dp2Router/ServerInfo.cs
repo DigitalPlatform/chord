@@ -22,6 +22,8 @@ namespace dp2Router
 {
     public static class ServerInfo
     {
+        public static Logger _logger = new Logger();
+
         // 管理线程
         public static DefaultThread _defaultThread = new DefaultThread();
 
@@ -233,6 +235,9 @@ namespace dp2Router
             _channels.Login -= _channels_Login;
             _channels.AddMessage -= _channels_AddMessage;
             _channels.Dispose();
+
+            WriteErrorLog("*** dp2Router 成功降落");
+            _logger.Dispose();
         }
 
         public static DigitalPlatform.HTTP.HttpResponse WebCall(DigitalPlatform.HTTP.HttpRequest request,
@@ -324,12 +329,13 @@ namespace dp2Router
 
         #region 日志
 
-        private static readonly Object _syncRoot = new Object();
+        // private static readonly Object _syncRoot = new Object();
 
         static bool _errorLogError = false;    // 写入实例的日志文件是否发生过错误
 
         static void _writeErrorLog(string strText)
         {
+#if NO
             lock (_syncRoot)
             {
                 DateTime now = DateTime.Now;
@@ -339,6 +345,8 @@ namespace dp2Router
                 FileUtil.WriteText(strFilename,
                     strTime + " " + strText + "\r\n");
             }
+#endif
+            _logger.Write(LogDir, strText);
         }
 
         // 尝试写入实例的错误日志文件
