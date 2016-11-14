@@ -837,7 +837,8 @@
             _from = 1;
             var val = $('input:radio[name="from"]:checked').val();
             if (val == null) {
-                alert("什么也没选中!");
+                //alert("什么也没选中!");
+                val = 1;
             }
             _from = val;
         }
