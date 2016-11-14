@@ -91,6 +91,10 @@ namespace dp2weixinWeb.Controllers
 
             ViewBag.LibVersions = dp2WeiXinService.Instance.LibManager.GetLibVersiongString();
 
+
+            SessionInfo sessionInfo = this.GetSessionInfo();
+            ViewBag.appId = sessionInfo.gzh.appId;
+
             return View();
 
         ERROR1:
@@ -126,6 +130,10 @@ namespace dp2weixinWeb.Controllers
 
             if (string.IsNullOrEmpty(readerName) == false && readerName != "undefined")
                 ViewBag.ReaderName = readerName;// "test";
+
+
+            SessionInfo sessionInfo = this.GetSessionInfo();
+            ViewBag.appId = sessionInfo.gzh.appId;
 
             return View();
 
