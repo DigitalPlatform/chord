@@ -185,7 +185,7 @@ namespace dp2weixin
 
                     return this.CreateTextResponseMessage("您尚未绑定图书馆工作人员账户，不能使用tracing功能。"
                        + "\n点击 <a href='" + accountIndex + "'>绑定账户</a>。");
-                }
+                }                
 
                 string paramLeft = parameter;
                 string paramRight = "";
@@ -206,6 +206,7 @@ namespace dp2weixin
                 {
                     TracingOnUser tracingOnUser = new TracingOnUser();
                     tracingOnUser.WeixinId = this.WeixinOpenId;
+                    tracingOnUser.AppId = this.AppId;
 
                     if (paramRight == "-mask")
                         tracingOnUser.IsMask = false;

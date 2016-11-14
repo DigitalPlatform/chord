@@ -79,6 +79,9 @@ namespace dp2weixinWeb.Controllers
                 return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Home/Manager"));
             }
 
+            GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetDefault();
+            ViewBag.AppName = gzh.appNameCN;
+
             return View();
         }
 

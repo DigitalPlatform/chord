@@ -1141,6 +1141,8 @@ namespace dp2weixin.service
             // 将这边tracing on的工作人员分为2组，一组是mask的，一组是不mask的
             foreach (TracingOnUser user in users)
             {
+                string fullWeixinId = user.WeixinId + "@" + user.AppId;
+
                 if (user.IsMask == false)
                     workerIds.Add(user.WeixinId);
                 else
@@ -2914,7 +2916,9 @@ namespace dp2weixin.service
                         msgData.keyword3 = new TemplateDataItem(tempText, "#000000");
 
                         List<string> ids = new List<string>();
-                        ids.Add(worker.weixinId);
+                        string fullWeixinId = worker.weixinId + "@" + worker.appId;
+                        ids.Add(fullWeixinId);
+
                         int nRet = this.SendTemplateMsgInternal(ids,
                             GzhCfg.C_Template_Message,//this.Template_Message,
                              msgData,
@@ -2937,7 +2941,9 @@ namespace dp2weixin.service
                         msgData.keyword3 = new TemplateDataItem(text, "#000000");
 
                         List<string> ids = new List<string>();
-                        ids.Add(worker.weixinId);
+                        string fullWeixinId = worker.weixinId + "@" + worker.appId;
+
+                        ids.Add(fullWeixinId);
                         int nRet = this.SendTemplateMsgInternal(ids,
                             GzhCfg.C_Template_Message,//this.Template_Message,
                              msgData,
@@ -3639,6 +3645,7 @@ namespace dp2weixin.service
                 userItem.state = 1;
                 userItem.remark = strFullWord;
                 userItem.rights = rights;
+                userItem.appId = appId;
 
                 if (bNew == true)
                 {
@@ -3769,7 +3776,7 @@ namespace dp2weixin.service
             LoginInfo loginInfo = new LoginInfo("", false);
 
             // 调点对点解绑接口
-            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + userItem.weixinId;
+            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + userItem.weixinId + "@*";// +userItem.appId;
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             BindPatronRequest request = new BindPatronRequest(id,
@@ -3831,7 +3838,8 @@ namespace dp2weixin.service
 
                 // 本人
                 List<string> bindWeixinIds = new List<string>();
-                bindWeixinIds.Add(weixinId);
+                string temp = userItem.weixinId + "@"+userItem.appId;
+                bindWeixinIds.Add(temp);//weixinId);
                 List<TracingOnUser> workers = this.getWorkerWeixinIds(lib.id, userItem.libraryCode);
 
                 //显文 
@@ -7044,7 +7052,8 @@ namespace dp2weixin.service
                         string remark = "\n" + this._msgRemark;
 
                         List<string> bindWeixinIds = new List<string>();
-                        bindWeixinIds.Add(weixinId);
+                        string fullWeixinId = weixinId + "@" + user.appId;
+                        bindWeixinIds.Add(fullWeixinId);
 
                         // 得到找开tracing功能的工作人员微信id
                         List<TracingOnUser> workers = this.getWorkerWeixinIds(lib.id, user.libraryCode);
@@ -8612,7 +8621,8 @@ namespace dp2weixin.service
 
             userItem.state = WxUserDatabase.C_State_Available;
             userItem.remark = "";
-            userItem.rights = "";
+            userItem.rights = patronInfo.rights;
+            userItem.appId = patronInfo.appId;
 
             return userItem;
         }

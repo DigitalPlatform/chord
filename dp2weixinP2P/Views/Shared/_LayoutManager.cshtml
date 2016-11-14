@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>我爱图书馆-后台管理系统</title>
+    <title>@ViewBag.AppName-后台管理系统</title>
     <!--CSS -->
     <link href="@Url.Content("~/Content/mui.min.css?test=3")" rel="stylesheet">
     <link href="@Url.Content("~/Content/style.css?a=9")" rel="stylesheet" type="text/css" />
@@ -21,7 +21,7 @@
     <header class="mui-bar mui-bar-nav" id="myheader">
         @RenderSection("header", required: false)
         <a class=" mui-icon mui-pull-left"  href='javascript:void(0)'  style="color:#cccccc">
-        <span style="font-size:10pt" id="_libName">我爱图书馆-后台管理系统</span>
+        <span style="font-size:10pt" id="_libName">@ViewBag.AppName -后台管理系统</span>
         </a>
     </header>
 

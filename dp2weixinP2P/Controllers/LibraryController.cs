@@ -223,7 +223,7 @@ namespace dp2weixinWeb.Controllers
                     // 记下微信id
                     SessionInfo sessionInfo = this.GetSessionInfo();
                     sessionInfo.weixinId = weixinId;
-                    sessionInfo.gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppName(dp2WeiXinService.C_gzh_ilovelibrary);
+                    sessionInfo.gzh = dp2WeiXinService.Instance.gzhContainer.GetDefault();//.GetByAppName(dp2WeiXinService.C_gzh_ilovelibrary);
                    // Session[WeiXinConst.C_Session_WeiXinId] = weixinId;
                 }
                 else
