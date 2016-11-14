@@ -71,6 +71,13 @@
                 return;
             }
 
+            // 公众号id
+            var appId = $("#appId").text();
+            if (appId == "") {
+                alert("appId不能为空。");
+                return;
+            }
+
             //显示等待图层
             //var index = loadLayer();
             showMaskLayer();
@@ -116,9 +123,9 @@
                     hideMaskLayer();
 
                     alert(errorThrown);
-
                 },
                 {
+                    appId:appId,
                     weixinId: weixinId,
                     prefix: prefix,
                     word: word,
@@ -194,6 +201,7 @@
 @section header {
         <h1 class="mui-title">绑定账号</h1>
 }
+<span id="appId" style="display:none">@ViewBag.appId</span>
 <span id="weixinId" style="display:none">@ViewBag.weixinId</span>
 <span id="returnUrl" style="display:none">@ViewBag.ReturnUrl</span>
 

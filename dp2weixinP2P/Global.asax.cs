@@ -102,7 +102,7 @@ namespace dp2weixinWeb
                     Server.ClearError(); //清除异常 2016-10-24，不加这句话，还会继续抛黄页                    
 
                     //重启web应用
-                    dp2WeiXinService.Instance.WriteLog1("遇到微信400001错误，重启web应用。");
+                    dp2WeiXinService.Instance.WriteLog1("遇到微信40001错误，重启web应用。");
                     string binDir = Server.MapPath("~/bin");//"~/App_Data"
                     string strTempFile = binDir + "\\temp";
                     if (File.Exists(strTempFile) == true)

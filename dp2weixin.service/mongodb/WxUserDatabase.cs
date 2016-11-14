@@ -392,6 +392,7 @@ namespace dp2weixin.service
                 .Set("state", item.state)
                 .Set("remark", item.remark)
                 .Set("rights", item.rights)
+                .Set("appId", item.appId)
                 ;
 
             UpdateResult ret = this.wxUserCollection.UpdateOne(filter, update);
@@ -432,13 +433,11 @@ namespace dp2weixin.service
         public int state { get; set; } //状态:0失效 1有效 2恢复时的临时状态 
         public string remark { get; set; } // 会存一下绑定方式等
 
-        /* 关于是否缓冲权限
-        在后面编写各种管理功能的时候，需要检查工作人员账号的 rights 字符串，看看权限是不是足够。
-        虽然刚才提到，绑定工作人员账号时就可以通过返回的 XML 字符串得到这个账号的 rights 字符串，
-        但我觉得不应该在你的 mongodb 数据库中记忆这个字符串。因为dp2library里面随时可以修改这个账户的权限，
-        如果没有良好的同步机制，那么公众号模块不如每次需要的时候去临时获取这个字符串。
-         */
+        // 权限
         public string rights { get; set; }
+
+        // 公众号id 2016-11-14
+        public string appId { get; set; }
     }
 
 
@@ -447,6 +446,9 @@ namespace dp2weixin.service
     /// </summary>
     public class BindItem
     {
+        //公众号 appid 2016-11-14 
+        public string appId { get; set; }   
+
         public string weixinId { get; set; }   
         public string libId { get; set; }     
 

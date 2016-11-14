@@ -1,4 +1,120 @@
-﻿================
+﻿===借书========
+
+            {
+                first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#006400"), // 	dark green //this._msgFirstLeft + "恭喜您借书成功。"
+                keyword1 = new TemplateDataItem(summary, "#000000"),
+                keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
+                keyword3 = new TemplateDataItem(borrowDate, "#000000"),
+                keyword4 = new TemplateDataItem(returningDate, "#000000"),
+                keyword5 = new TemplateDataItem(tempFullPatronBarcode, "#000000"),
+                remark = new TemplateDataItem(tempRemark, "#CCCCCC")
+            };
+
+
+            if (bindWeixinIds.Count > 0)
+            {
+                var msgData = new BorrowTemplateData()
+                {
+                    first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#006400"), // 	dark green //this._msgFirstLeft + "恭喜您借书成功。"
+                    keyword1 = new TemplateDataItem(summary, "#000000"),
+                    keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
+                    keyword3 = new TemplateDataItem(borrowDate, "#000000"),
+                    keyword4 = new TemplateDataItem(returningDate, "#000000"),
+                    keyword5 = new TemplateDataItem(fullPatronBarcode, "#000000"),
+                    remark = new TemplateDataItem(remark, "#CCCCCC")
+                };
+                // 发送消息
+                nRet = this.SendWeixinMsg1(bindWeixinIds,
+                    GzhCfg.C_Template_Borrow,//this.Template_Borrow,
+                    msgData,
+                    "",
+                    "",// theOperator,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+            }
+
+            // 发给工作人员
+            if (workerWeixinIds.Count > 0)
+            {
+                foreach (TracingOnUser traceUser in workerWeixinIds)
+                {
+                    // 每个人发送的格式不同。
+                    string tempFullPatronBarcode = fullPatronBarcode;
+                    string tempRemark = remark;// +theOperator;
+
+                    if (traceUser.IsMask == true)
+                    {
+                        tempFullPatronBarcode = this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode, true);
+                        string markPatronName = this.markString(patronName);
+                        tempRemark = remark.Replace(patronName, markPatronName);// +theOperator; ;
+                    }
+                    var msgData2worker = new BorrowTemplateData()
+                    {
+                        first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#006400"), // 	dark green //this._msgFirstLeft + "恭喜您借书成功。"
+                        keyword1 = new TemplateDataItem(summary, "#000000"),
+                        keyword2 = new TemplateDataItem(fullItemBarcode, "#000000"),
+                        keyword3 = new TemplateDataItem(borrowDate, "#000000"),
+                        keyword4 = new TemplateDataItem(returningDate, "#000000"),
+                        keyword5 = new TemplateDataItem(tempFullPatronBarcode, "#000000"),
+                        remark = new TemplateDataItem(tempRemark, "#CCCCCC")
+                    };
+
+                    // 发送消息
+                    List<string> tempWeixinIds = new List<string>();
+                    tempWeixinIds.Add(traceUser.WeixinId);
+                    nRet = this.SendWeixinMsg1(tempWeixinIds,
+                        GzhCfg.C_Template_Borrow,//this.Template_Borrow,
+                        msgData2worker,
+                        "",
+                        theOperator,
+                        out strError);
+                    if (nRet == -1)
+                        return -1;
+                }
+            }
+
+
+===以停代金到期======
+            // 发给本人
+            if (bindWeixinIds.Count > 0)
+            {
+                nRet = this.SendWeixinMsg1(bindWeixinIds,
+                    GzhCfg.C_Template_Message, //this.Template_Message,
+                    msgData,
+                    "",
+                    "",// theOperator,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+            }
+
+            // 发给工作人员
+            if (workerWeixinIds.Count > 0)
+            {
+                strText = strText.Replace(fullPatronName, markFullPatronName);
+                var msgData2worker = new BorrowTemplateData()
+                {
+                    first = new TemplateDataItem("☀☀☀☀☀☀☀☀☀☀", "#9400D3"),// 	dark violet //this._msgFirstLeft + "您的停借期限到期了。" //$$$$$$$$$$$$$$$$
+                    keyword1 = new TemplateDataItem("以停代金到期", "#000000"),//text.ToString()),// "请让我慢慢长大"),
+                    keyword2 = new TemplateDataItem(operTime, "#000000"),
+                    keyword3 = new TemplateDataItem(strText, "#000000"),
+                    remark = new TemplateDataItem(remark, "#CCCCCC")
+                };
+
+                nRet = this.SendWeixinMsg2(workerWeixinIds,
+                    GzhCfg.C_Template_Message,//this.Template_Message,
+                    msgData,
+                    msgData2worker,
+                    "",
+                    "",
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+            }
+
+
+================
 
         function showSelectItem()
         {
