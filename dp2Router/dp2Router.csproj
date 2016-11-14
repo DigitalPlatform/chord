@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HttpChannelCollection.cs" />
     <Compile Include="DefaultThread.cs" />
     <Compile Include="HttpServer.cs" />
     <Compile Include="Installer1.cs">

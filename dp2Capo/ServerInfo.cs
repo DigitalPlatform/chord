@@ -9,9 +9,9 @@ using System.Threading;
 
 using Microsoft.AspNet.SignalR.Client;
 
+using DigitalPlatform;
 using DigitalPlatform.Common;
 using DigitalPlatform.Net;
-using DigitalPlatform;
 using DigitalPlatform.MessageClient;
 
 namespace dp2Capo

@@ -1011,6 +1011,7 @@ strError);
                 WebData data = _webDataTable.GetData(param.TaskID);
 
                 Task.Run(() => WebCallAndResponse(param.TaskID, param.TransferEncoding, data));
+                // await WebCallAndResponseAsync(param.TaskID, param.TransferEncoding, data, this.Instance._cancel.Token);
             }
         }
 
@@ -1118,7 +1119,7 @@ strError);
 
                 request_data = null;    // 防止后面无意用到
 
-                HttpResponse response = HttpProcessor.WebCall(request, url);
+                HttpResponse response = HttpProcessor.WebCallAsync(request, url, new CancellationToken()).Result;
 
                 /*
                 // 调试用
@@ -1173,6 +1174,84 @@ strError);
             }
         }
 
+#if NO // 暂不使用这个版本
+        async Task WebCallAndResponseAsync(string taskID,
+            string transferEncoding,
+            WebData request_data,
+            CancellationToken token)
+        {
+            string strError = "";
+
+            try
+            {
+                if (string.IsNullOrEmpty(this.dp2library.WebUrl) == true)
+                {
+                    // 报错
+                    strError = "dp2Capo 中尚未为 dp2library 配置 webURL 参数";
+                    goto ERROR1;
+                }
+
+                HttpRequest request = MessageUtility.BuildHttpRequest(request_data, transferEncoding);
+
+                // Console.WriteLine("request=" + request.Dump());
+
+                // this.dp2library.WebUrl 可以是若干个 URL，需要用 request.Url 的第二级来进行匹配
+                string url = GetTargetUrl(this.dp2library.WebUrl, request.Url);
+
+                if (string.IsNullOrEmpty(url))
+                {
+                    strError = "dp2Capo 的 webURL 定义 '" + this.dp2library.WebUrl + "' 无法匹配上原始请求的 '" + request.Url + "'";
+                    goto ERROR1;
+                }
+
+                request_data = null;    // 防止后面无意用到
+
+                HttpResponse response = await HttpProcessor.WebCallAsync(request, url, token);
+                WebData response_data = MessageUtility.BuildWebData(response, transferEncoding);
+
+                // 分批发出
+                // 对于 entity 完全为空的 HTTP request 如何处理?
+                WebDataSplitter splitter = new WebDataSplitter();
+                splitter.ChunkSize = MessageUtil.BINARY_CHUNK_SIZE;
+                splitter.TransferEncoding = transferEncoding;
+                splitter.WebData = response_data;
+
+                foreach (WebData current in splitter)
+                {
+                    WebCallResponse param = new WebCallResponse();
+                    param.TaskID = taskID;
+                    param.WebData = current;
+                    param.Complete = splitter.LastOne;
+
+                    MessageResult result = await ResponseWebCallAsync(param);
+                    if (result.Value == -1)
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                strError = "WebCallAndResponse() 出现异常: " + ex.Message;
+                goto ERROR1;
+            }
+            finally
+            {
+                _webDataTable.RemoveData(taskID);
+            }
+
+        ERROR1:
+            {
+                WebCallResponse param = new WebCallResponse();
+                param.TaskID = taskID;
+                param.Complete = true;
+                param.Result = new MessageResult();
+                param.Result.Value = -1;
+                param.Result.ErrorInfo = strError;
+
+                TryResponseWebCall(param);
+            }
+        }
+
+#endif
         #endregion
 
         #region Search() API

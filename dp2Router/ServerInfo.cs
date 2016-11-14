@@ -22,17 +22,19 @@ namespace dp2Router
 {
     public static class ServerInfo
     {
+        public static HttpChannelCollection _httpChannels = new HttpChannelCollection();
+
         public static Logger _logger = new Logger();
 
         // 管理线程
         public static DefaultThread _defaultThread = new DefaultThread();
 
-        static MessageConnectionCollection _channels = new MessageConnectionCollection();
+        static MessageConnectionCollection _messageChannels = new MessageConnectionCollection();
 
         // 配置文件 XmlDocument
         public static XmlDocument ConfigDom = null; // new XmlDocument();
 
-        static CancellationTokenSource _cancel = new CancellationTokenSource();
+        internal static CancellationTokenSource _cancel = new CancellationTokenSource();
 
         public static string DataDir
         {
@@ -202,8 +204,8 @@ namespace dp2Router
                 throw new Exception("装载配置文件 '" + strCfgFileName + "' 时出现异常: " + ex.Message, ex);
             }
 
-            _channels.Login += _channels_Login;
-            _channels.AddMessage += _channels_AddMessage;
+            _messageChannels.Login += _channels_Login;
+            _messageChannels.AddMessage += _channels_AddMessage;
 
             _defaultThread.BeginThread();
         }
@@ -232,15 +234,17 @@ namespace dp2Router
             _defaultThread.StopThread(true);    // 强制退出
             _defaultThread.Dispose();
 
-            _channels.Login -= _channels_Login;
-            _channels.AddMessage -= _channels_AddMessage;
-            _channels.Dispose();
+            _httpChannels.Dispose();
+
+            _messageChannels.Login -= _channels_Login;
+            _messageChannels.AddMessage -= _channels_AddMessage;
+            _messageChannels.Dispose();
 
             WriteErrorLog("*** dp2Router 成功降落");
             _logger.Dispose();
         }
 
-        public static DigitalPlatform.HTTP.HttpResponse WebCall(DigitalPlatform.HTTP.HttpRequest request,
+        public static async Task<DigitalPlatform.HTTP.HttpResponse> WebCall(DigitalPlatform.HTTP.HttpRequest request,
             string transferEncoding)
         {
             // 从 request.Url 中解析出 remoteUserName
@@ -269,6 +273,7 @@ namespace dp2Router
             {
                 // Console.WriteLine("Begin WebCall");
 
+#if NO
                 MessageConnection connection = _channels.GetConnectionTaskAsync(
                     Url,
                     remoteUserName).Result;
@@ -277,6 +282,15 @@ namespace dp2Router
                     param,
                     new TimeSpan(0, 1, 10), // 10 秒
                     _cancel.Token).Result;
+#endif
+                MessageConnection connection = await _messageChannels.GetConnectionTaskAsync(
+    Url,
+    remoteUserName);
+                WebCallResult result = await connection.WebCallTaskAsync(
+                    remoteUserName,
+                    param,
+                    new TimeSpan(0, 1, 10), // 10 秒
+                    _cancel.Token);
 
                 // Console.WriteLine("End WebCall result=" + result.Dump());
 
@@ -413,7 +427,11 @@ namespace dp2Router
         // 执行一些后台管理任务
         public static void BackgroundWork()
         {
-            _channels.ClearIdleConnections(TimeSpan.FromMinutes(60));
+            _messageChannels.ClearIdleConnections(TimeSpan.FromMinutes(60));
+
+            _httpChannels.CleanIdleChannels(TimeSpan.FromMinutes(2));
+
+            WriteErrorLog("_httpChannels.Count=" + _httpChannels.Count.ToString());
         }
     }
 
