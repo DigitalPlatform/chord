@@ -60,18 +60,23 @@ namespace dp2Router
             {
                 try
                 {
-                    TcpClient s = this.Listener.AcceptTcpClient();
+                    TcpClient tcpClient = this.Listener.AcceptTcpClient();
 
                     // string ip = ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
-                    string ip = GetClientIP(s);
+                    string ip = GetClientIP(tcpClient);
                     ServerInfo.WriteErrorLog("*** ip [" + ip + "] request");
 
+#if NO
                     Thread thread = new Thread(() =>
                     {
                         // this.Processor.TestHandleClient(s);
-                        TestHandleClient(s);
+                        TestHandleClient(tcpClient, ServerInfo._cancel.Token);
                     });
                     thread.Start();
+#endif
+                    // Task.Run(()=>TestHandleClient(tcpClient, ServerInfo._cancel.Token));
+
+                    TestHandleClient(tcpClient, ServerInfo._cancel.Token);
                 }
                 catch (Exception ex)
                 {
@@ -89,27 +94,34 @@ namespace dp2Router
             this.Listener.Stop();
         }
 
-        public void TestHandleClient(TcpClient tcpClient)
+        public async void TestHandleClient(TcpClient tcpClient,
+            CancellationToken token)
         {
+            HttpChannel channel = ServerInfo._httpChannels.Add(tcpClient);
+
             string ip = "";
             Stream inputStream = tcpClient.GetStream();
             Stream outputStream = tcpClient.GetStream();
             try
             {
                 ip = GetClientIP(tcpClient);
-                HttpRequest request = HttpProcessor.GetIncomingRequest(inputStream);
+                channel.Touch();
+                HttpRequest request = await HttpProcessor.GetIncomingRequest(inputStream, token);
+                channel.Touch();
 
                 // 添加头字段 _dp2router_clientip
                 request.Headers.Add("_dp2router_clientip", ip);
 
                 // Console.WriteLine("=== request ===\r\n" + request.Dump());
 
-                HttpResponse response = ServerInfo.WebCall(request, "content");
+                HttpResponse response = await ServerInfo.WebCall(request, "content");
+                channel.Touch();
                 // string content = response.GetContentString();
 
                 //Console.WriteLine("=== response ===\r\n" + response.Dump());
 
-                HttpProcessor.WriteResponse(outputStream, response);
+                await HttpProcessor.WriteResponseAsync(outputStream, response, token);
+                channel.Touch();
             }
             catch (Exception ex)
             {
@@ -124,6 +136,8 @@ namespace dp2Router
 
                 inputStream.Close();
                 inputStream = null;
+
+                ServerInfo._httpChannels.Remove(channel);
             }
         }
 

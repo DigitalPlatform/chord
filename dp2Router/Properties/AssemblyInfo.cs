@@ -40,4 +40,5 @@ using System.Runtime.InteropServices;
 // 1.3 (2016/10/15) 修正 GetConnection() 时 name 参数的 bug。自动清理(空闲时间超过一个小时的)空闲通道
 // 1.4 (2016/10/30) 请求的 HTTP 中携带 _dp2router_clientip 头字段
 // 1.5 (2016/11/13) 改用 Logger 写入错误日志
-// 1.6 (2016/11/14) 对进入的 HTTP 请求做了 headers 行数、每行字符数、Content-Length 配额限制
+// 1.6 (2016/11/14) 对进入的 HTTP 请求做了 headers 行数、每行字符数、Content-Length 配额限制。
+//                  对进入的请求，和响应都改造为 XXXAsync 形式。定时自动清理闲置的 HttpChannel

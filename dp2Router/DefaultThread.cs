@@ -15,7 +15,7 @@ namespace dp2Router
     {
         public DefaultThread()
         {
-            this.PerTime = 10 * 60 * 1000;  // 10 分钟
+            this.PerTime = 5 * 60 * 1000;  // 5 分钟
         }
 
         // 工作线程每一轮循环的实质性工作
