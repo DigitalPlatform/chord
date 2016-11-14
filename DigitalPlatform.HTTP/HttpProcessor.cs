@@ -34,9 +34,10 @@ namespace DigitalPlatform.HTTP
             stream.Write(response.Content, 0, response.Content.Length);
         }
 
-        public static HttpRequest GetIncomingRequest(Stream inputStream
-            // , Stream outputStream
-            )
+        static int MAX_HEADER_LINES = 100;
+        static int MAX_ENTITY_BYTES = 1024 * 1024;   // 1M bytes
+
+        public static HttpRequest GetIncomingRequest(Stream inputStream)
         {
             // Read Request Line
             string request = Readline(inputStream);
@@ -80,12 +81,18 @@ namespace DigitalPlatform.HTTP
 
                 string value = line.Substring(pos, line.Length - pos);
                 headers.Add(name, value);
+                if (headers.Count > MAX_HEADER_LINES)
+                    throw new Exception("headers 行数超过配额");
             }
 
             byte[] raw_content = null;
             if (headers.ContainsKey("Content-Length"))
             {
                 int totalBytes = Convert.ToInt32(headers["Content-Length"]);
+
+                if (totalBytes >= MAX_ENTITY_BYTES)
+                    throw new Exception("Content-Length "+totalBytes+" 超过配额");
+
                 int bytesLeft = totalBytes;
                 byte[] bytes = new byte[totalBytes];
 
@@ -232,6 +239,8 @@ namespace DigitalPlatform.HTTP
             };
         }
 
+        static int MAX_LINE_CHARS = 500;
+
         private static string Readline(Stream stream)
         {
             int next_char;
@@ -243,6 +252,9 @@ namespace DigitalPlatform.HTTP
                 if (next_char == '\r') { continue; }
                 if (next_char == -1) { Thread.Sleep(1); continue; };
                 data += Convert.ToChar(next_char);
+
+                if (data.Length >= MAX_LINE_CHARS)
+                    throw new Exception("头字段行长度超过配额");
             }
             return data;
         }

@@ -91,14 +91,15 @@ namespace dp2Router
 
         public void TestHandleClient(TcpClient tcpClient)
         {
+            string ip = "";
             Stream inputStream = tcpClient.GetStream();
             Stream outputStream = tcpClient.GetStream();
             try
             {
+                ip = GetClientIP(tcpClient);
                 HttpRequest request = HttpProcessor.GetIncomingRequest(inputStream);
 
                 // 添加头字段 _dp2router_clientip
-                string ip = GetClientIP(tcpClient);
                 request.Headers.Add("_dp2router_clientip", ip);
 
                 // Console.WriteLine("=== request ===\r\n" + request.Dump());
@@ -110,9 +111,10 @@ namespace dp2Router
 
                 HttpProcessor.WriteResponse(outputStream, response);
             }
-            catch (Exception /*ex*/)
+            catch (Exception ex)
             {
-                // TODO: 写入日志? 哪些不写入日志?
+                // 2016/11/14
+                ServerInfo.WriteErrorLog("ip:" + ip + " TestHandleClient() 异常: " + ExceptionUtil.GetExceptionText(ex));
             }
             finally
             {

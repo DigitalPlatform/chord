@@ -161,6 +161,7 @@
     <Compile Include="FileSystemLoader.cs" />
     <Compile Include="FileUtil.cs" />
     <Compile Include="FileVersionManager.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="PathUtil.cs" />
   </ItemGroup>
   <ItemGroup>
