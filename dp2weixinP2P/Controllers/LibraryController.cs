@@ -221,8 +221,21 @@ namespace dp2weixinWeb.Controllers
                 {
                     // 记下微信id
                     SessionInfo sessionInfo = this.GetSessionInfo();
+
+                    string appId = "";
+                    int nTemp = weixinId.IndexOf("@");
+                    if (nTemp > 0)
+                    {
+                        appId = weixinId.Substring(nTemp + 1);
+                    }
+
+                    GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetDefault();
+                    if (appId !="")
+                        gzh=dp2WeiXinService.Instance.gzhContainer.GetByAppId(appId);
+                    
+
                     sessionInfo.weixinId = weixinId;
-                    sessionInfo.gzh = dp2WeiXinService.Instance.gzhContainer.GetDefault();//.GetByAppName(dp2WeiXinService.C_gzh_ilovelibrary);
+                    sessionInfo.gzh = gzh;//.GetByAppName(dp2WeiXinService.C_gzh_ilovelibrary);
                    // Session[WeiXinConst.C_Session_WeiXinId] = weixinId;
                 }
                 else

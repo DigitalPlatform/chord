@@ -69,6 +69,12 @@ namespace dp2weixin.service
             // todo 创建索引
         }
 
+        public List<WxUserItem> GetAll()
+        {
+            List<WxUserItem> list = this.wxUserCollection.Find(new BsonDocument()).ToListAsync().Result;
+            return list;
+        }
+
         // 获取绑定账户
         public List<WxUserItem> Get(string weixinId, 
             string libId,

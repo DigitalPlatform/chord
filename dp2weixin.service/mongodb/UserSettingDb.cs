@@ -62,6 +62,11 @@ namespace dp2weixin.service
             // todo 创建索引            
         }
 
+        public List<UserSettingItem> GetAll()
+        {
+            List<UserSettingItem> list = this.settingCollection.Find(new BsonDocument()).ToListAsync().Result;
+            return list;
+        }
 
         /// <summary>
         /// 获取读者账户,针对一个图书馆可绑定多个读者账户
@@ -99,7 +104,7 @@ namespace dp2weixin.service
             }
             else
             {
-                this.UpdateLib(inputItem);
+                this.Update(inputItem);
             }
         }
         
@@ -119,7 +124,7 @@ namespace dp2weixin.service
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public long UpdateLib(UserSettingItem item)
+        public long Update(UserSettingItem item)
         {
             var filter = Builders<UserSettingItem>.Filter.Eq("weixinId", item.weixinId);
             var update = Builders<UserSettingItem>.Update
@@ -133,6 +138,23 @@ namespace dp2weixin.service
             UpdateResult ret = this.settingCollection.UpdateOne(filter, update);
             return ret.ModifiedCount;
         
+        }
+
+        public long UpdateById(UserSettingItem item)
+        {
+            var filter = Builders<UserSettingItem>.Filter.Eq("id", item.id);
+            var update = Builders<UserSettingItem>.Update
+                .Set("libId", item.libId)
+                .Set("weixinId", item.weixinId)
+                .Set("showPhoto", item.showPhoto)
+                .Set("showCover", item.showCover)
+                .Set("xml", item.xml)
+                .Set("patronRefID", item.patronRefID)
+                ;
+
+            UpdateResult ret = this.settingCollection.UpdateOne(filter, update);
+            return ret.ModifiedCount;
+
         }
 
         public static string getBookSubject(string xml)

@@ -39,6 +39,11 @@ namespace dp2weixinWeb.ApiControllers
                 return dp2WeiXinService.Instance.RecoverUsers();
             }
 
+            if (actionType == "addAppId")
+            {
+                return dp2WeiXinService.Instance.AddAppId();
+            }
+
             WxUserResult result = new WxUserResult();
             return result;
         }

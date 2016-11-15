@@ -3216,7 +3216,7 @@ namespace dp2weixin.service
                     settingItem.patronRefID = patronRefID;
                 }
 
-                UserSettingDb.Current.UpdateLib(settingItem);
+                UserSettingDb.Current.Update(settingItem);
 
             }
 
@@ -3840,8 +3840,19 @@ namespace dp2weixin.service
             // 使用代理账号capo 20161024 jane
             LoginInfo loginInfo = new LoginInfo("", false);
 
+            string weixinIdTemp = userItem.weixinId;
+            int nTemp= weixinIdTemp.IndexOf("@");
+            if ( nTemp>0)
+            {
+                weixinIdTemp =weixinIdTemp.Substring(0,nTemp);
+            }
+
+            weixinIdTemp += "*";
+ 
+
+
             // 调点对点解绑接口
-            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + userItem.weixinId + "*";// +userItem.appId;
+            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + weixinIdTemp;//userItem.weixinId + "*";// +userItem.appId;
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             BindPatronRequest request = new BindPatronRequest(id,
@@ -8503,13 +8514,58 @@ namespace dp2weixin.service
 
         #region 恢复绑定账户
 
+        public WxUserResult AddAppId()
+        {
+            WxUserResult result = new WxUserResult();
+
+            GzhCfg gzh=this.gzhContainer.GetDefault();
+
+            List<UserSettingItem> settingList = UserSettingDb.Current.GetAll();
+            foreach (UserSettingItem one in settingList)
+            {
+                string weixinId = one.weixinId;
+
+                if (weixinId == C_Supervisor)
+                    continue;
+
+                if (weixinId.IndexOf("@") == -1)
+                    weixinId += "@" + gzh.appId;
+
+                one.weixinId = weixinId;
+                UserSettingDb.Current.UpdateById(one);
+            }
+
+            List<WxUserItem> userList = WxUserDatabase.Current.GetAll();
+            foreach (WxUserItem one in userList)
+            {
+                string weixinId = one.weixinId;
+                if (weixinId == C_Supervisor)
+                    continue;
+
+                if (weixinId.IndexOf("@") == -1)
+                {
+                    if (string.IsNullOrEmpty(one.appId) == false)
+                    {
+                        weixinId += "@" + one.appId;
+                    }
+                    else
+                    {
+                        weixinId += "@" + gzh.appId;
+                    }
+                }
+
+                one.weixinId = weixinId;
+                WxUserDatabase.Current.Update(one);
+            }
+
+
+            return result;
+        }
+
         public WxUserResult RecoverUsers()
         {
             string strError = "";
             WxUserResult result = new WxUserResult();
-
-
-
 
             // 统一设置一下setting表中当前用户patronRefId，用于恢复过程的最后一更，更新当前活动账户
             List<WxUserItem> activeUserList = WxUserDatabase.Current.GetActivePatrons();
@@ -8858,6 +8914,8 @@ namespace dp2weixin.service
         {
             List<string> weixinIds = new List<string>();
 
+            GzhCfg gzh=this.gzhContainer.GetDefault();
+
             if (String.IsNullOrEmpty(text) == false)
             {
                 string[] emailList = text.Split(new char[] { ',' });
@@ -8869,6 +8927,10 @@ namespace dp2weixin.service
                         string weixinId = oneEmail.Substring(9).Trim();
                         if (weixinId != "")
                         {
+                            //int nTemp = weixinId.IndexOf("@");
+                            //if (nTemp == -1)
+                            //    weixinId += "@" + gzh.appId;
+
                             weixinIds.Add(weixinId);
                         }
                     }
@@ -8878,6 +8940,21 @@ namespace dp2weixin.service
 
         }
 
+        private List<string> AddAppIdForWeixinId(List<string> weixinIds)
+        {
+            GzhCfg gzh=dp2WeiXinService.Instance.gzhContainer.GetDefault();
+
+            for (int i = 0; i < weixinIds.Count; i++)
+            {
+                string weixinId = weixinIds[i];
+                if (weixinId.IndexOf('@') == -1)
+                {
+                    weixinId += "@" + gzh.appId;
+                }
+                weixinIds[i] = weixinId;
+            }
+            return weixinIds;
+        }
 
         private int UpdateWorker(LibEntity lib, XmlDocument bodyDom, out string strError)
         {
@@ -8918,6 +8995,11 @@ namespace dp2weixin.service
                 this.WriteErrorLog1("服务器传来的 工作人员账户变动 消息的账号名为空");
                 return 0;
             }
+
+            //2016-11-16
+            newWeixinIds = AddAppIdForWeixinId(newWeixinIds);
+
+
 
             this.WriteLog2("收到通知，更新图书馆 " + lib.libName + " 工作人员 " + name + " 的信息。");
 
@@ -9074,6 +9156,8 @@ namespace dp2weixin.service
             List<string> newWeixinIds = null;
             WxUserItem patronInfo = this.GetPatronInfoByXml(patronRecord.OuterXml, out newWeixinIds);
 
+            // 2016-11-16
+            newWeixinIds = this.AddAppIdForWeixinId(newWeixinIds);
 
             // 查一下数据库中有没有绑定该账户的微信
             List<WxUserItem> userList = WxUserDatabase.Current.GetPatron(null, lib.id, patronInfo.readerBarcode);
