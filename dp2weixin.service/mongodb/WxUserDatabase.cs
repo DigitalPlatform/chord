@@ -446,8 +446,9 @@ namespace dp2weixin.service
     /// </summary>
     public class BindItem
     {
+        // 2016-11-16 appId统一放在weixinId里
         //公众号 appid 2016-11-14 
-        public string appId { get; set; }   
+        //public string appId { get; set; }   
 
         public string weixinId { get; set; }   
         public string libId { get; set; }     

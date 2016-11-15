@@ -23,6 +23,10 @@ namespace dp2weixin
         public override IResponseMessageBase OnEvent_SubscribeRequest(RequestMessageEvent_Subscribe requestMessage)
         {
             GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(this.AppId);
+            if (gzh == null)
+            {
+                return this.CreateTextResponseMessage("未找到" + this.AppId + "对应的公众号配置", false);
+            }
 
             string resetPasswordUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh, "Account/ResetPassword");
             string accountIndex = dp2WeiXinService.Instance.GetOAuth2Url(gzh, "Account/Index");

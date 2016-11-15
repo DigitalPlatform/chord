@@ -181,6 +181,10 @@ namespace dp2weixin
                 if (workerList == null || workerList.Count == 0)
                 {
                     GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(this.AppId);
+                    if (gzh == null)
+                    {
+                        return this.CreateTextResponseMessage("未找到" + this.AppId + "对应的公众号配置", false);
+                    }
                     string accountIndex = dp2WeiXinService.Instance.GetOAuth2Url(gzh, "Account/Index");
 
                     return this.CreateTextResponseMessage("您尚未绑定图书馆工作人员账户，不能使用tracing功能。"
@@ -205,8 +209,8 @@ namespace dp2weixin
                 else if (paramLeft == "on")
                 {
                     TracingOnUser tracingOnUser = new TracingOnUser();
-                    tracingOnUser.WeixinId = this.WeixinOpenId;
-                    tracingOnUser.AppId = this.AppId;
+                    tracingOnUser.WeixinId = this.WeixinOpenId+"@"+this.AppId; //让这个微信id带上@appId
+                    //tracingOnUser.AppId = this.AppId;
 
                     if (paramRight == "-mask")
                         tracingOnUser.IsMask = false;

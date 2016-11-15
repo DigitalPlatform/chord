@@ -56,7 +56,10 @@ namespace dp2weixinWeb.Controllers
         {
             GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
             if (gzh == null)
-                throw new Exception("request未找到公众号["+postModel.AppId+"]的配置信息");
+            {
+                string tempError = "request未找到公众号[" + postModel.AppId + "]的配置信息。";
+                return Content(tempError);
+            }
 
             if (CheckSignature.Check(postModel.Signature, 
                 postModel.Timestamp, 
@@ -89,7 +92,10 @@ namespace dp2weixinWeb.Controllers
 
             GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
             if (gzh == null)
-                throw new Exception("Post未找到公众号[" + postModel.AppId + "]的配置信息");
+            {
+                string tempError = "Post未找到公众号[" + postModel.AppId + "]的配置信息。";
+                return Content(tempError);
+            }
 
             // 开始时间
             DateTime start_time = DateTime.Now;

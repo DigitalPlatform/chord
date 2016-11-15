@@ -26,6 +26,7 @@
         // 下一步
         var C_next_dothing = "dothing";
         var C_next_receiveBarcode = "receiveBarcode";
+        var C_next_addCmd="addCmd";//2016-11-16 用于借书时，应扫书，却扫了读者，提示完，要进行加载读者事情。
 
         // controlType
         var C_controlType_manual = "manual";
@@ -160,6 +161,7 @@
 
         }
 
+        //进入下一步
         function warnNext(next)
         {
 
@@ -180,6 +182,10 @@
             }
             else if (next == C_next_receiveBarcode) {
                 receiveBarcode();
+            }
+            else if(next==C_next_addCmd) //2016-11-16
+            {
+                addCmd();
             }
             else {
                 alert("不认识的下一步命令:" + next);
@@ -337,7 +343,7 @@
         function addCmd() {
 
             // 图书馆
-            var libId = $("#_libId").text(); //getLibId();
+            var libId = $("#libId").text(); //getLibId();
             if (libId == "" || libId == null) {
                 warn("您尚未选择图书馆。",""); // 下一步停止
                 return;
@@ -390,6 +396,32 @@
                 }
             }
 
+            // 应该输入册条码时，校验
+            if (inputType == C_inputType_item)
+            {
+                // 扫了读者二维码的情况
+                if (item.length > 4 && item.substring(0, 4) == "PQR:")
+                {
+                    //还书时，直接提示，重新输入
+                    if (ope == C_ope_return)
+                    {
+                        warn("还书环境，应扫图书时，您扫了读者二维码，请重新扫入图书。", C_next_receiveBarcode, false);
+                        return;
+                    }
+                    
+                    // 借书时，提示一下，然后加载新的读者。
+                    if (ope == C_ope_borrow)
+                    {
+                        warn("借书环境，应扫图书时，您扫了读者二维码，请为您加载新读者。", C_next_addCmd, false);
+                        return;
+                    }
+                }
+
+                // 如果校验条码开关打开，则需要进行校验
+                var verifyBarcode = $("#verifyBarcode").text();
+                alert("校验条码值:"+verifyBarcode);
+            }
+
             ////==跑流程测试用==
             //if (cmdType == "loadPatron") {
             //    setInputType(C_inputType_item);
@@ -401,7 +433,7 @@
 
 
             //登录身份
-            var userName = $("#_userName").text();
+            var userName = $("#userName").text();
             if (userName==null || userName== "") {
                 warn("userName操作人不能不空。", "");
                 return;
@@ -524,7 +556,7 @@
         }
 
         function showSelectItem(itemList) {
-            var libId = $("#_libId").text();
+            var libId = $("#libId").text();
             var html = "";
 
             html +="<div id='selItem' style='background-color:white;color:black;border:2px dotted #333333;margin-top:10px;padding:4px;background-color:gray'>"
@@ -644,7 +676,7 @@
         function getAllCmd() {
 
             // 图书馆
-            var libId = $("#_libId").text();
+            var libId = $("#libId").text();
             if (libId == "" || libId == null) {
                 alert("您尚未选择图书馆。");
                 return;
@@ -1020,9 +1052,9 @@
 
 
 <span id="weixinId" style="display:none">@ViewBag.weixinId</span>
-<span id="_libId" style="display:none">@ViewBag.LibId</span>
-<span id="_userName" style="display:none">@ViewBag.userName</span>
-
+<span id="libId" style="display:none">@ViewBag.LibId</span>
+<span id="userName" style="display:none">@ViewBag.userName</span>
+<span id="verifyBarcode" style="display:none">@ViewBag.verifyBarcode</span>
 
 <input id="_charge_operation" type="hidden" value="">
 <input id="_charge_inputType" type="hidden" value="">

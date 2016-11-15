@@ -62,8 +62,9 @@ namespace dp2weixinWeb.Controllers
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
             ViewBag.LibHtml = this.GetLibSelectHtml("", weixinId,true); //2016-9-4 绑定时不支持选中默认图书馆 ViewBag.LibId
 
-            SessionInfo sessionInfo = this.GetSessionInfo();
-            ViewBag.appId = sessionInfo.gzh.appId;
+            // 2016-11-16去掉，统一放在weixinId里
+            //SessionInfo sessionInfo = this.GetSessionInfo();
+            //ViewBag.appId = sessionInfo.gzh.appId;
 
             return View();
 
@@ -91,9 +92,9 @@ namespace dp2weixinWeb.Controllers
 
             ViewBag.LibVersions = dp2WeiXinService.Instance.LibManager.GetLibVersiongString();
 
-
-            SessionInfo sessionInfo = this.GetSessionInfo();
-            ViewBag.appId = sessionInfo.gzh.appId;
+            // 2016-11-16去掉，统一放在weixinId里
+            //SessionInfo sessionInfo = this.GetSessionInfo();
+            //ViewBag.appId = sessionInfo.gzh.appId;
 
             return View();
 
@@ -131,9 +132,9 @@ namespace dp2weixinWeb.Controllers
             if (string.IsNullOrEmpty(readerName) == false && readerName != "undefined")
                 ViewBag.ReaderName = readerName;// "test";
 
-
-            SessionInfo sessionInfo = this.GetSessionInfo();
-            ViewBag.appId = sessionInfo.gzh.appId;
+            // 2016-11-16去掉，统一放在weixinId里
+            //SessionInfo sessionInfo = this.GetSessionInfo();
+            //ViewBag.appId = sessionInfo.gzh.appId;
 
             return View();
 

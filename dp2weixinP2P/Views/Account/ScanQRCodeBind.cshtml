@@ -24,12 +24,12 @@
                 return;
             }
 
-            // 公众号id
-            var appId = $("#appId").text();
-            if (appId == "") {
-                alert("appId不能为空。");
-                return;
-            }
+            //// 公众号id
+            //var appId = $("#appId").text();
+            //if (appId == "") {
+            //    alert("appId不能为空。");
+            //    return;
+            //}
 
             // 检查版本号
             var _libversions = $("#_libversions").text();
@@ -125,7 +125,7 @@
 
                             },
                             {
-                                appId:appId,
+                                //appId:appId,
                                 weixinId: weixinId,
                                 prefix: "PQR",
                                 word: word,
@@ -169,7 +169,6 @@
 @section header {
         <h1 class="mui-title">图书馆柜台绑定</h1>
     }
-<span id="appId" style="display:none">@ViewBag.appId</span>
 <span id="weixinId" style="display:none">@ViewBag.weixinId</span>
 <span id="_libversions" style="display:none">@ViewBag.LibVersions</span>
 

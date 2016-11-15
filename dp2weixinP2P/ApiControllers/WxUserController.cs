@@ -122,7 +122,6 @@ namespace dp2weixinWeb.ApiControllers
                 item.prefix,
                 item.word,
                 item.password,
-                item.appId,
                 item.weixinId,
                 out userItem,
                 out strError);
