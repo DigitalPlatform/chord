@@ -232,16 +232,27 @@ END1:
                     + "<table>";
 
             // 前方的提示
-            html += "<tr>"
-                            + "<td colspan='2'>"
-                                + "<table>"
-                                    + "<tr>"
-                                        + "<td style='width:50px;padding-left:5px;'><img src='../img/" + img + "' /></td>"
-                                        + "<td style='width:100%' class='" + retClass + "'>" + retInfo + "</td>"
-                                    + "</tr>"
-                                + "</table>"
-                            + "</td>"
-                        + "</tr>";
+            if (cmd.state == -1)
+            {
+                html += "<tr>"
+                                + "<td colspan='2'>"
+                                    + "<table>"
+                                        + "<tr>"
+                                            + "<td style='width:50px;padding-left:5px;'><img src='../img/" + img + "' /></td>"
+                                            + "<td style='width:100%' class='" + retClass + "'>" + retInfo + "</td>"
+                                        + "</tr>"
+                                    + "</table>"
+                                + "</td>"
+                            + "</tr>";
+            }
+            else
+            {
+                html += "<tr>"
+                    + "<td colspan='2' class='" + retClass + "'>"
+                     + retInfo
+                    + "</td>"
+                + "</tr>";
+            }
 
             //读者信息
             if (patron != null)

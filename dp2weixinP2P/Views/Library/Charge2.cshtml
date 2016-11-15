@@ -92,7 +92,7 @@
             // 显示场景+停止按钮
             var scene = "";//getScene();
 
-            html += "<table width='100%;padding-top:0px'><tr>"
+            html += "<table style='width:100%;margin-top:10px'><tr>"
                 + "<td style='width:100%;text-align:center'>"
                 + "<span style='font-size:14.8px'>" + scene + "</span>"
                 + "</td>"
@@ -111,7 +111,7 @@
                 +"<div>"
                 + "</div>";
 
-            var mystyle = "position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white";  // todo style怎么改为class";
+            var mystyle = "position:fixed; left:0; top:0; width:100%; height:100%; border: none;";  //background-color:black;color:white
 
             var bTime = false;
             if (_controlType == C_controlType_manual)
@@ -320,7 +320,7 @@
                 type: 1
                 , content: html
                 //, anim: 'up'
-                , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'
+                , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;'//background-color:black;color:white
                 , end: function (index) {
                     layer.close(index); //todo
                     addCmd();
@@ -607,7 +607,7 @@
                 type: 1
                 , content: html
                 //, anim: 'up'
-                , style: 'overflow:scroll;position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'
+                , style: 'overflow:scroll;position:fixed; left:0; top:0; width:100%; height:100%; border: none;' //background-color:black;color:white
                 //, end: function (index) {
                 //    //layer.close(index); //todo 是否需要关闭
 
@@ -707,7 +707,7 @@
 
             var actionName = "";
             if (_from == C_from_scan)
-                actionName = "扫";
+                actionName = "扫入";
             else
                 actionName = "输入";
 
@@ -715,10 +715,17 @@
 
             var inputType = getInputType();
             if (inputType == C_inputType_patron) {
-                desc = left+ " 读者证条码号...";
+                desc = left+ " 读者...";
             }
             else if (inputType == C_inputType_item) {
-                desc = left+ " 册条码号...";
+                var func = "";
+                var ope = getOpe();
+                if (ope == C_ope_borrow)
+                    func = "要借的";
+                else
+                    func = "要还的";
+
+                desc = left+ " "+func+"书...";
             }
             else {
                 desc = left + " 不知道！！！";
@@ -826,7 +833,7 @@
             if ($("#mypage").css("display") == "none")
                 return;
 
-            //$("#mybody").css("background-color", "black");
+            $("#mybody").css("background-color", "white");
             $("#mypage").css("display", "none");
         }
 
@@ -834,6 +841,7 @@
 
         // checkbox设置条码来源方式
         function setFrom() {
+            /*
             _from = 1;
             var val = $('input:radio[name="from"]:checked').val();
             if (val == null) {
@@ -841,6 +849,9 @@
                 val = 1;
             }
             _from = val;
+            */
+
+            _from = $("#from").val();
         }
 
         function setControlType() {
@@ -848,21 +859,21 @@
         }
 
 
-        function showBackground() {
+        //function showBackground() {
 
-            var background = $("#my-background");
+        //    var background = $("#my-background");
 
-            // 设背景高度
-            var docHeight = $(document).height();
-            $(background).css("height", docHeight);
+        //    // 设背景高度
+        //    var docHeight = $(document).height();
+        //    $(background).css("height", docHeight);
 
-            background.show();
-        }
+        //    background.show();
+        //}
 
-        function hideBackground() {
-            var bg = $("#my-background");
-            bg.hide();
-        }
+        //function hideBackground() {
+        //    var bg = $("#my-background");
+        //    bg.hide();
+        //}
 
         //====================
     </script>
@@ -909,7 +920,9 @@
             display: block;
             position: absolute;
             top: 100px;
-            margin:10px;
+            padding:10px;
+            padding-right:15px;
+            width:100%;
 
             z-index: 2001;
             text-align: left;
@@ -944,9 +957,9 @@
 
         /*册左侧标题td*/
         DIV.cmd TABLE TR TD.label {
-            width: 65px;
-            max-width: 65px;
-            min-width: 65px;
+            width: 75px;
+            max-width: 75px;
+            min-width:75px;
             background-color: #ffffff;
             color: #999999;
             padding-right: 2px;
@@ -976,7 +989,7 @@
         }
 
         DIV.cmd TABLE TR TD .name {
-            padding-left:5px;
+            
             font-size:16px;
             font-weight:bold;
         }
@@ -990,12 +1003,12 @@
             color:red;
         }
 
-        DIV.cmd TABLE TR TD .success {
+        DIV.cmd TABLE TR TD.success {
             padding-left: 5px;
             color:darkgreen;
         }
 
-        DIV.cmd TABLE TR TD .warn {
+        DIV.cmd TABLE TR TD.warn {
             padding-left: 5px;
             background-color:yellow;
         }
@@ -1003,7 +1016,7 @@
     </style>
 }
 
-<div id="my-background" style="display: none; background-color:black"></div>
+<!--<div id="my-background" style="display: none; background-color:black"></div>-->
 
 
 <span id="weixinId" style="display:none">@ViewBag.weixinId</span>
@@ -1039,18 +1052,19 @@ else
                 <button class="mui-btn mui-btn-block" onclick="start('borrow')">开始借书</button>
                 <button class="mui-btn mui-btn-block" onclick="start('return')">开始还书</button>
 
+                <!--
                 <div >
-                    <table style="width:100%; color:white;margin-top:5px">
+                    <table style="width:100%; color:black;margin-top:5px">
                         <tr>
-                            <td style="width:80px;color:gray">输入方式</td>
+                            <td style="width:80px;color:gray">扫码方式：</td>
                             <td>
-                                <input name="from" type="radio" value="1" checked onchange="setFrom()" style="width:25px;height:25px">扫码
+                                <input name="from" type="radio" value="1" checked onchange="setFrom()" style="width:25px;height:25px">摄像头
                                 &nbsp;
-                                <input name="from" type="radio" value="2" onchange="setFrom()" style="width:25px;height:25px">输入框
+                                <input name="from" type="radio" value="2" onchange="setFrom()" style="width:25px;height:25px">键盘输入
                             </td>
                         </tr>
                         <tr>
-                            <td style="width:86px;color:gray">流程控制方式</td>
+                            <td style="width:86px;color:gray">流程风格</td>
                             <td>
                                 <select id="controlType" style="color:black;padding:5px" onchange="setControlType()">
                                     <option value="manual">手动</option>
@@ -1061,13 +1075,31 @@ else
                         </tr>
                     </table>
                 </div>
-            </div>
 
-            <div id="cmdContainer" class="mui-content-padded" style="display:none">
-                <h4><span style="color:#cccccc">操作历史</span></h4>
-                <div id="cmds"></div>
+                    -->
             </div>
-
-        </div>
+            <div class="mui-input-group" style="background-color:white">
+                <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
+                    <label style="color:#cccccc">扫码方式</label>
+                    <select id="from" style="background-color:transparent" onchange="setFrom()">
+                        <option value="1">摄像头</option>
+                        <option value="2">键盘输入</option>
+                    </select>
+                </div>
+                <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
+                    <label style="color:#cccccc">流程风格</label>
+                    <select id="controlType" style="background-color:transparent" onchange="setControlType()">
+                        <option value="manual">手动</option>
+                        <option value="manualAuto" selected="">有条件的自动</option>
+                        <option value="auto">完全自动</option>
+                    </select>
+                </div>
+               </div>
+            
+                <div id="cmdContainer" class="mui-content-padded" style="display:none">
+                    <h4><span style="color:#cccccc">操作历史</span></h4>
+                    <div id="cmds"></div>
+                </div>
+            </div>
     }
 }
