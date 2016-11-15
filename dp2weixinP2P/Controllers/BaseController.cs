@@ -103,7 +103,7 @@ namespace dp2weixinWeb.Controllers
             string clickEvent = "";
             if (bFull == true)
             {
-                width = "width: 90%;margin-bottom:0px;padding:0px";
+                //width = "width: 90%;margin-bottom:0px;padding:0px";
                 clickEvent = " onchange='save()' ";
             }
 
@@ -131,7 +131,7 @@ namespace dp2weixinWeb.Controllers
 
             SessionInfo sessionInfo = this.GetSessionInfo();
             string weixinId = "";
-            GzhCfg gzh = null;
+            GzhCfg gzh = sessionInfo.gzh;
 
             // 从微信进入的            
             if (string.IsNullOrEmpty(code) == false)
@@ -171,7 +171,14 @@ namespace dp2weixinWeb.Controllers
                 return -1;
             }
 
+
+
             gzh = sessionInfo.gzh;//重新赋值一下
+            if (gzh == null)
+            {
+                strError = "未找到公众号配置信息";
+                return -1;
+            }
             ViewBag.AppName = sessionInfo.gzh.appNameCN;
             weixinId = sessionInfo.weixinId;
             ViewBag.weixinId = weixinId; // 存在ViewBag里，省得使用的页面每次从session中取

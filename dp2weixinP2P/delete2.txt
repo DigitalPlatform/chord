@@ -1,4 +1,18 @@
-﻿===借书========
+﻿====
+    <div class="mui-content-padded" style="background-color:white">
+        <div style="padding:10px">
+            <table style="width:100%;">
+                <tr>
+                    <td style="width:80px"><label style="color:#cccccc;font-size:14.8px">当前图书馆</label></td>
+                    <td style="padding-left:5px; background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
+                        @Html.Raw(ViewBag.LibHtml)
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+
+===借书========
 
             {
                 first = new TemplateDataItem("▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎", "#006400"), // 	dark green //this._msgFirstLeft + "恭喜您借书成功。"
