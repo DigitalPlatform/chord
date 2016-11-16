@@ -154,10 +154,10 @@
             //===弹层结束====
 
             // 等待2秒出来stop按钮
-            window.setTimeout("showStop()", 1000 * 2.5);
+            window.setTimeout("showStop()", 1000 * 2);
 
             // 等待2秒出来continue按钮
-            window.setTimeout("showContinue()", 1000 *2.5);
+            window.setTimeout("showContinue()", 1000 *2);
 
         }
 
@@ -562,75 +562,96 @@
             var libId = $("#libId").text();
             var html = "";
 
-            html +="<div id='selItem' style='background-color:white;color:black;border:2px dotted #333333;margin-top:10px;padding:4px;background-color:gray'>"
+            var func = "借";
+            var ope = getOpe();
+            if (ope == C_ope_return)
+                func="还";
+
+
+            html +="<div id='selItem' style='margin-top:10px;padding:4px;'>"
             + "<div style='margin-bottom:5px'>"
-            +"<span style='background-color:#FFD700;font-size:14.8px;font-weight:bold'>"
-            +"请 <span style='color:blue'>单击</span> 选择要<span id='_opeName'>借</span>的册</span>"
+            +"<span style=''>"
+            +"请点击要"+func+"的册</span>"
             +"&nbsp;&nbsp;"
-            + "<span style='text-align:right'><a href='javascript:;' onclick='selectItemOK(null)'>跳过</a></span>"
+            + "<span style='text-align:right'><a href='javascript:;' onclick='selectItemOK(null)'>取消</a></span>"
             +"</div>"
-            +"<div id='items'>";
+            +"<div id='biblio' style='font-size:14px'>";
 
             for (var i = 0; i < itemList.length; i++) {
 
                 var item = itemList[i];
                 var myClass = "";
-                if (item.isGray == true)
-                    myClass += " item-gray ";
+                if (item.isGray == true) {
+                    myClass = " background-color: #Eeeeee;color:#aaaaaa";
+                    //alert(myClass);
+                }
 
-                html += "<div class='mui-card " + myClass + "' style='padding:0px;margin:0px;margin-bottom:10px;' id='item-" + item.barcode + "' onclick='selectItemOK(this)' >"
-                    + "<table class='item' >"
-            + "<tbody>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>册条码号</td>"
-                    + "<td class='value'>" + item.pureBarcode + "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>状态</td>"
-                    + "<td class='value'>" + item.state + "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>在借情况</td>"
+                
+                html += "<div class='mui-card item'  id='item-" + item.barcode + "' onclick='selectItemOK(this)' >"
+                    + "<table style='" + myClass + "'>"
+                        + "<tr>"
+                            + "<td class='label'>册条码号</td>"
+                            + "<td class='title'>" + item.pureBarcode + "</td>"
+                        + "</tr>";
+
+                
+                if (item.state != null && item.state != "") {
+                    html += "<tr>"
+                        + "<td class='label'>状态</td>"
+                        + "<td class='value'>" + item.state + "</td>"
+                    + "</tr>";
+                }
+
+                
+                if (item.volume != null && item.volume != "") {
+                    html += "<tr>"
+                                    + "<td class='label'>卷册</td>"
+                                    + "<td class='value'>" + item.volume + "</td>"
+                                + "</tr>";
+                }
+                
+                html += "<tr>"
+                                + "<td class='label'>馆藏地</td>"
+                                + "<td class='value'>" + item.location + "</td>"
+                            + "</tr>";
+
+                //accessNo
+               
+                html += "<tr>"
+                                + "<td class='label'>索取号</td>"
+                                + "<td class='value'>" + item.accessNo + "</td>"
+                            + "</tr>";
+
+
+                html += "<tr>"
+                    + "<td class='label'>价格</td>"
+                    + "<td class='value'>" + item.price + "</td>"
+                + "</tr>";
+
+                html += "<tr>"
+                    + "<td class='label'>在借情况</td>"
                     + "<td class='borrowInfo'>" + item.borrowInfo + "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>书目摘要</td>"
-                    + "<td class='value'>";
+                + "</tr>";
+               
 
-                html += "<div  class='summary pending' style='padding-bottom:4px'>"
+                html += "<tr>"
+                    + "<td class='label'>书目摘要</td>"
+                    + "<td class='value'>"
+                    + "<div  class='summary pending' style='padding-bottom:4px'>"
                                        + "<label>bs-" + item.pureBarcode + "</label>"
                                        + "<img src='../img/wait2.gif' />"
                                        + "<span>" + libId + "</span>"
-                                   + "</div>";
-
-                html += "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>卷册</td>"
-                    + "<td class='value'>" + item.volume + "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>馆藏地</td>"
-                    + "<td class='value'>" + item.location + "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>价格</td>"
-                    + "<td class='value'>" + item.price + "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>册记录路径</td>"
+                                   + "</div>"
+                    + "</td>"
+                + "</tr>";
+                
+                html += "<tr>"
+                    + "<td class='label'>册路径</td>"
                    + "<td class='value'>" + item.recPath + "</td>"
-                + "</tr>"
-            + "</tbody>"
-        + "</table>"
+                + "</tr>";
+                
+                //收尾
+                html +=  "</table>"
                 + "</div>";
             }
 
@@ -916,7 +937,7 @@
 
 @section style {
 
-    <link href="@Url.Content("~/Content/charge.css?a=1")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/biblio.css?a=1")" rel="stylesheet">
     <link href="@Url.Content("~/Content/patron.css?a=1")" rel="stylesheet">
     <style>
         TABLE.chargeform {
@@ -1055,7 +1076,7 @@
         }
 
         DIV.cmd .line .success {
-            color:green;
+            color:darkgreen;
         }
 
         DIV.cmd .line .error {
@@ -1095,6 +1116,16 @@
             color:#cccccc;            
         }
 
+           .split {
+               margin-top:10px;
+               height:1px;
+                width:100%;
+                
+                border-top:3px dotted #CCCC33;
+                
+            }
+
+
         /*===========*/
     </style>
 }
@@ -1131,7 +1162,7 @@ else
     else
     {
         <div id="mypage" >
-            <div style="padding:10px">
+            <div style="padding:10px;padding-bottom:0px;">
                 <button class="mui-btn mui-btn-block" onclick="start('borrow')">开始借书</button>
                 <button class="mui-btn mui-btn-block" onclick="start('return')">开始还书</button>
 
@@ -1161,7 +1192,7 @@ else
 
                     -->
             </div>
-            <div class="mui-input-group" style="background-color:white">
+            <div style="background-color:white;margin-left:10px;margin-right:10px;margin-top:0px">
                 <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
                     <label style="color:#cccccc">扫码方式</label>
                     <select id="from" style="background-color:transparent" onchange="setFrom()">

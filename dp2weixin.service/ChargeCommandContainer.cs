@@ -37,6 +37,7 @@ namespace dp2weixin.service
 
             // 其它错误信息
             string otherError = "";
+            string biblioName = "";
 
 
             string outPatronBarcode = cmd.patronBarcode;
@@ -61,6 +62,8 @@ namespace dp2weixin.service
                 {
                     cmdRet = -1;
                 }
+
+
                 goto END1;
             }
 
@@ -105,8 +108,27 @@ namespace dp2weixin.service
                     cmd.patronBarcode,
                     cmd.itemBarcode,
                     out outPatronBarcode,
+                    out patronXml,
                     out resultInfo,
-                    out cmdError);   
+                    out cmdError);
+
+                // 借书失败时，也要取一下读者记录，因为读者信息还是要显示的
+                if (string.IsNullOrEmpty(patronXml) == true)
+                {
+                    // 取一下读者记录
+                    int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                        cmd.userName,
+                        false,
+                        outPatronBarcode,
+                        "xml",
+                        out patronRecPath,
+                        out patronXml,
+                        out otherError);
+                    if (nRet == -1 || nRet == 0)
+                    {
+                        //命令成功的，但加载读者不成功，一般这种情况不可能有
+                    }
+                }
             }
             else if (cmd.type == ChargeCommand.C_Command_Return) // 还书
             {
@@ -117,26 +139,31 @@ namespace dp2weixin.service
                     cmd.patronBarcode,
                     cmd.itemBarcode,
                     out outPatronBarcode,
+                    out patronXml,
                     out resultInfo,
                     out cmdError);               
             }
 
-             if (cmdRet == 1 || cmdRet==0 || cmd.type==ChargeCommand.C_Command_Borrow)
+            // 根据item barcode取书名
+             if (cmd.state !=-1 && cmd.type != ChargeCommand.C_Command_LoadPatron)
              {
-                 // 取一下读者记录
-                 int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
-                     cmd.userName,
-                     false,
-                     outPatronBarcode,
-                     "advancexml",
-                     out patronRecPath,
-                     out patronXml,
-                     out otherError);
-                 if (nRet == -1 || nRet == 0) 
+                 string summary = "";
+                 string recPath = "";
+                 LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
+                 int nRet = dp2WeiXinService.Instance.GetBiblioSummary(lib, cmd.itemBarcode,
+                    "",
+                    out summary,
+                    out recPath,
+                    out otherError);
+                 if (nRet == -1)
                  {
-                     //命令成功的，但加载读者不成功，一般这种情况不可能有
+                     //出错信息会加起来
                  }
 
+                 if (string.IsNullOrEmpty(summary) == false)
+                 {
+                     biblioName = dp2WeiXinService.Instance.GetShortSummary(summary);
+                 }
              }
 
 END1:
@@ -193,17 +220,17 @@ END1:
                 {
                     if (cmd.type == ChargeCommand.C_Command_Borrow)
                     {
-                        cmd.resultInfo = "书名";
+                        cmd.resultInfo = biblioName;
                     }
                     else if (cmd.type == ChargeCommand.C_Command_Return )
                     {
-                        cmd.resultInfo = "书名 ";
+                        cmd.resultInfo = biblioName;
                         if (patron != null)
-                            cmd.resultInfo += "<br/>" + patron.name;
+                            cmd.resultInfo += "<br/><span style='font-size:20pt'>" + patron.name+"</span>";
                     }
 
                      //有提示信息
-                    if (String.IsNullOrEmpty(cmd.errorInfo) == false && cmd.errorInfo !="还书操作成功")
+                    if (String.IsNullOrEmpty(cmd.errorInfo) == false && cmd.errorInfo !="还书操作成功。")
                     {
                         cmd.resultInfo += "<br/>"+cmd.errorInfo;
                     }
@@ -289,6 +316,17 @@ END1:
 
             //结尾
             html += "</div>";
+
+            // 跟上一个读者进行比较，决定是否加分隔线
+            if (this.Count > 0)
+            {
+                ChargeCommand lastCmd = this[this.Count - 1];
+                if (lastCmd.patronBarcode != cmd.patronBarcode)
+                {
+                    html += "<div class='split'>";
+                }
+            }
+
 
             return html;
         }

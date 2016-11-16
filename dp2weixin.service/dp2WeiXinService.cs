@@ -1445,7 +1445,7 @@ namespace dp2weixin.service
             return info;
         }
 
-        private string GetShortSummary(string summary)
+        public string GetShortSummary(string summary)
         {
             int nIndex = summary.IndexOf("/");
             if (nIndex > 0)
@@ -6917,12 +6917,14 @@ namespace dp2weixin.service
             string patron,
             string item,
             out string patronBarcode,
+            out string patronXml,
             out ReturnInfo resultInfo,
             out string strError)
         {
             strError = "";
             resultInfo = null;
             patronBarcode = "";
+            patronXml = "";
 
             LibEntity lib = this.GetLibById(libId);
             if (lib == null)
@@ -6941,8 +6943,8 @@ namespace dp2weixin.service
                 operation,
                 patron,
                 item,
-                "",
-                "",
+                "reader",  //style
+                "xml",
                 "",
                 "");
             try
@@ -6959,6 +6961,8 @@ namespace dp2weixin.service
 
                 resultInfo = result.ReturnInfo;
                 patronBarcode = result.PatronBarcode;
+                if (result.PatronResults != null && result.PatronResults.Count >0)
+                    patronXml = result.PatronResults[0];
                 strError = result.ErrorInfo;
 
                 if (result.Value == -1)
