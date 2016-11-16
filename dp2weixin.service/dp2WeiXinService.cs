@@ -6770,7 +6770,7 @@ namespace dp2weixin.service
                 //根据state确定是哪个公众号进来的
                 if (state != C_gzh_ilovelibrary && state != C_gzh_dp && state != C_gzh_dpcomm)
                 {
-                    strError = "验证失败！非正规途径进入！";
+                    strError = "验证失败！非正规途径["+state+"]进入！";
                     return -1;
                 }
 

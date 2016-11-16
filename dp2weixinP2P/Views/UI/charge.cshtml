@@ -221,7 +221,47 @@ TABLE.borderTable {
         /*===========*/
 
 
+        /*===命令显示新格式=======*/
+       DIV.cmd  .line{
+            padding-left:5px;
+        }
 
+        DIV.cmd .line .success {
+            color:green;
+        }
+
+        DIV.cmd .line .error {
+            color:red;
+        }
+
+        DIV.cmd .line  .warn {
+            padding-left: 5px;
+            background-color:yellow;
+        }
+
+       DIV.cmd .line  .patronName{
+            font-size:16px;
+            font-weight:bold;
+        }
+
+        DIV.cmd .line .patronBarcode{
+            color:gray;
+        }
+
+        DIV.cmd .line  .itemBarcode{
+            font-size:14px;
+            font-weight:bold;
+        }
+
+        DIV.cmd .line  .summary{
+            color:gray;
+        }
+
+        DIV.cmd .line .time {
+            color:#cccccc;            
+        }
+
+        /*===========*/
     </style>
 }
 
@@ -237,6 +277,28 @@ TABLE.borderTable {
 
     </script>
 }
+
+<div class="mui-content-padded" id="cmdContainer" style="display: block;">
+    <h4><span style="color: rgb(204, 204, 204);">操作历史</span></h4>
+    <div id='cmds'>
+        <div class='mui-card cmd'>
+            <div class='line'>
+                <img src='../img/charge_error_24.png'>
+                <span class='warn'>借书失败。借阅操作被拒绝。读者 'R0000001' 早先已经借阅了册 '0000001' 。(读者记录中已存在对应的元素)</span>
+            </div>
+            <div class='line'>
+                <span class='patronName'>任1</span> <span class='patronBarcode'>R0000001</span>
+            </div>
+            <div class='line'>
+                <span class='itemBarcode'>0000001</span> <span class='summary'>首都图书馆古籍普查登记目录 [专著]  ; 首都图书馆编. -- ISBN 978-7-50</span>
+            </div>
+            <div class='line'>
+                <span class='time'>2016-11-15 16:46:15</span>
+            </div>
+        </div>
+
+    </div>
+</div>
 
 <div id="mypage" style="display: block;">
     <div style="padding: 10px;">

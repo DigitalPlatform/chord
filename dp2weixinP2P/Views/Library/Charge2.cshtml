@@ -405,21 +405,23 @@
                     //还书时，直接提示，重新输入
                     if (ope == C_ope_return)
                     {
-                        warn("还书环境，应扫图书时，您扫了读者二维码，请重新扫入图书。", C_next_receiveBarcode, false);
+                        warn("还书环境，应扫图书时，您扫了读者二维码，请重新扫入图书。", C_next_receiveBarcode, true);
                         return;
                     }
                     
                     // 借书时，提示一下，然后加载新的读者。
                     if (ope == C_ope_borrow)
                     {
-                        warn("借书环境，应扫图书时，您扫了读者二维码，请为您加载新读者。", C_next_addCmd, false);
+                        //设到读者输入类型
+                        setInputType(C_inputType_patron);
+                        warn("借书环境，应扫图书时，您扫了读者二维码，将为您加载新读者。", C_next_addCmd, true);
                         return;
                     }
                 }
 
                 // 如果校验条码开关打开，则需要进行校验
                 var verifyBarcode = $("#verifyBarcode").text();
-                alert("校验条码值:"+verifyBarcode);
+                //alert("校验条码值:"+verifyBarcode);
             }
 
             ////==跑流程测试用==
@@ -489,6 +491,7 @@
                 }
                 else {
                     img = "<img src='../img/right1.png' style='width:100px;height:100px'  />";
+
                     if (cmd.state == 1 && cmd.type != "loadPatron") {
                         infoStyle = ";background-color:yellow;color:black";
                         isAutoClose = false;
@@ -1044,6 +1047,54 @@
             padding-left: 5px;
             background-color:yellow;
         }
+        /*===========*/
+
+/*===命令显示新格式=======*/
+       DIV.cmd  .line{
+            padding-left:5px;
+        }
+
+        DIV.cmd .line .success {
+            color:green;
+        }
+
+        DIV.cmd .line .error {
+            color:red;
+        }
+
+        DIV.cmd .line  .warn {
+            padding-left: 5px;
+            background-color:yellow;
+        }
+
+       DIV.cmd .line  .patronName{
+            font-size:16px;
+            font-weight:bold;
+        }
+
+        DIV.cmd .line .patronBarcode{
+            color:gray;
+        }
+
+        DIV.cmd .line .department{
+            color:gray;
+        }
+
+        DIV.cmd .line  .itemBarcode{
+            font-size:14px;
+            font-weight:bold;
+        }
+
+        DIV.cmd .line  .summary{
+                        padding-left: 5px;
+
+            color:gray;
+        }
+
+        DIV.cmd .line .time {
+            color:#cccccc;            
+        }
+
         /*===========*/
     </style>
 }
