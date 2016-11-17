@@ -31,8 +31,8 @@
         <template name="Pay" id="AOKbOX6OhOfyFLbJig2LpmDaPD0QwHYLfxMP3sPxq4M"/>
         <template name="CancelPay" id="538QqZd7iAB2I_Ob5fCKHn7Ti06UXpflW5dFUCbtv0c"/>
         <template name="Message" id="qaPAe8R9UdHBCHPap0DLuFaHNGSBVG1fzkFkQhTFevM"/>
-        <template name="Arrived" id="I_SdDXYJRg0wfy2iW7d0pmwnlf0PdmE2ddRqQp2CbOs"/>
-        <template name="CaoQi" id="2XcSZ1G7nJRi3X2_oPdYw003x0VzM0UMtLkGD45Dlyc"/>
+        <template name="Arrived" id="2XcSZ1G7nJRi3X2_oPdYw003x0VzM0UMtLkGD45Dlyc"/>
+        <template name="CaoQi" id="I_SdDXYJRg0wfy2iW7d0pmwnlf0PdmE2ddRqQp2CbOs"/>
       </templates>
     </gzh>
 

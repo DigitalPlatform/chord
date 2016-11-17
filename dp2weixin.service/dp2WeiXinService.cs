@@ -2436,6 +2436,15 @@ namespace dp2weixin.service
             }
             string summary = DomUtil.GetNodeText(nodeSummary);
 
+            //<accessNo>
+            XmlNode accessNoToday = root.SelectSingleNode("accessNo");
+            if (accessNoToday == null)
+            {
+                strError = "尚未定义<accessNo>节点";
+                return -1;
+            }
+            string accessNo = DomUtil.GetNodeText(accessNoToday);
+
             // 到书日期
             XmlNode nodeToday = root.SelectSingleNode("today");
             if (nodeToday == null)
@@ -2538,10 +2547,14 @@ namespace dp2weixin.service
             string fullItemBarcode = this.GetFullItemBarcode(itemBarcode, libName, location);
 
             // 备注
-            string remark = fullPatronName + "，您预约的图书 " + fullItemBarcode + " 到了，请尽快来图书馆办理借书手续，请尽快来图书馆办理借书手续。";//如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
+            string remark = fullPatronName + "，您预约的图书 " + fullItemBarcode + " 到了，请尽快来图书馆办理借书手续。";//如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
             if (bOnShelf == true)
             {
                 remark = fullPatronName + "，您预约的图书 " + fullItemBarcode + " 已经在架上，请尽快来图书馆办理借书手续。";//如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或允许其他读者借阅。";
+            }
+            if (string.IsNullOrEmpty(accessNo) == false)
+            {
+                remark += "索取号" + accessNo;
             }
 
             summary = this.GetShortSummary(summary);
