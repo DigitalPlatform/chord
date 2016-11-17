@@ -49,7 +49,7 @@ namespace dp2Router
             return ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
         }
 
-        public void Listen()
+        public async void Listen()
         {
             this.Listener = new TcpListener(IPAddress.Any, this.Port);
             this.Listener.Start();  // TODO: 要捕获异常
@@ -60,7 +60,7 @@ namespace dp2Router
             {
                 try
                 {
-                    TcpClient tcpClient = this.Listener.AcceptTcpClient();
+                    TcpClient tcpClient = await this.Listener.AcceptTcpClientAsync();
 
                     // string ip = ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
                     string ip = GetClientIP(tcpClient);
@@ -113,6 +113,7 @@ namespace dp2Router
                 request.Headers.Add("_dp2router_clientip", ip);
 
                 // Console.WriteLine("=== request ===\r\n" + request.Dump());
+                // ServerInfo.WriteErrorLog("=== request ===\r\n" + request.Dump());
 
                 HttpResponse response = await ServerInfo.WebCall(request, "content");
                 channel.Touch();

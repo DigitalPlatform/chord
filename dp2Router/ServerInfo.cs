@@ -285,7 +285,7 @@ namespace dp2Router
 #endif
                 MessageConnection connection = await _messageChannels.GetConnectionTaskAsync(
     Url,
-    remoteUserName);
+    remoteUserName);    // 每个图书馆一根独立通道
                 WebCallResult result = await connection.WebCallTaskAsync(
                     remoteUserName,
                     param,

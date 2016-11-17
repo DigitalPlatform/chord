@@ -225,9 +225,10 @@ namespace dp2Router
             int nPort = Convert.ToInt32(ServerInfo.ServerPort);
             _httpServer = new HttpServer(nPort);
 
-            Thread thread = new Thread(new ThreadStart(_httpServer.Listen));
-            thread.Start();
+            //Thread thread = new Thread(new ThreadStart(_httpServer.Listen));
+            //thread.Start();
 
+            _httpServer.Listen();
 #if NO
             try
             {
