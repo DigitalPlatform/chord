@@ -20,7 +20,7 @@
     @RenderSection("scripts", required: false)
     @RenderSection("HeaderContent", false)
 </head>
-<body id="mybody" style="font-family: 'Microsoft YaHei',微软雅黑!important;background-color:black;">
+<body id="mybody" style="font-family: 'Microsoft YaHei',微软雅黑!important;">
 
 
     <div >
@@ -87,6 +87,11 @@
         wx.ready(function () {
             jssdkReady = 1;
         });
+
+        function gotoUrl(url) {
+            var myUrl = getRootPath() + url;
+            window.location = myUrl;
+        };
 
     </script>
 </body>

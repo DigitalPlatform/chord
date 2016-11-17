@@ -56,20 +56,19 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
+            LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为"+libId+"的图书馆";
+                goto ERROR1;
+            }
+            // 是否校验条码
+            ViewBag.verifyBarcode = lib.verifyBarcode;
 
             //设到ViewBag里
             ViewBag.userName = worker.userName;
 
-            //SessionInfo sessionInfo = this.GetSessionInfo();
-            //GzhCfg gzh = sessionInfo.gzhCfg;
-            //// 注意这里有时异常
-            //JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(gzh.appId,
-            //    gzh.secret,
-            //    Request.Url.AbsoluteUri);//http://localhost:15794/Library/Charge  //http://www.dp2003.com/dp2weixin/Library/Charge
-            //ViewData["AppId"] = gzh.appId;
-            //ViewData["Timestamp"] = package.Timestamp;
-            //ViewData["NonceStr"] = package.NonceStr;
-            //ViewData["Signature"] = package.Signature;
+
             return View();
 
 
@@ -222,8 +221,21 @@ namespace dp2weixinWeb.Controllers
                 {
                     // 记下微信id
                     SessionInfo sessionInfo = this.GetSessionInfo();
+
+                    string appId = "";
+                    int nTemp = weixinId.IndexOf("@");
+                    if (nTemp > 0)
+                    {
+                        appId = weixinId.Substring(nTemp + 1);
+                    }
+
+                    GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetDefault();
+                    if (appId !="")
+                        gzh=dp2WeiXinService.Instance.gzhContainer.GetByAppId(appId);
+                    
+
                     sessionInfo.weixinId = weixinId;
-                    sessionInfo.gzh = dp2WeiXinService.Instance.gzhContainer.GetDefault();//.GetByAppName(dp2WeiXinService.C_gzh_ilovelibrary);
+                    sessionInfo.gzh = gzh;//.GetByAppName(dp2WeiXinService.C_gzh_ilovelibrary);
                    // Session[WeiXinConst.C_Session_WeiXinId] = weixinId;
                 }
                 else

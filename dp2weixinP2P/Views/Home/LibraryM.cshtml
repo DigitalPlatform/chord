@@ -60,6 +60,7 @@
                 wxContactPhone: ko.observable(""),
                 comment: ko.observable(""),
                 noShareBiblio: ko.observable(0),
+                verifyBarcode:ko.observable(0),
                 searchDbs: ko.observable("")
             },
             displaySummary: ko.observable(true)
@@ -147,6 +148,14 @@
         function getNoShareBiblio() {
             var count = 0;
             $("#ckbNoShareBiblio:checked").each(function () {
+                count = 1;
+            });
+            return count
+        }
+
+        function getVerifyBarcode() {
+            var count = 0;
+            $("#ckbVerifyBarcode:checked").each(function () {
                 count = 1;
             });
             return count
@@ -402,6 +411,7 @@
                     wxContactPhone: wxContactPhone,
                     comment: comment,
                     noShareBiblio: getNoShareBiblio(),
+                    verifyBarcode:getVerifyBarcode(),
                     searchDbs: searchDbs,
                     match:match
                 }
@@ -421,6 +431,7 @@
             model.editor.comment("");
 
             model.editor.noShareBiblio(0);
+            model.editor.verifyBarcode(0);
             model.editor.searchDbs("");
 
             $("#selMatch").val("left");
@@ -465,6 +476,7 @@
             model.editor.comment(item.comment);
 
             model.editor.noShareBiblio(item.noShareBiblio);
+            model.editor.verifyBarcode(item.verifyBarcode);
             model.editor.searchDbs(item.searchDbs);
             
             var match = item.match;
@@ -521,7 +533,7 @@
                     //$("#libName").val(result.info);
                     model.editor.libName(result.info);
 
-                    $("#capoContactPhone").focus();//libName
+                    $("#libName").focus();//libName
 
 
                 }, function (xhq, textStatus, errorThrown) {
@@ -597,6 +609,10 @@
                     <td class="value" data-bind="text:noShareBiblio"></td>
                 </tr>
                 <tr>
+                    <td class="label">借还时校验条码号</td>
+                    <td class="value" data-bind="text:verifyBarcode"></td>
+                </tr>                
+                <tr>
                     <td>&nbsp;</td>
                     <td>
                         <button class="mui-btn  mui-btn-default" data-bind="click: handleEditClick">编辑</button>
@@ -617,11 +633,14 @@
     <div class="mui-card">
         <div class="mui-input-row ">
             <label class="leftLabel">图书馆dp2capo帐号</label>
-            <input id="capo_username" onblur="getLibName()" type="text" class="mui-input mui-input-clear" placeholder="请输入  dp2capo帐号" data-bind="value:model.editor.capoUserName">
+            <input id="capo_username" type="text" class="mui-input mui-input-clear" placeholder="请输入  dp2capo帐号" data-bind="value:model.editor.capoUserName">
         </div>
         <div class="mui-input-row ">
             <label class="leftLabel">图书馆名称</label>
             <input id="libName"  style="background-color:#EEEEEE" type="text" class="mui-input mui-input-clear"  data-bind="value:model.editor.libName">
+        </div>
+        <div class="mui-input-row">
+            <button type="button" class="mui-btn mui-btn-primary" onclick="getLibName()">自动获取名称</button>
         </div>
 
         <div class="mui-input-row ">
@@ -683,6 +702,10 @@
         <div class='mui-input-row mui-checkbox mui-left'>
             <label>不对外公开书目</label>
             <input id='ckbNoShareBiblio' type='checkbox' data-bind="checked:model.editor.noShareBiblio" />
+        </div>
+        <div class='mui-input-row mui-checkbox mui-left'>
+            <label>借还时校验条码号</label>
+            <input id='ckbVerifyBarcode' type='checkbox' data-bind="checked:model.editor.verifyBarcode" />
         </div>
         <div class="mui-input-row">
             <label class="leftLabel">备注</label>

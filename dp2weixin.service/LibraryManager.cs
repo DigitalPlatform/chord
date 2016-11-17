@@ -260,6 +260,9 @@ namespace dp2weixin.service
 
         public List<DbCfg> DbList = new List<DbCfg>();
 
+        // 是否校验二维码
+        public bool VerifyBarcode = true;
+
         public DbCfg GetDb(string dbName)
         {
             foreach (DbCfg db in this.DbList)

@@ -172,15 +172,23 @@ namespace dp2weixin
                 parameter = strParam.Substring(nIndex + 1);
             }
 
+            string weixinId = this.WeixinOpenId + "@" + this.AppId;
+
+
             if (function == "tracing")
             {
                 // 先检查该微信用户是否绑定了图书馆的工作人员账号
-                List<WxUserItem> workerList = WxUserDatabase.Current.Get(this.WeixinOpenId,
+
+                List<WxUserItem> workerList = WxUserDatabase.Current.Get(weixinId,
                     null,
                     WxUserDatabase.C_Type_Worker);
                 if (workerList == null || workerList.Count == 0)
                 {
                     GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(this.AppId);
+                    if (gzh == null)
+                    {
+                        return this.CreateTextResponseMessage("未找到" + this.AppId + "对应的公众号配置", false);
+                    }
                     string accountIndex = dp2WeiXinService.Instance.GetOAuth2Url(gzh, "Account/Index");
 
                     return this.CreateTextResponseMessage("您尚未绑定图书馆工作人员账户，不能使用tracing功能。"
@@ -198,15 +206,15 @@ namespace dp2weixin
 
                 if (paramLeft == "off")
                 {
-                    dp2WeiXinService.Instance.TracingOnUsers.Remove(this.WeixinOpenId);
+                    dp2WeiXinService.Instance.TracingOnUsers.Remove(weixinId);
                     string text = "set tracing off 成功，您将不再收到非本人的微信通知。";
                     return this.CreateTextResponseMessage(text);
                 }
                 else if (paramLeft == "on")
                 {
                     TracingOnUser tracingOnUser = new TracingOnUser();
-                    tracingOnUser.WeixinId = this.WeixinOpenId;
-                    tracingOnUser.AppId = this.AppId;
+                    tracingOnUser.WeixinId = weixinId;// this.WeixinOpenId + "@" + this.AppId; //让这个微信id带上@appId
+                    //tracingOnUser.AppId = this.AppId;
 
                     if (paramRight == "-mask")
                         tracingOnUser.IsMask = false;
@@ -226,7 +234,7 @@ namespace dp2weixin
                     }
 
                     // 设到hashtable里
-                    dp2WeiXinService.Instance.TracingOnUsers[this.WeixinOpenId] = tracingOnUser;
+                    dp2WeiXinService.Instance.TracingOnUsers[weixinId] = tracingOnUser;
 
                     string text = "set " + strParam + " 成功，您将会收到本馆的全部微信通知";
                     if (tracingOnUser.IsAdmin == true)
@@ -242,14 +250,14 @@ namespace dp2weixin
                 }
                 else
                 {
-                    if (dp2WeiXinService.Instance.TracingOnUsers[this.WeixinOpenId] == null)
+                    if (dp2WeiXinService.Instance.TracingOnUsers[weixinId] == null)
                     {
                         return this.CreateTextResponseMessage("您当前是 tracing off 状态。");
                     }
                     else
                     {
                         string text = "您当前是 tracing on 状态";
-                        TracingOnUser user = (TracingOnUser)dp2WeiXinService.Instance.TracingOnUsers[this.WeixinOpenId];
+                        TracingOnUser user = (TracingOnUser)dp2WeiXinService.Instance.TracingOnUsers[weixinId];
                         if (user.IsAdmin)
                             text += "，且是数据平台管理员";
 

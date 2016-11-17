@@ -26,6 +26,7 @@
         // 下一步
         var C_next_dothing = "dothing";
         var C_next_receiveBarcode = "receiveBarcode";
+        var C_next_addCmd="addCmd";//2016-11-16 用于借书时，应扫书，却扫了读者，提示完，要进行加载读者事情。
 
         // controlType
         var C_controlType_manual = "manual";
@@ -92,7 +93,7 @@
             // 显示场景+停止按钮
             var scene = "";//getScene();
 
-            html += "<table width='100%;padding-top:0px'><tr>"
+            html += "<table style='width:100%;margin-top:10px'><tr>"
                 + "<td style='width:100%;text-align:center'>"
                 + "<span style='font-size:14.8px'>" + scene + "</span>"
                 + "</td>"
@@ -111,7 +112,7 @@
                 +"<div>"
                 + "</div>";
 
-            var mystyle = "position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white";  // todo style怎么改为class";
+            var mystyle = "position:fixed; left:0; top:0; width:100%; height:100%; border: none;";  //background-color:black;color:white
 
             var bTime = false;
             if (_controlType == C_controlType_manual)
@@ -153,13 +154,14 @@
             //===弹层结束====
 
             // 等待2秒出来stop按钮
-            window.setTimeout("showStop()", 1000 * 2.5);
+            window.setTimeout("showStop()", 1000 * 2);
 
             // 等待2秒出来continue按钮
-            window.setTimeout("showContinue()", 1000 *2.5);
+            window.setTimeout("showContinue()", 1000 *2);
 
         }
 
+        //进入下一步
         function warnNext(next)
         {
 
@@ -180,6 +182,10 @@
             }
             else if (next == C_next_receiveBarcode) {
                 receiveBarcode();
+            }
+            else if(next==C_next_addCmd) //2016-11-16
+            {
+                addCmd();
             }
             else {
                 alert("不认识的下一步命令:" + next);
@@ -320,7 +326,7 @@
                 type: 1
                 , content: html
                 //, anim: 'up'
-                , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'
+                , style: 'position:fixed; left:0; top:0; width:100%; height:100%; border: none;'//background-color:black;color:white
                 , end: function (index) {
                     layer.close(index); //todo
                     addCmd();
@@ -337,7 +343,7 @@
         function addCmd() {
 
             // 图书馆
-            var libId = $("#_libId").text(); //getLibId();
+            var libId = $("#libId").text(); //getLibId();
             if (libId == "" || libId == null) {
                 warn("您尚未选择图书馆。",""); // 下一步停止
                 return;
@@ -390,6 +396,34 @@
                 }
             }
 
+            // 应该输入册条码时，校验
+            if (inputType == C_inputType_item)
+            {
+                // 扫了读者二维码的情况
+                if (item.length > 4 && item.substring(0, 4) == "PQR:")
+                {
+                    //还书时，直接提示，重新输入
+                    if (ope == C_ope_return)
+                    {
+                        warn("还书环境，应扫图书时，您扫了读者二维码，请重新扫入图书。", C_next_receiveBarcode, true);
+                        return;
+                    }
+                    
+                    // 借书时，提示一下，然后加载新的读者。
+                    if (ope == C_ope_borrow)
+                    {
+                        //设到读者输入类型
+                        setInputType(C_inputType_patron);
+                        warn("借书环境，应扫图书时，您扫了读者二维码，将为您加载新读者。", C_next_addCmd, true);
+                        return;
+                    }
+                }
+
+                // 如果校验条码开关打开，则需要进行校验
+                var verifyBarcode = $("#verifyBarcode").text();
+                //alert("校验条码值:"+verifyBarcode);
+            }
+
             ////==跑流程测试用==
             //if (cmdType == "loadPatron") {
             //    setInputType(C_inputType_item);
@@ -401,7 +435,7 @@
 
 
             //登录身份
-            var userName = $("#_userName").text();
+            var userName = $("#userName").text();
             if (userName==null || userName== "") {
                 warn("userName操作人不能不空。", "");
                 return;
@@ -457,6 +491,7 @@
                 }
                 else {
                     img = "<img src='../img/right1.png' style='width:100px;height:100px'  />";
+
                     if (cmd.state == 1 && cmd.type != "loadPatron") {
                         infoStyle = ";background-color:yellow;color:black";
                         isAutoClose = false;
@@ -524,78 +559,99 @@
         }
 
         function showSelectItem(itemList) {
-            var libId = $("#_libId").text();
+            var libId = $("#libId").text();
             var html = "";
 
-            html +="<div id='selItem' style='background-color:white;color:black;border:2px dotted #333333;margin-top:10px;padding:4px;background-color:gray'>"
+            var func = "借";
+            var ope = getOpe();
+            if (ope == C_ope_return)
+                func="还";
+
+
+            html +="<div id='selItem' style='margin-top:10px;padding:4px;'>"
             + "<div style='margin-bottom:5px'>"
-            +"<span style='background-color:#FFD700;font-size:14.8px;font-weight:bold'>"
-            +"请 <span style='color:blue'>单击</span> 选择要<span id='_opeName'>借</span>的册</span>"
+            +"<span style=''>"
+            +"请点击要"+func+"的册</span>"
             +"&nbsp;&nbsp;"
-            + "<span style='text-align:right'><a href='javascript:;' onclick='selectItemOK(null)'>跳过</a></span>"
+            + "<span style='text-align:right'><a href='javascript:;' onclick='selectItemOK(null)'>取消</a></span>"
             +"</div>"
-            +"<div id='items'>";
+            +"<div id='biblio' style='font-size:14px'>";
 
             for (var i = 0; i < itemList.length; i++) {
 
                 var item = itemList[i];
                 var myClass = "";
-                if (item.isGray == true)
-                    myClass += " item-gray ";
+                if (item.isGray == true) {
+                    myClass = " background-color: #Eeeeee;color:#aaaaaa";
+                    //alert(myClass);
+                }
 
-                html += "<div class='mui-card " + myClass + "' style='padding:0px;margin:0px;margin-bottom:10px;' id='item-" + item.barcode + "' onclick='selectItemOK(this)' >"
-                    + "<table class='item' >"
-            + "<tbody>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>册条码号</td>"
-                    + "<td class='value'>" + item.pureBarcode + "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>状态</td>"
-                    + "<td class='value'>" + item.state + "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>在借情况</td>"
+                
+                html += "<div class='mui-card item'  id='item-" + item.barcode + "' onclick='selectItemOK(this)' >"
+                    + "<table style='" + myClass + "'>"
+                        + "<tr>"
+                            + "<td class='label'>册条码号</td>"
+                            + "<td class='title'>" + item.pureBarcode + "</td>"
+                        + "</tr>";
+
+                
+                if (item.state != null && item.state != "") {
+                    html += "<tr>"
+                        + "<td class='label'>状态</td>"
+                        + "<td class='value'>" + item.state + "</td>"
+                    + "</tr>";
+                }
+
+                
+                if (item.volume != null && item.volume != "") {
+                    html += "<tr>"
+                                    + "<td class='label'>卷册</td>"
+                                    + "<td class='value'>" + item.volume + "</td>"
+                                + "</tr>";
+                }
+                
+                html += "<tr>"
+                                + "<td class='label'>馆藏地</td>"
+                                + "<td class='value'>" + item.location + "</td>"
+                            + "</tr>";
+
+                //accessNo
+               
+                html += "<tr>"
+                                + "<td class='label'>索取号</td>"
+                                + "<td class='value'>" + item.accessNo + "</td>"
+                            + "</tr>";
+
+
+                html += "<tr>"
+                    + "<td class='label'>价格</td>"
+                    + "<td class='value'>" + item.price + "</td>"
+                + "</tr>";
+
+                html += "<tr>"
+                    + "<td class='label'>在借情况</td>"
                     + "<td class='borrowInfo'>" + item.borrowInfo + "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>书目摘要</td>"
-                    + "<td class='value'>";
+                + "</tr>";
+               
 
-                html += "<div  class='summary pending' style='padding-bottom:4px'>"
+                html += "<tr>"
+                    + "<td class='label'>书目摘要</td>"
+                    + "<td class='value'>"
+                    + "<div  class='summary pending' style='padding-bottom:4px'>"
                                        + "<label>bs-" + item.pureBarcode + "</label>"
                                        + "<img src='../img/wait2.gif' />"
                                        + "<span>" + libId + "</span>"
-                                   + "</div>";
-
-                html += "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>卷册</td>"
-                    + "<td class='value'>" + item.volume + "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>馆藏地</td>"
-                    + "<td class='value'>" + item.location + "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>价格</td>"
-                    + "<td class='value'>" + item.price + "</td>"
-                + "</tr>"
-                + "<tr>"
-                    + "<td class='first'></td>"
-                    + "<td class='name'>册记录路径</td>"
+                                   + "</div>"
+                    + "</td>"
+                + "</tr>";
+                
+                html += "<tr>"
+                    + "<td class='label'>册路径</td>"
                    + "<td class='value'>" + item.recPath + "</td>"
-                + "</tr>"
-            + "</tbody>"
-        + "</table>"
+                + "</tr>";
+                
+                //收尾
+                html +=  "</table>"
                 + "</div>";
             }
 
@@ -607,7 +663,7 @@
                 type: 1
                 , content: html
                 //, anim: 'up'
-                , style: 'overflow:scroll;position:fixed; left:0; top:0; width:100%; height:100%; border: none;background-color:black;color:white'
+                , style: 'overflow:scroll;position:fixed; left:0; top:0; width:100%; height:100%; border: none;' //background-color:black;color:white
                 //, end: function (index) {
                 //    //layer.close(index); //todo 是否需要关闭
 
@@ -644,7 +700,7 @@
         function getAllCmd() {
 
             // 图书馆
-            var libId = $("#_libId").text();
+            var libId = $("#libId").text();
             if (libId == "" || libId == null) {
                 alert("您尚未选择图书馆。");
                 return;
@@ -707,7 +763,7 @@
 
             var actionName = "";
             if (_from == C_from_scan)
-                actionName = "扫";
+                actionName = "扫入";
             else
                 actionName = "输入";
 
@@ -715,10 +771,17 @@
 
             var inputType = getInputType();
             if (inputType == C_inputType_patron) {
-                desc = left+ " 读者证条码号...";
+                desc = left+ " 读者...";
             }
             else if (inputType == C_inputType_item) {
-                desc = left+ " 册条码号...";
+                var func = "";
+                var ope = getOpe();
+                if (ope == C_ope_borrow)
+                    func = "要借的";
+                else
+                    func = "要还的";
+
+                desc = left+ " "+func+"书...";
             }
             else {
                 desc = left + " 不知道！！！";
@@ -826,7 +889,7 @@
             if ($("#mypage").css("display") == "none")
                 return;
 
-            //$("#mybody").css("background-color", "black");
+            $("#mybody").css("background-color", "white");
             $("#mypage").css("display", "none");
         }
 
@@ -834,6 +897,7 @@
 
         // checkbox设置条码来源方式
         function setFrom() {
+            /*
             _from = 1;
             var val = $('input:radio[name="from"]:checked').val();
             if (val == null) {
@@ -841,6 +905,9 @@
                 val = 1;
             }
             _from = val;
+            */
+
+            _from = $("#from").val();
         }
 
         function setControlType() {
@@ -848,21 +915,21 @@
         }
 
 
-        function showBackground() {
+        //function showBackground() {
 
-            var background = $("#my-background");
+        //    var background = $("#my-background");
 
-            // 设背景高度
-            var docHeight = $(document).height();
-            $(background).css("height", docHeight);
+        //    // 设背景高度
+        //    var docHeight = $(document).height();
+        //    $(background).css("height", docHeight);
 
-            background.show();
-        }
+        //    background.show();
+        //}
 
-        function hideBackground() {
-            var bg = $("#my-background");
-            bg.hide();
-        }
+        //function hideBackground() {
+        //    var bg = $("#my-background");
+        //    bg.hide();
+        //}
 
         //====================
     </script>
@@ -870,7 +937,7 @@
 
 @section style {
 
-    <link href="@Url.Content("~/Content/charge.css?a=1")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/biblio.css?a=1")" rel="stylesheet">
     <link href="@Url.Content("~/Content/patron.css?a=1")" rel="stylesheet">
     <style>
         TABLE.chargeform {
@@ -909,7 +976,9 @@
             display: block;
             position: absolute;
             top: 100px;
-            margin:10px;
+            padding:10px;
+            padding-right:15px;
+            width:100%;
 
             z-index: 2001;
             text-align: left;
@@ -944,9 +1013,9 @@
 
         /*册左侧标题td*/
         DIV.cmd TABLE TR TD.label {
-            width: 65px;
-            max-width: 65px;
-            min-width: 65px;
+            width: 75px;
+            max-width: 75px;
+            min-width:75px;
             background-color: #ffffff;
             color: #999999;
             padding-right: 2px;
@@ -976,7 +1045,7 @@
         }
 
         DIV.cmd TABLE TR TD .name {
-            padding-left:5px;
+            
             font-size:16px;
             font-weight:bold;
         }
@@ -990,26 +1059,84 @@
             color:red;
         }
 
-        DIV.cmd TABLE TR TD .success {
+        DIV.cmd TABLE TR TD.success {
             padding-left: 5px;
             color:darkgreen;
         }
 
-        DIV.cmd TABLE TR TD .warn {
+        DIV.cmd TABLE TR TD.warn {
             padding-left: 5px;
             background-color:yellow;
         }
         /*===========*/
+
+/*===命令显示新格式=======*/
+       DIV.cmd  .line{
+            padding-left:5px;
+        }
+
+        DIV.cmd .line .success {
+            color:darkgreen;
+        }
+
+        DIV.cmd .line .error {
+            color:red;
+        }
+
+        DIV.cmd .line  .warn {
+            padding-left: 5px;
+            background-color:yellow;
+        }
+
+       DIV.cmd .line  .patronName{
+            font-size:16px;
+            font-weight:bold;
+        }
+
+        DIV.cmd .line .patronBarcode{
+            color:gray;
+        }
+
+        DIV.cmd .line .department{
+            color:gray;
+        }
+
+        DIV.cmd .line  .itemBarcode{
+            font-size:14px;
+            font-weight:bold;
+        }
+
+        DIV.cmd .line  .summary{
+                        padding-left: 5px;
+
+            color:gray;
+        }
+
+        DIV.cmd .line .time {
+            color:#cccccc;            
+        }
+
+           .split {
+               margin-top:10px;
+               height:1px;
+                width:100%;
+                
+                border-top:3px dotted #CCCC33;
+                
+            }
+
+
+        /*===========*/
     </style>
 }
 
-<div id="my-background" style="display: none; background-color:black"></div>
+<!--<div id="my-background" style="display: none; background-color:black"></div>-->
 
 
 <span id="weixinId" style="display:none">@ViewBag.weixinId</span>
-<span id="_libId" style="display:none">@ViewBag.LibId</span>
-<span id="_userName" style="display:none">@ViewBag.userName</span>
-
+<span id="libId" style="display:none">@ViewBag.LibId</span>
+<span id="userName" style="display:none">@ViewBag.userName</span>
+<span id="verifyBarcode" style="display:none">@ViewBag.verifyBarcode</span>
 
 <input id="_charge_operation" type="hidden" value="">
 <input id="_charge_inputType" type="hidden" value="">
@@ -1035,22 +1162,23 @@ else
     else
     {
         <div id="mypage" >
-            <div style="padding:10px">
+            <div style="padding:10px;padding-bottom:0px;">
                 <button class="mui-btn mui-btn-block" onclick="start('borrow')">开始借书</button>
                 <button class="mui-btn mui-btn-block" onclick="start('return')">开始还书</button>
 
+                <!--
                 <div >
-                    <table style="width:100%; color:white;margin-top:5px">
+                    <table style="width:100%; color:black;margin-top:5px">
                         <tr>
-                            <td style="width:80px;color:gray">输入方式</td>
+                            <td style="width:80px;color:gray">扫码方式：</td>
                             <td>
-                                <input name="from" type="radio" value="1" checked onchange="setFrom()" style="width:25px;height:25px">扫码
+                                <input name="from" type="radio" value="1" checked onchange="setFrom()" style="width:25px;height:25px">摄像头
                                 &nbsp;
-                                <input name="from" type="radio" value="2" onchange="setFrom()" style="width:25px;height:25px">输入框
+                                <input name="from" type="radio" value="2" onchange="setFrom()" style="width:25px;height:25px">键盘输入
                             </td>
                         </tr>
                         <tr>
-                            <td style="width:86px;color:gray">流程控制方式</td>
+                            <td style="width:86px;color:gray">流程风格</td>
                             <td>
                                 <select id="controlType" style="color:black;padding:5px" onchange="setControlType()">
                                     <option value="manual">手动</option>
@@ -1061,13 +1189,31 @@ else
                         </tr>
                     </table>
                 </div>
-            </div>
 
-            <div id="cmdContainer" class="mui-content-padded" style="display:none">
-                <h4><span style="color:#cccccc">操作历史</span></h4>
-                <div id="cmds"></div>
+                    -->
             </div>
-
-        </div>
+            <div style="background-color:white;margin-left:10px;margin-right:10px;margin-top:0px">
+                <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
+                    <label style="color:#cccccc">扫码方式</label>
+                    <select id="from" style="background-color:transparent" onchange="setFrom()">
+                        <option value="1">摄像头</option>
+                        <option value="2">键盘输入</option>
+                    </select>
+                </div>
+                <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
+                    <label style="color:#cccccc">流程风格</label>
+                    <select id="controlType" style="background-color:transparent" onchange="setControlType()">
+                        <option value="manual">手动</option>
+                        <option value="manualAuto" selected="">有条件的自动</option>
+                        <option value="auto">完全自动</option>
+                    </select>
+                </div>
+               </div>
+            
+                <div id="cmdContainer" class="mui-content-padded" style="display:none">
+                    <h4><span style="color:#cccccc">操作历史</span></h4>
+                    <div id="cmds"></div>
+                </div>
+            </div>
     }
 }

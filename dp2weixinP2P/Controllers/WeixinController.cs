@@ -54,9 +54,20 @@ namespace dp2weixinWeb.Controllers
         [ActionName("Index")]
         public ActionResult Get(PostModel postModel, string echostr)
         {
-            GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
+            GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetDefault();
+            if (string.IsNullOrEmpty(postModel.AppId) == false)
+            {
+                gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
+                dp2WeiXinService.Instance.WriteErrorLog1("惊喜Get中有appId=" + postModel.AppId);
+
+            }
+            //GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
             if (gzh == null)
-                throw new Exception("未对到对应的公众号配置信息");
+            {
+                string tempError = "Get未找到公众号[" + postModel.AppId + "]的配置信息。";
+                dp2WeiXinService.Instance.WriteErrorLog1(tempError);
+                return new WeixinResult(tempError);
+            }
 
             if (CheckSignature.Check(postModel.Signature, 
                 postModel.Timestamp, 
@@ -81,15 +92,30 @@ namespace dp2weixinWeb.Controllers
         [ActionName("Index")]
         public ActionResult Post(PostModel postModel)
         {
-            // 本机调试注掉
-            //if (!CheckSignature.Check(postModel.Signature, postModel.Timestamp, postModel.Nonce, dp2WeiXinService.Instance.weixin_Token))
-            //{
-            //    return Content("参数错误！");
-            //}
+            GzhCfg gzh=dp2WeiXinService.Instance.gzhContainer.GetDefault();
+            if (string.IsNullOrEmpty(postModel.AppId) == false)
+            { 
+                gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
+                dp2WeiXinService.Instance.WriteErrorLog1("惊喜post中有appId=" + postModel.AppId);
+            }
 
-            GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
             if (gzh == null)
-                throw new Exception("未对到对应的公众号配置信息");
+            {
+                string tempError = "Post未找到公众号[" + postModel.AppId + "]的配置信息。";
+                dp2WeiXinService.Instance.WriteErrorLog1(tempError);
+                return new WeixinResult(tempError);
+            }
+
+            // 本机调试注掉
+            if (!CheckSignature.Check(postModel.Signature, postModel.Timestamp, postModel.Nonce, gzh.token))
+            {
+                return Content("参数错误！");
+            }
+
+            //string appId = dp2WeiXinService.Instance.gzhContainer.GetDefault().appId;
+            //postModel.AppId = appId;
+
+
 
             // 开始时间
             DateTime start_time = DateTime.Now;
@@ -134,11 +160,12 @@ namespace dp2weixinWeb.Controllers
                 //执行微信处理过程
                 messageHandler.Execute();
 
-                ////测试时可开启，帮助跟踪数据
+                //////测试时可开启，帮助跟踪数据
                 //if (messageHandler.ResponseDocument != null)
                 //{
-                //    tempPath = Path.Combine(logToday, string.Format("{0}_Response_{1}.txt", id, messageHandler.RequestMessage.FromUserName));
-                //    messageHandler.ResponseDocument.Save(tempPath);
+                //    //tempPath = Path.Combine(logToday, string.Format("{0}_Response_{1}.txt", id, messageHandler.RequestMessage.FromUserName));
+                //    string path = dp2WeiXinService.Instance.weiXinDataDir+"/test.txt";
+                //    messageHandler.ResponseDocument.Save(path);
                 //}
                 //if (messageHandler.UsingEcryptMessage)
                 //{
@@ -152,6 +179,8 @@ namespace dp2weixinWeb.Controllers
                 
                 // 测试异常
                 //throw new Exception("test");
+
+
 
                 // 计算处理消息用了多少时间
                 TimeSpan time_length = DateTime.Now - start_time;

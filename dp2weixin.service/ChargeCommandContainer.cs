@@ -37,6 +37,7 @@ namespace dp2weixin.service
 
             // 其它错误信息
             string otherError = "";
+            string biblioName = "";
 
 
             string outPatronBarcode = cmd.patronBarcode;
@@ -61,6 +62,8 @@ namespace dp2weixin.service
                 {
                     cmdRet = -1;
                 }
+
+
                 goto END1;
             }
 
@@ -105,8 +108,27 @@ namespace dp2weixin.service
                     cmd.patronBarcode,
                     cmd.itemBarcode,
                     out outPatronBarcode,
+                    out patronXml,
                     out resultInfo,
-                    out cmdError);   
+                    out cmdError);
+
+                // 借书失败时，也要取一下读者记录，因为读者信息还是要显示的
+                if (string.IsNullOrEmpty(patronXml) == true)
+                {
+                    // 取一下读者记录
+                    int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                        cmd.userName,
+                        false,
+                        outPatronBarcode,
+                        "xml",
+                        out patronRecPath,
+                        out patronXml,
+                        out otherError);
+                    if (nRet == -1 || nRet == 0)
+                    {
+                        //命令成功的，但加载读者不成功，一般这种情况不可能有
+                    }
+                }
             }
             else if (cmd.type == ChargeCommand.C_Command_Return) // 还书
             {
@@ -117,26 +139,31 @@ namespace dp2weixin.service
                     cmd.patronBarcode,
                     cmd.itemBarcode,
                     out outPatronBarcode,
+                    out patronXml,
                     out resultInfo,
                     out cmdError);               
             }
 
-             if (cmdRet == 1 || cmdRet==0 || cmd.type==ChargeCommand.C_Command_Borrow)
+            // 根据item barcode取书名
+             if (cmd.state !=-1 && cmd.type != ChargeCommand.C_Command_LoadPatron)
              {
-                 // 取一下读者记录
-                 int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
-                     cmd.userName,
-                     false,
-                     outPatronBarcode,
-                     "advancexml",
-                     out patronRecPath,
-                     out patronXml,
-                     out otherError);
-                 if (nRet == -1 || nRet == 0) 
+                 string summary = "";
+                 string recPath = "";
+                 LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
+                 int nRet = dp2WeiXinService.Instance.GetBiblioSummary(lib, cmd.itemBarcode,
+                    "",
+                    out summary,
+                    out recPath,
+                    out otherError);
+                 if (nRet == -1)
                  {
-                     //命令成功的，但加载读者不成功，一般这种情况不可能有
+                     //出错信息会加起来
                  }
 
+                 if (string.IsNullOrEmpty(summary) == false)
+                 {
+                     biblioName = dp2WeiXinService.Instance.GetShortSummary(summary);
+                 }
              }
 
 END1:
@@ -181,15 +208,37 @@ END1:
 
             cmd.typeString = cmd.getTypeString(cmd.type);
             cmd.resultInfo = cmd.GetResultInfo();
-            if (cmd.type == ChargeCommand.C_Command_LoadPatron && patron!=null)
+            if (cmd.type == ChargeCommand.C_Command_LoadPatron && patron != null)
             {
                 cmd.resultInfo = "<span style='font-size:20pt'>" + patron.name + "</span>";
                 if (String.IsNullOrEmpty(patron.department) == false)
                     cmd.resultInfo += "(" + patron.department + ")";
             }
+            else
+            {
+                if (cmd.state != -1)
+                {
+                    if (cmd.type == ChargeCommand.C_Command_Borrow)
+                    {
+                        cmd.resultInfo = biblioName;
+                    }
+                    else if (cmd.type == ChargeCommand.C_Command_Return )
+                    {
+                        cmd.resultInfo = biblioName;
+                        if (patron != null)
+                            cmd.resultInfo += "<br/><span style='font-size:20pt'>" + patron.name+"</span>";
+                    }
+
+                     //有提示信息
+                    if (String.IsNullOrEmpty(cmd.errorInfo) == false && cmd.errorInfo !="还书操作成功。")
+                    {
+                        cmd.resultInfo += "<br/>"+cmd.errorInfo;
+                    }
+                }
+            }
      
             // 得到命令html
-            string cmdHtml = this.GetCmdHtml2(libId,cmd,patron);//.GetCmdHtml(libId, cmd, patron, otherError);
+            string cmdHtml = this.GetCmdHtml3(libId,cmd,patron);//.GetCmdHtml(libId, cmd, patron, otherError);
             cmd.cmdHtml = cmdHtml;
 
             // 加到集合里
@@ -198,6 +247,89 @@ END1:
             return cmd;
         }
 
+
+        public string GetCmdHtml3(string libId, ChargeCommand cmd, Patron patron)
+        {
+            string html = "";
+           // stepInfo = "";
+
+            string img = "";
+            string retClass = "success";
+            string retInfo = cmd.typeString + "成功。";
+            if (cmd.state == -1)
+            {
+                img = "<img src='../img/charge_error_24.png'>";
+                retClass = "error";
+                retInfo = cmd.typeString + "失败。";
+            }
+            else if (cmd.state == 1 && cmd.type != ChargeCommand.C_Command_LoadPatron) //成功但有提示
+            {
+                retClass = "warn";
+            }
+            //有提示信息
+            if (String.IsNullOrEmpty(cmd.errorInfo) == false)
+            {
+                if (cmd.type == ChargeCommand.C_Command_Return)
+                    retInfo = cmd.errorInfo;
+                else
+                    retInfo += cmd.errorInfo;
+            }
+
+            //开关
+            html += "<div class='mui-card cmd'>";
+            // 前方的提示
+            html += "<div class='line'>"
+                + img
+                + "<span class='" + retClass + "'>" + retInfo + "</span>"
+            + "</div>";
+
+            //读者信息
+            if (patron != null)
+            {
+                string dept = "";
+                if (String.IsNullOrEmpty(patron.department) == false)
+                    dept = "<span class='department'>(" + patron.department + ")</span>";
+
+                html += "<div class='line'>"
+                    + "<span class='patronName'>" + patron.name + "</span> <span class='patronBarcode'>" + patron.barcode + "</span>" + dept
+                + "</div>";
+            }
+
+            // 册信息
+            if (cmd.type != ChargeCommand.C_Command_LoadPatron)
+            {
+                string pending = "<span  class='pending summary ' style='padding-bottom:4px'>"
+                           + "<label>bs-" + cmd.itemBarcode + "</label>"
+                           + "<img src='../img/loading.gif' />"
+                           + "<span>" + libId + "</span>"
+                       + "</span>";
+
+                html += "<div class='line'>"
+                        + "<span class='itemBarcode'>" + cmd.itemBarcode + "</span>" + pending
+                    + "</div>";
+            }
+
+            //操作时间
+            html += "<div class='line'>"
+                + "<span class='time'>" + cmd.operTime + "</span>"
+            + "</div>";
+
+            //结尾
+            html += "</div>";
+
+            // 跟上一个读者进行比较，决定是否加分隔线
+            if (this.Count > 0)
+            {
+                ChargeCommand lastCmd = this[this.Count - 1];
+                if (lastCmd.patronBarcode != cmd.patronBarcode)
+                {
+                    html += "<div class='split'>";
+                }
+            }
+
+
+            return html;
+        }
 
 
         public string GetCmdHtml2(string libId,ChargeCommand cmd,Patron patron)
@@ -232,16 +364,27 @@ END1:
                     + "<table>";
 
             // 前方的提示
-            html += "<tr>"
-                            + "<td colspan='2'>"
-                                + "<table>"
-                                    + "<tr>"
-                                        + "<td style='width:50px;padding-left:5px;'><img src='../img/" + img + "' /></td>"
-                                        + "<td style='width:100%' class='" + retClass + "'>" + retInfo + "</td>"
-                                    + "</tr>"
-                                + "</table>"
-                            + "</td>"
-                        + "</tr>";
+            if (cmd.state == -1)
+            {
+                html += "<tr>"
+                                + "<td colspan='2'>"
+                                    + "<table>"
+                                        + "<tr>"
+                                            + "<td style='width:50px;padding-left:5px;'><img src='../img/" + img + "' /></td>"
+                                            + "<td style='width:100%' class='" + retClass + "'>" + retInfo + "</td>"
+                                        + "</tr>"
+                                    + "</table>"
+                                + "</td>"
+                            + "</tr>";
+            }
+            else
+            {
+                html += "<tr>"
+                    + "<td colspan='2' class='" + retClass + "'>"
+                     + retInfo
+                    + "</td>"
+                + "</tr>";
+            }
 
             //读者信息
             if (patron != null)

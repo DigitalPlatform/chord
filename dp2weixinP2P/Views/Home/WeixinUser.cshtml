@@ -181,6 +181,48 @@
         }
 
 
+
+        // 恢复用户
+        function addAppId() {
+            //alert("test");
+
+            var gnl = confirm("你确认操作吗？");
+            if (gnl == false) {
+                return false;
+            }
+
+            //显示等待图层
+            //var index = loadLayer();
+            showLoading();
+
+            // 先删除可观察数组中的已有数据
+            model.wxUsers.removeAll();
+
+            // 调web api
+            var url = "/api/wxuser?actionType=addAppId";
+            sendAjaxRequest(url, "POST", function (result) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideLoading();
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                alert("操作完成");
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideLoading();
+
+                alert(errorThrown);
+            });
+        }
+
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
@@ -204,6 +246,10 @@
     <div class="mui-content-padded">
         <button class="mui-btn mui-btn-block mui-btn-primary" onclick="recoveUser()">
             从服务器恢复本地微信用户库
+        </button>
+
+        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="addAppId()">
+            增加appid
         </button>
     </div>
 

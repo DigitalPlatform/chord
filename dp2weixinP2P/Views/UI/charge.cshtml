@@ -186,6 +186,7 @@ TABLE.borderTable {
 
         DIV.cmd TABLE TR TD.time {
             color:gray;
+            
         }
 
         DIV.cmd TABLE TR TD.itemBarcode {
@@ -220,7 +221,47 @@ TABLE.borderTable {
         /*===========*/
 
 
+        /*===命令显示新格式=======*/
+       DIV.cmd  .line{
+            padding-left:5px;
+        }
 
+        DIV.cmd .line .success {
+            color:green;
+        }
+
+        DIV.cmd .line .error {
+            color:red;
+        }
+
+        DIV.cmd .line  .warn {
+            padding-left: 5px;
+            background-color:yellow;
+        }
+
+       DIV.cmd .line  .patronName{
+            font-size:16px;
+            font-weight:bold;
+        }
+
+        DIV.cmd .line .patronBarcode{
+            color:gray;
+        }
+
+        DIV.cmd .line  .itemBarcode{
+            font-size:14px;
+            font-weight:bold;
+        }
+
+        DIV.cmd .line  .summary{
+            color:gray;
+        }
+
+        DIV.cmd .line .time {
+            color:#cccccc;            
+        }
+
+        /*===========*/
     </style>
 }
 
@@ -236,7 +277,123 @@ TABLE.borderTable {
 
     </script>
 }
+
+<hr style="border:1px dotted blue" />
+
+<div class="mui-content-padded" id="cmdContainer" style="display: block;">
+    <h4><span style="color: rgb(204, 204, 204);">操作历史</span></h4>
+    <div id='cmds'>
+        <div class='mui-card cmd'>
+            <div class='line'>
+                <img src='../img/charge_error_24.png'>
+                <span class='warn'>借书失败。借阅操作被拒绝。读者 'R0000001' 早先已经借阅了册 '0000001' 。(读者记录中已存在对应的元素)</span>
+            </div>
+            <div class='line'>
+                <span class='patronName'>任1</span> <span class='patronBarcode'>R0000001</span>
+            </div>
+            <div class='line'>
+                <span class='itemBarcode'>0000001</span> <span class='summary'>首都图书馆古籍普查登记目录 [专著]  ; 首都图书馆编. -- ISBN 978-7-50</span>
+            </div>
+            <div class='line'>
+                <span class='time'>2016-11-15 16:46:15</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="mypage" style="display: block;">
+    <div style="padding: 10px;">
+        <button class="mui-btn mui-btn-block" onclick="start('borrow')">开始借书</button>
+        <button class="mui-btn mui-btn-block" onclick="start('return')">开始还书</button>
+        <div>
+            <table style="width: 100%; color: black; margin-top: 5px;">
+                <tbody>
+                    <tr>
+                        <td style="width: 80px; color: gray;">扫码方式：</td>
+                        <td>
+                            <input name="from" style="width: 25px; height: 25px;" onchange="setFrom()" type="radio" checked="" value="1">摄像头
+                            &nbsp;
+                            <input name="from" style="width: 25px; height: 25px;" onchange="setFrom()" type="radio" value="2">键盘输入
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+            <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
+                <label style="color:#cccccc">扫码方式</label>
+                <select id="from" style="background-color:transparent" onchange="setFrom()">
+                    <option value="1">摄像头</option>
+                    <option value="2">键盘输入</option>
+                </select>
+            </div>
+            <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
+                <label style="color:#cccccc">流程风格</label>
+                <select id="controlType" style="padding: 5px; color: black;" onchange="setControlType()">
+                    <option value="manual">手动</option>
+                    <option value="manualAuto" selected="">有条件的自动</option>
+                    <option value="auto">完全自动</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="mui-content-padded" id="cmdContainer" style="display: block;">
+        <h4><span style="color: rgb(204, 204, 204);">操作历史</span></h4>
+        <div id="cmds">
+            <div class="mui-card cmd">
+
+
+                <table>
+                    <tbody>
+                        <tr>
+                            <td colspan="2">
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <td style="width: 50px; padding-left: 5px;">
+                                                <img src="../img/charge_error_24.png">
+                                            </td>
+                                            <td class="error" style="width: 100%;">借书失败。借阅操作被拒绝。读者 'R0000001' 早先已经借阅了册 '0000001' 。(读者记录中已存在对应的<borrow>元素)</borrow></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr><td class="patronBarcode">R0000001</td><td class="value"><span class="name">任1</span></td></tr>
+                        <tr><td class="itemBarcode">0000001</td><td class="value"><div style="padding-bottom: 4px;">首都图书馆古籍普查登记目录 [专著]  ; 首都图书馆编. -- ISBN 978-7-5013-5526-6 (精装 ) : CNY1,160.00（全四册）</div></td></tr>
+                        <tr><td class="label">操作时间</td><td class="time">2016-11-15 16:46:15</td></tr>
+                    </tbody>
+                </table>
+            </div><div class="mui-card cmd">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td class="success" colspan="2">加载读者R0000001成功。</td>
+                        </tr>
+                        <tr>
+                            <td class="patronBarcode">R0000001</td>
+                            <td class="value">
+                                <span class="name">任1</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label">操作时间</td>
+                            <td class="time">2016-11-15 16:45:44</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mui-card cmd"><table><tbody><tr><td colspan="2"><table><tbody><tr><td style="width: 50px; padding-left: 5px;"><img src="../img/charge_error_24.png"></td><td class="error" style="width: 100%;">加载读者sdasf失败。没有找到</td></tr></tbody></table></td></tr><tr><td class="label">操作时间</td><td class="time">2016-11-15 16:43:54</td></tr></tbody></table></div>
+        </div>
+    </div>
+</div>
+
+
 <div >
+
+
+
+
 
     <div class='mui-card cmd'>
         <table>

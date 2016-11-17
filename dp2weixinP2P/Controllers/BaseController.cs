@@ -103,7 +103,7 @@ namespace dp2weixinWeb.Controllers
             string clickEvent = "";
             if (bFull == true)
             {
-                width = "width: 100%;margin-bottom:0px;padding:0px";
+                //width = " width:75%;font-size:14px;"; //"width: 90%;margin-bottom:0px;padding:0px";
                 clickEvent = " onchange='save()' ";
             }
 
@@ -130,8 +130,14 @@ namespace dp2weixinWeb.Controllers
             strError = "";
 
             SessionInfo sessionInfo = this.GetSessionInfo();
+            if (sessionInfo == null)
+            {
+                //string libHomeUrl = dp2WeiXinService.Instance.GetOAuth2Url(sessionInfo.gzh, "Library/Home");
+                strError = "页面超时，请从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
+                return -1;
+            }
             string weixinId = "";
-            GzhCfg gzh = null;
+            GzhCfg gzh = sessionInfo.gzh;
 
             // 从微信进入的            
             if (string.IsNullOrEmpty(code) == false)
@@ -163,15 +169,22 @@ namespace dp2weixinWeb.Controllers
                 }
             }
 
-            // 检查session是否超时
-            if (sessionInfo == null || String.IsNullOrEmpty(sessionInfo.weixinId)==true)
-            {
-                string libHomeUrl = dp2WeiXinService.Instance.GetOAuth2Url(sessionInfo.gzh, "Library/Home");
-                strError = "页面超时，请点击<a href='" + libHomeUrl + "'>这里</a>或者从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
-                return -1;
-            }
+            //// 检查session是否超时
+            //if (String.IsNullOrEmpty(sessionInfo.weixinId)==true)
+            //{
+            //    string libHomeUrl = dp2WeiXinService.Instance.GetOAuth2Url(sessionInfo.gzh, "Library/Home");
+            //    strError = "页面超时，请点击<a href='" + libHomeUrl + "'>这里</a>或者从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
+            //    return -1;
+            //}
+
+
 
             gzh = sessionInfo.gzh;//重新赋值一下
+            if (gzh == null)
+            {
+                strError = "未找到公众号配置信息";
+                return -1;
+            }
             ViewBag.AppName = sessionInfo.gzh.appNameCN;
             weixinId = sessionInfo.weixinId;
             ViewBag.weixinId = weixinId; // 存在ViewBag里，省得使用的页面每次从session中取
