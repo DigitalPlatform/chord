@@ -762,6 +762,13 @@ namespace dp2Capo
                             param.Item,
                             out strError);
                     }
+                    else if (param.Operation == "verifyBarcode")
+                    {
+                        lRet = channel.VerifyBarcode(
+                            param.Item,
+                            param.Patron,
+                            out strError);
+                    }
                     else
                     {
                         strError = "无法识别的 Operation 值 '" + param.Operation + "'";

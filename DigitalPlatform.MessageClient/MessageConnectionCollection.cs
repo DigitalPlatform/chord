@@ -27,13 +27,83 @@ namespace DigitalPlatform.MessageClient
         public event AddMessageEventHandler AddMessage = null;
         public event ConnectionEventHandler ConnectionStateChange = null;
 
+        public int Count
+        {
+            get
+            {
+                if (_connections == null)
+                    return 0;
+                return _connections.Count;
+            }
+        }
+
+        public void ReturnConnection(MessageConnection connection)
+        {
+            connection.UseCount--;
+            if (connection.UseCount < 0)
+                throw new Exception("发生了 GetConnection() 和 ReturnConnection() 调用次数不配套的错误，UseCount 小于 0 了");
+        }
+
+        // 从集合中寻找一条已有的通道，或者创建一条新通道
+        MessageConnection PeekConnection(string url,
+            string strName,
+            bool incUseCount,
+            out bool newCreate)
+        {
+            newCreate = false;
+            MessageConnection connection = null;
+            this._lock.EnterUpgradeableReadLock();
+            try
+            {
+                foreach (MessageConnection current_connection in _connections)
+                {
+                    if (current_connection.ServerUrl == url
+                        && current_connection.Name == strName
+                        && (incUseCount == false || current_connection.UseCount == 0))  // 只有 inUseCount == true 时才要求 .UseCount == 0 入选
+                    {
+                        connection = current_connection;
+                        connection.LastTime = DateTime.Now;
+                        if (incUseCount)
+                            connection.UseCount++;
+                        return connection;
+                    }
+                }
+
+                connection = new MessageConnection();
+                connection.ServerUrl = url;
+                connection.Name = strName;
+                connection.LastTime = DateTime.Now;
+                connection.Container = this;
+                this._lock.EnterWriteLock();
+                try
+                {
+                    this._connections.Add(connection);
+                    newCreate = true;
+                    if (incUseCount)
+                        connection.UseCount++;
+                    return connection;
+                }
+                finally
+                {
+                    this._lock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                this._lock.ExitUpgradeableReadLock();
+            }
+        }
+
         // parameters:
         //      strName 连接的名字。如果要针对同一 dp2mserver 使用多根连接，可以用名字区分它们。如果不想区分，可以使用空
         public Task<MessageConnection> GetConnectionTaskAsync(string url,
     string strName,
-    bool autoConnect = true)
+    bool autoConnect = true,
+            bool incUseCount = false)
         {
             MessageConnection connection = null;
+
+#if NO
             this._lock.EnterUpgradeableReadLock();
             try
             {
@@ -66,11 +136,20 @@ namespace DigitalPlatform.MessageClient
             {
                 this._lock.ExitUpgradeableReadLock();
             }
+#endif
+            bool newCreate = false;
+            connection = PeekConnection(url,
+            strName,
+            incUseCount,
+            out newCreate);
 
-            // 触发 Created 事件
-            this.TriggerCreated(connection, new ConnectionCreatedEventArgs());
+            if (newCreate == true)
+            {
+                // 触发 Created 事件
+                this.TriggerCreated(connection, new ConnectionCreatedEventArgs());
+            }
 
-        FOUND:
+        // FOUND:
 #if NO
             LoginEventArgs e = new LoginEventArgs();
             e.ServerUrl = url;
@@ -138,10 +217,13 @@ bool autoConnect = true)
 #endif
 
         public async Task<MessageConnection> GetConnectionAsyncLite(string url,
-string strName,
-bool autoConnect = true)
+            string strName,
+            bool autoConnect = true,
+            bool incUseCount = false)
         {
             MessageConnection connection = null;
+
+#if NO
             this._lock.EnterUpgradeableReadLock();
             try
             {
@@ -174,11 +256,20 @@ bool autoConnect = true)
             {
                 this._lock.ExitUpgradeableReadLock();
             }
+#endif
+            bool newCreate = false;
+            connection = PeekConnection(url,
+            strName,
+            incUseCount,
+            out newCreate);
 
-            // 触发 Created 事件
-            this.TriggerCreated(connection, new ConnectionCreatedEventArgs());
+            if (newCreate == true)
+            {
+                // 触发 Created 事件
+                this.TriggerCreated(connection, new ConnectionCreatedEventArgs());
+            }
 
-        FOUND:
+        // FOUND:
             if (autoConnect && connection.ConnectState == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
             {
                 MessageResult result = await connection.ConnectAsync();
@@ -274,7 +365,8 @@ bool autoConnect = true)
             List<MessageConnection> connections = new List<MessageConnection>();
             foreach (MessageConnection connection in this._connections)
             {
-                if (now - connection.LastTime > delta)
+                if (connection.UseCount == 0 
+                    && now - connection.LastTime > delta)
                 {
                     connection.CloseConnection();
                     connections.Add(connection);

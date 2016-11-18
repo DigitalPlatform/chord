@@ -42,6 +42,15 @@ namespace DigitalPlatform.MessageClient
         }
 
         /// <summary>
+        /// 正在使用中的计数器。> 0 表示正在使用中
+        /// </summary>
+        public int UseCount
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// 附加的信息
         /// </summary>
         public object Tag

@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.23.*")]
-[assembly: AssemblyFileVersion("1.23.0.0")]
+[assembly: AssemblyVersion("1.24.*")]
+[assembly: AssemblyFileVersion("1.24.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -58,3 +58,4 @@ using System.Runtime.InteropServices;
 // 1.21 (2016/11/8) 在 ConnectAsync() 中释放以前通道的过程中，加回来曾经被去掉的 Connection.Stop() 调用
 // 1.22 (2016/11/12) 加入 ServicePointManager.DefaultConnectionLimit = 12;
 // 1.23 (2016/11/12) 增加 LifeThread，自动检测死锁并自动退出。安装时自动为 dp2CapoService 配置恢复特性为自动重新启动，可解决故障恢复问题
+// 1.24 (2016/11/17) 点对点 API Circulation() 增加 VerifyBarcode 功能。
