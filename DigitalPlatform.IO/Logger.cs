@@ -35,7 +35,8 @@ namespace DigitalPlatform.IO
                 // 每天一个日志文件
                 string strFileName = Path.Combine(strLogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
 
-                if (strFileName.ToLower() != _fileName)
+                if (strFileName.ToLower() != _fileName
+                    || _sw == null)
                     OpenFile(strFileName);
 
                 string strTime = now.ToString();

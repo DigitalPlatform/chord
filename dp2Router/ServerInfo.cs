@@ -285,13 +285,22 @@ namespace dp2Router
 #endif
                 MessageConnection connection = await _messageChannels.GetConnectionTaskAsync(
     Url,
-    remoteUserName);    // 每个图书馆一根独立通道
-                WebCallResult result = await connection.WebCallTaskAsync(
-                    remoteUserName,
-                    param,
-                    new TimeSpan(0, 1, 10), // 10 秒
-                    _cancel.Token);
-
+    remoteUserName,    // 每个图书馆一根独立通道
+    true,
+    true);      // 采用 incUseCount。使用后要归还
+                WebCallResult result = null;
+                try
+                {
+                    result = await connection.WebCallTaskAsync(
+                        remoteUserName,
+                        param,
+                        new TimeSpan(0, 1, 10), // 10 秒
+                        _cancel.Token);
+                }
+                finally
+                {
+                    _messageChannels.ReturnConnection(connection);
+                }
                 // Console.WriteLine("End WebCall result=" + result.Dump());
 
                 if (result.Value == -1)
@@ -427,7 +436,8 @@ namespace dp2Router
         // 执行一些后台管理任务
         public static void BackgroundWork()
         {
-            _messageChannels.ClearIdleConnections(TimeSpan.FromMinutes(60));
+            _messageChannels.ClearIdleConnections(TimeSpan.FromMinutes(10));    // 60
+            WriteErrorLog("_messageChannels.Count=" + _messageChannels.Count.ToString());
 
             _httpChannels.CleanIdleChannels(TimeSpan.FromMinutes(2));
 
