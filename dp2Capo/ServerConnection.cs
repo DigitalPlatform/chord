@@ -32,14 +32,16 @@ namespace dp2Capo
         public string UserName { get; set; }
         public string Password { get; set; }
 #endif
+        // internal MessageConnectionCollection _messageConnectionCollection = new MessageConnectionCollection();
+
         public Instance Instance { get; set; }  // 方便访问 Instance
 
         public LibraryHostInfo dp2library { get; set; }
-        internal LibraryChannelPool _channelPool = new LibraryChannelPool();
+        internal LibraryChannelPool _libraryChannelPool = new LibraryChannelPool();
 
         public ServerConnection()
         {
-            this._channelPool.BeforeLogin += new BeforeLoginEventHandle(_channelPool_BeforeLogin);
+            this._libraryChannelPool.BeforeLogin += new BeforeLoginEventHandle(_channelPool_BeforeLogin);
         }
 
 #if NO
@@ -144,16 +146,16 @@ namespace dp2Capo
         {
             this.CloseConnection();
 
-            if (this._channelPool != null)
+            if (this._libraryChannelPool != null)
             {
-                this._channelPool.Close();
+                this._libraryChannelPool.Close();
             }
         }
 
         public void CleanLibraryChannel()
         {
-            if (this._channelPool != null)
-                this._channelPool.CleanChannel();
+            if (this._libraryChannelPool != null)
+                this._libraryChannelPool.CleanChannel();
         }
 
         /// <summary>
@@ -286,7 +288,7 @@ namespace dp2Capo
                 data.IsPatron = true;
 
             string strServerUrl = this.dp2library.Url;
-            LibraryChannel channel = this._channelPool.GetChannel(strServerUrl, strUserName);
+            LibraryChannel channel = this._libraryChannelPool.GetChannel(strServerUrl, strUserName);
             if (channel == null)
                 return null;
 
@@ -297,7 +299,7 @@ namespace dp2Capo
 
         public void ReturnChannel(LibraryChannel channel)
         {
-            this._channelPool.ReturnChannel(channel);
+            this._libraryChannelPool.ReturnChannel(channel);
         }
 
         #region 针对 dp2library 服务器的一些功能
