@@ -107,7 +107,7 @@
             // 具体信息 + 跳过
             html += "<div class='middle'>"
                 + text
-                + "<div id='continue' style='padding-top:10px;text-align:right'>"
+                + "<div id='continue' style='padding-top:10px;'>" //text-align:right'
                 //+"<a href='javascript:;' onclick='layer.closeAll();'>继续</a>"
                 +"<div>"
                 + "</div>";
@@ -203,7 +203,7 @@
 
         // 显示继续按钮
         function showContinue() {
-            var html = "<a href='javascript:;' onclick='layer.closeAll();'>继续</a>";
+            var html = "<button class='mui-btn mui-btn-block' onclick='layer.closeAll();'>继续</button>";//"<a href='javascript:;' onclick='layer.closeAll();'>继续</a>";
             $("#continue").html(html);
         }
 
@@ -529,7 +529,7 @@
                 // 关闭图层
                 layer.closeAll();
 
-                warn("您放弃了选择册。", C_next_receiveBarcode);
+                warn("您放弃了选择册。",C_next_dothing);
             }
             else
             {
