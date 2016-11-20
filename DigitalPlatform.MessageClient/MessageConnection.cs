@@ -3037,7 +3037,7 @@ request);
                     if (temp != null)
                     {
                         temp.Dispose();
-                        // GC.Collect();
+                        GC.Collect();
                     }
                 }
             }

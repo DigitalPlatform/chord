@@ -11,7 +11,9 @@ namespace DigitalPlatform.HTTP
         public string Method { get; set; }
         public string Url { get; set; }
         public string Path { get; set; } // either the Url, or the first regex group
-        
+
+        // 2016/11/20
+        public string Version { get; set; }
 #if NO
         public Dictionary<string, string> Headers { get; set; }
 

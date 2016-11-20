@@ -8,6 +8,8 @@ using System.Linq;
 using System.ServiceProcess;
 using System.Threading.Tasks;
 
+using DigitalPlatform.ServiceProcess;
+
 namespace dp2Router
 {
     [RunInstaller(true)]
@@ -65,6 +67,9 @@ namespace dp2Router
         public override void Commit(System.Collections.IDictionary savedState)
         {
             base.Commit(savedState);
+
+            // 2016/11/20
+            ServiceUtil.SetRecoveryOptions(this.serviceInstaller1.ServiceName);
 
             EventLog.WriteEntry(this.serviceInstaller1.ServiceName,
                 "dp2Router 安装成功。", EventLogEntryType.Information);
