@@ -50,7 +50,6 @@ namespace dp2Capo
 
             ServiceShortName = "dp2CapoService";
 
-
             PrintLogo();
 
             // 修改配置

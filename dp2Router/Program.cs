@@ -9,6 +9,7 @@ using System.ServiceProcess;
 
 using DigitalPlatform.ServiceProcess;
 using DigitalPlatform.IO;
+using DigitalPlatform;
 
 namespace dp2Router
 {
@@ -19,8 +20,15 @@ namespace dp2Router
             ServiceShortName = "dp2RouterService";
         }
 
+        static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
+        {
+            ServerInfo.WriteErrorLog("全局异常: e.IsTerminating(" + e.IsTerminating + ")\r\n" + ExceptionUtil.GetExceptionText(e.ExceptionObject as Exception));
+        }
+
         static void Main(string[] args)
         {
+            System.AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
+
             ServiceShortName = "dp2RouterService";
 
             // 修改配置

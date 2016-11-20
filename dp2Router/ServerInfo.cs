@@ -436,12 +436,38 @@ namespace dp2Router
         // 执行一些后台管理任务
         public static void BackgroundWork()
         {
+            LogCpuUsage("dp2router");
+
             _messageChannels.ClearIdleConnections(TimeSpan.FromMinutes(10));    // 60
             WriteErrorLog("_messageChannels.Count=" + _messageChannels.Count.ToString());
 
             _httpChannels.CleanIdleChannels(TimeSpan.FromMinutes(2));
 
             WriteErrorLog("_httpChannels.Count=" + _httpChannels.Count.ToString());
+        }
+
+        private static void LogCpuUsage(string appName)
+        {
+            try
+            {
+                PerformanceCounter total_cpu = new PerformanceCounter("Process", "% Processor Time", "_Total");
+                PerformanceCounter process_cpu = new PerformanceCounter("Process", "% Processor Time", appName);
+                for (int i = 0; i < 2; i++)
+                {
+                    float t = total_cpu.NextValue();
+                    float p = process_cpu.NextValue();
+                    if (i != 0)
+                    {
+                        // Console.WriteLine(String.Format("_Total = {0}  App = {1} {2}%\n", t, p, p / t * 100));
+                        WriteErrorLog("CPU " + Convert.ToInt64(p / t * 100).ToString() + "%");
+                    }
+                    System.Threading.Thread.Sleep(1000);
+                }
+            }
+            catch(Exception ex)
+            {
+                WriteErrorLog("LogCpuUsage() 内出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
         }
     }
 

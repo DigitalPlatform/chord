@@ -12,6 +12,7 @@ using log4net;
 
 using DigitalPlatform.HTTP;
 using DigitalPlatform;
+using DigitalPlatform.Text;
 
 namespace dp2Router
 {
@@ -74,9 +75,9 @@ namespace dp2Router
                     });
                     thread.Start();
 #endif
-                    // Task.Run(()=>TestHandleClient(tcpClient, ServerInfo._cancel.Token));
+                    Task.Run(() => TestHandleClient(tcpClient, ServerInfo._cancel.Token));
 
-                    TestHandleClient(tcpClient, ServerInfo._cancel.Token);
+                    // TestHandleClient(tcpClient, ServerInfo._cancel.Token);
                 }
                 catch (Exception ex)
                 {
@@ -98,46 +99,100 @@ namespace dp2Router
             CancellationToken token)
         {
             HttpChannel channel = ServerInfo._httpChannels.Add(tcpClient);
-
-            string ip = "";
-            Stream inputStream = tcpClient.GetStream();
-            Stream outputStream = tcpClient.GetStream();
             try
             {
-                ip = GetClientIP(tcpClient);
-                channel.Touch();
-                HttpRequest request = await HttpProcessor.GetIncomingRequest(inputStream, token);
-                channel.Touch();
+                List<byte> cache = new List<byte>();
+                string ip = "";
+                Stream inputStream = tcpClient.GetStream();
+                Stream outputStream = tcpClient.GetStream();
 
-                // 添加头字段 _dp2router_clientip
-                request.Headers.Add("_dp2router_clientip", ip);
+                try
+                {
+                    ip = GetClientIP(tcpClient);
+                    channel.Touch();
 
-                // Console.WriteLine("=== request ===\r\n" + request.Dump());
-                // ServerInfo.WriteErrorLog("=== request ===\r\n" + request.Dump());
+                    int i = 0;
+                    bool running = true;
+                    while (running)
+                    {
+                        HttpRequest request = await HttpProcessor.GetIncomingRequest(inputStream,
+                            cache,
+                            (headers) =>
+                            {
+                                if (headers.ContainsKey("User-Agent") == false)
+                                    return false;
+                                if (headers["User-Agent"] != "dp2LibraryClient")
+                                    throw new InvalidRequestException("请求不是来自 dp2LibraryClient");
+                                return true;
+                            },
+                            token);
+                        if (request == null)
+                        {
+                            Console.WriteLine("client close on request " + i);
+                            break;
+                        }
+                        Console.WriteLine("request " + i);
 
-                HttpResponse response = await ServerInfo.WebCall(request, "content");
-                channel.Touch();
-                // string content = response.GetContentString();
+                        channel.Touch();
 
-                //Console.WriteLine("=== response ===\r\n" + response.Dump());
+                        // 添加头字段 _dp2router_clientip
+                        request.Headers.Add("_dp2router_clientip", ip);
 
-                await HttpProcessor.WriteResponseAsync(outputStream, response, token);
-                channel.Touch();
-            }
-            catch (Exception ex)
-            {
-                // 2016/11/14
-                ServerInfo.WriteErrorLog("ip:" + ip + " TestHandleClient() 异常: " + ExceptionUtil.GetExceptionText(ex));
+                        // Console.WriteLine("=== request ===\r\n" + request.Dump());
+                        // ServerInfo.WriteErrorLog("=== request ===\r\n" + request.Dump());
+
+                        HttpResponse response = await ServerInfo.WebCall(request, "content");
+                        channel.Touch();
+                        // string content = response.GetContentString();
+
+                        // Console.WriteLine("=== response ===\r\n" + response.Dump());
+
+                        await HttpProcessor.WriteResponseAsync(outputStream, response, token);
+                        channel.Touch();
+
+                        // Console.WriteLine("http version = '"+request.Version+"'");
+
+                        if (request.Headers.ContainsKey("Connection"))
+                        {
+                            string strValue = request.Headers["Connection"];
+                            if (strValue == "Keep-Alive")
+                                running = true;
+                            else
+                                running = false;
+                        }
+                        else
+                        {
+                            if (StringUtil.CompareVersion(request.Version, "1.1") >= 0)
+                                running = true; // HTTP 1.1 默认就是 Connection Keep-Alive。即便没有 Connection 头字段，也是 Keep-Alive 状态
+                            else
+                                running = false;
+                        }
+
+                        i++;
+                    }
+                }
+                catch (InvalidRequestException ex)
+                {
+                    // 2016/11/20
+                    ServerInfo.WriteErrorLog("ip:" + ip + " : " + ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    // 2016/11/14
+                    ServerInfo.WriteErrorLog("ip:" + ip + " TestHandleClient() 异常: " + ExceptionUtil.GetExceptionText(ex));
+                }
+                finally
+                {
+                    outputStream.Flush();
+                    outputStream.Close();
+                    outputStream = null;
+
+                    inputStream.Close();
+                    inputStream = null;
+                }
             }
             finally
             {
-                outputStream.Flush();
-                outputStream.Close();
-                outputStream = null;
-
-                inputStream.Close();
-                inputStream = null;
-
                 ServerInfo._httpChannels.Remove(channel);
             }
         }
@@ -146,4 +201,16 @@ namespace dp2Router
 
     }
 
+    public class InvalidRequestException : Exception
+    {
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="error"></param>
+        /// <param name="strText"></param>
+        public InvalidRequestException(string strText)
+            : base(strText)
+        {
+        }
+    }
 }
