@@ -4258,7 +4258,8 @@ namespace dp2weixin.service
                 if (start + records.Count < result.ResultCount)
                     bNext = true;
 
-                //Thread.Sleep(1000 * 5);
+                //测试用2分钟。
+                Thread.Sleep(1000 * 60*2);
 
                 return result.ResultCount;// records.Count;
             }
