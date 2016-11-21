@@ -79,6 +79,23 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+        //监控开关
+        [HttpPost]        
+        public ApiResult UpdateTracing(string workerId,
+                    string tracing)
+        {
+            ApiResult result = new ApiResult();
+
+            string strError = "";
+            int nRet = dp2WeiXinService.Instance.UpdateTracingUser(workerId,
+                tracing, 
+                out strError);
+
+            result.errorCode = nRet;
+            result.errorInfo = strError;
+            return result;
+        }
+
         /// <summary>
         /// 设置
         /// </summary>
@@ -98,7 +115,6 @@ namespace dp2weixinWeb.ApiControllers
 
                 // 2016-8-13 jane 检查微信用户对于该馆是否设置了活动账户
                 dp2WeiXinService.Instance.CheckUserActivePatron(item.weixinId, item.libId);
-
             }
             catch (Exception ex)
             {

@@ -157,6 +157,19 @@ namespace dp2weixin.service
 
         }
 
+        //// 更新一条记录的tracing值
+        //public long UpdateTracing(string id,int tracing)
+        //{
+        //    var filter = Builders<UserSettingItem>.Filter.Eq("id",id);
+        //    var update = Builders<UserSettingItem>.Update
+        //        .Set("tracing", tracing)
+        //        ;
+
+        //    UpdateResult ret = this.settingCollection.UpdateOne(filter, update);
+        //    return ret.ModifiedCount;
+
+        //}
+
         public static string getBookSubject(string xml)
         {
             string subject = "";
@@ -192,6 +205,7 @@ namespace dp2weixin.service
         public string xml { get; set; }
 
         public string patronRefID { get; set; }
+
 
     }
 
