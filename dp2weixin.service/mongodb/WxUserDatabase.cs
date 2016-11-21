@@ -248,40 +248,48 @@ namespace dp2weixin.service
         {
             newActivePatron = null;
 
-            if (string.IsNullOrEmpty(id) == true || id=="null")
-                return;           
+            if (string.IsNullOrEmpty(id) == true || id == "null")
+                return;
 
             // 检查一下是否被删除读者是否为默认读者，如果是，后面把自动将默认值设了第一个读者上。
             WxUserItem userItem = this.GetById(id);
-            if (userItem==null)
+            if (userItem == null)
                 return;
 
             string weixinId = "";
             int type = -1;
             int isActive = 0;
             string libId = "";
+            string tracing = "";
             if (userItem != null)
             {
                 weixinId = userItem.weixinId;
                 type = userItem.type;
                 isActive = userItem.isActive;
                 libId = userItem.libId;
+                tracing = userItem.tracing;
             }
 
             // 先删除
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
             var filter = Builders<WxUserItem>.Filter.Eq("id", id);
             collection.DeleteOne(filter);
-            
+
             // 如果删除的是读者账户且是激活的，自动将第一个读者账户设为默认的
-            if (type == 0 && isActive==1)
+            if (type == 0 && isActive == 1)
             {
-                WxUserItem newUserItem = this.GetOnePatron(weixinId,libId);
+                WxUserItem newUserItem = this.GetOnePatron(weixinId, libId);
                 if (newUserItem != null)
                 {
                     this.SetActivePatron(newUserItem.weixinId, newUserItem.id);
                     newActivePatron = newUserItem;
                 }
+            }
+
+            // 如果是工作人员,且打开监控功能
+            if (type==1 && String.IsNullOrEmpty(tracing)==false && tracing !="off")
+            {
+                dp2WeiXinService.Instance.UpdateMemoryTracingUser(weixinId, libId, "off");
             }
         }
 
@@ -365,6 +373,22 @@ namespace dp2weixin.service
         }
 
         /// <summary>
+        /// 设置监控开关
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="tracing"></param>
+        /// <returns></returns>
+        public long UpdateTracing(string id,string tracing)
+        {
+            var filter = Builders<WxUserItem>.Filter.Eq("id",id);
+            var update = Builders<WxUserItem>.Update
+                .Set("tracing", tracing)
+                ;
+            UpdateResult ret = this.wxUserCollection.UpdateOne(filter, update);
+            return ret.ModifiedCount;
+        }
+
+        /// <summary>
         /// 更新微信用户
         /// </summary>
         /// <param name="item"></param>
@@ -399,12 +423,22 @@ namespace dp2weixin.service
                 .Set("remark", item.remark)
                 .Set("rights", item.rights)
                 .Set("appId", item.appId)
+                .Set("tracing", item.tracing)
                 ;
 
             UpdateResult ret = this.wxUserCollection.UpdateOne(filter, update);
             return ret.ModifiedCount;
         }
 
+
+        internal List<WxUserItem> GetTracingUsers()
+        {
+            var filter = Builders<WxUserItem>.Filter.Eq("tracing","on")
+                | Builders<WxUserItem>.Filter.Eq("tracing", "on -mask");
+                ;
+            List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+            return list;
+        }
     }
     public class WxUserItem
     {
@@ -444,6 +478,9 @@ namespace dp2weixin.service
 
         // 公众号id 2016-11-14
         public string appId { get; set; }
+
+        //tracing 2016-11-21 type=1工作人员时有意义 默认为空或者off
+        public string tracing { get; set; }
     }
 
 

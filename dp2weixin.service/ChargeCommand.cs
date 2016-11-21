@@ -28,8 +28,10 @@ namespace dp2weixin.service
         public string patronBarcode { get; set; }  // 正式的读者证 条码号
         public string itemBarcode { get; set; }     //正式的册条码号
 
+        public const string C_ReturnSucces_FromApi = "还书操作成功。";
+
         public int state { get; set; } //命令处理结果
-        public string errorInfo { get; set; } //提示信息
+        public string errorInfo { get; set; } //提示信息dacvvbsrhnaz2etgtaqedgqa222222se se se se se se se se se se se se  c
         public string resultInfo { get; set; } //提示信息
         public string GetResultInfo()
         {
@@ -41,10 +43,8 @@ namespace dp2weixin.service
             //有提示信息
             if (String.IsNullOrEmpty(this.errorInfo) == false)
             {
-                if (this.type == C_Command_Return)
-                    retInfo = this.errorInfo;
-                else
-                    retInfo += this.errorInfo;
+                if (     this.errorInfo != C_ReturnSucces_FromApi)
+                    retInfo += "<br/>"+this.errorInfo;
             }
             return retInfo;
         }

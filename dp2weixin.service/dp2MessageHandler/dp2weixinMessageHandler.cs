@@ -206,12 +206,27 @@ namespace dp2weixin
 
                 if (paramLeft == "off")
                 {
+                    // 更新到数据库中 todo绑了多个图馆的情况
+                    foreach(WxUserItem user in workerList)
+                    {
+                        WxUserDatabase.Current.UpdateTracing(user.id, "off");
+                    }
+
                     dp2WeiXinService.Instance.TracingOnUsers.Remove(weixinId);
                     string text = "set tracing off 成功，您将不再收到非本人的微信通知。";
                     return this.CreateTextResponseMessage(text);
                 }
                 else if (paramLeft == "on")
                 {
+                    string tempTracing = "on";
+                    if (paramRight == "-mask")
+                        tempTracing += " " + paramRight;
+                    // 更新到数据库中 todo绑了多个图馆的情况
+                    foreach (WxUserItem user in workerList)
+                    {
+                        WxUserDatabase.Current.UpdateTracing(user.id, tempTracing);
+                    }
+
                     TracingOnUser tracingOnUser = new TracingOnUser();
                     tracingOnUser.WeixinId = weixinId;// this.WeixinOpenId + "@" + this.AppId; //让这个微信id带上@appId
                     //tracingOnUser.AppId = this.AppId;

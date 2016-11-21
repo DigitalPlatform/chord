@@ -125,6 +125,7 @@ namespace dp2weixin.service
         // 打开 tracing的微信用户
         public Hashtable TracingOnUsers = new Hashtable(); //List<TraceOnUser>();
 
+
         // 公众号后台管理线程
         ManagerThread _managerThread = new ManagerThread();
 
@@ -153,6 +154,8 @@ namespace dp2weixin.service
         //public string Template_CaoQi = "";//2sOCuATcFdSNbJM24zrHnFv89R3D-cZFIpk4ec_Irn4";
 
         //#endregion
+
+
 
         #endregion
 
@@ -379,13 +382,12 @@ namespace dp2weixin.service
             if (nRet == -1)
                 throw new Exception("初始化接口配置信息出错：" + strError);
 
+            // 加载打开监控功能微信用户
+            LoadTracingUser();
 
 
             ////全局只需注册一次
             //AccessTokenContainer.Register(this.weiXinAppId, this.weiXinSecret);
-
-
-
 
             if (bTrace == true)
             {
@@ -406,6 +408,73 @@ namespace dp2weixin.service
             // 启动管理线程
             this._managerThread.WeixinService = this;
             this._managerThread.BeginThread();
+
+        }
+
+        public void LoadTracingUser()
+        {
+            List<WxUserItem> userList = WxUserDatabase.Current.GetTracingUsers();
+            if (userList != null && userList.Count >0)
+            {
+                foreach (WxUserItem user in userList)
+                {
+                    string tracing = user.tracing;
+                    TracingOnUser tracingOnUser = new TracingOnUser();
+                    tracingOnUser.WeixinId = user.weixinId;
+                    if (tracing.IndexOf("-mask") !=-1)
+                        tracingOnUser.IsMask = false;
+
+                    LibEntity lib = this.GetLibById(user.libId);
+                    if (lib !=null && lib.libName == WeiXinConst.C_Dp2003LibName)
+                    {
+                        tracingOnUser.IsAdmin = true;
+                    }
+                    // 设到hashtable里
+                    dp2WeiXinService.Instance.TracingOnUsers[user.weixinId] = tracingOnUser;
+                }
+            }
+        }
+
+        public int UpdateTracingUser(string workerId, string tracing, out string error)
+        {
+            error = "";
+            WxUserItem user = WxUserDatabase.Current.GetById(workerId);
+            if (user == null)
+            {
+                error = "在数据库中未找到id=" + workerId + "的绑定信息";
+                return -1;
+            }
+
+            // 更新数据库设置
+            int nRet = (int)WxUserDatabase.Current.UpdateTracing(workerId, tracing);
+
+            // 更新内存
+            this.UpdateMemoryTracingUser(user.weixinId, user.libId, tracing);
+
+            return 0;
+        }
+
+        public void UpdateMemoryTracingUser(string weixinId,string libId, string tracing)
+        {
+            if (tracing == "off")
+            {
+                dp2WeiXinService.Instance.TracingOnUsers.Remove(weixinId);
+                return;
+            }
+
+            // 打开监控功能
+            TracingOnUser tracingOnUser = new TracingOnUser();
+            tracingOnUser.WeixinId = weixinId;
+            if (tracing.IndexOf("-mask") != -1)
+                tracingOnUser.IsMask = false;
+
+            LibEntity lib = this.GetLibById(libId);
+            if (lib != null && lib.libName == WeiXinConst.C_Dp2003LibName)
+            {
+                tracingOnUser.IsAdmin = true;
+            }
+            // 设到hashtable里
+            dp2WeiXinService.Instance.TracingOnUsers[weixinId] = tracingOnUser;
 
         }
 
@@ -3709,6 +3778,7 @@ namespace dp2weixin.service
                 userItem.type = type;
                 userItem.userName = userName;
                 userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0
+                userItem.tracing = "off";//默认是关闭监控
 
                 // 2016-8-26 新增
                 userItem.state = 1;
@@ -4258,7 +4328,8 @@ namespace dp2weixin.service
                 if (start + records.Count < result.ResultCount)
                     bNext = true;
 
-                //Thread.Sleep(1000 * 5);
+                //测试用2分钟。
+                Thread.Sleep(1000 * 60*2);
 
                 return result.ResultCount;// records.Count;
             }
@@ -8762,6 +8833,8 @@ namespace dp2weixin.service
             userItem.type = WxUserDatabase.C_Type_Patron;
             userItem.userName = "";
             userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0
+            userItem.tracing = "off";//无意义，设为关闭状态
+
 
             userItem.state = WxUserDatabase.C_State_Available;
             userItem.remark = "";
@@ -8832,6 +8905,7 @@ namespace dp2weixin.service
             userItem.type = WxUserDatabase.C_Type_Worker;
             userItem.userName = name;
             userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0
+            userItem.tracing = "off";//默认是关闭状态
 
             userItem.state = WxUserDatabase.C_State_Available;
             userItem.remark = "";
@@ -9066,7 +9140,7 @@ namespace dp2weixin.service
                 }
             }
 
-            // 修改的用户
+            // 删除的用户
             if (deleteIds.Count > 0)
             {
                 foreach (string weixinId in deleteIds)
@@ -9226,7 +9300,7 @@ namespace dp2weixin.service
                 }
             }
 
-            // 修改的用户
+            // 删除的用户
             if (deleteIds.Count > 0)
             {
                 foreach (string weixinId in deleteIds)

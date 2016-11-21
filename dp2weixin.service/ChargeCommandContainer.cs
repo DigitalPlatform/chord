@@ -220,17 +220,17 @@ END1:
                 {
                     if (cmd.type == ChargeCommand.C_Command_Borrow)
                     {
-                        cmd.resultInfo = biblioName;
+                        cmd.resultInfo += "<br/>"+ biblioName; //用+=是因为前面有了 借书成功
                     }
                     else if (cmd.type == ChargeCommand.C_Command_Return )
                     {
-                        cmd.resultInfo = biblioName;
+                        cmd.resultInfo += "<br/>" + biblioName; //用+=是因为前面有了 还书成功
                         if (patron != null)
                             cmd.resultInfo += "<br/><span style='font-size:20pt'>" + patron.name+"</span>";
                     }
 
                      //有提示信息
-                    if (String.IsNullOrEmpty(cmd.errorInfo) == false && cmd.errorInfo !="还书操作成功。")
+                    if (String.IsNullOrEmpty(cmd.errorInfo) == false && cmd.errorInfo !=ChargeCommand.C_ReturnSucces_FromApi)
                     {
                         cmd.resultInfo += "<br/>"+cmd.errorInfo;
                     }

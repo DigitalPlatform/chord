@@ -112,6 +112,76 @@
             return count
         }
 
+        function updateTracing() {
+
+            // 工作人员 在微信用户表的id
+            var workerId = $("#workerId").text();
+            if (workerId == "") {
+                alert("workerId不能为空。");
+                return;
+            }
+            //alert(workerId);
+
+            var tracing = getTracing();
+            if (tracing == "on") {
+                $("#ckbMask").removeAttr("disabled");
+            }
+            else {
+                $("#ckbMask").prop("checked", false);
+                $("#ckbMask").attr("disabled", true);
+            }
+
+            var mask = getMask();
+            tracing = tracing + mask;
+
+            //显示等待图层
+            showMaskLayer();
+
+            // setting()
+            var url = "/api/wxuser?workerId=" + workerId
+                + "&tracing=" + tracing;
+            //alert(url);
+            sendAjaxRequest(url, "POST",
+                function (result) {
+
+                    // 关闭等待层
+                    hideMaskLayer();
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }
+
+                    //alert("ok");
+                },
+                function (xhq, textStatus, errorThrown) {
+
+                    // 关闭等待层
+                    hideMaskLayer();
+
+                    alert(errorThrown);
+
+                });
+
+
+        }
+
+
+        function getTracing() {
+            var tracing = "off";
+            $("#ckbTracing:checked").each(function () {
+                tracing = "on";
+            });
+            return tracing
+        }
+
+        function getMask() {
+            var text = "";
+            $("#ckbMask:checked").each(function () {
+                text = " -mask";
+            });
+            return text
+        }
 
 
     </script>
@@ -121,6 +191,7 @@
 }
 <span id="weixinId" style="display:none">@ViewBag.weixinId</span>
 <span id="returnUrl" style="display:none">@ViewBag.returnUrl</span>
+<span id="workerId" style="display:none">@ViewBag.workerId</span>
 
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
@@ -137,6 +208,8 @@ else
             <label style="color:#cccccc;">图书馆</label>
             @Html.Raw(ViewBag.LibHtml)
         </div>
+        </div>
+    <div class="mui-card" style="margin-top:10px">
         <div class='mui-input-row mui-checkbox mui-left'>
             <label>显示头像</label>
             <input id='ckbPhoto' onchange="save()" type='checkbox' @ViewBag.photoChecked />
@@ -145,16 +218,34 @@ else
             <label>显示图书封面</label>
             <input id='ckbCover' onchange="save()" type='checkbox' @ViewBag.coverChecked />
         </div>
+    </div>
+    {
+        string style = "";
+        string disabledstr = "";
+        if (String.IsNullOrEmpty(ViewBag.workerId) == true)
+        {
+            style = "color:#cccccc";
+            disabledstr = "disabled";
+        }
 
-    </div>
-    <!--
-        <div class='mui-input-row mui-checkbox mui-left' style="display:none">
-            <label>打开监控功能</label>
-            <input id='ckbCover' onchange="save()" type='checkbox' @ViewBag.monitorChecked />
-        </div>        
-    
-    <div class="mui-content-padded">
-        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>
-    </div>
-        -->
+        <div class="mui-card" style="margin-top:10px">
+            <div class='mui-input-row mui-checkbox mui-left'>
+                <label><span style='@style'>打开监控功能</span><span style="color:#cccccc">（工作人员有效）</span></label>
+                <input id='ckbTracing' @disabledstr onchange="updateTracing()" type='checkbox' @ViewBag.tracingChecked />
+            </div>
+
+            <div class='mui-input-row mui-checkbox mui-left'>
+                <label><span style='@style'>去掉马赛克</span></label>
+                <input id='ckbMask' @disabledstr onchange="updateTracing()" type='checkbox' @ViewBag.maskChecked />
+            </div>
+
+
+        </div>
+    }
+
+            <!--
+            <div class="mui-content-padded">
+                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>
+            </div>
+                -->
 }

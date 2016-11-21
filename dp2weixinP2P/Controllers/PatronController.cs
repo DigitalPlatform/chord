@@ -46,11 +46,22 @@ namespace dp2weixinWeb.Controllers
                 coverChecked = " checked='checked' ";
             ViewBag.coverChecked = coverChecked;
 
-            //string monitorChecked = "";
-            //if (ViewBag.monitorCheckedCover == 1)
-            //    monitorChecked = " checked='checked' ";
-            //ViewBag.monitorChecked = monitorChecked;
-
+            // 检查是否绑定工作人员，决定界面上是否出现 打开监控功能
+            WxUserItem worker = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
+            if (worker != null)
+            {
+                ViewBag.workerId = worker.id;
+                string tracingChecked = "";
+                string maskChecked="";
+                if (worker.tracing == "on" || worker.tracing == "on -mask")
+                {
+                    tracingChecked = " checked='checked' ";
+                    if (worker.tracing == "on -mask")
+                        maskChecked = " checked='checked' ";
+                }
+                ViewBag.tracingChecked = tracingChecked;
+                ViewBag.maskChecked = maskChecked;
+            }
 
             return View();
 
