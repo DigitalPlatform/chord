@@ -6898,6 +6898,12 @@ namespace dp2weixin.service
             gzh = null;
             libList = new List<string>();
 
+            if (String.IsNullOrEmpty(state) == true)
+            {
+                strError = "state参数为空";
+                return -1;
+            }
+
             // 2016-11-22
             //state格式：公众号名称:图书馆capo账户1+图书馆capo账户2
             int nIndex = state.IndexOf(":");

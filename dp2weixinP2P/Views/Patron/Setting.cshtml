@@ -46,11 +46,25 @@
                         return;
                     }
 
-                    // 更新到顶部
+
                     var oldName = $("#_libName").text();
                     var libName = $("#selLib  option:selected").text();
+
+                    // 更新消息标题 
+                    var tracingTitle = "监控本馆消息";
+                    if (libName == "数字平台")
+                    {
+                        tracingTitle = "监控所有图书馆的消息";
+                    }
+                    $("#tracingTitle").text(tracingTitle);
+
+                    // 更新到顶部
                     libName = "[" + libName + "]"
                     $("#_libName").text(libName);
+
+
+
+
 
                     // 不弹出成功提示，保持在本页
                     /*
@@ -240,7 +254,7 @@ else
 
         <div class="mui-card" style="margin-top:10px">
             <div class='mui-input-row mui-checkbox mui-left'>
-                <label><span style='@style'>监控消息</span><span style="color:#cccccc">（工作人员有效）</span></label>
+                <label><span style='@style' id="tracingTitle">@ViewBag.info</span><span style="color:#cccccc">（工作人员有效）</span></label>
                 <input id='ckbTracing' @disabledstr onchange="updateTracing()" type='checkbox' @ViewBag.tracingChecked />
             </div>
 
