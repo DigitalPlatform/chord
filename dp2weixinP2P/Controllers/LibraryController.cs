@@ -214,6 +214,8 @@ namespace dp2weixinWeb.Controllers
         // 图书馆介绍
         public ActionResult Home(string code, string state, string weixinId)
         {
+            string strError = "";
+            int nRet = 0;
             // 如果是超级管理员，支持传一个weixin id参数
             if (String.IsNullOrEmpty(weixinId) == false)
             {
@@ -222,21 +224,19 @@ namespace dp2weixinWeb.Controllers
                     // 记下微信id
                     SessionInfo sessionInfo = this.GetSessionInfo();
 
-                    string appId = "";
-                    int nTemp = weixinId.IndexOf("@");
-                    if (nTemp > 0)
+                    GzhCfg gzh = null;
+                    List<string> libIds = null;
+                    nRet = dp2WeiXinService.Instance.GetGzhAndLibs(state,out gzh,
+                        out libIds,
+                        out strError);
+                    if (nRet == -1)
                     {
-                        appId = weixinId.Substring(nTemp + 1);
-                    }
-
-                    GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetDefault();
-                    if (appId !="")
-                        gzh=dp2WeiXinService.Instance.gzhContainer.GetByAppId(appId);
-                    
+                        goto ERROR1;
+                    }                    
 
                     sessionInfo.weixinId = weixinId;
-                    sessionInfo.gzh = gzh;//.GetByAppName(dp2WeiXinService.C_gzh_ilovelibrary);
-                   // Session[WeiXinConst.C_Session_WeiXinId] = weixinId;
+                    sessionInfo.gzh = gzh;
+                    sessionInfo.libIds = libIds;
                 }
                 else
                 {
@@ -246,8 +246,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 检查是否从微信入口进来
-            string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
             {
                 goto ERROR1;

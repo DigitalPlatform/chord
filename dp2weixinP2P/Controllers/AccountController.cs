@@ -60,7 +60,18 @@ namespace dp2weixinWeb.Controllers
 
             // 图书馆html,选中项为设置的图书馆
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-            ViewBag.LibHtml = this.GetLibSelectHtml("", weixinId,true); //2016-9-4 绑定时不支持选中默认图书馆 ViewBag.LibId
+            string selLibHtml = "";
+            nRet = this.GetLibSelectHtml("",
+                weixinId,
+                true,
+                "",
+                out selLibHtml,
+                out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+            ViewBag.LibHtml = selLibHtml;//this.GetLibSelectHtml("", weixinId,true); //2016-9-4 绑定时不支持选中默认图书馆 ViewBag.LibId
 
             // 2016-11-16去掉，统一放在weixinId里
             //SessionInfo sessionInfo = this.GetSessionInfo();
@@ -88,7 +99,18 @@ namespace dp2weixinWeb.Controllers
 
             // 图书馆html
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-            ViewBag.LibHtml = this.GetLibSelectHtml(libId, weixinId, true);
+            string selLibHtml = "";
+            nRet = this.GetLibSelectHtml(libId,
+                weixinId,
+                true,
+                "",
+                out selLibHtml,
+                out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+            ViewBag.LibHtml = selLibHtml; //this.GetLibSelectHtml(libId, weixinId, true);
 
             ViewBag.LibVersions = dp2WeiXinService.Instance.LibManager.GetLibVersiongString();
 
@@ -126,8 +148,18 @@ namespace dp2weixinWeb.Controllers
 
             // 图书馆html
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-            ViewBag.LibHtml = this.GetLibSelectHtml(libId,weixinId,true);
-            
+            string selLibHtml = "";
+            nRet = this.GetLibSelectHtml(libId,
+                weixinId,
+                true,
+                "",
+                out selLibHtml,
+                out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+            ViewBag.LibHtml = selLibHtml;//this.GetLibSelectHtml(libId,weixinId,true);            
 
             if (string.IsNullOrEmpty(readerName) == false && readerName != "undefined")
                 ViewBag.ReaderName = readerName;// "test";

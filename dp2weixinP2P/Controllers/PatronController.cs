@@ -34,7 +34,18 @@ namespace dp2weixinWeb.Controllers
             ViewBag.returnUrl = returnUrl;
 
             // 图书馆html
-            ViewBag.LibHtml = this.GetLibSelectHtml(ViewBag.LibId, weixinId, true,true);
+            string selLibHtml = "";
+            nRet = this.GetLibSelectHtml(ViewBag.LibId, 
+                weixinId, 
+                true,
+                "save()",
+                out selLibHtml,
+                out strError);
+            if (nRet==-1)
+            {
+                goto ERROR1;
+            }
+            ViewBag.LibHtml = selLibHtml;
 
             string photoChecked = "";
             if (ViewBag.showPhoto == 1)

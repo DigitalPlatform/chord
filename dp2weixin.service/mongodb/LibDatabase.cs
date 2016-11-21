@@ -106,7 +106,7 @@ namespace dp2weixin.service
             return null;
         }
 
-        public List<LibEntity> GetLibs()
+        public List<LibEntity> GetLibsInternal()
         {
             List<LibEntity> list  =this.LibCollection.Find(new BsonDocument()).ToListAsync().Result;
             if (list != null && list.Count > 0)
