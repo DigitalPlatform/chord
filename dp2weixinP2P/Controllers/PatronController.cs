@@ -56,8 +56,9 @@ namespace dp2weixinWeb.Controllers
                 if (worker.tracing == "on" || worker.tracing == "on -mask")
                 {
                     tracingChecked = " checked='checked' ";
+                    maskChecked = " checked='checked' ";
                     if (worker.tracing == "on -mask")
-                        maskChecked = " checked='checked' ";
+                        maskChecked = " ";
                 }
                 ViewBag.tracingChecked = tracingChecked;
                 ViewBag.maskChecked = maskChecked;

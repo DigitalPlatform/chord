@@ -17,6 +17,8 @@ namespace dp2weixin.service
         public ChargeCommandContainer cmdContainer = null;
         public GzhCfg  gzh = null;
 
+        public List<string> libIdList = new List<string>();
+
         public SessionInfo()
         {
             cmdContainer = new ChargeCommandContainer();

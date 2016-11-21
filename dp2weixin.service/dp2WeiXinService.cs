@@ -456,8 +456,13 @@ namespace dp2weixin.service
 
         public void UpdateMemoryTracingUser(string weixinId,string libId, string tracing)
         {
-            if (tracing == "off")
+            if (tracing !="on" && tracing!="on -mask")//== "off")
             {
+                if (tracing != "off")
+                {
+                    this.WriteErrorLog1("异常：tracing值["+tracing+"]不为off。");
+                }
+
                 dp2WeiXinService.Instance.TracingOnUsers.Remove(weixinId);
                 return;
             }
@@ -4329,7 +4334,7 @@ namespace dp2weixin.service
                     bNext = true;
 
                 //测试用2分钟。
-                Thread.Sleep(1000 * 60*2);
+                //Thread.Sleep(1000 * 60*2);
 
                 return result.ResultCount;// records.Count;
             }
