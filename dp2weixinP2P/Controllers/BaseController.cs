@@ -296,16 +296,18 @@ namespace dp2weixinWeb.Controllers
                 // 立即重新检查一下 
                 //dp2WeiXinService.Instance.LibManager.RedoGetVersion(lib);
 
-                if (lib.Version == "-1")
-                {
-                    //的桥接服务器dp2capo已失去连接，请尽快修复。
-                    strError = libName + " 的桥接服务器dp2capo失去连接，公众号功能已被挂起，请尽快修复。";
-                }
-                else
-                {
-                    strError = libName + " 的桥接服务器dp2capo版本不够新，公众号功能已被挂起，请尽快升级。";
-                }
-                return -1;
+                //if (lib.Version == "-1")
+                //{
+                //    //的桥接服务器dp2capo已失去连接，请尽快修复。
+                //    strError = libName + " 的桥接服务器dp2capo失去连接，公众号功能已被挂起，请尽快修复。";
+                //}
+                //else
+                //{
+                //    strError = libName + " 的桥接服务器dp2capo版本不够新，公众号功能已被挂起，请尽快升级。";
+                //}
+                //return -1;
+
+                string test = "123";
             }
 
             bool bJsReg = JsApiTicketContainer.CheckRegistered(gzh.appId);

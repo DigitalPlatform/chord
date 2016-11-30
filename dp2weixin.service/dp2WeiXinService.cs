@@ -3408,7 +3408,10 @@ namespace dp2weixin.service
                     cancel_token).Result;
                 if (result.Value == -1)
                 {
-                    strError = "操作失败：" + result.ErrorInfo;
+                    //strError = "操作失败：" + result.ErrorInfo;
+                    //return -1;
+
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName); //result.ErrorInfo;
                     return -1;
                 }
 
