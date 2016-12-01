@@ -1155,14 +1155,32 @@ strError);
                     param.WebData = current;
                     param.Complete = splitter.LastOne;
 
+                    // TODO: Console.WriteLine() 输出信息以便可以看到
+                    // Console.WriteLine("WebCallAndResponse: " + param.Dump());
+                    MessageResult result = ResponseWebCall(param);
+                    if (result.Value == -1)
+                    {
+                        strError = result.ErrorInfo;
+                        goto ERROR1;
+                    }
+
+#if NO
                     MessageResult result = ResponseWebCallAsync(param).Result;
                     if (result.Value == -1)
-                        break;
+                    {
+                        strError = result.ErrorInfo;
+                        goto ERROR1;
+                        // break;
+                    }
+#endif
+
                 }
+
+                return;
             }
             catch (Exception ex)
             {
-                strError = "WebCallAndResponse() 出现异常: " + ex.Message;
+                strError = "WebCallAndResponse() 出现异常: " + ExceptionUtil.GetExceptionText(ex);
                 goto ERROR1;
             }
             finally
@@ -1172,6 +1190,9 @@ strError);
 
         ERROR1:
             {
+
+                Console.WriteLine("WebCallAndResponse() error: " + strError);
+
                 WebCallResponse param = new WebCallResponse();
                 param.TaskID = taskID;
                 param.Complete = true;

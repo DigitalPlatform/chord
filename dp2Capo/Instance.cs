@@ -621,6 +621,8 @@ namespace dp2Capo
                         record.format = "xml";
                         List<MessageRecord> records = new List<MessageRecord> { record };
 
+                        int length = record.data.Length;
+
                         DigitalPlatform.Message.SetMessageRequest param =
                             new DigitalPlatform.Message.SetMessageRequest("create",
                             "dontNotifyMe",

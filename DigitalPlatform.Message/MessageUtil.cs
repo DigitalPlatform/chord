@@ -72,6 +72,15 @@ namespace DigitalPlatform.Message
             this.String = errorCode;
             this.Value = -1;
         }
+
+        public string Dump()
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("String=" + this.String + "\r\n");
+            text.Append("Value=" + this.Value + "\r\n");
+            text.Append("ErrorInfo=" + this.ErrorInfo + "\r\n");
+            return text.ToString();
+        }
     }
 
     #region Group 有关
@@ -146,6 +155,21 @@ namespace DigitalPlatform.Message
 
         public DateTime publishTime { get; set; } // 消息发布时间
         public DateTime expireTime { get; set; } // 消息失效时间
+
+        public void CopyFrom(MessageRecord record)
+        {
+            this.id = record.id;
+            this.groups = record.groups;
+            this.creator = record.creator;
+            this.userName = record.userName;
+            this.data = record.data;
+            this.format = record.format;
+            this.type = record.type;
+            this.thread = record.thread;
+            this.subjects = record.subjects;
+            this.publishTime = record.publishTime;
+            this.expireTime = record.expireTime;
+        }
     }
 
 #if NO
@@ -172,19 +196,35 @@ namespace DigitalPlatform.Message
 
     public class SetMessageRequest
     {
+        public string TaskID { get; set; }  // 2016/11/30 新增，如果为空，表示不使用多次分批发送功能
+
         public string Action { get; set; }
         public string Style { get; set; }
-        public List<MessageRecord> Records { get; set; }
+        public List<MessageRecord> Records { get; set; } 
 
         public SetMessageRequest()
         {
 
         }
 
-        public SetMessageRequest(string action,
+        public SetMessageRequest(
+            string action,
             string style,
             List<MessageRecord> records)
         {
+            this.TaskID = "";
+            this.Action = action;
+            this.Style = style;
+            this.Records = records;
+        }
+
+        public SetMessageRequest(
+            string taskID,
+            string action,
+            string style,
+            List<MessageRecord> records)
+        {
+            this.TaskID = taskID;
             this.Action = action;
             this.Style = style;
             this.Records = records;
@@ -953,7 +993,8 @@ namespace DigitalPlatform.Message
         public string Dump()
         {
             StringBuilder text = new StringBuilder();
-            text.Append("Headers=" + this.Headers + "\r\n");
+            if (string.IsNullOrEmpty(this.Headers) == false)
+                text.Append("Headers=" + this.Headers + "\r\n");
             if (this.Content != null)
                 text.Append("Content.Length=" + this.Content.Length + "\r\n");
             if (this.Text != null)
@@ -971,6 +1012,19 @@ namespace DigitalPlatform.Message
 
         public bool Complete { get; set; }      // 传送是否结束
         public MessageResult Result { get; set; }   // 是否出错
+
+        public string Dump()
+        {
+            StringBuilder text = new StringBuilder();
+            text.Append("TaskID=" + this.TaskID + "\r\n");
+            text.Append("TransferEncoding=" + this.TransferEncoding + "\r\n");
+            if (this.WebData != null)
+                text.Append("WebData=" + this.WebData.Dump().Replace("\r\n", ";") + "\r\n");
+            text.Append("Complete=" + this.Complete + "\r\n");
+            if (this.Result != null)
+                text.Append("Result=" + this.Result.Dump().Replace("\r\n", ";") + "\r\n");
+            return text.ToString();
+        }
     }
 
     #endregion

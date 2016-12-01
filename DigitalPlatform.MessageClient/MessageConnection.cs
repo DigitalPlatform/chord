@@ -382,7 +382,7 @@ errorInfo)
         // 要求调用前设置好 this.ServerUrl this.UserName this.Password this.Parameters
         public virtual async Task<MessageResult> ConnectAsync()
         {
-            lock(_syncRoot)
+            lock (_syncRoot)
             {
 #if NO
                 if (_inCritical > 1)
@@ -743,9 +743,21 @@ errorCode) =>
     {
         if (records != null)
         {
+            StringBuilder data = new StringBuilder();
             foreach (MessageRecord record in records)
             {
-                results.Add(record);
+                if (string.IsNullOrEmpty(record.id))
+                    data.Append(record.data);
+                else
+                {
+                    if (data.Length > 0)
+                    {
+                        data.Append(record.data);
+                        record.data = data.ToString();
+                        data.Clear();
+                    }
+                    results.Add(record);
+                }
             }
         }
     },
@@ -770,9 +782,27 @@ errorCode) =>
     {
         if (records != null)
         {
+#if NO
             foreach (MessageRecord record in records)
             {
                 results.Add(record);
+            }
+#endif
+            StringBuilder data = new StringBuilder();
+            foreach (MessageRecord record in records)
+            {
+                if (string.IsNullOrEmpty(record.id))
+                    data.Append(record.data);
+                else
+                {
+                    if (data.Length > 0)
+                    {
+                        data.Append(record.data);
+                        record.data = data.ToString();
+                        data.Clear();
+                    }
+                    results.Add(record);
+                }
             }
         }
     },
@@ -799,6 +829,19 @@ errorCode) =>
                     return GetMessageAsyncLite(request, proc, timeout, token).Result;
                 },
             token);
+        }
+
+        // 计算列表中完满元素的个数。所谓完满元素就是 .id 不是空的元素
+        static int GetCount(IList<MessageRecord> records)
+        {
+            int count = 0;
+            foreach(MessageRecord record in records)
+            {
+                if (string.IsNullOrEmpty(record.id) == false)
+                    count++;
+            }
+
+            return count;
         }
 
         public async Task<MessageResult> GetMessageAsyncLite(
@@ -848,7 +891,7 @@ errorCode) =>
                             errorCode);
 
                         if (records != null)
-                            recieved += records.Count;
+                            recieved += GetCount(records);  // records.Count;
 
                         if (errorCode == "_complete")
                         {
@@ -887,19 +930,84 @@ request);
         #region SetMessage() API
 
 #if NO
-        public Task<SetMessageResult> SetMessageAsync(SetMessageRequest param)
-        {
-            return HubProxy.Invoke<SetMessageResult>(
- "SetMessage",
- param);
-        }
-#endif
         public async Task<SetMessageResult> SetMessageAsyncLite(
 SetMessageRequest request)
         {
             return await HubProxy.Invoke<SetMessageResult>(
 "SetMessage",
 request);
+        }
+#endif
+        static int GetLength(SetMessageRequest request)
+        {
+            if (request.Records == null)
+                return 0;
+            int length = 0;
+            foreach (MessageRecord record in request.Records)
+            {
+                if (record.data != null)
+                    length += record.data.Length;
+            }
+
+            return length;
+        }
+
+        // 对于 .data 超过 chunk_size 的情况可以自动切割为多次发送请求
+        public async Task<SetMessageResult> SetMessageAsyncLite(
+SetMessageRequest request)
+        {
+            // 请求结构中如果具备了 TaskID 值，说明调主想自己控制拼接过程，那这里就直接发送出去
+            if (string.IsNullOrEmpty(request.TaskID) == false)
+                return await TrySetMessageAsync(request);
+
+            int chunk_size = 4096;
+            int length = GetLength(request);
+            if (length < chunk_size)
+                return await TrySetMessageAsync(request);
+
+            SetMessageResult result = null;
+            foreach (MessageRecord record in request.Records)
+            {
+                string taskID = Guid.NewGuid().ToString();
+                string data = record.data;
+                int send = 0;
+                for (; ; )
+                {
+                    SetMessageRequest current_request = new SetMessageRequest();
+                    current_request.TaskID = taskID;
+                    current_request.Style = request.Style;
+                    current_request.Action = request.Action;
+                    current_request.Records = new List<MessageRecord>();
+                    MessageRecord current_record = new MessageRecord();
+                    // TODO: 除了第一次请求外，其它的都只要 .data 成员具备即可
+                    current_record.CopyFrom(record);
+                    current_record.data = data.Substring(send, Math.Min(chunk_size, data.Length - send));
+                    current_request.Records.Add(current_record);
+                    // 这一次就是最后一次
+                    if (send + current_record.data.Length >= data.Length)
+                    {
+                        MessageRecord tail_record = new MessageRecord();
+                        tail_record.data = null;    // 表示结束
+                        current_request.Records.Add(tail_record);
+                    }
+
+                    // TODO: 
+#if NO
+                    result = await HubProxy.Invoke<SetMessageResult>(
+"SetMessage",
+current_request);
+#endif
+                    result = await TrySetMessageAsync(current_request);
+                    if (result.Value == -1)
+                        return result;  // 中途出错了
+
+                    send += current_record.data.Length;
+                    if (send >= data.Length)
+                        break;
+                }
+            }
+
+            return result;  // 返回最后一次请求的 result 值
         }
 
         public Task<SetMessageResult> SetMessageTaskAsync(
@@ -1241,6 +1349,7 @@ CancellationToken token)
                         splitter.FirstOne,
                         splitter.LastOne);
 
+                        // TODO: 是否有可能遇到速度过快导致通道 reconnected 的情况?
                         MessageResult message = await HubProxy.Invoke<MessageResult>(
 "RequestWebCall",
 strRemoteUserName,
@@ -2977,7 +3086,7 @@ request);
         // 关闭连接，并且不会引起自动重连接
         public virtual void CloseConnection()
         {
-            lock(_syncRoot)
+            lock (_syncRoot)
             {
 #if NO
                 if (_inCritical > 1)
@@ -3629,12 +3738,40 @@ LoginRequest param)
  param);
         }
 
+#if NO
         // 调用 server 端 ResponseWebCall
         public Task<MessageResult> ResponseWebCallAsync(
 WebCallResponse responseParam)
         {
             return HubProxy.Invoke<MessageResult>("ResponseWebCall",
- responseParam);
+        responseParam);
+        }
+#endif
+        // 调用 server 端 ResponseWebCall
+        public MessageResult ResponseWebCall(WebCallResponse responseParam)
+        {
+            int max = 5;
+            for (int i = 0; ; i++)
+            {
+                try
+                {
+                    return HubProxy.Invoke<MessageResult>("ResponseWebCall",
+         responseParam).Result;
+                }
+                catch (Exception ex)
+                {
+                    if (i < max && ex.InnerException is InvalidOperationException)
+                    {
+                        Console.WriteLine("*** ResponseWebCall InvalidOperationException, retryCount=" + i.ToString());
+                        // 2016/11/29
+                        // Wait(new TimeSpan(0, 0, 0, 0, 1000));
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+                    else
+                        throw;
+                }
+            }
         }
 
         public void TryResponseWebCall(
@@ -3648,6 +3785,32 @@ WebCallResponse responseParam)
             catch
             {
 
+            }
+        }
+
+        public async Task<SetMessageResult> TrySetMessageAsync(SetMessageRequest request)
+        {
+            int max = 5;
+            for (int i = 0; ; i++)
+            {
+                try
+                {
+                    return await HubProxy.Invoke<SetMessageResult>(
+"SetMessage",
+request);
+
+                }
+                catch (Exception ex)
+                {
+                    if (i < max && ex.InnerException is InvalidOperationException)
+                    {
+                        Console.WriteLine("*** TrySetMessageAsync InvalidOperationException, retryCount=" + i.ToString());
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+                    else
+                        throw;
+                }
             }
         }
 

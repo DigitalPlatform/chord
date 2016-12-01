@@ -250,6 +250,7 @@ namespace dp2MServer
             UserItem item = new UserItem();
             item.userName = strUserName;
 
+            // TODO: 要改造为 await
             ServerInfo.UserDatabase.Delete(item).Wait();
 
             item.password = strPassword;
@@ -517,7 +518,9 @@ https://github.com/SignalR/SignalR/issues/2631
 InvalidOperationException : "Connection started reconnecting before invocation result was received" #2631 
 @fyip We added a MaxIncomingWebSocketMessageSize property to IConfigurationManager which allows you to increase or disable this limit.
              * */
-            GlobalHost.Configuration.MaxIncomingWebSocketMessageSize = 128 * 1024;  // 默认为 64K
+            // GlobalHost.Configuration.MaxIncomingWebSocketMessageSize = 128 * 1024;  // 默认为 64K
+            // GlobalHost.Configuration.DefaultMessageBufferSize = 1000;
+            // GlobalHost.Configuration.KeepAlive = TimeSpan.FromMinutes(1);   // 10 secs
         }
     }
 

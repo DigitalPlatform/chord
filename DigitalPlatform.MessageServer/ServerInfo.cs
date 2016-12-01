@@ -169,14 +169,14 @@ namespace DigitalPlatform.MessageServer
             }
         }
 
-        public static void CleanExpiredMessage()
+        public static async Task CleanExpiredMessage()
         {
             try
             {
                 // 删除 1 天以前失效的消息
-                MessageDatabase.DeleteExpired(DateTime.Now - new TimeSpan(1, 0, 0, 0)).Wait();
+                await MessageDatabase.DeleteExpired(DateTime.Now - new TimeSpan(1, 0, 0, 0));
                 // 删除一年前发布的消息
-                MessageDatabase.DeleteByPublishTime(DateTime.Now - new TimeSpan(365, 0, 0, 0)).Wait();
+                await MessageDatabase.DeleteByPublishTime(DateTime.Now - new TimeSpan(365, 0, 0, 0));
             }
             catch (Exception ex)
             {
@@ -184,7 +184,8 @@ namespace DigitalPlatform.MessageServer
             }
         }
 
-        public static void TriggerUrl()
+        // 触发 http://dp2003.com/dp2weixin/home/index
+        public static async Task TriggerUrl()
         {
             if (string.IsNullOrEmpty(AutoTriggerUrl))
                 return;
@@ -195,15 +196,15 @@ namespace DigitalPlatform.MessageServer
                     AutoTriggerUrl
                     );
                 request.Timeout = 1000;
-                using (var stream = request.GetResponse().GetResponseStream())
+                using (var stream = (await request.GetResponseAsync()).GetResponseStream())
                 using (var reader = new StreamReader(stream))
                 {
-                    reader.ReadToEnd();
+                    await reader.ReadToEndAsync();
                 }
             }
-            catch
+            catch(Exception ex)
             {
-
+                WriteErrorLog("TriggerUrl() 时出现异常: " + ExceptionUtil.GetDebugText(ex));
             }
         }
 
@@ -311,13 +312,13 @@ namespace DigitalPlatform.MessageServer
     {
         public BackThread()
         {
-            this.PerTime = 60 * 1000;
+            this.PerTime = 5 * 60 * 1000;   // 5 分钟
         }
 
         bool _first = true;
 
         // 工作线程每一轮循环的实质性工作
-        public override void Worker()
+        public async override void Worker()
         {
             if (this.Stopped == true)
                 return;
@@ -325,9 +326,9 @@ namespace DigitalPlatform.MessageServer
             ServerInfo.InitialMongoDb(_first);
             _first = false;
 
-            ServerInfo.TriggerUrl();
+            await ServerInfo.TriggerUrl();
 
-            ServerInfo.CleanExpiredMessage();
+            await ServerInfo.CleanExpiredMessage();
         }
     }
 
