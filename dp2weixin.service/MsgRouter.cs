@@ -83,7 +83,7 @@ namespace dp2weixin.service
             {
                 foreach (MessageRecord record in e.Records)
                 {
-                    if (record.groups.Contains(dp2WeiXinService.C_Group_PatronNotity) == true)
+                    //if (record.groups.Contains(dp2WeiXinService.C_Group_PatronNotity) == true)
                         tempList.Add(record);
                 }
             }
@@ -169,7 +169,13 @@ DeleteMessage(temp_records, this.GroupName);
         {
             SendMessageEventHandler handler = this.SendMessageEvent;
 
-            foreach (MessageRecord record in records)
+
+            //将消息合并
+            List<MessageRecord> fullRecords = this.JoinRecords(records);
+
+
+            // 下级的代码不影响
+            foreach (MessageRecord record in fullRecords)
             {
                 if (this._sendedTable.ContainsKey(record.id))
                     continue;
@@ -188,6 +194,30 @@ DeleteMessage(temp_records, this.GroupName);
 
                 this._sendedTable[record.id] = DateTime.Now;
             }
+        }
+
+        // 片断消息缓冲
+        StringBuilder _msgBuffer = new StringBuilder();
+        private List<MessageRecord> JoinRecords(List<MessageRecord> records)
+        {
+            List<MessageRecord> retRecords = new List<MessageRecord>();
+
+            foreach (MessageRecord rec in records)
+            {
+                // 中间的片断消息
+                if (string.IsNullOrEmpty(rec.id) == true)
+                {
+                    _msgBuffer.Append(rec.data);
+                    continue;
+                }
+
+                // 收尾消息
+                _msgBuffer.Append(rec.data); //串上自己的data
+                rec.data = _msgBuffer.ToString();  //设上完整的data
+                retRecords.Add(rec); //设为正式的消息
+                _msgBuffer.Clear();//消空消息缓存
+            }
+            return retRecords;
         }
 
         // 清理超过一定时间的“已发送”记忆事项
@@ -300,7 +330,10 @@ DeleteMessage(temp_records, this.GroupName);
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
                 if (result.Value == -1)
+                {
+                    strError = result.ErrorInfo;
                     goto ERROR1;
+                }
             }
             catch (AggregateException ex)
             {
