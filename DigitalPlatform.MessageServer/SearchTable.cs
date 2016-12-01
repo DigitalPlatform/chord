@@ -196,6 +196,8 @@ namespace DigitalPlatform.MessageServer
 
         Hashtable _targetTable = new Hashtable();   // target id --> HitInfo
 
+        public object Data { get; set; }    // 存储任意数据 2016/11/30
+
         public void SetTargetIDs(List<string> ids)
         {
             lock (_syncRoot)

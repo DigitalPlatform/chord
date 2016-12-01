@@ -51,7 +51,7 @@ namespace TestClient1
         void _channels_AddMessage(object sender, AddMessageEventArgs e)
         {
             // 暂时注释掉
-            // this.BeginInvoke(new Action<AddMessageEventArgs>(DisplayMessage), e);
+            this.BeginInvoke(new Action<AddMessageEventArgs>(DisplayMessage), e);
         }
 
         void DisplayMessage(AddMessageEventArgs e)
@@ -71,7 +71,7 @@ namespace TestClient1
                 text.Append("format=" + HttpUtility.HtmlEncode(record.format) + "\r\n");
                 text.Append("type=" + HttpUtility.HtmlEncode(record.type) + "\r\n");
                 text.Append("thread=" + HttpUtility.HtmlEncode(record.thread) + "\r\n");
-                
+
                 if (record.subjects != null)
                     text.Append("subjects=" + HttpUtility.HtmlEncode(string.Join(SUBJECT_DELIM, record.subjects)) + "\r\n");
 
@@ -365,7 +365,7 @@ namespace TestClient1
             string strPassword = this.textBox_config_libraryPassword.Text;
             if (string.IsNullOrEmpty(strPassword))
                 strPassword = null;
-            return new LoginInfo(this.textBox_config_libraryUserName.Text, 
+            return new LoginInfo(this.textBox_config_libraryUserName.Text,
                 this.checkBox_config_isPatron.Checked,
                 strPassword,
                 "");
@@ -1232,7 +1232,7 @@ string strHtml)
             list.Sort();
             string prev = null;
             int count = 0;
-            foreach(string s in list)
+            foreach (string s in list)
             {
                 if (s == prev)
                 {
@@ -1473,6 +1473,9 @@ string strHtml)
                     text.Append("***\r\n");
                     text.Append("id=" + HttpUtility.HtmlEncode(record.id) + "\r\n");
                     text.Append("data=" + HttpUtility.HtmlEncode(record.data) + "\r\n");
+                    if (record.data != null)
+                        text.Append("data.Length=" + record.data.Length + "\r\n");
+
                     if (record.groups != null)
                         text.Append("groups=" + HttpUtility.HtmlEncode(string.Join(",", record.groups)) + "\r\n");
                     text.Append("creator=" + HttpUtility.HtmlEncode(record.creator) + "\r\n");

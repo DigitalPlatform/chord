@@ -900,7 +900,7 @@ MessageBoxDefaultButton.Button2);
                 strExePath = Path.Combine(strProgramDir, strName + ".exe");
                 if (File.Exists(strExePath) == false)
                 {
-                    strError = strName + ".exe 尚未复制到目标位置，无法进行注册";
+                    strError = strName + ".exe 尚未复制到目标位置 '"+strExePath+"'，无法进行注册";
                     goto ERROR1;
                 }
             }

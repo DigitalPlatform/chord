@@ -15,6 +15,7 @@ using Microsoft.AspNet.SignalR;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
+using System.Xml;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -216,7 +217,8 @@ namespace DigitalPlatform.MessageServer
                 // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
                 // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
                 // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
-                Task.Run(() => SearchGroupAndResponse(param));
+                // Task.Run(() => SearchGroupAndResponse(param));
+                SearchGroupAndResponse(param);  // TODO: 是否等待?
 
                 result.Value = 1;   // 成功
             }
@@ -230,7 +232,7 @@ ex.GetType().ToString());
             return result;
         }
 
-        void SearchGroupAndResponse(
+        async Task SearchGroupAndResponse(
             GetGroupRequest param)
         {
             SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID, false);
@@ -244,7 +246,7 @@ ex.GetType().ToString());
 
                 List<GroupRecord> records = new List<GroupRecord>();
 
-                ServerInfo.GroupDatabase.GetGroups(param.GroupCondition,
+                await ServerInfo.GroupDatabase.GetGroups(param.GroupCondition,
                     (int)param.Start,
                     (int)param.Count,
                     (totalCount, item) =>
@@ -276,7 +278,7 @@ ex.GetType().ToString());
                         }
 
                         return true;
-                    }).Wait();
+                    }); // .Wait();
             }
             finally
             {
@@ -334,6 +336,55 @@ ex.GetType().ToString());
             return item;
         }
 
+        // 拼接多次发送的 MessageRecord
+        // return:
+        //      true    完成
+        //      false   尚未完成
+        bool ConcatRecords(SetMessageRequest param)
+        {
+            // 拼接记录
+            if (string.IsNullOrEmpty(param.TaskID))
+                throw new ArgumentException("param.TaskID 不应为空", "param");
+
+            SearchInfo search_info = ServerInfo.SearchTable.GetSearchInfo(param.TaskID);
+            if (search_info == null)
+            {
+                search_info = ServerInfo.SearchTable.AddSearch(Context.ConnectionId,
+                    param.TaskID);
+            }
+
+            foreach (MessageRecord record in param.Records)
+            {
+                if (record.data == null)
+                    goto FINISH;
+
+                if (search_info.Data == null)
+                    search_info.Data = record;
+                else
+                {
+                    // 第二次以及以后。拼接 .data 字符串
+                    MessageRecord old = search_info.Data as MessageRecord;
+                    old.data += record.data;  // 请求中，第一个后面的每个 MessageRecord 只需要承载 data 即可，其他成员可以省略
+                }
+            }
+
+            return false;   // 表示拼接尚未结束。需要继续等待后面的请求来进行拼接
+        FINISH:
+            param.Records = new List<MessageRecord>();
+            param.Records.Add(search_info.Data as MessageRecord);
+#if NO
+            // 这一段是测试验证一下合并起来的内容是否正确。但只能适合判断 XML 内容，普通字符串不适合用这一段判断
+            {
+                MessageRecord temp = param.Records[0];
+                XmlDocument dom = new XmlDocument();
+                dom.LoadXml(temp.data);
+
+            }
+#endif
+            ServerInfo.SearchTable.RemoveSearch(param.TaskID);
+            return true;
+        }
+
         // 正规化 MessageItem 里面的 groups 成员内容
         void CanonicalizeMessageItemGroups(MessageItem item, ConnectionInfo connection_info)
         {
@@ -365,7 +416,7 @@ ex.GetType().ToString());
         // 但如果让前端知道哪条是哪条呢？方法是返回的数组和请求的数组大小顺序一样
         // 前端得到这些内容的好处是，可以自己在本地刷新显示，不必等服务器发过来通知
         // 在中途出错的情况下，数组中的元素可能少于请求的数目，但顺序是和请求是一致的
-        public SetMessageResult SetMessage(
+        public async Task<SetMessageResult> SetMessage(
 #if NO
             string action,
             List<MessageRecord> messages
@@ -375,23 +426,42 @@ SetMessageRequest param
         {
             SetMessageResult result = new SetMessageResult();
             List<MessageItem> saved_items = new List<MessageItem>();
-            List<MessageItem> items = new List<MessageItem>();
-
-            // 转换类型
-            foreach (MessageRecord record in param.Records)
-            {
-                if (string.IsNullOrEmpty(string.Join(",", record.groups)))
-                {
-                    result.String = "InvalidData";
-                    result.Value = -1;
-                    result.ErrorInfo = "messages 中包含不合法的 MessageRecord 记录，groups 成员不允许为空(可以使用 '<default>' 作为默认群组的名字)";
-                    return result;
-                }
-                items.Add(CanonicalizeMessageItemSubjects(BuildMessageItem(record)));
-            }
 
             try
             {
+                List<MessageItem> items = new List<MessageItem>();
+
+                // 拼接记录
+                if (string.IsNullOrEmpty(param.TaskID) == false)
+                {
+                    // 拼接多次发送的 MessageRecord
+                    // return:
+                    //      true    完成
+                    //      false   尚未完成
+                    if (ConcatRecords(param) == false)
+                    {
+                        result.Value = 0;
+                        result.String = "_continue";
+                        return result;
+                    }
+
+                }
+
+                // 转换类型
+                foreach (MessageRecord record in param.Records)
+                {
+
+                    if (string.IsNullOrEmpty(string.Join(",", record.groups)))
+                    {
+                        result.String = "InvalidData";
+                        result.Value = -1;
+                        result.ErrorInfo = "messages 中包含不合法的 MessageRecord 记录，groups 成员不允许为空(可以使用 '<default>' 作为默认群组的名字)";
+                        return result;
+                    }
+                    items.Add(CanonicalizeMessageItemSubjects(BuildMessageItem(record)));
+                }
+
+
                 ConnectionInfo connection_info = GetConnection(Context.ConnectionId,
 result,
 "SetMessage()",
@@ -440,7 +510,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         item.creator = BuildMessageUserID(connection_info);
                         item.userName = connection_info.UserName;
                         item.SetID(Guid.NewGuid().ToString());  // 确保 id 字段有值。是否可以允许前端指定这个 ID 呢？如果要进行查重就麻烦了
-                        ServerInfo.MessageDatabase.Add(item).Wait();
+                        await ServerInfo.MessageDatabase.Add(item); // .Wait();
                         saved_items.Add(item);
 
 #if NO
@@ -563,7 +633,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
 
                         // exipreTime 字段不允许修改
                         item.expireTime = exist.expireTime;
-                        ServerInfo.MessageDatabase.Update(item).Wait();
+                        await ServerInfo.MessageDatabase.Update(item);  // .Wait();
                         saved_items.Add(item);  // TODO: 应该返回修改后的记录内容
                     }
                 }
@@ -646,11 +716,11 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         }
 
                         if (param.Action == "delete")
-                            ServerInfo.MessageDatabase.DeleteByID(item.id).Wait();
+                            await ServerInfo.MessageDatabase.DeleteByID(item.id);   // .Wait();
                         else
                         {
                             DateTime now = DateTime.Now;
-                            ServerInfo.MessageDatabase.ExpireByID(item.id, now).Wait();
+                            await ServerInfo.MessageDatabase.ExpireByID(item.id, now);  // .Wait();
                             item.expireTime = now;
                         }
                         saved_items.Add(exist);
@@ -706,7 +776,6 @@ ex.GetType().ToString());
             return "~" + info.LibraryUserName + "@" + info.LibraryName + "|" + info.LibraryUID;
         }
 
-        // TODO: 本函数内出现异常，应该记载到日志文件中么?
         void PushMessageToClient(string action,
             string[] excludeConnectionIds,
             List<MessageItem> messages)
@@ -734,7 +803,19 @@ ex.GetType().ToString());
                     {
                         List<string> ids = ServerInfo.ConnectionTable.GetConnectionIds(item.groups);
                         if (ids.Count > 0)
-                            Clients.Clients(ids).addMessage(action, new List<MessageRecord> { BuildMessageRecord(item) });
+                        {
+                            List<MessageRecord> records = BuildMessageRecords(item);
+                            // Clients.Clients(ids).addMessage(action, batch);
+
+                            ProcessMessageRecords(
+    records,
+    (batch) =>
+    {
+        Clients.Clients(ids).addMessage(action, batch);
+        return true;
+    },
+    4096);
+                        }
                     }
                     else
                     {
@@ -744,11 +825,11 @@ ex.GetType().ToString());
                             records = new List<MessageRecord>();
                             group_table[groupName] = records;
                         }
-                        records.Add(BuildMessageRecord(item));
+                        records.AddRange(BuildMessageRecords(item));
                     }
                 }
 
-                int batch_size = 10;
+                // int batch_size = 10;
 
                 foreach (string groupName in group_table.Keys)
                 {
@@ -757,6 +838,18 @@ ex.GetType().ToString());
                     Debug.Assert(records.Count != 0, "");
                     Console.WriteLine("Push to group '" + groupName + "'");
 
+                    ProcessMessageRecords(
+                        records,
+                        (batch) =>
+                        {
+                            if (excludeConnectionIds == null)
+                                Clients.Group(groupName).addMessage(action, batch);
+                            else
+                                Clients.Group(groupName, excludeConnectionIds).addMessage(action, batch);
+                            return true;
+                        },
+                        4096);
+#if NO
                     // 如果 records 包含数量太多，需要分批发送
                     List<MessageRecord> batch = new List<MessageRecord>();
                     int i = 0;
@@ -774,18 +867,34 @@ ex.GetType().ToString());
                         }
                         i++;
                     }
-
-#if NO
-                    if (excludeConnectionIds == null)
-                        Clients.Group(groupName).addMessage(action, records);
-                    else
-                        Clients.Group(groupName, excludeConnectionIds).addMessage(action, records);
 #endif
                 }
             }
             catch (Exception ex)
             {
                 ServerInfo.WriteErrorLog("PushMessageToClient() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
+        }
+
+        // return:
+        //      true    继续
+        //      false   中断
+        public delegate bool Func_ProcessRecords(List<MessageRecord> records);
+
+        void ProcessMessageRecords(
+            List<MessageRecord> records,
+            Func_ProcessRecords proc,
+            int chunk_size)
+        {
+            Debug.Assert(records != null, "");
+            Debug.Assert(records.Count != 0, "");
+
+            while (records.Count > 0)
+            {
+                List<MessageRecord> temp = CopyPrevElements(records, chunk_size);
+                if (proc(temp) == false)
+                    return;
+                records.RemoveRange(0, temp.Count);
             }
         }
 
@@ -823,6 +932,88 @@ ex.GetType().ToString());
             record.publishTime = item.publishTime;
             record.expireTime = item.expireTime;
             return record;
+        }
+
+        // 根据一个 MessageItem 构造出一个或多个 MessageRecord
+        static List<MessageRecord> BuildMessageRecords(MessageItem item)
+        {
+            int chunk_size = 4096;
+            List<MessageRecord> results = new List<MessageRecord>();
+            string data = item.data;
+            int send = 0;
+            for (; ; )
+            {
+                string current_data = data.Substring(send, Math.Min(chunk_size, data.Length - send));
+
+                MessageRecord record = new MessageRecord();
+                record.data = current_data;
+                if (send + current_data.Length >= data.Length)
+                {
+                    // 表示最后一个 chunk
+                    record.id = item.id;
+                    record.groups = item.groups;
+                    record.creator = item.creator;
+                    record.userName = item.userName;
+                    record.format = item.format;
+                    record.type = item.type;
+                    record.thread = item.thread;
+                    record.subjects = item.subjects;
+
+                    record.publishTime = item.publishTime;
+                    record.expireTime = item.expireTime;
+                }
+                else
+                {
+                    record.id = ""; // 表示非最后一个 chunk
+                }
+
+                results.Add(record);
+
+                send += current_data.Length;
+                if (send >= data.Length)
+                    break;
+            }
+
+            return results;
+        }
+
+        static long GetDataLength(List<MessageRecord> records)
+        {
+            long length = 0;
+            foreach (MessageRecord record in records)
+            {
+                if (record != null && record.data != null)
+                    length += record.data.Length;
+            }
+
+            return length;
+        }
+
+        // 复制 chunk_size 以内的元素
+        // 至少会返回一个元素
+        static List<MessageRecord> CopyPrevElements(List<MessageRecord> records,
+            int chunk_size)
+        {
+            List<MessageRecord> results = new List<MessageRecord>();
+
+            int length = 0;
+            foreach (MessageRecord record in records)
+            {
+                if (record != null && record.data != null)
+                    length += record.data.Length;
+
+                if (length == chunk_size)
+                {
+                    results.Add(record);
+                    return results;
+                }
+
+                if (length > chunk_size)
+                    return results;
+
+                results.Add(record);
+            }
+            return results;
         }
 
         #endregion
@@ -1032,18 +1223,27 @@ ex.GetType().ToString());
                     Task.Run(() => ResponseGroupName(param, group_query));
                 else if (param.Action == "enumGroupName")
                 {
-                    // Task.Run(() => EnumGroupNameAndResponse(param, group_query));
-                    Task.Run(() => EnumFieldAndResponse("groups", param, group_query));
+                    // Task.Run(() => EnumFieldAndResponse("groups", param, group_query));
+                    EnumFieldAndResponse("groups", param, group_query);
                 }
                 else if (param.Action == "enumSubject")
-                    Task.Run(() => EnumFieldAndResponse("subjects", param, group_query));
+                {
+                    // Task.Run(() => EnumFieldAndResponse("subjects", param, group_query));
+                    EnumFieldAndResponse("subjects", param, group_query);
+                }
                 else if (param.Action == "enumCreator")
-                    Task.Run(() => EnumFieldAndResponse("creator", param, group_query));
+                {
+                    // Task.Run(() => EnumFieldAndResponse("creator", param, group_query));
+                    EnumFieldAndResponse("creator", param, group_query);
+                }
                 else
+                {
                     // 启动一个独立的 Task，该 Task 负责搜集和发送结果信息
                     // 这是典型的 dp2MServer 能完成任务的情况，不需要再和另外一个前端通讯
                     // 不过，请求本 API 的前端，要做好在 Request 返回以前就先得到数据响应的准备
-                    Task.Run(() => SearchMessageAndResponse(param, group_query));
+                    // Task.Run(() => SearchMessageAndResponse(param, group_query));
+                    SearchMessageAndResponse(param, group_query);
+                }
 
                 result.Value = 1;   // 成功
             }
@@ -1123,7 +1323,7 @@ ex.GetType().ToString());
             }
         }
 
-        void EnumFieldAndResponse(
+        async Task EnumFieldAndResponse(
             string field,
             GetMessageRequest param,
             GroupQuery group_query)
@@ -1139,7 +1339,7 @@ ex.GetType().ToString());
 
                 List<MessageRecord> records = new List<MessageRecord>();
 
-                ServerInfo.MessageDatabase.GetFieldAggregate(
+                await ServerInfo.MessageDatabase.GetFieldAggregate(
                     field,
                     group_query,
                     param.UserCondition,
@@ -1177,7 +1377,7 @@ ex.GetType().ToString());
                         }
 
                         return true;
-                    }).Wait();
+                    }); // .Wait();
             }
             catch (Exception ex)
             {
@@ -1267,8 +1467,8 @@ ex.GetType().ToString());
             }
         }
 #endif
-
-        void SearchMessageAndResponse(
+        // TODO: 发送消息过程部分建议用 ProcessMessageRecords() 改写
+        async Task SearchMessageAndResponse(
             GetMessageRequest param,
             GroupQuery group_query)
         {
@@ -1278,12 +1478,13 @@ ex.GetType().ToString());
 
             try
             {
-                int batch_size = 10;    // 100? 或者根据 data 尺寸动态计算每批的个数。主要是 data 成员的长度差异很大
+                // int batch_size = 10;    // 100? 或者根据 data 尺寸动态计算每批的个数。主要是 data 成员的长度差异很大
                 int send_count = 0;
+                int chunk_size = 4096;
 
                 List<MessageRecord> records = new List<MessageRecord>();
 
-                ServerInfo.MessageDatabase.GetMessages(//param.GroupCondition,
+                await ServerInfo.MessageDatabase.GetMessages(//param.GroupCondition,
                     group_query,
                     param.UserCondition,    // TODO: 需要转换为 ID
                     param.TimeCondition,
@@ -1295,66 +1496,81 @@ ex.GetType().ToString());
                     (totalCount, item) =>
                     {
                         if (item != null)
-                            records.Add(BuildMessageRecord(item));
-                        // 集中发送一次
-                        if (records.Count >= batch_size || item == null)
+                            records.AddRange(BuildMessageRecords(item));
+
+                        string errorCode = "";
+
+                        while (records.Count > 0)
                         {
-                            Console.WriteLine("send message totalCount=" + totalCount + " send_count=" + send_count + " records.Count=" + records.Count);
+                            long length = GetDataLength(records);
+                            if (length < chunk_size && item != null)
+                                break;
 
-                            string errorCode = "";
-                            // 把残余的结果推送出去
-                            if (records.Count > 0)
                             {
-                                if (item == null)
-                                    errorCode = "_complete";
+                                Console.WriteLine("send message totalCount=" + totalCount + " send_count=" + send_count + " records.Count=" + records.Count);
 
-                                // 让前端获得检索结果
-                                try
+                                // 把残余的结果推送出去
+                                if (records.Count > 0)
                                 {
-                                    Clients.Client(search_info.RequestConnectionID).responseGetMessage(
-                                        param.TaskID,
-                                        (long)totalCount, // resultCount,
-                                        (long)send_count,
-                                        records,
-                                        "", // errorInfo,
-                                        errorCode
-                                        );
-                                    send_count += records.Count;
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine("中心向前端分发 responseGetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
-                                    return false;
-                                }
-                                records.Clear();
-                            }
+                                    List<MessageRecord> temp = null;
 
-                            // 发送结束信号
-                            if (item == null && string.IsNullOrEmpty(errorCode) == true)
-                            {
-                                Debug.WriteLine("专门发出一次结束信号");
-                                try
-                                {
-                                    Clients.Client(search_info.RequestConnectionID).responseGetMessage(
-                                        param.TaskID,
-                                        (long)totalCount, // resultCount,
-                                        (long)send_count,
-                                        records,
-                                        "", // errorInfo,
-                                        "_complete" // errorCode
-                                        );
-                                    send_count += records.Count;
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine("中心向前端分发 responseGetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
-                                    return false;
+                                    if (length <= chunk_size)
+                                        temp = records;
+                                    else
+                                        temp = CopyPrevElements(records, chunk_size);
+
+                                    if (item == null && records.Count - temp.Count == 0)
+                                        errorCode = "_complete";
+
+                                    // 让前端获得检索结果
+                                    try
+                                    {
+                                        Clients.Client(search_info.RequestConnectionID).responseGetMessage(
+                                            param.TaskID,
+                                            (long)totalCount, // resultCount,
+                                            (long)send_count,
+                                            temp,
+                                            "", // errorInfo,
+                                            errorCode
+                                            );
+                                        send_count += temp.Count;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine("中心向前端分发 responseGetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                                        return false;
+                                    }
+                                    records.RemoveRange(0, temp.Count);
                                 }
                             }
                         }
 
+                        // 发送结束信号
+                        if (item == null
+                            && string.IsNullOrEmpty(errorCode) == true)
+                        {
+                            Debug.WriteLine("专门发出一次结束信号");
+                            try
+                            {
+                                Clients.Client(search_info.RequestConnectionID).responseGetMessage(
+                                    param.TaskID,
+                                    (long)totalCount, // resultCount,
+                                    (long)send_count,
+                                    records,
+                                    "", // errorInfo,
+                                    "_complete" // errorCode
+                                    );
+                                send_count += records.Count;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("中心向前端分发 responseGetMessage() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                                return false;
+                            }
+                        }
+
                         return true;
-                    }).Wait();
+                    }); // .Wait();
             }
             catch (Exception ex)
             {
@@ -1571,7 +1787,7 @@ ex.GetType().ToString());
         // 设置用户。包括增删改功能
         // 可能返回的错误码:
         //      Denied
-        public MessageResult SetUsers(string action, List<UserItem> users)
+        public async Task<MessageResult> SetUsers(string action, List<UserItem> users)
         {
             MessageResult result = new MessageResult();
 
@@ -1628,7 +1844,7 @@ true);
                         // 2016/9/16
                         AutoBindingIP(item, connection_info.ClientIP);
 
-                        ServerInfo.UserDatabase.Add(item).Wait();
+                        await ServerInfo.UserDatabase.Add(item);  // .Wait();
                     }
                 }
                 else if (action == "change")
@@ -1647,7 +1863,7 @@ true);
 
                     foreach (UserItem item in users)
                     {
-                        ServerInfo.UserDatabase.Update(item).Wait();
+                        await ServerInfo.UserDatabase.Update(item); // .Wait();
                     }
                 }
                 else if (action == "changePassword")
@@ -1664,7 +1880,7 @@ true);
                             return result;
                         }
 
-                        ServerInfo.UserDatabase.UpdatePassword(item).Wait();
+                        await ServerInfo.UserDatabase.UpdatePassword(item); // .Wait();
                     }
                 }
                 else if (action == "delete")
@@ -1682,7 +1898,7 @@ true);
 
                     foreach (UserItem item in users)
                     {
-                        ServerInfo.UserDatabase.Delete(item).Wait();
+                        await ServerInfo.UserDatabase.Delete(item); // .Wait();
                     }
                 }
                 else
@@ -2503,6 +2719,7 @@ ex.GetType().ToString());
                     SendWebCall(connectionIds, param);
                 else
                     Task.Run(() => SendWebCall(connectionIds, param));
+
                 result.Value = connectionIds.Count;   // 表示已经成功发起了操作
             }
             catch (Exception ex)
@@ -2582,23 +2799,27 @@ ex.GetType().ToString());
 #endif
 
             // 让前端获得响应结果
+#if NO
             try
             {
-                Clients.Client(search_info.RequestConnectionID).responseWebCall(
-                    responseParam);
+#endif
+            Clients.Client(search_info.RequestConnectionID).responseWebCall(
+                responseParam);
 
 #if LOG
                 writeDebug("SendWebCallResponse.2");
 #endif
 
-                // 主动清除已经完成的任务对象
-                if (responseParam.Complete == true)
-                    ServerInfo.SearchTable.RemoveSearch(search_info.UID);
+            // 主动清除已经完成的任务对象
+            if (responseParam.Complete == true)
+                ServerInfo.SearchTable.RemoveSearch(search_info.UID);
+#if NO
             }
             catch (Exception ex)
             {
                 ServerInfo.WriteErrorLog("中心向前端分发 responseWebCall() 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
             }
+#endif
 
 #if LOG
             writeDebug("SendWebCallResponse.3");
@@ -4059,7 +4280,7 @@ ex.GetType().ToString());
                 var results = ServerInfo.UserDatabase.GetUsersByName(userName, 0, 1).Result;
                 if (results.Count != 1)
                 {
-                    ServerInfo.WriteErrorLog("权限认证时，用户名 '"+userName+"' 不存在或多于一个 (" + results.Count.ToString() + ")");
+                    ServerInfo.WriteErrorLog("权限认证时，用户名 '" + userName + "' 不存在或多于一个 (" + results.Count.ToString() + ")");
                     return false;
                 }
 
