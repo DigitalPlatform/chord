@@ -1,4 +1,31 @@
-﻿====
+﻿
+                <!--
+                <div >
+                    <table style="width:100%; color:black;margin-top:5px">
+                        <tr>
+                            <td style="width:80px;color:gray">扫码方式：</td>
+                            <td>
+                                <input name="from" type="radio" value="1" checked onchange="setFrom()" style="width:25px;height:25px">摄像头
+                                &nbsp;
+                                <input name="from" type="radio" value="2" onchange="setFrom()" style="width:25px;height:25px">键盘输入
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:86px;color:gray">流程风格</td>
+                            <td>
+                                <select id="controlType" style="color:black;padding:5px" onchange="setControlType()">
+                                    <option value="manual">手动</option>
+                                    <option value="manualAuto" selected>有条件的自动</option>
+                                    <option value="auto">完全自动</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                    -->
+
+====
         var f = function (event) {
 
             //alert("a2");

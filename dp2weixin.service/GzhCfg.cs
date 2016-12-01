@@ -48,6 +48,9 @@ namespace dp2weixin.service
         /// <returns></returns>
         public GzhCfg GetByAppName(string appName)
         {
+            if (string.IsNullOrEmpty(appName) == true)
+                return null;
+
             foreach (GzhCfg gzh in this)
             {
                 if (gzh.appName == appName)

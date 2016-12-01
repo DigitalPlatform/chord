@@ -36,7 +36,7 @@ namespace dp2weixin.service
             Librarys = new List<Library>();
 
             // 取出所有的图书馆，加载到内存中
-            List<LibEntity> libs = LibDatabase.Current.GetLibs();
+            List<LibEntity> libs = LibDatabase.Current.GetLibsInternal();
 
             foreach (LibEntity entity in libs)
             {
@@ -132,6 +132,35 @@ namespace dp2weixin.service
                 foreach (Library lib in this.Librarys)
                 {
                     if (lib.Entity.id == libId)
+                        return lib;
+                }
+            }
+            return null;
+        }
+
+        //根据ids得到对应的图书馆数组
+        public List<Library> GetLibraryByIds(List<string> ids)
+        {
+            List<Library> libs = new List<Library>();
+            if (this.Librarys != null && this.Librarys.Count > 0)
+            {
+                foreach (Library lib in this.Librarys)
+                {
+                    if (ids.IndexOf(lib.Entity.id) != -1)
+                        libs.Add(lib);
+                }
+            }
+            return libs;
+        }
+
+        //根据capo_***找到图书馆配置信息
+        public Library GetLibraryByCapoName(string capoName)
+        {
+            if (this.Librarys != null && this.Librarys.Count > 0)
+            {
+                foreach (Library lib in this.Librarys)
+                {
+                    if (lib.Entity.capoUserName == capoName)
                         return lib;
                 }
             }

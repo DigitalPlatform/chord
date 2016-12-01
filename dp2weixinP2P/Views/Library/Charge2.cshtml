@@ -34,10 +34,10 @@
         var C_controlType_auto = "auto";
 
         // 条码来源方式
-        var _from = 2; //1 扫码方式  2输入框方式
+        //var _from = 2; //1 扫码方式  2输入框方式
 
         // 流程控制方式
-        var _controlType = "auto";//自动
+        //var _controlType = "auto";//自动
 
         //========================
 
@@ -47,12 +47,6 @@
 
             // 设置缺省环境为借书
             setOpe(C_ope_borrow);
-
-            // 输入框方式根据界面的checkbox来
-            setFrom();
-
-            // 设置流程控制方式
-            setControlType();
 
             // 得到全部命令
             getAllCmd();
@@ -115,11 +109,12 @@
             var mystyle = "position:fixed; left:0; top:0; width:100%; height:100%; border: none;";  //background-color:black;color:white
 
             var bTime = false;
-            if (_controlType == C_controlType_manual)
+            var controlType = getControlType();
+            if (controlType == C_controlType_manual)
                 bTime = false;
-            else if (_controlType == C_controlType_auto)
+            else if (controlType == C_controlType_auto)
                 bTime = true;
-            else if (_controlType == C_controlType_manualAuto)
+            else if (controlType == C_controlType_manualAuto)
             {
                 if (isAutoClose == false)
                     bTime = false;
@@ -203,16 +198,36 @@
 
         // 显示继续按钮
         function showContinue() {
-            var html = "<button class='mui-btn mui-btn-block' onclick='layer.closeAll();'>继续</button>";//"<a href='javascript:;' onclick='layer.closeAll();'>继续</a>";
+
+            var html = "<table style='width:100%'>"
+    + "<tr>"
+        + "<td style='width:100%'><button class='mui-btn mui-btn-block' onclick='layer.closeAll();'>继续</button></td>"
+        + "<td style='width:65px;min-width:65px;'>"
+            + "&nbsp;<span class='mui-icon-extra mui-icon-extra-sweep' onclick='convertFrom(" + C_from_scan + ")' style='font-size:20pt;cursor:pointer'></span>"
+            + "&nbsp;<span class='mui-icon-extra mui-icon-extra-calc' onclick='convertFrom(" + C_from_textbox + ")' style='font-size:20pt;cursor:pointer'></span>"
+        + "</td>"
+    + "</tr>"
++ "</table>";
+
+            //var html = "<button class='mui-btn mui-btn-block' onclick='layer.closeAll();'>继续</button>";//"<a href='javascript:;' onclick='layer.closeAll();'>继续</a>";
             $("#continue").html(html);
+        }
+
+        // 中间转换输入方式
+        function convertFrom(from)
+        {
+            setFrom(from);
+
+            layer.closeAll();
         }
 
         // 接收二维码
         function receiveBarcode() {
-            if (_from == C_from_scan) {
+            var from = getFrom();
+            if (from == C_from_scan) {
                 openScanBarcode();
             }
-            else if (_from == C_from_textbox) {
+            else if (from == C_from_textbox) {
                 openTextBox();
             }
         }
@@ -763,7 +778,8 @@
             }
 
             var actionName = "";
-            if (_from == C_from_scan)
+            var from = getFrom();
+            if (from == C_from_scan)
                 actionName = "扫入";
             else
                 actionName = "输入";
@@ -896,23 +912,18 @@
 
 
 
-        // checkbox设置条码来源方式
-        function setFrom() {
-            /*
-            _from = 1;
-            var val = $('input:radio[name="from"]:checked').val();
-            if (val == null) {
-                //alert("什么也没选中!");
-                val = 1;
-            }
-            _from = val;
-            */
-
-            _from = $("#from").val();
+        // 获取输入方式
+        function getFrom() {
+            return $("#from").val();
         }
 
-        function setControlType() {
-            _controlType = $("#controlType").val();
+        //设置输入方式
+        function setFrom(value) {
+            return $("#from").val(value);
+        }
+
+        function getControlType() {
+            return $("#controlType").val();
         }
 
 
@@ -1167,43 +1178,18 @@ else
                 <button class="mui-btn mui-btn-block" onclick="start('borrow')">开始借书</button>
                 <button class="mui-btn mui-btn-block" onclick="start('return')">开始还书</button>
 
-                <!--
-                <div >
-                    <table style="width:100%; color:black;margin-top:5px">
-                        <tr>
-                            <td style="width:80px;color:gray">扫码方式：</td>
-                            <td>
-                                <input name="from" type="radio" value="1" checked onchange="setFrom()" style="width:25px;height:25px">摄像头
-                                &nbsp;
-                                <input name="from" type="radio" value="2" onchange="setFrom()" style="width:25px;height:25px">键盘输入
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="width:86px;color:gray">流程风格</td>
-                            <td>
-                                <select id="controlType" style="color:black;padding:5px" onchange="setControlType()">
-                                    <option value="manual">手动</option>
-                                    <option value="manualAuto" selected>有条件的自动</option>
-                                    <option value="auto">完全自动</option>
-                                </select>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                    -->
             </div>
             <div style="background-color:white;margin-left:10px;margin-right:10px;margin-top:0px">
                 <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
                     <label style="color:#cccccc">扫码方式</label>
-                    <select id="from" style="background-color:transparent" onchange="setFrom()">
+                    <select id="from" style="background-color:transparent">
                         <option value="1">摄像头</option>
                         <option value="2">键盘输入</option>
                     </select>
                 </div>
                 <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
                     <label style="color:#cccccc">流程风格</label>
-                    <select id="controlType" style="background-color:transparent" onchange="setControlType()">
+                    <select id="controlType" style="background-color:transparent" >
                         <option value="manual">手动</option>
                         <option value="manualAuto" selected="">有条件的自动</option>
                         <option value="auto">完全自动</option>

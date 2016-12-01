@@ -46,11 +46,28 @@
                         return;
                     }
 
-                    // 更新到顶部
+                    // 重新加载页面
+                    window.location.reload();
+
+                    /*
                     var oldName = $("#_libName").text();
                     var libName = $("#selLib  option:selected").text();
+
+                    // 更新消息标题 
+                    var tracingTitle = "监控本馆消息";
+                    if (libName == "数字平台")
+                    {
+                        tracingTitle = "监控所有图书馆的消息";
+                    }
+                    $("#tracingTitle").text(tracingTitle);
+
+                    // 更新到顶部
                     libName = "[" + libName + "]"
                     $("#_libName").text(libName);
+
+                    */
+
+
 
                     // 不弹出成功提示，保持在本页
                     /*
@@ -125,6 +142,7 @@
             var tracing = getTracing();
             if (tracing == "on") {
                 $("#ckbMask").removeAttr("disabled");
+                //$("#ckbMask").prop("checked", true);
             }
             else {
                 $("#ckbMask").prop("checked", false);
@@ -176,10 +194,19 @@
         }
 
         function getMask() {
-            var text = "";
+
+
+            var bchecked = false;
             $("#ckbMask:checked").each(function () {
-                text = " -mask";
+                bchecked = true;
             });
+
+            var text = "";
+            if (bchecked == false)
+            {
+                text = " -mask";
+            }
+
             return text
         }
 
@@ -230,12 +257,12 @@ else
 
         <div class="mui-card" style="margin-top:10px">
             <div class='mui-input-row mui-checkbox mui-left'>
-                <label><span style='@style'>打开监控功能</span><span style="color:#cccccc">（工作人员有效）</span></label>
+                <label><span style='@style' id="tracingTitle">@ViewBag.info</span><span style="color:#cccccc">（工作人员有效）</span></label>
                 <input id='ckbTracing' @disabledstr onchange="updateTracing()" type='checkbox' @ViewBag.tracingChecked />
             </div>
 
             <div class='mui-input-row mui-checkbox mui-left'>
-                <label><span style='@style'>去掉马赛克</span></label>
+                <label><span style='@style'>监控消息隐藏敏感字段</span></label>
                 <input id='ckbMask' @disabledstr onchange="updateTracing()" type='checkbox' @ViewBag.maskChecked />
             </div>
 

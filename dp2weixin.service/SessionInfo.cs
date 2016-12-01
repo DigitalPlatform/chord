@@ -17,6 +17,9 @@ namespace dp2weixin.service
         public ChargeCommandContainer cmdContainer = null;
         public GzhCfg  gzh = null;
 
+        // 可选择的图书馆
+        public List<string> libIds = new List<string>();
+
         public SessionInfo()
         {
             cmdContainer = new ChargeCommandContainer();

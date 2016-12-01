@@ -34,7 +34,18 @@ namespace dp2weixinWeb.Controllers
             ViewBag.returnUrl = returnUrl;
 
             // 图书馆html
-            ViewBag.LibHtml = this.GetLibSelectHtml(ViewBag.LibId, weixinId, true,true);
+            string selLibHtml = "";
+            nRet = this.GetLibSelectHtml(ViewBag.LibId, 
+                weixinId, 
+                true,
+                "save()",
+                out selLibHtml,
+                out strError);
+            if (nRet==-1)
+            {
+                goto ERROR1;
+            }
+            ViewBag.LibHtml = selLibHtml;
 
             string photoChecked = "";
             if (ViewBag.showPhoto == 1)
@@ -47,20 +58,26 @@ namespace dp2weixinWeb.Controllers
             ViewBag.coverChecked = coverChecked;
 
             // 检查是否绑定工作人员，决定界面上是否出现 打开监控功能
+            ViewBag.info = "监控本馆消息";
+            string tracingChecked = "";
+            string maskChecked = "";
             WxUserItem worker = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
             if (worker != null)
             {
                 ViewBag.workerId = worker.id;
-                string tracingChecked = "";
-                string maskChecked="";
                 if (worker.tracing == "on" || worker.tracing == "on -mask")
                 {
                     tracingChecked = " checked='checked' ";
+                    maskChecked = " checked='checked' ";
                     if (worker.tracing == "on -mask")
-                        maskChecked = " checked='checked' ";
+                        maskChecked = " ";
                 }
-                ViewBag.tracingChecked = tracingChecked;
-                ViewBag.maskChecked = maskChecked;
+            }
+            ViewBag.tracingChecked = tracingChecked;
+            ViewBag.maskChecked = maskChecked;
+            if (ViewBag.LibName == "[" + WeiXinConst.C_Dp2003LibName + "]")
+            {
+                ViewBag.info = "监控所有图书馆的消息";
             }
 
             return View();

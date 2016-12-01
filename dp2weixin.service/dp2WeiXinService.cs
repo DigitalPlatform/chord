@@ -456,8 +456,13 @@ namespace dp2weixin.service
 
         public void UpdateMemoryTracingUser(string weixinId,string libId, string tracing)
         {
-            if (tracing == "off")
+            if (tracing !="on" && tracing!="on -mask")//== "off")
             {
+                if (tracing != "off")
+                {
+                    this.WriteErrorLog1("异常：tracing值["+tracing+"]不为off。");
+                }
+
                 dp2WeiXinService.Instance.TracingOnUsers.Remove(weixinId);
                 return;
             }
@@ -3403,7 +3408,10 @@ namespace dp2weixin.service
                     cancel_token).Result;
                 if (result.Value == -1)
                 {
-                    strError = "操作失败：" + result.ErrorInfo;
+                    //strError = "操作失败：" + result.ErrorInfo;
+                    //return -1;
+
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName); //result.ErrorInfo;
                     return -1;
                 }
 
@@ -4329,7 +4337,7 @@ namespace dp2weixin.service
                     bNext = true;
 
                 //测试用2分钟。
-                Thread.Sleep(1000 * 60*2);
+                //Thread.Sleep(1000 * 60*2);
 
                 return result.ResultCount;// records.Count;
             }
@@ -6843,23 +6851,23 @@ namespace dp2weixin.service
         public int GetWeiXinId(string code, string state,
             out GzhCfg gzh,
             out string weixinId,
+            out List<string> libList,
             out string strError)
         {
             strError = "";
             weixinId = "";
             gzh = null;
+            libList = new List<string>();
+
+            int nRet = this.GetGzhAndLibs(state,
+                out gzh,
+                out libList,
+                out strError);
+            if (nRet == -1)
+                return -1;
 
             try
             {
-                //根据state确定是哪个公众号进来的
-                if (state != C_gzh_ilovelibrary && state != C_gzh_dp && state != C_gzh_dpcomm)
-                {
-                    strError = "验证失败！非正规途径["+state+"]进入！";
-                    return -1;
-                }
-
-                gzh = this.gzhContainer.GetByAppName(state);
-
                 //用code换取access_token
                 var result = OAuthApi.GetAccessToken(gzh.appId, gzh.secret, code);//this.weiXinAppId, this.weiXinSecret, code);
                 if (result == null)
@@ -6873,21 +6881,103 @@ namespace dp2weixin.service
                     return -1;
                 }
 
-                //下面2个数据也可以自己封装成一个类，储存在数据库中（建议结合缓存）
-                //如果可以确保安全，可以将access_token存入用户的cookie中，每一个人的access_token是不一样的
-                //Session["OAuthAccessTokenStartTime"] = DateTime.Now;
-                //Session["OAuthAccessToken"] = result;            
-
                 // 取出微信id
-                weixinId = result.openid +"@"+gzh.appId; //2016-11-16，系统中使用的微信id都带上@appId
+                weixinId = result.openid + "@" + gzh.appId; //2016-11-16，系统中使用的微信id都带上@appId
                 return 0;
             }
             catch (Exception ex)
             {
                 strError = "获取微信id异常：" + ex.Message;
                 return -1;
-
             }
+        }
+
+        public int GetGzhAndLibs(string state, 
+            out GzhCfg gzh, 
+            out List<string> libList,
+            out string strError)
+        {
+            strError = "";
+            gzh = null;
+            libList = new List<string>();
+
+            if (String.IsNullOrEmpty(state) == true)
+            {
+                strError = "state参数为空";
+                return -1;
+            }
+
+            // 2016-11-22
+            //state格式：公众号名称:图书馆capo账户1+图书馆capo账户2
+            int nIndex = state.IndexOf(":");
+            string gzhName = state;
+            string libCapoNames = "";
+            string[] libs = null;
+            if (nIndex != -1)
+            {
+                gzhName = state.Substring(0, nIndex);
+                libCapoNames = state.Substring(nIndex + 1);
+                if (libCapoNames != "")
+                {
+                    libs = libCapoNames.Split(new char[] { ',' });
+                }
+            }
+
+            // 根据传进来的参数，得到公众号配置信息
+            gzh = this.gzhContainer.GetByAppName(gzhName); //函数内会处理空的情况
+            if (gzh == null)
+            {
+                strError = "验证失败：非正规途径[" + state + "]进入！";
+                return -1;
+            }
+
+            ////根据state确定是哪个公众号进来的
+            //if (state != C_gzh_ilovelibrary && state != C_gzh_dp && state != C_gzh_dpcomm)
+            //{
+            //    strError = "验证失败！非正规途径["+state+"]进入！";
+            //    return -1;
+            //}
+            //gzh = this.gzhContainer.GetByAppName(state);
+
+            //得到可以访问的图书馆列表
+            if (libs == null || libs.Length == 0)
+            {
+                //未配时，全部图书馆
+                foreach (Library lib in this.LibManager.Librarys)
+                {
+                    libList.Add(lib.Entity.id);
+                }
+            }
+            else
+            {
+
+                foreach (Library lib in this.LibManager.Librarys)
+                {
+                    if (libs.Contains(lib.Entity.capoUserName) ==true)
+                        libList.Add(lib.Entity.id);
+                }
+
+                /*
+                foreach (string capoName in libs)
+                {
+                    Library lib = this.LibManager.GetLibraryByCapoName(capoName);
+                    if (lib == null)
+                    {
+                        strError = "验证失败：存在不合理的图书馆名称["+capoName+"]！";
+                        return -1;
+                    }
+                    libList.Add(lib.Entity.id);
+                }
+                 */
+            }
+
+            // 未设置要访问的图书馆
+            if (libList.Count == 0)
+            {
+                strError = "验证失败：未设置要访问的图书馆";
+                return -1;
+            }
+            return 0;
         }
 
         ///// <summary>
@@ -8664,9 +8754,11 @@ namespace dp2weixin.service
 
 
             // 循环处理每个图书馆
-            List<LibEntity> libs = LibDatabase.Current.GetLibs();
-            foreach (LibEntity lib in libs)
+            //List<LibEntity> libs = LibDatabase.Current.GetLibs();
+            List<Library> libs = this.LibManager.Librarys;
+            foreach (Library library in libs)
             {
+                LibEntity lib = library.Entity;
                 // 从远方图书馆查到绑定了微信的工作人员，以临时状态保存的微信用户库
                 int nRet = this.SetWorkersFromLib(lib,
                     out strError);

@@ -14,7 +14,7 @@ namespace dp2weixinWeb.ApiControllers
         // GET api/<controller>
         public IEnumerable<LibEntity> Get()
         {
-            List<LibEntity> list = LibDatabase.Current.GetLibs();//"*", 0, -1).Result;
+            List<LibEntity> list = LibDatabase.Current.GetLibsInternal();//"*", 0, -1).Result;
             return list;
         }
 

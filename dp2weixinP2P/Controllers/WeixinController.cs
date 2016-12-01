@@ -54,26 +54,47 @@ namespace dp2weixinWeb.Controllers
         [ActionName("Index")]
         public ActionResult Get(PostModel postModel, string echostr)
         {
-            GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetDefault();
+
+            GzhCfg gzh = null;
+
+            string state = Request.QueryString["state"];
+            if (String.IsNullOrEmpty(state) == false)
+            {
+                dp2WeiXinService.Instance.WriteLog1("url参数state=" + state);
+                gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppName(state);
+                if (gzh == null)
+                {
+                    string tempError = "Get未找到公众号[" + state + "]的配置信息。";
+                    dp2WeiXinService.Instance.WriteErrorLog1(tempError);
+                    return new WeixinResult(tempError);
+                }
+            }
+            else
+            {
+                gzh = dp2WeiXinService.Instance.gzhContainer.GetDefault();
+            }
+
             if (string.IsNullOrEmpty(postModel.AppId) == false)
             {
                 gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
                 dp2WeiXinService.Instance.WriteErrorLog1("惊喜Get中有appId=" + postModel.AppId);
+            }
 
-            }
             //GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
-            if (gzh == null)
-            {
-                string tempError = "Get未找到公众号[" + postModel.AppId + "]的配置信息。";
-                dp2WeiXinService.Instance.WriteErrorLog1(tempError);
-                return new WeixinResult(tempError);
-            }
+            //if (gzh == null)
+            //{
+            //    string tempError = "Get未找到公众号[" + postModel.AppId + "]的配置信息。";
+            //    dp2WeiXinService.Instance.WriteErrorLog1(tempError);
+            //    return new WeixinResult(tempError);
+            //}
 
             if (CheckSignature.Check(postModel.Signature, 
                 postModel.Timestamp, 
                 postModel.Nonce, 
                 gzh.token))
             {
+                string info = DumpPostModel(postModel);
+                dp2WeiXinService.Instance.WriteLog1(info);
                 return Content(echostr); //返回随机字符串则表示验证通过
             }
             else
@@ -81,6 +102,15 @@ namespace dp2weixinWeb.Controllers
                 return Content("failed:" + postModel.Signature + "," + CheckSignature.GetSignature(postModel.Timestamp, postModel.Nonce, gzh.token) + "。" +
                     "如果你在浏览器中看到这句话，说明此地址可以被作为微信公众账号后台的Url，请注意保持Token一致。");
             }
+        }
+
+        private string DumpPostModel(PostModel postmodel)
+        {
+            return "appId=" + postmodel.AppId + "\n"
+                +"Signature=" + postmodel.Signature + "\n"
+                + "Timestamp=" + postmodel.Timestamp + "\n"
+                + "Nonce=" + postmodel.Nonce + "\n"
+                + "Token=" + postmodel.Token;
         }
 
         /// <summary>
