@@ -863,7 +863,7 @@ errorCode) =>
             token);
         }
 
-        // 计算列表中完满元素的个数。所谓完满元素就是 .id 不是空的元素
+        // 计算列表中完满元素的个数。所谓完满元素就是 id 不是空的元素
         static int GetCount(IList<MessageRecord> records)
         {
             int count = 0;
