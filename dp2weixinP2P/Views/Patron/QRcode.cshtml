@@ -21,6 +21,16 @@ else
     }
     else
     {
+        // 警告提示
+        if (String.IsNullOrEmpty(ViewBag.Warn) == false)
+        {
+            <div class="mui-content-padded">
+                <span class="errorinfo">
+                    @Html.Raw(ViewBag.Warn)
+                </span>
+            </div>
+        }
+
         <div class="mui-content-padded">
             <center>
                 <img id="qrcode" src="@ViewBag.qrcodeUrl" alt='QRCode image' />

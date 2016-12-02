@@ -133,13 +133,18 @@ namespace dp2weixin.service
 
                 //this.WriteErrorLog("走到worker3:" + temp_records.Count);
 
+
+                //将消息合并
+                List<MessageRecord> fullRecords = this.JoinRecords(temp_records);
+
+
                 // 发送消息给下游模块
-                SendMessage(temp_records);
+                SendMessage(fullRecords);//temp_records);
 
                 //this.WriteErrorLog("走到worker4:");
 
                 // 从 dp2mserver 中删除这些消息
-               bDeleteOk= DeleteMessage(temp_records);//jane 2016-6-20 不需要传group参数了, this.GroupName);
+                bDeleteOk = DeleteMessage(fullRecords);//temp_records);//jane 2016-6-20 不需要传group参数了, this.GroupName);
 
                 //this.WriteErrorLog("走到worker5:");
             }
@@ -170,12 +175,11 @@ DeleteMessage(temp_records, this.GroupName);
             SendMessageEventHandler handler = this.SendMessageEvent;
 
 
-            //将消息合并
-            List<MessageRecord> fullRecords = this.JoinRecords(records);
+
 
 
             // 下级的代码不影响
-            foreach (MessageRecord record in fullRecords)
+            foreach (MessageRecord record in records)
             {
                 if (this._sendedTable.ContainsKey(record.id))
                     continue;
