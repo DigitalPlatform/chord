@@ -735,7 +735,9 @@ errorInfo)
             List<MessageRecord> results = new List<MessageRecord>();
             MessageResult result = await this.GetMessageAsyncLite(
     request,
-    (totalCount,
+    (
+        cache,
+        totalCount,
 start,
 records,
 errorInfo,
@@ -743,18 +745,30 @@ errorCode) =>
     {
         if (records != null)
         {
-            StringBuilder data = new StringBuilder();
             foreach (MessageRecord record in records)
             {
                 if (string.IsNullOrEmpty(record.id))
-                    data.Append(record.data);
+                {
+                    if (record.data != null)
+                    {
+                        if (cache.Length + record.data.Length > MAX_DATA_LENGTH)
+                            throw new Exception("MessageRecord .data 拼接超过极限尺寸 " + MAX_DATA_LENGTH);
+                        cache.Append(record.data);
+                    }
+                }
                 else
                 {
-                    if (data.Length > 0)
+                    if (cache.Length > 0)
                     {
-                        data.Append(record.data);
-                        record.data = data.ToString();
-                        data.Clear();
+                        if (record.data != null)
+                        {
+                            if (cache.Length + record.data.Length > MAX_DATA_LENGTH)
+                                throw new Exception("MessageRecord .data 拼接超过极限尺寸 " + MAX_DATA_LENGTH);
+
+                            cache.Append(record.data);
+                        }
+                        record.data = cache.ToString();
+                        cache.Clear();
                     }
                     results.Add(record);
                 }
@@ -766,6 +780,8 @@ errorCode) =>
             return new GetMessageResult(result, results);
         }
 
+        static int MAX_DATA_LENGTH = 1024 * 1024;   // 1M chars
+
         // 包装后的同步函数。注意 request.Count 的使用，要避免一次调用获得的记录太多而导致内存放不下
         public GetMessageResult GetMessage(GetMessageRequest request,
             TimeSpan timeout,
@@ -774,7 +790,9 @@ errorCode) =>
             List<MessageRecord> results = new List<MessageRecord>();
             MessageResult result = this.GetMessageTaskAsync(
     request,
-    (totalCount,
+    (
+        cache,
+        totalCount,
 start,
 records,
 errorInfo,
@@ -788,18 +806,30 @@ errorCode) =>
                 results.Add(record);
             }
 #endif
-            StringBuilder data = new StringBuilder();
             foreach (MessageRecord record in records)
             {
                 if (string.IsNullOrEmpty(record.id))
-                    data.Append(record.data);
+                {
+                    if (record.data != null)
+                    {
+                        if (cache.Length + record.data.Length > MAX_DATA_LENGTH)
+                            throw new Exception("MessageRecord .data 拼接超过极限尺寸 " + MAX_DATA_LENGTH);
+                        cache.Append(record.data);
+                    }
+                }
                 else
                 {
-                    if (data.Length > 0)
+                    if (cache.Length > 0)
                     {
-                        data.Append(record.data);
-                        record.data = data.ToString();
-                        data.Clear();
+                        if (record.data != null)
+                        {
+                            if (cache.Length + record.data.Length > MAX_DATA_LENGTH)
+                                throw new Exception("MessageRecord .data 拼接超过极限尺寸 " + MAX_DATA_LENGTH);
+
+                            cache.Append(record.data);
+                        }
+                        record.data = cache.ToString();
+                        cache.Clear();
                     }
                     results.Add(record);
                 }
@@ -811,7 +841,9 @@ errorCode) =>
             return new GetMessageResult(result, results);
         }
 
-        public delegate void Delegate_outputMessage(long totalCount,
+        public delegate void Delegate_outputMessage(
+            StringBuilder cache,
+            long totalCount,
             long start,
             IList<MessageRecord> records,
             string errorInfo,
@@ -857,6 +889,8 @@ errorCode) =>
 
             long recieved = 0;
 
+            StringBuilder cache = new StringBuilder();
+
             using (WaitEvents wait_events = new WaitEvents())    // 表示中途数据到来
             {
                 using (var handler = HubProxy.On<
@@ -884,7 +918,9 @@ errorCode) =>
                             return;
                         }
 
-                        proc(resultCount,
+                        proc(
+                            cache,
+                            resultCount,
                             start,
                             records,
                             errorInfo,
