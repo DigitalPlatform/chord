@@ -1441,7 +1441,9 @@ string strHtml)
                 "");
         }
 
-        void FillMessage(long totalCount,
+        void FillMessage(
+            StringBuilder cache,
+            long totalCount,
             long start,
             IList<MessageRecord> records,
             string errorInfo,
@@ -1449,8 +1451,8 @@ string strHtml)
         {
             if (this.webBrowser_message.InvokeRequired)
             {
-                this.webBrowser_message.Invoke(new Action<long, long, IList<MessageRecord>, string, string>(FillMessage),
-                    totalCount, start, records, errorInfo, errorCode);
+                this.webBrowser_message.Invoke(new Action<StringBuilder, long, long, IList<MessageRecord>, string, string>(FillMessage),
+                    cache, totalCount, start, records, errorInfo, errorCode);
                 return;
             }
 
@@ -1469,12 +1471,28 @@ string strHtml)
             {
                 foreach (MessageRecord record in records)
                 {
+                    string data = "";   // 拼接完成的 data
+                    if (string.IsNullOrEmpty(record.id))
+                        cache.Append(record.data);
+                    else
+                    {
+                        if (cache.Length > 0)
+                        {
+                            cache.Append(record.data);
+                            data = cache.ToString();
+                            cache.Clear();
+                        }
+                    }
+
                     StringBuilder text = new StringBuilder();
                     text.Append("***\r\n");
                     text.Append("id=" + HttpUtility.HtmlEncode(record.id) + "\r\n");
                     text.Append("data=" + HttpUtility.HtmlEncode(record.data) + "\r\n");
                     if (record.data != null)
                         text.Append("data.Length=" + record.data.Length + "\r\n");
+
+                    if (string.IsNullOrEmpty(data) == false)
+                        text.Append("concated data=" + HttpUtility.HtmlEncode(data) + "\r\n");
 
                     if (record.groups != null)
                         text.Append("groups=" + HttpUtility.HtmlEncode(string.Join(",", record.groups)) + "\r\n");
@@ -1910,7 +1928,9 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                         "");
                     MessageResult result = await connection.GetMessageAsyncLite(
                         request,
-                        (totalCount,
+                        (
+                            cache,
+                            totalCount,
             start,
             records,
             errorInfo,
@@ -1918,7 +1938,8 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                         {
                             foreach (MessageRecord record in records)
                             {
-                                results.Add(record.id);
+                                if (string.IsNullOrEmpty(record.id) == false)
+                                    results.Add(record.id);
                             }
                         },
                         new TimeSpan(0, 1, 0),
