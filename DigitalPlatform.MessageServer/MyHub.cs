@@ -10,12 +10,12 @@ using System.Diagnostics;
 using System.Collections;
 using System.Security.Claims;
 using System.Threading;
+using System.Xml;
 
 using Microsoft.AspNet.SignalR;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
-using System.Xml;
 
 namespace DigitalPlatform.MessageServer
 {
@@ -1288,6 +1288,8 @@ ex.GetType().ToString());
                     // 集中发送一次
                     if (records.Count >= batch_size || (i >= totalCount - 1 && records.Count > 0))
                     {
+                        ChangeBlankID(records);
+
                         Clients.Client(search_info.RequestConnectionID).responseGetMessage(
                             param.TaskID,
                             (long)totalCount, // resultCount,
@@ -1323,6 +1325,19 @@ ex.GetType().ToString());
             }
         }
 
+        // 给 MessageRecord .id 成员为空的设置一个值，从而避免被前端当成片段
+        static void ChangeBlankID(List<MessageRecord> records)
+        {
+            if (records == null)
+                return;
+
+            foreach(MessageRecord record in records)
+            {
+                if (string.IsNullOrEmpty(record.id))
+                    record.id = "~";
+            }
+        }
+
         async Task EnumFieldAndResponse(
             string field,
             GetMessageRequest param,
@@ -1355,6 +1370,7 @@ ex.GetType().ToString());
                         // 集中发送一次
                         if (records.Count >= batch_size || item == null)
                         {
+                            ChangeBlankID(records);
                             // 让前端获得检索结果
                             try
                             {
