@@ -68,6 +68,10 @@ namespace dp2weixin.service
             }
         }
 
+        // 片断消息缓冲
+        StringBuilder _msgBuffer = new StringBuilder();
+        public const long C_StringBuffer_MaxLength = 1024 * 1024;
+        public const long C_SendTable_MaxCount = 5000;
         void _channels_AddMessage(object sender, AddMessageEventArgs e)
         {
             if (e.Action != "create")
@@ -77,40 +81,68 @@ namespace dp2weixin.service
             if (connection.Name != dp2WeiXinService.C_ConnName_TraceMessage)
                 return;
 
-            // 只处理_patronNotify群的消息
-            List<MessageRecord> tempList = new List<MessageRecord>();
+            // 合并消息
+            List<MessageRecord> fullRecords = new List<MessageRecord>();
             if (e.Records.Count > 0)
             {
                 foreach (MessageRecord record in e.Records)
                 {
-                    if (record.groups.Contains(dp2WeiXinService.C_Group_PatronNotity) == true)
-                        tempList.Add(record);
+                    // 检查尺寸有没有超过限制
+                    if (_msgBuffer.Length + record.data.Length > C_StringBuffer_MaxLength)
+                    {
+                        dp2WeiXinService.Instance.WriteErrorLog1("消息尺寸超过1M，不处理该消息。");
+                        _msgBuffer.Clear();//消空消息缓存
+                        return;
+                    }
+
+
+                    // 中间的片断消息
+                    if (string.IsNullOrEmpty(record.id) == true)
+                    {
+                        _msgBuffer.Append(record.data);
+                        continue;
+                    }
+
+                    // 收尾消息
+                    _msgBuffer.Append(record.data); //串上自己的data
+                    record.data = _msgBuffer.ToString();  //设上完整的data
+                    fullRecords.Add(record); //设为正式的消息
+                    _msgBuffer.Clear();//消空消息缓存
                 }
             }
 
-            lock (_syncRoot_messageList)
+            // 有完整的消息才加到数组里
+            if (fullRecords.Count > 0)
             {
-                // 累积太多了就不送入 list 了，只是激活线程等 GetMessage() 慢慢一百条地处理
-                if (this._messageList.Count < 10000)
-                    this._messageList.AddRange(tempList);//e.Records);
-            }
+                lock (_syncRoot_messageList)
+                {
+                    // 累积太多了就不送入 list 了，只是激活线程等 GetMessage() 慢慢一百条地处理
+                    if (this._messageList.Count < 10000)
+                        this._messageList.AddRange(fullRecords);//e.Records);
+                }
 
-            this.WriteLog("AddMessage得到" + tempList.Count.ToString() + "条消息。", dp2WeiXinService.C_LogLevel_3);
-            this.Activate();
+                this.WriteLog("AddMessage得到" + fullRecords.Count.ToString() + "条消息。", dp2WeiXinService.C_LogLevel_3);
+                this.Activate();
+            }
         }
 
         // 工作线程每一轮循环的实质性工作
         public override void Worker()
         {
             //this.WriteLog("走到worker1");
-            List<MessageRecord> records = GetMessage();
-            if (records.Count > 0)
+            List<MessageRecord> records = new List<MessageRecord>();
+            if (this._messageList.Count == 0)  // 2016-12-2 不是从addMessage过来的才调GetMessage，否则总是重复取消息
             {
-                lock (_syncRoot_messageList)
+                records = GetMessage();
+                if (records.Count > 0)
                 {
-                    this._messageList.AddRange(records);
+                    lock (_syncRoot_messageList)
+                    {
+                        this._messageList.AddRange(records);
+                    }
                 }
             }
+
             //this.WriteErrorLog("走到worker2:" +records.Count);
             bool bDeleteOk = false;
             if (this._messageList.Count > 0)
@@ -133,13 +165,16 @@ namespace dp2weixin.service
 
                 //this.WriteErrorLog("走到worker3:" + temp_records.Count);
 
+
+
+
                 // 发送消息给下游模块
                 SendMessage(temp_records);
 
                 //this.WriteErrorLog("走到worker4:");
 
                 // 从 dp2mserver 中删除这些消息
-               bDeleteOk= DeleteMessage(temp_records);//jane 2016-6-20 不需要传group参数了, this.GroupName);
+                bDeleteOk = DeleteMessage(temp_records);//jane 2016-6-20 不需要传group参数了, this.GroupName);
 
                 //this.WriteErrorLog("走到worker5:");
             }
@@ -169,6 +204,11 @@ DeleteMessage(temp_records, this.GroupName);
         {
             SendMessageEventHandler handler = this.SendMessageEvent;
 
+
+
+
+
+            // 下级的代码不影响
             foreach (MessageRecord record in records)
             {
                 if (this._sendedTable.ContainsKey(record.id))
@@ -186,10 +226,37 @@ DeleteMessage(temp_records, this.GroupName);
 
                 this.WriteLog("处理结束:" + record.id, dp2WeiXinService.C_LogLevel_3);
 
-                this._sendedTable[record.id] = DateTime.Now;
+                if (this._sendedTable.Count < C_SendTable_MaxCount)  //大于了5K则不再给里面增加了。
+                {
+                    this._sendedTable[record.id] = DateTime.Now;
+                }
             }
         }
 
+
+        /*
+        private List<MessageRecord> JoinRecords(List<MessageRecord> records)
+        {
+            List<MessageRecord> retRecords = new List<MessageRecord>();
+
+            foreach (MessageRecord rec in records)
+            {
+                // 中间的片断消息
+                if (string.IsNullOrEmpty(rec.id) == true)
+                {
+                    _msgBuffer.Append(rec.data);
+                    continue;
+                }
+
+                // 收尾消息
+                _msgBuffer.Append(rec.data); //串上自己的data
+                rec.data = _msgBuffer.ToString();  //设上完整的data
+                retRecords.Add(rec); //设为正式的消息
+                _msgBuffer.Clear();//消空消息缓存
+            }
+            return retRecords;
+        }
+        */
         // 清理超过一定时间的“已发送”记忆事项
         void CleanSendedTable()
         {
@@ -300,7 +367,10 @@ DeleteMessage(temp_records, this.GroupName);
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
                 if (result.Value == -1)
+                {
+                    strError = result.ErrorInfo;
                     goto ERROR1;
+                }
             }
             catch (AggregateException ex)
             {

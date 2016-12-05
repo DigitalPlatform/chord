@@ -13,6 +13,29 @@ namespace dp2weixinWeb.Controllers
 {
     public class BaseController : Controller
     {
+        // 得到图书馆挂起警告
+        public string GetLibHungWarn(Library lib)
+        {
+            string warnText = "";
+            // 如果图书馆是挂起状态，作为警告
+            if (lib.State == LibraryManager.C_State_Hangup)
+            {
+                // 立即重新检查一下
+                dp2WeiXinService.Instance.LibManager.RedoGetVersion(lib);
+                if (lib.Version == "-1")
+                {
+                    //的桥接服务器dp2capo已失去连接，请尽快修复。
+                    warnText = lib.Entity.libName + " 的桥接服务器dp2capo失去连接，公众号功能已被挂起，请尽快修复。";
+                }
+                else
+                {
+                    warnText = lib.Entity.libName + " 的桥接服务器dp2capo版本不够新，公众号功能已被挂起，请尽快升级。";
+                }
+            }
+
+            return warnText;
+        }
+
         public int GetLibSelectHtml(string selLibId, 
             string weixinId, 
             bool bContainEmptyLine,

@@ -1,4 +1,4 @@
-﻿#define LOG_REQUEST_SEARCH
+﻿//#define LOG_REQUEST_SEARCH
 
 using com.google.zxing;
 using com.google.zxing.common;
@@ -6790,7 +6790,7 @@ namespace dp2weixin.service
                 SearchResult result = connection.SearchTaskAsync(
                     lib.capoUserName,
                     request,
-                    new TimeSpan(0, 1, 0),
+                    new TimeSpan(0,0,15),  //改为15秒
                     cancel_token).Result;
 
                 if (result.ResultCount == -1)
@@ -7938,6 +7938,7 @@ namespace dp2weixin.service
         {
             strError = "";
             records = new List<MessageRecord>();
+            //return 0;
 
             // string connName
             string connName = C_ConnPrefix_Myself + libId;
@@ -7977,7 +7978,7 @@ namespace dp2weixin.service
                 MessageConnection connection = this.Channels.GetConnectionTaskAsync(this.dp2MServerUrl,
                     connName).Result;
                 GetMessageResult result = connection.GetMessage(request,
-                    new TimeSpan(0, 1, 0),
+                    new TimeSpan(0, 0, 10),
                     cancel_token);
                 if (result.Value == -1)
                 {

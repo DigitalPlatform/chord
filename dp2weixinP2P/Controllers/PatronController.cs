@@ -117,11 +117,23 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
-            string qrcodeUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(activeUserItem.libId)
-                + "&type=pqri"
-                + "&barcode=" + HttpUtility.UrlEncode(activeUserItem.readerBarcode);
-            //+ "&width=400&height=400";
+            // 如果图书馆是挂起状态，作为警告
+            string libId = activeUserItem.libId;
+            Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
+            string warn = this.GetLibHungWarn(lib);
+            ViewBag.Warn = warn;
+
+            string qrcodeUrl = "";
+            if (String.IsNullOrEmpty(warn) == true)
+            {
+                qrcodeUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(libId)
+                     + "&type=pqri"
+                     + "&barcode=" + HttpUtility.UrlEncode(activeUserItem.readerBarcode);
+                //+ "&width=400&height=400";
+            }
             ViewBag.qrcodeUrl = qrcodeUrl;
+
+
             return View(activeUserItem);
 
         ERROR1:

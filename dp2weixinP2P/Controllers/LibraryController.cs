@@ -179,27 +179,7 @@ namespace dp2weixinWeb.Controllers
 
 
             // 如果图书馆是挂起状态，作为警告
-            if (lib.State == LibraryManager.C_State_Hangup)
-            {
-                // 立即重新检查一下
-                dp2WeiXinService.Instance.LibManager.RedoGetVersion(lib);
-                if (lib.Version == "-1")
-                {
-                    //的桥接服务器dp2capo已失去连接，请尽快修复。
-                    strError = lib.Entity.libName + " 的桥接服务器dp2capo失去连接，公众号功能已被挂起，请尽快修复。";
-                }
-                else
-                {
-                    strError = lib.Entity.libName + " 的桥接服务器dp2capo版本不够新，公众号功能已被挂起，请尽快升级。";
-                }
-                ViewBag.Warn = strError;
-            }
-            else
-            {
-                //ViewBag.Warn = "test";
-            }
-
-
+            ViewBag.Warn = this.GetLibHungWarn(lib);
 
 
             return View(list);
