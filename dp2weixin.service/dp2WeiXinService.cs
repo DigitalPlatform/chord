@@ -9480,6 +9480,7 @@ namespace dp2weixin.service
 
             // 从mongodb中删除
             LibDatabase.Current.Delete(id);
+            this.LibManager.DeleteLib(id);
 
             return result;
 
