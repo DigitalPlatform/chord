@@ -97,9 +97,12 @@ namespace dp2weixin.service
         /// <param name="libId"></param>
         public void UpdateLib(string libId)
         {
+            LibEntity entity = LibDatabase.Current.GetLibById1(libId);
+
+
             this.DeleteLib(libId);
 
-            LibEntity entity = LibDatabase.Current.GetLibById1(libId);
+            //LibEntity entity = LibDatabase.Current.GetLibById1(libId);
             this.AddLib(entity);
         }
 

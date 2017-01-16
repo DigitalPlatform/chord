@@ -65,11 +65,11 @@ namespace dp2weixinWeb.ApiControllers
         public ApiResult Delete(string id)
         {
             ApiResult result= dp2WeiXinService.Instance.deleteLib(id);
-            if (result.errorCode != -1)
-            {
-                // 更新内存 2016-9-13 jane
-                dp2WeiXinService.Instance.LibManager.UpdateLib(id);
-            }
+            //if (result.errorCode != -1)
+            //{
+            //    // 更新内存 2016-9-13 jane
+            //    dp2WeiXinService.Instance.LibManager.UpdateLib(id);
+            //}
 
             return result;
         }

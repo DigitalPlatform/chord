@@ -311,13 +311,44 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 图书馆介绍
-        public ActionResult dpHome(string code, string state)
+        public ActionResult dpHome(string code, string state, string weixinId)
         {
+
+            string strError = "";
+            int nRet = 0;
+            // 如果是超级管理员，支持传一个weixin id参数
+            if (String.IsNullOrEmpty(weixinId) == false)
+            {
+                if (this.CheckSupervisorLogin() == true)
+                {
+                    // 记下微信id
+                    SessionInfo sessionInfo = this.GetSessionInfo();
+
+                    GzhCfg gzh = null;
+                    List<string> libIds = null;
+                    nRet = dp2WeiXinService.Instance.GetGzhAndLibs(state, out gzh,
+                        out libIds,
+                        out strError);
+                    if (nRet == -1)
+                    {
+                        goto ERROR1;
+                    }
+
+                    sessionInfo.weixinId = weixinId;
+                    sessionInfo.gzh = gzh;
+                    sessionInfo.libIds = libIds;
+                }
+                else
+                {
+                    // 转到登录界面
+                    return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Library/Home?weixinId=" + weixinId));
+                }
+            }
+
  
 
             // 检查是否从微信入口进来
-            string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            nRet = this.CheckIsFromWeiXin(code, state, out strError);
             if (nRet == -1)
             {
                 if (ViewBag.LibState != LibraryManager.C_State_Hangup)//图书馆挂起，数字平台界面可用
@@ -328,7 +359,7 @@ namespace dp2weixinWeb.Controllers
             string userName = "";
 
             // 微信id
-            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
+            weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
 
             // 图书馆id
             string libId = ViewBag.LibId;

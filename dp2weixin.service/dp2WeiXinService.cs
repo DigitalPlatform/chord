@@ -132,28 +132,6 @@ namespace dp2weixin.service
         // 图书馆集合类
         public LibraryManager LibManager = new LibraryManager();
 
-        //#region 模板消息id
-
-        ////微信绑定通知
-        //public string Template_Bind = "";//"hFmNH7on2FqSOAiYPZVJN-FcXBv4xpVLBvHsfpLLQKU";
-        //// 微信解绑通知
-        //public string Template_UnBind = "";//"1riAKkt2W0AOtkx5rx-Lwa0RKRydDTHaMjSoUBGuHog";
-        ////借书成功
-        //public string Template_Borrow = "";//"2AVbpcn0y1NtqIQ7X7KY1Ebcyyhx6mUXTpAxuOcxSE0";
-        ////归书成功
-        //public string Template_Return = "";// "zzlLzStt_qZlzMFhcDgRm8Zoi-tsxjWdsI2b3FeoRMs";
-        ////交费成功
-        //public string Template_Pay = "";//"xFg1P44Hbk_Lpjc7Ds4gU8aZUqAlzoKpoeixtK1ykBI";
-        ////撤消交费成功
-        //public string Template_CancelPay = "";//"-XsD34ux9R2EgAdMhH0lpOSjcozf4Jli_eC86AXwM3Q";
-        ////个人消息通知 
-        //public string Template_Message = "";//"rtAx0BoUAwZ3npbNIO8Y9eIbdWO-weLGE2iOacGqN_s";
-        ////预约到书通知 
-        //public string Template_Arrived = "";//"U79IrJOgNJWZnqeKy2467ZoN-aM9vrEGQf2JJtvdBPM";
-        ////超期通知 
-        //public string Template_CaoQi = "";//2sOCuATcFdSNbJM24zrHnFv89R3D-cZFIpk4ec_Irn4";
-
-        //#endregion
 
 
 
@@ -238,7 +216,13 @@ namespace dp2weixin.service
             out List<string> dataList,
             out string strError)
         {
+            // 20170116 使用代理账户
+            string userName = "";
+            bool isPatron = false;
+
             return this.GetInfo(lib,
+                userName,
+                isPatron,
                 "getSystemParameter",
                 catgory,
                 name,
@@ -1862,7 +1846,7 @@ namespace dp2weixin.service
                 msgData,
                 maskMsgData,
                 "",//linkurl
-                "",//theOperator,
+                theOperator,
                 out strError);
             if (nRet == -1)
                 return -1;
@@ -2059,7 +2043,7 @@ namespace dp2weixin.service
                 msgData,
                 maskMsgData,
                 "",//linkurl
-                "",//theOperator,
+                theOperator,
                 out strError);
             if (nRet == -1)
                 return -1;
@@ -2188,7 +2172,7 @@ namespace dp2weixin.service
                     msgData,
                     maskMsgData,
                     "",//linkurl
-                    "",//theOperator,
+                    theOperator,
                     out strError);
                 if (nRet == -1)
                     return -1;
@@ -2320,7 +2304,7 @@ namespace dp2weixin.service
                     msgData,
                     maskMsgData,
                     "",//linkurl
-                    "",//theOperator,
+                    theOperator,
                     out strError);
                 if (nRet == -1)
                     return -1;
@@ -4153,13 +4137,13 @@ namespace dp2weixin.service
             return searchRet;
         }
 
+        // 从结果集中取记录
         public SearchBiblioResult getFromResultSet(string weixinId,
             string libId,
             string resultSet,
             long start,
             long count)
         {
-
             SearchBiblioResult searchRet = new SearchBiblioResult();
             searchRet.apiResult = new ApiResult();
             searchRet.apiResult.errorCode = 0;
@@ -4702,6 +4686,8 @@ namespace dp2weixin.service
             return items.Count;
         }
 
+
+        // 20170116 修改使用绑定的账户，如未绑定用public
         public BiblioDetailResult GetBiblioDetail(string weixinId,
             string libId,
             string biblioPath,
@@ -4737,72 +4723,18 @@ namespace dp2weixin.service
                     showCover = true;
                 }
 
-                // 取出summary
-                this.WriteLog3("开始获取biblio info");
-
-                string strBiblioInfo = "";
-                string imgHtml = "";// 封面图像
-                string biblioInfo = "";
-                if (format == "summary")
-                {
-                    nRet = this.GetSummaryAndImgHtml(lib,
-                       biblioPath,
-                       showCover,
-                        //lib,
-                       out strBiblioInfo,
-                       out imgHtml,
-                       out strError);
-                    if (nRet == -1 || nRet == 0)
-                    {
-                        result.errorCode = -1;
-                        result.errorInfo = strError;
-                        return result;
-                    }
-
-                    biblioInfo = "<table class='info'>"
-                        + "<tr>"
-                            + "<td class='cover'>" + imgHtml + "</td>"
-                            + "<td class='biblio_info'>" + strBiblioInfo + "</td>"
-                        + "</tr>"
-                    + "</table>";
-                }
-                else if (format == "table")
-                {
-                    nRet = this.GetTableAndImgHtml(lib,
-                        biblioPath,
-                        showCover,
-                        out strBiblioInfo,
-                        out imgHtml,
-                        out strError);
-                    if (nRet == -1 || nRet == 0)
-                    {
-                        result.errorCode = -1;
-                        result.errorInfo = strError;
-                        return result;
-                    }
-
-                    biblioInfo = "<table class='info'>"
-                                        + "<tr>"
-                                            + "<td class='biblio_info'>" + strBiblioInfo + "</td>" //image放在里面了 2016.8.8
-                                        + "</tr>"
-                                    + "</table>";
-                }
-                else
-                {
-                    strBiblioInfo = format + "风格";
-                }
-
 
                 // 得到绑定工作人员账号，并检查是否有权限，进行好书推荐
                 string workerUserName = "";
                 string userName = "";
-                bool isPatron = true;
+                bool isPatron = false;
                 if (string.IsNullOrEmpty(weixinId) == false)
                 {
                     WxUserItem patron = WxUserDatabase.Current.GetActivePatron(weixinId, libId);
                     if (patron != null)
                     {
                         userName = patron.readerBarcode;
+                        isPatron = true;
                     }
 
                     // 查找当前微信用户绑定的工作人员账号，条件满足出来推荐图书按钮
@@ -4830,8 +4762,80 @@ namespace dp2weixin.service
                         {
                             workerUserName = "";
                         }
+
+                        // 检查优先使用工作人员账户
+                        userName = worker.userName;
+                        isPatron = false;
                     }
                 }
+
+                if (String.IsNullOrEmpty(userName) == true)
+                {
+                    userName = "public";
+                    isPatron = false;
+                }
+
+
+                // 取出summary
+                this.WriteLog3("开始获取biblio info");
+
+                string strBiblioInfo = "";
+                string imgHtml = "";// 封面图像
+                string biblioInfo = "";
+                if (format == "summary")
+                {
+                    nRet = this.GetSummaryAndImgHtml(lib,
+                        userName,
+                        isPatron,
+                       biblioPath,
+                       showCover,
+                        //lib,
+                       out strBiblioInfo,
+                       out imgHtml,
+                       out strError);
+                    if (nRet == -1 || nRet == 0)
+                    {
+                        result.errorCode = -1;
+                        result.errorInfo = strError;
+                        return result;
+                    }
+
+                    biblioInfo = "<table class='info'>"
+                        + "<tr>"
+                            + "<td class='cover'>" + imgHtml + "</td>"
+                            + "<td class='biblio_info'>" + strBiblioInfo + "</td>"
+                        + "</tr>"
+                    + "</table>";
+                }
+                else if (format == "table")
+                {
+                    nRet = this.GetTableAndImgHtml(lib,
+                        userName,
+                        isPatron,
+                        biblioPath,
+                        showCover,
+                        out strBiblioInfo,
+                        out imgHtml,
+                        out strError);
+                    if (nRet == -1 || nRet == 0)
+                    {
+                        result.errorCode = -1;
+                        result.errorInfo = strError;
+                        return result;
+                    }
+
+                    biblioInfo = "<table class='info'>"
+                                        + "<tr>"
+                                            + "<td class='biblio_info'>" + strBiblioInfo + "</td>" //image放在里面了 2016.8.8
+                                        + "</tr>"
+                                    + "</table>";
+                }
+                else
+                {
+                    strBiblioInfo = format + "风格";
+                }
+
+
                 string recommendBtn = "";
                 if (workerUserName != "")
                 {
@@ -4902,6 +4906,8 @@ namespace dp2weixin.service
 
         //得到table风格的书目信息
         private int GetTableAndImgHtml(LibEntity lib,
+            string userName,
+            bool isPatron,
             string biblioPath,
             bool showCover,
             out string table,
@@ -4913,7 +4919,9 @@ namespace dp2weixin.service
             coverImgHtml = "";
 
             List<string> dataList = null;
-            int nRet = this.GetBiblioInfo(lib,//lib.capoUserName,
+            int nRet = this.GetBiblioInfo(lib,
+                userName,
+                isPatron,
                 biblioPath,
                "table",
                 out dataList,
@@ -5110,7 +5118,9 @@ namespace dp2weixin.service
         }
 
 
-        private int GetSummaryAndImgHtml(LibEntity lib,//string capoUserName,
+        private int GetSummaryAndImgHtml(LibEntity lib,
+            string userName,
+            bool isPatron,
             string biblioPath,
             bool showCover,
             out string summary,
@@ -5123,6 +5133,8 @@ namespace dp2weixin.service
 
             List<string> dataList = null;
             int nRet = this.GetBiblioInfo(lib,
+                userName,
+                isPatron,
                 biblioPath,
                "summary,xml",
                 out dataList,
@@ -5163,12 +5175,31 @@ namespace dp2weixin.service
         }
 
         public int GetBiblioInfo(LibEntity lib,
+            string userName,
+            bool isPatron,
             string biblioPath,
             string formatList,
             out List<string> dataList,
             out string strError)
         {
-            return this.GetInfo(lib, "getBiblioInfo", biblioPath, formatList, out dataList, out strError);
+            // 20170116 如果即没有绑工作人员，也没有绑读者账户，采用publish帐号，
+            // 因为数字资源有访问权限，不能再用capo， capo账户有wirteobject权限 导致 856和对象上设置的访问权限失效了
+            if (String.IsNullOrEmpty(userName) == true)
+            {
+                userName = "public";
+                isPatron = false;
+            }
+            //LoginInfo loginInfo = new LoginInfo(userName, isPatron); 
+
+
+            return this.GetInfo(lib,
+                userName,
+                isPatron,
+                "getBiblioInfo", 
+                biblioPath, 
+                formatList, 
+                out dataList, 
+                out strError);
         }
 
         /// <summary>
@@ -5182,6 +5213,8 @@ namespace dp2weixin.service
         /// <param name="strError"></param>
         /// <returns></returns>
         public int GetInfo(LibEntity lib,
+            string userName,
+            bool isPatron,
             string method,
             string queryWord,
             string formatList,
@@ -5192,7 +5225,8 @@ namespace dp2weixin.service
             dataList = new List<string>();
 
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo("", false);
+            // 20170116 改为实际传进来的值
+            LoginInfo loginInfo = new LoginInfo(userName, isPatron);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -5336,6 +5370,8 @@ namespace dp2weixin.service
         }
 
         public long GetItemInfoApi(LibEntity lib,
+            string userName,
+            bool isPatron,
             string biblioPath,
             string dbNameList,
             string formatList,
@@ -5347,7 +5383,7 @@ namespace dp2weixin.service
             dataList = new List<Record>();
 
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo("", false);
+            LoginInfo loginInfo = new LoginInfo(userName, isPatron);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -5413,6 +5449,8 @@ namespace dp2weixin.service
 
         //
         public long GetIssue(LibEntity lib,
+            string userName,
+            bool isPatron,
             string biblioPath,
             string style,
             out string issuePath,
@@ -5423,8 +5461,11 @@ namespace dp2weixin.service
             issueXml = "";
             issuePath = "";
 
+           
             List<Record> dataList = null;
             long lRet = this.GetItemInfoApi(lib,
+                userName,
+                isPatron,
                 biblioPath,
                 "issue",
                 style,
@@ -5498,6 +5539,8 @@ namespace dp2weixin.service
 
             List<Record> recordList = null;
             long lRet = this.GetItemInfoApi(lib,
+                userName,
+                isPatron,
                 biblioPath,
                 "entity",//dbNameList,
                 "opac",//formatList,
@@ -5712,6 +5755,8 @@ namespace dp2weixin.service
                             string issueXml = "";
                             string issuePath = "";
                             long ret = this.GetIssue(lib,
+                                userName,
+                                isPatron,
                                 biblioPath,
                                 style,
                                 out issuePath,
@@ -9480,6 +9525,7 @@ namespace dp2weixin.service
 
             // 从mongodb中删除
             LibDatabase.Current.Delete(id);
+            this.LibManager.DeleteLib(id);
 
             return result;
 
