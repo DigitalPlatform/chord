@@ -1037,6 +1037,7 @@
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
 
+            //alert("1");
 
             // 将服务器记载的校验开关设到js的变量
             var tempValue = $("#lblIsVerifyBarcode").text().trim().toLowerCase();
@@ -1044,13 +1045,17 @@
             if (tempValue != "true")
                 isVerifyBarcode = false;
 
+            //alert("2");
             // 获取所有的操作命令
             getAllCmd();
+            //alert("3");
 
             // 加载绑定
             ko.applyBindings(patronVModel, document.getElementById('divPatron'));
             ko.applyBindings(cmdModel, document.getElementById('divCmd'));
 
+
+            //alert("4");
             $('#myTab a').click(function (e) {
 
                 // 先把输入框中的数据清除
@@ -1100,7 +1105,7 @@
                 }
             })
 
-
+           // alert("5");
             // 给装载按钮绑事件
             //$("#btnLoad").click(loadPatron(null,null));
             // 给读者证条码输入框加回车事件
@@ -1145,6 +1150,8 @@
             $("#txtItemBarcode").blur(function () {
                 setInputFocus($("#txtItemBarcode"), false);
             });
+
+            //alert("6");
 
             // 键盘按任意键，消掉图层
             $(document).keydown(function (event) {
@@ -1214,6 +1221,7 @@
                 }
             });
 
+            //alert("7");
 
             //隐藏读者信息
             hiddleReaderInfo();
@@ -1227,7 +1235,7 @@
             //alert();//浏览器当前窗口文档body的宽度
             //alert();//浏览器当前窗口文档body的总宽度 包括border padding margin
 
-
+            //alert("8");
 
         })
 
@@ -1368,7 +1376,7 @@
         function getRootPath() {
             var pathName = window.location.pathname.substring(1);
             var webName = pathName == '' ? '' : pathName.substring(0, pathName.indexOf('/'));
-            var rootPath = window.location.protocol + '//' + window.location.host+ '/' + webName;
+            var rootPath = window.location.protocol + '//' + window.location.host;//+ '/' + webName;
             return rootPath;
         }
 
