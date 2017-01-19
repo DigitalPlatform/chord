@@ -477,6 +477,7 @@ namespace dp2weixinWeb.Controllers
             if (string.IsNullOrEmpty(strFormat) == false)
             {
                 // 获取读者记录
+                
                 nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                     loginUserName,
                     isPatron,
