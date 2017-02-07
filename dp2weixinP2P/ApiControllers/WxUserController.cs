@@ -215,6 +215,10 @@ namespace dp2weixinWeb.ApiControllers
                 result.errorInfo = strError;
             }
 
+            // 由于有错误信息的话，把错误信息输出
+            if (String.IsNullOrEmpty(strError) == false)
+                result.errorInfo = strError;
+
             return result;
         }
 

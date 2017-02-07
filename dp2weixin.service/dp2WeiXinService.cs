@@ -3951,13 +3951,13 @@ namespace dp2weixin.service
                 if (result.Value == -1)
                 {
                     strError = this.GetFriendlyErrorInfo(result, lib.libName);//result.ErrorInfo;
-                    return -1;
+                    //return -1;
                 }
                 // 2016-11-15
                 if (result.Value == 0)
                 {
                     strError = "未匹配上weixinid。";
-                    return -1;
+                    //return -1;
                 }
 
                 // 删除mongodb库的记录
@@ -4044,7 +4044,13 @@ namespace dp2weixin.service
                     }
                 }
 
+                // 如果连dp2系统有错误信息，系统会继续解绑，但会报一个提示。
+                if (String.IsNullOrEmpty(strError) == false)
+                    return 1;
+
                 return 0;
+
+
             }
             catch (AggregateException ex)
             {

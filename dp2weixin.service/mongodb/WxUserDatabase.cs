@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace dp2weixin.service
 {
@@ -66,7 +66,35 @@ namespace dp2weixin.service
             //collection名称为item
             _wxUserCollection = this._database.GetCollection<WxUserItem>("item");
 
-            // todo 创建索引
+            CancellationTokenSource cancel= new CancellationTokenSource();
+            bool bExist = false;
+
+            // 已存在索引，不用再创建索引
+            var indexes = _wxUserCollection.Indexes.ListAsync(cancel.Token).Result.ToListAsync().Result;
+            foreach (BsonDocument doc in indexes)
+            {
+                string name= doc["name"].AsString;
+                if (name.Contains("weixinId")==true)
+                {
+                    bExist = true;
+                    continue;
+                }
+            }
+
+            // 创建索引
+            if (bExist == false)
+            {
+                this.CreateIndex();
+            }
+        }
+
+        public void CreateIndex()
+        {
+            // 为weixinid字段建索引
+            _wxUserCollection.Indexes.CreateOne(
+                Builders<WxUserItem>.IndexKeys.Ascending("weixinId"),
+                new CreateIndexOptions() { Unique = false }
+                );
         }
 
         public List<WxUserItem> GetAll()
@@ -446,26 +474,46 @@ namespace dp2weixin.service
         [BsonRepresentation(BsonType.ObjectId)]
         public string id { get; private set; }
 
+        // 微信id
         public string weixinId { get; set; }    
+
+        // 图书馆名称
         public string libName { get; set; }    
+
+        // 图书馆代码
         public string libId { get; set; }     
 
-
+        // 读者证条码号
         public string readerBarcode { get; set; }  
+
+        // 读者姓名
         public string readerName { get; set; }
+
+        //单位
         public string department { get; set; }  //部门，二维码下方显示 // 2016-6-16 新增
+
+        // 读者记录xml
         public string xml { get; set; }        
+
+        // 读者记录路径
         public string recPath { get; set; } 
         
+        // 读者参考id
         public string refID { get; set; }
         public string createTime { get; set; }
         public string updateTime { get; set; }
 
-        public int isActive = 0; 
+        // 是否活动状态
+        public int isActive = 0;
 
-        public string libraryCode { get; set; } //分馆代码，读者与工作人员都有该字段
-        public int type = 0;//账户类型：0表示读者 1表示工作人员 // 2016-6-16 新增
-        public string userName { get; set; } //当type=2时，表示工作人员账户名称，其它时候为空// 2016-6-16 新增       
+        //分馆代码，读者与工作人员都有该字段
+        public string libraryCode { get; set; } 
+
+        //账户类型：0表示读者 1表示工作人员 // 2016-6-16 新增
+        public int type = 0;
+
+        //当type=2时，表示工作人员账户名称，其它时候为空// 2016-6-16 新增       
+        public string userName { get; set; } 
         public int isActiveWorker= 0; //是否为当前激活工作人员账户，注意该字段对读者账户无意义（均为0），暂时未用到
 
 
