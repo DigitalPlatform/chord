@@ -3758,6 +3758,7 @@ namespace dp2weixin.service
                 // 账户类型
                 int type = 0;//账户类型：0表示读者 1表示工作人员
 
+                string location = "";
                 // 工作人员账户
                 if (strPrefix == "UN")
                 {
@@ -3776,6 +3777,8 @@ namespace dp2weixin.service
                     refID = patronInfo.refID;
                     department = patronInfo.department;
                     libraryCode = patronInfo.libraryCode;
+                    rights = patronInfo.rights;
+                    location = patronInfo.location;
                 }
 
                 // 找到库中对应的记录
@@ -3815,13 +3818,17 @@ namespace dp2weixin.service
                 userItem.userName = userName;
                 userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0
                 userItem.tracing = "off";//默认是关闭监控
-                userItem.location = "";
+
+                // 2017-2-14新增馆藏地
+                userItem.location = location;
                 userItem.selLocation = "";
 
                 // 2016-8-26 新增
                 userItem.state = 1;
                 userItem.remark = strFullWord;
                 userItem.rights = rights;
+                
+
 
                 //从微信id中拆出来
                 string appId = "";
@@ -9003,6 +9010,10 @@ namespace dp2weixin.service
             userItem.rights = patronInfo.rights;
             userItem.appId = patronInfo.appId;
 
+            // 馆藏地 2017-2-14 加
+            userItem.location = patronInfo.location;
+            userItem.selLocation = "";
+
             return userItem;
         }
 
@@ -9123,6 +9134,31 @@ namespace dp2weixin.service
             if (node != null)
                 rights = DomUtil.GetNodeText(node);
 
+            // 馆藏地 2017-2-14 加
+            string locXml = "";
+            string personalLibrary = "";
+            node = root.SelectSingleNode("personalLibrary");
+            if (node != null)
+                personalLibrary = DomUtil.GetNodeText(node);
+            if (personalLibrary == "*")
+                personalLibrary = "";
+            if (personalLibrary != "")
+            {
+                string[] locations = personalLibrary.Split(new char[] {','});
+                foreach (string loc in locations)
+                {
+                    locXml += "<item>"+loc+"</item>";
+                }
+                if (locXml != "")
+                {
+                    locXml = "<library code='"+libraryCode+"'>"
+                        + locXml
+                        + "</library>";
+                }
+            }
+
+
+
 
             WxUserItem userItem = new WxUserItem();
             userItem.readerBarcode = readerBarcode;
@@ -9132,6 +9168,7 @@ namespace dp2weixin.service
             userItem.libraryCode = libraryCode;
             userItem.xml = xml;
             userItem.rights = rights;
+            userItem.location = locXml; // 馆藏地 2017-2-14 加
 
             // 取email
             string email = "";
@@ -9457,7 +9494,13 @@ namespace dp2weixin.service
                     userItem.xml = patronInfo.xml;
                     userItem.refID = patronInfo.refID;
                     userItem.libraryCode = patronInfo.libraryCode;
+                    userItem.rights = patronInfo.rights;
                     userItem.updateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+
+                    // 2017-2-14
+                    userItem.location = patronInfo.location;
+                    userItem.selLocation = "";
+
                     WxUserDatabase.Current.Update(userItem);
                 }
             }

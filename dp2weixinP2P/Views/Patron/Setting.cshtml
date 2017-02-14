@@ -391,7 +391,7 @@ else
     }
 
     <div class="mui-card" style="margin-top:10px">
-        <div class="mui-content-padded" style="color:#cccccc;">请选择关注的分馆及馆藏地 @ViewBag.accountInfo @Html.Raw(ViewBag.bindLink)</div>
+        <div class="mui-content-padded" ><span style="@ViewBag.subLibGray">流通操作限定范围</span><span style="color:#cccccc">（工作人员 或 有流通权限的读者 有效） @ViewBag.accountInfo</span> </div>
         @if (ViewBag.libList != null)
         {
             foreach (dp2weixin.service.SubLib sublib in ViewBag.libList)

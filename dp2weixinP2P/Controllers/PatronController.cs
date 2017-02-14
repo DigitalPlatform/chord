@@ -84,14 +84,20 @@ namespace dp2weixinWeb.Controllers
             WxUserItem user = worker;
             if (user==null)
             {
+                // 取读者帐户
                 user = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
             }
+
+            ViewBag.subLibGray = "";
             // 未绑定帐户 ，todo 普通读者一样可选择关注馆藏地
-            if (user == null)
+            if (user == null || 
+                (user.rights.Contains("borrow") == false && user.rights.Contains("return") == false))
             {
-                string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
-                string bindLink = "<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>尚未绑定帐户</a>。";
-                ViewBag.bindLink = bindLink;
+                //string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+                //string bindLink = "<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>尚未绑定帐户</a>。";
+                //ViewBag.bindLink = bindLink;
+
+                ViewBag.subLibGray = "color:#cccccc";
                 return View();
             }
 
