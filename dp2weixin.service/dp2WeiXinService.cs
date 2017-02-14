@@ -228,6 +228,52 @@ namespace dp2weixin.service
                 out strError);
         }
 
+ 
+
+        public int GetLocation(string libId,
+            WxUserItem user,
+            out string location,
+            out string error)
+        {
+            location = "";
+            error = "";
+
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                error = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
+
+            string userName = "";
+            bool isPatron = false;
+            if (user.type == WxUserDatabase.C_Type_Worker)
+            {
+                userName = user.userName;
+            }
+            else
+            {
+                userName = user.readerBarcode;
+                isPatron = true;
+            }
+            LoginInfo loginInfo = new LoginInfo(userName,isPatron);
+
+
+            List<string> dataList = null;
+            int nRet= this.GetInfo(lib,
+                loginInfo,
+                "getSystemParameter",
+                "circulation",
+                "locationTypes",
+                out dataList,
+                out error);
+            if (nRet == -1 || nRet == 0)
+                return -1;
+
+            location = dataList[0];
+            return 1;
+        }
+
         public int GetLibName(string capoUserName,
             out string libName,
             out string strError)
@@ -3769,6 +3815,8 @@ namespace dp2weixin.service
                 userItem.userName = userName;
                 userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0
                 userItem.tracing = "off";//默认是关闭监控
+                userItem.location = "";
+                userItem.selLocation = "";
 
                 // 2016-8-26 新增
                 userItem.state = 1;
@@ -5254,6 +5302,8 @@ namespace dp2weixin.service
                 out dataList, 
                 out strError);
         }
+
+
 
         /// <summary>
         /// get info 底层api

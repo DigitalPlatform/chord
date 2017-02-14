@@ -452,6 +452,8 @@ namespace dp2weixin.service
                 .Set("rights", item.rights)
                 .Set("appId", item.appId)
                 .Set("tracing", item.tracing)
+                .Set("location", item.location)
+                .Set("selLocation", item.selLocation)
                 ;
 
             UpdateResult ret = this.wxUserCollection.UpdateOne(filter, update);
@@ -529,6 +531,24 @@ namespace dp2weixin.service
 
         //tracing 2016-11-21 type=1工作人员时有意义 默认为空或者off
         public string tracing { get; set; }
+
+        // 20170213 jane
+        // 本用户在dp系统有权限的馆藏地，是xml格式
+            /*
+<item canborrow="no" itemBarcodeNullable="yes">保存本库</item>
+<item canborrow="no" itemBarcodeNullable="yes">阅览室</item>
+<item canborrow="yes" itemBarcodeNullable="yes">流通库</item>
+<library code="方洲小学">
+  <item canborrow="yes" itemBarcodeNullable="yes">图书总库</item>
+</library>
+<library code="星洲小学">
+  <item canborrow="yes" itemBarcodeNullable="yes">阅览室</item>
+</library>
+             */       
+        public string location { get; set; }
+
+        // 20170213 在微信中选择的馆藏地，是以逗号分隔的两级路径，如：/流通库,方洲小学/图书总库
+        public string selLocation { get; set; }
     }
 
 

@@ -342,6 +342,7 @@
     <Content Include="Views\Shared\_LayoutEmpty.cshtml" />
     <Content Include="Views\Library\Charge2.cshtml" />
     <Content Include="Views\Library\Charge2.txt" />
+    <Content Include="Views\UI\CtrlDemo.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

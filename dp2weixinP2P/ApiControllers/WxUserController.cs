@@ -96,6 +96,20 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+        // 保存选择的馆藏地
+        [HttpPost]
+        public ApiResult SaveLocation(string userId, string locations)
+        {
+            ApiResult result = new ApiResult();
+
+            WxUserItem user = WxUserDatabase.Current.GetById(userId);
+            user.selLocation = locations;
+            WxUserDatabase.Current.Update(user);
+
+
+            return result;
+        }
+
         /// <summary>
         /// 设置
         /// </summary>
@@ -125,6 +139,8 @@ namespace dp2weixinWeb.ApiControllers
 
             return result;        
         }
+
+
 
 
         // 绑定

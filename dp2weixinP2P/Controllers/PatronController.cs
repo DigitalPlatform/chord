@@ -80,6 +80,82 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.info = "监控所有图书馆的消息";
             }
 
+            //选择分馆与馆藏地
+            WxUserItem user = worker;
+            if (user==null)
+            {
+                user = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
+            }
+            // 未绑定帐户 ，todo 普通读者一样可选择关注馆藏地
+            if (user == null)
+            {
+                string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+                string bindLink = "<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>尚未绑定帐户</a>。";
+                ViewBag.bindLink = bindLink;
+                return View();
+            }
+
+            string accountInfo = "";
+            if (user.type == WxUserDatabase.C_Type_Worker)
+            {
+                accountInfo = "帐号:"+user.userName;
+            }
+            else
+            {
+                accountInfo = "读者:" + user.readerBarcode;
+            }
+            if (accountInfo != "")
+            {
+                accountInfo = "(" + accountInfo + ")";
+            }
+            ViewBag.accountInfo = accountInfo;
+            ViewBag.userId = user.id;
+
+            string locationXml = user.location;
+            if(String.IsNullOrEmpty(user.location)==true)
+            {
+                // 从dp2服务器获取
+                nRet =dp2WeiXinService.Instance.GetLocation(ViewBag.LibId,
+                    user,
+                   out locationXml,
+                   out strError);
+                if (nRet == -1)
+                    goto ERROR1;
+
+
+                //保存到微信用户库
+                user.location = locationXml;
+                WxUserDatabase.Current.Update(user);
+            }
+
+
+            // 解析本帐户拥有的全部馆藏地
+            List<SubLib> subLibs = SubLib.ParseSubLib(locationXml);
+
+            //上次选中的打上勾
+            if (String.IsNullOrEmpty(user.selLocation)==false)
+            {
+                string[] selLocList = user.selLocation.Split(new char[] {','});
+                foreach (SubLib subLib in subLibs)
+                {
+                    foreach (Location loc in subLib.Locations)
+                    {
+                        string locPath = subLib.libCode + "/" + loc.Name;
+                        if (selLocList.Contains(locPath) == true)
+                        {
+                            subLib.Checked = "checked";
+                            loc.Checked = "checked";
+                        }
+                    }
+                }
+            }
+
+            // todo 其实，可以用一个字段来表示馆藏地和选中的项，就量在xml的字段中加checked属性，
+            // 但如果服务器更新了，刷的时候就全部覆盖了。
+            // 现在还没做到服务器更新后，自动刷过来
+
+
+            ViewBag.libList = subLibs;
             return View();
 
         ERROR1:
