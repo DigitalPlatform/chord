@@ -1,4 +1,5 @@
-﻿@{
+﻿@model dp2weixin.service.WxUserItem
+@{
     ViewBag.Title = "Charge2";
     Layout = "~/Views/Shared/_LayoutEmpty.cshtml";
 }
@@ -456,6 +457,8 @@
                 return;
             }
 
+            var isPatron=$("#isPatron").text();
+
             //显示等待图层
             showLoading();
 
@@ -466,7 +469,8 @@
                 type: cmdType,
                 patronInput: patron,
                 itemInput: item,
-                userName: userName
+                userName: userName,
+                isPatron:isPatron
             };
 
             sendAjaxRequest(url, "POST", function (cmd) {
@@ -1148,6 +1152,7 @@
 <span id="weixinId" style="display:none">@ViewBag.weixinId</span>
 <span id="libId" style="display:none">@ViewBag.LibId</span>
 <span id="userName" style="display:none">@ViewBag.userName</span>
+<span id="isPatron" style="display:none">@ViewBag.isPatron</span>
 <span id="verifyBarcode" style="display:none">@ViewBag.verifyBarcode</span>
 
 <input id="_charge_operation" type="hidden" value="">
@@ -1174,7 +1179,7 @@ else
     else
     {
         <div id="mypage" >
-             <div style="padding:10px;padding-bottom:0px;text-align:right">帐户：@ViewBag.userName</div>
+             <div style="padding:10px;padding-bottom:0px;text-align:right"><span style="color:#cccccc">帐户[</span>@ViewBag.userName<span style="color:#cccccc">]&nbsp;分馆代码[</span>@Model.libraryCode<span style="color:#cccccc">]&nbsp;关注馆藏[</span>@ViewBag.Location<span style="color:#cccccc">]&nbsp;</span><a href="~/Patron/Setting">设置</a></div>
             <div style="padding:10px;padding-bottom:0px;">
                 <button class="mui-btn mui-btn-block" onclick="start('borrow')">开始借书</button>
                 <button class="mui-btn mui-btn-block" onclick="start('return')">开始还书</button>

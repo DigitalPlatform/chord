@@ -48,7 +48,7 @@ namespace dp2weixin.service
             string cmdError = "";
 
             // 登录dp2身份
-            LoginInfo loginInfo = new LoginInfo(cmd.userName, false);
+            LoginInfo loginInfo = new LoginInfo(cmd.userName,cmd.isPatron==1?true:false );
 
             //加载读者
             if (cmd.type == ChargeCommand.C_Command_LoadPatron) 
@@ -200,7 +200,8 @@ END1:
                     patronXml,
                     patronRecPath,
                     showPhoto);
-                cmd.patronHtml = dp2WeiXinService.Instance.GetPatronSummary(patron,cmd.userName);//GetPatronHtml(patron,false);
+                //cmd.patronHtml = dp2WeiXinService.Instance.GetPatronSummary(patron,
+                //    cmd.userName);
                 cmd.patronBarcode = patron.barcode;
             }
 

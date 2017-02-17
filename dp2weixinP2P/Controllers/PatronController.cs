@@ -91,7 +91,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.subLibGray = "";
             // 未绑定帐户 ，todo 普通读者一样可选择关注馆藏地
             if (user == null || 
-                (user.rights.Contains("borrow") == false && user.rights.Contains("return") == false))
+                (user.type==WxUserDatabase.C_Type_Patron && user.rights.Contains("borrow") == false && user.rights.Contains("return") == false))
             {
                 //string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
                 //string bindLink = "<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>尚未绑定帐户</a>。";

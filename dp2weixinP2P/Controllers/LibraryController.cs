@@ -48,9 +48,21 @@ namespace dp2weixinWeb.Controllers
             string weixinId = ViewBag.weixinId;//(string)Session[WeiXinConst.C_Session_WeiXinId];
             string libId = ViewBag.LibId;
 
-            WxUserItem worker = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
+            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
+            if (user == null)
+            {
+                // 取读者帐户
+                user = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
+
+                // 如果没有借还权限，不能操作
+                if (user !=null && user.rights.Contains("borrow") == false && user.rights.Contains("return") == false)
+                {
+                    user=null;
+                }
+            }
+
             // 未绑定工作人员，
-            if (worker == null)
+            if (user == null)
             {
                 ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge", true);
                 return View();
@@ -66,10 +78,44 @@ namespace dp2weixinWeb.Controllers
             ViewBag.verifyBarcode = lib.verifyBarcode;
 
             //设到ViewBag里
-            ViewBag.userName = worker.userName;
+            string userName="";
+            if (user.type == WxUserDatabase.C_Type_Worker)
+            {
+                userName = user.userName;
+                ViewBag.isPatron = 0;
+            }
+            else
+            {
+                userName = user.readerBarcode;
+                ViewBag.isPatron = 1;
+            }
+
+            ViewBag.userName = userName;
+
+            // 关注馆藏去掉前面
+            string clearLocs = "";
+            if (string.IsNullOrEmpty(user.selLocation) == false)
+            {
+                string[] selLoc = user.selLocation.Split(new char[] { ',' });
+                foreach (string loc in selLoc)
+                {
+                    string tempLoc = "";
+                    int nIndex = loc.IndexOf('/');
+                    if (nIndex > 0)
+                        tempLoc = loc.Substring(nIndex+1);
+
+                    if (clearLocs != "")
+                        clearLocs += ",";
+
+                    clearLocs += tempLoc;
+                }
+            }
+            ViewBag.Location = clearLocs;
+            
 
 
-            return View();
+
+            return View(user);
 
 
         ERROR1:

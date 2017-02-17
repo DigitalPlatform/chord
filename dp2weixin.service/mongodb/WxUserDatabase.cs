@@ -263,10 +263,23 @@ namespace dp2weixin.service
             return null;
         }
 
+
+        private static readonly Object _sync_addUser = new Object();
         /// 新增绑定账户
         public WxUserItem Add(WxUserItem item)
         {
-            this.wxUserCollection.InsertOne(item);
+            lock (_sync_addUser)
+            {
+                List<WxUserItem> itemList = this.Get(item.weixinId, item.libId, item.type, item.readerBarcode, item.userName, true);
+                if (itemList.Count == 0)
+                {
+                    this.wxUserCollection.InsertOne(item);
+                }
+                else
+                {
+                    dp2WeiXinService.Instance.WriteLog1("发现绑定帐户库中已有'" + item.readerBarcode + "'或'" + item.userName + "'对应的记录。");
+                }
+            }
             return item;
         }
 
