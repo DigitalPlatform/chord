@@ -46,6 +46,31 @@
         $(document).ready(function () {
             //doThing();
 
+            var isMobile = false;
+            var u = navigator.userAgent, app = navigator.appVersion;
+            if (u.indexOf('Android') > -1 || u.indexOf('iPhone') > -1 || u.indexOf('iPad') > -1)//是否为移动终端
+            {
+                isMobile = true;
+                //alert("移动");
+            }
+            else {
+                //alert("桌面");
+            }
+            if (isMobile == false)
+            {
+                //#from
+                $("#from").val(2);
+                $("#from").attr("disabled", true);
+                $("#from").css("color", "#cccccc");
+            }
+
+            //if (u.indexOf('MicroMessenger') > -1) {
+            //    alert("微信");
+            //}
+            //else {
+            //    alert("非微信");
+            //}
+
             // 设置缺省环境为借书
             setOpe(C_ope_borrow);
 
@@ -599,15 +624,26 @@
 
             for (var i = 0; i < itemList.length; i++) {
 
+                var clickevent = "onclick='selectItemOK(this)'";
+                var img = "";//"<img src='../img/minus.png'>";
+
                 var item = itemList[i];
                 var myClass = "";
                 if (item.isGray == true) {
-                    myClass = " background-color: #Eeeeee;color:#aaaaaa";
-                    //alert(myClass);
+                    myClass = " background-color: #eeeeee;color:#aaaaaa";
+                    clickevent = "";
+                }
+
+                // 不关注的馆藏地
+                if (item.isNotCareLoc == true)
+                {
+                    myClass = " background-color: #CCCCCC;color:#999999";
+                    clickevent = "";
+                    img = "<img src='../img/minus.png' width='16px' height='16px'>";
                 }
 
                 
-                html += "<div class='mui-card item'  id='item-" + item.barcode + "' onclick='selectItemOK(this)' >"
+                html += "<div class='mui-card item'  id='item-" + item.barcode + "'  "+clickevent+">"
                     + "<table style='" + myClass + "'>"
                         + "<tr>"
                             + "<td class='label'>册条码号</td>"
@@ -632,7 +668,7 @@
                 
                 html += "<tr>"
                                 + "<td class='label'>馆藏地</td>"
-                                + "<td class='value'>" + item.location + "</td>"
+                                + "<td class='value'>" + item.location + img+"</td>"
                             + "</tr>";
 
                 //accessNo
@@ -1179,7 +1215,7 @@ else
     else
     {
         <div id="mypage" >
-             <div style="padding:10px;padding-bottom:0px;text-align:right"><span style="color:#cccccc">帐户[</span>@ViewBag.userName<span style="color:#cccccc">]&nbsp;分馆代码[</span>@Model.libraryCode<span style="color:#cccccc">]&nbsp;关注馆藏[</span>@ViewBag.Location<span style="color:#cccccc">]&nbsp;</span><a href="~/Patron/Setting">设置</a></div>
+            <div style="padding:10px;padding-bottom:0px;text-align:right"><span style="color:#cccccc">帐户&nbsp;</span>@ViewBag.userName<span style="color:#cccccc">&nbsp;关注馆藏&nbsp;</span>@ViewBag.Location<span style="color:#cccccc">&nbsp;</span><a href="~/Patron/Setting">设置</a></div>
             <div style="padding:10px;padding-bottom:0px;">
                 <button class="mui-btn mui-btn-block" onclick="start('borrow')">开始借书</button>
                 <button class="mui-btn mui-btn-block" onclick="start('return')">开始还书</button>
@@ -1188,7 +1224,7 @@ else
             <div style="background-color:white;margin-left:10px;margin-right:10px;margin-top:0px">
                 <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
                     <label style="color:#cccccc">扫码方式</label>
-                    <select id="from" style="background-color:transparent">
+                    <select id="from" style="background-color:transparent" >
                         <option value="1">摄像头</option>
                         <option value="2">键盘输入</option>
                     </select>

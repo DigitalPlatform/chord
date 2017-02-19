@@ -64,7 +64,7 @@ namespace dp2weixinWeb.Controllers
             // 未绑定工作人员，
             if (user == null)
             {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge", true);
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge2", true);
                 return View();
             }
 
@@ -93,24 +93,24 @@ namespace dp2weixinWeb.Controllers
             ViewBag.userName = userName;
 
             // 关注馆藏去掉前面
-            string clearLocs = "";
-            if (string.IsNullOrEmpty(user.selLocation) == false)
-            {
-                string[] selLoc = user.selLocation.Split(new char[] { ',' });
-                foreach (string loc in selLoc)
-                {
-                    string tempLoc = "";
-                    int nIndex = loc.IndexOf('/');
-                    if (nIndex > 0)
-                        tempLoc = loc.Substring(nIndex+1);
+            //string clearLocs = "";
+            //if (string.IsNullOrEmpty(user.selLocation) == false)
+            //{
+            //    string[] selLoc = user.selLocation.Split(new char[] { ',' });
+            //    foreach (string loc in selLoc)
+            //    {
+            //        string tempLoc = "";
+            //        int nIndex = loc.IndexOf('/');
+            //        if (nIndex > 0)
+            //            tempLoc = loc.Substring(nIndex+1);
 
-                    if (clearLocs != "")
-                        clearLocs += ",";
+            //        if (clearLocs != "")
+            //            clearLocs += ",";
 
-                    clearLocs += tempLoc;
-                }
-            }
-            ViewBag.Location = clearLocs;
+            //        clearLocs += tempLoc;
+            //    }
+            //}
+            ViewBag.Location = SubLib.ParseToView(user.selLocation);
             
 
 
@@ -123,6 +123,7 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
+        /*
         // 内务
         public ActionResult Charge(string code, string state)
         {
@@ -154,7 +155,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.Error = strError;
             return View();
         }
-
+        */
         // 公告
         public ActionResult BB(string code, string state)
         {

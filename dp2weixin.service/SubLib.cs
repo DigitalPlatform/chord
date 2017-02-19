@@ -27,7 +27,7 @@ namespace dp2weixin.service
         public List<Location> Locations = new List<Location>();
         public string Checked = "";
 
-        public static List<SubLib> ParseSubLib(string xml)
+        public static List<SubLib> ParseSubLib(string xml,bool bAddRoot)
         {
             List<SubLib> subLibs = new List<SubLib>();
             /*
@@ -51,9 +51,17 @@ namespace dp2weixin.service
             */
 
             // 将xml用<root>包起来
-            xml = "<root>" + xml + "</root>";
+            if (bAddRoot==true)
+                xml = "<root>" + xml + "</root>";
             XmlDocument dom = new XmlDocument();
-            dom.LoadXml(xml);
+            try
+            {
+                dom.LoadXml(xml);
+            }
+            catch
+            {
+                return subLibs;
+            }
             XmlNode root = dom.DocumentElement;
 
             // 第一层的item，没有分馆代码，一般表示总馆
@@ -93,6 +101,51 @@ namespace dp2weixin.service
 
 
             return subLibs;
+        }
+
+        public static string ParseToSplitByComma(string xml)
+        {
+            string result = "";
+            List<SubLib> libs = ParseSubLib(xml, false);
+            foreach (SubLib lib in libs)
+            {
+                foreach (Location loc in lib.Locations)
+                {
+                    if (result != "")
+                        result += ",";
+
+                    result += lib.libCode + "/" + loc.Name;
+                }
+            }
+            return result;
+        }
+
+        public static string ParseToView(string xml)
+        {
+            string result = "";
+            List<SubLib> libs = ParseSubLib(xml, false);
+            foreach (SubLib lib in libs)
+            {
+                if (result != "")
+                    result += ",";
+
+                string one = lib.libCode;
+
+                string tempLocs = "";
+                foreach (Location loc in lib.Locations)
+                {
+                    if (tempLocs != "")
+                        tempLocs += ",";
+
+                    tempLocs +=loc.Name;
+                }
+
+                if (tempLocs != "")
+                    one = lib.libCode + "(" + tempLocs + ")";
+
+                result += one;
+            }
+            return result;
         }
     }
 }

@@ -206,6 +206,7 @@
     <Content Include="img\error3.png" />
     <Content Include="img\library.jpg" />
     <Content Include="img\loading.gif" />
+    <Content Include="img\minus.png" />
     <Content Include="img\nonePhoto.png" />
     <Content Include="img\empty2.jpg" />
     <Content Include="img\person.png" />

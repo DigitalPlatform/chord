@@ -236,8 +236,10 @@
 
         // 选择馆藏地
         function selLoc(obj) {
-            var value = $(obj).val();
-            var subLib = value.substring(0, value.indexOf('/'));
+            var id = $(obj).attr('id');
+
+            //
+            var subLib = id.substring(id.indexOf('-') + 1);
             var ckbSubLib = "#ckbSubLib-" + subLib;
 
             var checked = $(obj).prop("checked");
@@ -268,14 +270,31 @@
 
         // 获取全部选中的馆藏地
         function getLocation() {
-            var locations = "";
-            $("#ckbLocation:checked").each(function () {
-                if (locations != "")
-                    locations += ",";
-                var loc = $(this).val();
-                locations += loc;
+            var xml = "";
+
+            //
+            $(".library:checked").each(function () {
+
+                var libcode = $(this).val();
+                xml += "<library code='"+libcode+"'>";
+
+                var name = "#ckbLocation-"+libcode+":checked";
+                $(name).each(function () {
+
+                    var loc = $(this).val();
+                    xml+= "<item>"+loc+"</item>";
+
+                });
+
+                xml += "</library>";
+
             });
-            return locations
+
+            if (xml != "")
+                xml = "<root>"+xml+"</root>";
+
+
+            return xml
         }
 
         // 展开关闭分馆
@@ -305,6 +324,8 @@
             }
             var locations = getLocation();
             //alert("["+locations+"]");
+
+            //return;
 
             //显示等待图层
             showMaskLayer();
@@ -398,13 +419,13 @@ else
             {
                 <div class='mui-input-row mui-checkbox mui-left'>
                     <label>@sublib.libCode &nbsp;<span style="color:#cccccc;font-size:18pt" onclick="expand(this,'lib-@sublib.libCode')">-</span></label>
-                    <input id='ckbSubLib-@sublib.libCode' type='checkbox' @sublib.Checked onchange="selSubLib(this)" value="@sublib.libCode" />
+                    <input id='ckbSubLib-@sublib.libCode' class="library" type='checkbox' @sublib.Checked onchange="selSubLib(this)" value="@sublib.libCode" />
                     <div style="padding-left:30px" id="lib-@sublib.libCode">
                         @foreach (dp2weixin.service.Location location in sublib.Locations)
                         {
                             <div class='mui-input-row mui-checkbox mui-left'>
                                 <label>@location.Name</label>
-                                <input id='ckbLocation' class='location' @location.Checked type='checkbox' onchange='selLoc(this)' value='@location.Path' />
+                                <input id='ckbLocation-@sublib.libCode' class='location' @location.Checked type='checkbox' onchange='selLoc(this)' value='@location.Name' />
                             </div>
                         }
                     </div>

@@ -33,7 +33,7 @@ namespace dp2weixinWeb.Controllers
 <library code='星洲小学'><item canborrow='yes' itemBarcodeNullable='yes'>阅览室</item>
 </library>";
 
-            List<SubLib> subLibs = SubLib.ParseSubLib(xml);
+            List<SubLib> subLibs = SubLib.ParseSubLib(xml,true);
             ViewBag.libList = subLibs;
             ViewBag.bindLink = "<a href='www.dp2003.com'>尚未绑定帐户</a>";
             return View();

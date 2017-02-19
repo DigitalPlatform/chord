@@ -4722,6 +4722,25 @@ namespace dp2weixin.service
                 return -1;
             }
 
+            WxUserItem userItem = null;
+            List<WxUserItem> users = null;
+            if (loginInfo.UserType == "patron")
+            {
+               users = WxUserDatabase.Current.GetPatron(weixinId, libId, loginInfo.UserName);
+
+            }
+            else
+            {
+                users = WxUserDatabase.Current.Get(weixinId, libId, WxUserDatabase.C_Type_Worker, null, loginInfo.UserName, true);
+            }
+            if (users.Count == 0)
+            {
+                strError = "没找到对应的绑定帐户";
+                return -1;
+            }
+            userItem = users[0];
+            string selLocation = userItem.selLocation;
+
             List<BiblioRecord> biblioList = new List<BiblioRecord>();
             long lRet = this.SearchBiblioAll(weixinId,
                 libId,
@@ -4751,6 +4770,24 @@ namespace dp2weixin.service
                 {
                     return -1;
                 }
+
+                // 对这些册过滤，过滤馆藏地
+                if (string.IsNullOrEmpty(selLocation) == false &&  string.IsNullOrEmpty(cmdType)==false)
+                {
+                    selLocation = SubLib.ParseToSplitByComma(selLocation);
+                    if (selLocation != "")
+                    {
+                        string[] locs = selLocation.Split(new char[] { ',' });
+                        foreach (BiblioItem item in itemList)
+                        {
+                            if (locs.Contains(item.location) == false)
+                            {
+                                item.isNotCareLoc = true;
+                            }
+                        }
+                    }
+                }
+
 
                 // 加到集合里
                 items.AddRange(itemList);
@@ -5745,12 +5782,12 @@ namespace dp2weixin.service
                 item.borrowPeriod = borrowPeriod;
 
                 item.isGray = false;
-                if (isPatron1 == false)
+                if (string.IsNullOrEmpty(cmdType) ==false)//(isPatron1 == false)
                 {
                     if (cmdType == "borrow")
                     {
                         if (string.IsNullOrEmpty(strBorrower) == false
-                            || String.IsNullOrEmpty(strState) == false)
+                            || String.IsNullOrEmpty(strState) == false) //状态有值是也不允许借阅
                         {
                             item.isGray = true;
                         }

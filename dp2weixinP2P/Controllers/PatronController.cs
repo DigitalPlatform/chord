@@ -136,24 +136,29 @@ namespace dp2weixinWeb.Controllers
 
 
             // 解析本帐户拥有的全部馆藏地
-            List<SubLib> subLibs = SubLib.ParseSubLib(locationXml);
+            List<SubLib> subLibs = SubLib.ParseSubLib(locationXml,true);
 
             //上次选中的打上勾
             if (String.IsNullOrEmpty(user.selLocation)==false)
             {
-                string[] selLocList = user.selLocation.Split(new char[] {','});
-                foreach (SubLib subLib in subLibs)
+                string selLocation = SubLib.ParseToSplitByComma(user.selLocation);
+                if (selLocation != "")
                 {
-                    foreach (Location loc in subLib.Locations)
+                    string[] selLocList = selLocation.Split(new char[] { ',' });
+                    foreach (SubLib subLib in subLibs)
                     {
-                        string locPath = subLib.libCode + "/" + loc.Name;
-                        if (selLocList.Contains(locPath) == true)
+                        foreach (Location loc in subLib.Locations)
                         {
-                            subLib.Checked = "checked";
-                            loc.Checked = "checked";
+                            string locPath = subLib.libCode + "/" + loc.Name;
+                            if (selLocList.Contains(locPath) == true)
+                            {
+                                subLib.Checked = "checked";
+                                loc.Checked = "checked";
+                            }
                         }
                     }
                 }
+                // end
             }
 
             // todo 其实，可以用一个字段来表示馆藏地和选中的项，就量在xml的字段中加checked属性，
