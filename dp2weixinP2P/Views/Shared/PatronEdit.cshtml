@@ -1,0 +1,157 @@
+﻿
+@{
+    ViewBag.Title = "PatronEdit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section header {
+    <h1 class="mui-title">读者登记</h1>
+}
+
+@section style {
+    <style>
+
+
+        TABLE.patronEdit {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+        }
+
+            TABLE.patronEdit TR TD {
+                border-width: 0px;
+                padding: 2px;
+            }
+
+                TABLE.patronEdit TR TD.value {
+                    padding-left: 5px;
+                }
+
+                TABLE.patronEdit TR TD.label {
+                    min-width: 80px;
+                    width: 80px;
+                    color: #cccccc;
+                    padding-left: 5px;
+                    padding-right: 5px;
+                     text-align: right;
+                }
+
+
+    </style>
+}
+
+<table style="width:100%" class="patronEdit">
+    <tr>
+        <td class="label">证条码号</td>
+        <td class="value">
+            <table>
+                <tr>
+                    <td><input id='txtBarcode' style="padding:0px;margin:0px" type="text" /></td>
+                    <td><button id='login' class="" onclick="">装载</button></td>
+                </tr>
+            </table>
+            
+            
+        </td>
+    </tr>
+    <tr>
+        <td class="label">读者类别</td>
+        <td class="value"><input id='txtType' type="text" style="padding:0px;margin:0px" /></td>
+    </tr>
+    <tr>
+        <td class="label">发证日期</td>
+        <td class="value">
+            <table>
+                <tr>
+                    <td><input id='txtBarcode' style="padding:0px;margin:0px" type="text" /></td>
+                    <td><button id='login' class="" onclick="">...</button></td>
+                </tr>
+            </table>
+
+
+        </td>
+    </tr>
+    <tr>
+        <td class="label">失效日期</td>
+        <td class="value">
+            <table>
+                <tr>
+                    <td><input id='txtBarcode' style="padding:0px;margin:0px" type="text" /></td>
+                    <td><button id='login' class="" onclick="">...</button></td>
+                </tr>
+            </table>
+
+
+        </td>
+    </tr>
+    <tr>
+        <td class="label">姓名</td>
+        <td class="value"><input id='txtName' type="text" style="padding:0px;margin:0px" /></td>
+    </tr>
+    <tr>
+        <td class="label">单位</td>
+        <td class="value"><input id='txtDepartment' type="text" style="padding:0px;margin:0px" /></td>
+    </tr>
+    <tr>
+        <td class="label">手机号</td>
+        <td class="value"><input id='txtPhone' type="text" style="padding:0px;margin:0px" /></td>
+    </tr>
+</table>
+
+<div class="mui-input-group">
+    <div class="mui-input-row ">
+        <label id="lblBarcode" style="color:#cccccc">证条码号</label>
+        <table>
+            <tr>
+                <td><input id='txtBarcode' style="padding:0px;margin:0px" type="text" /></td>
+                <td><button id='login' class="" onclick="" style="border:1px dotted #cccccc;margin-right:2px">装载</button></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="mui-input-row ">
+        <label id="lblType" style="color:#cccccc">读者类别</label>
+        <input id='txtType' type="text" class="mui-input mui-input-clear">
+    </div>
+
+    <div class="mui-input-row ">
+        <label id="lblType" style="color:#cccccc">发证日期</label>
+        <table>
+            <tr>
+                <td><input id='txtBarcode' class="mui-input mui-input-clear" type="text" /></td>
+                <td><img src="~/img/arrowdown.png"/> </td>
+            </tr>
+        </table>
+        <input id='txtType' type="text" >
+    </div>
+
+    <div class="mui-input-row ">
+        <label id="lblType" style="color:#cccccc">失效日期</label>
+        <table>
+            <tr>
+                <td><input id='txtBarcode' class="mui-input mui-input-clear" type="text" /></td>
+                <td><button id='login' class="" onclick="" style="border:1px dotted #cccccc;margin-right:2px">...</button></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="mui-input-row ">
+        <label id="lblName" style="color:#cccccc">姓名</label>
+        <input id='txtName' type="text" class="mui-input mui-input-clear">
+    </div>
+
+    <div class="mui-input-row ">
+        <label id="lblDepartment" style="color:#cccccc">单位</label>
+        <input id='txtDepartment' type="text" class="mui-input mui-input-clear">
+    </div>
+
+    <div class="mui-input-row ">
+        <label id="lblPhone" style="color:#cccccc">手机号</label>
+        <input id='txtPhone' type="text" class="mui-input mui-input-clear">
+    </div>
+
+
+    </div>
+<div class="mui-content-padded">
+    <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="">新增</button>
+</div>
+

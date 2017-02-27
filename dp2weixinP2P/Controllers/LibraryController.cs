@@ -12,6 +12,77 @@ namespace dp2weixinWeb.Controllers
 {
     public class LibraryController : BaseController
     {
+        // 读者登记
+        public ActionResult PatronEdit(string code, string state)
+        {
+            string strError = "";
+
+
+            // 检查是否从微信入口进来
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            //绑定的工作人员账号 需要有权限
+            string weixinId = ViewBag.weixinId;//(string)Session[WeiXinConst.C_Session_WeiXinId];
+            string libId = ViewBag.LibId;
+
+            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
+            //if (user == null)
+            //{
+            //    // 取读者帐户
+            //    user = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
+
+            //    // 如果没有借还权限，不能操作
+            //    if (user != null && user.rights.Contains("borrow") == false && user.rights.Contains("return") == false)
+            //    {
+            //        user = null;
+            //    }
+            //}
+
+            // 未绑定工作人员，
+            if (user == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge2", true);
+                return View();
+            }
+
+            //LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
+            //if (lib == null)
+            //{
+            //    strError = "未找到id为" + libId + "的图书馆";
+            //    goto ERROR1;
+            //}
+            //// 是否校验条码
+            //ViewBag.verifyBarcode = lib.verifyBarcode;
+
+            ////设到ViewBag里
+            //string userName = "";
+            //if (user.type == WxUserDatabase.C_Type_Worker)
+            //{
+            //    userName = user.userName;
+            //    ViewBag.isPatron = 0;
+            //}
+            //else
+            //{
+            //    userName = user.readerBarcode;
+            //    ViewBag.isPatron = 1;
+            //}
+
+            ViewBag.userName = user.userName;
+
+            
+
+
+
+
+            return View();
+
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
 
 
         // 内务

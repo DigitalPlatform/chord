@@ -344,6 +344,7 @@
     <Content Include="Views\Library\Charge2.cshtml" />
     <Content Include="Views\Library\Charge2.txt" />
     <Content Include="Views\UI\CtrlDemo.cshtml" />
+    <Content Include="Views\Shared\PatronEdit.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
