@@ -601,6 +601,12 @@ namespace dp2weixinWeb.Controllers
             ViewBag.LibId = libId;
             ViewBag.userName = userName;
             ViewBag.subject = subject;
+
+            int no=0;
+            string right ="";
+            dp2WeiXinService.Instance.SplitSubject(subject, out  no, out  right);
+
+            ViewBag.pureSubject = right;
             List<MessageItem> list = new List<MessageItem>();
 
             if (String.IsNullOrEmpty(subject) == false)
