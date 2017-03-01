@@ -10,6 +10,30 @@ namespace DigitalPlatform.Message
     {
         public const int BINARY_CHUNK_SIZE = 4 * 1024;  // 4K 时会出现数据传输错误
 
+        public static bool IsTextEncoding(string transferEncoding)
+        {
+            if (transferEncoding == "text"
+  || transferEncoding.StartsWith("text.")) // text
+                return true;
+            return false;
+        }
+
+        public static bool IsTextEncoding(string transferEncoding, out Encoding encoding)
+        {
+            encoding = Encoding.UTF8;
+            if (transferEncoding == "text"
+              || transferEncoding.StartsWith("text.")) // text
+            {
+                if (transferEncoding != "text")
+                {
+                    string encodingName = transferEncoding.Substring("text.".Length);
+                    if (string.IsNullOrEmpty(encodingName) == false)
+                        encoding = Encoding.GetEncoding(encodingName);
+                }
+                return true;
+            }
+            return false;
+        }
     }
 
     // 2016/10/23
@@ -200,7 +224,7 @@ namespace DigitalPlatform.Message
 
         public string Action { get; set; }
         public string Style { get; set; }
-        public List<MessageRecord> Records { get; set; } 
+        public List<MessageRecord> Records { get; set; }
 
         public SetMessageRequest()
         {
@@ -338,6 +362,17 @@ namespace DigitalPlatform.Message
         public string Timestamp { get; set; }
 
         public string MD5 { get; set; } // Data 的 MD5 hash
+
+        public Record Clone()
+        {
+            Record result = new Record();
+            result.RecPath = this.RecPath;
+            result.Format = this.Format;
+            result.Data = this.Data;
+            result.Timestamp = this.Timestamp;
+            result.MD5 = this.MD5;
+            return result;
+        }
     }
 
     public class SearchRequest
@@ -659,6 +694,22 @@ namespace DigitalPlatform.Message
         public string ErrorInfo { get; set; }  // 出错信息
 
         public string ErrorCode { get; set; }   // 出错码（表示属于何种类型的错误）
+
+        public Entity Clone()
+        {
+            Entity result = new Entity();
+            result.Action = this.Action;
+            result.RefID = this.RefID;
+            if (this.OldRecord != null)
+                result.OldRecord = this.OldRecord.Clone();
+            if (this.NewRecord != null)
+                result.NewRecord = this.NewRecord.Clone();
+            result.Style = this.Style;
+            result.ErrorInfo = this.ErrorInfo;
+            result.ErrorCode = this.ErrorCode;
+
+            return result;
+        }
     }
 
     #endregion

@@ -39,6 +39,10 @@
       <HintPath>..\packages\CommonMark.NET.0.14.0\lib\net45\CommonMark.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Messaging" />
@@ -53,6 +57,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EntityDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EntityDialog.Designer.cs">
+      <DependentUpon>EntityDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RecordDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RecordDialog.Designer.cs">
+      <DependentUpon>RecordDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="GetMessageDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -78,6 +94,18 @@
     <Compile Include="SendMessageDialog.Designer.cs">
       <DependentUpon>SendMessageDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="SetInfoDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SetInfoDialog.Designer.cs">
+      <DependentUpon>SetInfoDialog.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="EntityDialog.resx">
+      <DependentUpon>EntityDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RecordDialog.resx">
+      <DependentUpon>RecordDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GetMessageDialog.resx">
       <DependentUpon>GetMessageDialog.cs</DependentUpon>
     </EmbeddedResource>
@@ -96,6 +124,9 @@
     </Compile>
     <EmbeddedResource Include="SendMessageDialog.resx">
       <DependentUpon>SendMessageDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SetInfoDialog.resx">
+      <DependentUpon>SetInfoDialog.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config" />
     <None Include="packages.config" />

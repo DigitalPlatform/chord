@@ -1331,7 +1331,7 @@ ex.GetType().ToString());
             if (records == null)
                 return;
 
-            foreach(MessageRecord record in records)
+            foreach (MessageRecord record in records)
             {
                 if (string.IsNullOrEmpty(record.id))
                     record.id = "~";
@@ -4101,18 +4101,18 @@ ex.GetType().ToString());
                     if (string.IsNullOrEmpty(def.Definition) == false
                         && StringUtil.ContainsRight(def.Definition, "n") == -1)
                     {
-                        Console.WriteLine("Skip join or un-join SignalR group '" + def.GroupNameString + "'");
+                        Console.WriteLine("'" + s + "' Skip join or un-join SignalR group '" + def.GroupNameString + "'");
                         goto CONTINUE;
                     }
 
                     if (add)
                     {
-                        Console.WriteLine("Join SignalR group '" + def.GroupNameString + "'");
+                        Console.WriteLine("'" + s + "' Join SignalR group '" + def.GroupNameString + "'");
                         Groups.Add(connection_info.ConnectionID, def.GroupNameString);
                     }
                     else
                     {
-                        Console.WriteLine("Un-Join SignalR group '" + def.GroupNameString + "'");
+                        Console.WriteLine("'" + s + "' Un-Join SignalR group '" + def.GroupNameString + "'");
                         Groups.Remove(connection_info.ConnectionID, def.GroupNameString);
                     }
 

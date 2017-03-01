@@ -84,7 +84,7 @@ namespace DigitalPlatform.Message
             if (this.WebData == null)
                 throw new Exception("尚未设置 WebData");
 
-            if (TransferEncoding == "text" || TransferEncoding == "base64")
+            if (MessageUtil.IsTextEncoding(TransferEncoding) == true || TransferEncoding == "base64")
             {
                 StringBuilder content = new StringBuilder(this.WebData.Text);
                 for (int i = 0; ; i++)

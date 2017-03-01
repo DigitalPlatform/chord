@@ -11,6 +11,16 @@ namespace DigitalPlatform.Forms
 { 
     public static class ListViewUtil
     {
+        public static void BeginSelectItem(Control control, ListViewItem item)
+        {
+            control.BeginInvoke(new Action<ListViewItem>(
+                (o) =>
+                {
+                    o.Selected = true;
+                    o.EnsureVisible();
+                }), item);
+        }
+
 #if NO
         public static int GetColumnHeaderHeight(ListView list)
         {
@@ -135,5 +145,19 @@ namespace DigitalPlatform.Forms
             item.SubItems[col].Text = strText;
         }
 
+        public static void DeleteSelectedItems(ListView list)
+        {
+            int[] indices = new int[list.SelectedItems.Count];
+            list.SelectedIndices.CopyTo(indices, 0);
+
+            list.BeginUpdate();
+
+            for (int i = indices.Length - 1; i >= 0; i--)
+            {
+                list.Items.RemoveAt(indices[i]);
+            }
+
+            list.EndUpdate();
+        }
     }
 }

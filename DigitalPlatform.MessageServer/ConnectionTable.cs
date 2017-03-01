@@ -52,7 +52,7 @@ namespace DigitalPlatform.MessageServer
             return info.UID;
         }
 #endif
-        // TODO: 限制集合的最大元素数。防止被攻击
+
         // 新增一个 ConnectionInfo 对象
         public ConnectionInfo AddConnection(string strConnectionID)
         {

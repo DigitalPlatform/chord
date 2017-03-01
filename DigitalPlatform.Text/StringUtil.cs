@@ -14,6 +14,14 @@ namespace DigitalPlatform.Text
     /// </summary>
     public static class StringUtil
     {
+        // 获得较短一点的 GUID 字符串
+        public static string GetShortGuid()
+        {
+            Guid guid = Guid.NewGuid();
+            byte[] bytes = guid.ToByteArray();
+            return Convert.ToBase64String(bytes);
+        }
+
         // 去掉列表中的空字符串，并且去掉每个元素的首尾空白
         public static void RemoveBlank(ref List<string> list)
         {

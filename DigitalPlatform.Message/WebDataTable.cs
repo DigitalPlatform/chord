@@ -183,7 +183,6 @@ namespace DigitalPlatform.Message
 
                 this.Text.Append(data.Text);
             }
-
         }
 
         // 将 Text 中缓冲的数据兑现到 WebData 中
