@@ -98,6 +98,7 @@
             this.textBox_bindPatron_remoteUserName = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.tabPage_setInfo = new System.Windows.Forms.TabPage();
+            this.button_editEntities = new System.Windows.Forms.Button();
             this.comboBox_setInfo_action = new System.Windows.Forms.ComboBox();
             this.label28 = new System.Windows.Forms.Label();
             this.webBrowser_setInfo_entities = new System.Windows.Forms.WebBrowser();
@@ -166,7 +167,6 @@
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.button_editEntities = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl_main.SuspendLayout();
@@ -867,6 +867,16 @@
             this.tabPage_setInfo.Text = "SetXXXInfo";
             this.tabPage_setInfo.UseVisualStyleBackColor = true;
             // 
+            // button_editEntities
+            // 
+            this.button_editEntities.Location = new System.Drawing.Point(250, 117);
+            this.button_editEntities.Name = "button_editEntities";
+            this.button_editEntities.Size = new System.Drawing.Size(130, 23);
+            this.button_editEntities.TabIndex = 39;
+            this.button_editEntities.Text = "edit entities ...";
+            this.button_editEntities.UseVisualStyleBackColor = true;
+            this.button_editEntities.Click += new System.EventHandler(this.button_editEntities_Click);
+            // 
             // comboBox_setInfo_action
             // 
             this.comboBox_setInfo_action.FormattingEnabled = true;
@@ -878,6 +888,7 @@
             this.comboBox_setInfo_action.Name = "comboBox_setInfo_action";
             this.comboBox_setInfo_action.Size = new System.Drawing.Size(161, 20);
             this.comboBox_setInfo_action.TabIndex = 38;
+            this.comboBox_setInfo_action.Visible = false;
             // 
             // label28
             // 
@@ -887,6 +898,7 @@
             this.label28.Size = new System.Drawing.Size(47, 12);
             this.label28.TabIndex = 37;
             this.label28.Text = "Action:";
+            this.label28.Visible = false;
             // 
             // webBrowser_setInfo_entities
             // 
@@ -906,7 +918,8 @@
             "setItemInfo",
             "setOrderInfo",
             "setIssueInfo",
-            "setCommentInfo"});
+            "setCommentInfo",
+            "setReaderInfo"});
             this.comboBox_setInfo_method.Location = new System.Drawing.Point(130, 13);
             this.comboBox_setInfo_method.Name = "comboBox_setInfo_method";
             this.comboBox_setInfo_method.Size = new System.Drawing.Size(161, 20);
@@ -1193,7 +1206,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_sortCondition.Location = new System.Drawing.Point(77, 91);
             this.textBox_message_sortCondition.Name = "textBox_message_sortCondition";
-            this.textBox_message_sortCondition.Size = new System.Drawing.Size(396, 21);
+            this.textBox_message_sortCondition.Size = new System.Drawing.Size(400, 21);
             this.textBox_message_sortCondition.TabIndex = 49;
             // 
             // label46
@@ -1211,7 +1224,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_userRange.Location = new System.Drawing.Point(77, 38);
             this.textBox_message_userRange.Name = "textBox_message_userRange";
-            this.textBox_message_userRange.Size = new System.Drawing.Size(396, 21);
+            this.textBox_message_userRange.Size = new System.Drawing.Size(400, 21);
             this.textBox_message_userRange.TabIndex = 47;
             // 
             // label41
@@ -1269,7 +1282,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 65);
             this.textBox_message_timeRange.Name = "textBox_message_timeRange";
-            this.textBox_message_timeRange.Size = new System.Drawing.Size(396, 21);
+            this.textBox_message_timeRange.Size = new System.Drawing.Size(400, 21);
             this.textBox_message_timeRange.TabIndex = 41;
             // 
             // label39
@@ -1288,7 +1301,7 @@
             this.textBox_message_text.Location = new System.Drawing.Point(54, 118);
             this.textBox_message_text.Multiline = true;
             this.textBox_message_text.Name = "textBox_message_text";
-            this.textBox_message_text.Size = new System.Drawing.Size(419, 62);
+            this.textBox_message_text.Size = new System.Drawing.Size(423, 62);
             this.textBox_message_text.TabIndex = 3;
             // 
             // textBox_message_groupName
@@ -1297,7 +1310,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_groupName.Location = new System.Drawing.Point(77, 11);
             this.textBox_message_groupName.Name = "textBox_message_groupName";
-            this.textBox_message_groupName.Size = new System.Drawing.Size(396, 21);
+            this.textBox_message_groupName.Size = new System.Drawing.Size(400, 21);
             this.textBox_message_groupName.TabIndex = 39;
             // 
             // label37
@@ -1557,16 +1570,6 @@
             this.webBrowser1.Name = "webBrowser1";
             this.webBrowser1.Size = new System.Drawing.Size(334, 288);
             this.webBrowser1.TabIndex = 0;
-            // 
-            // button_editEntities
-            // 
-            this.button_editEntities.Location = new System.Drawing.Point(250, 117);
-            this.button_editEntities.Name = "button_editEntities";
-            this.button_editEntities.Size = new System.Drawing.Size(130, 23);
-            this.button_editEntities.TabIndex = 39;
-            this.button_editEntities.Text = "edit entities ...";
-            this.button_editEntities.UseVisualStyleBackColor = true;
-            this.button_editEntities.Click += new System.EventHandler(this.button_editEntities_Click);
             // 
             // MainForm
             // 

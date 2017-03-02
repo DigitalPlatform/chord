@@ -846,8 +846,8 @@ namespace dp2Capo
             if (entity.NewRecord != null)
             {
                 info.NewRecord = entity.NewRecord.Data;
-                info.OldRecPath = entity.NewRecord.RecPath;
-                info.OldTimestamp = ByteArray.GetTimeStampByteArray(entity.NewRecord.Timestamp);
+                info.NewRecPath = entity.NewRecord.RecPath;
+                info.NewTimestamp = ByteArray.GetTimeStampByteArray(entity.NewRecord.Timestamp);
             }
 
             info.Style = entity.Style;

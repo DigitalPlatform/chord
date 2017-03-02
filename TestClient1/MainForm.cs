@@ -466,7 +466,9 @@ namespace TestClient1
             // TODO: 建立即将发送的对象数组
             // 是否要刷新 refID? 是否要整理 parent 元素内容?
             // action 要设置到每个对象
-            List<Entity> entities = null;
+            SetInfoRequest request1 = JsonConvert.DeserializeObject<SetInfoRequest>(this._setInfoRequestString);
+
+            List<Entity> entities = request1.Entities;
 
             EnableControls(false);
             try
@@ -2573,10 +2575,14 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             SetInfoDialog dlg = new SetInfoDialog();
 
             dlg.SetInfoRequest = JsonConvert.DeserializeObject<SetInfoRequest>(this._setInfoRequestString);
+            dlg.SetInfoRequest.BiblioRecPath = this.textBox_setInfo_biblioRecPath.Text;
+            dlg.SetInfoRequest.Operation = this.comboBox_setInfo_method.Text;
             dlg.ShowDialog(this);
             if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
                 return;
 
+            this.textBox_setInfo_biblioRecPath.Text = dlg.SetInfoRequest.BiblioRecPath;
+            this.comboBox_setInfo_method.Text = dlg.SetInfoRequest.Operation;
             this._setInfoRequestString = JsonConvert.SerializeObject(dlg.SetInfoRequest);
         }
     }
