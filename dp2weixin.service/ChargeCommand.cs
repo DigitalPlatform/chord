@@ -24,6 +24,7 @@ namespace dp2weixin.service
         public string itemInput { get; set; }//传进来的值，不一定全是barcode，有可能isbn
         public string operTime { get; set; }
         public string userName { get; set; }  //操作人
+        public int isPatron { get; set; } //是否是读者身份 2017-2-17 jane
 
         public string patronBarcode { get; set; }  // 正式的读者证 条码号
         public string itemBarcode { get; set; }     //正式的册条码号

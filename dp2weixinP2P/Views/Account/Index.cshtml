@@ -91,7 +91,11 @@
                     return;
                 }
 
-                alert("解除[" + name + "]绑定成功。");
+                var info = "解除[" + name + "]绑定成功。";
+                if (result.errorInfo != null && result.errorInfo != "")
+                    info += "\n" + result.errorInfo;
+
+                alert(info);
 
                 // 刷新绑定列表
                 getBindList(item.weixinId);

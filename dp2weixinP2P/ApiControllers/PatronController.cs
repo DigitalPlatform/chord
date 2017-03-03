@@ -53,7 +53,19 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
-        
+
+        [HttpPost]
+        public ApiResult SetPatron(string libId,
+            string userName,
+            string action,
+            string recPath,
+            SimplePatron patron)
+        {
+            ApiResult result = new ApiResult();
+
+
+            return result;
+        }
 
     }
 

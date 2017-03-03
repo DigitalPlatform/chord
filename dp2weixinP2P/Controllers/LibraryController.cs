@@ -12,6 +12,100 @@ namespace dp2weixinWeb.Controllers
 {
     public class LibraryController : BaseController
     {
+        // 读者登记
+        public ActionResult PatronEdit(string code, string state)
+        {
+            string strError = "";
+
+
+            // 检查是否从微信入口进来
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            //绑定的工作人员账号 需要有权限
+            string weixinId = ViewBag.weixinId;//(string)Session[WeiXinConst.C_Session_WeiXinId];
+            string libId = ViewBag.LibId;
+
+            SessionInfo sessionInfo = this.GetSessionInfo();
+            if (sessionInfo.Worker ==null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("读者登记", "/Library/PatronEdit", true);
+                return View();
+            }
+            ViewBag.userName = sessionInfo.Worker.userName;
+
+            // 读者类别
+            string[] libraryList = sessionInfo.Worker.libraryCode.Split(new []{','});
+            string types = sessionInfo.readerTypes;
+            string typesHtml = "";
+            if (String.IsNullOrEmpty(types) == false)
+            {
+                string[] typeList = types.Split(new char[] { ',' });
+                foreach (string type in typeList)
+                {
+                    // 如果这个类型的分馆 是当前帐户可用的分馆，才列出来
+                    if (sessionInfo.Worker.libraryCode != "")
+                    {
+                        int nIndex = type.LastIndexOf("}");
+                        if (nIndex > 0)
+                        {
+                            string left = type.Substring(0, nIndex);
+                            nIndex = left.IndexOf("{");
+                            if (nIndex != -1)
+                            {
+                                left = left.Substring(nIndex + 1);
+
+                                if (libraryList.Contains(left) == true)
+                                {
+                                    typesHtml += "<option value='" + type + "'>" + type + "</option>";
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        typesHtml += "<option value='" + type + "'>" + type + "</option>";
+                    }
+                }
+            }
+            if (typesHtml != "")
+            {
+                typesHtml = "<select id='selReaderType' name='selReaderType'>"
+                    + typesHtml
+                    + "</select>";
+            }
+            ViewBag.readerTypeHtml = typesHtml;
+            
+            // 目标数据库
+            string dbs=sessionInfo.readerDbnames;
+            string dbsHtml = "";
+            if (String.IsNullOrEmpty(dbs) == false)
+            {
+                string[] dbList = dbs.Split(new char[] { ',' });
+                foreach (string db in dbList)
+                {
+                    dbsHtml += "<option value='" + db + "'>" + db + "</option>";
+                }
+            }
+            if (dbsHtml != "")
+            {
+                dbsHtml = "<select id='selDbName' name='selDbName'>"
+                    + dbsHtml
+                    + "</select>";
+            }
+            ViewBag.readerDbnamesHtml = dbsHtml;
+
+
+
+
+            return View();
+
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
 
 
         // 内务
@@ -48,11 +142,23 @@ namespace dp2weixinWeb.Controllers
             string weixinId = ViewBag.weixinId;//(string)Session[WeiXinConst.C_Session_WeiXinId];
             string libId = ViewBag.LibId;
 
-            WxUserItem worker = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
-            // 未绑定工作人员，
-            if (worker == null)
+            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
+            if (user == null)
             {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge", true);
+                // 取读者帐户
+                user = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
+
+                // 如果没有借还权限，不能操作
+                if (user !=null && user.rights.Contains("borrow") == false && user.rights.Contains("return") == false)
+                {
+                    user=null;
+                }
+            }
+
+            // 未绑定工作人员，
+            if (user == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge2", true);
                 return View();
             }
 
@@ -66,10 +172,44 @@ namespace dp2weixinWeb.Controllers
             ViewBag.verifyBarcode = lib.verifyBarcode;
 
             //设到ViewBag里
-            ViewBag.userName = worker.userName;
+            string userName="";
+            if (user.type == WxUserDatabase.C_Type_Worker)
+            {
+                userName = user.userName;
+                ViewBag.isPatron = 0;
+            }
+            else
+            {
+                userName = user.readerBarcode;
+                ViewBag.isPatron = 1;
+            }
+
+            ViewBag.userName = userName;
+
+            // 关注馆藏去掉前面
+            //string clearLocs = "";
+            //if (string.IsNullOrEmpty(user.selLocation) == false)
+            //{
+            //    string[] selLoc = user.selLocation.Split(new char[] { ',' });
+            //    foreach (string loc in selLoc)
+            //    {
+            //        string tempLoc = "";
+            //        int nIndex = loc.IndexOf('/');
+            //        if (nIndex > 0)
+            //            tempLoc = loc.Substring(nIndex+1);
+
+            //        if (clearLocs != "")
+            //            clearLocs += ",";
+
+            //        clearLocs += tempLoc;
+            //    }
+            //}
+            ViewBag.Location = SubLib.ParseToView(user.selLocation);
+            
 
 
-            return View();
+
+            return View(user);
 
 
         ERROR1:
@@ -77,6 +217,7 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
+        /*
         // 内务
         public ActionResult Charge(string code, string state)
         {
@@ -108,7 +249,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.Error = strError;
             return View();
         }
-
+        */
         // 公告
         public ActionResult BB(string code, string state)
         {
@@ -213,10 +354,14 @@ namespace dp2weixinWeb.Controllers
                     {
                         goto ERROR1;
                     }                    
-
-                    sessionInfo.weixinId = weixinId;
                     sessionInfo.gzh = gzh;
                     sessionInfo.libIds = libIds;
+                    nRet=sessionInfo.SetWeixinId(weixinId,out strError);
+                    if (nRet == -1)
+                    {
+                        goto ERROR1;
+                    }
+
                 }
                 else
                 {
@@ -334,9 +479,14 @@ namespace dp2weixinWeb.Controllers
                         goto ERROR1;
                     }
 
-                    sessionInfo.weixinId = weixinId;
                     sessionInfo.gzh = gzh;
                     sessionInfo.libIds = libIds;
+                    nRet= sessionInfo.SetWeixinId(weixinId, out strError);
+                    if (nRet == -1)
+                    {
+                        goto ERROR1;
+                    }
+
                 }
                 else
                 {
@@ -554,6 +704,12 @@ namespace dp2weixinWeb.Controllers
             ViewBag.LibId = libId;
             ViewBag.userName = userName;
             ViewBag.subject = subject;
+
+            int no=0;
+            string right ="";
+            dp2WeiXinService.Instance.SplitSubject(subject, out  no, out  right);
+
+            ViewBag.pureSubject = right;
             List<MessageItem> list = new List<MessageItem>();
 
             if (String.IsNullOrEmpty(subject) == false)

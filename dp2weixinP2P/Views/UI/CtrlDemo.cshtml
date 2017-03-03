@@ -1,0 +1,149 @@
+﻿
+@{
+    ViewBag.Title = "CtrlDemo";
+    Layout = "~/Views/Shared/_LayoutManager.cshtml";
+}
+
+@section style {
+    <style>
+        .location {
+
+        }
+        </style>
+    }
+
+@section Scripts {
+ <script>
+
+     // 在分馆上选择
+    function selSubLib(obj) {
+
+        var subLib = $(obj).val();
+        //alert(subLib);
+
+        var name = "#lib-" + subLib;
+        //alert(name);
+ 
+        var checked = $(obj).prop("checked");
+        if (checked == true) {
+            alert("选中");
+            var list = $(name).find(".location").prop("checked", true);;
+        }
+        else {
+            alert("取消");
+            var list = $(name).find(".location").prop("checked", false);;
+            //alert(list.length);
+        }
+
+        // 保存
+        saveLoc();
+    }
+
+    // 选择馆藏地
+    function selLoc(obj) {
+        var value = $(obj).val();
+        var subLib = value.substring(0, value.indexOf('/'));
+        var ckbSubLib = "#ckbSubLib-" + subLib;
+
+        var checked = $(obj).prop("checked");
+        if (checked == true) {
+            if ($(ckbSubLib).prop("checked") == false) {
+                $(ckbSubLib).prop("checked", true);
+            }
+        }
+        else {
+            var name1 = "#lib-" + subLib;
+            var checkedCount = 0;
+
+            $(name1).find(".location").each(function () {
+                if ($(this).prop("checked") == true)
+                    checkedCount++;
+            });
+
+            if (checkedCount == 0) {
+                $(ckbSubLib).prop("checked", false);
+            }
+        }
+
+        // 保存
+        saveLoc();
+    }
+
+     //保存到服务器
+    function saveLoc() {
+        var locations = getLocation();
+        //alert("["+locations+"]");
+    }
+
+    // 获取全部选中的馆藏地
+    function getLocation() {
+        var locations = "";
+        $("#ckbLocation:checked").each(function () {
+            if (locations != "")
+                locations += ",";
+            var loc = $(this).val();
+            locations += loc;
+        });
+        return locations
+    }
+
+     // 展开关闭分馆
+    function expand(obj,name)
+    {
+        //alert(name);
+        var text = $(obj).html();
+        name = "#" + name;
+
+        if (text == "+")
+        {
+            $(obj).html("-");
+            $(name).css('display', 'block');
+        }
+        else
+        {
+            $(obj).html("+");
+            $(name).css('display', 'none');
+        }
+    }
+
+</script>
+
+    }
+
+        <h2>test</h2>
+
+        <div class="mui-input-row">
+            <label class="leftLabel">简单检索匹配方式</label>
+            <select id="selMatch" multiple style="height:100px">
+                <option value="left" selected>前方一致</option>
+                <option value="middle">中间一致</option>
+                <option value="right">后方一致</option>
+                <option value="exact">精确一致</option>
+            </select>
+        </div>
+<div class="mui-card" style="margin-top:10px">
+    <div class="mui-content-padded" style="color:#cccccc;">请选择关注的分馆及馆藏地 @Html.Raw(ViewBag.bindLink)</div>
+    @if (ViewBag.libList != null)
+    {
+        foreach (dp2weixinWeb.Controllers.SubLib sublib in ViewBag.libList)
+        {
+            <div class='mui-input-row mui-checkbox mui-left'>
+                <label>@sublib.libCode &nbsp;<span style="color:#cccccc;font-size:18pt" onclick="expand(this,'lib-@sublib.libCode')">-</span></label>
+                <input id='ckbSubLib-@sublib.libCode' type='checkbox' onchange="selSubLib(this)" value="@sublib.libCode" />
+                <div style="padding-left:30px" id="lib-@sublib.libCode">
+                    @foreach (string location in sublib.Locations)
+                    {
+                        <div class='mui-input-row mui-checkbox mui-left'>
+                            <label>@location</label>
+                            <input id='ckbLocation' class='location' type='checkbox' onchange='selLoc(this)' value='@sublib.libCode/@location' />
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+
+
+

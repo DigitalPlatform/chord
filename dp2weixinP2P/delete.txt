@@ -1,4 +1,60 @@
 ﻿
+        /*
+        public BorrowInfoResult GetPatronBorrowInfos1(string libId,
+            string readerBarcode)
+        {
+            BorrowInfoResult result = new BorrowInfoResult();
+            result.errorCode = 0;
+            result.errorInfo = "";
+
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                result.errorCode = -1;
+                result.errorInfo = "未找到id为[" + libId + "]的图书馆定义。";
+                return result;
+            }
+
+
+            string strError = "";
+
+            string xml = "";
+            string recPath = "";
+            int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                readerBarcode,
+                "advancexml",
+                out recPath,
+                out xml,
+                out strError);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+                return result;
+            }
+
+            if (nRet == 0)
+            {
+                result.errorCode = 0;
+                result.errorInfo = "从dp2library未找到证条码号为'" + readerBarcode + "'的记录";
+                return result;
+            }
+
+
+            //在借册
+            string strBorrowWarningText = "";
+            string maxBorrowCountString = "";
+            string curBorrowCountString = "";
+            List<BorrowInfo2> borrowList = GetBorrowInfo(xml, out strBorrowWarningText, out maxBorrowCountString, out curBorrowCountString);
+            result.borrowInfos = borrowList;
+            result.maxBorrowCount = maxBorrowCountString;
+            result.curBorrowCount = curBorrowCountString;
+            result.errorCode = 1;
+
+            return result;
+        }
+        */
+====
                 <!--
                 <div >
                     <table style="width:100%; color:black;margin-top:5px">

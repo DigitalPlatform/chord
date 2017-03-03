@@ -47,12 +47,14 @@ namespace dp2weixin.service
             int cmdRet = -1;
             string cmdError = "";
 
+            // 登录dp2身份
+            LoginInfo loginInfo = new LoginInfo(cmd.userName,cmd.isPatron==1?true:false );
+
             //加载读者
             if (cmd.type == ChargeCommand.C_Command_LoadPatron) 
             {
                 cmdRet = dp2WeiXinService.Instance.GetPatronXml(libId,
-                    cmd.userName,
-                    false,
+                    loginInfo,
                     cmd.patronBarcode,
                     "advancexml",
                     out patronRecPath,
@@ -76,8 +78,7 @@ namespace dp2weixin.service
                 string error="";
                 long lRet= dp2WeiXinService.Instance.SearchItem(weixinId,
                     libId,
-                    cmd.userName,
-                    false,
+                    loginInfo,
                     "ISBN",
                     strTemp,
                     "left",
@@ -102,8 +103,7 @@ namespace dp2weixin.service
              if (cmd.type == ChargeCommand.C_Command_Borrow) //借书
             {
                 cmdRet = dp2WeiXinService.Instance.Circulation(libId,
-                    cmd.userName,
-                    false,
+                    loginInfo,
                     "borrow",
                     cmd.patronBarcode,
                     cmd.itemBarcode,
@@ -115,10 +115,9 @@ namespace dp2weixin.service
                 // 借书失败时，也要取一下读者记录，因为读者信息还是要显示的
                 if (string.IsNullOrEmpty(patronXml) == true)
                 {
-                    // 取一下读者记录
+                    // 取读者记录
                     int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
-                        cmd.userName,
-                        false,
+                        loginInfo,
                         outPatronBarcode,
                         "xml",
                         out patronRecPath,
@@ -133,8 +132,7 @@ namespace dp2weixin.service
             else if (cmd.type == ChargeCommand.C_Command_Return) // 还书
             {
                 cmdRet = dp2WeiXinService.Instance.Circulation(libId,
-                    cmd.userName,
-                    false,
+                    loginInfo,
                     "return",
                     cmd.patronBarcode,
                     cmd.itemBarcode,
@@ -202,7 +200,8 @@ END1:
                     patronXml,
                     patronRecPath,
                     showPhoto);
-                cmd.patronHtml = dp2WeiXinService.Instance.GetPatronSummary(patron,cmd.userName);//GetPatronHtml(patron,false);
+                //cmd.patronHtml = dp2WeiXinService.Instance.GetPatronSummary(patron,
+                //    cmd.userName);
                 cmd.patronBarcode = patron.barcode;
             }
 

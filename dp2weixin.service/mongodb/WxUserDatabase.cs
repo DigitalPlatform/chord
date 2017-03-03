@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace dp2weixin.service
 {
@@ -66,7 +66,35 @@ namespace dp2weixin.service
             //collection名称为item
             _wxUserCollection = this._database.GetCollection<WxUserItem>("item");
 
-            // todo 创建索引
+            CancellationTokenSource cancel= new CancellationTokenSource();
+            bool bExist = false;
+
+            // 已存在索引，不用再创建索引
+            var indexes = _wxUserCollection.Indexes.ListAsync(cancel.Token).Result.ToListAsync().Result;
+            foreach (BsonDocument doc in indexes)
+            {
+                string name= doc["name"].AsString;
+                if (name.Contains("weixinId")==true)
+                {
+                    bExist = true;
+                    continue;
+                }
+            }
+
+            // 创建索引
+            if (bExist == false)
+            {
+                this.CreateIndex();
+            }
+        }
+
+        public void CreateIndex()
+        {
+            // 为weixinid字段建索引
+            _wxUserCollection.Indexes.CreateOne(
+                Builders<WxUserItem>.IndexKeys.Ascending("weixinId"),
+                new CreateIndexOptions() { Unique = false }
+                );
         }
 
         public List<WxUserItem> GetAll()
@@ -235,10 +263,23 @@ namespace dp2weixin.service
             return null;
         }
 
+
+        private static readonly Object _sync_addUser = new Object();
         /// 新增绑定账户
         public WxUserItem Add(WxUserItem item)
         {
-            this.wxUserCollection.InsertOne(item);
+            lock (_sync_addUser)
+            {
+                List<WxUserItem> itemList = this.Get(item.weixinId, item.libId, item.type, item.readerBarcode, item.userName, true);
+                if (itemList.Count == 0)
+                {
+                    this.wxUserCollection.InsertOne(item);
+                }
+                else
+                {
+                    dp2WeiXinService.Instance.WriteLog1("发现绑定帐户库中已有'" + item.readerBarcode + "'或'" + item.userName + "'对应的记录。");
+                }
+            }
             return item;
         }
 
@@ -424,6 +465,8 @@ namespace dp2weixin.service
                 .Set("rights", item.rights)
                 .Set("appId", item.appId)
                 .Set("tracing", item.tracing)
+                .Set("location", item.location)
+                .Set("selLocation", item.selLocation)
                 ;
 
             UpdateResult ret = this.wxUserCollection.UpdateOne(filter, update);
@@ -446,26 +489,46 @@ namespace dp2weixin.service
         [BsonRepresentation(BsonType.ObjectId)]
         public string id { get; private set; }
 
+        // 微信id
         public string weixinId { get; set; }    
+
+        // 图书馆名称
         public string libName { get; set; }    
+
+        // 图书馆代码
         public string libId { get; set; }     
 
-
+        // 读者证条码号
         public string readerBarcode { get; set; }  
+
+        // 读者姓名
         public string readerName { get; set; }
+
+        //单位
         public string department { get; set; }  //部门，二维码下方显示 // 2016-6-16 新增
+
+        // 读者记录xml
         public string xml { get; set; }        
+
+        // 读者记录路径
         public string recPath { get; set; } 
         
+        // 读者参考id
         public string refID { get; set; }
         public string createTime { get; set; }
         public string updateTime { get; set; }
 
-        public int isActive = 0; 
+        // 是否活动状态
+        public int isActive = 0;
 
-        public string libraryCode { get; set; } //分馆代码，读者与工作人员都有该字段
-        public int type = 0;//账户类型：0表示读者 1表示工作人员 // 2016-6-16 新增
-        public string userName { get; set; } //当type=2时，表示工作人员账户名称，其它时候为空// 2016-6-16 新增       
+        //分馆代码，读者与工作人员都有该字段
+        public string libraryCode { get; set; } 
+
+        //账户类型：0表示读者 1表示工作人员 // 2016-6-16 新增
+        public int type = 0;
+
+        //当type=2时，表示工作人员账户名称，其它时候为空// 2016-6-16 新增       
+        public string userName { get; set; } 
         public int isActiveWorker= 0; //是否为当前激活工作人员账户，注意该字段对读者账户无意义（均为0），暂时未用到
 
 
@@ -481,6 +544,24 @@ namespace dp2weixin.service
 
         //tracing 2016-11-21 type=1工作人员时有意义 默认为空或者off
         public string tracing { get; set; }
+
+        // 20170213 jane
+        // 本用户在dp系统有权限的馆藏地，是xml格式
+            /*
+<item canborrow="no" itemBarcodeNullable="yes">保存本库</item>
+<item canborrow="no" itemBarcodeNullable="yes">阅览室</item>
+<item canborrow="yes" itemBarcodeNullable="yes">流通库</item>
+<library code="方洲小学">
+  <item canborrow="yes" itemBarcodeNullable="yes">图书总库</item>
+</library>
+<library code="星洲小学">
+  <item canborrow="yes" itemBarcodeNullable="yes">阅览室</item>
+</library>
+             */       
+        public string location { get; set; }
+
+        // 20170213 在微信中选择的馆藏地，是以逗号分隔的两级路径，如：/流通库,方洲小学/图书总库
+        public string selLocation { get; set; }
     }
 
 

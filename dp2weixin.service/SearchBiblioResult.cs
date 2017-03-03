@@ -88,5 +88,6 @@ namespace dp2weixin.service
 
 
          public bool isGray = false;
+         public bool isNotCareLoc = false;
     }
 }
