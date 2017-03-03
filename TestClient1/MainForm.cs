@@ -16,11 +16,12 @@ using System.IO;
 
 using TestClient1.Properties;
 
+using DigitalPlatform;
 using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
-using DigitalPlatform;
+using Newtonsoft.Json;
 
 namespace TestClient1
 {
@@ -174,6 +175,18 @@ namespace TestClient1
             _channels.AddMessage -= _channels_AddMessage;
             _channels.Login -= _channels_Login;
             _channels.TraceWriter.Close();
+        }
+
+        string _setInfoRequestString
+        {
+            get
+            {
+                return Settings.Default.setInfoRequest;
+            }
+            set
+            {
+                Settings.Default.setInfoRequest = value;
+            }
         }
 
         void LoadSettings()
@@ -364,7 +377,10 @@ namespace TestClient1
         {
             string strPassword = this.textBox_config_libraryPassword.Text;
             if (string.IsNullOrEmpty(strPassword))
-                strPassword = null;
+                strPassword = null; // null 表示 dp2capo 会自动使用代理方式登录
+            else if (strPassword == "<blank>")
+                strPassword = "";
+
             return new LoginInfo(this.textBox_config_libraryUserName.Text,
                 this.checkBox_config_isPatron.Checked,
                 strPassword,
@@ -450,7 +466,9 @@ namespace TestClient1
             // TODO: 建立即将发送的对象数组
             // 是否要刷新 refID? 是否要整理 parent 元素内容?
             // action 要设置到每个对象
-            List<Entity> entities = null;
+            SetInfoRequest request1 = JsonConvert.DeserializeObject<SetInfoRequest>(this._setInfoRequestString);
+
+            List<Entity> entities = request1.Entities;
 
             EnableControls(false);
             try
@@ -2550,6 +2568,22 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 dlg.SortCondition,
                 dlg.IdCondition,
                 dlg.SubjectCondition);
+        }
+
+        private void button_editEntities_Click(object sender, EventArgs e)
+        {
+            SetInfoDialog dlg = new SetInfoDialog();
+
+            dlg.SetInfoRequest = JsonConvert.DeserializeObject<SetInfoRequest>(this._setInfoRequestString);
+            dlg.SetInfoRequest.BiblioRecPath = this.textBox_setInfo_biblioRecPath.Text;
+            dlg.SetInfoRequest.Operation = this.comboBox_setInfo_method.Text;
+            dlg.ShowDialog(this);
+            if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
+                return;
+
+            this.textBox_setInfo_biblioRecPath.Text = dlg.SetInfoRequest.BiblioRecPath;
+            this.comboBox_setInfo_method.Text = dlg.SetInfoRequest.Operation;
+            this._setInfoRequestString = JsonConvert.SerializeObject(dlg.SetInfoRequest);
         }
     }
 }

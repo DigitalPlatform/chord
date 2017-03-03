@@ -646,5 +646,17 @@ namespace TestClient1.Properties {
                 this["config_libraryPassword"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string setInfoRequest {
+            get {
+                return ((string)(this["setInfoRequest"]));
+            }
+            set {
+                this["setInfoRequest"] = value;
+            }
+        }
     }
 }

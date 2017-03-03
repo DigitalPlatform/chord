@@ -846,8 +846,8 @@ namespace dp2Capo
             if (entity.NewRecord != null)
             {
                 info.NewRecord = entity.NewRecord.Data;
-                info.OldRecPath = entity.NewRecord.RecPath;
-                info.OldTimestamp = ByteArray.GetTimeStampByteArray(entity.NewRecord.Timestamp);
+                info.NewRecPath = entity.NewRecord.RecPath;
+                info.NewTimestamp = ByteArray.GetTimeStampByteArray(entity.NewRecord.Timestamp);
             }
 
             info.Style = entity.Style;
@@ -898,10 +898,67 @@ namespace dp2Capo
                 try
                 {
                     DigitalPlatform.LibraryClient.localhost.EntityInfo[] errorinfos = null;
-                    long lRet = channel.SetEntities(param.BiblioRecPath,
-                        entities.ToArray(),
-                        out errorinfos,
-                        out strError);
+                    long lRet = 0;
+
+                    if (param.Operation == "setItemInfo")
+                        lRet = channel.SetEntities(param.BiblioRecPath,
+                             entities.ToArray(),
+                             out errorinfos,
+                             out strError);
+                    else if (param.Operation == "setOrderInfo")
+                        lRet = channel.SetOrders(param.BiblioRecPath,
+                             entities.ToArray(),
+                             out errorinfos,
+                             out strError);
+                    else if (param.Operation == "setIssueInfo")
+                        lRet = channel.SetIssues(param.BiblioRecPath,
+                             entities.ToArray(),
+                             out errorinfos,
+                             out strError);
+                    else if (param.Operation == "setCommentInfo")
+                        lRet = channel.SetComments(param.BiblioRecPath,
+                             entities.ToArray(),
+                             out errorinfos,
+                             out strError);
+                    else if (param.Operation == "setReaderInfo")
+                    {
+                        List<EntityInfo> errors = new List<EntityInfo>();
+                        foreach (EntityInfo info in entities)
+                        {
+                            string strSavedRecPath = "";
+                            string strSavedXml = "";
+                            string strExistingXml = "";
+                            byte[] baNewTimestamp = null;
+                            ErrorCodeValue kernel_errorcode;
+                            lRet = channel.SetReaderInfo(info.Action,
+                                info.NewRecPath,
+                                info.NewRecord,
+                                info.OldRecord,
+                                info.OldTimestamp,
+                                out strExistingXml,
+                                out strSavedXml,
+                                out strSavedRecPath,
+                                out baNewTimestamp,
+                                out kernel_errorcode,
+                                out strError);
+                            EntityInfo error = new EntityInfo();
+                            error.NewTimestamp = baNewTimestamp;
+                            error.NewRecPath = strSavedRecPath;
+                            error.OldRecord = strExistingXml;
+                            error.NewRecord = strSavedXml;
+                            error.ErrorCode = kernel_errorcode;
+                            if (lRet == -1)
+                                error.ErrorInfo = strError;
+                            errors.Add(error); 
+                        }
+                        errorinfos = errors.ToArray();
+                    }
+                    else
+                    {
+                        strError = "无法识别的 param.Operation 值 '" + param.Operation + "'";
+                        goto ERROR1;
+                    }
+
                     if (errorinfos != null)
                     {
                         foreach (DigitalPlatform.LibraryClient.localhost.EntityInfo error in errorinfos)
@@ -2294,6 +2351,19 @@ strErrorCode));
                     {
                         strValue = ServerInfo.Version;
                         lRet = 1;
+                    }
+                    else if (searchParam.QueryWord == "_valueTable")
+                    {
+                        string[] values = null;
+                        lRet = channel.GetValueTable(// null,
+                            searchParam.FormatList,
+                            searchParam.DbNameList,
+                            out values,
+                            out strError);
+                        if (values != null)
+                            strValue = string.Join(",", values);
+                        if (lRet != -1)
+                            lRet = 1;
                     }
                     else
                     {

@@ -141,7 +141,7 @@ namespace dp2Router
                         // Console.WriteLine("=== request ===\r\n" + request.Dump());
                         // ServerInfo.WriteErrorLog("=== request ===\r\n" + request.Dump());
 
-                        HttpResponse response = await ServerInfo.WebCall(request, "content");
+                        HttpResponse response = await ServerInfo.WebCall(request, "content");   // content text.utf-7
                         channel.Touch();
                         // string content = response.GetContentString();
 

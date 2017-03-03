@@ -13,8 +13,9 @@ namespace DigitalPlatform.HTTP
     {
         // 根据 HttpRequest 构造 WebData
         // parameters:
-        //      style   content 将创建 Content; text 将创建 Text
-        public static WebData BuildWebData(HttpRequest request, 
+        //      transferEncoding    content / base64 / text.xxx
+        //                          content 将创建 Content; text 将创建 Text
+        public static WebData BuildWebData(HttpRequest request,
             string transferEncoding = "content")
         {
             StringBuilder text = new StringBuilder();
@@ -23,14 +24,18 @@ namespace DigitalPlatform.HTTP
             text.Append(string.Join("\r\n", request.Headers.Select(x => string.Format("{0}: {1}", x.Key, x.Value))));
             text.Append("\r\n\r\n");
 
+            Encoding encoding = Encoding.UTF8;
+
             WebData data = new WebData();
             data.Headers = text.ToString();
             if (transferEncoding == "content")
                 data.Content = request.Content;
             else if (transferEncoding == "base64")
                 data.Text = Convert.ToBase64String(request.Content);
-            else // text
-                data.Text = Encoding.UTF8.GetString(request.Content);
+            else if (DigitalPlatform.Message.MessageUtil.IsTextEncoding(transferEncoding, out encoding) == true)
+                data.Text = encoding.GetString(request.Content);
+            else
+                throw new ArgumentException("无法识别的参数 transferEncoding 值 '" + transferEncoding + "'", "transferEncoding");
 
             return data;
         }
@@ -46,6 +51,8 @@ namespace DigitalPlatform.HTTP
             text.Append(string.Join("\r\n", response.Headers.Select(x => string.Format("{0}: {1}", x.Key, x.Value))));
             text.Append("\r\n\r\n");
 
+            Encoding encoding = Encoding.UTF8;
+
             WebData data = new WebData();
             data.Headers = text.ToString();
 
@@ -53,8 +60,10 @@ namespace DigitalPlatform.HTTP
                 data.Content = response.Content;
             else if (transferEncoding == "base64")
                 data.Text = Convert.ToBase64String(response.Content);
+            else if (DigitalPlatform.Message.MessageUtil.IsTextEncoding(transferEncoding, out encoding) == true)
+                data.Text = encoding.GetString(response.Content);
             else
-                data.Text = Encoding.UTF8.GetString(response.Content);
+                throw new ArgumentException("无法识别的 transferEncoding 值 '" + transferEncoding + "'", "transferEncoding");
 
             return data;
         }
@@ -149,12 +158,16 @@ namespace DigitalPlatform.HTTP
                         Headers = headers,
                         Content = Convert.FromBase64String(data.Text)
                     };
+                Encoding encoding = Encoding.UTF8;
+                if (DigitalPlatform.Message.MessageUtil.IsTextEncoding(transferEncoding, out encoding) == false)
+                    throw new ArgumentException("无法识别的 transferEncoding 值 '" + transferEncoding + "'", "transferEncoding");
+
                 return new HttpResponse()
                 {
                     StatusCode = status_code,
                     ReasonPhrase = reason_phrase,
                     Headers = headers,
-                    Content = Encoding.UTF8.GetBytes(data.Text)
+                    Content = encoding.GetBytes(data.Text)
                 };
             }
 
@@ -235,12 +248,15 @@ namespace DigitalPlatform.HTTP
                         Headers = headers,
                         Content = Convert.FromBase64String(data.Text)
                     };
+                Encoding encoding = Encoding.UTF8;
+                if (DigitalPlatform.Message.MessageUtil.IsTextEncoding(transferEncoding, out encoding) == false)
+                    throw new ArgumentException("无法识别的 transferEncoding 值 '"+transferEncoding+"'", "transferEncoding");
                 return new HttpRequest()
                 {
                     Method = method,
                     Url = url,
                     Headers = headers,
-                    Content = Encoding.UTF8.GetBytes(data.Text)
+                    Content = encoding.GetBytes(data.Text)
                 };
             }
 

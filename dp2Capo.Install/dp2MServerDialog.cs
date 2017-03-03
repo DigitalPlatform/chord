@@ -335,7 +335,7 @@ gn:_lib_homePage
 权限：空
 义务：getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes
 单位：图书馆名称
-群组：gn:_patronNotify
+群组：gn:_patronNotify|-n
          * */
 
         async Task<bool> CreateCapoUser()
@@ -391,7 +391,7 @@ gn:_lib_homePage
                     user.duty = ":weixinclient|" + MakeWeixinUserName(this.textBox_userName.Text) + ",getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes,getSystemParameter";
                     if (bEanbleWebCall)
                         user.duty += ",webCall:router";
-                    user.groups = new string[] { "gn:_patronNotify" };
+                    user.groups = new string[] { "gn:_patronNotify|-n" };
                     user.department = strDepartment;
                     user.binding = "ip:[current]";
                     user.comment = "dp2Capo 专用账号";
