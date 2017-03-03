@@ -22,22 +22,35 @@ namespace dp2weixin.service
 
     }
 
-    /// <summary>
-    /// 读者对象
-    /// </summary>
-    public class Patron
+    public class SimplePatron
     {
         // 证条码号
         public string barcode { get; set; }
 
-        // 显示名
-        public string displayName { get; set; }
+        // 读者类型
+        public string readerType { get; set; }
 
         // 姓名
         public string name { get; set; }
 
         // 性别
         public string gender { get; set; }
+
+        // 单位
+        public string department { get; set; }
+
+        // 电话
+        public string tel { get; set; }
+
+    }
+
+    /// <summary>
+    /// 读者对象
+    /// </summary>
+    public class Patron:SimplePatron
+    {
+        // 显示名
+        public string displayName { get; set; }
 
         // 出生日期
         public string dateOfBirth { get; set; }
@@ -48,23 +61,16 @@ namespace dp2weixin.service
         // 身份证号
         public string idCardNumber { get; set; }
 
-        // 单位
-        public string department { get; set; }
-
         // 职务
         public string post { get; set; }
 
         // 地址
         public string address { get; set; }
 
-        // 电话
-        public string tel { get; set; }
 
         // email 
         public string email { get; set; }
 
-        // 读者类型
-        public string readerType { get; set; }
 
         // 证状态
         public string state { get; set; }
