@@ -3378,6 +3378,128 @@ namespace dp2weixin.service
             }
         }
 
+        public int SetReaderInfo(string libId,
+            string userName,
+            string action,
+            string recPath,
+            string timestamp,
+            SimplePatron patron,
+            out string outputRecPath,
+            out string outputTimestamp,
+            out string strError)
+        {
+            strError = "";
+            outputRecPath = "";
+            outputTimestamp = "";
+
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
+
+            LoginInfo loginInfo = new LoginInfo(userName, false);
+
+
+            /*
+                public class Record
+                {
+                    public string RecPath { get; set; }
+                    public string Format { get; set; }
+                    public string Data { get; set; }
+                    public string Timestamp { get; set; }
+                }
+             */
+            Record newRecord = new Record();
+            newRecord.RecPath = recPath;
+            newRecord.Format = "xml";
+            string xml = "<root>"
+                  + "<barcode>"+patron.barcode+"</barcode>"
+                  + "<readerType>"+patron.readerType+"</readerType>"
+                  + "<name>"+patron.name+"</name>"
+                  + "<gender>"+patron.gender+"</gender>"
+                  + "<department>"+patron.department+"</department>"
+                  + "</root>";
+            newRecord.Data = xml;
+
+
+            /*
+    public class Entity
+    {
+        public string Action { get; set; }
+        public string RefID { get; set; }
+        public Record OldRecord { get; set; }
+        public Record NewRecord { get; set; }
+        public string Style { get; set; }
+        public string ErrorInfo { get; set; }
+        public string ErrorCode { get; set; }
+	}
+ */
+            List<Entity> entities = new List<Entity>();
+            Entity entity = new Entity();
+            entity.Action = action;
+            entity.NewRecord = newRecord;
+            entities.Add(entity);
+
+
+            if (action == "change")
+            {
+                Record oldRecord = new Record();
+                oldRecord.Timestamp = timestamp;
+                entity.OldRecord = oldRecord;
+            }
+
+            CancellationToken cancel_token = new CancellationToken();
+
+            string id = Guid.NewGuid().ToString();
+            SetInfoRequest request = new SetInfoRequest(id,
+                loginInfo,
+                "setReaderInfo",
+                "", //biblioRecPath
+                entities);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    "").Result;
+
+                SetInfoResult result = connection.SetInfoTaskAsync(
+                    lib.capoUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+
+                if (result.Value == -1)
+                {
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName); //result.ErrorInfo;
+                    return -1;
+                }
+
+                if (result.Entities.Count > 0)
+                {
+
+                    outputRecPath = result.Entities[0].NewRecord.RecPath;
+                    outputTimestamp = result.Entities[0].NewRecord.Timestamp;
+                }
+
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+            return 0;
+
+        ERROR1:
+            return -1;
+        }
+
         /// <summary>
         /// 找回密码
         /// </summary>
@@ -10055,6 +10177,9 @@ namespace dp2weixin.service
 
             return null;
         }
+
+
+
 
     }
 }

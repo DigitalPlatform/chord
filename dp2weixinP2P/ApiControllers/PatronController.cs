@@ -55,13 +55,37 @@ namespace dp2weixinWeb.ApiControllers
 
 
         [HttpPost]
-        public ApiResult SetPatron(string libId,
+        public SetReaderInfoResult SetPatron(string libId,
             string userName,
             string action,
             string recPath,
+            string timestamp,
             SimplePatron patron)
         {
-            ApiResult result = new ApiResult();
+            SetReaderInfoResult result = new SetReaderInfoResult();
+
+            string strError="";
+
+            string outputRecPath = "";
+            string outputTimestamp = "";
+
+            int nRet = dp2WeiXinService.Instance.SetReaderInfo(libId,
+                userName,
+                action,
+                recPath,
+                timestamp,
+                patron,
+                out outputRecPath,
+                out outputTimestamp,
+                out  strError);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+            }
+
+            result.recPath = outputRecPath;
+            result.timestamp = outputTimestamp;
 
 
             return result;
