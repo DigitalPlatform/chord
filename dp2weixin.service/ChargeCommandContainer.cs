@@ -43,6 +43,8 @@ namespace dp2weixin.service
             string outPatronBarcode = cmd.patronBarcode;
             string patronXml = "";
             string patronRecPath = "";
+            string timestamp = "";
+ 
             ReturnInfo resultInfo = null;
             int cmdRet = -1;
             string cmdError = "";
@@ -58,6 +60,7 @@ namespace dp2weixin.service
                     cmd.patronBarcode,
                     "advancexml",
                     out patronRecPath,
+                    out timestamp,
                     out patronXml,
                     out cmdError);
                 if (cmdRet == -1 || cmdRet == 0)  //未找到认为出错
@@ -121,6 +124,7 @@ namespace dp2weixin.service
                         outPatronBarcode,
                         "xml",
                         out patronRecPath,
+                        out timestamp,
                         out patronXml,
                         out otherError);
                     if (nRet == -1 || nRet == 0)

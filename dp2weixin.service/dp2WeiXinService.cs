@@ -3384,6 +3384,7 @@ namespace dp2weixin.service
             string recPath,
             string timestamp,
             SimplePatron patron,
+            bool bMergeInfo,
             out string outputRecPath,
             out string outputTimestamp,
             out string strError)
@@ -3401,6 +3402,22 @@ namespace dp2weixin.service
 
             LoginInfo loginInfo = new LoginInfo(userName, false);
 
+            /*
+public class Entity
+{
+public string Action { get; set; }
+public string RefID { get; set; }
+public Record OldRecord { get; set; }
+public Record NewRecord { get; set; }
+public string Style { get; set; }
+public string ErrorInfo { get; set; }
+public string ErrorCode { get; set; }
+}
+*/
+            List<Entity> entities = new List<Entity>();
+            Entity entity = new Entity();
+            entity.Action = action;
+            entities.Add(entity);
 
             /*
                 public class Record
@@ -3414,40 +3431,86 @@ namespace dp2weixin.service
             Record newRecord = new Record();
             newRecord.RecPath = recPath;
             newRecord.Format = "xml";
-            string xml = "<root>"
-                  + "<barcode>"+patron.barcode+"</barcode>"
-                  + "<readerType>"+patron.readerType+"</readerType>"
-                  + "<name>"+patron.name+"</name>"
-                  + "<gender>"+patron.gender+"</gender>"
-                  + "<department>"+patron.department+"</department>"
-                  + "</root>";
+            string xml = "";
+
+            if (bMergeInfo == false)
+            {
+                xml = "<root>"
+                       + "<barcode>" + patron.barcode + "</barcode>"
+                       + "<readerType>" + patron.readerType + "</readerType>"
+                       + "<name>" + patron.name + "</name>"
+                       + "<gender>" + patron.gender + "</gender>"
+                       + "<department>" + patron.department + "</department>"
+                       + "</root>";
+            }
+            else
+            {
+                // 因为界面上只有几个简单信息，几个简单信息要跟读者原有信息进行合并
+                string strOldXml = "";
+                string word = "@path:" + recPath;
+                string tempPath = "";
+                string tempTimestamp = "";
+                int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                    loginInfo,
+                    word,
+                    "xml",
+                    out tempPath,
+                    out tempTimestamp,
+                    out strOldXml,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                    return -1;
+
+                XmlDocument dom = new XmlDocument();
+                dom.LoadXml(strOldXml);
+                XmlNode root = dom.DocumentElement;
+                XmlNode barcodeNode = root.SelectSingleNode("barcode");
+                if (barcodeNode ==null)
+                    barcodeNode=DomUtil.CreateNodeByPath(root, "barcode");
+                DomUtil.SetNodeText(barcodeNode, patron.barcode);
+
+
+                XmlNode readerTypeNode = root.SelectSingleNode("readerType");
+                if (readerTypeNode == null)
+                    readerTypeNode = DomUtil.CreateNodeByPath(root, "readerType");
+                DomUtil.SetNodeText(readerTypeNode, patron.readerType);
+
+                XmlNode nameNode = root.SelectSingleNode("name");
+                if (nameNode == null)
+                    nameNode = DomUtil.CreateNodeByPath(root, "name");
+                DomUtil.SetNodeText(nameNode, patron.name);
+
+                XmlNode genderNode = root.SelectSingleNode("gender");
+                if (genderNode == null)
+                    genderNode = DomUtil.CreateNodeByPath(root, "gender");
+                DomUtil.SetNodeText(genderNode, patron.gender);
+
+                XmlNode departmentNode = root.SelectSingleNode("department");
+                if (departmentNode == null)
+                    departmentNode = DomUtil.CreateNodeByPath(root, "department");
+                DomUtil.SetNodeText(departmentNode, patron.department);
+
+                XmlNode telNode = root.SelectSingleNode("tel");
+                if (telNode == null)
+                    telNode = DomUtil.CreateNodeByPath(root, "tel");
+                DomUtil.SetNodeText(telNode, patron.tel);
+
+                StringWriter textWrite = new StringWriter();
+                XmlTextWriter xmlTextWriter = new XmlTextWriter(textWrite);
+
+                dom.Save(xmlTextWriter);
+
+                xml = textWrite.ToString();
+            }
             newRecord.Data = xml;
-
-
-            /*
-    public class Entity
-    {
-        public string Action { get; set; }
-        public string RefID { get; set; }
-        public Record OldRecord { get; set; }
-        public Record NewRecord { get; set; }
-        public string Style { get; set; }
-        public string ErrorInfo { get; set; }
-        public string ErrorCode { get; set; }
-	}
- */
-            List<Entity> entities = new List<Entity>();
-            Entity entity = new Entity();
-            entity.Action = action;
             entity.NewRecord = newRecord;
-            entities.Add(entity);
-
 
             if (action == "change")
             {
                 Record oldRecord = new Record();
                 oldRecord.Timestamp = timestamp;
                 entity.OldRecord = oldRecord;
+ 
             }
 
             CancellationToken cancel_token = new CancellationToken();
@@ -6212,12 +6275,53 @@ namespace dp2weixin.service
 
         #region 个人信息
 
+#if no
+        public int GetPatronInfo(string libId,
+             string userName,
+             string patronBarcode,
+             string format,  //advancexml
+             out Patron patron,
+             out string recPath,
+            out string timestamp,
+            out string strError)
+        {
+            patron = null;
+            strError = "";
+            recPath = "";
+            timestamp = "";
+
+            // 获取当前账户的信息
+            string strXml = "";
+            int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                userName,
+                patronBarcode,
+                format, //"advancexml",
+                out recPath,
+                out timestamp,
+                out strXml,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+                return nRet;
+
+            int showPhoto = 0;
+            patron = this.ParsePatronXml(libId,
+                strXml,
+                recPath,
+                showPhoto);
+
+
+
+            return 1;
+        }
+
+
 
         public int GetPatronInfo(string libId,
             string userName,
             bool isPatron,
             string patronBarcode,
             string style,
+            string format,  //advancexml
             out Patron patron,
             out string info,
             out string strError)
@@ -6233,7 +6337,7 @@ namespace dp2weixin.service
                 userName,
                 isPatron,
                 patronBarcode,
-                "advancexml",
+                format, //"advancexml",
                 out recPath,
                 out strXml,
                 out strError);
@@ -6381,7 +6485,7 @@ namespace dp2weixin.service
 
             return summary;
         }
-
+#endif
 
         /// <summary>
         /// 获取读者的预约信息
@@ -6402,11 +6506,13 @@ namespace dp2weixin.service
 
             string xml = "";
             string recPath = "";
+            string timestamp = "";
             int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                 loginInfo,
                 patronBarcode,
                 "xml",
                 out recPath,
+                out timestamp,
                 out xml,
                 out strError);
             if (nRet == -1)
@@ -6486,6 +6592,10 @@ namespace dp2weixin.service
             // 读者类型
             string strReaderType = DomUtil.GetElementText(dom.DocumentElement, "readerType");
             patron.readerType = strReaderType;
+
+            // 分馆代码
+            string libraryCode = DomUtil.GetElementText(dom.DocumentElement, "libraryCode");
+            patron.libraryCode = libraryCode;
 
             // 证状态
             string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
@@ -6984,12 +7094,13 @@ namespace dp2weixin.service
             return StringUtil.MakePathList(list, "; ");
         }
 
+        /*
         public int GetPatronXml(string libId,
             string userName,
-            bool isPatron,
             string patronBarocde,  //todo refID
             string format,
             out string recPath,
+            out string timestamp,
             out string xml,
             out string strError)
         {
@@ -6999,10 +7110,11 @@ namespace dp2weixin.service
                 patronBarocde,
                 format,
                 out recPath,
+                out timestamp,
                 out xml,
                 out strError);
         }
-
+        */
         /// <summary>
         /// 获取读者信息
         /// </summary>
@@ -7017,12 +7129,14 @@ namespace dp2weixin.service
             string patronBarocde,  //todo refID
             string format,
             out string recPath,
+            out string timestamp,
             out string xml,
             out string strError)
         {
             xml = "";
             strError = "";
             recPath = "";
+            timestamp = "";
 
             LibEntity lib = this.GetLibById(libId);
             if (lib == null)
@@ -7077,6 +7191,12 @@ namespace dp2weixin.service
                 int nIndex = path.IndexOf("@");
                 path = path.Substring(0, nIndex);
                 recPath = path;
+
+                if (format.IndexOf("timestamp") != -1 && result.Records.Count > 1)
+                {
+                    timestamp = result.Records[1].Data;
+                }
+
                 xml = result.Records[0].Data;
                 return 1;
 

@@ -30,6 +30,20 @@ namespace dp2weixin.service
         // 读者类型
         public string readerType { get; set; }
 
+        public string fullReaderType {
+            get
+            {
+                if (String.IsNullOrEmpty(this.libraryCode) == false)
+                {
+                    return "{" + this.libraryCode + "} " + readerType;
+                }
+                else
+                {
+                    return this.readerType;
+                }
+            }
+        }
+
         // 姓名
         public string name { get; set; }
 
@@ -41,6 +55,8 @@ namespace dp2weixin.service
 
         // 电话
         public string tel { get; set; }
+
+        public string libraryCode { get; set; }
 
     }
 

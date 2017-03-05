@@ -69,12 +69,12 @@ namespace dp2weixinWeb.Controllers
                     }
                 }
             }
-            if (typesHtml != "")
-            {
-                typesHtml = "<select id='selReaderType' name='selReaderType'>"
+
+                typesHtml = "<select id='selReaderType' name='selReaderType' style='background-color: transparent;'>"
+                    +"<option value=''>请选择</option>"
                     + typesHtml
                     + "</select>";
-            }
+
             ViewBag.readerTypeHtml = typesHtml;
             
             // 目标数据库
@@ -90,7 +90,8 @@ namespace dp2weixinWeb.Controllers
             }
             if (dbsHtml != "")
             {
-                dbsHtml = "<select id='selDbName' name='selDbName'>"
+                dbsHtml = "<select id='selDbName' name='selDbName' style='background-color: transparent;'>"
+                    + "<option value=''>请选择</option>"
                     + dbsHtml
                     + "</select>";
             }

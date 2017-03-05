@@ -1,4 +1,5 @@
 ﻿using DigitalPlatform.IO;
+using DigitalPlatform.Message;
 using DigitalPlatform.Text;
 using DigitalPlatform.Xml;
 using dp2Command.Service;
@@ -564,13 +565,14 @@ namespace dp2weixinWeb.Controllers
             if (string.IsNullOrEmpty(strFormat) == false)
             {
                 // 获取读者记录
-                
+                LoginInfo loginInfo = new LoginInfo(loginUserName, isPatron);
+                string timestamp = "";
                 nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
-                    loginUserName,
-                    isPatron,
+                    loginInfo,
                     patronBarcode,
                     "advancexml",
                     out recPath,
+                    out timestamp,
                     out patronXml,
                     out strError);
                 if (nRet == -1 || nRet == 0)
