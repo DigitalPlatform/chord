@@ -70,7 +70,7 @@ namespace dp2weixinWeb.Controllers
                 }
             }
 
-                typesHtml = "<select id='selReaderType' name='selReaderType' style='background-color: transparent;'>"
+            typesHtml = "<select id='selReaderType' name='selReaderType' class='selArrowRight'>"
                     +"<option value=''>请选择</option>"
                     + typesHtml
                     + "</select>";
@@ -90,7 +90,7 @@ namespace dp2weixinWeb.Controllers
             }
             if (dbsHtml != "")
             {
-                dbsHtml = "<select id='selDbName' name='selDbName' style='background-color: transparent;'>"
+                dbsHtml = "<select id='selDbName' name='selDbName' class='selArrowRight'>"
                     + "<option value=''>请选择</option>"
                     + dbsHtml
                     + "</select>";

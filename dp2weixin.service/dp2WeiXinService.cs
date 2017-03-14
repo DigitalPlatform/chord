@@ -3919,6 +3919,10 @@ public string ErrorCode { get; set; }
                 if (result.Value == -1)
                 {
                     strError = this.GetFriendlyErrorInfo(result, lib.libName); //result.ErrorInfo;
+                    if (String.IsNullOrEmpty(strError) == true)
+                    {
+                        strError = "用户名或密码不正确。";
+                    }
                     return -1;
                 }
 
@@ -5809,11 +5813,11 @@ public string ErrorCode { get; set; }
             issuePath = dataList[0].RecPath;
             issuePath = GetPurePath(issuePath);
 
-
             return 1;
         }
 
-        public long GetItemInfo(LibEntity lib,//string libId,            
+        // patronBarcode 这里传入读者证条码，是因为有可能登录身份是工作人员，那么就无法获取读者情况了
+        public long GetItemInfo(LibEntity lib,      
             LoginInfo loginInfo,
             string patronBarcode,
             string biblioPath,
@@ -5830,20 +5834,21 @@ public string ErrorCode { get; set; }
                 goto ERROR1;
             }
 
-            bool isPatron1 = false;
-            if (loginInfo.UserType == "patron")
-                isPatron1=true;
+            //string patronName1 = "";//todo
 
-            //// 是否是读者账号
-            //string patronBarcode = "";
-            //if (isPatron==true)
-            //    patronBarcode = loginInfo.UserName;
 
-            string patronName = "";//todo
+            bool bCanReservation = false;
+            string returnUrl = "/Biblio/Index";
+            string reservationInfo = "<span class='remark'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，"
+                + "点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl="
+                + HttpUtility.UrlEncode(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>";
 
+            // 得到预约信息
             List<ReservationInfo> reserList = null;
-            if (string.IsNullOrEmpty(patronBarcode) == false)
+            if (string.IsNullOrEmpty(patronBarcode)==false)// patronBarcode != null && patronBarcode != "")
             {
+                bCanReservation = true;
+                reservationInfo = "";
                 int nRet = this.GetPatronReservation(lib.id,
                     loginInfo,
                     patronBarcode,
@@ -5853,17 +5858,7 @@ public string ErrorCode { get; set; }
                     goto ERROR1;
             }
 
-            bool bCanReservation = false;
-            string returnUrl = "/Biblio/Index";
-            string reservationInfo = "<span class='remark'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，"
-                + "点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl="
-                + HttpUtility.UrlEncode(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>";
-            if (string.IsNullOrEmpty(patronBarcode)==false)// patronBarcode != null && patronBarcode != "")
-            {
-                bCanReservation = true;
-                reservationInfo = "";
-            }
-
+            //获取下级册信息
             List<Record> recordList = null;
             long lRet = this.GetItemInfoApi(lib,
                 loginInfo,
@@ -5875,7 +5870,6 @@ public string ErrorCode { get; set; }
                 out strError);
             if (lRet == -1)
                 goto ERROR1;
-
             if (lRet == 0)
                 return 0;
 
@@ -5890,7 +5884,6 @@ public string ErrorCode { get; set; }
 
                 string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
                 string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
-
                 item.refID = strRefID;
                 item.pureBarcode = strBarcode;
 
@@ -5902,17 +5895,9 @@ public string ErrorCode { get; set; }
                     strViewBarcode = "@refID:" + strRefID;  //"@refID:"
                 item.barcode = strViewBarcode;
 
+
                 //状态
                 string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
-                if (cmdType == "borrow")
-                {
-                }
-
-                //// strState = strMessageText + strState;
-                //string strStateMessage = DomUtil.GetElementText(dom.DocumentElement,
-                //    "stateMessage");
-                //if (String.IsNullOrEmpty(strStateMessage) == false)
-                //    item.state = strStateMessage;
                 bool bMember = false;
                 XmlNode nodeBindingParent = dom.DocumentElement.SelectSingleNode("binding/bindingParent");
                 if (nodeBindingParent != null)
@@ -5925,7 +5910,7 @@ public string ErrorCode { get; set; }
                 }
                 item.state = strState;
 
-
+                // 是否可用
                 bool disable = false;
                 if (StringUtil.IsInList("加工中", item.state) == true
                     || bMember == true)
@@ -5957,12 +5942,12 @@ public string ErrorCode { get; set; }
 <borrowPeriod>31day</borrowPeriod>
 <returningDate>Wed, 18 May 2016 12:00:00 +0800</returningDate>
                  */
-                string strBorrower = DomUtil.GetElementText(dom.DocumentElement, "borrower");
+                string strBorrower1 = DomUtil.GetElementText(dom.DocumentElement, "borrower");
                 string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
 "borrowDate"), "yyyy/MM/dd");
                 string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
                 borrowPeriod = GetDisplayTimePeriodStringEx(borrowPeriod);
-                item.borrower = strBorrower;
+                item.borrower = strBorrower1;
                 item.borrowDate = borrowDate;
                 item.borrowPeriod = borrowPeriod;
 
@@ -5971,7 +5956,7 @@ public string ErrorCode { get; set; }
                 {
                     if (cmdType == "borrow")
                     {
-                        if (string.IsNullOrEmpty(strBorrower) == false
+                        if (string.IsNullOrEmpty(item.borrower) == false
                             || String.IsNullOrEmpty(strState) == false) //状态有值是也不允许借阅
                         {
                             item.isGray = true;
@@ -5980,7 +5965,7 @@ public string ErrorCode { get; set; }
                     else if (cmdType == "return")
                     {
                         // 没有在借的册需要显示为灰色
-                        if (string.IsNullOrEmpty(strBorrower) == true)
+                        if (string.IsNullOrEmpty(item.borrower) == true)
                             item.isGray = true;
                     }
                 }
@@ -5990,23 +5975,22 @@ public string ErrorCode { get; set; }
                 {
                     string strBorrowInfo = "在架";
                     bool bOwnBorrow = false;
-                    // 检查是不是当前读者借的
-                    if (string.IsNullOrEmpty(strBorrower) == false)
+                    
+                    // 被借出的情况
+                    if (string.IsNullOrEmpty(item.borrower) == false)
                     {
-                        if (patronBarcode != item.borrower)
+                        // 工作人员的情况
+                        if (loginInfo.UserType != "patron" && loginInfo.UserName!="public")
                         {
-                            if (String.IsNullOrEmpty(patronBarcode)==false)// isPatron == true)
-                            {
-                                strBorrowInfo = "借阅者：***<br/>"
-                                + "借阅时间：" + item.borrowDate + "<br/>"
-                                + "借期：" + item.borrowPeriod;
-                            }
-                            else
-                            {
-                                strBorrowInfo = "借阅者：" + strBorrower + "<br/>"
-                               + "借阅时间：" + item.borrowDate + "<br/>"
-                               + "借期：" + item.borrowPeriod;
-                            }
+                            strBorrowInfo = "借阅者：" + item.borrower + "<br/>"
+                          + "借阅时间：" + item.borrowDate + "<br/>"
+                          + "借期：" + item.borrowPeriod;
+                        }
+                        else if (patronBarcode != item.borrower || String.IsNullOrEmpty(patronBarcode) == true) // 非本人的情况
+                        {
+                            strBorrowInfo = "借阅者：***<br/>"
+                            + "借阅时间：" + item.borrowDate + "<br/>"
+                            + "借期：" + item.borrowPeriod;
                         }
                         else
                         {
@@ -6018,13 +6002,13 @@ public string ErrorCode { get; set; }
                             strBorrowInfo =
                                 "<table style='width:100%;border:0px'>"
                                 + "<tr>"
-                                    + "<td class='info' style='border:0px'>借阅者：" + patronName + "<br/>"
+                                    + "<td class='info' style='border:0px'>借阅者：" + item.borrower + "<br/>"
                                                                 + "借阅时间：" + item.borrowDate + "<br/>"
                                                                 + "借期：" + item.borrowPeriod
                                         + "</td>"
                                     + "<td class='btn' style='border:0px'>";
 
-                            if (String.IsNullOrEmpty(patronBarcode)==false)//isPatron == true) // 只有读者身份，才有预约按钮
+                            if (String.IsNullOrEmpty(patronBarcode) == false)//isPatron == true) // 只有读者身份，才有预约按钮
                             {
                                 strBorrowInfo += "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + tempBarcode + "')\">续借</button>";
                             }
@@ -6046,7 +6030,6 @@ public string ErrorCode { get; set; }
                         bool showReser = true;
                         if (disable == true || String.IsNullOrEmpty(patronBarcode)==true)//isPatron == false)
                             showReser = false;
-
 
                         string state = this.getReservationState(reserList, item.barcode);
                         reservationInfo = getReservationHtml(state, item.barcode, false, showReser);
@@ -10100,7 +10083,7 @@ public string ErrorCode { get; set; }
                 User user = new User();
                 user.userName = username;  // 这个名称必须是weixin_***
                 user.password = password;
-                user.rights = "getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes,getSystemParameter";
+                user.rights = "getPatronInfo,searchBiblio,searchPatron,bindPatron,getBiblioInfo,getBiblioSummary,getItemInfo,circulation,getUserInfo,getRes,getSystemParameter,setReaderInfo";
                 user.duty = "";
                 user.groups = new string[] { "gn:_lib_bb", "gn:_lib_book", "gn:_lib_homePage" };
                 user.department = strDepartment;

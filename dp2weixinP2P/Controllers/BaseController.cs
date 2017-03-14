@@ -231,6 +231,7 @@ namespace dp2weixinWeb.Controllers
                         strError = "异常，未得到微信id 或者 公众号配置信息";
                         return -1;
                     }
+                    sessionInfo.oauth2_return_code = code;
                     sessionInfo.gzh = gzh;
                     sessionInfo.libIds = libList;
                     nRet= sessionInfo.SetWeixinId(weixinId,out strError);
@@ -255,7 +256,7 @@ namespace dp2weixinWeb.Controllers
                 strError = "异常：未找到可访问的图书馆";
                 return -1;
             }
-            if (sessionInfo.lib == null)
+            if (sessionInfo.CurrentLib == null)
             {
                 strError = "异常：未匹配上图书馆";
                 return -1;
@@ -286,15 +287,15 @@ namespace dp2weixinWeb.Controllers
 
 
 
-            string libName = sessionInfo.lib.Entity.libName;
-            string libId = sessionInfo.lib.Entity.id;
+            string libName = sessionInfo.CurrentLib.Entity.libName;
+            string libId = sessionInfo.CurrentLib.Entity.id;
 
             ViewBag.LibName = "[" + libName + "]";
             ViewBag.LibId = libId;
             ViewBag.showPhoto = sessionInfo.showPhoto;
             ViewBag.showCover = sessionInfo.showCover;
-            ViewBag.LibState = sessionInfo.lib.State;
-            if (checkLibState == true && sessionInfo.lib.State == LibraryManager.C_State_Hangup)
+            ViewBag.LibState = sessionInfo.CurrentLib.State;
+            if (checkLibState == true && sessionInfo.CurrentLib.State == LibraryManager.C_State_Hangup)
             {
 #if no
                 // 2016-11-22 注释，留页面做，不要写的这样，否则页面空白等待时间过多，造成白页，用户体验不好

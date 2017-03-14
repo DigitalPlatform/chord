@@ -1,3 +1,13 @@
+        .selArrowRightContainer {
+             background-image:url('../img/arrowright.png');
+             background-position:right;
+             background-repeat:no-repeat;
+        }
+
+        .selArrowRight {
+            background-color: transparent;
+        }
+
 #loading {
     top: 50%;
     left: 50%;
