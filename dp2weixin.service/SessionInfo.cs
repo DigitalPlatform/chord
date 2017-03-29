@@ -57,8 +57,8 @@ namespace dp2weixin.service
             int nRet = 0;
 
             // 微信用户设置信息
-            int showPhoto = 0; //显示头像
-            int showCover = 0;//显示封面
+            //int showPhoto = 0; //显示头像
+           // int showCover = 0;//显示封面
             UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(this.WeixinId);
             if (settingItem != null)
             {

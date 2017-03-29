@@ -128,7 +128,17 @@ namespace dp2weixin.service
             {
                 int value = x.no.CompareTo(y.no);
                 if (value==0)
-                    value=x.libName.CompareTo(y.libName);
+                {
+                    if (String.IsNullOrEmpty(x.OperTime) == false && string.IsNullOrEmpty(y.OperTime) == false)
+                    {
+                        value = x.OperTime.CompareTo(y.OperTime);
+                    }
+                    else
+                    {
+                        value = x.libName.CompareTo(y.libName);
+                    }
+
+                }
                 return value;
             });
             return list;
@@ -150,6 +160,8 @@ namespace dp2weixin.service
         // 更新
         public long Update(string id,LibEntity item)
         {
+            item.OperTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
+
             if (String.IsNullOrEmpty(item.wxPassword) == false)
             {
                 item.wxPasswordView = "*".PadRight(item.wxPassword.Length, '*');

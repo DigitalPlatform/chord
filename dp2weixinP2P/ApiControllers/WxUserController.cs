@@ -296,9 +296,13 @@ namespace dp2weixinWeb.ApiControllers
                 error = "session失效2。";
                 goto ERROR1;
             }
-            nRet = sessionInfo.SetCurInfo(out error);
-            if (nRet == -1)
-                goto ERROR1;
+
+            if (string.IsNullOrEmpty(sessionInfo.WeixinId) == false) //非微信入口进来的
+            {
+                nRet = sessionInfo.SetCurInfo(out error);
+                if (nRet == -1)
+                    goto ERROR1;
+            }
 
             //===================
 

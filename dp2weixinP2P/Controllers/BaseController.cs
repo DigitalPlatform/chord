@@ -237,7 +237,7 @@ namespace dp2weixinWeb.Controllers
                     nRet= sessionInfo.SetWeixinId(weixinId,out strError);
                     if (nRet == -1)
                     {
-                        strError = "异常：没有weixinId。";
+                        strError = "异常："+strError;
                         return -1;
                     }
 
@@ -318,7 +318,8 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 书目查询 与 借还 使用 JSSDK
-            if (Request.Path == "/Biblio/Index" || Request.Path == "/Library/Charge2")
+            if (Request.Path.Contains("/Biblio/Index")==true
+                || Request.Path.Contains("/Library/Charge2")==true)
             {
                 bool bJsReg = JsApiTicketContainer.CheckRegistered(gzh.appId);
                 // 注意这里有时异常

@@ -519,12 +519,14 @@ namespace dp2weixin.service
             // auth2地址
             string url = "https://open.weixin.qq.com/connect/oauth2/authorize"
                 + "?appid=" + gzh.appId
-                + "&redirect_uri=http%3a%2f%2fdp2003.com%2f" + func
+                + "&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2f" + func
                 + "&response_type=code"
                 + "&scope=snsapi_base"
                 + "&state=" + gzh.appName
                 + "#wechat_redirect";
             return url;
+
+
         }
 
         // 得到模板id
@@ -8836,7 +8838,7 @@ public string ErrorCode { get; set; }
             bool hasParenthesis = false;
             foreach (SubjectItem sub in list)
             {
-                if (sub.no != -1)
+                if (sub.no != C_ExceptNo)
                 {
                     hasParenthesis = true;
                     break;
@@ -8853,7 +8855,7 @@ public string ErrorCode { get; set; }
                     //    return 0;
                     //if (x.no != -1 && y.no == -1) // 左有{}，右没有
                     //    return 1;
-                    if ((x.no == -1 && y.no != -1) || (x.no != -1 && y.no == -1))
+                    if ((x.no == C_ExceptNo && y.no != C_ExceptNo) || (x.no != C_ExceptNo && y.no == C_ExceptNo))
                     {
                         // 右对齐 2016-8-20 jane 发现上面的算法，当一个有括号一个没括号时，排序出来的结果不出。
                         string tempName1 = x.name;
@@ -8871,9 +8873,11 @@ public string ErrorCode { get; set; }
 
 
                     // 都没有括号的时候左对齐
-                    if (x.no == -1 && x.no == 1)
+                    if (x.no == C_ExceptNo && x.no == C_ExceptNo)
                         return x.name.CompareTo(y.name);
 
+
+                    /*
                     //都有括号的时候，把括号里的内容扩充为等长，前补0
                     string tempNo1 = x.no.ToString();
                     string tempNo2 = y.no.ToString();
@@ -8887,6 +8891,9 @@ public string ErrorCode { get; set; }
                     string name2 = "{" + tempNo2 + "}" + y.pureName;
 
                     return name1.CompareTo(name2); //左对齐排序
+                     */
+                    // 20170314 当都有括号时，改为按括号里的数字排序
+                    return x.no.CompareTo(y.no);
                 });
             }
             else
@@ -8903,9 +8910,11 @@ public string ErrorCode { get; set; }
             return records.Count;
         }
 
+        private const int C_ExceptNo = -999999;
+
         public void SplitSubject(string subject, out int no, out string right)
         {
-            no = -1;
+            no = C_ExceptNo;
             int nIndex = subject.IndexOf('}');
             string left = "";
             right = subject;
@@ -9819,7 +9828,7 @@ public string ErrorCode { get; set; }
             List<WxUserItem> list = WxUserDatabase.Current.Get(null, id, -1);
             if (list != null && list.Count > 0)
             {
-                strError = "目前存在微信用户绑定了该图书馆的账户，不能删除图书馆。";
+                strError = "不能删除图书馆:目前存在" + list.Count + "个微信用户绑定，第一个名称为"+list[0].readerName+list[0].userName;
                 goto ERROR1;
             }
 
@@ -9827,8 +9836,8 @@ public string ErrorCode { get; set; }
             List<UserSettingItem> settingList = UserSettingDb.Current.GetByLibId(id);
             if (settingList != null && settingList.Count > 0)
             {
-                strError = "目前已经存在微信用户设置了该图书馆，不能删除图书馆。";
-                goto ERROR1;
+                //strError = "目前已经存在微信用户设置了该图书馆，不能删除图书馆。";
+                //goto ERROR1;
             }
 
             // 删除配置目录

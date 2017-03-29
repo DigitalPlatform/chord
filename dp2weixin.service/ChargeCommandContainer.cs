@@ -65,6 +65,7 @@ namespace dp2weixin.service
                     out cmdError);
                 if (cmdRet == -1 || cmdRet == 0)  //未找到认为出错
                 {
+                    cmdError += " 传入的证条码号为["+cmd.patronBarcode+"]";
                     cmdRet = -1;
                 }
 
