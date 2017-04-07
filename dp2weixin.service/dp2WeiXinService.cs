@@ -4344,9 +4344,10 @@ public string ErrorCode { get; set; }
             // 未传入word
             if (string.IsNullOrEmpty(strWord) == true)
             {
-                searchRet.apiResult.errorCode = -1;
-                searchRet.apiResult.errorInfo = "尚未传入检索词";
-                return searchRet;
+                strWord = "";
+                //searchRet.apiResult.errorCode = -1;
+                //searchRet.apiResult.errorInfo = "尚未传入检索词";
+                //return searchRet;
             }
 
             // 未传入检索途径
