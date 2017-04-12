@@ -18,6 +18,9 @@ namespace dp2weixin.service
         public const string C_Command_Read = "read";
         public const string C_Command_VerifyReturn = "verifyreturn";
 
+        // 20170413 查询册
+        public const string C_Command_SearchItem = "searchItem";
+
         public int id { get; set; }
         public string type { get; set; }
         public string patronInput { get; set; } //传进来的值，不一定全是barcode，有可能姓名与二维码
@@ -59,6 +62,8 @@ namespace dp2weixin.service
                 return "借书";
             if (type == C_Command_Return)
                 return "还书";
+            if (type == C_Command_SearchItem)
+                return "查书";
             if (type == C_Command_Renew)
                 return "续借";
             if (type == C_Command_VerifyRenew)

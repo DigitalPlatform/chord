@@ -15,6 +15,7 @@
         // 操作类型常量字符串
         var C_ope_borrow = "borrow";
         var C_ope_return = "return";
+        var C_ope_searchItem = "searchItem";
 
         // 输入框值类型
         var C_inputType_patron = 1;
@@ -436,6 +437,18 @@
                     return;
                 }
             }
+            else if (ope == C_ope_searchItem) //查书
+            {
+                cmdType = C_ope_searchItem;
+                item = getBarcode();
+                if (item == null || item == "") {
+                    // 提示下，下一步继续获取条码
+                    warnAndNext();
+                    return;
+                }
+            }
+
+            //=============
 
             // 应该输入册条码时，校验
             if (inputType == C_inputType_item)
@@ -741,6 +754,7 @@
             var cmds = $("#cmds");
 
             // 加到前面
+            //alert(cmd.cmdHtml);
             cmds.prepend(cmd.cmdHtml); //append(cmdHtml);//
 
             var cmdContainer = $("#cmdContainer");
@@ -835,8 +849,12 @@
                 var ope = getOpe();
                 if (ope == C_ope_borrow)
                     func = "要借的";
-                else
+                else if (ope==C_ope_return)
                     func = "要还的";
+                else if (ope == C_ope_searchItem)
+                {
+                    func="要查的";
+                }
 
                 desc = left+ " "+func+"书...";
             }
@@ -901,6 +919,9 @@
             }
             else if (ope == C_ope_return) {
                 text = "还书环境";
+            }
+            else if (ope == C_ope_searchItem) {
+                text = "查书环境";
             }
             else {
                 text = "不清楚的环境";
@@ -1219,6 +1240,7 @@ else
             <div style="padding:10px;padding-bottom:0px;">
                 <button class="mui-btn mui-btn-block" onclick="start('borrow')">开始借书</button>
                 <button class="mui-btn mui-btn-block" onclick="start('return')">开始还书</button>
+                <button class="mui-btn mui-btn-block" onclick="start('searchItem')">开始查书</button>
 
             </div>
             <div style="background-color:white;margin-left:10px;margin-right:10px;margin-top:0px">

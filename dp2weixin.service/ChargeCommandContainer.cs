@@ -11,8 +11,117 @@ using System.Web;
 
 namespace dp2weixin.service
 {
+
+   
     public class ChargeCommandContainer:List<ChargeCommand>
     {
+
+        public string getItemHtml(BiblioItem record)
+        {
+            string itemTables = "";
+            string titleClass = "title";
+
+            //alert("disable="+record.disable);
+
+            var addStyle = "";  /*删除线*/
+            if (record.disable == true)
+            {
+                addStyle = "style='color:#cccccc;text-decoration:line-through;'";  /*发灰，删除线*/
+            }
+
+
+            var tempBarcode = record.barcode;
+
+
+            itemTables += "<div class='mui-card item' id='_item_" + tempBarcode + "'>"
+                //+ "<div class='"+titleClass+"'>" + record.barcode + "</div>"
+             + "<table>"
+            + "<tr>";
+
+            // 有图片才显示
+            if (record.imgHtml != null && record.imgHtml != "")
+            {
+                itemTables += "<td class='label'></td>"
+                + "<td class='value'>" + record.imgHtml + "</td>"
+                + "</tr>";
+            }
+
+            // 册条码
+            itemTables += "<tr>"
+            + "<td class='label'>册条码</td>"
+            + "<td class='title' " + addStyle + ">" + record.pureBarcode + "</td>"  //record.barcode
+            + "</tr>";
+
+            if (record.state != null && record.state != "")
+            {
+                itemTables += "<tr>"
+                + "<td class='label'>状态</td>"
+                + "<td class='value'  " + addStyle + ">" + record.state + "</td>"
+                + "</tr>";
+            }
+
+            if (record.volume != null && record.volume != "")
+            {
+                itemTables += "<tr>"
+                + "<td class='label'>卷册</td>"
+                + "<td class='value' " + addStyle + ">" + record.volume + "</td>"
+                + "</tr>";
+            }
+
+            itemTables += "<tr>"
+            + "<td class='label'>馆藏地</td>"
+            + "<td class='value' " + addStyle + ">" + record.location + "</td>"
+            + "</tr>"
+            + "<tr>"
+            + "<td class='label'>索取号</td>"
+            + "<td class='value' " + addStyle + ">" + record.accessNo + "</td>"
+            + "</tr>"
+            + "<tr>"
+            + "<td class='label'>价格</td>"
+            + "<td class='value' " + addStyle + ">" + record.price + "</td>"
+            + "</tr>";
+
+
+
+            // 成员册 不显示在借情况
+            if (record.borrowInfo != null && record.borrowInfo != "")
+            {
+                itemTables += "<tr>"
+                + "<td class='label'>在借情况</td>"
+                + "<td class='value' " + addStyle + ">" + record.borrowInfo + "</td>"
+                + "</tr>";
+            }
+
+            //// 成员册 不显示预约信息
+            //if (record.reservationInfo != null && record.reservationInfo != "")
+            //{
+            //    itemTables += "<tr>"
+            //    + "<td class='label'>预约信息</td>"
+            //    + "<td class='value' " + addStyle + ">" + record.reservationInfo + "</td>"
+            //    + "</tr>";
+            //}
+
+            itemTables += "<tr>"
+            + "<td class='label'>参考ID</td>"
+            + "<td class='titleGray' " + addStyle + ">" + record.refID + "</td>"
+            + "</tr>";
+
+            //从属于
+            if (record.parentInfo != null && record.parentInfo != "")
+            {
+                itemTables += "<tr>"
+                + "<td class='label'>从属于</td>"
+                + "<td class='value' " + addStyle + ">" + record.parentInfo + "</td>"
+                + "</tr>";
+            }
+
+            //
+            itemTables += "</table>"
+            + "</div>";
+
+            return itemTables;
+        }
+
         public ChargeCommand AddCmd(string weixinId,
             string libId,
             ChargeCommand cmd)
@@ -52,6 +161,83 @@ namespace dp2weixin.service
             // 登录dp2身份
             LoginInfo loginInfo = new LoginInfo(cmd.userName,cmd.isPatron==1?true:false );
 
+
+            // 20170413 查询册
+            if (cmd.type == ChargeCommand.C_Command_SearchItem)
+            {
+
+                string summary = "";
+                string recPath = "";
+                LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
+                int nRet = dp2WeiXinService.Instance.GetBiblioSummary(lib,
+                    cmd.itemBarcode,
+                   "",
+                   out summary,
+                   out recPath,
+                   out otherError);
+                if (nRet == -1)
+                {
+                    //出错信息会加起来
+                }
+
+                int tempIndex = recPath.IndexOf("@");
+                if (tempIndex > 0)
+                    recPath = recPath.Substring(0, tempIndex);
+
+                //if (string.IsNullOrEmpty(summary) == false)
+                //{
+                //    biblioName = dp2WeiXinService.Instance.GetShortSummary(summary);
+                //}
+
+
+                // 取item
+                List<BiblioItem> itemList = null;
+                nRet = (int)dp2WeiXinService.Instance.GetItemInfo(lib,
+                    loginInfo,
+                    "",//patronBarcode
+                    recPath,
+                    cmd.type,
+                    out itemList,
+                    out cmdError);
+                if (nRet == -1) //0的情况表示没有册，不是错误
+                {
+                    cmdError += " 传入的册条码号为[" + cmd.itemBarcode + "]";
+                    cmdRet = -1;
+                }
+                else if (nRet == 0)
+                {
+                    cmdError = "未命中";
+                    cmd.resultInfo = cmdError;
+                    cmdRet = -1;
+                }
+
+                BiblioItem item = null;
+                foreach (BiblioItem one in itemList)
+                {
+                    if (one.barcode == cmd.itemBarcode)
+                    {
+                        item = one;
+                        break;
+                    }
+                }
+
+                if (item != null)
+                {
+                    cmd.resultInfo = summary
+                        + this.getItemHtml(item);
+                    cmdRet = 0;
+                }
+
+
+                // 设返回值
+                cmd.state = cmdRet;
+                cmd.errorInfo = cmdError;
+                cmd.typeString = cmd.getTypeString(cmd.type);
+                goto END2;
+            }
+
+
+
             //加载读者
             if (cmd.type == ChargeCommand.C_Command_LoadPatron) 
             {
@@ -68,7 +254,6 @@ namespace dp2weixin.service
                     cmdError += " 传入的证条码号为["+cmd.patronBarcode+"]";
                     cmdRet = -1;
                 }
-
 
                 goto END1;
             }
@@ -240,10 +425,14 @@ END1:
                     }
                 }
             }
+
+        END2:
      
             // 得到命令html
             string cmdHtml = this.GetCmdHtml3(libId,cmd,patron);//.GetCmdHtml(libId, cmd, patron, otherError);
             cmd.cmdHtml = cmdHtml;
+
+
 
             // 加到集合里
             this.Add(cmd); //this.Insert(0, cmd); //
