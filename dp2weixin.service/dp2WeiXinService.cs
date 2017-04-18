@@ -3225,6 +3225,10 @@ namespace dp2weixin.service
                 name = "工作人员";
                 action = "使用";
             }
+            if (menu == "出纳窗")
+            {
+                name = "";
+            }
 
             string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
             string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
@@ -3281,6 +3285,57 @@ namespace dp2weixin.service
             return result.ErrorInfo;
         }
 
+        #endregion
+
+        #region 校验条码
+
+        //      result.Value 0: 不是合法的条码号 1:合法的读者证条码号 2:合法的册条码号
+        // -2 服务器端未配置该函数
+        public ApiResult VerifyBarcode(SessionInfo sessionInfo,
+            string strBarcode)
+        {
+            string strError = "";
+            ApiResult result = new ApiResult();
+
+            /*
+            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl,
+                sessionInfo.UserName);
+            channel.Password = sessionInfo.Password;
+            channel.Parameters = sessionInfo.Parameters;
+            try
+            {
+                // todo 这里传的工作人员的libraryCode对吗？
+                long ret = channel.VerifyBarcode(sessionInfo.LibraryCode, strBarcode, out strError);
+                if (ret < 0)  //-1未设置校验函数
+                {
+                    this.isVerifyBarcode = false;
+                }
+                result.errorCode = (int)ret;
+                result.errorInfo = strError;
+
+
+                return result;
+            }
+            catch (WebException wex)
+            {
+                result.errorCode = -1;
+                result.errorInfo = "访问dp2library服务器出错：" + wex.Message + "\n请联系系统管理员修改dp2library服务器地址配置信息。";
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.errorCode = -1;
+                result.errorInfo = ex.Message;
+                return result;
+            }
+            finally
+            {
+                this.ChannelPool.ReturnChannel(channel);
+            }
+             */
+             
+            return result;
+        }
         #endregion
 
         #region 找回密码，修改密码，二维码
@@ -4013,6 +4068,9 @@ public string ErrorCode { get; set; }
                 // 2017-2-14新增馆藏地
                 userItem.location = location;
                 userItem.selLocation = "";
+
+                // 2017-4-19新增借不时是否校验条码
+                userItem.verifyBarcode = 0;
 
                 // 2016-8-26 新增
                 userItem.state = 1;
@@ -8194,7 +8252,53 @@ public string ErrorCode { get; set; }
                     if (contentHtml != "")
                         contentHtml += "<br/>";
 
-                    contentHtml += HttpUtility.HtmlEncode(str);
+                    string html = HttpUtility.HtmlEncode(str);
+
+
+
+                    // 20170419,公告支持url超链接了,
+                    // 当http:开头时，后面整个部分作为url，
+                    //如果想将url放中间，后面跟其它文字，需要这样配：文字部分{http://www.***.com}文字部分
+                    string left = "";
+                    string middle = "";
+                    string right = "";
+                    int nIndex = html.IndexOf("{http:");
+                    if (nIndex >= 0)
+                    {
+                         left = html.Substring(0, nIndex);
+                         right = html.Substring(nIndex+1); //不带{
+                        nIndex = right.IndexOf("}");
+                        if (nIndex >= 0)
+                        {
+                            middle = right.Substring(0, nIndex); //不带}
+                            right = right.Substring(nIndex + 1);
+                        }
+                        else
+                        {
+                            middle = right;
+                            right = "";
+                        }
+                    }
+                    else
+                    {
+                        nIndex = html.IndexOf("http:");
+                        if (nIndex >= 0)
+                        {
+                            left = html.Substring(0, nIndex);
+                            middle = html.Substring(nIndex);
+                            right = "";
+                        }
+                    }
+                    if (string.IsNullOrEmpty(middle) == false)
+                    {
+                        middle = "<a href='" + middle + "'>" + middle + "</a>";
+                        html = left + middle + right;
+                    }
+                    //===========
+
+                    contentHtml += html;
+
+
                 }
             }
 
@@ -9286,6 +9390,9 @@ public string ErrorCode { get; set; }
             userItem.location = patronInfo.location;
             userItem.selLocation = "";
 
+            // 2017-4-19
+            userItem.verifyBarcode = 0;
+
             return userItem;
         }
 
@@ -9772,6 +9879,9 @@ public string ErrorCode { get; set; }
                     // 2017-2-14
                     userItem.location = patronInfo.location;
                     userItem.selLocation = "";
+
+                    // 2017-4-19
+                    userItem.verifyBarcode = 0;
 
                     WxUserDatabase.Current.Update(userItem);
                 }

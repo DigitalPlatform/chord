@@ -168,6 +168,14 @@ namespace dp2weixinWeb.Controllers
 
 
             ViewBag.libList = subLibs;
+
+
+            ViewBag.verifyBarcode = "";
+            if (user != null && user.verifyBarcode == 1)
+            {
+                ViewBag.verifyBarcode = "checked";
+            }
+
             return View();
 
         ERROR1:

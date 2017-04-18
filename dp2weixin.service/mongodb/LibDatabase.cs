@@ -185,7 +185,7 @@ namespace dp2weixin.service
                 .Set("comment", item.comment)
                 .Set("OperTime", item.OperTime)
                 .Set("noShareBiblio", item.noShareBiblio) //
-                .Set("verifyBarcode", item.verifyBarcode) //借还时校验条码 2016-11-16
+                //.Set("verifyBarcode", item.verifyBarcode) //借还时校验条码 2016-11-16,20170419注释
                 .Set("searchDbs", item.searchDbs)
                 .Set("match", item.match)
                 ;
@@ -229,7 +229,9 @@ namespace dp2weixin.service
         public string OperTime { get; set; } // 操作时间
 
         public int noShareBiblio  { get; set; } // 不对外公开书目;
-        public int verifyBarcode { get; set; } // 借还书校验条码，2016-11-16;
+
+        // 20170419不再启用，改为在个人设置界面配置，但库中之前有这个字段，还不能直接对应类中删除
+        public int verifyBarcode { get; set; } // 借还书校验条码2016-11-16; 
 
         public string searchDbs { get; set; }  // 参于检索的书目库
         public string match { get; set; }  // 简单检索匹配方式

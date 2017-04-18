@@ -300,6 +300,7 @@
                         var inputType = getInputType();
                         if (inputType == C_inputType_item) {
                             if (code.indexOf(",") != -1) {
+                               // alert(code);
                                 var left = code.substring(0, code.indexOf(","))
                                 var right = code.substring(code.indexOf(",") + 1)
                                 if (left != "EAN_13" && left != "CODE_39") {
@@ -475,7 +476,9 @@
 
                 // 如果校验条码开关打开，则需要进行校验
                 var verifyBarcode = $("#verifyBarcode").text();
-                //alert("校验条码值:"+verifyBarcode);
+                if (verifyBarcode == "1") {
+                    alert("需要调服务器接口进行校验【"+item+"】");
+                }
             }
 
             ////==跑流程测试用==
@@ -1238,8 +1241,8 @@ else
         <div id="mypage" >
             <div style="padding:10px;padding-bottom:0px;text-align:right"><span style="color:#cccccc">帐户&nbsp;</span>@ViewBag.userName<span style="color:#cccccc">&nbsp;关注馆藏&nbsp;</span>@ViewBag.Location<span style="color:#cccccc">&nbsp;</span><a href="~/Patron/Setting">设置</a></div>
             <div style="padding:10px;padding-bottom:0px;">
-                <button class="mui-btn mui-btn-block" onclick="start('borrow')">开始借书</button>
-                <button class="mui-btn mui-btn-block" onclick="start('return')">开始还书</button>
+                <button class="mui-btn mui-btn-block" onclick="start('borrow')" @ViewBag.canBorrow >开始借书</button>
+                <button class="mui-btn mui-btn-block" onclick="start('return')" @ViewBag.canReturn >开始还书</button>
                 <button class="mui-btn mui-btn-block" onclick="start('searchItem')">开始查书</button>
 
             </div>

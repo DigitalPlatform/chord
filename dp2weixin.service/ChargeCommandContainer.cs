@@ -33,7 +33,7 @@ namespace dp2weixin.service
             var tempBarcode = record.barcode;
 
 
-            itemTables += "<div class='mui-card item' id='_item_" + tempBarcode + "'>"
+            itemTables += "<div class='item' id='_item_" + tempBarcode + "'>"  //mui-card 
                 //+ "<div class='"+titleClass+"'>" + record.barcode + "</div>"
              + "<table>"
             + "<tr>";
@@ -101,10 +101,10 @@ namespace dp2weixin.service
             //    + "</tr>";
             //}
 
-            itemTables += "<tr>"
-            + "<td class='label'>参考ID</td>"
-            + "<td class='titleGray' " + addStyle + ">" + record.refID + "</td>"
-            + "</tr>";
+            //itemTables += "<tr>"
+            //+ "<td class='label'>参考ID</td>"
+            //+ "<td class='titleGray' " + addStyle + ">" + record.refID + "</td>"
+            //+ "</tr>";
 
             //从属于
             if (record.parentInfo != null && record.parentInfo != "")

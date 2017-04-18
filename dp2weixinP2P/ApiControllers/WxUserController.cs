@@ -111,6 +111,20 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+        // 保存是否校验条码
+        [HttpPost]
+        public ApiResult SaveLocation(string userId, int verifyBarcode)
+        {
+            ApiResult result = new ApiResult();
+
+            WxUserItem user = WxUserDatabase.Current.GetById(userId);
+            user.verifyBarcode = verifyBarcode;
+            WxUserDatabase.Current.Update(user);
+
+
+            return result;
+        }
+
         /// <summary>
         /// 设置
         /// </summary>
