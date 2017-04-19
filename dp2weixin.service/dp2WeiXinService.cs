@@ -3289,52 +3289,118 @@ namespace dp2weixin.service
 
         #region 校验条码
 
-        //      result.Value 0: 不是合法的条码号 1:合法的读者证条码号 2:合法的册条码号
-        // -2 服务器端未配置该函数
-        public ApiResult VerifyBarcode(SessionInfo sessionInfo,
-            string strBarcode)
-        {
-            string strError = "";
-            ApiResult result = new ApiResult();
+        /*
+        校验读者证条码号和册条码号。对应于dp2library的VerifyBarcode() API。
+案例1:
+Operation:verifyBarcode
+Patron:R0000001
+Item:海淀分馆
+ResultValue返回 0: 不是合法的条码号 1:合法的读者证条码号 2:合法的册条码号。-1表示一般性错误；
+         * -2表示dp2library中没有定义VerifyBarcode()脚本函数。
+ErrorInfo成员里可能会有报错信息。
+         */
 
-            /*
-            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl,
-                sessionInfo.UserName);
-            channel.Password = sessionInfo.Password;
-            channel.Parameters = sessionInfo.Parameters;
+        public int VerifyBarcode(string libId,
+            string userId,
+            string barcode,
+            out string strError)
+        {
+            int nRet = 0;
+            strError = "";
+
+            string userName = "";
+            WxUserItem user = WxUserDatabase.Current.GetById(userId);
+            bool bPatron = false;
+            if (user.type == WxUserDatabase.C_Type_Patron)
+            {
+                userName = user.readerBarcode;
+                bPatron = true;
+            }
+            else
+            {
+                userName = user.userName;
+                bPatron = false;
+            }
+
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为["+libId+"]的图书馆。";
+                goto ERROR1;
+            }
+
+            // 使用代理账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo(userName, bPatron);
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            CirculationRequest request = new CirculationRequest(id,
+                loginInfo,
+                "verifyBarcode",
+                barcode,
+                user.libraryCode,//this.textBox_circulation_item.Text,
+                "",//this.textBox_circulation_style.Text,
+                "",//this.textBox_circulation_patronFormatList.Text,
+                "",//this.textBox_circulation_itemFormatList.Text,
+                "");//this.textBox_circulation_biblioFormatList.Text);
             try
             {
-                // todo 这里传的工作人员的libraryCode对吗？
-                long ret = channel.VerifyBarcode(sessionInfo.LibraryCode, strBarcode, out strError);
-                if (ret < 0)  //-1未设置校验函数
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    lib.capoUserName).Result;
+                CirculationResult result = connection.CirculationTaskAsync(
+                    lib.capoUserName,
+                    request,
+                    new TimeSpan(0, 1, 10), // 10 秒
+                    cancel_token).Result;
+
+                nRet = (int)result.Value;
+                if (result.Value == -1)
                 {
-                    this.isVerifyBarcode = false;
+                    strError = this.GetFriendlyErrorInfo(result, lib.libName); //result.ErrorInfo;
                 }
-                result.errorCode = (int)ret;
-                result.errorInfo = strError;
+                if (result.Value == 0)
+                {
+                    // 试试是否是为读者
+                    string patronRecPath = "";
+                    string timestamp = "";
+                    string patronXml = "";
+                    nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                        loginInfo,
+                        barcode,
+                        "xml",
+                        out patronRecPath,
+                        out timestamp,
+                        out patronXml,
+                        out strError);
+                    if (nRet == 1)
+                    {
+                        nRet = 1;
+                    }
+                    else
+                    {
+                        strError = result.ErrorInfo; //"不是合法的条码号";// 
+                    }
+                }
 
+                strError =  HttpUtility.HtmlEncode( strError);
+                return nRet;
 
-                return result;
             }
-            catch (WebException wex)
+            catch (AggregateException ex)
             {
-                result.errorCode = -1;
-                result.errorInfo = "访问dp2library服务器出错：" + wex.Message + "\n请联系系统管理员修改dp2library服务器地址配置信息。";
-                return result;
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
             }
             catch (Exception ex)
             {
-                result.errorCode = -1;
-                result.errorInfo = ex.Message;
-                return result;
+                strError = ex.Message;
+                goto ERROR1;
             }
-            finally
-            {
-                this.ChannelPool.ReturnChannel(channel);
-            }
-             */
-             
-            return result;
+
+        ERROR1:
+
+            return -1 ;
         }
         #endregion
 

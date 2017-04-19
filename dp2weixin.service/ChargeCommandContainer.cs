@@ -251,9 +251,26 @@ namespace dp2weixin.service
                     out cmdError);
                 if (cmdRet == -1 || cmdRet == 0)  //未找到认为出错
                 {
-                    cmdError += " 传入的证条码号为["+cmd.patronBarcode+"]";
+                    cmdError += " 传入的条码为["+cmd.patronBarcode+"]";
                     cmdRet = -1;
                 }
+
+                //if (cmdRet == 0)  //未找到认为出错
+                //{
+                //    //检查是不是册条码
+                //    cmdRet = dp2WeiXinService.Instance.VerifyBarcode(libId,
+                //       cmd.userId,
+                //       cmd.patronBarcode,
+                //       out cmdError);
+                //    if (cmdRet != 1)
+                //    {
+                //        if (cmdRet == 2)
+                //        {
+                //            cmdError = "您扫入了册条码，请扫入读者。";
+                //        }
+                //        cmdRet = -1;
+                //    }
+                //}
 
                 goto END1;
             }

@@ -201,6 +201,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             ViewBag.userName = userName;
+            ViewBag.userId = user.id;
 
             // 关注馆藏去掉前面
             //string clearLocs = "";

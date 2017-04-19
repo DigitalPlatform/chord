@@ -1,4 +1,4 @@
-﻿@model dp2weixin.service.WxUserItem
+﻿ @model dp2weixin.service.WxUserItem
 @{
     ViewBag.Title = "Charge2";
     Layout = "~/Views/Shared/_LayoutEmpty.cshtml";
@@ -450,37 +450,129 @@
             }
 
             //=============
+            var verifyBarcode = $("#verifyBarcode").text();
 
-            // 应该输入册条码时，校验
-            if (inputType == C_inputType_item)
+            // 前端未打开校验条码开关
+            if (verifyBarcode != "1")
             {
-                // 扫了读者二维码的情况
-                if (item.length > 4 && item.substring(0, 4) == "PQR:")
-                {
+                // 直接处理命令
+                addCmd2(weixinId, libId, cmdType, patron, item);
+                return;
+            }
+
+            //if (inputType == C_inputType_patron) {
+            //    // 直接处理命令
+            //    addCmd2(weixinId, libId, cmdType, patron, item);
+            //    return;
+            //}
+
+            //===============
+            // 如果校验条码开关打开，则需要进行校验
+
+            // 直接检查是否是读者二维码的情况
+            if (inputType == C_inputType_item) {// 应该输入册条码时，校验
+                if (item.length > 4 && item.substring(0, 4) == "PQR:") {
                     //还书时，直接提示，重新输入
-                    if (ope == C_ope_return)
-                    {
+                    if (ope == C_ope_return) {
                         warn("还书环境，应扫图书时，您扫了读者二维码，请重新扫入图书。", C_next_receiveBarcode, true);
                         return;
                     }
-                    
+
                     // 借书时，提示一下，然后加载新的读者。
-                    if (ope == C_ope_borrow)
-                    {
+                    if (ope == C_ope_borrow) {
                         //设到读者输入类型
                         setInputType(C_inputType_patron);
                         warn("借书环境，应扫图书时，您扫了读者二维码，将为您加载新读者。", C_next_addCmd, true);
                         return;
                     }
                 }
-
-                // 如果校验条码开关打开，则需要进行校验
-                var verifyBarcode = $("#verifyBarcode").text();
-                if (verifyBarcode == "1") {
-                    alert("需要调服务器接口进行校验【"+item+"】");
-                }
             }
 
+            // userId参数
+            var userId = $("#userId").text();
+            if (userId == null || userId == "") {
+                warn("userId操作人不能不空。", "");
+                return;
+            }
+
+            var barcode = item;
+            if (inputType == C_inputType_patron)
+            {
+                barcode = patron;
+            }
+
+            //显示等待图层
+            showLoading();
+            // 调web api
+            var url = "/api/ChargeCommand?libId=" + libId
+            + "&userId=" + userId
+            + "&barcode=" + encodeURIComponent(barcode);
+            sendAjaxRequest(url, "POST", function (result) {
+                // 关闭等待层
+                hideLoading();
+
+                //  出错，直接关闭
+                if (result.errorCode == -1) {
+                    warn("校验条码出错：" + result.errorInfo + "\r\n 请在设置页面清除'校验输入的条码号'事项。");
+                    return;
+                }
+                //  未配置，直接关闭
+                if (result.errorCode == -2) {
+                    warn("服务器没有配置条码号验证脚本，无法使用验证条码号功能。请在设置页面清除'校验输入的条码号'事项。", "");
+                    return;
+                }
+
+                // 不是合法的条码号，请重新扫入
+                if (result.errorCode == 0) {
+                    warn(result.errorInfo, C_next_receiveBarcode, true);
+                    return;
+                }
+
+                // 期待输入册条码，却扫入了读者证条码
+                if (result.errorCode == 1 && inputType == C_inputType_item) {
+                    if (ope == C_ope_return) {
+                        warn("还书环境，应扫图书时，您扫了读者，请重新扫入图书。", C_next_receiveBarcode, true);
+                        return;
+                    }
+                    else if (ope == C_ope_searchItem) {
+                        warn("查书环境，应扫图书时，您扫了读者，请重新扫入图书。", C_next_receiveBarcode, true);
+                        return;
+                    }
+                    else if (ope == C_ope_borrow) {
+                        //setInputType(C_inputType_patron); //设到读者输入类型
+                        //warn("应扫图书时，您扫了读者，将为您加载新读者。", C_next_addCmd, true);
+                        cmdType = "loadPatron";
+                        patron = getBarcode();
+                        setPatron(patron); // 设到内部的读者变量上
+                        addCmd2(weixinId, libId, cmdType, patron, item);
+                        return;
+                    }
+                }
+
+                // 读者时，有时输入姓名的。
+                // 期待输入读者证条码，却扫入了册条码
+                if (result.errorCode == 2 && inputType == C_inputType_patron) {
+                    warn("借书环境，您扫入了册条码，请先扫入读者证。", C_next_receiveBarcode, true);
+                    return;
+                }
+
+
+                //正常处理的情况
+                addCmd2(weixinId, libId, cmdType, patron, item)
+
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                hideLoading();
+                alert(errorThrown);
+            });
+
+
+        }
+
+
+        function addCmd2(weixinId, libId, cmdType, patron, item)
+        {
             ////==跑流程测试用==
             //if (cmdType == "loadPatron") {
             //    setInputType(C_inputType_item);
@@ -490,15 +582,23 @@
             //return;
             ////===
 
+            //====
 
             //登录身份
             var userName = $("#userName").text();
-            if (userName==null || userName== "") {
+            if (userName == null || userName == "") {
                 warn("userName操作人不能不空。", "");
                 return;
             }
 
-            var isPatron=$("#isPatron").text();
+            var isPatron = $("#isPatron").text();
+
+            // userId参数
+            var userId = $("#userId").text();
+            if (userId == null || userId == "") {
+                warn("userId操作人不能不空。", "");
+                return;
+            }
 
             //显示等待图层
             showLoading();
@@ -511,7 +611,8 @@
                 patronInput: patron,
                 itemInput: item,
                 userName: userName,
-                isPatron:isPatron
+                isPatron: isPatron,
+                userId:userId
             };
 
             sendAjaxRequest(url, "POST", function (cmd) {
@@ -520,7 +621,7 @@
                 hideLoading();
 
                 if (cmd.state == -2) {
-                    warn("未实现功能-姓名重复",C_next_receiveBarcode);
+                    warn("未实现功能-姓名重复", C_next_receiveBarcode);
                     return;
                 }
                 if (cmd.state == -3) {
@@ -546,12 +647,14 @@
                 var img = ""; var infoStyle = "";
                 var isAutoClose = true;
                 if (cmd.state == -1) {
+                    // 当半自动方式，有错时，则不自动关闭窗口
                     img = "<img src='../img/error3.png' style='width:100px;height:100px' />";
                     isAutoClose = false;
                 }
                 else {
                     img = "<img src='../img/right1.png' style='width:100px;height:100px'  />";
 
+                    // 当半自动方式，有警告时的，不自动关闭窗口
                     if (cmd.state == 1 && cmd.type != "loadPatron") {
                         infoStyle = ";background-color:yellow;color:black";
                         isAutoClose = false;
@@ -561,10 +664,10 @@
 
                 var html = "<table>"
                     + "<tr>"
-                    + "<td>"+img+"</td>"
+                    + "<td>" + img + "</td>"
                     + "<td style='word-wrap:break-word;word-break:break-all;white-space:pre-wrap;" + infoStyle + "'>" + cmd.resultInfo + "</td>"
-                    +"</tr>"
-                +"</table>";
+                    + "</tr>"
+                + "</table>";
 
 
                 warn(html, C_next_dothing, isAutoClose);
@@ -578,8 +681,8 @@
                 alert(errorThrown);
             },
             data);
-
         }
+            
 
 
         function selectItemOK(obj) {
@@ -1214,6 +1317,7 @@
 <span id="userName" style="display:none">@ViewBag.userName</span>
 <span id="isPatron" style="display:none">@ViewBag.isPatron</span>
 <span id="verifyBarcode" style="display:none">@ViewBag.verifyBarcode</span>
+<span id="userId" style="display:none">@ViewBag.userId</span>
 
 <input id="_charge_operation" type="hidden" value="">
 <input id="_charge_inputType" type="hidden" value="">

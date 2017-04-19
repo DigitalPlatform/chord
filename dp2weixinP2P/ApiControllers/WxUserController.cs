@@ -113,7 +113,7 @@ namespace dp2weixinWeb.ApiControllers
 
         // 保存是否校验条码
         [HttpPost]
-        public ApiResult SaveLocation(string userId, int verifyBarcode)
+        public ApiResult SaveVerifyBarcode(string userId, int verifyBarcode)
         {
             ApiResult result = new ApiResult();
 
