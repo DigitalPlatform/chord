@@ -245,7 +245,8 @@ namespace dp2Router
         }
 
         public static async Task<DigitalPlatform.HTTP.HttpResponse> WebCall(DigitalPlatform.HTTP.HttpRequest request,
-            string transferEncoding)
+            string transferEncoding,
+            TimeSpan timeout)
         {
             // 从 request.Url 中解析出 remoteUserName
             string remoteUserName = request.Url;
@@ -294,7 +295,7 @@ namespace dp2Router
                     result = await connection.WebCallTaskAsync(
                         remoteUserName,
                         param,
-                        new TimeSpan(0, 1, 10), // 10 秒
+                        timeout == TimeSpan.MinValue ? new TimeSpan(0, 1, 10) : timeout, // 1分10 秒
                         _cancel.Token);
                 }
                 finally

@@ -42,7 +42,7 @@ namespace dp2Router
                     channel.Close();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ServerInfo.WriteErrorLog("HttpChannelColleciont Clear() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
             }
@@ -90,6 +90,13 @@ namespace dp2Router
             }
         }
 
+        static TimeSpan Max(TimeSpan delta1, TimeSpan delta2)
+        {
+            if (delta1 >= delta2)
+                return delta1;
+            return delta2;
+        }
+
         // parameters:
         //      delta   休眠多少时间以上的要清除
         public void CleanIdleChannels(TimeSpan delta)
@@ -99,8 +106,11 @@ namespace dp2Router
             try
             {
                 DateTime now = DateTime.Now;
-                foreach(HttpChannel channel in _channels)
+                foreach (HttpChannel channel in _channels)
                 {
+                    TimeSpan current = delta;
+                    if (channel.Timeout != TimeSpan.MinValue)
+                        current = Max(delta, channel.Timeout);
                     if (now - channel.LastTime > delta)
                         delete_channels.Add(channel);
                 }
@@ -125,7 +135,7 @@ namespace dp2Router
                     _lock.ExitWriteLock();
                 }
 
-                foreach(HttpChannel channel in delete_channels)
+                foreach (HttpChannel channel in delete_channels)
                 {
                     channel.Close();
                 }
@@ -139,6 +149,9 @@ namespace dp2Router
         public TcpClient TcpClient { get; set; }
         public DateTime LastTime { get; set; }
 
+        // 2017/3/6
+        public TimeSpan Timeout { get; set; }
+
         public void Close()
         {
             if (TcpClient != null)
@@ -150,7 +163,13 @@ namespace dp2Router
 
         public void Touch()
         {
-            LastTime = DateTime.Now;
+            this.LastTime = DateTime.Now;
+        }
+
+        public void Touch(TimeSpan timeout)
+        {
+            this.LastTime = DateTime.Now;
+            this.Timeout = timeout;
         }
     }
 }

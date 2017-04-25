@@ -272,8 +272,8 @@ namespace dp2Capo
         {
             if (loginInfo == null)
             {
-                throw new ArgumentException("GetChannel() 的 loginInfo 参数不应为空", "strUserName");
-                // loginInfo = GetManagerLoginInfo();
+                // throw new ArgumentException("GetChannel() 的 loginInfo 参数不应为空", "strUserName");
+                loginInfo = GetManagerLoginInfo();  // 宽容一些，让老的前端也能用
             }
 
             if (loginInfo.UserName == "")
@@ -767,8 +767,10 @@ namespace dp2Capo
                     else if (param.Operation == "verifyBarcode")
                     {
                         lRet = channel.VerifyBarcode(
+                            param.Style,
                             param.Item,
                             param.Patron,
+                            out strOutputReaderBarcode,
                             out strError);
                     }
                     else
