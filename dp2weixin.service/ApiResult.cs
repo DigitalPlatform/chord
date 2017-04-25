@@ -23,6 +23,12 @@ namespace dp2weixin.service
         public object obj = "";
     }
 
+    public class SetReaderInfoResult:ApiResult
+    {
+        public string recPath = "";
+        public string timestamp = "";
+    }
+
     public class ChargeCommandResult:ApiResult
     {
         public List<ChargeCommand> cmds = null;

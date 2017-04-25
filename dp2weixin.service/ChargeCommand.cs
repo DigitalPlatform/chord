@@ -18,6 +18,9 @@ namespace dp2weixin.service
         public const string C_Command_Read = "read";
         public const string C_Command_VerifyReturn = "verifyreturn";
 
+        // 20170413 查询册
+        public const string C_Command_SearchItem = "searchItem";
+
         public int id { get; set; }
         public string type { get; set; }
         public string patronInput { get; set; } //传进来的值，不一定全是barcode，有可能姓名与二维码
@@ -25,6 +28,7 @@ namespace dp2weixin.service
         public string operTime { get; set; }
         public string userName { get; set; }  //操作人
         public int isPatron { get; set; } //是否是读者身份 2017-2-17 jane
+        public string userId { get; set; }
 
         public string patronBarcode { get; set; }  // 正式的读者证 条码号
         public string itemBarcode { get; set; }     //正式的册条码号
@@ -59,6 +63,8 @@ namespace dp2weixin.service
                 return "借书";
             if (type == C_Command_Return)
                 return "还书";
+            if (type == C_Command_SearchItem)
+                return "查书";
             if (type == C_Command_Renew)
                 return "续借";
             if (type == C_Command_VerifyRenew)

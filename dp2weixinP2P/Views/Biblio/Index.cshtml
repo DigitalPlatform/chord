@@ -217,10 +217,10 @@
 
                 // 检查检索词
                 word = $("#txtWordSimple").val();
-                if (word == "") {
-                    alert("您尚未输入检索词。");
-                    return;
-                }
+                //if (word == "") {
+                //    alert("您尚未输入检索词。");
+                //    return;
+                //}
                 var table = $("#ulResult");//$('.mui-table-view');
                 table.html("");
             }
@@ -235,10 +235,10 @@
 
                 // 检查检索词
                 word = $("#txtWord").val();
-                if (word == "") {
-                    alert("您尚未输入检索词。");
-                    return;
-                }
+                //if (word == "") {
+                //    alert("您尚未输入检索词。");
+                //    return;
+                //}
                 //alert("[" + from + "]-[" + word + "]");
 
                 match = $("#selMatch").val();
@@ -585,6 +585,7 @@
             </div>
             <div style="padding:10px">
                 <a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a>
+                
             </div>
             <div id="divResult">
                 <!--数据列表-->

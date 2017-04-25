@@ -13,6 +13,8 @@
                 return;
             }
 
+            //alert(libId);
+
             // 微信id
             var weixinId = $("#weixinId").text();
             if (weixinId == "") {
@@ -313,7 +315,7 @@
             }
         }
 
-        //保存到服务器
+        //保存选择的馆藏地到服务器
         function saveLoc() {
 
             // 工作人员 在微信用户表的id
@@ -333,6 +335,54 @@
             //window.setTimeout("hideMaskLayer()", 5000);
             var url = "/api/wxuser?userId=" + userId
             + "&locations=" + encodeURIComponent(locations)
+            sendAjaxRequest(url, "POST",
+                function (result) {
+
+                    // 关闭等待层
+                    //layer.close(index);
+                    hideMaskLayer();
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }
+
+                },
+                function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    hideMaskLayer();
+                    alert(errorThrown);
+                });
+
+        }
+
+
+        function getVerifyBarcode() {
+            var count = 0;
+            $("#ckbVerifyBarcode:checked").each(function () {
+                count = 1;
+            });
+            return count
+        }
+        //保存是否校验条码
+        function saveVerifyBarcode() {
+
+            // 工作人员 在微信用户表的id
+            var userId = $("#userId").text();
+            if (userId == "") {
+                alert("userId。");
+                return;
+            }
+            var verifyBarcode = getVerifyBarcode();
+            //alert("[" + verifyBarcode + "]");
+
+
+            //显示等待图层
+            showMaskLayer();
+
+            //window.setTimeout("hideMaskLayer()", 5000);
+            var url = "/api/wxuser?userId=" + userId
+            + "&verifyBarcode=" + encodeURIComponent(verifyBarcode)
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -431,7 +481,15 @@ else
                     </div>
                 </div>
             }
+            
+            <div class='mui-input-row mui-checkbox mui-left' style="background-color:#eeeeee">
+                <label>校验输入的条码号</label>
+                <input id='ckbVerifyBarcode' type='checkbox' @ViewBag.verifyBarcode onchange='saveVerifyBarcode()'  />
+            </div>
         }
+        
+
+
     </div>
 
             <!--

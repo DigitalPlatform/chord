@@ -36,5 +36,22 @@ namespace dp2weixinWeb.ApiControllers
                 libId,
                 cmd);
         }
+
+        public ApiResult VerifyBarcode(string libId,
+            string userId,
+            string barcode)
+        {
+            ApiResult result = new ApiResult();
+
+            string error = "";
+            int nRet = dp2WeiXinService.Instance.VerifyBarcode(libId,
+                userId,
+                barcode,
+                out error);
+            result.errorCode = nRet;
+            result.errorInfo = error;
+
+            return result;
+        }
     }
 }

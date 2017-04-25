@@ -69,12 +69,12 @@ namespace dp2weixinWeb.Controllers
                     }
                 }
             }
-            if (typesHtml != "")
-            {
-                typesHtml = "<select id='selReaderType' name='selReaderType'>"
+
+            typesHtml = "<select id='selReaderType' name='selReaderType' class='selArrowRight'>"
+                    +"<option value=''>请选择</option>"
                     + typesHtml
                     + "</select>";
-            }
+
             ViewBag.readerTypeHtml = typesHtml;
             
             // 目标数据库
@@ -90,7 +90,8 @@ namespace dp2weixinWeb.Controllers
             }
             if (dbsHtml != "")
             {
-                dbsHtml = "<select id='selDbName' name='selDbName'>"
+                dbsHtml = "<select id='selDbName' name='selDbName' class='selArrowRight'>"
+                    + "<option value=''>请选择</option>"
                     + dbsHtml
                     + "</select>";
             }
@@ -142,6 +143,8 @@ namespace dp2weixinWeb.Controllers
             string weixinId = ViewBag.weixinId;//(string)Session[WeiXinConst.C_Session_WeiXinId];
             string libId = ViewBag.LibId;
 
+            bool canBorrow = true;
+            bool canReturn = true;
             WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
             if (user == null)
             {
@@ -149,18 +152,31 @@ namespace dp2weixinWeb.Controllers
                 user = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
 
                 // 如果没有借还权限，不能操作
-                if (user !=null && user.rights.Contains("borrow") == false && user.rights.Contains("return") == false)
+                if (user !=null)
                 {
-                    user=null;
+                    if (user.rights.Contains("borrow") == false)
+                    {
+                        canBorrow=false;
+                    }
+                    if (user.rights.Contains("return") == false)
+                    {
+                        canReturn = false;
+                    }
                 }
             }
 
             // 未绑定工作人员，
             if (user == null)
             {
+                canBorrow = false;
+                canReturn = false;
                 ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge2", true);
                 return View();
             }
+            if(canBorrow==false)
+                ViewBag.canBorrow = "disabled";
+            if (canReturn==false)
+                ViewBag.canReturn = "disabled";
 
             LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
             if (lib == null)
@@ -169,7 +185,7 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
             }
             // 是否校验条码
-            ViewBag.verifyBarcode = lib.verifyBarcode;
+            //ViewBag.verifyBarcode = lib.verifyBarcode;
 
             //设到ViewBag里
             string userName="";
@@ -185,6 +201,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             ViewBag.userName = userName;
+            ViewBag.userId = user.id;
 
             // 关注馆藏去掉前面
             //string clearLocs = "";
@@ -205,10 +222,9 @@ namespace dp2weixinWeb.Controllers
             //    }
             //}
             ViewBag.Location = SubLib.ParseToView(user.selLocation);
+
+            ViewBag.verifyBarcode = user.verifyBarcode;
             
-
-
-
             return View(user);
 
 

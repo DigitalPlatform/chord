@@ -2194,7 +2194,7 @@ select {
     }
 
     .mui-input-row .mui-btn + input, .mui-input-row label + input, .mui-input-row:last-child {
-        background: 0 0;
+
     }
 
 .mui-input-group .mui-input-row {

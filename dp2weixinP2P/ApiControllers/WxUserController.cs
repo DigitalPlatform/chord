@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
@@ -110,6 +111,20 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+        // 保存是否校验条码
+        [HttpPost]
+        public ApiResult SaveVerifyBarcode(string userId, int verifyBarcode)
+        {
+            ApiResult result = new ApiResult();
+
+            WxUserItem user = WxUserDatabase.Current.GetById(userId);
+            user.verifyBarcode = verifyBarcode;
+            WxUserDatabase.Current.Update(user);
+
+
+            return result;
+        }
+
         /// <summary>
         /// 设置
         /// </summary>
@@ -120,11 +135,12 @@ namespace dp2weixinWeb.ApiControllers
         public ApiResult Setting(string weixinId, UserSettingItem item)
         {
             ApiResult result = new ApiResult();
+            string error = "";
 
-            //string setting_lib = libId;
 
             try
             {
+                // 保存设置
                 UserSettingDb.Current.SetLib(item);
 
                 // 2016-8-13 jane 检查微信用户对于该馆是否设置了活动账户
@@ -132,12 +148,35 @@ namespace dp2weixinWeb.ApiControllers
             }
             catch (Exception ex)
             {
-                result.errorCode = -1;
-                result.errorInfo = ex.Message;
-                return result;
+                error = ex.Message;
+                goto ERROR1;
             }
 
-            return result;        
+            //======================
+            // 更新session信息
+            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            {
+                error = "session失效。";
+                goto ERROR1;
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            if (sessionInfo == null)
+            {
+                error = "session失效2。";
+                goto ERROR1;
+            }
+            int nRet = sessionInfo.SetCurInfo(out error);
+            if (nRet == -1)
+                goto ERROR1;
+
+            //===================
+
+            return result;
+
+        ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = error;
+            return result;
         }
 
 
@@ -154,23 +193,46 @@ namespace dp2weixinWeb.ApiControllers
             if (item.prefix == "null")
                 item.prefix = "";
             WxUserItem userItem = null;
-            string strError="";
+            string error="";
             int nRet= dp2WeiXinService.Instance.Bind(item.libId,
                 item.prefix,
                 item.word,
                 item.password,
                 item.weixinId,
                 out userItem,
-                out strError);
+                out error);
             if (nRet == -1)
             {
-                result.errorCode = -1;
-                result.errorInfo = strError;
+                goto ERROR1;
             }
             result.users = new List<WxUserItem>();
             result.users.Add(userItem);
 
+            //======================
+            // 更新session信息
+            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            {
+                error = "session失效。";
+                goto ERROR1;
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            if (sessionInfo == null)
+            {
+                error = "session失效2。";
+                goto ERROR1;
+            }
+             nRet = sessionInfo.SetCurInfo(out error);
+            if (nRet == -1)
+                goto ERROR1;
+
+            //===================
+
             return result;// repo.Add(item);
+
+        ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = error;
+            return result;
         }
 
 
@@ -218,23 +280,52 @@ namespace dp2weixinWeb.ApiControllers
             }
         }
 
-        // 删除
+        // 解绑
         [HttpDelete]
         public ApiResult Delete(string id)
         {
+
             ApiResult result = new ApiResult();
-            string strError = "";
-            int nRet = dp2WeiXinService.Instance.Unbind(id, out strError);
+            string error = "";
+            int nRet = dp2WeiXinService.Instance.Unbind(id, out error);
             if (nRet == -1)
             {
-                result.errorCode = -1;
-                result.errorInfo = strError;
+                goto ERROR1;
             }
 
             // 由于有错误信息的话，把错误信息输出
-            if (String.IsNullOrEmpty(strError) == false)
-                result.errorInfo = strError;
+            if (String.IsNullOrEmpty(error) == false)
+                result.errorInfo = error;
 
+            //======================
+            // 更新session信息
+            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            {
+                error = "session失效。";
+                goto ERROR1;
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            if (sessionInfo == null)
+            {
+                error = "session失效2。";
+                goto ERROR1;
+            }
+
+            if (string.IsNullOrEmpty(sessionInfo.WeixinId) == false) //非微信入口进来的
+            {
+                nRet = sessionInfo.SetCurInfo(out error);
+                if (nRet == -1)
+                    goto ERROR1;
+            }
+
+            //===================
+
+            return result;
+
+
+        ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = error;
             return result;
         }
 

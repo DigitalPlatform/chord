@@ -467,6 +467,7 @@ namespace dp2weixin.service
                 .Set("tracing", item.tracing)
                 .Set("location", item.location)
                 .Set("selLocation", item.selLocation)
+               .Set("verifyBarcode", item.verifyBarcode) //
                 ;
 
             UpdateResult ret = this.wxUserCollection.UpdateOne(filter, update);
@@ -562,6 +563,9 @@ namespace dp2weixin.service
 
         // 20170213 在微信中选择的馆藏地，是以逗号分隔的两级路径，如：/流通库,方洲小学/图书总库
         public string selLocation { get; set; }
+
+       // 借还时是否校验条码
+        public int verifyBarcode { get; set; } 
     }
 
 
