@@ -1,0 +1,152 @@
+﻿@section Scripts {
+    <script>
+
+        // 获取全部选中的馆藏地
+        function getLib() {
+            var xml = "";
+
+            $(".library:checked").each(function () {
+
+                var libcode = $(this).val();
+                xml += "<library code='"+libcode+"'>";
+
+                var name = "#ckblib-"+libcode+":checked";
+                $(name).each(function () {
+
+                    var loc = $(this).val();
+                    xml+= "<item>"+loc+"</item>";
+
+                });
+
+                xml += "</library>";
+
+            });
+
+            if (xml != "")
+                xml = "<root>"+xml+"</root>";
+
+            return xml
+        }
+
+        // 展开关闭分馆
+        function expand(obj, name) {
+            //alert(name);
+            var text = $(obj).html();
+            name = "#" + name;
+
+            if (text == "+") {
+                $(obj).html("-");
+                $(name).css('display', 'block');
+            }
+            else {
+                $(obj).html("+");
+                $(name).css('display', 'none');
+            }
+        }
+
+        //保存选择的馆藏地到服务器
+        function saveLib() {
+
+            // 微信id
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "") {
+                alert("weixinId不能为空。");
+                return;
+            }
+
+            var lib = $("input[name='rdLib']:checked").val();//getLib();
+            if (lib == null || lib == "")
+            {
+                alert("lib未设置");
+                return;
+
+
+            }
+            alert("[" + lib + "]");
+
+            //显示等待图层
+            showMaskLayer();
+
+            //window.setTimeout("hideMaskLayer()", 5000);
+            var url = "/api/wxuser?weixinId=" + weixinId
+                + "&libId=" + encodeURIComponent(lib);
+            sendAjaxRequest(url, "POST",
+                function (result) {
+
+                    // 关闭等待层
+                    //layer.close(index);
+                    hideMaskLayer();
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }
+
+                },
+                function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    hideMaskLayer();
+                    alert(errorThrown);
+                });
+
+            var url = "/Patron/Setting";
+            gotoUrl(url);
+                
+        }
+
+
+
+
+    </script>
+}
+@section header {
+    <h1 class="mui-title">选择图书馆</h1>
+}
+<span id="weixinId" style="display:none">@ViewBag.weixinId</span>
+<span id="returnUrl" style="display:none">@ViewBag.returnUrl</span>
+<span id="workerId" style="display:none">@ViewBag.workerId</span>
+<span id="userId" style="display:none">@ViewBag.userId</span>
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+    <div class="mui-card" style="margin-top:10px">
+        @if (ViewBag.areaList != null)
+        {
+            foreach (dp2weixin.service.Area area in ViewBag.areaList)
+            {
+                <div style="padding-left:10px">
+                    <label>@area.name &nbsp;<span style="color:#cccccc;font-size:18pt" onclick="expand(this,'area-@area.name')">-</span></label>
+                    <div style="padding-left:10px" id="area-@area.name">
+                        @foreach (dp2weixin.service.libModel lib in area.libs)
+                        {
+
+                            <div class="mui-input-row mui-radio mui-left">
+                                <label>@lib.name</label>
+                                <input id='rdLib' name="rdLib" type="radio" @lib.Checked onchange='saveLib(this)' value='@lib.libId'>
+                            </div>
+
+                        }
+                    </div>
+                </div>
+            }
+
+        }
+        
+
+
+    </div>
+
+            <!--
+            <div class="mui-content-padded">
+                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>
+            </div>
+                -->
+}

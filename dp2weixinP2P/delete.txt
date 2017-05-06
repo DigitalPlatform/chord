@@ -1,4 +1,19 @@
-﻿
+﻿==20170506==
+        <table style="width:100%">
+            <tr>
+                <td style="width:100%">
+                    <div class="mui-input-group" style="background-color:white">
+                        <div class="mui-input-row" style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
+                            <label style="color:#cccccc;">图书馆</label>
+                            @Html.Raw(ViewBag.LibHtml)
+                        </div>
+                    </div>
+                
+                </td>
+                <td ><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
+            </tr>
+        </table>
+===
         /*
         public BorrowInfoResult GetPatronBorrowInfos1(string libId,
             string readerBarcode)

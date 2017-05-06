@@ -180,7 +180,61 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
+        [HttpPost]
+        public ApiResult SetLibId(string weixinId, string libId)
+        {
+            ApiResult result = new ApiResult();
+            string error = "";
+            try
+            {
+                string temp = libId;
+                string libraryCode = "";
+                int nIndex = libId.IndexOf("~");
+                if (nIndex > 0)
+                {
+                    libId = temp.Substring(0, nIndex);
+                    libraryCode = temp.Substring(nIndex + 1);
+                }
 
+
+                // 保存设置
+                UserSettingDb.Current.UpdateLibId(weixinId, libId, libraryCode);// (item);
+
+                // 2016-8-13 jane 检查微信用户对于该馆是否设置了活动账户
+                dp2WeiXinService.Instance.CheckUserActivePatron(weixinId, libId);
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+                goto ERROR1;
+            }
+
+            //======================
+            // 更新session信息
+            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            {
+                error = "session失效。";
+                goto ERROR1;
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            if (sessionInfo == null)
+            {
+                error = "session失效2。";
+                goto ERROR1;
+            }
+            int nRet = sessionInfo.SetCurInfo(out error);
+            if (nRet == -1)
+                goto ERROR1;
+
+            //===================
+
+            return result;
+
+        ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = error;
+            return result;
+        }
 
         // 绑定
         [HttpPost]

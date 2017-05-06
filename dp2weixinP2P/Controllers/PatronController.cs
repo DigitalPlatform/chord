@@ -20,6 +20,85 @@ namespace dp2weixinWeb.Controllers
 {
     public class PatronController : BaseController
     {
+        public ActionResult SelectLib()
+        {
+            string strError = "";
+
+            SessionInfo sessionInfo = this.GetSessionInfo();
+
+            // 2017-2-28不可能出现这种情况了
+            if (sessionInfo == null)
+            {
+                //string libHomeUrl = dp2WeiXinService.Instance.GetOAuth2Url(sessionInfo.gzh, "Library/Home");
+                strError = "页面超时，请从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
+                goto ERROR1;
+            }
+            // 检查session是否超时
+            if (String.IsNullOrEmpty(sessionInfo.WeixinId) == true)
+            {
+                strError = "异常：没有weixinId。";
+                goto ERROR1;
+            }
+            ViewBag.weixinId = sessionInfo.WeixinId; 
+
+            List<Area> areaList = new List<Area>();
+
+            Area area1 = new Area();
+            area1.name="北京";
+            area1.libs = new List<libModel>();
+            areaList.Add(area1);
+            libModel lib11 = new libModel();
+            lib11.name = "中央编译局";
+            lib11.capoUser = "capo11";
+            area1.libs.Add(lib11);
+
+
+
+            Area area2 = new Area();
+            area2.name = "天津";
+            area2.libs = new List<libModel>();
+            areaList.Add(area2);
+            libModel lib21 = new libModel();
+            lib21.name = "天津实验中学";
+            lib21.capoUser = "capo21";
+            lib21.libId = "58be43c39bc17b5dc88114df";
+            area2.libs.Add(lib21);
+            libModel lib22 = new libModel();
+            lib22.name = "南大附中";
+            lib22.capoUser = "capo22";
+            area2.libs.Add(lib22);
+            libModel lib23 = new libModel();
+            lib23.name = "崇化中学";
+            lib23.capoUser = "capo23";
+            area2.libs.Add(lib23);
+
+
+            Area area3 = new Area();
+            area3.name = "天津南开联盟";
+            area3.libs = new List<libModel>();
+            areaList.Add(area3);
+            libModel lib31 = new libModel();
+            lib31.name = "宜宾里小学";
+            lib31.libId = "586ec3459bc17b1ab0a2a358~宜宾里小学";
+            lib31.libraryCode = "宜宾里小学";
+            lib31.capoUser = "capo11";
+            area3.libs.Add(lib31);
+            libModel lib32 = new libModel();
+            lib32.name = "六十三中";
+            lib32.capoUser = "capo12";
+            lib32.libId = "586ec3459bc17b1ab0a2a358~六十三中";
+            lib31.libraryCode = "六十三中";
+            area3.libs.Add(lib32);
+
+            ViewBag.areaList = areaList;
+
+            return View();
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
         public ActionResult Setting(string code, string state, string returnUrl)
         {
             // 检查是否从微信入口进来

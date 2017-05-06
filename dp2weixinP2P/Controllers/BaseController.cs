@@ -287,10 +287,11 @@ namespace dp2weixinWeb.Controllers
 
 
 
-            string libName = sessionInfo.CurrentLib.Entity.libName;
+            string libName = sessionInfo.CurrentLibName;//sessionInfo.CurrentLib.Entity.libName;
             string libId = sessionInfo.CurrentLib.Entity.id;
 
             ViewBag.LibName = "[" + libName + "]";
+            ViewBag.PureLibName = libName;
             ViewBag.LibId = libId;
             ViewBag.showPhoto = sessionInfo.showPhoto;
             ViewBag.showCover = sessionInfo.showCover;

@@ -8,6 +8,23 @@ using System.Xml;
 
 namespace dp2weixin.service
 {
+    public class Area
+    {
+        public string name = "";
+        public List<libModel> libs = new List<libModel>();
+    }
+
+    public class libModel
+    {
+        public string name = "";
+
+        public string Checked = "";
+        public string capoUser = "";
+        public string libId = "";
+        public string libraryCode = "";
+    }
+
+
     public class Location
     {
         public string Name = "";
