@@ -54,6 +54,7 @@
                 libName: ko.observable(""),
                 capoUserName: ko.observable(""),
                 capoContactPhone: ko.observable(""),
+                area:ko.observable(""),
 
                 wxUserName: ko.observable(""),
                 wxPassword: ko.observable(""),
@@ -324,6 +325,12 @@
             // 图书馆联系人员手机
             var capoContactPhone = model.editor.capoContactPhone().trim();
 
+            var area = model.editor.area().trim();
+            if (area == "") {
+                alert("尚未输入地区。");
+                return;
+            }
+
             // 微信端本方账户
             var wxUserName = model.editor.wxUserName().trim();
             if (wxUserName == "") {
@@ -406,6 +413,7 @@
                     libName: libName,
                     capoUserName: capoUserName,
                     capoContactPhone: capoContactPhone,
+                    area: area,
                     wxUserName: wxUserName,
                     wxPassword: wxPassword,
                     wxContactPhone: wxContactPhone,
@@ -424,6 +432,7 @@
             model.editor.libName("");
             model.editor.capoUserName("");
             model.editor.capoContactPhone("");
+            model.editor.area("");
 
             model.editor.wxUserName("");
             model.editor.wxPassword("");
@@ -469,6 +478,7 @@
             model.editor.libName(item.libName);
             model.editor.capoUserName(item.capoUserName);
             model.editor.capoContactPhone(item.capoContactPhone);
+            model.editor.area(item.area);
 
             model.editor.wxUserName(item.wxUserName);
             model.editor.wxPassword(item.wxPassword);
@@ -581,6 +591,10 @@
                     <td class="value" data-bind="text:capoContactPhone"></td>
                 </tr>
                 <tr>
+                    <td class="label">地区</td>
+                    <td class="value" data-bind="text:area"></td>
+                </tr>
+                <tr>
                     <td class="label">微信端本方账户名</td>
                     <td class="value" data-bind="text:wxUserName"></td>
                 </tr>
@@ -652,6 +666,11 @@
         <div class="mui-input-row ">
             <label class="leftLabel">图书馆联系人手机号</label>
             <input id="capoContactPhone" type="text" class="mui-input mui-input-clear" placeholder="请输入  图书馆联系人手机号" data-bind="value:model.editor.capoContactPhone">
+        </div>
+
+        <div class="mui-input-row">
+            <label class="leftLabel">地区</label>
+            <input id="area" style="background-color:#EEEEEE" type="text" class="mui-input mui-input-clear" data-bind="value:model.editor.area">
         </div>
     </div>
     <br />

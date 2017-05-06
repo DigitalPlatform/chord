@@ -88,6 +88,8 @@ namespace dp2weixin.service
         public string weiXinDataDir = "";
         public string weiXinLogDir = "";
         public string _cfgFile = "";      // 配置文件
+        public string libCfgFile = "";
+        public AreaManager areaMgr = null;
 
         // dp2服务器地址与代理账号
         public string dp2MServerUrl = "";
@@ -335,6 +337,20 @@ namespace dp2weixin.service
             {
                 throw new Exception("配置文件" + this._cfgFile + "不存在。");
             }
+
+            //libcfg.xml
+            this.libCfgFile = this.weiXinDataDir + "\\" + "libcfg.xml";
+            if (File.Exists(this.libCfgFile) == false)
+            {
+                XmlDocument dom1 = new XmlDocument();
+                dom1.LoadXml("<root/>");
+                dom1.Save(this.libCfgFile);
+                //throw new Exception("配置文件" + this.libCfgFile + "不存在。");
+            }
+            this.areaMgr = new AreaManager();
+            nRet = areaMgr.init(this.libCfgFile, out strError);
+            if (nRet == -1)
+                throw new Exception(strError);
 
             // 日志目录
             this.weiXinLogDir = this.weiXinDataDir + "/log";
@@ -10041,6 +10057,9 @@ public string ErrorCode { get; set; }
             // 从mongodb中删除
             LibDatabase.Current.Delete(id);
             this.LibManager.DeleteLib(id);
+
+            this.areaMgr.DelLib(id, lib.libName);
+            this.areaMgr.Save2Xml();
 
             return result;
 

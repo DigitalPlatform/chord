@@ -62,7 +62,7 @@
 
 
             }
-            alert("[" + lib + "]");
+            //alert("[" + lib + "]");
 
             //显示等待图层
             showMaskLayer();
@@ -82,6 +82,13 @@
                         return;
                     }
 
+                    // 返回到来源页
+                    var returnUrl = $("#returnUrl").text();
+                    if (returnUrl != null && returnUrl != "") {
+                        gotoUrl(returnUrl);
+                    }
+   
+
                 },
                 function (xhq, textStatus, errorThrown) {
                     // 关闭等待层
@@ -89,8 +96,8 @@
                     alert(errorThrown);
                 });
 
-            var url = "/Patron/Setting";
-            gotoUrl(url);
+            //var url = "/Patron/Setting";
+            //gotoUrl(url);
                 
         }
 
@@ -129,8 +136,8 @@ else
                         {
 
                             <div class="mui-input-row mui-radio mui-left">
-                                <label>@lib.name</label>
-                                <input id='rdLib' name="rdLib" type="radio" @lib.Checked onchange='saveLib(this)' value='@lib.libId'>
+                                <label>@lib.name @lib.bindFlag</label>
+                                <input id='rdLib' name="rdLib" type="radio" @lib.Checked onchange='saveLib(this)' value='@lib.FullLibId'>
                             </div>
 
                         }

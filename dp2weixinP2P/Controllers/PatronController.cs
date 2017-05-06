@@ -20,9 +20,16 @@ namespace dp2weixinWeb.Controllers
 {
     public class PatronController : BaseController
     {
-        public ActionResult SelectLib()
+        public ActionResult SelectLib(string returnUrl)
         {
             string strError = "";
+            // 检查是否从微信入口进来
+            int nRet = this.CheckIsFromWeiXin("", "", out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+            ViewBag.returnUrl = returnUrl;
 
             SessionInfo sessionInfo = this.GetSessionInfo();
 
@@ -39,64 +46,45 @@ namespace dp2weixinWeb.Controllers
                 strError = "异常：没有weixinId。";
                 goto ERROR1;
             }
-            ViewBag.weixinId = sessionInfo.WeixinId; 
 
-            List<Area> areaList = new List<Area>();
+            // 得到该微信用户绑定过的图书馆列表
+            //List<string> libs = WxUserDatabase.Current.GetLibsByWeixinId(sessionInfo.WeixinId);
 
-            Area area1 = new Area();
-            area1.name="北京";
-            area1.libs = new List<libModel>();
-            areaList.Add(area1);
-            libModel lib11 = new libModel();
-            lib11.name = "中央编译局";
-            lib11.capoUser = "capo11";
-            area1.libs.Add(lib11);
+            List<WxUserItem> list = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
 
+            foreach(Area area in dp2WeiXinService.Instance.areaMgr.areas)
+            {
+                foreach (libModel lib in area.libs)
+                {
+                    lib.Checked = "";
+                    lib.bindFlag = "";
 
+                    //
+                    if (this.CheckIsBind(list, lib) == true)  //libs.Contains(lib.libId)
+                        lib.bindFlag = " * ";
 
-            Area area2 = new Area();
-            area2.name = "天津";
-            area2.libs = new List<libModel>();
-            areaList.Add(area2);
-            libModel lib21 = new libModel();
-            lib21.name = "天津实验中学";
-            lib21.capoUser = "capo21";
-            lib21.libId = "58be43c39bc17b5dc88114df";
-            area2.libs.Add(lib21);
-            libModel lib22 = new libModel();
-            lib22.name = "南大附中";
-            lib22.capoUser = "capo22";
-            area2.libs.Add(lib22);
-            libModel lib23 = new libModel();
-            lib23.name = "崇化中学";
-            lib23.capoUser = "capo23";
-            area2.libs.Add(lib23);
+                    if (lib.libId == sessionInfo.CurrentLib.Entity.id && lib.name == sessionInfo.CurrentLibName)
+                        lib.Checked = " checked ";
+                }
+            }
 
-
-            Area area3 = new Area();
-            area3.name = "天津南开联盟";
-            area3.libs = new List<libModel>();
-            areaList.Add(area3);
-            libModel lib31 = new libModel();
-            lib31.name = "宜宾里小学";
-            lib31.libId = "586ec3459bc17b1ab0a2a358~宜宾里小学";
-            lib31.libraryCode = "宜宾里小学";
-            lib31.capoUser = "capo11";
-            area3.libs.Add(lib31);
-            libModel lib32 = new libModel();
-            lib32.name = "六十三中";
-            lib32.capoUser = "capo12";
-            lib32.libId = "586ec3459bc17b1ab0a2a358~六十三中";
-            lib31.libraryCode = "六十三中";
-            area3.libs.Add(lib32);
-
-            ViewBag.areaList = areaList;
+            ViewBag.areaList = dp2WeiXinService.Instance.areaMgr.areas;
 
             return View();
 
         ERROR1:
             ViewBag.Error = strError;
             return View();
+        }
+
+        public bool CheckIsBind(List<WxUserItem> list, libModel lib)
+        {
+            foreach (WxUserItem user in list)
+            {
+                if (user.libId == lib.libId && user.libraryCode == lib.libraryCode)
+                    return true;
+            }
+            return false;
         }
 
         public ActionResult Setting(string code, string state, string returnUrl)

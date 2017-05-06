@@ -406,7 +406,7 @@
 
         function gotoSelectLib()
         {
-            var url = "/Patron/SelectLib";
+            var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent("/Patron/Setting");
             gotoUrl(url);
         }
 
@@ -448,7 +448,6 @@ else
                             <input type="text" class="mui-input mui-input-clear"  id="txtLib" readonly value="@ViewBag.PureLibName">
                         </div>
                     </div>
-                
                 </td>
                 <td ><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
             </tr>

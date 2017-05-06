@@ -33,7 +33,7 @@
         function bind() {
 
             // 图书馆
-            var libId = $("#selLib").val();  // 2016-8-13 jane加入选择图书馆项，而不是从设置来 getLibId();//
+            var libId = $("#libId").text();//$("#selLib").val();  // 2016-8-13 jane加入选择图书馆项，而不是从设置来 getLibId();//
             if (libId == "" || libId == null) {
                 alert("您尚未选择图书馆。");
                 return;
@@ -194,6 +194,11 @@
 
         }
 
+        function gotoSelectLib() {
+            var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent("/Account/Bind");
+            gotoUrl(url);
+        }
+
     </script>
 }
 
@@ -201,6 +206,7 @@
         <h1 class="mui-title">绑定账号</h1>
 }
 <span id="weixinId" style="display:none">@ViewBag.weixinId</span>
+<span id="libId" style="display:none">@ViewBag.LibId</span>
 <span id="returnUrl" style="display:none">@ViewBag.ReturnUrl</span>
 
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
@@ -214,11 +220,30 @@
 else
 {
 
+
+
     <div class="mui-input-group">
+        <!--
         <div class="mui-input-row ">
             <label style="color:#cccccc">图书馆</label>
             @Html.Raw(ViewBag.LibHtml)
         </div>
+-->
+
+        <table style="width:100%">
+            <tr>
+                <td style="width:100%">
+                    <div class="mui-input-group" style="background-color:white">
+                        <div class="mui-input-row">
+                            <label style="color:#cccccc;">图书馆</label>
+                            <input type="text" class="mui-input mui-input-clear" id="txtLib" readonly value="@ViewBag.PureLibName">
+                        </div>
+                    </div>
+                </td>
+                <td><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
+            </tr>
+        </table>
+
         <div class="mui-input-row ">
             <label style="color:#cccccc">绑定方式</label>
             <select id="selPrefix"  name="selPrefix" onchange="prefixChange()" data-bind="value:model.prefix">
