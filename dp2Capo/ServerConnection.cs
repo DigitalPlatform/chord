@@ -1449,7 +1449,7 @@ strError);
                                  strResultSetName,
                                  "", // strSearchStyle
                                  "", // strOutputStyle
-                                 "",
+                                 searchParam.Filter,
                                  out strQueryXml,
                                  out strError);
                             writeDebug("searchBiblio() lRet=" + lRet
