@@ -68,10 +68,12 @@ namespace dp2weixin.service
                     if (String.IsNullOrEmpty(settingItem.libraryCode) == false)
                     {
                         this.CurrentLibName = settingItem.libraryCode;
+                        this.CurLibraryCode = settingItem.libraryCode;
                     }
                     else
                     {
                         this.CurrentLibName = this.CurrentLib.Entity.libName;
+                        this.CurLibraryCode = "";
                     }
 
 
@@ -147,6 +149,7 @@ namespace dp2weixin.service
 
         public Library CurrentLib = null;
         public string CurrentLibName = "";
+        public string CurLibraryCode = "";
         public UserSettingItem settingItem = null;
         public int showPhoto = 0; //显示头像
         public int showCover = 0;//显示封面

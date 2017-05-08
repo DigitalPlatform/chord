@@ -579,7 +579,8 @@ namespace dp2weixin.service
         //public string appId { get; set; }   
 
         public string weixinId { get; set; }   
-        public string libId { get; set; }     
+        public string libId { get; set; }
+        public string bindLibraryCode { get; set; }     
 
         public string prefix { get; set; }  //必须设为属性，才能在前端传值。
         public string word { get; set; }

@@ -1109,6 +1109,9 @@ namespace dp2weixin.service
                 return -1;
             }
 
+            // 20170508 发现民族所的校验码没有发送成功，这里特别写一个日志
+            WriteLog1("发送校验码成功:" + strBody);
+
             return 0;
         }
 
@@ -3428,7 +3431,7 @@ ErrorInfo成员里可能会有报错信息。
         /// <param name="weixinId"></param>
         /// <param name="libId"></param>
         /// <param name="bookSubject"></param>
-        public void UpdateUserSetting(string weixinId, string libId, string bookSubject, bool bCheckActiveUser, string patronRefID)
+        public void UpdateUserSetting(string weixinId, string libId, string libraryCode,string bookSubject, bool bCheckActiveUser, string patronRefID)
         {
             if (bookSubject == null)
                 bookSubject = "";
@@ -3439,6 +3442,7 @@ ErrorInfo成员里可能会有报错信息。
                 settingItem = new UserSettingItem();
                 settingItem.weixinId = weixinId;
                 settingItem.libId = libId;
+                settingItem.libraryCode = libraryCode;
                 settingItem.showCover = 1;
                 settingItem.showPhoto = 1;
 
@@ -3456,6 +3460,12 @@ ErrorInfo成员里可能会有报错信息。
                     if (settingItem.libId != libId)
                     {
                         settingItem.libId = libId;
+                    }
+
+                    if (libraryCode != null)
+                    {
+                        if (settingItem.libraryCode != libraryCode)
+                            settingItem.libraryCode = libraryCode;
                     }
                 }
 
@@ -3713,6 +3723,7 @@ public string ErrorCode { get; set; }
         /// <returns></returns>
         public int ResetPassword(string weixinId,
             string libId,
+            string libraryCode,
             string name,
             string tel,
             out string patronBarcode,
@@ -3798,7 +3809,7 @@ public string ErrorCode { get; set; }
             }
 
             // 2016-8-13 jane 自动修改设置的图书馆
-            this.UpdateUserSetting(weixinId, libId, "", true, null);
+            this.UpdateUserSetting(weixinId, libId,libraryCode, "", true, null);
 
 
             // 发送短信
@@ -4003,6 +4014,7 @@ public string ErrorCode { get; set; }
         /// 0 成功
         /// </returns>
         public int Bind(string libId,
+            string bindLibraryCode,  //20170507 绑定时选择的分馆
             string strPrefix,
             string strWord,
             string strPassword,
@@ -4020,6 +4032,11 @@ public string ErrorCode { get; set; }
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
                 return -1;
             }
+
+            // 如果传了分馆，绑定帐户表中的馆名称为分馆名称，用于显示和发通过提醒
+            string libName = lib.libName;
+            if (string.IsNullOrEmpty(bindLibraryCode) == false)
+                libName = bindLibraryCode;
 
 
             string strFullWord = strWord;
@@ -4057,7 +4074,7 @@ public string ErrorCode { get; set; }
                     cancel_token).Result;
                 if (result.Value == -1)
                 {
-                    strError = this.GetFriendlyErrorInfo(result, lib.libName); //result.ErrorInfo;
+                    strError = this.GetFriendlyErrorInfo(result, libName); //result.ErrorInfo;
                     if (String.IsNullOrEmpty(strError) == true)
                     {
                         strError = "用户名或密码不正确。";
@@ -4109,6 +4126,16 @@ public string ErrorCode { get; set; }
                     location = patronInfo.location;
                 }
 
+                // 对应的分馆名称，以绑定返回的实际分馆名称为准 20170507
+                if (String.IsNullOrEmpty(bindLibraryCode) == false
+                    && String.IsNullOrEmpty(libraryCode) == false
+                    && bindLibraryCode != libraryCode)
+                {
+                    libName = libraryCode;
+                    bindLibraryCode = libraryCode;
+                }
+
+
                 // 找到库中对应的记录
                 if (type == 0)
                 {
@@ -4128,7 +4155,7 @@ public string ErrorCode { get; set; }
                 }
 
                 userItem.weixinId = weixinId;
-                userItem.libName = lib.libName;
+                userItem.libName = libName;
                 userItem.libId = lib.id;
 
                 userItem.readerBarcode = readerBarcode;
@@ -4188,7 +4215,7 @@ public string ErrorCode { get; set; }
                 }
 
                 // 2016-8-13 jane 自动修改当前的图书馆
-                this.UpdateUserSetting(weixinId, libId, "", true, refID);//,因为有工作人员的情况，这里要传true
+                this.UpdateUserSetting(weixinId, libId, bindLibraryCode, "", true, refID);//,因为有工作人员的情况，这里要传true
 
 
                 // 发送绑定成功的客服消息    
@@ -4354,12 +4381,18 @@ public string ErrorCode { get; set; }
                 this.LibManager.UpdateBindCount(lib.id);
 
 
+                string newLibId = lib.id;
+                string newLibraryCode = null;
                 string refID = "";
                 if (newActivePatron != null)
+                {
                     refID = newActivePatron.refID;
+                    newLibId = newActivePatron.libId;
+                    newLibraryCode = newActivePatron.libraryCode;
+                }
 
                 // 更新图书馆设置
-                this.UpdateUserSetting(weixinId, lib.id, null, false, refID);
+                this.UpdateUserSetting(weixinId,newLibId,null, null, false, refID);  //注意这里的librarycode传的null
 
                 // 发送解绑消息    
                 string strFirst = "☀您已成功对图书馆读者账号解除绑定。";
@@ -5983,7 +6016,7 @@ public string ErrorCode { get; set; }
             bool bCanReservation = false;
             string returnUrl = "/Biblio/Index";
             string reservationInfo = "<span class='remark'>您尚未绑定当前选择图书馆的读者账号，所以看不到预约信息，"
-                + "点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Bind?returnUrl="
+                + "点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/3?returnUrl="
                 + HttpUtility.UrlEncode(returnUrl) + "\")'>这里</a>绑定读者帐号。</span>";
 
             // 得到预约信息
@@ -9284,7 +9317,7 @@ public string ErrorCode { get; set; }
             List<WxUserItem> activeUserList = WxUserDatabase.Current.GetActivePatrons();
             foreach (WxUserItem activeUser in activeUserList)
             {
-                UpdateUserSetting(activeUser.weixinId, activeUser.libId, null, false, activeUser.refID); // todo 这里的libid有没有错
+                UpdateUserSetting(activeUser.weixinId, activeUser.libId, activeUser.libraryCode, null, false, activeUser.refID); // todo 这里的libid有没有错
             }
 
 

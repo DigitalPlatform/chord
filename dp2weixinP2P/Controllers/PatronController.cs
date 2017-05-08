@@ -81,8 +81,18 @@ namespace dp2weixinWeb.Controllers
         {
             foreach (WxUserItem user in list)
             {
-                if (user.libId == lib.libId && user.libraryCode == lib.libraryCode)
+                if (user.libId == lib.libId)
+                {
+                    if (string.IsNullOrEmpty(lib.libraryCode)==false)
+                    {
+                        if (user.libraryCode == lib.libraryCode)
+                            return true;
+                        else
+                            return false;
+                    }
+
                     return true;
+                }
             }
             return false;
         }

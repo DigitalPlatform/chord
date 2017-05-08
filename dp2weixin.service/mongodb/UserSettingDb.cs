@@ -134,7 +134,7 @@ namespace dp2weixin.service
                 .Set("showCover", item.showCover)
                 .Set("xml", item.xml)
                 .Set("patronRefID", item.patronRefID)
-                .Set("libraryCode", "")
+                .Set("libraryCode", item.libraryCode)
                 ;
 
             UpdateResult ret = this.settingCollection.UpdateOne(filter, update);

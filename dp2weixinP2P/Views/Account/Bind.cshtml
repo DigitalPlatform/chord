@@ -37,7 +37,11 @@
             if (libId == "" || libId == null) {
                 alert("您尚未选择图书馆。");
                 return;
-            }  
+            }
+
+            var libraryCode = $("#libraryCode").text();
+            if (libraryCode == null)
+                libraryCode = "";
 
             // 绑定方式
             var prefix = model.prefix().trim();
@@ -129,7 +133,8 @@
                     prefix: prefix,
                     word: word,
                     password: password,
-                    libId: libId
+                    libId: libId,
+                    bindLibraryCode: libraryCode
                 }
             );
         }
@@ -207,6 +212,7 @@
 }
 <span id="weixinId" style="display:none">@ViewBag.weixinId</span>
 <span id="libId" style="display:none">@ViewBag.LibId</span>
+<span id="libraryCode" style="display:none">@ViewBag.LibraryCode</span>
 <span id="returnUrl" style="display:none">@ViewBag.ReturnUrl</span>
 
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)

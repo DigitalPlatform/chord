@@ -19,6 +19,11 @@ namespace dp2weixinWeb.ApiControllers
         {
             WxUserResult result = new WxUserResult();
             List<WxUserItem> list = wxUserDb.Get(null,null,-1,null,null,false);//.GetUsers();
+            foreach (WxUserItem user in list)
+            {
+                if (String.IsNullOrEmpty(user.libraryCode) == false)
+                    user.libName = user.libraryCode;
+            }
             result.users = list;
             return result;
         }
@@ -60,6 +65,7 @@ namespace dp2weixinWeb.ApiControllers
         [HttpPost]
         public ApiResult ResetPassword(string weixinId,
             string libId,
+            string libraryCode,
             string name, 
             string tel)
         {
@@ -69,6 +75,7 @@ namespace dp2weixinWeb.ApiControllers
             string patronBarcode = "";
             int nRet = dp2WeiXinService.Instance.ResetPassword(weixinId,
                 libId,
+                libraryCode,
                 name,
                 tel,
                 out patronBarcode,
@@ -240,6 +247,9 @@ namespace dp2weixinWeb.ApiControllers
         [HttpPost]
         public WxUserResult Bind(BindItem item)
         {
+            if (item.bindLibraryCode == null)
+                item.bindLibraryCode = "";
+
             // 返回对象
             WxUserResult result = new WxUserResult();
 
@@ -249,6 +259,7 @@ namespace dp2weixinWeb.ApiControllers
             WxUserItem userItem = null;
             string error="";
             int nRet= dp2WeiXinService.Instance.Bind(item.libId,
+                item.bindLibraryCode,
                 item.prefix,
                 item.word,
                 item.password,
@@ -330,7 +341,7 @@ namespace dp2weixinWeb.ApiControllers
                 WxUserDatabase.Current.SetActivePatron(user.weixinId, user.id);
 
                 // 自动更新设置的当前图书馆
-                dp2WeiXinService.Instance.UpdateUserSetting(user.weixinId, user.libId, "",false,user.refID);
+                dp2WeiXinService.Instance.UpdateUserSetting(user.weixinId, user.libId, user.libraryCode,"",false,user.refID);
             }
         }
 
