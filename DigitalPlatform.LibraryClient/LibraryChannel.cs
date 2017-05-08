@@ -2791,7 +2791,7 @@ out strError);
                     out strXml,
                     out lHintNext,
                     out attachment_data,
-                    out lAttachmentTotalLength,                                        strFileName,
+                    out lAttachmentTotalLength, strFileName,
                     lIndex,
                     lHint,
                     strStyle,
@@ -3812,30 +3812,54 @@ out strError);
             }
         }
 
+        public long VerifyBarcode(
+    string strLibraryCode,
+    string strBarcode,
+    out string strError)
+        {
+            string strOutputBarcode = "";
+            return VerifyBarcode(
+                "",
+    strLibraryCode,
+    strBarcode,
+    out strOutputBarcode,
+    out strError);
+        }
+
         // 校验条码
         /// <summary>
         /// 校验条码号
         /// </summary>
         /// <param name="stop"></param>
+        /// <param name="strAction">动作</param>
         /// <param name="strLibraryCode">馆代码</param>
         /// <param name="strBarcode">条码号</param>
+        /// <param name="strOutputBarcode">返回变换后的条码号</param>
         /// <param name="strError">返回出错信息</param>
         /// <returns>
         /// <para>-1:   出错</para>
         /// <para>0/1/2:    分别对应“不合法的标码号”/“合法的读者证条码号”/“合法的册条码号”</para>
         /// </returns>
         public long VerifyBarcode(
-            // DigitalPlatform.Stop stop,
+            string strAction,
             string strLibraryCode,
             string strBarcode,
+            out string strOutputBarcode,
             out string strError)
         {
             strError = "";
+            strOutputBarcode = "";
 
         REDO:
             try
             {
-                LibraryServerResult result = this.ws.VerifyBarcode(strLibraryCode,
+                //dp2libraryClient ws0 = null;
+                //ws0.VerifyBarcode(out strOutputBarcode, strAction, strLibraryCode, strBarcode);
+
+                LibraryServerResult result = this.ws.VerifyBarcode(
+                    out strOutputBarcode,
+                    strAction,
+                    strLibraryCode,
                     strBarcode);
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {

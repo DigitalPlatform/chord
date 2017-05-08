@@ -119,6 +119,12 @@ namespace dp2Router
                             cache,
                             (headers) =>
                             {
+#if NO
+                                StringBuilder text = new StringBuilder();
+                                text.Append(string.Join("\r\n", headers.Select(x => string.Format("{0}: {1}", x.Key, x.Value))));
+                                Console.WriteLine("=== headers ===\r\n" + text.ToString());
+#endif
+
                                 if (headers.ContainsKey("User-Agent") == false)
                                     return false;
                                 if (headers["User-Agent"] != "dp2LibraryClient")
@@ -133,7 +139,11 @@ namespace dp2Router
                         }
                         Console.WriteLine("request " + i);
 
-                        channel.Touch();
+                        TimeSpan timeout = GetTimeout(request);
+                        if (timeout != TimeSpan.MinValue)
+                            channel.Touch(timeout);
+                        else
+                            channel.Touch();
 
                         // 添加头字段 _dp2router_clientip
                         request.Headers.Add("_dp2router_clientip", ip);
@@ -141,7 +151,7 @@ namespace dp2Router
                         // Console.WriteLine("=== request ===\r\n" + request.Dump());
                         // ServerInfo.WriteErrorLog("=== request ===\r\n" + request.Dump());
 
-                        HttpResponse response = await ServerInfo.WebCall(request, "content");   // content text.utf-7
+                        HttpResponse response = await ServerInfo.WebCall(request, "content", timeout);   // content text.utf-7
                         channel.Touch();
                         // string content = response.GetContentString();
 
@@ -195,6 +205,29 @@ namespace dp2Router
             {
                 ServerInfo._httpChannels.Remove(channel);
             }
+        }
+
+        static string TIMEOUT_HEADER = "_timeout";
+
+        // 从 HTTP header 里面剖析 _timeout field
+        // return:
+        //      TimeSpan.MinValue   当 Headers 里面没有 _timeout field 的时候返回这个
+        //      其它  超时时间值
+        static TimeSpan GetTimeout(HttpRequest request)
+        {
+            TimeSpan result = TimeSpan.MinValue;
+            if (request.Headers.ContainsKey(TIMEOUT_HEADER))
+            {
+                string strTimeout = request.Headers[TIMEOUT_HEADER];
+                if (string.IsNullOrEmpty(strTimeout) == false)
+                {
+                    // Console.WriteLine(TIMEOUT_HEADER + "=" + strTimeout);
+                    if (TimeSpan.TryParse(strTimeout, out result) == true)
+                        return result + TimeSpan.FromSeconds(5);    // 额外加上 5 秒
+                }
+            }
+
+            return result;
         }
 
         #endregion

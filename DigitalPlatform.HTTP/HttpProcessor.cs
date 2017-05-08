@@ -191,6 +191,7 @@ namespace DigitalPlatform.HTTP
             return GetResponse(client.GetStream());
         }
 
+        // TODO: 可以根据 http header 中的 _timeout 实现超时机制
         // 将一个请求发送给指定的地址，并获得响应
         public static async Task<HttpResponse> WebCallAsync(HttpRequest request,
             string target_url,

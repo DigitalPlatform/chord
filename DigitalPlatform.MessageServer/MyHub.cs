@@ -4286,8 +4286,8 @@ ex.GetType().ToString());
 
                 if (string.IsNullOrEmpty(userName) == true)
                 {
-                    // return true;    // 也算授权成功，但 request.Environment 里面没有用户对象
-                    return false;   // 不允许没有用户名登录了
+                    return true;    // 也算授权成功，但 request.Environment 里面没有用户对象
+                    // return false;   // 不允许没有用户名登录了
                 }
 
                 string password = request.Headers["password"];
