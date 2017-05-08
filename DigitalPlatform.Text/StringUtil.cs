@@ -14,6 +14,16 @@ namespace DigitalPlatform.Text
     /// </summary>
     public static class StringUtil
     {
+        public static bool IsHttpUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+                return false;
+            url = url.ToLower();
+            if (url.StartsWith("http:") || url.StartsWith("https"))
+                return true;
+            return false;
+        }
+
         // 获得较短一点的 GUID 字符串
         public static string GetShortGuid()
         {
