@@ -386,6 +386,7 @@ namespace DigitalPlatform.Message
         public string MatchStyle { get; set; }  // 匹配方式。为 exact/left/right/middle 之一
         public string ResultSetName { get; set; }   // 检索创建的结果集名。空表示为默认结果集
         public string FormatList { get; set; }  // 返回的数据格式列表
+        public string Filter { get; set; }  // 2017/5/8 过滤条件。比如 LocationFilter
         public long MaxResults { get; set; }    // 本次检索最多命中的记录数。-1 表示不限制
         public long Start { get; set; } // 本次获得结果的开始位置
         public long Count { get; set; } // 本次获得结果的个数。 -1表示尽可能多
@@ -426,6 +427,40 @@ namespace DigitalPlatform.Message
             this.ServerPushEncoding = serverPushEncoding;
         }
 
+        // 多了 filter
+        public SearchRequest(string taskID,
+    LoginInfo loginInfo,
+    string operation,
+    string dbNameList,
+    string queryWord,
+    string useList,
+    string matchStyle,
+    string resultSetName,
+    string formatList,
+            string filter,
+    long maxResults,
+    long start,
+    long count,
+    string serverPushEncoding = "")
+        {
+            this.TaskID = taskID;
+            this.LoginInfo = loginInfo;
+            this.Operation = operation;
+            this.DbNameList = dbNameList;
+            this.QueryWord = queryWord;
+            this.UseList = useList;
+            this.MatchStyle = matchStyle;
+            this.ResultSetName = resultSetName;
+            this.FormatList = formatList;
+            this.Filter = filter;
+            this.MaxResults = maxResults;
+            this.Start = start;
+            this.Count = count;
+            this.ServerPushEncoding = serverPushEncoding;
+        }
+
+
+        // 多了 timeout
         public SearchRequest(string taskID,
             LoginInfo loginInfo,
     string operation,
