@@ -4697,6 +4697,10 @@ public string ErrorCode { get; set; }
             if (nRet == -1)
                 return -1;
 
+            // 获取分馆代码
+            UserSettingItem setting= UserSettingDb.Current.GetByWeixinId(weixinId);
+            string libraryCode = setting.libraryCode;
+
 
             try
             {
@@ -4714,6 +4718,7 @@ public string ErrorCode { get; set; }
                     match,//"middle",
                     resultSet,//"weixin",
                     "id,cols",
+                    libraryCode,//filter 20170509
                     WeiXinConst.C_Search_MaxCount,  //最大数量
                     start,  //每次获取范围
                     count);
