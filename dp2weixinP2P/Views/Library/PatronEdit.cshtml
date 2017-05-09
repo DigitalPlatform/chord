@@ -1,0 +1,356 @@
+﻿@{
+    ViewBag.Title = "PatronEdit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section header {
+    <h1 class="mui-title">读者登记</h1>
+}
+
+@section style {
+    <style>
+        TABLE.patronEdit {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+        }
+
+            TABLE.patronEdit TR TD {
+                border-width: 0px;
+                padding: 2px;
+            }
+
+                TABLE.patronEdit TR TD.value {
+                    padding-left: 5px;
+                }
+
+                TABLE.patronEdit TR TD.label {
+                    min-width: 80px;
+                    width: 80px;
+                    color: #cccccc;
+                    padding-left: 5px;
+                    padding-right: 5px;
+                    text-align: right;
+                }
+
+
+
+    </style>
+}
+
+@section Scripts {
+    <script>
+
+        $(document).ready(function () {
+
+            // 在证条码号处打回车，加载读者
+            $('#txtBarcode').bind('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    load();
+                }
+            });
+        });
+
+        function load() {
+
+            // 图书馆
+            var libId = getLibId();//$("#selLib").val();
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+
+            var patronBarcode = $("#txtBarcode").val();
+            if (patronBarcode == null || patronBarcode == "") {
+                alert("尚未输入读者 证条码号");
+                return;
+            }
+
+            //登录身份
+            var userName = $("#_userName").text();
+
+            //显示等待图层
+            showLoading();
+
+            // 调GetPatron
+            var url = "/api/patron?libId=" + encodeURIComponent(libId)
+                + "&userName=" + encodeURIComponent(userName)
+                + "&patronBarcode=" + encodeURIComponent(patronBarcode)
+            //alert(url);
+            sendAjaxRequest(url, "GET",
+                function (result) {
+
+                    // 关闭等待层
+                    hideLoading();
+                    if (result.errorCode == -1) {
+                        alert("获取读者信息出错：" + result.errorInfo);
+                        return;
+                    }
+                    // 显示读者信息
+                    $("#_recPath").text(result.recPath);
+                    $("#_timestamp").text(result.timestamp);
+
+                    var patron = result.obj;
+                    $("#txtBarcode").val(patron.barcode);
+                    $('#selReaderType').val(patron.fullReaderType);
+                    $("#txtName").val(patron.name);
+                    $('#selGender').val(patron.gender);
+                    $("#txtDepartment").val(patron.department);
+                    $("#txtTel").val(patron.tel);
+                    $("#_bLoad").text("1");
+
+                    var tempRecPath = result.recPath;
+                    var nIndex = tempRecPath.indexOf("/");
+                    if (nIndex != -1) {
+                        tempRecPath = tempRecPath.substring(0,nIndex);
+                    }
+                    $('#selDbName').val(tempRecPath);
+
+                    $("#btnSave").attr("disabled", false);
+
+                }, function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    hideLoading();
+                    alert(errorThrown);
+                });
+        }
+
+        // 新增和保存
+        function save(action) {
+
+            var libId = getLibId(); //$("#selLib").val();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+            var userName = $("#_userName").text();
+            if (userName == "") {
+                alert("异常情况：userName为空。");
+                return;
+            }
+
+            // 记录路径 _recPath
+            var recPath = "";
+            var timestamp = "";
+            var bMergeInfo = false;
+            if (action == "change") {
+                recPath = $("#_recPath").text();
+                if (recPath == "") {
+                    alert("异常情况：读者记录路径为空");
+                    return;
+                }
+
+                timestamp = $("#_timestamp").text();
+                if (timestamp == "") {
+                    alert("异常情况：timestamp为空");
+                    return;
+                }
+
+                var bLoad = $("#_bLoad").text();
+                //alert("[" + bLoad + "]");
+                if (bLoad == "1") {
+                    bMergeInfo = true;
+                }
+            }
+
+            // 证条码号
+            var readerBarcord = $("#txtBarcode").val();
+            if (readerBarcord == "") {
+                alert("读者证条码号不能为空！");
+                return;
+            }
+
+            //读者类型
+            var readerType = $('#selReaderType option:checked').val();
+            if (readerType == "") {
+                //alert("您尚未选择读者类别。");
+                //return;
+            }
+            var nIndex = readerType.indexOf("}");
+            if (nIndex != -1) {
+                readerType = readerType.substring(nIndex + 1).trim();
+            }
+
+            //姓名
+            var name = $("#txtName").val();
+            if (name == "") {
+                alert("姓名不能为空！");
+                return;
+            }
+
+            //性别
+            var gender = $('#selGender option:checked').val();
+            if (gender == "") {
+                alert("您尚未选择性别。");
+                return;
+            }
+
+            // 单位
+            var department = $("#txtDepartment").val();
+            //if (department == "") {
+            //    alert("单位不能为空！");
+            //    return;
+            //}
+
+
+            // 手机号
+            var tel = $("#txtTel").val();
+            //if (tel == "") {
+            //    alert("手机号不能为空！");
+            //    return;
+            //}
+
+            //新增时读者路径
+            if (action == "new") {
+                // 读者库
+                var dbName = $('#selDbName option:checked').val();
+                if (dbName == "") {
+                    alert("您尚未选择读者库。");
+                    return;
+                }
+                var recPath = dbName + "/?";
+            }
+
+            //显示等待图层
+            showMaskLayer();
+
+            // 调Patron的SetPatron()
+            var url = "/api/Patron?libId=" + libId
+                + "&userName=" + encodeURIComponent(userName)
+                + "&action=" + encodeURIComponent(action)
+                + "&recPath=" + encodeURIComponent(recPath)
+                + "&timestamp=" + encodeURIComponent(timestamp)
+            + "&bMergeInfo=" + bMergeInfo;
+
+            sendAjaxRequest(url, "POST",
+                function (result) {
+
+                    // 关闭等待层
+                    hideMaskLayer();
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }
+
+                    $("#_recPath").text(result.recPath);
+                    $("#_timestamp").text(result.timestamp);
+
+                    if (action == "new") {
+                        $("#btnSave").attr("disabled", false);
+                        $("#_bLoad").text("0");
+                        alert("新增读者成功");
+                    }
+
+                    if (action == "change") {
+                        alert("保存读者成功");
+                    }
+
+                    //清空编辑界面信息,todo
+
+                },
+                function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    //layer.close(index);
+                    hideMaskLayer();
+
+                    alert(errorThrown);
+                },
+                {
+                    barcode: readerBarcord,
+                    readerType: readerType,
+                    name: name,
+                    gender: gender,
+                    department: department,
+                    tel: tel
+                }
+            );
+        }
+
+
+    </script>
+}
+<span id="_userName" style="display:none">@ViewBag.userName</span>
+<span id="_recPath" style="display:none"></span>
+<span id="_timestamp" style="display:none"></span>
+<span id="_bLoad" style="display:none">0</span>
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+        <div class="mui-input-group">
+
+            <div class="mui-input-row ">
+                <label id="lblBarcode" style="color:#cccccc;">证条码号</label>
+                <table style="width:65%">
+                    <tr>
+                        <td style="width:100%"><input id='txtBarcode' style="padding:0px;margin:0px" type="text" /></td>
+                        <td><button id='login' class="" onclick="load()" style="border:1px dotted #cccccc;margin-right:2px">装载</button></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="mui-input-row selArrowRightContainer">
+                <label id="lblType" style="color:#cccccc">读者类别</label>
+                @Html.Raw(ViewBag.readerTypeHtml)
+            </div>
+
+
+
+            <div class="mui-input-row ">
+                <label id="lblName" style="color:#cccccc">姓名</label>
+                <input id='txtName' type="text" class="mui-input mui-input-clear">
+            </div>
+
+            <div class="mui-input-row selArrowRightContainer" >
+                <label id="lblGender" style="color:#cccccc">性别</label>
+                <select id="selGender" name="selGender" class='selArrowRight'>
+                    <option value=''>请选择</option>"
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+            </div>
+
+            <div class="mui-input-row ">
+                <label id="lblDepartment" style="color:#cccccc">单位</label>
+                <input id='txtDepartment' type="text" class="mui-input mui-input-clear">
+            </div>
+
+            <div class="mui-input-row ">
+                <label id="lblTel" style="color:#cccccc">手机号</label>
+                <input id='txtTel' type="text" class="mui-input mui-input-clear">
+            </div>
+
+            <div class="mui-input-row selArrowRightContainer" >
+                <label id="lblType" style="color:#cccccc">目标读者库</label>
+                @Html.Raw(ViewBag.readerDbnamesHtml)
+            </div>
+        </div>
+        <div class="mui-content-padded">
+            <table style="width:100%">
+                <tr>
+                    <td>
+                        <button id='btnAdd' class="mui-btn mui-btn-block mui-btn-default" onclick="save('new')">新增</button>
+                    </td>
+                    <td width="10px">&nbsp;</td>
+                    <td>
+                        <button id='btnSave' disabled class="mui-btn mui-btn-block mui-btn-default" onclick="save('change')">保存</button>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+    }
+}
+

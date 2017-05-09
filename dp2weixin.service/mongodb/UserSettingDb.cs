@@ -221,7 +221,9 @@ namespace dp2weixin.service
 
         public int showCover { get; set; }
 
-        public string xml { get; set; }
+        public string xml { get; set; }  //20170509不再使用
+
+        public string bookSubject { get; set; } // 20170509加
 
         public string patronRefID { get; set; }
 

@@ -47,6 +47,7 @@
         //保存选择的馆藏地到服务器
         function saveLib() {
 
+            //alert("走到saveLib");
             // 微信id
             var weixinId = $("#weixinId").text();
             if (weixinId == "") {
@@ -70,6 +71,7 @@
             //window.setTimeout("hideMaskLayer()", 5000);
             var url = "/api/wxuser?weixinId=" + weixinId
                 + "&libId=" + encodeURIComponent(lib);
+            //alert(url);
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -82,10 +84,17 @@
                         return;
                     }
 
+                    //alert("成功返回");
+
                     // 返回到来源页
                     var returnUrl = $("#returnUrl").text();
                     if (returnUrl != null && returnUrl != "") {
                         gotoUrl(returnUrl);
+                    }
+                    else {
+
+                        // 重新加载页面
+                        window.location.reload();
                     }
    
 
@@ -137,7 +146,7 @@ else
 
                             <div class="mui-input-row mui-radio mui-left">
                                 <label>@lib.name <span style="color:red">@lib.bindFlag</span></label>
-                                <input id='rdLib' name="rdLib" type="radio" @lib.Checked onchange='saveLib(this)' value='@lib.FullLibId'>
+                                <input id='rdLib' name="rdLib" type="radio" @lib.Checked onchange='saveLib()' value='@lib.FullLibId'>
                             </div>
 
                         }

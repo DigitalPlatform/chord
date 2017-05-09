@@ -182,6 +182,7 @@
     <Content Include="Content\themes\base\tabs.css" />
     <Content Include="Content\themes\base\theme.css" />
     <Content Include="Content\themes\base\tooltip.css" />
+    <Content Include="customer.html" />
     <Content Include="delete.txt" />
     <Content Include="delete2.txt" />
     <Content Include="DongshifangMessageInterface.dll">

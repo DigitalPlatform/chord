@@ -98,6 +98,8 @@ namespace dp2weixin.service
                 // 找可访问的第一个图书馆 2016-11-22
                 string firstLibId = this.libIds[0];
                 CurrentLib = dp2WeiXinService.Instance.LibManager.GetLibrary(firstLibId);
+                this.CurrentLibName = CurrentLib.Entity.libName;
+
             }
             if (CurrentLib == null)
             {

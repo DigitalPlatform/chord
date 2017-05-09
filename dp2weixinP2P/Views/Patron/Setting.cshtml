@@ -13,6 +13,10 @@
                 return;
             }
 
+            var libraryCode = $("#libraryCode").text();
+            if (libraryCode == null)
+                libraryCode = "";
+
             //alert(libId);
 
             // 微信id
@@ -107,6 +111,7 @@
                 {
                     weixinId: weixinId,
                     libId: libId,
+                    libraryCode:libraryCode,
                     showPhoto: showPhoto,
                     showCover: showCover
                 }
