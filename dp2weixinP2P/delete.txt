@@ -1,4 +1,105 @@
-﻿
+﻿==绑定界面
+
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">图书馆</label>
+            @Html.Raw(ViewBag.LibHtml)
+        </div>
+
+===
+            /*
+            List<Area> areaList = new List<Area>();
+            XmlDocument dom = new XmlDocument();
+            dom.Load(dp2WeiXinService.Instance.libCfgFile);
+            XmlNode root = dom.DocumentElement;
+            XmlNodeList areaNodes = root.SelectNodes("area");
+            foreach (XmlNode areaNode in areaNodes)
+            {
+                string areaName = DomUtil.GetAttr(areaNode, "name");
+                Area area = new Area();
+                area.name = areaName;
+                areaList.Add(area);
+
+                XmlNodeList libNodes = areaNode.SelectNodes("lib");
+                foreach (XmlNode libNode in libNodes)
+                {
+                    string id = DomUtil.GetAttr(libNode, "id");
+                    string name = DomUtil.GetAttr(libNode, "name");
+                    string libraryCode = DomUtil.GetAttr(libNode, "libraryCode");
+                    libModel lib = new libModel();
+                    lib.libId = id;
+                    lib.name = name;
+                    lib.libraryCode = libraryCode;
+                    area.libs.Add(lib);
+                }
+
+            }
+            */
+
+            /*
+            Area area1 = new Area();
+            area1.name="北京";
+            area1.libs = new List<libModel>();
+            areaList.Add(area1);
+            libModel lib11 = new libModel();
+            lib11.name = "中央编译局";
+            lib11.capoUser = "capo11";
+            area1.libs.Add(lib11);
+
+
+
+            Area area2 = new Area();
+            area2.name = "天津";
+            area2.libs = new List<libModel>();
+            areaList.Add(area2);
+            libModel lib21 = new libModel();
+            lib21.name = "天津实验中学";
+            lib21.capoUser = "capo21";
+            lib21.libId = "58be43c39bc17b5dc88114df";
+            area2.libs.Add(lib21);
+            libModel lib22 = new libModel();
+            lib22.name = "南大附中";
+            lib22.capoUser = "capo22";
+            area2.libs.Add(lib22);
+            libModel lib23 = new libModel();
+            lib23.name = "崇化中学";
+            lib23.capoUser = "capo23";
+            area2.libs.Add(lib23);
+
+
+            Area area3 = new Area();
+            area3.name = "天津南开联盟";
+            area3.libs = new List<libModel>();
+            areaList.Add(area3);
+            libModel lib31 = new libModel();
+            lib31.name = "宜宾里小学";
+            lib31.libId = "586ec3459bc17b1ab0a2a358~宜宾里小学";
+            lib31.libraryCode = "宜宾里小学";
+            lib31.capoUser = "capo11";
+            area3.libs.Add(lib31);
+            libModel lib32 = new libModel();
+            lib32.name = "六十三中";
+            lib32.capoUser = "capo12";
+            lib32.libId = "586ec3459bc17b1ab0a2a358~六十三中";
+            lib31.libraryCode = "六十三中";
+            area3.libs.Add(lib32);
+            */
+
+==20170506==
+        <table style="width:100%">
+            <tr>
+                <td style="width:100%">
+                    <div class="mui-input-group" style="background-color:white">
+                        <div class="mui-input-row" style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
+                            <label style="color:#cccccc;">图书馆</label>
+                            @Html.Raw(ViewBag.LibHtml)
+                        </div>
+                    </div>
+                
+                </td>
+                <td ><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
+            </tr>
+        </table>
+===
         /*
         public BorrowInfoResult GetPatronBorrowInfos1(string libId,
             string readerBarcode)

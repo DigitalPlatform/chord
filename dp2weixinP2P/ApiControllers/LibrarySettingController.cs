@@ -41,6 +41,8 @@ namespace dp2weixinWeb.ApiControllers
             // 更新内存 2016-9-13 jane
             dp2WeiXinService.Instance.LibManager.AddLib(item);
 
+            dp2WeiXinService.Instance.areaMgr.SaveLib(item);
+
 
             return result;
 
@@ -57,6 +59,8 @@ namespace dp2weixinWeb.ApiControllers
                 dp2WeiXinService.Instance.LibManager.UpdateLib(id);
             }
 
+            dp2WeiXinService.Instance.areaMgr.SaveLib(item);
+
             return ret;
         }
 
@@ -70,6 +74,8 @@ namespace dp2weixinWeb.ApiControllers
             //    // 更新内存 2016-9-13 jane
             //    dp2WeiXinService.Instance.LibManager.UpdateLib(id);
             //}
+
+            
 
             return result;
         }

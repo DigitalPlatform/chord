@@ -20,6 +20,83 @@ namespace dp2weixinWeb.Controllers
 {
     public class PatronController : BaseController
     {
+        public ActionResult SelectLib(string returnUrl)
+        {
+            string strError = "";
+            // 检查是否从微信入口进来
+            int nRet = this.CheckIsFromWeiXin("", "", out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+            ViewBag.returnUrl = returnUrl;
+
+            SessionInfo sessionInfo = this.GetSessionInfo();
+
+            // 2017-2-28不可能出现这种情况了
+            if (sessionInfo == null)
+            {
+                //string libHomeUrl = dp2WeiXinService.Instance.GetOAuth2Url(sessionInfo.gzh, "Library/Home");
+                strError = "页面超时，请从微信窗口重新进入。";//请重新从微信\"我爱图书馆\"公众号进入。"; //Sessin
+                goto ERROR1;
+            }
+            // 检查session是否超时
+            if (String.IsNullOrEmpty(sessionInfo.WeixinId) == true)
+            {
+                strError = "异常：没有weixinId。";
+                goto ERROR1;
+            }
+
+            // 得到该微信用户绑定过的图书馆列表
+            //List<string> libs = WxUserDatabase.Current.GetLibsByWeixinId(sessionInfo.WeixinId);
+
+            List<WxUserItem> list = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
+
+            foreach(Area area in dp2WeiXinService.Instance.areaMgr.areas)
+            {
+                foreach (libModel lib in area.libs)
+                {
+                    lib.Checked = "";
+                    lib.bindFlag = "";
+
+                    //
+                    if (this.CheckIsBind(list, lib) == true)  //libs.Contains(lib.libId)
+                        lib.bindFlag = " * ";
+
+                    if (lib.libId == sessionInfo.CurrentLib.Entity.id && lib.name == sessionInfo.CurrentLibName)
+                        lib.Checked = " checked ";
+                }
+            }
+
+            ViewBag.areaList = dp2WeiXinService.Instance.areaMgr.areas;
+
+            return View();
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
+        public bool CheckIsBind(List<WxUserItem> list, libModel lib)
+        {
+            foreach (WxUserItem user in list)
+            {
+                if (user.libId == lib.libId)
+                {
+                    if (string.IsNullOrEmpty(lib.libraryCode)==false)
+                    {
+                        if (user.libraryCode == lib.libraryCode)
+                            return true;
+                        else
+                            return false;
+                    }
+
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public ActionResult Setting(string code, string state, string returnUrl)
         {
             // 检查是否从微信入口进来

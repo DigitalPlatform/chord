@@ -441,6 +441,7 @@ namespace dp2weixin.service
                 .Set("weixinId", item.weixinId)
                 .Set("libName", item.libName)
                 .Set("libId", item.libId)
+                .Set("bindLibraryCode", item.bindLibraryCode)
 
                 .Set("readerBarcode", item.readerBarcode)
                 .Set("readerName", item.readerName)
@@ -497,7 +498,13 @@ namespace dp2weixin.service
         public string libName { get; set; }    
 
         // 图书馆代码
-        public string libId { get; set; }     
+        public string libId { get; set; }
+
+        // 20170509
+        //绑定时选择的分馆代码，与自己的实际分馆代码 不同，比如绑定时选择的空（总馆），但实际是方洲小学。
+        //当某些环节会自动设置为当前帐户时（例如解绑时，会自动将下一个帐户设置了当前帐户），那么对应的设置表也要更新
+        //设置表时需要明确当前选择的是哪个分馆，不能看实际分馆代码
+        public string bindLibraryCode { get; set; } 
 
         // 读者证条码号
         public string readerBarcode { get; set; }  
@@ -522,7 +529,7 @@ namespace dp2weixin.service
         // 是否活动状态
         public int isActive = 0;
 
-        //分馆代码，读者与工作人员都有该字段
+        //实际分馆代码，读者与工作人员都有该字段
         public string libraryCode { get; set; } 
 
         //账户类型：0表示读者 1表示工作人员 // 2016-6-16 新增
@@ -579,7 +586,8 @@ namespace dp2weixin.service
         //public string appId { get; set; }   
 
         public string weixinId { get; set; }   
-        public string libId { get; set; }     
+        public string libId { get; set; }
+        public string bindLibraryCode { get; set; }     
 
         public string prefix { get; set; }  //必须设为属性，才能在前端传值。
         public string word { get; set; }

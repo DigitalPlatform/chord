@@ -19,6 +19,13 @@ namespace dp2weixinWeb.ApiControllers
         {
             WxUserResult result = new WxUserResult();
             List<WxUserItem> list = wxUserDb.Get(null,null,-1,null,null,false);//.GetUsers();
+
+            // 在绑定的时候已经设置好了，
+            //foreach (WxUserItem user in list)
+            //{
+            //    if (String.IsNullOrEmpty(user.libraryCode) == false)
+            //        user.libName = user.libraryCode;
+            //}
             result.users = list;
             return result;
         }
@@ -32,17 +39,17 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         [HttpPost]
-        public WxUserResult DoThing(string actionType)
+        public WxUserResult DoThing_HF(string actionType)
         {
             // 恢复用户
             if (actionType == "recover")
             {
-                return dp2WeiXinService.Instance.RecoverUsers();
+                return dp2WeiXinService.Instance.RecoverUsers_HF();
             }
 
             if (actionType == "addAppId")
             {
-                return dp2WeiXinService.Instance.AddAppId();
+                return dp2WeiXinService.Instance.AddAppId_HF();
             }
 
             WxUserResult result = new WxUserResult();
@@ -60,6 +67,7 @@ namespace dp2weixinWeb.ApiControllers
         [HttpPost]
         public ApiResult ResetPassword(string weixinId,
             string libId,
+            string libraryCode,
             string name, 
             string tel)
         {
@@ -69,6 +77,7 @@ namespace dp2weixinWeb.ApiControllers
             string patronBarcode = "";
             int nRet = dp2WeiXinService.Instance.ResetPassword(weixinId,
                 libId,
+                libraryCode,
                 name,
                 tel,
                 out patronBarcode,
@@ -180,12 +189,87 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
+        [HttpPost]
+        public ApiResult SetLibId(string weixinId, string libId)
+        {
+            ApiResult result = new ApiResult();
+            string error = "";
+            try
+            {
+                string temp = libId;
+                string libraryCode = "";
+                int nIndex = libId.IndexOf("~");
+                if (nIndex > 0)
+                {
+                    libId = temp.Substring(0, nIndex);
+                    libraryCode = temp.Substring(nIndex + 1);
+                }
 
+                UserSettingItem item = UserSettingDb.Current.GetByWeixinId(weixinId);
+                if (item == null)
+                {
+                    item = new UserSettingItem();
+                    item.weixinId = weixinId;
+                    item.libId = libId;
+                    item.libraryCode = libraryCode;
+                    item.showCover = 1;
+                    item.showPhoto = 1;
+                    item.xml = "";
+                    item.patronRefID = "";
+                    UserSettingDb.Current.Add (item);
+                }
+                else
+                {
+                    // 保存设置
+                    UserSettingDb.Current.UpdateLibId(weixinId, libId, libraryCode);// (item);
+                }
+
+
+
+
+                // 2016-8-13 jane 检查微信用户对于该馆是否设置了活动账户
+                dp2WeiXinService.Instance.CheckUserActivePatron(weixinId, libId);
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+                goto ERROR1;
+            }
+
+            //======================
+            // 更新session信息
+            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            {
+                error = "session失效。";
+                goto ERROR1;
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            if (sessionInfo == null)
+            {
+                error = "session失效2。";
+                goto ERROR1;
+            }
+            int nRet = sessionInfo.SetCurInfo(out error);
+            if (nRet == -1)
+                goto ERROR1;
+
+            //===================
+
+            return result;
+
+        ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = error;
+            return result;
+        }
 
         // 绑定
         [HttpPost]
         public WxUserResult Bind(BindItem item)
         {
+            if (item.bindLibraryCode == null)
+                item.bindLibraryCode = "";
+
             // 返回对象
             WxUserResult result = new WxUserResult();
 
@@ -195,6 +279,7 @@ namespace dp2weixinWeb.ApiControllers
             WxUserItem userItem = null;
             string error="";
             int nRet= dp2WeiXinService.Instance.Bind(item.libId,
+                item.bindLibraryCode,
                 item.prefix,
                 item.word,
                 item.password,
@@ -261,8 +346,11 @@ namespace dp2weixinWeb.ApiControllers
 
         // 设为活动账户
         [HttpPost]
-        public void ActivePatron(string weixinId,string id)
+        public ApiResult ActivePatron(string weixinId, string id)
         {
+            ApiResult result = new ApiResult();
+            string error = "";
+
             if (weixinId == "null")
                 weixinId = "";
 
@@ -270,14 +358,54 @@ namespace dp2weixinWeb.ApiControllers
                 id = "";
 
             WxUserItem user = wxUserDb.GetById(id);
-            if (user != null)
+            if (user == null)
             {
-                //设为活动账户
-                WxUserDatabase.Current.SetActivePatron(user.weixinId, user.id);
-
-                // 自动更新设置的当前图书馆
-                dp2WeiXinService.Instance.UpdateUserSetting(user.weixinId, user.libId, "",false,user.refID);
+                error = "未找到" + id + "对应的绑定用户";
+                goto ERROR1;
             }
+
+            //设为活动账户
+            WxUserDatabase.Current.SetActivePatron(user.weixinId, user.id);
+
+            // 自动更新设置的当前图书馆
+            dp2WeiXinService.Instance.UpdateUserSetting(user.weixinId,
+                user.libId,
+                user.bindLibraryCode,
+                "",
+                false,
+                user.refID);
+
+
+
+
+            //======================
+            // 更新session信息
+            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            {
+                error = "session失效。";
+                goto ERROR1;
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            if (sessionInfo == null)
+            {
+                error = "session失效2。";
+                goto ERROR1;
+            }
+            int nRet = sessionInfo.SetCurInfo(out error);
+            if (nRet == -1)
+                goto ERROR1;
+
+            //===================
+
+
+            return result;// repo.Add(item);
+
+
+            ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = error;
+            return result;
+
         }
 
         // 解绑
@@ -311,7 +439,7 @@ namespace dp2weixinWeb.ApiControllers
                 goto ERROR1;
             }
 
-            if (string.IsNullOrEmpty(sessionInfo.WeixinId) == false) //非微信入口进来的
+            if (string.IsNullOrEmpty(sessionInfo.WeixinId) == false) //微信入口进来的
             {
                 nRet = sessionInfo.SetCurInfo(out error);
                 if (nRet == -1)

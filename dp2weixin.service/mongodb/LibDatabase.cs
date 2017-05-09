@@ -121,6 +121,15 @@ namespace dp2weixin.service
                     {
                         item.no = -1;
                     }
+
+                    if (item.area == null)
+                        item.area = "";
+
+                    if (item.capoContactPhone == null)
+                        item.capoContactPhone = "";
+
+                    if (item.capoUserName == null)
+                        item.capoUserName = "";
                 }
             }
             //list.Sort()
@@ -176,6 +185,7 @@ namespace dp2weixin.service
                 .Set("libName", item.libName)
                 .Set("capoUserName", item.capoUserName)
                 .Set("capoContactPhone", item.capoContactPhone)
+                 .Set("area", item.area)
 
                 .Set("wxUserName", item.wxUserName)
                 .Set("wxPassword", item.wxPassword)
@@ -211,12 +221,13 @@ namespace dp2weixin.service
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string id { get; private set; }
+        public string id { get;  set; }
 
         //public string libCode { get; set; }
         public string libName { get; set; }
         public string capoUserName { get; set; }
         public string capoContactPhone { get; set; } // 图书馆联系人电话 jane 2016-6-17
+        public string area { get; set; } //20170504
 
         // 2016-6-17 jane 本方账户的信息
         public string wxUserName { get; set; } //微信端本方用户名

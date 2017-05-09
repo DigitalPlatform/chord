@@ -64,7 +64,19 @@ namespace dp2weixin.service
             {
                 if (this.libIds.IndexOf(settingItem.libId) != -1) // 2016-11-22 先要在自己的可访问图书馆
                 {
-                    this.CurrentLib = dp2WeiXinService.Instance.LibManager.GetLibrary(settingItem.libId);//.GetLibById(settingItem.libId);
+                    this.CurrentLib = dp2WeiXinService.Instance.LibManager.GetLibrary(settingItem.libId);
+                    if (String.IsNullOrEmpty(settingItem.libraryCode) == false)
+                    {
+                        this.CurrentLibName = settingItem.libraryCode;
+                        this.CurLibraryCode = settingItem.libraryCode;
+                    }
+                    else
+                    {
+                        this.CurrentLibName = this.CurrentLib.Entity.libName;
+                        this.CurLibraryCode = "";
+                    }
+
+
                     if (this.CurrentLib == null)
                     {
                         error = "未找到id为'" + settingItem.libId + "'对应的图书馆"; //这里lib为null竟然用了lib.id，一个bug 2016-8-11
@@ -86,6 +98,8 @@ namespace dp2weixin.service
                 // 找可访问的第一个图书馆 2016-11-22
                 string firstLibId = this.libIds[0];
                 CurrentLib = dp2WeiXinService.Instance.LibManager.GetLibrary(firstLibId);
+                this.CurrentLibName = CurrentLib.Entity.libName;
+
             }
             if (CurrentLib == null)
             {
@@ -136,6 +150,8 @@ namespace dp2weixin.service
         }
 
         public Library CurrentLib = null;
+        public string CurrentLibName = "";
+        public string CurLibraryCode = "";
         public UserSettingItem settingItem = null;
         public int showPhoto = 0; //显示头像
         public int showCover = 0;//显示封面

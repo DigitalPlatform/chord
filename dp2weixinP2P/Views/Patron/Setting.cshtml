@@ -13,6 +13,10 @@
                 return;
             }
 
+            var libraryCode = $("#libraryCode").text();
+            if (libraryCode == null)
+                libraryCode = "";
+
             //alert(libId);
 
             // 微信id
@@ -107,6 +111,7 @@
                 {
                     weixinId: weixinId,
                     libId: libId,
+                    libraryCode:libraryCode,
                     showPhoto: showPhoto,
                     showCover: showCover
                 }
@@ -404,6 +409,12 @@
 
         }
 
+        function gotoSelectLib()
+        {
+            var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent("/Patron/Setting");
+            gotoUrl(url);
+        }
+
     </script>
 }
 @section header {
@@ -424,12 +435,30 @@
 }
 else
 {
+    <!--
     <div class="mui-input-group" style="background-color:white">
         <div class="mui-input-row" style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
             <label style="color:#cccccc;">图书馆</label>
             @Html.Raw(ViewBag.LibHtml)
         </div>
-        </div>
+    </div>
+-->
+
+        <table style="width:100%">
+            <tr>
+                <td style="width:100%">
+                    <div class="mui-input-group" style="background-color:white">
+                        <div class="mui-input-row" >
+                            <label style="color:#cccccc;">图书馆</label>
+                            <input type="text" class="mui-input mui-input-clear"  id="txtLib" readonly value="@ViewBag.PureLibName">
+                        </div>
+                    </div>
+                </td>
+                <td ><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
+            </tr>
+        </table>
+
+
     <div class="mui-card" style="margin-top:10px">
         <div class='mui-input-row mui-checkbox mui-left'>
             <label>显示头像</label>

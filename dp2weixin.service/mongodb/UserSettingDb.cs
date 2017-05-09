@@ -100,6 +100,7 @@ namespace dp2weixin.service
             UserSettingItem item = this.GetByWeixinId(inputItem.weixinId);
             if (item == null)
             {
+                item.libraryCode = "";
                 this.Add(inputItem);
             }
             else
@@ -133,11 +134,26 @@ namespace dp2weixin.service
                 .Set("showCover", item.showCover)
                 .Set("xml", item.xml)
                 .Set("patronRefID", item.patronRefID)
+                .Set("libraryCode", item.libraryCode)
                 ;
 
             UpdateResult ret = this.settingCollection.UpdateOne(filter, update);
             return ret.ModifiedCount;
         
+        }
+
+        // 更新选择的分馆
+        public long UpdateLibId(string weixinId, string libId, string libraryCode)
+        {
+            var filter = Builders<UserSettingItem>.Filter.Eq("weixinId", weixinId);
+            var update = Builders<UserSettingItem>.Update
+                .Set("libId", libId)
+                .Set("libraryCode", libraryCode)
+                ;
+
+            UpdateResult ret = this.settingCollection.UpdateOne(filter, update);
+            return ret.ModifiedCount;
+
         }
 
         public long UpdateById(UserSettingItem item)
@@ -198,11 +214,16 @@ namespace dp2weixin.service
 
         public string libId { get; set; }
 
+        //20170507 分馆代码
+        public string libraryCode { get; set; } 
+
         public int showPhoto { get; set; }
 
         public int showCover { get; set; }
 
-        public string xml { get; set; }
+        public string xml { get; set; }  //20170509不再使用
+
+        public string bookSubject { get; set; } // 20170509加
 
         public string patronRefID { get; set; }
 
