@@ -190,9 +190,11 @@ namespace dp2weixin.service
                 //}
 
 
+
                 // 取item
                 List<BiblioItem> itemList = null;
-                nRet = (int)dp2WeiXinService.Instance.GetItemInfo(lib,
+                nRet = (int)dp2WeiXinService.Instance.GetItemInfo(weixinId,
+                    lib,
                     loginInfo,
                     "",//patronBarcode
                     recPath,

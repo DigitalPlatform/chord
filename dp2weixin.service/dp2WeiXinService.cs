@@ -4146,11 +4146,13 @@ public string ErrorCode { get; set; }
 
                 // 对应的分馆名称，以绑定返回的实际分馆名称为准 20170507
                 if (String.IsNullOrEmpty(bindLibraryCode) == false
-                    && String.IsNullOrEmpty(libraryCode) == false
+                    //&& String.IsNullOrEmpty(libraryCode) == false
                     && bindLibraryCode != libraryCode)
                 {
                     bindLibraryCode = libraryCode;
                     thislibName = libraryCode;
+                    if (thislibName == "")
+                        thislibName = lib.libName;
 
                     //当用户实际对应的分馆代码 与 选择的分馆不一致时，以实际分馆代码为准
                     needUpdateSetting = true;
@@ -5164,7 +5166,8 @@ public string ErrorCode { get; set; }
 
                 // 取item
                 List<BiblioItem> itemList = null;
-                int nRet = (int)this.GetItemInfo(lib,
+                int nRet = (int)this.GetItemInfo(weixinId,
+                    lib,
                     loginInfo,
                     "",//patronBarcode
                     biblioPath,
@@ -5433,7 +5436,8 @@ public string ErrorCode { get; set; }
                 // 取item
                 this.WriteLog3("开始获取items");
                 List<BiblioItem> itemList = null;
-                nRet = (int)this.GetItemInfo(lib,
+                nRet = (int)this.GetItemInfo(weixinId,
+                    lib,
                     loginInfo,
                     patronBarcode,
                     biblioPath,
@@ -6033,7 +6037,8 @@ public string ErrorCode { get; set; }
         }
 
         // patronBarcode 这里传入读者证条码，是因为有可能登录身份是工作人员，那么就无法获取读者情况了
-        public long GetItemInfo(LibEntity lib,      
+        public long GetItemInfo(string weixinId,  //为了获取libraryCode
+            LibEntity lib,      
             LoginInfo loginInfo,
             string patronBarcode,
             string biblioPath,
@@ -6074,13 +6079,37 @@ public string ErrorCode { get; set; }
                     goto ERROR1;
             }
 
+            // 得到分馆代码
+            string libraryCode = "";
+            UserSettingItem setting = UserSettingDb.Current.GetByWeixinId(weixinId);
+            if (setting != null)
+            {
+                libraryCode = setting.libraryCode;
+                if (libraryCode == null)
+                    libraryCode = "";
+            }
+            string format = "";
+            if (String.IsNullOrEmpty(libraryCode) == false)
+            {
+                format = "librarycode:" + libraryCode;
+            }
+            else
+            {
+                format = "getotherlibraryitem";
+            }
+            if (String.IsNullOrEmpty(format) == false)
+                format = "," + format;
+                
+            
+
+
             //获取下级册信息
             List<Record> recordList = null;
             long lRet = this.GetItemInfoApi(lib,
                 loginInfo,
                 biblioPath,
                 "entity",//dbNameList,
-                "opac",//formatList,
+                "opac"+format,//formatList,
                 10,//maxResults,
                 out recordList,
                 out strError);
