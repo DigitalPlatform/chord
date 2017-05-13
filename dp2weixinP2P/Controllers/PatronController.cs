@@ -24,7 +24,7 @@ namespace dp2weixinWeb.Controllers
         {
             string strError = "";
             // 检查是否从微信入口进来
-            int nRet = this.CheckIsFromWeiXin("", "", out strError);
+            int nRet = this.CheckIsFromWeiXin("", "", out strError, false);
             if (nRet == -1)
             {
                 goto ERROR1;
@@ -293,7 +293,7 @@ namespace dp2weixinWeb.Controllers
             // 如果图书馆是挂起状态，作为警告
             string libId = activeUserItem.libId;
             Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
-            string warn = this.GetLibHungWarn(lib);
+            string warn = LibraryManager.GetLibHungWarn(lib);
             ViewBag.Warn = warn;
 
             string qrcodeUrl = "";

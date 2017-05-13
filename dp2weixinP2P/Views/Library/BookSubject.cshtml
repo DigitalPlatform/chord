@@ -95,6 +95,16 @@ else
     else
     {
 
+        // 警告提示
+        if (String.IsNullOrEmpty(ViewBag.Warn) == false)
+        {
+            <div class="mui-content-padded">
+                <span class="errorinfo">
+                    @Html.Raw(ViewBag.Warn)
+                </span>
+            </div>
+        }
+
         if (Model == null || Model.Count == 0)
         {
             <div class="mui-card" id="divNo" style="margin-top:10px;">

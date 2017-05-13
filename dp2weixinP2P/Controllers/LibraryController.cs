@@ -336,7 +336,7 @@ namespace dp2weixinWeb.Controllers
 
 
             // 如果图书馆是挂起状态，作为警告
-            ViewBag.Warn = this.GetLibHungWarn(lib);
+            ViewBag.Warn = LibraryManager.GetLibHungWarn(lib);
 
 
             return View(list);
@@ -387,7 +387,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 检查是否从微信入口进来
-            nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            nRet = this.CheckIsFromWeiXin(code, state, out strError, false);
             if (nRet == -1)
             {
                 goto ERROR1;
@@ -401,7 +401,18 @@ namespace dp2weixinWeb.Controllers
 
             // 图书馆id
             string libId = ViewBag.LibId;
-
+            Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                goto ERROR1;
+            }
+            //LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
+            //if (lib == null)
+            //{
+            //    strError = "未找到id为[" + libId + "]的图书馆定义。";
+            //    goto ERROR1;
+            //}
 
             // 2016-8-24 超级管理员可修改任何图书馆的介绍与公告
             if (weixinId ==dp2WeiXinService.C_Supervisor)
@@ -417,15 +428,10 @@ namespace dp2weixinWeb.Controllers
                 {
                     // 检索是否有权限 _wx_setHomePage
                     string needRight = dp2WeiXinService.C_Right_SetHomePage;
-                    LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
-                    if (lib == null)
-                    {
-                        strError = "未找到id为[" + libId + "]的图书馆定义。";
-                        goto ERROR1;
-                    }
+
 
                     int nHasRights = dp2WeiXinService.Instance.CheckRights(user,
-                        lib, 
+                        lib.Entity, 
                         needRight,
                         out strError);
                     if (nHasRights == -1)
@@ -462,6 +468,9 @@ namespace dp2weixinWeb.Controllers
                     continue;
                 list.Add(item);
             }
+
+            // 如果图书馆是挂起状态，作为警告
+            ViewBag.Warn = LibraryManager.GetLibHungWarn(lib);
 
             return View(list);
 
@@ -514,7 +523,7 @@ namespace dp2weixinWeb.Controllers
  
 
             // 检查是否从微信入口进来
-            nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            nRet = this.CheckIsFromWeiXin(code, state, out strError, false);
             if (nRet == -1)
             {
                 if (ViewBag.LibState != LibraryManager.C_State_Hangup)//图书馆挂起，数字平台界面可用
@@ -572,7 +581,7 @@ namespace dp2weixinWeb.Controllers
         {
             // 检查是否从微信入口进来
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError, false);
             if (nRet == -1)
                 goto ERROR1;
 
@@ -582,18 +591,21 @@ namespace dp2weixinWeb.Controllers
                 libId = ViewBag.LibId;
 
             // 如果当前图书馆是不公开书目，则出现提示
-            LibEntity lib =  dp2WeiXinService.Instance.GetLibById(ViewBag.LibId);
+            //LibEntity lib =  dp2WeiXinService.Instance.GetLibById(ViewBag.LibId);
+            Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
             if (lib == null)
             {
-                strError = "未设置当前图书馆。";
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
                 goto ERROR1;
             }
-            if (lib.noShareBiblio == 1)
+
+
+            if (lib.Entity.noShareBiblio == 1)
             {
-                List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.id, -1);
+                List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.Entity.id, -1);
                 if (users.Count == 0)
                 {
-                    ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", lib.libName);
+                    ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", lib.Entity.libName);
                     return View();
                 }
             }
@@ -609,7 +621,7 @@ namespace dp2weixinWeb.Controllers
                 // 检索是否有权限 _wx_setHomePage
                 string needRight = dp2WeiXinService.C_Right_SetBook;
                 int nHasRights = dp2WeiXinService.Instance.CheckRights(user,
-                    lib,
+                    lib.Entity,
                     needRight,
                     out strError);
                 if (nHasRights == -1)
@@ -637,6 +649,10 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
             }
 
+            // 如果图书馆是挂起状态，作为警告
+            ViewBag.Warn = LibraryManager.GetLibHungWarn(lib);
+
+
             return View(list);
 
         ERROR1:
@@ -655,7 +671,7 @@ namespace dp2weixinWeb.Controllers
         {
             // 检查是否从微信入口进来
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError, false);
             if (nRet == -1)
             {
                 goto ERROR1;
@@ -680,19 +696,25 @@ namespace dp2weixinWeb.Controllers
                 subject = "";
 
             // 如果当前图书馆是不公开书目，则出现提示
-            LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
+            Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
             if (lib == null)
             {
-                strError = "未设置当前图书馆。";
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
                 goto ERROR1;
             }
+            //LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
+            //if (lib == null)
+            //{
+            //    strError = "未设置当前图书馆。";
+            //    goto ERROR1;
+            //}
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-            if (lib.noShareBiblio == 1)
+            if (lib.Entity.noShareBiblio == 1)
             {
-                List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.id, -1);
+                List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.Entity.id, -1);
                 if (users.Count == 0)
                 {
-                    ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", lib.libName);
+                    ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", lib.Entity.libName);
                     return View();
                 }
             }
@@ -740,6 +762,10 @@ namespace dp2weixinWeb.Controllers
                 if (nRet == -1)
                     goto ERROR1;
             }
+
+            // 如果图书馆是挂起状态，作为警告
+            ViewBag.Warn = LibraryManager.GetLibHungWarn(lib);
+
 
             return View(list);
 

@@ -3079,6 +3079,9 @@ namespace dp2weixin.service
 
                     if (lib.State == LibraryManager.C_State_Hangup)
                     {
+                        title = libName + " 桥接服务器被挂起";
+                        text = LibraryManager.GetLibHungWarn(lib);
+                        /*
                         if (lib.Version == "-1")
                         {
                             title = libName + " 桥接服务器被挂起";
@@ -3087,8 +3090,9 @@ namespace dp2weixin.service
                         else
                         {
                             title = libName + " 桥接服务器被挂起";
-                            text = libName + " 的桥接服务器dp2capo版本不够新，公众号功能已被挂起，请尽快升级。";
+                            text = libName + " 的桥接服务器dp2capo版本不够新（当前版本是"+lib.Version+"，需要版本为" +LibraryManager.C_RequestCapoVersion + "），公众号功能已被挂起，请尽快升级。";
                         }
+                         */
                     }
 
                     string first = "☀☀☀☀☀☀☀☀☀☀";
