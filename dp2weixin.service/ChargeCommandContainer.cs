@@ -124,6 +124,8 @@ namespace dp2weixin.service
 
         public ChargeCommand AddCmd(string weixinId,
             string libId,
+            string libraryCode,
+            int isTransfromed,
             ChargeCommand cmd)
         {
             Debug.Assert(cmd != null, "AddCmd传进的cmd不能为空。");
@@ -160,6 +162,35 @@ namespace dp2weixin.service
 
             // 登录dp2身份
             LoginInfo loginInfo = new LoginInfo(cmd.userName,cmd.isPatron==1?true:false );
+
+            // 当是分馆时，检查是否需要自动加前缀，以及自动加前缀
+            if (string.IsNullOrEmpty(libraryCode) == false && isTransfromed==0)
+            {
+                string tempBarcode = "";
+                if (cmd.type == ChargeCommand.C_Command_LoadPatron)
+                    tempBarcode = cmd.patronBarcode;
+                else
+                    tempBarcode = cmd.itemBarcode;
+
+                string resultBarcode = "";
+                cmdRet =  dp2WeiXinService.Instance.GetTransformBarcode(loginInfo,
+                    libId,
+                    libraryCode,
+                    tempBarcode,
+                    out resultBarcode,
+                    out cmdError);
+                if (cmdRet == -1)
+                    goto END1;
+
+                // 转换过的
+                if (cmdRet == 1)
+                {
+                    if (cmd.type == ChargeCommand.C_Command_LoadPatron)
+                        cmd.patronBarcode = resultBarcode;
+                    else
+                        cmd.itemBarcode = resultBarcode;
+                }
+            }
 
 
             // 20170413 查询册

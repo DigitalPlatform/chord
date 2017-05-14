@@ -392,6 +392,10 @@
                 return;
             }
 
+            var libraryCode = $("#libraryCode").text();
+            if (libraryCode == null)
+                libraryCode = "";
+
             // 微信id
             var weixinId = $("#weixinId").text();
             if (weixinId == "") {
@@ -456,7 +460,7 @@
             if (verifyBarcode != "1")
             {
                 // 直接处理命令
-                addCmd2(weixinId, libId, cmdType, patron, item);
+                addCmd2(weixinId, libId,libraryCode, cmdType, patron, item,0);
                 return;
             }
 
@@ -503,8 +507,9 @@
 
             //显示等待图层
             showLoading();
-            // 调web api
+            // 调校验条码web api
             var url = "/api/ChargeCommand?libId=" + libId
+            + "&libraryCode=" + encodeURIComponent(libraryCode)
             + "&userId=" + userId
             + "&barcode=" + encodeURIComponent(barcode);
             sendAjaxRequest(url, "POST", function (result) {
@@ -528,6 +533,18 @@
                     return;
                 }
 
+                if (result.info != null && result.info != "") {
+                    barcode = result.info;
+                    setBarcode(barcode);
+
+                    if (inputType == C_inputType_patron) {
+                        param = barcode;
+                    }
+                    else {
+                        item = barcode;
+                    }
+                }
+
                 // 期待输入册条码，却扫入了读者证条码
                 if (result.errorCode == 1 && inputType == C_inputType_item) {
                     if (ope == C_ope_return) {
@@ -544,7 +561,7 @@
                         cmdType = "loadPatron";
                         patron = getBarcode();
                         setPatron(patron); // 设到内部的读者变量上
-                        addCmd2(weixinId, libId, cmdType, patron, item);
+                        addCmd2(weixinId, libId,libraryCode, cmdType, patron, item,1);
                         return;
                     }
                 }
@@ -558,7 +575,7 @@
 
 
                 //正常处理的情况
-                addCmd2(weixinId, libId, cmdType, patron, item)
+                addCmd2(weixinId, libId,libraryCode, cmdType, patron, item,1)
 
 
             }, function (xhq, textStatus, errorThrown) {
@@ -571,7 +588,7 @@
         }
 
 
-        function addCmd2(weixinId, libId, cmdType, patron, item)
+        function addCmd2(weixinId, libId, libraryCode, cmdType, patron, item, isTransfromed)
         {
             ////==跑流程测试用==
             //if (cmdType == "loadPatron") {
@@ -605,7 +622,10 @@
 
             //调 web api
             var url = "/api/ChargeCommand?weixinId=" + weixinId
-                + "&libId=" + libId;
+                + "&libId=" + libId
+                + "&libraryCode=" + encodeURIComponent(libraryCode)
+                + "&isTransfromed=" + isTransfromed
+                ;
             var data = {
                 type: cmdType,
                 patronInput: patron,
@@ -1314,6 +1334,7 @@
 
 <span id="weixinId" style="display:none">@ViewBag.weixinId</span>
 <span id="libId" style="display:none">@ViewBag.LibId</span>
+<span id="libraryCode" style="display:none">@ViewBag.LibraryCode</span>
 <span id="userName" style="display:none">@ViewBag.userName</span>
 <span id="isPatron" style="display:none">@ViewBag.isPatron</span>
 <span id="verifyBarcode" style="display:none">@ViewBag.verifyBarcode</span>
