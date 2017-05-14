@@ -4352,8 +4352,19 @@ public string ErrorCode { get; set; }
                     //&& String.IsNullOrEmpty(libraryCode) == false
                     && bindLibraryCode != libraryCode)
                 {
+                    //当选择了是分馆，但绑了全局帐户，
+                    //那么允许全局帐户记录下来的馆代码为选择的分馆代码,
+                    //这样能支持到用全局帐户做借还时，校验分馆代码和自动加前缀的功能。
+                    //if (string.IsNullOrEmpty(libraryCode) == false)
+                    //{
+                        //bindLibraryCode = libraryCode;
+                        //thislibName = libraryCode;
+                    //}
+
                     bindLibraryCode = libraryCode;
                     thislibName = libraryCode;
+
+
                     if (thislibName == "")
                         thislibName = lib.libName;
 
@@ -5391,7 +5402,13 @@ public string ErrorCode { get; set; }
                         string[] locs = selLocation.Split(new char[] { ',' });
                         foreach (BiblioItem item in itemList)
                         {
-                            if (locs.Contains(item.location) == false)
+                            //item.location有可能为 方洲小学/班级书架:1601 这种形态
+                            string tempLoc = item.location;
+                            int nIndex = tempLoc.IndexOf(":");
+                            if (nIndex > 0)
+                                tempLoc = tempLoc.Substring(0, nIndex);
+
+                            if (locs.Contains(tempLoc) == false)
                             {
                                 item.isNotCareLoc = true;
                             }
