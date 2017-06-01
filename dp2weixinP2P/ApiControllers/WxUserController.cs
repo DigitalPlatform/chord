@@ -188,7 +188,7 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
-
+        // 设置微信用户当前图书馆
         [HttpPost]
         public ApiResult SetLibId(string weixinId, string libId)
         {

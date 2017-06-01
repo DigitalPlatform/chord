@@ -198,6 +198,7 @@ namespace dp2weixin.service
                 //.Set("verifyBarcode", item.verifyBarcode) //借还时校验条码 2016-11-16,20170419注释
                 .Set("searchDbs", item.searchDbs)
                 .Set("match", item.match)
+                .Set("state", item.state)
                 ;
 
             UpdateResult ret = this.LibCollection.UpdateOneAsync(filter, update).Result;
@@ -248,6 +249,8 @@ namespace dp2weixin.service
         public string match { get; set; }  // 简单检索匹配方式
 
         public int no = 0;
+
+        public string state { get; set; } //到期等 
 
     }
 }

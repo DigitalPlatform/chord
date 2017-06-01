@@ -54,10 +54,20 @@ namespace dp2weixinWeb.Controllers
 
             foreach(Area area in dp2WeiXinService.Instance.areaMgr.areas)
             {
+                int daoQiLibCout = 0;
                 foreach (libModel lib in area.libs)
                 {
                     lib.Checked = "";
                     lib.bindFlag = "";
+
+                    // 如果是到期的图书馆，不显示出来
+                    LibEntity libEntity = dp2WeiXinService.Instance.GetLibById(lib.libId);
+                    if (libEntity != null && libEntity.state == "到期")
+                    {
+                        lib.visible = false;
+                        daoQiLibCout++;
+                    }
+                        
 
                     //
                     if (this.CheckIsBind(list, lib) == true)  //libs.Contains(lib.libId)
@@ -65,6 +75,12 @@ namespace dp2weixinWeb.Controllers
 
                     if (lib.libId == sessionInfo.CurrentLib.Entity.id && lib.name == sessionInfo.CurrentLibName)
                         lib.Checked = " checked ";
+                }
+
+                // 如果下级图书馆都是到期状态，则地址不显示
+                if (daoQiLibCout == area.libs.Count)
+                {
+                    area.visible = false;
                 }
             }
 

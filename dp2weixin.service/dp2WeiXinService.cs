@@ -371,19 +371,7 @@ namespace dp2weixin.service
                 throw new Exception("配置文件" + this._cfgFile + "不存在。");
             }
 
-            //libcfg.xml
-            this.libCfgFile = this.weiXinDataDir + "\\" + "libcfg.xml";
-            if (File.Exists(this.libCfgFile) == false)
-            {
-                XmlDocument dom1 = new XmlDocument();
-                dom1.LoadXml("<root/>");
-                dom1.Save(this.libCfgFile);
-                //throw new Exception("配置文件" + this.libCfgFile + "不存在。");
-            }
-            this.areaMgr = new AreaManager();
-            nRet = areaMgr.init(this.libCfgFile, out strError);
-            if (nRet == -1)
-                throw new Exception(strError);
+
 
             // 日志目录
             this.weiXinLogDir = this.weiXinDataDir + "/log";
@@ -453,6 +441,21 @@ namespace dp2weixin.service
             nRet = this.LibManager.Init(out strError);
             if (nRet == -1)
                 throw new Exception("加载图书馆到内存出错：" + strError);
+
+            //libcfg.xml
+            this.libCfgFile = this.weiXinDataDir + "\\" + "libcfg.xml";
+            if (File.Exists(this.libCfgFile) == false)
+            {
+                XmlDocument dom1 = new XmlDocument();
+                dom1.LoadXml("<root/>");
+                dom1.Save(this.libCfgFile);
+                //throw new Exception("配置文件" + this.libCfgFile + "不存在。");
+            }
+            this.areaMgr = new AreaManager();
+            nRet = areaMgr.init(this.libCfgFile, out strError);
+            if (nRet == -1)
+                throw new Exception(strError);
+
 
             // 初始化接口类
             nRet = this.InitialExternalMessageInterfaces(dom, out strError);
@@ -822,6 +825,13 @@ namespace dp2weixin.service
                     if (lib == null)
                     {
                         this.WriteErrorLog1("未找到[" + record.userName + "]对应的图书馆。");
+                    }
+
+                    // todo 20170531 
+                    if (lib.state == "到期")
+                    {
+                        this.WriteErrorLog1("" + record.userName + " 已到期，不支持将消息发送到用户微信，自行删除。");
+                        return;
                     }
                 }
                 else
@@ -1828,6 +1838,15 @@ namespace dp2weixin.service
             //<borrowPeriod>31day</borrowPeriod>
             //<returningDate>Wed, 22 Jun 2016 12:00:00 +0800</returningDate>
 
+            string volume = "";
+            XmlNode nodeVolume = root.SelectSingleNode("volume");
+            if (nodeVolume == null)
+                nodeVolume = root.SelectSingleNode("itemRecord/volume");
+            if (nodeVolume != null)
+            {
+                volume = DomUtil.GetNodeText(nodeVolume);
+            }
+
             // 册条码
             XmlNode nodeItemBarcode = root.SelectSingleNode("itemBarcode");
             if (nodeItemBarcode == null)
@@ -1904,6 +1923,10 @@ namespace dp2weixin.service
             // 完整证条码 
             string fullPatronBarcode = this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode,false);
             summary = this.GetShortSummary(summary);
+
+            //增加卷册信息
+            if (volume != "")
+                summary += "(" + volume + ")";
 
             //您好，您已借书成功。 腾讯工作人员您好，虽然模板库中已存在类似模板，但与我司的字段定义不同，我司为几千家图书馆提供专业服务，需要采用专业术语（例如书刊摘要，册条码号，证条码号等）,以免被行内人士吐槽，请批准，谢谢！
             //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
@@ -2030,6 +2053,16 @@ namespace dp2weixin.service
             //<borrowPeriod>31day</borrowPeriod>
             //<returningDate>Wed, 22 Jun 2016 12:00:00 +0800</returningDate>
 
+            // 卷册信息
+            string volume = "";
+            XmlNode nodeVolume = root.SelectSingleNode("volume");
+            if (nodeVolume == null)
+                nodeVolume = root.SelectSingleNode("itemRecord/volume");
+            if (nodeVolume != null)
+            {
+                volume = DomUtil.GetNodeText(nodeVolume);
+            }
+
             // 册条码
             XmlNode nodeItemBarcode = root.SelectSingleNode("itemBarcode");
             if (nodeItemBarcode == null)
@@ -2112,6 +2145,10 @@ namespace dp2weixin.service
             //还书日期：2016-6-27
             //谢谢您及时归还，欢迎再借。
             summary = this.GetShortSummary(summary);
+
+            //增加卷册信息
+            if (volume != "")
+                summary += "(" + volume + ")";
 
             // 
             string first="▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎";

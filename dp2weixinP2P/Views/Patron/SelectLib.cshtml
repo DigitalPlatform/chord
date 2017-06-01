@@ -138,6 +138,11 @@ else
         {
             foreach (dp2weixin.service.Area area in ViewBag.areaList)
             {
+                if (area.visible == false)
+                {
+                    continue;
+                }
+                
                 <div style="padding-left:10px">
                     <label>@area.name &nbsp;<span style="color:#cccccc;font-size:18pt" onclick="expand(this,'area-@area.name')">-</span></label>
                     <div style="padding-left:10px" id="area-@area.name">
