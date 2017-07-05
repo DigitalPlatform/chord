@@ -13,28 +13,7 @@ namespace dp2weixinWeb.Controllers
 {
     public class BaseController : Controller
     {
-        // 得到图书馆挂起警告
-        public string GetLibHungWarn(Library lib)
-        {
-            string warnText = "";
-            // 如果图书馆是挂起状态，作为警告
-            if (lib.State == LibraryManager.C_State_Hangup)
-            {
-                // 立即重新检查一下
-                dp2WeiXinService.Instance.LibManager.RedoGetVersion(lib);
-                if (lib.Version == "-1")
-                {
-                    //的桥接服务器dp2capo已失去连接，请尽快修复。
-                    warnText = lib.Entity.libName + " 的桥接服务器dp2capo失去连接，公众号功能已被挂起，请尽快修复。";
-                }
-                else
-                {
-                    warnText = lib.Entity.libName + " 的桥接服务器dp2capo版本不够新，公众号功能已被挂起，请尽快升级。";
-                }
-            }
 
-            return warnText;
-        }
 
         public int GetLibSelectHtml(string selLibId, 
             string weixinId, 
@@ -295,11 +274,31 @@ namespace dp2weixinWeb.Controllers
             ViewBag.PureLibName = libName;
             ViewBag.LibId = libId;
             ViewBag.LibraryCode = sessionInfo.CurLibraryCode;
+
+            LibEntity libEntity = dp2WeiXinService.Instance.GetLibById(libId);
+            if (libEntity != null && libEntity.state == "到期" 
+                && Request.Path.Contains("/Patron/SelectLib") == false) //选择图书馆界面除外
+            {
+                strError = "服务已到期，请联系图书馆工作人员。";
+                return -1;
+            }
+
+            
+
+
             ViewBag.showPhoto = sessionInfo.showPhoto;
             ViewBag.showCover = sessionInfo.showCover;
+
+
             ViewBag.LibState = sessionInfo.CurrentLib.State;
             if (checkLibState == true && sessionInfo.CurrentLib.State == LibraryManager.C_State_Hangup)
             {
+                string warn = LibraryManager.GetLibHungWarn(sessionInfo.CurrentLib);
+                if (string.IsNullOrEmpty(warn)==false)
+                {
+                    strError = warn;
+                    return -1;
+                }
 #if no
                 // 2016-11-22 注释，留页面做，不要写的这样，否则页面空白等待时间过多，造成白页，用户体验不好
                 // 立即重新检查一下 
@@ -321,19 +320,23 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 书目查询 与 借还 使用 JSSDK
-            if (Request.Path.Contains("/Biblio/Index")==true
-                || Request.Path.Contains("/Library/Charge2")==true)
+            try
             {
-                bool bJsReg = JsApiTicketContainer.CheckRegistered(gzh.appId);
-                // 注意这里有时异常
-                JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(gzh.appId,
-                    gzh.secret,
-                    Request.Url.AbsoluteUri);//http://localhost:15794/Library/Charge  //http://www.dp2003.com/dp2weixin/Library/Charge
-                ViewData["AppId"] = gzh.appId;
-                ViewData["Timestamp"] = package.Timestamp;
-                ViewData["NonceStr"] = package.NonceStr;
-                ViewData["Signature"] = package.Signature;
-            }
+                if (Request.Path.Contains("/Biblio/Index") == true
+                    || Request.Path.Contains("/Library/Charge2") == true)
+                {
+                    bool bJsReg = JsApiTicketContainer.CheckRegistered(gzh.appId);
+                    // 注意这里有时异常
+                    JsSdkUiPackage package = JSSDKHelper.GetJsSdkUiPackage(gzh.appId,
+                        gzh.secret,
+                        Request.Url.AbsoluteUri);//http://localhost:15794/Library/Charge  //http://www.dp2003.com/dp2weixin/Library/Charge
+                    ViewData["AppId"] = gzh.appId;
+                    ViewData["Timestamp"] = package.Timestamp;
+                    ViewData["NonceStr"] = package.NonceStr;
+                    ViewData["Signature"] = package.Signature;
+                }
+            } catch(Exception ex)
+            {}
 
             return 0;
         }

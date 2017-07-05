@@ -360,6 +360,10 @@
                 return;
             }
 
+            var state = $("#selState").val();
+            //alert(state);
+
+
             //alert("id-[" + model.editor.id() + "]-2");
 
             //显示等待图层
@@ -421,7 +425,8 @@
                     noShareBiblio: getNoShareBiblio(),
                     //verifyBarcode:getVerifyBarcode(),
                     searchDbs: searchDbs,
-                    match:match
+                    match: match,
+                    state: state
                 }
             );
         }
@@ -444,6 +449,7 @@
             model.editor.searchDbs("");
 
             $("#selMatch").val("left");
+            $("#selState").val("");
         }
 
         // 点击新增图书馆按钮
@@ -494,6 +500,11 @@
                 match = "left";
 
             $("#selMatch").val(match);
+
+            var state = item.state;
+            if (state == null)
+                state = "";
+            $("#selState").val(state);
         }
 
 
@@ -622,6 +633,10 @@
                     <td class="label">不对外公开书目</td>
                     <td class="value" data-bind="text:noShareBiblio"></td>
                 </tr>
+                <tr>
+                    <td class="label">状态</td>
+                    <td class="value" data-bind="text:state"></td>
+                </tr>
                 <!--
                 <tr>
                     <td class="label">借还时校验条码号</td>
@@ -739,6 +754,13 @@
             <textarea rows="5" data-bind="value:model.editor.comment" placeholder="请输入  备注"></textarea>
         </div>
 
+        <div class="mui-input-row ">
+            <label class="leftLabel">状态</label>
+            <select id="selState">
+                <option value="" selected></option>
+                <option value="到期" selected>到期</option>
+            </select>
+        </div>
 
     </div>
     <div class="mui-content-padded">

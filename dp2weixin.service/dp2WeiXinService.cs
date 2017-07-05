@@ -139,6 +139,39 @@ namespace dp2weixin.service
 
         #endregion
 
+        #region 检查一个分馆是否需要自动加前缀
+
+        // 缓冲中存放已经明确知道是否自动加前缀的分馆
+        public Hashtable transformBarcodeLibs = new Hashtable();
+
+        public int CheckIsTransformBarcode(string libId, string libraryCode)
+        {
+            if (String.IsNullOrEmpty(libraryCode) == true)
+                return 0;
+
+            string fullId = libId + "~" + libraryCode;
+
+            // 如果已在缓冲中，直接使用
+            if (this.transformBarcodeLibs.ContainsKey(fullId) == true)
+            {
+                return (int)this.transformBarcodeLibs[fullId];
+            }
+
+            return -1;
+        }
+
+        public void SetTransformBarcode(string libId, string libraryCode,int value)
+        {
+            if (String.IsNullOrEmpty(libraryCode) == true || string.IsNullOrEmpty(libId) == true)
+                return;
+
+            string fullId = libId + "~" + libraryCode;
+
+            this.transformBarcodeLibs[fullId] = value;
+        }
+
+        #endregion
+
         #region 图书馆参于检索的数据库
 
         public Hashtable LibDbs = new Hashtable();
@@ -338,19 +371,7 @@ namespace dp2weixin.service
                 throw new Exception("配置文件" + this._cfgFile + "不存在。");
             }
 
-            //libcfg.xml
-            this.libCfgFile = this.weiXinDataDir + "\\" + "libcfg.xml";
-            if (File.Exists(this.libCfgFile) == false)
-            {
-                XmlDocument dom1 = new XmlDocument();
-                dom1.LoadXml("<root/>");
-                dom1.Save(this.libCfgFile);
-                //throw new Exception("配置文件" + this.libCfgFile + "不存在。");
-            }
-            this.areaMgr = new AreaManager();
-            nRet = areaMgr.init(this.libCfgFile, out strError);
-            if (nRet == -1)
-                throw new Exception(strError);
+
 
             // 日志目录
             this.weiXinLogDir = this.weiXinDataDir + "/log";
@@ -420,6 +441,21 @@ namespace dp2weixin.service
             nRet = this.LibManager.Init(out strError);
             if (nRet == -1)
                 throw new Exception("加载图书馆到内存出错：" + strError);
+
+            //libcfg.xml
+            this.libCfgFile = this.weiXinDataDir + "\\" + "libcfg.xml";
+            if (File.Exists(this.libCfgFile) == false)
+            {
+                XmlDocument dom1 = new XmlDocument();
+                dom1.LoadXml("<root/>");
+                dom1.Save(this.libCfgFile);
+                //throw new Exception("配置文件" + this.libCfgFile + "不存在。");
+            }
+            this.areaMgr = new AreaManager();
+            nRet = areaMgr.init(this.libCfgFile, out strError);
+            if (nRet == -1)
+                throw new Exception(strError);
+
 
             // 初始化接口类
             nRet = this.InitialExternalMessageInterfaces(dom, out strError);
@@ -789,6 +825,13 @@ namespace dp2weixin.service
                     if (lib == null)
                     {
                         this.WriteErrorLog1("未找到[" + record.userName + "]对应的图书馆。");
+                    }
+
+                    // todo 20170531 
+                    if (lib.state == "到期")
+                    {
+                        this.WriteErrorLog1("" + record.userName + " 已到期，不支持将消息发送到用户微信，自行删除。");
+                        return;
                     }
                 }
                 else
@@ -1795,6 +1838,15 @@ namespace dp2weixin.service
             //<borrowPeriod>31day</borrowPeriod>
             //<returningDate>Wed, 22 Jun 2016 12:00:00 +0800</returningDate>
 
+            string volume = "";
+            XmlNode nodeVolume = root.SelectSingleNode("volume");
+            if (nodeVolume == null)
+                nodeVolume = root.SelectSingleNode("itemRecord/volume");
+            if (nodeVolume != null)
+            {
+                volume = DomUtil.GetNodeText(nodeVolume);
+            }
+
             // 册条码
             XmlNode nodeItemBarcode = root.SelectSingleNode("itemBarcode");
             if (nodeItemBarcode == null)
@@ -1871,6 +1923,10 @@ namespace dp2weixin.service
             // 完整证条码 
             string fullPatronBarcode = this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode,false);
             summary = this.GetShortSummary(summary);
+
+            //增加卷册信息
+            if (volume != "")
+                summary += "(" + volume + ")";
 
             //您好，您已借书成功。 腾讯工作人员您好，虽然模板库中已存在类似模板，但与我司的字段定义不同，我司为几千家图书馆提供专业服务，需要采用专业术语（例如书刊摘要，册条码号，证条码号等）,以免被行内人士吐槽，请批准，谢谢！
             //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
@@ -1997,6 +2053,16 @@ namespace dp2weixin.service
             //<borrowPeriod>31day</borrowPeriod>
             //<returningDate>Wed, 22 Jun 2016 12:00:00 +0800</returningDate>
 
+            // 卷册信息
+            string volume = "";
+            XmlNode nodeVolume = root.SelectSingleNode("volume");
+            if (nodeVolume == null)
+                nodeVolume = root.SelectSingleNode("itemRecord/volume");
+            if (nodeVolume != null)
+            {
+                volume = DomUtil.GetNodeText(nodeVolume);
+            }
+
             // 册条码
             XmlNode nodeItemBarcode = root.SelectSingleNode("itemBarcode");
             if (nodeItemBarcode == null)
@@ -2079,6 +2145,10 @@ namespace dp2weixin.service
             //还书日期：2016-6-27
             //谢谢您及时归还，欢迎再借。
             summary = this.GetShortSummary(summary);
+
+            //增加卷册信息
+            if (volume != "")
+                summary += "(" + volume + ")";
 
             // 
             string first="▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎";
@@ -3079,6 +3149,9 @@ namespace dp2weixin.service
 
                     if (lib.State == LibraryManager.C_State_Hangup)
                     {
+                        title = libName + " 桥接服务器被挂起";
+                        text = LibraryManager.GetLibHungWarn(lib);
+                        /*
                         if (lib.Version == "-1")
                         {
                             title = libName + " 桥接服务器被挂起";
@@ -3087,8 +3160,9 @@ namespace dp2weixin.service
                         else
                         {
                             title = libName + " 桥接服务器被挂起";
-                            text = libName + " 的桥接服务器dp2capo版本不够新，公众号功能已被挂起，请尽快升级。";
+                            text = libName + " 的桥接服务器dp2capo版本不够新（当前版本是"+lib.Version+"，需要版本为" +LibraryManager.C_RequestCapoVersion + "），公众号功能已被挂起，请尽快升级。";
                         }
+                         */
                     }
 
                     string first = "☀☀☀☀☀☀☀☀☀☀";
@@ -3320,12 +3394,16 @@ ErrorInfo成员里可能会有报错信息。
          */
 
         public int VerifyBarcode(string libId,
+            string libraryCode,
             string userId,
             string barcode,
+            out string resultBarcode,
             out string strError)
         {
             int nRet = 0;
             strError = "";
+
+            resultBarcode = barcode;
 
             string userName = "";
             WxUserItem user = WxUserDatabase.Current.GetById(userId);
@@ -3350,6 +3428,26 @@ ErrorInfo成员里可能会有报错信息。
 
             // 使用代理账号capo 20161024 jane
             LoginInfo loginInfo = new LoginInfo(userName, bPatron);
+
+            // 对于分馆，检查条码是否加前缀。
+            if (string.IsNullOrEmpty(libraryCode) == false)
+            {
+                //string resultBarcode = "";
+                nRet = this.GetTransformBarcode(loginInfo,
+                    libId,
+                    libraryCode,
+                    barcode,
+                    out resultBarcode,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+
+                // 转换过的
+                if (nRet == 1)
+                    barcode = resultBarcode;
+            }
+
+
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -3403,6 +3501,148 @@ ErrorInfo成员里可能会有报错信息。
                 }
 
                 strError =  HttpUtility.HtmlEncode( strError);
+                return nRet;
+
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+
+        ERROR1:
+
+            return -1 ;
+        }
+
+        public int GetTransformBarcode(LoginInfo loginInfo,
+            string libId,
+            string libraryCode,
+            string barcode,
+            out string resultBarcode,
+            out string strError)
+        {
+            int nRet = 0;
+            strError = "";
+            resultBarcode = barcode;
+            int transform = dp2WeiXinService.Instance.CheckIsTransformBarcode(libId, libraryCode);
+            if (transform == -1) //不清楚时，设?transform接口
+            {
+                //调接口
+                //Operation:verifyBarcode
+                //Style:transform或者TransformBarcode
+                //Item:海淀分馆
+                //Patron:?transform
+                //ResultValue返回 
+                //0:“海淀分馆”的条码号不需要进行变换 
+                //1:“海淀分馆”的条码号需要发生变换。
+                //-1表示一般性错误；
+                //-2表示dp2library的library.xml中没有定义TransformBarcode()脚本函数。
+                nRet = this.TransformBarcode(loginInfo,
+                    libId,
+                    libraryCode,
+                    "?transform",
+                    out resultBarcode,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+
+                if (nRet == 1)
+                    transform = 1;
+                else
+                    transform = 0;
+
+                dp2WeiXinService.Instance.SetTransformBarcode(libId, libraryCode, transform);
+            }
+
+            //需要转换
+            if (transform == 1)
+            {
+                nRet =this.TransformBarcode(loginInfo,
+                    libId,
+                    libraryCode,
+                    barcode,
+                    out resultBarcode,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+            }
+
+            return nRet;
+        }
+
+        //0:条码号没有发生变换 
+        //1:条码号发生了变换(此时成员PatronBarcode里面返回变换以后的条码号)。
+        //-1表示一般性错误；
+        //-2表示dp2library的library.xml中没有定义TransformBarcode()脚本函数。
+        public int TransformBarcode(LoginInfo loginInfo,
+            string libId,
+            string libraryCode,
+            string barcode,
+            out string resultBarcode,
+            out string strError)
+        {
+            int nRet = 0;
+            strError = "";
+            resultBarcode = barcode;
+
+
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为["+libId+"]的图书馆。";
+                goto ERROR1;
+            }
+
+
+
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            CirculationRequest request = new CirculationRequest(id,
+                loginInfo,
+                "verifyBarcode",
+                barcode, //patron
+                libraryCode,//this.textBox_circulation_item.Text,
+                "TransformBarcode",//this.textBox_circulation_style.Text,
+                "",//this.textBox_circulation_patronFormatList.Text,
+                "",//this.textBox_circulation_itemFormatList.Text,
+                "");//this.textBox_circulation_biblioFormatList.Text);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    lib.capoUserName).Result;
+                CirculationResult result = connection.CirculationTaskAsync(
+                    lib.capoUserName,
+                    request,
+                    new TimeSpan(0, 1, 10), // 10 秒
+                    cancel_token).Result;
+
+                nRet = (int)result.Value;
+                if (result.Value == -1)
+                {
+                    strError = this.GetFriendlyErrorInfo(result, libraryCode);//lib.libName); 
+                    return -1;
+                }
+                if (result.Value == -2)
+                {
+                    strError = "没有定义TransformBarcode()脚本函数";
+                    return 0;
+                }
+                if (result.Value == 0)
+                {
+                    resultBarcode = barcode;
+                }
+                if (result.Value==1)
+                {
+                    resultBarcode = result.PatronBarcode;
+                }
+
                 return nRet;
 
             }
@@ -4146,11 +4386,24 @@ public string ErrorCode { get; set; }
 
                 // 对应的分馆名称，以绑定返回的实际分馆名称为准 20170507
                 if (String.IsNullOrEmpty(bindLibraryCode) == false
-                    && String.IsNullOrEmpty(libraryCode) == false
+                    //&& String.IsNullOrEmpty(libraryCode) == false
                     && bindLibraryCode != libraryCode)
                 {
+                    //当选择了是分馆，但绑了全局帐户，
+                    //那么允许全局帐户记录下来的馆代码为选择的分馆代码,
+                    //这样能支持到用全局帐户做借还时，校验分馆代码和自动加前缀的功能。
+                    //if (string.IsNullOrEmpty(libraryCode) == false)
+                    //{
+                        //bindLibraryCode = libraryCode;
+                        //thislibName = libraryCode;
+                    //}
+
                     bindLibraryCode = libraryCode;
                     thislibName = libraryCode;
+
+
+                    if (thislibName == "")
+                        thislibName = lib.libName;
 
                     //当用户实际对应的分馆代码 与 选择的分馆不一致时，以实际分馆代码为准
                     needUpdateSetting = true;
@@ -4697,6 +4950,10 @@ public string ErrorCode { get; set; }
             if (nRet == -1)
                 return -1;
 
+            // 获取分馆代码
+            UserSettingItem setting= UserSettingDb.Current.GetByWeixinId(weixinId);
+            string libraryCode = setting.libraryCode;
+
 
             try
             {
@@ -4714,6 +4971,7 @@ public string ErrorCode { get; set; }
                     match,//"middle",
                     resultSet,//"weixin",
                     "id,cols",
+                    libraryCode,//filter 20170509
                     WeiXinConst.C_Search_MaxCount,  //最大数量
                     start,  //每次获取范围
                     count);
@@ -5159,7 +5417,8 @@ public string ErrorCode { get; set; }
 
                 // 取item
                 List<BiblioItem> itemList = null;
-                int nRet = (int)this.GetItemInfo(lib,
+                int nRet = (int)this.GetItemInfo(weixinId,
+                    lib,
                     loginInfo,
                     "",//patronBarcode
                     biblioPath,
@@ -5180,7 +5439,13 @@ public string ErrorCode { get; set; }
                         string[] locs = selLocation.Split(new char[] { ',' });
                         foreach (BiblioItem item in itemList)
                         {
-                            if (locs.Contains(item.location) == false)
+                            //item.location有可能为 方洲小学/班级书架:1601 这种形态
+                            string tempLoc = item.location;
+                            int nIndex = tempLoc.IndexOf(":");
+                            if (nIndex > 0)
+                                tempLoc = tempLoc.Substring(0, nIndex);
+
+                            if (locs.Contains(tempLoc) == false)
                             {
                                 item.isNotCareLoc = true;
                             }
@@ -5428,7 +5693,8 @@ public string ErrorCode { get; set; }
                 // 取item
                 this.WriteLog3("开始获取items");
                 List<BiblioItem> itemList = null;
-                nRet = (int)this.GetItemInfo(lib,
+                nRet = (int)this.GetItemInfo(weixinId,
+                    lib,
                     loginInfo,
                     patronBarcode,
                     biblioPath,
@@ -6028,7 +6294,8 @@ public string ErrorCode { get; set; }
         }
 
         // patronBarcode 这里传入读者证条码，是因为有可能登录身份是工作人员，那么就无法获取读者情况了
-        public long GetItemInfo(LibEntity lib,      
+        public long GetItemInfo(string weixinId,  //为了获取libraryCode
+            LibEntity lib,      
             LoginInfo loginInfo,
             string patronBarcode,
             string biblioPath,
@@ -6069,13 +6336,37 @@ public string ErrorCode { get; set; }
                     goto ERROR1;
             }
 
+            // 得到分馆代码
+            string libraryCode = "";
+            UserSettingItem setting = UserSettingDb.Current.GetByWeixinId(weixinId);
+            if (setting != null)
+            {
+                libraryCode = setting.libraryCode;
+                if (libraryCode == null)
+                    libraryCode = "";
+            }
+            string format = "";
+            if (String.IsNullOrEmpty(libraryCode) == false)
+            {
+                format = "librarycode:" + libraryCode;
+            }
+            else
+            {
+                format = "getotherlibraryitem";
+            }
+            if (String.IsNullOrEmpty(format) == false)
+                format = "," + format;
+                
+            
+
+
             //获取下级册信息
             List<Record> recordList = null;
             long lRet = this.GetItemInfoApi(lib,
                 loginInfo,
                 biblioPath,
                 "entity",//dbNameList,
-                "opac",//formatList,
+                "opac"+format,//formatList,
                 10,//maxResults,
                 out recordList,
                 out strError);

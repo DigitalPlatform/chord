@@ -26,6 +26,8 @@ namespace dp2weixinWeb.ApiControllers
         [HttpPost]
         public ChargeCommand CreateCmd(string weixinId, 
             string libId,
+            string libraryCode,
+            int isTransfromed,
             ChargeCommand cmd)
         {
 
@@ -34,22 +36,29 @@ namespace dp2weixinWeb.ApiControllers
             // 执行命令
             return cmdContainer.AddCmd(weixinId,
                 libId,
+                libraryCode,
+                isTransfromed,
                 cmd);
         }
 
         public ApiResult VerifyBarcode(string libId,
+            string libraryCode,
             string userId,
             string barcode)
         {
             ApiResult result = new ApiResult();
 
             string error = "";
+            string resultBarcode="";
             int nRet = dp2WeiXinService.Instance.VerifyBarcode(libId,
+                libraryCode,
                 userId,
                 barcode,
+                out resultBarcode,
                 out error);
             result.errorCode = nRet;
             result.errorInfo = error;
+            result.info = resultBarcode;
 
             return result;
         }

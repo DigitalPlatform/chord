@@ -79,6 +79,16 @@ else
     else
     {
 
+        // 警告提示
+        if (String.IsNullOrEmpty(ViewBag.Warn) == false)
+        {
+            <div class="mui-content-padded">
+                <span class="errorinfo">
+                    @Html.Raw(ViewBag.Warn)
+                </span>
+            </div>
+        }
+
         if (String.IsNullOrEmpty(ViewBag.userName) == false)
         {
             <div id="divNew" class="mui-content-padded" style="display:block">

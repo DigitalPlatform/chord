@@ -21,7 +21,7 @@ namespace dp2weixin.service
         public const string M_Lib_WorkerCount = "%WorkerCount%";
         public const string M_Lib_BindTotalCount = "%BindTotalCount%";
 
-        public const string C_RequestCapoVersion = "1.9";
+        public const string C_RequestCapoVersion = "1.26";
         public const string C_State_Hangup = "hang-up";
 
         /// <summary>
@@ -170,6 +170,31 @@ namespace dp2weixin.service
             return null;
         }
 
+        // 得到图书馆挂起警告
+        public static string GetLibHungWarn(Library lib)
+        {
+            string warnText = "";
+            // 如果图书馆是挂起状态，作为警告
+            if (lib.State == LibraryManager.C_State_Hangup)
+            {
+                // 立即重新检查一下
+                dp2WeiXinService.Instance.LibManager.RedoGetVersion(lib);
+                if (lib.Version == "-1")
+                {
+                    //的桥接服务器dp2capo已失去连接，请尽快修复。
+                    warnText = lib.Entity.libName + " 的桥接服务器dp2capo失去连接，公众号功能已被挂起，请尽快修复。";
+                }
+                else
+                {
+                    //warnText = lib.Entity.libName + " 的桥接服务器dp2capo版本不够新，公众号功能已被挂起，请尽快升级。";
+
+                    warnText = lib.Entity.libName + " 的桥接服务器dp2capo版本不够新（当前版本是" + lib.Version + "，要求版本为" + LibraryManager.C_RequestCapoVersion + "或以上），公众号功能已被挂起，请尽快升级。";
+
+                }
+            }
+
+            return warnText;
+        }
 
         public void RedoGetVersion(Library library)
         {

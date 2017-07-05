@@ -30,7 +30,8 @@ namespace dp2weixin.service
                     string areaName = DomUtil.GetAttr(areaNode, "name");
                     Area area = new Area();
                     area.name = areaName;
-                    this.areas.Add(area);
+
+                    //int daoQiLibCout = 0;
 
                     XmlNodeList libNodes = areaNode.SelectNodes("lib");
                     foreach (XmlNode libNode in libNodes)
@@ -42,9 +43,16 @@ namespace dp2weixin.service
                         lib.libId = id;
                         lib.name = name;
                         lib.libraryCode = libraryCode;
+
+
+
                         area.libs.Add(lib);
                     }
 
+                    if (area.libs.Count > 0)
+                    {
+                        this.areas.Add(area);
+                    }
                 }
             }
             catch(Exception ex)
@@ -63,6 +71,7 @@ namespace dp2weixin.service
         {
             // 先将已经对应的删除
             DelLib(entity.id, entity.libName);
+
 
             // 先查一下有没有对应的地区
             Area area = this.GetArea(entity.area);
@@ -152,6 +161,7 @@ namespace dp2weixin.service
     {
         public string name = "";
         public List<libModel> libs = new List<libModel>();
+        public bool visible = true;
 
         public libModel GetLib(string id,string name)
         {
@@ -176,6 +186,8 @@ namespace dp2weixin.service
         public string capoUser = "";
         public string libId = "";
         public string libraryCode = "";
+
+        public bool visible = true;
 
         public string FullLibId
         {
