@@ -167,6 +167,8 @@
             this.toolStripButton_begin = new System.Windows.Forms.ToolStripButton();
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.textBox_search_filter = new System.Windows.Forms.TextBox();
+            this.label51 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl_main.SuspendLayout();
@@ -260,7 +262,7 @@
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripProgressBar1,
             this.toolStripStatusLabel1});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 338);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 378);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(733, 22);
             this.statusStrip1.TabIndex = 1;
@@ -292,7 +294,7 @@
             this.tabControl_main.Location = new System.Drawing.Point(0, 0);
             this.tabControl_main.Name = "tabControl_main";
             this.tabControl_main.SelectedIndex = 0;
-            this.tabControl_main.Size = new System.Drawing.Size(391, 288);
+            this.tabControl_main.Size = new System.Drawing.Size(391, 328);
             this.tabControl_main.TabIndex = 0;
             // 
             // tabPage_config
@@ -520,6 +522,8 @@
             // tabPage_search
             // 
             this.tabPage_search.AutoScroll = true;
+            this.tabPage_search.Controls.Add(this.textBox_search_filter);
+            this.tabPage_search.Controls.Add(this.label51);
             this.tabPage_search.Controls.Add(this.textBox_search_position);
             this.tabPage_search.Controls.Add(this.label18);
             this.tabPage_search.Controls.Add(this.textBox_search_resultSetName);
@@ -541,7 +545,7 @@
             this.tabPage_search.Location = new System.Drawing.Point(4, 22);
             this.tabPage_search.Name = "tabPage_search";
             this.tabPage_search.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_search.Size = new System.Drawing.Size(383, 262);
+            this.tabPage_search.Size = new System.Drawing.Size(383, 302);
             this.tabPage_search.TabIndex = 1;
             this.tabPage_search.Text = "SearchXXX";
             this.tabPage_search.UseVisualStyleBackColor = true;
@@ -1206,7 +1210,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_sortCondition.Location = new System.Drawing.Point(77, 91);
             this.textBox_message_sortCondition.Name = "textBox_message_sortCondition";
-            this.textBox_message_sortCondition.Size = new System.Drawing.Size(400, 21);
+            this.textBox_message_sortCondition.Size = new System.Drawing.Size(404, 21);
             this.textBox_message_sortCondition.TabIndex = 49;
             // 
             // label46
@@ -1224,7 +1228,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_userRange.Location = new System.Drawing.Point(77, 38);
             this.textBox_message_userRange.Name = "textBox_message_userRange";
-            this.textBox_message_userRange.Size = new System.Drawing.Size(400, 21);
+            this.textBox_message_userRange.Size = new System.Drawing.Size(404, 21);
             this.textBox_message_userRange.TabIndex = 47;
             // 
             // label41
@@ -1282,7 +1286,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_timeRange.Location = new System.Drawing.Point(77, 65);
             this.textBox_message_timeRange.Name = "textBox_message_timeRange";
-            this.textBox_message_timeRange.Size = new System.Drawing.Size(400, 21);
+            this.textBox_message_timeRange.Size = new System.Drawing.Size(404, 21);
             this.textBox_message_timeRange.TabIndex = 41;
             // 
             // label39
@@ -1301,7 +1305,7 @@
             this.textBox_message_text.Location = new System.Drawing.Point(54, 118);
             this.textBox_message_text.Multiline = true;
             this.textBox_message_text.Name = "textBox_message_text";
-            this.textBox_message_text.Size = new System.Drawing.Size(423, 62);
+            this.textBox_message_text.Size = new System.Drawing.Size(427, 62);
             this.textBox_message_text.TabIndex = 3;
             // 
             // textBox_message_groupName
@@ -1310,7 +1314,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_groupName.Location = new System.Drawing.Point(77, 11);
             this.textBox_message_groupName.Name = "textBox_message_groupName";
-            this.textBox_message_groupName.Size = new System.Drawing.Size(400, 21);
+            this.textBox_message_groupName.Size = new System.Drawing.Size(404, 21);
             this.textBox_message_groupName.TabIndex = 39;
             // 
             // label37
@@ -1557,7 +1561,7 @@
             // splitContainer_main.Panel2
             // 
             this.splitContainer_main.Panel2.Controls.Add(this.webBrowser1);
-            this.splitContainer_main.Size = new System.Drawing.Size(733, 288);
+            this.splitContainer_main.Size = new System.Drawing.Size(733, 328);
             this.splitContainer_main.SplitterDistance = 391;
             this.splitContainer_main.SplitterWidth = 8;
             this.splitContainer_main.TabIndex = 3;
@@ -1568,14 +1572,30 @@
             this.webBrowser1.Location = new System.Drawing.Point(0, 0);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(334, 288);
+            this.webBrowser1.Size = new System.Drawing.Size(334, 328);
             this.webBrowser1.TabIndex = 0;
+            // 
+            // textBox_search_filter
+            // 
+            this.textBox_search_filter.Location = new System.Drawing.Point(130, 258);
+            this.textBox_search_filter.Name = "textBox_search_filter";
+            this.textBox_search_filter.Size = new System.Drawing.Size(184, 21);
+            this.textBox_search_filter.TabIndex = 21;
+            // 
+            // label51
+            // 
+            this.label51.AutoSize = true;
+            this.label51.Location = new System.Drawing.Point(8, 261);
+            this.label51.Name = "label51";
+            this.label51.Size = new System.Drawing.Size(47, 12);
+            this.label51.TabIndex = 20;
+            this.label51.Text = "Filter:";
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(733, 360);
+            this.ClientSize = new System.Drawing.Size(733, 400);
             this.Controls.Add(this.splitContainer_main);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);
@@ -1764,6 +1784,8 @@
         private System.Windows.Forms.TextBox textBox_config_libraryPassword;
         private System.Windows.Forms.Label label50;
         private System.Windows.Forms.Button button_editEntities;
+        private System.Windows.Forms.TextBox textBox_search_filter;
+        private System.Windows.Forms.Label label51;
     }
 }
 
