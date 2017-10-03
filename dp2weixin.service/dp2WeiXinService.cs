@@ -2922,6 +2922,10 @@ namespace dp2weixin.service
                 if (lib.Entity.comment == "notwarn") // 任延华测试用的图书馆
                     continue;
 
+                //20171003 到期的图书馆不再提醒
+                if (lib.Entity.state == "到期")
+                    continue;
+
                 // 如果是挂起状态，直接加入不在线列表
                 if (lib.State == LibraryManager.C_State_Hangup)
                 {

@@ -47,26 +47,45 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
             }
 
+
+            // 2017-10-1 只列出可访问的图书馆
+            List<Library> avaiblelibList = dp2WeiXinService.Instance.LibManager.GetLibraryByIds(sessionInfo.libIds);
+
+
             // 得到该微信用户绑定过的图书馆列表
             //List<string> libs = WxUserDatabase.Current.GetLibsByWeixinId(sessionInfo.WeixinId);
+
+
+
 
             List<WxUserItem> list = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
 
             foreach(Area area in dp2WeiXinService.Instance.areaMgr.areas)
             {
-                int daoQiLibCout = 0;
+                int disVisibleCout = 0;
                 foreach (libModel lib in area.libs)
                 {
                     lib.Checked = "";
                     lib.bindFlag = "";
 
+                    
+
                     // 如果是到期的图书馆，不显示出来
-                    LibEntity libEntity = dp2WeiXinService.Instance.GetLibById(lib.libId);
-                    if (libEntity != null && libEntity.state == "到期")
+                    Library thisLib = dp2WeiXinService.Instance.LibManager.GetLibrary(lib.libId);//.GetLibById(lib.libId);
+                    if (thisLib != null && thisLib.Entity.state == "到期")
                     {
                         lib.visible = false;
-                        daoQiLibCout++;
+                        disVisibleCout++;
+                        continue;
                     }
+
+                    ////如果不在可访问范围，不显示
+                    //if (thisLib != null && avaiblelibList.IndexOf(thisLib) == -1)
+                    //{
+                    //    lib.visible = false;
+                    //    disVisibleCout++;
+                    //    continue;
+                    //}
                         
 
                     //
@@ -78,7 +97,7 @@ namespace dp2weixinWeb.Controllers
                 }
 
                 // 如果下级图书馆都是到期状态，则地址不显示
-                if (daoQiLibCout == area.libs.Count)
+                if (disVisibleCout == area.libs.Count)
                 {
                     area.visible = false;
                 }
@@ -127,19 +146,19 @@ namespace dp2weixinWeb.Controllers
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
             ViewBag.returnUrl = returnUrl;
 
-            // 图书馆html
-            string selLibHtml = "";
-            nRet = this.GetLibSelectHtml(ViewBag.LibId, 
-                weixinId, 
-                true,
-                "save()",
-                out selLibHtml,
-                out strError);
-            if (nRet==-1)
-            {
-                goto ERROR1;
-            }
-            ViewBag.LibHtml = selLibHtml;
+            //// 图书馆html
+            //string selLibHtml = "";
+            //nRet = this.GetLibSelectHtml(ViewBag.LibId, 
+            //    weixinId, 
+            //    true,
+            //    "save()",
+            //    out selLibHtml,
+            //    out strError);
+            //if (nRet==-1)
+            //{
+            //    goto ERROR1;
+            //}
+            //ViewBag.LibHtml = selLibHtml;
 
             string photoChecked = "";
             if (ViewBag.showPhoto == 1)
