@@ -113,25 +113,7 @@ namespace dp2weixin.service
         public const string C_Template_Message = "Message";
         public const string C_Template_Arrived = "Arrived";
         public const string C_Template_CaoQi = "CaoQi";
-        /*
-          <gzhs>
-            <gzh appName="ilovelibrary" appId="wx57aa3682c59d16c2" 
-                 secret="5d1a0507f05be41a56e27c632c0a808d" token="dp3weixin" 
-                 encodingAESKey="ReQ72EHh7KkROvs1AEE5IK76py9oHmhRtVs30ur2DlD" isDefault="true" >
-              <templates>
-                <template name='Bind' id="hFmNH7on2FqSOAiYPZVJN-FcXBv4xpVLBvHsfpLLQKU"/>
-                <template name="UnBind" id="1riAKkt2W0AOtkx5rx-Lwa0RKRydDTHaMjSoUBGuHog"/>
-                <template name="Borrow" id="2AVbpcn0y1NtqIQ7X7KY1Ebcyyhx6mUXTpAxuOcxSE0"/>
-                <template name="Return" id="zzlLzStt_qZlzMFhcDgRm8Zoi-tsxjWdsI2b3FeoRMs"/>
-                <template name="Pay" id="xFg1P44Hbk_Lpjc7Ds4gU8aZUqAlzoKpoeixtK1ykBI"/>
-                <template name="CancelPay" id="-XsD34ux9R2EgAdMhH0lpOSjcozf4Jli_eC86AXwM3Q"/>
-                <template name="Message" id="rtAx0BoUAwZ3npbNIO8Y9eIbdWO-weLGE2iOacGqN_s"/>
-                <template name="Arrived" id="U79IrJOgNJWZnqeKy2467ZoN-aM9vrEGQf2JJtvdBPM"/>
-                <template name="CaoQi" id="2sOCuATcFdSNbJM24zrHnFv89R3D-cZFIpk4ec_Irn4"/>
-              </templates>
-            </gzh>
-         </gzhs>
-         */
+       
         public GzhCfg(XmlNode node)
         {
             this._node = node;
