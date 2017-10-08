@@ -60,34 +60,38 @@ namespace dp2weixinWeb.Controllers
 
             List<WxUserItem> list = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
 
+            List<Area> areaList = new List<Area>();
+
             foreach(Area area in dp2WeiXinService.Instance.areaMgr.areas)
             {
-                int disVisibleCout = 0;
+                //area.visible = true;
+                //int disVisibleCout = 0;
+
+                List<libModel> libList = new List<libModel>();
                 foreach (libModel lib in area.libs)
                 {
+                   // lib.visible = true;
                     lib.Checked = "";
                     lib.bindFlag = "";
-
-                    
 
                     // 如果是到期的图书馆，不显示出来
                     Library thisLib = dp2WeiXinService.Instance.LibManager.GetLibrary(lib.libId);//.GetLibById(lib.libId);
                     if (thisLib != null && thisLib.Entity.state == "到期")
                     {
-                        lib.visible = false;
-                        disVisibleCout++;
+                        //lib.visible = false;
+                        //disVisibleCout++;
                         continue;
                     }
 
-                    ////如果不在可访问范围，不显示
-                    //if (thisLib != null && avaiblelibList.IndexOf(thisLib) == -1)
-                    //{
-                    //    lib.visible = false;
-                    //    disVisibleCout++;
-                    //    continue;
-                    //}
-                        
+                    //如果不在可访问范围，不显示
+                    if (thisLib != null && avaiblelibList.IndexOf(thisLib) == -1)
+                    {
+                        //lib.visible = false;
+                        //disVisibleCout++;
+                        continue;
+                    }
 
+                    libList.Add(lib);
                     //
                     if (this.CheckIsBind(list, lib) == true)  //libs.Contains(lib.libId)
                         lib.bindFlag = " * ";
@@ -97,13 +101,22 @@ namespace dp2weixinWeb.Controllers
                 }
 
                 // 如果下级图书馆都是到期状态，则地址不显示
-                if (disVisibleCout == area.libs.Count)
+                //if (disVisibleCout == area.libs.Count)
+                //{
+                //    area.visible = false;
+                //}
+
+                if (libList.Count > 0)
                 {
-                    area.visible = false;
+                    Area newArea = new Area();
+                    newArea.name = area.name;
+                    newArea.libs = libList;
+                    areaList.Add(newArea);
                 }
+
             }
 
-            ViewBag.areaList = dp2WeiXinService.Instance.areaMgr.areas;
+            ViewBag.areaList = areaList;// dp2WeiXinService.Instance.areaMgr.areas;
 
             return View();
 
