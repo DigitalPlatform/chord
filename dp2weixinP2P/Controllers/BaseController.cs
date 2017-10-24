@@ -193,7 +193,7 @@ namespace dp2weixinWeb.Controllers
                 }
                 else
                 {
-                    dp2WeiXinService.Instance.WriteLog1("传进来的code[" + code + "]与session中保存的code[" + sessionInfo.oauth2_return_code + "]不同，重新获取weixinid了，ip=" + Request.UserHostAddress + "。");
+                    dp2WeiXinService.Instance.WriteLog2("传进来的code[" + code + "]与session中保存的code[" + sessionInfo.oauth2_return_code + "]不同，重新获取weixinid了，ip=" + Request.UserHostAddress + "。");
                     List<string> libList = null;
                     int nRet = dp2WeiXinService.Instance.GetWeiXinId(code,
                         state,

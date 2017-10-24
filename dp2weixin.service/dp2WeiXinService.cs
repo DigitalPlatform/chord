@@ -2505,7 +2505,6 @@ namespace dp2weixin.service
                 borrowDate = DateTimeUtil.ToLocalTime(borrowDate, "yyyy/MM/dd");
 
                 //overdueType是超期类型，overdue表示超期，warning表示即将超期。
-                string templateName = GzhCfg.C_Template_CaoQi;//this.Template_CaoQi;
                 string overdueType = DomUtil.GetAttr(item, "overdueType");
                 string remark = "";
                 if (overdueType == "overdue")
@@ -2740,10 +2739,10 @@ namespace dp2weixin.service
             string fullItemBarcode = this.GetFullItemBarcode(itemBarcode, libName, location);
 
             // 备注
-            string remark = fullPatronName + "，您预约的图书 " + fullItemBarcode + " 到了，请尽快来图书馆办理借书手续。";//如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
+            string remark = fullPatronName + "，您预约的图书到了，请尽快来图书馆办理借书手续。";// " + fullItemBarcode + " //如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或做归架处理。";
             if (bOnShelf == true)
             {
-                remark = fullPatronName + "，您预约的图书 " + fullItemBarcode + " 已经在架上，请尽快来图书馆办理借书手续。";//如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或允许其他读者借阅。";
+                remark = fullPatronName + "，您预约的图书已经在架上，请尽快来图书馆办理借书手续。";// " + fullItemBarcode + " //如果您未能在保留期限内来馆办理借阅手续，图书馆将把优先借阅权转给后面排队等待的预约者，或允许其他读者借阅。";
             }
             if (string.IsNullOrEmpty(accessNo) == false)
             {
@@ -4510,12 +4509,12 @@ public string ErrorCode { get; set; }
                 // 发送绑定成功的客服消息    
                 string strFirst = "☀恭喜您！您已成功绑定图书馆读者账号。";
                 string strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", false);
-                string strRemark = "您可以直接通过微信公众号访问图书馆，进行信息查询，预约续借等功能。如需解绑，请通过“绑定账号”菜单操作。";
+                string strRemark = "您可以直接通过微信公众号访问图书馆，进行信息查询，预约续借等功能。如需解绑，请点击“绑定账号”菜单操作。";
                 if (type == 1)
                 {
                     strFirst = "☀恭喜您！您已成功绑定图书馆工作人员账号。";
                     strAccount = userItem.userName;
-                    strRemark = "欢迎您使用微信公众号管理图书馆业务，如需解绑，请通过“绑定账号”菜单操作。";
+                    strRemark = "欢迎您使用微信公众号管理图书馆业务，如需解绑，请点击“绑定账号”菜单操作。";
                 }
 
                 string fullLibName = this.GetFullLibName(userItem.libName, userItem.libraryCode, "");
@@ -8090,6 +8089,39 @@ public string ErrorCode { get; set; }
             // 使用读者账号 20161024 jane
             LoginInfo loginInfo = new LoginInfo(patron, true);
 
+            // 如果是取消获取一下读者记录
+            string reserDate = "";
+            string summary="";
+            if(style=="delete")
+            {
+                List<ReservationInfo> reserList = null;
+                int nRet = this.GetPatronReservation(libId,
+                    loginInfo,
+                    patron,
+                    out reserList,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+                if (reserList != null)
+                {
+                    foreach (ReservationInfo item in reserList)
+                    {
+                        if (items == item.pureBarcodes)
+                        {
+                            reserDate = item.requestdate;
+                            break;
+                        }
+                    }
+                }
+
+                string strRecPath = "";
+                nRet = GetBiblioSummary(lib, items, "", out summary, out strRecPath, out strError);
+                if (nRet == -1)
+                    return -1;
+                summary = this.GetShortSummary(summary);
+            
+            }
+
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             CirculationRequest request = new CirculationRequest(id,
@@ -8151,9 +8183,11 @@ public string ErrorCode { get; set; }
                         }
 
                         string operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                        string fullPatronName = this.GetFullPatronName(user.readerName, user.readerBarcode, lib.libName, user.libraryCode, false);
-                        string strText = fullPatronName + "，您已对图书 " + items + " 取消预约,该书将不再为您保留。";
-                        string remark = "\n" + this._msgRemark;
+                        //string fullPatronName = this.GetFullPatronName(user.readerName, user.readerBarcode, lib.libName, user.libraryCode, false);
+                        //string strText = user.readerName + "，您已对上述图书取消预约,该书将不再为您保留。";
+                        //string remark = "\n" + this._msgRemark;
+
+                        string remark = user.readerName + "，您已对上述图书取消预约,该书将不再为您保留。";
 
                         List<string> bindWeixinIds = new List<string>();
                         string fullWeixinId = weixinId;//2016-11-16 传进来的weixinId带了@appId // + "@" + user.appId;
@@ -8162,35 +8196,67 @@ public string ErrorCode { get; set; }
                         // 得到找开tracing功能的工作人员微信id
                         List<TracingOnUser> workers = this.getWorkerWeixinIds(lib.id, user.libraryCode);
 
+                        string first = "☀☀☀☀☀☀☀☀☀☀";
+                        string first_color = "#9400D3";
+
+                        //取消图书预约成功。
+                        //书刊摘要：中国机读目录格式使用手册
+                        //册条码号：B0000001
+                        //预约日期：2017-10-01
+                        //取消日期：2017-10-03
+                        //证条码号：P000005
+                        //张三，您取消图书预约成功，该书将不再为您保留。
+                        string fullPatronBarcode = this.GetFullPatronName("", patron, lib.libName, user.libraryCode, false);
+
+                        CancelReserveTemplateData mData = new CancelReserveTemplateData(first,
+    first_color,
+    summary,
+    items,
+    reserDate,
+    operTime,
+    fullPatronBarcode,
+    remark);
+
 
                         //{{first.DATA}}
                         //标题：{{keyword1.DATA}}
                         //时间：{{keyword2.DATA}}
                         //内容：{{keyword3.DATA}}
                         //{{remark.DATA}}
-                        string first = "☀☀☀☀☀☀☀☀☀☀";
-                        string first_color = "#9400D3";
-                        string title="取消预约成功";
-                        MessageTemplateData msgData = new MessageTemplateData(first,
-                            first_color,
-                            title,
-                            operTime,
-                            strText,
-                            remark);
-                        //mask
-                        string markFullPatronName = this.GetFullPatronName(user.readerName, user.readerBarcode, lib.libName, user.libraryCode, true);
-                        strText = strText.Replace(fullPatronName, markFullPatronName);
-                        MessageTemplateData maskMsgData = new MessageTemplateData(first,
-                            first_color,
-                            title,
-                            operTime,
-                            strText,
-                            remark);
 
-                        int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Message,
+                        //string title="取消预约成功";
+                        //MessageTemplateData msgData = new MessageTemplateData(first,
+                        //    first_color,
+                        //    title,
+                        //    operTime,
+                        //    strText,
+                        //    remark);
+
+                        //证条码号处
+                        string markFullPatronBarcode = this.GetFullPatronName("", patron, lib.libName, user.libraryCode, true);
+                        //备注姓名
+                        string markPatronName = this.markString(user.readerName);
+                        string tempRemark = remark.Replace(user.readerName, markPatronName);// +theOperator; ;
+                        CancelReserveTemplateData maskMsgData = new CancelReserveTemplateData(first,
+first_color,
+summary,
+items,
+reserDate,
+operTime,
+markFullPatronBarcode,
+tempRemark);
+
+                        //MessageTemplateData maskMsgData = new MessageTemplateData(first,
+                        //    first_color,
+                        //    title,
+                        //    operTime,
+                        //    strText,
+                        //    remark);
+
+                        int nRet = this.SendTemplateMsg(GzhCfg.C_Template_CancelReserve,
                             bindWeixinIds,
                             workers,
-                            msgData,
+                            mData,
                             maskMsgData,
                             "",
                             "",

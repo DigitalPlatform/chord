@@ -113,7 +113,8 @@ namespace dp2weixin.service
         public const string C_Template_Message = "Message";
         public const string C_Template_Arrived = "Arrived";
         public const string C_Template_CaoQi = "CaoQi";
-       
+        public const string C_Template_CancelReserve = "CancelReserve";
+
         public GzhCfg(XmlNode node)
         {
             this._node = node;

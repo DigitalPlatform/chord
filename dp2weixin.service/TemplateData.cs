@@ -176,6 +176,23 @@ namespace dp2weixin.service
         { }
     }
 
+//取消图书预约成功。
+//书刊摘要：中国机读目录格式使用手册
+//册条码号：B0000001
+//预约日期：2017-10-01
+//取消日期：2017-10-03
+//证条码号：P000005
+//张三，您取消图书预约成功，该书将不再为您保留。
+    public class CancelReserveTemplateData : Template5Data
+    {
+        public CancelReserveTemplateData(string first, string first_color,
+            string k1, string k2, string k3, string k4, string k5,
+            string remark)
+            : base(first, first_color, k1, k2, k3, k4, k5, remark)
+        { }
+    }
+
+
 
     //{{first.DATA}}
     //绑定帐号：{{keyword1.DATA}}

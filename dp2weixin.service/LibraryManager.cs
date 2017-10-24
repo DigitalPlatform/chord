@@ -52,6 +52,10 @@ namespace dp2weixin.service
         /// <param name="entity"></param>
         public void AddLib(LibEntity entity)
         {
+            // 到期的图书馆不加入到内存集合中
+            if (entity!=null && entity.state == "到期")
+                return;
+
             Library library = new Library();
             library.Entity = entity;
 

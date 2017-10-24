@@ -8,8 +8,11 @@ senparc.menu ={
         $('#buttonDetails').hide();
         $('#menuEditor').hide();
 
+        // 天人appId: 'wx40cb4550327e7611', appSecret: 'e1d5d2f4187ba696898d4628b3c476d1' 
+        //我爱图书馆{ appId: 'wx57aa3682c59d16c2', appSecret: '5d1a0507f05be41a56e27c632c0a808d' }
+        // 数字平台{ appId: 'wxd24b193130bbaa7c', appSecret: '137afb49af90a07c2c72b11f520bb4b3' }, 
         // 自动获取accessToken
-        $.getJSON('/Menu/GetToken?t=' + Math.random(), { appId: 'wx40cb4550327e7611', appSecret: 'e1d5d2f4187ba696898d4628b3c476d1' },// 数字平台{ appId: 'wxd24b193130bbaa7c', appSecret: '137afb49af90a07c2c72b11f520bb4b3' }, //我爱图书馆{ appId: 'wx57aa3682c59d16c2', appSecret: '5d1a0507f05be41a56e27c632c0a808d' },// 测试号 { appId: 'wx0f2b65b37835f531', appSecret: '85777abcddde69d7c44f421c49dfa331' }, 
+        $.getJSON('/Menu/GetToken?t=' + Math.random(), { appId: 'wx57aa3682c59d16c2', appSecret: '5d1a0507f05be41a56e27c632c0a808d' },
 
         function (json) {
             if (json.access_token) {
