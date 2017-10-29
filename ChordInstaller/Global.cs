@@ -11,7 +11,7 @@ namespace ChordInstaller
 {
     public static class Global
     {
-        // 获得 dpeCapo 的程序存储目录
+        // 获得 dp2Capo 的程序存储目录
         // 在 64 位操作系统下，获得 Program files (x86)
         // 在 32 位操作系统下，获得 Program Files
         public static string GetProductDirectory(

@@ -3956,6 +3956,7 @@ out strError);
             string strFileName,
             long lStart,
             long lLength,
+            string strStyle,
             out byte[] baContent,
             out string strFileTime,
             out string strError)
@@ -3973,7 +3974,8 @@ out strError);
                     strCategory,
                     strFileName,
                     lStart,
-                    lLength
+                    lLength,
+                    strStyle    // 2017/10/29
                     );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
