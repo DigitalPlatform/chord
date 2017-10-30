@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace dp2weixin.service
 {
@@ -58,7 +59,7 @@ namespace dp2weixin.service
         public string getTypeString(string type)
         {
             if (type == C_Command_LoadPatron)
-                return "装载读者";// +this.patronBarcode;
+                return "装载读者" +this.patronBarcode;
             if (type == C_Command_Borrow)
                 return "借书";
             if (type == C_Command_Return)

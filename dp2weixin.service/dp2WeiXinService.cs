@@ -3400,6 +3400,7 @@ ErrorInfo成员里可能会有报错信息。
             string libraryCode,
             string userId,
             string barcode,
+            int needTransform,
             out string resultBarcode,
             out string strError)
         {
@@ -3433,7 +3434,7 @@ ErrorInfo成员里可能会有报错信息。
             LoginInfo loginInfo = new LoginInfo(userName, bPatron);
 
             // 对于分馆，检查条码是否加前缀。
-            if (string.IsNullOrEmpty(libraryCode) == false)
+            if (string.IsNullOrEmpty(libraryCode) == false && needTransform==1)
             {
                 //string resultBarcode = "";
                 nRet = this.GetTransformBarcode(loginInfo,
@@ -3552,6 +3553,9 @@ ErrorInfo成员里可能会有报错信息。
                     "?transform",
                     out resultBarcode,
                     out strError);
+
+                if (strError.IndexOf("<script>") != -1)
+                    strError = strError.Replace("<script>", "");
                 if (nRet == -1)
                     return -1;
 

@@ -125,9 +125,11 @@ namespace dp2weixin.service
         public ChargeCommand AddCmd(string weixinId,
             string libId,
             string libraryCode,
-            int isTransfromed,
+            int needTransfrom,
             ChargeCommand cmd)
         {
+            //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-1");
+
             Debug.Assert(cmd != null, "AddCmd传进的cmd不能为空。");
             Debug.Assert(String.IsNullOrEmpty(cmd.type) == false, "命令类型不能为空。");
 
@@ -163,9 +165,13 @@ namespace dp2weixin.service
             // 登录dp2身份
             LoginInfo loginInfo = new LoginInfo(cmd.userName,cmd.isPatron==1?true:false );
 
+            //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-2");
+
             // 当是分馆时，检查是否需要自动加前缀，以及自动加前缀
-            if (string.IsNullOrEmpty(libraryCode) == false && isTransfromed==0)
+            if (string.IsNullOrEmpty(libraryCode) == false && needTransfrom == 1) //20171029,当前缀特别指定的需要转换时再转换
             {
+                //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-3");
+
                 string tempBarcode = "";
                 if (cmd.type == ChargeCommand.C_Command_LoadPatron)
                     tempBarcode = cmd.patronBarcode;
@@ -179,8 +185,14 @@ namespace dp2weixin.service
                     tempBarcode,
                     out resultBarcode,
                     out cmdError);
+                //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-31-[" + cmdError+"]");
+
                 if (cmdRet == -1)
+                {
+                    //cmdError = cmdError.Replace("<script>", "");
                     goto END1;
+                }
+                //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-4");
 
                 // 转换过的
                 if (cmdRet == 1)
@@ -196,6 +208,7 @@ namespace dp2weixin.service
             // 20170413 查询册
             if (cmd.type == ChargeCommand.C_Command_SearchItem)
             {
+                //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-5");
 
                 string summary = "";
                 string recPath = "";
@@ -210,6 +223,8 @@ namespace dp2weixin.service
                 {
                     //出错信息会加起来
                 }
+                //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-51");
+
 
                 int tempIndex = recPath.IndexOf("@");
                 if (tempIndex > 0)
@@ -243,6 +258,8 @@ namespace dp2weixin.service
                     cmd.resultInfo = cmdError;
                     cmdRet = -1;
                 }
+                //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-6");
+
 
                 BiblioItem item = null;
                 foreach (BiblioItem one in itemList)
@@ -269,11 +286,14 @@ namespace dp2weixin.service
                 goto END2;
             }
 
+            //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-7");
 
 
             //加载读者
             if (cmd.type == ChargeCommand.C_Command_LoadPatron) 
             {
+                dp2WeiXinService.Instance.WriteErrorLog1("走进-加载读者-1");
+
                 cmdRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                     loginInfo,
                     cmd.patronBarcode,
@@ -284,6 +304,8 @@ namespace dp2weixin.service
                     out cmdError);
                 if (cmdRet == -1 || cmdRet == 0)  //未找到认为出错
                 {
+                    dp2WeiXinService.Instance.WriteErrorLog1("走进-加载读者-2");
+
                     cmdError += " 传入的条码为["+cmd.patronBarcode+"]";
                     cmdRet = -1;
                 }
@@ -304,6 +326,8 @@ namespace dp2weixin.service
                 //        cmdRet = -1;
                 //    }
                 //}
+
+                dp2WeiXinService.Instance.WriteErrorLog1("走进-加载读者-3");
 
                 goto END1;
             }
@@ -407,7 +431,7 @@ namespace dp2weixin.service
 END1:
             // 设返回值
              cmd.state = cmdRet;
-            cmd.errorInfo = cmdError;
+             cmd.errorInfo =  cmdError; //20171028
             cmd.typeString = cmd.getTypeString(cmd.type);
 
 
