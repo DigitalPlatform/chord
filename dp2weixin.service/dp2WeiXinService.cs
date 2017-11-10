@@ -4800,6 +4800,10 @@ public string ErrorCode { get; set; }
             string match,
             string resultSet)
         {
+
+            // 测试加的日志
+            //dp2WeiXinService.Instance.WriteErrorLog1("走到SearchBiblio-1");
+
             SearchBiblioResult searchRet = new SearchBiblioResult();
             searchRet.apiResult = new ApiResult();
             searchRet.apiResult.errorCode = 0;
@@ -4817,6 +4821,10 @@ public string ErrorCode { get; set; }
                 //return searchRet;
             }
 
+            // 测试加的日志
+            //dp2WeiXinService.Instance.WriteErrorLog1("走到SearchBiblio-2-strWord["+strWord+"]");
+
+
             // 未传入检索途径
             if (string.IsNullOrEmpty(strFrom) == true)
             {
@@ -4825,8 +4833,15 @@ public string ErrorCode { get; set; }
                 return searchRet;
             }
 
+            // 测试加的日志
+            //dp2WeiXinService.Instance.WriteErrorLog1("走到SearchBiblio-3-strFrom[" + strFrom + "]");
+
+
             // 获取访问dp2library的身份
             LoginInfo loginInfo = this.Getdp2AccoutForSearch(weixinId,libId,true);
+
+            // 测试加的日志
+            //dp2WeiXinService.Instance.WriteErrorLog1("走到SearchBiblio-4-loginInfo[" + loginInfo.UserName + "]"+loginInfo.UserType);
 
 
             string strError = "";
@@ -4845,6 +4860,10 @@ public string ErrorCode { get; set; }
                 out records,
                 out bNext,
                 out strError);
+
+            // 测试加的日志
+            //dp2WeiXinService.Instance.WriteErrorLog1("走到SearchBiblio-5-SearchBiblioInternal返回[" + lRet + "]");
+
             if (lRet == -1 || lRet == 0)
             {
                 searchRet.apiResult.errorCode = (int)lRet;
@@ -4856,6 +4875,9 @@ public string ErrorCode { get; set; }
             searchRet.resultCount = records.Count;
             searchRet.isCanNext = bNext;
             searchRet.apiResult.errorCode = lRet;
+
+             // 测试加的日志
+            //dp2WeiXinService.Instance.WriteErrorLog1("走到SearchBiblio-6");
 
             return searchRet;
         }
@@ -4932,6 +4954,9 @@ public string ErrorCode { get; set; }
             records = new List<BiblioRecord>();
             bNext = false;
 
+            // 测试加的日志
+            //this.WriteErrorLog1("走进SearchBiblioInternal-1");
+
             LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
@@ -4939,9 +4964,17 @@ public string ErrorCode { get; set; }
                 return -1;
             }
 
+            // 测试加的日志
+            //this.WriteErrorLog1("走进SearchBiblioInternal-2");
+
+
             // 检查该图书馆的配置是否支持检索
             if (lib.noShareBiblio == 1)
             {
+
+                // 测试加的日志
+                //this.WriteErrorLog1("走进SearchBiblioInternal-3");
+
                 // 检查微信用户是否绑定了图书馆账户，如果未绑定，则不能检索
                 List<WxUserItem> userList = WxUserDatabase.Current.Get(weixinId, libId, -1);
                 if (userList == null || userList.Count == 0)
@@ -4951,16 +4984,27 @@ public string ErrorCode { get; set; }
                 }
             }
 
+            // 测试加的日志
+            //this.WriteErrorLog1("走进SearchBiblioInternal-4");
+
             // 获取参于检索的数据库
             string dbnames = "";
             int nRet = this.GetDbNames(lib, out dbnames, out strError);
             if (nRet == -1)
                 return -1;
 
+            // 测试加的日志
+            //this.WriteErrorLog1("走进SearchBiblioInternal-5");
+
+
             // 获取分馆代码
             UserSettingItem setting= UserSettingDb.Current.GetByWeixinId(weixinId);
-            string libraryCode = setting.libraryCode;
+            string libraryCode = "";
+            if (setting !=null)
+                libraryCode=setting.libraryCode;
 
+            // 测试加的日志
+            //this.WriteErrorLog1("走进SearchBiblioInternal-6");
 
             try
             {
@@ -4983,6 +5027,8 @@ public string ErrorCode { get; set; }
                     start,  //每次获取范围
                     count);
 
+                // 测试加的日志
+                //this.WriteErrorLog1("走进SearchBiblioInternal-7");
 
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this.dp2MServerUrl,
@@ -4993,6 +5039,10 @@ public string ErrorCode { get; set; }
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
+
+                // 测试加的日志
+                //this.WriteErrorLog1("走进SearchBiblioInternal-8");
+
                 // 输出检索语句
 #if LOG_REQUEST_SEARCH
                 writeDebug("search searchParam=" + request.Dump());
@@ -5000,6 +5050,10 @@ public string ErrorCode { get; set; }
 
                 if (result.ResultCount == -1)
                 {
+
+                    // 测试加的日志
+                    //this.WriteErrorLog1("走进SearchBiblioInternal-9");
+
                     bool bOffline = false;
                     strError = this.GetFriendlyErrorInfo(result, lib.libName, out bOffline);
                     if (bOffline == true)
@@ -5016,6 +5070,8 @@ public string ErrorCode { get; set; }
                     strError = "未命中";
                     return 0;
                 }
+                // 测试加的日志
+                //this.WriteErrorLog1("走进SearchBiblioInternal-10");
 
 
                 List<string> resultPathList = new List<string>();
