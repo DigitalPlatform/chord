@@ -1036,7 +1036,10 @@
 
         // 得到条码
         function getBarcode() {
-            return $("#_barcode").val();
+
+            var barcode = $("#_barcode").val();
+            
+            return barcode.toUpperCase();//20171207，将输入的内容统一转成大写
         }
         // 设置条码
         function setBarcode(value) {
@@ -1381,7 +1384,7 @@ else
     }
     else
     {
-        <div id="mypage" >
+        <div id="mypage"  >
             <div style="padding:10px;padding-bottom:0px;text-align:right"><span style="color:#cccccc">帐户&nbsp;</span>@ViewBag.userName<span style="color:#cccccc">&nbsp;关注馆藏&nbsp;</span>@ViewBag.Location<span style="color:#cccccc">&nbsp;</span><a href="~/Patron/Setting">设置</a></div>
             <div style="padding:10px;padding-bottom:0px;">
                 <button class="mui-btn mui-btn-block" onclick="start('borrow')" @ViewBag.canBorrow >开始借书</button>

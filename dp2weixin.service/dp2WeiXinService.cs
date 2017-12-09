@@ -6637,7 +6637,11 @@ public string ErrorCode { get; set; }
                                 out strError);
                             if (ret == -1)
                             {
-                                goto ERROR1;
+                                //goto ERROR1;
+
+                                // 2017-12-7 未找到对应的期记录
+                                totalImgs += "<div style='color:red'>"+strError+"</div>";
+                                continue;
                             }
 
                             // 从期中取出图片url
