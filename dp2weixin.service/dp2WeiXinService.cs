@@ -4048,6 +4048,7 @@ public string ErrorCode { get; set; }
                             strError = "操作失败：" + result.ErrorInfo;//读者姓名和手机号 与 图书馆系统中存储的姓名和手机号不一致。";//
                     }
 
+                    strError += "\r\n当前图书馆：" + lib.libName;
                     return 0;
                 }
 
@@ -4168,6 +4169,7 @@ public string ErrorCode { get; set; }
             return 1;
 
         ERROR1:
+            strError += "\r\n当前图书馆：" + lib.libName;
             return -1;
         }
 
