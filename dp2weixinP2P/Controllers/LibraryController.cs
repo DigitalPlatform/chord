@@ -12,6 +12,170 @@ namespace dp2weixinWeb.Controllers
 {
     public class LibraryController : BaseController
     {
+
+        // 自助借还主页
+        public ActionResult SelfServiceMain(string code, string state)
+        {
+            string strError = "";
+
+            // 检查是否从微信入口进来
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            // 得到该微信用户绑定的账号
+            string weixinId = ViewBag.weixinId;
+            string libId = ViewBag.LibId;
+            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
+            if (user == null)
+            {
+                // 取读者帐户
+                user = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
+            }
+            // 未绑定工作人员，
+            if (user == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge2", true);
+                return View();
+            }
+
+            // 需要有权限
+            bool canBorrow = true;
+            bool canReturn = true;
+            // 如果没有借还权限，不能操作
+            if (user != null)
+            {
+                if (user.rights.Contains("borrow") == false)
+                {
+                    canBorrow = false;
+                }
+                if (user.rights.Contains("return") == false)
+                {
+                    canReturn = false;
+                }
+            }
+
+            // 放到ViewBag里，传到页面
+            ViewBag.canBorrow = canBorrow;
+            ViewBag.canReturn = canReturn;
+
+            return View();
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
+        // 操作类型常量字符串
+        const string C_ope_borrow = "borrow";
+        const string C_ope_return = "return";
+        const string C_ope_searchItem = "searchItem";
+
+        // 自助借还流程
+        // operationType 操作类型
+        public ActionResult SelfServiceFlow(string code, string state,string operationType)
+        {
+            string strError = "";
+
+            // 检查是否从微信入口进来
+            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            // 操作类型不能为空
+            if (String.IsNullOrEmpty(operationType) == true)
+            {
+                strError = "尚未指定操作类型";
+                goto ERROR1;
+            }
+
+            // 得到该微信用户绑定的账号
+            string weixinId = ViewBag.weixinId;
+            string libId = ViewBag.LibId;
+            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
+            if (user == null)
+            {
+                // 取读者帐户
+                user = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
+            }
+            // 未绑定工作人员，
+            if (user == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge2", true);
+                return View();
+            }
+
+
+            //===
+            //设到ViewBag里
+            string userName = "";
+            if (user.type == WxUserDatabase.C_Type_Worker)
+            {
+                userName = user.userName;
+                ViewBag.isPatron = 0;
+            }
+            else
+            {
+                userName = user.readerBarcode;
+                ViewBag.isPatron = 1;
+            }
+            ViewBag.userName = userName;
+            ViewBag.userId = user.id;
+            // 是否校验条码
+            ViewBag.verifyBarcode = user.verifyBarcode;
+            // 关注馆藏地
+            ViewBag.Location = SubLib.ParseToView(user.selLocation);
+
+
+            //===
+            // 需要有权限
+            bool canBorrow = true;
+            bool canReturn = true;
+            // 如果没有借还权限，不能操作
+            if (user != null)
+            {
+                if (user.rights.Contains("borrow") == false)
+                {
+                    canBorrow = false;
+                }
+                if (user.rights.Contains("return") == false)
+                {
+                    canReturn = false;
+                }
+            }
+
+            // 没有权限时出现提示
+            if (canBorrow == false && operationType == C_ope_borrow)
+            {
+                strError = "当前帐户"+userName+"没有借书权限";
+                goto ERROR1;
+            }
+            if (canReturn == false && operationType == C_ope_return)
+            {
+                strError = "当前帐户" + userName + "没有还书权限";
+                goto ERROR1;
+            }
+
+            // 操作类型与输入框类型
+            ViewBag.operation = operationType;
+            if (operationType== C_ope_borrow)
+                ViewBag.inputType = "1"; //1表示读者证条码，2表示册条码
+
+
+
+            return View(user);
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
+        // 还书
+        public ActionResult Checkin(string code, string state)
+        {
+            return View();
+        }
+
         // 读者登记
         public ActionResult PatronEdit(string code, string state)
         {

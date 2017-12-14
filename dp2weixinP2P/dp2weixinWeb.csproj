@@ -348,6 +348,8 @@
     <Content Include="Views\UI\CtrlDemo.cshtml" />
     <Content Include="Views\Library\PatronEdit.cshtml" />
     <Content Include="Views\Patron\SelectLib.cshtml" />
+    <Content Include="Views\Library\SelfServiceMain.cshtml" />
+    <Content Include="Views\Library\SelfServiceFlow.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -1,0 +1,362 @@
+﻿@{
+    ViewBag.Title = "Checkout";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section header {
+    <h1 class="mui-title">自助借书环境</h1>
+}
+
+@section Scripts {
+    <script>
+
+        // 操作类型常量字符串
+        var C_ope_borrow = "borrow";
+        var C_ope_return = "return";
+        var C_ope_searchItem = "searchItem";
+
+        // 输入框值类型
+        var C_inputType_patron = 1;
+        var C_inputType_item = 2;
+
+        // 当输入框方式时，在textbox点击回车事件
+        function enter(event) {
+            if (event.keyCode == "13") {
+                ok();
+            }
+        }
+
+        // 当输入框方式时，点击确认按钮
+        function ok() {
+
+            //取出在界面textbox输入的条码
+            var barcode = $("#mybarcode").val();
+            //alert(barcode);
+            if (barcode == null || barcode == "") {
+                alert("请输入");
+                return;
+            }
+
+            // 设到条码变量上，以便后面使用
+            setBarcode(barcode);
+
+            addCmd();
+        }
+
+        // 执行命令
+        function addCmd() {
+
+            // 图书馆
+            var libId = $("#libId").text(); //getLibId();
+            if (libId == "" || libId == null) {
+                warn("您尚未选择图书馆。", ""); // 下一步停止
+                return;
+            }
+
+            var libraryCode = $("#libraryCode").text();
+            if (libraryCode == null)
+                libraryCode = "";
+
+            // 微信id
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "") {
+                warn("weixinId不能为空。", "");
+                return;
+            }
+
+            var patron = "";
+            var item = "";
+            var cmdType = "";
+
+            var ope = getOpe(); 
+            var inputType = getInputType();
+
+            if (ope == C_ope_borrow) {
+                if (inputType == C_inputType_patron) {
+                    cmdType = "loadPatron";
+                    patron = getBarcode();
+                    if (patron == null || patron == "") {
+                        // 提示下，下一步继续获取条码
+                        warnAndNext();
+                        return;
+                    }
+                    // 设到内部的读者变量上
+                    setPatron(patron);
+                }
+                else {
+                    cmdType = "borrow";
+                    patron = getPatron();//_patron; //从变量取值
+                    item = getBarcode();
+                    if (item == null || item == "") {
+                        // 提示下，下一步继续获取条码
+                        warnAndNext();
+                        return;
+                    }
+                }
+            }
+            else if (ope == C_ope_return) {
+                cmdType = "return";
+                item = getBarcode();
+                if (item == null || item == "") {
+                    // 提示下，下一步继续获取条码
+                    warnAndNext();
+                    return;
+                }
+            }
+            else if (ope == C_ope_searchItem) //查书
+            {
+                cmdType = C_ope_searchItem;
+                item = getBarcode();
+                if (item == null || item == "") {
+                    // 提示下，下一步继续获取条码
+                    warnAndNext();
+                    return;
+                }
+            }
+
+            //=============
+            var verifyBarcode = $("#verifyBarcode").text();
+
+            // 前端未打开校验条码开关
+            if (verifyBarcode != "1") {
+                // 直接处理命令
+                addCmd2(weixinId, libId, libraryCode, cmdType, patron, item, 0);
+                return;
+            }
+
+            alert("打开了校验函数");
+        }
+
+
+        function addCmd2(weixinId,
+            libId,
+            libraryCode,
+            cmdType, patron, item, needTransfrom) {
+
+
+            //登录身份
+            var userName = $("#userName").text();
+            if (userName == null || userName == "") {
+                warn("userName操作人不能不空。", "");
+                return;
+            }
+
+            var isPatron = $("#isPatron").text();
+
+            // userId参数
+            var userId = $("#userId").text();
+            if (userId == null || userId == "") {
+                warn("userId操作人不能不空。", "");
+                return;
+            }
+
+            //显示等待图层
+            //showLoading();
+
+            //调 web api
+            var url = "/api/ChargeCommand?weixinId=" + weixinId
+                + "&libId=" + libId
+                + "&libraryCode=" + encodeURIComponent(libraryCode)
+                + "&needTransfrom=" + needTransfrom
+            ;
+
+            //alert(url);
+            var data = {
+                type: cmdType,
+                patronInput: patron,
+                itemInput: item,
+                userName: userName,
+                isPatron: isPatron,
+                userId: userId
+            };
+
+            sendAjaxRequest(url, "POST", function (cmd) {
+
+
+
+                if (cmd.state == -2) {
+                    alert("未实现功能-姓名重复");
+                    return;
+                }
+                if (cmd.state == -3) {
+                    warn("未实现功能-isbn");//, C_next_receiveBarcode);
+                    return;
+                }
+
+                if (cmdType == "loadPatron") {
+                    if (cmd.state == 1) {
+                        // 设下面为 册条码输入框
+                        setInputType(C_inputType_item);
+                    }
+                }
+
+                // 加入操作历史
+                //viewCmd(cmd);
+
+                //// 显示一下当前操作结果，结束下一轮
+                //var html = "<div style='color:black;background-color:white'>" + cmd.cmdHtml + "</div>";
+                //warn(html, C_next_dothing);
+
+                var img = ""; var infoStyle = "";
+                var isAutoClose = true;
+                if (cmd.state == -1) {
+                    // 当半自动方式，有错时，则不自动关闭窗口
+                    img = "<img src='../img/error3.png' style='width:100px;height:100px' />";
+                    isAutoClose = false;
+                }
+                else {
+                    img = "<img src='../img/right1.png' style='width:100px;height:100px'  />";
+
+                    // 当半自动方式，有警告时的，不自动关闭窗口
+                    if (cmd.state == 1 && cmd.type != "loadPatron") {
+                        infoStyle = ";background-color:yellow;color:black";
+                        isAutoClose = false;
+                    }
+                }
+
+
+                var html = "<table>"
+                    + "<tr>"
+                    + "<td>" + img + "</td>"
+                    + "<td style='word-wrap:break-word;word-break:break-all;white-space:pre-wrap;" + infoStyle + "'>" + cmd.resultInfo + "</td>"
+                    + "</tr>"
+                + "</table>";
+
+                $("#info").html(html);
+
+                //warn(html, C_next_dothing, isAutoClose);
+
+                // 更新summary
+                //window.setTimeout("fillPending()", 1);
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                hideLoading();
+                alert(errorThrown);
+            },
+            data);
+        }
+
+
+
+        // 得到操作类型
+        function getOpe() {
+            return $("#_charge_operation").val();
+        }
+        // 设置操作类型
+        function setOpe(value) {
+            $("#_charge_operation").val(value);
+
+            if (value == C_ope_borrow) {
+                setInputType(C_inputType_patron);
+            }
+            else {
+                setInputType(C_inputType_item);
+            }
+
+        }
+
+        // 得到读者证条码
+        function getPatron() {
+            return $("#_patron").val();
+        }
+        // 设置读者证条码
+        function setPatron(value) {
+            return $("#_patron").val(value);
+        }
+
+        // 得到条码
+        function getBarcode() {
+
+            var barcode = $("#_barcode").val();
+
+            return barcode.toUpperCase();//20171207，将输入的内容统一转成大写
+        }
+        // 设置条码
+        function setBarcode(value) {
+            return $("#_barcode").val(value);
+        }
+
+        // 得到输入类型,1表示读者证 2表示册条码
+        function getInputType() {
+            return $("#_charge_inputType").val();
+        }
+        // 设置输入类型
+        function setInputType(value) {
+            return $("#_charge_inputType").val(value);
+        }
+
+    </script>
+}
+
+
+<style>
+    .div-main {
+        width: 90%;
+        margin: 20px auto;
+        font-size: 48pt;
+    }
+
+    .div-info {
+        height: 300px;
+        /*border: 1px solid red;*/
+        line-height: 300px; /*设置line-height与父级元素的height相等*/
+        overflow: hidden; /*防止内容超出容器或者产生自动换行*/
+        background-color: black;
+        color: white;
+        border-radius: 10px;
+        text-align: center;
+    }
+</style>
+
+
+
+<span id="weixinId" style="display:none">@ViewBag.weixinId</span>
+<span id="libId" style="display:none">@ViewBag.LibId</span>
+<span id="libraryCode" style="display:none">@ViewBag.LibraryCode</span>
+<span id="userName" style="display:none">@ViewBag.userName</span>
+<span id="isPatron" style="display:none">@ViewBag.isPatron</span>
+<span id="verifyBarcode" style="display:none">@ViewBag.verifyBarcode</span>
+<span id="userId" style="display:none">@ViewBag.userId</span>
+
+<input id="_charge_operation" type="hidden" value="@ViewBag.operation">
+<input id="_charge_inputType" type="hidden" value="@ViewBag.inputType">
+<input id="_patron" type="hidden" value="">
+<input id="_barcode" type="hidden" value="">
+
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+
+        <div class="div-main">
+            <div style="margin-bottom:10px">
+                <input id="Button1" type="button" class="mui-btn mui-btn-default" value="回主页" onclick="gotoUrl('/Library/SelfService')" />
+                <input id="Button1" type="button" class="mui-btn mui-btn-default" value="切换还书" onclick="gotoUrl('/Library/Checkin')" />
+            </div>
+            <div id="info" class="div-info">
+                欢迎同学借书
+            </div>
+            <br />
+            <div style="font-size:32pt;height:100px;line-height:100px; vertical-align:top;">请扫入读者证条码</div>
+            <div style="text-align:center">
+                <input id='mybarcode' style='color:black;height:100px;font-size:48pt ' type='text' onkeypress='enter(event)' />
+            </div>
+        </div>
+
+    }
+}
