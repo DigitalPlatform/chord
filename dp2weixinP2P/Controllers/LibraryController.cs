@@ -35,7 +35,7 @@ namespace dp2weixinWeb.Controllers
             // 未绑定工作人员，
             if (user == null)
             {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge2", true);
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("自助借还", "/Library/SelfServiceMain", true);
                 return View();
             }
 
@@ -73,7 +73,7 @@ namespace dp2weixinWeb.Controllers
 
         // 自助借还流程
         // operationType 操作类型
-        public ActionResult SelfServiceFlow(string code, string state,string operationType)
+        public ActionResult SelfService(string code, string state)
         {
             string strError = "";
 
@@ -82,12 +82,12 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 goto ERROR1;
 
-            // 操作类型不能为空
-            if (String.IsNullOrEmpty(operationType) == true)
-            {
-                strError = "尚未指定操作类型";
-                goto ERROR1;
-            }
+            //// 操作类型不能为空
+            //if (String.IsNullOrEmpty(operationType) == true)
+            //{
+            //    strError = "尚未指定操作类型";
+            //    goto ERROR1;
+            //}
 
             // 得到该微信用户绑定的账号
             string weixinId = ViewBag.weixinId;
@@ -101,7 +101,7 @@ namespace dp2weixinWeb.Controllers
             // 未绑定工作人员，
             if (user == null)
             {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge2", true);
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("自助借还", "/Library/SelfServiceMain", true);
                 return View();
             }
 
@@ -144,22 +144,26 @@ namespace dp2weixinWeb.Controllers
                 }
             }
 
-            // 没有权限时出现提示
-            if (canBorrow == false && operationType == C_ope_borrow)
-            {
-                strError = "当前帐户"+userName+"没有借书权限";
-                goto ERROR1;
-            }
-            if (canReturn == false && operationType == C_ope_return)
-            {
-                strError = "当前帐户" + userName + "没有还书权限";
-                goto ERROR1;
-            }
+            // 放到ViewBag里，传到页面
+            ViewBag.canBorrow = canBorrow;
+            ViewBag.canReturn = canReturn;
 
-            // 操作类型与输入框类型
-            ViewBag.operation = operationType;
-            if (operationType== C_ope_borrow)
-                ViewBag.inputType = "1"; //1表示读者证条码，2表示册条码
+            //// 没有权限时出现提示
+            //if (canBorrow == false && operationType == C_ope_borrow)
+            //{
+            //    strError = "当前帐户"+userName+"没有借书权限";
+            //    goto ERROR1;
+            //}
+            //if (canReturn == false && operationType == C_ope_return)
+            //{
+            //    strError = "当前帐户" + userName + "没有还书权限";
+            //    goto ERROR1;
+            //}
+
+            //// 操作类型与输入框类型
+            //ViewBag.operation = operationType;
+            //if (operationType== C_ope_borrow)
+            //    ViewBag.inputType = "1"; //1表示读者证条码，2表示册条码
 
 
 
@@ -170,11 +174,7 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
-        // 还书
-        public ActionResult Checkin(string code, string state)
-        {
-            return View();
-        }
+
 
         // 读者登记
         public ActionResult PatronEdit(string code, string state)

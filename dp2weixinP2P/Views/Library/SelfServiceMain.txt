@@ -88,6 +88,26 @@
     }
         
 }
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
 <div class="div-button @borrowClass "  onclick="@borrowClick">借书</div>
 <div class="div-button @returnClass " onclick="@returnClick">还书</div>
 <div class="div-button search" onclick="search()">查书</div>
+    }
+}

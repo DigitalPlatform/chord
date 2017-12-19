@@ -10,6 +10,8 @@
 @section Scripts {
     <script>
 
+        //==全局变量====
+
         // 操作类型常量字符串
         var C_ope_borrow = "borrow";
         var C_ope_return = "return";
@@ -19,7 +21,114 @@
         var C_inputType_patron = 1;
         var C_inputType_item = 2;
 
-        // 当输入框方式时，在textbox点击回车事件
+        // 下一步
+        var C_next_dothing = "dothing";
+        var C_next_receiveBarcode = "receiveBarcode";
+        var C_next_addCmd = "addCmd";//2016-11-16 用于借书时，应扫书，却扫了读者，提示完，要进行加载读者事情。
+
+
+        var _count=1;
+
+        //======
+        //自感应是否是活动状态，如果5稍没返回，回到主页
+        var myTime = null;//setTimeout("Timeout()", 2000);   
+        function resetTime() {  
+            //alert("reset");
+            clearTimeout(myTime);   
+            myTime = setTimeout('Timeout()', 5000); //如果5秒没反应，回到主页
+        }  
+        function Timeout() {   
+            //alert("已超时, 自动回主页!");   
+            init();
+        }
+        //====
+
+        // 程序启动
+        $(document).ready(function () {
+
+            //初始化
+            init();
+        })
+
+        // 初始化，回主页
+        function init()
+        {
+            // 取消感应活动态
+            document.documentElement.onkeydown=null;  
+            document.documentElement.onclick=null;  
+
+            // 显示主页
+            showMain();
+
+            // 隐藏流程页面
+            hideFlow();
+
+            // 清空操作类型
+            setOpe("");
+
+            // 清空条码
+            setBarcode("");
+            $("#mybarcode").val("");
+
+            // 清空条码类型
+            setInputType(-1);
+
+            // 图书数量设回为1
+            _count=1;
+
+        }
+
+        // 主页界的开始按钮
+        function start(ope) {
+
+            // 感应活动态
+            document.documentElement.onkeydown=resetTime;  
+            document.documentElement.onclick=resetTime;  
+
+            // 隐藏主页面
+            hideMain();
+
+            // 显示流程页面
+            showFlow();
+
+            // 设置操作类型
+            setOpe(ope);
+
+            // 根据操作类型，设置条码类型
+            if (ope== C_ope_borrow)
+                setInputType(C_inputType_patron);
+            else
+                setInputType(C_inputType_item);
+
+
+
+            // 下一步，根据操作类型，提示输入
+            var resultInfo="";
+            if (ope==C_ope_borrow)
+                resultInfo="欢迎借书";
+            else if (ope==C_ope_return)
+                resultInfo="欢迎还书";
+            else if (ope==C_ope_searchItem)
+                resultInfo="欢迎查书";
+
+            // 下一步界面
+            nextStep(resultInfo,false);
+        }
+
+
+        // 下一步信息
+        function nextStep(resultInfo,again) 
+        {
+            if (resultInfo !="=") //=号，表示不变，用于重新输入条码
+                $("#resultInfo").html(resultInfo);
+
+            var inputInfo=getInputTypeDesc(again);
+            $("#inputInfo").html(inputInfo);
+            $("#mybarcode").focus();
+            $("#mybarcode").val("");
+        }
+
+        // textbox回车事件
         function enter(event) {
             if (event.keyCode == "13") {
                 ok();
@@ -28,20 +137,92 @@
 
         // 当输入框方式时，点击确认按钮
         function ok() {
-
             //取出在界面textbox输入的条码
             var barcode = $("#mybarcode").val();
             //alert(barcode);
             if (barcode == null || barcode == "") {
-                alert("请输入");
+                alert("尚未输入条码");
+                nextStep("=",true);
                 return;
             }
-
             // 设到条码变量上，以便后面使用
             setBarcode(barcode);
 
-            addCmd();
+            // 执行操作
+            addCmdTest();
         }
+
+        // 调接口执行操作
+        function addCmdTest()
+        {
+            var patron = "";
+            var item = "";
+            var cmdType = "";
+
+            var ope = getOpe(); //操作类型
+            var inputType = getInputType(); //输入类型
+
+            if (ope == C_ope_borrow) {
+                if (inputType == C_inputType_patron) {
+                    cmdType = "loadPatron";
+                    patron = getBarcode();
+                    // 设到内部的读者变量上
+                    setPatron(patron);
+                }
+                else {
+                    cmdType = "borrow";
+                    patron = getPatron();//_patron; //从变量取值
+                    item = getBarcode();
+                }
+            }
+            else if (ope == C_ope_return) {
+                cmdType = "return";
+                item = getBarcode();
+                if (item == null || item == "") {
+                    // 提示下，下一步继续获取条码
+                    alert("尚未输入图书");
+                    nextStep("=",true);
+                    return;
+                }
+            }
+            else if (ope == C_ope_searchItem) //查书
+            {
+                cmdType = C_ope_searchItem;
+                item = getBarcode();
+                if (item == null || item == "") {
+                    // 提示下，下一步继续获取条码
+                    alert("尚未输入图书");
+                    nextStep("=",true);
+                    return;
+                }
+            }
+
+            //==跑流程测试用==
+
+
+
+            if (cmdType == "loadPatron") {
+                setInputType(C_inputType_item);
+            }
+            
+
+            if (cmdType !="loadPatron")
+                _count++;
+
+            // 下一步
+            var resultInfo="cmdType=["+cmdType+"] patron=["+patron+"] item=["+item+"]";
+            nextStep(resultInfo,false);
+
+            return;
+ 
+        }
+
+
+
+
+
+
+
 
         // 执行命令
         function addCmd() {
@@ -222,7 +403,7 @@
                     + "</tr>"
                 + "</table>";
 
-                $("#info").html(html);
+                $("#resultInfo").html(html);
 
                 //warn(html, C_next_dothing, isAutoClose);
 
@@ -238,6 +419,86 @@
         }
 
 
+        //===================
+        // 以下是公共函数
+
+        // 获取当前输入条码类型的 描述信息，因为2个地方用，所以提出作为函数
+        function getInputTypeDesc(again) {
+            var desc = "";
+
+            var left = "";
+            var againText = "";
+            if (again == true) {
+                againText = "重新";
+            }
+
+            var actionName = "扫入";
+            //var from = getFrom();
+            //if (from == C_from_scan)
+            //    actionName = "扫入";
+            //else
+            //    actionName = "输入";
+
+            //var left = "<span style='font-size:14.8px'>请" + againText + actionName + "</span>";
+            var left="请" + againText + actionName;
+
+            var inputType = getInputType();
+            if (inputType == C_inputType_patron) {
+                desc = left+ " 读者...";
+            }
+            else if (inputType == C_inputType_item) {
+                var func = "";
+                var ope = getOpe();
+                if (ope == C_ope_borrow)
+                    func = "要借的";
+                else if (ope==C_ope_return)
+                    func = "要还的";
+                else if (ope == C_ope_searchItem)
+                {
+                    func="要查的";
+                }
+
+                var countStr="第"+_count+"本"
+
+                desc = left+func+countStr+"书...";
+            }
+            else {
+                desc = left + " 不知道！！！";
+            }
+            return desc;
+        }
+
+        // 隐藏主页
+        function hideMain() 
+        {
+            if ($("#main").css("display") == "none")
+                return;
+            $("#main").css("display", "none");
+        }
+
+        // 显示主页
+        function showMain() {
+
+            if ($("#main").css("display") == "block")
+                return;
+            $("#main").css("display", "block");
+        }
+
+        // 隐藏流程页面
+        function showFlow() {
+
+            if ($("#flow").css("display") == "block")
+                return;
+            $("#flow").css("display", "block");
+        }
+
+        // 显示流程页面
+        function hideFlow() {
+
+            if ($("#flow").css("display") == "none")
+                return;
+            $("#flow").css("display", "none");
+        }
 
         // 得到操作类型
         function getOpe() {
@@ -285,13 +546,40 @@
         function setInputType(value) {
             return $("#_charge_inputType").val(value);
         }
-
-    </script>
+</script>
 }
 
 
 <style>
-    .div-main {
+
+    .div-button{
+            width: 300px;
+            height: 200px;
+            margin: 30px 20px;
+
+            /*border: 1px solid red;*/
+            line-height: 200px;/*设置line-height与父级元素的height相等*/
+            text-align: center; /*设置文本水平居中*/
+            font-size:48pt;
+            overflow: hidden; /*防止内容超出容器或者产生自动换行*/
+             background-color:gray;
+            color:black;
+            float:left;
+            border-radius:10px;
+        }
+        .borrow {
+            background-color:#33CCFF;
+        }
+
+        .return {
+            background-color:#33CC66;
+        }
+
+                .search {
+            background-color:#FDDD5D;
+        }
+
+    .div-flow {
         width: 90%;
         margin: 20px auto;
         font-size: 48pt;
@@ -324,6 +612,26 @@
 <input id="_patron" type="hidden" value="">
 <input id="_barcode" type="hidden" value="">
 
+@{
+
+    string borrowClass = "borrow";
+    string borrowClick = "start('borrow')";
+    if (ViewBag.canBorrow == false)
+    {
+        borrowClass = "";
+        borrowClick = "";
+    }
+
+    string returnClass = "return";
+    string returnClick = "start('return')";
+    if (ViewBag.canReturn == false)
+    {
+        returnClass = "";
+        returnClick = "";
+    }
+
+}
+
 
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
@@ -342,17 +650,24 @@ else
     }
     else
     {
+        <div id="main">
 
-        <div class="div-main">
+            <div class="div-button @borrowClass " onclick="@borrowClick">借书</div>
+            <div class="div-button @returnClass " onclick="@returnClick">还书</div>
+            <div class="div-button search" onclick="start('searchItem')">查书</div>
+        </div>
+
+        <div id="flow" class="div-flow" style="display:none">
             <div style="margin-bottom:10px">
-                <input id="Button1" type="button" class="mui-btn mui-btn-default" value="回主页" onclick="gotoUrl('/Library/SelfService')" />
-                <input id="Button1" type="button" class="mui-btn mui-btn-default" value="切换还书" onclick="gotoUrl('/Library/Checkin')" />
+                <input id="Button1" type="button" class="mui-btn mui-btn-default" value="回到主页" onclick="init()" />
             </div>
-            <div id="info" class="div-info">
-                欢迎同学借书
+            <div id="resultInfo" class="div-info">
+                欢迎您借书。
             </div>
             <br />
-            <div style="font-size:32pt;height:100px;line-height:100px; vertical-align:top;">请扫入读者证条码</div>
+            <div id="inputInfo" style="font-size:32pt;height:100px;line-height:100px; vertical-align:top;">
+                请扫入读者证条码
+            </div>
             <div style="text-align:center">
                 <input id='mybarcode' style='color:black;height:100px;font-size:48pt ' type='text' onkeypress='enter(event)' />
             </div>
