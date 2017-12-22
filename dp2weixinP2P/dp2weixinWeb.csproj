@@ -126,8 +126,10 @@
     <Content Include="audio\book.mp3" />
     <Content Include="audio\borrow_error.mp3" />
     <Content Include="audio\borrow_success.mp3" />
+    <Content Include="audio\found.mp3" />
     <Content Include="audio\load_error.mp3" />
     <Content Include="audio\load_success.mp3" />
+    <Content Include="audio\notfound.mp3" />
     <Content Include="audio\patron.mp3" />
     <Content Include="audio\return_error.mp3" />
     <Content Include="audio\return_success.mp3" />

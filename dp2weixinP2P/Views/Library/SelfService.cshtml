@@ -21,12 +21,16 @@
         var C_mp3_returnSuccess = "returnSuccess";
         var C_mp3_loadError = "loadError";
         var C_mp3_loadSuccess = "loadSuccess";
+        var C_mp3_searchError = "searchError";
+        var C_mp3_searchSuccess = "searchSuccess";
         var C_resultType_load_S = "0-1"; //加载读者成功
         var C_resultType_load_E = "0-0";
         var C_resultType_borrow_S = "1-1";//借书成功
         var C_resultType_borrow_E = "1-0";
         var C_resultType_return_S = "2-1";//还书成功
         var C_resultType_return_E = "2-0";
+        var C_resultType_search_S = "3-1";//查书成功
+        var C_resultType_search_E = "2-0";
 
         // 播放声音
         var _audioPatron = null;
@@ -107,6 +111,25 @@
             _audioReturnE.play();
         }
 
+        var _audioSearchS = null;
+        function playSearchS() {
+            stopAll();
+            if (_audioSearchS == null)
+                _audioSearchS = document.getElementById(C_mp3_searchSuccess);
+
+            _audioSearchS.currentTime = 0;
+            _audioSearchS.play();
+        }
+        var _audioSearchE = null;
+        function playSearchE() {
+            stopAll();
+            if (_audioSearchE == null)
+                _audioSearchE = document.getElementById(C_mp3_searchError);
+
+            _audioSearchE.currentTime = 0;
+            _audioSearchE.play();
+        }
+
         function stopAll() {
             if (_audioPatron != null) {
                 _audioPatron.pause();
@@ -131,6 +154,12 @@
             }
             if (_audioReturnE != null) {
                 _audioReturnE.pause();
+            }
+            if (_audioSearchS != null) {
+                _audioSearchS.pause();
+            }
+            if (_audioSearchE != null) {
+                _audioSearchE.pause();
             }
         }
 
@@ -247,10 +276,6 @@
         // 下一步信息
         function nextStep(resultInfo,again,playResultType) 
         {
-
-
-
-
             if (resultInfo !="=") //=号，表示不变，用于重新输入条码
                 $("#resultInfo").html(resultInfo);
 
@@ -260,10 +285,10 @@
             $("#mybarcode").val("");
 
 
-            // 先插放结果
+            // 先播放结果
             var time = 1;
             if (playResultType != -1)
-                time = 2000;
+                time = 2500;
             
             if (playResultType == C_resultType_load_S)
             {
@@ -284,18 +309,19 @@
            else if (playResultType == C_resultType_return_E) {
                playReturnE();
            }
+           else if (playResultType == C_resultType_search_S) {
+               playReturnS();
+           }
+           else if (playResultType == C_resultType_search_E) {
+               playReturnE();
+           }
 
-
+            // 再播入下一步提示
             if (getInputType() == C_inputType_patron) {
-                //alert("1");
                 window.setTimeout("playPatron()", time);
-                //playPatron();
             }
             else {
-
-                //alert("2");
                 window.setTimeout("playBook()", time);
-
                 //playBook();
             }
         }
@@ -327,6 +353,24 @@
         // 调接口执行操作
         function addCmdTest()
         {
+            // 图书馆
+            var libId = $("#libId").text(); //getLibId();
+            if (libId == "" || libId == null) {
+                warn("您尚未选择图书馆。", ""); // 下一步停止
+                return;
+            }
+
+            var libraryCode = $("#libraryCode").text();
+            if (libraryCode == null)
+                libraryCode = "";
+
+            // 微信id
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "") {
+                warn("weixinId不能为空。", "");
+                return;
+            }
+
             var patron = "";
             var item = "";
             var cmdType = "";
@@ -357,106 +401,8 @@
                 item = getBarcode();
             }
 
-            //==跑流程测试用==
-
-
-
-            if (cmdType == "loadPatron") {
-                setInputType(C_inputType_item);
-            }
-            
-
-            if (cmdType !="loadPatron")
-                _count++;
-
-            // 下一步
-            var resultInfo = "cmdType=[" + cmdType + "] patron=[" + patron + "] item=[" + item + "]";
-            var playResultType = -1;
-            if (cmdType == "loadPatron")
-                playResultType = C_resultType_load_S;
-            else if (cmdType == "borrow")
-                playResultType = C_resultType_borrow_S;
-            else if (cmdType = C_ope_return)
-                playResultType = C_resultType_return_S;
-
-
-            nextStep(resultInfo,false,playResultType);
-
-            return;
- 
-        }
-
-
-        // 执行命令
-        function addCmd() {
-
-            // 图书馆
-            var libId = $("#libId").text(); //getLibId();
-            if (libId == "" || libId == null) {
-                warn("您尚未选择图书馆。", ""); // 下一步停止
-                return;
-            }
-
-            var libraryCode = $("#libraryCode").text();
-            if (libraryCode == null)
-                libraryCode = "";
-
-            // 微信id
-            var weixinId = $("#weixinId").text();
-            if (weixinId == "") {
-                warn("weixinId不能为空。", "");
-                return;
-            }
-
-            var patron = "";
-            var item = "";
-            var cmdType = "";
-
-            var ope = getOpe(); 
-            var inputType = getInputType();
-
-            if (ope == C_ope_borrow) {
-                if (inputType == C_inputType_patron) {
-                    cmdType = "loadPatron";
-                    patron = getBarcode();
-                    if (patron == null || patron == "") {
-                        // 提示下，下一步继续获取条码
-                        warnAndNext();
-                        return;
-                    }
-                    // 设到内部的读者变量上
-                    setPatron(patron);
-                }
-                else {
-                    cmdType = "borrow";
-                    patron = getPatron();//_patron; //从变量取值
-                    item = getBarcode();
-                    if (item == null || item == "") {
-                        // 提示下，下一步继续获取条码
-                        warnAndNext();
-                        return;
-                    }
-                }
-            }
-            else if (ope == C_ope_return) {
-                cmdType = "return";
-                item = getBarcode();
-                if (item == null || item == "") {
-                    // 提示下，下一步继续获取条码
-                    warnAndNext();
-                    return;
-                }
-            }
-            else if (ope == C_ope_searchItem) //查书
-            {
-                cmdType = C_ope_searchItem;
-                item = getBarcode();
-                if (item == null || item == "") {
-                    // 提示下，下一步继续获取条码
-                    warnAndNext();
-                    return;
-                }
-            }
+            // 流程测试
+            //flowTest();
 
             //=============
             var verifyBarcode = $("#verifyBarcode").text();
@@ -469,14 +415,46 @@
             }
 
             alert("打开了校验函数");
+
+            return;
+ 
         }
+
+        // 流程测试
+        function flowTest()
+        {
+            //==跑流程测试用==
+            if (cmdType == "loadPatron") {
+                setInputType(C_inputType_item);
+            }
+            if (cmdType != "loadPatron")
+                _count++;
+
+            // 下一步
+            var resultInfo = "cmdType=[" + cmdType + "] patron=[" + patron + "] item=[" + item + "]";
+            var playResultType = -1;
+            if (cmdType == "loadPatron")
+                playResultType = C_resultType_load_S;
+            else if (cmdType == C_ope_borrow)
+                playResultType = C_resultType_borrow_S;
+            else if (cmdType = C_ope_return)
+                playResultType = C_resultType_return_S;
+
+            nextStep(resultInfo, false, playResultType);
+        }
+
+  
 
 
         function addCmd2(weixinId,
             libId,
             libraryCode,
-            cmdType, patron, item, needTransfrom) {
-
+            cmdType,
+            patron,
+            item,
+            needTransfrom)
+        {
+            alert(cmdType);
 
             //登录身份
             var userName = $("#userName").text();
@@ -493,9 +471,6 @@
                 warn("userId操作人不能不空。", "");
                 return;
             }
-
-            //显示等待图层
-            //showLoading();
 
             //调 web api
             var url = "/api/ChargeCommand?weixinId=" + weixinId
@@ -516,14 +491,12 @@
 
             sendAjaxRequest(url, "POST", function (cmd) {
 
-
-
                 if (cmd.state == -2) {
                     alert("未实现功能-姓名重复");
                     return;
                 }
                 if (cmd.state == -3) {
-                    warn("未实现功能-isbn");//, C_next_receiveBarcode);
+                    warn("未实现功能-isbn");
                     return;
                 }
 
@@ -537,38 +510,58 @@
                 // 加入操作历史
                 //viewCmd(cmd);
 
-                //// 显示一下当前操作结果，结束下一轮
-                //var html = "<div style='color:black;background-color:white'>" + cmd.cmdHtml + "</div>";
-                //warn(html, C_next_dothing);
 
                 var img = ""; var infoStyle = "";
-                var isAutoClose = true;
                 if (cmd.state == -1) {
-                    // 当半自动方式，有错时，则不自动关闭窗口
                     img = "<img src='../img/error3.png' style='width:100px;height:100px' />";
-                    isAutoClose = false;
                 }
                 else {
                     img = "<img src='../img/right1.png' style='width:100px;height:100px'  />";
-
-                    // 当半自动方式，有警告时的，不自动关闭窗口
-                    if (cmd.state == 1 && cmd.type != "loadPatron") {
-                        infoStyle = ";background-color:yellow;color:black";
-                        isAutoClose = false;
-                    }
                 }
 
-
-                var html = "<table>"
+                // 结果信息
+                var resultInfo = "<table>"
                     + "<tr>"
                     + "<td>" + img + "</td>"
                     + "<td style='word-wrap:break-word;word-break:break-all;white-space:pre-wrap;" + infoStyle + "'>" + cmd.resultInfo + "</td>"
                     + "</tr>"
                 + "</table>";
 
-                $("#resultInfo").html(html);
+                //数量加1
+                if (cmdType != "loadPatron" && cmd.state!=-1)
+                    _count++;
 
-                //warn(html, C_next_dothing, isAutoClose);
+                // 结果语音
+                var playResultType = -1;
+                if (cmdType == "loadPatron") {
+                    if (cmd.state == -1)
+                        playResultType = C_resultType_load_E;
+                    else
+                        playResultType = C_resultType_load_S;
+                }
+                else if (cmdType == C_ope_borrow) {
+                    if (cmd.state == -1)
+                        playResultType = C_resultType_borrow_E;
+                    else
+                        playResultType = C_resultType_borrow_S;
+                }
+                else if (cmdType == C_ope_return) {
+                    if (cmd.state == -1)
+                        playResultType = C_resultType_return_E;
+                    else
+                        playResultType = C_resultType_return_S;
+                }
+                else if (cmdType == C_ope_searchItem) {
+                    if (cmd.state == -1)
+                        playResultType = C_resultType_search_E;
+                    else
+                        playResultType = C_resultType_search_S;
+                }
+
+                alert(playResultType);
+
+                // 下一步
+                nextStep(resultInfo, false, playResultType);
 
                 // 更新summary
                 //window.setTimeout("fillPending()", 1);
@@ -872,7 +865,12 @@ else
             <audio id="loadSuccess">
                 <source src="~/audio/load_success.mp3" type="audio/mp3">
             </audio> 
-
+            <audio id="searchError">
+                <source src="~/audio/notfound.mp3" type="audio/mp3">
+            </audio>
+            <audio id="searchSuccess">
+                <source src="~/audio/found.mp3" type="audio/mp3">
+            </audio>
         </div>
     
     
