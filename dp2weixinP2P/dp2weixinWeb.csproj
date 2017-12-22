@@ -123,9 +123,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="audio\book.mp3" />
     <Content Include="audio\borrow_error.mp3" />
     <Content Include="audio\borrow_success.mp3" />
-    <Content Include="audio\item.mp3" />
     <Content Include="audio\load_error.mp3" />
     <Content Include="audio\load_success.mp3" />
     <Content Include="audio\patron.mp3" />

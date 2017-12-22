@@ -12,6 +12,129 @@
 
         //==全局变量====
 
+        // 声音id
+        var C_mp3_patronAudio = "patronAudio";
+        var C_mp3_bookAudio = "bookAudio";
+        var C_mp3_borrowError = "borrowError";
+        var C_mp3_borrowSuccess = "borrowSuccess";
+        var C_mp3_returnError = "returnError";
+        var C_mp3_returnSuccess = "returnSuccess";
+        var C_mp3_loadError = "loadError";
+        var C_mp3_loadSuccess = "loadSuccess";
+        var C_resultType_load_S = "0-1"; //加载读者成功
+        var C_resultType_load_E = "0-0";
+        var C_resultType_borrow_S = "1-1";//借书成功
+        var C_resultType_borrow_E = "1-0";
+        var C_resultType_return_S = "2-1";//还书成功
+        var C_resultType_return_E = "2-0";
+
+        // 播放声音
+        var _audioPatron = null;
+        function playPatron() {
+            stopAll();
+            if (_audioPatron == null)
+                _audioPatron = document.getElementById(C_mp3_patronAudio);
+
+            _audioPatron.currentTime = 0;
+            _audioPatron.play();
+        }
+
+        var _audioBook = null;
+        function playBook() {
+            stopAll();
+
+            if (_audioBook == null)
+                _audioBook = document.getElementById(C_mp3_bookAudio);
+
+            _audioBook.currentTime = 0;
+            _audioBook.play();
+        }
+
+        var _audioLoadS = null;
+        function playLoadS() {
+            stopAll();
+            if (_audioLoadS == null)
+                _audioLoadS = document.getElementById(C_mp3_loadSuccess);
+
+            _audioLoadS.currentTime = 0;
+            _audioLoadS.play();
+        }
+
+        var _audioLoadE = null;
+        function playLoadE() {
+            stopAll();
+            if (_audioLoadE == null)
+                _audioLoadE = document.getElementById(C_mp3_loadError);
+
+            _audioLoadE.currentTime = 0;
+            _audioLoadE.play();
+        }
+
+        var _audioBorrowS = null;
+        function playBorrowS() {
+            stopAll();
+            if (_audioBorrowS == null)
+                _audioBorrowS = document.getElementById(C_mp3_borrowSuccess);
+
+            _audioBorrowS.currentTime = 0;
+            _audioBorrowS.play();
+        }
+        var _audioBorrowE = null;
+        function playBorrowE() {
+            stopAll();
+            if (_audioBorrowE == null)
+                _audioBorrowE = document.getElementById(C_mp3_borrowError);
+
+            _audioBorrowE.currentTime = 0;
+            _audioBorrowE.play();
+        }
+        var _audioReturnS = null;
+        function playReturnS() {
+            stopAll();
+            if (_audioReturnS == null)
+                _audioReturnS = document.getElementById(C_mp3_returnSuccess);
+
+            _audioReturnS.currentTime = 0;
+            _audioReturnS.play();
+        }
+        var _audioReturnE = null;
+        function playReturnE() {
+            stopAll();
+            if (_audioReturnE == null)
+                _audioReturnE = document.getElementById(C_mp3_returnError);
+
+            _audioReturnE.currentTime = 0;
+            _audioReturnE.play();
+        }
+
+        function stopAll() {
+            if (_audioPatron != null) {
+                _audioPatron.pause();
+            }
+            if (_audioBook != null) {
+                _audioBook.pause();
+            }
+            if (_audioLoadS != null) {
+                _audioLoadS.pause();
+            }
+            if (_audioLoadE != null) {
+                _audioLoadE.pause();
+            }
+            if (_audioBorrowS != null) {
+                _audioBorrowS.pause();
+            }
+            if (_audioBorrowE != null) {
+                _audioBorrowE.pause();
+            }
+            if (_audioReturnS != null) {
+                _audioReturnS.pause();
+            }
+            if (_audioReturnE != null) {
+                _audioReturnE.pause();
+            }
+        }
+
+
         // 操作类型常量字符串
         var C_ope_borrow = "borrow";
         var C_ope_return = "return";
@@ -35,7 +158,7 @@
         function resetTime() {  
             //alert("reset");
             clearTimeout(myTime);   
-            myTime = setTimeout('Timeout()', 5000); //如果5秒没反应，回到主页
+            myTime = setTimeout('Timeout()', 1000*50); //如果1分钟没反应，回到主页
         }  
         function Timeout() {   
             //alert("已超时, 自动回主页!");   
@@ -53,6 +176,9 @@
         // 初始化，回主页
         function init()
         {
+            // 停止声音
+            stopAll();
+
             // 取消感应活动态
             document.documentElement.onkeydown=null;  
             document.documentElement.onclick=null;  
@@ -112,20 +238,66 @@
                 resultInfo="欢迎查书";
 
             // 下一步界面
-            nextStep(resultInfo,false);
+            nextStep(resultInfo,false,-1);
         }
 
 
+
+
         // 下一步信息
-        function nextStep(resultInfo,again) 
+        function nextStep(resultInfo,again,playResultType) 
         {
+
+
+
+
             if (resultInfo !="=") //=号，表示不变，用于重新输入条码
                 $("#resultInfo").html(resultInfo);
 
-            var inputInfo=getInputTypeDesc(again);
-            $("#inputInfo").html(inputInfo);
+            var inputHint=getInputHint(again);
+            $("#inputHint").html(inputHint);
             $("#mybarcode").focus();
             $("#mybarcode").val("");
+
+
+            // 先插放结果
+            var time = 1;
+            if (playResultType != -1)
+                time = 2000;
+            
+            if (playResultType == C_resultType_load_S)
+            {
+                playLoadS();
+            }
+            else if (playResultType == C_resultType_load_E) {
+                playLoadE();
+            }
+           else if (playResultType == C_resultType_borrow_S) {
+                playBorrowS();
+           }
+           else if (playResultType == C_resultType_borrow_E) {
+               playBorrowE();
+           }
+           else if (playResultType == C_resultType_return_S) {
+               playReturnS();
+           }
+           else if (playResultType == C_resultType_return_E) {
+               playReturnE();
+           }
+
+
+            if (getInputType() == C_inputType_patron) {
+                //alert("1");
+                window.setTimeout("playPatron()", time);
+                //playPatron();
+            }
+            else {
+
+                //alert("2");
+                window.setTimeout("playBook()", time);
+
+                //playBook();
+            }
         }
 
         // textbox回车事件
@@ -142,7 +314,7 @@
             //alert(barcode);
             if (barcode == null || barcode == "") {
                 alert("尚未输入条码");
-                nextStep("=",true);
+                nextStep("=",true,-1);
                 return;
             }
             // 设到条码变量上，以便后面使用
@@ -178,23 +350,11 @@
             else if (ope == C_ope_return) {
                 cmdType = "return";
                 item = getBarcode();
-                if (item == null || item == "") {
-                    // 提示下，下一步继续获取条码
-                    alert("尚未输入图书");
-                    nextStep("=",true);
-                    return;
-                }
             }
             else if (ope == C_ope_searchItem) //查书
             {
                 cmdType = C_ope_searchItem;
                 item = getBarcode();
-                if (item == null || item == "") {
-                    // 提示下，下一步继续获取条码
-                    alert("尚未输入图书");
-                    nextStep("=",true);
-                    return;
-                }
             }
 
             //==跑流程测试用==
@@ -210,18 +370,21 @@
                 _count++;
 
             // 下一步
-            var resultInfo="cmdType=["+cmdType+"] patron=["+patron+"] item=["+item+"]";
-            nextStep(resultInfo,false);
+            var resultInfo = "cmdType=[" + cmdType + "] patron=[" + patron + "] item=[" + item + "]";
+            var playResultType = -1;
+            if (cmdType == "loadPatron")
+                playResultType = C_resultType_load_S;
+            else if (cmdType == "borrow")
+                playResultType = C_resultType_borrow_S;
+            else if (cmdType = C_ope_return)
+                playResultType = C_resultType_return_S;
+
+
+            nextStep(resultInfo,false,playResultType);
 
             return;
  
         }
-
-
-
-
-
-
 
 
         // 执行命令
@@ -423,7 +586,7 @@
         // 以下是公共函数
 
         // 获取当前输入条码类型的 描述信息，因为2个地方用，所以提出作为函数
-        function getInputTypeDesc(again) {
+        function getInputHint(again) {
             var desc = "";
 
             var left = "";
@@ -582,18 +745,28 @@
     .div-flow {
         width: 90%;
         margin: 20px auto;
-        font-size: 48pt;
+
     }
 
-    .div-info {
+    .resultInfo {
         height: 300px;
+        padding:10px;
         /*border: 1px solid red;*/
-        line-height: 300px; /*设置line-height与父级元素的height相等*/
-        overflow: hidden; /*防止内容超出容器或者产生自动换行*/
+        /*line-height: 300px; /*设置line-height与父级元素的height相等*/
+        /*overflow: hidden; 防止内容超出容器或者产生自动换行*/
         background-color: black;
         color: white;
         border-radius: 10px;
         text-align: center;
+        font-size: 24pt;
+        line-height:50px;
+    }
+
+    .inputHint {
+        font-size:32pt;
+        height:100px;
+        line-height:100px; 
+        vertical-align:top;
     }
 </style>
 
@@ -658,20 +831,52 @@ else
         </div>
 
         <div id="flow" class="div-flow" style="display:none">
-            <div style="margin-bottom:10px">
-                <input id="Button1" type="button" class="mui-btn mui-btn-default" value="回到主页" onclick="init()" />
-            </div>
-            <div id="resultInfo" class="div-info">
+
+            <div id="resultInfo" class="resultInfo">
                 欢迎您借书。
             </div>
             <br />
-            <div id="inputInfo" style="font-size:32pt;height:100px;line-height:100px; vertical-align:top;">
+            <div id="inputHint" class="inputHint">
                 请扫入读者证条码
             </div>
             <div style="text-align:center">
                 <input id='mybarcode' style='color:black;height:100px;font-size:48pt ' type='text' onkeypress='enter(event)' />
             </div>
+
+            <div style="margin-bottom:10px">
+                <input id="Button1" type="button" class="mui-btn mui-btn-default" style="width:200px;height:50px;background-color:black;color:white;font-size:24px" value="回主页 重新开始" onclick="init()" />
+            </div>
+
+
+            <audio id="patronAudio">
+                <source src="~/audio/patron.mp3" type="audio/mp3">
+            </audio>
+            <audio id="bookAudio">
+                <source src="~/audio/book.mp3" type="audio/mp3">
+            </audio>
+            <audio id="borrowError">
+                <source src="~/audio/borrow_error.mp3" type="audio/mp3">
+            </audio>
+            <audio id="borrowSuccess">
+                <source src="~/audio/borrow_success.mp3" type="audio/mp3">
+            </audio>
+            <audio id="returnError">
+                <source src="~/audio/return_error.mp3" type="audio/mp3">
+            </audio>
+            <audio id="returnSuccess">
+                <source src="~/audio/return_success.mp3" type="audio/mp3">
+            </audio>
+            <audio id="loadError">
+                <source src="~/audio/load_error.mp3" type="audio/mp3">
+            </audio>
+            <audio id="loadSuccess">
+                <source src="~/audio/load_success.mp3" type="audio/mp3">
+            </audio> 
+
         </div>
+    
+    
+
 
     }
 }
