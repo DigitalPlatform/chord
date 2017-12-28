@@ -1,0 +1,109 @@
+﻿@{
+    ViewBag.Title = "AudioTest";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Scripts {
+    <script>
+        var C_mp3_bookAudio = "bookAudio";
+        //var _audioBook = null;
+
+        function playWav(text) {
+            alert("3-0");
+            var myUrl = getRootPath() + "/UI/CreateWav?text=" + encodeURIComponent(text);
+
+            $("#myWav").attr("src", myUrl);
+            alert("3-1");
+
+        }
+
+        function playMp3(text) {
+            alert("4-0");
+
+            var myUrl = getRootPath() + "/UI/CreateMp3";
+            $("#myMp3").attr("src", myUrl);
+
+            alert("4-1");
+
+        }
+
+        function play2(text) {
+
+            alert("2-0");
+
+            var myUrl = getRootPath() + "/UI/CreateWav?text=" + encodeURIComponent(text);
+            $("#wav").html("<embed src='" + myUrl + "' autostart='true' hidden='true' loop='0' />");
+
+            alert("2-1");
+        }
+
+        function play1(text) {
+
+            alert("1-0");
+
+            var myUrl = getRootPath() + "/UI/Speak?text=" + encodeURIComponent(text);
+            $("#wav").html("<embed src='" + myUrl + "' autostart='true' hidden='true' loop='0' />");
+
+            alert("1-1");
+
+            //$("#myAudioSource").attr("src", myUrl);
+            //var audioBook = document.getElementById(C_mp3_bookAudio);
+            //audioBook.currentTime = 0;
+            //audioBook.play();
+
+            //
+
+            //window.open(myUrl, "_self");
+
+            //$('embed').remove();
+            //$("#test").attr("src", myUrl);
+
+            //if (_audioBook == null)
+            //    _audioBook = document.getElementById(C_mp3_bookAudio);
+
+            //_audioBook.setAttribute('src', myUrl);
+            //_audioBook.setAttribute('autoplay', 'autoplay'); //打开自动播放
+
+
+            ////$("#" + C_mp3_bookAudio).attr("src", myUrl);
+            ////_audioBook.currentTime = 0;
+            //_audioBook.play();
+        }
+
+        function stop() {
+            if (_audioBook != null) {
+                _audioBook.pause();
+            }
+        }
+    </script>
+}
+
+<h2>AudioTest</h2>
+
+
+
+<div style="margin-bottom:10px">
+    <input id="Button1" type="button" class="mui-btn mui-btn-block" value="Embed 播放流" onclick="play1('大家好')" />
+    <br/>
+    <input id="Button1" type="button" class="mui-btn mui-btn-block" value="Embed 播放wav文件" onclick="play2('早上好')" />
+    <br />
+    <input id="Button1" type="button" class="mui-btn mui-btn-block" value="Audio 播放wav文件" onclick="playWav('你好')" />
+    <br />
+    <input id="Button1" type="button" class="mui-btn mui-btn-block" value="Audio 播放mp3文件" onclick="playMp3()" />
+</div>
+
+<div id="wav">
+
+</div>
+
+<div>
+    <audio autoplay="autoplay">
+        <source id="myWav" src="" type="audio/wav">
+    </audio>
+
+    <audio autoplay="autoplay">
+        <source id="myMp3" src="" type="audio/mp3">
+    </audio>
+
+</div>
+

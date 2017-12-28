@@ -7,6 +7,10 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Xml;
+using System.Speech;
+using System.Speech.Synthesis;
+using System.Threading.Tasks;
+using System.IO;
 
 namespace dp2weixinWeb.Controllers
 {
@@ -17,6 +21,57 @@ namespace dp2weixinWeb.Controllers
     public class UIController : Controller
     {
 
+        public ActionResult AudioTest()
+        {
+            return View();
+        }
+        public Task<FileStreamResult> Speak(string text)
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                using (SpeechSynthesizer synthesizer = new SpeechSynthesizer())
+                {
+                    var ms = new MemoryStream();
+                    synthesizer.SetOutputToWaveStream(ms);
+                    synthesizer.Speak(text);
+                    
+                    ms.Position = 0;
+                    return new FileStreamResult(ms, "audio/wav");
+                }
+            });
+        }
+
+        public Task<FilePathResult> CreateMp3()
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                using (var ss = new SpeechSynthesizer())
+                {
+                    //string dataDir = Server.MapPath(string.Format("~/audio"));
+                    //string fileName = dataDir + "/test.wav";
+                    //ss.SetOutputToWaveFile(fileName);   //(@"C:\MyAudioFile.wav");
+                    //ss.Speak("Hello World");
+                    //return new FilePathResult("~/audio/test.wav", "audio/wav");
+
+                    return new FilePathResult("~/audio/book.mp3", "audio/mp3");
+                }
+            });
+        }
+
+        public Task<FilePathResult> CreateWav(string text)
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                using (var ss = new SpeechSynthesizer())
+                {
+                    string dataDir = Server.MapPath(string.Format("~/audio"));
+                    string fileName = dataDir + "/test.wav";
+                    ss.SetOutputToWaveFile(fileName);   //(@"C:\MyAudioFile.wav");
+                    ss.Speak(text);
+                    return new FilePathResult("~/audio/test.wav", "audio/wav");
+                }
+            });
+        }
 
 
         public ActionResult CtrlDemo()
