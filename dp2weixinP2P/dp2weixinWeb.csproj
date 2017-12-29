@@ -130,6 +130,7 @@
     <Content Include="audio\found.mp3" />
     <Content Include="audio\load_error.mp3" />
     <Content Include="audio\load_success.mp3" />
+    <Content Include="audio\my.wav" />
     <Content Include="audio\notfound.mp3" />
     <Content Include="audio\patron.mp3" />
     <Content Include="audio\return_error.mp3" />

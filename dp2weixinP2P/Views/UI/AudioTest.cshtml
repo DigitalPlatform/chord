@@ -8,66 +8,162 @@
         var C_mp3_bookAudio = "bookAudio";
         //var _audioBook = null;
 
-        function playWav(text) {
-            alert("3-0");
-            var myUrl = getRootPath() + "/UI/CreateWav?text=" + encodeURIComponent(text);
+        // JSSDK方式，直接一个wav文件
+        function autoPlayAudio1() {
+            wx.config({
+                // 配置信息, 即使不正确也能使用 wx.ready
+                debug: false,
+                appId: '',
+                timestamp: 1,
+                nonceStr: '',
+                signature: '',
+                jsApiList: []
+            });
+            wx.ready(function () {
 
-            $("#myWav").attr("src", myUrl);
-            alert("3-1");
+                alert("10-0");
+                var myUrl = getRootPath() + "/audio/my.wav";//+ "/UI/Speak?text=" + encodeURIComponent(text);
+
+                var audio = document.getElementById("wavAudio");
+                audio.setAttribute('src', myUrl);
+                audio.play();
+
+                alert("10-1");
+            });
+        }
+
+
+        //  JSSDK方式，返回一个wav文件
+        function autoPlayAudio2(text) {
+            wx.config({
+                // 配置信息, 即使不正确也能使用 wx.ready
+                debug: false,
+                appId: '',
+                timestamp: 1,
+                nonceStr: '',
+                signature: '',
+                jsApiList: []
+            });
+            wx.ready(function () {
+
+                alert("11-0");
+                var myUrl = getRootPath() + "/UI/CreateWav?text=" + encodeURIComponent(text);
+
+                var audio = document.getElementById("wavAudio");
+                audio.setAttribute('src', myUrl);
+                audio.play();
+
+                alert("11-1");
+            });
+        }
+
+
+        //  JSSDK方式，返回一个wav流
+        function autoPlayAudio3(text) {
+            wx.config({
+                // 配置信息, 即使不正确也能使用 wx.ready
+                debug: false,
+                appId: '',
+                timestamp: 1,
+                nonceStr: '',
+                signature: '',
+                jsApiList: []
+            });
+            wx.ready(function () {
+
+                alert("11-0");
+                var myUrl = getRootPath() + "/UI/Speak?text=" + encodeURIComponent(text);
+
+                var audio = document.getElementById("wavAudio");
+                audio.setAttribute('src', myUrl);
+                audio.play();
+
+                alert("11-1");
+            });
+        }
+
+
+        // 返回wav流
+        function playWavStream(text) {
+            alert("1-0");
+            //var myUrl = getRootPath() + "/UI/CreateWav?text=" + encodeURIComponent(text);
+
+            var myUrl = getRootPath() + "/UI/Speak?text=" + encodeURIComponent(text);
+           // $("#myWav").attr("src", myUrl);
+
+            var audio = document.getElementById("wavAudio");
+            audio.setAttribute('src', myUrl);
+            audio.play();
+
+            alert("1-1");
 
         }
 
-        function playMp3(text) {
+        // 返回wav文件
+        function playReturnWavFile(text) {
+            alert("2-0");
+            var myUrl = getRootPath() + "/UI/CreateWav?text=" + encodeURIComponent(text);
+
+            // $("#myWav").attr("src", myUrl);
+
+            var audio = document.getElementById("wavAudio");
+            audio.setAttribute('src', myUrl);
+            audio.play();
+
+            alert("2-1");
+        }
+
+        // 直接播放wav文件
+        function playWavFile() {
+            alert("3-0");
+            var myUrl = getRootPath() + "/audio/my.wav";//+ "/UI/Speak?text=" + encodeURIComponent(text);
+
+            // $("#myWav").attr("src", myUrl);
+
+            var audio = document.getElementById("wavAudio");
+            audio.setAttribute('src', myUrl);
+            audio.play();
+
+            alert("3-1");
+        }
+
+        // 播放mp3
+        function playMp3() {
             alert("4-0");
 
-            var myUrl = getRootPath() + "/UI/CreateMp3";
-            $("#myMp3").attr("src", myUrl);
+            var myUrl = getRootPath() + "/UI/CreateMp3";//getRootPath() + // "/audio/patron.mp3";//
+            //$("#myMp3").attr("src", myUrl);
+            //alert($("#myMp3").attr("src"));
+            var audio = document.getElementById("mp3Audio");
+            audio.setAttribute('src', myUrl);
+            audio.play();
 
             alert("4-1");
 
         }
 
-        function play2(text) {
+        // embed 返回文件
+        function playEmbed2(text) {
 
-            alert("2-0");
+            alert("5-0");
 
             var myUrl = getRootPath() + "/UI/CreateWav?text=" + encodeURIComponent(text);
             $("#wav").html("<embed src='" + myUrl + "' autostart='true' hidden='true' loop='0' />");
 
-            alert("2-1");
+            alert("5-1");
         }
 
-        function play1(text) {
+        // embed 返回流
+        function playEmbed1(text) {
 
-            alert("1-0");
+            alert("6-0");
 
             var myUrl = getRootPath() + "/UI/Speak?text=" + encodeURIComponent(text);
             $("#wav").html("<embed src='" + myUrl + "' autostart='true' hidden='true' loop='0' />");
 
-            alert("1-1");
-
-            //$("#myAudioSource").attr("src", myUrl);
-            //var audioBook = document.getElementById(C_mp3_bookAudio);
-            //audioBook.currentTime = 0;
-            //audioBook.play();
-
-            //
+            alert("6-1");
 
             //window.open(myUrl, "_self");
-
-            //$('embed').remove();
-            //$("#test").attr("src", myUrl);
-
-            //if (_audioBook == null)
-            //    _audioBook = document.getElementById(C_mp3_bookAudio);
-
-            //_audioBook.setAttribute('src', myUrl);
-            //_audioBook.setAttribute('autoplay', 'autoplay'); //打开自动播放
-
-
-            ////$("#" + C_mp3_bookAudio).attr("src", myUrl);
-            ////_audioBook.currentTime = 0;
-            //_audioBook.play();
         }
 
         function stop() {
@@ -82,14 +178,33 @@
 
 
 
-<div style="margin-bottom:10px">
-    <input id="Button1" type="button" class="mui-btn mui-btn-block" value="Embed 播放流" onclick="play1('大家好')" />
-    <br/>
-    <input id="Button1" type="button" class="mui-btn mui-btn-block" value="Embed 播放wav文件" onclick="play2('早上好')" />
+<div style="padding-bottom:20px">
+    <input type="button" class="mui-btn mui-btn-block" value="JSSDK 播放现成wav文件" onclick="autoPlayAudio1()" />
     <br />
-    <input id="Button1" type="button" class="mui-btn mui-btn-block" value="Audio 播放wav文件" onclick="playWav('你好')" />
+    <input type="button" class="mui-btn mui-btn-block" value="JSSDK 播放返回wav文件" onclick="autoPlayAudio2('JSSDK 播放返回wav文件')" />
     <br />
-    <input id="Button1" type="button" class="mui-btn mui-btn-block" value="Audio 播放mp3文件" onclick="playMp3()" />
+    <input type="button" class="mui-btn mui-btn-block" value="JSSDK 播放wav流" onclick="autoPlayAudio3('JSSDK 播放wav流')" />
+    <br />
+</div>
+
+<div style="padding-bottom:20px">
+    <input type="button" class="mui-btn mui-btn-block" value="Audio 播放wav流" onclick="playWavStream('播放wav流')" />
+    <br />
+    <input type="button" class="mui-btn mui-btn-block" value="Audio 播放返回wav文件" onclick="playReturnWavFile('播放返回wav文件')" />
+    <br /> 
+    <input type="button" class="mui-btn mui-btn-block" value="Audio  播放现成wav文件" onclick="playWavFile()" />
+    <br />
+</div>
+
+<div style="padding-bottom:20px">
+    <input type="button" class="mui-btn mui-btn-block" value="Audio 播放现成mp3" onclick="playMp3()" />
+</div>
+
+<div style="padding-bottom:20px">
+    <input type="button" class="mui-btn mui-btn-block" value="Embed 播放流" onclick="playEmbed1('Embed 播放流')" />
+    <br />
+    <input type="button" class="mui-btn mui-btn-block" value="Embed 播放返回wav文件" onclick="playEmbed2('Embed 播放返回wav文件')" />
+    <br />
 </div>
 
 <div id="wav">
@@ -97,11 +212,11 @@
 </div>
 
 <div>
-    <audio autoplay="autoplay">
+    <audio id="wavAudio" autoplay="autoplay">
         <source id="myWav" src="" type="audio/wav">
     </audio>
 
-    <audio autoplay="autoplay">
+    <audio id="mp3Audio" >
         <source id="myMp3" src="" type="audio/mp3">
     </audio>
 

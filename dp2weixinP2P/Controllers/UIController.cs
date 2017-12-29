@@ -36,7 +36,7 @@ namespace dp2weixinWeb.Controllers
                     synthesizer.Speak(text);
                     
                     ms.Position = 0;
-                    return new FileStreamResult(ms, "audio/wav");
+                    return new FileStreamResult(ms, "audio/vnd.wav");//"audio/x-wav");//"audio/wav");
                 }
             });
         }
@@ -53,7 +53,7 @@ namespace dp2weixinWeb.Controllers
                     //ss.Speak("Hello World");
                     //return new FilePathResult("~/audio/test.wav", "audio/wav");
 
-                    return new FilePathResult("~/audio/book.mp3", "audio/mp3");
+                    return new FilePathResult("~/audio/patron.mp3", "audio/mp3");
                 }
             });
         }

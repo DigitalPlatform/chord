@@ -21,9 +21,17 @@
         var C_resultType_search_E = "3-0";
 
         function play(text) {
+            //var myUrl = getRootPath() + "/UI/Speak?text=" + encodeURIComponent(text);
+            ////alert(myUrl);
+            //$("#wav").html("<embed src='" + myUrl + "' autostart='true' hidden='true' loop='0' />");
+        
             var myUrl = getRootPath() + "/UI/Speak?text=" + encodeURIComponent(text);
-            //alert(myUrl);
-            $("#wav").html("<embed src='" + myUrl + "' autostart='true' hidden='true' loop='0' />");
+            // $("#myWav").attr("src", myUrl);
+
+            var audio = document.getElementById("wavAudio");
+            audio.setAttribute('src', myUrl);
+            audio.play();
+        
         }
 
 
@@ -362,13 +370,13 @@
                     _count++;
 
                 // 结果语音
-                var wavText = "";//cmd.resultInfo;
+                var wavText = cmd.resultInfoWavText;
                 // 测试语音
 
-                    if (cmd.state == -1)
-                        wavText = "失败";
-                    else
-                        wavText = "成功";
+                    //if (cmd.state == -1)
+                    //    wavText = "失败";
+                    //else
+                    //    wavText = "成功";
                 
                 //alert(wavText);
 
@@ -518,13 +526,13 @@
 
 <style>
     .div-button {
-        width: 300px;
-        height: 200px;
+        width: 200px;
+        height: 150px;
         margin: 30px 20px;
         /*border: 1px solid red;*/
-        line-height: 200px; /*设置line-height与父级元素的height相等*/
+        line-height: 150px; /*设置line-height与父级元素的height相等*/
         text-align: center; /*设置文本水平居中*/
-        font-size: 48pt;
+        font-size: 36pt;
         overflow: hidden; /*防止内容超出容器或者产生自动换行*/
         background-color: gray;
         color: black;
@@ -625,9 +633,7 @@ else
     else
     {
         
-        <div>
-            <a href="~/UI/AudioTest">测试声音</a>
-        </div>
+
         
         <div id="main">
 
@@ -650,7 +656,7 @@ else
             </div>
 
             <div style="margin-bottom:10px">
-                <input id="Button1" type="button" class="mui-btn mui-btn-default" style="width:250px;height:50px;background-color:black;color:white;font-size:24px" value="回到主页 重新开始借还 " onclick="init()" />
+                <input id="Button1" type="button" class="mui-btn mui-btn-default" style="width:250px;height:50px;background-color:black;color:white;font-size:24px" value="回到主页" onclick="init()" />
             </div>
 
         </div>
@@ -658,7 +664,11 @@ else
         <div id="wav">
 
         </div>
-
+    <div>
+    <audio id="wavAudio" >
+        <source id="myWav" src="" type="audio/wav">
+    </audio>
+        </div>
  
     }
 }

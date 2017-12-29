@@ -133,12 +133,14 @@ namespace dp2weixin.service
             Debug.Assert(cmd != null, "AddCmd传进的cmd不能为空。");
             Debug.Assert(String.IsNullOrEmpty(cmd.type) == false, "命令类型不能为空。");
 
+
+
+            // 册list,用于ISBN借书
             cmd.itemList = new List<BiblioItem>();
 
+            // 读者对象
             Patron patron = null;
 
-            if (cmd.userName == null)
-                cmd.userName = "";
 
             // 一般传进来只有3个值 type,patron,item
             cmd.patronBarcode = cmd.patronInput;
@@ -150,28 +152,41 @@ namespace dp2weixin.service
 
             // 其它错误信息
             string otherError = "";
+
+            // 书目名称
             string biblioName = "";
 
-
+            // 输出真正的读者条码，有可能是传来的是姓名
             string outPatronBarcode = cmd.patronBarcode;
+
+            // 读者xml
             string patronXml = "";
+            // 读者路径
             string patronRecPath = "";
+            // 获取读者记录的时间戳
             string timestamp = "";
  
+            // 本函数返回信息
             ReturnInfo resultInfo = null;
             int cmdRet = -1;
             string cmdError = "";
 
             // 登录dp2身份
-            LoginInfo loginInfo = new LoginInfo(cmd.userName,cmd.isPatron==1?true:false );
+            //前端传来的userName有可能为null，这里兼职一下，防止报错
+            if (cmd.userName == null)
+                cmd.userName = "";
+            LoginInfo loginInfo = new LoginInfo(cmd.userName,
+                cmd.isPatron==1?true:false );
 
             //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-2");
 
+            #region 分馆的自动加前缀功能
             // 当是分馆时，检查是否需要自动加前缀，以及自动加前缀
-            if (string.IsNullOrEmpty(libraryCode) == false && needTransfrom == 1) //20171029,当前缀特别指定的需要转换时再转换
+            if (string.IsNullOrEmpty(libraryCode) == false && needTransfrom == 1) //20171029,当分馆，且明确指定的需要转换时前缀时再转换
             {
                 //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-3");
 
+                // 根据命令类型，判断转哪个条码
                 string tempBarcode = "";
                 if (cmd.type == ChargeCommand.C_Command_LoadPatron)
                     tempBarcode = cmd.patronBarcode;
@@ -186,14 +201,12 @@ namespace dp2weixin.service
                     out resultBarcode,
                     out cmdError);
                 //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-31-[" + cmdError+"]");
-
                 if (cmdRet == -1)
                 {
                     //cmdError = cmdError.Replace("<script>", "");
                     goto END1;
                 }
                 //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-4");
-
                 // 转换过的
                 if (cmdRet == 1)
                 {
@@ -203,8 +216,9 @@ namespace dp2weixin.service
                         cmd.itemBarcode = resultBarcode;
                 }
             }
+            #endregion
 
-
+            #region 查询册的功能
             // 20170413 查询册
             if (cmd.type == ChargeCommand.C_Command_SearchItem)
             {
@@ -225,7 +239,7 @@ namespace dp2weixin.service
                 }
                 //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-51");
 
-
+                // 截图path
                 int tempIndex = recPath.IndexOf("@");
                 if (tempIndex > 0)
                     recPath = recPath.Substring(0, tempIndex);
@@ -234,8 +248,6 @@ namespace dp2weixin.service
                 //{
                 //    biblioName = dp2WeiXinService.Instance.GetShortSummary(summary);
                 //}
-
-
 
                 // 取item
                 List<BiblioItem> itemList = null;
@@ -256,6 +268,7 @@ namespace dp2weixin.service
                 {
                     cmdError = "未命中";
                     cmd.resultInfo = cmdError;
+                    cmd.resultInfoWavText = cmdError;
                     cmdRet = -1;
                 }
                 //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-6");
@@ -286,13 +299,13 @@ namespace dp2weixin.service
                 goto END2;
             }
 
-            //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-7");
+            #endregion
 
-
+            #region 加载读者
             //加载读者
             if (cmd.type == ChargeCommand.C_Command_LoadPatron) 
             {
-                dp2WeiXinService.Instance.WriteErrorLog1("走进-加载读者-1");
+                //dp2WeiXinService.Instance.WriteErrorLog1("走进-加载读者-1");
 
                 cmdRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                     loginInfo,
@@ -304,35 +317,21 @@ namespace dp2weixin.service
                     out cmdError);
                 if (cmdRet == -1 || cmdRet == 0)  //未找到认为出错
                 {
-                    dp2WeiXinService.Instance.WriteErrorLog1("走进-加载读者-2");
-
+                    //dp2WeiXinService.Instance.WriteErrorLog1("走进-加载读者-2");
                     cmdError += " 传入的条码为["+cmd.patronBarcode+"]";
                     cmdRet = -1;
                 }
 
-                //if (cmdRet == 0)  //未找到认为出错
-                //{
-                //    //检查是不是册条码
-                //    cmdRet = dp2WeiXinService.Instance.VerifyBarcode(libId,
-                //       cmd.userId,
-                //       cmd.patronBarcode,
-                //       out cmdError);
-                //    if (cmdRet != 1)
-                //    {
-                //        if (cmdRet == 2)
-                //        {
-                //            cmdError = "您扫入了册条码，请扫入读者。";
-                //        }
-                //        cmdRet = -1;
-                //    }
-                //}
-
-                dp2WeiXinService.Instance.WriteErrorLog1("走进-加载读者-3");
-
+                //dp2WeiXinService.Instance.WriteErrorLog1("走进-加载读者-3");
                 goto END1;
             }
 
-             //检查item是否为isbn
+            #endregion
+
+
+            #region 检查item是否为isbn
+
+            //检查item是否为isbn
             string strTemp = cmd.itemBarcode;
             if (IsbnSplitter.IsISBN(ref strTemp) == true)
             {
@@ -361,9 +360,13 @@ namespace dp2weixin.service
 
                 goto END1;
             }
+            #endregion
 
-            // 流通命令
-             if (cmd.type == ChargeCommand.C_Command_Borrow) //借书
+            #region 借书、还书
+
+#if NO
+            // 借书
+             if (cmd.type == ChargeCommand.C_Command_Borrow) 
             {
                 cmdRet = dp2WeiXinService.Instance.Circulation(libId,
                     loginInfo,
@@ -374,6 +377,7 @@ namespace dp2weixin.service
                     out patronXml,
                     out resultInfo,
                     out cmdError);
+
 
                 // 借书失败时，也要取一下读者记录，因为读者信息还是要显示的
                 if (string.IsNullOrEmpty(patronXml) == true)
@@ -405,14 +409,25 @@ namespace dp2weixin.service
                     out resultInfo,
                     out cmdError);               
             }
+#endif
 
-            // 根据item barcode取书名
-             if (cmd.state !=-1 && cmd.type != ChargeCommand.C_Command_LoadPatron)
+            cmdRet = dp2WeiXinService.Instance.Circulation(libId,
+                loginInfo,
+                cmd.type,
+                cmd.patronBarcode,
+                cmd.itemBarcode,
+                out outPatronBarcode,
+                out patronXml,
+                out resultInfo,
+                out cmdError);           
+             if (cmd.state !=-1)
              {
+                 // 根据item barcode取书名
                  string summary = "";
                  string recPath = "";
                  LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
-                 int nRet = dp2WeiXinService.Instance.GetBiblioSummary(lib, cmd.itemBarcode,
+                 int nRet = dp2WeiXinService.Instance.GetBiblioSummary(lib, 
+                     cmd.itemBarcode,
                     "",
                     out summary,
                     out recPath,
@@ -428,7 +443,9 @@ namespace dp2weixin.service
                  }
              }
 
-END1:
+            #endregion
+
+         END1:
             // 设返回值
              cmd.state = cmdRet;
              cmd.errorInfo =  cmdError; //20171028
@@ -470,9 +487,13 @@ END1:
             }
 
             cmd.typeString = cmd.getTypeString(cmd.type);
-            cmd.resultInfo = cmd.GetResultInfo();
+            string wavText = "";
+            cmd.resultInfo = cmd.GetResultInfo(out wavText);
+            cmd.resultInfoWavText = wavText;
             if (cmd.type == ChargeCommand.C_Command_LoadPatron && patron != null)
             {
+                cmd.resultInfoWavText = patron.name;
+
                 cmd.resultInfo = "<span style='font-size:20pt'>" + patron.name + "</span>";
                 if (String.IsNullOrEmpty(patron.department) == false)
                     cmd.resultInfo += "(" + patron.department + ")";
@@ -483,10 +504,12 @@ END1:
                 {
                     if (cmd.type == ChargeCommand.C_Command_Borrow)
                     {
+                        cmd.resultInfoWavText += biblioName;
                         cmd.resultInfo += "<br/>"+ biblioName; //用+=是因为前面有了 借书成功
                     }
                     else if (cmd.type == ChargeCommand.C_Command_Return )
                     {
+                        cmd.resultInfoWavText += biblioName;
                         cmd.resultInfo += "<br/>" + biblioName; //用+=是因为前面有了 还书成功
                         if (patron != null)
                             cmd.resultInfo += "<br/><span style='font-size:20pt'>" + patron.name+"</span>";
@@ -495,6 +518,7 @@ END1:
                      //有提示信息
                     if (String.IsNullOrEmpty(cmd.errorInfo) == false && cmd.errorInfo !=ChargeCommand.C_ReturnSucces_FromApi)
                     {
+                        cmd.resultInfoWavText += cmd.errorInfo;
                         cmd.resultInfo += "<br/>"+cmd.errorInfo;
                     }
                 }
