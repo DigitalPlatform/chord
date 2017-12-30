@@ -125,16 +125,21 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="audio\book.mp3" />
+    <Content Include="audio\book.wav" />
     <Content Include="audio\borrow_error.mp3" />
     <Content Include="audio\borrow_success.mp3" />
+    <Content Include="audio\error.wav" />
     <Content Include="audio\found.mp3" />
     <Content Include="audio\load_error.mp3" />
     <Content Include="audio\load_success.mp3" />
     <Content Include="audio\my.wav" />
     <Content Include="audio\notfound.mp3" />
     <Content Include="audio\patron.mp3" />
+    <Content Include="audio\patron.wav" />
     <Content Include="audio\return_error.mp3" />
     <Content Include="audio\return_success.mp3" />
+    <Content Include="audio\success2book.wav" />
+    <Content Include="audio\success.wav" />
     <Content Include="Content\charge.css" />
     <Content Include="Content\icons-extra.css" />
     <Content Include="Content\patron.css" />
@@ -356,6 +361,9 @@
     <Content Include="Views\Library\SelfServiceMain.txt" />
     <Content Include="Views\Library\SelfService.cshtml" />
     <Content Include="Views\UI\AudioTest.cshtml" />
+    <Content Include="Views\Library\Circulate.cshtml">
+      <SubType>Code</SubType>
+    </Content>
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

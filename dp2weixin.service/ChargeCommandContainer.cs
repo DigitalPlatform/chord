@@ -410,7 +410,7 @@ namespace dp2weixin.service
                     out cmdError);               
             }
 #endif
-
+            // 调借还书命令
             cmdRet = dp2WeiXinService.Instance.Circulation(libId,
                 loginInfo,
                 cmd.type,
@@ -451,26 +451,21 @@ namespace dp2weixin.service
              cmd.errorInfo =  cmdError; //20171028
             cmd.typeString = cmd.getTypeString(cmd.type);
 
-
-
-
             //========以下两种情况直接返回，不加到操作历史中===
-
              // 读者姓名重复的情况
              if (cmdRet == -2)
              {
                  return cmd;
              }
-
             // isbn的情况
              if (cmdRet == -3)
              {
                  return cmd;
              }
-
             //=================
 
-            // 设上实际的读者证条码
+
+            // 设上实际的读者证条码，还书时用到
             cmd.patronBarcode = outPatronBarcode;
 
             // 解析读者信息
@@ -481,12 +476,9 @@ namespace dp2weixin.service
                     patronXml,
                     patronRecPath,
                     showPhoto);
-                //cmd.patronHtml = dp2WeiXinService.Instance.GetPatronSummary(patron,
-                //    cmd.userName);
                 cmd.patronBarcode = patron.barcode;
             }
 
-            cmd.typeString = cmd.getTypeString(cmd.type);
             string wavText = "";
             cmd.resultInfo = cmd.GetResultInfo(out wavText);
             cmd.resultInfoWavText = wavText;
@@ -512,11 +504,12 @@ namespace dp2weixin.service
                         cmd.resultInfoWavText += biblioName;
                         cmd.resultInfo += "<br/>" + biblioName; //用+=是因为前面有了 还书成功
                         if (patron != null)
-                            cmd.resultInfo += "<br/><span style='font-size:20pt'>" + patron.name+"</span>";
+                            cmd.resultInfo += patron.name;
                     }
 
                      //有提示信息
-                    if (String.IsNullOrEmpty(cmd.errorInfo) == false && cmd.errorInfo !=ChargeCommand.C_ReturnSucces_FromApi)
+                    if (String.IsNullOrEmpty(cmd.errorInfo) == false 
+                        && cmd.errorInfo !=ChargeCommand.C_ReturnSucces_FromApi)
                     {
                         cmd.resultInfoWavText += cmd.errorInfo;
                         cmd.resultInfo += "<br/>"+cmd.errorInfo;
@@ -529,7 +522,6 @@ namespace dp2weixin.service
             // 得到命令html
             string cmdHtml = this.GetCmdHtml3(libId,cmd,patron);//.GetCmdHtml(libId, cmd, patron, otherError);
             cmd.cmdHtml = cmdHtml;
-
 
 
             // 加到集合里

@@ -57,7 +57,7 @@ namespace dp2weixin.service
                 if (this.errorInfo != C_ReturnSucces_FromApi)
                 {
                     retInfo += "<br/>" + this.errorInfo;
-                    wavText += this.errorInfo;
+                    //wavText += this.errorInfo;
                 }
             }
             return retInfo;
