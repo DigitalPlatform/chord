@@ -85,8 +85,17 @@
         //====
 
         // 程序启动
+        var isIpad = false;
         $(document).ready(function () {
 
+            ////是否为ipad
+            var u = navigator.userAgent, app = navigator.appVersion;
+            if ( u.indexOf('iPad') > -1)
+            {
+                isIpad = true;
+                alert("ipad");
+            }
+           
 
             //初始化
             init();
@@ -231,14 +240,21 @@
         function enter(event) {
             if (event.keyCode == "13") {
                 //alert(code);
-                //code = code.trim();
-                //$("#mybarcode").val(code);
-                //document.getElementById('mybarcode').focus();
-                //code = "";
+
+                // ipad 特殊处理下
+                if (isIpad == true) {
+                    code = code.trim();
+                    $("#mybarcode").val(code);
+                    document.getElementById('mybarcode').focus();
+                    code = "";
+                }
                 ok();
             }
             else {
-                //code += String.fromCharCode(event.keyCode).trim();
+                // ipad 特殊处理下
+                if (isIpad == true) {
+                    code += String.fromCharCode(event.keyCode).trim();
+                }
             }
         }
 
