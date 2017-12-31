@@ -131,6 +131,7 @@
     <Content Include="audio\borrow_success.mp3" />
     <Content Include="audio\error.wav" />
     <Content Include="audio\found.mp3" />
+    <Content Include="audio\loadPatron.wav" />
     <Content Include="audio\load_error.mp3" />
     <Content Include="audio\load_success.mp3" />
     <Content Include="audio\my.wav" />

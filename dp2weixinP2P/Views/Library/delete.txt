@@ -1,4 +1,163 @@
-﻿        // 自助借还主页
+﻿//===============
+            
+
+====
+        //var start = null;
+        //var code = "";
+        //window.onload = function (e) {
+        //    alert("t1");
+
+        //    start = new Date();
+        //    code = "";
+        //    alert("test");
+        //}
+
+
+
+
+
+        //function test1(event) {
+
+        //    alert("3");
+
+        //    alert(event.keyCode);
+
+
+        //    var now = new Date();
+
+        //    alert("3-1");
+
+        //    if (now - start > 50) {
+
+        //        alert("3-2");
+
+        //        start = now;
+        //        code = String.fromCharCode(event.keyCode);
+        //    } else {
+        //        alert("3-3" + event.keyCode);
+        //        alert(code);
+        //        alert("3-4");
+        //        code += String.fromCharCode(event.keyCode);
+        //    }
+
+        //    if (event.keyCode == 13) {
+        //        //console.log(code);
+        //        alert("4");
+        //        alert(code);
+        //        code = "";
+        //    }
+
+        //    alert("5");
+        //}
+===
+    <a class=" mui-icon mui-pull-left" href='javascript:void(0)' onclick='init()' style="color:#cccccc"><span style="font-size:12pt" id="_libName"><</span></a>
+  
+
+    .borrow {
+        background-color: #33CCFF;
+    }
+
+    .borrowDetail {
+        /*background-color: #C7F1FF;*/
+        
+    }
+
+    .active {
+        background-color: #33CC66;
+    }
+
+        .returnDetail {
+        /*background-color: #E0F6E7;*/
+    }
+
+    .search {
+        background-color: #FDDD5D;
+    }
+
+        .searchDetail {
+        /*background-color: #F2ECD4;*/
+    }
+
+    .div-flow {
+        width: 90%;
+        /*margin: 20px auto;*/
+        padding:10px;
+    }
+
+
+
+    .resultInfo {
+        /*height: 300px;*/
+        padding: 10px;
+        /*border: 1px solid red;*/
+        /*line-height: 300px; /*设置line-height与父级元素的height相等*/
+        /*overflow: hidden; 防止内容超出容器或者产生自动换行*/
+        /*background-color: #eeeeee;*/
+        color: black;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 14.7pt;
+        /*line-height: 50px;*/
+    }
+
+    .inputHint {
+        font-size: 18pt;
+        /*
+        height: 100px;
+        line-height: 100px;
+        vertical-align: top;
+            width:250px;height:50px;background-color:black; font-size:18px
+            */
+    }
+
+    .barcodeInput {
+        color:black; height:100px;font-size:48pt;
+    }
+    .top-button {
+        width: 140px;
+        height: 100px;
+        margin: 5px;
+        /*border: 1px solid red;*/
+        text-align: center; /*设置文本水平居中*/
+        vertical-align: middle;
+        /*line-height: 100px;*/
+        font-size: 24pt;
+        /*background-color: gray;*/
+        color: black;
+        border-radius: 5px;
+    }
+  
+  .div-button {
+        width: 250px;
+        height: 200px;
+        margin: 10px;
+        /*border: 1px solid red;*/
+        line-height: 200px; /*设置line-height与父级元素的height相等*/
+        text-align: center; /*设置文本水平居中*/
+        font-size: 36pt;
+        overflow: hidden; /*防止内容超出容器或者产生自动换行*/
+        background-color: gray;
+        color: black;
+        float: left;
+        border-radius: 10px;
+    }
+ ====
+ 
+ <table style="background-color:green;width:100%"><tr>
+            <td>test</td>
+             </tr></table>
+		
+		===========
+		
+		<div id="main" class="div-flow">
+
+            <div id="btnBorrow" class="mui-btn top-button active" onclick="start(this,'borrow')">借书</div>
+            <div id="btnReturn" class="mui-btn top-button " onclick="start(this,'return')">还书</div>
+            <div id="btnSearch" class="mui-btn top-button " onclick="start(this,'searchItem')">查书</div>
+        </div>
+
+		===========================
+        // 自助借还主页
         public ActionResult SelfServiceMain(string code, string state)
         {
             string strError = "";
