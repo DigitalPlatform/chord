@@ -933,9 +933,7 @@ MessageBoxDefaultButton.Button2);
             return;
         ERROR1:
             MessageBox.Show(this, strError);
-
         }
-
 
         private void MenuItem_dp2capo_tools_installService_Click(object sender, EventArgs e)
         {

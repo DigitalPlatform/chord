@@ -658,5 +658,17 @@ namespace TestClient1.Properties {
                 this["setInfoRequest"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string search_filter {
+            get {
+                return ((string)(this["search_filter"]));
+            }
+            set {
+                this["search_filter"] = value;
+            }
+        }
     }
 }

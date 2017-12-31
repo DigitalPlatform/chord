@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.26.*")]
-[assembly: AssemblyFileVersion("1.26.0.0")]
+[assembly: AssemblyVersion("1.27.*")]
+[assembly: AssemblyFileVersion("1.27.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -61,3 +61,4 @@ using System.Runtime.InteropServices;
 // 1.24 (2016/11/17) 点对点 API Circulation() 增加 VerifyBarcode 功能。
 // 1.25 (2016/11/30) 增强了 SetMessage() API，可以分次发送大于 4096 bytes 的 MessageRecord.data 内容
 // 1.26 (2017/4/25) 点对点 API Circulation() 中的 VerifyBarcode 功能中增加了 TransformBarcode 子功能。
+// 1.27 (2017/5/10) 点对点 API Search()中的 SearchRequest 结构增加了 Filter 成员。dp2capo 支持带有馆代码限定的 SearchBiblio() 检索了

@@ -2490,6 +2490,7 @@ out strError);
         /// <param name="strResultSetName">结果集名</param>
         /// <param name="strSearchStyle">检索方式。如果包含子串"desc"表示命中结果按照降序排列；包含子串"asc"表示按照升序排列。缺省为升序排列</param>
         /// <param name="strOutputStyle">输出方式</param>
+        /// <param name="strLocationFilter">馆藏地过滤</param>
         /// <param name="strQueryXml">返回 dp2Library 所创建的检索式 XML 字符串</param>
         /// <param name="strError">返回出错信息</param>
         /// <returns>
@@ -3955,6 +3956,7 @@ out strError);
             string strFileName,
             long lStart,
             long lLength,
+            string strStyle,
             out byte[] baContent,
             out string strFileTime,
             out string strError)
@@ -3972,7 +3974,8 @@ out strError);
                     strCategory,
                     strFileName,
                     lStart,
-                    lLength
+                    lLength,
+                    strStyle    // 2017/10/29
                     );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {

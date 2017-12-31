@@ -97,7 +97,7 @@ namespace DigitalPlatform.Message
             this.Value = -1;
         }
 
-        public string Dump()
+        public virtual string Dump()
         {
             StringBuilder text = new StringBuilder();
             text.Append("String=" + this.String + "\r\n");
@@ -1002,7 +1002,7 @@ namespace DigitalPlatform.Message
     {
         public WebData WebData { get; set; }
 
-        public string Dump()
+        public override string Dump()
         {
             StringBuilder text = new StringBuilder();
             text.Append("Value=" + this.Value + "\r\n");

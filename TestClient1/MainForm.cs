@@ -212,6 +212,7 @@ namespace TestClient1
             this.textBox_search_formatList.Text = Settings.Default.search_formatList;
             this.textBox_search_resultSetName.Text = Settings.Default.search_resultSetName;
             this.textBox_search_position.Text = Settings.Default.search_position;
+            this.textBox_search_filter.Text = Settings.Default.search_filter;
 
             this.textBox_bindPatron_remoteUserName.Text = Settings.Default.bindPatron_remoteUserName;
             this.comboBox_bindPatron_action.Text = Settings.Default.bindPatron_action;
@@ -274,6 +275,7 @@ namespace TestClient1
             Settings.Default.search_formatList = this.textBox_search_formatList.Text;
             Settings.Default.search_resultSetName = this.textBox_search_resultSetName.Text;
             Settings.Default.search_position = this.textBox_search_position.Text;
+            Settings.Default.search_filter = this.textBox_search_filter.Text;
 
             Settings.Default.bindPatron_remoteUserName = this.textBox_bindPatron_remoteUserName.Text;
             Settings.Default.bindPatron_action = this.comboBox_bindPatron_action.Text;
@@ -678,6 +680,7 @@ namespace TestClient1
                     this.textBox_search_matchStyle.Text,
                     this.textBox_search_resultSetName.Text,
                     this.textBox_search_formatList.Text,
+                    this.textBox_search_filter.Text,
                     1000,
                     start,
                     count);

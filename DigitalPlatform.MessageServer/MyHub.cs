@@ -3,14 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections;
-using System.Security.Claims;
 using System.Threading;
-using System.Xml;
 
 using Microsoft.AspNet.SignalR;
 
@@ -1729,6 +1726,8 @@ ex.GetType().ToString());
                 return;
             }
 
+            List<string> correct_groups = new List<string>();   // 修正后的 groups 字符串集合。2017/12/31
+
             for (int i = 0; i < item.groups.Length; i++)
             {
                 string strGroupString = item.groups[i];
@@ -1756,8 +1755,11 @@ ex.GetType().ToString());
                     return name;
                 });
 
-                item.groups[i] = segment.ToStringUnQuote();
+                // item.groups[i] = segment.ToStringUnQuote();
+                correct_groups.Add(segment.ToStringUnQuote());
             }
+
+            item.groups = correct_groups.ToArray();
         }
 
         static bool AutoBindingIP(UserItem info, string strClientAddress)
