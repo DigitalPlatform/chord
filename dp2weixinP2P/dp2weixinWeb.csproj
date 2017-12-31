@@ -20,6 +20,7 @@
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
     <UseGlobalApplicationHostFile />
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -361,9 +362,10 @@
     <Content Include="Views\Library\SelfServiceMain.txt" />
     <Content Include="Views\Library\SelfService.cshtml" />
     <Content Include="Views\UI\AudioTest.cshtml" />
-    <Content Include="Views\Library\Circulate.cshtml">
+    <Content Include="Views\Library\Circulate.txt">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="Views\Library\Circulate.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -32,13 +32,13 @@
             //var myUrl = getRootPath() + "/UI/Speak?text=" + encodeURIComponent(text);
             ////alert(myUrl);
             //$("#wav").html("<embed src='" + myUrl + "' autostart='true' hidden='true' loop='0' />");
-        
+
             var myUrl = getRootPath() + "/UI/Speak?text=" + encodeURIComponent(text);
             // $("#myWav").attr("src", myUrl);
 
             var audio = document.getElementById("wavAudio");
             audio.setAttribute('src', myUrl);
-            audio.play();       
+            audio.play();
         }
 
         // 直接播放wav文件
@@ -70,19 +70,19 @@
 
         var _count = 1;
 
-        //======
-        //自感应是否是活动状态，如果5稍没返回，回到主页
-        var myTime = null;//setTimeout("Timeout()", 2000);  
-        function resetTime() {
-            //alert("reset");
-            clearTimeout(myTime);
-            myTime = setTimeout('Timeout()', 1000 * 50); //如果1分钟没反应，回到主页
-        }
-        function Timeout() {
-            //alert("已超时, 自动回主页!");  
-            init();
-        }
-        //====
+        ////======
+        ////自感应是否是活动状态，如果5稍没返回，回到主页
+        //var myTime = null;//setTimeout("Timeout()", 2000);  
+        //function resetTime() {
+        //    //alert("reset");
+        //    clearTimeout(myTime);
+        //    myTime = setTimeout('Timeout()', 1000 * 50); //如果1分钟没反应，回到主页
+        //}
+        //function Timeout() {
+        //    //alert("已超时, 自动回主页!");  
+        //    init();
+        //}
+        ////====
 
         // 程序启动
         var isIpad = false;
@@ -93,12 +93,15 @@
             if ( u.indexOf('iPad') > -1)
             {
                 isIpad = true;
-                alert("ipad");
+                //alert("ipad");
             }
-           
+
 
             //初始化
             init();
+
+                start($("#btnBorrow"),C_ope_borrow);
+
         })
 
         // 初始化，回主页
@@ -111,10 +114,10 @@
             document.documentElement.onclick = null;
 
             // 显示主页
-            showMain();
+            //showMain();
 
             // 隐藏流程页面
-            hideFlow();
+            //hideFlow();
 
             // 清空操作类型
             setOpe("");
@@ -129,17 +132,24 @@
             // 图书数量设回为1
             _count = 1;
 
+
         }
 
         // 主页界的开始按钮
-        function start(ope) {
+        function start(btn,ope) {
 
             // 感应活动态
-            document.documentElement.onkeydown = resetTime;
-            document.documentElement.onclick = resetTime;
+            //document.documentElement.onkeydown = resetTime;
+            //document.documentElement.onclick = resetTime;
+
+            $("#btnBorrow").removeClass("active");
+            $("#btnReturn").removeClass("active");
+            $("#btnSearch").removeClass("active");
+            $(btn).addClass("active");
+
 
             // 隐藏主页面
-            hideMain();
+            //hideMain();
 
             // 显示流程页面
             showFlow(ope);
@@ -154,24 +164,6 @@
                 setInputType(C_inputType_item);
 
 
-
-            //// 下一步，根据操作类型，提示输入
-            //var resultInfo = "";
-            //var wavText = "";
-            //if (ope == C_ope_borrow) {
-            //    resultInfo = "欢迎借书";
-            //    wavText = resultInfo + ",请扫入读者。";
-            //}
-            //else if (ope == C_ope_return) {
-            //    resultInfo = "欢迎还书";
-            //    wavText = resultInfo + ",请扫入图书。";
-            //}
-            //else if (ope == C_ope_searchItem) {
-            //    resultInfo = "欢迎查书";
-            //    wavText = resultInfo + ",请扫入图书。";
-            //}
-            //// 下一步界面
-            //nextStep("", false, wavText);
 
             //===
             // 下一步，根据操作类型，提示输入
@@ -246,6 +238,8 @@
                     code = code.trim();
                     $("#mybarcode").val(code);
                     document.getElementById('mybarcode').focus();
+                    document.getElementById('mybarcode').select();
+
                     code = "";
                 }
                 ok();
@@ -268,7 +262,7 @@
         //    alert("test");
         //}
 
-  
+
 
 
 
@@ -339,6 +333,21 @@
                 $("#mybarcode").select();
             }
 
+        }
+
+        function convertIme() {
+
+            var current = $("#ime").html();
+            alert(current);
+
+            if (current == "中文") {
+                $("#mybarcode").css("ime-mode", "active");
+                $("#ime").html("英文");
+            }
+            else {
+                $("#mybarcode").css("ime-mode", "inactive");
+                $("#ime").html("中文");
+            }
         }
 
         // 调接口执行操作
@@ -431,7 +440,7 @@
 
             var wavType =  C_wavType_success2book;
 
-            
+
             nextStep(resultInfo, false, wavType);
         }
 
@@ -536,7 +545,7 @@
                     else
                        wavType=C_wavType_success2book
                 }
-                
+
                 //alert(wavText);
 
                 // 下一步
@@ -649,7 +658,7 @@
                 $("#all").removeClass("returnDetail");
                 $("#all").addClass("searchDetail");
             }
-            
+
 
         }
 
@@ -732,6 +741,19 @@
         border-radius: 10px;
     }
 
+    .top-button {
+        width: 100px;
+        height: 50px;
+        margin: 10px;
+        /*border: 1px solid red;*/
+        text-align: center; /*设置文本水平居中*/
+        vertical-align: middle;
+        font-size: 18pt;
+        /*background-color: gray;*/
+        color: black;
+        border-radius: 5px;
+    }
+
     .borrow {
         background-color: #33CCFF;
     }
@@ -741,7 +763,7 @@
         
     }
 
-    .return {
+    .active {
         background-color: #33CC66;
     }
 
@@ -762,6 +784,8 @@
         /*margin: 20px auto;*/
         padding:10px;
     }
+
+
 
     .resultInfo {
         /*height: 300px;*/
@@ -851,20 +875,29 @@ else
         <div id='all' style="width:100%;height:100%">
 
            <span>版本：@ViewBag.version</span>
-    <div id="main">
+    <div id="main" class="div-flow" >
 
-        <div class="div-button @borrowClass " onclick="@borrowClick">借书</div>
-        <div class="div-button @returnClass " onclick="@returnClick">还书</div>
-        <div class="div-button search" onclick="start('searchItem')">查书</div>
+        <div id="btnBorrow" class="mui-btn top-button active" onclick="start(this,'borrow')">借书</div>
+        <div id="btnReturn" class="mui-btn top-button " onclick="start(this,'return')" >还书</div>
+        <div id="btnSearch" class="mui-btn top-button " onclick="start(this,'searchItem')">查书</div>
     </div>
 
-    <div id="flow" class="div-flow" style="display:none">
+    <div id="flow" class="div-flow" style="display:block">
 
         <span id="inputHint" class="inputHint">
             请扫入读者证条码
         </span>
+        <table>
+            <tr>
+                <td>
+                    <input id='mybarcode' style="color:black; height:70px;font-size:24pt;ime-mode:inactive" type='text' onkeydown='enter(event)' />
+
+                </td>
+            <td><div id="ime" class="mui-btn " onclick="convertIme()">中文</div></td>
+            </tr>
+        </table>
         <div style="text-align:center">
-            <input id='mybarcode' style="color:black; height:100px;font-size:24pt;ime-mode:inactive" type='text' onkeydown='enter(event)' />
+            
         </div>
 
 

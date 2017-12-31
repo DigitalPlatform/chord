@@ -386,7 +386,7 @@ namespace dp2weixin.service
             XmlNode root = dom.DocumentElement;
 
             // 取出mserver服务器配置信息
-            XmlNode nodeDp2mserver = root.SelectSingleNode("dp2mserver");
+            XmlNode nodeDp2mserver = root.SelectSingleNode("//dp2mserver");
             this.dp2MServerUrl = DomUtil.GetAttr(nodeDp2mserver, "url");// WebConfigurationManager.AppSettings["dp2MServerUrl"];
             this.userNameWeixin = DomUtil.GetAttr(nodeDp2mserver, "username");//WebConfigurationManager.AppSettings["userName"];
             this.password = DomUtil.GetAttr(nodeDp2mserver, "password");//WebConfigurationManager.AppSettings["password"];
