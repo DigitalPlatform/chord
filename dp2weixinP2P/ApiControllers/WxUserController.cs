@@ -130,6 +130,18 @@ namespace dp2weixinWeb.ApiControllers
             user.verifyBarcode = verifyBarcode;
             WxUserDatabase.Current.Update(user);
 
+            return result;
+        }
+
+        // 保存语音方案
+        [HttpPost]
+        public ApiResult SaveAudioType(string userId, int audioType)
+        {
+            ApiResult result = new ApiResult();
+
+            WxUserItem user = WxUserDatabase.Current.GetById(userId);
+            user.audioType = audioType;
+            WxUserDatabase.Current.Update(user);
 
             return result;
         }

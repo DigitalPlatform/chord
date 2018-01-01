@@ -77,6 +77,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.userId = user.id;
             // 是否校验条码
             ViewBag.verifyBarcode = user.verifyBarcode;
+            ViewBag.audioType = user.audioType;
             // 关注馆藏地
             ViewBag.Location = SubLib.ParseToView(user.selLocation);
 
@@ -183,6 +184,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.userId = user.id;
             // 是否校验条码
             ViewBag.verifyBarcode = user.verifyBarcode;
+            ViewBag.audioType = user.audioType;
             // 关注馆藏地
             ViewBag.Location = SubLib.ParseToView(user.selLocation);
 
@@ -448,7 +450,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.Location = SubLib.ParseToView(user.selLocation);
 
             ViewBag.verifyBarcode = user.verifyBarcode;
-            
+            ViewBag.audioType = user.audioType;
             return View(user);
 
 

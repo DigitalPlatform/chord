@@ -149,6 +149,7 @@ namespace dp2weixin.service
             // 补充命令信息
             cmd.id = this.Count + 1;
             cmd.operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+            cmd.resultInfoWavText = "";
 
             // 其它错误信息
             string otherError = "";
@@ -268,7 +269,6 @@ namespace dp2weixin.service
                 {
                     cmdError = "未命中";
                     cmd.resultInfo = cmdError;
-                    cmd.resultInfoWavText = cmdError;
                     cmdRet = -1;
                 }
                 //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-6");
@@ -288,6 +288,9 @@ namespace dp2weixin.service
                 {
                     cmd.resultInfo = summary
                         + this.getItemHtml(item);
+
+                    // 语音返回 书名
+                    cmd.resultInfoWavText = dp2WeiXinService.Instance.GetShortSummary(summary);
                     cmdRet = 0;
                 }
 
@@ -481,9 +484,10 @@ namespace dp2weixin.service
 
             string wavText = "";
             cmd.resultInfo = cmd.GetResultInfo(out wavText);
-            cmd.resultInfoWavText = wavText;
+            //cmd.resultInfoWavText = wavText;
             if (cmd.type == ChargeCommand.C_Command_LoadPatron && patron != null)
             {
+                // 语音返回  读者姓名
                 cmd.resultInfoWavText = patron.name;
 
                 cmd.resultInfo = "<span style='font-size:20pt'>" + patron.name + "</span>";
@@ -496,12 +500,14 @@ namespace dp2weixin.service
                 {
                     if (cmd.type == ChargeCommand.C_Command_Borrow)
                     {
-                        cmd.resultInfoWavText += biblioName;
+                        // 语音返回  书名
+                        cmd.resultInfoWavText = biblioName;
                         cmd.resultInfo += "<br/>"+ biblioName; //用+=是因为前面有了 借书成功
                     }
                     else if (cmd.type == ChargeCommand.C_Command_Return )
                     {
-                        cmd.resultInfoWavText += biblioName;
+                        // 语音返回  书名
+                        cmd.resultInfoWavText = biblioName;
                         cmd.resultInfo += "<br/>" + biblioName; //用+=是因为前面有了 还书成功
                         if (patron != null)
                             cmd.resultInfo += patron.name;
@@ -511,7 +517,6 @@ namespace dp2weixin.service
                     if (String.IsNullOrEmpty(cmd.errorInfo) == false 
                         && cmd.errorInfo !=ChargeCommand.C_ReturnSucces_FromApi)
                     {
-                        cmd.resultInfoWavText += cmd.errorInfo;
                         cmd.resultInfo += "<br/>"+cmd.errorInfo;
                     }
                 }

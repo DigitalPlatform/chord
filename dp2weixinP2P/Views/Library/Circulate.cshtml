@@ -18,6 +18,7 @@
 @section Scripts {
     <script>
 
+        // 进入到设置界面
         function setting() {
             gotoUrl("/Patron/Setting");
             //alert("setting");
@@ -85,47 +86,45 @@
         }
 
         //==全局变量====
-        var C_resultType_load_S = "0-1"; //加载读者成功
-        var C_resultType_load_E = "0-0";
-        var C_resultType_borrow_S = "1-1";//借书成功
-        var C_resultType_borrow_E = "1-0";
-        var C_resultType_return_S = "2-1";//还书成功
-        var C_resultType_return_E = "2-0";
-        var C_resultType_search_S = "3-1";//查书成功
-        var C_resultType_search_E = "3-0";
-
-        var C_wavType_book = "book";
-        var C_wavType_loadPatronSuc = "loadPatron";
         var C_wavType_patron = "patron";
+        var C_wavType_book = "book";
+        var C_wavType_loadPatron = "loadPatron";
         var C_wavType_success = "success";
         var C_wavType_error = "error";
-        var C_wavType_success2book = "success2book";
+        //var C_wavType_success2book = "success2book";
 
-        function play(text) {
-            //var myUrl = getRootPath() + "/UI/Speak?text=" + encodeURIComponent(text);
-            ////alert(myUrl);
-            //$("#wav").html("<embed src='" + myUrl + "' autostart='true' hidden='true' loop='0' />");
-
+        function playStream(text) {
             var myUrl = getRootPath() + "/UI/Speak?text=" + encodeURIComponent(text);
-            // $("#myWav").attr("src", myUrl);
+            var audio = document.getElementById("wavAudio");
+            audio.setAttribute('src', myUrl);
+            audio.play();
+        }
 
+        function playFile(audioType, wavType) {
+            var myUrl = getRootPath() + "/audio/" + audioType + "/" + wavType + ".wav";//+ "/UI/Speak?text=" + encodeURIComponent(text);
             var audio = document.getElementById("wavAudio");
             audio.setAttribute('src', myUrl);
             audio.play();
         }
 
         // 直接播放wav文件
-        function playWav(wavType) {
+        function playWav(wavType,wavText) {
 
-            //alert("play wav");
-            var myUrl = getRootPath() + "/audio/" + wavType + ".wav";//+ "/UI/Speak?text=" + encodeURIComponent(text);
-
-
-            var audio = document.getElementById("wavAudio");
-            audio.setAttribute('src', myUrl);
-            audio.play();
+            var audioType = getAudioType();
+            if (audioType == 1 || audioType == 2) {
+                playFile(audioType, wavType);
+            }
+            else if (audioType == 3 || audioType == 4) {
+                // 有文字先插文字
+                if (wavText != null && wavText != "" && isIpad==false) {
+                    playStream(wavText);
+                }
+                else {
+                    audioType = audioType - 2;
+                    playFile(audioType, wavType);
+                }
+            }
         }
-
 
 
         // 操作类型常量字符串
@@ -159,7 +158,22 @@
         //}
         ////====
 
+        function playForIpad() {
+            wx.config({
+                // 配置信息, 即使不正确也能使用 wx.ready
+                debug: false,
+                appId: '',
+                timestamp: 1,
+                nonceStr: '',
+                signature: '',
+                jsApiList: []
+            });
+            wx.ready(function () {
 
+                playWav(C_wavType_patron,"");
+
+            });
+        }
 
 
 
@@ -167,12 +181,11 @@
         var isIpad = false;
         $(document).ready(function () {
 
-
             ////是否为ipad
             var u = navigator.userAgent, app = navigator.appVersion;
             if (u.indexOf('iPad') > -1) {
                 isIpad = true;
-                //alert("ipad");
+                playForIpad();
             }
             //初始化
             init();
@@ -181,6 +194,13 @@
 
             // 得到全部命令
             getAllCmd();
+
+            // 发现ipad没有把输入焦点调到textbox
+            if (isIpad == true) {
+                document.getElementById('mybarcode').focus();
+                document.getElementById('mybarcode').select();
+            }
+            
         })
 
         // 初始化，回主页
@@ -254,12 +274,12 @@
                 wavType = C_wavType_book;
             }
             // 下一步界面
-            nextStep("", false, wavType);
+            nextStep("", false, wavType,"");
         }
 
 
         // 下一步信息
-        function nextStep(resultInfo, again, wavType) {
+        function nextStep(resultInfo, again, wavType,wavText) {
             if (resultInfo != "=") //=号，表示不变，用于重新输入条码
                 $("#resultInfo").html(resultInfo);
 
@@ -271,7 +291,7 @@
             //alert(wavText);
             // 播放声音
             //play(wavText);
-            playWav(wavType)
+            playWav(wavType,wavText)
         }
 
 
@@ -340,8 +360,7 @@
             var barcode = $("#mybarcode").val();
             //alert(barcode);
             if (barcode == null || barcode == "") {
-                alert("尚未输入条码");
-                //nextStep("=", true, "请重新输入");
+                warnInfo1("尚未输入条码,请重新输入");
                 return;
             }
             // 设到条码变量上，以便后面使用
@@ -473,7 +492,7 @@
                 $("#resultInfo").html(text);
             }
 
-            playWav(C_wavType_error);
+            playWav(C_wavType_error,"");
             ctrlBarcodeInput(false);
         }
 
@@ -628,10 +647,10 @@
             //else if (cmdType = C_ope_return)
             //    wavText = "还书成功";
 
-            var wavType = C_wavType_success2book;
+            var wavType = C_wavType_success;
 
 
-            nextStep(resultInfo, false, wavType);
+            nextStep(resultInfo, false, wavType,"");
         }
 
 
@@ -730,15 +749,15 @@
                     wavType = C_wavType_error;
                 else {
                     if (cmdType == "loadPatron")
-                        wavType = C_wavType_loadPatronSuc;//C_wavType_book;
+                        wavType = C_wavType_loadPatron;//C_wavType_book;
                     else
-                        wavType = C_wavType_success2book
+                        wavType = C_wavType_success;
                 }
 
                 //alert(wavText);
 
                 // 下一步
-                nextStep(resultInfo, false, wavType);
+                nextStep(resultInfo, false, wavType, wavText);
 
                 // 控件可用
                 ctrlBarcodeInput(false);
@@ -903,6 +922,16 @@
         function setInputType(value) {
             return $("#_charge_inputType").val(value);
         }
+
+        // 获取输入方式
+        function getAudioType() {
+            var type = $("#audioType").text();
+            if (type == null || type == "")
+                type = 1;
+
+            //alert(type);
+            return type;
+        }
     </script>
 }
 
@@ -1063,6 +1092,7 @@
 <span id="userName" style="display:none">@ViewBag.userName</span>
 <span id="isPatron" style="display:none">@ViewBag.isPatron</span>
 <span id="verifyBarcode" style="display:none">@ViewBag.verifyBarcode</span>
+<span id="audioType" style="display:none">@ViewBag.audioType</span>
 <span id="userId" style="display:none">@ViewBag.userId</span>
 
 <input id="_charge_operation" type="hidden" value="@ViewBag.operation">
@@ -1091,57 +1121,59 @@ else
     else
     {
 
-        <div id='all' style="width:100%;height:100%;margin:0px;padding:0px">
-            <div id="top" class="top-div">
-                <div id="btnBorrow" class="top-btn active-btn" onclick="start(this,'borrow')">借书</div>
-                <div id="btnReturn" class="top-btn" onclick="start(this,'return')">还书</div>
-                <div id="btnSearch" class="top-btn" onclick="start(this,'searchItem')">查书</div>
-            </div>
-
-            <div id="flow" class="flow-div">
-                <div id="resultInfo" class="result-div">
-                    <span>test</span>
-                </div>
-                <div id="hint" class="hint-div">
-                    请扫入读者证条码
-                </div>
-                <div class="barcode-div">
-                    <table style="width:100%">
-                        <tr>
-                            <td style="width:100%">
-                                <input id='mybarcode'
-                                       style="border-radius: 5px;height:70px;color: black;font-size: 30pt;ime-mode: inactive;margin:0px;padding:0px;"
-                                       type='text' onkeydown='enter(event)' />
-
-                            </td>
-                            <td>
-                                <div class="mui-btn "
-                                     style="margin-left:5px; border-radius: 5px;height:70px;  font-size:18pt;text-align:center;vertical-align:middle;padding:0px;line-height:70px;padding-left:10px;padding-right:10px"
-                                     onclick="ok()">确认</div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                <div id="cmdContainer" class="history-div" style="display:none">
-                    <h4><span style="color:#cccccc">操作历史</span></h4>
-                    <div id="cmds"></div>
-
-                </div>
-
-
-            </div>
-
-            <div class="version-div">
-                <span>版本：@ViewBag.version</span>
-                <div id="ime" class="mui-btn " onclick="convertIme()">支持中文输入</div>
-            </div>
-
-            <div>
-                <audio id="wavAudio">
-                    <source id="myWav" src="" type="audio/wav">
-                </audio>
-            </div>
+    <div id='all' style="width:100%;height:100%;margin:0px;padding:0px">
+        <div id="top" class="top-div">
+            <div id="btnBorrow" class="top-btn active-btn" onclick="start(this,'borrow')">借书</div>
+            <div id="btnReturn" class="top-btn" onclick="start(this,'return')">还书</div>
+            <div id="btnSearch" class="top-btn" onclick="start(this,'searchItem')">查书</div>
         </div>
-    }
-}
+
+        <div id="flow" class="flow-div">
+            <div id="resultInfo" class="result-div">
+                <span>test</span>
+            </div>
+            <div id="hint" class="hint-div">
+                请扫入读者证条码
+            </div>
+            <div class="barcode-div">
+                <table style="width:100%">
+                    <tr>
+                        <td style="width:100%">
+                            <input id='mybarcode'
+                                   style="border-radius: 5px;height:70px;color: black;font-size: 30pt;ime-mode: inactive;margin:0px;padding:0px;"
+                                   type='text' onkeydown='enter(event)' />
+
+                        </td>
+                        <td>
+                            <div class="mui-btn "
+                                 style="margin-left:5px; border-radius: 5px;height:70px;  font-size:18pt;text-align:center;vertical-align:middle;padding:0px;line-height:70px;padding-left:10px;padding-right:10px"
+                                 onclick="ok()">确认</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="cmdContainer" class="history-div" style="display:none">
+                <h4><span style="color:#cccccc">操作历史</span></h4>
+                <div id="cmds"></div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <div class="version-div">
+            <span>版本：@ViewBag.version</span>
+            <div id="ime" class="mui-btn " onclick="convertIme()">支持中文输入</div>
+        </div>
+
+        <div>
+            <audio id="wavAudio">
+                <source id="myWav" src="" type="audio/wav">
+            </audio>
+        </div>
+    </div>
+        }
+        }

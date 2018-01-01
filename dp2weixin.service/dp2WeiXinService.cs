@@ -4464,6 +4464,7 @@ public string ErrorCode { get; set; }
 
                 // 2017-4-19新增借不时是否校验条码
                 userItem.verifyBarcode = 0;
+                userItem.audioType = 1; // 2018/1/2
 
                 // 2016-8-26 新增
                 userItem.state = 1;
@@ -10019,6 +10020,7 @@ tempRemark);
 
             // 2017-4-19
             userItem.verifyBarcode = 0;
+            userItem.audioType = 1; // 2018/1/2
 
             return userItem;
         }
@@ -10477,6 +10479,7 @@ tempRemark);
 
                     // 2017-4-19
                     userItem.verifyBarcode = 0;
+                    userItem.audioType = 1; // 2018/1/2
 
                     WxUserDatabase.Current.Update(userItem);
                 }

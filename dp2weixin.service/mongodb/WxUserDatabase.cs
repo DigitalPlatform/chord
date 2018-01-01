@@ -468,7 +468,8 @@ namespace dp2weixin.service
                 .Set("tracing", item.tracing)
                 .Set("location", item.location)
                 .Set("selLocation", item.selLocation)
-               .Set("verifyBarcode", item.verifyBarcode) //
+               .Set("verifyBarcode", item.verifyBarcode)
+               .Set("audioType", item.audioType) //2018/1/2
                 ;
 
             UpdateResult ret = this.wxUserCollection.UpdateOne(filter, update);
@@ -572,7 +573,10 @@ namespace dp2weixin.service
         public string selLocation { get; set; }
 
        // 借还时是否校验条码
-        public int verifyBarcode { get; set; } 
+        public int verifyBarcode { get; set; }
+
+        // 借还时语音方案
+        public int audioType { get; set; }
     }
 
 

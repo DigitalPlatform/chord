@@ -301,6 +301,12 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.verifyBarcode = "checked";
             }
 
+            ViewBag.audioType = 1;
+            if (user != null && user.audioType >0)
+            {
+                ViewBag.audioType = user.audioType;
+            }
+
             return View();
 
         ERROR1:

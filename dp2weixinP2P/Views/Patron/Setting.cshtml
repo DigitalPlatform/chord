@@ -1,5 +1,14 @@
 ﻿@section Scripts {
     <script>
+        $(document).ready(function () {
+
+            // 设置语音方案
+            var type = $("#_audioType").text();
+            //alert(type);
+            $("#audioType").val(type);
+        })
+
+
 
         // 绑定账号
         function save() {
@@ -59,7 +68,7 @@
                     var oldName = $("#_libName").text();
                     var libName = $("#selLib  option:selected").text();
 
-                    // 更新消息标题 
+                    // 更新消息标题
                     var tracingTitle = "监控本馆消息";
                     if (libName == "数字平台")
                     {
@@ -111,7 +120,7 @@
                 {
                     weixinId: weixinId,
                     libId: libId,
-                    libraryCode:libraryCode,
+                    libraryCode: libraryCode,
                     showPhoto: showPhoto,
                     showCover: showCover
                 }
@@ -208,8 +217,7 @@
             });
 
             var text = "";
-            if (bchecked == false)
-            {
+            if (bchecked == false) {
                 text = " -mask";
             }
 
@@ -283,13 +291,13 @@
             $(".library:checked").each(function () {
 
                 var libcode = $(this).val();
-                xml += "<library code='"+libcode+"'>";
+                xml += "<library code='" + libcode + "'>";
 
-                var name = "#ckbLocation-"+libcode+":checked";
+                var name = "#ckbLocation-" + libcode + ":checked";
                 $(name).each(function () {
 
                     var loc = $(this).val();
-                    xml+= "<item>"+loc+"</item>";
+                    xml += "<item>" + loc + "</item>";
 
                 });
 
@@ -298,7 +306,7 @@
             });
 
             if (xml != "")
-                xml = "<root>"+xml+"</root>";
+                xml = "<root>" + xml + "</root>";
 
 
             return xml
@@ -339,7 +347,7 @@
 
             //window.setTimeout("hideMaskLayer()", 5000);
             var url = "/api/wxuser?userId=" + userId
-            + "&locations=" + encodeURIComponent(locations)
+                + "&locations=" + encodeURIComponent(locations)
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -375,7 +383,7 @@
             // 工作人员 在微信用户表的id
             var userId = $("#userId").text();
             if (userId == "") {
-                alert("userId。");
+                alert("userId不能为空");
                 return;
             }
             var verifyBarcode = getVerifyBarcode();
@@ -387,7 +395,7 @@
 
             //window.setTimeout("hideMaskLayer()", 5000);
             var url = "/api/wxuser?userId=" + userId
-            + "&verifyBarcode=" + encodeURIComponent(verifyBarcode)
+                + "&verifyBarcode=" + encodeURIComponent(verifyBarcode)
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -409,8 +417,50 @@
 
         }
 
-        function gotoSelectLib()
-        {
+        function saveAudioType() {
+            // 工作人员 在微信用户表的id
+            var userId = $("#userId").text();
+            if (userId == "") {
+                alert("userId不能为空");
+                return;
+            }
+            var audioType = getAudioType();
+            //alert("[" + getAudioType + "]");
+
+            //显示等待图层
+            showMaskLayer();
+
+            //window.setTimeout("hideMaskLayer()", 5000);
+            var url = "/api/wxuser?userId=" + userId
+                + "&audioType=" + encodeURIComponent(audioType)
+            sendAjaxRequest(url, "POST",
+                function (result) {
+
+                    // 关闭等待层
+                    //layer.close(index);
+                    hideMaskLayer();
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }
+
+                },
+                function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    hideMaskLayer();
+                    alert(errorThrown);
+                });
+        }
+
+        // 获取输入方式
+        function getAudioType() {
+            var type = $("#audioType").val();
+            //alert(type);
+            return type;
+        }
+
+        function gotoSelectLib() {
             var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent("/Patron/Setting");
             gotoUrl(url);
         }
@@ -428,6 +478,8 @@
 <span id="workerId" style="display:none">@ViewBag.workerId</span>
 <span id="userId" style="display:none">@ViewBag.userId</span>
 
+<span id="_audioType" style="display:none">@ViewBag.audioType</span>
+
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
     <div class="mui-content-padded">
@@ -439,27 +491,27 @@
 else
 {
     <!--
-    <div class="mui-input-group" style="background-color:white">
-        <div class="mui-input-row" style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
-            <label style="color:#cccccc;">图书馆</label>
-            @Html.Raw(ViewBag.LibHtml)
+        <div class="mui-input-group" style="background-color:white">
+            <div class="mui-input-row" style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
+                <label style="color:#cccccc;">图书馆</label>
+                @Html.Raw(ViewBag.LibHtml)
+            </div>
         </div>
-    </div>
--->
+    -->
 
-        <table style="width:100%">
-            <tr>
-                <td style="width:100%">
-                    <div class="mui-input-group" style="background-color:white">
-                        <div class="mui-input-row" >
-                            <label style="color:#cccccc;">我的图书馆</label>
-                            <input type="text" class="mui-input mui-input-clear"  id="txtLib" readonly value="@ViewBag.PureLibName">
-                        </div>
+    <table style="width:100%">
+        <tr>
+            <td style="width:100%">
+                <div class="mui-input-group" style="background-color:white">
+                    <div class="mui-input-row">
+                        <label style="color:#cccccc;">我的图书馆</label>
+                        <input type="text" class="mui-input mui-input-clear" id="txtLib" readonly value="@ViewBag.PureLibName">
                     </div>
-                </td>
-                <td ><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
-            </tr>
-        </table>
+                </div>
+            </td>
+            <td><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
+        </tr>
+    </table>
 
 
     <div class="mui-card" style="margin-top:10px">
@@ -472,7 +524,7 @@ else
             <input id='ckbCover' onchange="save()" type='checkbox' @ViewBag.coverChecked />
         </div>
     </div>
-    
+
     {
         string style = "";
         string disabledstr = "";
@@ -494,7 +546,7 @@ else
     }
 
     <div class="mui-card" style="margin-top:10px">
-        <div class="mui-content-padded" ><span style="@ViewBag.subLibGray">流通操作限定范围</span><span style="color:#cccccc">（工作人员 或 有流通权限的读者 有效） @ViewBag.accountInfo</span> </div>
+        <div class="mui-content-padded"><span style="@ViewBag.subLibGray">流通操作限定范围</span><span style="color:#cccccc">（工作人员 或 有流通权限的读者 有效） @ViewBag.accountInfo</span> </div>
         @if (ViewBag.libList != null)
         {
             foreach (dp2weixin.service.SubLib sublib in ViewBag.libList)
@@ -513,20 +565,35 @@ else
                     </div>
                 </div>
             }
-            
+
             <div class='mui-input-row mui-checkbox mui-left' style="background-color:#eeeeee">
                 <label>校验输入的条码号</label>
-                <input id='ckbVerifyBarcode' type='checkbox' @ViewBag.verifyBarcode onchange='saveVerifyBarcode()'  />
+                <input id='ckbVerifyBarcode' type='checkbox' @ViewBag.verifyBarcode onchange='saveVerifyBarcode()' />
+            </div>
+
+            <div style="background-color:white;margin-left:10px;margin-right:10px;margin-top:20px;">
+                <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
+                    <label style="color:#999999">声音方案</label>
+                    <select id="audioType" style="background-color:transparent" onchange='saveAudioType()'>
+                        <option value="1" selected>简单音效</option>
+                        <option value="2">提示语音</option>
+                        <option value="3">简单音效+具体信息语音</option>
+                        <option value="4">提示语音+具体信息语音</option>
+                    </select>
+                </div>
             </div>
         }
-        
+
+
+
+
 
 
     </div>
 
-            <!--
-            <div class="mui-content-padded">
-                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>
-            </div>
-                -->
+    <!--
+    <div class="mui-content-padded">
+        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>
+    </div>
+        -->
 }
