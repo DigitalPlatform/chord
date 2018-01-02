@@ -1,4 +1,90 @@
-﻿//===============
+﻿        function enter1(event) {
+            wx.config({
+                // 配置信息, 即使不正确也能使用 wx.ready
+                debug: false,
+                appId: '',
+                timestamp: 1,
+                nonceStr: '',
+                signature: '',
+                jsApiList: []
+            });
+            wx.ready(function () {
+                if (event.keyCode == "13") {
+                    //alert(code);
+
+                    // ipad 特殊处理下
+                    if (isIpad == true) {
+                        code = code.trim();
+                        $("#mybarcode").val(code);
+                        document.getElementById('mybarcode').focus();
+                        document.getElementById('mybarcode').select();
+                        code = "";
+                    }
+                    ok();
+                }
+                else {
+                    // ipad 特殊处理下
+                    if (isIpad == true) {
+                        code += String.fromCharCode(event.keyCode).trim();
+                    }
+                }
+            });
+        }
+
+//=====
+        // 隐藏主页
+        function hideMain() {
+            if ($("#main").css("display") == "none")
+                return;
+            $("#main").css("display", "none");
+        }
+
+        // 显示主页
+        function showMain() {
+
+            if ($("#main").css("display") == "block")
+                return;
+            $("#main").css("display", "block");
+        }
+
+        // 隐藏流程页面
+        function showFlow(ope) {
+
+            if ($("#flow").css("display") == "block")
+                return;
+            $("#flow").css("display", "block");
+
+
+            // 根据操作类型，设置条码类型
+            if (ope == C_ope_borrow) {
+                $("#all").removeClass("returnDetail");
+                $("#all").removeClass("searchDetail");
+                $("#all").addClass("borrowDetail");
+
+            }
+            else if (ope == C_ope_return) {
+                $("#all").removeClass("borrowDetail");
+                $("#all").removeClass("searchDetail");
+                $("#all").addClass("returnDetail");
+            }
+            else if (ope == C_ope_searchItem) {
+                $("#all").removeClass("borrowDetail");
+                $("#all").removeClass("returnDetail");
+                $("#all").addClass("searchDetail");
+            }
+
+
+        }
+
+        // 显示流程页面
+        function hideFlow() {
+
+            if ($("#flow").css("display") == "none")
+                return;
+            $("#flow").css("display", "none");
+        }
+
+//===============
             
 
 ====

@@ -269,6 +269,7 @@ namespace dp2weixin.service
                 {
                     cmdError = "未命中";
                     cmd.resultInfo = cmdError;
+                    cmd.simpleResultInfo = cmdError;
                     cmdRet = -1;
                 }
                 //dp2WeiXinService.Instance.WriteErrorLog1("AddCmd-6");
@@ -289,8 +290,31 @@ namespace dp2weixin.service
                     cmd.resultInfo = summary
                         + this.getItemHtml(item);
 
+                    string shortSummary = dp2WeiXinService.Instance.GetShortSummary(summary);
+
+                    cmd.simpleResultInfo = shortSummary
+                        + "<br>册条码：" + item.barcode + "&nbsp;&nbsp;馆藏地：" + item.location
+                        + "<br>索取号：" + item.accessNo + "&nbsp;&nbsp;价格："+item.price;
+
+                    // 成员册 不显示在借情况
+                    if (String.IsNullOrEmpty(item.borrower) ==false)
+                    {
+                        cmd.simpleResultInfo += "<br>借阅者：" + item.borrower;
+                    }
+                    if (String.IsNullOrEmpty(item.state) == false)
+                    {
+                        if (String.IsNullOrEmpty(item.borrowInfo) == false)
+                            cmd.simpleResultInfo += "&nbsp;&nbsp;";
+                        else
+                            cmd.simpleResultInfo += "<br/>";
+                        cmd.simpleResultInfo += "状态：" + item.state;
+                    }
+
+
+
+
                     // 语音返回 书名
-                    cmd.resultInfoWavText = dp2WeiXinService.Instance.GetShortSummary(summary);
+                    cmd.resultInfoWavText =shortSummary;
                     cmdRet = 0;
                 }
 
@@ -321,7 +345,7 @@ namespace dp2weixin.service
                 if (cmdRet == -1 || cmdRet == 0)  //未找到认为出错
                 {
                     //dp2WeiXinService.Instance.WriteErrorLog1("走进-加载读者-2");
-                    cmdError += " 传入的条码为["+cmd.patronBarcode+"]";
+                    cmdError += "，传入的条码为["+cmd.patronBarcode+"]";
                     cmdRet = -1;
                 }
 
@@ -482,9 +506,9 @@ namespace dp2weixin.service
                 cmd.patronBarcode = patron.barcode;
             }
 
-            string wavText = "";
-            cmd.resultInfo = cmd.GetResultInfo(out wavText);
-            //cmd.resultInfoWavText = wavText;
+            string simpleInfo = "";
+            cmd.resultInfo = cmd.GetResultInfo(out simpleInfo);
+            cmd.simpleResultInfo = simpleInfo; // 简单结果信息
             if (cmd.type == ChargeCommand.C_Command_LoadPatron && patron != null)
             {
                 // 语音返回  读者姓名
@@ -493,6 +517,8 @@ namespace dp2weixin.service
                 cmd.resultInfo = "<span style='font-size:20pt'>" + patron.name + "</span>";
                 if (String.IsNullOrEmpty(patron.department) == false)
                     cmd.resultInfo += "(" + patron.department + ")";
+
+                cmd.simpleResultInfo = cmd.resultInfo;
             }
             else
             {
@@ -502,15 +528,25 @@ namespace dp2weixin.service
                     {
                         // 语音返回  书名
                         cmd.resultInfoWavText = biblioName;
+                        // 简单结果信息
+                        cmd.simpleResultInfo = biblioName;
+
                         cmd.resultInfo += "<br/>"+ biblioName; //用+=是因为前面有了 借书成功
                     }
                     else if (cmd.type == ChargeCommand.C_Command_Return )
                     {
                         // 语音返回  书名
                         cmd.resultInfoWavText = biblioName;
+
+                        // 简单结果信息
+                        cmd.simpleResultInfo = biblioName;
+
                         cmd.resultInfo += "<br/>" + biblioName; //用+=是因为前面有了 还书成功
                         if (patron != null)
-                            cmd.resultInfo += patron.name;
+                        {
+                            cmd.resultInfo += "<br/>借阅者：" + patron.name;
+                            cmd.simpleResultInfo += "<br/>借阅者：" + patron.name;
+                        }
                     }
 
                      //有提示信息
@@ -518,6 +554,8 @@ namespace dp2weixin.service
                         && cmd.errorInfo !=ChargeCommand.C_ReturnSucces_FromApi)
                     {
                         cmd.resultInfo += "<br/>"+cmd.errorInfo;
+                        cmd.simpleResultInfo += "<br/>" + cmd.errorInfo;
+
                     }
                 }
             }

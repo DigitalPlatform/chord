@@ -5,10 +5,8 @@
 
 @section header {
 
-<span class="mui-icon mui-pull-left" style="font-size:12pt;">
-    <span style="color:#cccccc">帐户&nbsp;</span>@ViewBag.userName
-    <span style="color:#cccccc">&nbsp;关注馆藏&nbsp;</span>@ViewBag.Location
-    <span style="color:#cccccc">&nbsp;</span>
+<span class="mui-icon mui-pull-left" style="font-size:12pt;padding-left:0px">
+    &nbsp;@ViewBag.userName&nbsp;
     <a href='javascript:void(0)' onclick='setting()' ><span style="font-size:12pt" id="_libName">设置</span></a>
 </span>
 
@@ -141,23 +139,10 @@
         var C_next_receiveBarcode = "receiveBarcode";
         var C_next_addCmd = "addCmd";//2016-11-16 用于借书时，应扫书，却扫了读者，提示完，要进行加载读者事情。
 
-
+        // 第几本
         var _count = 1;
 
-        ////======
-        ////自感应是否是活动状态，如果5稍没返回，回到主页
-        //var myTime = null;//setTimeout("Timeout()", 2000);  
-        //function resetTime() {
-        //    //alert("reset");
-        //    clearTimeout(myTime);
-        //    myTime = setTimeout('Timeout()', 1000 * 50); //如果1分钟没反应，回到主页
-        //}
-        //function Timeout() {
-        //    //alert("已超时, 自动回主页!");  
-        //    init();
-        //}
-        ////====
-
+        // 进入页面时，ipad没有声音，所以专门为ipad再播放一次
         function playForIpad() {
             wx.config({
                 // 配置信息, 即使不正确也能使用 wx.ready
@@ -169,16 +154,13 @@
                 jsApiList: []
             });
             wx.ready(function () {
-
                 playWav(C_wavType_patron,"");
-
             });
         }
 
-
-
-        // 程序启动
+        // 是否为ipad
         var isIpad = false;
+        // 程序启动
         $(document).ready(function () {
 
             ////是否为ipad
@@ -190,6 +172,7 @@
             //初始化
             init();
 
+            // 进入借书环境
             start($("#btnBorrow"), C_ope_borrow);
 
             // 得到全部命令
@@ -200,23 +183,10 @@
                 document.getElementById('mybarcode').focus();
                 document.getElementById('mybarcode').select();
             }
-            
         })
 
-        // 初始化，回主页
+        // 初始化
         function init() {
-            // 停止声音
-            //stopAll();
-
-            // 取消感应活动态
-            document.documentElement.onkeydown = null;
-            document.documentElement.onclick = null;
-
-            // 显示主页
-            //showMain();
-
-            // 隐藏流程页面
-            //hideFlow();
 
             // 清空操作类型
             setOpe("");
@@ -224,31 +194,22 @@
             // 清空条码
             setBarcode("");
             $("#mybarcode").val("");
+            code = "";
 
             // 清空条码类型
             setInputType(-1);
 
             // 图书数量设回为1
             _count = 1;
-
-
         }
 
         // 主页界的开始按钮
         function start(btn, ope) {
 
-            // 感应活动态
-            //document.documentElement.onkeydown = resetTime;
-            //document.documentElement.onclick = resetTime;
-
             $("#btnBorrow").removeClass("active-btn");
             $("#btnReturn").removeClass("active-btn");
             $("#btnSearch").removeClass("active-btn");
             $(btn).addClass("active-btn");
-
-
-            // 显示流程页面
-            showFlow(ope);
 
             // 设置操作类型
             setOpe(ope);
@@ -260,21 +221,24 @@
                 setInputType(C_inputType_item);
 
 
-
-            //===
-            // 下一步，根据操作类型，提示输入
+            // 下一步，根据操作类型，播放的语音文件
             var wavType = "";
+            var resultInfo = "";
             if (ope == C_ope_borrow) {
                 wavType = C_wavType_patron;
+                resultInfo = "欢迎您借书";
             }
             else if (ope == C_ope_return) {
                 wavType = C_wavType_book;
+                resultInfo = "欢迎您还书";
             }
             else if (ope == C_ope_searchItem) {
                 wavType = C_wavType_book;
+                resultInfo = "欢迎您查书";
             }
+            resultInfo = "<div style='padding-top:30px;width:100%;text-align:center;font-size:18pt;'>" + resultInfo + "</div>";
             // 下一步界面
-            nextStep("", false, wavType,"");
+            nextStep(resultInfo, false, wavType, "");
         }
 
 
@@ -287,61 +251,28 @@
             $("#hint").html(inputHint);
             $("#mybarcode").focus();
             $("#mybarcode").select();//.val("");
-
-            //alert(wavText);
+ 
             // 播放声音
-            //play(wavText);
+            //alert(wavText);
             playWav(wavType,wavText)
         }
 
 
-
-        function enter1(event) {
-            wx.config({
-                // 配置信息, 即使不正确也能使用 wx.ready
-                debug: false,
-                appId: '',
-                timestamp: 1,
-                nonceStr: '',
-                signature: '',
-                jsApiList: []
-            });
-            wx.ready(function () {
-                if (event.keyCode == "13") {
-                    //alert(code);
-
-                    // ipad 特殊处理下
-                    if (isIpad == true) {
-                        code = code.trim();
-                        $("#mybarcode").val(code);
-                        document.getElementById('mybarcode').focus();
-                        document.getElementById('mybarcode').select();
-                        code = "";
-                    }
-                    ok();
-                }
-                else {
-                    // ipad 特殊处理下
-                    if (isIpad == true) {
-                        code += String.fromCharCode(event.keyCode).trim();
-                    }
-                }
-            });
-        }
-
         var code = "";
+        // TextBox回车
         function enter(event) {
             if (event.keyCode == "13") {
-                //alert(code);
-
                 // ipad 特殊处理下
                 if (isIpad == true) {
+                    //alert(code);
                     code = code.trim();
                     $("#mybarcode").val(code);
                     document.getElementById('mybarcode').focus();
                     document.getElementById('mybarcode').select();
                     code = "";
                 }
+
+                // 调确认函数
                 ok();
             }
             else {
@@ -366,17 +297,18 @@
             // 设到条码变量上，以便后面使用
             setBarcode(barcode);
 
-            ctrlBarcodeInput(true);
+            // 控件发灰不可用
+            disableBarcodeInput(true);
 
             // 执行操作
-            addCmdTest();
+            addCmd();
         }
 
-        function ctrlBarcodeInput(disabled) {
+        // 设置TextBox是否可用
+        function disableBarcodeInput(disabled) {
             if (disabled == true) {
                 $("#mybarcode").prop("disabled", true);
                 $("#mybarcode").css("background-color", "gray");  //设置p元素的样式颜色为红色
-
             }
             else {
                 $("#mybarcode").prop("disabled", false);
@@ -384,19 +316,16 @@
                 $("#mybarcode").focus();
                 $("#mybarcode").select();
             }
-
         }
 
+        // 控件键盘输入法
         function convertIme() {
-
             var current = $("#ime").html();
             //alert(current);
 
             if (current == "支持中文输入") {
                 $("#mybarcode").css("ime-mode", "active");
                 $("#ime").html("仅英文输入");
-
-
             }
             else {
                 $("#mybarcode").css("ime-mode", "inactive");
@@ -407,7 +336,7 @@
         }
 
         // 调接口执行操作
-        function addCmdTest() {
+        function addCmd() {
             // 图书馆
             var libId = $("#libId").text(); //getLibId();
             if (libId == "" || libId == null) {
@@ -469,7 +398,7 @@
                 return;
             }
 
-
+            // 调校验条码
             verifyBarcode1(ope,
                 inputType,
                 weixinId,
@@ -484,6 +413,7 @@
 
         }
 
+        // 出错提示
         function warnInfo1(text) {
             //alert(text);
 
@@ -493,9 +423,10 @@
             }
 
             playWav(C_wavType_error,"");
-            ctrlBarcodeInput(false);
+            disableBarcodeInput(false);
         }
 
+        // 校验条码
         function verifyBarcode1(ope,
             inputType,
             weixinId,
@@ -625,7 +556,6 @@
             //alert("结束");
 
             return;
-
         }
 
         // 流程测试
@@ -639,23 +569,11 @@
 
             // 下一步
             var resultInfo = "cmdType=[" + cmdType + "] patron=[" + patron + "] item=[" + item + "]";
-            //var wavText = "";
-            //if (cmdType == "loadPatron")
-            //    wavText = "加载读者成功";
-            //else if (cmdType == C_ope_borrow)
-            //    wavText = "借书成功";
-            //else if (cmdType = C_ope_return)
-            //    wavText = "还书成功";
-
-            var wavType = C_wavType_success;
-
-
+            var wavType = C_wavType_success; 
             nextStep(resultInfo, false, wavType,"");
         }
 
-
-
-
+        // 实现执行命令
         function addCmd2(weixinId,
             libId,
             libraryCode,
@@ -726,13 +644,18 @@
                 }
                 else {
                     img = "<img src='../img/right1.png' style='width:100px;height:100px'  />";
+
+                    // 有警告时的，背景成黄色
+                    if (cmd.state == 1 && cmd.type != "loadPatron") {
+                        infoStyle = ";background-color:yellow;color:black";
+                    }
                 }
 
                 // 结果信息
                 var resultInfo = "<table>"
                     + "<tr>"
                     + "<td>" + img + "</td>"
-                    + "<td style='word-wrap:break-word;word-break:break-all;white-space:pre-wrap;" + infoStyle + "'>" + cmd.resultInfo + "</td>"
+                    + "<td style='word-wrap:break-word;word-break:break-all;white-space:pre-wrap;" + infoStyle + "'>" + cmd.simpleResultInfo + "</td>"
                     + "</tr>"
                     + "</table>";
 
@@ -740,13 +663,12 @@
                 if (cmdType != "loadPatron" && cmd.state != -1)
                     _count++;
 
-                // 结果语音
+                // 语音提示
                 var wavText = cmd.resultInfoWavText;
                 var wavType = "";
-                // 测试语音
-
-                if (cmd.state == -1)
+                if (cmd.state == -1) {
                     wavType = C_wavType_error;
+                }
                 else {
                     if (cmdType == "loadPatron")
                         wavType = C_wavType_loadPatron;//C_wavType_book;
@@ -760,7 +682,7 @@
                 nextStep(resultInfo, false, wavType, wavText);
 
                 // 控件可用
-                ctrlBarcodeInput(false);
+                disableBarcodeInput(false);
 
                 $("#mybarcode").focus();
 
@@ -824,57 +746,6 @@
             return desc;
         }
 
-        // 隐藏主页
-        function hideMain() {
-            if ($("#main").css("display") == "none")
-                return;
-            $("#main").css("display", "none");
-        }
-
-        // 显示主页
-        function showMain() {
-
-            if ($("#main").css("display") == "block")
-                return;
-            $("#main").css("display", "block");
-        }
-
-        // 隐藏流程页面
-        function showFlow(ope) {
-
-            if ($("#flow").css("display") == "block")
-                return;
-            $("#flow").css("display", "block");
-
-
-            // 根据操作类型，设置条码类型
-            if (ope == C_ope_borrow) {
-                $("#all").removeClass("returnDetail");
-                $("#all").removeClass("searchDetail");
-                $("#all").addClass("borrowDetail");
-
-            }
-            else if (ope == C_ope_return) {
-                $("#all").removeClass("borrowDetail");
-                $("#all").removeClass("searchDetail");
-                $("#all").addClass("returnDetail");
-            }
-            else if (ope == C_ope_searchItem) {
-                $("#all").removeClass("borrowDetail");
-                $("#all").removeClass("returnDetail");
-                $("#all").addClass("searchDetail");
-            }
-
-
-        }
-
-        // 显示流程页面
-        function hideFlow() {
-
-            if ($("#flow").css("display") == "none")
-                return;
-            $("#flow").css("display", "none");
-        }
 
         // 得到操作类型
         function getOpe() {
@@ -988,13 +859,14 @@
             margin: 0px;
             color: black;
             border-radius: 5px;
-            text-align: center;
-            font-size: 14pt;
-            height: 100px;
+            /*text-align: center;*/
+            font-size: 12pt;
+            height: 120px;
             background-color: #dddddd;
             display: block;
             width: 100%;
             overflow: auto;
+            padding-top:2px;
         }
 
         .hint-div {
