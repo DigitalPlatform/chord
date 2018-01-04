@@ -30,11 +30,15 @@
             //alert(cmd.cmdHtml);
             cmds.prepend(cmd.cmdHtml); //append(cmdHtml);//
 
+
             var cmdContainer = $("#cmdContainer");
             var display = $(cmdContainer).css("display");
             if (display == "none") {
                 $(cmdContainer).css("display", "block");
             }
+
+            var container = $("#cmdContainer");
+            container.scrollTop(0);
         }
 
         //用于获取所有命令
@@ -845,7 +849,6 @@
             background-color: green;
         }
 
-
         /*流程div*/
         .flow-div {
             margin-top: 10px;
@@ -866,13 +869,19 @@
             display: block;
             width: 100%;
             overflow: auto;
-            padding-top:2px;
+            padding-top: 2px;
+            
         }
+
+
+
+
 
         .hint-div {
             font-size: 18pt;
             /*background-color:gray;*/
             margin-top: 10px;
+            height:40px;
         }
 
 
@@ -884,8 +893,14 @@
         }
 
         .history-div {
-            margin-top: 10px;
-            background-color: #eeeeee;
+            position: fixed;
+            
+            top: 380px;
+            left:5px;
+            right:5px;
+            background-color:#eeeeee;
+            overflow:scroll;
+            height:500px;
         }
 
 
@@ -993,54 +1008,58 @@ else
     else
     {
 
-    <div id='all' style="width:100%;height:100%;margin:0px;padding:0px">
-        <div id="top" class="top-div">
-            <div id="btnBorrow" class="top-btn active-btn" onclick="start(this,'borrow')">借书</div>
-            <div id="btnReturn" class="top-btn" onclick="start(this,'return')">还书</div>
-            <div id="btnSearch" class="top-btn" onclick="start(this,'searchItem')">查书</div>
+    <div id='all' style="width:100%;height:100%;margin:0px;padding:0px;">
+
+        <div style="height:310px;position:fixed">
+            <div id="top" class="top-div">
+                <div id="btnBorrow" class="top-btn active-btn" onclick="start(this,'borrow')">借书</div>
+                <div id="btnReturn" class="top-btn" onclick="start(this,'return')">还书</div>
+                <div id="btnSearch" class="top-btn" onclick="start(this,'searchItem')">查书</div>
+            </div>
+
+            <div id="flow" class="flow-div">
+                <div id="resultInfo" class="result-div">
+                    <span>test</span>
+                </div>
+                <div id="hint" class="hint-div">
+                    请扫入读者证条码
+                </div>
+                <div>
+                    <table style="width:100%">
+                        <tr>
+                            <td style="width:100%">
+                                <input id='mybarcode'
+                                       style="border-radius: 5px;height:70px;color: black;font-size: 30pt;ime-mode: inactive;margin:0px;padding:0px;"
+                                       type='text' onkeydown='enter(event)' />
+
+                            </td>
+                            <td>
+                                <div class="mui-btn "
+                                     style="margin-left:5px; border-radius: 5px;height:70px;  font-size:18pt;text-align:center;vertical-align:middle;padding:0px;line-height:70px;padding-left:10px;padding-right:10px"
+                                     onclick="ok()">确认</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+
+
+
+            </div>
+        </div>
+        <div id="cmdContainer" class="history-div" style="display:none">
+            <h4><span style="color:#cccccc">操作历史</span></h4>
+            <div id="cmds"></div>
+
         </div>
 
-        <div id="flow" class="flow-div">
-            <div id="resultInfo" class="result-div">
-                <span>test</span>
-            </div>
-            <div id="hint" class="hint-div">
-                请扫入读者证条码
-            </div>
-            <div class="barcode-div">
-                <table style="width:100%">
-                    <tr>
-                        <td style="width:100%">
-                            <input id='mybarcode'
-                                   style="border-radius: 5px;height:70px;color: black;font-size: 30pt;ime-mode: inactive;margin:0px;padding:0px;"
-                                   type='text' onkeydown='enter(event)' />
 
-                        </td>
-                        <td>
-                            <div class="mui-btn "
-                                 style="margin-left:5px; border-radius: 5px;height:70px;  font-size:18pt;text-align:center;vertical-align:middle;padding:0px;line-height:70px;padding-left:10px;padding-right:10px"
-                                 onclick="ok()">确认</div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <div id="cmdContainer" class="history-div" style="display:none">
-                <h4><span style="color:#cccccc">操作历史</span></h4>
-                <div id="cmds"></div>
-
-            </div>
-
-
-        </div>
-
-
-
-        <div class="version-div">
-            <span>版本：@ViewBag.version</span>
-            <div id="ime" class="mui-btn " onclick="convertIme()">支持中文输入</div>
-        </div>
-
+        <!--
+    <div  class="version-div" style="height:100%;vertical-align:bottom">
+        <span>版本：@ViewBag.version</span>
+        <div id="ime" class="mui-btn " onclick="convertIme()">支持中文输入</div>
+    </div>
+        -->
         <div>
             <audio id="wavAudio">
                 <source id="myWav" src="" type="audio/wav">

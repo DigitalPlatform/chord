@@ -55,7 +55,7 @@ namespace dp2weixinWeb.Controllers
             // 未绑定工作人员，
             if (user == null)
             {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("自助借还", "/Library/SelfServiceMain", true);
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("自助借还", "/Library/Circulate", true);
                 return View();
             }
 
@@ -132,6 +132,9 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
+#if no
+
+
         // 自助借还流程
         // operationType 操作类型
         public ActionResult SelfService(string code, string state)
@@ -162,7 +165,7 @@ namespace dp2weixinWeb.Controllers
             // 未绑定工作人员，
             if (user == null)
             {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("自助借还", "/Library/SelfServiceMain", true);
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("自助借还", "/Library/SelfService", true);
                 return View();
             }
 
@@ -235,7 +238,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.Error = strError;
             return View();
         }
-
+#endif
 
 
         // 读者登记
