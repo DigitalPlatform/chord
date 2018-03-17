@@ -31,12 +31,22 @@ namespace dp2weixinWeb.ApiControllers
         {
             SearchBiblioResult searchRet = new SearchBiblioResult();
 
+            // 测试加的日志
+            //dp2WeiXinService.Instance.WriteErrorLog1("search-1");
+
             if (String.IsNullOrEmpty(resultSet) == true)
                 resultSet = "weixin-" + Guid.NewGuid();
+
+            // 测试加的日志
+           //dp2WeiXinService.Instance.WriteErrorLog1("search-2-"+resultSet);
+
 
             // 取下一页的情况
             if (from == "_N" || from == "_ReView")
             {
+                // 测试加的日志
+                //dp2WeiXinService.Instance.WriteErrorLog1("search-3");
+
                 searchRet.apiResult = new ApiResult();
                 long num = 0;
                 try
@@ -83,6 +93,10 @@ namespace dp2weixinWeb.ApiControllers
             }
             else
             {
+                // 测试加的日志
+                //dp2WeiXinService.Instance.WriteErrorLog1("search-4");
+
+
                 searchRet = dp2WeiXinService.Instance.SearchBiblio(weixinId,
                     libId,
                      from,

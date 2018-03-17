@@ -20,6 +20,7 @@
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
     <UseGlobalApplicationHostFile />
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -48,22 +49,25 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Senparc.Weixin, Version=4.8.1.36102, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Senparc.Weixin.4.8.1\lib\net45\Senparc.Weixin.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Senparc.Weixin, Version=4.20.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Senparc.Weixin.4.20.2\lib\net45\Senparc.Weixin.dll</HintPath>
     </Reference>
-    <Reference Include="Senparc.Weixin.MP, Version=14.3.101.37513, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Senparc.Weixin.MP.14.3.101\lib\net45\Senparc.Weixin.MP.dll</HintPath>
+    <Reference Include="Senparc.Weixin.MP, Version=14.8.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Senparc.Weixin.MP.14.8.10\lib\net45\Senparc.Weixin.MP.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Speech">
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
@@ -122,14 +126,33 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="audio\borrow_error.mp3" />
-    <Content Include="audio\borrow_success.mp3" />
-    <Content Include="audio\item.mp3" />
-    <Content Include="audio\load_error.mp3" />
-    <Content Include="audio\load_success.mp3" />
-    <Content Include="audio\patron.mp3" />
-    <Content Include="audio\return_error.mp3" />
-    <Content Include="audio\return_success.mp3" />
+    <Content Include="20180308delete.txt" />
+    <Content Include="audio\1\book.wav" />
+    <Content Include="audio\1\error.wav" />
+    <Content Include="audio\1\loadPatron.wav" />
+    <Content Include="audio\1\nouse\error2.wav" />
+    <Content Include="audio\1\patron.wav" />
+    <Content Include="audio\1\success.wav" />
+    <Content Include="audio\2\book.wav" />
+    <Content Include="audio\2\error.wav" />
+    <Content Include="audio\2\loadPatron.wav" />
+    <Content Include="audio\2\nouse\error.wav" />
+    <Content Include="audio\2\nouse\success2book.wav" />
+    <Content Include="audio\2\patron.wav" />
+    <Content Include="audio\2\success.wav" />
+    <Content Include="audio\mp3\book.mp3" />
+    <Content Include="audio\mp3\borrow_error.mp3" />
+    <Content Include="audio\mp3\borrow_success.mp3" />
+    <Content Include="audio\mp3\found.mp3" />
+    <Content Include="audio\mp3\item_old.mp3" />
+    <Content Include="audio\mp3\load_error.mp3" />
+    <Content Include="audio\mp3\load_success.mp3" />
+    <Content Include="audio\mp3\notfound.mp3" />
+    <Content Include="audio\mp3\patron.mp3" />
+    <Content Include="audio\mp3\patron_old.mp3" />
+    <Content Include="audio\mp3\return_error.mp3" />
+    <Content Include="audio\mp3\return_success.mp3" />
+    <Content Include="audio\my.wav" />
     <Content Include="Content\charge.css" />
     <Content Include="Content\icons-extra.css" />
     <Content Include="Content\patron.css" />
@@ -247,6 +270,7 @@
     <Content Include="Scripts\weixin.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Views\Library\delete.txt" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -347,6 +371,15 @@
     <Content Include="Views\UI\CtrlDemo.cshtml" />
     <Content Include="Views\Library\PatronEdit.cshtml" />
     <Content Include="Views\Patron\SelectLib.cshtml" />
+    <Content Include="Views\Library\SelfServiceMain.txt" />
+    <Content Include="Views\Library\SelfService.cshtml" />
+    <Content Include="Views\UI\AudioTest.cshtml" />
+    <Content Include="Views\Library\Circulate.txt">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="Views\Library\Circulate.cshtml" />
+    <Content Include="Views\Account\WebLogin.cshtml" />
+    <Content Include="Views\Library\Message.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -37,7 +37,7 @@ namespace testSearch
         {
             MessageConnection connection = sender as MessageConnection;
             e.UserName = "weixinclient";
-            e.Password = "1";
+            e.Password = "1123455";//错误的密码
             e.Parameters = "propertyList=biblio_search,libraryUID=xxx";
         }
 

@@ -14,6 +14,14 @@ namespace dp2weixin.service
 
         public TemplateDataItem first { get; set; }
         public TemplateDataItem remark { get; set; }
+
+        public virtual string Dump()
+        {
+            return "<root>"
+                + "<first>"+first.value + "</first>"
+                + "<remark>"+remark.value + "</remark>"
+                + "</root>";
+        }
     }
 
     // 2个数据项
@@ -31,6 +39,16 @@ namespace dp2weixin.service
 
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
+
+        public override string Dump()
+        {
+            return "<root>"
+                + "<first>" + first.value + "</first>"
+                + "<keyword1>"+keyword1.value + "</keyword1>"
+                + "<keyword2>"+keyword2.value + "</keyword2>"
+                + "<remark>" + remark.value + "</remark>"
+                + "</root>";
+        }
     }
 
     // 3个数据项
@@ -50,7 +68,51 @@ namespace dp2weixin.service
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
+
+        public override string Dump()
+        {
+            return "<root>"
+                + "<first>" + first.value + "</first>"
+                + "<keyword1>" + keyword1.value + "</keyword1>"
+                + "<keyword2>" + keyword2.value + "</keyword2>"
+                + "<keyword3>" + keyword3.value + "</keyword3>"
+                + "<remark>" + remark.value + "</remark>"
+                + "</root>";
+        }
     }
+
+    // 4个数据项
+    public class Template4Data : BaseTemplateData
+    {
+        public Template4Data(string first, string first_color,
+            string k1, string k2, string k3, string k4,string remark)
+        {
+            this.first = new TemplateDataItem(first, first_color);
+            this.keyword1 = new TemplateDataItem(k1, C_TColor_Content);
+            this.keyword2 = new TemplateDataItem(k2, C_TColor_Content);
+            this.keyword3 = new TemplateDataItem(k3, C_TColor_Content);
+            this.keyword4 = new TemplateDataItem(k4, C_TColor_Content);
+            this.remark = new TemplateDataItem(remark, C_TColor_Remark);
+        }
+
+        public TemplateDataItem keyword1 { get; set; }
+        public TemplateDataItem keyword2 { get; set; }
+        public TemplateDataItem keyword3 { get; set; }
+        public TemplateDataItem keyword4 { get; set; }
+
+        public override string Dump()
+        {
+            return "<root>"
+                + "<first>" + first.value + "</first>"
+                + "<keyword1>" + keyword1.value + "</keyword1>"
+                + "<keyword2>" + keyword2.value + "</keyword2>"
+                + "<keyword3>" + keyword3.value + "</keyword3>"
+                + "<keyword4>" + keyword4.value + "</keyword4>"
+                + "<remark>" + remark.value + "</remark>"
+                + "</root>";
+        }
+    }
+
 
     // 5个数据项
     public class Template5Data : BaseTemplateData
@@ -73,6 +135,19 @@ namespace dp2weixin.service
         public TemplateDataItem keyword3 { get; set; }
         public TemplateDataItem keyword4 { get; set; }
         public TemplateDataItem keyword5 { get; set; }
+
+        public override string Dump()
+        {
+            return "<root>"
+                + "<first>" + first.value + "</first>"
+                + "<keyword1>" + keyword1.value + "</keyword1>"
+                + "<keyword2>" + keyword2.value + "</keyword2>"
+                + "<keyword3>" + keyword3.value + "</keyword3>"
+                + "<keyword4>" + keyword4.value + "</keyword4>"
+                + "<keyword5>" + keyword5.value + "</keyword5>"
+                + "<remark>" + remark.value + "</remark>"
+                + "</root>";
+        }
     }
 
     //您好，您已借书成功。
@@ -175,6 +250,40 @@ namespace dp2weixin.service
             : base(first, first_color, k1, k2, k3, k4, k5, remark)
         { }
     }
+
+//取消图书预约成功。
+//书刊摘要：中国机读目录格式使用手册
+//册条码号：B0000001
+//预约日期：2017-10-01
+//取消日期：2017-10-03
+//证条码号：P000005
+//张三，您取消图书预约成功，该书将不再为您保留。
+    public class CancelReserveTemplateData : Template5Data
+    {
+        public CancelReserveTemplateData(string first, string first_color,
+            string k1, string k2, string k3, string k4, string k5,
+            string remark)
+            : base(first, first_color, k1, k2, k3, k4, k5, remark)
+        { }
+    }
+
+    /*
+    超期图书停借期满
+    书刊名称：剪面包的男孩
+    到期事项：B000001,B000002
+    到期日期：2017-10-25
+    证条码号：B0000003
+    张三，您的2册超期图书停借期满，可以继续借书了。
+     */
+    public class YiTingDaiJinDaoQiTemplateData : Template4Data
+    {
+        public YiTingDaiJinDaoQiTemplateData(string first, string first_color,
+            string k1, string k2, string k3, string k4, 
+            string remark)
+            : base(first, first_color, k1, k2, k3, k4, remark)
+        { }
+    }
+
 
 
     //{{first.DATA}}

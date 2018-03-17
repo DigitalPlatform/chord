@@ -1,0 +1,1070 @@
+﻿@{
+    ViewBag.Title = "Checkout";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section header {
+
+<span class="mui-icon mui-pull-left" style="font-size:12pt;padding-left:0px">
+    &nbsp;@ViewBag.userName&nbsp;
+    <a href='javascript:void(0)' onclick='setting()' ><span style="font-size:12pt" id="_libName">设置</span></a>
+</span>
+
+    <h1 class="mui-title">专业借还</h1>
+}
+
+@section Scripts {
+    <script>
+
+        // 进入到设置界面
+        function setting() {
+            gotoUrl("/Patron/Setting");
+            //alert("setting");
+        }
+
+        function viewCmd(cmd) {
+            //cmds
+            var cmds = $("#cmds");
+
+            // 加到前面
+            //alert(cmd.cmdHtml);
+            cmds.prepend(cmd.cmdHtml); //append(cmdHtml);//
+
+
+            var cmdContainer = $("#cmdContainer");
+            var display = $(cmdContainer).css("display");
+            if (display == "none") {
+                $(cmdContainer).css("display", "block");
+            }
+
+            var container = $("#cmdContainer");
+            container.scrollTop(0);
+        }
+
+        //用于获取所有命令
+        //这个似乎不需要冻结界面 todo
+        function getAllCmd() {
+
+            // 图书馆
+            var libId = $("#libId").text();
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+
+            //显示等待图层
+            showLoading();
+
+            // 先删除老数据
+
+            // 调web api
+            var url = "/api/ChargeCommand?libId=" + libId;
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 关闭等待层
+                hideLoading();
+
+                //  出错
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                // 显示各个命令
+                for (var i = 0; i < result.cmds.length; i++) {
+                    var cmd = result.cmds[i];
+                    viewCmd(cmd);
+                }
+
+                // 更新summary
+                window.setTimeout("fillPending()", 1);
+
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                hideLoading();
+                alert(errorThrown);
+            });
+        }
+
+        //==全局变量====
+        var C_wavType_patron = "patron";
+        var C_wavType_book = "book";
+        var C_wavType_loadPatron = "loadPatron";
+        var C_wavType_success = "success";
+        var C_wavType_error = "error";
+        //var C_wavType_success2book = "success2book";
+
+        function playStream(text) {
+            var myUrl = getRootPath() + "/UI/Speak?text=" + encodeURIComponent(text);
+            var audio = document.getElementById("wavAudio");
+            audio.setAttribute('src', myUrl);
+            audio.play();
+        }
+
+        function playFile(audioType, wavType) {
+            var myUrl = getRootPath() + "/audio/" + audioType + "/" + wavType + ".wav";//+ "/UI/Speak?text=" + encodeURIComponent(text);
+            var audio = document.getElementById("wavAudio");
+            audio.setAttribute('src', myUrl);
+            audio.play();
+        }
+
+        // 直接播放wav文件
+        function playWav(wavType,wavText) {
+
+            var audioType = getAudioType();
+            if (audioType == 1 || audioType == 2) {
+                playFile(audioType, wavType);
+            }
+            else if (audioType == 3 || audioType == 4) {
+                // 有文字先插文字
+                if (wavText != null && wavText != "" && isIpad==false) {
+                    playStream(wavText);
+                }
+                else {
+                    audioType = audioType - 2;
+                    playFile(audioType, wavType);
+                }
+            }
+        }
+
+
+        // 操作类型常量字符串
+        var C_ope_borrow = "borrow";
+        var C_ope_return = "return";
+        var C_ope_searchItem = "searchItem";
+
+        // 输入框值类型
+        var C_inputType_patron = 1;
+        var C_inputType_item = 2;
+
+        // 下一步
+        var C_next_dothing = "dothing";
+        var C_next_receiveBarcode = "receiveBarcode";
+        var C_next_addCmd = "addCmd";//2016-11-16 用于借书时，应扫书，却扫了读者，提示完，要进行加载读者事情。
+
+        // 第几本
+        var _count = 1;
+
+        // 进入页面时，ipad没有声音，所以专门为ipad再播放一次
+        function playForIpad() {
+            wx.config({
+                // 配置信息, 即使不正确也能使用 wx.ready
+                debug: false,
+                appId: '',
+                timestamp: 1,
+                nonceStr: '',
+                signature: '',
+                jsApiList: []
+            });
+            wx.ready(function () {
+                playWav(C_wavType_patron,"");
+            });
+        }
+
+        // 是否为ipad
+        var isIpad = false;
+        // 程序启动
+        $(document).ready(function () {
+
+            ////是否为ipad
+            var u = navigator.userAgent, app = navigator.appVersion;
+            if (u.indexOf('iPad') > -1) {
+                isIpad = true;
+                playForIpad();
+            }
+            //初始化
+            init();
+
+            // 进入借书环境
+            start($("#btnBorrow"), C_ope_borrow);
+
+            // 得到全部命令
+            getAllCmd();
+
+            // 发现ipad没有把输入焦点调到textbox
+            if (isIpad == true) {
+                document.getElementById('mybarcode').focus();
+                document.getElementById('mybarcode').select();
+            }
+        })
+
+        // 初始化
+        function init() {
+
+            // 清空操作类型
+            setOpe("");
+
+            // 清空条码
+            setBarcode("");
+            $("#mybarcode").val("");
+            code = "";
+
+            // 清空条码类型
+            setInputType(-1);
+
+            // 图书数量设回为1
+            _count = 1;
+        }
+
+        // 主页界的开始按钮
+        function start(btn, ope) {
+
+            $("#btnBorrow").removeClass("active-btn");
+            $("#btnReturn").removeClass("active-btn");
+            $("#btnSearch").removeClass("active-btn");
+            $(btn).addClass("active-btn");
+
+            // 设置操作类型
+            setOpe(ope);
+
+            // 根据操作类型，设置条码类型
+            if (ope == C_ope_borrow)
+                setInputType(C_inputType_patron);
+            else
+                setInputType(C_inputType_item);
+
+
+            // 下一步，根据操作类型，播放的语音文件
+            var wavType = "";
+            var resultInfo = "";
+            if (ope == C_ope_borrow) {
+                wavType = C_wavType_patron;
+                resultInfo = "欢迎您借书";
+            }
+            else if (ope == C_ope_return) {
+                wavType = C_wavType_book;
+                resultInfo = "欢迎您还书";
+            }
+            else if (ope == C_ope_searchItem) {
+                wavType = C_wavType_book;
+                resultInfo = "欢迎您查书";
+            }
+            resultInfo = "<div style='padding-top:30px;width:100%;text-align:center;font-size:18pt;'>" + resultInfo + "</div>";
+            // 下一步界面
+            nextStep(resultInfo, false, wavType, "");
+        }
+
+
+        // 下一步信息
+        function nextStep(resultInfo, again, wavType,wavText) {
+            if (resultInfo != "=") //=号，表示不变，用于重新输入条码
+                $("#resultInfo").html(resultInfo);
+
+            var inputHint = getInputHint(again);
+            $("#hint").html(inputHint);
+            $("#mybarcode").focus();
+            $("#mybarcode").select();//.val("");
+ 
+            // 播放声音
+            //alert(wavText);
+            playWav(wavType,wavText)
+        }
+
+
+        var code = "";
+        // TextBox回车
+        function enter(event) {
+            if (event.keyCode == "13") {
+                // ipad 特殊处理下
+                if (isIpad == true) {
+                    //alert(code);
+                    code = code.trim();
+                    $("#mybarcode").val(code);
+                    document.getElementById('mybarcode').focus();
+                    document.getElementById('mybarcode').select();
+                    code = "";
+                }
+
+                // 调确认函数
+                ok();
+            }
+            else {
+                // ipad 特殊处理下
+                if (isIpad == true) {
+                    code += String.fromCharCode(event.keyCode).trim();
+                }
+            }
+        }
+
+
+        // 当输入框方式时，点击确认按钮
+        function ok() {
+            //alert("ok");
+            //取出在界面textbox输入的条码
+            var barcode = $("#mybarcode").val();
+            //alert(barcode);
+            if (barcode == null || barcode == "") {
+                warnInfo1("尚未输入条码,请重新输入");
+                return;
+            }
+            // 设到条码变量上，以便后面使用
+            setBarcode(barcode);
+
+            // 控件发灰不可用
+            disableBarcodeInput(true);
+
+            // 执行操作
+            addCmd();
+        }
+
+        // 设置TextBox是否可用
+        function disableBarcodeInput(disabled) {
+            if (disabled == true) {
+                $("#mybarcode").prop("disabled", true);
+                $("#mybarcode").css("background-color", "gray");  //设置p元素的样式颜色为红色
+            }
+            else {
+                $("#mybarcode").prop("disabled", false);
+                $("#mybarcode").css("background-color", "#ffffff");
+                $("#mybarcode").focus();
+                $("#mybarcode").select();
+            }
+        }
+
+        // 控件键盘输入法
+        function convertIme() {
+            var current = $("#ime").html();
+            //alert(current);
+
+            if (current == "支持中文输入") {
+                $("#mybarcode").css("ime-mode", "active");
+                $("#ime").html("仅英文输入");
+            }
+            else {
+                $("#mybarcode").css("ime-mode", "inactive");
+                $("#ime").html("支持中文输入");
+            }
+
+            alert("ime-mode属性值设为了[" + $('#mybarcode').css('ime-mode') + "]");
+        }
+
+        // 调接口执行操作
+        function addCmd() {
+            // 图书馆
+            var libId = $("#libId").text(); //getLibId();
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");//, ""); // 下一步停止
+                return;
+            }
+
+            var libraryCode = $("#libraryCode").text();
+            if (libraryCode == null)
+                libraryCode = "";
+
+            // 微信id
+            var weixinId = $("#weixinId").text();
+            if (weixinId == "") {
+                alert("weixinId不能为空。");//, "");
+                return;
+            }
+
+            var patron = "";
+            var item = "";
+            var cmdType = "";
+
+            var ope = getOpe(); //操作类型
+            var inputType = getInputType(); //输入类型
+
+            if (ope == C_ope_borrow) {
+                if (inputType == C_inputType_patron) {
+                    cmdType = "loadPatron";
+                    patron = getBarcode();
+                    // 设到内部的读者变量上
+                    setPatron(patron);
+                }
+                else {
+                    cmdType = "borrow";
+                    patron = getPatron();//_patron; //从变量取值
+                    item = getBarcode();
+                }
+            }
+            else if (ope == C_ope_return) {
+                cmdType = "return";
+                item = getBarcode();
+            }
+            else if (ope == C_ope_searchItem) //查书
+            {
+                cmdType = C_ope_searchItem;
+                item = getBarcode();
+            }
+
+            // 流程测试
+            //flowTest();
+
+            //=============
+            var verifyBarcode = $("#verifyBarcode").text();
+
+            // 前端未打开校验条码开关
+            if (verifyBarcode != "1") {
+                // 直接处理命令
+                addCmd2(weixinId, libId, libraryCode, cmdType, patron, item, 0);
+                return;
+            }
+
+            // 调校验条码
+            verifyBarcode1(ope,
+                inputType,
+                weixinId,
+                libId,
+                libraryCode,
+                cmdType,
+                patron,
+                item,
+                0);
+
+            return;
+
+        }
+
+        // 出错提示
+        function warnInfo1(text) {
+            //alert(text);
+
+            if (text != "") {
+                text = "<div style='color:red;padding-top:5px'>" + text + "</div>";
+                $("#resultInfo").html(text);
+            }
+
+            playWav(C_wavType_error,"");
+            disableBarcodeInput(false);
+        }
+
+        // 校验条码
+        function verifyBarcode1(ope,
+            inputType,
+            weixinId,
+            libId,
+            libraryCode,
+            cmdType,
+            patron,
+            item,
+            needTransfrom) {
+            //alert("打开了校验函数");
+
+            // 如果校验条码开关打开，则需要进行校验
+
+            // 直接检查是否是读者二维码的情况
+            if (inputType == C_inputType_item) {// 应该输入册条码时，校验
+                if (item.length > 4 && item.substring(0, 4) == "PQR:") {
+                    //还书时，直接提示，重新输入
+                    if (ope == C_ope_return) {
+                        warnInfo("还书环境，应扫图书时，您扫了读者二维码，请重新扫入图书。");//, C_next_receiveBarcode, true);
+                        return;
+                    }
+
+                    // 借书时，提示一下，然后加载新的读者。
+                    if (ope == C_ope_borrow) {
+                        //设到读者输入类型
+                        setInputType(C_inputType_patron);
+                        warnInfo1("借书环境，应扫图书时，您扫了读者二维码，将为您加载新读者。");//, C_next_addCmd, true);
+                        return;
+                    }
+                }
+            }
+
+            // userId参数
+            var userId = $("#userId").text();
+            if (userId == null || userId == "") {
+                warnInfo1("userId操作人不能不空。");//, "");
+                return;
+            }
+
+            var barcode = item;
+            if (inputType == C_inputType_patron) {
+                barcode = patron;
+            }
+
+            //显示等待图层
+            showLoading();
+            // 调校验条码web api
+            var url = "/api/ChargeCommand?libId=" + libId
+                + "&libraryCode=" + encodeURIComponent(libraryCode)
+                + "&userId=" + userId
+                + "&barcode=" + encodeURIComponent(barcode)
+                + "&needTransform=0";
+            sendAjaxRequest(url, "POST", function (result) {
+                // 关闭等待层
+                hideLoading();
+
+                //alert(result.errorCode);
+                //alert(result.errorInfo);
+                //  出错，直接关闭
+                if (result.errorCode == -1) {
+                    warnInfo1("校验条码出错：[" + result.errorInfo + "]\r\n 请在设置页面清除'校验输入的条码号'事项。");
+                    return;
+                }
+                //  未配置，直接关闭
+                if (result.errorCode == -2) {
+                    warnInfo1("服务器没有配置条码号验证脚本，无法使用验证条码号功能。请在设置页面清除'校验输入的条码号'事项。", "");
+                    return;
+                }
+
+                // 不是合法的条码号，请重新扫入
+                if (result.errorCode == 0) {
+                    warnInfo1(result.errorInfo);//, C_next_receiveBarcode, true);
+                    return;
+                }
+
+                if (result.info != null && result.info != "") {
+                    barcode = result.info;
+                    setBarcode(barcode);
+
+                    if (inputType == C_inputType_patron) {
+                        param = barcode;
+                    }
+                    else {
+                        item = barcode;
+                    }
+                }
+
+                // 期待输入册条码，却扫入了读者证条码
+                if (result.errorCode == 1 && inputType == C_inputType_item) {
+                    if (ope == C_ope_return) {
+                        warnInfo1("还书环境，应扫图书时，您扫了读者，请重新扫入图书。");//, C_next_receiveBarcode, true);
+                        return;
+                    }
+                    else if (ope == C_ope_searchItem) {
+                        warnInfo1("查书环境，应扫图书时，您扫了读者，请重新扫入图书。");//, C_next_receiveBarcode, true);
+                        return;
+                    }
+                    else if (ope == C_ope_borrow) {
+                        //setInputType(C_inputType_patron); //设到读者输入类型
+                        //warn("应扫图书时，您扫了读者，将为您加载新读者。", C_next_addCmd, true);
+                        cmdType = "loadPatron";
+                        patron = getBarcode();
+                        setPatron(patron); // 设到内部的读者变量上
+                        addCmd2(weixinId, libId, libraryCode, cmdType, patron, item, 0);
+                        return;
+                    }
+                }
+
+                // 读者时，有时输入姓名的。
+                // 期待输入读者证条码，却扫入了册条码
+                if (result.errorCode == 2 && inputType == C_inputType_patron) {
+                    warnInfo1("借书环境，您扫入了册条码，请先扫入读者证。");//, C_next_receiveBarcode, true);
+                    return;
+                }
+
+
+                //正常处理的情况
+                addCmd2(weixinId, libId, libraryCode, cmdType, patron, item, 0)
+
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                hideLoading();
+                alert(errorThrown);
+            });
+
+            //alert("结束");
+
+            return;
+        }
+
+        // 流程测试
+        function flowTest() {
+            //==跑流程测试用==
+            if (cmdType == "loadPatron") {
+                setInputType(C_inputType_item);
+            }
+            if (cmdType != "loadPatron")
+                _count++;
+
+            // 下一步
+            var resultInfo = "cmdType=[" + cmdType + "] patron=[" + patron + "] item=[" + item + "]";
+            var wavType = C_wavType_success; 
+            nextStep(resultInfo, false, wavType,"");
+        }
+
+        // 实现执行命令
+        function addCmd2(weixinId,
+            libId,
+            libraryCode,
+            cmdType,
+            patron,
+            item,
+            needTransfrom) {
+            //alert(cmdType);
+
+            //登录身份
+            var userName = $("#userName").text();
+            if (userName == null || userName == "") {
+                alert("userName操作人不能不空。");//, "");
+                return;
+            }
+
+            var isPatron = $("#isPatron").text();
+
+            // userId参数
+            var userId = $("#userId").text();
+            if (userId == null || userId == "") {
+                alert("userId操作人不能不空。");//, "");
+                return;
+            }
+
+            //调 web api
+            var url = "/api/ChargeCommand?weixinId=" + weixinId
+                + "&libId=" + libId
+                + "&libraryCode=" + encodeURIComponent(libraryCode)
+                + "&needTransfrom=" + needTransfrom
+                ;
+
+            //alert(url);
+            var data = {
+                type: cmdType,
+                patronInput: patron,
+                itemInput: item,
+                userName: userName,
+                isPatron: isPatron,
+                userId: userId
+            };
+
+            sendAjaxRequest(url, "POST", function (cmd) {
+
+                if (cmd.state == -2) {
+                    alert("未实现功能-姓名重复");
+                    return;
+                }
+                if (cmd.state == -3) {
+                    alert("未实现功能-isbn");
+                    return;
+                }
+
+                if (cmdType == "loadPatron") {
+                    if (cmd.state == 1) {
+                        // 设下面为 册条码输入框
+                        setInputType(C_inputType_item);
+                    }
+                }
+
+                // 加入操作历史
+                viewCmd(cmd);
+
+
+                var img = ""; var infoStyle = "";
+                if (cmd.state == -1) {
+                    img = "<img src='../img/error3.png' style='width:100px;height:100px' />";
+                }
+                else {
+                    img = "<img src='../img/right1.png' style='width:100px;height:100px'  />";
+
+                    // 有警告时的，背景成黄色
+                    if (cmd.state == 1 && cmd.type != "loadPatron") {
+                        infoStyle = ";background-color:yellow;color:black";
+                    }
+                }
+
+                // 结果信息
+                var resultInfo = "<table>"
+                    + "<tr>"
+                    + "<td>" + img + "</td>"
+                    + "<td style='word-wrap:break-word;word-break:break-all;white-space:pre-wrap;" + infoStyle + "'>" + cmd.simpleResultInfo + "</td>"
+                    + "</tr>"
+                    + "</table>";
+
+                //数量加1
+                if (cmdType != "loadPatron" && cmd.state != -1)
+                    _count++;
+
+                // 语音提示
+                var wavText = cmd.resultInfoWavText;
+                var wavType = "";
+                if (cmd.state == -1) {
+                    wavType = C_wavType_error;
+                }
+                else {
+                    if (cmdType == "loadPatron")
+                        wavType = C_wavType_loadPatron;//C_wavType_book;
+                    else
+                        wavType = C_wavType_success;
+                }
+
+                //alert(wavText);
+
+                // 下一步
+                nextStep(resultInfo, false, wavType, wavText);
+
+                // 控件可用
+                disableBarcodeInput(false);
+
+                $("#mybarcode").focus();
+
+                // 更新summary
+                window.setTimeout("fillPending()", 1);
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                hideLoading();
+                alert(errorThrown);
+            },
+                data);
+        }
+
+
+        //===================
+        // 以下是公共函数
+
+        // 获取当前输入条码类型的 描述信息，因为2个地方用，所以提出作为函数
+        function getInputHint(again) {
+            var desc = "";
+
+            var left = "";
+            var againText = "";
+            if (again == true) {
+                againText = "重新";
+            }
+
+            var actionName = "扫入";
+            //var from = getFrom();
+            //if (from == C_from_scan)
+            //    actionName = "扫入";
+            //else
+            //    actionName = "输入";
+
+            //var left = "<span style='font-size:14.8px'>请" + againText + actionName + "</span>";
+            var left = "请" + againText + actionName;
+
+            var inputType = getInputType();
+            if (inputType == C_inputType_patron) {
+                desc = left + " 读者...";
+            }
+            else if (inputType == C_inputType_item) {
+                var func = "";
+                var ope = getOpe();
+                if (ope == C_ope_borrow)
+                    func = "要借的";
+                else if (ope == C_ope_return)
+                    func = "要还的";
+                else if (ope == C_ope_searchItem) {
+                    func = "要查的";
+                }
+
+                var countStr = "";// = "第" + _count + "本"
+
+                desc = left + func + countStr + "书...";
+            }
+            else {
+                desc = left + " 不知道！！！";
+            }
+            return desc;
+        }
+
+
+        // 得到操作类型
+        function getOpe() {
+            return $("#_charge_operation").val();
+        }
+        // 设置操作类型
+        function setOpe(value) {
+            $("#_charge_operation").val(value);
+
+            if (value == C_ope_borrow) {
+                setInputType(C_inputType_patron);
+            }
+            else {
+                setInputType(C_inputType_item);
+            }
+
+        }
+
+        // 得到读者证条码
+        function getPatron() {
+            return $("#_patron").val();
+        }
+        // 设置读者证条码
+        function setPatron(value) {
+            return $("#_patron").val(value);
+        }
+
+        // 得到条码
+        function getBarcode() {
+
+            var barcode = $("#_barcode").val();
+
+            return barcode.toUpperCase();//20171207，将输入的内容统一转成大写
+        }
+        // 设置条码
+        function setBarcode(value) {
+            return $("#_barcode").val(value);
+        }
+
+        // 得到输入类型,1表示读者证 2表示册条码
+        function getInputType() {
+            return $("#_charge_inputType").val();
+        }
+        // 设置输入类型
+        function setInputType(value) {
+            return $("#_charge_inputType").val(value);
+        }
+
+        // 获取输入方式
+        function getAudioType() {
+            var type = $("#audioType").text();
+            if (type == null || type == "")
+                type = 1;
+
+            //alert(type);
+            return type;
+        }
+    </script>
+}
+
+@section style {
+
+    <link href="@Url.Content("~/Content/biblio.css?a=1")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/patron.css?a=1")" rel="stylesheet">
+    <style>
+
+        .mydisabled {
+            background-color: gray;
+        }
+        /*最上面的div*/
+        .top-div {
+            width: 100%;
+            text-align: center;
+            margin: 0px;
+            padding: 0px;
+            height: 50px;
+        }
+        /*最上面的按钮*/
+        .top-btn {
+            width: 49%;/*32.5%;*/
+            height: 50px;
+            margin: 0px;
+            margin-left: 3px;
+            padding: 0px;
+            float: left;
+            border: 1px solid #cccccc;
+            text-align: center;
+            vertical-align: middle;
+            line-height: 50px;
+            font-size: 24pt;
+            color: black;
+            border-radius: 5px;
+        }
+
+        /*活动状态按钮*/
+        .active-btn {
+            background-color: green;
+        }
+
+        /*流程div*/
+        .flow-div {
+            margin-top: 10px;
+            width: 100%;
+            padding: 5px;
+            display: block;
+            /*background-color:green;*/
+        }
+
+        .result-div {
+            margin: 0px;
+            color: black;
+            border-radius: 5px;
+            /*text-align: center;*/
+            font-size: 12pt;
+            height: 120px;
+            background-color: #dddddd;
+            display: block;
+            width: 100%;
+            overflow: auto;
+            padding-top: 2px;
+            
+        }
+
+
+
+
+
+        .hint-div {
+            font-size: 18pt;
+            /*background-color:gray;*/
+            margin-top: 10px;
+            height:40px;
+        }
+
+
+        .barcode-div {
+            margin: 0px;
+            margin-top: 5px;
+            padding: 0px;
+            width: 100%;
+        }
+
+        .history-div {
+            position: fixed;
+            
+            top: 380px;
+            left:5px;
+            right:5px;
+            background-color:#eeeeee;
+            overflow:scroll;
+            height:500px;
+        }
+
+
+        .version-div {
+            margin-top: 20px;
+            text-align: center;
+            color: gray;
+        }
+
+        /*===命令显示新格式=======*/
+        DIV.cmd {
+            margin: 14px 0px 0px;
+            padding: 2px;
+        }
+
+            DIV.cmd .line {
+                padding-left: 5px;
+            }
+
+                DIV.cmd .line .success {
+                    color: darkgreen;
+                }
+
+                DIV.cmd .line .error {
+                    color: red;
+                }
+
+                DIV.cmd .line .warn {
+                    padding-left: 5px;
+                    background-color: yellow;
+                }
+
+                DIV.cmd .line .patronName {
+                    font-size: 16px;
+                    font-weight: bold;
+                }
+
+                DIV.cmd .line .patronBarcode {
+                    color: gray;
+                }
+
+                DIV.cmd .line .department {
+                    color: gray;
+                }
+
+                DIV.cmd .line .itemBarcode {
+                    font-size: 14px;
+                    font-weight: bold;
+                }
+
+                DIV.cmd .line .summary {
+                    padding-left: 5px;
+                    color: gray;
+                }
+
+                DIV.cmd .line .time {
+                    color: #cccccc;
+                }
+
+        .split {
+            margin-top: 10px;
+            height: 1px;
+            width: 100%;
+            border-top: 3px dotted #CCCC33;
+        }
+
+
+        /*===========*/
+    </style>
+}
+
+
+<span id="weixinId" style="display:none">@ViewBag.weixinId</span>
+<span id="libId" style="display:none">@ViewBag.LibId</span>
+<span id="libraryCode" style="display:none">@ViewBag.LibraryCode</span>
+<span id="userName" style="display:none">@ViewBag.userName</span>
+<span id="isPatron" style="display:none">@ViewBag.isPatron</span>
+<span id="verifyBarcode" style="display:none">@ViewBag.verifyBarcode</span>
+<span id="audioType" style="display:none">@ViewBag.audioType</span>
+<span id="userId" style="display:none">@ViewBag.userId</span>
+
+<input id="_charge_operation" type="hidden" value="@ViewBag.operation">
+<input id="_charge_inputType" type="hidden" value="@ViewBag.inputType">
+<input id="_patron" type="hidden" value="">
+<input id="_barcode" type="hidden" value="">
+
+
+
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+
+    <div id='all' style="width:100%;height:100%;margin:0px;padding:0px;">
+
+        <div style="height:310px;position:fixed">
+            <div id="top" class="top-div">
+                <div id="btnBorrow" class="top-btn active-btn" onclick="start(this,'borrow')">借书</div>
+                <div id="btnReturn" class="top-btn" onclick="start(this,'return')">还书</div>
+                <!--<div id="btnSearch" class="top-btn" onclick="start(this,'searchItem')">查书</div>-->
+            </div>
+
+            <div id="flow" class="flow-div">
+                <div id="resultInfo" class="result-div">
+                    <span>test</span>
+                </div>
+                <div id="hint" class="hint-div">
+                    请扫入读者证条码
+                </div>
+                <div>
+                    <table style="width:100%">
+                        <tr>
+                            <td style="width:100%">
+                                <input id='mybarcode'
+                                       style="border-radius: 5px;height:70px;color: black;font-size: 30pt;ime-mode: inactive;margin:0px;padding:0px;"
+                                       type='text' onkeydown='enter(event)' />
+
+                            </td>
+                            <td>
+                                <div class="mui-btn "
+                                     style="margin-left:5px; border-radius: 5px;height:70px;  font-size:18pt;text-align:center;vertical-align:middle;padding:0px;line-height:70px;padding-left:10px;padding-right:10px"
+                                     onclick="ok()">确认</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+
+
+
+            </div>
+        </div>
+        <div id="cmdContainer" class="history-div" style="display:none">
+            <h4><span style="color:#cccccc">操作历史</span></h4>
+            <div id="cmds"></div>
+
+        </div>
+
+
+        <!--
+    <div  class="version-div" style="height:100%;vertical-align:bottom">
+        <span>版本：@ViewBag.version</span>
+        <div id="ime" class="mui-btn " onclick="convertIme()">支持中文输入</div>
+    </div>
+        -->
+        <div>
+            <audio id="wavAudio">
+                <source id="myWav" src="" type="audio/wav">
+            </audio>
+        </div>
+    </div>
+        }
+        }
