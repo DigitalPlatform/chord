@@ -35,8 +35,16 @@ namespace dp2weixinWeb.Controllers
                 using (SpeechSynthesizer synthesizer = new SpeechSynthesizer())
                 {
                     var ms = new MemoryStream();
-                    synthesizer.SetOutputToWaveStream(ms);
-                    synthesizer.Speak(text);
+                    try
+                    {
+                        synthesizer.SetOutputToWaveStream(ms);
+                        synthesizer.Speak(text);
+                    }
+                    catch (Exception ex)
+                    {
+                        dp2WeiXinService.Instance.WriteLog1("!!!生成声音["+text+"]异常：" + ex.Message);
+                        
+                    }
                     
                     ms.Position = 0;
                     return new FileStreamResult(ms, "audio/vnd.wav");//"audio/x-wav");//"audio/wav");

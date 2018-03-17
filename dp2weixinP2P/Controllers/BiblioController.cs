@@ -12,11 +12,34 @@ namespace dp2weixinWeb.Controllers
         // 书目查询主界面
         public ActionResult Index(string code, string state)
         {
-            // 检查是否从微信入口进来
+            // 登录检查
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            int nRet = 0;
+
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state, 
+                out activeUser,
+                out strError);
             if (nRet == -1)
+            {
                 goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Biblio/Index?a=1");// ("书目查询", "/Biblio/Index?a=1", lib.libName);
+                return View();
+            }
+
+            //    nRet = this.CheckLogin(code, state, out strError);
+            //if (nRet == -1)
+            //{
+            //    goto ERROR1;
+            //}
+            //if (nRet == 0)
+            //{
+            //    return Redirect("~/Account/Bind?from=web");
+            //}
 
             // 如果当前图书馆是不公开书目，则出现提示
             LibEntity lib = dp2WeiXinService.Instance.GetLibById(ViewBag.LibId);
@@ -38,7 +61,7 @@ namespace dp2weixinWeb.Controllers
             }
 
 
-            WxUserItem userItem1 = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
+            WxUserItem userItem1 = WxUserDatabase.Current.GetActive(weixinId);
             if (userItem1 != null)
             {
                 ViewBag.PatronBarcode = userItem1.readerBarcode;
@@ -58,18 +81,27 @@ namespace dp2weixinWeb.Controllers
         // 书目查询主界面
         public ActionResult Detail(string code, string state,string biblioPath)
         {
-            // 检查是否从微信入口进来
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
-            if (nRet == -1)
-                goto ERROR1;
+            int nRet = 0;
 
-            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-            WxUserItem userItem1 = WxUserDatabase.Current.GetActivePatron(weixinId,ViewBag.LibId);
-            // patron.libId==libId  2016-8-13 jane todo 关于当前账户与设置图书馆这块内容要统一修改
-            if (userItem1 != null)// && userItem1.libId== ViewBag.LibId)
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state, 
+                out activeUser,
+                out strError);
+            if (nRet == -1)
             {
-                ViewBag.PatronBarcode = userItem1.readerBarcode;
+                goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state,"/Biblio/Detail");
+                return View();
+            }
+
+            if (activeUser != null)
+            {
+                ViewBag.PatronBarcode = activeUser.readerBarcode;
             }
 
             ViewBag.BiblioPath = biblioPath;

@@ -87,8 +87,29 @@ else
             }
         }
     </div>
-    
-      <div>
-            <a href="~/UI/AudioTest">测试声音</a>
-        </div>
+
+    <div>
+        <a href="~/UI/AudioTest">测试声音</a>
+    </div>
 }
+
+
+
+<div style="background-color:tan">
+    @ViewBag.weixinId<br />
+    @{
+    dp2weixin.service.SessionInfo sessionInfo = null;
+    if (Session[dp2weixin.service.WeiXinConst.C_Session_sessioninfo] != null)
+    {
+        sessionInfo = (dp2weixin.service.SessionInfo)Session[dp2weixin.service.WeiXinConst.C_Session_sessioninfo];
+    }
+    string debug = "";
+    if (sessionInfo != null)
+    {
+        debug = sessionInfo.DebugInfo;
+    }
+    }
+
+    @Html.Raw(sessionInfo.DebugInfo)
+</div>
+

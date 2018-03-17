@@ -132,7 +132,7 @@ namespace dp2weixinWeb.Controllers
             {
                 return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Home/LibraryM"));
             }
-
+            
 
             return View();
         }
@@ -199,15 +199,26 @@ namespace dp2weixinWeb.Controllers
         /// <returns></returns>
         public ActionResult Contact(string code, string state)
         {
-            // 检查是否从微信入口进来
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
-            if (nRet == -1)
-                goto ERROR1;
+
+            //// 登录检查
+
+            //int nRet = this.CheckLogin(code, state, out strError);
+            //if (nRet == -1)
+            //{
+            //    goto ERROR1;
+            //}
+            //if (nRet == 0)
+            //{
+            //    return Redirect("~/Account/Bind?from=web");
+            //}
 
             ViewBag.WeixinIds = "";
-            if (dp2WeiXinService.Instance.TracingOnUsers != null && dp2WeiXinService.Instance.TracingOnUsers.Count > 0)
-                ViewBag.WeixinIds = dp2WeiXinService.Instance.TracingOnUsers.Count.ToString();
+            if (dp2WeiXinService.Instance.TracingOnUserList != null
+                && dp2WeiXinService.Instance.TracingOnUserList.Count > 0)
+            {
+                ViewBag.WeixinIds = dp2WeiXinService.Instance.TracingOnUserList.Count.ToString();
+            }
 
 
 

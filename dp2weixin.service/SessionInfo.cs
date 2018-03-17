@@ -12,159 +12,139 @@ namespace dp2weixin.service
 {
     public class SessionInfo
     {
+        // 当前微信id
+        public string WeixinId { get; set; }
 
-        private string _weixinId = "";
-        public string oauth2_return_code = "";
-        public ChargeCommandContainer cmdContainer = null;
+        // 当前活动帐户
+        public WxUserItem Active = null; // 可能是读者也可能是工作人员
+
+        // 当前图书馆信息
+        public Library CurrentLib = null;
+
+        // 当前图书馆配置的读者类型和读者库，用于读者登记
+        public string readerTypes = "";
+        public string readerDbnames = "";
+
+        // 当前公众号配置信息
         public GzhCfg  gzh = null;
 
         // 可选择的图书馆
         public List<string> libIds = new List<string>();
 
+        // 微信传过来的code
+        public string oauth2_return_code = "";
+
+        // 命令集合
+        public ChargeCommandContainer cmdContainer = null;
+
+        public string gzhState = "";
+
+        // 构造函数
         public SessionInfo()
         {
+            // 创建命令管理器
             cmdContainer = new ChargeCommandContainer();
         }
 
-
-
-        public string WeixinId
+        public void SetInfo(string mygzhState,GzhCfg mygzh, List<string> mylibIds)
         {
-            get
-            {
-                return this._weixinId;
-            }
-
+            this.gzhState = mygzhState;
+            this.gzh = mygzh;
+            this.libIds = mylibIds;
         }
 
-        public int SetWeixinId(string weixinId,out string error)
-        {
-            error = "";
-
-            this._weixinId = weixinId;
-            int nRet = this.SetCurInfo(out error);
-            if (nRet == -1)
-                return -1;
-            
-
-            return 0;
-        }
-
-
-        public int SetCurInfo(out string error)
+        // 初始化
+        public int Init1(string weixinId,
+            out string error)
         {
             error = "";
             int nRet = 0;
 
-            // 微信用户设置信息
-            //int showPhoto = 0; //显示头像
-           // int showCover = 0;//显示封面
-            UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(this.WeixinId);
-            if (settingItem != null)
+            if (string.IsNullOrEmpty(weixinId) == true)
             {
-                if (this.libIds.IndexOf(settingItem.libId) != -1) // 2016-11-22 先要在自己的可访问图书馆
-                {
-                    this.CurrentLib = dp2WeiXinService.Instance.LibManager.GetLibrary(settingItem.libId);
-                    if (String.IsNullOrEmpty(settingItem.libraryCode) == false)
-                    {
-                        this.CurrentLibName = settingItem.libraryCode;
-                        this.CurLibraryCode = settingItem.libraryCode;
-                    }
-                    else
-                    {
-                        this.CurrentLibName = this.CurrentLib.Entity.libName;
-                        this.CurLibraryCode = "";
-                    }
-
-
-                    if (this.CurrentLib == null)
-                    {
-                        error = "未找到id为'" + settingItem.libId + "'对应的图书馆"; //这里lib为null竟然用了lib.id，一个bug 2016-8-11
-                        return -1;
-                    }
-
-                    showPhoto = settingItem.showPhoto;
-                    showCover = settingItem.showCover;
-
-                }
-                else
-                {
-                    dp2WeiXinService.Instance.WriteErrorLog1("发现weixinid=" + this.WeixinId + "设置的图书馆" + settingItem.libId + "不在访问列表中");
-                }
-            }
-
-            if (CurrentLib == null) // 找第一个
-            {
-                // 找可访问的第一个图书馆 2016-11-22
-                string firstLibId = this.libIds[0];
-                CurrentLib = dp2WeiXinService.Instance.LibManager.GetLibrary(firstLibId);
-                this.CurrentLibName = CurrentLib.Entity.libName;
-
-            }
-            if (CurrentLib == null)
-            {
-                error = "未匹配上图书馆";
+                error = "weixinId都不能为空";
                 return -1;
             }
 
+            this.AddDebugInfo("初始化session，weixinId="+weixinId);
+            
+            this.WeixinId = weixinId;
+
             // 找到对应的读者和工作人员
-            this.ActivePatron = WxUserDatabase.Current.GetActivePatron(this.WeixinId, CurrentLib.Entity.id);
-            this.Worker = WxUserDatabase.Current.GetWorker(this.WeixinId, CurrentLib.Entity.id);
-
-
-            if (this.Worker != null)
+            this.Active = WxUserDatabase.Current.GetActive(this.WeixinId);
+            if (this.Active != null)
             {
-                List<string> dataList = null;
-                nRet = dp2WeiXinService.Instance.GetSystemParameter(CurrentLib.Entity,
-                    "_valueTable",
-                    "readerType",
-                    out dataList,
-                    out error);
-                if (nRet == -1)
-                {
-                    return -1;
-                }
-                if (dataList != null && dataList.Count > 0)
-                {
-                    readerTypes = dataList[0];
-                }
+                // 当前图书馆
+                this.CurrentLib = dp2WeiXinService.Instance.LibManager.GetLibrary(this.Active.libId);
 
-                LoginInfo loginInfo = new LoginInfo(this.Worker.userName, false);
-                nRet = dp2WeiXinService.Instance.GetInfo(this.CurrentLib.Entity,
-                    loginInfo,
-                    "getSystemParameter",
-                    "reader",
-                    "dbnames",
-                    out dataList,
-                    out error);
-                if (nRet == -1)
-                    return -1;
-                if (dataList != null && dataList.Count > 0)
+                // 如果是工作人员，获取地应图书馆的读者类型和读者库，用于读者登记
+                if (this.Active.type == WxUserDatabase.C_Type_Worker && this.Active.userName !="public")
                 {
-                    readerDbnames = dataList[0];
-                }
+                    List<string> dataList = null;
+                    nRet = dp2WeiXinService.Instance.GetSystemParameter(this.CurrentLib.Entity,
+                        "_valueTable",
+                        "readerType",
+                        out dataList,
+                        out error);
+                    if (nRet == -1)
+                    {
+                        dp2WeiXinService.Instance.WriteErrorLog1("!!!" + error);
+                        //return -1;
+                    }
+                    if (dataList != null && dataList.Count > 0)
+                    {
+                        readerTypes = dataList[0];
+                    }
 
+                    LoginInfo loginInfo = new LoginInfo(this.Active.userName, false);
+                    nRet = dp2WeiXinService.Instance.GetInfo(this.CurrentLib.Entity,
+                        loginInfo,
+                        "getSystemParameter",
+                        "reader",
+                        "dbnames",
+                        out dataList,
+                        out error);
+                    if (nRet == -1)
+                    {
+                        dp2WeiXinService.Instance.WriteErrorLog1("!!!" + error);
+                        return -1;
+                    }
+                    if (dataList != null && dataList.Count > 0)
+                    {
+                        readerDbnames = dataList[0];
+                    }
+
+                }
             }
 
             return 0;
         }
 
-        public Library CurrentLib = null;
-        public string CurrentLibName = "";
-        public string CurLibraryCode = "";
-        public UserSettingItem settingItem = null;
-        public int showPhoto = 0; //显示头像
-        public int showCover = 0;//显示封面
+        private string _debugInfo = "";
+        public string DebugInfo
+        {
+            get
+            {
+                return _debugInfo;
+            }
+        }
 
-        // 绑定的当前读者帐户
-        public WxUserItem ActivePatron = null;
+        public void ClearDebugInfo()
+        {
+            this._debugInfo = "";
+        }
 
-        // 绑定的工作人员帐户
-        public WxUserItem Worker = null;
+        public string AddDebugInfo(string text)
+        {
+            if (String.IsNullOrEmpty(this._debugInfo) == false)
+            {
+                this._debugInfo += "<br/>";
+            }
 
-        public string readerTypes = "";
-        public string readerDbnames = "";
+            this._debugInfo +=DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") +" "+ text;
 
+            return this._debugInfo;
+        }
 
 
     }

@@ -66,7 +66,9 @@
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Speech" />
+    <Reference Include="System.Speech">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -124,6 +126,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="20180308delete.txt" />
     <Content Include="audio\1\book.wav" />
     <Content Include="audio\1\error.wav" />
     <Content Include="audio\1\loadPatron.wav" />
@@ -375,6 +378,8 @@
       <SubType>Code</SubType>
     </Content>
     <Content Include="Views\Library\Circulate.cshtml" />
+    <Content Include="Views\Account\WebLogin.cshtml" />
+    <Content Include="Views\Library\Message.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

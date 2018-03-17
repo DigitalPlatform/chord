@@ -13,10 +13,7 @@ namespace dp2weixinWeb.Controllers
 {
     public class LibraryController : BaseController
     {
-        public ActionResult Cir2()
-        {
-            return View();
-        }
+
 
 
 
@@ -30,32 +27,27 @@ namespace dp2weixinWeb.Controllers
         public ActionResult Circulate(string code, string state)
         {
             string strError = "";
+            int nRet = 0;
 
-            // 检查是否从微信入口进来
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state, 
+                out activeUser,
+                out strError);
             if (nRet == -1)
+            {
                 goto ERROR1;
-
-            //// 操作类型不能为空
-            //if (String.IsNullOrEmpty(operationType) == true)
-            //{
-            //    strError = "尚未指定操作类型";
-            //    goto ERROR1;
-            //}
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Library/Circulate");
+                return View();
+            }
 
             // 得到该微信用户绑定的账号
-            string weixinId = ViewBag.weixinId;
-            string libId = ViewBag.LibId;
-            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
-            if (user == null)
+            if (activeUser == null || activeUser.userName=="public")
             {
-                // 取读者帐户
-                user = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
-            }
-            // 未绑定工作人员，
-            if (user == null)
-            {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("自助借还", "/Library/Circulate", true);
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("专业借还", "/Library/Circulate", true);
                 return View();
             }
 
@@ -63,23 +55,23 @@ namespace dp2weixinWeb.Controllers
             //===
             //设到ViewBag里
             string userName = "";
-            if (user.type == WxUserDatabase.C_Type_Worker)
+            if (activeUser.type == WxUserDatabase.C_Type_Worker)
             {
-                userName = user.userName;
+                userName = activeUser.userName;
                 ViewBag.isPatron = 0;
             }
             else
             {
-                userName = user.readerBarcode;
+                userName = activeUser.readerBarcode;
                 ViewBag.isPatron = 1;
             }
             ViewBag.userName = userName;
-            ViewBag.userId = user.id;
+            ViewBag.userId = activeUser.id;
             // 是否校验条码
-            ViewBag.verifyBarcode = user.verifyBarcode;
-            ViewBag.audioType = user.audioType;
+            ViewBag.verifyBarcode = activeUser.verifyBarcode;
+            ViewBag.audioType = activeUser.audioType;
             // 关注馆藏地
-            ViewBag.Location = SubLib.ParseToView(user.selLocation);
+            ViewBag.Location = SubLib.ParseToView(activeUser.selLocation);
 
 
             //===
@@ -87,13 +79,13 @@ namespace dp2weixinWeb.Controllers
             bool canBorrow = true;
             bool canReturn = true;
             // 如果没有借还权限，不能操作
-            if (user != null)
+            if (activeUser != null)
             {
-                if (user.rights.Contains("borrow") == false)
+                if (activeUser.rights.Contains("borrow") == false)
                 {
                     canBorrow = false;
                 }
-                if (user.rights.Contains("return") == false)
+                if (activeUser.rights.Contains("return") == false)
                 {
                     canReturn = false;
                 }
@@ -125,147 +117,56 @@ namespace dp2weixinWeb.Controllers
            ViewBag.version= version.ToString();
 
 
-            return View(user);
+            return View(activeUser);
 
         ERROR1:
             ViewBag.Error = strError;
             return View();
         }
 
-#if no
-
-
-        // 自助借还流程
-        // operationType 操作类型
-        public ActionResult SelfService(string code, string state)
-        {
-            string strError = "";
-
-            // 检查是否从微信入口进来
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
-            if (nRet == -1)
-                goto ERROR1;
-
-            //// 操作类型不能为空
-            //if (String.IsNullOrEmpty(operationType) == true)
-            //{
-            //    strError = "尚未指定操作类型";
-            //    goto ERROR1;
-            //}
-
-            // 得到该微信用户绑定的账号
-            string weixinId = ViewBag.weixinId;
-            string libId = ViewBag.LibId;
-            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
-            if (user == null)
-            {
-                // 取读者帐户
-                user = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
-            }
-            // 未绑定工作人员，
-            if (user == null)
-            {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("自助借还", "/Library/SelfService", true);
-                return View();
-            }
-
-
-            //===
-            //设到ViewBag里
-            string userName = "";
-            if (user.type == WxUserDatabase.C_Type_Worker)
-            {
-                userName = user.userName;
-                ViewBag.isPatron = 0;
-            }
-            else
-            {
-                userName = user.readerBarcode;
-                ViewBag.isPatron = 1;
-            }
-            ViewBag.userName = userName;
-            ViewBag.userId = user.id;
-            // 是否校验条码
-            ViewBag.verifyBarcode = user.verifyBarcode;
-            ViewBag.audioType = user.audioType;
-            // 关注馆藏地
-            ViewBag.Location = SubLib.ParseToView(user.selLocation);
-
-
-            //===
-            // 需要有权限
-            bool canBorrow = true;
-            bool canReturn = true;
-            // 如果没有借还权限，不能操作
-            if (user != null)
-            {
-                if (user.rights.Contains("borrow") == false)
-                {
-                    canBorrow = false;
-                }
-                if (user.rights.Contains("return") == false)
-                {
-                    canReturn = false;
-                }
-            }
-
-            // 放到ViewBag里，传到页面
-            ViewBag.canBorrow = canBorrow;
-            ViewBag.canReturn = canReturn;
-
-            //// 没有权限时出现提示
-            //if (canBorrow == false && operationType == C_ope_borrow)
-            //{
-            //    strError = "当前帐户"+userName+"没有借书权限";
-            //    goto ERROR1;
-            //}
-            //if (canReturn == false && operationType == C_ope_return)
-            //{
-            //    strError = "当前帐户" + userName + "没有还书权限";
-            //    goto ERROR1;
-            //}
-
-            //// 操作类型与输入框类型
-            //ViewBag.operation = operationType;
-            //if (operationType== C_ope_borrow)
-            //    ViewBag.inputType = "1"; //1表示读者证条码，2表示册条码
-
-
-
-            return View(user);
-
-        ERROR1:
-            ViewBag.Error = strError;
-            return View();
-        }
-#endif
 
 
         // 读者登记
         public ActionResult PatronEdit(string code, string state)
         {
+
             string strError = "";
+            int nRet = 0;
 
-
-            // 检查是否从微信入口进来
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state,
+                out activeUser,
+                out strError);
             if (nRet == -1)
+            {
                 goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state,"/Library/PatronEdit");
+                return View();
+            }
+
+
 
             //绑定的工作人员账号 需要有权限
             string weixinId = ViewBag.weixinId;//(string)Session[WeiXinConst.C_Session_WeiXinId];
             string libId = ViewBag.LibId;
 
-            SessionInfo sessionInfo = this.GetSessionInfo();
-            if (sessionInfo.Worker ==null)
+
+            if (activeUser == null || activeUser.type!= WxUserDatabase.C_Type_Worker
+                || activeUser.userName=="public")
             {
                 ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("读者登记", "/Library/PatronEdit", true);
                 return View();
             }
-            ViewBag.userName = sessionInfo.Worker.userName;
+            ViewBag.userName = activeUser.userName;
 
             // 读者类别
-            string[] libraryList = sessionInfo.Worker.libraryCode.Split(new []{','});
+            string[] libraryList = activeUser.libraryCode.Split(new []{','});
+
+            SessionInfo sessionInfo = this.GetSessionInfo1();
             string types = sessionInfo.readerTypes;
             string typesHtml = "";
             if (String.IsNullOrEmpty(types) == false)
@@ -274,7 +175,7 @@ namespace dp2weixinWeb.Controllers
                 foreach (string type in typeList)
                 {
                     // 如果这个类型的分馆 是当前帐户可用的分馆，才列出来
-                    if (sessionInfo.Worker.libraryCode != "")
+                    if (activeUser.libraryCode != "")
                     {
                         int nIndex = type.LastIndexOf("}");
                         if (nIndex > 0)
@@ -338,22 +239,47 @@ namespace dp2weixinWeb.Controllers
         }
 
 
+        public ActionResult Message(string code, string state)
+        {
+
+            string strError = "";
+            int nRet = 0;
+
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state,
+                out activeUser,
+                out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Library/Message");
+                return View();
+            }
+            
+
+
+            // 获取消息
+            List<UserMessageItem> list =  UserMessageDb.Current.GetByUserId(activeUser.weixinId);
+
+
+
+            return View(list);
+
+
+            ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
         // 内务
         public ActionResult SearchItem(string from,string word)
         {
             string strError = "";
-            
-            //// 检查是否从微信入口进来
-            //int nRet = this.CheckIsFromWeiXin(null, null, out strError);
-            //if (nRet == -1)
-            //    goto ERROR1;
 
-
-            return View();
-
-
-        ERROR1:
-            ViewBag.Error = strError;
             return View();
         }
 
@@ -361,12 +287,22 @@ namespace dp2weixinWeb.Controllers
         public ActionResult Charge2(string code, string state)
         {
             string strError = "";
+            int nRet = 0;
 
-
-            // 检查是否从微信入口进来
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state, 
+                out activeUser,
+                out strError);
             if (nRet == -1)
+            {
                 goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Library/Charge2");
+                return View();
+            }
 
             //绑定的工作人员账号 需要有权限
             string weixinId = ViewBag.weixinId;//(string)Session[WeiXinConst.C_Session_WeiXinId];
@@ -374,63 +310,63 @@ namespace dp2weixinWeb.Controllers
 
             bool canBorrow = true;
             bool canReturn = true;
-            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
-            if (user == null)
-            {
-                // 取读者帐户
-                user = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
 
-                // 如果没有借还权限，不能操作
-                if (user !=null)
-                {
-                    if (user.rights.Contains("borrow") == false)
-                    {
-                        canBorrow=false;
-                    }
-                    if (user.rights.Contains("return") == false)
-                    {
-                        canReturn = false;
-                    }
-                }
+
+            if (activeUser == null)
+            {
+                strError = "当前活动帐户不存在";
+                goto ERROR1;
             }
 
-            // 未绑定工作人员，
-            if (user == null)
+            //WxUserItem user = sessionInfo.Active;// WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
+            // 未绑定
+            if (activeUser == null || activeUser.userName=="public")
             {
                 canBorrow = false;
                 canReturn = false;
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge2", true);
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("借还窗", "/Library/Charge2", true);
                 return View();
             }
-            if(canBorrow==false)
+            if (activeUser.rights.Contains("borrow") == false)
+            {
+                canBorrow = false;
+            }
+            if (activeUser.rights.Contains("return") == false)
+            {
+                canReturn = false;
+            }
+
+
+
+            if (canBorrow == false)
                 ViewBag.canBorrow = "disabled";
-            if (canReturn==false)
+            if (canReturn == false)
                 ViewBag.canReturn = "disabled";
 
             LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
             if (lib == null)
             {
-                strError = "未找到id为"+libId+"的图书馆";
+                strError = "未找到id为" + libId + "的图书馆";
                 goto ERROR1;
             }
             // 是否校验条码
             //ViewBag.verifyBarcode = lib.verifyBarcode;
 
             //设到ViewBag里
-            string userName="";
-            if (user.type == WxUserDatabase.C_Type_Worker)
+            string userName = "";
+            if (activeUser.type == WxUserDatabase.C_Type_Worker)
             {
-                userName = user.userName;
+                userName = activeUser.userName;
                 ViewBag.isPatron = 0;
             }
             else
             {
-                userName = user.readerBarcode;
+                userName = activeUser.readerBarcode;
                 ViewBag.isPatron = 1;
             }
 
             ViewBag.userName = userName;
-            ViewBag.userId = user.id;
+            ViewBag.userId = activeUser.id;
 
             // 关注馆藏去掉前面
             //string clearLocs = "";
@@ -450,59 +386,39 @@ namespace dp2weixinWeb.Controllers
             //        clearLocs += tempLoc;
             //    }
             //}
-            ViewBag.Location = SubLib.ParseToView(user.selLocation);
+            ViewBag.Location = SubLib.ParseToView(activeUser.selLocation);
 
-            ViewBag.verifyBarcode = user.verifyBarcode;
-            ViewBag.audioType = user.audioType;
-            return View(user);
+            ViewBag.verifyBarcode = activeUser.verifyBarcode;
+            ViewBag.audioType = activeUser.audioType;
+            return View(activeUser);
 
 
-        ERROR1:
+            ERROR1:
             ViewBag.Error = strError;
             return View();
         }
-
-        /*
-        // 内务
-        public ActionResult Charge(string code, string state)
-        {
-            // 检查是否从微信入口进来
-            string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
-            if (nRet == -1)
-                goto ERROR1;
-
-            //绑定的工作人员账号 需要有权限
-            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-            string libId = ViewBag.LibId;
-
-            WxUserItem worker = WxUserDatabase.Current.GetWorker(weixinId, ViewBag.LibId);
-            // 未绑定工作人员，
-            if (worker == null)
-            {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("出纳窗", "/Library/Charge",true);
-                return View();
-            }
-
-
-            //设到ViewBag里
-            ViewBag.userName = worker.userName;
-            return View();
-
-
-        ERROR1:
-            ViewBag.Error = strError;
-            return View();
-        }
-        */
+        
         // 公告
         public ActionResult BB(string code, string state)
         {
-            // 检查是否从微信入口进来
+
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError,false);
+            int nRet = 0;
+
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state, 
+                out activeUser,
+                out strError);
             if (nRet == -1)
+            {
                 goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Library/BB");
+                return View();
+            }
 
             //绑定的工作人员账号 需要有权限
             string userName = "";
@@ -522,13 +438,13 @@ namespace dp2weixinWeb.Controllers
             else
             {
                 // 查找当前微信用户绑定的工作人员账号
-                WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
+                //WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
                 // todo 后面可以放开对读者的权限
-                if (user != null)
+                if (activeUser != null && activeUser.userName != "public")
                 {
                     // 检索是否有权限 _wx_setHomePage
                     string needRight = dp2WeiXinService.C_Right_SetBb;
-                    int nHasRights = dp2WeiXinService.Instance.CheckRights(user,
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(activeUser,
                         lib.Entity,
                         needRight,
                         out strError);
@@ -538,7 +454,7 @@ namespace dp2weixinWeb.Controllers
                     }
                     if (nHasRights == 1)
                     {
-                        userName = user.userName;
+                        userName = activeUser.userName;
                     }
                     else
                     {
@@ -582,6 +498,8 @@ namespace dp2weixinWeb.Controllers
         {
             string strError = "";
             int nRet = 0;
+
+            /*
             // 如果是超级管理员，支持传一个weixin id参数
             if (String.IsNullOrEmpty(weixinId) == false)
             {
@@ -601,7 +519,7 @@ namespace dp2weixinWeb.Controllers
                     }                    
                     sessionInfo.gzh = gzh;
                     sessionInfo.libIds = libIds;
-                    nRet=sessionInfo.SetWeixinId(weixinId,out strError);
+                    nRet=sessionInfo.Init1(weixinId,out strError);
                     if (nRet == -1)
                     {
                         goto ERROR1;
@@ -614,13 +532,24 @@ namespace dp2weixinWeb.Controllers
                     return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Library/Home?weixinId="+weixinId));
                 }
             }
+            */
 
-            // 检查是否从微信入口进来
-            nRet = this.CheckIsFromWeiXin(code, state, out strError, false);
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state, 
+                out activeUser,
+                out strError);
             if (nRet == -1)
             {
                 goto ERROR1;
             }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state,"/Library/Home");
+                return View();
+            }
+
+
 
             //绑定的工作人员账号 需要有权限
             string userName = "";
@@ -651,15 +580,15 @@ namespace dp2weixinWeb.Controllers
             else
             {
                 // 查找当前微信用户绑定的工作人员账号
-                WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
+                //WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
                 // todo 后面可以放开对读者的权限
-                if (user != null)
+                if (activeUser != null && activeUser.userName != "public")
                 {
                     // 检索是否有权限 _wx_setHomePage
                     string needRight = dp2WeiXinService.C_Right_SetHomePage;
 
 
-                    int nHasRights = dp2WeiXinService.Instance.CheckRights(user,
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(activeUser,
                         lib.Entity, 
                         needRight,
                         out strError);
@@ -669,7 +598,7 @@ namespace dp2weixinWeb.Controllers
                     }
                     if (nHasRights == 1)
                     {
-                        userName = user.userName;
+                        userName = activeUser.userName;
                     }
                     else
                     {
@@ -715,6 +644,8 @@ namespace dp2weixinWeb.Controllers
 
             string strError = "";
             int nRet = 0;
+
+            /*
             // 如果是超级管理员，支持传一个weixin id参数
             if (String.IsNullOrEmpty(weixinId) == false)
             {
@@ -735,7 +666,7 @@ namespace dp2weixinWeb.Controllers
 
                     sessionInfo.gzh = gzh;
                     sessionInfo.libIds = libIds;
-                    nRet= sessionInfo.SetWeixinId(weixinId, out strError);
+                    nRet= sessionInfo.Init1(weixinId, out strError);
                     if (nRet == -1)
                     {
                         goto ERROR1;
@@ -748,16 +679,21 @@ namespace dp2weixinWeb.Controllers
                     return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Library/Home?weixinId=" + weixinId));
                 }
             }
-
- 
-
-            // 检查是否从微信入口进来
-            nRet = this.CheckIsFromWeiXin(code, state, out strError, false);
+            */
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state, 
+                out activeUser,
+                out strError);
             if (nRet == -1)
             {
-                if (ViewBag.LibState != LibraryManager.C_State_Hangup)//图书馆挂起，数字平台界面可用
-                    goto ERROR1;
+                goto ERROR1;
             }
+            //if (nRet == 0)
+            //{
+            //    // todo1
+            //    goto ERROR1;
+            //}
 
             //绑定的工作人员账号 需要有权限
             string userName = "";
@@ -808,11 +744,26 @@ namespace dp2weixinWeb.Controllers
         // 好书推荐
         public ActionResult BookSubject(string code, string state,string libId)
         {
-            // 检查是否从微信入口进来
+
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError, false);
+            int nRet = 0;
+
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state,
+                out activeUser,
+                out strError);
             if (nRet == -1)
+            {
                 goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Library/BookSubject");
+                return View();
+            }
+
+
 
             // weixin id 与图书馆id
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
@@ -843,13 +794,13 @@ namespace dp2weixinWeb.Controllers
             //绑定的工作人员账号 需要有权限
             // 查找当前微信用户绑定的工作人员账号
             string userName = "";
-            WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
+            //WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
             // 2016-8-13 加了当前工作所在图书馆与设置图书馆的判断
-            if (user != null && user.libId== libId)
+            if (activeUser != null && activeUser.libId== libId && activeUser.userName != "public")
             {
                 // 检索是否有权限 _wx_setHomePage
                 string needRight = dp2WeiXinService.C_Right_SetBook;
-                int nHasRights = dp2WeiXinService.Instance.CheckRights(user,
+                int nHasRights = dp2WeiXinService.Instance.CheckRights(activeUser,
                     lib.Entity,
                     needRight,
                     out strError);
@@ -859,7 +810,7 @@ namespace dp2weixinWeb.Controllers
                 }
                 if (nHasRights == 1)
                 {
-                    userName = user.userName;
+                    userName = activeUser.userName;
                 }
                 else
                 {
@@ -898,12 +849,23 @@ namespace dp2weixinWeb.Controllers
             string biblioPath,
             string isNew)
         {
-            // 检查是否从微信入口进来
+
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError, false);
+            int nRet = 0;
+
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state, 
+                out activeUser,
+                out strError);
             if (nRet == -1)
             {
                 goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Library/Book");
+                return View();
             }
 
             if (String.IsNullOrEmpty(libId) == true)
@@ -1010,12 +972,23 @@ namespace dp2weixinWeb.Controllers
             string userName,
             string subject)
         {
-            // 检查是否从微信入口进来
+
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            int nRet = 0;
+
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state,
+                out activeUser,
+                out strError);
             if (nRet == -1)
             {
                 goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Library/BookMsg");
+                return View();
             }
 
             if (String.IsNullOrEmpty(libId) == true)
@@ -1083,13 +1056,36 @@ namespace dp2weixinWeb.Controllers
             string biblioPath,
             string returnUrl)
         {
-            // 检查是否从微信入口进来
+
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            int nRet = 0;
+
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state,
+                out activeUser,
+                out strError);
             if (nRet == -1)
             {
                 goto ERROR1;
             }
+            if (nRet == 0)
+            {
+
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Library/BookEdit");
+                return View();
+            }
+
+            //// 登录检查
+            //nRet = this.CheckLogin(code, state, out strError);
+            //if (nRet == -1)
+            //{
+            //    goto ERROR1;
+            //}
+            //if (nRet == 0)
+            //{
+            //    return Redirect("~/Account/Bind?from=web");
+            //}
 
             if (String.IsNullOrEmpty(libId) == true)
             {

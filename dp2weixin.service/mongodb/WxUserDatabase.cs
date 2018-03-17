@@ -113,39 +113,67 @@ namespace dp2weixin.service
         {
             var filter = Builders<WxUserItem>.Filter.Empty;
 
+            dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.Get()");
+
+            StringBuilder info = new StringBuilder();
             if (bOnlyAvailable == true) // 只取有效的
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("state", C_State_Available);
+
+                info.Append(" state = " + C_State_Available);
             }
 
             if (string.IsNullOrEmpty(weixinId) == false)
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("weixinId", weixinId);
+
+                info.Append(" weixinId=" + weixinId);
             }
 
             if (string.IsNullOrEmpty(libId) == false)
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("libId", libId);
+
+                info.Append(" libId=" + libId);
             }
 
             if (type != -1)
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("type", type);
+
+                info.Append(" type=" + type);
             }
 
             if (string.IsNullOrEmpty(patronBarcode) == false)
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("readerBarcode", patronBarcode);
+
+                info.Append(" readerBarcode=" + patronBarcode);
             }
 
             if (string.IsNullOrEmpty(userName) == false)
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("userName", userName);
+
+                info.Append(" userName=" + userName);
             }
 
+            dp2WeiXinService.Instance.WriteLog1(info.ToString());
 
 
             List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
+            dp2WeiXinService.Instance.WriteLog1("共命中" + list.Count.ToString() + "个对象");
+
+            //string temp = "";
+            //foreach (WxUserItem u in list)
+            //{
+            //    temp+= u.id + ",";
+            //}
+
+
+
+
+
             return list;
         }
 
@@ -166,15 +194,17 @@ namespace dp2weixin.service
             return this.Get(weixinId, libId, C_Type_Worker,  null,userName, true);
         }
 
-        // 获取工作人员账户，目前设计是：针对一个图书馆只绑定一个账户
-        public WxUserItem GetWorker(string weixinId, string libId)
-        {
-            List<WxUserItem> list = this.Get(weixinId, libId, C_Type_Worker);// this.wxUserCollection.Find(filter).ToList();
-            if (list != null && list.Count >= 1)
-                return list[0];
 
-            return null;
-        }
+
+        //// 获取工作人员账户，目前设计是：针对一个图书馆只绑定一个账户
+        //public WxUserItem GetWorker(string weixinId, string libId,string userName)
+        //{
+        //    List<WxUserItem> list = this.GetWorkers(weixinId, libId, userName);
+        //    if (list != null && list.Count >= 1)
+        //        return list[0];
+
+        //    return null;
+        //}
 
         public WxUserItem GetPatronByPatronRefID(string weixinId,
             string libId,
@@ -192,12 +222,13 @@ namespace dp2weixin.service
             return null;
         }
 
+        /*
         // 获取当前活动的读者账户
-        public WxUserItem GetActivePatron(string weixinId,string libId)
+        public WxUserItem GetActivePatron1(string weixinId,string libId)
         {
             WxUserItem activePatron = null;
             int count = 0;
-            List<WxUserItem> list = this.Get(weixinId, libId, C_Type_Patron);//this.wxUserCollection.Find(filter).ToList();//.ToListAsync().Result;
+            List<WxUserItem> list = this.Get(weixinId, libId, C_Type_Patron);
             if (list != null && list.Count > 0)
             {
                 foreach (WxUserItem item in list)
@@ -214,6 +245,104 @@ namespace dp2weixin.service
                 throw new Exception("程序异常：微信号活动读者数量有" +list.Count+"个");
 
             return activePatron;
+        }
+        */
+
+        // 获取当前活动的账户  可能是读者也可能是工作人员，只有一个
+        public WxUserItem GetActive(string weixinId)
+        {
+            WxUserItem activeUser = null;
+            List<WxUserItem> activeList = new List<WxUserItem>();
+ 
+            // 这里不再区分图书馆和类型，读者与工作人员当前只能有一个活动的
+            List<WxUserItem> list = this.Get(weixinId, "", -1);
+            if (list != null && list.Count > 0)
+            {
+                foreach (WxUserItem item in list)
+                {
+                    if (item.isActive== 1)
+                    {
+                        activeList.Add(item);
+                    }
+                }
+            }
+
+            // 活动帐号大于，异常，自动将其它几条设为非活动。
+            if (activeList.Count > 0)
+            {
+                // 认第一条为活动帐户
+                activeUser = activeList[0];
+                if (activeList.Count > 1)
+                {
+                    string strError="发现微信号活动读者帐户有" + list.Count + "个,程序自动将除第1个外的其余帐户没为非活动态";
+                    dp2WeiXinService.Instance.WriteLog1(strError);
+                    for (int i = 1; i < activeList.Count; i++)
+                    {
+                        WxUserItem item = activeList[i];
+                        item.isActive = 0;
+                        WxUserDatabase.Current.Update(item);
+                        dp2WeiXinService.Instance.WriteLog1(item.userName + "/" + item.readerBarcode);
+                    }
+                }
+            }
+
+            // 有绑号帐号，但没有对应的活动帐号，自动将第一个帐户设为活动帐户
+            if (list.Count > 0 && activeList.Count == 0)
+            {
+                dp2WeiXinService.Instance.WriteLog1("发现微信号有绑定帐户，但当前没有活动帐户，自动将第一条设为活动帐户");
+                activeUser = list[0];
+                activeUser.isActive = 1;
+                WxUserDatabase.Current.Update(activeUser);
+                dp2WeiXinService.Instance.WriteLog1(activeUser.userName + "/" + activeUser.readerBarcode);
+            }
+
+
+            return activeUser;
+        }
+
+        public WxUserItem CreatePublic(string weixinId, string libId,string bindLibraryCode)
+        {
+            WxUserItem userItem = new WxUserItem();
+
+            userItem.weixinId = weixinId;
+            userItem.libId = libId;
+            Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
+            userItem.libName = lib.Entity.libName;
+            userItem.bindLibraryCode = bindLibraryCode; //界面上选择的绑定分馆
+            if (String.IsNullOrEmpty(userItem.bindLibraryCode) == false)
+            {
+                userItem.libName = userItem.bindLibraryCode;
+            }
+
+            userItem.readerBarcode = "";
+            userItem.readerName = "";
+            userItem.department = "";
+            userItem.xml = "";
+            userItem.refID = "";
+            userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+            userItem.updateTime = userItem.createTime;
+            userItem.isActive = 1; // 活动
+
+            userItem.libraryCode = ""; //实际分馆
+            userItem.type = WxUserDatabase.C_Type_Worker;
+            userItem.userName = "public";
+            userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0
+            userItem.tracing = "off";//默认是关闭监控
+            userItem.location = "";
+            userItem.selLocation = "";
+            userItem.verifyBarcode = 0;
+            userItem.audioType = 4;
+            userItem.state = 1;
+            userItem.remark = "";
+            userItem.rights = "";
+            userItem.showCover = 1;
+            userItem.showPhoto = 1;
+
+            WxUserDatabase.Current.Add(userItem);
+
+            dp2WeiXinService.Instance.WriteLog1("自动以绑public身份新建一条");
+
+            return userItem;
         }
 
         // 绑定微信用户绑定的图书馆id列表
@@ -270,10 +399,13 @@ namespace dp2weixin.service
         {
             lock (_sync_addUser)
             {
+                dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.Add(),id=" + item.id + " weixinid=" + item.weixinId);
+
                 List<WxUserItem> itemList = this.Get(item.weixinId, item.libId, item.type, item.readerBarcode, item.userName, true);
                 if (itemList.Count == 0)
                 {
                     this.wxUserCollection.InsertOne(item);
+                    dp2WeiXinService.Instance.WriteLog1("InsertOne(),id="+item.id);
                 }
                 else
                 {
@@ -289,6 +421,8 @@ namespace dp2weixin.service
         {
             newActivePatron = null;
 
+            dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.Delete() id=" + id);
+
             if (string.IsNullOrEmpty(id) == true || id == "null")
                 return;
 
@@ -296,12 +430,14 @@ namespace dp2weixin.service
             WxUserItem userItem = this.GetById(id);
             if (userItem == null)
                 return;
+            dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.Delete(),id=" + userItem.id + " weixinid=" + userItem.weixinId);
 
             string weixinId = "";
             int type = -1;
             int isActive = 0;
             string libId = "";
             string tracing = "";
+            string bindLibraryCode = "";
             if (userItem != null)
             {
                 weixinId = userItem.weixinId;
@@ -309,6 +445,7 @@ namespace dp2weixin.service
                 isActive = userItem.isActive;
                 libId = userItem.libId;
                 tracing = userItem.tracing;
+                bindLibraryCode = userItem.bindLibraryCode;
             }
 
             // 先删除
@@ -316,24 +453,57 @@ namespace dp2weixin.service
             var filter = Builders<WxUserItem>.Filter.Eq("id", id);
             collection.DeleteOne(filter);
 
-            // 如果删除的是读者账户且是激活的，自动将第一个读者账户设为默认的
-            if (type == 0 && isActive == 1)
+            // 如果删除的是读者账户且是激活的，自动将本馆第一个读者账户设为默认的
+            if (isActive == 1)
             {
-                WxUserItem newUserItem = this.GetOnePatron(weixinId, libId);
-                if (newUserItem != null)
+                // 先取本馆的
+                List<WxUserItem> list = this.Get(weixinId, libId,-1);
+                if (list != null && list.Count > 0)
                 {
-                    this.SetActivePatron(newUserItem.weixinId, newUserItem.id);
-                    newActivePatron = newUserItem;
+                    newActivePatron = list[0];
                 }
+
+                // 如果本馆帐户没找到，则把该微信号绑定的第一个帐户设为活动的
+                if (newActivePatron == null)
+                {
+                    list = this.Get(weixinId, "", -1);
+                    if (list != null && list.Count > 0)
+                    {
+                        newActivePatron = list[0];
+                    }
+                }
+
+                // 没有一个绑定帐户时，为刚才的馆创建一个public
+                if (newActivePatron == null)
+                {
+                    newActivePatron = this.CreatePublic(weixinId, libId,bindLibraryCode);
+                }
+
+                // 设为活动状态
+                this.SetActivePatron1(newActivePatron.weixinId, newActivePatron.id);
             }
 
-            // 如果是工作人员,且打开监控功能
-            if (type==1 && String.IsNullOrEmpty(tracing)==false && tracing !="off")
-            {
-                dp2WeiXinService.Instance.UpdateMemoryTracingUser(weixinId, libId, "off");
-            }
+            //// 如果是工作人员,且打开监控功能
+            //if (type==1 && String.IsNullOrEmpty(tracing)==false && tracing !="off")
+            //{
+            //    dp2WeiXinService.Instance.UpdateMemoryTracingUser(weixinId, libId, "off");
+            //}
         }
 
+        public void SimpleDelete(String id)
+        {
+            dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.SimpleDelete()");
+            if (string.IsNullOrEmpty(id) == true)
+                return;
+            dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.SimpleDelete() id=" + id);
+
+            // 先删除
+            IMongoCollection<WxUserItem> collection = this.wxUserCollection;
+            var filter = Builders<WxUserItem>.Filter.Eq("id", id);
+           DeleteResult ret =  collection.DeleteOne(filter);
+            dp2WeiXinService.Instance.WriteLog1("共删除成功"+ret.DeletedCount+"个对象");
+            
+        }
 
         // 根据libId与状态删除记录
         public void Delete(string libId,int state)
@@ -367,7 +537,7 @@ namespace dp2weixin.service
             UpdateResult ret = this.wxUserCollection.UpdateMany(filter, update);
         }
 
-        public List<WxUserItem> GetActivePatrons()
+        public List<WxUserItem> GetActivePatrons1()
         {
             var filter = Builders<WxUserItem>.Filter.Eq("isActive", 1);
             List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
@@ -380,7 +550,7 @@ namespace dp2weixin.service
         /// </summary>
         /// <param name="weixinId"></param>
         /// <param name="id"></param>
-        public void SetActivePatron(string weixinId, string id)
+        public void SetActivePatron1(string weixinId, string id)
         {
             if (string.IsNullOrEmpty(weixinId) == true)
                 return;
@@ -388,7 +558,7 @@ namespace dp2weixin.service
             if (string.IsNullOrEmpty(id) == true)
                 return;
 
-            // 先将该微信用户的所有绑定读者都设为非活动
+            // 先将该微信用户的所有帐户都设为非活动
             this.SetNoActivePatron(weixinId);
 
             // 再将参数传入的记录设为活动状态
@@ -403,10 +573,10 @@ namespace dp2weixin.service
         {
             if (string.IsNullOrEmpty(weixinId) == true)
                 return;
-            
+
             // 将该微信用户的所有绑定读者都设为非活动
-            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId)
-                & Builders<WxUserItem>.Filter.Eq("type", 0); // jane 2016-6-16 注意只存读者账户
+            var filter = Builders<WxUserItem>.Filter.Eq("weixinId", weixinId);
+                //& Builders<WxUserItem>.Filter.Eq("type", 0); // 2018/3/10不过滤读者，jane 2016-6-16 注意只存读者账户
             var update = Builders<WxUserItem>.Update
                 .Set("isActive", 0)
                 .Set("updateTime", DateTimeUtil.DateTimeToString(DateTime.Now));
@@ -436,6 +606,8 @@ namespace dp2weixin.service
         /// <returns></returns>
         public long Update(WxUserItem item)
         {
+            dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.Update(),id=" + item.id + " weixinid=" + item.weixinId);
+
             var filter = Builders<WxUserItem>.Filter.Eq("id", item.id);
             var update = Builders<WxUserItem>.Update
                 .Set("weixinId", item.weixinId)
@@ -470,6 +642,15 @@ namespace dp2weixin.service
                 .Set("selLocation", item.selLocation)
                .Set("verifyBarcode", item.verifyBarcode)
                .Set("audioType", item.audioType) //2018/1/2
+
+                /*
+         public int showPhoto { get; set; }
+         public int showCover { get; set; }
+         public string bookSubject { get; set; } // 20170509加
+                 */
+                .Set("showPhoto", item.showPhoto)
+                .Set("showCover", item.showCover)
+                .Set("bookSubject", item.bookSubject)
                 ;
 
             UpdateResult ret = this.wxUserCollection.UpdateOne(filter, update);
@@ -477,6 +658,7 @@ namespace dp2weixin.service
         }
 
 
+        // 获得打开了监控功能的帐户
         internal List<WxUserItem> GetTracingUsers()
         {
             var filter = Builders<WxUserItem>.Filter.Eq("tracing","on")
@@ -495,16 +677,27 @@ namespace dp2weixin.service
         // 微信id
         public string weixinId { get; set; }    
 
-        // 图书馆名称
-        public string libName { get; set; }    
+
 
         // 图书馆代码
         public string libId { get; set; }
+        // 图书馆名称
+        public string libName { get; set; }
+        //实际分馆代码，读者与工作人员都有该字段
+        public string libraryCode { get; set; }
+        public bool IsdpAdmin
+        {
+            get
+            {
+                if (this.libName == WeiXinConst.C_Dp2003LibName)
+                    return true;
+                else
+                    return false;
+            }
+        }
 
         // 20170509
         //绑定时选择的分馆代码，与自己的实际分馆代码 不同，比如绑定时选择的空（总馆），但实际是方洲小学。
-        //当某些环节会自动设置为当前帐户时（例如解绑时，会自动将下一个帐户设置了当前帐户），那么对应的设置表也要更新
-        //设置表时需要明确当前选择的是哪个分馆，不能看实际分馆代码
         public string bindLibraryCode { get; set; } 
 
         // 读者证条码号
@@ -530,8 +723,7 @@ namespace dp2weixin.service
         // 是否活动状态
         public int isActive = 0;
 
-        //实际分馆代码，读者与工作人员都有该字段
-        public string libraryCode { get; set; } 
+
 
         //账户类型：0表示读者 1表示工作人员 // 2016-6-16 新增
         public int type = 0;
@@ -554,19 +746,30 @@ namespace dp2weixin.service
         //tracing 2016-11-21 type=1工作人员时有意义 默认为空或者off
         public string tracing { get; set; }
 
+        public bool IsMask
+        {
+            get
+            {
+                if (this.tracing.IndexOf("-mask") != -1)  // -mask 指不做马赛克处理
+                    return false;
+                else
+                    return true;
+            }
+        }
+
         // 20170213 jane
         // 本用户在dp系统有权限的馆藏地，是xml格式
-            /*
+        /*
 <item canborrow="no" itemBarcodeNullable="yes">保存本库</item>
 <item canborrow="no" itemBarcodeNullable="yes">阅览室</item>
 <item canborrow="yes" itemBarcodeNullable="yes">流通库</item>
 <library code="方洲小学">
-  <item canborrow="yes" itemBarcodeNullable="yes">图书总库</item>
+<item canborrow="yes" itemBarcodeNullable="yes">图书总库</item>
 </library>
 <library code="星洲小学">
-  <item canborrow="yes" itemBarcodeNullable="yes">阅览室</item>
+<item canborrow="yes" itemBarcodeNullable="yes">阅览室</item>
 </library>
-             */       
+         */
         public string location { get; set; }
 
         // 20170213 在微信中选择的馆藏地，是以逗号分隔的两级路径，如：/流通库,方洲小学/图书总库
@@ -577,6 +780,13 @@ namespace dp2weixin.service
 
         // 借还时语音方案
         public int audioType { get; set; }
+
+
+
+        // 从setting表移来的字段
+        public int showPhoto { get; set; }
+        public int showCover { get; set; }
+        public string bookSubject { get; set; } // 20170509加
     }
 
 

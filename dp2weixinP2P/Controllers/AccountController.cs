@@ -12,6 +12,48 @@ namespace dp2weixinWeb.Controllers
 {
     public class AccountController : BaseController
     {
+        /*
+        // web登录
+        public ActionResult WebLogin(string returnUrl)
+        {
+            ViewBag.ReturnUrl = returnUrl;
+
+            string strError = "";
+
+            //// 检查是否从微信入口进来
+            //string strError = "";
+            //string state = "ilovelibrary";
+            //int nRet = this.CheckIsFromWeiXin("", state, out strError);
+            //if (nRet == -1 && strError!="未登录1")
+            //    goto ERROR1;
+
+            
+
+            // 临时id
+            //string guid = Guid.NewGuid().ToString();
+            string weixinId = "temp" ;//这是时间还得用temp因为还没有登录成功，只是做一些初始化设置，后面 "~~" + guid; //2018/3/8
+
+
+            // 初始化session
+            string state = "ilovelibrary";
+            SessionInfo sessionInfo = null;
+           int nRet = this.InitSession(state, weixinId, out sessionInfo, out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            // 初始化 viewbag
+            nRet = this.InitViewBag(sessionInfo, out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            return View();
+
+
+            ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+        */
         /// <summary>
         /// 账户管理
         /// </summary>
@@ -20,11 +62,23 @@ namespace dp2weixinWeb.Controllers
         /// <returns></returns>
         public ActionResult Index(string code, string state)
         {
-            // 检查是否从微信入口进来
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            int nRet = 0;
+
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state, 
+                out  activeUser,
+                out strError);
             if (nRet == -1)
+            {
                 goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state,"/Account/Index");
+                return View();
+            }
 
             // 检查微信id是否已经绑定的读者
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
@@ -48,34 +102,57 @@ namespace dp2weixinWeb.Controllers
         /// <param name="state"></param>
         /// <param name="returnUrl"></param>
         /// <returns></returns>
-        public ActionResult Bind(string code, string state, string returnUrl)
+        public ActionResult Bind(string code, string state, string returnUrl,string from)
         {
             ViewBag.ReturnUrl = returnUrl;
 
-            // 检查是否从微信入口进来
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
-            if (nRet == -1)
-                goto ERROR1;
+            int nRet = 0;
 
-            // 图书馆html,选中项为设置的图书馆
-            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-            //string selLibHtml = "";
-            //nRet = this.GetLibSelectHtml("",
-            //    weixinId,
-            //    true,
-            //    "",
-            //    out selLibHtml,
-            //    out strError);
-            //if (nRet == -1)
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state,
+                out activeUser,
+                out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Accout/Bind");
+                return View();
+            }
+
+            //// ｗｅｂ来源
+            //if (from == "web")
+            //{
+            //    string weixinId = "temp";//这是时间还得用temp因为还没有登录成功，只是做一些初始化设置，后面 "~~" + guid; //2018/3/8
+
+            //    // 初始化session
+            //     state = "ilovelibrary";
+            //    SessionInfo sessionInfo = null;
+            //     nRet = this.InitSession(state, weixinId, out sessionInfo, out strError);
+            //    if (nRet == -1)
+            //        goto ERROR1;
+
+            //    // 初始化 viewbag
+            //    nRet = this.InitViewBag(sessionInfo, out strError);
+            //    if (nRet == -1)
+            //        goto ERROR1;
+
+            //    ViewBag.fromUrl = "/Account/Bind?from=web";
+
+            //    return View();
+            //}
+
+            //// 登录检查
+            //nRet = this.CheckLogin(code, state, out strError);
+            //if (nRet == -1 || nRet ==0)
             //{
             //    goto ERROR1;
             //}
-            //ViewBag.LibHtml = selLibHtml;//this.GetLibSelectHtml("", weixinId,true); //2016-9-4 绑定时不支持选中默认图书馆 ViewBag.LibId
-
-            // 2016-11-16去掉，统一放在weixinId里
-            //SessionInfo sessionInfo = this.GetSessionInfo();
-            //ViewBag.appId = sessionInfo.gzh.appId;
+            ViewBag.fromUrl = "/Account/Bind";
 
             return View();
 
@@ -88,11 +165,20 @@ namespace dp2weixinWeb.Controllers
         public ActionResult ScanQRCodeBind(string code, string state,
             string libId)
         {
-            // 检查是否从微信入口进来
+
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
-            if (nRet == -1)
-                goto ERROR1;
+            int nRet = 0;
+
+            //// 登录检查
+            //nRet = this.CheckLogin(code, state, out strError);
+            //if (nRet == -1)
+            //{
+            //    goto ERROR1;
+            //}
+            //if (nRet == 0)
+            //{
+            //    return Redirect("~/Account/Bind?from=web");
+            //}
 
             if (libId == null)
                 libId = "";
@@ -100,16 +186,16 @@ namespace dp2weixinWeb.Controllers
             // 图书馆html
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
             string selLibHtml = "";
-            nRet = this.GetLibSelectHtml(libId,
-                weixinId,
-                true,
-                "",
-                out selLibHtml,
-                out strError);
-            if (nRet == -1)
-            {
-                goto ERROR1;
-            }
+            //nRet = this.GetLibSelectHtml(libId,
+            //    weixinId,
+            //    true,
+            //    "",
+            //    out selLibHtml,
+            //    out strError);
+            //if (nRet == -1)
+            //{
+            //    goto ERROR1;
+            //}
             ViewBag.LibHtml = selLibHtml; //this.GetLibSelectHtml(libId, weixinId, true);
 
             ViewBag.LibVersions = dp2WeiXinService.Instance.LibManager.GetLibVersiongString();
@@ -137,29 +223,58 @@ namespace dp2weixinWeb.Controllers
             string libId,
             string readerName)
         {
-            // 检查是否从微信入口进来
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            int nRet = 0;
+
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state, 
+                out activeUser,
+                out strError);
             if (nRet == -1)
+            {
                 goto ERROR1;
-            
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state,"/Account/ResetPassword");
+                return View();
+            }
+
+
+            //// 登录检查
+            //nRet = this.CheckLogin(code, state, out strError);
+            //if (nRet == -1)
+            //{
+            //    goto ERROR1;
+            //}
+            //if (nRet == 0)
+            //{
+            //    //return Redirect("~/Account/Bind?from=web");
+
+            //    // weixinId = "temp";//这是时间还得用temp因为还没有登录成功，只是做一些初始化设置，后面 "~~" + guid; //2018/3/8
+
+            //    //// 初始化session
+            //    //state = "ilovelibrary";
+            //    //SessionInfo sessionInfo = null;
+            //    //nRet = this.InitSession(state, weixinId, out sessionInfo, out strError);
+            //    //if (nRet == -1)
+            //    //    goto ERROR1;
+
+            //    // 初始化 viewbag
+            //    SessionInfo sessionInfo = this.GetSessionInfo();
+
+            //    nRet = this.InitViewBag(sessionInfo, out strError);
+            //    if (nRet == -1)
+            //        goto ERROR1;
+            //}
+
             if (libId == null)
                 libId = "";
 
             // 图书馆html
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-            //string selLibHtml = "";
-            //nRet = this.GetLibSelectHtml(libId,
-            //    weixinId,
-            //    true,
-            //    "",
-            //    out selLibHtml,
-            //    out strError);
-            //if (nRet == -1)
-            //{
-            //    goto ERROR1;
-            //}
-            //ViewBag.LibHtml = selLibHtml;            
+      
 
             if (string.IsNullOrEmpty(readerName) == false && readerName != "undefined")
                 ViewBag.ReaderName = readerName;// "test";
@@ -185,16 +300,33 @@ namespace dp2weixinWeb.Controllers
         /// <returns></returns>
         public ActionResult ChangePassword(string code, string state,string patronBarcode)
         {
-            // 检查是否从微信入口进来
             string strError = "";
-            int nRet = this.CheckIsFromWeiXin(code, state, out strError);
+            int nRet = 0;
+
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state, 
+                out activeUser,
+                out strError);
             if (nRet == -1)
+            {
                 goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Account/ChangePassword");
+                return View();
+            }
 
             if (String.IsNullOrEmpty(patronBarcode) == true)
             {
                 string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-                WxUserItem userItem = WxUserDatabase.Current.GetActivePatron(weixinId,ViewBag.LibId);
+                WxUserItem userItem = WxUserDatabase.Current.GetActive(weixinId);
+                if (userItem.type == WxUserDatabase.C_Type_Worker)
+                {
+                    strError = "当前用户不可能是工作人员";
+                    goto ERROR1;
+                }
                 if (userItem != null)
                     patronBarcode = userItem.readerBarcode;
             }

@@ -14,6 +14,14 @@ namespace dp2weixin.service
 
         public TemplateDataItem first { get; set; }
         public TemplateDataItem remark { get; set; }
+
+        public virtual string Dump()
+        {
+            return "<root>"
+                + "<first>"+first.value + "</first>"
+                + "<remark>"+remark.value + "</remark>"
+                + "</root>";
+        }
     }
 
     // 2个数据项
@@ -31,6 +39,16 @@ namespace dp2weixin.service
 
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
+
+        public override string Dump()
+        {
+            return "<root>"
+                + "<first>" + first.value + "</first>"
+                + "<keyword1>"+keyword1.value + "</keyword1>"
+                + "<keyword2>"+keyword2.value + "</keyword2>"
+                + "<remark>" + remark.value + "</remark>"
+                + "</root>";
+        }
     }
 
     // 3个数据项
@@ -50,6 +68,17 @@ namespace dp2weixin.service
         public TemplateDataItem keyword1 { get; set; }
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
+
+        public override string Dump()
+        {
+            return "<root>"
+                + "<first>" + first.value + "</first>"
+                + "<keyword1>" + keyword1.value + "</keyword1>"
+                + "<keyword2>" + keyword2.value + "</keyword2>"
+                + "<keyword3>" + keyword3.value + "</keyword3>"
+                + "<remark>" + remark.value + "</remark>"
+                + "</root>";
+        }
     }
 
     // 4个数据项
@@ -70,6 +99,18 @@ namespace dp2weixin.service
         public TemplateDataItem keyword2 { get; set; }
         public TemplateDataItem keyword3 { get; set; }
         public TemplateDataItem keyword4 { get; set; }
+
+        public override string Dump()
+        {
+            return "<root>"
+                + "<first>" + first.value + "</first>"
+                + "<keyword1>" + keyword1.value + "</keyword1>"
+                + "<keyword2>" + keyword2.value + "</keyword2>"
+                + "<keyword3>" + keyword3.value + "</keyword3>"
+                + "<keyword4>" + keyword4.value + "</keyword4>"
+                + "<remark>" + remark.value + "</remark>"
+                + "</root>";
+        }
     }
 
 
@@ -94,6 +135,19 @@ namespace dp2weixin.service
         public TemplateDataItem keyword3 { get; set; }
         public TemplateDataItem keyword4 { get; set; }
         public TemplateDataItem keyword5 { get; set; }
+
+        public override string Dump()
+        {
+            return "<root>"
+                + "<first>" + first.value + "</first>"
+                + "<keyword1>" + keyword1.value + "</keyword1>"
+                + "<keyword2>" + keyword2.value + "</keyword2>"
+                + "<keyword3>" + keyword3.value + "</keyword3>"
+                + "<keyword4>" + keyword4.value + "</keyword4>"
+                + "<keyword5>" + keyword5.value + "</keyword5>"
+                + "<remark>" + remark.value + "</remark>"
+                + "</root>";
+        }
     }
 
     //您好，您已借书成功。

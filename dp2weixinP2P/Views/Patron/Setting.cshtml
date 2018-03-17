@@ -64,49 +64,6 @@
                     // 重新加载页面
                     window.location.reload();
 
-                    /*
-                    var oldName = $("#_libName").text();
-                    var libName = $("#selLib  option:selected").text();
-
-                    // 更新消息标题
-                    var tracingTitle = "监控本馆消息";
-                    if (libName == "数字平台")
-                    {
-                        tracingTitle = "监控所有图书馆的消息";
-                    }
-                    $("#tracingTitle").text(tracingTitle);
-
-                    // 更新到顶部
-                    libName = "[" + libName + "]"
-                    $("#_libName").text(libName);
-
-                    */
-
-
-
-                    // 不弹出成功提示，保持在本页
-                    /*
-                    alert("保存成功");
-
-                    // 返回到来源页
-                    var returnUrl = $("#returnUrl").text();
-                    if (returnUrl == null || returnUrl == "") {
-                        returnUrl = "/Library/Home"; //转到图书馆介绍
-                        gotoUrl(returnUrl);
-                    }
-                    else {
-                        if (returnUrl.indexOf("/Biblio/Index") != -1 && oldName == libName) {
-                            //alert("1");
-                            window.history.go(-1);
-                        }
-                        else {
-                            //gotoUrl(returnUrl);
-
-                            var myUrl = window.location.protocol + '//' + window.location.host + returnUrl;
-                            window.location = myUrl;
-                        }
-                    }
-                    */
                 },
                 function (xhq, textStatus, errorThrown) {
 
@@ -425,7 +382,7 @@
                 return;
             }
             var audioType = getAudioType();
-            //alert("[" + getAudioType + "]");
+            //alert("[" + audioType + "]");
 
             //显示等待图层
             showMaskLayer();
@@ -490,110 +447,109 @@
 }
 else
 {
-    <!--
-        <div class="mui-input-group" style="background-color:white">
-            <div class="mui-input-row" style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
-                <label style="color:#cccccc;">图书馆</label>
-                @Html.Raw(ViewBag.LibHtml)
-            </div>
-        </div>
-    -->
-
-    <table style="width:100%">
-        <tr>
-            <td style="width:100%">
-                <div class="mui-input-group" style="background-color:white">
-                    <div class="mui-input-row">
-                        <label style="color:#cccccc;">我的图书馆</label>
-                        <input type="text" class="mui-input mui-input-clear" id="txtLib" readonly value="@ViewBag.PureLibName">
-                    </div>
-                </div>
-            </td>
-            <td><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
-        </tr>
-    </table>
-
-
-    <div class="mui-card" style="margin-top:10px">
-        <div class='mui-input-row mui-checkbox mui-left'>
-            <label>显示头像</label>
-            <input id='ckbPhoto' onchange="save()" type='checkbox' @ViewBag.photoChecked />
-        </div>
-        <div class='mui-input-row mui-checkbox mui-left'>
-            <label>显示图书封面</label>
-            <input id='ckbCover' onchange="save()" type='checkbox' @ViewBag.coverChecked />
-        </div>
-    </div>
-
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
     {
-        string style = "";
-        string disabledstr = "";
-        if (String.IsNullOrEmpty(ViewBag.workerId) == true)
-        {
-            style = "color:#cccccc";
-            disabledstr = "disabled";
-        }
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+
+        <table style="width:100%">
+            <tr>
+                <td style="width:100%">
+                    <div class="mui-input-group" style="background-color:white">
+                        <div class="mui-input-row">
+                            <label style="color:#cccccc;">我的图书馆</label>
+                            <input type="text" class="mui-input mui-input-clear" id="txtLib" readonly value="@ViewBag.PureLibName">
+                        </div>
+                    </div>
+                </td>
+                <td><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
+            </tr>
+        </table>
+
+
         <div class="mui-card" style="margin-top:10px">
             <div class='mui-input-row mui-checkbox mui-left'>
-                <label><span style='@style' id="tracingTitle">@ViewBag.info</span><span style="color:#cccccc">（工作人员有效）</span></label>
-                <input id='ckbTracing' @disabledstr onchange="updateTracing()" type='checkbox' @ViewBag.tracingChecked />
+                <label>显示头像</label>
+                <input id='ckbPhoto' onchange="save()" type='checkbox' @ViewBag.photoChecked />
             </div>
             <div class='mui-input-row mui-checkbox mui-left'>
-                <label><span style='@style'>监控消息隐藏敏感字段</span></label>
-                <input id='ckbMask' @disabledstr onchange="updateTracing()" type='checkbox' @ViewBag.maskChecked />
+                <label>显示图书封面</label>
+                <input id='ckbCover' onchange="save()" type='checkbox' @ViewBag.coverChecked />
             </div>
         </div>
-    }
 
-    <div class="mui-card" style="margin-top:10px">
-        <div class="mui-content-padded"><span style="@ViewBag.subLibGray">流通操作限定范围</span><span style="color:#cccccc">（工作人员 或 有流通权限的读者 有效） @ViewBag.accountInfo</span> </div>
-        @if (ViewBag.libList != null)
         {
-            foreach (dp2weixin.service.SubLib sublib in ViewBag.libList)
+            string style = "";
+            string disabledstr = "";
+            if (String.IsNullOrEmpty(ViewBag.workerId) == true)
             {
+                style = "color:#cccccc";
+                disabledstr = "disabled";
+            }
+            <div class="mui-card" style="margin-top:10px">
                 <div class='mui-input-row mui-checkbox mui-left'>
-                    <label>@sublib.libCode &nbsp;<span style="color:#cccccc;font-size:18pt" onclick="expand(this,'lib-@sublib.libCode')">-</span></label>
-                    <input id='ckbSubLib-@sublib.libCode' class="library" type='checkbox' @sublib.Checked onchange="selSubLib(this)" value="@sublib.libCode" />
-                    <div style="padding-left:30px" id="lib-@sublib.libCode">
-                        @foreach (dp2weixin.service.Location location in sublib.Locations)
-                        {
-                            <div class='mui-input-row mui-checkbox mui-left'>
-                                <label>@location.Name</label>
-                                <input id='ckbLocation-@sublib.libCode' class='location' @location.Checked type='checkbox' onchange='selLoc(this)' value='@location.Name' />
-                            </div>
-                        }
+                    <label><span style='@style' id="tracingTitle">@ViewBag.info</span><span style="color:#cccccc">（工作人员有效）</span></label>
+                    <input id='ckbTracing' @disabledstr onchange="updateTracing()" type='checkbox' @ViewBag.tracingChecked />
+                </div>
+                <div class='mui-input-row mui-checkbox mui-left'>
+                    <label><span style='@style'>监控消息隐藏敏感字段</span></label>
+                    <input id='ckbMask' @disabledstr onchange="updateTracing()" type='checkbox' @ViewBag.maskChecked />
+                </div>
+            </div>
+        }
+
+        <div class="mui-card" style="margin-top:10px">
+            <div class="mui-content-padded"><span style="@ViewBag.subLibGray">流通操作限定范围</span><span style="color:#cccccc">（工作人员 或 有流通权限的读者 有效） @ViewBag.accountInfo</span> </div>
+            @if (ViewBag.libList != null)
+            {
+                foreach (dp2weixin.service.SubLib sublib in ViewBag.libList)
+                {
+                    <div class='mui-input-row mui-checkbox mui-left'>
+                        <label>@sublib.libCode &nbsp;<span style="color:#cccccc;font-size:18pt" onclick="expand(this,'lib-@sublib.libCode')">-</span></label>
+                        <input id='ckbSubLib-@sublib.libCode' class="library" type='checkbox' @sublib.Checked onchange="selSubLib(this)" value="@sublib.libCode" />
+                        <div style="padding-left:30px" id="lib-@sublib.libCode">
+                            @foreach (dp2weixin.service.Location location in sublib.Locations)
+                            {
+                                <div class='mui-input-row mui-checkbox mui-left'>
+                                    <label>@location.Name</label>
+                                    <input id='ckbLocation-@sublib.libCode' class='location' @location.Checked type='checkbox' onchange='selLoc(this)' value='@location.Name' />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class='mui-input-row mui-checkbox mui-left' style="background-color:#eeeeee">
+                    <label>校验输入的条码号</label>
+                    <input id='ckbVerifyBarcode' type='checkbox' @ViewBag.verifyBarcode onchange='saveVerifyBarcode()' />
+                </div>
+
+                <div style="background-color:white;margin-left:10px;margin-right:10px;margin-top:20px;">
+                    <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
+                        <label style="color:#999999">声音方案</label>
+                        <select id="audioType" style="background-color:transparent" onchange='saveAudioType()'>
+                            <option value="1" selected>简单音效</option>
+                            <option value="2">提示语音</option>
+                            <option value="3">简单音效+具体信息语音</option>
+                            <option value="4">提示语音+具体信息语音</option>
+                        </select>
                     </div>
                 </div>
             }
 
-            <div class='mui-input-row mui-checkbox mui-left' style="background-color:#eeeeee">
-                <label>校验输入的条码号</label>
-                <input id='ckbVerifyBarcode' type='checkbox' @ViewBag.verifyBarcode onchange='saveVerifyBarcode()' />
-            </div>
-
-            <div style="background-color:white;margin-left:10px;margin-right:10px;margin-top:20px;">
-                <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
-                    <label style="color:#999999">声音方案</label>
-                    <select id="audioType" style="background-color:transparent" onchange='saveAudioType()'>
-                        <option value="1" selected>简单音效</option>
-                        <option value="2">提示语音</option>
-                        <option value="3">简单音效+具体信息语音</option>
-                        <option value="4">提示语音+具体信息语音</option>
-                    </select>
-                </div>
-            </div>
-        }
 
 
 
 
 
+        </div>
 
-    </div>
-
-    <!--
-    <div class="mui-content-padded">
-        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>
-    </div>
-        -->
+        <!--
+        <div class="mui-content-padded">
+            <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>
+        </div>
+            -->
+    }
 }

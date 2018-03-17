@@ -1,9 +1,118 @@
-﻿        @section style {
+﻿@section style {
     <link href="@Url.Content("~/Content/biblio.css?a=6")" rel="stylesheet">
+
 }
 @section Scripts {
+
     <script>
 
+        function callbackFunction() {
+            //alert("1");
+            if (wx != null) {
+                //alert("走进wx");
+
+                //alert('@ViewData["AppId"]');
+                wx.config({
+                    debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+                    appId: '@ViewData["AppId"]', // 必填，公众号的唯一标识
+                    timestamp: '@ViewData["Timestamp"]', // 必填，生成签名的时间戳
+                    nonceStr: '@ViewData["NonceStr"]', // 必填，生成签名的随机串
+                    signature: '@ViewData["Signature"]',// 必填，签名
+                    jsApiList: [
+                        "checkJsApi",
+                        'onMenuShareTimeline',
+                        'onMenuShareAppMessage',
+                        'onMenuShareQQ',
+                        'onMenuShareWeibo',
+                        'hideMenuItems',
+                        'showMenuItems',
+                        'hideAllNonBaseMenuItem',
+                        'showAllNonBaseMenuItem',
+                        'translateVoice',
+                        'startRecord',
+                        'stopRecord',
+                        'onRecordEnd',
+                        'playVoice',
+                        'pauseVoice',
+                        'stopVoice',
+                        'uploadVoice',
+                        'downloadVoice',
+                        'chooseImage',
+                        'previewImage',
+                        'uploadImage',
+                        'downloadImage',
+                        'getNetworkType',
+                        'openLocation',
+                        'getLocation',
+                        'hideOptionMenu',
+                        'showOptionMenu',
+                        'closeWindow',
+                        'scanQRCode',
+                        'chooseWXPay',
+                        'openProductSpecificView',
+                        'addCard',
+                        'chooseCard',
+                        'openCard'
+                    ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2。详见：http://mp.weixin.qq.com/wiki/7/aaa137b55fb2e0456bf8dd9148dd613f.html
+                });
+
+                wx.error(function (res) {
+                    //alert('JSSDK config信息验证失败：' + JSON.stringify(res));
+                    jssdkReady = -1;
+                });
+
+                wx.ready(function () {
+                    jssdkReady = 1;
+                });
+            }
+        }
+
+
+        function loadJs(sid, jsurl, callback) {
+            var nodeHead = document.getElementsByTagName('head')[0];
+
+            //alert("0-1");
+            var nodeScript = null;
+            if (document.getElementById(sid) == null) {
+                nodeScript = document.createElement('script');
+                nodeScript.setAttribute('type', 'text/javascript');
+                nodeScript.setAttribute('src', jsurl);
+                nodeScript.setAttribute('id', sid);
+
+                //alert("0-2");
+
+                if (callback != null) {
+                    nodeScript.onload = nodeScript.onreadystatechange = function () {
+
+                        //alert("0-3");
+
+                        if (nodeScript.ready) {
+
+                            //alert("0-4");
+
+                            return false;
+                        }
+                        if (!nodeScript.readyState || nodeScript.readyState == "loaded" || nodeScript.readyState == 'complete') {
+                            //alert("0-5");
+
+                            nodeScript.ready = true;
+                            callback();
+                        }
+                    };
+                }
+                nodeHead.appendChild(nodeScript);
+
+                //alert("0-6");
+
+            } else {
+                if (callback != null) {
+
+                    //alert("0-7");
+
+                    callback();
+                }
+            }
+        }
 
         function scanIsbn(bSimple) {
             //alert("begin");
@@ -32,24 +141,21 @@
                             left = code.substring(0, code.indexOf(","))//EAN_13
                             isbn = code.substring(code.indexOf(",") + 1)
                         }
-                        if (left != "EAN_13" || isbn=="")
-                        {
+                        if (left != "EAN_13" || isbn == "") {
                             alert("抱歉，您扫描的不是合法的ISBN条码。\n扫描返回字符串为[" + code + "]，");
                             return;
                         }
-                        
+
 
                         //alert("扫到的isbn=" + isbn);
 
 
                         if (isbn != null && isbn != "") {
-                            if (bSimple == true)
-                            {
+                            if (bSimple == true) {
                                 $("#txtWordSimple").val(isbn);
                                 window.setTimeout("search('simple')", 1);
                             }
-                            else
-                            {
+                            else {
                                 $("#selFrom").val("ISBN");
                                 $("#txtWord").val(isbn);
 
@@ -57,17 +163,17 @@
 
                                 //search('');
                             }
-                            
+
                         }
                     },
                     fail: function (res) {
-                        alert("error:"+JSON.stringify(res));
+                        alert("error:" + JSON.stringify(res));
                         return "";
                     }
                 });
             }
             catch (err) {
-                alert("扫码出错："+err);
+                alert("扫码出错：" + err);
             }
             //alert("end");
         }
@@ -75,6 +181,13 @@
 
         //浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
+
+            // 如果是web来源，才加载JSSDK
+            if (browser.versions.weixin == true) {
+                //alert("动态加载JSSDK...");
+                var myUrl = getRootPath() + "/Scripts/jweixin-1.0.0.js";
+                loadJs("yy", myUrl, callbackFunction);
+            }
 
             // 打回车检索
             $('#txtWord').bind('keypress', function (event) {
@@ -104,7 +217,7 @@
 
             $(window).scroll(function () {
 
-                if ($("#more") != null && $("#more").offset() !=null ) {
+                if ($("#more") != null && $("#more").offset() != null) {
                     var show = $('#more').css('display');
                     if (show == "none")
                         return;
@@ -138,8 +251,7 @@
                     if (itemOffsetTop >= $(window).scrollTop()
                         && itemOffsetTop < ($(window).scrollTop() + $(window).height())) {
                         //alert("div在可视范围");
-                        if ($("#more").hasClass("nextdisabled") == true)
-                        {
+                        if ($("#more").hasClass("nextdisabled") == true) {
                             //alert("未加载完，不能继续加载");
                             return;
                         }
@@ -164,7 +276,7 @@
                 word = $('#txtWordSimple').val();
 
             //alert("word=["+word+"]");
-            if (word!=null && word != "") {
+            if (word != null && word != "") {
                 //alert("maxNo=" + $("#maxNo").val());
                 var expandId = $('#expandId').val();
                 search("_ReView", expandId);
@@ -202,7 +314,7 @@
                 $("#more").addClass("nextdisabled");
                 $("#more").css("display", "block");
             }
-            
+
 
             else if (bNext == '_ReView') {
                 from = "_ReView";
@@ -210,7 +322,7 @@
             }
             else if (bNext == 'simple') {
                 // 检索途径
-                from = "title,ISBN,contributor,subjec,clc,_class,publishtime,publisher";
+                from = "title,ISBN,contributor,subject,clc,_class,publishtime,publisher";
                 match = $("#_match").text();//"left";
                 if (match == null || match == "")
                     match = "left";
@@ -303,7 +415,7 @@
                     }
                     else {
                         totalCount = result.apiResult.errorCode;
-                        $("#searchInfo").text("命中" + totalCount  + "条记录。");
+                        $("#searchInfo").text("命中" + totalCount + "条记录。");
                         $("#searchInfo").css("color", "darkgreen");  //设置p元素的样式颜色为红色
                     }
 
@@ -333,16 +445,16 @@
 
                         var li = "<li class='mui-table-view-cell mui-collapse' id='" + id + "'> "
                             + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\"" + id + "\")' style='padding-top:5px;padding-bottom:5px'>"
-                            +"<table width='100%' class='result-biblio'>"
-                        + "<tr><td style='width:"+noWidth+";min-width:18px'>" + record.no + "</td><td style='padding-right:10px'><div style='width:100%; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; ' >" + record.name + "</div></td></tr>"
-                        + "<tr><td >&nbsp;</td><td style='color:#cccccc'>" + record.recPath + "</td></tr>"
-                        +"</table>"
-                        +"</a>"
+                            + "<table width='100%' class='result-biblio'>"
+                            + "<tr><td style='width:" + noWidth + ";min-width:18px'>" + record.no + "</td><td style='padding-right:10px'><div style='width:100%; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; ' >" + record.name + "</div></td></tr>"
+                            + "<tr><td >&nbsp;</td><td style='color:#cccccc'>" + record.recPath + "</td></tr>"
+                            + "</table>"
+                            + "</a>"
                             + "<div class='mui-collapse-content' style='display:none;padding-top: 0px;'>"
-                                + "<div class='pendingDetail biblio' >"
-                                    + "<label>" + record.recPath + "</label>"
-                                    + "<img src='../img/wait2.gif' />"
-                                + "</div>"
+                            + "<div class='pendingDetail biblio' >"
+                            + "<label>" + record.recPath + "</label>"
+                            + "<img src='../img/wait2.gif' />"
+                            + "</div>"
                             + "</div>"
                             + "</li>";
                         table.append(li);
@@ -396,10 +508,10 @@
 
                     // 关闭等待层
                     //layer.close(index);
-                    //hideMaskLayer();                    
+                    //hideMaskLayer();
                     hideLoading();
 
-                    alert("异常："+errorThrown);
+                    alert("异常：" + errorThrown);
 
                 });
         }
@@ -457,7 +569,7 @@
 
         //必须要换一个名称，被下一页使用，直接用search("true")不行
         function searchN() {
-            search("true"); 
+            search("true");
         }
 
 
@@ -501,101 +613,101 @@
 <span id="weixinId" style="display:none;">@ViewBag.weixinId</span>
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
 <span id="_match" style="display:none">@ViewBag.Match</span>
-    <!--<span id="test" style="display:block"></span>-->
-    <!--关于结果集-->
-    <input id="maxNo" type="hidden">
-    <input id="resultSet" type="hidden" value="" disabled="disabled">
-    <input id="expandId" type="hidden" value="" disabled="disabled">
-    @if (String.IsNullOrEmpty(ViewBag.Error) == false)
+<!--<span id="test" style="display:block"></span>-->
+<!--关于结果集-->
+<input id="maxNo" type="hidden">
+<input id="resultSet" type="hidden" value="" disabled="disabled">
+<input id="expandId" type="hidden" value="" disabled="disabled">
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span id="error" class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
     {
-        <div class="mui-content-padded">
-            <span id="error" class="errorinfo">
-                @Html.Raw(ViewBag.Error)
-            </span>
-        </div>
+        @Html.Raw(ViewBag.RedirectInfo);
     }
     else
     {
+        <div id="divSimple" class="search" style="padding:10px">
+            <table style="width:100%" class="simple">
+                <tr>
+                    <td><img src='../img/barcode.png' onclick="scanIsbn(true)" /></td>
+                    <td style="padding-left:3px; vertical-align:middle;width:100%">
+                        <input class="mui-input mui-input-clear" style="border-top-left-radius:4px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:4px;border-right:0px" id="txtWordSimple" type="text" value="" placeholder="请输入检索词">
+                    </td>
+                    <td style="vertical-align:top">
+                        <span class="mui-icon mui-icon-search" style="padding-top:10px;height:40px; border:1px solid #cccccc;border-left:0px;border-top-left-radius:0px;border-top-right-radius:4px;border-bottom-right-radius:4px;border-bottom-left-radius:0px;width:30px;cursor:pointer; background-color:white" onclick="search('simple')"></span>
+                    </td>
+                    <!--<td><img src='../img/barcode.png' onclick="scanIsbn(true)" /></td>-->
+                </tr>
+            </table>
+        </div>
+        <div id="divAdvance" class="search" style="display:none">
+            <table class="advance">
+                <tr>
+                    <td class="label">检索途径</td>
+                    <td>
+                        <div style="border:1px solid #cccccc">
+                            <select id="selFrom" name="selFrom">
+                                <option value="title,ISBN,contributor,subject,clc,_class,publishtime,publisher" selected>全部</option>
+                                <option value="title" selected>书名</option>
+                                <option value="ISBN">ISBN</option>
+                                <option value="contributor">作者</option>
+                                <option value="subject">主题词</option>
+                                <option value="clc,_class">分类号</option>
+                                <option value="publishtime">出版时间</option>
+                                <option value="publisher">出版社</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">检索词<img src='../img/barcode.png' onclick="scanIsbn(false)" /></td>
+                    <td>
+                        <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">匹配方式</td>
+                    <td>
+                        <div style="border:1px solid #cccccc">
+                            <!--left/middle/right/exact-->
+                            <select id="selMatch">
+                                <option value="left" selected>前方一致</option>
+                                <option value="middle">中间一致</option>
+                                <option value="right">后方一致</option>
+                                <option value="exact">精确一致</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="padding:10px">
+            <a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a>
 
-        if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
-        {
-            @Html.Raw(ViewBag.RedirectInfo);
-        }
-        else
-        {
-            <div id="divSimple" class="search" style="padding:10px">
-                <table style="width:100%" class="simple">
-                    <tr>
-                        <td><img src='../img/barcode.png' onclick="scanIsbn(true)" /></td>
-                        <td style="padding-left:3px; vertical-align:middle;width:100%">
-                            <input class="mui-input mui-input-clear" style="border-top-left-radius:4px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:4px;border-right:0px" id="txtWordSimple" type="text" value="" placeholder="请输入检索词">
-                        </td>
-                        <td style="vertical-align:top">
-                            <span class="mui-icon mui-icon-search" style="padding-top:10px;height:40px; border:1px solid #cccccc;border-left:0px;border-top-left-radius:0px;border-top-right-radius:4px;border-bottom-right-radius:4px;border-bottom-left-radius:0px;width:30px;cursor:pointer; background-color:white" onclick="search('simple')"></span>
-                        </td>
-                        <!--<td><img src='../img/barcode.png' onclick="scanIsbn(true)" /></td>-->
-                    </tr>
-                </table>
+        </div>
+        <div id="divResult">
+            <!--数据列表-->
+            <span style="padding-left:10px;" id="searchInfo"></span>
+            <ul id="ulResult" class="mui-table-view "></ul>
+            <div id='more' style="display:none;color:black">
+                <center><a href='javascript:void(0)' onclick='searchN()'><img src='../img/loading.gif' />&nbsp;<span id="moretext">加载中...</span></a></center>
             </div>
-            <div id="divAdvance" class="search" style="display:none">
-                <table class="advance">
-                    <tr>
-                        <td class="label">检索途径</td>
-                        <td>
-                            <div style="border:1px solid #cccccc">
-                                <select id="selFrom" name="selFrom">
-                                    <option value="title,ISBN,contributor,subjec,clc,_class,publishtime,publisher" selected>全部</option>
-                                    <option value="title" selected>书名</option>
-                                    <option value="ISBN">ISBN</option>
-                                    <option value="contributor">作者</option>
-                                    <option value="subject">主题词</option>
-                                    <option value="clc,_class">分类号</option>
-                                    <option value="publishtime">出版时间</option>
-                                    <option value="publisher">出版社</option>
-                                </select>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="label">检索词<img src='../img/barcode.png' onclick="scanIsbn(false)" /></td>
-                        <td>
-                            <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="label">匹配方式</td>
-                        <td>
-                            <div style="border:1px solid #cccccc">
-                                <!--left/middle/right/exact-->
-                                <select id="selMatch">
-                                    <option value="left" selected>前方一致</option>
-                                    <option value="middle">中间一致</option>
-                                    <option value="right">后方一致</option>
-                                    <option value="exact">精确一致</option>
-                                </select>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                            <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <div style="padding:10px">
-                <a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a>
-                
-            </div>
-            <div id="divResult">
-                <!--数据列表-->
-                <span style="padding-left:10px;" id="searchInfo"></span>
-                <ul id="ulResult" class="mui-table-view "></ul>
-                <div id='more' style="display:none;color:black">
-                    <center><a href='javascript:void(0)' onclick='searchN()'><img src='../img/loading.gif' />&nbsp;<span id="moretext">加载中...</span></a></center>
-                </div>
-            </div>
+        </div>
 
-    <!--<span id="test1" style="display:block"></span>-->
-        }
+        <!--<span id="test1" style="display:block"></span>-->
     }
+}
