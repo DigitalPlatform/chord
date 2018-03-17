@@ -52,16 +52,20 @@ namespace dp2weixin.service
         /// <param name="entity"></param>
         public void AddLib(LibEntity entity)
         {
+            // 到期的图书馆不加入到内存集合中
+            if (entity!=null && entity.state == "到期")
+                return;
+
             Library library = new Library();
             library.Entity = entity;
 
-            // 获取绑定的读者数量
-            List<WxUserItem> patrons = WxUserDatabase.Current.GetPatron("", entity.id, "");
-            library.PatronCount = patrons.Count;
+            //// 获取绑定的读者数量
+            //List<WxUserItem> patrons = WxUserDatabase.Current.GetPatron("", entity.id, "");
+            //library.PatronCount = patrons.Count;
 
-            // 获取绑定的工作人员数量
-            List<WxUserItem> workers = WxUserDatabase.Current.Get("", entity.id, WxUserDatabase.C_Type_Worker);
-            library.WorkerCount = workers.Count;
+            //// 获取绑定的工作人员数量
+            //List<WxUserItem> workers = WxUserDatabase.Current.Get("", entity.id, WxUserDatabase.C_Type_Worker);
+            //library.WorkerCount = workers.Count;
 
             // 获取版本号
             string version = this.GetVersion(entity);
@@ -111,17 +115,17 @@ namespace dp2weixin.service
         /// 更新绑定数据，被绑定/解绑的地方调用
         /// </summary>
         /// <param name="libId"></param>
-        public void UpdateBindCount(string libId)
-        {
-            Library lib = this.GetLibrary(libId);
-            // 获取绑定的读者数量
-            List<WxUserItem> patrons = WxUserDatabase.Current.GetPatron("", lib.Entity.id, "");
-            lib.PatronCount = patrons.Count;
+        //public void UpdateBindCount(string libId)
+        //{
+        //    Library lib = this.GetLibrary(libId);
+        //    // 获取绑定的读者数量
+        //    List<WxUserItem> patrons = WxUserDatabase.Current.GetPatron("", lib.Entity.id, "");
+        //    lib.PatronCount = patrons.Count;
 
-            // 获取绑定的工作人员数量
-            List<WxUserItem> workers = WxUserDatabase.Current.Get("", lib.Entity.id, WxUserDatabase.C_Type_Worker);
-            lib.WorkerCount = workers.Count;
-        }
+        //    // 获取绑定的工作人员数量
+        //    List<WxUserItem> workers = WxUserDatabase.Current.Get("", lib.Entity.id, WxUserDatabase.C_Type_Worker);
+        //    lib.WorkerCount = workers.Count;
+        //}
 
         /// <summary>
         /// 根据id查找图书馆对象
@@ -310,10 +314,10 @@ namespace dp2weixin.service
         public LibEntity Entity { get; set; }
 
         // 绑定的读者数量
-        public int PatronCount { get; set; }
+        //public int PatronCount { get; set; }
 
         // 绑定的工作人员数量
-        public int WorkerCount { get; set; }
+        //public int WorkerCount { get; set; }
 
         public List<DbCfg> DbList = new List<DbCfg>();
 
@@ -330,14 +334,14 @@ namespace dp2weixin.service
             return null;
         }
 
-        // 绑定总数量
-        public int BindTotalCount
-        {
-            get
-            {
-                return this.PatronCount + this.WorkerCount;
-            }
-        }
+        //// 绑定总数量
+        //public int BindTotalCount
+        //{
+        //    get
+        //    {
+        //        return this.PatronCount + this.WorkerCount;
+        //    }
+        //}
 
         // dp2library版本号
         private string _version = "";

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace dp2weixin.service
 {
@@ -38,18 +39,34 @@ namespace dp2weixin.service
         public int state { get; set; } //命令处理结果
         public string errorInfo { get; set; } //提示信息dacvvbsrhnaz2etgtaqedgqa222222se se se se se se se se se se se se  c
         public string resultInfo { get; set; } //提示信息
-        public string GetResultInfo()
+
+        public string resultInfoWavText { get; set; } //语音
+
+        // 简单结果信息
+        public string simpleResultInfo { get; set; } 
+        public string GetResultInfo(out string  simpleInfo)
         {
-            string retInfo = this.typeString + "成功。";
+            simpleInfo = "";
+            string retInfo = "";
+            retInfo=this.typeString + "成功。";
             if (this.state == -1)
             {
                 retInfo = this.typeString + "失败。";
+
+                if (this.type == C_Command_LoadPatron)
+                {
+                    simpleInfo = this.typeString + "出错。";
+                }
             }
+
             //有提示信息
             if (String.IsNullOrEmpty(this.errorInfo) == false)
             {
-                if (     this.errorInfo != C_ReturnSucces_FromApi)
-                    retInfo += "<br/>"+this.errorInfo;
+                if (this.errorInfo != C_ReturnSucces_FromApi)
+                {
+                    retInfo += "<br/>" + this.errorInfo;
+                    simpleInfo += this.errorInfo;
+                }
             }
             return retInfo;
         }
@@ -58,7 +75,7 @@ namespace dp2weixin.service
         public string getTypeString(string type)
         {
             if (type == C_Command_LoadPatron)
-                return "装载读者";// +this.patronBarcode;
+                return "装载读者" +this.patronBarcode;
             if (type == C_Command_Borrow)
                 return "借书";
             if (type == C_Command_Return)

@@ -1,6 +1,6 @@
 ﻿ @model dp2weixin.service.WxUserItem
 @{
-    ViewBag.Title = "Charge2";
+    ViewBag.Title = "借还窗";
     Layout = "~/Views/Shared/_LayoutEmpty.cshtml";
 }
 
@@ -296,11 +296,13 @@
                         // 先将到扫到的code设到条码内部变量上
                         setBarcode(code);
 
+
+
                         // 处理下册条码，去掉,号前面的类型标识
                         var inputType = getInputType();
                         if (inputType == C_inputType_item) {
                             if (code.indexOf(",") != -1) {
-                               // alert(code);
+                                // alert(code);
                                 var left = code.substring(0, code.indexOf(","))
                                 var right = code.substring(code.indexOf(",") + 1)
                                 if (left != "EAN_13" && left != "CODE_39") {
@@ -313,6 +315,17 @@
                                 setBarcode(right);
                             }
                         }
+                        else {
+                            // 如果前面带了CODE_39，则去掉
+                            if (code.indexOf(",") != -1) {
+                                var left = code.substring(0, code.indexOf(","))
+                                var right = code.substring(code.indexOf(",") + 1)
+                                if (left == "CODE_39") {
+                                    setBarcode(right);
+                                }
+                            }
+                        }
+                        
 
                         // 执行命令 todo 是否可以不用setTimeout
                         window.setTimeout("addCmd('')", 1);
@@ -511,14 +524,17 @@
             var url = "/api/ChargeCommand?libId=" + libId
             + "&libraryCode=" + encodeURIComponent(libraryCode)
             + "&userId=" + userId
-            + "&barcode=" + encodeURIComponent(barcode);
+            + "&barcode=" + encodeURIComponent(barcode)
+            + "&needTransform=0";
             sendAjaxRequest(url, "POST", function (result) {
                 // 关闭等待层
                 hideLoading();
 
+                //alert(result.errorCode);
+                //alert(result.errorInfo);
                 //  出错，直接关闭
                 if (result.errorCode == -1) {
-                    warn("校验条码出错：" + result.errorInfo + "\r\n 请在设置页面清除'校验输入的条码号'事项。");
+                    warn("校验条码出错：[" + result.errorInfo + "]\r\n 请在设置页面清除'校验输入的条码号'事项。");
                     return;
                 }
                 //  未配置，直接关闭
@@ -561,7 +577,7 @@
                         cmdType = "loadPatron";
                         patron = getBarcode();
                         setPatron(patron); // 设到内部的读者变量上
-                        addCmd2(weixinId, libId,libraryCode, cmdType, patron, item,1);
+                        addCmd2(weixinId, libId,libraryCode, cmdType, patron, item,0);
                         return;
                     }
                 }
@@ -575,7 +591,7 @@
 
 
                 //正常处理的情况
-                addCmd2(weixinId, libId,libraryCode, cmdType, patron, item,1)
+                addCmd2(weixinId, libId,libraryCode, cmdType, patron, item,0)
 
 
             }, function (xhq, textStatus, errorThrown) {
@@ -588,7 +604,7 @@
         }
 
 
-        function addCmd2(weixinId, libId, libraryCode, cmdType, patron, item, isTransfromed)
+        function addCmd2(weixinId, libId, libraryCode, cmdType, patron, item, needTransfrom)
         {
             ////==跑流程测试用==
             //if (cmdType == "loadPatron") {
@@ -624,8 +640,10 @@
             var url = "/api/ChargeCommand?weixinId=" + weixinId
                 + "&libId=" + libId
                 + "&libraryCode=" + encodeURIComponent(libraryCode)
-                + "&isTransfromed=" + isTransfromed
-                ;
+                + "&needTransfrom=" + needTransfrom
+            ;
+
+            //alert(url);
             var data = {
                 type: cmdType,
                 patronInput: patron,
@@ -1018,7 +1036,10 @@
 
         // 得到条码
         function getBarcode() {
-            return $("#_barcode").val();
+
+            var barcode = $("#_barcode").val();
+            
+            return barcode.toUpperCase();//20171207，将输入的内容统一转成大写
         }
         // 设置条码
         function setBarcode(value) {
@@ -1363,7 +1384,7 @@ else
     }
     else
     {
-        <div id="mypage" >
+        <div id="mypage"  >
             <div style="padding:10px;padding-bottom:0px;text-align:right"><span style="color:#cccccc">帐户&nbsp;</span>@ViewBag.userName<span style="color:#cccccc">&nbsp;关注馆藏&nbsp;</span>@ViewBag.Location<span style="color:#cccccc">&nbsp;</span><a href="~/Patron/Setting">设置</a></div>
             <div style="padding:10px;padding-bottom:0px;">
                 <button class="mui-btn mui-btn-block" onclick="start('borrow')" @ViewBag.canBorrow >开始借书</button>

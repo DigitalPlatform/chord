@@ -100,8 +100,8 @@ DIV.btn3 .new-sub{position:absolute;
       border-radius: 5px;
       display:none;}
 DIV.btn3 .new-sub li{width: 100%;
-        background-color:green;/*#fff;*/
-        float:none;
+        background-color:#fff;
+            float:none;
         box-sizing:border-box;
         -webkit-box-sizing:border-box;
         border-top:1px solid #f2f2f2;}

@@ -27,7 +27,7 @@ namespace dp2weixinWeb.ApiControllers
         public ChargeCommand CreateCmd(string weixinId, 
             string libId,
             string libraryCode,
-            int isTransfromed,
+            int needTransfrom,
             ChargeCommand cmd)
         {
 
@@ -37,14 +37,15 @@ namespace dp2weixinWeb.ApiControllers
             return cmdContainer.AddCmd(weixinId,
                 libId,
                 libraryCode,
-                isTransfromed,
+                needTransfrom,
                 cmd);
         }
 
         public ApiResult VerifyBarcode(string libId,
             string libraryCode,
             string userId,
-            string barcode)
+            string barcode,
+            int needTransform)
         {
             ApiResult result = new ApiResult();
 
@@ -54,8 +55,13 @@ namespace dp2weixinWeb.ApiControllers
                 libraryCode,
                 userId,
                 barcode,
+                needTransform,
                 out resultBarcode,
                 out error);
+            if (nRet == -1)
+            {
+                dp2WeiXinService.Instance.WriteLog1("校验条码error:" + error);
+            }
             result.errorCode = nRet;
             result.errorInfo = error;
             result.info = resultBarcode;

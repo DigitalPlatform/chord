@@ -153,6 +153,7 @@ namespace dp2weixin
 
         private IResponseMessageBase DoSet(string strParam)
         {
+            /*
             // 设置当前命令
             this.CurrentMessageContext.CurrentCmdName = dp2CommandUtility.C_Command_Set;
 
@@ -285,7 +286,7 @@ namespace dp2weixin
                     }
                 }
             }
-
+            */
             return this.CreateTextResponseMessage("set不支持"+strParam+"功能");
 
         }

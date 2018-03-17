@@ -36,63 +36,71 @@
 }
 else
 {
-    // 警告提示
-    if (String.IsNullOrEmpty(ViewBag.Warn) == false)
-    {
-     <div class="mui-content-padded">
-        <span class="errorinfo">
-            @Html.Raw(ViewBag.Warn)
-        </span>
-    </div>        
-    }
-    
-    if (Model == null || Model.Count == 0)
-    {
-        <div class="mui-card" id="divNo" style="margin-top:10px;">
-            <center>
-                <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
-                <div>目前没有公告。</div>
-            </center>
-        </div>
-    }
 
-    if (String.IsNullOrEmpty(ViewBag.userName) == false)
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
     {
-        <div id="divNew">
-            <div id='_edit_new' class="mui-card message" style="display:none"></div>
-            <div class="mui-content-padded">
-                <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
-                    新发布公告
-                </button>
-            </div>
-        </div>
+        @Html.Raw(ViewBag.RedirectInfo);
     }
-
-    <div id="_subject_main">
-        @if (Model != null)
+    else
+    {
+        // 警告提示
+        if (String.IsNullOrEmpty(ViewBag.Warn) == false)
         {
-            foreach (dp2weixin.service.MessageItem item in Model)
-            {
-                <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv('@item.id')">
-                    <div class="view">
-                        <table class="view-top">
-                            <tbody>
-                                <tr>
-                                    <td class="title">@item.title</td>
-                                    <td class="btn">
-                                        <div id="btnEdit" style="display: none;">
-                                            <button class="mui-btn mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>&nbsp;
-                                            <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr><td class="time" colspan="2"><span>@item.publishTime</span>-<span>@item.creator</span></td></tr>
-                            </tbody>
-                        </table>
-                        <div class="content">@Html.Raw(item.contentHtml)</div>
-                    </div>
-                </div>
-            }
+            <div class="mui-content-padded">
+                <span class="errorinfo">
+                    @Html.Raw(ViewBag.Warn)
+                </span>
+            </div>
         }
-    </div>
+
+        if (Model == null || Model.Count == 0)
+        {
+            <div class="mui-card" id="divNo" style="margin-top:10px;">
+                <center>
+                    <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+                    <div>目前没有公告。</div>
+                </center>
+            </div>
+        }
+
+        if (String.IsNullOrEmpty(ViewBag.userName) == false)
+        {
+            <div id="divNew">
+                <div id='_edit_new' class="mui-card message" style="display:none"></div>
+                <div class="mui-content-padded">
+                    <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
+                        新发布公告
+                    </button>
+                </div>
+            </div>
+        }
+
+        <div id="_subject_main">
+            @if (Model != null)
+            {
+                foreach (dp2weixin.service.MessageItem item in Model)
+                {
+                    <div class="mui-card message" id="_edit_@item.id" onclick="clickMsgDiv('@item.id')">
+                        <div class="view">
+                            <table class="view-top">
+                                <tbody>
+                                    <tr>
+                                        <td class="title">@item.title</td>
+                                        <td class="btn">
+                                            <div id="btnEdit" style="display: none;">
+                                                <button class="mui-btn mui-btn-default" onclick="gotoEdit('@item.id')">编辑</button>&nbsp;
+                                                <button class="mui-btn mui-btn-danger" onclick="deleteMsg('@item.id')">X&nbsp;删除</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr><td class="time" colspan="2"><span>@item.publishTime</span>-<span>@item.creator</span></td></tr>
+                                </tbody>
+                            </table>
+                            <div class="content">@Html.Raw(item.contentHtml)</div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
 }

@@ -312,7 +312,7 @@ function reservation(obj, barcode, style) {
 
     //if (style == "delete") {
     var opeName = $(obj).text();
-    var gnl = confirm("你确定对册[" + paramBarcord + "]" + opeName + "吗?");
+    var gnl = confirm("您确定对册[" + paramBarcord + "]" + opeName + "吗?");
     if (gnl == false) {
         return false;
     }

@@ -72,7 +72,7 @@ namespace dp2weixin.service
                 LibEntity item = list[0];
                 //解密
                 if (String.IsNullOrEmpty(item.wxPassword)== false)
-                    item.wxPassword= Cryptography.Decrypt( item.wxPassword, WeiXinConst.EncryptKey);
+                    item.wxPassword= Cryptography.Decrypt( item.wxPassword, dp2WeiXinService.Instance.EncryptKey);
                
                 return item;
             }
@@ -87,7 +87,7 @@ namespace dp2weixin.service
                 LibEntity item = list[0];
                 //解密
                 if (String.IsNullOrEmpty(item.wxPassword) == false)
-                    item.wxPassword = Cryptography.Decrypt(item.wxPassword, WeiXinConst.EncryptKey);
+                    item.wxPassword = Cryptography.Decrypt(item.wxPassword, dp2WeiXinService.Instance.EncryptKey);
 
                 return item;
             }
@@ -115,7 +115,7 @@ namespace dp2weixin.service
                 {
                     //解密
                     if (String.IsNullOrEmpty(item.wxPassword) == false)
-                        item.wxPassword = Cryptography.Decrypt(item.wxPassword, WeiXinConst.EncryptKey);
+                        item.wxPassword = Cryptography.Decrypt(item.wxPassword, dp2WeiXinService.Instance.EncryptKey);
 
                     if (item.libName == WeiXinConst.C_Dp2003LibName)
                     {
@@ -159,7 +159,7 @@ namespace dp2weixin.service
             item.OperTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
             item.wxPasswordView = "*".PadRight(item.wxPassword.Length, '*');
             
-            string encryptPassword = Cryptography.Encrypt(item.wxPassword, WeiXinConst.EncryptKey);
+            string encryptPassword = Cryptography.Encrypt(item.wxPassword, dp2WeiXinService.Instance.EncryptKey);
             item.wxPassword = encryptPassword;
 
             this.LibCollection.InsertOne(item);
@@ -175,7 +175,7 @@ namespace dp2weixin.service
             {
                 item.wxPasswordView = "*".PadRight(item.wxPassword.Length, '*');
 
-                string encryptPassword = Cryptography.Encrypt(item.wxPassword, WeiXinConst.EncryptKey);
+                string encryptPassword = Cryptography.Encrypt(item.wxPassword, dp2WeiXinService.Instance.EncryptKey);
                 item.wxPassword = encryptPassword;
             }
 

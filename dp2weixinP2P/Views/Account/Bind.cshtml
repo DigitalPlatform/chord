@@ -98,14 +98,14 @@
                     if (result.errorCode == -1) {
                         alert(result.errorInfo);
                         return;
-                    }                    
+                    }
                     alert("绑定成功");
 
                     //清空编辑界面信息,前两项可以不清除
                     // 2016-8-30 反正也要跳转了，不用清除了。
                     //model.word("");
-                    //model.password("");                
-                    
+                    //model.password("");
+
                     returnUrl = $("#returnUrl").text();
                     if (returnUrl == "") {
                         if (prefix == "UN")
@@ -188,7 +188,7 @@
                 lib = "";
 
             var myUrl = getRootPath()
-                + '/Account/ScanQRCodeBind?libId=' + encodeURIComponent(lib) ;
+                + '/Account/ScanQRCodeBind?libId=' + encodeURIComponent(lib);
 
             //alert(myUrl);
             //mui.openWindow({
@@ -200,20 +200,35 @@
         }
 
         function gotoSelectLib() {
-            var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent("/Account/Bind");
+
+            //$('#selPrefix option:checked').text();
+            var fromUrl = $('#fromUrl').text();
+            var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent(fromUrl);
             gotoUrl(url);
         }
 
     </script>
 }
 
-@section header {
-        <h1 class="mui-title">绑定账号</h1>
+@section HeaderContent {
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="">
 }
+
+
+@section header {
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="">
+    <h1 class="mui-title">绑定账号</h1>
+}
+
 <span id="weixinId" style="display:none">@ViewBag.weixinId</span>
 <span id="libId" style="display:none">@ViewBag.LibId</span>
 <span id="libraryCode" style="display:none">@ViewBag.LibraryCode</span>
 <span id="returnUrl" style="display:none">@ViewBag.ReturnUrl</span>
+<span id="fromUrl" style="display:none">@ViewBag.fromUrl</span>
 
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
@@ -229,13 +244,6 @@ else
 
 
     <div class="mui-input-group">
-        <!--
-        <div class="mui-input-row ">
-            <label style="color:#cccccc">图书馆</label>
-            @Html.Raw(ViewBag.LibHtml)
-        </div>
--->
-
         <table style="width:100%">
             <tr>
                 <td style="width:100%">
@@ -246,19 +254,15 @@ else
                         </div>
                     </div>
                 </td>
-                <td><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
+                <td><button onclick="gotoSelectLib()" class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
             </tr>
         </table>
-
         <div class="mui-input-row ">
             <label style="color:#cccccc">绑定方式</label>
-            <select id="selPrefix"  name="selPrefix" onchange="prefixChange()" data-bind="value:model.prefix">
+            <select id="selPrefix" name="selPrefix" onchange="prefixChange()" data-bind="value:model.prefix">
                 <option value="NB">姓名</option>
                 <option value="">证条码号</option>
-                <option value="EM">email</option>
                 <option value="TP">电话号码</option>
-                <option value="ID">身份证号</option>
-                <option value="CN">证号</option>
                 <option value="UN">工作人员账户</option>
             </select>
         </div>
@@ -275,8 +279,9 @@ else
     <div class="mui-content-padded">
         <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="bind()">绑定</button>
         <div class="link-area">
-            <center><a href="JavaScript:void(0)" onclick="gotoResetPassword()">找回密码</a>
-            &nbsp;&nbsp;
+            <center>
+                <a href="JavaScript:void(0)" onclick="gotoResetPassword()">找回密码</a>
+                &nbsp;&nbsp;
                 <a href="JavaScript:void(0)" onclick="gotoScanQRCodeBind()">图书馆柜台绑定</a>
             </center>
         </div>

@@ -189,4 +189,8 @@ _Pvt_Extensions/
 ModelManifest.xml
 /Ionic.Zip.dll
 /ZipUtil.exe
-/.vs/dp2-v3/v15/Server/sqlite3
+
+/ChordInstaller
+/.vs/dp2-v3/v15/Server/sqlite3/db.lock
+/.vs/dp2-v3/v15/Server/sqlite3/storage.ide-shm
+/.vs/dp2-v3/v15/Server/sqlite3/storage.ide-wal

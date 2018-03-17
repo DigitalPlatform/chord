@@ -8,8 +8,12 @@ senparc.menu ={
         $('#buttonDetails').hide();
         $('#menuEditor').hide();
 
+        // 天人appId: 'wx40cb4550327e7611', appSecret: 'e1d5d2f4187ba696898d4628b3c476d1' 
+        //我爱图书馆{ appId: 'wx57aa3682c59d16c2', appSecret: '5d1a0507f05be41a56e27c632c0a808d' }
+        // 数字平台{ appId: 'wxd24b193130bbaa7c', appSecret: '137afb49af90a07c2c72b11f520bb4b3' }, 
+        // 甘肃 appId = "wx55db596ba723c5a3"  secret= "e26912c8d94348cfdb2a381f17b49ad3"
         // 自动获取accessToken
-        $.getJSON('/Menu/GetToken?t=' + Math.random(), { appId: 'wxd24b193130bbaa7c', appSecret: '137afb49af90a07c2c72b11f520bb4b3' },// 数字平台{ appId: 'wxd24b193130bbaa7c', appSecret: '137afb49af90a07c2c72b11f520bb4b3' }, //我爱图书馆{ appId: 'wx57aa3682c59d16c2', appSecret: '5d1a0507f05be41a56e27c632c0a808d' },// 测试号 { appId: 'wx0f2b65b37835f531', appSecret: '85777abcddde69d7c44f421c49dfa331' }, 
+        $.getJSON('/Menu/GetToken?t=' + Math.random(), { appId: 'wx40cb4550327e7611', appSecret: 'e1d5d2f4187ba696898d4628b3c476d1' },
 
         function (json) {
             if (json.access_token) {
@@ -77,13 +81,21 @@ senparc.menu ={
         $('#btnGetMenu').click(function () {
             menuState.html('获取菜单中...');
             $.getJSON('/Menu/GetMenu?t=' + Math.random(), { token: senparc.menu.token }, function (json) {
+
+
                 if (json.menu) {
                     $(':input[id^=menu_button]:not([id$=_type])').val('');
                     $('#buttonDetails:input').val('');
 
+
+
+
                     var buttons = json.menu.button;
                     //此处i与j和页面中反转
                     for (var i = 0; i < buttons.length; i++) {
+
+
+
                         var button = buttons[i];
                         $('#menu_button' + i + '_name').val(button.name);
                         $('#menu_button' + i + '_key').val(button.key);
@@ -111,7 +123,11 @@ senparc.menu ={
 
                     menuState.html('菜单获取已完成');
                 } else {
+
+
                     menuState.html(json.error || '执行过程有错误，请检查！');
+
+   
                 }
             });
         });

@@ -1,0 +1,71 @@
+﻿@model List<dp2weixin.service.UserMessageItem>
+@{
+    ViewBag.Title = "Message";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section header {
+    <h1 class="mui-title">我的消息</h1>
+}
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+        // 警告提示
+        if (String.IsNullOrEmpty(ViewBag.Warn) == false)
+        {
+            <div class="mui-content-padded">
+                <span class="errorinfo">
+                    @Html.Raw(ViewBag.Warn)
+                </span>
+            </div>
+        }
+
+        if (Model == null || Model.Count == 0)
+        {
+            <div class="mui-card" id="divNo" style="margin-top:10px;">
+                <center>
+                    <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+                    <div>目前没有消息。</div>
+                </center>
+            </div>
+        }
+
+
+        if (Model != null)
+        {
+            <div class="mui-card message">
+                <div class="view">
+                    <table class="view-top">
+                        @foreach (dp2weixin.service.UserMessageItem item in Model)
+                        {
+
+                        <tbody>
+                            <tr>
+                                <td class="title">@item.msgType</td>
+                                <td class="xml">@Html.Raw(item.xml)</td>
+                            </tr>
+                        </tbody>
+                        }
+                    </table>
+                </div>
+            </div>
+        }
+    }
+}
+
+

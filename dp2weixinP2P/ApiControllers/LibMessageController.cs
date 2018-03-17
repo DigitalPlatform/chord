@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Web.Http;
+using System.Web;
 
 namespace dp2weixinWeb.ApiControllers
 {
@@ -148,6 +149,19 @@ namespace dp2weixinWeb.ApiControllers
                 return result;
             }
 
+            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            {
+                result.errorInfo = "session失效。";
+                result.errorCode = -1;
+                return result;
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            if (sessionInfo == null)
+            {
+                result.errorInfo = "session失效2。";
+                result.errorCode = -1;
+                return result;
+            }
 
             // 检查下有无绑定工作人员账号
             result.userName = "";
@@ -155,7 +169,8 @@ namespace dp2weixinWeb.ApiControllers
             if (string.IsNullOrEmpty(weixinId) == false)
             {
                 // 查找当前微信用户绑定的工作人员账号
-                WxUserItem user = WxUserDatabase.Current.GetWorker(weixinId, libId);
+
+                WxUserItem user = sessionInfo.Active; //WxUserDatabase.Current.GetWorker(weixinId, libId);
                 if (user != null)
                 {
                     // 检索是否有权限 _wx_setbbj
@@ -220,21 +235,73 @@ namespace dp2weixinWeb.ApiControllers
             MessageItem item)
         {
 
-            // 更新setting
-            if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
-            {
-                dp2WeiXinService.Instance.UpdateUserSetting(weixinId, 
-                    libId,
-                    null, 
-                    item.subject,
-                    false,
-                    null);
-            }
+            //// 更新setting
+            //if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
+            //{
+            //    dp2WeiXinService.Instance.UpdateUserSetting(weixinId, 
+            //        libId,
+            //        null, 
+            //        item.subject,
+            //        false,
+            //        null);
+            //}
 
 
             // 服务器会自动产生id
-            return dp2WeiXinService.Instance.CoverMessage(weixinId,
-                group, libId, item,"create",parameters );
+            return this.CoverMessage(weixinId,
+                group,
+                libId,
+                item,
+                "create",
+                parameters );
+        }
+
+        public WxMessageResult CoverMessage(string weixinId,
+    string group,
+    string libId,
+    MessageItem item,
+    string style,
+    string parameters)
+        {
+
+            WxMessageResult result = new WxMessageResult();
+            string strError = "";
+
+            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            {
+                result.errorInfo = "session失效。";
+                result.errorCode = -1;
+                return result;
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            if (sessionInfo == null)
+            {
+                result.errorInfo = "session失效2。";
+                result.errorCode = -1;
+                return result;
+            }
+
+            MessageItem returnItem = null;
+            int nRet = dp2WeiXinService.Instance.CoverMessage(sessionInfo.Active,
+                weixinId,
+                group,
+                libId,
+                item,
+                style,
+                parameters,
+                out returnItem,
+                out strError);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+                return result;
+            }
+
+            List<MessageItem> list = new List<MessageItem>();
+            list.Add(returnItem);
+            result.items = list;
+            return result;
         }
 
         // 修改消息
@@ -243,17 +310,17 @@ namespace dp2weixinWeb.ApiControllers
             string libId,
             MessageItem item)
         {
-            // 更新setting
-            if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
-            {
-                dp2WeiXinService.Instance.UpdateUserSetting(weixinId,
-                    libId,
-                    null, 
-                    item.subject,
-                    false,
-                    null);
-            }
-            return dp2WeiXinService.Instance.CoverMessage(weixinId,
+            //// 更新setting
+            //if (string.IsNullOrEmpty(weixinId) == false && group == "gn:_lib_book")
+            //{
+            //    dp2WeiXinService.Instance.UpdateUserSetting(weixinId,
+            //        libId,
+            //        null, 
+            //        item.subject,
+            //        false,
+            //        null);
+            //}
+            return this.CoverMessage(weixinId,
                 group, libId, item, "change", "");
         }
 
@@ -270,7 +337,7 @@ namespace dp2weixinWeb.ApiControllers
                 item.id = id;
                 item.creator = userName;
                 //style == delete
-                result = dp2WeiXinService.Instance.CoverMessage(weixinId, group, libId, item, "delete", "");
+                result = this.CoverMessage(weixinId, group, libId, item, "delete", "");
                 if (result.errorCode == -1)
                     return result;
             }
