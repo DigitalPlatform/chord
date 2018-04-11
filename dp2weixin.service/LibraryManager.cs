@@ -20,6 +20,8 @@ namespace dp2weixin.service
         public const string M_Lib_PatronCount = "%PatronCount%";
         public const string M_Lib_WorkerCount = "%WorkerCount%";
         public const string M_Lib_BindTotalCount = "%BindTotalCount%";
+        public const string M_Lib_webPatronCount = "%WebPatronCount%";
+        public const string M_Lib_webWorkerCount = "%WebWorkerCount%";
 
         public const string C_RequestCapoVersion = "1.26";
         public const string C_State_Hangup = "hang-up";

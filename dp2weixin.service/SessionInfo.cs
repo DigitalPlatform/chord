@@ -44,6 +44,7 @@ namespace dp2weixin.service
         {
             // 创建命令管理器
             cmdContainer = new ChargeCommandContainer();
+            WeixinId = "";
         }
 
         public void SetInfo(string mygzhState,GzhCfg mygzh, List<string> mylibIds)

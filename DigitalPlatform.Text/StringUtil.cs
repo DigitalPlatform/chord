@@ -1084,5 +1084,25 @@ namespace DigitalPlatform.Text
                 throw new Exception("比较版本号字符串 '" + strVersion1 + "' 和 '" + strVersion2 + "' 过程出现异常: " + ex.Message, ex);
             }
         }
+
+
+        // 检测一个号码字符串是否在指定的范围内
+        public static bool Between(string strNumber,
+            string strStart,
+            string strEnd)
+        {
+            if (strStart.Length != strEnd.Length)
+                throw new ArgumentException("strStart 和 strEnd 应当字符数相同");
+            if (strNumber == null)
+                throw new ArgumentException("strNumber 参数值不能为 null");
+
+            if (strNumber.Length != strStart.Length)
+                return false;
+            if (string.Compare(strNumber, strStart) < 0)
+                return false;
+            if (string.Compare(strNumber, strEnd) > 0)
+                return false;
+            return true;
+        }
     }
 }

@@ -199,19 +199,14 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.info = "监控所有图书馆的消息";
             }
 
-            //选择分馆与馆藏地
-            //WxUserItem user = worker;
-            //if (user==null)
-            //{
-            //    // 取读者帐户
-            //    user = WxUserDatabase.Current.GetActivePatron(weixinId, ViewBag.LibId);
-            //}
+
 
             ViewBag.subLibGray = "";
             // 未绑定帐户 ，todo 普通读者一样可选择关注馆藏地
             if (activeUser == null 
-                || (activeUser.type==WxUserDatabase.C_Type_Worker && activeUser.userName=="public")
-                || (activeUser.type==WxUserDatabase.C_Type_Patron && activeUser.rights.Contains("borrow") == false && activeUser.rights.Contains("return") == false))
+                || activeUser.userName =="public")
+                //|| (activeUser.type==WxUserDatabase.C_Type_Worker && activeUser.userName=="public")
+                //|| (activeUser.type==WxUserDatabase.C_Type_Patron && activeUser.rights.Contains("borrow") == false && activeUser.rights.Contains("return") == false))
             {
                 //string bindUrl = "/Account/Bind?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
                 //string bindLink = "<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>尚未绑定帐户</a>。";
@@ -238,7 +233,8 @@ namespace dp2weixinWeb.Controllers
             ViewBag.userId = activeUser.id;
 
             string locationXml = activeUser.location;
-            if(String.IsNullOrEmpty(activeUser.location)==true && activeUser.userName!="public")
+            if(String.IsNullOrEmpty(activeUser.location)==true 
+                && activeUser.userName!="public")
             {
                 // 从dp2服务器获取
                 nRet =dp2WeiXinService.Instance.GetLocation(ViewBag.LibId,

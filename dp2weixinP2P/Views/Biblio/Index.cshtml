@@ -406,6 +406,15 @@
                     var totalCount = 0;
                     //alert("2");
                     if (result.apiResult.errorCode == -1) {
+
+                        var errInfo = result.apiResult.errorInfo;
+                        if (errInfo != null && errInfo.indexOf("不对外公开") != -1)
+                        {
+                            var bindUrl = "/Account/Bind";
+                            gotoUrl(bindUrl);
+                            return;
+                        }
+
                         $("#searchInfo").text("检索出错：" + result.apiResult.errorInfo);
                         $("#searchInfo").css("color", "red");  //设置p元素的样式颜色为红色
                     }

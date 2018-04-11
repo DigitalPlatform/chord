@@ -20,6 +20,7 @@ namespace dp2weixinWeb.ApiControllers
         [HttpGet]
         public WxUserResult Get()
         {
+            dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()开始");
             WxUserResult result = new WxUserResult();
             List<WxUserItem> list = wxUserDb.Get(null,null,-1,null,null,false);//.GetUsers();
 
@@ -29,15 +30,37 @@ namespace dp2weixinWeb.ApiControllers
             //    if (String.IsNullOrEmpty(user.libraryCode) == false)
             //        user.libName = user.libraryCode;
             //}
+            dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()返回");
             result.users = list;
             return result;
         }
 
         public WxUserResult Get(string weixinId)
         {
+            dp2WeiXinService.Instance.WriteLog1("WxUserController.Get(string weixinId)开始");
+
             WxUserResult result = new WxUserResult();
             List<WxUserItem> list = wxUserDb.Get(weixinId, null, -1);
+            foreach (WxUserItem user in list)
+            {
+                user.xml = "";
+            }
+
             result.users = list;
+
+
+            //// 测试，只返回第一个
+            //if (list.Count > 0)
+            //{
+            //    result.users = new List<WxUserItem>();
+            //    result.users.Add(list[0]);
+            //    dp2WeiXinService.Instance.WriteLog1("第一个对象 "+list[0].Dump());
+            //}
+
+
+
+            dp2WeiXinService.Instance.WriteLog1("WxUserController.Get(string weixinId)结束");
+
             return result;
         }
 

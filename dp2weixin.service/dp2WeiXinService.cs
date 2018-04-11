@@ -974,7 +974,8 @@ namespace dp2weixin.service
             string patronBarcode = "";
             string patronName = "";
             string libraryCode = "";
-            List<string> bindWeixinIds = this.GetBindWeiXinIds(bodyDom,
+            List<string> bindWeixinIds = this.GetBindWeiXinIds(libId,
+                bodyDom,
                 out patronBarcode,
                 out patronName,
                 out libraryCode);
@@ -1269,8 +1270,22 @@ namespace dp2weixin.service
                 catch (Exception ex0)
                 {
                     strError = "给[" + oneWeixinId + "]发送" + templateName + "微信通知异常:" + ex0.Message;
-                    //return -1;
+                   //return -1;
                     this.WriteErrorLog1(strError);
+
+                    // 2018/3/18 4:46:29 ERROR:给[o4xvUvpencKbMoW2wPVe1mswD9O4@wx57aa3682c59d16c2]发送CaoQi微信通知异常:微信Post请求发生错误！错误代码：43004，说明：require subscribe hint: [UJ5fwa0589ge21]
+                    // 遇到43004的问题，表示用户未关注公众号。那么将这些帐户删除。
+                    if (ex0.Message.IndexOf("43004") != -1)
+                    {
+                        List<WxUserItem> userList = WxUserDatabase.Current.Get(oneWeixinId, "", -1);
+                        foreach (WxUserItem user in userList)
+                        {
+                            WxUserDatabase.Current.SimpleDelete(user.id);
+                        }
+                        this.WriteErrorLog1("删除"+oneWeixinId+"对应的"+userList.Count+"条记录");
+                    }
+
+
                     continue;
                 }
             }
@@ -1438,7 +1453,8 @@ namespace dp2weixin.service
         /// <param name="bodyDom"></param>
         /// <param name="patronName"></param>
         /// <returns></returns>
-        private List<string> GetBindWeiXinIds(XmlDocument bodyDom,
+        private List<string> GetBindWeiXinIds(string libId,
+            XmlDocument bodyDom,
             out string patronBarcode,
             out string patronName,
             out string libraryCode)
@@ -1469,76 +1485,27 @@ namespace dp2weixin.service
 
             // 取微信id
             List<string> weixinIdList = new List<string>();
-            XmlNode emailNode = patronRecordNode.SelectSingleNode("email");
-            if (emailNode != null)
+            //XmlNode emailNode = patronRecordNode.SelectSingleNode("email");
+            //if (emailNode != null)
+            //{
+            //    string email = DomUtil.GetNodeText(emailNode);
+            //    //<email>test@163.com,123,weixinid:o4xvUviTxj2HbRqbQb9W2nMl4fGg,weixinid:o4xvUvnLTg6NnflbYdcS-sxJCGFo,weixinid:testid</email>
+            //    weixinIdList = this.GetWeixinIds(email);
+            //}
+
+           List<WxUserItem> userList= WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Patron,
+                patronBarcode,
+                "",
+                true);
+            foreach (WxUserItem user in userList)
             {
-                string email = DomUtil.GetNodeText(emailNode);
-                //<email>test@163.com,123,weixinid:o4xvUviTxj2HbRqbQb9W2nMl4fGg,weixinid:o4xvUvnLTg6NnflbYdcS-sxJCGFo,weixinid:testid</email>
-                weixinIdList = this.GetWeixinIds(email);
+                weixinIdList.Add(user.weixinId);
             }
+
+
             return weixinIdList;
         }
-
-        //private List<WxUserItem> getWorkerWeixinIds(string libId)
-        //{
-        //    List<string> weixinIds = new List<string>();
-
-        //    // 再查找绑定本馆工作人员账户;
-        //    if (String.IsNullOrEmpty(libId) == false)
-        //    {
-        //        List<WxUserItem> userList = WxUserDatabase.Current.Get(null, libId, WxUserDatabase.C_Type_Worker);
-        //        if (userList != null && userList.Count > 0)
-        //        {
-        //            foreach (WxUserItem user in userList)
-        //            {
-        //                weixinIds.Add(user.weixinId);                        
-        //            }
-        //        }
-        //    }
-
-        //    return weixinIds;
-        //}
-
-            /*
-        private List<TracingOnUser1> getWorkerWeixinIds(string libId, string libraryCode)
-        {
-            // ====给工作人员发通知===
-
-            // 先找到公司管理员
-            List<TracingOnUser1> workerWeixinIds = this.GetAdminWeixinIds();
-
-            // 再查找绑定本馆工作人员账户;
-            if (String.IsNullOrEmpty(libId) == false)
-            {
-                List<WxUserItem> userList = WxUserDatabase.Current.Get(null, 
-                    libId,
-                    WxUserDatabase.C_Type_Worker);
-
-                if (userList != null && userList.Count > 0)
-                {
-                    foreach (WxUserItem user in userList)
-                    {
-                        // 不属于同一分馆则不处理
-                        if (user.libraryCode != "" && user.libraryCode != libraryCode)
-                            continue;
-
-
-                        // 检查是否设为tracing on
-                        if (this.TracingOnUsers.ContainsKey(user.weixinId) == true)
-                        {
-                            TracingOnUser traceUser = (TracingOnUser)this.TracingOnUsers[user.weixinId];
-                            if (workerWeixinIds.Contains(traceUser) == false)
-                            {
-                                workerWeixinIds.Add(traceUser);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return workerWeixinIds;
-        }
-    */
+        
 
         // 获得打开监控功能的数字平台管理员 和 本图书馆管理员
         private List<WxUserItem> GetTraceUsers(string libId,
@@ -5112,9 +5079,11 @@ public string ErrorCode { get; set; }
 
                 // 检查微信用户是否绑定了图书馆账户，如果未绑定，则不能检索
                 List<WxUserItem> userList = WxUserDatabase.Current.Get(weixinId, libId, -1);
-                if (userList == null || userList.Count == 0)
+                if (userList == null 
+                    || userList.Count == 0
+                    || (userList.Count ==1 && userList[0].userName=="public"))
                 {
-                    strError = "图书馆\"" + lib.libName + "\"不对外公开书目信息。";
+                    strError = "图书馆\"" + lib.libName + "\"不对外公开书目信息。请点击'我的图书馆/绑定帐户'菜单进行绑定。";
                     return -1;
                 }
             }
@@ -5572,8 +5541,7 @@ public string ErrorCode { get; set; }
         #region 根据参数直接检索item
 
         // 根据参数检索item
-        public long SearchItem(string weixinId,
-            string libId,
+        public long SearchItem(WxUserItem userItem,
             LoginInfo loginInfo,
             string from,
             string word,
@@ -5585,35 +5553,41 @@ public string ErrorCode { get; set; }
             strError = "";
             items = new List<BiblioItem>();
 
-            LibEntity lib = this.GetLibById(libId);
+            if (userItem == null)
+            {
+                strError = "SearchItem()的userItem参数不能为null";
+                return -1;
+            }
+
+
+            LibEntity lib = this.GetLibById(userItem.libId);
             if (lib == null)
             {
-                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                strError = "未找到id为[" + userItem.libId + "]的图书馆定义。";
                 return -1;
             }
 
-            WxUserItem userItem = null;
-            List<WxUserItem> users = null;
-            if (loginInfo.UserType == "patron")
-            {
-               users = WxUserDatabase.Current.GetPatron(weixinId, libId, loginInfo.UserName);
+            //WxUserItem userItem = null;
+            //List<WxUserItem> users = null;
+            //if (loginInfo.UserType == "patron")
+            //{
+            //   users = WxUserDatabase.Current.GetPatron(weixinId, libId, loginInfo.UserName);
 
-            }
-            else
-            {
-                users = WxUserDatabase.Current.Get(weixinId, libId, WxUserDatabase.C_Type_Worker, null, loginInfo.UserName, true);
-            }
-            if (users.Count == 0)
-            {
-                strError = "没找到对应的绑定帐户";
-                return -1;
-            }
-            userItem = users[0];
-            string selLocation = userItem.selLocation;
+            //}
+            //else
+            //{
+            //    users = WxUserDatabase.Current.Get(weixinId, libId, WxUserDatabase.C_Type_Worker, null, loginInfo.UserName, true);
+            //}
+            //if (users.Count == 0)
+            //{
+            //    strError = "没找到对应的绑定帐户";
+            //    return -1;
+            //}
+            //userItem = users[0];
 
             List<BiblioRecord> biblioList = new List<BiblioRecord>();
-            long lRet = this.SearchBiblioAll(weixinId,
-                libId,
+            long lRet = this.SearchBiblioAll(userItem.weixinId,
+                userItem.libId,
                 loginInfo,
                 from,
                 word,
@@ -5623,13 +5597,14 @@ public string ErrorCode { get; set; }
             if (lRet == -1 || lRet == 0)
                 return lRet;
 
+            string selLocation = userItem.selLocation;
             foreach (BiblioRecord biblio in biblioList)
             {
                 string biblioPath = biblio.recPath;
 
                 // 取item
                 List<BiblioItem> itemList = null;
-                int nRet = (int)this.GetItemInfo(weixinId,
+                int nRet = (int)this.GetItemInfo(userItem.weixinId,
                     lib,
                     loginInfo,
                     "",//patronBarcode
@@ -5643,7 +5618,8 @@ public string ErrorCode { get; set; }
                 }
 
                 // 对这些册过滤，过滤馆藏地
-                if (string.IsNullOrEmpty(selLocation) == false &&  string.IsNullOrEmpty(cmdType)==false)
+                if (string.IsNullOrEmpty(selLocation) == false 
+                    &&  string.IsNullOrEmpty(cmdType)==false)
                 {
                     selLocation = SubLib.ParseToSplitByComma(selLocation);
                     if (selLocation != "")
@@ -9004,10 +8980,50 @@ tempRemark);
                 || contentHtml.Contains(LibraryManager.M_Lib_WorkerCount) == true
                 || contentHtml.Contains(LibraryManager.M_Lib_BindTotalCount) == true)
             {
-                //Library library = this.LibManager.GetLibrary(libId);
-                //contentHtml = contentHtml.Replace(LibraryManager.M_Lib_PatronCount, library.PatronCount.ToString());
-                //contentHtml = contentHtml.Replace(LibraryManager.M_Lib_WorkerCount, library.WorkerCount.ToString());
-                //contentHtml = contentHtml.Replace(LibraryManager.M_Lib_BindTotalCount, library.BindTotalCount.ToString());
+                int totalCount = 0;
+
+                // 获取绑定的读者数量
+                List<WxUserItem> patrons = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Patron);
+                int wxPatronCount = 0;
+                int webPatronCount = 0;
+                foreach (WxUserItem user in patrons)
+                {
+                    if (user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
+                    {
+                        webPatronCount++;
+                    }
+                    else
+                    {
+                        wxPatronCount++;
+                    }
+                }
+
+                // 获取绑定的工作人员数量
+                List<WxUserItem> workers = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Worker);
+                int wxWorkerCount = 0;
+                int webWorkerCount = 0;
+                foreach (WxUserItem user in workers)
+                {
+                    if (user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
+                    {
+                        webWorkerCount++;
+                    }
+                    else
+                    {
+                        wxWorkerCount++;
+                    }
+                }
+                totalCount = patrons.Count + workers.Count;
+
+
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_PatronCount, wxPatronCount.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_WorkerCount, wxWorkerCount.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_BindTotalCount, totalCount.ToString());
+
+                // 新增加的web绑定统计
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_webPatronCount, webPatronCount.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_webWorkerCount, webWorkerCount.ToString());
+
             }
 
 
@@ -10233,18 +10249,27 @@ tempRemark);
             // 馆藏地 2017-2-14 加
             string locXml = "";
             string personalLibrary = "";
-            node = root.SelectSingleNode("personalLibrary");
+            node = root.SelectSingleNode("personalLibrary"); // 书斋名称
             if (node != null)
                 personalLibrary = DomUtil.GetNodeText(node);
-            if (personalLibrary == "*")
+
+            if (personalLibrary == "*")  //*表示全部
                 personalLibrary = "";
+
             if (personalLibrary != "")
             {
+                /*
+<library code="星洲小学">
+    <item canborrow="yes" itemBarcodeNullable="yes">阅览室</item>
+</library>
+                 */
+                 // 将管理的馆藏地组成这种格式。
                 string[] locations = personalLibrary.Split(new char[] {','});
                 foreach (string loc in locations)
                 {
                     locXml += "<item>"+loc+"</item>";
                 }
+
                 if (locXml != "")
                 {
                     locXml = "<library code='"+libraryCode+"'>"

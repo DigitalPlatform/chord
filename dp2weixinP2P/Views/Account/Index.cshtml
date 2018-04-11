@@ -31,6 +31,8 @@
                     return;
                 }
 
+                //alert("getBindList返回结果" + result.errorCode);
+
                 if (result.users == null || result.users.length == 0)
                     $("#divNoBind").css('display', 'block');
                 else
@@ -43,8 +45,10 @@
                     // 根据类型，放在不同的数组里
                     if (user.type == 0)
                         model.wxPatrons.push(user);
-                    else
-                        model.wxWorkers.push(user);
+                    else {
+                        if (user.userName != "public")
+                            model.wxWorkers.push(user);
+                    }
                 }
 
 
@@ -55,7 +59,10 @@
                 //layer.close(index);
                 hideLoading();
 
+
+
                 alert(errorThrown);
+                // alert(errorThrown.errorCode + "-" + errorThrown.errorInfo);
 
 
             });
@@ -220,6 +227,15 @@ else
     }
     else
     {
+        // 警告提示
+        if (String.IsNullOrEmpty(ViewBag.Warn) == false)
+        {
+            <div class="mui-content-padded">
+                <span class="errorinfo">
+                    @Html.Raw(ViewBag.Warn)
+                </span>
+            </div>
+        }
 
         <div class="mui-content-padded">
             您可以绑定多个图书馆账号，前方有红色勾号的表示活动账号，个人信息以及预约续借功能都是针对当前活动账户的。

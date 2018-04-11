@@ -60,7 +60,7 @@ namespace dp2weixinWeb.Controllers
         /// <param name="code"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public ActionResult Index(string code, string state)
+        public ActionResult Index(string code, string state,string myWeixinId)
         {
             string strError = "";
             int nRet = 0;
@@ -69,7 +69,8 @@ namespace dp2weixinWeb.Controllers
             WxUserItem activeUser = null;
             nRet = this.GetActive(code, state, 
                 out  activeUser,
-                out strError);
+                out strError,
+                myWeixinId);
             if (nRet == -1)
             {
                 goto ERROR1;
@@ -80,13 +81,28 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
+            //dp2WeiXinService.Instance.WriteLog1("Index页面，获取完当前对象。");
+
             // 检查微信id是否已经绑定的读者
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-            List<WxUserItem> userList = WxUserDatabase.Current.Get(weixinId,null,-1);
-            if (userList ==null || userList.Count==0)
+            
+
+            //dp2WeiXinService.Instance.WriteLog1("Index页面，检查绑了" + userList.Count + "对象。");
+
+            if (activeUser.type == WxUserDatabase.C_Type_Worker && activeUser.userName == "public")
             {
-                return RedirectToAction("Bind");
-            }             
+                List<WxUserItem> userList = WxUserDatabase.Current.Get(weixinId, null, -1);
+                if (userList.Count > 1)
+                {
+                    ViewBag.Warn = "您尚未绑定当前图书馆[" + ViewBag.LibName + "]的帐户，请点击'新增绑定账号'按钮绑定帐户。";
+
+                }
+                else
+                {
+                    return RedirectToAction("Bind");
+
+                }
+            }
 
             return View();
 

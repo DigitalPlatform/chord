@@ -299,6 +299,7 @@ namespace dp2weixin.service
 
         public static string ParseToSplitByComma(string xml)
         {
+            // 将选择的分馆变成以逗事情分隔的表示
             string result = "";
             List<SubLib> libs = ParseSubLib(xml, false);
             foreach (SubLib lib in libs)
