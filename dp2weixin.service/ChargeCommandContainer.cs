@@ -122,7 +122,8 @@ namespace dp2weixin.service
             return itemTables;
         }
 
-        public ChargeCommand AddCmd(string weixinId,
+        public ChargeCommand AddCmd(//WxUserItem activeUser,
+            string weixinId,
             string libId,
             string libraryCode,
             int needTransfrom,
@@ -133,7 +134,14 @@ namespace dp2weixin.service
             Debug.Assert(cmd != null, "AddCmd传进的cmd不能为空。");
             Debug.Assert(String.IsNullOrEmpty(cmd.type) == false, "命令类型不能为空。");
 
+            if (string.IsNullOrEmpty(libId) == true)
+            {
+                cmd.state = -1;
+                cmd.errorInfo = "libId参数不能为空";
+                return cmd;
+            }
 
+            //string libId = libId;//activeUser.libId;
 
             // 册list,用于ISBN借书
             cmd.itemList = new List<BiblioItem>();
@@ -360,13 +368,13 @@ namespace dp2weixin.service
 
             //检查item是否为isbn
             string strTemp = cmd.itemBarcode;
+            /*
             if (IsbnSplitter.IsISBN(ref strTemp) == true)
             {
                 // 根据isbn检索item
                 List<BiblioItem> items=null;
                 string error="";
-                long lRet= dp2WeiXinService.Instance.SearchItem(weixinId,
-                    libId,
+                long lRet= dp2WeiXinService.Instance.SearchItem(activeUser,
                     loginInfo,
                     "ISBN",
                     strTemp,
@@ -387,6 +395,7 @@ namespace dp2weixin.service
 
                 goto END1;
             }
+            */
             #endregion
 
             #region 借书、还书

@@ -33,12 +33,31 @@ namespace dp2weixinWeb.ApiControllers
 
             SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
             ChargeCommandContainer cmdContainer = sessionInfo.cmdContainer;
-            // 执行命令
-            return cmdContainer.AddCmd(weixinId,
-                libId,
-                libraryCode,
-                needTransfrom,
-                cmd);
+            if (sessionInfo.Active == null)
+            {
+                dp2WeiXinService.Instance.WriteLog1("提交流通API时，发现session失效了。");
+            }
+            
+
+            try
+            {
+                // 执行命令
+                return cmdContainer.AddCmd(//sessionInfo.Active,
+                    weixinId,
+                    libId,
+                    libraryCode,
+                    needTransfrom,
+                    cmd);
+            }
+            catch (Exception ex)
+            {
+                cmd.errorInfo = ex.Message;
+                cmd.state = -1;
+                dp2WeiXinService.Instance.WriteLog1("借还时同错："+ex.Message);
+
+
+                return cmd;
+            }
         }
 
         public ApiResult VerifyBarcode(string libId,

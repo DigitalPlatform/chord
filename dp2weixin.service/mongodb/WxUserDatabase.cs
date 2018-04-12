@@ -113,62 +113,57 @@ namespace dp2weixin.service
         {
             var filter = Builders<WxUserItem>.Filter.Empty;
 
-            dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.Get()");
+            //dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.Get()");
 
             StringBuilder info = new StringBuilder();
             if (bOnlyAvailable == true) // 只取有效的
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("state", C_State_Available);
 
-                info.Append(" state = " + C_State_Available);
+                //info.Append(" state = " + C_State_Available);
             }
 
             if (string.IsNullOrEmpty(weixinId) == false)
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("weixinId", weixinId);
 
-                info.Append(" weixinId=" + weixinId);
+                //info.Append(" weixinId=" + weixinId);
             }
 
             if (string.IsNullOrEmpty(libId) == false)
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("libId", libId);
 
-                info.Append(" libId=" + libId);
+                //info.Append(" libId=" + libId);
             }
 
             if (type != -1)
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("type", type);
 
-                info.Append(" type=" + type);
+                //info.Append(" type=" + type);
             }
 
             if (string.IsNullOrEmpty(patronBarcode) == false)
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("readerBarcode", patronBarcode);
 
-                info.Append(" readerBarcode=" + patronBarcode);
+                //info.Append(" readerBarcode=" + patronBarcode);
             }
 
             if (string.IsNullOrEmpty(userName) == false)
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("userName", userName);
 
-                info.Append(" userName=" + userName);
+                //info.Append(" userName=" + userName);
             }
 
-            dp2WeiXinService.Instance.WriteLog1(info.ToString());
+            //dp2WeiXinService.Instance.WriteLog1(info.ToString());
 
 
             List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
-            dp2WeiXinService.Instance.WriteLog1("共命中" + list.Count.ToString() + "个对象");
+            //dp2WeiXinService.Instance.WriteLog1("共命中" + list.Count.ToString() + "个对象");
 
-            //string temp = "";
-            //foreach (WxUserItem u in list)
-            //{
-            //    temp+= u.id + ",";
-            //}
 
 
 
@@ -750,6 +745,9 @@ namespace dp2weixin.service
         {
             get
             {
+                if (tracing == null)
+                    tracing = "";
+
                 if (this.tracing.IndexOf("-mask") != -1)  // -mask 指不做马赛克处理
                     return false;
                 else
@@ -787,6 +785,34 @@ namespace dp2weixin.service
         public int showPhoto { get; set; }
         public int showCover { get; set; }
         public string bookSubject { get; set; } // 20170509加
+
+        public string Dump()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("id=[" + this.id + "] ");
+            sb.Append("weixinId=[" + this.weixinId + "] ");
+            sb.Append("libId=[" + this.libId + "] ");
+            sb.Append("libName=[" + this.libName + "] ");
+            sb.Append("libraryCode=[" + this.libraryCode + "] ");
+            sb.Append("bindLibraryCode=[" + this.bindLibraryCode + "] ");
+            sb.Append("readerBarcode=[" + this.readerBarcode + "] ");
+            sb.Append("readerName=[" + this.readerName + "] ");
+            sb.Append("department=[" + this.department + "] ");
+            sb.Append("refID=[" + this.refID + "] ");
+            sb.Append("isActive=[" + this.isActive + "] ");
+            sb.Append("userName=[" + this.userName + "] ");
+            sb.Append("tracing=[" + this.tracing + "] ");
+
+            sb.Append("location=[" + this.location + "] ");
+            sb.Append("selLocation=[" + this.selLocation + "] ");
+            sb.Append("verifyBarcode=[" + this.verifyBarcode + "] ");
+
+            sb.Append("audioType=[" + this.audioType + "] ");
+            sb.Append("showPhoto=[" + this.showPhoto + "] ");
+            sb.Append("showCover=[" + this.showCover + "] ");
+
+            return sb.ToString();
+        }
     }
 
 
