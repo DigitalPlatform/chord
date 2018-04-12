@@ -14,7 +14,7 @@ namespace dp2Tools
     {
         public Form_main()
         {
-            InitializeComponent();
+            InitializeComponent();    
         }
 
         // 巡检工具
