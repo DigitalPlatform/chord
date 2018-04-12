@@ -30,7 +30,7 @@
     <SuiteName>Chord</SuiteName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>97</ApplicationRevision>
+    <ApplicationRevision>98</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -61,10 +61,10 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>8BAE7F988E572E2AB49304F6390007A0B650A799</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>E056A870D6E406F56F01C1640F41DE2FC9ECA548</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>ChordInstaller_1_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>ChordInstaller_2_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <TargetZone>LocalIntranet</TargetZone>
@@ -120,6 +120,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="ChordInstaller_1_TemporaryKey.pfx" />
+    <None Include="ChordInstaller_2_TemporaryKey.pfx" />
     <None Include="ChordInstaller_TemporaryKey.pfx" />
     <Content Include="mserver_app.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
