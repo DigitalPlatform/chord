@@ -45,6 +45,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Form_classnosearch.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_classnosearch.Designer.cs">
+      <DependentUpon>Form_classnosearch.cs</DependentUpon>
+    </Compile>
     <Compile Include="Form_inspect.cs">
       <SubType>Form</SubType>
     </Compile>
