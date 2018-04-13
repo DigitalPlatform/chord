@@ -13,13 +13,13 @@ namespace dp2Tools
 {
     public partial class Form_classnosearch : Form
     {
-        DataTable dt_table = new DataTable();
+        DataTable dt_basic = new DataTable();
         DataTable dt_chinese = new DataTable();
         public Form_classnosearch()
         {
             InitializeComponent();
-            dt_table.Columns.Add("classno", typeof(string));
-            dt_table.Columns.Add("count", typeof(int));
+            dt_basic.Columns.Add("classno", typeof(string));
+            dt_basic.Columns.Add("count", typeof(int));
             dt_chinese.Columns.Add("classno", typeof(string));
             //获得文件名包括路径
             string fileName = "..//..//file//basic.txt";
@@ -34,16 +34,16 @@ namespace dp2Tools
                     {
                         string readStr = sr.ReadLine();//读取一行数据
                         string[] strs = readStr.Split(new char[] { '\t', '"' }, StringSplitOptions.RemoveEmptyEntries);//将读取的字符串按"制表符/t“和””“分割成数组
-                        DataRow rows = dt_table.NewRow();
+                        DataRow rows = dt_basic.NewRow();
                         rows["classno"] = strs[0];
                         rows["count"] = 0;
-                        dt_table.Rows.Add(rows);
+                        dt_basic.Rows.Add(rows);
                     }
                 }
 
                 //结束时间-开始时间=总共花费的时间
                // TimeSpan ts = DateTime.Now - startTime;
-                lbl_message.Text = "简表分类号 "   + dt_table.Rows.Count.ToString() + "笔";
+                lbl_message.Text = "简表分类号 "   + dt_basic.Rows.Count.ToString() + "笔";
 
             }
             catch (IOException ex)
@@ -131,11 +131,11 @@ namespace dp2Tools
                 count = 0;
 
 
-                for (int j = 0; j < dt_table.Rows.Count; j++)
+                for (int j = 0; j < dt_basic.Rows.Count; j++)
                 {//如果匹配到即中止
-                    if (dt_table.Rows[j][0].ToString() == dt_chinese.Rows[i][0].ToString())
+                    if (dt_basic.Rows[j][0].ToString() == dt_chinese.Rows[i][0].ToString())
                     {
-                        dt_table.Rows[j][1] = int.Parse(dt_table.Rows[j][1].ToString()) + 1;
+                        dt_basic.Rows[j][1] = int.Parse(dt_basic.Rows[j][1].ToString()) + 1;
                         count++;
                         break;
 
@@ -143,7 +143,7 @@ namespace dp2Tools
 
                 }
             }
-            DataTable table = new DataTable();
+            DataTable table_result = new DataTable();
             DataColumn column = new DataColumn();
 
             column.ColumnName = "序号";
@@ -151,11 +151,11 @@ namespace dp2Tools
             column.AutoIncrementSeed = 1;
             column.AutoIncrementStep = 1;
 
-            table.Columns.Add(column);
-            table.Merge(dt_table);
+            table_result.Columns.Add(column);
+            table_result.Merge(dt_basic);
             //datagridview1.DataSource = table;
             //datagridview1.Columns["序号"].DisplayIndex = 0;//调整列顺序
-            dgv_result.DataSource = table;
+            dgv_result.DataSource = table_result;
             dgv_result.Columns["序号"].DisplayIndex = 0;//调整列顺序
             dgv_result.Columns[1].HeaderCell.Value = "简表分类号";
             dgv_result.Columns[2].HeaderCell.Value = "命中次数";
