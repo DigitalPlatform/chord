@@ -1,6 +1,10 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\chord",
+    "\\ChordInstaller",
+    "\\dp2Tools"
   ],
+  "SelectedNode": "\\dp2Tools\\Form_main.cs",
   "PreviewInSolutionExplorer": false
 }
