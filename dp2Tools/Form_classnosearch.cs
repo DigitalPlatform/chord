@@ -43,7 +43,7 @@ namespace dp2Tools
 
                 //结束时间-开始时间=总共花费的时间
                // TimeSpan ts = DateTime.Now - startTime;
-                lbl_message.Text = "简表分类号"   + dt_table.Rows.Count.ToString() + "笔";
+                lbl_message.Text = "简表分类号 "   + dt_table.Rows.Count.ToString() + "笔";
 
             }
             catch (IOException ex)
