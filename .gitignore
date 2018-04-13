@@ -187,8 +187,10 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
-Ionic.Zip.dll
-ZipUtil.exe
 
-ChordInstaller/
+*.dll
+*.exe
+
+ChordInstaller/*.zip
+ChordInstaller/*_app/
 .vs/
