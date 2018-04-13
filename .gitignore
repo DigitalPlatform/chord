@@ -187,12 +187,8 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
-/Ionic.Zip.dll
-/ZipUtil.exe
+Ionic.Zip.dll
+ZipUtil.exe
 
-/ChordInstaller
-/.vs/dp2-v3/v15/Server/sqlite3/db.lock
-/.vs/dp2-v3/v15/Server/sqlite3/storage.ide-shm
-/.vs/dp2-v3/v15/Server/sqlite3/storage.ide-wal
-/.vs/dp2-v3/v15/Server/sqlite3/storage.ide
-/.vs/config/applicationhost.config
+ChordInstaller/
+.vs/
