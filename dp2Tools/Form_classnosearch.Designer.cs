@@ -30,7 +30,6 @@
         {
             this.txt_chinese = new System.Windows.Forms.TextBox();
             this.btn_fileupload = new System.Windows.Forms.Button();
-            this.btn_search = new System.Windows.Forms.Button();
             this.dgv_result = new System.Windows.Forms.DataGridView();
             this.lbl_message = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgv_result)).BeginInit();
@@ -53,13 +52,6 @@
             this.btn_fileupload.Text = "文件";
             this.btn_fileupload.UseVisualStyleBackColor = true;
             this.btn_fileupload.Click += new System.EventHandler(this.btn_fileupload_Click);
-            // 
-            // btn_search
-            // 
-            this.btn_search.Location = new System.Drawing.Point(0, 0);
-            this.btn_search.Name = "btn_search";
-            this.btn_search.Size = new System.Drawing.Size(75, 23);
-            this.btn_search.TabIndex = 5;
             // 
             // dgv_result
             // 
@@ -89,7 +81,6 @@
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.ClientSize = new System.Drawing.Size(816, 714);
             this.Controls.Add(this.lbl_message);
-            this.Controls.Add(this.btn_search);
             this.Controls.Add(this.btn_fileupload);
             this.Controls.Add(this.txt_chinese);
             this.Controls.Add(this.dgv_result);
@@ -108,7 +99,6 @@
 
         private System.Windows.Forms.TextBox txt_chinese;
         private System.Windows.Forms.Button btn_fileupload;
-        private System.Windows.Forms.Button btn_search;
         private System.Windows.Forms.DataGridView dgv_result;
         private System.Windows.Forms.Label lbl_message;
     }

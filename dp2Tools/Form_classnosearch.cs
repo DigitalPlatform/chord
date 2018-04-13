@@ -162,5 +162,7 @@ namespace dp2Tools
             dgv_result.RowHeadersVisible = false;
             dgv_result.ColumnHeadersVisible = false;
         }
+
+        
     }
 }
