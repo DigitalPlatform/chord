@@ -27,7 +27,7 @@ namespace dp2Tools
             {
                 //定义一个开始时间
                 DateTime startTime = DateTime.Now;
-                //因为文件比较大，所有使用StreamReader的效率要比使用File.ReadLines高
+                //使用StreamReader读取文件.txt
                 using (StreamReader sr = new StreamReader(fileName, Encoding.Default))
                 {
                     while (!sr.EndOfStream)
