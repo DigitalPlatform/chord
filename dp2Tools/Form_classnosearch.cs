@@ -25,8 +25,6 @@ namespace dp2Tools
             string fileName = "..//..//file//basic.txt";
             try
             {
-                //定义一个开始时间
-                DateTime startTime = DateTime.Now;
                 //使用StreamReader读取文件.txt
                 using (StreamReader sr = new StreamReader(fileName, Encoding.Default))
                 {
