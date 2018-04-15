@@ -1,4 +1,6 @@
-﻿@{
+﻿//test jane 20180415
+
+@{
     ViewBag.Title = "Checkout";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
