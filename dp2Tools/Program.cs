@@ -21,7 +21,7 @@ namespace dp2Tools
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form_main());
+            Application.Run(new Form_searchclassno());
         }
     }
 }
