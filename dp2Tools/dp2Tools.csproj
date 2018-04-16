@@ -45,6 +45,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BasicNo.cs" />
+    <Compile Include="Form_searchclassno.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_searchclassno.Designer.cs">
+      <DependentUpon>Form_searchclassno.cs</DependentUpon>
+    </Compile>
     <Compile Include="Form_inspect.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -64,6 +71,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Form_main.resx">
       <DependentUpon>Form_main.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_searchclassno.resx">
+      <DependentUpon>Form_searchclassno.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -92,6 +102,9 @@
       <Project>{eeb5253b-ab62-4d06-896e-8f17e3ffd215}</Project>
       <Name>DigitalPlatform.Text</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="File\basic.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

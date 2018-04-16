@@ -2,8 +2,7 @@
 //test juan 
 //test juan 20180414
 //test juan 20180414 16
-
-// test jane 16:27
+//test juan 20180425
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +21,7 @@ namespace dp2Tools
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form_main());
+            Application.Run(new Form_searchclassno());
         }
     }
 }
