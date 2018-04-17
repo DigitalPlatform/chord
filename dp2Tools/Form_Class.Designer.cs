@@ -39,6 +39,7 @@
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.textBox_result = new System.Windows.Forms.TextBox();
+            this.button_searchSimple = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -56,6 +57,7 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.button_searchSimple);
             this.splitContainer1.Panel1.Controls.Add(this.button_stop);
             this.splitContainer1.Panel1.Controls.Add(this.groupBox1);
             this.splitContainer1.Panel1.Controls.Add(this.button_search);
@@ -66,13 +68,13 @@
             this.splitContainer1.Panel2.Controls.Add(this.statusStrip1);
             this.splitContainer1.Panel2.Controls.Add(this.textBox_result);
             this.splitContainer1.Size = new System.Drawing.Size(804, 550);
-            this.splitContainer1.SplitterDistance = 224;
+            this.splitContainer1.SplitterDistance = 284;
             this.splitContainer1.TabIndex = 0;
             // 
             // button_stop
             // 
             this.button_stop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button_stop.Location = new System.Drawing.Point(724, 160);
+            this.button_stop.Location = new System.Drawing.Point(723, 219);
             this.button_stop.Margin = new System.Windows.Forms.Padding(2);
             this.button_stop.Name = "button_stop";
             this.button_stop.Size = new System.Drawing.Size(69, 38);
@@ -117,12 +119,12 @@
             // button_search
             // 
             this.button_search.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button_search.Location = new System.Drawing.Point(724, 118);
+            this.button_search.Location = new System.Drawing.Point(596, 118);
             this.button_search.Margin = new System.Windows.Forms.Padding(2);
             this.button_search.Name = "button_search";
-            this.button_search.Size = new System.Drawing.Size(69, 38);
+            this.button_search.Size = new System.Drawing.Size(196, 38);
             this.button_search.TabIndex = 2;
-            this.button_search.Text = "匹配";
+            this.button_search.Text = "匹配(输出详细信息)";
             this.button_search.UseVisualStyleBackColor = true;
             this.button_search.Click += new System.EventHandler(this.button_search_Click);
             // 
@@ -137,7 +139,7 @@
             this.textBox_inputClass.Multiline = true;
             this.textBox_inputClass.Name = "textBox_inputClass";
             this.textBox_inputClass.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox_inputClass.Size = new System.Drawing.Size(709, 95);
+            this.textBox_inputClass.Size = new System.Drawing.Size(581, 164);
             this.textBox_inputClass.TabIndex = 1;
             // 
             // statusStrip1
@@ -146,7 +148,7 @@
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripProgressBar1,
             this.toolStripStatusLabel1});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 297);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 237);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(804, 25);
             this.statusStrip1.TabIndex = 5;
@@ -174,8 +176,20 @@
             this.textBox_result.Name = "textBox_result";
             this.textBox_result.ReadOnly = true;
             this.textBox_result.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox_result.Size = new System.Drawing.Size(804, 322);
+            this.textBox_result.Size = new System.Drawing.Size(804, 262);
             this.textBox_result.TabIndex = 4;
+            // 
+            // button_searchSimple
+            // 
+            this.button_searchSimple.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button_searchSimple.Location = new System.Drawing.Point(596, 160);
+            this.button_searchSimple.Margin = new System.Windows.Forms.Padding(2);
+            this.button_searchSimple.Name = "button_searchSimple";
+            this.button_searchSimple.Size = new System.Drawing.Size(196, 38);
+            this.button_searchSimple.TabIndex = 6;
+            this.button_searchSimple.Text = "匹配(输出简单信息)";
+            this.button_searchSimple.UseVisualStyleBackColor = true;
+            this.button_searchSimple.Click += new System.EventHandler(this.button_searchSimple_Click);
             // 
             // Form_Class
             // 
@@ -212,5 +226,6 @@
         private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.Button button_stop;
+        private System.Windows.Forms.Button button_searchSimple;
     }
 }
