@@ -48,6 +48,48 @@ namespace dp2Tools
             */
         }
 
+        // 加载简表
+        private void button_loadClassTable_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+
+            dlg.Title = "请指定要加载的简表文件名";
+            // dlg.FileName = this.textBox_filename.Text;
+
+            dlg.Filter = "简表文件 (*.txt)|*.txt|All files (*.*)|*.*";
+            dlg.RestoreDirectory = true;
+
+            if (dlg.ShowDialog() != DialogResult.OK)
+                return;
+
+            // 简表文件路径
+            string fileName = dlg.FileName;
+
+            string error = "";
+            bool bRet = this.LoadClassTable(fileName, out error);
+            if (bRet == false)
+            {
+                this.textBox_result.Text = error;
+                MessageBox.Show(this, "加载简表有错，详情请查看输出信息");
+                return;
+            }
+            this.textBox_result.Text = "共加载简表中分类号" + this.ClassList.Count + "条";
+        }
+
+        // 输出简表中分类号被匹配次数
+        private void button_outputCount_Click(object sender, EventArgs e)
+        {
+            this.textBox_result.Text = "";
+
+            StringBuilder sb = new StringBuilder();
+            foreach (ClassItem item in this.ClassList)
+            {
+                sb.AppendLine(item.Dump());
+            }
+
+            this.textBox_result.Text = sb.ToString();
+        }
+
         // 加载简表到内存
         private bool LoadClassTable(string fileName, out string error)
         {
@@ -129,6 +171,20 @@ namespace dp2Tools
             this.Match(true);
         }
 
+        // 匹配，输出简单格式
+        private void button_searchSimple_Click(object sender, EventArgs e)
+        {
+            this.Match(false);
+        }
+
+        // 中断处理
+        private void button_stop_Click(object sender, EventArgs e)
+        {
+            this.bStop = true;
+        }
+
+        #region 匹配简表分类号
+
         // 为输入的分类与匹配简表短分类号
         private void Match(bool isDetailOutput)
         {
@@ -138,8 +194,10 @@ namespace dp2Tools
                 return;
             }
 
+            DateTime startTime = DateTime.Now;
+
             this.textBox_result.Text = "";
-            string[] lines = this.GetLines(this.textBox_inputClass.Text.Trim());
+            string[] lines = Form_Class.GetLines(this.textBox_inputClass.Text.Trim());
 
             int totalCount = lines.Length;
             this.toolStripProgressBar1.Maximum = totalCount;
@@ -163,6 +221,9 @@ namespace dp2Tools
                 // 出让控制权
                 Application.DoEvents();
             }
+
+            TimeSpan timeLength = DateTime.Now - startTime;
+            this.toolStripStatusLabel1.Text += "共用时" + timeLength.TotalSeconds.ToString();
         }
 
         // 输入一个分类号，匹配简表对应分类号
@@ -184,10 +245,16 @@ namespace dp2Tools
                 classItem = this.SearchOneClass(thisClass);
                 if (classItem != null)
                 {
+                    string remark = "";
+                    if (thisClass.Length == inputClass.Length)
+                        remark = "等";
+                    else
+                        remark = "短";
+
                     if (isDetailOutput == true)
                         sb.AppendLine("[" + thisClass + "]找到了");
                     else
-                        sb.AppendLine(inputClass + "->" + thisClass);
+                        sb.AppendLine(inputClass + "\t" + thisClass+"\t"+remark);
 
                     break;
                 }
@@ -255,8 +322,12 @@ namespace dp2Tools
             return null;
         }
 
+        #endregion
+
+        #region 静态函数
+
         // 将多行文本转成数组
-        public string[] GetLines(string inputText)
+        public static string[] GetLines(string inputText)
         {
             string text = inputText.Trim();
             text = text.Replace("\r\n", "\n");
@@ -265,55 +336,13 @@ namespace dp2Tools
             return lines;
         }
 
-        private void button_outputCount_Click(object sender, EventArgs e)
-        {
-            this.textBox_result.Text = "";
+        #endregion
 
-            StringBuilder sb = new StringBuilder();
-            foreach (ClassItem item in this.ClassList)
-            {
-                sb.AppendLine(item.Dump());
-            }
 
-            this.textBox_result.Text = sb.ToString();
-        }
 
-        private void button_stop_Click(object sender, EventArgs e)
-        {
-            this.bStop = true;
-        }
 
-        private void button_loadClassTable_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog dlg = new OpenFileDialog();
 
-            dlg.Title = "请指定要加载的简表文件名";
-            // dlg.FileName = this.textBox_filename.Text;
 
-            dlg.Filter = "简表文件 (*.txt)|*.txt|All files (*.*)|*.*";
-            dlg.RestoreDirectory = true;
-
-            if (dlg.ShowDialog() != DialogResult.OK)
-                return;
-
-            // 简表文件路径
-            string fileName = dlg.FileName;
-
-            string error = "";
-            bool bRet = this.LoadClassTable(fileName, out error);
-            if (bRet == false)
-            {
-                this.textBox_result.Text = error;
-                MessageBox.Show(this, "加载简表有错，详情请查看输出信息");
-                return;
-            }
-            this.textBox_result.Text = "共加载简表中分类号" + this.ClassList.Count + "条";
-        }
-
-        private void button_searchSimple_Click(object sender, EventArgs e)
-        {
-            this.Match(false);
-        }
     }
 
 
