@@ -31,6 +31,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.巡检工具ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStripMenuItem_inspect = new System.Windows.Forms.ToolStripMenuItem();
+            this.ToolStripMenuItem_Class = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -48,7 +49,8 @@
             // 巡检工具ToolStripMenuItem
             // 
             this.巡检工具ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ToolStripMenuItem_inspect});
+            this.ToolStripMenuItem_inspect,
+            this.ToolStripMenuItem_Class});
             this.巡检工具ToolStripMenuItem.Name = "巡检工具ToolStripMenuItem";
             this.巡检工具ToolStripMenuItem.Size = new System.Drawing.Size(51, 24);
             this.巡检工具ToolStripMenuItem.Text = "文件";
@@ -59,6 +61,13 @@
             this.ToolStripMenuItem_inspect.Size = new System.Drawing.Size(181, 26);
             this.ToolStripMenuItem_inspect.Text = "巡检工具";
             this.ToolStripMenuItem_inspect.Click += new System.EventHandler(this.ToolStripMenuItem_inspect_Click);
+            // 
+            // ToolStripMenuItem_Class
+            // 
+            this.ToolStripMenuItem_Class.Name = "ToolStripMenuItem_Class";
+            this.ToolStripMenuItem_Class.Size = new System.Drawing.Size(181, 26);
+            this.ToolStripMenuItem_Class.Text = "简表匹配工具";
+            this.ToolStripMenuItem_Class.Click += new System.EventHandler(this.ToolStripMenuItem_Class_Click);
             // 
             // Form_main
             // 
@@ -82,6 +91,7 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem 巡检工具ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_inspect;
+        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_Class;
     }
 }
 

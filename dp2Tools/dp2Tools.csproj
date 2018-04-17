@@ -46,6 +46,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BasicNo.cs" />
+    <Compile Include="ClassItem.cs" />
+    <Compile Include="Form_Class.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_Class.Designer.cs">
+      <DependentUpon>Form_Class.cs</DependentUpon>
+    </Compile>
     <Compile Include="Form_searchclassno.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -66,6 +73,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Form_Class.resx">
+      <DependentUpon>Form_Class.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Form_inspect.resx">
       <DependentUpon>Form_inspect.cs</DependentUpon>
     </EmbeddedResource>
@@ -104,7 +114,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="File\basic.txt" />
+    <Content Include="File\basic.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

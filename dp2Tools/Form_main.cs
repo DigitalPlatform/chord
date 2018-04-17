@@ -27,5 +27,13 @@ namespace dp2Tools
             form.Show();
             
         }
+
+        private void ToolStripMenuItem_Class_Click(object sender, EventArgs e)
+        {
+            Form_Class form = new Form_Class();
+            form.MdiParent = this;
+            form.MaximizeBox = true;
+            form.Show();
+        }
     }
 }
