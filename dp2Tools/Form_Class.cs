@@ -52,6 +52,8 @@ namespace dp2Tools
         private bool LoadClassTable(string fileName, out string error)
         {
             error = "";
+            this.ClassList.Clear();
+            
 
             if (File.Exists(fileName) == false)
             {
@@ -121,8 +123,21 @@ namespace dp2Tools
 
 
         // 匹配简表分类号
+        // 输出详细信息
         private void button_search_Click(object sender, EventArgs e)
         {
+            this.Match(true);
+        }
+
+        // 为输入的分类与匹配简表短分类号
+        private void Match(bool isDetailOutput)
+        {
+            if (this.ClassList.Count == 0)
+            {
+                MessageBox.Show(this, "尚未加载简表");
+                return;
+            }
+
             this.textBox_result.Text = "";
             string[] lines = this.GetLines(this.textBox_inputClass.Text.Trim());
 
@@ -134,15 +149,15 @@ namespace dp2Tools
             {
                 if (bStop == true)
                 {
-                    MessageBox.Show(this, "用户中断，当前处理到第"+count+"个");
+                    MessageBox.Show(this, "用户中断，当前处理到第" + count + "个");
                     break;
                 }
 
-                count ++;
+                count++;
                 this.toolStripProgressBar1.Value = count;
                 this.toolStripStatusLabel1.Text = count.ToString() + "/" + totalCount;
                 ClassItem classItem = null;
-                string outputInfo = this.SearchClass(line, out classItem);
+                string outputInfo = this.SearchClass(line, isDetailOutput, out classItem);
                 this.textBox_result.Text += outputInfo;
 
                 // 出让控制权
@@ -152,27 +167,40 @@ namespace dp2Tools
 
         // 输入一个分类号，匹配简表对应分类号
         private string SearchClass(string inputClass,
+            bool isDetailOutput,
             out ClassItem classItem)
         {
             classItem = null;
 
             Debug.Assert(String.IsNullOrEmpty(inputClass)==false, "输入的分类号不能为空");
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("~查询[" + inputClass + "]开始~");
+
+            if (isDetailOutput==true)
+                sb.AppendLine("=查询[" + inputClass + "]开始=");
+
             string thisClass = inputClass;
             while (thisClass != "")
             {
                 classItem = this.SearchOneClass(thisClass);
                 if (classItem != null)
                 {
-                    sb.AppendLine("["+thisClass+"]找到了");
+                    if (isDetailOutput == true)
+                        sb.AppendLine("[" + thisClass + "]找到了");
+                    else
+                        sb.AppendLine(inputClass + "->" + thisClass);
+
                     break;
                 }
-                sb.AppendLine("["+thisClass+"]未找到");
+                if (isDetailOutput == true)
+                    sb.AppendLine("["+thisClass+"]未找到");
+
                 thisClass = thisClass.Substring(0, thisClass.Length - 1);
             }
-            sb.AppendLine("结束");
-            sb.AppendLine();
+            if (isDetailOutput == true)
+            {
+                sb.AppendLine("结束");
+                sb.AppendLine();
+            }
             return sb.ToString();
         }
 
@@ -280,6 +308,11 @@ namespace dp2Tools
                 return;
             }
             this.textBox_result.Text = "共加载简表中分类号" + this.ClassList.Count + "条";
+        }
+
+        private void button_searchSimple_Click(object sender, EventArgs e)
+        {
+            this.Match(false);
         }
     }
 
