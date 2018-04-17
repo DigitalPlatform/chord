@@ -27,9 +27,7 @@ namespace dp2Tools
                     {
                         string readStr = sr.ReadLine();//读取一行数据
                         string[] strs = readStr.Split(new char[] { '\t', '"' }, StringSplitOptions.RemoveEmptyEntries);//将读取的字符串按"制表符/t“和””“分割成数组
-                        BasicNo basicno = new BasicNo();
-                        basicno.setBasicno(strs[0]);
-                        basicno.setBasicCount(0);
+                        BasicNo basicno = new BasicNo(strs[0], 0);
                         list_basic.Add(basicno);
                     }
                 }
@@ -75,7 +73,7 @@ namespace dp2Tools
             {
                 txt_result.Text = txt_result.Text + list_basic[i].getBasicNo().ToString() +"命中"+ list_basic[i].getCount().ToString() + "次\r\n";
             }
-
+            
         }
         public bool serchBasicNo(string inp_classno)
         {
