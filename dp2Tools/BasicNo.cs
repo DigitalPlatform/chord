@@ -10,6 +10,11 @@ namespace dp2Tools
     {
         public string basicno;//简表分类号
         public int count;//被命中次数
+        public   BasicNo(string basicno, int basiccount)
+        {
+            this.count = basiccount;
+            this.basicno = basicno;
+        }
         public void setBasicCount(int basiccount)
         {
             this.count = basiccount;
