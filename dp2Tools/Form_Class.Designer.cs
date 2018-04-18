@@ -40,6 +40,7 @@
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.textBox_result = new System.Windows.Forms.TextBox();
             this.button_searchSimple = new System.Windows.Forms.Button();
+            this.button_search2file = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -57,6 +58,7 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.button_search2file);
             this.splitContainer1.Panel1.Controls.Add(this.button_searchSimple);
             this.splitContainer1.Panel1.Controls.Add(this.button_stop);
             this.splitContainer1.Panel1.Controls.Add(this.groupBox1);
@@ -74,7 +76,7 @@
             // button_stop
             // 
             this.button_stop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button_stop.Location = new System.Drawing.Point(723, 219);
+            this.button_stop.Location = new System.Drawing.Point(723, 244);
             this.button_stop.Margin = new System.Windows.Forms.Padding(2);
             this.button_stop.Name = "button_stop";
             this.button_stop.Size = new System.Drawing.Size(69, 38);
@@ -191,6 +193,18 @@
             this.button_searchSimple.UseVisualStyleBackColor = true;
             this.button_searchSimple.Click += new System.EventHandler(this.button_searchSimple_Click);
             // 
+            // button_search2file
+            // 
+            this.button_search2file.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button_search2file.Location = new System.Drawing.Point(597, 202);
+            this.button_search2file.Margin = new System.Windows.Forms.Padding(2);
+            this.button_search2file.Name = "button_search2file";
+            this.button_search2file.Size = new System.Drawing.Size(196, 38);
+            this.button_search2file.TabIndex = 7;
+            this.button_search2file.Text = "匹配(输出到文件)";
+            this.button_search2file.UseVisualStyleBackColor = true;
+            this.button_search2file.Click += new System.EventHandler(this.button_search2file_Click);
+            // 
             // Form_Class
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
@@ -227,5 +241,6 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.Button button_stop;
         private System.Windows.Forms.Button button_searchSimple;
+        private System.Windows.Forms.Button button_search2file;
     }
 }

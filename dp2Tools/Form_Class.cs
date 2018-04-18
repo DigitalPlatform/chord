@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
+using DigitalPlatform.IO;
 
 namespace dp2Tools
 {
@@ -168,13 +169,18 @@ namespace dp2Tools
         // 输出详细信息
         private void button_search_Click(object sender, EventArgs e)
         {
-            this.Match(true);
+            this.Match(C_OutputStyle_Detail);
         }
 
         // 匹配，输出简单格式
         private void button_searchSimple_Click(object sender, EventArgs e)
         {
-            this.Match(false);
+            this.Match(C_OutputStyle_Simple);
+        }
+
+        private void button_search2file_Click(object sender, EventArgs e)
+        {
+            this.Match(C_OutputStyle_File);
         }
 
         // 中断处理
@@ -185,8 +191,13 @@ namespace dp2Tools
 
         #region 匹配简表分类号
 
+        // 三种输出风格
+        public const string C_OutputStyle_Detail = "detail";
+        public const string C_OutputStyle_Simple = "simple";
+        public const string C_OutputStyle_File = "file";
+
         // 为输入的分类与匹配简表短分类号
-        private void Match(bool isDetailOutput)
+        private void Match(string outputStyle)
         {
             if (this.ClassList.Count == 0)
             {
@@ -215,7 +226,7 @@ namespace dp2Tools
                 this.toolStripProgressBar1.Value = count;
                 this.toolStripStatusLabel1.Text = count.ToString() + "/" + totalCount;
                 ClassItem classItem = null;
-                string outputInfo = this.SearchClass(line, isDetailOutput, out classItem);
+                string outputInfo = this.SearchClass(line, outputStyle, out classItem);
                 this.textBox_result.Text += outputInfo;
 
                 // 出让控制权
@@ -228,7 +239,7 @@ namespace dp2Tools
 
         // 输入一个分类号，匹配简表对应分类号
         private string SearchClass(string inputClass,
-            bool isDetailOutput,
+            string outputStyle,
             out ClassItem classItem)
         {
             classItem = null;
@@ -236,7 +247,7 @@ namespace dp2Tools
             Debug.Assert(String.IsNullOrEmpty(inputClass)==false, "输入的分类号不能为空");
             StringBuilder sb = new StringBuilder();
 
-            if (isDetailOutput==true)
+            if (outputStyle == C_OutputStyle_Detail)
                 sb.AppendLine("=查询[" + inputClass + "]开始=");
 
             string thisClass = inputClass;
@@ -251,19 +262,24 @@ namespace dp2Tools
                     else
                         remark = "短";
 
-                    if (isDetailOutput == true)
+                    if (outputStyle == C_OutputStyle_Detail)
                         sb.AppendLine("[" + thisClass + "]找到了");
-                    else
-                        sb.AppendLine(inputClass + "\t" + thisClass+"\t"+remark);
+                    else if (outputStyle == C_OutputStyle_Simple)
+                        sb.AppendLine(inputClass + "\t" + thisClass + "\t" + remark);
+                    else if (outputStyle == C_OutputStyle_File)
+                    {
+                        Write2File(inputClass + "\t" + thisClass + "\t" + remark + "\r\n");
+                    }
+
 
                     break;
                 }
-                if (isDetailOutput == true)
+                if (outputStyle == C_OutputStyle_Detail)
                     sb.AppendLine("["+thisClass+"]未找到");
 
                 thisClass = thisClass.Substring(0, thisClass.Length - 1);
             }
-            if (isDetailOutput == true)
+            if (outputStyle == C_OutputStyle_Detail)
             {
                 sb.AppendLine("结束");
                 sb.AppendLine();
@@ -318,7 +334,6 @@ namespace dp2Tools
                 }
             }
 
-
             return null;
         }
 
@@ -336,11 +351,19 @@ namespace dp2Tools
             return lines;
         }
 
+        public void Write2File(string strText)
+        {
+            var logDir = Application.StartupPath+ "\\output";// this.weiXinLogDir;
+
+            if (Directory.Exists(logDir) == false)
+            {
+                Directory.CreateDirectory(logDir);
+            }
+            string strFilename = string.Format(logDir + "/{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
+            FileUtil.WriteText(strFilename, strText);
+        }
+
         #endregion
-
-
-
-
 
 
     }
