@@ -178,6 +178,7 @@ namespace dp2Tools
             this.Match(C_OutputStyle_Simple);
         }
 
+        // 匹配，将输出结果写到文件，对于5万条以上的分类号批处理
         private void button_search2file_Click(object sender, EventArgs e)
         {
             this.Match(C_OutputStyle_File);
