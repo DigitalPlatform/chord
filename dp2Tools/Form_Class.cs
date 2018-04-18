@@ -199,6 +199,8 @@ namespace dp2Tools
         // 为输入的分类与匹配简表短分类号
         private void Match(string outputStyle)
         {
+            this.bStop = false;
+
             if (this.ClassList.Count == 0)
             {
                 MessageBox.Show(this, "尚未加载简表");
