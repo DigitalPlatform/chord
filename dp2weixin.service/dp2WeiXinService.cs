@@ -943,7 +943,7 @@ namespace dp2weixin.service
             }
             if (strType == "读者记录变动")
             {
-                //nRet = this.UpdatePatron(lib, bodyDom, out strError);
+                nRet = this.UpdatePatron(lib, bodyDom, out strError);
                 return 0;// nRet;
             }
             if (strType == "登录验证码")
@@ -10524,12 +10524,12 @@ tempRemark);
 
         private int UpdatePatron(LibEntity lib, XmlDocument bodyDom, out string strError)
         {
-            dp2WeiXinService.Instance.WriteLog1("走进UpdatePatron()-1");
+            //dp2WeiXinService.Instance.WriteLog1("走进UpdatePatron()-1");
 
             strError = "";
-            return 0; // todo 2018/3/14
+            //return 0; // todo 2018/3/14
 
-            dp2WeiXinService.Instance.WriteLog1("走进UpdatePatron()-2");
+            //dp2WeiXinService.Instance.WriteLog1("走进UpdatePatron()-2");
 
             //<root>
             //    <type>读者记录变动</type>
@@ -10577,30 +10577,49 @@ tempRemark);
 
             XmlNode patronRecord = root.SelectSingleNode("patronRecord");
 
+            // 将ｘｍｌ转成ｐａｔｒｏｎ对象
             List<string> newWeixinIds = null;
-            WxUserItem patronInfo = this.GetPatronInfoByXml(patronRecord.OuterXml, out newWeixinIds);
-
-            // 2016-11-16
-            newWeixinIds = this.AddAppIdForWeixinId(newWeixinIds);
+            WxUserItem patronInfo = this.GetPatronInfoByXml(patronRecord.OuterXml,
+                out newWeixinIds);
+            newWeixinIds = this.AddAppIdForWeixinId(newWeixinIds);// 2016-11-16
 
             // 查一下数据库中有没有绑定该账户的微信
-            List<WxUserItem> userList = WxUserDatabase.Current.GetPatron(null, lib.id, patronInfo.readerBarcode);
+            List<WxUserItem> userList = WxUserDatabase.Current.GetPatron(null, 
+                lib.id,
+                patronInfo.readerBarcode);
             List<string> oldWeixinIds = new List<string>();
             foreach (WxUserItem user in userList)
             {
                 string temp = user.weixinId;
-
-                // mongodb中存的weixinId带了@appId 2016-11-16
-                //if (String.IsNullOrEmpty(user.appId) == false)
-                //    temp += "@" + user.appId;
-
                 oldWeixinIds.Add(temp);
+
+                // 2018/4/18加
+                //user.readerBarcode = patronInfo.readerBarcode;
+                user.readerName = patronInfo.readerName;
+                user.department = patronInfo.department;
+                user.xml = patronInfo.xml;
+                user.refID = patronInfo.refID;
+                user.libraryCode = patronInfo.libraryCode;
+                user.rights = patronInfo.rights;
+                user.updateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+
+                // 2017-2-14
+                //user.location = patronInfo.location;
+                //user.selLocation = "";
+
+                // 2017-4-19
+                //user.verifyBarcode = 0;
+                //user.audioType = 4; // 2018/1/2
+
+                WxUserDatabase.Current.Update(user);
             }
 
             // 没有绑定的微信用户
             if (newWeixinIds.Count == 0 && oldWeixinIds.Count == 0)
                 return 0;
+            
 
+            /*
             List<string> addIds = null;
             List<string> modifyIds = null;
             List<string> deleteIds = null;
@@ -10653,7 +10672,7 @@ tempRemark);
                     WxUserDatabase.Current.Delete(userItem.id, out newActivePatron);
                 }
             }
-
+            */
             return 1;
         }
 
