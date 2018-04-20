@@ -9,6 +9,8 @@ namespace dp2weixin
     public static class WeiXinClientUtil
     {
 
+        // 一段协作开发测试代码
+
 
         /// <summary>
         /// 微信的CreateTime是当前与1970-01-01 00:00:00之间的秒数
