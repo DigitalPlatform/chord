@@ -254,6 +254,7 @@ namespace dp2Tools
                 sb.AppendLine("=查询[" + inputClass + "]开始=");
 
             string thisClass = inputClass;
+            bool bFound = false;
             while (thisClass != "")
             {
                 classItem = this.SearchOneClass(thisClass);
@@ -274,6 +275,8 @@ namespace dp2Tools
                         Write2File(inputClass + "\t" + thisClass + "\t" + remark + "\r\n");
                     }
 
+                    // 标记找到了
+                    bFound = true;
 
                     break;
                 }
@@ -282,6 +285,22 @@ namespace dp2Tools
 
                 thisClass = thisClass.Substring(0, thisClass.Length - 1);
             }
+
+            if (bFound == false)
+            {
+                
+                string remark = "未找到";
+                if (outputStyle == C_OutputStyle_Simple) //详细格式已经输入了信息
+                {
+                    sb.AppendLine(inputClass + "\t" + remark);
+                }
+                else if (outputStyle == C_OutputStyle_File)
+                {
+                    Write2File(inputClass + "\t" + remark + "\r\n");
+                }
+            }
+
+
             if (outputStyle == C_OutputStyle_Detail)
             {
                 sb.AppendLine("结束");
