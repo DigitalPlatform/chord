@@ -1,0 +1,15 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="dp2Mini.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="cfg_library_url" Type="System.String" Scope="User">
+      <Value Profile="(Default)">http://localhost/dp2library/xe</Value>
+    </Setting>
+    <Setting Name="cfg_library_username" Type="System.String" Scope="User">
+      <Value Profile="(Default)">supervisor</Value>
+    </Setting>
+    <Setting Name="cfg_library_password" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+  </Settings>
+</SettingsFile>
