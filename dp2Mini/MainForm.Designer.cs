@@ -31,10 +31,12 @@
             this.menuStrip_main = new System.Windows.Forms.MenuStrip();
             this.toolStripMenuItem_file = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_prep = new System.Windows.Forms.ToolStripMenuItem();
-            this.statusStrip_main = new System.Windows.Forms.StatusStrip();
             this.toolStripMenuItem_help = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_setting = new System.Windows.Forms.ToolStripMenuItem();
+            this.statusStrip_main = new System.Windows.Forms.StatusStrip();
+            this.toolStripStatusLabel_message = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip_main.SuspendLayout();
+            this.statusStrip_main.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip_main
@@ -59,17 +61,9 @@
             // toolStripMenuItem_prep
             // 
             this.toolStripMenuItem_prep.Name = "toolStripMenuItem_prep";
-            this.toolStripMenuItem_prep.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem_prep.Size = new System.Drawing.Size(115, 22);
             this.toolStripMenuItem_prep.Text = "备书(&P)";
             this.toolStripMenuItem_prep.Click += new System.EventHandler(this.toolStripMenuItem_prep_Click);
-            // 
-            // statusStrip_main
-            // 
-            this.statusStrip_main.Location = new System.Drawing.Point(0, 577);
-            this.statusStrip_main.Name = "statusStrip_main";
-            this.statusStrip_main.Size = new System.Drawing.Size(702, 22);
-            this.statusStrip_main.TabIndex = 3;
-            this.statusStrip_main.Text = "statusStrip_main";
             // 
             // toolStripMenuItem_help
             // 
@@ -82,14 +76,30 @@
             // toolStripMenuItem_setting
             // 
             this.toolStripMenuItem_setting.Name = "toolStripMenuItem_setting";
-            this.toolStripMenuItem_setting.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem_setting.Size = new System.Drawing.Size(115, 22);
             this.toolStripMenuItem_setting.Text = "设置(&S)";
+            this.toolStripMenuItem_setting.Click += new System.EventHandler(this.toolStripMenuItem_setting_Click);
+            // 
+            // statusStrip_main
+            // 
+            this.statusStrip_main.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripStatusLabel_message});
+            this.statusStrip_main.Location = new System.Drawing.Point(0, 415);
+            this.statusStrip_main.Name = "statusStrip_main";
+            this.statusStrip_main.Size = new System.Drawing.Size(702, 22);
+            this.statusStrip_main.TabIndex = 3;
+            this.statusStrip_main.Text = "statusStrip_main";
+            // 
+            // toolStripStatusLabel_message
+            // 
+            this.toolStripStatusLabel_message.Name = "toolStripStatusLabel_message";
+            this.toolStripStatusLabel_message.Size = new System.Drawing.Size(0, 17);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(702, 599);
+            this.ClientSize = new System.Drawing.Size(702, 437);
             this.Controls.Add(this.statusStrip_main);
             this.Controls.Add(this.menuStrip_main);
             this.IsMdiContainer = true;
@@ -101,6 +111,8 @@
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.menuStrip_main.ResumeLayout(false);
             this.menuStrip_main.PerformLayout();
+            this.statusStrip_main.ResumeLayout(false);
+            this.statusStrip_main.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -114,6 +126,7 @@
         private System.Windows.Forms.StatusStrip statusStrip_main;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_help;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_setting;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_message;
     }
 }
 

@@ -73,5 +73,21 @@ namespace dp2Mini
         {
 
         }
+
+        private void button_ok_Click(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.cfg_library_url = LibraryUrl;
+            Properties.Settings.Default.cfg_library_username = Username;
+            Properties.Settings.Default.cfg_library_password = Password;
+            Properties.Settings.Default.Save();
+            this.DialogResult = DialogResult.OK;
+            this.Close();
+        }
+
+        private void button_cancel_Click(object sender, EventArgs e)
+        {
+            this.DialogResult = DialogResult.Cancel;
+            this.Close();
+        }
     }
 }
