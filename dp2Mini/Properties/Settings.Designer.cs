@@ -25,7 +25,7 @@ namespace dp2Mini.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://localhost/dp2library/xe")]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://localhost/dp2library/xe/rest")]
         public string cfg_library_url {
             get {
                 return ((string)(this["cfg_library_url"]));
@@ -56,6 +56,18 @@ namespace dp2Mini.Properties {
             }
             set {
                 this["cfg_library_password"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool cfg_savePassword {
+            get {
+                return ((bool)(this["cfg_savePassword"]));
+            }
+            set {
+                this["cfg_savePassword"] = value;
             }
         }
     }
