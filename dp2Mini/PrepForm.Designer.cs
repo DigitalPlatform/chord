@@ -34,6 +34,15 @@
             this.label1 = new System.Windows.Forms.Label();
             this.listView_results = new System.Windows.Forms.ListView();
             this.columnHeader_path = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_itemBarcode = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_isbn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_accessNo = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_location = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_readerBarcode = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader7 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -56,7 +65,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.listView_results);
-            this.splitContainer1.Size = new System.Drawing.Size(684, 572);
+            this.splitContainer1.Size = new System.Drawing.Size(1001, 572);
             this.splitContainer1.SplitterDistance = 45;
             this.splitContainer1.TabIndex = 0;
             // 
@@ -92,12 +101,21 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.listView_results.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.columnHeader_path});
+            this.columnHeader_path,
+            this.columnHeader_itemBarcode,
+            this.columnHeader_isbn,
+            this.columnHeader1,
+            this.columnHeader2,
+            this.columnHeader_location,
+            this.columnHeader_accessNo,
+            this.columnHeader_readerBarcode,
+            this.columnHeader6,
+            this.columnHeader7});
             this.listView_results.FullRowSelect = true;
             this.listView_results.GridLines = true;
             this.listView_results.Location = new System.Drawing.Point(12, 3);
             this.listView_results.Name = "listView_results";
-            this.listView_results.Size = new System.Drawing.Size(660, 508);
+            this.listView_results.Size = new System.Drawing.Size(977, 508);
             this.listView_results.TabIndex = 0;
             this.listView_results.UseCompatibleStateImageBehavior = false;
             this.listView_results.View = System.Windows.Forms.View.Details;
@@ -107,11 +125,53 @@
             this.columnHeader_path.Text = "路径";
             this.columnHeader_path.Width = 200;
             // 
+            // columnHeader_itemBarcode
+            // 
+            this.columnHeader_itemBarcode.Text = "册条码";
+            // 
+            // columnHeader_isbn
+            // 
+            this.columnHeader_isbn.Text = "ISBN";
+            // 
+            // columnHeader1
+            // 
+            this.columnHeader1.Text = "书名";
+            // 
+            // columnHeader2
+            // 
+            this.columnHeader2.Text = "作者";
+            // 
+            // columnHeader_accessNo
+            // 
+            this.columnHeader_accessNo.DisplayIndex = 5;
+            this.columnHeader_accessNo.Text = "索取号";
+            // 
+            // columnHeader_location
+            // 
+            this.columnHeader_location.DisplayIndex = 6;
+            this.columnHeader_location.Text = "馆藏地点";
+            this.columnHeader_location.Width = 73;
+            // 
+            // columnHeader_readerBarcode
+            // 
+            this.columnHeader_readerBarcode.Text = "预约者条码号";
+            this.columnHeader_readerBarcode.Width = 96;
+            // 
+            // columnHeader6
+            // 
+            this.columnHeader6.Text = "预约者姓名";
+            this.columnHeader6.Width = 87;
+            // 
+            // columnHeader7
+            // 
+            this.columnHeader7.Text = "预约者部门";
+            this.columnHeader7.Width = 90;
+            // 
             // PrepForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(684, 572);
+            this.ClientSize = new System.Drawing.Size(1001, 572);
             this.Controls.Add(this.splitContainer1);
             this.Name = "PrepForm";
             this.Text = "PrepForm";
@@ -135,5 +195,14 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ListView listView_results;
         private System.Windows.Forms.ColumnHeader columnHeader_path;
+        private System.Windows.Forms.ColumnHeader columnHeader_itemBarcode;
+        private System.Windows.Forms.ColumnHeader columnHeader_isbn;
+        private System.Windows.Forms.ColumnHeader columnHeader1;
+        private System.Windows.Forms.ColumnHeader columnHeader2;
+        private System.Windows.Forms.ColumnHeader columnHeader_accessNo;
+        private System.Windows.Forms.ColumnHeader columnHeader_location;
+        private System.Windows.Forms.ColumnHeader columnHeader_readerBarcode;
+        private System.Windows.Forms.ColumnHeader columnHeader6;
+        private System.Windows.Forms.ColumnHeader columnHeader7;
     }
 }

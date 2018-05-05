@@ -284,5 +284,10 @@ namespace dp2Mini
         {
             this.toolStripStatusLabel_message.Text = text;
         }
+
+        private void toolStripButton_prep_Click(object sender, EventArgs e)
+        {
+            this.toolStripMenuItem_prep_Click(sender, e);
+        }
     }
 }
