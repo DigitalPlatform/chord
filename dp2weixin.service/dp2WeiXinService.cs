@@ -8993,9 +8993,8 @@ tempRemark);
                     out wxWorkerList,
                     out webWorkerList);
                
-                totalCount = wxPatronList.Count + webPatronList.Count
-                    + wxWorkerList.Count
-                    + webWorkerList.Count;
+                totalCount = wxPatronList.Count 
+                    + wxWorkerList.Count;
 
 
                 contentHtml = contentHtml.Replace(LibraryManager.M_Lib_PatronCount, wxPatronList.Count.ToString());
@@ -9004,7 +9003,7 @@ tempRemark);
 
                 // 新增加的web绑定统计
                 contentHtml = contentHtml.Replace(LibraryManager.M_Lib_webPatronCount, webPatronList.Count.ToString());
-                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_webWorkerCount, webWorkerList.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_webWorkerCount, webWorkerList.Count.ToString());
 
             }
 
@@ -9043,6 +9042,11 @@ tempRemark);
             List<WxUserItem> workers = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Worker);
             foreach (WxUserItem user in workers)
             {
+                if (user.userName == "public")
+                {
+                    continue;
+                }
+
                 if (user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
                 {
                     webWorkerList.Add(user);

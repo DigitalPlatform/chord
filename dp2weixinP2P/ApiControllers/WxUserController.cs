@@ -42,12 +42,31 @@ namespace dp2weixinWeb.ApiControllers
             // 获取绑定的读者数量
             List<WxUserItem> users = new List<WxUserItem>();
 
-            if (type=="-1")
-                users= WxUserDatabase.Current.Get("", libId,-1);
-            else if (type =="0")
-                users= WxUserDatabase.Current.Get("", libId,WxUserDatabase.C_Type_Patron);
-            else if (type=="1")
-                users = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Worker);
+            if (type == "-1")
+                users = WxUserDatabase.Current.Get("", libId, -1);
+            else if (type == "0")
+                users = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Patron);
+            else if (type == "1")
+            {
+                List<WxUserItem> tempList = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Worker);
+                foreach (WxUserItem item in tempList)
+                {
+                    if (item.userName == "public")
+                        continue;
+                    users.Add(item);
+                }
+            }
+            else if (type == "public")
+            {
+                List<WxUserItem> tempList = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Worker);
+                foreach (WxUserItem item in tempList)
+                {
+                    if (item.userName == "public")
+                    {
+                        users.Add(item);
+                    }
+                }
+            }
 
 
             result.users = users;

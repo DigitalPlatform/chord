@@ -507,6 +507,9 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             int nRet = 0;
 
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+
             /*
             // 如果是超级管理员，支持传一个weixin id参数
             if (String.IsNullOrEmpty(weixinId) == false)
@@ -514,48 +517,36 @@ namespace dp2weixinWeb.Controllers
                 if (this.CheckSupervisorLogin() == true)
                 {
                     // 记下微信id
-                    SessionInfo sessionInfo = this.GetSessionInfo();
-
-                    GzhCfg gzh = null;
-                    List<string> libIds = null;
-                    nRet = dp2WeiXinService.Instance.GetGzhAndLibs(state,out gzh,
-                        out libIds,
-                        out strError);
-                    if (nRet == -1)
-                    {
-                        goto ERROR1;
-                    }                    
-                    sessionInfo.gzh = gzh;
-                    sessionInfo.libIds = libIds;
-                    nRet=sessionInfo.Init1(weixinId,out strError);
+                    nRet = this.GetActive(code, state,
+                        out activeUser,
+                        out strError,
+                        weixinId);
                     if (nRet == -1)
                     {
                         goto ERROR1;
                     }
-
                 }
                 else
                 {
                     // 转到登录界面
-                    return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Library/Home?weixinId="+weixinId));
+                    return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Library/Home?weixinId=" + weixinId));
                 }
             }
             */
 
-            // 检查当前是否已经选择了图书馆绑定了帐号
-            WxUserItem activeUser = null;
-            nRet = this.GetActive(code, state, 
-                out activeUser,
-                out strError);
-            if (nRet == -1)
-            {
-                goto ERROR1;
-            }
-            if (nRet == 0)
-            {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state,"/Library/Home");
-                return View();
-            }
+                nRet = this.GetActive(code, state,
+                    out activeUser,
+                    out strError);
+                if (nRet == -1)
+                {
+                    goto ERROR1;
+                }
+                if (nRet == 0)
+                {
+                    ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Library/Home");
+                    return View();
+                }
+
 
 
 
