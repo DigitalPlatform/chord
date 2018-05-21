@@ -20,7 +20,7 @@ namespace dp2weixinWeb.ApiControllers
         [HttpGet]
         public WxUserResult Get()
         {
-            dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()开始");
+            //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()开始");
             WxUserResult result = new WxUserResult();
             List<WxUserItem> list = wxUserDb.Get(null,null,-1,null,null,false);//.GetUsers();
 
@@ -30,14 +30,53 @@ namespace dp2weixinWeb.ApiControllers
             //    if (String.IsNullOrEmpty(user.libraryCode) == false)
             //        user.libName = user.libraryCode;
             //}
-            dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()返回");
+            //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()返回");
             result.users = list;
+            return result;
+        }
+
+        [HttpGet]
+        public WxUserResult GetByLibId(string libId,string type)
+        {
+            WxUserResult result = new WxUserResult();
+            // 获取绑定的读者数量
+            List<WxUserItem> users = new List<WxUserItem>();
+
+            if (type == "-1")
+                users = WxUserDatabase.Current.Get("", libId, -1);
+            else if (type == "0")
+                users = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Patron);
+            else if (type == "1")
+            {
+                List<WxUserItem> tempList = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Worker);
+                foreach (WxUserItem item in tempList)
+                {
+                    if (item.userName == "public")
+                        continue;
+                    users.Add(item);
+                }
+            }
+            else if (type == "public")
+            {
+                List<WxUserItem> tempList = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Worker);
+                foreach (WxUserItem item in tempList)
+                {
+                    if (item.userName == "public")
+                    {
+                        users.Add(item);
+                    }
+                }
+            }
+
+
+            result.users = users;
+
             return result;
         }
 
         public WxUserResult Get(string weixinId)
         {
-            dp2WeiXinService.Instance.WriteLog1("WxUserController.Get(string weixinId)开始");
+            //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get(string weixinId)开始");
 
             WxUserResult result = new WxUserResult();
             List<WxUserItem> list = wxUserDb.Get(weixinId, null, -1);
@@ -59,7 +98,7 @@ namespace dp2weixinWeb.ApiControllers
 
 
 
-            dp2WeiXinService.Instance.WriteLog1("WxUserController.Get(string weixinId)结束");
+            //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get(string weixinId)结束");
 
             return result;
         }

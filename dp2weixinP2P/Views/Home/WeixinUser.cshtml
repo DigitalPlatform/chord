@@ -97,6 +97,70 @@
             });
         }
 
+        //用于所有微信用户
+        function getUsers() {
+            //显示等待图层
+            showLoading();
+
+            //alert("getUsers");
+
+            // 先删除可观察数组中的已有数据
+            model.wxUsers.removeAll();
+
+            // 微信id
+            var libid = $("#txtLibId").val();
+            if (libid == "" || libid ==null) {
+                alert("图书馆id不能为空。");
+                return;
+            }
+
+
+
+
+            var curText = $('#selPrefix option:checked').val();
+            if (curText == "" || curText == null) {
+                alert("请选择 筛选条件");
+                return;
+            }
+
+
+
+            // 调web api
+            var url = "/api/wxuser?libId=" + libid + "&type=" + curText;
+            sendAjaxRequest(url, "GET", function (result) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideLoading();
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                //alert(result.users.length);
+
+                if (result.users != null && result.users.length > 0) {
+                    for (var i = 0; i < result.users.length; i++) {
+                        //遍历从服务器得到的结果，以push方法对该数组填充新数据
+                        model.wxUsers.push(result.users[i]);
+                        //alert(result.users[i].weixinId);
+                    }
+                }
+
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideLoading();
+
+                alert(errorThrown);
+
+
+            });
+        }
+
         // 删除一项
         function removeUser(item) {
             //alert("remove-"+item.libId);
@@ -230,7 +294,7 @@
 
             //alert("test1");
             // 获取所有的操作命令
-            getAllUsers();
+            //getAllUsers();
 
             //alert("test2");
 
@@ -242,71 +306,89 @@
 @section header {
     <h1 class="mui-title">微信用户管理</h1>
 }
-<div>
-    <div class="mui-content-padded">
-        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="recoveUser()">
-            从服务器恢复本地微信用户库
-        </button>
+    <div>
+        <div class="mui-content-padded">
+            <button class="mui-btn mui-btn-block mui-btn-primary" onclick="recoveUser()">
+                从服务器恢复本地微信用户库
+            </button>
 
-        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="addAppId()">
-            增加appid
-        </button>
-    </div>
+            <button class="mui-btn mui-btn-block mui-btn-primary" onclick="addAppId()">
+                增加appid
+            </button>
+        </div>
+        <div class="mui-input-group">
+            <div class="mui-input-row ">
+                <label style="color:#cccccc">图书馆id</label>
+                <input type="text" id="txtLibId" class="mui-input mui-input-clear" value="" placeholder="请输入 图书馆id">
+            </div>
+            <div class="mui-input-row ">
+                <label style="color:#cccccc">筛选条件</label>
+                <select id="selPrefix" name="selPrefix">
+                    <option value="-1">全部</option>
+                    <option value="0">读者</option>
+                    <option value="1">工作人员账户</option>
+                    <option value="public">public</option>
+                </select>
+                </div>
+                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="getUsers()">
+                    获取绑定用户
+                </button>
+            </div>
 
-    <ul class="mui-table-view" data-bind=" foreach:model.wxUsers">
-        <li class="mui-table-view-cell">
-            <table class="libTable">
-                <tr>
-                    <td class="label">图书馆id</td>
-                    <td class="value" data-bind="text:libId"></td>
-                </tr>
-                <tr>
-                    <td class="label">姓名/账户</td>
-                    <td class="value">
-                        <span data-bind="text:readerName"></span>
-                        <span data-bind="text:userName"></span>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="label">证条码</td>
-                    <td class="value" data-bind="text:readerBarcode"></td>
-                </tr>
-                <tr>
-                    <td class="label">账号类别</td>
-                    <td class="value" data-bind="text:type"></td>
-                </tr> 
-                <tr>
-                    <td class="label">微信id</td>
-                    <td class="value" data-bind="text:weixinId"></td>
-                </tr>
+            <ul class="mui-table-view" data-bind=" foreach:model.wxUsers">
+                <li class="mui-table-view-cell">
+                    <table class="libTable">
+                        <tr>
+                            <td class="label">图书馆id</td>
+                            <td class="value" data-bind="text:libId"></td>
+                        </tr>
+                        <tr>
+                            <td class="label">姓名/账户</td>
+                            <td class="value">
+                                <span data-bind="text:readerName"></span>
+                                <span data-bind="text:userName"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label">证条码</td>
+                            <td class="value" data-bind="text:readerBarcode"></td>
+                        </tr>
+                        <tr>
+                            <td class="label">账号类别</td>
+                            <td class="value" data-bind="text:type"></td>
+                        </tr>
+                        <tr>
+                            <td class="label">微信id</td>
+                            <td class="value" data-bind="text:weixinId"></td>
+                        </tr>
 
-                <tr>
-                    <td class="label">是否活动</td>
-                    <td class="value" data-bind="text:isActive"></td>
-                </tr>
-                <tr>
-                    <td class="label">参考id</td>
-                    <td class="value" data-bind="text:refID"></td>
-                </tr>
-                <tr>
-                    <td class="label">创建时间</td>
-                    <td class="value" data-bind="text:createTime"></td>
-                </tr>
-                <tr>
-                    <td class="label">状态</td>
-                    <td class="value" data-bind="text:state"></td>
-                </tr>
-                <tr>
-                    <td class="label">备注</td>
-                    <td class="value" data-bind="text:remark"></td>
-                </tr>                                
-                <tr>
-                    <td>&nbsp;</td>
-                    <td>
-                        <button class="mui-btn mui-btn-danger" data-bind="click: removeUser">X&nbsp;删除</button>
-                    </td>
-                </tr>                               
-            </table>
-        </li>
-    </ul>
-</div>
+                        <tr>
+                            <td class="label">是否活动</td>
+                            <td class="value" data-bind="text:isActive"></td>
+                        </tr>
+                        <tr>
+                            <td class="label">参考id</td>
+                            <td class="value" data-bind="text:refID"></td>
+                        </tr>
+                        <tr>
+                            <td class="label">创建时间</td>
+                            <td class="value" data-bind="text:createTime"></td>
+                        </tr>
+                        <tr>
+                            <td class="label">状态</td>
+                            <td class="value" data-bind="text:state"></td>
+                        </tr>
+                        <tr>
+                            <td class="label">备注</td>
+                            <td class="value" data-bind="text:remark"></td>
+                        </tr>
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td>
+                                <button class="mui-btn mui-btn-danger" data-bind="click: removeUser">X&nbsp;删除</button>
+                            </td>
+                        </tr>
+                    </table>
+                </li>
+            </ul>
+        </div>
