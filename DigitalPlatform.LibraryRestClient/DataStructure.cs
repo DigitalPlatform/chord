@@ -978,5 +978,44 @@ namespace DigitalPlatform.LibraryRestClient
         public Record[] searchresults { get; set; }
     }
 
+    [DataContract]
+    public class GetSystemParameterRequest
+    {
+        [DataMember]
+        public string strCategory { get; set; }
+        [DataMember]
+        public string strName { get; set; }
+    }
+
+    [DataContract]
+    public class GetSystemParameterResponse
+    {
+        [DataMember]
+        public LibraryServerResult GetSystemParameterResult { get; set; }
+
+        [DataMember]
+        public string strValue { get; set; }
+    }
+
+    [DataContract]
+    public class SearchRequest
+    {
+        [DataMember]
+        public string strQueryXml { get; set; }
+
+        [DataMember]
+        public string strResultSetName { get; set; }
+
+        [DataMember]
+        public string strOutputStyle { get; set; }
+    }
+
+    [DataContract]
+    public class SearchResponse
+    {
+        [DataMember]
+        public LibraryServerResult SearchResult { get; set; }
+    }
+
     #endregion
 }

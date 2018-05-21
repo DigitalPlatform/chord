@@ -3,13 +3,16 @@
   <Profiles />
   <Settings>
     <Setting Name="cfg_library_url" Type="System.String" Scope="User">
-      <Value Profile="(Default)">http://localhost/dp2library/xe</Value>
+      <Value Profile="(Default)">http://localhost/dp2library/xe/rest</Value>
     </Setting>
     <Setting Name="cfg_library_username" Type="System.String" Scope="User">
       <Value Profile="(Default)">supervisor</Value>
     </Setting>
     <Setting Name="cfg_library_password" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="cfg_savePassword" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>
 </SettingsFile>
