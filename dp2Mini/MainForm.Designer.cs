@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.menuStrip_main = new System.Windows.Forms.MenuStrip();
             this.toolStripMenuItem_file = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_prep = new System.Windows.Forms.ToolStripMenuItem();
@@ -35,8 +36,13 @@
             this.toolStripMenuItem_setting = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip_main = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel_message = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusLabel_loginName = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.toolStripButton_prep = new System.Windows.Forms.ToolStripButton();
             this.menuStrip_main.SuspendLayout();
             this.statusStrip_main.SuspendLayout();
+            this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip_main
@@ -83,29 +89,70 @@
             // statusStrip_main
             // 
             this.statusStrip_main.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel_message});
-            this.statusStrip_main.Location = new System.Drawing.Point(0, 415);
+            this.toolStripStatusLabel_message,
+            this.toolStripStatusLabel1,
+            this.toolStripStatusLabel_loginName});
+            this.statusStrip_main.Location = new System.Drawing.Point(0, 411);
             this.statusStrip_main.Name = "statusStrip_main";
-            this.statusStrip_main.Size = new System.Drawing.Size(702, 22);
+            this.statusStrip_main.RenderMode = System.Windows.Forms.ToolStripRenderMode.ManagerRenderMode;
+            this.statusStrip_main.Size = new System.Drawing.Size(702, 26);
             this.statusStrip_main.TabIndex = 3;
             this.statusStrip_main.Text = "statusStrip_main";
             // 
             // toolStripStatusLabel_message
             // 
+            this.toolStripStatusLabel_message.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Right;
             this.toolStripStatusLabel_message.Name = "toolStripStatusLabel_message";
-            this.toolStripStatusLabel_message.Size = new System.Drawing.Size(0, 17);
+            this.toolStripStatusLabel_message.Size = new System.Drawing.Size(560, 21);
+            this.toolStripStatusLabel_message.Spring = true;
+            this.toolStripStatusLabel_message.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // toolStripStatusLabel1
+            // 
+            this.toolStripStatusLabel1.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Right;
+            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(96, 21);
+            this.toolStripStatusLabel1.Text = "当前登录账户：";
+            this.toolStripStatusLabel1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // toolStripStatusLabel_loginName
+            // 
+            this.toolStripStatusLabel_loginName.Name = "toolStripStatusLabel_loginName";
+            this.toolStripStatusLabel_loginName.Size = new System.Drawing.Size(0, 21);
+            this.toolStripStatusLabel_loginName.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // toolStrip1
+            // 
+            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripButton_prep});
+            this.toolStrip1.Location = new System.Drawing.Point(0, 25);
+            this.toolStrip1.Name = "toolStrip1";
+            this.toolStrip1.Size = new System.Drawing.Size(702, 25);
+            this.toolStrip1.TabIndex = 5;
+            this.toolStrip1.Text = "toolStrip1";
+            // 
+            // toolStripButton_prep
+            // 
+            this.toolStripButton_prep.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripButton_prep.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton_prep.Image")));
+            this.toolStripButton_prep.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton_prep.Name = "toolStripButton_prep";
+            this.toolStripButton_prep.Size = new System.Drawing.Size(36, 22);
+            this.toolStripButton_prep.Text = "备书";
+            this.toolStripButton_prep.Click += new System.EventHandler(this.toolStripButton_prep_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(702, 437);
+            this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.statusStrip_main);
             this.Controls.Add(this.menuStrip_main);
             this.IsMdiContainer = true;
             this.MainMenuStrip = this.menuStrip_main;
             this.Name = "MainForm";
-            this.Text = "MainForm";
+            this.Text = "馆员备书";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
@@ -113,6 +160,8 @@
             this.menuStrip_main.PerformLayout();
             this.statusStrip_main.ResumeLayout(false);
             this.statusStrip_main.PerformLayout();
+            this.toolStrip1.ResumeLayout(false);
+            this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -127,6 +176,10 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_help;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_setting;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_message;
+        private System.Windows.Forms.ToolStrip toolStrip1;
+        private System.Windows.Forms.ToolStripButton toolStripButton_prep;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_loginName;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
     }
 }
 

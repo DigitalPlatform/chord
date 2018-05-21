@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Printing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -39,6 +41,8 @@ namespace dp2Mini
                 this.Close();
                 return;
             }
+
+            this.toolStripStatusLabel_loginName.Text = dlg.Username;
 
             int nRet = GetLibraryInfo();
             if (nRet == 0)
@@ -283,6 +287,11 @@ namespace dp2Mini
         public void SetMessage(string text)
         {
             this.toolStripStatusLabel_message.Text = text;
+        }
+
+        private void toolStripButton_prep_Click(object sender, EventArgs e)
+        {
+            this.toolStripMenuItem_prep_Click(sender, e);
         }
     }
 }

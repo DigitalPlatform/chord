@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>dp2Mini</RootNamespace>
     <AssemblyName>dp2Mini</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -111,6 +111,10 @@
     <ProjectReference Include="..\DigitalPlatform.LibraryRestClient\DigitalPlatform.LibraryRestClient.csproj">
       <Project>{1b74d69a-530f-4275-845b-8ca6d1463bdd}</Project>
       <Name>DigitalPlatform.LibraryRestClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.MarcKernel\DigitalPlatform.MarcKernel.csproj">
+      <Project>{74242530-ef96-457e-852d-5c21a3ea8449}</Project>
+      <Name>DigitalPlatform.MarcKernel</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.MarcQuery\DigitalPlatform.MarcQuery.csproj">
       <Project>{57fe2fb1-4134-409b-876c-8a1c0776b498}</Project>

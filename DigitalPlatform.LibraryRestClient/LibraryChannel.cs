@@ -362,6 +362,58 @@ namespace DigitalPlatform.LibraryRestClient
             }
         }
 
+
+        /// <summary>
+        /// 获得实体记录信息和其从属的书目记录信息
+        /// </summary>
+        /// <param name="barcode">册条码</param>
+        /// <param name="resultType">希望在strResult参数中返回何种格式的信息，xml/html/text之一</param>
+        /// <param name="biblioType">希望返回的书目信息类型，xml/html/text之一</param>
+        /// <returns></returns>
+        public GetItemInfoResponse GetItemInfo(string barcode,
+            string resultType,
+            string biblioType)
+        {
+            string strError = "";
+
+            REDO:
+            try
+            {
+                CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
+                client.Headers["Content-type"] = "application/json; charset=utf-8";
+
+                GetItemInfoRequest request = new GetItemInfoRequest()
+                {
+                    strBarcode = barcode,
+                    strResultType = resultType,
+                    strBiblioType = biblioType,
+                };
+                byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
+                byte[] result = client.UploadData(this.GetRestfulApiUrl("getiteminfo"),
+                    "POST",
+                    baData);
+
+                string strResult = Encoding.UTF8.GetString(result);
+
+                GetItemInfoResponse response = Deserialize<GetItemInfoResponse>(strResult);
+                if (response.GetItemInfoResult.Value == -1 && response.GetItemInfoResult.ErrorCode == ErrorCode.NotLogin)
+                {
+                    if (DoNotLogin(ref strError) == 1)
+                        goto REDO;
+                    return null;
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                int nRet = ConvertWebError(ex, out strError);
+                if (nRet == 0)
+                    return null;
+                goto REDO; ;
+            }
+        }
+
         /// <summary>
         /// 写入读者记录,主要用于绑定和解绑微信用户
         /// </summary>
@@ -1234,7 +1286,6 @@ namespace DigitalPlatform.LibraryRestClient
             string strPassword,
             string strParameters)
         {
-
             CookieAwareWebClient client = new CookieAwareWebClient(Cookies);
             client.Headers["Content-type"] = "application/json; charset=utf-8";
 
@@ -1252,7 +1303,6 @@ namespace DigitalPlatform.LibraryRestClient
 
             LoginResponse response = Deserialize<LoginResponse>(strResult);
             return response;
-
         }
 
 

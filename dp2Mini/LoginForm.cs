@@ -121,6 +121,10 @@ namespace dp2Mini
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message);
+            }
             finally
             {
                 mainForm.ReturnChannel(channel);
