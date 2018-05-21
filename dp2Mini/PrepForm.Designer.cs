@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.button_search = new System.Windows.Forms.Button();
             this.textBox_queryWord = new System.Windows.Forms.TextBox();
@@ -36,17 +37,23 @@
             this.columnHeader_path = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_itemBarcode = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_isbn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_title = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_author = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_accessNo = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_location = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_readerBarcode = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader7 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_readerName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_department = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_state = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_isPrint = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.toolStripMenuItem_print = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem_export = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
+            this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitContainer1
@@ -104,13 +111,16 @@
             this.columnHeader_path,
             this.columnHeader_itemBarcode,
             this.columnHeader_isbn,
-            this.columnHeader1,
-            this.columnHeader2,
-            this.columnHeader_location,
+            this.columnHeader_title,
+            this.columnHeader_author,
             this.columnHeader_accessNo,
+            this.columnHeader_location,
             this.columnHeader_readerBarcode,
-            this.columnHeader6,
-            this.columnHeader7});
+            this.columnHeader_readerName,
+            this.columnHeader_department,
+            this.columnHeader_state,
+            this.columnHeader_isPrint});
+            this.listView_results.ContextMenuStrip = this.contextMenuStrip1;
             this.listView_results.FullRowSelect = true;
             this.listView_results.GridLines = true;
             this.listView_results.Location = new System.Drawing.Point(12, 3);
@@ -133,22 +143,20 @@
             // 
             this.columnHeader_isbn.Text = "ISBN";
             // 
-            // columnHeader1
+            // columnHeader_title
             // 
-            this.columnHeader1.Text = "书名";
+            this.columnHeader_title.Text = "书名";
             // 
-            // columnHeader2
+            // columnHeader_author
             // 
-            this.columnHeader2.Text = "作者";
+            this.columnHeader_author.Text = "作者";
             // 
             // columnHeader_accessNo
             // 
-            this.columnHeader_accessNo.DisplayIndex = 5;
             this.columnHeader_accessNo.Text = "索取号";
             // 
             // columnHeader_location
             // 
-            this.columnHeader_location.DisplayIndex = 6;
             this.columnHeader_location.Text = "馆藏地点";
             this.columnHeader_location.Width = 73;
             // 
@@ -157,15 +165,47 @@
             this.columnHeader_readerBarcode.Text = "预约者条码号";
             this.columnHeader_readerBarcode.Width = 96;
             // 
-            // columnHeader6
+            // columnHeader_readerName
             // 
-            this.columnHeader6.Text = "预约者姓名";
-            this.columnHeader6.Width = 87;
+            this.columnHeader_readerName.Text = "预约者姓名";
+            this.columnHeader_readerName.Width = 87;
             // 
-            // columnHeader7
+            // columnHeader_department
             // 
-            this.columnHeader7.Text = "预约者部门";
-            this.columnHeader7.Width = 90;
+            this.columnHeader_department.Text = "预约者部门";
+            this.columnHeader_department.Width = 90;
+            // 
+            // columnHeader_state
+            // 
+            this.columnHeader_state.Text = "到书状态";
+            // 
+            // columnHeader_isPrint
+            // 
+            this.columnHeader_isPrint.Text = "打印状态";
+            this.columnHeader_isPrint.Width = 100;
+            // 
+            // contextMenuStrip1
+            // 
+            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem_print,
+            this.toolStripMenuItem_export});
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.Size = new System.Drawing.Size(181, 70);
+            this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
+            // 
+            // toolStripMenuItem_print
+            // 
+            this.toolStripMenuItem_print.Name = "toolStripMenuItem_print";
+            this.toolStripMenuItem_print.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem_print.Text = "打印(&P)";
+            this.toolStripMenuItem_print.Click += new System.EventHandler(this.toolStripMenuItem_print_Click);
+            // 
+            // toolStripMenuItem_export
+            // 
+            this.toolStripMenuItem_export.Name = "toolStripMenuItem_export";
+            this.toolStripMenuItem_export.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem_export.Text = "导出(&E)";
+            this.toolStripMenuItem_export.Click += new System.EventHandler(this.toolStripMenuItem_export_Click);
             // 
             // PrepForm
             // 
@@ -183,6 +223,7 @@
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
+            this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -197,12 +238,17 @@
         private System.Windows.Forms.ColumnHeader columnHeader_path;
         private System.Windows.Forms.ColumnHeader columnHeader_itemBarcode;
         private System.Windows.Forms.ColumnHeader columnHeader_isbn;
-        private System.Windows.Forms.ColumnHeader columnHeader1;
-        private System.Windows.Forms.ColumnHeader columnHeader2;
+        private System.Windows.Forms.ColumnHeader columnHeader_title;
+        private System.Windows.Forms.ColumnHeader columnHeader_author;
         private System.Windows.Forms.ColumnHeader columnHeader_accessNo;
         private System.Windows.Forms.ColumnHeader columnHeader_location;
         private System.Windows.Forms.ColumnHeader columnHeader_readerBarcode;
-        private System.Windows.Forms.ColumnHeader columnHeader6;
-        private System.Windows.Forms.ColumnHeader columnHeader7;
+        private System.Windows.Forms.ColumnHeader columnHeader_readerName;
+        private System.Windows.Forms.ColumnHeader columnHeader_department;
+        private System.Windows.Forms.ColumnHeader columnHeader_state;
+        private System.Windows.Forms.ColumnHeader columnHeader_isPrint;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_print;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_export;
     }
 }

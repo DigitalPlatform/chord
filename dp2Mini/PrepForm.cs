@@ -12,6 +12,8 @@ using System.Windows.Forms;
 
 using DigitalPlatform.Xml;
 using DigitalPlatform.Marc;
+using System.Drawing.Printing;
+using System.IO;
 
 namespace dp2Mini
 {
@@ -49,18 +51,16 @@ namespace dp2Mini
 
             Debug.Assert(mainForm != null, "MdiParent 父窗口为 null");
 
+            mainForm.SetMessage("");
+
             string strQueryWord = this.textBox_queryWord.Text;
             string strFrom = "读者证条码号";
             string strMatchStyle = "exact";
-
-
             if (string.IsNullOrEmpty(strQueryWord))
             {
                 strFrom = "__id";
                 strMatchStyle = "left";
             }
-
-
 
             string strQueryXml = "<target list='" + mainForm.ArrivedDbName + ":" + strFrom + "'>" +
                 "<item>" +
@@ -127,6 +127,13 @@ namespace dp2Mini
                         XmlDocument dom = new XmlDocument();
                         dom.LoadXml(strXML);
 
+
+                        string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+                        if ("arrived" == strState)
+                            strState = "图书在馆";
+                        else if ("outof" == strState)
+                            strState = "超过保留期";
+
                         string strLocation = DomUtil.GetElementText(dom.DocumentElement, "location");
                         string strAccessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
 
@@ -181,16 +188,18 @@ namespace dp2Mini
 
 
                         // MessageBox.Show(strXML);
-                        string[] cols = new string[9];
+                        string[] cols = new string[this.listView_results.Columns.Count];
                         cols[0] = strItemBarcode;
                         cols[1] = strISBN;
                         cols[2] = strTitle;
                         cols[3] = strAuthor;
-                        cols[4] = strLocation;
-                        cols[5] = strAccessNo;
+                        cols[4] = strAccessNo;
+                        cols[5] = strLocation;
                         cols[6] = strReaderBarcode;
                         cols[7] = strName;
                         cols[8] = strDept;
+                        cols[9] = strState;
+                        cols[10] = "未打印";
 
 
                         AppendNewLine(this.listView_results, strPath, cols);
@@ -204,6 +213,8 @@ namespace dp2Mini
                     if (lStart >= lHitCount || lCount <= 0)
                         break;
                 }
+
+                // this.listView_results.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
             }
             finally
             {
@@ -262,6 +273,99 @@ namespace dp2Mini
             }
 
             return item;
+        }
+
+        private StreamReader streamToPrint;
+        private void toolStripMenuItem_print_Click(object sender, EventArgs e)
+        {
+            using (StreamWriter writer = new StreamWriter(@"print.txt"))
+            {
+                foreach (ListViewItem item in this.listView_results.SelectedItems)
+                {
+                    StringBuilder sb = new StringBuilder(256);
+                    foreach (ListViewItem.ListViewSubItem subItem in item.SubItems)
+                    {
+                        string strText = subItem.Text;
+                        if (string.IsNullOrEmpty(strText))
+                            continue;
+
+                        writer.WriteLine(strText);
+                    }
+                    writer.WriteLine("-------------------------------------");
+                }
+            }
+
+            try
+            {
+                streamToPrint = new StreamReader(@"print.txt");
+                try
+                {
+                    PrintDocument pd = new PrintDocument();
+                    pd.PrintPage += pd_PrintPage;
+                    pd.Print();
+                }
+                finally
+                {
+                    streamToPrint.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
+        {
+            if(this.listView_results.SelectedItems.Count <= 0)
+            {
+                this.toolStripMenuItem_print.Enabled = false;
+                this.toolStripMenuItem_export.Enabled = false;
+            }
+        }
+
+        private void toolStripMenuItem_export_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pd_PrintPage(object sender, PrintPageEventArgs ev)
+        {
+            float linesPerPage = 0;
+            float yPos = 0;
+            int count = 0;
+            float leftMargin = 5; // ev.MarginBounds.Left;
+            float topMargin = 5; // ev.MarginBounds.Top;
+            string line = null;
+
+            Font printFont = new Font("微软雅黑", 9);
+
+            // Calculate the number of lines per page.
+            linesPerPage = ev.MarginBounds.Height /
+               printFont.GetHeight(ev.Graphics);
+
+            // Print each line of the file.
+            while (count < linesPerPage &&
+               ((line = streamToPrint.ReadLine()) != null))
+            {
+                yPos = topMargin + (count *
+                   printFont.GetHeight(ev.Graphics));
+
+
+                ev.Graphics.DrawString(line,
+                    printFont,
+                    Brushes.Black,
+                   leftMargin,
+                   yPos,
+                   new StringFormat());
+                count++;
+            }
+
+            // If more lines exist, print another page.
+            if (line != null)
+                ev.HasMorePages = true;
+            else
+                ev.HasMorePages = false;
         }
     }
 }
