@@ -6044,10 +6044,8 @@ public string ErrorCode { get; set; }
                     pinyin = value;
                     continue;
                 }
-
-
                 // 是否为标题行
-                if (this.CheckContainWord(type, "title") == true) //(name == "题名与责任说明")
+                if (this.CheckContainWord(type, "title_area")==true) // 20180516改为根据title_are判断，之前用的 "title") == true) //(name == "题名与责任说明")
                 {
                     // 拼音与书名合为一行
                     if (String.IsNullOrEmpty(pinyin) == false)
