@@ -193,11 +193,11 @@ namespace DigitalPlatform.LibraryRestClient
         {
             strError = "";
 
-        REDO:
+            REDO:
 
             CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
             client.Headers["Content-type"] = "application/json; charset=utf-8";
-            
+
             // 请求实体
             SearchReaderRequest request = new SearchReaderRequest();
             request.strReaderDbNames = strReaderDbNames;// "";           
@@ -257,7 +257,7 @@ namespace DigitalPlatform.LibraryRestClient
             out string strError)
         {
             searchresults = null;
-            strError = "";            
+            strError = "";
             REDO:
             try
             {
@@ -299,7 +299,7 @@ namespace DigitalPlatform.LibraryRestClient
                     return -1;
                 goto REDO;
             }
-            
+
         }
 
         // 获得读者记录
@@ -326,7 +326,7 @@ namespace DigitalPlatform.LibraryRestClient
         {
             string strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
@@ -374,7 +374,7 @@ namespace DigitalPlatform.LibraryRestClient
         /// <para>0:    成功</para>
         /// <para>1:    成功，但部分字段被拒绝</para>
         /// </returns>
-        public long SetReaderInfoForWeiXin(           
+        public long SetReaderInfoForWeiXin(
             string strRecPath,
             string strNewXml,
             string strOldTimestamp,
@@ -384,7 +384,7 @@ namespace DigitalPlatform.LibraryRestClient
             string strSavedXml = "";
             string strSavedRecPath = "";
             byte[] baNewTimestamp = null;
-            
+
             return this.SetReaderInfo("change",
                 strRecPath,
                 strNewXml,
@@ -435,14 +435,14 @@ namespace DigitalPlatform.LibraryRestClient
             strSavedXml = "";
             strSavedRecPath = "";
             baNewTimestamp = null;
-        REDO:
+            REDO:
             try
             {
                 CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
                 client.Headers["Content-type"] = "application/json; charset=utf-8";
 
                 SetReaderInfoRequest request = new SetReaderInfoRequest();
-                request.strAction =strAction;
+                request.strAction = strAction;
                 request.strRecPath = strRecPath;
                 request.strNewXml = strNewXml;
                 request.strOldXml = strOldXml;
@@ -477,7 +477,7 @@ namespace DigitalPlatform.LibraryRestClient
                     return -1;
                 goto REDO;
             }
-             
+
         }
 
 
@@ -505,7 +505,7 @@ namespace DigitalPlatform.LibraryRestClient
             strOutputReaderBarcode = "";
             strReaderXml = "";
 
-        REDO:
+            REDO:
             try
             {
                 CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
@@ -550,8 +550,8 @@ namespace DigitalPlatform.LibraryRestClient
 
                 BorrowResponse response = Deserialize<BorrowResponse>(strResult);
                 // 未登录的情况
-                
-                
+
+
                 if (response.BorrowResult.Value == -1 && response.BorrowResult.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -566,7 +566,7 @@ namespace DigitalPlatform.LibraryRestClient
                 strError = response.BorrowResult.ErrorInfo;
                 this.ErrorCode = response.BorrowResult.ErrorCode;
 
-                
+
                 // 多笔读者记录
                 if (response.BorrowResult.Value == -1 && response.BorrowResult.ErrorCode == ErrorCode.IdcardNumberDup)
                 {
@@ -579,13 +579,13 @@ namespace DigitalPlatform.LibraryRestClient
                     string strTemp = strItemBarcode;
                     if (IsbnSplitter.IsISBN(ref strTemp) == true)
                     {
-                        strError = strTemp;                            
+                        strError = strTemp;
                         return 3;
                     }
                 }
-                
-                if (response.reader_records!=null && response.reader_records.Length > 0)
-                    strReaderXml=response.reader_records[0];
+
+                if (response.reader_records != null && response.reader_records.Length > 0)
+                    strReaderXml = response.reader_records[0];
 
                 this.ClearRedoCount();
                 return (int)response.BorrowResult.Value;
@@ -724,7 +724,7 @@ namespace DigitalPlatform.LibraryRestClient
         /// <para>1:    操作成功，并且有值得操作人员留意的情况。提示信息在 strError 中</para>
         /// </returns>
         public int Return(string strAction,
-            string strReaderBarcode, 
+            string strReaderBarcode,
             string strItemBarcode,
             out string strOutputReaderBarcode,
             out string strReaderXml,
@@ -749,7 +749,7 @@ namespace DigitalPlatform.LibraryRestClient
             }
              */
 
-        REDO:
+            REDO:
             try
             {
                 CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
@@ -769,12 +769,12 @@ namespace DigitalPlatform.LibraryRestClient
                 /// <param name="strReaderBarcode">读者证条码号，或读者身份证号</param>
                 /// <param name="strItemBarcode">要还回或声明丢失的册条码号</param>
                 /// <param name="strConfirmItemRecPath">用于确认册记录的路径</param>
-                
+
                 /// <param name="bForce">此参数目前未使用，设为 false 即可</param>
                 /// <param name="strStyle">操作风格</param>
                 /// <param name="strItemFormatList">指定在 item_records 参数中返回信息的格式列表</param>
                 /// <param name="item_records">返回册相关的信息数组</param>
-               
+
                 /// <param name="strReaderFormatList">指定在 reader_records 参数中返回信息的各式列表</param>
                 /// <param name="reader_records">返回读者相关的信息数组</param>
                 /// <param name="strBiblioFormatList">指定在 biblio_records 参数中返回信息的格式列表</param>
@@ -789,7 +789,7 @@ namespace DigitalPlatform.LibraryRestClient
                 /// <para>1:    操作成功，并且有值得操作人员留意的情况。提示信息在 strError 中</para>
                 /// </returns>
                 ReturnRequest request = new ReturnRequest();
-                request.strAction =strAction;
+                request.strAction = strAction;
                 request.strReaderBarcode = strReaderBarcode;
                 request.strItemBarcode = strItemBarcode;
                 request.strConfirmItemRecPath = "";
@@ -885,7 +885,7 @@ namespace DigitalPlatform.LibraryRestClient
         {
             strError = "";
             strQueryXml = "";
-        REDO:
+            REDO:
             try
             {
 
@@ -900,7 +900,7 @@ namespace DigitalPlatform.LibraryRestClient
                 request.strMatchStyle = strMatchStyle;
 
                 request.strLang = "zh";
-                request.strResultSetName = strResultSetName;              
+                request.strResultSetName = strResultSetName;
                 request.strSearchStyle = "";// "desc";
                 request.strOutputStyle = strOutputStyle;
 
@@ -952,17 +952,17 @@ namespace DigitalPlatform.LibraryRestClient
         //      entityinfos 返回的实体信息数组
         //      Result.Value    -1出错 0没有找到 其他 总的实体记录的个数(本次返回的，可以通过entities.Count得到)
         // 权限：需要有getiteminfo或order权限(兼容getentities权限)
-        public long GetEntities(string strBiblioRecPath, 
-            long lStart, 
+        public long GetEntities(string strBiblioRecPath,
+            long lStart,
             long lCount,
             string strStyle,
-            string strLang, 
-            out EntityInfo[] entities, 
+            string strLang,
+            out EntityInfo[] entities,
             out string strError)
         {
             strError = "";
             entities = null;
-        REDO:
+            REDO:
             try
             {
 
@@ -1042,7 +1042,7 @@ namespace DigitalPlatform.LibraryRestClient
                 return -1;
             }
 
-            for (int i = 0; i < searchresults.Length;i++ )
+            for (int i = 0; i < searchresults.Length; i++)
             {
                 resultPathList.Add(searchresults[i].Path + "*" + searchresults[i].Cols[0]);
             }
@@ -1069,14 +1069,14 @@ namespace DigitalPlatform.LibraryRestClient
             strBrowse = "";
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
-                client.Headers["Content-type"] = "application/json; charset=utf-8";                
+                client.Headers["Content-type"] = "application/json; charset=utf-8";
 
                 GetBrowseRecordsRequest request = new GetBrowseRecordsRequest();
-                request.paths = new string[] {strRecPath };
+                request.paths = new string[] { strRecPath };
                 request.strBrowseInfoStyle = "cols";
 
                 byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
@@ -1097,12 +1097,12 @@ namespace DigitalPlatform.LibraryRestClient
                 strError = response.GetBrowseRecordsResult.ErrorInfo;
 
                 Record record = response.searchresults[0];
-                strBrowse = "题名:"+record.Cols[0]+"\n"
-                    +"责任说明:"+record.Cols[1]+"\n"
+                strBrowse = "题名:" + record.Cols[0] + "\n"
+                    + "责任说明:" + record.Cols[1] + "\n"
                     + "分类号:" + record.Cols[2] + "\n"
                     + "主题词:" + record.Cols[3] + "\n"
                     + "出版者:" + record.Cols[4] + "\n"
-                    + "出版时间:" + record.Cols[5] ;
+                    + "出版时间:" + record.Cols[5];
 
                 this.ClearRedoCount();
                 return response.GetBrowseRecordsResult.Value;
@@ -1125,7 +1125,7 @@ namespace DigitalPlatform.LibraryRestClient
             string strBiblioRecPathExclude)
         {
             string strError = "";
-        REDO:
+            REDO:
 
 
             CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
@@ -1176,7 +1176,7 @@ namespace DigitalPlatform.LibraryRestClient
             out string strError)
         {
             strError = "";
-        REDO:
+            REDO:
             try
             {
                 CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
@@ -1281,7 +1281,7 @@ namespace DigitalPlatform.LibraryRestClient
                 ea.FirstTry = true;
                 ea.ErrorInfo = strError;
 
-            REDOLOGIN:
+                REDOLOGIN:
                 this.BeforeLogin(this, ea);
 
                 if (ea.Cancel == true)
@@ -1353,6 +1353,72 @@ namespace DigitalPlatform.LibraryRestClient
         }
 
         #endregion
+
+        public GetSystemParameterResponse GetSystemParameter(string strCategory,
+            string strName)
+        {
+            REDO:
+            CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
+            client.Headers["Content-type"] = "application/json; charset=utf-8";
+
+            GetSystemParameterRequest request = new GetSystemParameterRequest()
+            {
+                strCategory = strCategory,
+                strName = strName
+            };
+            byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
+            byte[] result = client.UploadData(GetRestfulApiUrl("GetSystemParameter"),
+                "POST",
+                baData);
+
+            string strResult = Encoding.UTF8.GetString(result);
+            GetSystemParameterResponse response = Deserialize<GetSystemParameterResponse>(strResult);
+            if (response.GetSystemParameterResult.Value == -1
+                && response.GetSystemParameterResult.ErrorCode == ErrorCode.NotLogin)
+            {
+                string strError = "";
+                if (DoNotLogin(ref strError) == 1)
+                    goto REDO;
+            }
+
+            return response;
+        }
+
+
+        public SearchResponse Search(string queryXml,
+            string resultSetName,
+            string outputStyle)
+        {
+            REDO:
+            CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
+            client.Headers["Content-type"] = "application/json; charset=utf-8";
+
+            SearchRequest request = new SearchRequest()
+            {
+                strQueryXml = queryXml,
+                strResultSetName = resultSetName,
+                strOutputStyle = outputStyle
+            };
+            byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
+            byte[] result = client.UploadData(GetRestfulApiUrl("Search"),
+                "POST",
+                baData);
+
+            string strResult = Encoding.UTF8.GetString(result);
+            SearchResponse response = Deserialize<SearchResponse>(strResult);
+            if (response.SearchResult.Value == -1
+                && response.SearchResult.ErrorCode == ErrorCode.NotLogin)
+            {
+                string strError = "";
+                if (DoNotLogin(ref strError) == 1)
+                    goto REDO;
+            }
+
+            return response;
+        }
+
+
+
 
         public void Close()
         {
