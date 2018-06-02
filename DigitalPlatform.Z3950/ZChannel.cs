@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 namespace DigitalPlatform.Z3950
 {
     // TODO: 注意提供 IDisposeable 接口。因为内含的 TcpClient 是 IDisposeable 的
-    public class ZChannel
+    public class ZChannel : IDisposable
     {
-        public TcpClient client = null;
+        public TcpClient _client = new TcpClient();
 
         public const int DefaultPort = 210;
 
@@ -29,10 +29,17 @@ namespace DigitalPlatform.Z3950
         //public int nErrorCode = 0;
 
         // TODO: 要实现 IDisposeable 接口，释放 ...
-        internal AutoResetEvent eventClose = new AutoResetEvent(false);	// true : initial state is signaled 
-        internal AutoResetEvent eventFinished = new AutoResetEvent(false);	// true : initial state is signaled 
+        //internal AutoResetEvent eventClose = new AutoResetEvent(false);	// true : initial state is signaled 
+        //internal AutoResetEvent eventFinished = new AutoResetEvent(false);	// true : initial state is signaled 
 
         public int Timeout = 60 * 1000;   // 60秒
+
+
+        public void Dispose()
+        {
+            if (_client != null)
+                _client.Dispose();
+        }
 
         /// <summary>
         /// 是否被Z39.50初始化
@@ -54,16 +61,17 @@ namespace DigitalPlatform.Z3950
         {
             get
             {
-                if (this.client == null)
+                if (this._client == null)
                     return false;
 
-                return this.client.Connected;
-                /*
-                if (this.client != null)
-                    return true;
-
-                return false;
-                 * */
+                try
+                {
+                    return this._client.Connected;
+                }
+                catch
+                {
+                    return false;
+                }
             }
         }
 
@@ -80,6 +88,104 @@ namespace DigitalPlatform.Z3950
             get
             {
                 return this.m_nPort;
+            }
+        }
+
+#if NO
+        // 线程connect()到主机
+        public int NewConnectSocket(string strHostName,
+            int nPort,
+            out string strError)
+        {
+            strError = "";
+
+            this.m_strHostName = strHostName;
+            this.m_nPort = nPort;
+
+
+            // 在线程之前试探Close();
+            this.CloseSocket();
+
+            this.eventClose.Reset();
+            this.eventFinished.Reset();
+
+            this.strErrorString = "";
+            this.nErrorCode = 0;
+
+
+            Thread clientThread = new Thread(new ThreadStart(ConnectThread));
+            clientThread.Start();
+
+            // 等待线程结束
+            WaitHandle[] events = new WaitHandle[2];
+            events[0] = this.eventClose;
+            events[1] = this.eventFinished;
+
+            int nIdleTimeCount = 0;
+            int nIdleTicks = 100;
+
+            REDO:
+            DoIdle();
+
+            int index = 0;
+            try
+            {
+                index = WaitHandle.WaitAny(events, nIdleTicks, false);
+            }
+            catch (System.Threading.ThreadAbortException ex)
+            {
+                strError = "线程被杀死";
+                return -1;
+            }
+
+            if (index == WaitHandle.WaitTimeout)
+            {
+                nIdleTimeCount += nIdleTicks;
+
+                if (nIdleTicks >= this.Timeout)
+                {
+                    // 超时
+                    strError = "超时 (" + this.Timeout + "毫秒)";
+                    return -1;
+                }
+
+                goto REDO;
+            }
+            else if (index == 0)
+            {
+                // 得到Close信号
+                strError = "通道被切断";
+                return -1;
+            }
+            else
+            {
+                // 得到finish信号
+                if (nErrorCode != 0)
+                {
+                    strError = this.strErrorString;
+                    return nErrorCode;
+                }
+                return 0;
+            }
+
+            return -1;
+        }
+#endif
+
+
+        public async Task<Result> Connect(string host_name, int port = 210)
+        {
+            try
+            {
+                this.m_strHostName = host_name;
+                this.m_nPort = port;
+                await _client.ConnectAsync(host_name, port);
+                // client.NoDelay = true;
+                return new Result();
+            }
+            catch (Exception ex)  // SocketException
+            {
+                return new Result { Value = -1, ErrorInfo = "Connect出错: " + ex.Message };
             }
         }
 
@@ -170,7 +276,7 @@ namespace DigitalPlatform.Z3950
         }
 #endif
 
-        async Task<RecvResult> SendAndRecvThread(byte[] baSend)
+        public async Task<RecvResult> SendAndRecvThread(byte[] baSend)
         {
             {
                 Result result = await this.SimpleSendTcpPackage(
@@ -199,21 +305,23 @@ namespace DigitalPlatform.Z3950
 #endif
 
                 // this.baRecv = result.Package;
-                this.eventFinished.Set();
+                // this.eventFinished.Set();
                 return result;
             }
-        }
-
-        public class Result
-        {
-            public int Value { get; set; }
-            public string ErrorInfo { get; set; }
         }
 
         public class RecvResult : Result
         {
             public int Length { get; set; }
             public byte[] Package { get; set; }
+
+            public override string ToString()
+            {
+                StringBuilder text = new StringBuilder(base.ToString());
+                text.Append("Package=" + this.Package + "\r\n");
+                text.Append("Length=" + this.Length + "\r\n");
+                return text.ToString();
+            }
         }
 
         // 发出请求包
@@ -226,14 +334,14 @@ namespace DigitalPlatform.Z3950
         {
             Result result = new Result();
 
-            if (client == null)
+            if (_client == null)
             {
                 result.Value = -1;
                 result.ErrorInfo = "client尚未初始化。请重新连接和检索。";
                 return result;
             }
 
-            if (this.client == null)
+            if (this._client == null)
             {
                 result.Value = -1;
                 result.ErrorInfo = "用户中断";
@@ -241,7 +349,7 @@ namespace DigitalPlatform.Z3950
             }
 
             // TODO: 是否要关闭 NetworkStream !!!
-            NetworkStream stream = client.GetStream();
+            NetworkStream stream = _client.GetStream();
 
             if (stream.DataAvailable == true)
             {
@@ -276,7 +384,7 @@ namespace DigitalPlatform.Z3950
             int wRet = 0;
             bool bInitialLen = false;
 
-            Debug.Assert(client != null, "client为空");
+            Debug.Assert(_client != null, "client为空");
 
             result.Package = new byte[4096];
             nInLen = 0;
@@ -284,7 +392,7 @@ namespace DigitalPlatform.Z3950
 
             while (nInLen < result.Length)
             {
-                if (client == null)
+                if (_client == null)
                 {
                     strError = "通讯中断";
                     goto ERROR1;
@@ -292,7 +400,7 @@ namespace DigitalPlatform.Z3950
 
                 try
                 {
-                    wRet = await client.GetStream().ReadAsync(result.Package,
+                    wRet = await _client.GetStream().ReadAsync(result.Package,
                         nInLen,
                         result.Package.Length - nInLen);
                 }
@@ -361,12 +469,42 @@ namespace DigitalPlatform.Z3950
             return new RecvResult { Value = -1, ErrorInfo = strError };
         }
 
+        // 流中是否还有未读入的数据
+        public bool DataAvailable
+        {
+            get
+            {
+                if (_client == null)
+                    return false;
+
+                // TODO: 是否要关闭 NetworkStream !!!
+                NetworkStream stream = _client.GetStream();
+
+                if (stream == null)
+                    return false;
+
+                bool bOldBlocking = this._client.Client.Blocking;
+                this._client.Client.Blocking = true;
+                try
+                {
+
+                    return stream.DataAvailable;
+                }
+                finally
+                {
+                    this._client.Client.Blocking = bOldBlocking;
+                }
+            }
+        }
+
+        // TODO: 可以增加一个事件，让外面知晓这里发生了 Close()。这样便于外面自动跟随清除 TargetInfo
         public void CloseSocket()
         {
-            if (client != null)
+#if NO
+            if (_client != null)
             {
-                TcpClient temp_client = client;
-                this.client = null;
+                TcpClient temp_client = _client;
+                this._client = null;
 
                 try
                 {
@@ -376,26 +514,25 @@ namespace DigitalPlatform.Z3950
                 catch
                 {
                 }
-
-#if NO
-                try
-                {
-                    NetworkStream stream = temp_client.GetStream();
-                    stream.Close();
-                }
-                catch { }
-                try
-                {
-                    temp_client.Close();
-                }
-                catch { }
-#endif
             }
-
-            END1:
-            this.m_bInitialized = false;
-
-            this.eventClose.Set();
+#endif
+            if (_client != null)
+            {
+                try
+                {
+                    _client.Close();
+                }
+                catch
+                {
+                }
+                finally
+                {
+                    this._client = new TcpClient(); // 如果 Close 之后不重新 new，则会遇到 NullException
+                    this.m_bInitialized = false;
+                }
+            }
+            // this.eventClose.Set();
         }
+
     }
 }
