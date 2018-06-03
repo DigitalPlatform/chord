@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace dp2Mini.Properties {
+namespace TestZClient.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -25,49 +25,61 @@ namespace dp2Mini.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://localhost/dp2library/xe/rest")]
-        public string cfg_library_url {
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string serverAddr {
             get {
-                return ((string)(this["cfg_library_url"]));
+                return ((string)(this["serverAddr"]));
             }
             set {
-                this["cfg_library_url"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("supervisor")]
-        public string cfg_library_username {
-            get {
-                return ((string)(this["cfg_library_username"]));
-            }
-            set {
-                this["cfg_library_username"] = value;
+                this["serverAddr"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string cfg_library_password {
+        public string serverPort {
             get {
-                return ((string)(this["cfg_library_password"]));
+                return ((string)(this["serverPort"]));
             }
             set {
-                this["cfg_library_password"] = value;
+                this["serverPort"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool cfg_savePassword {
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string databaseName {
             get {
-                return ((bool)(this["cfg_savePassword"]));
+                return ((string)(this["databaseName"]));
             }
             set {
-                this["cfg_savePassword"] = value;
+                this["databaseName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string queryWord {
+            get {
+                return ((string)(this["queryWord"]));
+            }
+            set {
+                this["queryWord"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string queryUse {
+            get {
+                return ((string)(this["queryUse"]));
+            }
+            set {
+                this["queryUse"] = value;
             }
         }
     }

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj" />
+    <ProjectReference Include="..\DigitalPlatform.Text\DigitalPlatform.Text.csproj" />
+  </ItemGroup>
+
+</Project>
