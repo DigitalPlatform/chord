@@ -47,11 +47,22 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.textBox_password = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.textBox_userName = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.textBox_groupID = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.radioButton_authenStyleIdpass = new System.Windows.Forms.RadioButton();
+            this.radioButton_authenStyleOpen = new System.Windows.Forms.RadioButton();
+            this.button_stop = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.panel_query.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -75,7 +86,7 @@
             // statusStrip1
             // 
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
-            this.statusStrip1.Location = new System.Drawing.Point(0, 400);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 584);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(851, 22);
             this.statusStrip1.TabIndex = 2;
@@ -94,13 +105,22 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.webBrowser1);
-            this.splitContainer1.Size = new System.Drawing.Size(851, 351);
-            this.splitContainer1.SplitterDistance = 283;
+            this.splitContainer1.Size = new System.Drawing.Size(851, 535);
+            this.splitContainer1.SplitterDistance = 380;
             this.splitContainer1.SplitterWidth = 8;
             this.splitContainer1.TabIndex = 3;
             // 
             // panel_query
             // 
+            this.panel_query.AutoScroll = true;
+            this.panel_query.Controls.Add(this.button_stop);
+            this.panel_query.Controls.Add(this.textBox_password);
+            this.panel_query.Controls.Add(this.label7);
+            this.panel_query.Controls.Add(this.textBox_userName);
+            this.panel_query.Controls.Add(this.label6);
+            this.panel_query.Controls.Add(this.textBox_groupID);
+            this.panel_query.Controls.Add(this.label8);
+            this.panel_query.Controls.Add(this.groupBox1);
             this.panel_query.Controls.Add(this.button_nextBatch);
             this.panel_query.Controls.Add(this.button_close);
             this.panel_query.Controls.Add(this.textBox_database);
@@ -117,7 +137,7 @@
             this.panel_query.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel_query.Location = new System.Drawing.Point(0, 0);
             this.panel_query.Name = "panel_query";
-            this.panel_query.Size = new System.Drawing.Size(283, 351);
+            this.panel_query.Size = new System.Drawing.Size(380, 535);
             this.panel_query.TabIndex = 0;
             // 
             // button_nextBatch
@@ -133,10 +153,10 @@
             // 
             // button_close
             // 
-            this.button_close.Location = new System.Drawing.Point(112, 280);
+            this.button_close.Location = new System.Drawing.Point(227, 216);
             this.button_close.Name = "button_close";
             this.button_close.Size = new System.Drawing.Size(109, 30);
-            this.button_close.TabIndex = 11;
+            this.button_close.TabIndex = 13;
             this.button_close.Text = "切断通道";
             this.button_close.UseVisualStyleBackColor = true;
             this.button_close.Click += new System.EventHandler(this.button_close_Click);
@@ -147,7 +167,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_database.Location = new System.Drawing.Point(112, 78);
             this.textBox_database.Name = "textBox_database";
-            this.textBox_database.Size = new System.Drawing.Size(168, 28);
+            this.textBox_database.Size = new System.Drawing.Size(265, 28);
             this.textBox_database.TabIndex = 5;
             // 
             // button_search
@@ -176,7 +196,7 @@
             this.comboBox_use.FormattingEnabled = true;
             this.comboBox_use.Location = new System.Drawing.Point(112, 147);
             this.comboBox_use.Name = "comboBox_use";
-            this.comboBox_use.Size = new System.Drawing.Size(168, 26);
+            this.comboBox_use.Size = new System.Drawing.Size(265, 26);
             this.comboBox_use.TabIndex = 9;
             // 
             // textBox_serverAddr
@@ -185,7 +205,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_serverAddr.Location = new System.Drawing.Point(112, 10);
             this.textBox_serverAddr.Name = "textBox_serverAddr";
-            this.textBox_serverAddr.Size = new System.Drawing.Size(168, 28);
+            this.textBox_serverAddr.Size = new System.Drawing.Size(265, 28);
             this.textBox_serverAddr.TabIndex = 1;
             // 
             // label5
@@ -212,7 +232,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_queryWord.Location = new System.Drawing.Point(112, 112);
             this.textBox_queryWord.Name = "textBox_queryWord";
-            this.textBox_queryWord.Size = new System.Drawing.Size(168, 28);
+            this.textBox_queryWord.Size = new System.Drawing.Size(265, 28);
             this.textBox_queryWord.TabIndex = 7;
             // 
             // textBox_serverPort
@@ -221,7 +241,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_serverPort.Location = new System.Drawing.Point(112, 44);
             this.textBox_serverPort.Name = "textBox_serverPort";
-            this.textBox_serverPort.Size = new System.Drawing.Size(168, 28);
+            this.textBox_serverPort.Size = new System.Drawing.Size(265, 28);
             this.textBox_serverPort.TabIndex = 3;
             // 
             // label4
@@ -248,14 +268,110 @@
             this.webBrowser1.Location = new System.Drawing.Point(0, 0);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(560, 351);
+            this.webBrowser1.Size = new System.Drawing.Size(463, 535);
             this.webBrowser1.TabIndex = 0;
+            // 
+            // textBox_password
+            // 
+            this.textBox_password.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBox_password.Location = new System.Drawing.Point(129, 507);
+            this.textBox_password.Name = "textBox_password";
+            this.textBox_password.PasswordChar = '*';
+            this.textBox_password.Size = new System.Drawing.Size(222, 28);
+            this.textBox_password.TabIndex = 20;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(11, 509);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(80, 18);
+            this.label7.TabIndex = 19;
+            this.label7.Text = "密码(&P):";
+            // 
+            // textBox_userName
+            // 
+            this.textBox_userName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBox_userName.Location = new System.Drawing.Point(129, 473);
+            this.textBox_userName.Name = "textBox_userName";
+            this.textBox_userName.Size = new System.Drawing.Size(222, 28);
+            this.textBox_userName.TabIndex = 18;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(11, 475);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(98, 18);
+            this.label6.TabIndex = 17;
+            this.label6.Text = "用户名(&U):";
+            // 
+            // textBox_groupID
+            // 
+            this.textBox_groupID.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBox_groupID.Location = new System.Drawing.Point(129, 440);
+            this.textBox_groupID.Name = "textBox_groupID";
+            this.textBox_groupID.Size = new System.Drawing.Size(222, 28);
+            this.textBox_groupID.TabIndex = 16;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(11, 442);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(89, 18);
+            this.label8.TabIndex = 15;
+            this.label8.Text = "&Group ID:";
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.radioButton_authenStyleIdpass);
+            this.groupBox1.Controls.Add(this.radioButton_authenStyleOpen);
+            this.groupBox1.Location = new System.Drawing.Point(14, 313);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(339, 116);
+            this.groupBox1.TabIndex = 14;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = " 权限验证方式 ";
+            // 
+            // radioButton_authenStyleIdpass
+            // 
+            this.radioButton_authenStyleIdpass.AutoSize = true;
+            this.radioButton_authenStyleIdpass.Location = new System.Drawing.Point(21, 62);
+            this.radioButton_authenStyleIdpass.Name = "radioButton_authenStyleIdpass";
+            this.radioButton_authenStyleIdpass.Size = new System.Drawing.Size(96, 22);
+            this.radioButton_authenStyleIdpass.TabIndex = 1;
+            this.radioButton_authenStyleIdpass.TabStop = true;
+            this.radioButton_authenStyleIdpass.Text = "&ID/Pass";
+            this.radioButton_authenStyleIdpass.UseVisualStyleBackColor = true;
+            // 
+            // radioButton_authenStyleOpen
+            // 
+            this.radioButton_authenStyleOpen.AutoSize = true;
+            this.radioButton_authenStyleOpen.Location = new System.Drawing.Point(21, 32);
+            this.radioButton_authenStyleOpen.Name = "radioButton_authenStyleOpen";
+            this.radioButton_authenStyleOpen.Size = new System.Drawing.Size(69, 22);
+            this.radioButton_authenStyleOpen.TabIndex = 0;
+            this.radioButton_authenStyleOpen.TabStop = true;
+            this.radioButton_authenStyleOpen.Text = "&Open";
+            this.radioButton_authenStyleOpen.UseVisualStyleBackColor = true;
+            // 
+            // button_stop
+            // 
+            this.button_stop.Enabled = false;
+            this.button_stop.Location = new System.Drawing.Point(227, 180);
+            this.button_stop.Name = "button_stop";
+            this.button_stop.Size = new System.Drawing.Size(109, 30);
+            this.button_stop.TabIndex = 11;
+            this.button_stop.Text = "停止";
+            this.button_stop.UseVisualStyleBackColor = true;
+            this.button_stop.Click += new System.EventHandler(this.button_stop_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(851, 422);
+            this.ClientSize = new System.Drawing.Size(851, 606);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);
@@ -272,6 +388,8 @@
             this.splitContainer1.ResumeLayout(false);
             this.panel_query.ResumeLayout(false);
             this.panel_query.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -298,6 +416,16 @@
         private System.Windows.Forms.Panel panel_query;
         private System.Windows.Forms.WebBrowser webBrowser1;
         private System.Windows.Forms.Button button_nextBatch;
+        private System.Windows.Forms.TextBox textBox_password;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox textBox_userName;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox textBox_groupID;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.RadioButton radioButton_authenStyleIdpass;
+        private System.Windows.Forms.RadioButton radioButton_authenStyleOpen;
+        private System.Windows.Forms.Button button_stop;
     }
 }
 
