@@ -3,6 +3,9 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
+using System.Text;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using TestZClient.Properties;
 
@@ -10,9 +13,6 @@ using static DigitalPlatform.Z3950.ZClient;
 using DigitalPlatform.Text;
 using DigitalPlatform.Z3950;
 using DigitalPlatform.Marc;
-using System.Text;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace TestZClient
 {
@@ -46,7 +46,10 @@ namespace TestZClient
             SaveSettings();
 
             if (_zclient != null)
+            {
+                _zclient.CloseConnection();
                 _zclient.Dispose();
+            }
         }
 
         Result LoadEnvironment()
@@ -101,6 +104,17 @@ namespace TestZClient
             this.textBox_database.Text = Settings.Default.databaseName;
             this.textBox_queryWord.Text = Settings.Default.queryWord;
             this.comboBox_use.Text = Settings.Default.queryUse;
+
+            string strStyle = Settings.Default.authenStyle;
+            if (strStyle == "idpass")
+                this.radioButton_authenStyleIdpass.Checked = true;
+            else
+                this.radioButton_authenStyleOpen.Checked = true;
+
+            this.textBox_groupID.Text = Settings.Default.groupID;
+            this.textBox_userName.Text = Settings.Default.userName;
+            this.textBox_password.Text = Settings.Default.password;
+
         }
 
         void SaveSettings()
@@ -110,6 +124,15 @@ namespace TestZClient
             Settings.Default.databaseName = this.textBox_database.Text;
             Settings.Default.queryWord = this.textBox_queryWord.Text;
             Settings.Default.queryUse = this.comboBox_use.Text;
+
+            if (this.radioButton_authenStyleIdpass.Checked == true)
+                Settings.Default.authenStyle = "idpass";
+            else
+                Settings.Default.authenStyle = "open";
+
+            Settings.Default.groupID = this.textBox_groupID.Text;
+            Settings.Default.userName = this.textBox_userName.Text;
+            Settings.Default.password = this.textBox_password.Text;
 
             Settings.Default.Save();
         }
@@ -133,6 +156,12 @@ namespace TestZClient
             return dom.OuterXml;
         }
 
+        // 	// 0: open 1:idPass
+        int GetAuthentcationMethod()
+        {
+            return (this.radioButton_authenStyleIdpass.Checked ? 1 : 0);
+        }
+
         TargetInfo _targetInfo = new TargetInfo();
 
         int _resultCount = 0;   // 检索命中条数
@@ -142,7 +171,7 @@ namespace TestZClient
         {
             string strError = "";
 
-            this.button_search.Enabled = false;
+            EnableControls(false);
 
             try
             {
@@ -156,13 +185,23 @@ namespace TestZClient
                 // 如果 targetInfo 没有变化，就持续使用
                 if (_targetInfo.HostName != this.textBox_serverAddr.Text
                     || _targetInfo.Port != Convert.ToInt32(this.textBox_serverPort.Text)
-                    || string.Join(",", _targetInfo.DbNames) != string.Join(",", new string[] { this.textBox_database.Text }))
+                    || string.Join(",", _targetInfo.DbNames) != string.Join(",", new string[] { this.textBox_database.Text })
+                    || _targetInfo.AuthenticationMethod != GetAuthentcationMethod()
+                    || _targetInfo.UserName != this.textBox_userName.Text
+                    || _targetInfo.Password != this.textBox_password.Text)
+                {
                     _targetInfo = new TargetInfo
                     {
                         HostName = this.textBox_serverAddr.Text,
                         Port = Convert.ToInt32(this.textBox_serverPort.Text),
                         DbNames = new string[] { this.textBox_database.Text },
+                        AuthenticationMethod = GetAuthentcationMethod(),
+                        GroupID = this.textBox_groupID.Text,
+                        UserName = this.textBox_userName.Text,
+                        Password = this.textBox_password.Text,
                     };
+                    _zclient.CloseConnection();
+                }
 
                 IsbnConvertInfo isbnconvertinfo = new IsbnConvertInfo
                 {
@@ -188,10 +227,21 @@ namespace TestZClient
                     goto ERROR1;
 
                 {
+                    // return Value:
+                    //      -1  出错
+                    //      0   成功
+                    //      1   调用前已经是初始化过的状态，本次没有进行初始化
                     InitialResult result = await _zclient.TryInitialize(_targetInfo);
-                    //this.Invoke(
-                    //    (Action)(() => MessageBox.Show(this, result.ToString()))
-                    //    );
+                    if (result.Value == -1)
+                    {
+                        strError = "Initialize error: " + result.ErrorInfo;
+                        goto ERROR1;
+                    }
+                    /*
+                this.Invoke(
+                    (Action)(() => MessageBox.Show(this, result.ToString()))
+                    );
+                    */
                 }
 
                 SearchResult search_result = await _zclient.Search(
@@ -210,10 +260,12 @@ namespace TestZClient
 #endif
                 _resultCount = search_result.ResultCount;
 
+#if NO
                 if (_resultCount - _fetched > 0)
                     this.button_nextBatch.Enabled = true;
                 else
                     this.button_nextBatch.Enabled = false;
+#endif
 
                 await FetchRecords();
 
@@ -221,15 +273,31 @@ namespace TestZClient
             }
             finally
             {
-                this.button_search.Enabled = true;
+                EnableControls(true);
             }
             ERROR1:
             MessageBox.Show(this, strError);
         }
 
+        void EnableControls(bool bEnable)
+        {
+            this.button_search.Enabled = bEnable;
+            this.button_stop.Enabled = !bEnable;
+            this.button_close.Enabled = bEnable;
+            if (_resultCount - _fetched > 0)
+                this.button_nextBatch.Enabled = bEnable;
+            else
+                this.button_nextBatch.Enabled = false;
+
+            if (_resultCount == 0)
+                this.button_nextBatch.Text = ">> ";
+            else
+                this.button_nextBatch.Text = ">> " + _fetched + "/" + _resultCount;
+        }
+
         async Task FetchRecords()
         {
-            this.button_nextBatch.Enabled = false;  // 暂时禁用
+            EnableControls(false);  // 暂时禁用
 
             if (_resultCount - _fetched > 0)
             {
@@ -254,17 +322,24 @@ namespace TestZClient
                 }
             }
 
+            EnableControls(true);
+
+#if NO
             if (_resultCount - _fetched > 0)
                 this.button_nextBatch.Enabled = true;
             else
                 this.button_nextBatch.Enabled = false;
 
             this.button_nextBatch.Text = ">> " + _fetched + "/" + _resultCount;
+#endif
         }
 
         private void button_close_Click(object sender, EventArgs e)
         {
+            EnableControls(false);
             _zclient.CloseConnection();
+            EnableControls(true);
+            MessageBox.Show(this, "通道已切断");
         }
 
         void AppendMarcRecords(RecordCollection records,
@@ -420,6 +495,15 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         private async void button_nextBatch_Click(object sender, EventArgs e)
         {
             await FetchRecords();
+        }
+
+        // 停止检索等操作
+        private void button_stop_Click(object sender, EventArgs e)
+        {
+            this.EnableControls(false);
+            this.button_stop.Enabled = false;
+            _zclient.CloseConnection();
+            EnableControls(true);
         }
     }
 }

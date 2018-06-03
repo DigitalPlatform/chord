@@ -72,9 +72,11 @@ namespace DigitalPlatform.Z3950
             }
 
             if (this.ZChannel.Connected == false
+                || this.ZChannel.Initialized == false
     || this.ZChannel.HostName != targetinfo.HostName
     || this.ZChannel.Port != targetinfo.Port)
             {
+                if (this.ZChannel.Connected == false)
                 {
                     Result result = await this.ZChannel.Connect(targetinfo.HostName, targetinfo.Port);
                     if (result.Value == -1)
@@ -170,7 +172,7 @@ namespace DigitalPlatform.Z3950
 
             int nRet = tree.InitRequest(struInit_request,
                    targetinfo.DefaultQueryTermEncoding,
-                    out byte[] baPackage);
+                   out byte[] baPackage);
             if (nRet == -1)
                 return new InitialResult { Value = -1, ErrorInfo = "CBERTree::InitRequest() fail!" };
 

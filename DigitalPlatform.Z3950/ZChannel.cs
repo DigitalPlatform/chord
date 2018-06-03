@@ -52,7 +52,7 @@ namespace DigitalPlatform.Z3950
             }
             set
             {
-                this.m_bInitialized = false;
+                this.m_bInitialized = value;
             }
         }
 
@@ -528,7 +528,7 @@ namespace DigitalPlatform.Z3950
                 finally
                 {
                     this._client = new TcpClient(); // 如果 Close 之后不重新 new，则会遇到 NullException
-                    this.m_bInitialized = false;
+                    this.Initialized = false;
                 }
             }
             // this.eventClose.Set();
