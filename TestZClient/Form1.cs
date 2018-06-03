@@ -20,7 +20,7 @@ namespace TestZClient
     {
         ZClient _zclient = new ZClient();
         public IsbnSplitter _isbnSplitter = null;
-        public FromCollection _useList = new FromCollection();
+        public UseCollection _useList = new UseCollection();
 
         public Form1()
         {
@@ -101,7 +101,7 @@ namespace TestZClient
         {
             this.textBox_serverAddr.Text = Settings.Default.serverAddr;
             this.textBox_serverPort.Text = Settings.Default.serverPort;
-            this.textBox_database.Text = Settings.Default.databaseName;
+            this.textBox_database.Text = Settings.Default.databaseNames;
             this.textBox_queryWord.Text = Settings.Default.queryWord;
             this.comboBox_use.Text = Settings.Default.queryUse;
 
@@ -114,14 +114,13 @@ namespace TestZClient
             this.textBox_groupID.Text = Settings.Default.groupID;
             this.textBox_userName.Text = Settings.Default.userName;
             this.textBox_password.Text = Settings.Default.password;
-
         }
 
         void SaveSettings()
         {
             Settings.Default.serverAddr = this.textBox_serverAddr.Text;
             Settings.Default.serverPort = this.textBox_serverPort.Text;
-            Settings.Default.databaseName = this.textBox_database.Text;
+            Settings.Default.databaseNames = this.textBox_database.Text;
             Settings.Default.queryWord = this.textBox_queryWord.Text;
             Settings.Default.queryUse = this.comboBox_use.Text;
 
@@ -156,7 +155,7 @@ namespace TestZClient
             return dom.OuterXml;
         }
 
-        // 	// 0: open 1:idPass
+        // 	0: open 1:idPass
         int GetAuthentcationMethod()
         {
             return (this.radioButton_authenStyleIdpass.Checked ? 1 : 0);
@@ -171,21 +170,18 @@ namespace TestZClient
         {
             string strError = "";
 
+            this.ClearHtml();
+            _resultCount = 0;
+            _fetched = 0;
+
             EnableControls(false);
 
             try
             {
-                this.ClearHtml();
-
-                _resultCount = 0;
-                _fetched = 0;
-                this.button_nextBatch.Text = ">>";
-
-
-                // 如果 targetInfo 没有变化，就持续使用
+                // 如果 _targetInfo 涉及到的信息字段对比环境没有变化，就持续使用
                 if (_targetInfo.HostName != this.textBox_serverAddr.Text
                     || _targetInfo.Port != Convert.ToInt32(this.textBox_serverPort.Text)
-                    || string.Join(",", _targetInfo.DbNames) != string.Join(",", new string[] { this.textBox_database.Text })
+                    || string.Join(",", _targetInfo.DbNames) != this.textBox_database.Text
                     || _targetInfo.AuthenticationMethod != GetAuthentcationMethod()
                     || _targetInfo.UserName != this.textBox_userName.Text
                     || _targetInfo.Password != this.textBox_password.Text)
@@ -194,7 +190,7 @@ namespace TestZClient
                     {
                         HostName = this.textBox_serverAddr.Text,
                         Port = Convert.ToInt32(this.textBox_serverPort.Text),
-                        DbNames = new string[] { this.textBox_database.Text },
+                        DbNames = StringUtil.SplitList(this.textBox_database.Text).ToArray(),
                         AuthenticationMethod = GetAuthentcationMethod(),
                         GroupID = this.textBox_groupID.Text,
                         UserName = this.textBox_userName.Text,
