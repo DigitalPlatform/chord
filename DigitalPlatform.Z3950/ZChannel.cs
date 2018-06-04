@@ -8,32 +8,21 @@ using System.Threading.Tasks;
 
 namespace DigitalPlatform.Z3950
 {
-    // TODO: 注意提供 IDisposeable 接口。因为内含的 TcpClient 是 IDisposeable 的
+    /// <summary>
+    /// 用于 Z39.50 通讯的通道。处理包的发送和接收。
+    /// </summary>
     public class ZChannel : IDisposable
     {
         public TcpClient _client = new TcpClient();
 
         public const int DefaultPort = 210;
 
-        public string m_strHostName = "";
-        public int m_nPort = DefaultPort;
+        public string _hostName = "";
+        public int _port = DefaultPort;
 
         bool m_bInitialized = false;
 
-        // public event CommIdleEventHandle CommIdle = null;
-
-        // 异步发送和接收
-        //public byte[] baSend = null;
-        //public byte[] baRecv = null;
-        //public string strErrorString = "";
-        //public int nErrorCode = 0;
-
-        // TODO: 要实现 IDisposeable 接口，释放 ...
-        //internal AutoResetEvent eventClose = new AutoResetEvent(false);	// true : initial state is signaled 
-        //internal AutoResetEvent eventFinished = new AutoResetEvent(false);	// true : initial state is signaled 
-
-        public int Timeout = 60 * 1000;   // 60秒
-
+        // public int Timeout = 60 * 1000;   // 60秒
 
         public void Dispose()
         {
@@ -79,7 +68,7 @@ namespace DigitalPlatform.Z3950
         {
             get
             {
-                return this.m_strHostName;
+                return this._hostName;
             }
         }
 
@@ -87,7 +76,7 @@ namespace DigitalPlatform.Z3950
         {
             get
             {
-                return this.m_nPort;
+                return this._port;
             }
         }
 
@@ -177,8 +166,8 @@ namespace DigitalPlatform.Z3950
         {
             try
             {
-                this.m_strHostName = host_name;
-                this.m_nPort = port;
+                this._hostName = host_name;
+                this._port = port;
                 await _client.ConnectAsync(host_name, port);
                 // client.NoDelay = true;
                 return new Result();
@@ -276,7 +265,7 @@ namespace DigitalPlatform.Z3950
         }
 #endif
 
-        public async Task<RecvResult> SendAndRecvThread(byte[] baSend)
+        public async Task<RecvResult> SendAndRecv(byte[] baSend)
         {
             {
                 Result result = await this.SimpleSendTcpPackage(
@@ -329,7 +318,7 @@ namespace DigitalPlatform.Z3950
         //      -1  出错
         //      0   正确发出
         //      1   发出前，发现流中有未读入的数据
-        public async Task<Result> SimpleSendTcpPackage(byte[] baPackage,
+        async Task<Result> SimpleSendTcpPackage(byte[] baPackage,
             int nLen)
         {
             Result result = new Result();
@@ -375,7 +364,7 @@ namespace DigitalPlatform.Z3950
         }
 
         // 接收响应包
-        public async Task<RecvResult> SimpleRecvTcpPackage()
+        internal async Task<RecvResult> SimpleRecvTcpPackage()
         {
             string strError = "";
             RecvResult result = new RecvResult();
@@ -469,7 +458,7 @@ namespace DigitalPlatform.Z3950
             return new RecvResult { Value = -1, ErrorInfo = strError };
         }
 
-        // 流中是否还有未读入的数据
+        // 流中是否还有未读入的数据?
         public bool DataAvailable
         {
             get
@@ -497,7 +486,7 @@ namespace DigitalPlatform.Z3950
             }
         }
 
-        // TODO: 可以增加一个事件，让外面知晓这里发生了 Close()。这样便于外面自动跟随清除 TargetInfo
+        // TODO: 增加一个事件，让外面知晓这里发生了 Close()。这样便于外面自动跟随清除 TargetInfo
         public void CloseSocket()
         {
 #if NO

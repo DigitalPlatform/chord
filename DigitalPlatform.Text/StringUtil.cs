@@ -514,19 +514,14 @@ namespace DigitalPlatform.Text
             return result;
         }
 
+        // 将 "string1,string2" 按照逗号切割为 List<string>
         public static List<string> SplitList(string strText)
         {
-            // 2011/12/26
             if (string.IsNullOrEmpty(strText) == true)
                 return new List<string>();
 
             string[] parts = strText.Split(new char[] { ',' });
             return parts.ToList();
-            /*
-            List<string> results = new List<string>();
-            results.AddRange(parts);
-            return results;
-             * */
         }
 
         // 检测一个字符串的头部

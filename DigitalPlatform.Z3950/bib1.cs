@@ -17,7 +17,7 @@ namespace DigitalPlatform.Z3950
         public string Comment = "";
     }
 
-    public class FromCollection : List<Bib1Use>
+    public class UseCollection : List<Bib1Use>
     {
         public string GetValue(string strName)
         {
