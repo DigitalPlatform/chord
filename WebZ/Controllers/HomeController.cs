@@ -4,14 +4,23 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using WebZ.Models;
 
 namespace WebZ.Controllers
 {
     public class HomeController : Controller
     {
+        //定义配置信息对象
+        //public ApplicationConfiguration StarInfoConfig;
+        //public HomeController(IOptions<ApplicationConfiguration> setting)
+        //{
+        //    StarInfoConfig = setting.Value;
+        //}
+
         public IActionResult Index()
         {
+            //ViewData["datadir"] = StarInfoConfig.datadir;
             return View();
         }
 

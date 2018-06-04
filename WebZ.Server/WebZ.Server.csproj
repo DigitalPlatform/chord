@@ -5,7 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="database\" />
+    <PackageReference Include="MongoDB.Driver" Version="2.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj" />
+    <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj" />
   </ItemGroup>
 
 </Project>
