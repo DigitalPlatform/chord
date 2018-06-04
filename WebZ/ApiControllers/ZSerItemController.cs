@@ -11,14 +11,45 @@ using WebZ.Server.database;
 namespace WebZ.ApiControllers
 {
     [Route("api/[controller]")]
-    public class ZSerEntryController : Controller
+    public class ZSerItemController : Controller
     {
         // GET: api/<controller>
         [HttpGet]
-        public IEnumerable<ZServerItem> Get(int start,
+        public ApiResult Get(int start,
                 int count)
         {
-            return  ServerInfo.ZServerDb.Get(start, count).Result;
+            ApiResult result = new ApiResult();
+            try
+            {
+                List<ZServerItem> list = ServerInfo.ZServerDb.Get(start, count).Result;
+
+                ZServerItem item = new ZServerItem();
+                item.itemId = "111";//Guid.NewGuid().ToString();
+                item.port = "210";
+                item.hostName = "测试";
+                item.creatorPhone = "123";
+                item.createTime = DateTime.Now.ToString();
+                list.Add(item);
+
+
+                item = new ZServerItem();
+                item.itemId = "222";//Guid.NewGuid().ToString();
+                item.port = "210";
+                item.hostName = "测试2";
+                item.creatorPhone = "123";
+                item.createTime = DateTime.Now.ToString();
+                list.Add(item);
+
+
+                result.data = list;
+            }
+            catch (Exception ex)
+            {
+                result.errorInfo = ex.Message;
+                result.errorCode = -1;
+            }
+
+            return result;
         }
 
         // GET api/<controller>/5

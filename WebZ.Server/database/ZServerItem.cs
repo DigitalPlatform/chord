@@ -12,7 +12,9 @@ namespace WebZ.Server.database
 
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string id { get; private set; }
+        public string id { get;  set; }
+
+        public string itemId { get; set; }
 
         //==========
         //Z39.50服务器配置字段：服务器地址，端口号，数据库，用户名，密码
@@ -37,6 +39,8 @@ namespace WebZ.Server.database
         public int state { get; set; }//状态，0 未审核，1审核通过，2审核不通过
         public int verifier { get; set; } //审核人
         public string verifyTime { get; set; } //审核时间
+
+
 
 
         public string Dump()
