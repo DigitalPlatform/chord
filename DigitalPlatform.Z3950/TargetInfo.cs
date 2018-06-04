@@ -18,7 +18,7 @@ namespace DigitalPlatform.Z3950
         public string UserName = "";
         public string Password = "";
         public string GroupID = "";
-        public int AuthenticationMethod = 0;
+        public int AuthenticationMethod = 0;	// 0: open 1:idPass
 
         public string PreferredRecordSyntax = BerTree.MARC_SYNTAX;  // 可以有--部分。使用时候小心，用GetLeftValue()获得干净的值
         public string DefaultResultSetName = "default";

@@ -50,12 +50,12 @@ namespace TestZClient.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string databaseName {
+        public string databaseNames {
             get {
-                return ((string)(this["databaseName"]));
+                return ((string)(this["databaseNames"]));
             }
             set {
-                this["databaseName"] = value;
+                this["databaseNames"] = value;
             }
         }
         
@@ -80,6 +80,54 @@ namespace TestZClient.Properties {
             }
             set {
                 this["queryUse"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("open")]
+        public string authenStyle {
+            get {
+                return ((string)(this["authenStyle"]));
+            }
+            set {
+                this["authenStyle"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string groupID {
+            get {
+                return ((string)(this["groupID"]));
+            }
+            set {
+                this["groupID"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string userName {
+            get {
+                return ((string)(this["userName"]));
+            }
+            set {
+                this["userName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string password {
+            get {
+                return ((string)(this["password"]));
+            }
+            set {
+                this["password"] = value;
             }
         }
     }

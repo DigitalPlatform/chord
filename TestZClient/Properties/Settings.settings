@@ -8,13 +8,25 @@
     <Setting Name="serverPort" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="databaseName" Type="System.String" Scope="User">
+    <Setting Name="databaseNames" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="queryWord" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="queryUse" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="authenStyle" Type="System.String" Scope="User">
+      <Value Profile="(Default)">open</Value>
+    </Setting>
+    <Setting Name="groupID" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="userName" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="password" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
   </Settings>
