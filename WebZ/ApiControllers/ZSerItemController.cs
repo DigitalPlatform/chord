@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DigitalPlatform.IO;
 using Microsoft.AspNetCore.Mvc;
 using WebZ.Server;
 using WebZ.Server.database;
@@ -49,7 +50,7 @@ namespace WebZ.ApiControllers
             ApiResult result = new ApiResult();
             try
             {
-                result.data = ServerInfo.ZServerDb.GetById(id);
+                result.data = ServerInfo.ZServerDb.GetById(id).Result;
             }
             catch (Exception ex)
             {
@@ -91,6 +92,10 @@ namespace WebZ.ApiControllers
             ApiResult result = new ApiResult();
             try
             {
+                item.creatorIP = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+                item.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+
+
                 result.data = ServerInfo.ZServerDb.Update(item).Result;
             }
             catch (Exception ex)
