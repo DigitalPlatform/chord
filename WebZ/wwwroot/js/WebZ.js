@@ -9,16 +9,20 @@ function sendAjaxRequest(url,
     //alert("1");
     var apiFullPath = getRootPath() + url;
     //alert("sendAjaxRequest-" + apiFullPath);
-
+    
     //alert("test");
 
-    $.ajax(apiFullPath, {
+    //if (mydata != null)
+    //    alert(mydata.hostName);
+
+    $.ajax({
+        url:apiFullPath,
         type: httpMethod,
-        contentType: "application/json; charset=utf-8",
-        //dataType: "json", 
+        contentType: "application/json; charset=UTF-8",//application/json; charset=utf-8",
+        dataType: "json",
         success: successCallback,
         error: errorCallback,
-        data: mydata,
+        data: JSON.stringify(mydata),   // 给.net core api 传对象，需要JSON.stringify()转换下
         async: myasync
     });
 }
@@ -26,10 +30,10 @@ function sendAjaxRequest(url,
 // 得到虚拟目录路径
 function getRootPath() {
     var pathName = window.location.pathname.substring(1);
-    // alert("pathname["+ pathName+"]");
-    var webName = pathName == '' ? '' : pathName.substring(0, pathName.indexOf('/'));
+     //alert("pathname["+ pathName+"]");
+    var webName = pathName;// == '' ? '' : pathName.substring(0, pathName.indexOf('/'));
     //alert("webName[" + webName + "]");
-    var rootPath = window.location.protocol + '//' + window.location.host;//+ '/' + webName;
+    var rootPath = window.location.protocol + '//' + window.location.host+ '/' + webName;
 
     //alert("rootPath[" + rootPath + "]");
     return rootPath;

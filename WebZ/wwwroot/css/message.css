@@ -1,67 +1,69 @@
-        /*================栏目div============*/
-        DIV.subject {
-            padding: 0px;
-            /* background-color: blue;*/
-            padding-bottom: 10px;
-        }
 
-            DIV.subject .firstline {
-                padding: 10px;
-            }
+/*=======消息div===========*/
+DIV.message {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 10px;
+    display: inline-block;
+    margin: 5px;
+    border: 1px solid gray;
+    border-radius: 5px;
+    font-size: 14.8px;
+    /*background-color: green;*/
+}
 
-                DIV.subject .firstline .title {
-                    font-size: 24px;
-                }
+    /*消息div下的table*/
+    DIV.message TABLE {
+        /*width: 100%;*/
+        /*background-color: red;*/
+    }
 
-                DIV.subject .firstline .count {
-                    font-size: 18px;
-                    color: #999999;
-                }
+    /*=======消息查看态===========*/
+    DIV.message DIV.view {
+        /*background-color:blue;*/
+    }
 
-        /*=======消息div===========*/
-        DIV.message {
-            margin-top: 5px;
-            margin-bottom: 5px;
-            padding: 10px;
-            /*background-color: green;*/
-        }
-
-            /*消息div下的table*/
-            DIV.message TABLE {
-                width: 100%;
-                /*background-color: red;*/
-            }
-
-        /*=======消息查看态===========*/
-        DIV.message DIV.view {                                               
-           /*background-color:blue;*/
-        }
-
-        DIV.message DIV.view TABLE.view-top {                    
+        DIV.message DIV.view TABLE.view-top {
             /*background-color:green;*/
         }
 
-        /*消息标题*/
-        DIV.message DIV.view TABLE.view-top .title {
-            font-size: 18px;
-            padding-bottom:10px;
-        }
+            /*消息标题*/
+            DIV.message DIV.view TABLE.view-top .title {
+                font-size: 25px;
+                padding-bottom: 10px;
+            }
 
-        /*标题右侧的按钮*/
-        DIV.message DIV.view TABLE.view-top .btn {
-            text-align: right;
-            padding-right: 10px;
-        }
+            /*标题右侧的按钮*/
+            DIV.message DIV.view TABLE.view-top .btn {
+                text-align: right;
+                padding-right: 10px;
+            }
 
-        /*消息发布时间*/
-        DIV.message DIV.view TABLE.view-top .time {
-            color: gray;
-            font-size: 12px;
-        }
+            /*消息发布时间*/
+            DIV.message DIV.view TABLE.view-top .time {
+                color: gray;
+                font-size: 12px;
+            }
 
         /*消息内容*/
         DIV.message DIV.view DIV.content {
         }
+
+            DIV.message DIV.view DIV.content .name {
+                width: 120px;
+                min-width: 120px;
+                display: inline-block;
+                padding: 2px;
+                /*background-color: red;*/
+                text-align: right;
+                /*border-right:1px solid #CCCCCC;*/
+            }
+
+            DIV.message DIV.view DIV.content .value {
+                font-weight: bold;
+                padding: 2px;
+                display: inline-block;
+            }
 
         /*备注*/
         DIV.message DIV.view DIV.remark {
@@ -69,19 +71,30 @@
             font-size: 12px;
         }
 
-        /*=============*/
-        /*消息编辑态标题*/
-        DIV.message INPUT, SELECT {
-            margin-bottom: 0px;
-        }
+    /*=============*/
+    /*消息编辑态标题*/
+    DIV.message INPUT, SELECT {
+        margin-bottom: 0px;
+    }
+
+    div.message table.edit {
+        /*background-color: gray;*/
+    }
 
         DIV.message TABLE.edit tr td {
             padding: 5px;
         }
 
             DIV.message TABLE.edit tr td.label {
-                color: #999999;
-                width: 40px;
+                /*background-color: yellow;*/
+                vertical-align: middle;
+                width: 100px;
+                min-width: 100px;
+            }
+
+            DIV.message TABLE.edit tr td.value {
+                /*width: 100%;*/
+                /* background-color:red;*/
             }
 
             DIV.message TABLE.edit tr td span.label {
@@ -100,7 +113,7 @@
             margin: 0px;
         }
 
-        /*======是否可编辑态样式=============*/
-        .msgEditable {
-            background-color: #CCFF99;
-        }
+/*======是否可编辑态样式=============*/
+.msgEditable {
+    background-color: #CCFF99;
+}
