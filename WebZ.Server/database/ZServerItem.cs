@@ -12,7 +12,8 @@ namespace WebZ.Server.database
 
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string id { get; private set; }
+        public string id { get;  set; }
+
 
         //==========
         //Z39.50服务器配置字段：服务器地址，端口号，数据库，用户名，密码
@@ -31,12 +32,15 @@ namespace WebZ.Server.database
         //其它字段：创建用户，创建时间，状态，审核人，审核时间
         //==========
         public string creatorPhone { get; set; } //创建者手机号
-        public string creatorId { get; set; } //前期无帐户时，存cookieid 
+        public string creatorIP { get; set; } //前期无帐户时，存IP地址
         public string createTime { get; set; }
+        public string lastModifyTime { get; set; }
 
         public int state { get; set; }//状态，0 未审核，1审核通过，2审核不通过
-        public int verifier { get; set; } //审核人
+        public string verifier { get; set; } //审核人
         public string verifyTime { get; set; } //审核时间
+
+        public string remark { get; set; } //备注
 
 
         public string Dump()
@@ -49,7 +53,7 @@ namespace WebZ.Server.database
             text.AppendLine("authenticationMethod=" + authenticationMethod);
 
             text.AppendLine("creatorPhone=" + creatorPhone);
-            text.AppendLine("creatorId=" + creatorId);
+            text.AppendLine("creatorIP=" + creatorIP);
             text.AppendLine("createTime=" + createTime);
 
             text.AppendLine("state=" + state);
