@@ -323,34 +323,18 @@
 
             //alert("cancelEdit() 2");
 
-            /*
+
             //显示态html
             var viewHtml = "";
 
-            // 根据id从服务器取记录，并只读态
-            var libId = getLibId();
-            var weixinId = $("#weixinId").text();
-            if (libId == "") {
-                alert("请选择图书馆");
-                return;
-            }
-            if (weixinId == "") {
-                alert("异常情况：weixinId为空");
-                return;
-            }
+           
             //显示等待图层
             //var index = loadLayer();
             showLoading();
 
-            var style = "browse";
 
             // 调web api
-            var url = "/api/LibMessage?weixinId=" + weixinId
-                + "&group=" + group
-                + "&libId=" + libId
-                + "&msgId=" + msgId
-                + "&subject="
-                + "&style=" + style;
+            var url = "/api/ZSerItem/" + msgId
             sendAjaxRequest(url, "GET", function (result) {
                 // 关闭等待层
                 //layer.close(index);
@@ -361,10 +345,10 @@
                     alert(result.errorInfo);
                     return;
                 }
-                if (result.items != null && result.items.length > 0) {
+                if (result.data != null ) {
 
                     // 把数据填在编辑界面
-                    var item = result.items[0];
+                    var item = result.data;
                     var html = getMsgViewHtml(item, false);
                     $(divId).html(html);
                 }
@@ -377,7 +361,7 @@
                 alert("访问服务器出错：\r\n" + errorThrown);
 
             });
-            */
+            
         }
 
 
@@ -406,8 +390,10 @@
 
             var idpassStr = "";
             if (msgItem != null) {
+                //alert("取值");
                 msgId = msgItem.id;
                 hostName = msgItem.hostName;
+                //alert("hostName=" + hostName);
                 port = msgItem.port;
                 dbNames = msgItem.dbNames;
                 authenticationMethod = msgItem.authenticationMethod;
@@ -526,19 +512,14 @@
                 $(divId).css('display', 'inline-block');
                 var html = getMsgEditHtml(null);
                 $(divId).html(html);
-
-                //由于一进来没有显示编辑界面，所以这里要重新设一下
-                //setShowTopButton();
                 return;
             }
-
-            
             //根据id从服务器上取记录
 
             //显示等待图层
             showLoading();
 
-            var style = "original";
+
             var url = "/api/ZSerItem/" + msgId
 
             //alert(url);
@@ -546,7 +527,7 @@
                 // 关闭等待层
                 hideLoading();
 
-                //alert("gotoEdit 2\n"+url);
+               // alert("gotoEdit 2\n"+url);
 
 
                 //alert("回来-"+result.errorCode);
@@ -564,16 +545,13 @@
                     // 把数据填在编辑界面
                     var item = result.data;
                     //alert(item);
+                    //alert(item.hostName);
 
                     var html = getMsgEditHtml(item);
                     $(divId).html(html);
 
                     //alert(html);
                     //alert("gotoEdit 5");
-
-
-                    //由于一进来没有显示编辑界面，所以这里要重新设一下
-                    //setShowTopButton();
 
 
                 }
