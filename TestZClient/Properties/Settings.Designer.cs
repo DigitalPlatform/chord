@@ -50,12 +50,12 @@ namespace TestZClient.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string databaseName {
+        public string databaseNames {
             get {
-                return ((string)(this["databaseName"]));
+                return ((string)(this["databaseNames"]));
             }
             set {
-                this["databaseName"] = value;
+                this["databaseNames"] = value;
             }
         }
         

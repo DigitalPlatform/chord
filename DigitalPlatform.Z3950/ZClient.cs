@@ -1,5 +1,4 @@
-﻿using DigitalPlatform.Text;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -7,17 +6,18 @@ using System.Threading.Tasks;
 using System.Xml;
 
 using static DigitalPlatform.Z3950.ZChannel;
+using DigitalPlatform.Text;
 
 namespace DigitalPlatform.Z3950
 {
     /// <summary>
-    /// Z39.50 前端类。
+    /// Z39.50 前端类。维持通讯通道，提供 Z39.50 请求 API
     /// </summary>
     public class ZClient : IDisposable
     {
-        public ZChannel ZChannel = new ZChannel();
+        ZChannel _channel = new ZChannel();
 
-        public string CurrentRefID = "0";
+        string _currentRefID = "0";
 
         public Encoding ForcedRecordsEncoding = null;
 
@@ -54,8 +54,8 @@ namespace DigitalPlatform.Z3950
 
         public void Dispose()
         {
-            if (ZChannel != null)
-                ZChannel.Dispose();
+            if (_channel != null)
+                _channel.Dispose();
         }
 
         // Z39.50 初始化
@@ -71,14 +71,14 @@ namespace DigitalPlatform.Z3950
                 InitialResult result = await CheckServerCloseRequest();
             }
 
-            if (this.ZChannel.Connected == false
-                || this.ZChannel.Initialized == false
-    || this.ZChannel.HostName != targetinfo.HostName
-    || this.ZChannel.Port != targetinfo.Port)
+            if (this._channel.Connected == false
+                || this._channel.Initialized == false
+    || this._channel.HostName != targetinfo.HostName
+    || this._channel.Port != targetinfo.Port)
             {
-                if (this.ZChannel.Connected == false)
+                if (this._channel.Connected == false)
                 {
-                    Result result = await this.ZChannel.Connect(targetinfo.HostName, targetinfo.Port);
+                    Result result = await this._channel.Connect(targetinfo.HostName, targetinfo.Port);
                     if (result.Value == -1)
                         return new InitialResult { Value = -1, ErrorInfo = result.ErrorInfo };
                 }
@@ -92,7 +92,7 @@ namespace DigitalPlatform.Z3950
                     InitialResult result = await Initial(
         targetinfo,
         targetinfo.IgnoreReferenceID,
-        this.CurrentRefID);
+        this._currentRefID);
                     if (result.Value == -1)
                         return result;
 
@@ -135,7 +135,7 @@ namespace DigitalPlatform.Z3950
 
             // TargetInfo targetinfo = connection.TargetInfo;
 
-            if (this.ZChannel.Initialized == true)
+            if (this._channel.Initialized == true)
                 return new InitialResult { Value = -1, ErrorInfo = "先前已经初始化过了，不应重复初始化" };  // 不能重复调用
 
             struInit_request.m_strReferenceId = reference_id;
@@ -176,7 +176,7 @@ namespace DigitalPlatform.Z3950
             if (nRet == -1)
                 return new InitialResult { Value = -1, ErrorInfo = "CBERTree::InitRequest() fail!" };
 
-            if (this.ZChannel.Connected == false)
+            if (this._channel.Connected == false)
                 return new InitialResult { Value = -1, ErrorInfo = "socket尚未连接或者已经被关闭" };
 
 
@@ -191,7 +191,7 @@ namespace DigitalPlatform.Z3950
 #endif
 
 
-            RecvResult result = await this.ZChannel.SendAndRecvThread(
+            RecvResult result = await this._channel.SendAndRecv(
                 baPackage);
             if (result.Value == -1)
                 return new InitialResult { Value = -1, ErrorInfo = result.ErrorInfo };
@@ -278,7 +278,7 @@ namespace DigitalPlatform.Z3950
 	this->m_init_nResult = init_response.m_nResult;
              * */
 
-            this.ZChannel.Initialized = true;
+            this._channel.Initialized = true;
 
             // 字符集协商
             if (init_response.m_charNego != null
@@ -380,7 +380,7 @@ namespace DigitalPlatform.Z3950
 
             Debug.Assert(struSearch_request.m_dbnames.Length != 0, "");
 
-            struSearch_request.m_strReferenceId = this.CurrentRefID;
+            struSearch_request.m_strReferenceId = this._currentRefID;
             struSearch_request.m_lSmallSetUpperBound = 0;
             struSearch_request.m_lLargeSetLowerBound = 1;
             struSearch_request.m_lMediumSetPresentNumber = 0;
@@ -401,7 +401,7 @@ namespace DigitalPlatform.Z3950
 
             if (nRet == -1)
                 return new SearchResult { Value = -1, ErrorInfo = "CBERTree::SearchRequest() fail!" };
-            if (this.ZChannel.Connected == false)
+            if (this._channel.Connected == false)
                 return new SearchResult { Value = -1, ErrorInfo = "socket尚未连接或者已经被关闭" };
 
 #if DUMPTOFILE
@@ -425,7 +425,7 @@ namespace DigitalPlatform.Z3950
             BerTree tree1 = new BerTree();
 
             {
-                RecvResult result = await this.ZChannel.SendAndRecvThread(
+                RecvResult result = await this._channel.SendAndRecv(
         baPackage);
                 if (result.Value == -1)
                     return new SearchResult { Value = -1, ErrorInfo = result.ErrorInfo };
@@ -487,7 +487,7 @@ namespace DigitalPlatform.Z3950
         // return:
         //      
         public static int GetQueryString(
-            FromCollection Froms,
+            UseCollection use_list,
             string strQueryXml,
             IsbnConvertInfo isbnconvertinfo,
             out string strQueryString,
@@ -530,7 +530,7 @@ namespace DigitalPlatform.Z3950
                 if (nRet != -1)
                     strFrom = strFrom.Substring(0, nRet).Trim();
 
-                string strValue = Froms.GetValue(strFrom);
+                string strValue = use_list.GetValue(strFrom);
                 if (strValue == null)
                 {
                     strError = "名称 '" + strFrom + "' 在use表中没有找到对应的编号";
@@ -685,22 +685,21 @@ namespace DigitalPlatform.Z3950
 
             BerTree tree = new BerTree();
             PRESENT_REQUEST struPresent_request = new PRESENT_REQUEST();
-            byte[] baPackage = null;
-            int nRet;
-            int nRecvLen;
+            //byte[] baPackage = null;
+            //int nRet;
 
-            struPresent_request.m_strReferenceId = this.CurrentRefID;
+            struPresent_request.m_strReferenceId = this._currentRefID;
             struPresent_request.m_strResultSetName = strResultSetName; // "default";
             struPresent_request.m_lResultSetStartPoint = nStart + 1;
             struPresent_request.m_lNumberOfRecordsRequested = nCount;
             struPresent_request.m_strElementSetNames = strElementSetName;
             struPresent_request.m_strPreferredRecordSyntax = strPreferredRecordSyntax;
 
-            nRet = tree.PresentRequest(struPresent_request,
-                                     out baPackage);
+            int nRet = tree.PresentRequest(struPresent_request,
+                                     out byte [] baPackage);
             if (nRet == -1)
                 return new PresentResult { Value = -1, ErrorInfo = "CBERTree::PresentRequest() fail!" };
-            if (this.ZChannel.Connected == false)
+            if (this._channel.Connected == false)
                 return new PresentResult { Value = -1, ErrorInfo = "socket尚未连接或者已经被关闭" };
 
 #if DUMPTOFILE
@@ -715,7 +714,7 @@ namespace DigitalPlatform.Z3950
             BerTree tree1 = new BerTree();
 
             {
-                RecvResult result = await this.ZChannel.SendAndRecvThread(
+                RecvResult result = await this._channel.SendAndRecv(
         baPackage);
                 if (result.Value == -1)
                     return new PresentResult { Value = -1, ErrorInfo = result.ErrorInfo };
@@ -755,6 +754,7 @@ namespace DigitalPlatform.Z3950
             return new PresentResult { Records = records };
         }
 
+        // 修改集合中每个元素的 ElementSetName
         static void SetElementSetName(RecordCollection records,
     string strElementSetName)
         {
@@ -772,7 +772,7 @@ namespace DigitalPlatform.Z3950
         }
 
 
-        // 处理Server可能发来的Close
+        // 处理 Server 端可能发来的 Close
         // return value:
         //      -1  error
         //      0   不是Close
@@ -781,10 +781,10 @@ namespace DigitalPlatform.Z3950
         //      在 InitialResult::ResultInfo 中返回诊断信息
         async Task<InitialResult> CheckServerCloseRequest()
         {
-            if (this.ZChannel.Connected == false || this.ZChannel.DataAvailable == false)
+            if (this._channel.Connected == false || this._channel.DataAvailable == false)
                 return new InitialResult(); // 没有发现问题
 
-            RecvResult result = await this.ZChannel.SimpleRecvTcpPackage();
+            RecvResult result = await this._channel.SimpleRecvTcpPackage();
             if (result.Value == -1)
                 return new InitialResult { Value = -1, ErrorInfo = result.ErrorInfo };
 
@@ -812,12 +812,13 @@ namespace DigitalPlatform.Z3950
             return new InitialResult { Value = 1, ResultInfo = closeStruct.m_strDiagnosticInformation };
         }
 
-        // TODO: 可以增加一个事件，让外面知晓这里发生了 Close()。这样便于外面自动跟随清除 TargetInfo
+        // 切断连接
         public void CloseConnection()
         {
-            this.ZChannel.CloseSocket();
-            Debug.Assert(this.ZChannel.Initialized == false, "");  // 迫使重新初始化
+            this._channel.CloseSocket();
+            Debug.Assert(this._channel.Initialized == false, "");  // 迫使重新初始化
 
+            // 触发事件，让外面知晓这里发生了 Close()。这样便于外面自动跟随清除 TargetInfo
             var temp = this.Closed;
             if (temp != null)
                 temp(this, new EventArgs());

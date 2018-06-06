@@ -4,7 +4,6 @@ using System.Text;
 using System.Diagnostics;
 using System.IO;
 
-using DigitalPlatform;
 
 namespace DigitalPlatform.Z3950
 {
@@ -12,7 +11,7 @@ namespace DigitalPlatform.Z3950
     {
         public List<BerNode> ChildrenCollection = new List<BerNode>();
 
-        public BerNode ParentNode = null;   /* 父结点 */
+        public BerNode ParentNode = null;   /* 父节点 */
 
         public byte[] m_baData = null;
 
@@ -93,7 +92,7 @@ namespace DigitalPlatform.Z3950
             return this.ParentNode.ChildrenCollection[nIndex + 1];
         }
 
-        // 在当前结点下方构造一个constructed结构的非叶子结点
+        // 在当前节点下方构造一个constructed结构的非叶子节点
         // parameters:
         // return:
         //		null
@@ -117,7 +116,7 @@ namespace DigitalPlatform.Z3950
             return node;
         }
 
-        // 在当前结点下方构造一个存放字符数据的子结点
+        // 在当前节点下方构造一个存放字符数据的子节点
         // parameters:
         // return:
         //		null
@@ -127,7 +126,6 @@ namespace DigitalPlatform.Z3950
             byte[] baData)
         {
             BerNode node = null;
-
 
             if (this.m_cForm == ASN1_PRIMITIVE)
                 return null;
@@ -171,7 +169,7 @@ namespace DigitalPlatform.Z3950
             return node;
         }
 
-        // 在当前结点下方构造一个存放bitstring数据的子结点
+        // 在当前节点下方构造一个存放bitstring数据的子节点
         // parameters:
         // return:
         //		null
@@ -198,7 +196,6 @@ namespace DigitalPlatform.Z3950
 
             for (int i = 0; i < nLen; i += 8)
             {
-
                 c = 0;
 
                 for (int j = 0; j < 8 && i + j < nLen; j++)
@@ -270,7 +267,7 @@ namespace DigitalPlatform.Z3950
         }
 
 
-        // 在当前结点下方构造一个存放整型数据的子结点
+        // 在当前节点下方构造一个存放整型数据的子节点
         // parameters:
         // return:
         //		null
@@ -334,7 +331,7 @@ namespace DigitalPlatform.Z3950
         }
 
 
-        // 在当前结点下方构造一个存放OIDs数据的结点
+        // 在当前节点下方构造一个存放OIDs数据的节点
         // parameters:
         // return:
         //		NULL
@@ -441,7 +438,7 @@ namespace DigitalPlatform.Z3950
 
         //
 
-        // 在此结点下增加一棵子树
+        // 在此节点下增加一棵子树
         // parameters:
         public void AddSubtree(BerNode sub)
         {
@@ -449,10 +446,10 @@ namespace DigitalPlatform.Z3950
             sub.ParentNode = this;
         }
 
-        // 将本结点以及所有子结点编码为BER包
+        // 将本节点以及所有子节点编码为BER包
         public void EncodeBERPackage(ref byte[] baPackage)
         {
-            // 1.得到全部子结点的BER包
+            // 1.得到全部子节点的BER包
 
             BerNode node = null;
             byte[] baTempPackage = null;
@@ -487,13 +484,13 @@ namespace DigitalPlatform.Z3950
             }
 
 
-            // 2.根据1.步得到的包长度，最终加入本结点需要的识别信息
+            // 2.根据1.步得到的包长度，最终加入本节点需要的识别信息
             MakeHeadPart(ref baTempPackage, baPackage.Length);
 
             baPackage = ByteArray.Add(baTempPackage, baPackage);
         }
 
-        // 根据所有下级结点共同构成的包的总长度， 最终构造出本结点的头部
+        // 根据所有下级节点共同构成的包的总长度， 最终构造出本节点的头部
         void MakeHeadPart(ref byte[] baHead,
             int nDataSize)
         {
@@ -526,7 +523,7 @@ namespace DigitalPlatform.Z3950
             baPart = null;
 
             if (this.m_uTag < 31)
-            {	/* 如果结点的tag值小于31，则只需一个字节
+            {	/* 如果节点的tag值小于31，则只需一个字节
 								存放cForm、cClass及nTag值 */
                 charray[0] = (byte)
                 (this.m_uTag
@@ -809,8 +806,6 @@ namespace DigitalPlatform.Z3950
             return taglen;
         }
 
-
-
         static int get_len(out int fieldlen,
             byte[] baBuffer,
             int nStart,
@@ -954,7 +949,7 @@ namespace DigitalPlatform.Z3950
                 int fieldlen1 = 0;
                 int totlen = 0;
 
-                // 1.给此结点的Tag、Class、Form赋值
+                // 1.给此节点的Tag、Class、Form赋值
                 SetTagClassForm(baBuffer, offs);
 
                 /* loop through the subfields and see if they are complete */
@@ -962,7 +957,7 @@ namespace DigitalPlatform.Z3950
                 nLen > 1 && (baBuffer[offs] != 0 || baBuffer[offs + 1] != 0);
                 offs += fieldlen1, nLen -= fieldlen1)
                 {
-                    node = new BerNode();	//生成此结点的一个子结点
+                    node = new BerNode();	//生成此节点的一个子节点
                     node.ParentNode = this;
                     this.ChildrenCollection.Add(node);
                     if (node.BuildPartTree(baBuffer, offs, nLen, out nTempLen) == false)
@@ -987,11 +982,11 @@ namespace DigitalPlatform.Z3950
 
             if (fieldlen + headerlen <= nLen)
             {
-                // 4.给结点的数据赋值
+                // 4.给节点的数据赋值
                 node = null;
                 int nMax, nSubLen;
 
-                // 1.给此结点的Tag、Class、Form赋值
+                // 1.给此节点的Tag、Class、Form赋值
                 SetTagClassForm(baBuffer, nHead);
 
                 //!!!!!!!!!!!!!
@@ -1002,7 +997,7 @@ namespace DigitalPlatform.Z3950
                     nMax = fieldlen;
                     while (nMax > 0)
                     {
-                        node = new BerNode();	//生成此结点的一个子结点
+                        node = new BerNode();	//生成此节点的一个子节点
                         node.ParentNode = this;
                         this.ChildrenCollection.Add(node);
 
@@ -1046,7 +1041,6 @@ namespace DigitalPlatform.Z3950
             //*remainder=fieldlen+headerlen-len;
             return true;
         }
-
 
         int SetTagClassForm(byte[] baBuffer,
             int nStart)
@@ -1092,7 +1086,7 @@ namespace DigitalPlatform.Z3950
 
 #if NOOOOOOOOO
  // 应当用物理根调用本函数。
-// 本函数要递归。第一次调用本函数负责创建逻辑根结点。
+// 本函数要递归。第一次调用本函数负责创建逻辑根节点。
 // 
         int BuildTreeNode(byte [] baPackage,
             out int nDelta,
@@ -1122,11 +1116,11 @@ namespace DigitalPlatform.Z3950
 
 	nTotlen = 0;
 
-	// 1.给此结点的Tag、Class、Form赋值
+	// 1.给此节点的Tag、Class、Form赋值
 	ASSERT(nDelta<baPackage.GetSize());
 	nTaglen =GetTagClassForm(baPackage,nDelta);
 	
-	// 2.获取此结点数据所占的字节数
+	// 2.获取此节点数据所占的字节数
 	nLength = GetDataBytenum(baPackage.GetData()+nDelta,
 		baPackage.GetSize(),
 		nDatalen);
@@ -1158,7 +1152,7 @@ namespace DigitalPlatform.Z3950
 
 	}
  
-	// 4.给结点的数据赋值
+	// 4.给节点的数据赋值
 	nRet = GetNodeData(baPackage,nDelta,nDatalen);
 	if (nRet==-1)
 		return -1;
@@ -1168,8 +1162,7 @@ namespace DigitalPlatform.Z3950
 
 #endif
 
-
-        // 给此结点的Tag、Class、Form赋值
+        // 给此节点的Tag、Class、Form赋值
         // parameters: len已接收字节数的指针
         // return:
         // 存放tag、form、class值所需的字节数
@@ -1211,7 +1204,7 @@ namespace DigitalPlatform.Z3950
         }
 
 #if NOOOOOOOOOOOOO
-        // 给结点的m_baData赋值
+        // 给节点的m_baData赋值
         int GetNodeData(byte [] baPackage,
             ref int nDelta,
             ref int nFieldlen)
@@ -1224,7 +1217,7 @@ namespace DigitalPlatform.Z3950
 		int nMax = nFieldlen;
 		while (nMax>0)
 		{
-			node = new BerNode();	//生成此结点的一个子结点
+			node = new BerNode();	//生成此节点的一个子节点
             node.ParentNode = this;
             this.ChildrenCollection.Add(node);
 
@@ -1251,7 +1244,7 @@ namespace DigitalPlatform.Z3950
 }
 #endif 
 
-        // 获取OIDs结点的数据
+        // 获取OIDs节点的数据
         // parameters:
         // return:
         //		-1	error
@@ -1301,14 +1294,14 @@ namespace DigitalPlatform.Z3950
         }
 
         // 2007/7/25
-        // 获取octect-string结点的数据
+        // 获取octect-string节点的数据
         public byte[] GetOctetsData()
         {
             return this.m_baData;
         }
 
 
-        // 获取此char结点的数据
+        // 获取此char节点的数据
         // UTF-8版本
         // parameters:
         // return:
@@ -1319,7 +1312,7 @@ namespace DigitalPlatform.Z3950
             return Encoding.UTF8.GetString(this.m_baData);
         }
 
-        // 获取此char结点的数据
+        // 获取此char节点的数据
         // 能指定编码方式的版本
         // parameters:
         // return:
@@ -1330,7 +1323,7 @@ namespace DigitalPlatform.Z3950
             return encoding.GetString(this.m_baData);
         }
 
-        // 获取bitstring结点的数据
+        // 获取bitstring节点的数据
         // parameters:
         // return:
         //		NULL
@@ -1372,7 +1365,7 @@ namespace DigitalPlatform.Z3950
         }
 
 
-        // 获取Integer结点的数据
+        // 获取Integer节点的数据
         // parameters:
         // return:
         //		NULL
