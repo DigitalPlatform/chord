@@ -1,4 +1,5 @@
-﻿using DigitalPlatform;
+﻿//2018-06-06  测试
+using DigitalPlatform;
 using DigitalPlatform.IO;
 using MongoDB.Driver;
 using System;
@@ -19,7 +20,7 @@ namespace WebZ.Server
         // 站点配置数据库
         public static ZServerDatabase ZServerDb = new ZServerDatabase();
         static CancellationTokenSource _cancel = new CancellationTokenSource();
-
+      
 
         // 初始化
         public static void Initial(string dataDir)
