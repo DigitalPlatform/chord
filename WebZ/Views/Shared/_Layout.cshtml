@@ -9,9 +9,13 @@
         <link rel="stylesheet" href="~/css/WebZ.css" />
     </environment>
 
+    <environment exclude="Development">
+        <link rel="stylesheet" href="~/css/WebZ.css" />
+    </environment>
 
-        @RenderSection("style", required: false)
-    </head>
+
+    @RenderSection("style", required: false)
+</head>
 <body>
     <div class="navbar-collapse collapse">
         <ul class="nav navbar-nav">
