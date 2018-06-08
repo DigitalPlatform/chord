@@ -5,6 +5,7 @@ using System.Text;
 
 namespace DigitalPlatform.Z3950
 {
+    // ISBN 实用转换工具类
     public class IsbnConvertInfo
     {
         public IsbnSplitter IsbnSplitter = null;
@@ -88,6 +89,7 @@ namespace DigitalPlatform.Z3950
             return 0;
         }
 #endif
+        // 对 ISBN 执行转换。转换的结果可能会把一个 ISBN 拆散为多个 ISBN
         // result.Value:
         //      -1  出错
         //      0   没有必要转换

@@ -554,5 +554,11 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                 this.textBox_queryString.Enabled = true;
             }
         }
+
+        private void MenuItem_escapeString_Click(object sender, EventArgs e)
+        {
+            EscapeStringDialog dlg = new EscapeStringDialog();
+            dlg.ShowDialog(this);
+        }
     }
 }

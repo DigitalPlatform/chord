@@ -35,6 +35,10 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.panel_query = new System.Windows.Forms.Panel();
+            this.radioButton_query_origin = new System.Windows.Forms.RadioButton();
+            this.radioButton_query_easy = new System.Windows.Forms.RadioButton();
+            this.textBox_queryString = new System.Windows.Forms.TextBox();
+            this.label9 = new System.Windows.Forms.Label();
             this.button_stop = new System.Windows.Forms.Button();
             this.textBox_password = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
@@ -59,10 +63,8 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.label9 = new System.Windows.Forms.Label();
-            this.textBox_queryString = new System.Windows.Forms.TextBox();
-            this.radioButton_query_easy = new System.Windows.Forms.RadioButton();
-            this.radioButton_query_origin = new System.Windows.Forms.RadioButton();
+            this.MenuItem_utility = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_escapeString = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -76,7 +78,8 @@
             // 
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.MenuItem_test});
+            this.MenuItem_test,
+            this.MenuItem_utility});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(851, 32);
@@ -94,7 +97,7 @@
             // MenuItem_multiChannelTest
             // 
             this.MenuItem_multiChannelTest.Name = "MenuItem_multiChannelTest";
-            this.MenuItem_multiChannelTest.Size = new System.Drawing.Size(182, 30);
+            this.MenuItem_multiChannelTest.Size = new System.Drawing.Size(252, 30);
             this.MenuItem_multiChannelTest.Text = "多通道测试";
             this.MenuItem_multiChannelTest.Click += new System.EventHandler(this.MenuItem_multiChannelTest_Click);
             // 
@@ -167,6 +170,49 @@
             this.panel_query.Name = "panel_query";
             this.panel_query.Size = new System.Drawing.Size(380, 527);
             this.panel_query.TabIndex = 0;
+            // 
+            // radioButton_query_origin
+            // 
+            this.radioButton_query_origin.AutoSize = true;
+            this.radioButton_query_origin.Location = new System.Drawing.Point(17, 213);
+            this.radioButton_query_origin.Name = "radioButton_query_origin";
+            this.radioButton_query_origin.Size = new System.Drawing.Size(105, 22);
+            this.radioButton_query_origin.TabIndex = 11;
+            this.radioButton_query_origin.Text = "原始方式";
+            this.radioButton_query_origin.UseVisualStyleBackColor = true;
+            this.radioButton_query_origin.CheckedChanged += new System.EventHandler(this.radioButton_query_origin_CheckedChanged);
+            // 
+            // radioButton_query_easy
+            // 
+            this.radioButton_query_easy.AutoSize = true;
+            this.radioButton_query_easy.Checked = true;
+            this.radioButton_query_easy.Location = new System.Drawing.Point(14, 115);
+            this.radioButton_query_easy.Name = "radioButton_query_easy";
+            this.radioButton_query_easy.Size = new System.Drawing.Size(105, 22);
+            this.radioButton_query_easy.TabIndex = 6;
+            this.radioButton_query_easy.TabStop = true;
+            this.radioButton_query_easy.Text = "易用方式";
+            this.radioButton_query_easy.UseVisualStyleBackColor = true;
+            this.radioButton_query_easy.CheckedChanged += new System.EventHandler(this.radioButton_query_origin_CheckedChanged);
+            // 
+            // textBox_queryString
+            // 
+            this.textBox_queryString.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_queryString.Enabled = false;
+            this.textBox_queryString.Location = new System.Drawing.Point(124, 241);
+            this.textBox_queryString.Name = "textBox_queryString";
+            this.textBox_queryString.Size = new System.Drawing.Size(186, 28);
+            this.textBox_queryString.TabIndex = 13;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(29, 244);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(71, 18);
+            this.label9.TabIndex = 12;
+            this.label9.Text = "检索式:";
             // 
             // button_stop
             // 
@@ -291,7 +337,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_database.Location = new System.Drawing.Point(112, 78);
             this.textBox_database.Name = "textBox_database";
-            this.textBox_database.Size = new System.Drawing.Size(224, 28);
+            this.textBox_database.Size = new System.Drawing.Size(198, 28);
             this.textBox_database.TabIndex = 5;
             // 
             // button_search
@@ -320,7 +366,7 @@
             this.comboBox_use.FormattingEnabled = true;
             this.comboBox_use.Location = new System.Drawing.Point(124, 178);
             this.comboBox_use.Name = "comboBox_use";
-            this.comboBox_use.Size = new System.Drawing.Size(212, 26);
+            this.comboBox_use.Size = new System.Drawing.Size(186, 26);
             this.comboBox_use.TabIndex = 10;
             // 
             // textBox_serverAddr
@@ -329,7 +375,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_serverAddr.Location = new System.Drawing.Point(112, 10);
             this.textBox_serverAddr.Name = "textBox_serverAddr";
-            this.textBox_serverAddr.Size = new System.Drawing.Size(224, 28);
+            this.textBox_serverAddr.Size = new System.Drawing.Size(198, 28);
             this.textBox_serverAddr.TabIndex = 1;
             // 
             // label5
@@ -356,7 +402,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_queryWord.Location = new System.Drawing.Point(124, 143);
             this.textBox_queryWord.Name = "textBox_queryWord";
-            this.textBox_queryWord.Size = new System.Drawing.Size(212, 28);
+            this.textBox_queryWord.Size = new System.Drawing.Size(186, 28);
             this.textBox_queryWord.TabIndex = 8;
             // 
             // textBox_serverPort
@@ -365,7 +411,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_serverPort.Location = new System.Drawing.Point(112, 44);
             this.textBox_serverPort.Name = "textBox_serverPort";
-            this.textBox_serverPort.Size = new System.Drawing.Size(224, 28);
+            this.textBox_serverPort.Size = new System.Drawing.Size(198, 28);
             this.textBox_serverPort.TabIndex = 3;
             // 
             // label4
@@ -395,48 +441,20 @@
             this.webBrowser1.Size = new System.Drawing.Size(463, 527);
             this.webBrowser1.TabIndex = 0;
             // 
-            // label9
+            // MenuItem_utility
             // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(29, 244);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(71, 18);
-            this.label9.TabIndex = 12;
-            this.label9.Text = "检索式:";
+            this.MenuItem_utility.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.MenuItem_escapeString});
+            this.MenuItem_utility.Name = "MenuItem_utility";
+            this.MenuItem_utility.Size = new System.Drawing.Size(58, 28);
+            this.MenuItem_utility.Text = "工具";
             // 
-            // textBox_queryString
+            // MenuItem_escapeString
             // 
-            this.textBox_queryString.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_queryString.Enabled = false;
-            this.textBox_queryString.Location = new System.Drawing.Point(124, 241);
-            this.textBox_queryString.Name = "textBox_queryString";
-            this.textBox_queryString.Size = new System.Drawing.Size(212, 28);
-            this.textBox_queryString.TabIndex = 13;
-            // 
-            // radioButton_query_easy
-            // 
-            this.radioButton_query_easy.AutoSize = true;
-            this.radioButton_query_easy.Checked = true;
-            this.radioButton_query_easy.Location = new System.Drawing.Point(14, 115);
-            this.radioButton_query_easy.Name = "radioButton_query_easy";
-            this.radioButton_query_easy.Size = new System.Drawing.Size(105, 22);
-            this.radioButton_query_easy.TabIndex = 6;
-            this.radioButton_query_easy.TabStop = true;
-            this.radioButton_query_easy.Text = "易用方式";
-            this.radioButton_query_easy.UseVisualStyleBackColor = true;
-            this.radioButton_query_easy.CheckedChanged += new System.EventHandler(this.radioButton_query_origin_CheckedChanged);
-            // 
-            // radioButton_query_origin
-            // 
-            this.radioButton_query_origin.AutoSize = true;
-            this.radioButton_query_origin.Location = new System.Drawing.Point(17, 213);
-            this.radioButton_query_origin.Name = "radioButton_query_origin";
-            this.radioButton_query_origin.Size = new System.Drawing.Size(105, 22);
-            this.radioButton_query_origin.TabIndex = 11;
-            this.radioButton_query_origin.Text = "原始方式";
-            this.radioButton_query_origin.UseVisualStyleBackColor = true;
-            this.radioButton_query_origin.CheckedChanged += new System.EventHandler(this.radioButton_query_origin_CheckedChanged);
+            this.MenuItem_escapeString.Name = "MenuItem_escapeString";
+            this.MenuItem_escapeString.Size = new System.Drawing.Size(252, 30);
+            this.MenuItem_escapeString.Text = "转义检索词 ...";
+            this.MenuItem_escapeString.Click += new System.EventHandler(this.MenuItem_escapeString_Click);
             // 
             // Form1
             // 
@@ -505,6 +523,8 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.RadioButton radioButton_query_origin;
         private System.Windows.Forms.RadioButton radioButton_query_easy;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_utility;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_escapeString;
     }
 }
 

@@ -544,19 +544,7 @@ namespace DigitalPlatform.Z3950
                 if (strFrom == "ISBN"
                     && isbnconvertinfo != null)
                 {
-                    /*
-                    // return:
-                    //      -1  出错
-                    //      0   没有必要转换
-                    //      1   已经转换
-                    nRet = isbnconvertinfo.ConvertISBN(ref strWord,
-                out strError);
-                    if (nRet == -1)
-                    {
-                        strError = "在处理ISBN字符串 '" + strWord + "' 过程中出错: " + strError;
-                        return -1;
-                    }
-                     * */
+
                     // result.Value:
                     //      -1  出错
                     //      0   没有必要转换
@@ -566,6 +554,7 @@ namespace DigitalPlatform.Z3950
                     if (result.Value == -1)
                         return new Result { Value = -1, ErrorInfo = "在处理ISBN字符串 '" + strWord + "' 过程中出错: " + result.ErrorInfo };
 
+                    // 如果一个 ISBN 变成了多个 ISBN，要构造为 OR 方式的检索式。但遗憾的是可能有些 Z39.50 服务器并不支持 OR 运算检索
                     int j = 0;
                     foreach (string isbn in isbns)
                     {
