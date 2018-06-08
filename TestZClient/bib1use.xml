@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-
   <item name = "Title" value="4" uni_name = "Title" comment="题名" />
   <item name = "Author" value="1003" uni_name = "Author-name" comment="著者"/>
   <item name = "ISBN" value="7" uni_name = "Identifier-ISBN"/>
@@ -22,5 +21,4 @@
   <item name = "Name" value="1002" uni_name = "Name" comment="名称"/>
   <item name = "Any" value="1016" uni_name = "Any" comment="任意"/>
   <item name = "Editor" value="1020" uni_name = "Name-editor" comment="编辑"/>
-
 </root>

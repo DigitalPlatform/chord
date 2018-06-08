@@ -114,6 +114,15 @@ namespace TestZClient
             this.textBox_groupID.Text = Settings.Default.groupID;
             this.textBox_userName.Text = Settings.Default.userName;
             this.textBox_password.Text = Settings.Default.password;
+
+            this.textBox_queryString.Text = Settings.Default.queryString;
+
+            string strQueryStyle = Settings.Default.queryStyle;
+            if (strQueryStyle == "easy")
+                this.radioButton_query_easy.Checked = true;
+            else
+                this.radioButton_query_origin.Checked = true;
+
         }
 
         void SaveSettings()
@@ -132,6 +141,13 @@ namespace TestZClient
             Settings.Default.groupID = this.textBox_groupID.Text;
             Settings.Default.userName = this.textBox_userName.Text;
             Settings.Default.password = this.textBox_password.Text;
+
+            Settings.Default.queryString = this.textBox_queryString.Text;
+
+            if (this.radioButton_query_easy.Checked == true)
+                Settings.Default.queryStyle = "easy";
+            else
+                Settings.Default.queryStyle = "origin";
 
             Settings.Default.Save();
         }
@@ -210,17 +226,28 @@ namespace TestZClient
                     + (_targetInfo.IsbnWild == true ? "wild," : "")
                 };
 
-                // 构造 XML 检索式
-                string strQueryXml = BuildQueryXml();
-                // 将 XML 检索式变化为简明格式检索式
-                int nRet = ZClient.GetQueryString(
-                    this._useList,
-                    strQueryXml,
-                     isbnconvertinfo,
-                    out string strQueryString,
-                    out strError);
-                if (nRet == -1)
-                    goto ERROR1;
+                string strQueryString = "";
+
+                if (this.radioButton_query_easy.Checked)
+                {
+                    // 构造 XML 检索式
+                    string strQueryXml = BuildQueryXml();
+                    // 将 XML 检索式变化为简明格式检索式
+                    Result result = ZClient.ConvertQueryString(
+                        this._useList,
+                        strQueryXml,
+                        isbnconvertinfo,
+                        out strQueryString);
+                    if (result.Value == -1)
+                    {
+                        strError = result.ErrorInfo;
+                        goto ERROR1;
+                    }
+
+                    this.textBox_queryString.Text = strQueryString; // 便于调试观察
+                }
+                else
+                    strQueryString = this.textBox_queryString.Text;
 
                 {
                     // return Value:
@@ -246,8 +273,10 @@ namespace TestZClient
         _targetInfo.DbNames,
         _targetInfo.PreferredRecordSyntax,
         "default");
-
-                this.AppendHtml("<div class='debug green' >检索共命中记录 " + search_result.ResultCount + "</div>");
+                if (search_result.Value == -1)
+                    this.AppendHtml("<div class='debug error' >检索出错 " + search_result.ErrorInfo + "</div>");
+                else
+                    this.AppendHtml("<div class='debug green' >检索共命中记录 " + search_result.ResultCount + "</div>");
 
 #if NO
             this.Invoke(
@@ -500,6 +529,30 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             this.button_stop.Enabled = false;
             _zclient.CloseConnection();
             EnableControls(true);
+        }
+
+        // 多通道测试
+        private void MenuItem_multiChannelTest_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void radioButton_query_origin_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.radioButton_query_easy.Checked == true)
+            {
+                this.textBox_queryWord.Enabled = true;
+                this.comboBox_use.Enabled = true;
+
+                this.textBox_queryString.Enabled = false;
+            }
+            else
+            {
+                this.textBox_queryWord.Enabled = false;
+                this.comboBox_use.Enabled = false;
+
+                this.textBox_queryString.Enabled = true;
+            }
         }
     }
 }

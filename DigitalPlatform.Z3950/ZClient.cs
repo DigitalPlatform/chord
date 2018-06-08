@@ -395,12 +395,19 @@ namespace DigitalPlatform.Z3950
 
 
             // m_search_response.m_lErrorCode = 0;
+            byte[] baPackage = null;
 
-            int nRet = tree.SearchRequest(struSearch_request,
-                out byte[] baPackage);
+            try
+            {
+                // 这里可能抛出异常
+                tree.SearchRequest(struSearch_request,
+                     out baPackage);
+            }
+            catch (Exception ex)
+            {
+                return new SearchResult { Value = -1, ErrorInfo = "CBERTree::SearchRequest() Exception: " + ex.Message };
+            }
 
-            if (nRet == -1)
-                return new SearchResult { Value = -1, ErrorInfo = "CBERTree::SearchRequest() fail!" };
             if (this._channel.Connected == false)
                 return new SearchResult { Value = -1, ErrorInfo = "socket尚未连接或者已经被关闭" };
 
@@ -453,7 +460,7 @@ namespace DigitalPlatform.Z3950
             }
 
             SEARCH_RESPONSE search_response = new SEARCH_RESPONSE();
-            nRet = BerTree.GetInfo_SearchResponse(tree1.GetAPDuRoot(),
+            int nRet = BerTree.GetInfo_SearchResponse(tree1.GetAPDuRoot(),
                                    ref search_response,
                                    true,
                                    out string strError);
@@ -484,20 +491,20 @@ namespace DigitalPlatform.Z3950
         // parameters:
         //      strQueryXml XML 形态的检索式
         //      strQueryString [out] Search() 专用的检索式
-        // return:
-        //      
-        public static int GetQueryString(
+        // result.Value
+        //      -1  出错
+        //      0   没有发生转换。例如 strQueryXml 为空的情况
+        //      1   成功
+        public static Result ConvertQueryString(
             UseCollection use_list,
             string strQueryXml,
             IsbnConvertInfo isbnconvertinfo,
-            out string strQueryString,
-            out string strError)
+            out string strQueryString)
         {
-            strError = "";
             strQueryString = "";
 
             if (String.IsNullOrEmpty(strQueryXml) == true)
-                return 0;
+                return new Result();
 
             XmlDocument dom = new XmlDocument();
             try
@@ -506,8 +513,7 @@ namespace DigitalPlatform.Z3950
             }
             catch (Exception ex)
             {
-                strError = "strQueryXml装入XMLDOM时出错: " + ex.Message;
-                return -1;
+                return new Result { Value = -1, ErrorInfo = "strQueryXml装入XMLDOM时出错: " + ex.Message };
             }
 
             XmlNodeList nodes = dom.DocumentElement.SelectNodes("line");
@@ -532,10 +538,7 @@ namespace DigitalPlatform.Z3950
 
                 string strValue = use_list.GetValue(strFrom);
                 if (strValue == null)
-                {
-                    strError = "名称 '" + strFrom + "' 在use表中没有找到对应的编号";
-                    return -1;
-                }
+                    return new Result { Value = -1, ErrorInfo = "名称 '" + strFrom + "' 在use表中没有找到对应的编号" };
 
                 // 对ISBN检索词进行预处理
                 if (strFrom == "ISBN"
@@ -554,19 +557,14 @@ namespace DigitalPlatform.Z3950
                         return -1;
                     }
                      * */
-                    List<string> isbns = null;
-                    // return:
+                    // result.Value:
                     //      -1  出错
                     //      0   没有必要转换
                     //      1   已经转换
-                    nRet = isbnconvertinfo.ConvertISBN(strWord,
-                        out isbns,
-                        out strError);
-                    if (nRet == -1)
-                    {
-                        strError = "在处理ISBN字符串 '" + strWord + "' 过程中出错: " + strError;
-                        return -1;
-                    }
+                    Result result = isbnconvertinfo.ConvertISBN(strWord,
+                        out List<string> isbns);
+                    if (result.Value == -1)
+                        return new Result { Value = -1, ErrorInfo = "在处理ISBN字符串 '" + strWord + "' 过程中出错: " + result.ErrorInfo };
 
                     int j = 0;
                     foreach (string isbn in isbns)
@@ -590,7 +588,10 @@ namespace DigitalPlatform.Z3950
                     + strValue;
             }
 
-            return 1;
+            return new Result
+            {
+                Value = 1
+            };
         }
 
         static string GetLogicString(string strText)
@@ -696,7 +697,7 @@ namespace DigitalPlatform.Z3950
             struPresent_request.m_strPreferredRecordSyntax = strPreferredRecordSyntax;
 
             int nRet = tree.PresentRequest(struPresent_request,
-                                     out byte [] baPackage);
+                                     out byte[] baPackage);
             if (nRet == -1)
                 return new PresentResult { Value = -1, ErrorInfo = "CBERTree::PresentRequest() fail!" };
             if (this._channel.Connected == false)
