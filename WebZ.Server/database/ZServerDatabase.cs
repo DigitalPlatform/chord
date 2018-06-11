@@ -20,10 +20,17 @@ namespace WebZ.Server.database
             if (_collection == null)
                 throw new Exception("_collection 尚未初始化");
 
+            /*
             // 服务器地址建索引
             await _collection.Indexes.CreateOneAsync(
-                Builders<ZServerItem>.IndexKeys.Ascending("hostName"),
+                Builders<ZServerItem>.IndexKeys.Ascending("name"),
                 new CreateIndexOptions() { Unique = false });
+
+            // 服务器地址建索引
+            await _collection.Indexes.CreateOneAsync(
+                Builders<ZServerItem>.IndexKeys.Ascending("addr"),
+                new CreateIndexOptions() { Unique = false });
+            */
         }
 
 
@@ -32,14 +39,17 @@ namespace WebZ.Server.database
         public async Task<ZServerItem> Add(ZServerItem item)
         {
             // 检查 item
-            if (string.IsNullOrEmpty(item.hostName) == true)
+            if (string.IsNullOrEmpty(item.name) == true)
+                throw new Exception("服务器名称不能为空");
+
+            if (string.IsNullOrEmpty(item.addr) == true)
                 throw new Exception("服务器地址不能为空");
 
             // 创建时间
             item.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
             item.state = C_State_WaitForVerfity; // 未审核
             item.verifier = "";
-            item.verifyTime = "";
+            item.lastModifyTime = item.createTime;//新增时，两个时间一致，状态没改变时，会修改
 
             IMongoCollection<ZServerItem> collection = this._collection;
             await collection.InsertOneAsync(item);
@@ -50,25 +60,53 @@ namespace WebZ.Server.database
         // 更新 
         public async Task<ZServerItem> Update(ZServerItem item)
         {
-            item.lastModifyTime= DateTimeUtil.DateTimeToString(DateTime.Now);
+            // 最后修改时间
+            item.lastModifyTime = DateTimeUtil.DateTimeToString(DateTime.Now);
 
 
             var filter = Builders<ZServerItem>.Filter.Eq("id", item.id);
             var update = Builders<ZServerItem>.Update
-                .Set("hostName", item.hostName)
+                 //主要字段
+                 .Set("name", item.name)
+                .Set("addr", item.addr)
                 .Set("port", item.port)
-                .Set("dbNames", item.dbNames)
-                .Set("authenticationMethod", item.authenticationMethod)
-                .Set("groupID", item.groupID)
-                .Set("userName", item.userName)
+                .Set("homepage", item.homepage)
+                .Set("dbnames", item.dbnames)
+                .Set("authmethod", item.authmethod)
+                .Set("groupid", item.groupid)
+                .Set("username", item.username)
                 .Set("password", item.password)
 
-                .Set("creatorPhone", item.creatorPhone)
-                .Set("creatorIP", item.creatorIP)
-                .Set("createTime", item.createTime)
+                //其它字段
+                .Set("recsperbatch", item.recsperbatch)
+                .Set("defaultMarcSyntaxOID", item.defaultMarcSyntaxOID)
+                .Set("defaultElementSetName", item.defaultElementSetName)
+                .Set("firstfull", item.firstfull)
+                .Set("detectmarcsyntax", item.detectmarcsyntax)
+                .Set("ignorereferenceid", item.ignorereferenceid)
+
+                .Set("isbn_force13", item.isbn_force13)
+                .Set("isbn_force10", item.isbn_force10)
+                .Set("isbn_addhyphen", item.isbn_addhyphen)
+                .Set("isbn_removehyphen", item.isbn_removehyphen)
+                .Set("isbn_wild", item.isbn_wild)
+
+                .Set("queryTermEncoding", item.queryTermEncoding)
+                .Set("defaultEncoding", item.defaultEncoding)
+                .Set("recordSyntaxAndEncodingBinding", item.recordSyntaxAndEncodingBinding)
+                .Set("charNegoUtf8", item.charNegoUtf8)
+                .Set("charNego_recordsInSeletedCharsets", item.charNego_recordsInSeletedCharsets)
+
+
+                // 辅助信息
+                //.Set("creatorPhone", item.creatorPhone)
+                //.Set("creatorIP", item.creatorIP)
+                //.Set("createTime", item.createTime)
                 .Set("state", item.state)
                 .Set("verifier", item.verifier)
-                .Set("verifyTime", item.verifyTime)
+                .Set("lastModifyTime", item.lastModifyTime)
+                .Set("remark", item.remark)
+                //
                 ;
 
             await this._collection.UpdateOneAsync(filter, update);

@@ -4098,15 +4098,6 @@ public string ErrorCode { get; set; }
                 strMessageTemplate = "%name% 您好！密码为 %temppassword%。一小时内有效。";
             }
             /*
-                                    DomUtil.SetElementText(node, "tel", strTelParam);
-                                    DomUtil.SetElementText(node, "barcode", strBarcode);
-                                    DomUtil.SetElementText(node, "name", strName);
-                                    DomUtil.SetElementText(node, "tempPassword", strReaderTempPassword);
-                                    DomUtil.SetElementText(node, "expireTime", expire.ToLongTimeString());
-                                    DomUtil.SetElementText(node, "period", "一小时");
-                                    DomUtil.SetElementText(node, "refID", strRefID); 
-             */
-            /*
 <root>
   <patron>
     <tel>13862157150</tel>

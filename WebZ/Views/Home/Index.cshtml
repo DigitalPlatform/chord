@@ -81,11 +81,6 @@
                 return;
             }
 
-            //// 工作人员账号
-            //var userName = $("#_userName").text();
-            //if (userName == "") {
-            //    return;
-            //}
 
             var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
             var editBtn = $(divId).find("#btnEdit");
@@ -129,7 +124,7 @@
             html += "<div class='view'>"
             html += "<table class='view-top'>"
                 + "<tr>"
-                + "<td class='title' >" + msgItem.hostName + "</td>"
+                + "<td class='title' >" + msgItem.name + "</td>"
                 + "<td class='btn'>"
                 + "<div id='btnEdit' style='display: none;'>"
                 + "<button class='mui-btn mui-btn-default' onclick=\"gotoEdit('" + msgItem.id + "')\">编辑</button>&nbsp;"
@@ -142,10 +137,12 @@
 
             // 加内容
             html += "<div class='content'>"
-                + "<div><span class='name'>服务器地址：</span><span class='value'>" + msgItem.hostName + "</span></div>"
+                + "<div><span class='name'>服务器名称：</span><span class='value'>" + msgItem.name + "</span></div>"
+                + "<div><span class='name'>服务器地址：</span><span class='value'>" + msgItem.addr + "</span></div>"
                 + "<div><span class='name'>端口号：</span><span class='value'>" + msgItem.port + "</span></div>"
-                + "<div><span class='name'>数据库名：</span><span class='value'>" + msgItem.dbNames + "</span></div>"
-                + "<div><span class='name'>权限验证方式：</span><span class='value'>" + msgItem.authenticationMethod + "</span></div>"
+                + "<div><span class='name'>数据库名：</span><span class='value'>" + msgItem.dbnames + "</span></div>"
+                + "<div><span class='name'>主页：</span><span class='value'>" + msgItem.homepage + "</span></div>"
+                + "<div><span class='name'>权限验证方式：</span><span class='value'>" + msgItem.authmethod + "</span></div>"
 
                 + "<div><span class='name'>创建者手机号：</span><span class='value'>" + msgItem.creatorPhone + "</span></div>"
                 + "<div><span class='name'>创建者IP：</span><span class='value'>" + msgItem.creatorIP + "</span></div>"
@@ -173,39 +170,68 @@
             }
             var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
 
-            var hostName = $(divId).find("#_hostName").val();//$("#_val_title").val();
-            if (hostName == "") {
+            var name = $(divId).find("#_name").val();
+            if (name == "") {
+                alert("请输入服务器名称。");
+                return;
+            }
+
+            var addr = $(divId).find("#_addr").val();
+            if (addr == "") {
                 alert("请输入服务器地址。");
                 return;
             }
-            //alert("hostName=" + hostName);
 
-            var port = $(divId).find("#_port").val();//$("#_val_content").val();
+            var port = $(divId).find("#_port").val();
             if (port == "") {
                 alert("请输入端口号。");
                 return;
             }
-            //alert("port=" + port);
+            var homepage = $(divId).find("#_homepage").val();
 
-            var dbNames = $(divId).find("#_dbNames").val();
-            if (dbNames == "") {
+            var dbnames = $(divId).find("#_dbnames").val();
+            if (dbnames == "") {
                 alert("请输入数据库。");
                 return;
             }
 
-            var authenticationMethod = $(divId).find("#_authenticationMethod").val();
-            if (authenticationMethod == "") {
+
+
+            var authmethod = $(divId).find("#_authmethod").val();
+            if (authmethod == "") {
                 alert("请选择权限验证方式。");
                 return;
             }
-            //alert(authenticationMethod);
+
+            var groupid = $(divId).find("#_groupid").val();
+            var username = $(divId).find("#_username").val();
+            var password = $(divId).find("#_password").val();
+
+            // 其它配置字段
+            var recsperbatch = $(divId).find("#_recsperbatch").val();
+            var defaultMarcSyntaxOID = $(divId).find("#_defaultMarcSyntaxOID").val();
+            var defaultElementSetName = $(divId).find("#_defaultElementSetName").val();
+            var firstfull = $(divId).find("#_firstfull").val();
+            var detectmarcsyntax = $(divId).find("#_detectmarcsyntax").val();
+            var ignorereferenceid = $(divId).find("#_ignorereferenceid").val();
+
+            var isbn_force13 = $(divId).find("#_isbn_force13").val();
+            var isbn_force10 = $(divId).find("#_isbn_force10").val();
+            var isbn_addhyphen = $(divId).find("#_isbn_addhyphen").val();
+            var isbn_removehyphen = $(divId).find("#_isbn_removehyphen").val();
+            var isbn_wild = $(divId).find("#_isbn_wild").val();
+
+            var queryTermEncoding = $(divId).find("#_queryTermEncoding").val();
+            var defaultEncoding = $(divId).find("#_defaultEncoding").val();
+            var recordSyntaxAndEncodingBinding = $(divId).find("#_recordSyntaxAndEncodingBinding").val();
+            var charNegoUtf8 = $(divId).find("#_charNegoUtf8").val();
+            var charNego_recordsInSeletedCharsets = $(divId).find("#_charNego_recordsInSeletedCharsets").val();
 
             var creatorPhone = $(divId).find("#_creatorPhone").val();
             if (creatorPhone == "") {
                 alert("请输入手机号。");
                 return;
             }
-
 
             //显示等待图层
             showMaskLayer();
@@ -256,10 +282,12 @@
                 },
                 {
                     id: id,
-                    hostName: hostName,
+                    name: name,
+                    addr: addr,
                     port: port,
-                    dbNames: dbNames,
-                    authenticationMethod: authenticationMethod,
+                    homepage: homepage,
+                    dbnames: dbnames,
+                    authmethod: authmethod,
                     creatorPhone: creatorPhone
                 }
             );
@@ -371,14 +399,16 @@
 
             var saveBtnName = "新增";
             var msgId = "new"; //默认新建的情况
-            var hostName = "";
+            var name = "";
+            var addr = "";
             var port = "";
-            var dbNames = "";
-            var authenticationMethod = "";    // 权限验证方式
+            var dbnames = "";
+            var homepage = "";
+            var authmethod = "";    // 权限验证方式
+            var groupid;  // groud id
+            var username;   // 用户名
+            var password;  // 密码
 
-            //var groupID;  // groud id
-            //var userName;   // 用户名
-            //var password;  // 密码
 
             var creatorPhone = "";  //创建者手机号
             var creatorIP = "";  //创建者ip 
@@ -392,11 +422,17 @@
             if (msgItem != null) {
                 //alert("取值");
                 msgId = msgItem.id;
-                hostName = msgItem.hostName;
-                //alert("hostName=" + hostName);
+                name = msgItem.name;
+                addr = msgItem.addr;
                 port = msgItem.port;
-                dbNames = msgItem.dbNames;
-                authenticationMethod = msgItem.authenticationMethod;
+                dbnames = msgItem.dbnames;
+                homepage = msgItem.homepage;
+
+                authmethod = msgItem.authmethod;
+                groupid = msgItem.groupid;
+                username = msgItem.username;
+                password = msgItem.password;
+
                 creatorPhone = msgItem.creatorPhone;
                 creatorIP = msgItem.creatorIP;
                 createTime = msgItem.createTime;
@@ -404,7 +440,7 @@
                 verifier = msgItem.verifier;
                 verifyTime = msgItem.verifyTime;
 
-                if (msgItem.authenticationMethod == "idpass")
+                if (msgItem.authmethod == 1)
                     idpassStr = " selected ";
 
                 saveBtnName = "保存";
@@ -417,10 +453,18 @@
             var html = "<table class='edit'>"
 
 
-            html += "<tr>"
+            html +=
+                + "<tr>"
+                + "<td class='label'>服务器名称</td>"
+            + "<td class='value'>"
+            + "<input class='' id='_name' type='text' value='" + name + "'>"
+                + "</td>"
+                + "</tr>"
+
+                + "<tr>"
                 + "<td class='label'>服务器地址</td>"
                 + "<td class='value'>"
-                + "<input class='' id='_hostName' type='text' value='" + hostName + "'>"
+                + "<input class='' id='_addr' type='text' value='" + addr + "'>"
                 + "</td>"
                 + "</tr>"
 
@@ -429,21 +473,28 @@
                 + "<td class='value'>"
                 + "<input class='' id='_port' type='text' value='" + port + "'>"
                 + "</td>"
-                + "</tr>"
+            + "</tr>"
+
+            + "<tr>"
+            + "<td class='label'>主页</td>"
+            + "<td class='value'>"
+            + "<input class='' id='_homepage' type='text' value='" + homepage + "'>"
+            + "</td>"
+            + "</tr>"
 
                 + "<tr>"
                 + "<td class='label'>数据库</td>"
-                + "<td class='value'>"
-                + "<input class='' id='_dbNames' type='text' value='" + dbNames + "'>"
+            + "<td class='value'>"
+            + "<input class='' id='_dbnames' type='text' value='" + dbnames + "'>"
                 + "</td>"
                 + "</tr>"
 
                 + "<tr>"
                 + "<td class='label'>权限验证方式</td>"
                 + "<td class='value'>"
-                + "<select id = '_authenticationMethod'  >  "
-                + "    <option value='open'>Open</option>"
-                + "    <option value='idpass' " + idpassStr+">ID/Pass</option>"
+                + "<select id = '_authmethod'  >  "
+                + "    <option value='0'>Open</option>"
+                + "    <option value='1' " + idpassStr+">ID/Pass</option>"
                 + "</select >"
                 + "</td>"
                 + "</tr>"
@@ -672,15 +723,53 @@
             });
 
         }
+
+
+        //获取所有站点
+        function getVerifyCodeSMS() {
+            //显示等待图层
+            showLoading();
+
+            //alert("getAllZSerItem");
+
+            // 调web api，获取全部，todo可以改为分批获取
+            var url = "/api/ZSerItem?phone="+"13862157150";
+            sendAjaxRequest(url, "GET", function (result) {
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                alert("ok");
+
+                // 可以返回，以例界面上比较
+
+
+                // 关闭等待层
+                hideLoading();
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                hideLoading();
+
+                alert(errorThrown);
+            });
+        }
     </script>
 }
 
 <div id="divNew">
-    <div id='_edit_new' class="mui-card message" style="display:none"></div>
-    <div class="mui-content-padded">
-        <button id="btnCreate" class="mui-btn mui-btn-block mui-btn-primary" onclick="gotoEdit('new')">
+    <div id='_edit_new' class=" message" style="display:none"></div>
+    <div>
+        <button id="btnCreate" class="" onclick="gotoEdit('new')">
             新增站点
         </button>
+
+        <button id="btnCreate" class="" onclick="getVerifyCodeSMS()">
+            获取短信验证码
+        </button>
+
     </div>
 </div>
 

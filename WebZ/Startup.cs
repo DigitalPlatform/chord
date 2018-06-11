@@ -64,7 +64,7 @@ namespace WebZ
 
 
             // 初始化
-            ServerInfo.Initial(datadir);
+            ServerInfo.Instance.Initial(datadir);
 
         }
 

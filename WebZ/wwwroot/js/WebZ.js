@@ -6,7 +6,7 @@ function sendAjaxRequest(url,
     mydata,
     myasync) {
 
-    //alert("1");
+    //alert(url);
     var apiFullPath = getRootPath() + url;
     //alert("sendAjaxRequest-" + apiFullPath);
     
@@ -31,9 +31,12 @@ function sendAjaxRequest(url,
 function getRootPath() {
     var pathName = window.location.pathname.substring(1);
      //alert("pathname["+ pathName+"]");
-    var webName = pathName;// == '' ? '' : pathName.substring(0, pathName.indexOf('/'));
+    var webName = pathName == '' ? '' : pathName.substring(0, pathName.indexOf('/'));
     //alert("webName[" + webName + "]");
     var rootPath = window.location.protocol + '//' + window.location.host+ '/' + webName;
+
+    if (rootPath.substring(rootPath.length - 1) == "/")
+        rootPath = rootPath.substring(0,rootPath.length - 1);
 
     //alert("rootPath[" + rootPath + "]");
     return rootPath;

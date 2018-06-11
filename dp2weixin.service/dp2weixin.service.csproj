@@ -127,8 +127,6 @@
     <Compile Include="dp2MessageHandler\dp2weixinMessageContext.cs" />
     <Compile Include="dp2MessageHandler\dp2weixinMessageHandler.cs" />
     <Compile Include="dp2MessageHandler\dp2weixinMessageHandler_Events.cs" />
-    <Compile Include="Interface\MessageInterface.cs" />
-    <Compile Include="Interface\ScriptManager.cs" />
     <Compile Include="mongodb\LibDatabase.cs" />
     <Compile Include="mongodb\UserMessageDb.cs" />
     <Compile Include="MsgRouter.cs" />
