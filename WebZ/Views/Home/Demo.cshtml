@@ -1,235 +1,258 @@
 ﻿@section Scripts {
     <script>
         function getvalue() {
-            alert("test");
+            var value = getCkdValue('_isbn_force13');
+            alert('_isbn_force13=' + value);
 
-            var isbn_force13 = getCkdValue("isbn_force13");
+            value = getCkdValue('_detectmarcsyntax');
+            alert('_detectmarcsyntax=' + value);
+
+            value = $("input[name='_authmethod']:checked").val();
+            alert('_authmethod=' + value)
 
 
-            alert(isbn_force13);
+            value = $('#_defaultMarcSyntaxOID').val();
+            alert('_defaultMarcSyntaxOID=' + value)
+
         }
-
-
         function getCkdValue(name) {
             var count = 0;
-            $("#_" + name + ":checked").each(function () {
+            $('#' + name + ':checked').each(function () {
                 count = 1;
             });
             return count
         }
 
+        $(document).ready(function () {
+            $('.ui.accordion').accordion({ duration: 'click' });
+
+            $('.ui.menu').menu();
+        });
+
+
+
+
     </script>
 
 }
 
-
-    <div class='ui large form' style='background-color:#eeeeee;padding:5px'>
-
-
-        <div class="ui segment">
-            <div class='required  field '>
-                <label>服务器名称</label>
-                <input type='text' placeholder='name' id='_name'>
+<div class='ui large form edit' style='background-color:#eeeeee;padding:5px'>
+    <div class='ui segment'>
+        <div class='required  field '>
+            <label>服务器名称</label>
+            <input type='text' placeholder='name' id='_name'>
+        </div>
+        <div class='fields'>
+            <div class='required five wide field'>
+                <label>服务器地址</label>
+                <input type='text' placeholder='address' id='_addr'>
             </div>
-            <div class='fields'>
-                <div class='required five wide field'>
-                    <label>服务器地址</label>
-                    <input type='text' placeholder='address' id='_addr'>
+            <div class='required two wide field'>
+                <label>端口</label>
+                <input type='text' placeholder='port' id='_port'>
+            </div>
+        </div>
+        <div class=' field'>
+            <label>主&nbsp;&nbsp;页</label>
+            <input type='text' placeholder='homepage' id='_homepage'>
+        </div>
+        <div class='required field'>
+            <label>数据库</label>
+            <input type='text' placeholder='homepage' id='_dbnames'>
+        </div>
+        <div class='inline fields'>
+            <label>权限验证方式</label>
+            <div class='field'>
+                <div class='ui radio checkbox'>
+                    <input name='_authmethod' type='radio' checked='checked' value='0'>
+                    <label>Open</label>
                 </div>
-                <div class='required two wide field'>
-                    <label>端口</label>
-                    <input type='text' placeholder='port' id='_port'>
+            </div>
+            <div class='field'>
+                <div class='ui radio checkbox'>
+                    <input name='_authmethod' type='radio' value='1'>
+                    <label>ID/Password</label>
                 </div>
+            </div>
+        </div>
+        <div class='fields'>
+            <div class=' field'>
+                <label>Group ID</label>
+                <input type='text' placeholder='Group ID' id='_groupid'>
             </div>
             <div class=' field'>
-                <label>主&nbsp;&nbsp;页</label>
-                <input type='text' placeholder='homepage' id='_homepage'>
+                <label>用户名</label>
+                <input type='text' placeholder='username' id='_username'>
             </div>
-            <div class='required field'>
-                <label>数据库</label>
-                <input type='text' placeholder='homepage' id='_dbnames'>
-            </div>
-            <div class='inline fields'>
-                <label>权限验证方式</label>
-                <div class='field'>
-                    <div class='ui radio checkbox'>
-                        <input name='_authmethod' type='radio' checked='checked' value='0'>
-                        <label>Open</label>
-                    </div>
-                </div>
-                <div class='field'>
-                    <div class='ui radio checkbox'>
-                        <input name='_authmethod' type='radio' value='1'>
-                        <label>ID/Password</label>
-                    </div>
-                </div>
-            </div>
-            <div class='fields'>
-                <div class=' field'>
-                    <label>Group ID</label>
-                    <input type='text' placeholder='Group ID' id='_groupid'>
-                </div>
-                <div class=' field'>
-                    <label>用户名</label>
-                    <input type='text' placeholder='username' id='_username'>
-                </div>
-                <div class=' field'>
-                    <label>密码</label>
-                    <input type='text' placeholder='password' id='_password'>
-                </div>
+            <div class=' field'>
+                <label>密码</label>
+                <input type='text' placeholder='password' id='_password'>
             </div>
         </div>
+    </div>
 
-        <div class="ui accordion">
-            <div class="title active"><i class="dropdown icon"></i> What is a dog? </div>
-            <div class="content active">
-                <p class="transition visible" style="display: block !important;">狗算是一种家畜。以其忠诚与忠心广受人类欢迎, 可以在世界各地的许多家庭里发现这个受欢迎的客人。</p>
+    <div class='ui segment'>
+        <div class='fields'>
+            <div class='required inline  field '>
+                <label>创建者手机号</label>
+                <input type='text' placeholder='phone' id='_creatorPhone'>
             </div>
-            </div>
-            <div>更多</div>
-
-            <div>
-                <div class="ui segment">
-                    <div class='inline field'>
-                        <label>获取记录每批条数</label>
-                        <input type='text' placeholder='Group ID' id='_groupid' value=''>
-                    </div>
-                    <div class='inline field'>
-                        <label>缺省数据格式OID</label>
-                        <select id='_defaultMarcSyntaxOID'>
-                            <option value='1.2.840.10003.5.1 -- UNIMARC'>1.2.840.10003.5.1 -- UNIMARC</option>
-                            <option value='1.2.840.10003.5.10 -- MARC21'>1.2.840.10003.5.10 -- MARC21</option>
-                            <option value='1.2.840.10003.5.101 -- SUTRS'>1.2.840.10003.5.101 -- SUTRS</option>
-                            <option value='1.2.840.10003.5.109.10 -- XML'>1.2.840.10003.5.109.10 -- XML</option>
-                        </select>
-                    </div>
-                    <div class='inline field'>
-                        <label>缺省元素集名</label>
-                        <select id='_defaultElementSetName'>
-                            <option value='B -- Brief(MARC records)'>B -- Brief(MARC records)</option>
-                            <option value='F -- Full (MARC and OPAC records)'>F -- Full (MARC and OPAC records)</option>
-                            <option value='dc --  Dublin Core (XML records)'>dc --  Dublin Core (XML records)</option>
-                            <option value='mods  -- MODS (XML records)'>mods  -- MODS (XML records)</option>
-                            <option value='marcxml -- MARCXML (XML records), default schema for XML'>marcxml -- MARCXML (XML records), default schema for XML</option>
-                            <option value='opacxml -- MARCXML with holdings attached'>opacxml -- MARCXML with holdings attached</option>
-                        </select>
-                    </div>
-                    <div class="ui   toggle checkbox  field">
-                        <input name="public" type="checkbox" id="_isbn_force13">
-                        <label>在获取浏览记录阶段即获取全记录</label>
-                    </div>
-                    <br />
-                    <div class="ui toggle checkbox  field">
-                        <input name="public" type="checkbox" id="_isbn_force13">
-                        <label>自动探测MARC记录格式</label>
-                    </div>
-                    <br />
-                    <div class="ui toggle checkbox  field">
-                        <input name="public" type="checkbox" id="_isbn_force13">
-                        <label>不检查Reference</label>
-                    </div>
+            <div class='ui inline button' onclick="alert('todo')">获取验证码</div>
+        </div>
+        <div class='required inline  field '>
+            <label>输入验证码&nbsp;&nbsp;&nbsp;&nbsp;</label>
+            <input type='text' id='_verifycode'>
+        </div>
+    </div>
+    <div class='ui accordion'>
+        <div class='title'><i class='dropdown icon'></i> 更多 </div>
+        <div class='content'>
+            <div class='ui segment'>
+                <div class='inline field'>
+                    <label>获取记录每批条数</label>
+                    <input type='text' placeholder='' id='_recsperbatch' value='20'>
                 </div>
-
-                <div class="ui segment">
-                    <p>ISBN检索前，对检索词作如下预处理：</p>
-                    <div class="ui  checkbox field">
-                        <input name="public" type="checkbox" id="_isbn_force13">
-                        <label>规整为13位形态&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                    </div>
-                    <div class="ui  checkbox field">
-                        <input name="public" type="checkbox" id="_isbn_force13">
-                        <label>规整为10位形态&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                    </div>
-                    <div class="ui  checkbox field">
-                        <input name="public" type="checkbox" id="_isbn_force13">
-                        <label>加入横杠&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                    </div>
-                    <div class="ui  checkbox field">
-                        <input name="public" type="checkbox" id="_isbn_force13">
-                        <label>去除横杠&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                    </div>
-                    <div class="ui  checkbox field">
-                        <input name="public" type="checkbox" id="_isbn_force13">
-                        <label>野蛮匹配&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                    </div>
+                <div class='inline field'>
+                    <label>缺省数据格式OID</label>
+                    <select id='_defaultMarcSyntaxOID'>
+                        <option value=''></option>
+                        <option value='1.2.840.10003.5.1 -- UNIMARC'>1.2.840.10003.5.1 -- UNIMARC</option>
+                        <option value='1.2.840.10003.5.10 -- MARC21'>1.2.840.10003.5.10 -- MARC21</option>
+                        <option value='1.2.840.10003.5.101 -- SUTRS'>1.2.840.10003.5.101 -- SUTRS</option>
+                        <option value='1.2.840.10003.5.109.10 -- XML'>1.2.840.10003.5.109.10 -- XML</option>
+                    </select>
                 </div>
-
-                <div class="ui segment">
-                    <div class='inline field'>
-                        <label>检索词缺省编码方式</label>
-                        <select id='_defaultMarcSyntaxOID'>
-                            <option value='utf-8'>gb2312</option>
-                            <option value='utf-8'>utf-8</option>
-                        </select>
-                    </div>
-                    <div class='inline field'>
-                        <label>数据记录缺省编码方式</label>
-                        <select id='_defaultMarcSyntaxOID'>
-                            <option value='utf-8'>gb2312</option>
-                            <option value='utf-8'>utf-8</option>
-                            <option value='utf-8'>MARC-8</option>
-                        </select>
-                    </div>
-                    <div class="ui   toggle checkbox  field">
-                        <input name="public" type="checkbox" id="_isbn_force13">
-                        <label>启用字符集协商功能，优先为检索词选用UTF-8编码方式</label>
-                    </div>
-                    <br />
-                    <div class="ui toggle checkbox  field">
-                        <input name="public" type="checkbox" id="_isbn_force13">
-                        <label>若启用了字符集协商功能，令数据记录也一同采用UTF-8编码试</label>
-                    </div>
+                <div class='inline field'>
+                    <label>缺省元素集名</label>
+                    <select id='_defaultElementSetName'>
+                        <option value=''></option>
+                        <option value='B -- Brief(MARC records)'>B -- Brief(MARC records)</option>
+                        <option value='F -- Full (MARC and OPAC records)'>F -- Full (MARC and OPAC records)</option>
+                        <option value='dc --  Dublin Core (XML records)'>dc --  Dublin Core (XML records)</option>
+                        <option value='mods  -- MODS (XML records)'>mods  -- MODS (XML records)</option>
+                        <option value='marcxml -- MARCXML (XML records), default schema for XML'>marcxml -- MARCXML (XML records), default schema for XML</option>
+                        <option value='opacxml -- MARCXML with holdings attached'>opacxml -- MARCXML with holdings attached</option>
+                    </select>
+                </div>
+                <div class='ui   toggle checkbox  field'>
+                    <input type='checkbox' id='_firstfull'>
+                    <label>在获取浏览记录阶段即获取全记录</label>
+                </div>
+                <br />
+                <div class='ui toggle checkbox  field'>
+                    <input type='checkbox' id='_detectmarcsyntax'>
+                    <label>自动探测MARC记录格式</label>
+                </div>
+                <br />
+                <div class='ui toggle checkbox  field'>
+                    <input type='checkbox' id='_ignorereferenceid'>
+                    <label>不检查Reference</label>
                 </div>
             </div>
 
-            <div class='ui  button'>新增</div>
-            <div class='ui  button'>取消</div>
+            <div class='ui segment'>
+                <p>ISBN检索前，对检索词作如下预处理：</p>
+                <div class='ui  checkbox field'>
+                    <input type='checkbox' id='_isbn_force13'>
+                    <label>规整为13位形态&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                </div>
+                <div class='ui  checkbox field'>
+                    <input type='checkbox' id='_isbn_force10'>
+                    <label>规整为10位形态&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                </div>
+                <div class='ui  checkbox field'>
+                    <input type='checkbox' id='_isbn_addhyphen'>
+                    <label>加入横杠&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                </div>
+                <div class='ui  checkbox field'>
+                    <input type='checkbox' id='_isbn_removehyphen'>
+                    <label>去除横杠&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                </div>
+                <div class='ui  checkbox field'>
+                    <input type='checkbox' id='_isbn_wild'>
+                    <label>野蛮匹配&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                </div>
+            </div>
+
+            <div class='ui segment'>
+                <div class='inline field'>
+                    <label>检索词缺省编码方式</label>
+                    <select id='_queryTermEncoding'>
+                        <option value=''></option>
+                        <option value='utf-8'>gb2312</option>
+                        <option value='utf-8'>utf-8</option>
+                    </select>
+                </div>
+                <div class='inline field'>
+                    <label>数据记录缺省编码方式</label>
+                    <select id='_defaultEncoding'>
+                        <option value=''></option>
+                        <option value='utf-8'>utf-8</option>
+                        <option value='utf-8'>MARC-8</option>
+                    </select>
+                </div>
+                <div class='ui   toggle checkbox  field'>
+                    <input type='checkbox' id='_charNegoUtf8'>
+                    <label>启用字符集协商功能，优先为检索词选用UTF-8编码方式</label>
+                </div>
+                <br />
+                <div class='ui toggle checkbox  field'>
+                    <input name='public' type='checkbox' id='_charNego_recordsInSeletedCharsets'>
+                    <label>若启用了字符集协商功能，令数据记录也一同采用UTF-8编码试</label>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <br />
+    <div class='ui  button'>新增</div>
+    <div class='ui  button'>取消</div>
+</div>
+
+
+
+<br />
+
+
+<button id='btnCreate' class='ui button' onclick='getvalue()'>
+    测试
+</button>
+<div class='ui slider checkbox'>
+    <input name='newsletter' type='checkbox'>
+    <label>Accept terms and conditions</label>
+</div>
+<br />
+
+<div class='ui cards'>
+    <div class='card'>
+        <div class='content'>
+            <div class='header'>Elliot Fu</div>
+            <div class='meta'>好友</div>
+            <div class='description'>Elliot Fu是一名来自纽约的电影工作者。 </div>
+        </div>
+    </div>
+
+
+
+    <div class='card'>
+        <div class='content'>
+            <div class='header'>Veronika Ossi</div>
+            <div class='meta'>好友</div>
+            <div class='description'>Veronika Ossi是一名居住在纽约的舞美师，她喜爱小猫、音乐和派对。 </div>
+        </div>
+    </div>
+
+
+    <div class='card'>
+        <div class='content'>
+            <div class='header'>Jenny Hess</div>
+            <div class='meta'>好友</div>
+            <div class='description'>Jenny是一名在该新学校学习媒体管理的在校生。 </div>
+        </div>
+        <div class='extra content'>
+            <button class='ui button'>Join Project</button>
         </div>
 
-
-
-        <br />
-
-
-        <button id="btnCreate" class="ui button" onclick="getvalue()">
-            测试
-        </button>
-        <div class="ui slider checkbox">
-            <input name="newsletter" type="checkbox">
-            <label>Accept terms and conditions</label>
-        </div>
-        <br />
-
-        <div class='ui cards'>
-            <div class='card'>
-                <div class='content'>
-                    <div class='header'>Elliot Fu</div>
-                    <div class='meta'>好友</div>
-                    <div class='description'>Elliot Fu是一名来自纽约的电影工作者。 </div>
-                </div>
-            </div>
-
-
-
-            <div class='card'>
-                <div class='content'>
-                    <div class='header'>Veronika Ossi</div>
-                    <div class='meta'>好友</div>
-                    <div class='description'>Veronika Ossi是一名居住在纽约的舞美师，她喜爱小猫、音乐和派对。 </div>
-                </div>
-            </div>
-
-
-            <div class='card'>
-                <div class='content'>
-                    <div class='header'>Jenny Hess</div>
-                    <div class='meta'>好友</div>
-                    <div class='description'>Jenny是一名在该新学校学习媒体管理的在校生。 </div>
-                </div>
-                <div class='extra content'>
-                    <button class='ui button'>Join Project</button>
-                </div>
-
-            </div>
-        </div>
+    </div>
+</div>
 

@@ -8,10 +8,12 @@
     <link rel="stylesheet" href="~/css/WebZ.css" />
     <link href="~/css/semantic.min.css" rel="stylesheet" type="text/css">
     <script src="~/lib/jquery/dist/jquery.js"></script>
-    <script scr="~/js/semantic.min.js"></script>
+    <script src="~/lib/jquery/dist/semantic.min.js"></script>
     <script src="~/js/WebZ.js?a=1"></script>
 
+    <script>
 
+    </script>
 
     @RenderSection("style", required: false)
 </head>
@@ -32,12 +34,6 @@
         <a class="item">我的书架</a>
         <a class="item" href="~/home/Demo">UI Demo</a>
         <div class="right menu">
-            <div class="item">
-                <div class="ui icon input">
-                    <input type="text" placeholder="Search...">
-                    <i class="search link icon"></i>
-                </div>
-            </div>
             <a class="ui item">登录 </a>
             <a class="ui item">注册 </a>
         </div>
@@ -57,8 +53,26 @@
 
     </div>
 
+    <script>
+        
 
+        $(document).ready(function () {
+            $('.ui.accordion').accordion({ duration: 'click' });
+            $('.ui.checkbox').checkbox();   //使得单选框可以被选中
 
+            //$('.ui.secondary.menu').menu();
+
+            $('.ui.secondary.menu')
+                .on('click', '.item', function () {
+                        $(this)
+                            .addClass('active')
+                            .siblings('.item')
+                            .removeClass('active');
+                });
+
+        });
+
+    </script>
 
     @RenderSection("Scripts", required: false)
 </body>
