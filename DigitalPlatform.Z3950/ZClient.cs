@@ -487,7 +487,8 @@ namespace DigitalPlatform.Z3950
             }
         }
 
-        // 将 XML 检索式变化为简明格式检索式
+        // 将 XML 检索式变化为 Search() API 所用的检索式
+        // 注： 这是一个辅助性方法，基本 Z39.50 功能可以不包含它。API 所用的检索式可以不必从 XML 检索式转换而来
         // parameters:
         //      strQueryXml XML 形态的检索式
         //      strQueryString [out] Search() 专用的检索式
@@ -524,10 +525,10 @@ namespace DigitalPlatform.Z3950
                 string strWord = node.GetAttribute("word");
                 string strFrom = node.GetAttribute("from");
 
-                if (strWord == "")
-                    continue;
+                if (string.IsNullOrEmpty(strWord) == true)
+                    continue;   // 检索词为空的行会被跳过。
 
-                strLogic = GetLogicString(strLogic);    // 2011/8/30
+                strLogic = GetLogicString(strLogic);
 
                 if (strQueryString != "")
                     strQueryString += " " + strLogic + " ";

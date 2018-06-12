@@ -152,6 +152,8 @@ namespace TestZClient
             Settings.Default.Save();
         }
 
+        // 创建只包含一个检索词的简单 XML 检索式
+        // 注：这种 XML 检索式不是 Z39.50 函数库必需的。只是用它来方便构造 API 检索式的过程
         public string BuildQueryXml()
         {
             XmlDocument dom = new XmlDocument();
@@ -230,9 +232,10 @@ namespace TestZClient
 
                 if (this.radioButton_query_easy.Checked)
                 {
-                    // 构造 XML 检索式
+                    // 创建只包含一个检索词的简单 XML 检索式
+                    // 注：这种 XML 检索式不是 Z39.50 函数库必需的。只是用它来方便构造 API 检索式的过程
                     string strQueryXml = BuildQueryXml();
-                    // 将 XML 检索式变化为简明格式检索式
+                    // 将 XML 检索式变化为 API 检索式
                     Result result = ZClient.ConvertQueryString(
                         this._useList,
                         strQueryXml,
