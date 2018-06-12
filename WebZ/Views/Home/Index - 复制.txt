@@ -1,8 +1,8 @@
-﻿
+﻿<h2>Z39.50服务器站点管理</h2>
 
 @section style {
 
-    <link rel="stylesheet" href="~/css/message.css?a=4" />
+    <link rel="stylesheet" href="~/css/message.css?a=3" />
 }
 
 @section Scripts {
@@ -84,12 +84,11 @@
 
             var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
             var editBtn = $(divId).find("#btnEdit");
-           // alert(editBtn);
+            //alert(editBtn);
 
             // 这时候已经不是在浏览界面，应该是编辑态了
             var viewTable = $(divId).children(".view").html();
             if (viewTable == null || viewTable == "") {
-                //alert("无");
                 return;
             }
 
@@ -99,13 +98,11 @@
                 $(divId).removeClass(editStateClass);
 
                 $(editBtn).css("display", "none");
-                //alert("1");
             }
             else {
                 $(divId).addClass(editStateClass);
 
                 $(editBtn).css("display", "inline-block");
-                //alert("2");
             }
 
             // alert("clickMsgDiv");
@@ -120,7 +117,6 @@
             var html = "";
             //alert("aa");
 
-
             if (bContainEditDiv == true)
                 html += "<div class='message' id='_edit_" + msgItem.id + "' onclick=\"clickMsgDiv('" + msgItem.id + "')\">";
 
@@ -131,8 +127,8 @@
                 + "<td class='title' >" + msgItem.name + "</td>"
                 + "<td class='btn'>"
                 + "<div id='btnEdit' style='display: none;'>"
-                + "<button class='ui button' onclick=\"gotoEdit('" + msgItem.id + "')\">编辑</button>&nbsp;"
-                + "<button class='ui button' onclick=\"deleteMsg('" + msgItem.id + "')\">X&nbsp;删除</button>"
+                + "<button class='mui-btn mui-btn-default' onclick=\"gotoEdit('" + msgItem.id + "')\">编辑</button>&nbsp;"
+                + "<button class='mui-btn mui-btn-danger' onclick=\"deleteMsg('" + msgItem.id + "')\">X&nbsp;删除</button>"
                 + "</div>"
                 + "</td>"
                 + "</tr>"
@@ -141,6 +137,7 @@
 
             // 加内容
             html += "<div class='content'>"
+                + "<div><span class='name'>服务器名称：</span><span class='value'>" + msgItem.name + "</span></div>"
                 + "<div><span class='name'>服务器地址：</span><span class='value'>" + msgItem.addr + "</span></div>"
                 + "<div><span class='name'>端口号：</span><span class='value'>" + msgItem.port + "</span></div>"
                 + "<div><span class='name'>数据库名：</span><span class='value'>" + msgItem.dbnames + "</span></div>"
@@ -291,12 +288,6 @@
                     homepage: homepage,
                     dbnames: dbnames,
                     authmethod: authmethod,
-
-                    groupid: groupid,
-                    username: username,
-                    password:password,
-
-
                     creatorPhone: creatorPhone
                 }
             );
@@ -333,10 +324,6 @@
 
             //alert("返回的item-" + msgItem.subject);
             $(divId).html(msgViewHtml);
-
-            // 加上card
-            //$(divId).addClass("card");
-
         }
 
         // 取消新增或者修改
@@ -392,9 +379,6 @@
                     var item = result.data;
                     var html = getMsgViewHtml(item, false);
                     $(divId).html(html);
-
-                    // 加上card
-                   // $(divId).addClass("card");
                 }
 
             }, function (xhq, textStatus, errorThrown) {
@@ -409,7 +393,6 @@
         }
 
 
-           
 
         // 获取编辑态html
         function getMsgEditHtml(msgItem) {
@@ -422,9 +405,9 @@
             var dbnames = "";
             var homepage = "";
             var authmethod = "";    // 权限验证方式
-            var groupid="";  // groud id
-            var username="";   // 用户名
-            var password="";  // 密码
+            var groupid;  // groud id
+            var username;   // 用户名
+            var password;  // 密码
 
 
             var creatorPhone = "";  //创建者手机号
@@ -463,99 +446,48 @@
                 saveBtnName = "保存";
             }
 
-            var h = "<div class='ui large form edit' style='background-color:#eeeeee;padding:5px'>\
-    <div class='fields'>\
-        <div class='field'>\
-            <label>服务器名称</label>\
-            <input type='text' placeholder='name' id='_name' value='" + name + "'>\
-        </div>\
-        <div class='field'>\
-            <label>服务器地址</label>\
-            <input type='text' placeholder='address' id='_addr' value='" + addr + "'>\
-        </div>\
-        <div class='field'>\
-            <label>端口</label>\
-            <input type='text' placeholder='port' id='_port' value='" + port + "'>\
-        </div>\
-        <div class=' field'>\
-            <label>主页</label>\
-            <input type='text' placeholder='homepage' id='_homepage' value='" + homepage + "'>\
-        </div>\
-    </div>\
-    <div class=' field'>\
-        <label>数据库</label>\
-        <input type='text' placeholder='database names' id='_dbnames' value='" + dbnames + "'>\
-    </div>\
-    <div class='inline fields'>\
-        <label>权限验证方式</label>\
-        <div class='field'>\
-            <div class='ui radio checkbox'>\
-                <input name='_authmethod' type='radio' checked='checked' value='0'>\
-                <label>Open</label>\
-            </div>\
-        </div>\
-        <div class='field'>\
-            <div class='ui radio checkbox'>\
-                <input name='_authmethod' type='radio' value='1'>\
-                <label>ID/Password</label>\
-            </div>\
-        </div>\
-    </div>\
-    <div class='fields'>\
-        <div class='field'>\
-            <label>Group ID</label>\
-            <input type='text' placeholder='Group ID' id='_groupid' value='" + groupid + "'>\
-        </div>\
-        <div class='field'>\
-            <label>用户名</label>\
-            <input type='text' placeholder='username' id='_username' value='" + username + "'>\
-        </div>\
-        <div class='field'>\
-            <label>密码</label>\
-            <input type='text' placeholder='password' id='_password' value='" + password + "'>\
-        </div>\
-    </div>\
-    <div class='fields'>\
-        <div class='field'>\
-            <label>获取记录每批条数</label>\
-            <input type='text' placeholder='Group ID' id='_groupid' value='" + groupid + "'>\
-        </div>\
-        <div class='field'>\
-            <label>缺省数据格式OID</label>\
-            <input type='text' placeholder='username' id='_username' value='" + username + "'>\
-        </div>\
-        <div class='field'>\
-            <label>缺省元素集名</label>\
-            <input type='text' placeholder='password' id='_password' value='" + password + "'>\
-        </div>\
-        <div class='field'>\
-            <label>在获取浏览记录阶段即获取全记录</label>\
-            <input type='text' placeholder='password' id='_password' value='" + password + "'>\
-        </div>\
-        <div class='field'>\
-            <label>自动探测MARC记录格式</label>\
-            <input type='text' placeholder='password' id='_password' value='" + password + "'>\
-        </div>\
-        <div class='field'>\
-            <label>不检查Reference</label>\
-            <input type='text' placeholder='password' id='_password' value='" + password + "'>\
-        </div>\
-        <div class='field checkbox'>\
-                < input name = 'example' type = 'checkbox'>\
-            <label>ISBN检索前，对检索词作如下预处理</label>\
-        </div>\
-    </div>\
-    <div class='ui  button' onclick=\"save('" + msgId + "')\">" + saveBtnName+"</div>\
-    <div class='ui  button' onclick=\"cancelEdit('" + msgId + "')\">取消</div>\
-</div>";
-
 
 
 
             var html = "<table class='edit'>"
 
 
-          
+            html += "<tr>"
+                + "<td class='label'>服务器名称</td>"
+                + "<td class='value'>"
+                + "<input class='' id='_name' type='text' value='" + name + "'>"
+                + "</td>"
+                + "</tr>"
+
+                + "<tr>"
+                + "<td class='label'>服务器地址</td>"
+                + "<td class='value'>"
+                + "<input class='' id='_addr' type='text' value='" + addr + "'>"
+                + "</td>"
+                + "</tr>"
+
+                + "<tr>"
+                + "<td class='label'>端口</td>"
+                + "<td class='value'>"
+                + "<input class='' id='_port' type='text' value='" + port + "'>"
+                + "</td>"
+                + "</tr>"
+
+                + "<tr>"
+                + "<td class='label'>主页</td>"
+                + "<td class='value'>"
+                + "<input class='' id='_homepage' type='text' value='" + homepage + "'>"
+                + "</td>"
+                + "</tr>"
+
+                + "<tr style='background-color: #eeeeee;height:0.5px;'><td colspan='2' style='background-color: #eeeeee;height:0.5px;'></td></tr>"
+
+                + "<tr>"
+                + "<td class='label'>数据库</td>"
+                + "<td class='value'>"
+                + "<input class='' id='_dbnames' type='text' value='" + dbnames + "'>"
+                + "</td>"
+                + "</tr>"
 
                 + "<tr>"
                 + "<td class='label'>权限验证方式</td>"
@@ -574,9 +506,15 @@
                 + "</td>"
                 + "</tr>"
 
+            html += "<tr>"
+                + "<td colspan='2'>"
+                + "<button class='mui-btn mui-btn-primary' onclick=\"save('" + msgId + "')\">" + saveBtnName + "</button>&nbsp;&nbsp;"
+                + "<button class='mui-btn mui-btn-default' onclick=\"cancelEdit('" + msgId + "')\">取消</button>"
+                + "</td>"
+                + "</tr>"
+                + "</table>";
 
-
-            return h;
+            return html;
         }
 
         // 进入编辑态
@@ -625,9 +563,6 @@
                 $(divId).css('display', 'inline-block');
                 var html = getMsgEditHtml(null);
                 $(divId).html(html);
-
-               
-
                 return;
             }
             //根据id从服务器上取记录
@@ -666,7 +601,6 @@
                     var html = getMsgEditHtml(item);
                     $(divId).html(html);
 
-                    //$(divId).removeClass("card");
                     //alert(html);
                     //alert("gotoEdit 5");
 
@@ -830,15 +764,20 @@
 
 
         <div id="divNew">
-            <div id='_edit_new' class=" " style="display:none"></div>
+            <div id='_edit_new' class=" message" style="display:none"></div>
             <div>
                 <button id="btnCreate" class="ui button" onclick="gotoEdit('new')">
                     新增站点
                 </button>
+
+                <button id="btnCreate" class="ui button" onclick="getVerifyCodeSMS()">
+                    获取短信验证码
+                </button>
+
             </div>
         </div>
 
-<br/>
+
 
         <div id="divResult">
             <div id="ulResult"></div>

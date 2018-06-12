@@ -12,8 +12,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Views\Home\Index - 复制.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Views\Home\Index - 复制.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BundlerMinifier.Core" Version="2.8.391" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.3" />
   </ItemGroup>
 
   <ItemGroup>

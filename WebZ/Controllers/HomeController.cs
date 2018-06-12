@@ -7,19 +7,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using WebZ.Models;
 using System.Web;
+using System.Text;
 
 namespace WebZ.Controllers
 {
     public class HomeController : Controller
     {
-        //定义配置信息对象
-        //public ApplicationConfiguration StarInfoConfig;
-        //public HomeController(IOptions<ApplicationConfiguration> setting)
-        //{
-        //    StarInfoConfig = setting.Value;
-        //}
+        public IActionResult Demo()
+        {
+            return View();
+        }
 
-        public IActionResult Index()
+            public IActionResult Index()
         {
             /*
             Request.Cookies
@@ -81,6 +80,31 @@ namespace WebZ.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+
+
+        // 列出encoding名列表
+        // 需要把gb2312 utf-8等常用的提前
+        public static List<string> GetEncodingList(bool bHasMarc8)
+        {
+            List<string> result = new List<string>();
+
+            EncodingInfo[] infos = Encoding.GetEncodings();
+            for (int i = 0; i < infos.Length; i++)
+            {
+                if (infos[i].GetEncoding().Equals(Encoding.GetEncoding(936)) == true)
+                    result.Insert(0, infos[i].Name);
+                else if (infos[i].GetEncoding().Equals(Encoding.UTF8) == true)
+                    result.Insert(0, infos[i].Name);
+                else
+                    result.Add(infos[i].Name);
+            }
+
+            if (bHasMarc8 == true)
+                result.Add("MARC-8");
+
+            return result;
         }
     }
 }

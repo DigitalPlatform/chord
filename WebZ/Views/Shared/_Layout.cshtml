@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - WebZ</title>
 
-    <environment include="Development">
-        <link rel="stylesheet" href="~/css/WebZ.css" />
-    </environment>
+    <link rel="stylesheet" href="~/css/WebZ.css" />
+    <link href="~/css/semantic.min.css" rel="stylesheet" type="text/css">
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script scr="~/js/semantic.min.js"></script>
+    <script src="~/js/WebZ.js?a=1"></script>
 
-    <environment exclude="Development">
-        <link rel="stylesheet" href="~/css/WebZ.css" />
-    </environment>
 
 
     @RenderSection("style", required: false)
 </head>
 <body>
+    <!--
     <div class="navbar-collapse collapse">
         <ul class="nav navbar-nav">
             <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
@@ -24,6 +24,26 @@
             <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
         </ul>
     </div>
+        -->
+    <div class="ui secondary  menu">
+        <a class=" item">Home </a>
+        <a class="active item" href="~/home/index">通用站点管理 </a>
+        <a class="item">我的站点</a>
+        <a class="item">我的书架</a>
+        <a class="item" href="~/home/Demo">UI Demo</a>
+        <div class="right menu">
+            <div class="item">
+                <div class="ui icon input">
+                    <input type="text" placeholder="Search...">
+                    <i class="search link icon"></i>
+                </div>
+            </div>
+            <a class="ui item">登录 </a>
+            <a class="ui item">注册 </a>
+        </div>
+    </div>
+
+
 
     <div class="container body-content">
 
@@ -31,30 +51,14 @@
         <div id="mask-background" style="display: none; "></div>
         <div id="mask-progressBar" style="display: none; ">数据处理中，请稍候...</div>
 
+
         @RenderBody()
 
 
-
-
-        <footer>
-            <p>&copy; 2018 - WebZ</p>
-        </footer>
     </div>
 
-    <environment include="Development">
-        <script src="~/lib/jquery/dist/jquery.js"></script>
-        <script src="~/js/WebZ.js?a=1" asp-append-version="true"></script>
-    </environment>
 
-    <environment exclude="Development">
-        <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js"
-                asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
-                asp-fallback-test="window.jQuery"
-                crossorigin="anonymous"
-                integrity="sha384-K+ctZQ+LL8q6tP7I94W+qzQsfRV2a+AfHIi9k8z8l9ggpc8X+Ytst4yBo/hH+8Fk">
-        </script>
-        <script src="~/js/WebZ.js" asp-append-version="true"></script>
-    </environment>
+
 
     @RenderSection("Scripts", required: false)
 </body>
