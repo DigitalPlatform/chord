@@ -13,6 +13,7 @@ using static DigitalPlatform.Z3950.ZClient;
 using DigitalPlatform.Text;
 using DigitalPlatform.Z3950;
 using DigitalPlatform.Marc;
+using System.Web;
 
 namespace TestZClient
 {
@@ -181,7 +182,7 @@ namespace TestZClient
 
         TargetInfo _targetInfo = new TargetInfo();
 
-        int _resultCount = 0;   // 检索命中条数
+        long _resultCount = 0;   // 检索命中条数
         int _fetched = 0;   // 已经 Present 获取的条数
 
         private async void button_search_Click(object sender, EventArgs e)
@@ -252,6 +253,7 @@ namespace TestZClient
                 else
                     strQueryString = this.textBox_queryString.Text;
 
+                REDO_SEARCH:
                 {
                     // return Value:
                     //      -1  出错
@@ -270,14 +272,27 @@ namespace TestZClient
                     */
                 }
 
+                // result.Value:
+                //		-1	error
+                //		0	fail
+                //		1	succeed
+                // result.ResultCount:
+                //      命中结果集内记录条数 (当 result.Value 为 1 时)
                 SearchResult search_result = await _zclient.Search(
         strQueryString,
         _targetInfo.DefaultQueryTermEncoding,
         _targetInfo.DbNames,
         _targetInfo.PreferredRecordSyntax,
         "default");
-                if (search_result.Value == -1)
+                if (search_result.Value == -1 || search_result.Value == 0)
+                {
                     this.AppendHtml("<div class='debug error' >检索出错 " + search_result.ErrorInfo + "</div>");
+                    if (search_result.ErrorCode == "ConnectionAborted")
+                    {
+                        this.AppendHtml("<div class='debug error' >自动重试检索 ...</div>");
+                        goto REDO_SEARCH;
+                    }
+                }
                 else
                     this.AppendHtml("<div class='debug green' >检索共命中记录 " + search_result.ResultCount + "</div>");
 
@@ -332,7 +347,7 @@ namespace TestZClient
                 PresentResult present_result = await _zclient.Present(
                     "default",
                     _fetched,
-                    Math.Min(_resultCount - _fetched, 10),
+                    Math.Min((int)_resultCount - _fetched, 10),
                     10,
                     "F",
                     _targetInfo.PreferredRecordSyntax);
@@ -381,6 +396,15 @@ namespace TestZClient
             foreach (Record record in records)
             {
                 this.AppendHtml("<div class='debug green' >" + (i + 1) + ") ===</div>");
+
+                if (string.IsNullOrEmpty(record.m_strDiagSetID) == false)
+                {
+                    // 这是诊断记录
+
+                    this.AppendHtml("<div>" + HttpUtility.HtmlEncode(record.ToString()).Replace("\r\n", "<br/>") + "</div>");
+                    i++;
+                    continue;
+                }
 
                 // 把byte[]类型的MARC记录转换为机内格式
                 // return:

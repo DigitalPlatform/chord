@@ -24,19 +24,19 @@ namespace DigitalPlatform.Z3950
             if (this.m_baRecord != null)
                 text.Append("Content=" + ByteArray.GetHexTimeStampString(this.m_baRecord) + "\r\n");
             if (string.IsNullOrEmpty(this.m_strSyntaxOID) == false)
-                text.Append("SyntaxOID" + this.m_strSyntaxOID);
+                text.Append("SyntaxOID=" + this.m_strSyntaxOID + "\r\n");
             if (string.IsNullOrEmpty(this.m_strDBName) == false)
-                text.Append("DbName" + this.m_strDBName);
+                text.Append("DbName=" + this.m_strDBName + "\r\n");
             if (string.IsNullOrEmpty(this.m_strElementSetName) == false)
-                text.Append("ElementSetName" + this.m_strElementSetName);
+                text.Append("ElementSetName=" + this.m_strElementSetName + "\r\n");
             if (m_nDiagCondition != 0)
-                text.Append("DiagCondition" + this.m_nDiagCondition);
+                text.Append("DiagCondition=" + this.m_nDiagCondition + "\r\n");
             if (string.IsNullOrEmpty(this.m_strDiagSetID) == false)
-                text.Append("DiagSetID" + this.m_strDiagSetID);
+                text.Append("DiagSetID=" + this.m_strDiagSetID + "\r\n");
             if (string.IsNullOrEmpty(this.m_strAddInfo) == false)
-                text.Append("AddInfo" + this.m_strAddInfo);
+                text.Append("AddInfo=" + this.m_strAddInfo + "\r\n");
             if (string.IsNullOrEmpty(this.AutoDetectedSyntaxOID) == false)
-                text.Append("AutoDetectedSyntaxOID" + this.AutoDetectedSyntaxOID);
+                text.Append("AutoDetectedSyntaxOID=" + this.AutoDetectedSyntaxOID + "\r\n");
 
             return text.ToString();
         }

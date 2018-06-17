@@ -14,6 +14,7 @@ namespace DigitalPlatform.Text
     /// </summary>
     public static class StringUtil
     {
+
         public static bool IsHttpUrl(string url)
         {
             if (string.IsNullOrEmpty(url))

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>dp2Capo</RootNamespace>
     <AssemblyName>dp2Capo</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -78,6 +78,7 @@
     </Compile>
     <Compile Include="ServerConnection.cs" />
     <Compile Include="ServerInfo.cs" />
+    <Compile Include="Z3950Utility.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -108,6 +109,14 @@
       <Project>{cff3ddab-e444-4a73-aab2-bee66ea510cc}</Project>
       <Name>DigitalPlatform.LibraryClient</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.MarcKernel\DigitalPlatform.MarcKernel.csproj">
+      <Project>{74242530-EF96-457E-852D-5C21A3EA8449}</Project>
+      <Name>DigitalPlatform.MarcKernel</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.MarcQuery\DigitalPlatform.MarcQuery.csproj">
+      <Project>{57fe2fb1-4134-409b-876c-8a1c0776b498}</Project>
+      <Name>DigitalPlatform.MarcQuery</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.MessageClient\DigitalPlatform.MessageClient.csproj">
       <Project>{e4b339d9-4843-40f1-a404-33043adcd6a3}</Project>
       <Name>DigitalPlatform.MessageClient</Name>
@@ -131,6 +140,14 @@
     <ProjectReference Include="..\DigitalPlatform.Xml\DigitalPlatform.Xml.csproj">
       <Project>{a62f763a-96ee-43ad-80c5-9ce57ecfeaf4}</Project>
       <Name>DigitalPlatform.Xml</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.Z3950.Server\DigitalPlatform.Z3950.Server.csproj">
+      <Project>{fe4a5219-4e3b-4bbd-962b-1ff27cb2b1f2}</Project>
+      <Name>DigitalPlatform.Z3950.Server</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.Z3950\DigitalPlatform.Z3950.csproj">
+      <Project>{858A9604-2FBB-4B74-86EC-C1DCC9390F3F}</Project>
+      <Name>DigitalPlatform.Z3950</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

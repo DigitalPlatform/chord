@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Diagnostics;
+using System.Xml;
+using System.Text;
 
 using Microsoft.AspNet.SignalR.Client;
 
@@ -13,11 +14,20 @@ using DigitalPlatform;
 using DigitalPlatform.Common;
 using DigitalPlatform.Net;
 using DigitalPlatform.MessageClient;
+using DigitalPlatform.IO;
+using DigitalPlatform.Z3950.Server;
+using DigitalPlatform.Text;
+using DigitalPlatform.Z3950;
+using DigitalPlatform.LibraryClient;
+using DigitalPlatform.Marc;
 
 namespace dp2Capo
 {
     public static class ServerInfo
     {
+        public static ZServer ZServer { get; set; }
+
+
         // 实例集合
         public static List<Instance> _instances = new List<Instance>();
 
@@ -28,15 +38,116 @@ namespace dp2Capo
 
         public static RecordLockCollection _recordLocks = new RecordLockCollection();
 
+
+        public static string DataDir
+        {
+            get;
+            set;
+        }
+
+        const int DEFAULT_PORT = 0;    // 0 表示不启用 Z39.50 Server
+
+        static int _port = DEFAULT_PORT;
+        public static int ServerPort
+        {
+            get
+            {
+                return _port;
+            }
+            set
+            {
+                _port = value;
+            }
+        }
+
+        // 配置文件 XmlDocument
+        public static XmlDocument ConfigDom = null; // new XmlDocument();
+
+        internal static CancellationTokenSource _cancel = new CancellationTokenSource();
+
+
+
+        public static void LoadCfg(string strDataDir, bool bAutoCreate = true)
+        {
+            string strCfgFileName = Path.Combine(strDataDir, "config.xml");
+            try
+            {
+                ConfigDom = new XmlDocument();
+                ConfigDom.Load(strCfgFileName);
+
+                // 元素 <zServer>
+                // 属性 port
+                XmlElement node = ConfigDom.DocumentElement.SelectSingleNode("zServer") as XmlElement;
+                if (node != null && node.HasAttribute("port"))
+                {
+                    string v = node.GetAttribute("port");
+
+                    if (Int32.TryParse(v, out int port) == false)
+                        throw new Exception("port 属性值必须是整数");
+                    _port = port;
+                }
+                else
+                {
+                    _port = 0;  // 表示不启用 Z39.50 Server
+                }
+            }
+            catch (FileNotFoundException ex)
+            {
+                if (bAutoCreate == true)
+                {
+                    ConfigDom.LoadXml("<root />");
+                }
+                else
+                    throw new Exception("配置文件 '" + strCfgFileName + "' 不存在", ex);
+            }
+            catch (Exception ex)
+            {
+                // WriteErrorLog("装载配置文件 '" + strCfgFileName + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                throw new Exception("装载配置文件 '" + strCfgFileName + "' 时出现异常: " + ex.Message, ex);
+            }
+        }
+
+        public static void SaveCfg(string strDataDir)
+        {
+            if (ConfigDom == null)
+                throw new Exception("尚未执行 Initial()");
+
+            XmlElement node = ConfigDom.DocumentElement.SelectSingleNode("zServer") as XmlElement;
+            if (node == null)
+            {
+                node = ConfigDom.CreateElement("zServer");
+                ConfigDom.DocumentElement.AppendChild(node);
+            }
+
+            node.SetAttribute("port", _port.ToString());
+
+            string strCfgFileName = Path.Combine(strDataDir, "config.xml");
+            PathUtil.CreateDirIfNeed(strDataDir);
+            ConfigDom.Save(strCfgFileName);
+        }
+
+
         // 从数据目录装载全部实例定义，并连接服务器
         public static void Initial(string strDataDir)
         {
+            DataDir = strDataDir;
+            LogDir = Path.Combine(strDataDir, "log");   // 日志目录
+            PathUtil.CreateDirIfNeed(LogDir);
+            string strVersion = Assembly.GetAssembly(typeof(ServerInfo)).GetName().Version.ToString();
+
+            // 验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
+            DetectWriteErrorLog("*** dp2Capo 开始启动 (dp2Capo 版本: " + strVersion + ")");
+
+            ServerInfo.LoadCfg(DataDir);
+
             _exited = false;
 
             DirectoryInfo root = new DirectoryInfo(strDataDir);
             var dis = root.GetDirectories();
             foreach (DirectoryInfo di in dis)
             {
+                if (di.Name.ToLower() == "log")
+                    continue;
                 string strXmlFileName = Path.Combine(di.FullName, "capo.xml");
                 if (File.Exists(strXmlFileName) == false)
                     continue;
@@ -115,6 +226,9 @@ namespace dp2Capo
                     instance.Close();
                 }
                 _exited = true;
+
+                WriteErrorLog("*** dp2Capo 成功降落");
+                _logger.Dispose();
             }
         }
 
@@ -209,6 +323,9 @@ Exception Info: System.Net.NetworkInformation.PingException
          * */
         static void Check(Instance instance, List<Task> tasks)
         {
+            if (instance.dp2mserver == null)
+                return;
+
             if (instance.MessageConnection.ConnectState == ConnectionState.Disconnected)    // 注：如果在 Connecting 和 Reconnecting 状态则不尝试 ConnectAsync
             {
                 // instance.BeginConnnect();
@@ -357,6 +474,15 @@ Exception Info: System.Net.NetworkInformation.PingException
                         }
                         _lastCleanTime = DateTime.Now;
                     }
+
+                    // 重试初始化 ZHost 慢速参数
+                    instance.InitialZHostSlowConfig();
+
+                    // 清理闲置超期的 zChannels
+                    ZServer._zChannels.CleanIdleChannels(TimeSpan.FromMinutes(2));
+
+                    // 清除废弃的全局结果集
+                    Task.Run(() => instance.FreeGlobalResultSets());
                 }
             }
 
@@ -377,7 +503,6 @@ Exception Info: System.Net.NetworkInformation.PingException
 
             if (bOutputBegin == true && first_instance != null)
                 first_instance.WriteErrorLog(">>> BackgroundWork 结束一轮处理\r\n");
-
         }
 
         public static string Version
@@ -386,6 +511,625 @@ Exception Info: System.Net.NetworkInformation.PingException
             {
                 return Assembly.GetAssembly(typeof(Instance)).GetName().Version.ToString();
             }
+        }
+
+        #region 日志
+
+        public static Logger _logger = new Logger();
+
+        static string LogDir
+        {
+            get;
+            set;
+        }
+
+        // private static readonly Object _syncRoot = new Object();
+
+        static bool _errorLogError = false;    // 写入实例的日志文件是否发生过错误
+
+        static void _writeErrorLog(string strText)
+        {
+#if NO
+            lock (_syncRoot)
+            {
+                DateTime now = DateTime.Now;
+                // 每天一个日志文件
+                string strFilename = Path.Combine(LogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
+                string strTime = now.ToString();
+                FileUtil.WriteText(strFilename,
+                    strTime + " " + strText + "\r\n");
+            }
+#endif
+            _logger.Write(LogDir, strText);
+        }
+
+        // 尝试写入实例的错误日志文件
+        // return:
+        //      false   失败
+        //      true    成功
+        public static bool DetectWriteErrorLog(string strText)
+        {
+            _errorLogError = false;
+            try
+            {
+                _writeErrorLog(strText);
+            }
+            catch (Exception ex)
+            {
+                WriteWindowsLog("尝试写入目录 " + LogDir + " 的日志文件发生异常， 后面将改为写入 Windows 日志。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                _errorLogError = true;
+                return false;
+            }
+
+            WriteWindowsLog("日志文件检测正常。从此开始关于 dp2Capo 的日志会写入目录 " + LogDir + " 中当天的日志文件",
+                EventLogEntryType.Information);
+            return true;
+        }
+
+        // 写入实例的错误日志文件
+        public static void WriteErrorLog(string strText)
+        {
+            Console.WriteLine(strText);
+
+            if (_errorLogError == true) // 先前写入实例的日志文件发生过错误，所以改为写入 Windows 日志。会加上实例名前缀字符串
+                WriteWindowsLog(strText, EventLogEntryType.Error);
+            else
+            {
+                try
+                {
+                    _writeErrorLog(strText);
+                }
+                catch (Exception ex)
+                {
+                    WriteWindowsLog("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入 Windows 日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                    WriteWindowsLog(strText, EventLogEntryType.Error);
+                }
+            }
+        }
+
+        // 写入 Windows 日志
+        public static void WriteWindowsLog(string strText)
+        {
+            WriteWindowsLog(strText, EventLogEntryType.Error);
+        }
+
+        // 写入 Windows 日志
+        public static void WriteWindowsLog(string strText,
+            EventLogEntryType type)
+        {
+            EventLog Log = new EventLog();
+            Log.Source = "dp2CapoService";
+            Log.WriteEntry(strText, type);
+        }
+
+        #endregion
+
+        public static void AddEvents(ZServer zserver, bool bAdd)
+        {
+            if (bAdd)
+            {
+                zserver.GetZConfig += Zserver_GetZConfig;
+                zserver.SearchSearch += Zserver_SearchSearch;
+                zserver.PresentGetRecords += Zserver_PresentGetRecords;
+                zserver.ChannelOpened += Zserver_ChannelOpened;
+                //zserver.ChannelClosed += Zserver_ChannelClosed;
+            }
+            else
+            {
+                zserver.GetZConfig -= Zserver_GetZConfig;
+                zserver.SearchSearch -= Zserver_SearchSearch;
+                zserver.PresentGetRecords -= Zserver_PresentGetRecords;
+                zserver.ChannelOpened += Zserver_ChannelOpened;
+                //zserver.ChannelClosed -= Zserver_ChannelClosed;
+            }
+        }
+
+        private static void Zserver_ChannelOpened(object sender, EventArgs e)
+        {
+            ZServerChannel channel = (ZServerChannel)sender;
+            channel.Closed += Channel_Closed;
+        }
+
+        private static void Channel_Closed(object sender, EventArgs e)
+        {
+            ZServerChannel channel = (ZServerChannel)sender;
+            channel.Closed -= Channel_Closed;   // 避免重入
+
+            List<string> names = GetResultSetNameList(channel, true);
+            if (names.Count > 0)
+            {
+                FreeGlobalResultSets(channel, names);
+            }
+        }
+
+#if NO
+        private static void Zserver_ChannelClosed(object sender, ChannelClosedEventArgs e)
+        {
+            List<string> names = GetResultSetNameList(e.Channel);
+            if (names.Count > 0)
+            {
+                FreeGlobalResultSets(e.Channel, names);
+            }
+        }
+#endif
+
+        private static void Zserver_PresentGetRecords(object sender, PresentGetRecordsEventArgs e)
+        {
+            string strError = "";
+
+            ZServerChannel zserver_channel = (ZServerChannel)sender;
+
+            string strInstanceName = zserver_channel.SetProperty().GetKeyValue("i_n");
+            Instance instance = FindInstance(strInstanceName);
+            if (instance == null)
+            {
+                strError = "实例名 '" + strInstanceName + "' 不存在";
+                goto ERROR1;
+            }
+
+            string strResultSetName = e.Request.m_strResultSetID;
+            if (String.IsNullOrEmpty(strResultSetName) == true)
+                strResultSetName = "default";
+            long lStart = e.Request.m_lResultSetStartPoint - 1;
+            long lNumber = e.Request.m_lNumberOfRecordsRequested;
+
+            int MAX_PRESENT_RECORD = 100;
+
+            // 限制每次 present 的记录数量
+            if (lNumber > MAX_PRESENT_RECORD)
+                lNumber = MAX_PRESENT_RECORD;
+
+            DiagFormat diag = null;
+            List<RetrivalRecord> records = new List<RetrivalRecord>();
+
+            LibraryChannel library_channel = instance.MessageConnection.GetChannel(null);
+            try
+            {
+                // 全局结果集名
+                string resultset_name = MakeGlobalResultSetName(zserver_channel, strResultSetName);
+
+                ResultSetLoader loader = new ResultSetLoader(library_channel,
+                    resultset_name,
+                    "id,xml,timestamp")
+                {
+                    Start = lStart,
+                    BatchSize = Math.Min(10, lNumber)
+                };
+                int i = 0;
+                int nSize = 0;
+                foreach (DigitalPlatform.LibraryClient.localhost.Record dp2library_record in loader)
+                {
+                    if (i >= lNumber)
+                        break;
+
+                    if (i == 0)
+                    {
+                        e.TotalCount = loader.TotalCount;
+                        if (lStart >= loader.TotalCount)
+                        {
+                            DiagFormat diag1 = null;
+                            ZProcessor.SetPresentDiagRecord(ref diag1,
+    13,  // Present request out-of-range
+    "Present 所请求的起始偏移位置 " + lStart + " 超过结果集中记录总数 " + loader.TotalCount);
+                            e.Diag = diag1;
+                            return;
+                        }
+                    }
+
+                    {
+                        // 解析出数据库名和ID
+                        string strDbName = dp2StringUtil.GetDbName(dp2library_record.Path);
+                        string strRecID = dp2StringUtil.GetRecordID(dp2library_record.Path);
+
+                        // 如果取得的是xml记录，则根元素可以看出记录的marc syntax，进一步可以获得oid；
+                        // 如果取得的是MARC格式记录，则需要根据数据库预定义的marc syntax来看出oid了
+                        string strMarcSyntaxOID = GetMarcSyntaxOID(instance, strDbName);
+
+                        RetrivalRecord record = new RetrivalRecord
+                        {
+                            m_strDatabaseName = strDbName
+                        };
+
+                        // 根据书目库名获得书目库属性对象
+                        BiblioDbProperty prop = instance.zhost.GetDbProperty(
+                            strDbName,
+                            false);
+
+                        int nRet = GetIso2709Record(dp2library_record,
+                            e.Request.m_elementSetNames,
+                            prop != null ? prop.AddField901 : false,
+                            prop != null ? prop.RemoveFields : "997",
+                            zserver_channel.SetProperty().MarcRecordEncoding,
+                            out byte[] baIso2709,
+                            out strError);
+
+                        /*
+                                                // 测试记录群中包含诊断记录
+                                                if (i == 1)
+                                                {
+                                                    nRet = -1;
+                                                    strError = "测试获取记录错误";
+                                                }
+                        */
+                        if (nRet == -1)
+                        {
+                            record.m_surrogateDiagnostic = new DiagFormat
+                            {
+                                m_strDiagSetID = "1.2.840.10003.4.1",
+                                m_nDiagCondition = 14,  // system error in presenting records
+                                m_strAddInfo = strError
+                            };
+                        }
+                        else if (nRet == 0)
+                        {
+                            record.m_surrogateDiagnostic = new DiagFormat
+                            {
+                                m_strDiagSetID = "1.2.840.10003.4.1",
+                                m_nDiagCondition = 1028,  // record deleted
+                                m_strAddInfo = strError
+                            };
+                        }
+                        else if (String.IsNullOrEmpty(strMarcSyntaxOID) == true)
+                        {
+                            // 根据数据库名无法获得marc syntax oid。可能是虚拟库检索命中记录所在的物理库没有在 capo.xml 中配置。
+                            record.m_surrogateDiagnostic = new DiagFormat
+                            {
+                                m_strDiagSetID = "1.2.840.10003.4.1",
+                                m_nDiagCondition = 109,  // database unavailable // 似乎235:database dos not exist也可以
+                                m_strAddInfo = "根据数据库名 '" + strDbName + "' 无法获得 marc syntax oid"
+                            };
+                        }
+                        else
+                        {
+                            record.m_external = new External
+                            {
+                                m_strDirectRefenerce = strMarcSyntaxOID,
+                                m_octectAligned = baIso2709
+                            };
+                        }
+
+                        nSize += record.GetPackageSize();
+
+                        if (i == 0)
+                        {
+                            // 连一条记录也放不下
+                            if (nSize > zserver_channel.SetProperty().ExceptionalRecordSize)
+                            {
+                                Debug.Assert(diag == null, "");
+                                ZProcessor.SetPresentDiagRecord(ref diag,
+                                    17, // record exceeds Exceptional_record_size
+                                    "记录尺寸 " + nSize.ToString() + " 超过 Exceptional_record_size " + zserver_channel.SetProperty().ExceptionalRecordSize.ToString());
+                                lNumber = 0;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            if (nSize >= zserver_channel.SetProperty().PreferredMessageSize)
+                            {
+                                // 调整返回的记录数
+                                lNumber = i;
+                                break;
+                            }
+                        }
+
+                        records.Add(record);
+                    }
+
+                    i++;
+                }
+            }
+            catch (Exception ex)
+            {
+                strError = "获取结果集时出现异常: " + ex.Message;
+                goto ERROR1;
+            }
+            finally
+            {
+                instance.MessageConnection.ReturnChannel(library_channel);
+            }
+
+            e.Records = records;
+            e.Diag = diag;
+            return;
+            ERROR1:
+            {
+                DiagFormat diag1 = null;
+                ZProcessor.SetPresentDiagRecord(ref diag1,
+                    2,  // temporary system error
+                    strError);
+                e.Diag = diag1;
+                // e.Result = new ZClient.SearchResult { Value = -1, ErrorInfo = strError };
+                return;
+            }
+        }
+
+        static string GetMarcSyntaxOID(Instance instance, string strBiblioDbName)
+        {
+            string strSyntax = instance.zhost.GetMarcSyntax(strBiblioDbName);
+            if (strSyntax == null)
+                return null;
+            if (strSyntax == "unimarc")
+                return "1.2.840.10003.5.1";
+            if (strSyntax == "usmarc")
+                return "1.2.840.10003.5.10";
+
+            return null;
+        }
+
+        // 获得MARC记录
+        // parameters:
+        //      bAddField901    是否加入901字段？
+        // return:
+        //      -1  error
+        //      0   not found
+        //      1   found
+        static int GetIso2709Record(
+            DigitalPlatform.LibraryClient.localhost.Record dp2library_record,
+            List<string> elementSetNames,
+            bool bAddField901,
+            string strRemoveFields,
+            Encoding marcRecordEncoding,
+            out byte[] baIso2709,
+            out string strError)
+        {
+            baIso2709 = null;
+            strError = "";
+
+            string strMarcSyntax = "";
+
+            // 转换为机内格式
+            int nRet = MarcUtil.Xml2Marc(dp2library_record.RecordBody.Xml,
+                true,
+                strMarcSyntax,
+                out string strOutMarcSyntax,
+                out string strMarc,
+                out strError);
+            if (nRet == -1)
+            {
+                strError = "XML转换到MARC记录时出错: " + strError;
+                return -1;
+            }
+
+            // 去掉记录中的 997/998
+            MarcRecord record = new MarcRecord(strMarc);
+            if (string.IsNullOrEmpty(strRemoveFields) == false)
+            {
+                List<string> field_names = StringUtil.SplitList(strRemoveFields);
+                foreach (string field_name in field_names)
+                {
+                    if (field_name.Length != 3)
+                    {
+                        strError = "removeFields 定义里面出现了不是 3 字符的字段名('" + strRemoveFields + "')";
+                        return -1;
+                    }
+                    record.select("field[@name='" + field_name + "']").detach();
+                }
+            }
+
+            if (bAddField901 == true)
+            {
+                // 901  $p记录路径$t时间戳
+                string strContent = "$p" + dp2library_record.Path
+                    + "$t" + ByteArray.GetHexTimeStampString(dp2library_record.RecordBody.Timestamp);
+                record.setFirstField("901", "  ", strContent.Replace("$", MarcQuery.SUBFLD), "  ");
+            }
+            strMarc = record.Text;
+
+            // 转换为ISO2709
+            nRet = MarcUtil.CvtJineiToISO2709(
+                strMarc,
+                strOutMarcSyntax,
+                marcRecordEncoding,
+                out baIso2709,
+                out strError);
+            if (nRet == -1)
+                return -1;
+
+            return 1;
+        }
+
+        private static void Zserver_SearchSearch(object sender, SearchSearchEventArgs e)
+        {
+            ZServerChannel zserver_channel = (ZServerChannel)sender;
+
+            string strInstanceName = zserver_channel.SetProperty().GetKeyValue("i_n");
+            Instance instance = FindInstance(strInstanceName);
+            if (instance == null)
+            {
+                e.Result = new DigitalPlatform.Z3950.ZClient.SearchResult { Value = -1, ErrorInfo = "实例名 '" + strInstanceName + "' 不存在" };
+                return;
+            }
+
+            // 根据逆波兰表构造出 dp2 系统检索式
+
+            // return:
+            //      -1  error
+            //      0   succeed
+            int nRet = Z3950Utility.BuildQueryXml(
+                instance.zhost,
+                e.Request.m_dbnames,
+                e.Request.m_rpnRoot,
+                zserver_channel.SetProperty().SearchTermEncoding,
+                out string strQueryXml,
+                out string strError);
+            if (nRet == -1)
+            {
+                DiagFormat diag = null;
+                ZProcessor.SetPresentDiagRecord(ref diag,
+                    2,  // temporary system error
+                    strError);
+                e.Diag = diag;
+                e.Result = new ZClient.SearchResult { Value = -1, ErrorInfo = strError };
+                return;
+            }
+
+            LibraryChannel library_channel = instance.MessageConnection.GetChannel(null);
+            try
+            {
+                // 全局结果集名
+                string resultset_name = MakeGlobalResultSetName(zserver_channel, e.Request.m_strResultSetName);
+                // 进行检索
+                long lRet = library_channel.Search(
+        strQueryXml,
+        resultset_name,
+        "", // strOutputStyle
+        out strError);
+
+                /*
+                // 测试检索失败
+                lRet = -1;
+                strError = "测试检索失败";
+                 * */
+
+                if (lRet == -1)
+                {
+                    DiagFormat diag = null;
+                    ZProcessor.SetPresentDiagRecord(ref diag,
+                        2,  // temporary system error
+                        strError);
+                    e.Diag = diag;
+                    e.Result = new ZClient.SearchResult { Value = -1, ErrorInfo = strError };
+                    return;
+                }
+                else
+                {
+                    // 记忆结果集名
+                    MemoryResultSetName(zserver_channel, resultset_name);
+
+                    e.Result = new ZClient.SearchResult { ResultCount = lRet };
+                }
+            }
+            finally
+            {
+                instance.MessageConnection.ReturnChannel(library_channel);
+            }
+        }
+
+        // 构造全局结果集名
+        static string MakeGlobalResultSetName(ZServerChannel zserver_channel, string strResultSetName)
+        {
+            return "#" + zserver_channel.GetHashCode() + "_" + strResultSetName;
+        }
+
+        // 一个 ZServerChannel 中能用到的最多全局结果集数。超过这个数目就会自动开始删除。删除可能会造成前端访问某些结果集时报错
+        static readonly int MAX_RESULTSET_COUNT = 100;
+
+        // 记忆全局结果集名
+        static void MemoryResultSetName(ZServerChannel zserver_channel,
+            string resultset_name)
+        {
+            if (!(zserver_channel.SetProperty().GetKeyObject("r_n") is List<string> names))
+            {
+                names = new List<string>();
+                zserver_channel.SetProperty().SetKeyObject("r_n", names);
+            }
+
+            if (names.IndexOf(resultset_name) == -1)
+                names.Add(resultset_name);
+
+            // 如果结果集名数量太多，就要开始删除
+            if (names.Count > MAX_RESULTSET_COUNT)
+                FreeGlobalResultSets(zserver_channel, names);
+        }
+
+        // 取出先前记忆的全局结果集名列表
+        // parameters:
+        //      bRemove 是否在返回前自动删除 key_object 集合中的值
+        static List<string> GetResultSetNameList(ZServerChannel zserver_channel, 
+            bool bRemove = false)
+        {
+            lock (zserver_channel)
+            {
+                if (!(zserver_channel.SetProperty().GetKeyObject("r_n") is List<string> names))
+                    return new List<string>();
+                else
+                {
+                    if (bRemove)
+                        zserver_channel.SetProperty().SetKeyObject("r_n", null);
+                }
+                return names;
+            }
+        }
+
+        static void FreeGlobalResultSets(ZServerChannel zserver_channel,
+            List<string> names)
+        {
+            string strInstanceName = zserver_channel.SetProperty().GetKeyValue("i_n");
+            Instance instance = FindInstance(strInstanceName);
+            if (instance == null)
+            {
+                // strError = "实例名 '" + strInstanceName + "' 不存在";
+                // 写入错误日志
+                return;
+            }
+
+            // TODO: 交给 Instance 释放
+            instance.AddGlobalResultSets(names);
+
+#if NO
+            LibraryChannel library_channel = instance.MessageConnection.GetChannel(null);
+            try
+            {
+                foreach (string name in names)
+                {
+                    // TODO: 要是能用通配符来删除大量结果集就好了
+                    long lRet = library_channel.GetSearchResult("",
+                        0,
+                        0,
+                        "@remove:" + name,
+                        "zh",
+                        out DigitalPlatform.LibraryClient.localhost.Record[] searchresults,
+                        out string strError);
+                    if (lRet == -1)
+                    {
+                        // 写入错误日志
+                        return;
+                    }
+                }
+            }
+            finally
+            {
+                instance.MessageConnection.ReturnChannel(library_channel);
+            }
+#endif
+        }
+
+        static Instance FindInstance(string strInstanceName)
+        {
+            if (string.IsNullOrEmpty(strInstanceName))
+                return _instances[0];
+            else
+                return _instances.Find(
+                    (o) =>
+                    {
+                        return (o.Name == strInstanceName);
+                    });
+        }
+
+        private static void Zserver_GetZConfig(object sender, GetZConfigEventArgs e)
+        {
+            ZServerChannel zserver_channel = (ZServerChannel)sender;
+
+            List<string> parts = StringUtil.ParseTwoPart(e.Info.m_strID, "@");
+            string strInstanceName = parts[1];
+
+            Instance instance = FindInstance(strInstanceName);
+            if (instance == null)
+            {
+                e.ZConfig = null;
+                e.Result.ErrorInfo = "以用户名 '" + e.Info.m_strID + "' 中包含的实例名 '" + strInstanceName + "' 没有找到任何实例";
+                return;
+            }
+
+            // 让 channel 携带 Instance Name
+            zserver_channel.SetProperty().SetKeyValue("i_n", strInstanceName);
+
+            e.ZConfig = new ZConfig
+            {
+                AnonymousUserName = instance.zhost.AnonymousUserName,
+                AnonymousPassword = instance.zhost.AnonymousPassword,
+            };
         }
     }
 }

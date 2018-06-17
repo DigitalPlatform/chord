@@ -73,6 +73,12 @@
     <Compile Include="InstallDialog.Designer.cs">
       <DependentUpon>InstallDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="InstallZServerDlg.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="InstallZServerDlg.designer.cs">
+      <DependentUpon>InstallZServerDlg.cs</DependentUpon>
+    </Compile>
     <Compile Include="InstanceDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -99,6 +105,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="InstallDialog.resx">
       <DependentUpon>InstallDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="InstallZServerDlg.resx">
+      <DependentUpon>InstallZServerDlg.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="InstanceDialog.resx">
       <DependentUpon>InstanceDialog.cs</DependentUpon>

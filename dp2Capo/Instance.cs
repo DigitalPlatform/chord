@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -9,7 +8,6 @@ using System.Collections;
 using System.Messaging;
 using System.Diagnostics;
 using System.Threading;
-using System.Reflection;
 using System.Net;
 
 using DigitalPlatform;
@@ -17,6 +15,8 @@ using DigitalPlatform.Text;
 using DigitalPlatform.Message;
 using DigitalPlatform.IO;
 using DigitalPlatform.LibraryClient.localhost;
+using DigitalPlatform.Xml;
+using DigitalPlatform.LibraryClient;
 
 namespace dp2Capo
 {
@@ -30,6 +30,9 @@ namespace dp2Capo
 
         public LibraryHostInfo dp2library { get; set; }
         public HostInfo dp2mserver { get; set; }
+
+        // 2016/6/16
+        public ZHostInfo zhost { get; set; }
 
         // 没有用 MessageConnectionCollectoin 管理
         public ServerConnection MessageConnection = new ServerConnection();
@@ -48,6 +51,62 @@ namespace dp2Capo
             get;
             set;
         }
+
+        #region 全局结果集管理
+
+        private readonly Object _syncResultSets = new Object();
+
+        // 需要(管理线程去)删除的全局结果集名
+        List<string> _globalResultSets = new List<string>();
+
+        public void AddGlobalResultSets(List<string> names)
+        {
+            lock (_syncResultSets)
+            {
+                _globalResultSets.AddRange(names);
+            }
+        }
+
+        public void FreeGlobalResultSets()
+        {
+            List<string> names = new List<string>();
+            lock (_syncResultSets)
+            {
+                names.AddRange(_globalResultSets);
+                _globalResultSets.Clear();
+            }
+
+            if (names.Count > 0)
+            {
+                LibraryChannel library_channel = this.MessageConnection.GetChannel(null);
+                try
+                {
+                    foreach (string name in names)
+                    {
+                        // TODO: 要是能用通配符来删除大量结果集就好了
+                        long lRet = library_channel.GetSearchResult("",
+                            0,
+                            0,
+                            "@remove:" + name,
+                            "zh",
+                            out DigitalPlatform.LibraryClient.localhost.Record[] searchresults,
+                            out string strError);
+                        if (lRet == -1)
+                        {
+                            // 写入错误日志
+                            WriteErrorLog("清除全局结果集 '" + name + "' 时发生错误: " + strError);
+                            return;
+                        }
+                    }
+                }
+                finally
+                {
+                    this.MessageConnection.ReturnChannel(library_channel);
+                }
+            }
+        }
+
+        #endregion
 
         public Instance()
         {
@@ -80,30 +139,48 @@ namespace dp2Capo
             XmlDocument dom = new XmlDocument();
             dom.Load(strXmlFileName);
 
-            XmlElement element = dom.DocumentElement.SelectSingleNode("dp2library") as XmlElement;
-            if (element == null)
-            {
-                // throw new Exception("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2library 元素");
-                this.WriteErrorLog("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2library 元素");
-            }
-
             try
             {
-                this.dp2library = new LibraryHostInfo();
-                this.dp2library.Initial(element);
-
-                element = dom.DocumentElement.SelectSingleNode("dp2mserver") as XmlElement;
-                if (element == null)
                 {
-                    // throw new Exception("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2mserver 元素");
-                    this.WriteErrorLog("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2mserver 元素");
+                    XmlElement element = dom.DocumentElement.SelectSingleNode("dp2library") as XmlElement;
+                    if (element == null)
+                    {
+                        // throw new Exception("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2library 元素");
+                        this.WriteErrorLog("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2library 元素");
+                    }
+
+                    this.dp2library = new LibraryHostInfo();
+                    this.dp2library.Initial(element);
                 }
 
-                this.dp2mserver = new HostInfo();
-                this.dp2mserver.Initial(element);
+                {
+                    XmlElement element = dom.DocumentElement.SelectSingleNode("dp2mserver") as XmlElement;
+                    if (element == null)
+                    {
+                        // dp2Capo 应可以不配置 dp2mserver 相关参数，这种状态也是有意义的，因为可以配置 Z39.50 服务器参数仅作为 Z39.50 服务器使用
+                        // this.WriteErrorLog("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2mserver 元素");
+                    }
+                    else
+                    {
+                        this.dp2mserver = new HostInfo();
+                        this.dp2mserver.Initial(element);
+                    }
 
-                this.MessageConnection.Instance = this;
-                this.MessageConnection.dp2library = this.dp2library;
+                    this.MessageConnection.Instance = this;
+                    this.MessageConnection.dp2library = this.dp2library;
+                }
+
+                {
+                    XmlElement element = dom.DocumentElement.SelectSingleNode("zServer") as XmlElement;
+                    if (element != null)
+                    {
+                        this.zhost = new ZHostInfo();
+                        this.zhost.Initial(element);
+
+                        this.zhost.SlowConfigInitialized = false;
+                        InitialZHostSlowConfig();
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -120,6 +197,38 @@ namespace dp2Capo
             }
 
             InitialQueue(true);
+        }
+
+        public void InitialZHostSlowConfig()
+        {
+            if (this.zhost == null)
+                return;
+
+            if (this.zhost.SlowConfigInitialized == true)
+                return;
+
+            Debug.Assert(this.MessageConnection != null, "");
+
+            // 获得一些比较耗时的配置参数。
+            // return:
+            //      -2  出错。但后面可以重试
+            //      -1  出错，后面不再重试
+            //      0   成功
+            int nRet = this.zhost.GetSlowCfgInfo(this.MessageConnection,
+                out string strError);
+            if (nRet == -2)
+            {
+                this.WriteErrorLog("实例 " + this.Name + " 首次初始化慢速参数时出错：" + strError + "。后面将自动重试初始化直到初始化成功");
+            }
+            else
+            {
+                if (nRet == -1)
+                {
+                    this.zhost = null;
+                    this.WriteErrorLog("实例 " + this.Name + " 首次初始化 ZHost 慢速参数时出错：" + strError + "。后面不再进行重试");
+                }
+                this.zhost.SlowConfigInitialized = true;
+            }
         }
 
         // parameters:
@@ -882,4 +991,487 @@ namespace dp2Capo
             this.Password = Cryptography.Decrypt(element.GetAttribute("password"), EncryptKey);
         }
     }
+
+    // Z39.50 主机信息
+    public class ZHostInfo : HostInfo
+    {
+        // 慢速参数是否初始化成功?
+        public bool SlowConfigInitialized { get; set; }
+
+#if NO
+        // 图书馆 UID。从 dp2library 用 API 获取
+        public string LibraryUID
+        {
+            get;
+            set;
+        }
+
+        // 图书馆名。从 dp2library 用 API 获取
+        public string LibraryName
+        {
+            get;
+            set;
+        }
+
+        // dp2library 服务器 URL
+        public string LibraryServerUrl { get; set; }
+
+        // 管理者的用户名和密码
+        public string ManagerUserName { get; set; }
+        public string ManagerPassword { get; set; }
+#endif
+
+        // 匿名访问时使用的用户名和密码
+        public string AnonymousUserName { get; set; }
+        public string AnonymousPassword { get; set; }
+
+        private int _maxResultCount = -1;
+        public int MaxResultCount
+        {
+            get => _maxResultCount;
+            set => _maxResultCount = value;
+        }
+
+        new string EncryptKey = "dp2zserver_password_key";
+
+        public string DecryptPasssword(string strEncryptedText)
+        {
+            if (String.IsNullOrEmpty(strEncryptedText) == false)
+            {
+                try
+                {
+                    string strPassword = Cryptography.Decrypt(
+        strEncryptedText,
+        EncryptKey);
+                    return strPassword;
+                }
+                catch
+                {
+                    return "errorpassword";
+                }
+
+            }
+
+            return "";
+        }
+
+        public string EncryptPassword(string strPlainText)
+        {
+            return Cryptography.Encrypt(strPlainText, this.EncryptKey);
+        }
+
+        private XmlElement _root = null;
+
+        public override void Initial(XmlElement element)
+        {
+            _root = element;
+
+            // base.Initial(element);
+
+            // 取出一些常用的指标
+
+            // 1) 图书馆应用服务器URL
+            // 2) 管理员用的帐户和密码
+            XmlElement node = element.SelectSingleNode("dp2library") as XmlElement;
+            if (node != null)
+            {
+#if NO
+                this.LibraryServerUrl = node.GetAttribute("url");
+
+                this.ManagerUserName = node.GetAttribute("username");
+                string strPassword = node.GetAttribute("password");
+                this.ManagerPassword = DecryptPasssword(strPassword);
+#endif
+                this.AnonymousUserName = node.GetAttribute("anonymousUserName");
+                string strPassword = node.GetAttribute("anonymousPassword");
+                this.AnonymousPassword = DecryptPasssword(strPassword);
+            }
+            else
+            {
+#if NO
+                this.LibraryServerUrl = "";
+
+                this.ManagerUserName = "";
+                this.ManagerUserName = "";
+#endif
+                this.AnonymousUserName = "";
+                this.AnonymousPassword = "";
+            }
+
+#if NO
+            this.DefaultQueue = element.GetAttribute("defaultQueue");
+
+            Console.WriteLine(element.Name + " defaultQueue=" + this.DefaultQueue);
+
+
+            Console.WriteLine(element.Name + " webURL=" + this.WebUrl);
+#endif
+            XmlNode nodeDatabases = element.SelectSingleNode("databases");
+            if (nodeDatabases != null)
+            {
+                // maxResultCount
+
+                // 获得整数型的属性参数值
+                // return:
+                //      -1  出错。但是nValue中已经有了nDefaultValue值，可以不加警告而直接使用
+                //      0   正常获得明确定义的参数值
+                //      1   参数没有定义，因此代替以缺省参数值返回
+                int nRet = DomUtil.GetIntegerParam(nodeDatabases,
+                    "maxResultCount",
+                    -1,
+                    out int nMaxResultCount,
+                    out string strError);
+                if (nRet == -1)
+                {
+                    strError = "<databases>元素" + strError;
+                    throw new Exception(strError);
+                }
+
+                this.MaxResultCount = nMaxResultCount;
+            }
+        }
+
+        // 获得一些比较耗时的配置参数。
+        // return:
+        //      -2  出错。但后面可以重试
+        //      -1  出错，后面不再重试
+        //      0   成功
+        public int GetSlowCfgInfo(ServerConnection connection,
+            out string strError)
+        {
+            lock (this)
+            {
+                strError = "";
+                int nRet = 0;
+
+                // 预先获得编目库属性列表
+                nRet = GetBiblioDbProperties(connection, out strError);
+                if (nRet == -1)
+                    return -2;
+
+                // 为数据库属性集合中增补需要从xml文件中获得的其他属性
+                nRet = AppendDbProperties(out strError);
+                if (nRet == -1)
+                    return -1;
+
+                return 0;
+            }
+        }
+
+        public List<BiblioDbProperty> BiblioDbProperties = null;
+
+        // 获得编目库属性列表
+        int GetBiblioDbProperties(ServerConnection connection,
+            out string strError)
+        {
+            strError = "";
+
+            LibraryChannel channel = connection.GetChannel(null);
+            try
+            {
+                this.BiblioDbProperties = new List<BiblioDbProperty>();
+
+                string strValue = "";
+                long lRet = channel.GetSystemParameter(
+                    "biblio",
+                    "dbnames",
+                    out strValue,
+                    out strError);
+                if (lRet == -1)
+                {
+                    strError = "针对服务器 " + channel.Url + " 获得编目库名列表过程发生错误：" + strError;
+                    goto ERROR1;
+                }
+
+                string[] biblioDbNames = strValue.Split(new char[] { ',' });
+
+                for (int i = 0; i < biblioDbNames.Length; i++)
+                {
+                    BiblioDbProperty property = new BiblioDbProperty();
+                    property.DbName = biblioDbNames[i];
+                    this.BiblioDbProperties.Add(property);
+                }
+
+                // 获得语法格式
+                lRet = channel.GetSystemParameter(
+                    "biblio",
+                    "syntaxs",
+                    out strValue,
+                    out strError);
+                if (lRet == -1)
+                {
+                    strError = "针对服务器 " + channel.Url + " 获得编目库数据格式列表过程发生错误：" + strError;
+                    goto ERROR1;
+                }
+
+                string[] syntaxs = strValue.Split(new char[] { ',' });
+
+                if (syntaxs.Length != this.BiblioDbProperties.Count)
+                {
+                    strError = "针对服务器 " + channel.Url + " 获得编目库名为 " + this.BiblioDbProperties.Count.ToString() + " 个，而数据格式为 " + syntaxs.Length.ToString() + " 个，数量不一致";
+                    goto ERROR1;
+                }
+
+                // 增补数据格式
+                for (int i = 0; i < this.BiblioDbProperties.Count; i++)
+                {
+                    this.BiblioDbProperties[i].Syntax = syntaxs[i];
+                }
+
+
+#if NO
+                ///
+
+                // 获得对应的实体库名
+                lRet = channel.GetSystemParameter("item",
+                    "dbnames",
+                    out strValue,
+                    out strError);
+                if (lRet == -1)
+                {
+                    strError = "针对服务器 " + channel.Url + " 获得实体库名列表过程发生错误：" + strError;
+                    goto ERROR1;
+                }
+
+                string[] itemdbnames = strValue.Split(new char[] { ',' });
+
+                if (itemdbnames.Length != this.BiblioDbProperties.Count)
+                {
+                    strError = "针对服务器 " + channel.Url + " 获得编目库名为 " + this.BiblioDbProperties.Count.ToString() + " 个，而实体库名为 " + itemdbnames.Length.ToString() + " 个，数量不一致";
+                    goto ERROR1;
+                }
+
+                // 增补数据格式
+                for (int i = 0; i < this.BiblioDbProperties.Count; i++)
+                {
+                    this.BiblioDbProperties[i].ItemDbName = itemdbnames[i];
+                }
+#endif
+
+                // 获得虚拟数据库名
+                lRet = channel.GetSystemParameter(
+                    "virtual",
+                    "dbnames",
+                    out strValue,
+                    out strError);
+                if (lRet == -1)
+                {
+                    strError = "针对服务器 " + channel.Url + " 获得虚拟库名列表过程发生错误：" + strError;
+                    goto ERROR1;
+                }
+                string[] virtualDbNames = strValue.Split(new char[] { ',' });
+
+                for (int i = 0; i < virtualDbNames.Length; i++)
+                {
+                    BiblioDbProperty property = new BiblioDbProperty();
+                    property.DbName = virtualDbNames[i];
+                    property.IsVirtual = true;
+                    this.BiblioDbProperties.Add(property);
+                }
+            }
+            finally
+            {
+                connection.ReturnChannel(channel);
+            }
+
+            return 0;
+            ERROR1:
+            this.BiblioDbProperties = null;
+            return -1;
+        }
+
+        // 为数据库属性集合中增补需要从xml文件中获得的其他属性
+        int AppendDbProperties(out string strError)
+        {
+            strError = "";
+
+            // 增补MaxResultCount
+            if (this._root == null)
+            {
+                strError = "调用 AppendDbProperties()以前，需要先初始化 _root";
+                return -1;
+            }
+
+            Debug.Assert(this._root != null, "");
+
+            for (int i = 0; i < this.BiblioDbProperties.Count; i++)
+            {
+                BiblioDbProperty prop = this.BiblioDbProperties[i];
+
+                string strDbName = prop.DbName;
+
+                XmlElement nodeDatabase = _root.SelectSingleNode("databases/database[@name='" + strDbName + "']") as XmlElement;
+                if (nodeDatabase == null)
+                    continue;
+
+                // maxResultCount
+
+                // 获得整数型的属性参数值
+                // return:
+                //      -1  出错。但是nValue中已经有了nDefaultValue值，可以不加警告而直接使用
+                //      0   正常获得明确定义的参数值
+                //      1   参数没有定义，因此代替以缺省参数值返回
+                int nRet = DomUtil.GetIntegerParam(nodeDatabase,
+                    "maxResultCount",
+                    -1,
+                    out prop.MaxResultCount,
+                    out strError);
+                if (nRet == -1)
+                {
+                    strError = "为数据库 '" + strDbName + "' 配置的<databases/database>元素的" + strError;
+                    return -1;
+                }
+
+                // alias
+                prop.DbNameAlias = DomUtil.GetAttr(nodeDatabase, "alias");
+
+
+                // addField901
+                // 2007/12/16
+                nRet = DomUtil.GetBooleanParam(nodeDatabase,
+                    "addField901",
+                    false,
+                    out prop.AddField901,
+                    out strError);
+                if (nRet == -1)
+                {
+                    strError = "为数据库 '" + strDbName + "' 配置的<databases/database>元素的" + strError;
+                    return -1;
+                }
+
+                if (nodeDatabase.GetAttributeNode("removeFields") == null)
+                    prop.RemoveFields = "997";
+                else
+                    prop.RemoveFields = nodeDatabase.GetAttribute("removeFields");
+            }
+
+            return 0;
+        }
+
+        #region
+
+        // 根据书目库名获得书目库属性对象
+        public BiblioDbProperty GetDbProperty(string strBiblioDbName,
+            bool bSearchAlias)
+        {
+            if (this.BiblioDbProperties == null)
+                throw new Exception("书目库参数尚未初始化");
+
+            for (int i = 0; i < this.BiblioDbProperties.Count; i++)
+            {
+                if (this.BiblioDbProperties[i].DbName == strBiblioDbName)
+                {
+                    return this.BiblioDbProperties[i];
+                }
+
+                if (bSearchAlias == true)
+                {
+                    if (this.BiblioDbProperties[i].DbNameAlias.ToLower() == strBiblioDbName.ToLower())
+                    {
+                        return this.BiblioDbProperties[i];
+                    }
+                }
+
+            }
+
+            return null;
+        }
+
+        // 根据书目库名获得MARC格式语法名
+        public string GetMarcSyntax(string strBiblioDbName)
+        {
+            if (this.BiblioDbProperties == null)
+                throw new Exception("书目库参数尚未初始化");
+
+            for (int i = 0; i < this.BiblioDbProperties.Count; i++)
+            {
+                if (this.BiblioDbProperties[i].DbName == strBiblioDbName)
+                {
+                    string strResult = this.BiblioDbProperties[i].Syntax;
+                    if (String.IsNullOrEmpty(strResult) == true)
+                        strResult = "unimarc";  // 缺省为unimarc
+                    return strResult;
+                }
+            }
+
+            // 2007/8/9
+            // 如果在this.BiblioDbProperties里面找不到，可以直接在xml配置的<database>元素中找
+            XmlNode nodeDatabase = _root.SelectSingleNode("databases/database[@name='" + strBiblioDbName + "']");
+            if (nodeDatabase == null)
+                return null;
+
+            return DomUtil.GetAttr(nodeDatabase, "marcSyntax");
+        }
+
+        // 根据书目库名(或者别名)获得检索途径名
+        // parameters:
+        //      strOutputDbName 输出的数据库名。不是Z39.50服务器定义的别名，而是正规数据库名。
+        public string GetFromName(string strDbNameOrAlias,
+            long lAttributeValue,
+            out string strOutputDbName,
+            out string strError)
+        {
+            strError = "";
+            strOutputDbName = "";
+
+            // 因为XMLDOM中无法进行大小写不敏感的搜索，所以把搜索别名的这个任务交给properties
+            Debug.Assert(_root != null, "");
+            BiblioDbProperty prop = this.GetDbProperty(strDbNameOrAlias, true);
+            if (prop == null)
+            {
+                strError = "名字或者别名为 '" + strDbNameOrAlias + "' 的数据库不存在";
+                return null;
+            }
+
+            strOutputDbName = prop.DbName;
+
+            XmlNode nodeDatabase = _root.SelectSingleNode("databases/database[@name='" + strOutputDbName + "']");
+
+            if (nodeDatabase == null)
+            {
+                strError = "名字为 '" + strOutputDbName + "' 的数据库不存在";
+            }
+
+            XmlNode nodeUse = nodeDatabase.SelectSingleNode("use[@value='" + lAttributeValue.ToString() + "']");
+            if (nodeUse == null)
+            {
+                strError = "数据库 '" + strDbNameOrAlias + "' 中没有找到关于 '" + lAttributeValue.ToString() + "' 的检索途径定义";
+                return null;
+            }
+
+            string strFrom = DomUtil.GetAttr(nodeUse, "from");
+            if (String.IsNullOrEmpty(strFrom) == true)
+            {
+                strError = "数据库 '" + strDbNameOrAlias + "' <database>元素中关于 '" + lAttributeValue.ToString() + "' 的<use>配置缺乏from属性值";
+                return null;
+            }
+
+            return strFrom;
+        }
+
+        #endregion
+    }
+
+    // 书目库属性
+    // 注：除了 Syntax 以外，其他信息都应该可以从 capo.xml 中 zServer/databases/database 元素中获得
+    // 可以在安装配置阶段，一次性从 dp2library 获取全部信息写入 database 元素，这样每次 zhost 启动时候就不用从 dp2library 获得数据库信息了
+    public class BiblioDbProperty
+    {
+        // dp2library定义的特性
+        public string DbName = "";  // 书目库名
+        public string Syntax = "";  // 格式语法
+        // public string ItemDbName = "";  // 对应的实体库名
+
+        public bool IsVirtual = false;  // 是否为虚拟库
+
+        // 在dp2zserver.xml中定义的特性
+        public int MaxResultCount = -1; // 检索命中的最多条数
+        public string DbNameAlias = ""; // 数据库别名
+
+        public bool AddField901 = false;    // 是否在MARC字段中加入表示记录路径和时间戳的的901字段
+
+        // 2017/4/15
+        public string RemoveFields = "997"; // 返回前要删除的字段名列表，逗号分隔。缺省为 "997"
+    }
+
 }

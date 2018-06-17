@@ -68,6 +68,10 @@ namespace DigitalPlatform.Z3950
         {
             {
                 // 处理通讯缓冲区中可能残留的 Close Response
+                // return value:
+                //      -1  error
+                //      0   不是Close
+                //      1   是Close，已经迫使ZChannel处于尚未初始化状态
                 InitialResult result = await CheckServerCloseRequest();
             }
 
@@ -107,6 +111,16 @@ namespace DigitalPlatform.Z3950
         {
             // 说明初始化结果的文字
             public string ResultInfo { get; set; }
+
+            public InitialResult()
+            {
+
+            }
+
+            public InitialResult(Result source)
+            {
+                Result.CopyTo(source, this);
+            }
 
             public override string ToString()
             {
@@ -177,7 +191,10 @@ namespace DigitalPlatform.Z3950
                 return new InitialResult { Value = -1, ErrorInfo = "CBERTree::InitRequest() fail!" };
 
             if (this._channel.Connected == false)
+            {
+                this.CloseConnection();
                 return new InitialResult { Value = -1, ErrorInfo = "socket尚未连接或者已经被关闭" };
+            }
 
 
 
@@ -194,7 +211,7 @@ namespace DigitalPlatform.Z3950
             RecvResult result = await this._channel.SendAndRecv(
                 baPackage);
             if (result.Value == -1)
-                return new InitialResult { Value = -1, ErrorInfo = result.ErrorInfo };
+                return new InitialResult(result);
 
 #if DUMPTOFILE
 	DeleteFile("initresponse.bin");
@@ -343,7 +360,17 @@ namespace DigitalPlatform.Z3950
 
         public class SearchResult : Result
         {
-            public int ResultCount { get; set; }
+            public long ResultCount { get; set; }
+
+            public SearchResult()
+            {
+
+            }
+
+            public SearchResult(Result source)
+            {
+                Result.CopyTo(source, this);
+            }
 
             public override string ToString()
             {
@@ -409,7 +436,10 @@ namespace DigitalPlatform.Z3950
             }
 
             if (this._channel.Connected == false)
+            {
+                this.CloseConnection();
                 return new SearchResult { Value = -1, ErrorInfo = "socket尚未连接或者已经被关闭" };
+            }
 
 #if DUMPTOFILE
             string strBinFile = this.MainForm.DataDir + "\\searchrequest.bin";
@@ -435,7 +465,7 @@ namespace DigitalPlatform.Z3950
                 RecvResult result = await this._channel.SendAndRecv(
         baPackage);
                 if (result.Value == -1)
-                    return new SearchResult { Value = -1, ErrorInfo = result.ErrorInfo };
+                    return new SearchResult(result);
 
 #if NO
 #if DEBUG
@@ -597,6 +627,16 @@ namespace DigitalPlatform.Z3950
         {
             public RecordCollection Records { get; set; }
 
+            public PresentResult()
+            {
+
+            }
+
+            public PresentResult(Result source)
+            {
+                Result.CopyTo(source, this);
+            }
+
             public override string ToString()
             {
                 StringBuilder text = new StringBuilder(base.ToString());
@@ -691,7 +731,10 @@ namespace DigitalPlatform.Z3950
             if (nRet == -1)
                 return new PresentResult { Value = -1, ErrorInfo = "CBERTree::PresentRequest() fail!" };
             if (this._channel.Connected == false)
+            {
+                this.CloseConnection();
                 return new PresentResult { Value = -1, ErrorInfo = "socket尚未连接或者已经被关闭" };
+            }
 
 #if DUMPTOFILE
 	DeleteFile("presentrequest.bin");
@@ -708,7 +751,7 @@ namespace DigitalPlatform.Z3950
                 RecvResult result = await this._channel.SendAndRecv(
         baPackage);
                 if (result.Value == -1)
-                    return new PresentResult { Value = -1, ErrorInfo = result.ErrorInfo };
+                    return new PresentResult(result);
 
 #if DUMPTOFILE
 	DeleteFile("presendresponse.bin");
@@ -775,9 +818,13 @@ namespace DigitalPlatform.Z3950
             if (this._channel.Connected == false || this._channel.DataAvailable == false)
                 return new InitialResult(); // 没有发现问题
 
-            RecvResult result = await this._channel.SimpleRecvTcpPackage();
+            // 注意调用返回后如果发现出错，调主要主动 Close 和重新分配 TcpClient
+            RecvResult result = await ZChannel.SimpleRecvTcpPackage(this._channel._client);
             if (result.Value == -1)
+            {
+                this.CloseConnection();
                 return new InitialResult { Value = -1, ErrorInfo = result.ErrorInfo };
+            }
 
             BerTree tree1 = new BerTree();
             tree1.m_RootNode.BuildPartTree(result.Package,
@@ -797,7 +844,10 @@ namespace DigitalPlatform.Z3950
                 ref closeStruct,
                 out string strError);
             if (nRet == -1)
+            {
+                this.CloseConnection();
                 return new InitialResult { Value = -1, ErrorInfo = strError };
+            }
 
             this.CloseConnection();
             return new InitialResult { Value = 1, ResultInfo = closeStruct.m_strDiagnosticInformation };
