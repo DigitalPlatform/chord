@@ -11,6 +11,7 @@ using System.ServiceProcess;
 using DigitalPlatform;
 using DigitalPlatform.ServiceProcess;
 using DigitalPlatform.Z3950.Server;
+using log4net;
 
 namespace dp2Capo
 {

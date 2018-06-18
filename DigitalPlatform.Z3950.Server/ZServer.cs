@@ -48,14 +48,13 @@ namespace DigitalPlatform.Z3950.Server
 
         #endregion
 
-        // private static readonly ILog log = LogManager.GetLogger(typeof(ZServer));
+        // public static ILog _log = null;
 
         #region Public Methods
-        public ZServer(int port
-            // , List<Route> routes
-            )
+        public ZServer(int port)
         {
             this.Port = port;
+            // _log = log;
         }
 
         static string GetClientIP(TcpClient s)
@@ -68,7 +67,6 @@ namespace DigitalPlatform.Z3950.Server
             this.Listener = new TcpListener(IPAddress.Any, this.Port);
             this.Listener.Start();  // TODO: 要捕获异常
 
-
             Console.WriteLine("Z39.50 服务器成功监听于 " + this.Port.ToString());
 
             while (this.IsActive)
@@ -79,7 +77,7 @@ namespace DigitalPlatform.Z3950.Server
 
                     // string ip = ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
                     string ip = GetClientIP(tcpClient);
-                    // ServerInfo.WriteErrorLog("*** ip [" + ip + "] request");
+                    ZManager.Log?.Info("*** ip [" + ip + "] request");
 
                     Task.Run(() => HandleClient(tcpClient, _cancelToken));
 
@@ -89,7 +87,7 @@ namespace DigitalPlatform.Z3950.Server
                 {
                     if (this.IsActive == false)
                         break;
-                    // ServerInfo.WriteErrorLog("Listen() 出现异常: " + ExceptionUtil.GetExceptionMessage(ex));
+                    ZManager.Log?.Error("Listen() 出现异常: " + ExceptionUtil.GetExceptionMessage(ex));
                 }
                 Thread.Sleep(1);
             }
@@ -177,7 +175,7 @@ namespace DigitalPlatform.Z3950.Server
                 catch (Exception ex)
                 {
                     // 2016/11/14
-                    //ServerInfo.WriteErrorLog("ip:" + ip + " TestHandleClient() 异常: " + ExceptionUtil.GetExceptionText(ex));
+                    ZManager.Log?.Error("ip:" + ip + " HandleClient() 异常: " + ExceptionUtil.GetExceptionText(ex));
                 }
                 finally
                 {
@@ -210,7 +208,7 @@ namespace DigitalPlatform.Z3950.Server
             }
         }
 
-#endregion
+        #endregion
 
         public ZConfig DefaultGetZConfig(ZServerChannel channel,
             InitRequestInfo info,

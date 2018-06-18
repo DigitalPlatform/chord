@@ -319,6 +319,7 @@ namespace TestZClient
                 EnableControls(true);
             }
             ERROR1:
+            this.AppendHtml("<div class='debug error' >" + HttpUtility.HtmlEncode(strError) + "</div>");
             MessageBox.Show(this, strError);
         }
 
@@ -336,6 +337,19 @@ namespace TestZClient
                 this.button_nextBatch.Text = ">> ";
             else
                 this.button_nextBatch.Text = ">> " + _fetched + "/" + _resultCount;
+
+            this.textBox_database.Enabled = bEnable;
+            this.textBox_groupID.Enabled = bEnable;
+            this.textBox_password.Enabled = bEnable;
+            //this.textBox_queryString.Enabled = bEnable;
+            //this.textBox_queryWord.Enabled = bEnable;
+            this.textBox_serverAddr.Enabled = bEnable;
+            this.textBox_serverPort.Enabled = bEnable;
+            this.textBox_userName.Enabled = bEnable;
+
+            this.groupBox1.Enabled = bEnable;
+
+            SetQueryEnabled(bEnable);
         }
 
         async Task FetchRecords()
@@ -566,19 +580,33 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
         private void radioButton_query_origin_CheckedChanged(object sender, EventArgs e)
         {
-            if (this.radioButton_query_easy.Checked == true)
-            {
-                this.textBox_queryWord.Enabled = true;
-                this.comboBox_use.Enabled = true;
+            SetQueryEnabled(true);
+        }
 
-                this.textBox_queryString.Enabled = false;
+        void SetQueryEnabled(bool bEnable)
+        {
+            this.radioButton_query_easy.Enabled = bEnable;
+            this.radioButton_query_origin.Enabled = bEnable;
+            if (bEnable)
+            {
+                if (this.radioButton_query_easy.Checked == true)
+                {
+                    this.textBox_queryWord.Enabled = true;
+                    this.comboBox_use.Enabled = true;
+                    this.textBox_queryString.Enabled = false;
+                }
+                else
+                {
+                    this.textBox_queryWord.Enabled = false;
+                    this.comboBox_use.Enabled = false;
+                    this.textBox_queryString.Enabled = true;
+                }
             }
             else
             {
                 this.textBox_queryWord.Enabled = false;
                 this.comboBox_use.Enabled = false;
-
-                this.textBox_queryString.Enabled = true;
+                this.textBox_queryString.Enabled = false;
             }
         }
 

@@ -20,6 +20,7 @@ using DigitalPlatform.Text;
 using DigitalPlatform.Z3950;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.Marc;
+using log4net;
 
 namespace dp2Capo
 {
@@ -133,10 +134,19 @@ namespace dp2Capo
             DataDir = strDataDir;
             LogDir = Path.Combine(strDataDir, "log");   // 日志目录
             PathUtil.CreateDirIfNeed(LogDir);
+
+            var repository = log4net.LogManager.CreateRepository("main");
+            log4net.GlobalContext.Properties["LogFileName"] = Path.Combine(LogDir, "log_");
+            log4net.Config.XmlConfigurator.Configure(repository);
+
+            ZManager.Log = LogManager.GetLogger("main", "zlib");
+            _log = LogManager.GetLogger("main", "capo");
+
             string strVersion = Assembly.GetAssembly(typeof(ServerInfo)).GetName().Version.ToString();
 
             // 验证一下日志文件是否允许写入。这样就可以设置一个标志，决定后面的日志信息写入文件还是 Windows 日志
-            DetectWriteErrorLog("*** dp2Capo 开始启动 (dp2Capo 版本: " + strVersion + ")");
+            // DetectWriteErrorLog("*** dp2Capo 开始启动 (dp2Capo 版本: " + strVersion + ")");
+            WriteLog("info", "*** dp2Capo 开始启动 (dp2Capo 版本: " + strVersion + ")");
 
             ServerInfo.LoadCfg(DataDir);
 
@@ -227,7 +237,7 @@ namespace dp2Capo
                 }
                 _exited = true;
 
-                WriteErrorLog("*** dp2Capo 成功降落");
+                WriteLog("info", "*** dp2Capo 成功降落");
                 _logger.Dispose();
             }
         }
@@ -527,19 +537,9 @@ Exception Info: System.Net.NetworkInformation.PingException
 
         static bool _errorLogError = false;    // 写入实例的日志文件是否发生过错误
 
+#if NO
         static void _writeErrorLog(string strText)
         {
-#if NO
-            lock (_syncRoot)
-            {
-                DateTime now = DateTime.Now;
-                // 每天一个日志文件
-                string strFilename = Path.Combine(LogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
-                string strTime = now.ToString();
-                FileUtil.WriteText(strFilename,
-                    strTime + " " + strText + "\r\n");
-            }
-#endif
             _logger.Write(LogDir, strText);
         }
 
@@ -565,7 +565,10 @@ Exception Info: System.Net.NetworkInformation.PingException
                 EventLogEntryType.Information);
             return true;
         }
+#endif
 
+
+#if NO
         // 写入实例的错误日志文件
         public static void WriteErrorLog(string strText)
         {
@@ -578,6 +581,48 @@ Exception Info: System.Net.NetworkInformation.PingException
                 try
                 {
                     _writeErrorLog(strText);
+                }
+                catch (Exception ex)
+                {
+                    WriteWindowsLog("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入 Windows 日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                    WriteWindowsLog(strText, EventLogEntryType.Error);
+                }
+            }
+        }
+#endif
+        public static ILog Log
+        {
+            get
+            {
+                return _log;
+            }
+        }
+
+        static ILog _log = null;
+
+        // 写入全局日志文件
+        public static void WriteErrorLog(string strText)
+        {
+            WriteLog("error", strText);
+        }
+
+        // 写入全局日志文件
+        // parameters:
+        //      level   info/error
+        public static void WriteLog(string level, string strText)
+        {
+            Console.WriteLine(strText);
+
+            if (_errorLogError == true || _log == null) // 先前写入实例的日志文件发生过错误，所以改为写入 Windows 日志。会加上实例名前缀字符串
+                WriteWindowsLog(strText, EventLogEntryType.Error);
+            else
+            {
+                try
+                {
+                    if (level == "info")
+                        _log.Info(strText);
+                    else
+                        _log.Error(strText);
                 }
                 catch (Exception ex)
                 {
@@ -602,7 +647,7 @@ Exception Info: System.Net.NetworkInformation.PingException
             Log.WriteEntry(strText, type);
         }
 
-        #endregion
+#endregion
 
         public static void AddEvents(ZServer zserver, bool bAdd)
         {
@@ -1036,7 +1081,7 @@ Exception Info: System.Net.NetworkInformation.PingException
         // 取出先前记忆的全局结果集名列表
         // parameters:
         //      bRemove 是否在返回前自动删除 key_object 集合中的值
-        static List<string> GetResultSetNameList(ZServerChannel zserver_channel, 
+        static List<string> GetResultSetNameList(ZServerChannel zserver_channel,
             bool bRemove = false)
         {
             lock (zserver_channel)

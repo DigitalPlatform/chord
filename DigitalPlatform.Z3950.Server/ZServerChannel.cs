@@ -1,4 +1,5 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
@@ -41,7 +42,7 @@ namespace DigitalPlatform.Z3950.Server
             }
             catch (Exception ex)
             {
-                // ServerInfo.WriteErrorLog("HttpChannelColleciont Clear() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                ZManager.Log?.Error("HttpChannelColleciont Clear() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
             }
             finally
             {
