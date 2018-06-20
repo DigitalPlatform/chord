@@ -310,7 +310,7 @@ namespace TestZClient
                     this.button_nextBatch.Enabled = false;
 #endif
 
-                await FetchRecords();
+                await FetchRecords(_targetInfo);
 
                 return;
             }
@@ -352,7 +352,7 @@ namespace TestZClient
             SetQueryEnabled(bEnable);
         }
 
-        async Task FetchRecords()
+        async Task FetchRecords(TargetInfo targetinfo)
         {
             EnableControls(false);  // 暂时禁用
 
@@ -373,7 +373,7 @@ namespace TestZClient
                 {
                     // 把 MARC 记录显示出来
                     AppendMarcRecords(present_result.Records,
-                        _zclient.ForcedRecordsEncoding,
+                        _zclient.ForcedRecordsEncoding == null ? targetinfo.DefaultRecordsEncoding : _zclient.ForcedRecordsEncoding,
                         _fetched);
                     _fetched += present_result.Records.Count;
                 }
@@ -426,7 +426,7 @@ namespace TestZClient
                 //		-1	一般错误
                 //		0	正常
                 int nRet = MarcUtil.ConvertByteArrayToMarcRecord(record.m_baRecord,
-                    encoding,
+                    encoding == null ? Encoding.GetEncoding(936) : encoding,
                     true,
                     out string strMARC,
                     out string strError);
@@ -560,7 +560,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         // 获得下一批记录
         private async void button_nextBatch_Click(object sender, EventArgs e)
         {
-            await FetchRecords();
+            await FetchRecords(_targetInfo);
         }
 
         // 停止检索等操作

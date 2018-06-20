@@ -19,6 +19,7 @@ namespace DigitalPlatform.Z3950
 
         string _currentRefID = "0";
 
+        // 经过字符集协商确定的记录强制使用的编码方式。如果为 null，表示未经过字符集协商
         public Encoding ForcedRecordsEncoding = null;
 
         public event EventHandler Closed = null;
