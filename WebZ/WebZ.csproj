@@ -14,11 +14,13 @@
   <ItemGroup>
     <None Remove="Views\Home\Index - 复制.txt" />
     <None Remove="Views\Home\Index - 复制2.txt" />
+    <None Remove="Views\Shared\_Layout - 复制.txt" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Views\Home\Index - 复制.txt" />
     <Content Include="Views\Home\Index - 复制2.txt" />
+    <Content Include="Views\Shared\_Layout - 复制.txt" />
   </ItemGroup>
 
   <ItemGroup>

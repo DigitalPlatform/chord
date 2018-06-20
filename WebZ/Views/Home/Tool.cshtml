@@ -1,0 +1,27 @@
+﻿
+
+@if (string.IsNullOrEmpty(ViewBag.error) == false)
+{
+    <div style="color:red">@ViewBag.error</div>
+}
+
+<div style="color:green">@ViewBag.info</div>
+<div class='ui segment form'> 
+
+
+    <form asp-action="BatchCreate">
+
+        <div class=' inline field'>
+            <label> 站点数量</label>
+            <input type='text' placeholder='count' id="_count" name="_count">
+        </div>
+
+        <button class="ui button" type="submit">创建站点记录</button>
+    </form>
+</div>
+<div class='ui segment'>
+    <form asp-action="DropDb">
+        <button class="ui button" type="submit">删除数据库</button>
+    </form>
+    </div>
+

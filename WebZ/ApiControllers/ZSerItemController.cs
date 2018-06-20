@@ -17,15 +17,22 @@ namespace WebZ.ApiControllers
 
         // GET: api/<controller>
         [HttpGet]
-        public ApiResult Get(int start,
+        public ApiResult Get(string word,
+                string from,
+                int start,
                 int count)
         {
             ApiResult result = new ApiResult();
             try
             {
-                List<ZServerItem> list = ServerInfo.Instance.GetZServers(start, count);
 
-                result.data = list;
+                //if (String.IsNullOrEmpty(resultSet) == true)
+                //    resultSet = "webz-" + Guid.NewGuid();
+
+                result.data = ServerInfo.Instance.Search(word,
+                    from,
+                    start, 
+                    count);
             }
             catch (Exception ex)
             {

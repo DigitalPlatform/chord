@@ -4442,8 +4442,18 @@ public string ErrorCode { get; set; }
                     else
                     {
                         // 其它情况，按实际的分馆来，也就是说，实际的帐户范围一定要大于绑定选择的范围
-                        bindLibraryCode = libraryCode;
-                        thislibName = libraryCode;
+                        string[] libs = libraryCode.Split(new char[] {','});
+
+                        if (libs.Contains(bindLibraryCode) == true)
+                        {
+                            bindLibraryCode = libraryCode;
+                            thislibName = libraryCode;
+                        }
+                        else
+                        {
+                            strError = "您的帐户没有 "+thislibName+" 的权限";
+                            goto ERROR1;
+                        }
                     }
 
                     if (thislibName == "")
@@ -5115,8 +5125,8 @@ public string ErrorCode { get; set; }
                     dbnames,
                     strWord,
                     strFrom,
-                    match,//"middle",
-                    resultSet,//"weixin",
+                    match,
+                    resultSet,
                     "id,cols",
                     libraryCode,//filter 20170509
                     WeiXinConst.C_Search_MaxCount,  //最大数量

@@ -70,7 +70,10 @@ namespace dp2weixinWeb.ApiControllers
                 {
                     //word值表示起始位置
                     searchRet = dp2WeiXinService.Instance.getFromResultSet(weixinId,
-                        libId, resultSet, num, WeiXinConst.C_OnePage_Count);
+                        libId, 
+                        resultSet,
+                        num, 
+                        WeiXinConst.C_OnePage_Count);
                     goto END1;
                 }
                 else if (from == "_ReView")
@@ -80,7 +83,10 @@ namespace dp2weixinWeb.ApiControllers
 
                     // 重新显示，此时word代表数量
                     searchRet = dp2WeiXinService.Instance.getFromResultSet(weixinId,
-                        libId, resultSet, 0, num);
+                        libId,
+                        resultSet, 
+                        0, 
+                        num);
                     goto END1;
 
                 }

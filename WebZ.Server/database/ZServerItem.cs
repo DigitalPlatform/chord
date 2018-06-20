@@ -8,11 +8,11 @@ namespace WebZ.Server.database
 {
     public class ZServerItem
     {
-        
-
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string id { get;  set; }
+        //[BsonId]
+        //[BsonRepresentation(BsonType.ObjectId)]
+        //这里没用ObjectId，OjbectID检索起来不方便，必须是16进制数，会报BsonNull is not a valid 24 digit hex string
+        [BsonId]    // 允许 GUID
+        public string id { get;  set; } 
 
 
         //==========

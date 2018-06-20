@@ -75,6 +75,8 @@
             sendAjaxRequest(url, "POST",
                 function (result) {
 
+                    //alert("1");
+                    
                     // 关闭等待层
                     //layer.close(index);
                     hideMaskLayer();
@@ -102,6 +104,8 @@
                 function (xhq, textStatus, errorThrown) {
                     // 关闭等待层
                     hideMaskLayer();
+
+                    //alert("3");
                     alert(errorThrown);
                 });
 

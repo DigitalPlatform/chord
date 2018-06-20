@@ -46,6 +46,7 @@ namespace WebZ.Server.database
                 throw new Exception("服务器地址不能为空");
 
             // 创建时间
+            item.id = Guid.NewGuid().ToString();
             item.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
             item.state = C_State_WaitForVerfity; // 未审核
             item.verifier = "";
@@ -67,7 +68,7 @@ namespace WebZ.Server.database
             var filter = Builders<ZServerItem>.Filter.Eq("id", item.id);
             var update = Builders<ZServerItem>.Update
                  //主要字段
-                 .Set("name", item.name)
+                .Set("name", item.name)
                 .Set("addr", item.addr)
                 .Set("port", item.port)
                 .Set("homepage", item.homepage)
@@ -127,12 +128,44 @@ namespace WebZ.Server.database
         }
 
         // 取记录
-        public async Task<List<ZServerItem>> Get(int start,
-                int count)
+        public async Task<List<ZServerItem>> Get(string word,
+            string from, 
+            int start,
+            int count)
         {
+            
             List<ZServerItem> results = new List<ZServerItem>();
+
+            if (string.IsNullOrEmpty(from) == true)
+            {
+                throw new Exception("检索途径不能为空");
+            }
+
+            var filter = Builders<ZServerItem>.Filter.Empty;
+            if (string.IsNullOrEmpty(word) == false)
+            {
+                //filter = filter & Builders<ZServerItem>.Filter.Eq(from, word);
+
+                 filter = Builders<ZServerItem>.Filter.Regex(from, "/" + word + "/");
+
+            }
+            else
+            {
+                if (from == "id")
+                {
+                    filter = new BsonDocument();
+                }
+                else
+                {
+                    // 检索词为空的时候，检索该途径不为空的所有记录
+                    filter = Builders<ZServerItem>.Filter.Ne(from, "")
+                        | Builders<ZServerItem>.Filter.Ne(from, BsonNull.Value);
+                }
+            }
+
+
             var index = 0;
-            using (var cursor = await this._collection.FindAsync(new BsonDocument()))
+            using (var cursor = await this._collection.FindAsync(filter))
             {
                 while (await cursor.MoveNextAsync())
                 {

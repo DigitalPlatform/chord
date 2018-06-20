@@ -1,5 +1,25 @@
 ﻿@section Scripts {
     <script>
+
+        function createList() { 
+
+            //alert("test");
+
+            var h = "<div class='ui styled fluid accordion'>\
+                < div class='title active' > <i class='dropdown icon'></i> What is a dog ? </div >\
+                    <div class='content active'>\
+                        <p class='transition visible' style='display: block !important;'>狗算是一种家畜。以其忠诚与忠心广受人类欢迎, 可以在世界各地的许多家庭里发现这个受欢迎的客人。</p>\
+                    </div>\
+                    <div class='title'><i class='dropdown icon'></i> What kinds of dogs are there? </div>\
+                    <div class='content'>\
+                        <p>狗有许多品种，每个品种都有不同的大小及性格，饲主通常选择适合自己生活方式的品种当作自已的伙伴，其中最受欢迎的品种绝对是吉娃娃。</p>\
+                    </div>\
+        </div >";
+            $('#_container').html(h);
+
+            $('.ui.accordion').accordion({ duration: 'click' });
+        }
+
         function getvalue() {
             var value = getCkdValue('_isbn_force13');
             alert('_isbn_force13=' + value);
@@ -26,7 +46,7 @@
         $(document).ready(function () {
             $('.ui.accordion').accordion({ duration: 'click' });
 
-            $('.ui.menu').menu();
+            //$('.ui.menu').menu();
         });
 
 
@@ -35,6 +55,18 @@
     </script>
 
 }
+
+
+    <button id='btnCreate' class='ui button' onclick='createList()'>
+        生成列表
+    </button>
+
+
+    <div id='_container'>
+
+    </div>
+
+
 
 <div class='ui large form edit' style='background-color:#eeeeee;padding:5px'>
     <div class='ui segment'>

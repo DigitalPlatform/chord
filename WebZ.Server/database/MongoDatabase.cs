@@ -17,6 +17,7 @@ namespace WebZ.Server.database
     public class MongoDatabase<T>
     {
         internal string _pureDatabaseName = ""; // 数据库名。实际上要加上 prefix 部分才构成真正使用的数据库名
+        internal string _databaseName = "";//完整数据库名
         internal IMongoCollection<T> _collection = null;
         internal string _collectionName = "collection";
 
@@ -56,13 +57,12 @@ namespace WebZ.Server.database
             if (string.IsNullOrEmpty(pureDatabaseName) == true)
                 throw new ArgumentException("strDatabaseName 参数不应为空", "strDatabaseName");
 
-            // _userDatabaseName = strInstancePrefix + "user";
             this._pureDatabaseName = pureDatabaseName;
 
-            string databaseName = instancePrefix + this._pureDatabaseName;
+            this._databaseName = instancePrefix + this._pureDatabaseName;
 
             {
-                var db = mongoClient.GetDatabase(databaseName);
+                var db = mongoClient.GetDatabase(this._databaseName);
 
                 _collection = db.GetCollection<T>("data");
 
@@ -77,10 +77,6 @@ namespace WebZ.Server.database
                 // _logCollection.DropAllIndexes();
                 if (bExist == false)
                 {
-#if NO
-                    _logCollection.CreateIndex(new IndexKeysBuilder().Ascending("OperTime"),
-                        IndexOptions.SetUnique(false));
-#endif
                     CreateIndex().Wait(cancellationToken);
                 }
             }
@@ -102,6 +98,11 @@ namespace WebZ.Server.database
             await _collection.DeleteManyAsync(filter);
             await CreateIndex();
         }
+
+        //public void DropDatabase(string dbName)
+        //{
+        //    this.MClient.DropDatabase(dbName);
+        //}
 
     }
 }

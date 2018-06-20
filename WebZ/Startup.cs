@@ -18,6 +18,10 @@ namespace WebZ
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            // 2016.10.25 再次启用session 用于出纳窗命令
+            //this.PostAuthenticateRequest += (sender, e) => HttpContext.Current.SetSessionStateBehavior(SessionStateBehavior.Required);
+
         }
 
 

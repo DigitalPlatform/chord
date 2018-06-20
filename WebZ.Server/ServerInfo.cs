@@ -48,7 +48,7 @@ namespace WebZ.Server
         CancellationTokenSource _cancel = new CancellationTokenSource();
 
         // 站点配置数据库
-        ZServerDatabase ZServerDb = new ZServerDatabase();
+        public ZServerDatabase ZServerDb = new ZServerDatabase();
 
         #endregion
 
@@ -343,10 +343,22 @@ namespace WebZ.Server
         #region 站点配置管理
 
         // 获取站点列表
-        public List<ZServerItem> GetZServers(int start, int count)
+        // 
+        public List<ZServerItem>   Search(string word,
+            string from,
+            int start,
+            int count)
         {
-            return this.ZServerDb.Get(start, count).Result;
+
+
+                 return this.ZServerDb.Get(word,
+                    from,
+                    start,
+                    count).Result;
+
         }
+
+        HashSet<List<ZServerItem>> result = new HashSet<List<ZServerItem>>();
 
         // 获取站点列表
         public ZServerItem GetOneZServer(string id)
@@ -375,6 +387,13 @@ namespace WebZ.Server
                 this.ZServerDb.Delete(one).Wait();
             }
         }
+
+        public void ClearZServerItem()
+        {
+            this.ZServerDb.Clear().Wait();
+
+        }
+
 
         #endregion
 

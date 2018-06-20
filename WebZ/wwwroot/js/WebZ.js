@@ -8,7 +8,7 @@ function sendAjaxRequest(url,
 
     //alert(url);
     var apiFullPath = getRootPath() + url;
-   // alert("sendAjaxRequest-" + apiFullPath);
+    //alert("sendAjaxRequest-" + apiFullPath);
     
     //alert("test");
 
@@ -30,10 +30,22 @@ function sendAjaxRequest(url,
 // 得到虚拟目录路径
 function getRootPath() {
     var pathName = window.location.pathname.substring(1);
-     //alert("pathname["+ pathName+"]");
-    var webName = pathName == '' ? '' : pathName.substring(0, pathName.indexOf('/'));
-    //alert("webName[" + webName + "]");
-    var rootPath = window.location.protocol + '//' + window.location.host;//+ '/' + webName;
+    //alert("pathname[" + pathName + "]");
+
+    var webName = "";
+
+    if (pathName != "") {
+        if (pathName.indexOf('/') == -1) {
+            webName = pathName;
+        }
+        else
+        {
+            webName = pathName.substring(0, pathName.indexOf('/'));
+        }
+    }
+
+   // alert("webName[" + webName + "]");
+    var rootPath = window.location.protocol + '//' + window.location.host//+ '/' + webName;
 
     if (rootPath.substring(rootPath.length - 1) == "/")
         rootPath = rootPath.substring(0,rootPath.length - 1);
