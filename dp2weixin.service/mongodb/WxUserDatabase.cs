@@ -677,8 +677,6 @@ namespace dp2weixin.service
         // 微信id
         public string weixinId { get; set; }    
 
-
-
         // 图书馆代码
         public string libId { get; set; }
         // 图书馆名称
@@ -722,8 +720,6 @@ namespace dp2weixin.service
 
         // 是否活动状态
         public int isActive = 0;
-
-
 
         //账户类型：0表示读者 1表示工作人员 // 2016-6-16 新增
         public int type = 0;
