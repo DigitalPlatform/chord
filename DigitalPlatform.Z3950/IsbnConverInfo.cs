@@ -5,6 +5,7 @@ using System.Text;
 
 namespace DigitalPlatform.Z3950
 {
+    // ISBN 实用转换工具类
     public class IsbnConvertInfo
     {
         public IsbnSplitter IsbnSplitter = null;
@@ -88,21 +89,20 @@ namespace DigitalPlatform.Z3950
             return 0;
         }
 #endif
-        // return:
+        // 对 ISBN 执行转换。转换的结果可能会把一个 ISBN 拆散为多个 ISBN
+        // result.Value:
         //      -1  出错
         //      0   没有必要转换
         //      1   已经转换
-        public int ConvertISBN(string strISBN,
-            out List<string> isbns,
-            out string strError)
+        public Result ConvertISBN(string strISBN,
+            out List<string> isbns)
         {
-            strError = "";
             isbns = new List<string>();
 
             if (string.IsNullOrEmpty(this.ConvertStyle) == true)
             {
                 isbns.Add(strISBN);
-                return 0;
+                return new Result();
             }
 
             bool bForce13 = StringUtil.IsInList("force13", this.ConvertStyle);
@@ -122,12 +122,11 @@ namespace DigitalPlatform.Z3950
 
                 foreach (string style in styles)
                 {
-                    string strTarget = "";
                     nRet = this.IsbnSplitter.IsbnInsertHyphen(
                         strISBN,
                         style,
-                        out strTarget,
-                        out strError);
+                        out string strTarget,
+                        out string strError);
                     if (nRet == -1)
                         continue;
                     isbns.Add(strTarget);
@@ -140,12 +139,11 @@ namespace DigitalPlatform.Z3950
 
                 foreach (string style in styles)
                 {
-                    string strTarget = "";
                     nRet = this.IsbnSplitter.IsbnInsertHyphen(
                         strISBN,
                         style,
-                        out strTarget,
-                        out strError);
+                        out string strTarget,
+                        out string strError);
                     if (nRet == -1)
                         continue;
                     isbns.Add(strTarget.Replace("-", ""));
@@ -155,7 +153,7 @@ namespace DigitalPlatform.Z3950
                 // TODO: 是否要增加10位13位去掉校验位的，然后指明前方一致的?
 
                 StringUtil.RemoveDupNoSort(ref isbns);
-                return 1;
+                return new Result { Value = 1 };
             }
 
             string strStyle = "remainverifychar";
@@ -180,20 +178,18 @@ namespace DigitalPlatform.Z3950
                     strStyle += ",force10";
                 else
                 {
-                    strError = "force10和force13不应同时具备";
-                    return -1;
+                    return new Result { Value = -1, ErrorInfo = "force10和force13不应同时具备" };
                 }
 
-                string strTarget = "";
                 nRet = this.IsbnSplitter.IsbnInsertHyphen(
                    strISBN,
                    strStyle,
-       out strTarget,
-       out strError);
+       out string strTarget,
+       out string strError);
                 if (nRet == -1)
-                    return -1;
+                    return new Result { Value = -1, ErrorInfo = strError };
                 isbns.Add(strTarget);
-                return 1;
+                return new Result { Value = 1 };
             }
 
             if (bRemoveHyphen == true)
@@ -201,7 +197,7 @@ namespace DigitalPlatform.Z3950
                 if (bForce10 == false && bForce13 == false)
                 {
                     strISBN = strISBN.Replace("-", "");
-                    return 1;
+                    return new Result { Value = 1 };
                 }
                 else if (bForce13 == true)
                     strStyle += ",force13";
@@ -209,23 +205,21 @@ namespace DigitalPlatform.Z3950
                     strStyle += ",force10";
                 else
                 {
-                    strError = "force10和force13不应同时具备";
-                    return -1;
+                    return new Result { Value = -1, ErrorInfo = "force10和force13不应同时具备" };
                 }
 
-                string strTarget = "";
                 nRet = this.IsbnSplitter.IsbnInsertHyphen(
                    strISBN,
                    strStyle,
-       out strTarget,
-       out strError);
+       out string strTarget,
+       out string strError);
                 if (nRet == -1)
-                    return -1;
+                    return new Result { Value = -1, ErrorInfo = strError };
                 isbns.Add(strTarget.Replace("-", ""));
-                return 1;
+                return new Result { Value = 1 };
             }
 
-            return 0;
+            return new Result();
         }
     }
 

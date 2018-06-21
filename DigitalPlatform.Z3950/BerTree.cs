@@ -250,7 +250,6 @@ namespace DigitalPlatform.Z3950
         public string m_strPreferredRecordSyntax = "";
     }
 
-
     public class BerTree
     {
         public BerNode m_RootNode = new BerNode();
@@ -718,7 +717,7 @@ otherInfo {
 
 
         //	 build a z39.50 Search Request 
-        public int SearchRequest(SEARCH_REQUEST struSearch_request,
+        public void SearchRequest(SEARCH_REQUEST struSearch_request,
             out byte[] baPackage)
         {
             baPackage = null;
@@ -816,24 +815,28 @@ otherInfo {
             if (struSearch_request.m_nQuery_type == 1
                 || struSearch_request.m_nQuery_type == 100)
             {
-                nRet = make_type_1(struSearch_request.m_strQuery,
+                /*nRet = */make_type_1(struSearch_request.m_strQuery,
                     struSearch_request.m_queryTermEncoding,
                     subroot);
+#if NO
                 if (nRet == -1)
                 {
                     Debug.Assert(false, "");
                     return -1;
                 }
+#endif
             }
 
             if (struSearch_request.m_nQuery_type == 101)
             {
-                nRet = make_type_101(struSearch_request.m_strQuery, subroot);
+                /*nRet = */make_type_101(struSearch_request.m_strQuery, subroot);
+#if NO
                 if (nRet == -1)
                 {
                     Debug.Assert(false, "");
                     return -1;
                 }
+#endif
             }
             if (struSearch_request.m_nQuery_type == 0)
             {
@@ -844,7 +847,7 @@ otherInfo {
 
             root.EncodeBERPackage(ref baPackage);
 
-            return 0;
+            // return 0;
         }
 
         // 观察Search请求包
@@ -939,13 +942,18 @@ otherInfo {
             return strDebugInfo;
         }
 
+        // exception:
+        //      可能抛出 Exception
         // return:
         //		-1	error
         //		0	succeed
-        static int make_type_1(string strQuery,
+        static void make_type_1(string strQuery,
             Encoding queryTermEncoding,
             BerNode subroot)
         {
+            if (string.IsNullOrEmpty(strQuery) == true)
+                throw new Exception("检索式不应为空");
+
             BerNode param = null;
             PolandNode poland = new PolandNode(strQuery);
             int i;
@@ -966,16 +974,20 @@ otherInfo {
 
             poland.m_Subroot.ChildrenCollection.RemoveAt(i);
 
-            return 0;
+            // return 0;
         }
 
-
+        // exception:
+        //      可能抛出 Exception
         // return:
         //		-1	error
         //		0	succeed
-        int make_type_101(string strQuery,
+        void make_type_101(string strQuery,
             BerNode subroot)
         {
+            if (string.IsNullOrEmpty(strQuery) == true)
+                throw new Exception("检索式不应为空");
+
             BerNode param = null;
 
             PolandNode poland = new PolandNode(strQuery);
@@ -994,7 +1006,7 @@ otherInfo {
             param.AddSubtree(poland.m_Subroot.ChildrenCollection[0]);
             poland.m_Subroot.ChildrenCollection.RemoveAt(0);
 
-            return 0;
+            // return 0;
         }
 
 

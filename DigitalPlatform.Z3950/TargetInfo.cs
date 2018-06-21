@@ -42,8 +42,8 @@ namespace DigitalPlatform.Z3950
 
         public RecordSyntaxAndEncodingBindingCollection Bindings = null;
 
-        public bool CharNegoUTF8 = true;
-        public bool CharNegoRecordsUTF8 = true;
+        public bool CharNegoUTF8 = false;
+        public bool CharNegoRecordsUTF8 = false;
 
         public string UnionCatalogBindingDp2ServerName = "";
         public string UnionCatalogBindingUcServerUrl = "";

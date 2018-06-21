@@ -10,6 +10,8 @@ using System.ServiceProcess;
 
 using DigitalPlatform;
 using DigitalPlatform.ServiceProcess;
+using DigitalPlatform.Z3950.Server;
+using log4net;
 
 namespace dp2Capo
 {
@@ -157,8 +159,8 @@ namespace dp2Capo
             }
             catch (Exception ex)
             {
-                WriteWindowsLog(ExceptionUtil.GetAutoText(ex), EventLogEntryType.Error);
-                Console.WriteLine("初始化失败: " + ex.Message);
+                WriteWindowsLog(ExceptionUtil.GetDebugText(ex), EventLogEntryType.Error);
+                Console.WriteLine("初始化失败: " + ExceptionUtil.GetDebugText(ex));
                 return false;
             }
         }
@@ -243,6 +245,8 @@ namespace dp2Capo
         protected override void OnStop()
         {
             this.Close();
+
+            // 因为这里 ServerInfo 并没有调用 Exit() 所以后来的 OnStart() 不用重新初始化 ServerInfo
         }
 
         public override void Close()
@@ -250,6 +254,7 @@ namespace dp2Capo
             base.Close();
 
             ServerInfo.Exit();
+            StopServer();
         }
 
         protected override void Dispose(bool disposing)
@@ -264,7 +269,23 @@ namespace dp2Capo
 
         static void StartServer()
         {
+            if (ServerInfo.ServerPort != 0)
+            {
+                ServerInfo.ZServer = new ZServer(ServerInfo.ServerPort);
+                ServerInfo.AddEvents(ServerInfo.ZServer, true);
+                ServerInfo.ZServer.Listen();
+            }
+        }
 
+        static void StopServer()
+        {
+            if (ServerInfo.ZServer != null)
+            {
+                ServerInfo.ZServer.Close();
+                ServerInfo.ZServer.Dispose();
+                ServerInfo.AddEvents(ServerInfo.ZServer, false);
+                ServerInfo.ZServer = null;
+            }
         }
     }
 }

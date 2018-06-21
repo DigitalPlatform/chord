@@ -6,6 +6,7 @@ using System.Text;
 using DigitalPlatform.Xml;
 using System.Web;
 using System.Collections.Generic;
+using DigitalPlatform.Text;
 
 namespace DigitalPlatform.Marc
 {
@@ -941,6 +942,8 @@ namespace DigitalPlatform.Marc
             strErrorInfo = "";
             aResult = new List<byte[]>();
 
+            Debug.Assert(s != null, "");
+
             List<MyByteList> results = new List<MyByteList>();
 
             bool bUcs2 = false;
@@ -1094,7 +1097,341 @@ namespace DigitalPlatform.Marc
             return 0;
         }
 
-#endregion
+        #endregion
+
+        #region 机内格式 --> ISO2709
+
+        // 将MARC机内格式转换为ISO2709格式
+        // parameters:
+        //      strSourceMARC   [in]机内格式MARC记录。
+        //      strMarcSyntax   [in]为"unimarc"或"usmarc"
+        //      targetEncoding  [in]输出ISO2709的编码方式。为UTF8、codepage-936等等
+        //      baResult    [out]输出的ISO2709记录。编码方式受targetEncoding参数控制。注意，缓冲区末尾不包含0字符。
+        // return:
+        //      -1  出错
+        //      0   成功
+        public static int CvtJineiToISO2709(
+            string strSourceMARC,
+            string strMarcSyntax,
+            Encoding targetEncoding,
+            out byte[] baResult,
+            out string strError)
+        {
+            baResult = null;
+
+            if (strSourceMARC.Length < 24)
+            {
+                strError = "机内格式记录长度小于24字符";
+                return -1;
+            }
+
+            // 2013/11/23
+            // 疑问：MARC 机内格式字符串最后一个字符到底允许不允许为 MARC 结束符?
+            // 替换记录中可能出现的 MARC 结束符。这个字符会破坏 ISO2709 文件的记录分段
+            if (strSourceMARC.IndexOf(RECEND) != -1)
+            {
+#if NO
+                StringBuilder text = new StringBuilder(4096);
+                foreach (char ch in strSourceMARC)
+                {
+                    if (ch != RECEND)
+                        text.Append(ch);
+                    else
+                        text.Append('*');
+                }
+                strSourceMARC = text.ToString();
+#endif
+                strSourceMARC = strSourceMARC.Replace(RECEND, '*');
+            }
+
+            string strMARC;
+            ModifyOutputMARC(strSourceMARC,
+                strMarcSyntax,
+                targetEncoding,
+                out strMARC);
+
+            // 先转换字符集
+            byte[] baMARC = targetEncoding.GetBytes(strMARC);
+
+            BuildISO2709Record(baMARC,
+                out baResult);
+
+            strError = "";
+            return 0;
+        }
+
+        // 2017/4/7 改为用 MarcRecord 处理 100$a
+        // 根据MARC格式类型和输出的编码方式要求，修改MARC记录的头标区或100字段。
+        // parameters:
+        //		strMarcSyntax   "unimarc" "usmarc"
+        public static int ModifyOutputMARC(
+            string strMARC,
+            string strMarcSyntax,
+            Encoding encoding,
+            out string strResult)
+        {
+            strResult = strMARC;
+
+            if (String.Compare(strMarcSyntax, "unimarc", true) == 0) // UNIMARC
+            {
+                /*
+                In UNIMARC the information about enconding sets are stored in field 100, 
+        position 26-29 & 30-33. The
+        code for Unicode is "50" in positions 26-27 and the position 28-33 will 
+        contain blanks.
+                */
+                // 将100字段中28开始的位置按照UTF-8编码特性强行置值。
+
+                MarcRecord record = new MarcRecord(strMARC);
+                bool bChanged = false;
+
+                string strValue = record.select("field[@name='100']/subfield[@name='a']").FirstContent;
+                if (strValue == null)
+                    strValue = "";
+
+                // 确保子字段内容长度为 36 字符。
+                int nOldLength = strValue.Length;
+                strValue = strValue.PadRight(36, ' ');
+                if (strValue.Length != nOldLength)
+                    bChanged = true;
+
+                string strPart = strValue.Substring(26, 8);
+                // 看看26-29是否已经符合要求
+                if (encoding == Encoding.UTF8)
+                {
+                    if (strPart == "50      ")
+                    { // 已经符合要求
+                    }
+                    else
+                    {
+                        strValue = strValue.Remove(26, 8);
+                        strValue = strValue.Insert(26, "50      ");
+                        bChanged = true;
+                    }
+                }
+                else
+                {
+                    if (strPart == "50      ")
+                    { // 需要改变
+                        strValue = strValue.Remove(26, 8);
+                        strValue = strValue.Insert(26, "0120    ");
+                        bChanged = true;
+                    }
+                    else
+                    {	// 不需要改变
+                    }
+                }
+
+                if (bChanged == true)
+                {
+                    record.setFirstSubfield("100", "a", strValue, "  ");
+                    strResult = record.Text;
+                }
+
+            }
+
+            // 修改头标区
+            if (String.Compare(strMarcSyntax, "unimarc", true) == 0)
+            {
+                // UNIMARC
+                strResult = StringUtil.SetAt(strResult, 9, ' ');
+            }
+            else if (true/*nMARCType == 1*/)
+            {
+                // USMARC。所有非UNIMARC的都仿USMARC处理，因为不必使用100字段
+                if (encoding == Encoding.UTF8)
+                    strResult = StringUtil.SetAt(strResult, 9, 'a');	// UTF-8(UCS-2也仿此)
+                else
+                    strResult = StringUtil.SetAt(strResult, 9, ' ');	// # DBCS或者MARC-8 // 2007/8/8 change '#' to ' '
+            }
+
+            return 0;
+        }
+
+        // 将机内格式记录构造为ISO2709格式记录。
+        // parameters:
+        //		baMARC		[in]机内格式记录。已经通过适当Encoding对象转换为ByteArray了
+        //		baResult	[out]ISO2709格式记录。
+        // return:
+        //		-1	error
+        //		0	succeed
+        public static int BuildISO2709Record(byte[] baMARC,
+            out byte[] baResult)
+        {
+            int nLen;
+            byte[] baMuci = null;	// 目次区
+            byte[] baBody = null;	// 数据区
+            byte[] baFldName = null;
+            string strFldLen;
+            string strFldStart;
+            byte[] baFldContent = null;
+            int nStartPos;
+            int nFldLen;
+            int nFldStart;
+            bool bEnd = false;
+            int nPos;
+            int nRecLen = 0;
+
+            baResult = null;
+
+            if (baMARC == null)
+                return -1;
+            if (baMARC.Length < 24)
+                return -1;
+
+            // 2018/3/8
+            if (baMARC[0] == 0
+    || baMARC[1] == 0)
+            {
+                throw new Exception("ISO2709 格式无法使用编码方式 UCS-2 (UTF-16)");
+            }
+
+            MarcHeaderStruct header = new MarcHeaderStruct(baMARC);
+
+            /*
+            ISO2709ANSIHEADER header;
+            memcpy(&header,
+                (LPCSTR)advstrMARC,
+                sizeof(header));
+            */
+
+            nLen = baMARC.Length;
+
+            for (nStartPos = 24, nFldStart = 0; ;)
+            {
+                nPos = ByteArray.IndexOf(baMARC, (byte)FLDEND, nStartPos);
+                // nPos = FindCharInStringA((LPCSTR)advstrMARC, FLDEND, nStartPos);
+                if (nPos == -1)
+                {
+                    nFldLen = nLen - nStartPos;
+                    bEnd = true;
+                }
+                else
+                {
+                    nFldLen = nPos - nStartPos + 1;
+                }
+                if (nFldLen < 3)
+                {
+                    goto SKIP;
+                }
+                // strFldName = advstrMARC.MidA(nStartPos, 3);
+                baFldName = new byte[3];
+                Array.Copy(baMARC,
+                    nStartPos,
+                    baFldName, 0,
+                    3);
+
+                // advstrFldContent = advstrMARC.MidA(nStartPos + 3, nFldLen - 3);
+                baFldContent = new byte[nFldLen - 3];
+                Array.Copy(baMARC,
+                    nStartPos + 3,
+                    baFldContent, 0,
+                    nFldLen - 3);
+
+                //advstrFldLen.Format("%04d", nFldLen - 3);
+                strFldLen = Convert.ToString(nFldLen - 3);
+                strFldLen = strFldLen.PadLeft(4, '0');
+
+                // advstrFldStart.Format("%05d", nFldStart);
+                strFldStart = Convert.ToString(nFldStart);
+                strFldStart = strFldStart.PadLeft(5, '0');
+
+                nFldStart += nFldLen - 3;
+
+                // advstrMuci += (LPCSTR)advstrFldName;
+                baMuci = ByteArray.Add(baMuci, baFldName);
+                // advstrMuci += (LPCSTR)advstrFldLen;
+                baMuci = ByteArray.Add(baMuci, Encoding.UTF8.GetBytes(strFldLen));
+                // advstrMuci += (LPCSTR)advstrFldStart;
+                baMuci = ByteArray.Add(baMuci, Encoding.UTF8.GetBytes(strFldStart));
+
+                baBody = ByteArray.Add(baBody, baFldContent);
+                SKIP:
+                if (bEnd)
+                    break;
+                nStartPos = nPos + 1;
+            }
+
+
+            nRecLen = baMuci.Length + 1
+                + baBody.Length + 1 + 24;
+
+            /*
+            advstrText.Format(
+                "%05d",
+                nRecLen);
+
+            memcpy(header.reclen,
+                (LPCSTR)advstrText,
+                advstrText.GetLengthA());
+            */
+            header.RecLength = nRecLen;
+
+
+            /*
+            advstrText.Format(
+                "%05d",
+                sizeof(header) + advstrMuci.GetLengthA() + 1);
+            memcpy(header.baseaddr,
+                (LPCSTR)advstrText,
+                advstrText.GetLengthA());
+            */
+            header.BaseAddress = 24 + baMuci.Length + 1;
+
+            // ForceUNIMARCHeader(&header);
+
+            /*
+            In USMARC format, leader postion 09, one character indicate the character coding scheme:
+
+            09 - Character coding scheme
+            Identifies the character coding scheme used in the record. 
+            # - MARC-8
+            a - UCS/Unicode
+            (http://lcweb.loc.gov/marc/bibliographic/ecbdldrd.html)
+            */
+
+
+
+            //baTarget.SetSize(nRecLen);
+
+            /*
+            memcpy(baTarget.GetData(), 
+                (char *)&header,
+                sizeof(header));
+            */
+            baResult = ByteArray.Add(baResult, header.GetBytes());
+
+
+            /*
+            memcpy((char *)baTarget.GetData() + sizeof(header), 
+                (LPCSTR)advstrMuci,
+                advstrMuci.GetLengthA());
+            */
+            baResult = ByteArray.Add(baResult, baMuci);
+
+            /*
+            *((char *)baTarget.GetData() + sizeof(header) + advstrMuci.GetLengthA())
+                = FLDEND;
+            */
+            baResult = ByteArray.Add(baResult, (byte)FLDEND);
+
+            /*
+            memcpy((char *)baTarget.GetData() + sizeof(header)+ advstrMuci.GetLengthA() + 1, 
+                (LPCSTR)advstrBody,
+                advstrBody.GetLengthA());
+            */
+            baResult = ByteArray.Add(baResult, baBody);
+
+            /*
+            *((char *)baTarget.GetData() + nRecLen - 1)
+                = RECEND;
+            */
+            baResult = ByteArray.Add(baResult, (byte)RECEND);
+
+            return 0;
+        }
+
+        #endregion
     }
 
 

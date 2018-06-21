@@ -130,5 +130,29 @@ namespace TestZClient.Properties {
                 this["password"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string queryString {
+            get {
+                return ((string)(this["queryString"]));
+            }
+            set {
+                this["queryString"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("easy")]
+        public string queryStyle {
+            get {
+                return ((string)(this["queryStyle"]));
+            }
+            set {
+                this["queryStyle"] = value;
+            }
+        }
     }
 }

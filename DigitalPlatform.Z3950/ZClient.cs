@@ -19,6 +19,7 @@ namespace DigitalPlatform.Z3950
 
         string _currentRefID = "0";
 
+        // 经过字符集协商确定的记录强制使用的编码方式。如果为 null，表示未经过字符集协商
         public Encoding ForcedRecordsEncoding = null;
 
         public event EventHandler Closed = null;
@@ -68,6 +69,10 @@ namespace DigitalPlatform.Z3950
         {
             {
                 // 处理通讯缓冲区中可能残留的 Close Response
+                // return value:
+                //      -1  error
+                //      0   不是Close
+                //      1   是Close，已经迫使ZChannel处于尚未初始化状态
                 InitialResult result = await CheckServerCloseRequest();
             }
 
@@ -107,6 +112,16 @@ namespace DigitalPlatform.Z3950
         {
             // 说明初始化结果的文字
             public string ResultInfo { get; set; }
+
+            public InitialResult()
+            {
+
+            }
+
+            public InitialResult(Result source)
+            {
+                Result.CopyTo(source, this);
+            }
 
             public override string ToString()
             {
@@ -177,7 +192,10 @@ namespace DigitalPlatform.Z3950
                 return new InitialResult { Value = -1, ErrorInfo = "CBERTree::InitRequest() fail!" };
 
             if (this._channel.Connected == false)
+            {
+                this.CloseConnection();
                 return new InitialResult { Value = -1, ErrorInfo = "socket尚未连接或者已经被关闭" };
+            }
 
 
 
@@ -194,7 +212,7 @@ namespace DigitalPlatform.Z3950
             RecvResult result = await this._channel.SendAndRecv(
                 baPackage);
             if (result.Value == -1)
-                return new InitialResult { Value = -1, ErrorInfo = result.ErrorInfo };
+                return new InitialResult(result);
 
 #if DUMPTOFILE
 	DeleteFile("initresponse.bin");
@@ -343,7 +361,17 @@ namespace DigitalPlatform.Z3950
 
         public class SearchResult : Result
         {
-            public int ResultCount { get; set; }
+            public long ResultCount { get; set; }
+
+            public SearchResult()
+            {
+
+            }
+
+            public SearchResult(Result source)
+            {
+                Result.CopyTo(source, this);
+            }
 
             public override string ToString()
             {
@@ -395,14 +423,24 @@ namespace DigitalPlatform.Z3950
 
 
             // m_search_response.m_lErrorCode = 0;
+            byte[] baPackage = null;
 
-            int nRet = tree.SearchRequest(struSearch_request,
-                out byte[] baPackage);
+            try
+            {
+                // 这里可能抛出异常
+                tree.SearchRequest(struSearch_request,
+                     out baPackage);
+            }
+            catch (Exception ex)
+            {
+                return new SearchResult { Value = -1, ErrorInfo = "CBERTree::SearchRequest() Exception: " + ex.Message };
+            }
 
-            if (nRet == -1)
-                return new SearchResult { Value = -1, ErrorInfo = "CBERTree::SearchRequest() fail!" };
             if (this._channel.Connected == false)
+            {
+                this.CloseConnection();
                 return new SearchResult { Value = -1, ErrorInfo = "socket尚未连接或者已经被关闭" };
+            }
 
 #if DUMPTOFILE
             string strBinFile = this.MainForm.DataDir + "\\searchrequest.bin";
@@ -428,7 +466,7 @@ namespace DigitalPlatform.Z3950
                 RecvResult result = await this._channel.SendAndRecv(
         baPackage);
                 if (result.Value == -1)
-                    return new SearchResult { Value = -1, ErrorInfo = result.ErrorInfo };
+                    return new SearchResult(result);
 
 #if NO
 #if DEBUG
@@ -453,7 +491,7 @@ namespace DigitalPlatform.Z3950
             }
 
             SEARCH_RESPONSE search_response = new SEARCH_RESPONSE();
-            nRet = BerTree.GetInfo_SearchResponse(tree1.GetAPDuRoot(),
+            int nRet = BerTree.GetInfo_SearchResponse(tree1.GetAPDuRoot(),
                                    ref search_response,
                                    true,
                                    out string strError);
@@ -480,24 +518,25 @@ namespace DigitalPlatform.Z3950
             }
         }
 
-        // 将 XML 检索式变化为简明格式检索式
+        // 将 XML 检索式变化为 Search() API 所用的检索式
+        // 注： 这是一个辅助性方法，基本 Z39.50 功能可以不包含它。API 所用的检索式可以不必从 XML 检索式转换而来
         // parameters:
         //      strQueryXml XML 形态的检索式
         //      strQueryString [out] Search() 专用的检索式
-        // return:
-        //      
-        public static int GetQueryString(
+        // result.Value
+        //      -1  出错
+        //      0   没有发生转换。例如 strQueryXml 为空的情况
+        //      1   成功
+        public static Result ConvertQueryString(
             UseCollection use_list,
             string strQueryXml,
             IsbnConvertInfo isbnconvertinfo,
-            out string strQueryString,
-            out string strError)
+            out string strQueryString)
         {
-            strError = "";
             strQueryString = "";
 
             if (String.IsNullOrEmpty(strQueryXml) == true)
-                return 0;
+                return new Result();
 
             XmlDocument dom = new XmlDocument();
             try
@@ -506,8 +545,7 @@ namespace DigitalPlatform.Z3950
             }
             catch (Exception ex)
             {
-                strError = "strQueryXml装入XMLDOM时出错: " + ex.Message;
-                return -1;
+                return new Result { Value = -1, ErrorInfo = "strQueryXml装入XMLDOM时出错: " + ex.Message };
             }
 
             XmlNodeList nodes = dom.DocumentElement.SelectNodes("line");
@@ -518,10 +556,10 @@ namespace DigitalPlatform.Z3950
                 string strWord = node.GetAttribute("word");
                 string strFrom = node.GetAttribute("from");
 
-                if (strWord == "")
-                    continue;
+                if (string.IsNullOrEmpty(strWord) == true)
+                    continue;   // 检索词为空的行会被跳过。
 
-                strLogic = GetLogicString(strLogic);    // 2011/8/30
+                strLogic = GetLogicString(strLogic);
 
                 if (strQueryString != "")
                     strQueryString += " " + strLogic + " ";
@@ -532,42 +570,23 @@ namespace DigitalPlatform.Z3950
 
                 string strValue = use_list.GetValue(strFrom);
                 if (strValue == null)
-                {
-                    strError = "名称 '" + strFrom + "' 在use表中没有找到对应的编号";
-                    return -1;
-                }
+                    return new Result { Value = -1, ErrorInfo = "名称 '" + strFrom + "' 在use表中没有找到对应的编号" };
 
                 // 对ISBN检索词进行预处理
                 if (strFrom == "ISBN"
                     && isbnconvertinfo != null)
                 {
-                    /*
-                    // return:
-                    //      -1  出错
-                    //      0   没有必要转换
-                    //      1   已经转换
-                    nRet = isbnconvertinfo.ConvertISBN(ref strWord,
-                out strError);
-                    if (nRet == -1)
-                    {
-                        strError = "在处理ISBN字符串 '" + strWord + "' 过程中出错: " + strError;
-                        return -1;
-                    }
-                     * */
-                    List<string> isbns = null;
-                    // return:
-                    //      -1  出错
-                    //      0   没有必要转换
-                    //      1   已经转换
-                    nRet = isbnconvertinfo.ConvertISBN(strWord,
-                        out isbns,
-                        out strError);
-                    if (nRet == -1)
-                    {
-                        strError = "在处理ISBN字符串 '" + strWord + "' 过程中出错: " + strError;
-                        return -1;
-                    }
 
+                    // result.Value:
+                    //      -1  出错
+                    //      0   没有必要转换
+                    //      1   已经转换
+                    Result result = isbnconvertinfo.ConvertISBN(strWord,
+                        out List<string> isbns);
+                    if (result.Value == -1)
+                        return new Result { Value = -1, ErrorInfo = "在处理ISBN字符串 '" + strWord + "' 过程中出错: " + result.ErrorInfo };
+
+                    // 如果一个 ISBN 变成了多个 ISBN，要构造为 OR 方式的检索式。但遗憾的是可能有些 Z39.50 服务器并不支持 OR 运算检索
                     int j = 0;
                     foreach (string isbn in isbns)
                     {
@@ -590,7 +609,10 @@ namespace DigitalPlatform.Z3950
                     + strValue;
             }
 
-            return 1;
+            return new Result
+            {
+                Value = 1
+            };
         }
 
         static string GetLogicString(string strText)
@@ -605,6 +627,16 @@ namespace DigitalPlatform.Z3950
         public class PresentResult : Result
         {
             public RecordCollection Records { get; set; }
+
+            public PresentResult()
+            {
+
+            }
+
+            public PresentResult(Result source)
+            {
+                Result.CopyTo(source, this);
+            }
 
             public override string ToString()
             {
@@ -696,11 +728,14 @@ namespace DigitalPlatform.Z3950
             struPresent_request.m_strPreferredRecordSyntax = strPreferredRecordSyntax;
 
             int nRet = tree.PresentRequest(struPresent_request,
-                                     out byte [] baPackage);
+                                     out byte[] baPackage);
             if (nRet == -1)
                 return new PresentResult { Value = -1, ErrorInfo = "CBERTree::PresentRequest() fail!" };
             if (this._channel.Connected == false)
+            {
+                this.CloseConnection();
                 return new PresentResult { Value = -1, ErrorInfo = "socket尚未连接或者已经被关闭" };
+            }
 
 #if DUMPTOFILE
 	DeleteFile("presentrequest.bin");
@@ -717,7 +752,7 @@ namespace DigitalPlatform.Z3950
                 RecvResult result = await this._channel.SendAndRecv(
         baPackage);
                 if (result.Value == -1)
-                    return new PresentResult { Value = -1, ErrorInfo = result.ErrorInfo };
+                    return new PresentResult(result);
 
 #if DUMPTOFILE
 	DeleteFile("presendresponse.bin");
@@ -784,9 +819,13 @@ namespace DigitalPlatform.Z3950
             if (this._channel.Connected == false || this._channel.DataAvailable == false)
                 return new InitialResult(); // 没有发现问题
 
-            RecvResult result = await this._channel.SimpleRecvTcpPackage();
+            // 注意调用返回后如果发现出错，调主要主动 Close 和重新分配 TcpClient
+            RecvResult result = await ZChannel.SimpleRecvTcpPackage(this._channel._client);
             if (result.Value == -1)
+            {
+                this.CloseConnection();
                 return new InitialResult { Value = -1, ErrorInfo = result.ErrorInfo };
+            }
 
             BerTree tree1 = new BerTree();
             tree1.m_RootNode.BuildPartTree(result.Package,
@@ -806,7 +845,10 @@ namespace DigitalPlatform.Z3950
                 ref closeStruct,
                 out string strError);
             if (nRet == -1)
+            {
+                this.CloseConnection();
                 return new InitialResult { Value = -1, ErrorInfo = strError };
+            }
 
             this.CloseConnection();
             return new InitialResult { Value = 1, ResultInfo = closeStruct.m_strDiagnosticInformation };

@@ -13,6 +13,7 @@ using static DigitalPlatform.Z3950.ZClient;
 using DigitalPlatform.Text;
 using DigitalPlatform.Z3950;
 using DigitalPlatform.Marc;
+using System.Web;
 
 namespace TestZClient
 {
@@ -114,6 +115,15 @@ namespace TestZClient
             this.textBox_groupID.Text = Settings.Default.groupID;
             this.textBox_userName.Text = Settings.Default.userName;
             this.textBox_password.Text = Settings.Default.password;
+
+            this.textBox_queryString.Text = Settings.Default.queryString;
+
+            string strQueryStyle = Settings.Default.queryStyle;
+            if (strQueryStyle == "easy")
+                this.radioButton_query_easy.Checked = true;
+            else
+                this.radioButton_query_origin.Checked = true;
+
         }
 
         void SaveSettings()
@@ -133,9 +143,18 @@ namespace TestZClient
             Settings.Default.userName = this.textBox_userName.Text;
             Settings.Default.password = this.textBox_password.Text;
 
+            Settings.Default.queryString = this.textBox_queryString.Text;
+
+            if (this.radioButton_query_easy.Checked == true)
+                Settings.Default.queryStyle = "easy";
+            else
+                Settings.Default.queryStyle = "origin";
+
             Settings.Default.Save();
         }
 
+        // 创建只包含一个检索词的简单 XML 检索式
+        // 注：这种 XML 检索式不是 Z39.50 函数库必需的。只是用它来方便构造 API 检索式的过程
         public string BuildQueryXml()
         {
             XmlDocument dom = new XmlDocument();
@@ -163,7 +182,7 @@ namespace TestZClient
 
         TargetInfo _targetInfo = new TargetInfo();
 
-        int _resultCount = 0;   // 检索命中条数
+        long _resultCount = 0;   // 检索命中条数
         int _fetched = 0;   // 已经 Present 获取的条数
 
         private async void button_search_Click(object sender, EventArgs e)
@@ -210,18 +229,31 @@ namespace TestZClient
                     + (_targetInfo.IsbnWild == true ? "wild," : "")
                 };
 
-                // 构造 XML 检索式
-                string strQueryXml = BuildQueryXml();
-                // 将 XML 检索式变化为简明格式检索式
-                int nRet = ZClient.GetQueryString(
-                    this._useList,
-                    strQueryXml,
-                     isbnconvertinfo,
-                    out string strQueryString,
-                    out strError);
-                if (nRet == -1)
-                    goto ERROR1;
+                string strQueryString = "";
 
+                if (this.radioButton_query_easy.Checked)
+                {
+                    // 创建只包含一个检索词的简单 XML 检索式
+                    // 注：这种 XML 检索式不是 Z39.50 函数库必需的。只是用它来方便构造 API 检索式的过程
+                    string strQueryXml = BuildQueryXml();
+                    // 将 XML 检索式变化为 API 检索式
+                    Result result = ZClient.ConvertQueryString(
+                        this._useList,
+                        strQueryXml,
+                        isbnconvertinfo,
+                        out strQueryString);
+                    if (result.Value == -1)
+                    {
+                        strError = result.ErrorInfo;
+                        goto ERROR1;
+                    }
+
+                    this.textBox_queryString.Text = strQueryString; // 便于调试观察
+                }
+                else
+                    strQueryString = this.textBox_queryString.Text;
+
+                REDO_SEARCH:
                 {
                     // return Value:
                     //      -1  出错
@@ -240,14 +272,29 @@ namespace TestZClient
                     */
                 }
 
+                // result.Value:
+                //		-1	error
+                //		0	fail
+                //		1	succeed
+                // result.ResultCount:
+                //      命中结果集内记录条数 (当 result.Value 为 1 时)
                 SearchResult search_result = await _zclient.Search(
         strQueryString,
         _targetInfo.DefaultQueryTermEncoding,
         _targetInfo.DbNames,
         _targetInfo.PreferredRecordSyntax,
         "default");
-
-                this.AppendHtml("<div class='debug green' >检索共命中记录 " + search_result.ResultCount + "</div>");
+                if (search_result.Value == -1 || search_result.Value == 0)
+                {
+                    this.AppendHtml("<div class='debug error' >检索出错 " + search_result.ErrorInfo + "</div>");
+                    if (search_result.ErrorCode == "ConnectionAborted")
+                    {
+                        this.AppendHtml("<div class='debug error' >自动重试检索 ...</div>");
+                        goto REDO_SEARCH;
+                    }
+                }
+                else
+                    this.AppendHtml("<div class='debug green' >检索共命中记录 " + search_result.ResultCount + "</div>");
 
 #if NO
             this.Invoke(
@@ -263,7 +310,7 @@ namespace TestZClient
                     this.button_nextBatch.Enabled = false;
 #endif
 
-                await FetchRecords();
+                await FetchRecords(_targetInfo);
 
                 return;
             }
@@ -272,6 +319,7 @@ namespace TestZClient
                 EnableControls(true);
             }
             ERROR1:
+            this.AppendHtml("<div class='debug error' >" + HttpUtility.HtmlEncode(strError) + "</div>");
             MessageBox.Show(this, strError);
         }
 
@@ -289,9 +337,22 @@ namespace TestZClient
                 this.button_nextBatch.Text = ">> ";
             else
                 this.button_nextBatch.Text = ">> " + _fetched + "/" + _resultCount;
+
+            this.textBox_database.Enabled = bEnable;
+            this.textBox_groupID.Enabled = bEnable;
+            this.textBox_password.Enabled = bEnable;
+            //this.textBox_queryString.Enabled = bEnable;
+            //this.textBox_queryWord.Enabled = bEnable;
+            this.textBox_serverAddr.Enabled = bEnable;
+            this.textBox_serverPort.Enabled = bEnable;
+            this.textBox_userName.Enabled = bEnable;
+
+            this.groupBox1.Enabled = bEnable;
+
+            SetQueryEnabled(bEnable);
         }
 
-        async Task FetchRecords()
+        async Task FetchRecords(TargetInfo targetinfo)
         {
             EnableControls(false);  // 暂时禁用
 
@@ -300,7 +361,7 @@ namespace TestZClient
                 PresentResult present_result = await _zclient.Present(
                     "default",
                     _fetched,
-                    Math.Min(_resultCount - _fetched, 10),
+                    Math.Min((int)_resultCount - _fetched, 10),
                     10,
                     "F",
                     _targetInfo.PreferredRecordSyntax);
@@ -312,7 +373,7 @@ namespace TestZClient
                 {
                     // 把 MARC 记录显示出来
                     AppendMarcRecords(present_result.Records,
-                        _zclient.ForcedRecordsEncoding,
+                        _zclient.ForcedRecordsEncoding == null ? targetinfo.DefaultRecordsEncoding : _zclient.ForcedRecordsEncoding,
                         _fetched);
                     _fetched += present_result.Records.Count;
                 }
@@ -350,13 +411,22 @@ namespace TestZClient
             {
                 this.AppendHtml("<div class='debug green' >" + (i + 1) + ") ===</div>");
 
+                if (string.IsNullOrEmpty(record.m_strDiagSetID) == false)
+                {
+                    // 这是诊断记录
+
+                    this.AppendHtml("<div>" + HttpUtility.HtmlEncode(record.ToString()).Replace("\r\n", "<br/>") + "</div>");
+                    i++;
+                    continue;
+                }
+
                 // 把byte[]类型的MARC记录转换为机内格式
                 // return:
                 //		-2	MARC格式错
                 //		-1	一般错误
                 //		0	正常
                 int nRet = MarcUtil.ConvertByteArrayToMarcRecord(record.m_baRecord,
-                    encoding,
+                    encoding == null ? Encoding.GetEncoding(936) : encoding,
                     true,
                     out string strMARC,
                     out string strError);
@@ -490,7 +560,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         // 获得下一批记录
         private async void button_nextBatch_Click(object sender, EventArgs e)
         {
-            await FetchRecords();
+            await FetchRecords(_targetInfo);
         }
 
         // 停止检索等操作
@@ -500,6 +570,50 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             this.button_stop.Enabled = false;
             _zclient.CloseConnection();
             EnableControls(true);
+        }
+
+        // 多通道测试
+        private void MenuItem_multiChannelTest_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void radioButton_query_origin_CheckedChanged(object sender, EventArgs e)
+        {
+            SetQueryEnabled(true);
+        }
+
+        void SetQueryEnabled(bool bEnable)
+        {
+            this.radioButton_query_easy.Enabled = bEnable;
+            this.radioButton_query_origin.Enabled = bEnable;
+            if (bEnable)
+            {
+                if (this.radioButton_query_easy.Checked == true)
+                {
+                    this.textBox_queryWord.Enabled = true;
+                    this.comboBox_use.Enabled = true;
+                    this.textBox_queryString.Enabled = false;
+                }
+                else
+                {
+                    this.textBox_queryWord.Enabled = false;
+                    this.comboBox_use.Enabled = false;
+                    this.textBox_queryString.Enabled = true;
+                }
+            }
+            else
+            {
+                this.textBox_queryWord.Enabled = false;
+                this.comboBox_use.Enabled = false;
+                this.textBox_queryString.Enabled = false;
+            }
+        }
+
+        private void MenuItem_escapeString_Click(object sender, EventArgs e)
+        {
+            EscapeStringDialog dlg = new EscapeStringDialog();
+            dlg.ShowDialog(this);
         }
     }
 }

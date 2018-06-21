@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
 
 using DigitalPlatform.Xml;
 using DigitalPlatform.Drawing;
 using DigitalPlatform.Forms;
 using DigitalPlatform.IO;
 using DigitalPlatform.Text;
-using System.Xml;
 
 namespace dp2Capo.Install
 {
@@ -110,6 +104,7 @@ MessageBoxDefaultButton.Button2);
 
         private void button_Cancel_Click(object sender, EventArgs e)
         {
+            // TODO: 这里有时会出错
             RestoreDataDir();
 
             this.DialogResult = System.Windows.Forms.DialogResult.Cancel;
@@ -177,7 +172,7 @@ MessageBoxDefaultButton.Button2);
 
             ListViewUtil.ChangeItemText(item, COLUMN_DATADIR, dlg.DataDir);
             return;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -216,7 +211,7 @@ MessageBoxDefaultButton.Button2);
             // 重新设置序号
             RefreshInstanceName();
             return;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -273,9 +268,16 @@ MessageBoxDefaultButton.Button2);
 
             if (Directory.Exists(this.DataDir))
             {
+#if NO
                 string strError = "";
                 int nRet = PathUtil.CopyDirectory(this.DataDir, this.ShadowDataDir, true, out strError);
                 if (nRet == -1)
+                {
+                    MessageBox.Show(this, strError);
+                    return;
+                }
+#endif
+                if (BackupDataDir(out string strError) == -1)
                 {
                     MessageBox.Show(this, strError);
                     return;
@@ -301,9 +303,16 @@ MessageBoxDefaultButton.Button2);
 
             if (Directory.Exists(this.DataDir))
             {
+#if NO
                 string strError = "";
                 int nRet = PathUtil.CopyDirectory(this.DataDir, this.ShadowDataDir, true, out strError);
                 if (nRet == -1)
+                {
+                    MessageBox.Show(this, strError);
+                    return;
+                }
+#endif
+                if (BackupDataDir(out string strError) == -1)
                 {
                     MessageBox.Show(this, strError);
                     return;
@@ -337,9 +346,29 @@ MessageBoxDefaultButton.Button2);
             if (string.IsNullOrEmpty(this.ShadowDataDir) == false)
                 PathUtil.DeleteDirectory(this.ShadowDataDir);
             return true;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
             return false;
+        }
+
+        int BackupDataDir(out string strError)
+        {
+            strError = "";
+            PathUtil.DeleteDirectory(this.ShadowDataDir);
+            PathUtil.CreateDirIfNeed(this.ShadowDataDir);
+
+            List<string> data_dirs = GetInstanceDataDir(this.DataDir);
+            foreach (string data_dir in data_dirs)
+            {
+                int nRet = PathUtil.CopyDirectory(data_dir,
+                    Path.Combine(this.ShadowDataDir, Path.GetFileName(data_dir)),
+true,
+out strError);
+                if (nRet == -1)
+                    return -1;
+            }
+
+            return 0;
         }
 
         // 恢复对话框打开前的数据目录内容
@@ -355,16 +384,35 @@ MessageBoxDefaultButton.Button2);
                 goto ERROR1;
             }
 
-            int nRet = PathUtil.CopyDirectory(this.ShadowDataDir, this.DataDir, true, out strError);
+            REDO:
+            // 事先专门删除每个实例目录。实例目录就是名字为 log 以外的名字的目录。this.DataDir 下的普通文件不会被删除
+            List<string> data_dirs = GetInstanceDataDir(this.DataDir);
+            foreach (string data_dir in data_dirs)
+            {
+                PathUtil.DeleteDirectory(data_dir);
+            }
+
+            int nRet = PathUtil.CopyDirectory(this.ShadowDataDir,
+            this.DataDir,
+            false,
+            out strError);
             if (nRet == -1)
             {
                 strError = "恢复数据目录原有内容时出错: " + strError;
+                DialogResult result = MessageBox.Show(this,
+strError + "。\r\n\r\n是否要重试？",
+"InstallDialog",
+MessageBoxButtons.RetryCancel,
+MessageBoxIcon.Question,
+MessageBoxDefaultButton.Button2);
+                if (result == DialogResult.Retry)
+                    goto REDO;
                 goto ERROR1;
             }
 
             PathUtil.DeleteDirectory(this.ShadowDataDir);
             return;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -383,7 +431,7 @@ MessageBoxDefaultButton.Button2);
         // 用于备份当前对话框修改以前的数据目录
         public string ShadowDataDir { get; set; }
 
-        #endregion
+#endregion
 
         const int COLUMN_NAME = 0;
         const int COLUMN_ERRORINFO = 1;
@@ -451,7 +499,7 @@ MessageBoxDefaultButton.Button2);
                 {
                     dom.Load(strFileName);
                 }
-                catch(FileNotFoundException)
+                catch (FileNotFoundException)
                 {
                     dp2Library_url = "";
                     dp2MServer_url = "";
@@ -494,6 +542,8 @@ MessageBoxDefaultButton.Button2);
             var dis = root.GetDirectories();
             foreach (DirectoryInfo di in dis)
             {
+                if (di.Name.ToLower() == "log")
+                    continue;
                 results.Add(di.FullName);
             }
 
@@ -521,7 +571,7 @@ MessageBoxDefaultButton.Button2);
 
                 if (string.IsNullOrEmpty(strDataDir) == false)
                 {
-                REDO_DELETE_DATADIR:
+                    REDO_DELETE_DATADIR:
                     // 删除数据目录
                     try
                     {
@@ -545,7 +595,7 @@ MessageBoxDefaultButton.Button2);
 
             if (string.IsNullOrEmpty(this.DataDir) == false)
             {
-            REDO_DELETE_DATADIR:
+                REDO_DELETE_DATADIR:
                 // 删除数据目录
                 try
                 {

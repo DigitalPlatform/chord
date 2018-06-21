@@ -143,14 +143,12 @@ namespace DigitalPlatform.Z3950
                 return false;
         }
 
-
         // 将输入的表达式分割为独立的单元
         // parameters
         int GetAToken()
         {
             this.m_strToken = "";
             this.m_nType = -1;
-
 
             while (IsWhite(this.CurrentChar) == true) //去掉空格、\t、\r、\n
             {
@@ -257,9 +255,7 @@ namespace DigitalPlatform.Z3950
             m_nType = GetReserveType(m_strToken);
 
             this.m_nOffs += nLen;
-
             return 0;
-
         }
 
         class RESERVEENTRY
@@ -272,7 +268,6 @@ namespace DigitalPlatform.Z3950
                 m_strName = strName;
                 m_nType = nType;
             }
-
         }
 
 

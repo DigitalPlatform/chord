@@ -29,5 +29,11 @@
     <Setting Name="password" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="queryString" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="queryStyle" Type="System.String" Scope="User">
+      <Value Profile="(Default)">easy</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

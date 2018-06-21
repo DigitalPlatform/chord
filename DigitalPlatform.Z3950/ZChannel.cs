@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -268,19 +269,31 @@ namespace DigitalPlatform.Z3950
         public async Task<RecvResult> SendAndRecv(byte[] baSend)
         {
             {
-                Result result = await this.SimpleSendTcpPackage(
+                Result result = await SimpleSendTcpPackage(this._client,
                     baSend,
                     baSend.Length);
                 if (result.Value == -1 || result.Value == 1)
-                    return new RecvResult { Value = -1, ErrorInfo = result.ErrorInfo };
+                {
+                    this.CloseSocket();
+                    return new RecvResult(result)
+                    {
+                        Value = -1,
+                        //ErrorInfo = result.ErrorInfo,
+                        //ErrorCode = result.ErrorCode
+                    };
+                }
             }
 
             {
                 //byte[] baPackage = null;
                 //int nRecvLen = 0;
-                RecvResult result = await this.SimpleRecvTcpPackage();
+                // 注意调用返回后如果发现出错，调主要主动 Close 和重新分配 TcpClient
+                RecvResult result = await SimpleRecvTcpPackage(this._client);
                 if (result.Value == -1)
-                    return new RecvResult { Value = -1, ErrorInfo = result.ErrorInfo };
+                {
+                    this.CloseSocket();
+                    return new RecvResult(result);
+                }
 
 #if DEBUG
                 if (result.Package != null)
@@ -304,6 +317,16 @@ namespace DigitalPlatform.Z3950
             public int Length { get; set; }
             public byte[] Package { get; set; }
 
+            public RecvResult()
+            {
+
+            }
+
+            public RecvResult(Result source)
+            {
+                Result.CopyTo(source, this);
+            }
+
             public override string ToString()
             {
                 StringBuilder text = new StringBuilder(base.ToString());
@@ -318,7 +341,9 @@ namespace DigitalPlatform.Z3950
         //      -1  出错
         //      0   正确发出
         //      1   发出前，发现流中有未读入的数据
-        async Task<Result> SimpleSendTcpPackage(byte[] baPackage,
+        public static async Task<Result> SimpleSendTcpPackage(
+            TcpClient _client,
+            byte[] baPackage,
             int nLen)
         {
             Result result = new Result();
@@ -330,7 +355,7 @@ namespace DigitalPlatform.Z3950
                 return result;
             }
 
-            if (this._client == null)
+            if (_client == null)
             {
                 result.Value = -1;
                 result.ErrorInfo = "用户中断";
@@ -354,6 +379,12 @@ namespace DigitalPlatform.Z3950
             }
             catch (Exception ex)
             {
+                if (ex is IOException && ex.InnerException is SocketException)
+                {
+                    // "ConnectionAborted"
+                    result.ErrorCode = ((SocketException)ex.InnerException).SocketErrorCode.ToString();
+                }
+
                 result.Value = -1;
                 result.ErrorInfo = "send出错: " + ex.Message;
                 // this.CloseSocket();
@@ -364,9 +395,10 @@ namespace DigitalPlatform.Z3950
         }
 
         // 接收响应包
-        internal async Task<RecvResult> SimpleRecvTcpPackage()
+        // 注意调用返回后如果发现出错，调主要主动 Close 和重新分配 TcpClient
+        public static async Task<RecvResult> SimpleRecvTcpPackage(TcpClient _client)
         {
-            string strError = "";
+            // string strError = "";
             RecvResult result = new RecvResult();
 
             int nInLen;
@@ -383,8 +415,11 @@ namespace DigitalPlatform.Z3950
             {
                 if (_client == null)
                 {
-                    strError = "通讯中断";
-                    goto ERROR1;
+                    return new RecvResult
+                    {
+                        Value = -1,
+                        ErrorInfo = "通讯中断"
+                    };
                 }
 
                 try
@@ -395,24 +430,40 @@ namespace DigitalPlatform.Z3950
                 }
                 catch (SocketException ex)
                 {
+
                     if (ex.ErrorCode == 10035)
                     {
                         System.Threading.Thread.Sleep(100);
                         continue;
                     }
-                    strError = "recv出错: " + ex.Message;
-                    goto ERROR1;
+                    return new RecvResult
+                    {
+                        Value = -1,
+                        ErrorInfo = "recv出错1: " + ex.Message,
+                        // "ConnectionAborted"
+                        ErrorCode = ((SocketException)ex).SocketErrorCode.ToString()
+                    };
                 }
                 catch (Exception ex)
                 {
-                    strError = "recv出错: " + ex.Message;
-                    goto ERROR1;
+                    if (ex is IOException && ex.InnerException is SocketException)
+                    {
+                        // "ConnectionAborted"
+                        result.ErrorCode = ((SocketException)ex.InnerException).SocketErrorCode.ToString();
+                    }
+                    result.ErrorInfo = "recv出错2: " + ex.Message;
+                    result.Value = -1;
+                    return result;
                 }
 
                 if (wRet == 0)
                 {
-                    strError = "Closed by remote peer";
-                    goto ERROR1;
+                    return new RecvResult
+                    {
+                        Value = -1,
+                        ErrorCode = "Closed",
+                        ErrorInfo = "Closed by remote peer"
+                    };
                 }
 
                 // 得到包的长度
@@ -452,10 +503,17 @@ namespace DigitalPlatform.Z3950
             }
 
             return result;
+#if NO
             ERROR1:
             // this.CloseSocket();
             // baPackage = null;
-            return new RecvResult { Value = -1, ErrorInfo = strError };
+            return new RecvResult
+            {
+                Value = -1,
+                ErrorInfo = strError,
+                ErrorCode = result.ErrorCode
+            };
+#endif
         }
 
         // 流中是否还有未读入的数据?

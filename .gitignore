@@ -194,3 +194,4 @@ ModelManifest.xml
 ChordInstaller/*.zip
 ChordInstaller/*_app/
 .vs/
+*.nupkg
