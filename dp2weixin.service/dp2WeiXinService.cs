@@ -4446,8 +4446,8 @@ public string ErrorCode { get; set; }
 
                         if (libs.Contains(bindLibraryCode) == true)
                         {
-                            bindLibraryCode = libraryCode;
-                            thislibName = libraryCode;
+                            //bindLibraryCode = libraryCode;
+                            thislibName = bindLibraryCode;//libraryCode;
                         }
                         else
                         {
