@@ -14,9 +14,8 @@ namespace WebZ.Server.database
         [BsonId]    // 允许 GUID
         public string id { get;  set; } 
 
-
         //==========
-        //Z39.50服务器配置字段
+        //Z39.50服务器基本配置信息
         //==========
         public string name { get; set; } // 服务器名称
         public string addr { get; set; } // 服务器地址
@@ -31,7 +30,7 @@ namespace WebZ.Server.database
         public string password { get; set; } // 密码  //加密todo
 
         //===
-        // 其它配置字段
+        // Z39.50服务器高级配置项
         public int recsperbatch { get; set; }
         public string defaultMarcSyntaxOID { get; set; }
         public string defaultElementSetName { get; set; }
@@ -50,6 +49,9 @@ namespace WebZ.Server.database
         public string recordSyntaxAndEncodingBinding { get; set; } //先不加
         public int charNegoUtf8 { get; set; }
         public int charNego_recordsInSeletedCharsets { get; set; }
+
+        // 分类号与主题词 放在一个字段 20180621
+        public string[] subjects { get; set; }
 
         //converteacc  //0/1   dp2catalog界面上隐藏了该字段
 
