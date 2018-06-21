@@ -14,25 +14,25 @@ namespace WebZ.ApiControllers
     [Route("api/[controller]")]
     public class ZSerItemController : Controller
     {
+
         // GET: api/<controller>
         [HttpGet]
-        public ApiResult Get(int start,
+        public ApiResult Get(string word,
+                string from,
+                int start,
                 int count)
         {
             ApiResult result = new ApiResult();
             try
             {
-                List<ZServerItem> list = ServerInfo.ZServerDb.Get(start, count).Result;
 
-                //ZServerItem item = new ZServerItem();
-                //item.id= Guid.NewGuid().ToString();
-                //item.port = "210";
-                //item.hostName = "测试";
-                //item.creatorPhone = "123";
-                //item.createTime = DateTime.Now.ToString();
-                //list.Add(item);
+                //if (String.IsNullOrEmpty(resultSet) == true)
+                //    resultSet = "webz-" + Guid.NewGuid();
 
-                result.data = list;
+                result.data = ServerInfo.Instance.Search(word,
+                    from,
+                    start, 
+                    count);
             }
             catch (Exception ex)
             {
@@ -50,7 +50,7 @@ namespace WebZ.ApiControllers
             ApiResult result = new ApiResult();
             try
             {
-                result.data = ServerInfo.ZServerDb.GetById(id).Result;
+                result.data = ServerInfo.Instance.GetOneZServer(id);
             }
             catch (Exception ex)
             {
@@ -73,8 +73,10 @@ namespace WebZ.ApiControllers
             }
             try
             {
+                // 创建者ip地址
                 item.creatorIP = Request.HttpContext.Connection.RemoteIpAddress.ToString();
-                result.data = ServerInfo.ZServerDb.Add(item).Result;
+
+                result.data = ServerInfo.Instance.AddZServerItem(item);
             }
             catch (Exception ex)
             {
@@ -85,6 +87,7 @@ namespace WebZ.ApiControllers
             return result;
         }
 
+        // 一般有管理员审核修改
         // PUT api/<controller>/5
         [HttpPut("{id}")]
         public ApiResult Put(string id,[FromBody]ZServerItem item)
@@ -92,11 +95,8 @@ namespace WebZ.ApiControllers
             ApiResult result = new ApiResult();
             try
             {
-                item.creatorIP = Request.HttpContext.Connection.RemoteIpAddress.ToString();
-                item.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
 
-
-                result.data = ServerInfo.ZServerDb.Update(item).Result;
+                result.data = ServerInfo.Instance.UpdateZServerItem(item);
             }
             catch (Exception ex)
             {
@@ -113,11 +113,7 @@ namespace WebZ.ApiControllers
             ApiResult result = new ApiResult();
             try
             {
-                string[] ids = id.Split(new char[] { ',' });
-                foreach (string one in ids)
-                {
-                    ServerInfo.ZServerDb.Delete(one).Wait();
-                }
+                ServerInfo.Instance.DeleteZSererItem(id);
             }
             catch (Exception ex)
             {
@@ -126,5 +122,30 @@ namespace WebZ.ApiControllers
             }
             return result;
         }
+
+
+        //// GET: api/<controller>
+        //[HttpGet]
+        //public ApiResult GetVerifyCodeSMS(string phone)
+        //{
+        //    ApiResult result = new ApiResult();
+        //    try
+        //    {
+        //        string error = "";
+        //        int nRet= ServerInfo.Instance.SendVerifyCodeSMS(phone,out error);
+        //        if (nRet == -1)
+        //        {
+        //            result.errorInfo = error;
+        //            result.errorCode = -1;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.errorInfo = ex.Message;
+        //        result.errorCode = -1;
+        //    }
+
+        //    return result;
+        //}
     }
 }

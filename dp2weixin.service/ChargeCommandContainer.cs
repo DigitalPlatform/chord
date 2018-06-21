@@ -10,12 +10,9 @@ using System.Threading.Tasks;
 using System.Web;
 
 namespace dp2weixin.service
-{
-
-   
+{   
     public class ChargeCommandContainer:List<ChargeCommand>
     {
-
         public string getItemHtml(BiblioItem record)
         {
             string itemTables = "";

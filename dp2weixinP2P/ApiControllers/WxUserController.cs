@@ -21,6 +21,7 @@ namespace dp2weixinWeb.ApiControllers
         public WxUserResult Get()
         {
             //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()开始");
+
             WxUserResult result = new WxUserResult();
             List<WxUserItem> list = wxUserDb.Get(null,null,-1,null,null,false);//.GetUsers();
 
@@ -435,7 +436,7 @@ namespace dp2weixinWeb.ApiControllers
                     Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
                     if (lib == null)
                     {
-                        error = "未找到id="+libId+"对应的图书馆";
+                        error = "未找到id=" + libId + "对应的图书馆";
                         goto ERROR1;
                     }
                     user.libName = lib.Entity.libName;
@@ -448,7 +449,15 @@ namespace dp2weixinWeb.ApiControllers
                 }
                 else
                 {
-                    user = WxUserDatabase.Current.CreatePublic(weixinId, libId,bindLibraryCode);
+                    try
+                    {
+                        user = WxUserDatabase.Current.CreatePublic(weixinId, libId, bindLibraryCode);
+                    }
+                    catch (Exception ex)
+                    {
+                        error = ex.Message;
+                        goto ERROR1;
+                    }
                 }
             }
 

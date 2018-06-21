@@ -302,6 +302,11 @@ namespace dp2weixin.service
             userItem.weixinId = weixinId;
             userItem.libId = libId;
             Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
+            if (lib == null)
+            {
+                throw new Exception("libid="+libId+"对应的对象没有找到。");
+            }
+
             userItem.libName = lib.Entity.libName;
             userItem.bindLibraryCode = bindLibraryCode; //界面上选择的绑定分馆
             if (String.IsNullOrEmpty(userItem.bindLibraryCode) == false)

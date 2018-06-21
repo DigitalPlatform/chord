@@ -28,9 +28,15 @@
     </div>
         -->
     <div class="ui secondary  menu">
-        <a class="active item" href="~/home/index">Z39.50站点信息管理 </a>
-        <a class="item" href="~/home/Tool">实用工具</a>
-        <a class="item" href="~/home/demo">UI demo</a>
+        <a class=" item">Home </a>
+        <a class="active item" href="~/home/index">通用站点管理 </a>
+        <a class="item">我的站点</a>
+        <a class="item">我的书架</a>
+        <a class="item" href="~/home/Demo">UI Demo</a>
+        <div class="right menu">
+            <a class="ui item">登录 </a>
+            <a class="ui item">注册 </a>
+        </div>
     </div>
 
 
