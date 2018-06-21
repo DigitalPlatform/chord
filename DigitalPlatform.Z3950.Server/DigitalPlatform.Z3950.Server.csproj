@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.0.2</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj" />
     <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj" />
     <ProjectReference Include="..\DigitalPlatform.Z3950\DigitalPlatform.Z3950.csproj" />
   </ItemGroup>

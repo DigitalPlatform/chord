@@ -82,10 +82,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj">
-      <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
-      <Name>DigitalPlatform.Common</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.MessageClient\DigitalPlatform.MessageClient.csproj">
       <Project>{e4b339d9-4843-40f1-a404-33043adcd6a3}</Project>
       <Name>DigitalPlatform.MessageClient</Name>
