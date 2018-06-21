@@ -1,19 +1,17 @@
-﻿using DigitalPlatform.LibraryRestClient;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
+using System.IO;
 using System.Text;
 using System.Xml;
 using System.Windows.Forms;
+using System.Drawing.Printing;
 
 using DigitalPlatform.Xml;
 using DigitalPlatform.Marc;
-using System.Drawing.Printing;
-using System.IO;
+using DigitalPlatform.Forms;
+using DigitalPlatform.LibraryRestClient;
 
 namespace dp2Mini
 {
@@ -76,7 +74,7 @@ namespace dp2Mini
             try
             {
                 string strOutputStyle = "";
-                SearchResponse searchResponse = channel.Search(strQueryXml, "", strOutputStyle);
+                SearchResponse searchResponse = channel.Search(strQueryXml, "arrived", strOutputStyle);
                 long lRet = searchResponse.SearchResult.Value;
                 if (lRet == -1)
                 {
@@ -98,7 +96,7 @@ namespace dp2Mini
                 {
                     Application.DoEvents();
 
-                    lRet = channel.GetSearchResult("",
+                    lRet = channel.GetSearchResult("arrived",
                         lStart,
                         lCount,
                         "id,xml",// cols,
@@ -120,87 +118,9 @@ namespace dp2Mini
                     int i = 0;
                     foreach (Record record in searchresults)
                     {
-                        // string[] cols = record.Cols;
                         string strPath = record.Path;
 
-                        string strXML = record.RecordBody.Xml;
-                        XmlDocument dom = new XmlDocument();
-                        dom.LoadXml(strXML);
-
-
-                        string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
-                        if ("arrived" == strState)
-                            strState = "图书在馆";
-                        else if ("outof" == strState)
-                            strState = "超过保留期";
-
-                        string strLocation = DomUtil.GetElementText(dom.DocumentElement, "location");
-                        string strAccessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
-
-
-                        string strItemBarcode = DomUtil.GetElementText(dom.DocumentElement, "itemBarcode");
-                        if (string.IsNullOrEmpty(strItemBarcode))
-                            continue;
-                        GetItemInfoResponse itemInfoResponse = channel.GetItemInfo(strItemBarcode, 
-                            "xml", // "xml:noborrowhistory", // resultType (itemType)
-                            "xml" // biblioType
-                            );
-                        lRet = itemInfoResponse.GetItemInfoResult.Value;
-                        string strErrorInfo = itemInfoResponse.GetItemInfoResult.ErrorInfo;
-                        if (lRet != 1)
-                        {
-                            MessageBox.Show(strErrorInfo);
-                            continue;
-                        }
-
-                        string strOutMarcSyntax = "";
-                        string strMARC = "";
-                        string strMarcXml = itemInfoResponse.strBiblio;
-                        int nRet = MarcUtil.Xml2Marc(strMarcXml, 
-                            false, 
-                            "", // 自动识别 MARC 格式
-                            out strOutMarcSyntax, 
-                            out strMARC, 
-                            out strError);
-                        if (nRet == -1)
-                            continue;
-
-                        MarcRecord marcRecord = new MarcRecord(strMARC);
-                        string strISBN = marcRecord.select("field[@name='010']/subfield[@name='a']").FirstContent;
-                        string strTitle = marcRecord.select("field[@name='200']/subfield[@name='a']").FirstContent;
-                        string strAuthor = marcRecord.select("field[@name='200']/subfield[@name='f']").FirstContent;
-
-
-                        string strReaderBarcode = DomUtil.GetElementText(dom.DocumentElement, "readerBarcode");
-                        GetReaderInfoResponse readerInfoResponse = channel.GetReaderInfo(strReaderBarcode, "xml:noborrowhistory");
-                        lRet = readerInfoResponse.GetReaderInfoResult.Value;
-                        strErrorInfo = readerInfoResponse.GetReaderInfoResult.ErrorInfo;
-                        if (lRet != 1)
-                        {
-                            MessageBox.Show(strErrorInfo);
-                            continue;
-                        }
-
-                        string strReaderXml = readerInfoResponse.results[0];
-                        dom.LoadXml(strReaderXml);
-                        string strName = DomUtil.GetElementText(dom.DocumentElement, "name");
-                        string strDept = DomUtil.GetElementText(dom.DocumentElement, "department");
-
-
-                        // MessageBox.Show(strXML);
-                        string[] cols = new string[this.listView_results.Columns.Count];
-                        cols[0] = strItemBarcode;
-                        cols[1] = strISBN;
-                        cols[2] = strTitle;
-                        cols[3] = strAuthor;
-                        cols[4] = strAccessNo;
-                        cols[5] = strLocation;
-                        cols[6] = strReaderBarcode;
-                        cols[7] = strName;
-                        cols[8] = strDept;
-                        cols[9] = strState;
-                        cols[10] = "未打印";
-
+                        string[] cols = FillListViewItem(channel, record);
 
                         AppendNewLine(this.listView_results, strPath, cols);
 
@@ -209,7 +129,7 @@ namespace dp2Mini
                     }
 
                     lStart += searchresults.Length;
-                    lCount -= searchresults.Length;
+                    // lCount -= searchresults.Length;
                     if (lStart >= lHitCount || lCount <= 0)
                         break;
                 }
@@ -226,24 +146,89 @@ namespace dp2Mini
             MessageBox.Show(strError);
         }
 
-        public static void EnsureColumns(ListView listview,
-            int nCount,
-            int nInitialWidth = 200)
+
+        string[] FillListViewItem(LibraryChannel channel, Record record)
         {
-            if (listview.Columns.Count >= nCount)
-                return;
+            string strErrorInfo = "";
+            string strError = "";
+            string[] cols = new string[11];
 
-            for (int i = listview.Columns.Count; i < nCount; i++)
+            long lRet = 0;
+
+            string strXML = record.RecordBody.Xml;
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(strXML);
+
+            string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+            if ("arrived" == strState)
+                strState = "图书在馆";
+            else if ("outof" == strState)
+                strState = "超过保留期";
+
+            string strLocation = DomUtil.GetElementText(dom.DocumentElement, "location");
+            string strAccessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
+
+
+            string strItemBarcode = DomUtil.GetElementText(dom.DocumentElement, "itemBarcode");
+            if (!string.IsNullOrEmpty(strItemBarcode))
             {
-                string strText = "";
-                // strText = Convert.ToString(i);
+                GetItemInfoResponse itemInfoResponse = channel.GetItemInfo(strItemBarcode,
+                    "xml", // "xml:noborrowhistory", // resultType (itemType)
+                    "xml");
 
-                ColumnHeader col = new ColumnHeader();
-                col.Text = strText;
-                col.Width = nInitialWidth;
-                listview.Columns.Add(col);
+                lRet = itemInfoResponse.GetItemInfoResult.Value;
+                strErrorInfo = itemInfoResponse.GetItemInfoResult.ErrorInfo;
+                if (lRet == 1)
+                {
+                    string strOutMarcSyntax = "";
+                    string strMARC = "";
+                    string strMarcXml = itemInfoResponse.strBiblio;
+                    int nRet = MarcUtil.Xml2Marc(strMarcXml,
+                        false,
+                        "", // 自动识别 MARC 格式
+                        out strOutMarcSyntax,
+                        out strMARC,
+                        out strError);
+                    if (nRet != -1)
+                    {
+                        MarcRecord marcRecord = new MarcRecord(strMARC);
+                        string strISBN = marcRecord.select("field[@name='010']/subfield[@name='a']").FirstContent;
+                        string strTitle = marcRecord.select("field[@name='200']/subfield[@name='a']").FirstContent;
+                        string strAuthor = marcRecord.select("field[@name='200']/subfield[@name='f']").FirstContent;
+
+                        cols[1] = strISBN;
+                        cols[2] = strTitle;
+                        cols[3] = strAuthor;
+                    }
+                }
             }
+
+            string strReaderBarcode = DomUtil.GetElementText(dom.DocumentElement, "readerBarcode");
+            GetReaderInfoResponse readerInfoResponse = channel.GetReaderInfo(strReaderBarcode, "xml:noborrowhistory");
+            lRet = readerInfoResponse.GetReaderInfoResult.Value;
+            strErrorInfo = readerInfoResponse.GetReaderInfoResult.ErrorInfo;
+            if (lRet == 1)
+            {
+                string strReaderXml = readerInfoResponse.results[0];
+                dom.LoadXml(strReaderXml);
+                string strName = DomUtil.GetElementText(dom.DocumentElement, "name");
+                string strDept = DomUtil.GetElementText(dom.DocumentElement, "department");
+
+                cols[6] = strReaderBarcode;
+                cols[7] = strName;
+                cols[8] = strDept;
+            }
+
+            cols[0] = strItemBarcode;
+            cols[4] = strAccessNo;
+            cols[5] = strLocation;
+            cols[9] = strState;
+            cols[10] = "未打印";
+
+            return cols;
         }
+
+
 
         /// <summary>
         /// 在 ListView 最后追加一行
@@ -258,7 +243,7 @@ namespace dp2Mini
             string[] others)
         {
             if (others != null)
-                EnsureColumns(list, others.Length + 1,100);
+                ListViewUtil.EnsureColumns(list, others.Length + 1, 100);
 
             ListViewItem item = new ListViewItem(strID, 0);
 
@@ -275,52 +260,110 @@ namespace dp2Mini
             return item;
         }
 
-        private StreamReader streamToPrint;
-        private void toolStripMenuItem_print_Click(object sender, EventArgs e)
+        private string printFilename = "print.xml";
+
+        void outputPrintFile()
         {
-            using (StreamWriter writer = new StreamWriter(@"print.txt"))
+            using (StreamWriter writer = new StreamWriter(printFilename, false, Encoding.UTF8))
             {
+                StringBuilder sb = new StringBuilder(256);
                 foreach (ListViewItem item in this.listView_results.SelectedItems)
                 {
-                    StringBuilder sb = new StringBuilder(256);
                     foreach (ListViewItem.ListViewSubItem subItem in item.SubItems)
                     {
                         string strText = subItem.Text;
                         if (string.IsNullOrEmpty(strText))
                             continue;
 
-                        writer.WriteLine(strText);
+                        sb.Append("<p>").Append(strText).Append("</p>").AppendLine();
                     }
-                    writer.WriteLine("-------------------------------------");
+                    sb.AppendLine("<p>-----------------------------------</p>");
                 }
+
+                writer.Write(WrapString(sb.ToString()));
             }
+        }
+
+        static string WrapString(string strText)
+        {
+            string strPrefix = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n"
+                + "<root>\r\n"
+                + "<pageSetting width='190'>\r\n"
+                + "  <font name=\"微软雅黑\" size=\"8\" style=\"\" />\r\n"
+                + "  <p align=\"left\" indent='-60'/>\r\n"
+                + "</pageSetting>\\\r\n"
+                + "<document padding=\"0,0,0,0\">\r\n"
+                + "  <column width=\"auto\" padding='60,0,0,0'>\r\n";
+
+            string strPostfix = "</column></document></root>";
+
+            return strPrefix + strText + strPostfix;
+        }
+
+        private void toolStripMenuItem_print_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+
+            outputPrintFile();
+
+            CardPrintForm form = new CardPrintForm();
+            form.PrinterInfo = new PrinterInfo();
+            form.CardFilename = "print.xml";  // 卡片文件名
+
+            form.WindowState = FormWindowState.Minimized;
+            form.Show();
+            int nRet = form.PrintFromCardFile(false);
+            if (nRet == -1)
+            {
+                form.WindowState = FormWindowState.Normal;
+                strError = strError + "\r\n\r\n以下内容未能成功打印:\r\n";
+                goto ERROR1;
+            }
+            form.Close();
+            return;
+            ERROR1:
+            MessageBox.Show(this, strError);
+        }
+
+        private void toolStripMenuItem_printPreview_Click(object sender, EventArgs e)
+        {
+            CardPrintForm dlg = new CardPrintForm();
+            dlg.CardFilename = "print.xml";  // 卡片文件名
+            dlg.PrintPreviewFromCardFile();
+
+
+            /*
+            if (printDialog_prep.ShowDialog(this) != DialogResult.OK)
+                return;
 
             try
             {
-                streamToPrint = new StreamReader(@"print.txt");
-                try
-                {
-                    PrintDocument pd = new PrintDocument();
-                    pd.PrintPage += pd_PrintPage;
-                    pd.Print();
-                }
-                finally
-                {
-                    streamToPrint.Close();
-                }
+                outputPrintFile();
+                printDocument_prep.PrinterSettings.PrinterName = printDialog_prep.PrinterSettings.PrinterName;
+                printPreviewDialog_prep.ShowDialog(this);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
+            */
         }
 
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
         {
-            if(this.listView_results.SelectedItems.Count <= 0)
+            if (this.listView_results.SelectedItems.Count <= 0)
             {
                 this.toolStripMenuItem_print.Enabled = false;
+                this.toolStripMenuItem_printPreview.Enabled = false;
                 this.toolStripMenuItem_export.Enabled = false;
+                this.toolStripMenuItem_remove.Enabled = false;
+            }
+            else
+            {
+                this.toolStripMenuItem_print.Enabled = true;
+                this.toolStripMenuItem_printPreview.Enabled = true;
+                this.toolStripMenuItem_export.Enabled = true;
+                this.toolStripMenuItem_remove.Enabled = true;
             }
         }
 
@@ -329,9 +372,9 @@ namespace dp2Mini
 
         }
 
-        private void pd_PrintPage(object sender, PrintPageEventArgs ev)
+        private void pd_PrintPage(object sender, PrintPageEventArgs e)
         {
-            float linesPerPage = 0;
+            int linesPerPage = 0;
             float yPos = 0;
             int count = 0;
             float leftMargin = 5; // ev.MarginBounds.Left;
@@ -341,31 +384,44 @@ namespace dp2Mini
             Font printFont = new Font("微软雅黑", 9);
 
             // Calculate the number of lines per page.
-            linesPerPage = ev.MarginBounds.Height /
-               printFont.GetHeight(ev.Graphics);
+            linesPerPage = (int)(e.MarginBounds.Height / printFont.GetHeight(e.Graphics));
 
-            // Print each line of the file.
-            while (count < linesPerPage &&
-               ((line = streamToPrint.ReadLine()) != null))
+            using (StreamReader reader = new StreamReader(printFilename, Encoding.UTF8))
             {
-                yPos = topMargin + (count *
-                   printFont.GetHeight(ev.Graphics));
+                while (count < linesPerPage &&
+                   ((line = reader.ReadLine()) != null))
+                {
+                    yPos = topMargin + (count * printFont.GetHeight(e.Graphics));
 
-
-                ev.Graphics.DrawString(line,
-                    printFont,
-                    Brushes.Black,
-                   leftMargin,
-                   yPos,
-                   new StringFormat());
-                count++;
+                    e.Graphics.DrawString(line,
+                        printFont,
+                        Brushes.Black,
+                        leftMargin,
+                        yPos,
+                        new StringFormat());
+                    count++;
+                }
+                // If more lines exist, print another page.
+                if (line != null)
+                    e.HasMorePages = true;
+                else
+                    e.HasMorePages = false;
             }
+        }
 
-            // If more lines exist, print another page.
-            if (line != null)
-                ev.HasMorePages = true;
-            else
-                ev.HasMorePages = false;
+        private void toolStripMenuItem_remove_Click(object sender, EventArgs e)
+        {
+            Cursor oldCursor = this.Cursor;
+            this.Cursor = Cursors.WaitCursor;
+
+            this.listView_results.BeginUpdate();
+            for (int i = this.listView_results.SelectedIndices.Count - 1; i >= 0; i--)
+            {
+                this.listView_results.Items.RemoveAt(this.listView_results.SelectedIndices[i]);
+            }
+            this.listView_results.EndUpdate();
+
+            this.Cursor = oldCursor;
         }
     }
 }

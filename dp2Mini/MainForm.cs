@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -292,6 +291,61 @@ namespace dp2Mini
         private void toolStripButton_prep_Click(object sender, EventArgs e)
         {
             this.toolStripMenuItem_prep_Click(sender, e);
+        }
+
+
+        private void toolStripButton1_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+
+            string line = null;
+            StringBuilder sb = new StringBuilder();
+            using (StreamReader reader = new StreamReader("print.txt", Encoding.UTF8))
+            {
+                while ((line = reader.ReadLine())!=null)
+                {
+                    sb.Append("<p>").Append(line).Append("</p>").AppendLine();
+                }
+            }
+
+            using (StreamWriter writer = new StreamWriter("print.xml", false, Encoding.UTF8))
+            {
+                writer.Write(WrapString(sb.ToString()));
+            }
+
+            CardPrintForm form = new CardPrintForm();
+            form.PrinterInfo = new PrinterInfo();
+            form.CardFilename = "print.xml";  // 卡片文件名
+
+            form.WindowState = FormWindowState.Minimized;
+            form.Show();
+            int nRet = form.PrintFromCardFile(false);
+            if (nRet == -1)
+            {
+                form.WindowState = FormWindowState.Normal;
+                strError = strError + "\r\n\r\n以下内容未能成功打印:\r\n" + sb.ToString();
+                goto ERROR1;
+            }
+            form.Close();
+            return;
+            ERROR1:
+            MessageBox.Show(this, strError);
+        }
+
+        static string WrapString(string strText)
+        {
+            string strPrefix = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n"
+                + "<root>\r\n"
+                + "<pageSetting width='190'>\r\n"
+                + "  <font name=\"微软雅黑\" size=\"8\" style=\"\" />\r\n"
+                + "  <p align=\"left\" indent='-60'/>\r\n"
+                + "</pageSetting>\\\r\n"
+                + "<document padding=\"0,0,0,0\">\r\n"
+                + "  <column width=\"auto\" padding='60,0,0,0'>\r\n";
+
+            string strPostfix = "</column></document></root>";
+
+            return strPrefix + strText + strPostfix;
         }
     }
 }
