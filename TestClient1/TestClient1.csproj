@@ -136,10 +136,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj">
-      <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
-      <Name>DigitalPlatform.Common</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.Forms\DigitalPlatform.Forms.csproj">
       <Project>{2dd0618d-c554-46d0-91a2-353f2f8ea2f2}</Project>
       <Name>DigitalPlatform.Forms</Name>

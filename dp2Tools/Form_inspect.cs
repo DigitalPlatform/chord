@@ -242,11 +242,14 @@ namespace dp2Tools
                 }
 
                 if (price.Length > 3 &&
-                    (price.Substring(0, 3) == "CNY" 
+                    (price.Substring(0, 3) == "CNY"
                     || price.Substring(0, 3) == "USD"
+                    || price.Substring(0, 3) == "KWR"
+                    || price.Substring(0, 3) == "TWD"
+                    || price.Substring(0, 3) == "HKD"
+                    || price.Substring(0, 3) == "JPY"
                     || price.Substring(0, 3) == "EUR")
-                    )
-                    
+                    ) 
                 {
                     string right = price.Substring(3);
 
