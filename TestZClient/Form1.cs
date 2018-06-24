@@ -576,7 +576,9 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         // 多通道测试
         private void MenuItem_multiChannelTest_Click(object sender, EventArgs e)
         {
-
+            MultiChannelForm dlg = new MultiChannelForm();
+            dlg.StartPosition = FormStartPosition.CenterParent;
+            dlg.ShowDialog(this);
         }
 
         private void radioButton_query_origin_CheckedChanged(object sender, EventArgs e)

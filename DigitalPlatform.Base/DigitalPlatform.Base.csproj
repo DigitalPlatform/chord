@@ -46,6 +46,7 @@
     <Compile Include="ExceptionUtil.cs" />
     <Compile Include="Extension.cs" />
     <Compile Include="ProductUtil.cs" />
+    <Compile Include="ProgramUtil.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Range.cs" />
     <Compile Include="RecordLock.cs" />
