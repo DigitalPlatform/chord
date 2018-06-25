@@ -345,6 +345,8 @@
 
             // 其它配置字段
             var recsperbatch = $(divId).find("#_recsperbatch").val();
+            //alert(recsperbatch);
+
             var defaultMarcSyntaxOID = $(divId).find("#_defaultMarcSyntaxOID").val();
             var defaultElementSetName = $(divId).find("#_defaultElementSetName").val();
             var firstfull = $(divId).find("#_firstfull").val();
@@ -369,6 +371,8 @@
                 return;
             }
 
+            var subjects = "";  //这里以逗号分隔
+
             //显示等待图层
             showMaskLayer();
 
@@ -388,6 +392,8 @@
                 action = "PUT";
                 url += "/" + id;  //url也加一截
             }
+
+
 
             //alert(url);
             sendAjaxRequest(url, action,
@@ -429,8 +435,8 @@
                     username: username,
                     password: password,
 
-
-                    creatorPhone: creatorPhone
+                    creatorPhone: creatorPhone,
+                    recsperbatch: recsperbatch
                 }
             );
 
@@ -674,7 +680,7 @@
                     <div class='ui segment'>\
                         <div class='inline field'>\
                             <label>获取记录每批条数</label>\
-                            <input type='text' placeholder='' id='_recsperbatch' value='20' value='" + recsperbatch + "'>\
+                            <input type='text' placeholder='' id='_recsperbatch'  value='" + recsperbatch + "'>\
                         </div>\
                         <div class='inline field'>\
                             <label>缺省数据格式OID</label>\
