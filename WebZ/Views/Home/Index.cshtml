@@ -348,9 +348,16 @@
             //alert(recsperbatch);
 
             var defaultMarcSyntaxOID = $(divId).find("#_defaultMarcSyntaxOID").val();
+            //alert(defaultMarcSyntaxOID);
+
             var defaultElementSetName = $(divId).find("#_defaultElementSetName").val();
+            //alert(defaultElementSetName);
+
             var firstfull = $(divId).find("#_firstfull").val();
+            alert(firstfull);
+
             var detectmarcsyntax = $(divId).find("#_detectmarcsyntax").val();
+
             var ignorereferenceid = $(divId).find("#_ignorereferenceid").val();
 
             var isbn_force13 = $(divId).find("#_isbn_force13").val();
@@ -436,7 +443,11 @@
                     password: password,
 
                     creatorPhone: creatorPhone,
-                    recsperbatch: recsperbatch
+
+                    // 高级选项
+                    recsperbatch: recsperbatch,
+                    defaultMarcSyntaxOID: defaultMarcSyntaxOID,
+                    defaultElementSetName: defaultElementSetName
                 }
             );
 
@@ -574,7 +585,20 @@
             var verifier = ""; //审核人
             var verifyTime = ""; //审核时间
 
+            // 高级选项
             var recsperbatch = "";
+
+            var defaultMarcSyntaxOID_UNIMARC = "";
+            var defaultMarcSyntaxOID_MARC21 = "";
+            var defaultMarcSyntaxOID_SUTRS = "";
+            var defaultMarcSyntaxOID_XML = "";
+
+            var defaultElementSetName_B = "";
+            var defaultElementSetName_F = "";
+            var defaultElementSetName_dc = "";
+            var defaultElementSetName_mods = "";
+            var defaultElementSetName_marcxml = "";
+            var defaultElementSetName_opacxml = "";
 
             var idpassStr = "";
             if (msgItem != null) {
@@ -603,6 +627,32 @@
 
 
                 recsperbatch = msgItem.recsperbatch;
+                var defaultMarcSyntaxOID = msgItem.defaultMarcSyntaxOID;
+                //alert("~~" + defaultMarcSyntaxOID);
+
+                if (defaultMarcSyntaxOID == "UNIMARC")
+                    defaultMarcSyntaxOID_UNIMARC = " selected ";
+                else if (defaultMarcSyntaxOID == "MARC21")
+                    defaultMarcSyntaxOID_MARC21 = " selected ";
+                else if (defaultMarcSyntaxOID == "SUTRS")
+                    defaultMarcSyntaxOID_SUTRS = " selected ";
+                else if (defaultMarcSyntaxOID == "XML")
+                    defaultMarcSyntaxOID_XML = " selected ";
+
+                var defaultElementSetName = msgItem.defaultElementSetName;
+                alert(defaultElementSetName);
+                if (defaultElementSetName == "B")
+                    defaultElementSetName_B = " selected ";
+                else if (defaultElementSetName == "F")
+                    defaultElementSetName_F = " selected ";
+                else if (defaultElementSetName == "dc")
+                    defaultElementSetName_dc = " selected ";
+                else if (defaultElementSetName == "mods")
+                    defaultElementSetName_mods = " selected ";
+                else if (defaultElementSetName == "marcxml")
+                    defaultElementSetName_marcxml = " selected ";
+                else if (defaultElementSetName == "opacxml")
+                    defaultElementSetName_opacxml = " selected ";
 
                 saveBtnName = "保存";
             }
@@ -686,22 +736,22 @@
                             <label>缺省数据格式OID</label>\
                             <select id='_defaultMarcSyntaxOID'>\
                                 <option value=''></option>\
-                                <option value='UNIMARC'>1.2.840.10003.5.1 -- UNIMARC</option>\
-                                <option value='MARC21'>1.2.840.10003.5.10 -- MARC21</option>\
-                                <option value='SUTRS'>1.2.840.10003.5.101 -- SUTRS</option>\
-                                <option value='XML'>1.2.840.10003.5.109.10 -- XML</option>\
+                                <option value='UNIMARC' "+ defaultMarcSyntaxOID_UNIMARC+">1.2.840.10003.5.1 -- UNIMARC</option>\
+                                <option value='MARC21' "+ defaultMarcSyntaxOID_MARC21+">1.2.840.10003.5.10 -- MARC21</option>\
+                                <option value='SUTRS' "+ defaultMarcSyntaxOID_SUTRS+">1.2.840.10003.5.101 -- SUTRS</option>\
+                                <option value='XML' "+ defaultMarcSyntaxOID_XML+">1.2.840.10003.5.109.10 -- XML</option>\
                             </select>\
                         </div>\
                         <div class='inline field'>\
                             <label>缺省元素集名</label>\
                             <select id='_defaultElementSetName'>\
                                 <option value=''></option>\
-                                <option value='B'>B -- Brief(MARC records)</option>\
-                                <option value='F'>F -- Full (MARC and OPAC records)</option>\
-                                <option value='dc'>dc --  Dublin Core (XML records)</option>\
-                                <option value='mods'>mods  -- MODS (XML records)</option>\
-                                <option value='marcxml'>marcxml -- MARCXML (XML records), default schema for XML</option>\
-                                <option value='opacxml'>opacxml -- MARCXML with holdings attached</option>\
+                                <option value='B' "+ defaultElementSetName_B+">B -- Brief(MARC records)</option>\
+                                <option value='F' "+ defaultElementSetName_F +">F -- Full (MARC and OPAC records)</option>\
+                                <option value='dc' "+ defaultElementSetName_dc +">dc --  Dublin Core (XML records)</option>\
+                                <option value='mods' "+ defaultElementSetName_mods +">mods  -- MODS (XML records)</option>\
+                                <option value='marcxml' "+ defaultElementSetName_marcxml +">marcxml -- MARCXML (XML records), default schema for XML</option>\
+                                <option value='opacxml' "+ defaultElementSetName_opacxml +">opacxml -- MARCXML with holdings attached</option>\
                             </select>\
                         </div>\
                         <div class='ui   toggle checkbox  field'>\
