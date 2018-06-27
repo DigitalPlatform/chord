@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Deployment.Application;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;
 
 using DigitalPlatform;
+using DigitalPlatform.Common;
 using DigitalPlatform.Forms;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.Text;
@@ -116,6 +116,8 @@ Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                     {
                         if (IsDevelopMode() == false)
                             PrepareCatchException();
+
+                        ProgramUtil.SetDpiAwareness();
 
                         Application.EnableVisualStyles();
                         Application.SetCompatibleTextRenderingDefault(false);

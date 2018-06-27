@@ -44,10 +44,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MarcLoader.cs" />
     <Compile Include="MarcNavigator.cs" />
     <Compile Include="MarcNode.cs" />
     <Compile Include="MarcNodeList.cs" />
     <Compile Include="MarcQuery.cs" />
+    <Compile Include="MarcWriter.cs" />
     <Compile Include="NaviItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

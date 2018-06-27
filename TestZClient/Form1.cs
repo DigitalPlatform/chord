@@ -14,6 +14,7 @@ using DigitalPlatform.Text;
 using DigitalPlatform.Z3950;
 using DigitalPlatform.Marc;
 using System.Web;
+using DigitalPlatform.MarcQuery;
 
 namespace TestZClient
 {
@@ -425,7 +426,7 @@ namespace TestZClient
                 //		-2	MARC格式错
                 //		-1	一般错误
                 //		0	正常
-                int nRet = MarcUtil.ConvertByteArrayToMarcRecord(record.m_baRecord,
+                int nRet = MarcLoader.ConvertIso2709ToMarcString(record.m_baRecord,
                     encoding == null ? Encoding.GetEncoding(936) : encoding,
                     true,
                     out string strMARC,
@@ -575,7 +576,9 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         // 多通道测试
         private void MenuItem_multiChannelTest_Click(object sender, EventArgs e)
         {
-
+            MultiChannelForm dlg = new MultiChannelForm();
+            dlg.StartPosition = FormStartPosition.CenterParent;
+            dlg.ShowDialog(this);
         }
 
         private void radioButton_query_origin_CheckedChanged(object sender, EventArgs e)
@@ -614,6 +617,61 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         {
             EscapeStringDialog dlg = new EscapeStringDialog();
             dlg.ShowDialog(this);
+        }
+
+        private async void MenuItem_iso2709LoaderTest_Click(object sender, EventArgs e)
+        {
+            this.MenuItem_iso2709LoaderTest.Enabled = false;
+            try
+            {
+                OpenFileDialog dlg = new OpenFileDialog();
+
+                dlg.Title = "请指定要装载的 ISO2709 文件名";
+                // dlg.FileName = this.textBox_filename.Text;
+                dlg.Filter = "ISO2709文件 (*.iso)|*.iso|All files (*.*)|*.*";
+                dlg.RestoreDirectory = true;
+
+                if (dlg.ShowDialog() != DialogResult.OK)
+                    return;
+
+                MarcLoader loader = new MarcLoader(dlg.FileName,
+                    Encoding.GetEncoding(936),
+                    "marc",
+                    (length, current) =>
+                    {
+                        this.Invoke(
+(Action)(() =>
+{
+    this.toolStripProgressBar1.Maximum = (int)length;
+    this.toolStripProgressBar1.Value = (int)current;
+})
+);
+                    }
+                    );
+
+                this.ClearHtml();
+                await Task.Run(() =>
+                {
+                    int i = 0;
+                    foreach (string strMARC in loader)
+                    {
+                        this.AppendHtml("<div class='debug green' >" + (i + 1) + ") ===</div>");
+
+                        // 获得 MARC 记录的 HTML 格式字符串
+                        string strHtml = MarcUtil.GetHtmlOfMarc(strMARC,
+                               null,
+                               null,
+                               false);
+
+                        this.AppendHtml(strHtml);
+                        i++;
+                    }
+                });
+            }
+            finally
+            {
+                this.MenuItem_iso2709LoaderTest.Enabled = true;
+            }
         }
     }
 }
