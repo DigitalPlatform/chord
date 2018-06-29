@@ -1883,10 +1883,5 @@ namespace DigitalPlatform.Xml
 			strXpath = strXpath + strAttr;
             return 0;
 		}
-
-
-
 	} // DomUtil类结束
-
-
 }

@@ -347,7 +347,11 @@ namespace DigitalPlatform.Z3950.Server
                 response_info.UserInfoField = new External();
 
             response_info.UserInfoField.m_strDirectRefenerce = strOID;
-            response_info.UserInfoField.m_lIndirectReference = lErrorCode;
+            if (lErrorCode != 0)
+            {
+                response_info.UserInfoField.m_lIndirectReference = lErrorCode;
+                response_info.UserInfoField.m_bHasIndirectReference = true; // 2018/6/29
+            }
             if (String.IsNullOrEmpty(strErrorMessage) == false)
             {
                 response_info.UserInfoField.m_octectAligned = Encoding.UTF8.GetBytes(strErrorMessage);

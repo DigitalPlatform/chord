@@ -121,7 +121,7 @@ namespace dp2Capo
             Console.WriteLine();
             Console.WriteLine("*** 初始化实例: " + strXmlFileName);
 
-            this.Name = Path.GetDirectoryName(strXmlFileName);
+            this.Name = Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
 
             this.LogDir = Path.Combine(Path.GetDirectoryName(strXmlFileName), "log");
             PathUtil.CreateDirIfNeed(this.LogDir);
@@ -141,6 +141,10 @@ namespace dp2Capo
 
             try
             {
+                this.Name = dom.DocumentElement.GetAttribute("instanceName");
+                if (string.IsNullOrEmpty(this.Name) == true)
+                    this.Name = Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
+
                 {
                     XmlElement element = dom.DocumentElement.SelectSingleNode("dp2library") as XmlElement;
                     if (element == null)

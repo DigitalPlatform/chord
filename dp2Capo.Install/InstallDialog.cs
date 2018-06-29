@@ -131,6 +131,8 @@ MessageBoxDefaultButton.Button2);
             InstanceDialog dlg = new InstanceDialog();
             FontUtil.AutoSetDefaultFont(dlg);
 
+            dlg.ParentDialog = this;
+            dlg.Index = this.listView_instance.Items.Count;
             dlg.InstanceName = "?";
             // 找到一个没有用过的目录名字
             dlg.DataDir = GetNewDirectoryName(this.DataDir);
@@ -143,7 +145,6 @@ MessageBoxDefaultButton.Button2);
             ListViewItem item = new ListViewItem((this.listView_instance.Items.Count + 1).ToString());
             ListViewUtil.ChangeItemText(item, COLUMN_DATADIR, dlg.DataDir);
             this.listView_instance.Items.Add(item);
-
         }
 
         private void button_modifyInstance_Click(object sender, EventArgs e)
@@ -161,6 +162,8 @@ MessageBoxDefaultButton.Button2);
             InstanceDialog dlg = new InstanceDialog();
             FontUtil.AutoSetDefaultFont(dlg);
 
+            dlg.ParentDialog = this;
+            dlg.Index = this.listView_instance.Items.IndexOf(item);
             dlg.InstanceName = ListViewUtil.GetItemText(item, COLUMN_NAME);
             dlg.DataDir = ListViewUtil.GetItemText(item, COLUMN_DATADIR);
 
@@ -171,6 +174,7 @@ MessageBoxDefaultButton.Button2);
                 return;
 
             ListViewUtil.ChangeItemText(item, COLUMN_DATADIR, dlg.DataDir);
+            ListViewUtil.ChangeItemText(item, COLUMN_NAME, dlg.InstanceName);
             return;
             ERROR1:
             MessageBox.Show(this, strError);
@@ -220,7 +224,16 @@ MessageBoxDefaultButton.Button2);
             int i = 0;
             foreach (ListViewItem item in this.listView_instance.Items)
             {
-                ListViewUtil.ChangeItemText(item, COLUMN_NAME, (i + 1).ToString());
+                string data_dir = ListViewUtil.GetItemText(item, COLUMN_DATADIR);
+                string instance_name = Path.GetFileName(data_dir);
+
+                // 从配置文件中得到 instanceName 配置
+                string strFileName = Path.Combine(data_dir, "capo.xml");
+                string temp = InstanceDialog.GetInstanceName(strFileName);
+                if (temp != null)
+                    instance_name = temp;
+
+                ListViewUtil.ChangeItemText(item, COLUMN_NAME, instance_name);
                 i++;
             }
         }
@@ -472,7 +485,9 @@ MessageBoxDefaultButton.Button2);
                 LineInfo info = new LineInfo();
                 info.Build(strFileName);
 
-                ListViewItem item = new ListViewItem((i + 1).ToString());
+                string instance_name = Path.GetFileName(data_dir);
+
+                ListViewItem item = new ListViewItem(instance_name);
                 ListViewUtil.ChangeItemText(item, COLUMN_DATADIR, data_dir);
                 ListViewUtil.ChangeItemText(item, COLUMN_DP2LIBRARY_URL, info.dp2Library_url);
                 ListViewUtil.ChangeItemText(item, COLUMN_DP2MSERVER_URL, info.dp2MServer_url);
@@ -480,6 +495,8 @@ MessageBoxDefaultButton.Button2);
 
                 i++;
             }
+
+            RefreshInstanceName();
 
             if (nErrorCount > 0)
                 this.listView_instance.Columns[COLUMN_ERRORINFO].Width = 200;
@@ -639,5 +656,32 @@ MessageBoxDefaultButton.Button1);
             }
         }
 
+        // 全局参数配置
+        private void button_globalConfig_Click(object sender, EventArgs e)
+        {
+            GlobalConfigDialog dlg = new GlobalConfigDialog();
+            FontUtil.AutoSetDefaultFont(dlg);
+
+            dlg.DataDir = this.textBox_dataDir.Text;
+            dlg.StartPosition = FormStartPosition.CenterScreen;
+            dlg.ShowDialog(this);
+        }
+
+        private void textBox_dataDir_TextChanged(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(this.textBox_dataDir.Text))
+                this.button_globalConfig.Enabled = false;
+            else
+                this.button_globalConfig.Enabled = true;
+        }
+
+        // 查找一个实例名。返回在 ListView 中的 index
+        public int FindInstanceName(string strInstanceName)
+        {
+            ListViewItem item = ListViewUtil.FindItem(this.listView_instance, strInstanceName, 0);
+            if (item == null)
+                return -1;
+            return this.listView_instance.Items.IndexOf(item);
+        }
     }
 }

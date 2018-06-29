@@ -9,6 +9,7 @@ using System.Xml;
 using System.Text;
 
 using Microsoft.AspNet.SignalR.Client;
+using log4net;
 
 using DigitalPlatform;
 using DigitalPlatform.Common;
@@ -20,7 +21,7 @@ using DigitalPlatform.Text;
 using DigitalPlatform.Z3950;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.Marc;
-using log4net;
+using DigitalPlatform.Message;
 
 namespace dp2Capo
 {
@@ -46,18 +47,18 @@ namespace dp2Capo
             set;
         }
 
-        const int DEFAULT_PORT = 0;    // 0 表示不启用 Z39.50 Server
+        const int Z3950_DEFAULT_PORT = 210;
 
-        static int _port = DEFAULT_PORT;
-        public static int ServerPort
+        static int _z3950_port = -1;   // -1 表示不启用 Z39.50 Server
+        public static int Z3950ServerPort
         {
             get
             {
-                return _port;
+                return _z3950_port;
             }
             set
             {
-                _port = value;
+                _z3950_port = value;
             }
         }
 
@@ -82,14 +83,18 @@ namespace dp2Capo
                 if (node != null && node.HasAttribute("port"))
                 {
                     string v = node.GetAttribute("port");
-
-                    if (Int32.TryParse(v, out int port) == false)
-                        throw new Exception("port 属性值必须是整数");
-                    _port = port;
+                    if (string.IsNullOrEmpty(v))
+                        _z3950_port = -1;
+                    else
+                    {
+                        if (Int32.TryParse(v, out int port) == false)
+                            throw new Exception("port 属性值必须是整数");
+                        _z3950_port = port;
+                    }
                 }
                 else
                 {
-                    _port = 0;  // 表示不启用 Z39.50 Server
+                    _z3950_port = -1;  // -1 表示不启用 Z39.50 Server
                 }
             }
             catch (FileNotFoundException ex)
@@ -120,7 +125,7 @@ namespace dp2Capo
                 ConfigDom.DocumentElement.AppendChild(node);
             }
 
-            node.SetAttribute("port", _port.ToString());
+            node.SetAttribute("port", _z3950_port.ToString());
 
             string strCfgFileName = Path.Combine(strDataDir, "config.xml");
             PathUtil.CreateDirIfNeed(strDataDir);
@@ -148,7 +153,15 @@ namespace dp2Capo
             // DetectWriteErrorLog("*** dp2Capo 开始启动 (dp2Capo 版本: " + strVersion + ")");
             WriteLog("info", "*** dp2Capo 开始启动 (dp2Capo 版本: " + strVersion + ")");
 
-            ServerInfo.LoadCfg(DataDir);
+            try
+            {
+                ServerInfo.LoadCfg(DataDir);
+            }
+            catch (Exception ex)
+            {
+                WriteLog("fatal", "dp2Capo 装载全局配置文件阶段出错: " + ex.Message);
+                throw ex;
+            }
 
             _exited = false;
 
@@ -621,6 +634,8 @@ Exception Info: System.Net.NetworkInformation.PingException
                 {
                     if (level == "info")
                         _log.Info(strText);
+                    else if (level == "fatal")
+                        _log.Fatal(strText);
                     else
                         _log.Error(strText);
                 }
@@ -647,13 +662,15 @@ Exception Info: System.Net.NetworkInformation.PingException
             Log.WriteEntry(strText, type);
         }
 
-#endregion
+        #endregion
 
         public static void AddEvents(ZServer zserver, bool bAdd)
         {
             if (bAdd)
             {
-                zserver.GetZConfig += Zserver_GetZConfig;
+                zserver.SetChannelProperty += Zserver_SetChannelProperty;
+                //zserver.GetZConfig += Zserver_GetZConfig;
+                zserver.InitializeLogin += Zserver_InitializeLogin;
                 zserver.SearchSearch += Zserver_SearchSearch;
                 zserver.PresentGetRecords += Zserver_PresentGetRecords;
                 zserver.ChannelOpened += Zserver_ChannelOpened;
@@ -661,7 +678,9 @@ Exception Info: System.Net.NetworkInformation.PingException
             }
             else
             {
-                zserver.GetZConfig -= Zserver_GetZConfig;
+                zserver.SetChannelProperty -= Zserver_SetChannelProperty;
+                //zserver.GetZConfig -= Zserver_GetZConfig;
+                zserver.InitializeLogin -= Zserver_InitializeLogin;
                 zserver.SearchSearch -= Zserver_SearchSearch;
                 zserver.PresentGetRecords -= Zserver_PresentGetRecords;
                 zserver.ChannelOpened += Zserver_ChannelOpened;
@@ -705,6 +724,12 @@ Exception Info: System.Net.NetworkInformation.PingException
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
             string strInstanceName = zserver_channel.SetProperty().GetKeyValue("i_n");
+            if (strInstanceName == null)
+            {
+                strError = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
+                ZManager.Log.Error(strError);
+                goto ERROR1;
+            }
             Instance instance = FindInstance(strInstanceName);
             if (instance == null)
             {
@@ -727,7 +752,11 @@ Exception Info: System.Net.NetworkInformation.PingException
             DiagFormat diag = null;
             List<RetrivalRecord> records = new List<RetrivalRecord>();
 
-            LibraryChannel library_channel = instance.MessageConnection.GetChannel(null);
+            string strUserName = zserver_channel.SetProperty().GetKeyValue("i_u");
+            string strPassword = zserver_channel.SetProperty().GetKeyValue("i_p");
+
+            LoginInfo login_info = new LoginInfo { UserName = strUserName, Password = strPassword };
+            LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
             try
             {
                 // 全局结果集名
@@ -979,6 +1008,13 @@ Exception Info: System.Net.NetworkInformation.PingException
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
             string strInstanceName = zserver_channel.SetProperty().GetKeyValue("i_n");
+            if (strInstanceName == null)
+            {
+                string strErrorText = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
+                ZManager.Log?.Error(strErrorText);
+                e.Result = new DigitalPlatform.Z3950.ZClient.SearchResult { Value = -1, ErrorInfo = strErrorText };
+                return;
+            }
             Instance instance = FindInstance(strInstanceName);
             if (instance == null)
             {
@@ -1009,7 +1045,12 @@ Exception Info: System.Net.NetworkInformation.PingException
                 return;
             }
 
-            LibraryChannel library_channel = instance.MessageConnection.GetChannel(null);
+            string strUserName = zserver_channel.SetProperty().GetKeyValue("i_u");
+            string strPassword = zserver_channel.SetProperty().GetKeyValue("i_p");
+
+            LoginInfo login_info = new LoginInfo { UserName = strUserName, Password = strPassword };
+
+            LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
             try
             {
                 // 全局结果集名
@@ -1101,11 +1142,17 @@ Exception Info: System.Net.NetworkInformation.PingException
             List<string> names)
         {
             string strInstanceName = zserver_channel.SetProperty().GetKeyValue("i_n");
+            if (strInstanceName == null)
+            {
+                string strError = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
+                ZManager.Log?.Error(strError);
+            }
             Instance instance = FindInstance(strInstanceName);
             if (instance == null)
             {
-                // strError = "实例名 '" + strInstanceName + "' 不存在";
+                string strError = "实例名 '" + strInstanceName + "' 不存在";
                 // 写入错误日志
+                ZManager.Log?.Error(strError);
                 return;
             }
 
@@ -1152,12 +1199,24 @@ Exception Info: System.Net.NetworkInformation.PingException
                     });
         }
 
+#if NO
         private static void Zserver_GetZConfig(object sender, GetZConfigEventArgs e)
         {
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
+#if NO
             List<string> parts = StringUtil.ParseTwoPart(e.Info.m_strID, "@");
             string strInstanceName = parts[1];
+#endif
+            string strInstanceName = zserver_channel.SetProperty().GetKeyValue("i_n");
+            if (strInstanceName == null)
+            {
+                string strError = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
+                ZManager.Log.Error(strError);
+                e.ZConfig = null;
+                e.Result.ErrorInfo = strError;
+                return;
+            }
 
             Instance instance = FindInstance(strInstanceName);
             if (instance == null)
@@ -1168,13 +1227,108 @@ Exception Info: System.Net.NetworkInformation.PingException
             }
 
             // 让 channel 携带 Instance Name
-            zserver_channel.SetProperty().SetKeyValue("i_n", strInstanceName);
+            // zserver_channel.SetProperty().SetKeyValue("i_n", strInstanceName);
 
             e.ZConfig = new ZConfig
             {
                 AnonymousUserName = instance.zhost.AnonymousUserName,
                 AnonymousPassword = instance.zhost.AnonymousPassword,
             };
+        }
+#endif
+        private static void Zserver_InitializeLogin(object sender, InitializeLoginEventArgs e)
+        {
+            ZServerChannel zserver_channel = (ZServerChannel)sender;
+
+            string strInstanceName = zserver_channel.SetProperty().GetKeyValue("i_n");
+            if (strInstanceName == null)
+            {
+                string strErrorText = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
+                ZManager.Log?.Error(strErrorText);
+                e.Result = new Result { Value = -1, ErrorInfo = strErrorText };
+                return;
+            }
+            Instance instance = FindInstance(strInstanceName);
+            if (instance == null)
+            {
+                e.Result = new Result { Value = -1, ErrorInfo = "实例名 '" + strInstanceName + "' 不存在" };
+                return;
+            }
+
+            // result.Value:
+            //      -1  登录出错
+            //      0   登录未成功
+            //      1   登录成功
+
+            string strUserName = zserver_channel.SetProperty().GetKeyValue("i_u");
+            string strPassword = zserver_channel.SetProperty().GetKeyValue("i_p");
+
+            LoginInfo login_info = new LoginInfo { UserName = strUserName, Password = strPassword };
+
+            LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
+            try
+            {
+                string strParameters = "";
+                if (login_info.UserType == "patron")
+                    strParameters += ",type=reader";
+                strParameters += ",client=dp2capo|" + "0.01";
+
+                long lRet = library_channel.Login(strUserName,
+                    strPassword,
+                    strParameters,
+                    out string strError);
+                e.Result.Value = (int)lRet;
+                e.Result.ErrorInfo = strError;
+            }
+            finally
+            {
+                instance.MessageConnection.ReturnChannel(library_channel);
+            }
+        }
+
+        private static void Zserver_SetChannelProperty(object sender, SetChannelPropertyEventArgs e)
+        {
+            ZServerChannel zserver_channel = (ZServerChannel)sender;
+
+            List<string> parts = StringUtil.ParseTwoPart(e.Info.m_strID, "@");
+            string strUserName = parts[0];
+            string strInstanceName = parts[1];
+
+            string strPassword = e.Info.m_strPassword;
+
+            // 匿名登录情形
+            if (string.IsNullOrEmpty(strUserName))
+            {
+                Instance instance = FindInstance(strInstanceName);
+                if (instance == null)
+                {
+                    e.Result = new Result { Value = -1,
+                        ErrorCode = "InstanceNotFound",
+                        ErrorInfo = "以用户名 '" + e.Info.m_strID + "' 中包含的实例名 '" + strInstanceName + "' 没有找到任何实例" };
+                    return;
+                }
+
+                // 如果定义了允许匿名登录
+                if (String.IsNullOrEmpty(instance.zhost.AnonymousUserName) == false)
+                {
+                    strUserName = instance.zhost.AnonymousUserName;
+                    strPassword = instance.zhost.AnonymousPassword;
+                }
+                else
+                {
+                    e.Result = new Result { Value = -1,
+                        ErrorCode = "AnonymouseLoginDenied",
+                        ErrorInfo = "不允许匿名登录" };
+                    return;
+                }
+            }
+
+            // 让 channel 从此携带 Instance Name
+            zserver_channel.SetProperty().SetKeyValue("i_n", strInstanceName);
+            zserver_channel.SetProperty().SetKeyValue("i_u", strUserName);
+            zserver_channel.SetProperty().SetKeyValue("i_p", strPassword);
+
+            Debug.Assert(e.Result != null, "");
         }
     }
 }

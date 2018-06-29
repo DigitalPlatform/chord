@@ -74,12 +74,15 @@ namespace DigitalPlatform.Z3950.Server
 
         Dictionary<string, object> _parameters = null;
 
+        // return:
+        //      null    value 不存在
+        //      其他      value 值
         public string GetKeyValue(string strName)
         {
             if (_parameters == null)
-                return "";
+                return null;
             if (_parameters.ContainsKey(strName) == false)
-                return "";
+                return null;
             return (string)_parameters[strName];
         }
 
