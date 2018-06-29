@@ -33,6 +33,9 @@
             this.columnHeader_index = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_requestCount = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.button_begin = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
+            this.numericUpDown_channelCount = new System.Windows.Forms.NumericUpDown();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_channelCount)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -79,17 +82,46 @@
             this.button_begin.TabIndex = 2;
             this.button_begin.Text = "开始";
             this.button_begin.UseVisualStyleBackColor = true;
+            this.button_begin.Click += new System.EventHandler(this.button_begin_Click);
+            // 
+            // label2
+            // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(12, 411);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(71, 18);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "通道数:";
+            // 
+            // numericUpDown_channelCount
+            // 
+            this.numericUpDown_channelCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.numericUpDown_channelCount.Location = new System.Drawing.Point(89, 409);
+            this.numericUpDown_channelCount.Name = "numericUpDown_channelCount";
+            this.numericUpDown_channelCount.Size = new System.Drawing.Size(120, 28);
+            this.numericUpDown_channelCount.TabIndex = 4;
+            this.numericUpDown_channelCount.Value = new decimal(new int[] {
+            20,
+            0,
+            0,
+            0});
             // 
             // MultiChannelForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(585, 450);
+            this.Controls.Add(this.numericUpDown_channelCount);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.button_begin);
             this.Controls.Add(this.listView_channels);
             this.Controls.Add(this.label1);
             this.Name = "MultiChannelForm";
             this.Text = "MultiChannelForm";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MultiChannelForm_FormClosed);
+            this.Load += new System.EventHandler(this.MultiChannelForm_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_channelCount)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -102,5 +134,7 @@
         private System.Windows.Forms.ColumnHeader columnHeader_index;
         private System.Windows.Forms.ColumnHeader columnHeader_requestCount;
         private System.Windows.Forms.Button button_begin;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.NumericUpDown numericUpDown_channelCount;
     }
 }

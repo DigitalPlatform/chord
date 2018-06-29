@@ -65,7 +65,11 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.MenuItem_iso2709LoaderTest = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.menuStrip1.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -90,7 +94,8 @@
             // MenuItem_test
             // 
             this.MenuItem_test.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.MenuItem_multiChannelTest});
+            this.MenuItem_multiChannelTest,
+            this.MenuItem_iso2709LoaderTest});
             this.MenuItem_test.Name = "MenuItem_test";
             this.MenuItem_test.Size = new System.Drawing.Size(58, 28);
             this.MenuItem_test.Text = "测试";
@@ -98,7 +103,7 @@
             // MenuItem_multiChannelTest
             // 
             this.MenuItem_multiChannelTest.Name = "MenuItem_multiChannelTest";
-            this.MenuItem_multiChannelTest.Size = new System.Drawing.Size(182, 30);
+            this.MenuItem_multiChannelTest.Size = new System.Drawing.Size(279, 30);
             this.MenuItem_multiChannelTest.Text = "多通道测试";
             this.MenuItem_multiChannelTest.Click += new System.EventHandler(this.MenuItem_multiChannelTest_Click);
             // 
@@ -113,7 +118,7 @@
             // MenuItem_escapeString
             // 
             this.MenuItem_escapeString.Name = "MenuItem_escapeString";
-            this.MenuItem_escapeString.Size = new System.Drawing.Size(199, 30);
+            this.MenuItem_escapeString.Size = new System.Drawing.Size(252, 30);
             this.MenuItem_escapeString.Text = "转义检索词 ...";
             this.MenuItem_escapeString.Click += new System.EventHandler(this.MenuItem_escapeString_Click);
             // 
@@ -129,10 +134,13 @@
             // statusStrip1
             // 
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
-            this.statusStrip1.Location = new System.Drawing.Point(0, 786);
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripProgressBar1,
+            this.toolStripStatusLabel1});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 779);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 17, 0);
-            this.statusStrip1.Size = new System.Drawing.Size(1040, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(1040, 29);
             this.statusStrip1.TabIndex = 2;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -150,7 +158,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.webBrowser1);
-            this.splitContainer1.Size = new System.Drawing.Size(1040, 727);
+            this.splitContainer1.Size = new System.Drawing.Size(1040, 720);
             this.splitContainer1.SplitterDistance = 464;
             this.splitContainer1.SplitterWidth = 10;
             this.splitContainer1.TabIndex = 3;
@@ -187,7 +195,7 @@
             this.panel_query.Location = new System.Drawing.Point(0, 0);
             this.panel_query.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.panel_query.Name = "panel_query";
-            this.panel_query.Size = new System.Drawing.Size(464, 727);
+            this.panel_query.Size = new System.Drawing.Size(464, 720);
             this.panel_query.TabIndex = 0;
             // 
             // radioButton_query_origin
@@ -224,7 +232,7 @@
             this.textBox_queryString.Location = new System.Drawing.Point(152, 321);
             this.textBox_queryString.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_queryString.Name = "textBox_queryString";
-            this.textBox_queryString.Size = new System.Drawing.Size(195, 31);
+            this.textBox_queryString.Size = new System.Drawing.Size(169, 31);
             this.textBox_queryString.TabIndex = 13;
             // 
             // label9
@@ -374,7 +382,7 @@
             this.textBox_database.Location = new System.Drawing.Point(138, 104);
             this.textBox_database.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_database.Name = "textBox_database";
-            this.textBox_database.Size = new System.Drawing.Size(209, 31);
+            this.textBox_database.Size = new System.Drawing.Size(183, 31);
             this.textBox_database.TabIndex = 5;
             // 
             // button_search
@@ -406,7 +414,7 @@
             this.comboBox_use.Location = new System.Drawing.Point(152, 237);
             this.comboBox_use.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.comboBox_use.Name = "comboBox_use";
-            this.comboBox_use.Size = new System.Drawing.Size(195, 32);
+            this.comboBox_use.Size = new System.Drawing.Size(169, 32);
             this.comboBox_use.TabIndex = 10;
             // 
             // textBox_serverAddr
@@ -416,7 +424,7 @@
             this.textBox_serverAddr.Location = new System.Drawing.Point(138, 13);
             this.textBox_serverAddr.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_serverAddr.Name = "textBox_serverAddr";
-            this.textBox_serverAddr.Size = new System.Drawing.Size(209, 31);
+            this.textBox_serverAddr.Size = new System.Drawing.Size(183, 31);
             this.textBox_serverAddr.TabIndex = 1;
             // 
             // label5
@@ -446,7 +454,7 @@
             this.textBox_queryWord.Location = new System.Drawing.Point(152, 191);
             this.textBox_queryWord.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_queryWord.Name = "textBox_queryWord";
-            this.textBox_queryWord.Size = new System.Drawing.Size(195, 31);
+            this.textBox_queryWord.Size = new System.Drawing.Size(169, 31);
             this.textBox_queryWord.TabIndex = 8;
             // 
             // textBox_serverPort
@@ -456,7 +464,7 @@
             this.textBox_serverPort.Location = new System.Drawing.Point(138, 59);
             this.textBox_serverPort.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_serverPort.Name = "textBox_serverPort";
-            this.textBox_serverPort.Size = new System.Drawing.Size(209, 31);
+            this.textBox_serverPort.Size = new System.Drawing.Size(183, 31);
             this.textBox_serverPort.TabIndex = 3;
             // 
             // label4
@@ -486,8 +494,26 @@
             this.webBrowser1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(24, 27);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(566, 727);
+            this.webBrowser1.Size = new System.Drawing.Size(566, 720);
             this.webBrowser1.TabIndex = 0;
+            // 
+            // MenuItem_iso2709LoaderTest
+            // 
+            this.MenuItem_iso2709LoaderTest.Name = "MenuItem_iso2709LoaderTest";
+            this.MenuItem_iso2709LoaderTest.Size = new System.Drawing.Size(279, 30);
+            this.MenuItem_iso2709LoaderTest.Text = "ISO2709 文件装载测试";
+            this.MenuItem_iso2709LoaderTest.Click += new System.EventHandler(this.MenuItem_iso2709LoaderTest_Click);
+            // 
+            // toolStripStatusLabel1
+            // 
+            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(195, 24);
+            this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
+            // 
+            // toolStripProgressBar1
+            // 
+            this.toolStripProgressBar1.Name = "toolStripProgressBar1";
+            this.toolStripProgressBar1.Size = new System.Drawing.Size(200, 23);
             // 
             // Form1
             // 
@@ -508,6 +534,8 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
@@ -560,6 +588,9 @@
         private System.Windows.Forms.RadioButton radioButton_query_easy;
         private System.Windows.Forms.ToolStripMenuItem MenuItem_utility;
         private System.Windows.Forms.ToolStripMenuItem MenuItem_escapeString;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_iso2709LoaderTest;
+        private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
     }
 }
 

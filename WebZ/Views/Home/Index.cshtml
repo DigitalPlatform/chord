@@ -2,7 +2,6 @@
 
 @section style {
 
-    <link rel="stylesheet" href="~/css/message.css?a=4" />
 }
 
 @section Scripts {
@@ -26,24 +25,29 @@
         })
 
         // 展开收缩
-        function expand(obj) {
+        function expandToggle(obj) {
+
+            // 找到当前传入对象的下级_advanceCtrl
             var advanceCtrl = $(obj).find("#_advanceCtrl");
+
+            // 找到当前传入对象并列的_advance
             var advance = $(obj).parent().find("#_advance");
-            var h = advanceCtrl.html();
-            //alert(h);
-            if (h == "+") {
+
+            // 当前符号
+            var ctrl = advanceCtrl.html();
+            if (ctrl == "+") {
                 //alert("需要展开");
                 advanceCtrl.text("-")
                 $(advance).css("display", "inline-block");
             }
-            else if (h == "-") {
+            else if (ctrl == "-") {
                 //alert("需要收缩");
                 advanceCtrl.html("+")
                 $(advance).css("display", "none");
             }
         }
 
-
+        // 每页显示条数
         var _percount = 6;
 
         //获取所有站点
@@ -166,9 +170,9 @@
             // alert("clickMsgDiv");
         }
 
-        function getMsgViewHtml(msgItem, bContainEditDiv) {
+        function getMsgViewHtml(item, bContainEditDiv) {
 
-            //alert("id=" + msgItem.id + ",hostname=" + msgItem.hostName);
+            //alert("id=" + item.id + ",hostname=" + item.hostName);
 
             var bShowTime = true;
 
@@ -177,39 +181,112 @@
 
 
             if (bContainEditDiv == true)
-                html += "<div class='message' id='_edit_" + msgItem.id + "' onclick=\"clickMsgDiv('" + msgItem.id + "')\">";
+                html += "<div class='message' id='_edit_" + item.id + "' onclick=\"clickMsgDiv('" + item.id + "')\">";
 
             // 2016-8-20 如果markdown格式产生的pre/code元素放在表格里不支持，这里给显示态再套一层div，把内容和注释提到table外的div里
-            html += "<div class='view'>"
+            html += "<div class='view'>";
+
             html += "<table class='view-top'>"
                 + "<tr>"
-                + "<td class='title' >" + msgItem.name + "</td>"
+                + "<td class='title' >" + item.name + "</td>"
                 + "<td class='btn'>"
                 + "<div id='btnEdit' style='display: none;'>"
-                + "<button class='ui button' onclick=\"gotoEdit('" + msgItem.id + "')\">编辑</button>&nbsp;"
-                + "<button class='ui button' onclick=\"deleteMsg('" + msgItem.id + "')\">X&nbsp;删除</button>"
+                + "<button class='ui button' onclick=\"gotoEdit('" + item.id + "')\">编辑</button>&nbsp;"
+                + "<button class='ui button' onclick=\"deleteMsg('" + item.id + "')\">X&nbsp;删除</button>"
                 + "</div>"
                 + "</td>"
                 + "</tr>"
-
-            html += "</table>";
+                + "</table>";
 
             // 加内容
             html += "<div class='content'>"
-                + "<div><span class='name'>id：</span><span class='value'>" + msgItem.id + "</span></div>"
-                + "<div><span class='name'>服务器地址：</span><span class='value'>" + msgItem.addr + "</span></div>"
-                + "<div><span class='name'>端口号：</span><span class='value'>" + msgItem.port + "</span></div>"
-                + "<div><span class='name'>数据库名：</span><span class='value'>" + msgItem.dbnames + "</span></div>"
-                + "<div><span class='name'>主页：</span><span class='value'>" + msgItem.homepage + "</span></div>"
-                + "<div><span class='name'>权限验证方式：</span><span class='value'>" + msgItem.authmethod + "</span></div>"
-
-                + "<div><span class='name'>创建者手机号：</span><span class='value'>" + msgItem.creatorPhone + "</span></div>"
-                + "<div><span class='name'>创建者IP：</span><span class='value'>" + msgItem.creatorIP + "</span></div>"
-
-                + "<div><span class='name'>创建时间：</span><span class='value'>" + msgItem.createTime + "</span></div>"
-                + "<div><span class='name'>状态：</span><span class='value'>" + msgItem.state + "</span></div>"
-
+                + "<div><span class='name'>id：</span><span class='value'>" + item.id + "</span></div>"
+                + "<div><span class='name'>服务器地址：</span><span class='value'>" + item.addr + "</span></div>"
+                + "<div><span class='name'>端口号：</span><span class='value'>" + item.port + "</span></div>"
+                + "<div><span class='name'>数据库名：</span><span class='value'>" + item.dbnames + "</span></div>"
+                + "<div><span class='name'>主页：</span><span class='value'>" + item.homepage + "</span></div>"
+                + "<div><span class='name'>权限验证方式：</span><span class='value'>" + item.authmethod + "</span></div>"
+                + "<div><span class='name'>创建者手机号：</span><span class='value'>" + item.creatorPhone + "</span></div>"
+                + "<div><span class='name'>创建者IP：</span><span class='value'>" + item.creatorIP + "</span></div>"
+                + "<div><span class='name'>创建时间：</span><span class='value'>" + item.createTime + "</span></div>"
+                + "<div><span class='name'>状态：</span><span class='value'>" + item.state + "</span></div>"
                 + "</div>";
+
+
+            html += "<div onclick='expandToggle(this)'><span id='_advanceCtrl'>+</span> 高级选项<br/></div> \
+              <div id='_advance' style='display:none'>\
+                <div class='content'>\
+                    <div class='ui segment'>\
+                        <div class=''>\
+                            <span class='nameAuto'>获取记录每批条数：</span>\
+                            <span class='value'>"+ item.recsperbatch+"</span>\
+                        </div>\
+                        <div class=''>\
+                            <span class='nameAuto'>缺省数据格式OID：</span>\
+                            <span class='value'>"+ item.defaultMarcSyntaxOID +"</span>\
+                        </div>\
+                        <div class=''>\
+                            <span class='nameAuto'>缺省元素集名：</span>\
+                            <span class='value'>"+ item.defaultElementSetName +"</span>\
+                        </div>\
+                        <div class=''>\
+                            <span class='nameAuto'>在获取浏览记录阶段即获取全记录：</span>\
+                            <span class='value'>"+ item.firstfull +"</span>\
+                        </div>\
+                        <br />\
+                        <div class=''>\
+                            <span class='nameAuto'>自动探测MARC记录格式：</span>\
+                            <span class='value'>"+ item.detectmarcsyntax +"</span>\
+                        </div>\
+                        <br />\
+                        <div class=''>\
+                            <span class='nameAuto'>不检查Reference：</span>\
+                            <span class='value'>"+ item.ignorereferenceid +"</span>\
+                        </div>\
+                    </div>\
+                    <div class='ui segment'>\
+                        <p>ISBN检索前，对检索词作如下预处理：</p>\
+                        <div class='ui  checkbox field'>\
+                            <input type='checkbox' id='_isbn_force13'>\
+                            <label>规整为13位形态&nbsp;&nbsp;&nbsp;&nbsp;</label>\
+                        </div>\
+                        <div class='ui  checkbox field'>\
+                            <input type='checkbox' id='_isbn_force10'>\
+                            <label>规整为10位形态&nbsp;&nbsp;&nbsp;&nbsp;</label>\
+                        </div>\
+                        <div class='ui  checkbox field'>\
+                            <input type='checkbox' id='_isbn_addhyphen'>\
+                            <label>加入横杠&nbsp;&nbsp;&nbsp;&nbsp;</label>\
+                        </div>\
+                        <div class='ui  checkbox field'>\
+                            <input type='checkbox' id='_isbn_removehyphen'>\
+                            <label>去除横杠&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>\
+                        </div>\
+                        <div class='ui  checkbox field'>\
+                            <input type='checkbox' id='_isbn_wild'>\
+                            <label>野蛮匹配&nbsp;&nbsp;&nbsp;&nbsp;</label>\
+                        </div>\
+                    </div>\
+                    <div class='ui segment'>\
+                        <div class=''>\
+                            <span class='nameAuto'>检索词缺省编码方式</span>\
+                            <span class='value'>"+ item.queryTermEncoding +"</span>\
+                        </div>\
+                        <div class=''>\
+                            <span class='nameAuto'>数据记录缺省编码方式</span>\
+                            <span class='value'>"+ item.defaultEncoding +"</span>\
+                        </div>\
+                        <div class=''>\
+                            <span class='nameAuto'>启用字符集协商功能，优先为检索词选用UTF-8编码方式</span>\
+                            <span class='value'>"+ item.charNegoUtf8 +"</span>\
+                        </div>\
+                        <br />\
+                        <div class=''>\
+                            <span class='nameAuto'>若启用了字符集协商功能，令数据记录也一同采用UTF-8编码试</span>\
+                            <span class='value'>"+ item.charNego_recordsInSeletedCharsets +"</span>\
+                        </div>\
+                    </div>\
+                </div>";
 
             // 收尾的div
             html += "</div>";
@@ -268,10 +345,19 @@
 
             // 其它配置字段
             var recsperbatch = $(divId).find("#_recsperbatch").val();
+            //alert(recsperbatch);
+
             var defaultMarcSyntaxOID = $(divId).find("#_defaultMarcSyntaxOID").val();
+            //alert(defaultMarcSyntaxOID);
+
             var defaultElementSetName = $(divId).find("#_defaultElementSetName").val();
+            //alert(defaultElementSetName);
+
             var firstfull = $(divId).find("#_firstfull").val();
+            alert(firstfull);
+
             var detectmarcsyntax = $(divId).find("#_detectmarcsyntax").val();
+
             var ignorereferenceid = $(divId).find("#_ignorereferenceid").val();
 
             var isbn_force13 = $(divId).find("#_isbn_force13").val();
@@ -292,6 +378,8 @@
                 return;
             }
 
+            var subjects = "";  //这里以逗号分隔
+
             //显示等待图层
             showMaskLayer();
 
@@ -311,6 +399,8 @@
                 action = "PUT";
                 url += "/" + id;  //url也加一截
             }
+
+
 
             //alert(url);
             sendAjaxRequest(url, action,
@@ -352,8 +442,12 @@
                     username: username,
                     password: password,
 
+                    creatorPhone: creatorPhone,
 
-                    creatorPhone: creatorPhone
+                    // 高级选项
+                    recsperbatch: recsperbatch,
+                    defaultMarcSyntaxOID: defaultMarcSyntaxOID,
+                    defaultElementSetName: defaultElementSetName
                 }
             );
 
@@ -491,7 +585,20 @@
             var verifier = ""; //审核人
             var verifyTime = ""; //审核时间
 
+            // 高级选项
             var recsperbatch = "";
+
+            var defaultMarcSyntaxOID_UNIMARC = "";
+            var defaultMarcSyntaxOID_MARC21 = "";
+            var defaultMarcSyntaxOID_SUTRS = "";
+            var defaultMarcSyntaxOID_XML = "";
+
+            var defaultElementSetName_B = "";
+            var defaultElementSetName_F = "";
+            var defaultElementSetName_dc = "";
+            var defaultElementSetName_mods = "";
+            var defaultElementSetName_marcxml = "";
+            var defaultElementSetName_opacxml = "";
 
             var idpassStr = "";
             if (msgItem != null) {
@@ -520,6 +627,32 @@
 
 
                 recsperbatch = msgItem.recsperbatch;
+                var defaultMarcSyntaxOID = msgItem.defaultMarcSyntaxOID;
+                //alert("~~" + defaultMarcSyntaxOID);
+
+                if (defaultMarcSyntaxOID == "UNIMARC")
+                    defaultMarcSyntaxOID_UNIMARC = " selected ";
+                else if (defaultMarcSyntaxOID == "MARC21")
+                    defaultMarcSyntaxOID_MARC21 = " selected ";
+                else if (defaultMarcSyntaxOID == "SUTRS")
+                    defaultMarcSyntaxOID_SUTRS = " selected ";
+                else if (defaultMarcSyntaxOID == "XML")
+                    defaultMarcSyntaxOID_XML = " selected ";
+
+                var defaultElementSetName = msgItem.defaultElementSetName;
+                alert(defaultElementSetName);
+                if (defaultElementSetName == "B")
+                    defaultElementSetName_B = " selected ";
+                else if (defaultElementSetName == "F")
+                    defaultElementSetName_F = " selected ";
+                else if (defaultElementSetName == "dc")
+                    defaultElementSetName_dc = " selected ";
+                else if (defaultElementSetName == "mods")
+                    defaultElementSetName_mods = " selected ";
+                else if (defaultElementSetName == "marcxml")
+                    defaultElementSetName_marcxml = " selected ";
+                else if (defaultElementSetName == "opacxml")
+                    defaultElementSetName_opacxml = " selected ";
 
                 saveBtnName = "保存";
             }
@@ -591,34 +724,34 @@
                     <input type='text' id='_verifycode'>\
                 </div>\
             </div>\
-              <div onclick='expand(this)'><span id='_advanceCtrl'>+</span> 高级选项<br/></div> \
+              <div onclick='expandToggle(this)'><span id='_advanceCtrl'>+</span> 高级选项<br/></div> \
               <div id='_advance' style='display:none'>\
                 <div class='content'>\
                     <div class='ui segment'>\
                         <div class='inline field'>\
                             <label>获取记录每批条数</label>\
-                            <input type='text' placeholder='' id='_recsperbatch' value='20' value='" + recsperbatch + "'>\
+                            <input type='text' placeholder='' id='_recsperbatch'  value='" + recsperbatch + "'>\
                         </div>\
                         <div class='inline field'>\
                             <label>缺省数据格式OID</label>\
                             <select id='_defaultMarcSyntaxOID'>\
                                 <option value=''></option>\
-                                <option value='UNIMARC'>1.2.840.10003.5.1 -- UNIMARC</option>\
-                                <option value='MARC21'>1.2.840.10003.5.10 -- MARC21</option>\
-                                <option value='SUTRS'>1.2.840.10003.5.101 -- SUTRS</option>\
-                                <option value='XML'>1.2.840.10003.5.109.10 -- XML</option>\
+                                <option value='UNIMARC' "+ defaultMarcSyntaxOID_UNIMARC+">1.2.840.10003.5.1 -- UNIMARC</option>\
+                                <option value='MARC21' "+ defaultMarcSyntaxOID_MARC21+">1.2.840.10003.5.10 -- MARC21</option>\
+                                <option value='SUTRS' "+ defaultMarcSyntaxOID_SUTRS+">1.2.840.10003.5.101 -- SUTRS</option>\
+                                <option value='XML' "+ defaultMarcSyntaxOID_XML+">1.2.840.10003.5.109.10 -- XML</option>\
                             </select>\
                         </div>\
                         <div class='inline field'>\
                             <label>缺省元素集名</label>\
                             <select id='_defaultElementSetName'>\
                                 <option value=''></option>\
-                                <option value='B'>B -- Brief(MARC records)</option>\
-                                <option value='F'>F -- Full (MARC and OPAC records)</option>\
-                                <option value='dc'>dc --  Dublin Core (XML records)</option>\
-                                <option value='mods'>mods  -- MODS (XML records)</option>\
-                                <option value='marcxml'>marcxml -- MARCXML (XML records), default schema for XML</option>\
-                                <option value='opacxml'>opacxml -- MARCXML with holdings attached</option>\
+                                <option value='B' "+ defaultElementSetName_B+">B -- Brief(MARC records)</option>\
+                                <option value='F' "+ defaultElementSetName_F +">F -- Full (MARC and OPAC records)</option>\
+                                <option value='dc' "+ defaultElementSetName_dc +">dc --  Dublin Core (XML records)</option>\
+                                <option value='mods' "+ defaultElementSetName_mods +">mods  -- MODS (XML records)</option>\
+                                <option value='marcxml' "+ defaultElementSetName_marcxml +">marcxml -- MARCXML (XML records), default schema for XML</option>\
+                                <option value='opacxml' "+ defaultElementSetName_opacxml +">opacxml -- MARCXML with holdings attached</option>\
                             </select>\
                         </div>\
                         <div class='ui   toggle checkbox  field'>\
