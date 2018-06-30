@@ -67,11 +67,23 @@
     <Compile Include="dp2MServerDialog.Designer.cs">
       <DependentUpon>dp2MServerDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="GlobalConfigDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GlobalConfigDialog.Designer.cs">
+      <DependentUpon>GlobalConfigDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="InstallDialog.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="InstallDialog.Designer.cs">
       <DependentUpon>InstallDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="InstallZServerDlg.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="InstallZServerDlg.designer.cs">
+      <DependentUpon>InstallZServerDlg.cs</DependentUpon>
     </Compile>
     <Compile Include="InstanceDialog.cs">
       <SubType>Form</SubType>
@@ -97,8 +109,14 @@
     <EmbeddedResource Include="dp2MServerDialog.resx">
       <DependentUpon>dp2MServerDialog.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="GlobalConfigDialog.resx">
+      <DependentUpon>GlobalConfigDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="InstallDialog.resx">
       <DependentUpon>InstallDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="InstallZServerDlg.resx">
+      <DependentUpon>InstallZServerDlg.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="InstanceDialog.resx">
       <DependentUpon>InstanceDialog.cs</DependentUpon>
@@ -108,9 +126,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj">
+    <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj">
       <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
-      <Name>DigitalPlatform.Common</Name>
+      <Name>DigitalPlatform.Base</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.Drawing\DigitalPlatform.Drawing.csproj">
       <Project>{7c1cdeeb-c44d-458c-96bb-0486a59397de}</Project>

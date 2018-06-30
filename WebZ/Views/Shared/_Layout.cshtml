@@ -1,0 +1,73 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - WebZ</title>
+
+    <link rel="stylesheet" href="~/css/WebZ.css" />
+    <link href="~/css/semantic.min.css" rel="stylesheet" type="text/css">
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/jquery/dist/semantic.min.js"></script>
+    <script src="~/js/WebZ.js?a=1"></script>
+
+    <script>
+
+    </script>
+
+    @RenderSection("style", required: false)
+</head>
+<body>
+    <!--
+    <div class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+            <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+            <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
+            <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
+        </ul>
+    </div>
+        -->
+    <div class="ui secondary  menu">
+        <a class="active item" href="~/home/index">Z39.50站点信息管理 </a>
+        <a class="item" href="~/home/Tool">实用工具</a>
+        <a class="item" href="~/home/demo">UI demo</a>
+    </div>
+
+
+
+    <div class="container body-content">
+
+        <div id="loading"></div>
+        <div id="mask-background" style="display: none; "></div>
+        <div id="mask-progressBar" style="display: none; ">数据处理中，请稍候...</div>
+
+
+        @RenderBody()
+
+
+    </div>
+
+    <script>
+        
+
+        $(document).ready(function () {
+            $('.ui.accordion').accordion({ duration: 'click' });
+            $('.ui.checkbox').checkbox();   //使得单选框可以被选中
+
+            //$('.ui.secondary.menu').menu();
+
+            $('.ui.secondary.menu')
+                .on('click', '.item', function () {
+                        $(this)
+                            .addClass('active')
+                            .siblings('.item')
+                            .removeClass('active');
+                });
+
+        });
+
+    </script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

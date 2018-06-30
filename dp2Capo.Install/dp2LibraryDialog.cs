@@ -177,6 +177,16 @@ namespace dp2Capo.Install
             this.textBox_webURL.Text = "";
         }
 
+        public static string DecryptPasssword(string strText)
+        {
+            return Cryptography.Decrypt(strText, EncryptKey);
+        }
+
+        public static string EncryptPassword(string strText)
+        {
+            return Cryptography.Encrypt(strText, EncryptKey);
+        }
+
         // 从 CfgDom 中填充信息到控件
         void FillInfo()
         {
@@ -196,7 +206,8 @@ namespace dp2Capo.Install
 
             this.textBox_manageUserName.Text = element.GetAttribute("userName");
 
-            string strPassword = Cryptography.Decrypt(element.GetAttribute("password"), EncryptKey);
+            // string strPassword = Cryptography.Decrypt(element.GetAttribute("password"), EncryptKey);
+            string strPassword = DecryptPasssword(element.GetAttribute("password"));
             this.textBox_managePassword.Text = strPassword;
             this.textBox_confirmManagePassword.Text = strPassword;
 
@@ -243,7 +254,8 @@ namespace dp2Capo.Install
 
             element.SetAttribute("userName", this.textBox_manageUserName.Text);
 
-            string strPassword = Cryptography.Encrypt(this.textBox_managePassword.Text, EncryptKey);
+            // string strPassword = Cryptography.Encrypt(this.textBox_managePassword.Text, EncryptKey);
+            string strPassword = EncryptPassword(this.textBox_managePassword.Text);
             element.SetAttribute("password", strPassword);
 
             element.SetAttribute("defaultQueue", this.comboBox_msmqPath.Text);

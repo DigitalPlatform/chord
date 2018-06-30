@@ -662,6 +662,21 @@ namespace DigitalPlatform.Xml
             return strText;
         }
 
+        public static string GetIndentInnerXml(string strXml)
+        {
+            XmlDocument dom = new XmlDocument();
+            try
+            {
+                dom.LoadXml(strXml);
+            }
+            catch // (Exception ex)
+            {
+                return strXml;
+            }
+
+            return DomUtil.GetIndentInnerXml(dom.DocumentElement);
+        }
+
         public static string GetIndentInnerXml(XmlNode node)
         {
             MemoryStream m = new MemoryStream();
@@ -1868,10 +1883,5 @@ namespace DigitalPlatform.Xml
 			strXpath = strXpath + strAttr;
             return 0;
 		}
-
-
-
 	} // DomUtil类结束
-
-
 }

@@ -127,8 +127,6 @@
     <Compile Include="dp2MessageHandler\dp2weixinMessageContext.cs" />
     <Compile Include="dp2MessageHandler\dp2weixinMessageHandler.cs" />
     <Compile Include="dp2MessageHandler\dp2weixinMessageHandler_Events.cs" />
-    <Compile Include="Interface\MessageInterface.cs" />
-    <Compile Include="Interface\ScriptManager.cs" />
     <Compile Include="mongodb\LibDatabase.cs" />
     <Compile Include="mongodb\UserMessageDb.cs" />
     <Compile Include="MsgRouter.cs" />
@@ -149,9 +147,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj">
+    <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj">
       <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
-      <Name>DigitalPlatform.Common</Name>
+      <Name>DigitalPlatform.Base</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.Interfaces\DigitalPlatform.Interfaces.csproj">
       <Project>{3c4f8133-8652-40b6-b37b-200b25c2b043}</Project>

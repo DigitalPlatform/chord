@@ -1,0 +1,785 @@
+﻿<h2>Z39.50服务器站点管理</h2>
+
+@section style {
+
+    <link rel="stylesheet" href="~/css/message.css?a=3" />
+}
+
+@section Scripts {
+    <script>
+
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            //alert("ready");
+
+            // 获取所有的操作命令
+            getAllZSerItem();
+
+        })
+
+        //获取所有站点
+        function getAllZSerItem() {
+            //显示等待图层
+            showLoading();
+
+            //alert("getAllZSerItem");
+
+            // 调web api，获取全部，todo可以改为分批获取
+            var url = "/api/ZSerItem?start=0&count=-1";
+            sendAjaxRequest(url, "GET", function (result) {
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                //alert("ok");
+
+                var table = $("#_subject_main");//ulResult");//$('.mui-table-view');
+                var noWidth = '18px';
+
+                //alert("2");
+                for (var i = 0; i < result.data.length; i++) {
+
+                    //显示到界面上
+                    var item = result.data[i];
+
+                    //alert("count=" + result.data.length);
+                    // alert(item);
+
+                    var id = item.id;
+                    //alert("id=" + id);
+
+                    if (i >= 99)
+                        noWidth = "25px";
+
+                    var itemHtml = getMsgViewHtml(item, true);
+
+                    table.append(itemHtml);
+                }
+
+                // 关闭等待层
+                hideLoading();
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                hideLoading();
+
+                alert(errorThrown);
+            });
+        }
+
+        // 单击msg进行只读态与编辑态的切换
+        function clickMsgDiv(msgId) {
+
+            //alert("走进clientMsgDiv");
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
+                return;
+            }
+
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+            var editBtn = $(divId).find("#btnEdit");
+            //alert(editBtn);
+
+            // 这时候已经不是在浏览界面，应该是编辑态了
+            var viewTable = $(divId).children(".view").html();
+            if (viewTable == null || viewTable == "") {
+                return;
+            }
+
+            var editStateClass = "msgEditable";
+            var editState = $(divId).hasClass(editStateClass);
+            if (editState == true) {
+                $(divId).removeClass(editStateClass);
+
+                $(editBtn).css("display", "none");
+            }
+            else {
+                $(divId).addClass(editStateClass);
+
+                $(editBtn).css("display", "inline-block");
+            }
+
+            // alert("clickMsgDiv");
+        }
+
+        function getMsgViewHtml(msgItem, bContainEditDiv) {
+
+            //alert("id=" + msgItem.id + ",hostname=" + msgItem.hostName);
+
+            var bShowTime = true;
+
+            var html = "";
+            //alert("aa");
+
+            if (bContainEditDiv == true)
+                html += "<div class='message' id='_edit_" + msgItem.id + "' onclick=\"clickMsgDiv('" + msgItem.id + "')\">";
+
+            // 2016-8-20 如果markdown格式产生的pre/code元素放在表格里不支持，这里给显示态再套一层div，把内容和注释提到table外的div里
+            html += "<div class='view'>"
+            html += "<table class='view-top'>"
+                + "<tr>"
+                + "<td class='title' >" + msgItem.name + "</td>"
+                + "<td class='btn'>"
+                + "<div id='btnEdit' style='display: none;'>"
+                + "<button class='mui-btn mui-btn-default' onclick=\"gotoEdit('" + msgItem.id + "')\">编辑</button>&nbsp;"
+                + "<button class='mui-btn mui-btn-danger' onclick=\"deleteMsg('" + msgItem.id + "')\">X&nbsp;删除</button>"
+                + "</div>"
+                + "</td>"
+                + "</tr>"
+
+            html += "</table>";
+
+            // 加内容
+            html += "<div class='content'>"
+                + "<div><span class='name'>服务器名称：</span><span class='value'>" + msgItem.name + "</span></div>"
+                + "<div><span class='name'>服务器地址：</span><span class='value'>" + msgItem.addr + "</span></div>"
+                + "<div><span class='name'>端口号：</span><span class='value'>" + msgItem.port + "</span></div>"
+                + "<div><span class='name'>数据库名：</span><span class='value'>" + msgItem.dbnames + "</span></div>"
+                + "<div><span class='name'>主页：</span><span class='value'>" + msgItem.homepage + "</span></div>"
+                + "<div><span class='name'>权限验证方式：</span><span class='value'>" + msgItem.authmethod + "</span></div>"
+
+                + "<div><span class='name'>创建者手机号：</span><span class='value'>" + msgItem.creatorPhone + "</span></div>"
+                + "<div><span class='name'>创建者IP：</span><span class='value'>" + msgItem.creatorIP + "</span></div>"
+
+                + "<div><span class='name'>创建时间：</span><span class='value'>" + msgItem.createTime + "</span></div>"
+                + "<div><span class='name'>状态：</span><span class='value'>" + msgItem.state + "</span></div>"
+
+                + "</div>";
+
+            // 收尾的div
+            html += "</div>";
+
+            if (bContainEditDiv == true)
+                html += "</div>";
+
+            return html;
+        }
+
+        // 保存
+        function save(msgId) {
+
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
+                return;
+            }
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+
+            var name = $(divId).find("#_name").val();
+            if (name == "") {
+                alert("请输入服务器名称。");
+                return;
+            }
+
+            var addr = $(divId).find("#_addr").val();
+            if (addr == "") {
+                alert("请输入服务器地址。");
+                return;
+            }
+
+            var port = $(divId).find("#_port").val();
+            if (port == "") {
+                alert("请输入端口号。");
+                return;
+            }
+            var homepage = $(divId).find("#_homepage").val();
+
+            var dbnames = $(divId).find("#_dbnames").val();
+            if (dbnames == "") {
+                alert("请输入数据库。");
+                return;
+            }
+
+
+
+            var authmethod = $(divId).find("#_authmethod").val();
+            if (authmethod == "") {
+                alert("请选择权限验证方式。");
+                return;
+            }
+
+            var groupid = $(divId).find("#_groupid").val();
+            var username = $(divId).find("#_username").val();
+            var password = $(divId).find("#_password").val();
+
+            // 其它配置字段
+            var recsperbatch = $(divId).find("#_recsperbatch").val();
+            var defaultMarcSyntaxOID = $(divId).find("#_defaultMarcSyntaxOID").val();
+            var defaultElementSetName = $(divId).find("#_defaultElementSetName").val();
+            var firstfull = $(divId).find("#_firstfull").val();
+            var detectmarcsyntax = $(divId).find("#_detectmarcsyntax").val();
+            var ignorereferenceid = $(divId).find("#_ignorereferenceid").val();
+
+            var isbn_force13 = $(divId).find("#_isbn_force13").val();
+            var isbn_force10 = $(divId).find("#_isbn_force10").val();
+            var isbn_addhyphen = $(divId).find("#_isbn_addhyphen").val();
+            var isbn_removehyphen = $(divId).find("#_isbn_removehyphen").val();
+            var isbn_wild = $(divId).find("#_isbn_wild").val();
+
+            var queryTermEncoding = $(divId).find("#_queryTermEncoding").val();
+            var defaultEncoding = $(divId).find("#_defaultEncoding").val();
+            var recordSyntaxAndEncodingBinding = $(divId).find("#_recordSyntaxAndEncodingBinding").val();
+            var charNegoUtf8 = $(divId).find("#_charNegoUtf8").val();
+            var charNego_recordsInSeletedCharsets = $(divId).find("#_charNego_recordsInSeletedCharsets").val();
+
+            var creatorPhone = $(divId).find("#_creatorPhone").val();
+            if (creatorPhone == "") {
+                alert("请输入手机号。");
+                return;
+            }
+
+            //显示等待图层
+            showMaskLayer();
+
+            var id = "";
+            if (msgId != "new")
+                id = msgId;
+
+
+            var url = "/api/ZSerItem";
+
+            //新增用POST，修改用PUT
+            var action = "";
+            if (msgId == "new") {
+                action = "POST";
+            }
+            else {
+                action = "PUT";
+                url += "/" + id;  //url也加一截
+            }
+
+            //alert(url);
+            sendAjaxRequest(url, action,
+                function (result) {
+                    // 关闭等待层
+                    hideMaskLayer();
+
+                    if (result.errorCode == -1) {
+                        alert("操作失败：" + result.errorInfo);
+                        return;
+                    }
+
+                    alert("操作成功");
+
+                    if (result.data == null) {
+                        alert("未返回保存后的消息对象");
+                    }
+                    var item = result.data;
+
+                    //alert("回来的消息标题:"+item.title);
+                    viewMsg(msgId, item);
+                },
+                function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    hideMaskLayer();
+
+                    alert(errorThrown);
+                },
+                {
+                    id: id,
+                    name: name,
+                    addr: addr,
+                    port: port,
+                    homepage: homepage,
+                    dbnames: dbnames,
+                    authmethod: authmethod,
+                    creatorPhone: creatorPhone
+                }
+            );
+
+        }
+
+        // 保存完后，显示一条消息
+        function viewMsg(msgId, msgItem) {
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+
+            if (msgId == "new") {
+
+                // 得到完整的div
+                var msgViewHtml = getMsgViewHtml(msgItem, true);
+
+                // 加到最上面
+                $("#_subject_main").prepend(msgViewHtml);
+
+
+
+                //创建按钮可见
+                $("#btnCreate").css('display', 'block');
+                $(divId).css('display', 'none');
+                $(divId).html("");
+
+                return;
+            }
+
+
+            // 编辑
+            // 拼出内部的html，直接替换原来内容
+            var msgViewHtml = getMsgViewHtml(msgItem, false);
+
+            //alert("返回的item-" + msgItem.subject);
+            $(divId).html(msgViewHtml);
+        }
+
+        // 取消新增或者修改
+        function cancelEdit(msgId) {
+
+
+
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
+                return;
+            }
+
+
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+
+            //取消新增
+            if (msgId == "new") {
+                //创建按钮不可见
+                $("#btnCreate").css('display', 'block');
+                $(divId).css('display', 'none');
+                $(divId).html("");
+                return;
+            }
+
+            //alert("cancelEdit() 2");
+
+
+            //显示态html
+            var viewHtml = "";
+
+
+            //显示等待图层
+            //var index = loadLayer();
+            showLoading();
+
+
+            // 调web api
+            var url = "/api/ZSerItem/" + msgId
+            sendAjaxRequest(url, "GET", function (result) {
+                // 关闭等待层
+                //layer.close(index);
+                hideLoading();
+
+                //alert("回来-"+result.errorCode);
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+                if (result.data != null) {
+
+                    // 把数据填在编辑界面
+                    var item = result.data;
+                    var html = getMsgViewHtml(item, false);
+                    $(divId).html(html);
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                //layer.close(index);
+                hideLoading();
+
+                alert("访问服务器出错：\r\n" + errorThrown);
+
+            });
+
+        }
+
+
+
+        // 获取编辑态html
+        function getMsgEditHtml(msgItem) {
+
+            var saveBtnName = "新增";
+            var msgId = "new"; //默认新建的情况
+            var name = "";
+            var addr = "";
+            var port = "";
+            var dbnames = "";
+            var homepage = "";
+            var authmethod = "";    // 权限验证方式
+            var groupid;  // groud id
+            var username;   // 用户名
+            var password;  // 密码
+
+
+            var creatorPhone = "";  //创建者手机号
+            var creatorIP = "";  //创建者ip
+            var createTime = "";
+
+            var state = ""; //状态，0 未审核，1审核通过，2审核不通过
+            var verifier = ""; //审核人
+            var verifyTime = ""; //审核时间
+
+            var idpassStr = "";
+            if (msgItem != null) {
+                //alert("取值");
+                msgId = msgItem.id;
+                name = msgItem.name;
+                addr = msgItem.addr;
+                port = msgItem.port;
+                dbnames = msgItem.dbnames;
+                homepage = msgItem.homepage;
+
+                authmethod = msgItem.authmethod;
+                groupid = msgItem.groupid;
+                username = msgItem.username;
+                password = msgItem.password;
+
+                creatorPhone = msgItem.creatorPhone;
+                creatorIP = msgItem.creatorIP;
+                createTime = msgItem.createTime;
+                state = msgItem.state;
+                verifier = msgItem.verifier;
+                verifyTime = msgItem.verifyTime;
+
+                if (msgItem.authmethod == 1)
+                    idpassStr = " selected ";
+
+                saveBtnName = "保存";
+            }
+
+
+
+
+            var html = "<table class='edit'>"
+
+
+            html += "<tr>"
+                + "<td class='label'>服务器名称</td>"
+                + "<td class='value'>"
+                + "<input class='' id='_name' type='text' value='" + name + "'>"
+                + "</td>"
+                + "</tr>"
+
+                + "<tr>"
+                + "<td class='label'>服务器地址</td>"
+                + "<td class='value'>"
+                + "<input class='' id='_addr' type='text' value='" + addr + "'>"
+                + "</td>"
+                + "</tr>"
+
+                + "<tr>"
+                + "<td class='label'>端口</td>"
+                + "<td class='value'>"
+                + "<input class='' id='_port' type='text' value='" + port + "'>"
+                + "</td>"
+                + "</tr>"
+
+                + "<tr>"
+                + "<td class='label'>主页</td>"
+                + "<td class='value'>"
+                + "<input class='' id='_homepage' type='text' value='" + homepage + "'>"
+                + "</td>"
+                + "</tr>"
+
+                + "<tr style='background-color: #eeeeee;height:0.5px;'><td colspan='2' style='background-color: #eeeeee;height:0.5px;'></td></tr>"
+
+                + "<tr>"
+                + "<td class='label'>数据库</td>"
+                + "<td class='value'>"
+                + "<input class='' id='_dbnames' type='text' value='" + dbnames + "'>"
+                + "</td>"
+                + "</tr>"
+
+                + "<tr>"
+                + "<td class='label'>权限验证方式</td>"
+                + "<td class='value'>"
+                + "<select id = '_authmethod'  >  "
+                + "    <option value='0'>Open</option>"
+                + "    <option value='1' " + idpassStr + ">ID/Pass</option>"
+                + "</select >"
+                + "</td>"
+                + "</tr>"
+
+                + "<tr>"
+                + "<td class='label'>创建者手机号</td>"
+                + "<td class='value'>"
+                + "<input class='' id='_creatorPhone' type='text' value='" + creatorPhone + "'>"
+                + "</td>"
+                + "</tr>"
+
+            html += "<tr>"
+                + "<td colspan='2'>"
+                + "<button class='mui-btn mui-btn-primary' onclick=\"save('" + msgId + "')\">" + saveBtnName + "</button>&nbsp;&nbsp;"
+                + "<button class='mui-btn mui-btn-default' onclick=\"cancelEdit('" + msgId + "')\">取消</button>"
+                + "</td>"
+                + "</tr>"
+                + "</table>";
+
+            return html;
+        }
+
+        // 进入编辑态
+        function gotoEdit(msgId) {
+
+            //$("#divNo").css('display', 'none');
+            //alert($("#divNo"));
+
+            //alert("gotoEdit() msgId=" + msgId);
+
+            if (msgId == null || msgId == "") {
+                alert("未传入msgId");
+                return;
+            }
+
+            //alert("1");
+
+            //alert("1.1");
+            //alert($("#_subject_main"));
+            //alert("1.2");
+
+            // 关闭其它正在编辑的msg
+            var editDiv = $("#_subject_main").find(".edit").each(function (index) {
+                //alert(index);//循环的下标值，从0开始
+                var myMsgId = "";
+                var editId = $(this).parent().attr("id");
+                if (editId != null && editId.length > 6 && editId.substring(0, 6) == "_edit_") {
+                    myMsgId = editId.substring(6);
+                }
+                //alert(editId + "***" + myMsgId);
+
+                // 关闭编辑区
+                cancelEdit(myMsgId);
+            });
+
+            //alert("2");
+
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+
+            // 新增的情况
+            if (msgId == "new") {
+                //alert("new");
+                //创建按钮不可见
+                $("#btnCreate").css('display', 'none');
+                $(divId).css('display', 'inline-block');
+                var html = getMsgEditHtml(null);
+                $(divId).html(html);
+                return;
+            }
+            //根据id从服务器上取记录
+
+            //显示等待图层
+            showLoading();
+
+
+            var url = "/api/ZSerItem/" + msgId
+
+            //alert(url);
+            sendAjaxRequest(url, "GET", function (result) {
+                // 关闭等待层
+                hideLoading();
+
+                // alert("gotoEdit 2\n"+url);
+
+
+                //alert("回来-"+result.errorCode);
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+                //alert("gotoEdit 3");
+
+                // 把返回的数组加到观察数组
+                if (result.data != null) {
+
+                    //alert("gotoEdit 4");
+
+                    // 把数据填在编辑界面
+                    var item = result.data;
+                    //alert(item);
+                    //alert(item.hostName);
+
+                    var html = getMsgEditHtml(item);
+                    $(divId).html(html);
+
+                    //alert(html);
+                    //alert("gotoEdit 5");
+
+
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideLoading();
+
+                alert("访问服务器出错：\r\n" + errorThrown);
+
+            });
+
+
+        }
+
+        function getSelectedMsgIds() {
+            var ids = "";
+            $(".msgEditable").each(function () {
+                if (ids != "")
+                    ids += ",";
+                var id = $(this).attr('id');
+                id = id.substring(6);
+                ids += id;
+            });
+            return ids;
+        }
+
+        function getSelectedMsgCount() {
+            var count = 0;
+            $(".msgEditable").each(function () {
+                count++;
+            });
+            return count
+        }
+
+        // 删除msg
+        function deleteMsg(msgId) {
+            //alert(msgId);
+
+            // 检查下是否选中多个
+            var mutiple = false;
+
+            var ids = getSelectedMsgIds();
+            if (ids.indexOf(",") != -1) {
+                mutiple = true;
+                msgId = ids;
+                //alert(msgId);
+            }
+
+
+            var divId = "#_edit_" + msgId; // div的id命令规则为_edit_msgId
+            var confirmInfo = "";
+            var delCount = getSelectedMsgCount();
+            if (mutiple == false) {
+                var title = $(divId).find(".title").html();
+                var confirmInfo = "您确定要删除该项吗?";
+                if (title != null && title != "") {
+                    confirmInfo = "您确认要删除[" + title + "]吗?";
+                }
+            }
+            else {
+                confirmInfo = "您当前选中了" + delCount + "项，确认要删除选定的 " + delCount + " 个事项吗？";
+            }
+
+            var gnl = confirm(confirmInfo);
+            if (gnl == false) {
+                return false;
+            }
+
+
+
+            //显示等待图层
+            showLoading();
+
+            var url = "/api/ZSerItem/" + msgId
+            sendAjaxRequest(url, "DELETE", function (result) {
+
+                // 关闭等待层
+                hideLoading();
+
+                if (result.errorCode == -1) {
+                    alert("操作失败：" + result.errorInfo);
+                    return;
+                }
+
+                alert("删除成功");
+
+                // 处理界面显示
+                var subjectDiv = $(divId).parent();// 找到父亲
+
+
+                if (mutiple == true) {
+
+
+                    //多项删除时，直接重新加载页面
+                    window.location.reload();
+
+
+                    return;
+                }
+                else {
+
+                    $(divId).remove();// 删除自己;
+
+                }
+
+            }, function (xhq, textStatus, errorThrown) {
+
+                // 关闭等待层
+                //layer.close(index);
+                hideLoading();
+
+                alert(errorThrown);
+
+
+            });
+
+        }
+
+
+        //获取所有站点
+        function getVerifyCodeSMS() {
+            //显示等待图层
+            showLoading();
+
+            //alert("getAllZSerItem");
+
+            // 调web api，获取全部，todo可以改为分批获取
+            var url = "/api/ZSerItem?phone=" + "13862157150";
+            sendAjaxRequest(url, "GET", function (result) {
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                alert("ok");
+
+                // 可以返回，以例界面上比较
+
+
+                // 关闭等待层
+                hideLoading();
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                hideLoading();
+
+                alert(errorThrown);
+            });
+        }
+    </script>
+}
+
+
+
+
+
+        <div id="divNew">
+            <div id='_edit_new' class=" message" style="display:none"></div>
+            <div>
+                <button id="btnCreate" class="ui button" onclick="gotoEdit('new')">
+                    新增站点
+                </button>
+
+                <button id="btnCreate" class="ui button" onclick="getVerifyCodeSMS()">
+                    获取短信验证码
+                </button>
+
+            </div>
+        </div>
+
+
+
+        <div id="divResult">
+            <div id="ulResult"></div>
+            <div id="_subject_main" style="height:10px" />
+        </div>

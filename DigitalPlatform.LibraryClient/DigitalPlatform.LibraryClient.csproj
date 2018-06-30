@@ -33,6 +33,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.IdentityModel" />
@@ -47,8 +50,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LibraryChannel.cs" />
+    <Compile Include="LibraryChannelManager.cs" />
     <Compile Include="LibraryChannelPool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResultSetLoader.cs" />
     <Compile Include="Service References\localhost\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -60,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="packages.config" />
     <None Include="Service References\localhost\DigitalPlatform.LibraryClient.localhost.AmerceItem.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
@@ -169,9 +175,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj">
+    <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj">
       <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
-      <Name>DigitalPlatform.Common</Name>
+      <Name>DigitalPlatform.Base</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.Text\DigitalPlatform.Text.csproj">
       <Project>{eeb5253b-ab62-4d06-896e-8f17e3ffd215}</Project>

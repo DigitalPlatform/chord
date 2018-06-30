@@ -182,9 +182,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DigitalPlatform.Common\DigitalPlatform.Common.csproj">
+    <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj">
       <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
-      <Name>DigitalPlatform.Common</Name>
+      <Name>DigitalPlatform.Base</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

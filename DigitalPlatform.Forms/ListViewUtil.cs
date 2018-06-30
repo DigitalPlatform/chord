@@ -8,9 +8,24 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace DigitalPlatform.Forms
-{ 
+{
     public static class ListViewUtil
     {
+        // 查找一个事项
+        public static ListViewItem FindItem(ListView listview,
+            string strText,
+            int nColumn)
+        {
+            foreach (ListViewItem item in listview.Items)
+            {
+                string strThisText = GetItemText(item, nColumn);
+                if (strThisText == strText)
+                    return item;
+            }
+
+            return null;
+        }
+
         public static void BeginSelectItem(Control control, ListViewItem item)
         {
             control.BeginInvoke(new Action<ListViewItem>(

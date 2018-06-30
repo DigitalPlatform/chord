@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Threading.Tasks;
@@ -11,17 +7,16 @@ using System.Threading;
 using System.Web;
 using System.Xml;
 using System.Messaging;
-using System.Net;
 using System.IO;
+
+using Newtonsoft.Json;
 
 using TestClient1.Properties;
 
-using DigitalPlatform;
 using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
-using Newtonsoft.Json;
 
 namespace TestClient1
 {

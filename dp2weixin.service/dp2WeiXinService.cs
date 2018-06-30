@@ -4098,15 +4098,6 @@ public string ErrorCode { get; set; }
                 strMessageTemplate = "%name% 您好！密码为 %temppassword%。一小时内有效。";
             }
             /*
-                                    DomUtil.SetElementText(node, "tel", strTelParam);
-                                    DomUtil.SetElementText(node, "barcode", strBarcode);
-                                    DomUtil.SetElementText(node, "name", strName);
-                                    DomUtil.SetElementText(node, "tempPassword", strReaderTempPassword);
-                                    DomUtil.SetElementText(node, "expireTime", expire.ToLongTimeString());
-                                    DomUtil.SetElementText(node, "period", "一小时");
-                                    DomUtil.SetElementText(node, "refID", strRefID); 
-             */
-            /*
 <root>
   <patron>
     <tel>13862157150</tel>
@@ -4451,8 +4442,18 @@ public string ErrorCode { get; set; }
                     else
                     {
                         // 其它情况，按实际的分馆来，也就是说，实际的帐户范围一定要大于绑定选择的范围
-                        bindLibraryCode = libraryCode;
-                        thislibName = libraryCode;
+                        string[] libs = libraryCode.Split(new char[] {','});
+
+                        if (libs.Contains(bindLibraryCode) == true)
+                        {
+                            //bindLibraryCode = libraryCode;
+                            thislibName = bindLibraryCode;//libraryCode;
+                        }
+                        else
+                        {
+                            strError = "您的帐户没有 "+thislibName+" 的权限";
+                            goto ERROR1;
+                        }
                     }
 
                     if (thislibName == "")
@@ -5124,8 +5125,8 @@ public string ErrorCode { get; set; }
                     dbnames,
                     strWord,
                     strFrom,
-                    match,//"middle",
-                    resultSet,//"weixin",
+                    match,
+                    resultSet,
                     "id,cols",
                     libraryCode,//filter 20170509
                     WeiXinConst.C_Search_MaxCount,  //最大数量
@@ -6044,10 +6045,8 @@ public string ErrorCode { get; set; }
                     pinyin = value;
                     continue;
                 }
-
-
                 // 是否为标题行
-                if (this.CheckContainWord(type, "title") == true) //(name == "题名与责任说明")
+                if (this.CheckContainWord(type, "title_area")==true) // 20180516改为根据title_are判断，之前用的 "title") == true) //(name == "题名与责任说明")
                 {
                     // 拼音与书名合为一行
                     if (String.IsNullOrEmpty(pinyin) == false)
@@ -8982,53 +8981,81 @@ tempRemark);
             {
                 int totalCount = 0;
 
-                // 获取绑定的读者数量
-                List<WxUserItem> patrons = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Patron);
-                int wxPatronCount = 0;
-                int webPatronCount = 0;
-                foreach (WxUserItem user in patrons)
-                {
-                    if (user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
-                    {
-                        webPatronCount++;
-                    }
-                    else
-                    {
-                        wxPatronCount++;
-                    }
-                }
+                List<WxUserItem>  wxPatronList = new List<WxUserItem>();
+                List<WxUserItem> webPatronList = new List<WxUserItem>();
+                List<WxUserItem> wxWorkerList = new List<WxUserItem>();
+                List<WxUserItem> webWorkerList = new List<WxUserItem>();
 
-                // 获取绑定的工作人员数量
-                List<WxUserItem> workers = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Worker);
-                int wxWorkerCount = 0;
-                int webWorkerCount = 0;
-                foreach (WxUserItem user in workers)
-                {
-                    if (user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
-                    {
-                        webWorkerCount++;
-                    }
-                    else
-                    {
-                        wxWorkerCount++;
-                    }
-                }
-                totalCount = patrons.Count + workers.Count;
+                this.GetBind(libId,
+                    out wxPatronList,
+                    out webPatronList,
+                    out wxWorkerList,
+                    out webWorkerList);
+               
+                totalCount = wxPatronList.Count 
+                    + wxWorkerList.Count;
 
 
-                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_PatronCount, wxPatronCount.ToString());
-                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_WorkerCount, wxWorkerCount.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_PatronCount, wxPatronList.Count.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_WorkerCount, wxWorkerList.Count.ToString());
                 contentHtml = contentHtml.Replace(LibraryManager.M_Lib_BindTotalCount, totalCount.ToString());
 
                 // 新增加的web绑定统计
-                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_webPatronCount, webPatronCount.ToString());
-                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_webWorkerCount, webWorkerCount.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_webPatronCount, webPatronList.Count.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_webWorkerCount, webWorkerList.Count.ToString());
 
             }
 
 
 
             return contentHtml;
+        }
+
+
+        public void GetBind(string libId,
+            out List<WxUserItem> wxPatronList,
+            out List<WxUserItem> webPatronList,
+            out List<WxUserItem> wxWorkerList,
+            out List<WxUserItem> webWorkerList)
+        {
+            wxPatronList = new List<WxUserItem>();
+            webPatronList = new List<WxUserItem>();
+            wxWorkerList = new List<WxUserItem>();
+            webWorkerList = new List<WxUserItem>();
+
+            // 获取绑定的读者数量
+            List<WxUserItem> patrons = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Patron);
+            foreach (WxUserItem user in patrons)
+            {
+                if (user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
+                {
+                    webPatronList.Add(user);
+                }
+                else
+                {
+                    wxPatronList.Add(user);
+                }
+            }
+
+            // 获取绑定的工作人员数量
+            List<WxUserItem> workers = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Worker);
+            foreach (WxUserItem user in workers)
+            {
+                if (user.userName == "public")
+                {
+                    continue;
+                }
+
+                if (user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
+                {
+                    webWorkerList.Add(user);
+                }
+                else
+                {
+                    wxWorkerList.Add(user);
+                }
+            }
+
         }
 
         public static bool CheckIsBiblioPath(string text)
