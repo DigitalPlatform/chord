@@ -332,9 +332,9 @@ namespace DigitalPlatform.Z3950.Server
                 channel.SetProperty()._bInitialized = false;
 
                 ZProcessor.SetInitResponseUserInfo(response_info,
-                    "", // string strOID,
-                    100,  // (unspecified) error
-                    result.ErrorInfo + ", kernel errorcode=" + result.ErrorCode);
+                    "1.2.840.10003.4.1", // string strOID,
+                    string.IsNullOrEmpty(result.ErrorCode) ? 100 : Convert.ToInt32(result.ErrorCode),  // (unspecified) error
+                    result.ErrorInfo);
                 goto DO_RESPONSE;
             }
 
@@ -381,8 +381,8 @@ namespace DigitalPlatform.Z3950.Server
                     channel.SetProperty()._bInitialized = false;
 
                     ZProcessor.SetInitResponseUserInfo(response_info,
-                        "", // string strOID,
-                        101,  // Access-control failure
+                        "1.2.840.10003.4.1", // string strOID,
+                        string.IsNullOrEmpty(e.Result.ErrorCode) ? 101 : Convert.ToInt32(e.Result.ErrorCode),  // Access-control failure
                         e.Result.ErrorInfo);
                 }
                 else

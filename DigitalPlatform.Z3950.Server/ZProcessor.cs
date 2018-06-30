@@ -687,10 +687,13 @@ namespace DigitalPlatform.Z3950.Server
             {
                 lSearchStatus = 0;  // failed
 
-                // TODO: nCondition 查一下 Z39.50 协议文本，看看是否还有更贴切的错误码可用
-                SetPresentDiagRecord(ref diag,
-                    2,  // temporary system error
-                    result.ErrorInfo);
+                if (diag == null)
+                {
+                    // TODO: nCondition 查一下 Z39.50 协议文本，看看是否还有更贴切的错误码可用
+                    SetPresentDiagRecord(ref diag,
+                        2,  // temporary system error
+                        result.ErrorInfo);
+                }
             }
             else
             {

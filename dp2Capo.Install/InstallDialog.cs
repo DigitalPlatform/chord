@@ -142,9 +142,13 @@ MessageBoxDefaultButton.Button2);
             if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
                 return;
 
-            ListViewItem item = new ListViewItem((this.listView_instance.Items.Count + 1).ToString());
-            ListViewUtil.ChangeItemText(item, COLUMN_DATADIR, dlg.DataDir);
+            ListViewItem item = new ListViewItem(dlg.InstanceName);
+
+            RefreshItemLine(item, dlg.DataDir);
             this.listView_instance.Items.Add(item);
+
+            if (dlg.InstanceName.IndexOf("?") != -1)
+                RefreshInstanceName(item);
         }
 
         private void button_modifyInstance_Click(object sender, EventArgs e)
@@ -173,8 +177,7 @@ MessageBoxDefaultButton.Button2);
             if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
                 return;
 
-            ListViewUtil.ChangeItemText(item, COLUMN_DATADIR, dlg.DataDir);
-            ListViewUtil.ChangeItemText(item, COLUMN_NAME, dlg.InstanceName);
+            RefreshItemLine(item, dlg.DataDir);
             return;
             ERROR1:
             MessageBox.Show(this, strError);
@@ -219,11 +222,15 @@ MessageBoxDefaultButton.Button2);
             MessageBox.Show(this, strError);
         }
 
-        void RefreshInstanceName()
+        // parameters:
+        //      refrsh_item 如果为空，表示要刷新全部 ListViewItem。否则只刷新这一个 ListViewItem
+        void RefreshInstanceName(ListViewItem refresh_item = null)
         {
             int i = 0;
             foreach (ListViewItem item in this.listView_instance.Items)
             {
+                if (refresh_item != null && item != refresh_item)
+                    continue;
                 string data_dir = ListViewUtil.GetItemText(item, COLUMN_DATADIR);
                 string instance_name = Path.GetFileName(data_dir);
 
@@ -381,6 +388,12 @@ out strError);
                     return -1;
             }
 
+            // 拷贝 config.xml 文件
+            string source_filename = Path.Combine(this.DataDir, "config.xml");
+            string target_filename = Path.Combine(this.ShadowDataDir, "config.xml");
+            if (File.Exists(source_filename))
+                File.Copy(source_filename, target_filename, true);
+
             return 0;
         }
 
@@ -397,14 +410,34 @@ out strError);
                 goto ERROR1;
             }
 
-            REDO:
+            int nErrorCount = 0;
+
             // 事先专门删除每个实例目录。实例目录就是名字为 log 以外的名字的目录。this.DataDir 下的普通文件不会被删除
             List<string> data_dirs = GetInstanceDataDir(this.DataDir);
             foreach (string data_dir in data_dirs)
             {
-                PathUtil.DeleteDirectory(data_dir);
+                REDO_DELETE:
+                try
+                {
+                    PathUtil.DeleteDirectory(data_dir);
+                }
+                catch (Exception ex)
+                {
+                    strError = "恢复数据目录原有内容时，在删除子目录阶段出错: " + ex.Message;
+                    DialogResult result = MessageBox.Show(this,
+    strError + "。\r\n\r\n是否要重试？",
+    "InstallDialog",
+    MessageBoxButtons.RetryCancel,
+    MessageBoxIcon.Question,
+    MessageBoxDefaultButton.Button2);
+                    if (result == DialogResult.Retry)
+                        goto REDO_DELETE;
+                    // 否则就算了，不要报错退出。因为此时退出代价很大
+                    nErrorCount++;
+                }
             }
 
+            REDO:
             int nRet = PathUtil.CopyDirectory(this.ShadowDataDir,
             this.DataDir,
             false,
@@ -444,7 +477,7 @@ MessageBoxDefaultButton.Button2);
         // 用于备份当前对话框修改以前的数据目录
         public string ShadowDataDir { get; set; }
 
-#endregion
+        #endregion
 
         const int COLUMN_NAME = 0;
         const int COLUMN_ERRORINFO = 1;
@@ -502,6 +535,23 @@ MessageBoxDefaultButton.Button2);
                 this.listView_instance.Columns[COLUMN_ERRORINFO].Width = 200;
             else
                 this.listView_instance.Columns[COLUMN_ERRORINFO].Width = 0;
+        }
+
+        void RefreshItemLine(ListViewItem item,
+            string data_dir)
+        {
+            string strFileName = Path.Combine(data_dir, "capo.xml");
+            LineInfo info = new LineInfo();
+            info.Build(strFileName);
+
+            string instance_name = Path.GetFileName(data_dir);
+
+            ListViewUtil.ChangeItemText(item, COLUMN_NAME, instance_name);
+            ListViewUtil.ChangeItemText(item, COLUMN_DATADIR, data_dir);
+            ListViewUtil.ChangeItemText(item, COLUMN_DP2LIBRARY_URL, info.dp2Library_url);
+            ListViewUtil.ChangeItemText(item, COLUMN_DP2MSERVER_URL, info.dp2MServer_url);
+
+            RefreshInstanceName(item);
         }
 
         class LineInfo

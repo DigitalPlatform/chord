@@ -58,6 +58,7 @@
             this.label8 = new System.Windows.Forms.Label();
             this.numericUpDown_z3950_port = new System.Windows.Forms.NumericUpDown();
             this.label7 = new System.Windows.Forms.Label();
+            this.checkBox_enableZ3950 = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.tabControl_main.SuspendLayout();
@@ -73,7 +74,7 @@
             this.button_Cancel.Location = new System.Drawing.Point(543, 561);
             this.button_Cancel.Name = "button_Cancel";
             this.button_Cancel.Size = new System.Drawing.Size(84, 34);
-            this.button_Cancel.TabIndex = 2;
+            this.button_Cancel.TabIndex = 3;
             this.button_Cancel.Text = "取消";
             this.button_Cancel.UseVisualStyleBackColor = true;
             this.button_Cancel.Click += new System.EventHandler(this.button_Cancel_Click);
@@ -84,7 +85,7 @@
             this.button_OK.Location = new System.Drawing.Point(452, 561);
             this.button_OK.Name = "button_OK";
             this.button_OK.Size = new System.Drawing.Size(84, 34);
-            this.button_OK.TabIndex = 1;
+            this.button_OK.TabIndex = 2;
             this.button_OK.Text = "确定";
             this.button_OK.UseVisualStyleBackColor = true;
             this.button_OK.Click += new System.EventHandler(this.button_OK_Click);
@@ -410,12 +411,24 @@
             this.label7.TabIndex = 0;
             this.label7.Text = "监听端口(&P):";
             // 
+            // checkBox_enableZ3950
+            // 
+            this.checkBox_enableZ3950.AutoSize = true;
+            this.checkBox_enableZ3950.Location = new System.Drawing.Point(18, 568);
+            this.checkBox_enableZ3950.Name = "checkBox_enableZ3950";
+            this.checkBox_enableZ3950.Size = new System.Drawing.Size(277, 22);
+            this.checkBox_enableZ3950.TabIndex = 1;
+            this.checkBox_enableZ3950.Text = "启用本实例的 Z39.50 服务(&E)";
+            this.checkBox_enableZ3950.UseVisualStyleBackColor = true;
+            this.checkBox_enableZ3950.CheckedChanged += new System.EventHandler(this.checkBox_enableZ3950_CheckedChanged);
+            // 
             // InstallZServerDlg
             // 
             this.AcceptButton = this.button_OK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(639, 612);
+            this.Controls.Add(this.checkBox_enableZ3950);
             this.Controls.Add(this.tabControl_main);
             this.Controls.Add(this.button_Cancel);
             this.Controls.Add(this.button_OK);
@@ -437,6 +450,7 @@
             this.tabPage_z3950.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_z3950_port)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -471,5 +485,6 @@
         private System.Windows.Forms.TextBox textBox_z3950_maxSessions;
         private System.Windows.Forms.TextBox textBox_z3950_maxResultCount;
         private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.CheckBox checkBox_enableZ3950;
     }
 }

@@ -733,7 +733,7 @@ Exception Info: System.Net.NetworkInformation.PingException
             Instance instance = FindInstance(strInstanceName);
             if (instance == null)
             {
-                strError = "实例名 '" + strInstanceName + "' 不存在";
+                strError = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)";
                 goto ERROR1;
             }
 
@@ -1018,15 +1018,16 @@ Exception Info: System.Net.NetworkInformation.PingException
             Instance instance = FindInstance(strInstanceName);
             if (instance == null)
             {
-                e.Result = new DigitalPlatform.Z3950.ZClient.SearchResult { Value = -1, ErrorInfo = "实例名 '" + strInstanceName + "' 不存在" };
+                e.Result = new DigitalPlatform.Z3950.ZClient.SearchResult { Value = -1, ErrorInfo = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)" };
                 return;
             }
 
             // 根据逆波兰表构造出 dp2 系统检索式
 
             // return:
-            //      -1  error
-            //      0   succeed
+            //      -1  出错
+            //      0   数据库没有找到
+            //      1   成功
             int nRet = Z3950Utility.BuildQueryXml(
                 instance.zhost,
                 e.Request.m_dbnames,
@@ -1034,11 +1035,11 @@ Exception Info: System.Net.NetworkInformation.PingException
                 zserver_channel.SetProperty().SearchTermEncoding,
                 out string strQueryXml,
                 out string strError);
-            if (nRet == -1)
+            if (nRet == -1 || nRet == 0)
             {
                 DiagFormat diag = null;
                 ZProcessor.SetPresentDiagRecord(ref diag,
-                    2,  // temporary system error
+                    nRet == -1 ? 2 : 235,  // 2:temporary system error; 235:Database does not exist (database name)
                     strError);
                 e.Diag = diag;
                 e.Result = new ZClient.SearchResult { Value = -1, ErrorInfo = strError };
@@ -1150,7 +1151,7 @@ Exception Info: System.Net.NetworkInformation.PingException
             Instance instance = FindInstance(strInstanceName);
             if (instance == null)
             {
-                string strError = "实例名 '" + strInstanceName + "' 不存在";
+                string strError = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)";
                 // 写入错误日志
                 ZManager.Log?.Error(strError);
                 return;
@@ -1189,14 +1190,20 @@ Exception Info: System.Net.NetworkInformation.PingException
 
         static Instance FindInstance(string strInstanceName)
         {
+            Instance instance = null;
             if (string.IsNullOrEmpty(strInstanceName))
-                return _instances[0];
+                instance = _instances[0];
             else
-                return _instances.Find(
+                instance = _instances.Find(
                     (o) =>
                     {
                         return (o.Name == strInstanceName);
                     });
+            if (instance == null)
+                return instance;
+            if (instance.zhost == null)
+                return null;    // 实例虽然存在，但没有启用 Z39.50 服务
+            return instance;
         }
 
 #if NO
@@ -1245,20 +1252,20 @@ Exception Info: System.Net.NetworkInformation.PingException
             {
                 string strErrorText = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
                 ZManager.Log?.Error(strErrorText);
-                e.Result = new Result { Value = -1, ErrorInfo = strErrorText };
+                e.Result = new Result { Value = -1,
+                    ErrorCode = "2",
+                    ErrorInfo = strErrorText };
                 return;
             }
             Instance instance = FindInstance(strInstanceName);
             if (instance == null)
             {
-                e.Result = new Result { Value = -1, ErrorInfo = "实例名 '" + strInstanceName + "' 不存在" };
+                e.Result = new Result { Value = -1,
+                    ErrorCode = "",
+                    ErrorInfo = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)" };
                 return;
             }
 
-            // result.Value:
-            //      -1  登录出错
-            //      0   登录未成功
-            //      1   登录成功
 
             string strUserName = zserver_channel.SetProperty().GetKeyValue("i_u");
             string strPassword = zserver_channel.SetProperty().GetKeyValue("i_p");
@@ -1273,11 +1280,17 @@ Exception Info: System.Net.NetworkInformation.PingException
                     strParameters += ",type=reader";
                 strParameters += ",client=dp2capo|" + "0.01";
 
+                // result.Value:
+                //      -1  登录出错
+                //      0   登录未成功
+                //      1   登录成功
                 long lRet = library_channel.Login(strUserName,
                     strPassword,
                     strParameters,
                     out string strError);
                 e.Result.Value = (int)lRet;
+                if (lRet != 1)
+                    e.Result.ErrorCode = "101";
                 e.Result.ErrorInfo = strError;
             }
             finally
@@ -1303,8 +1316,8 @@ Exception Info: System.Net.NetworkInformation.PingException
                 if (instance == null)
                 {
                     e.Result = new Result { Value = -1,
-                        ErrorCode = "InstanceNotFound",
-                        ErrorInfo = "以用户名 '" + e.Info.m_strID + "' 中包含的实例名 '" + strInstanceName + "' 没有找到任何实例" };
+                        ErrorCode = "",
+                        ErrorInfo = "以用户名 '" + e.Info.m_strID + "' 中包含的实例名 '" + strInstanceName + "' 没有找到任何实例(或实例没有启用 Z39.50 服务)" };
                     return;
                 }
 
@@ -1317,7 +1330,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                 else
                 {
                     e.Result = new Result { Value = -1,
-                        ErrorCode = "AnonymouseLoginDenied",
+                        ErrorCode = "101",
                         ErrorInfo = "不允许匿名登录" };
                     return;
                 }
