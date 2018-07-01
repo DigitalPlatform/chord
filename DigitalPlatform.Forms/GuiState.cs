@@ -499,6 +499,9 @@ namespace DigitalPlatform.Forms
         public static void SetUiState(List<object> controls,
             string strStates)
         {
+            if (strStates == null)
+                strStates = "";
+
             string[] sections = strStates.Split(new char[] { ';' });
 
             int i = 0;

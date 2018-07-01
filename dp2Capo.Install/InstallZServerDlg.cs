@@ -492,7 +492,6 @@ namespace dp2Capo.Install
 
             using (LibraryChannel Channel = new LibraryChannel())
             {
-
                 Channel.Url = strLibraryWsUrl;
 
                 // return:

@@ -329,7 +329,6 @@ namespace dp2Capo
             return 0;
         }
 
-
         // 获得search请求中的RPN根节点
         static BerNode GetRPNStructureRoot(BerNode root,
             out string strError)

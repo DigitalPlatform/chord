@@ -187,7 +187,7 @@
   <item code="1023" meaning="Init/AC: Password has been changed by an administrator so a new one must be supplied" addinfo="" />
   <item code="1024" meaning="Unsupported Attribute. See note 3." 
         addinfo="an unstructured string indicating the object identifier of the attribute set id, the numeric value of the attribute type, and the numeric value of the attribute. "
-        notes="3. Diagnostic 1024 was included because existing attribute-related diagnostics are specific to the bib-1 attribute set. For example a query might contain the operand "Parent-collection = 'federal theater Project'" where 'parent-collection' is a Use attribute from the digital collection attribute set. If the server does not support that attribute, it may return this diagnostic and attach the string (in the addinfo field) 'attribute set: 1.2.840.10003.3.7; type: 1; value: 4'. "/>
+        notes="3. Diagnostic 1024 was included because existing attribute-related diagnostics are specific to the bib-1 attribute set. For example a query might contain the operand 'Parent-collection = 'federal theater Project'' where 'parent-collection' is a Use attribute from the digital collection attribute set. If the server does not support that attribute, it may return this diagnostic and attach the string (in the addinfo field) 'attribute set: 1.2.840.10003.3.7; type: 1; value: 4'. "/>
   <item code="1025" meaning="Service not supported for this database" addinfo="" />
   <item code="1026" meaning="Record cannot be opened because it is locked" addinfo="" />
   <item code="1027" meaning="SQL error" addinfo="" />

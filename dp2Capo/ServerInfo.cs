@@ -499,7 +499,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                     }
 
                     // 重试初始化 ZHost 慢速参数
-                    instance.InitialZHostSlowConfig();
+                    // instance.InitialZHostSlowConfig();
 
                     // 清理闲置超期的 zChannels
                     ZServer._zChannels.CleanIdleChannels(TimeSpan.FromMinutes(2));
@@ -797,7 +797,8 @@ Exception Info: System.Net.NetworkInformation.PingException
 
                         // 如果取得的是xml记录，则根元素可以看出记录的marc syntax，进一步可以获得oid；
                         // 如果取得的是MARC格式记录，则需要根据数据库预定义的marc syntax来看出oid了
-                        string strMarcSyntaxOID = GetMarcSyntaxOID(instance, strDbName);
+                        // string strMarcSyntaxOID = GetMarcSyntaxOID(instance, strDbName);
+                        string strMarcSyntaxOID = GetMarcSyntaxOID(dp2library_record);
 
                         RetrivalRecord record = new RetrivalRecord
                         {
@@ -905,6 +906,8 @@ ex.Message);
                     e.Diag = diag1;
                     return;
                 }
+                strError = "获取结果集时出现异常(ChannelException): " + ex.Message;
+                goto ERROR1;
             }
             catch (Exception ex)
             {
@@ -931,6 +934,7 @@ ex.Message);
             }
         }
 
+#if NO
         static string GetMarcSyntaxOID(Instance instance, string strBiblioDbName)
         {
             string strSyntax = instance.zhost.GetMarcSyntax(strBiblioDbName);
@@ -939,6 +943,33 @@ ex.Message);
             if (strSyntax == "unimarc")
                 return "1.2.840.10003.5.1";
             if (strSyntax == "usmarc")
+                return "1.2.840.10003.5.10";
+
+            return null;
+        }
+#endif
+
+        // 获得一条记录的 MARC 格式 OID
+        static string GetMarcSyntaxOID(DigitalPlatform.LibraryClient.localhost.Record dp2library_record)
+        {
+            if (dp2library_record.RecordBody == null)
+                return null;
+
+            if (string.IsNullOrEmpty(dp2library_record.RecordBody.Xml))
+                return null;
+
+            // return:
+            //      -1  出错
+            //      0   正常
+            int nRet = MarcUtil.GetMarcSyntax(dp2library_record.RecordBody.Xml,
+        out string strOutMarcSyntax,
+        out string strError);
+            if (nRet == -1)
+                throw new Exception("获得 MARCXML 记录的 MARC Syntax 时出错: " + strError);
+
+            if (strOutMarcSyntax == "unimarc")
+                return "1.2.840.10003.5.1";
+            if (strOutMarcSyntax == "usmarc")
                 return "1.2.840.10003.5.10";
 
             return null;
@@ -1035,8 +1066,20 @@ ex.Message);
                 return;
             }
 
-            // 根据逆波兰表构造出 dp2 系统检索式
+            // 检查实例是否有至少一个可用数据库
+            if (instance.zhost.GetDbCount() == 0)
+            {
+                string strErrorText = "实例 '" + strInstanceName + "' 没有提供可检索的数据库";
+                DiagFormat diag = null;
+                ZProcessor.SetPresentDiagRecord(ref diag,
+                    1017,  // Init/AC: No databases available for specified userId
+                    strErrorText);
+                e.Diag = diag;
+                e.Result = new ZClient.SearchResult { Value = -1, ErrorInfo = strErrorText };
+                return;
+            }
 
+            // 根据逆波兰表构造出 dp2 系统检索式
             // return:
             //      -1  出错
             //      0   数据库没有找到
