@@ -374,7 +374,7 @@ MessageBoxDefaultButton.Button2);
         int BackupDataDir(out string strError)
         {
             strError = "";
-            PathUtil.DeleteDirectory(this.ShadowDataDir);
+            PathUtil.DeleteDirectory(this.ShadowDataDir);   // 先尝试删除备份目录。因为以前运行到中途被杀死的 dp2Capo.exe 可能残留备份目录，不删除会对本次备份造成影响
             PathUtil.CreateDirIfNeed(this.ShadowDataDir);
 
             List<string> data_dirs = GetInstanceDataDir(this.DataDir);

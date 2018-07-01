@@ -893,6 +893,19 @@ Exception Info: System.Net.NetworkInformation.PingException
                     i++;
                 }
             }
+            catch(ChannelException ex)
+            {
+                // 指定的结果集没有找到
+                if (ex.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound)
+                {
+                    DiagFormat diag1 = null;
+                    ZProcessor.SetPresentDiagRecord(ref diag1,
+30,  // Specified result set does not exist
+ex.Message);
+                    e.Diag = diag1;
+                    return;
+                }
+            }
             catch (Exception ex)
             {
                 strError = "获取结果集时出现异常: " + ex.Message;
@@ -910,7 +923,7 @@ Exception Info: System.Net.NetworkInformation.PingException
             {
                 DiagFormat diag1 = null;
                 ZProcessor.SetPresentDiagRecord(ref diag1,
-                    2,  // temporary system error
+                    100,  // (unspecified) error
                     strError);
                 e.Diag = diag1;
                 // e.Result = new ZClient.SearchResult { Value = -1, ErrorInfo = strError };
@@ -1082,7 +1095,19 @@ Exception Info: System.Net.NetworkInformation.PingException
                 else
                 {
                     // 记忆结果集名
-                    MemoryResultSetName(zserver_channel, resultset_name);
+                    // return:
+                    //      false   正常
+                    //      true    结果集数量超过 MAX_RESULTSET_COUNT，返回前已经开始释放所有结果集
+                    if (MemoryResultSetName(zserver_channel, resultset_name) == true)
+                    {
+                        DiagFormat diag = null;
+                        ZProcessor.SetPresentDiagRecord(ref diag,
+                            112,  // Too many result sets created (maximum)
+                            strError);  // TODO: 应为 MAX_RESULTSET_COUNT
+                        e.Diag = diag;
+                        e.Result = new ZClient.SearchResult { Value = -1, ErrorInfo = strError };
+                        return;
+                    }
 
                     e.Result = new ZClient.SearchResult { ResultCount = lRet };
                 }
@@ -1103,7 +1128,10 @@ Exception Info: System.Net.NetworkInformation.PingException
         static readonly int MAX_RESULTSET_COUNT = 100;
 
         // 记忆全局结果集名
-        static void MemoryResultSetName(ZServerChannel zserver_channel,
+        // return:
+        //      false   正常
+        //      true    结果集数量超过 MAX_RESULTSET_COUNT，返回前已经开始释放所有结果集
+        static bool MemoryResultSetName(ZServerChannel zserver_channel,
             string resultset_name)
         {
             if (!(zserver_channel.SetProperty().GetKeyObject("r_n") is List<string> names))
@@ -1117,7 +1145,13 @@ Exception Info: System.Net.NetworkInformation.PingException
 
             // 如果结果集名数量太多，就要开始删除
             if (names.Count > MAX_RESULTSET_COUNT)
+            {
                 FreeGlobalResultSets(zserver_channel, names);
+
+                return true;
+            }
+
+            return false;
         }
 
         // 取出先前记忆的全局结果集名列表
@@ -1252,17 +1286,23 @@ Exception Info: System.Net.NetworkInformation.PingException
             {
                 string strErrorText = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
                 ZManager.Log?.Error(strErrorText);
-                e.Result = new Result { Value = -1,
+                e.Result = new Result
+                {
+                    Value = -1,
                     ErrorCode = "2",
-                    ErrorInfo = strErrorText };
+                    ErrorInfo = strErrorText
+                };
                 return;
             }
             Instance instance = FindInstance(strInstanceName);
             if (instance == null)
             {
-                e.Result = new Result { Value = -1,
+                e.Result = new Result
+                {
+                    Value = -1,
                     ErrorCode = "",
-                    ErrorInfo = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)" };
+                    ErrorInfo = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)"
+                };
                 return;
             }
 
@@ -1315,9 +1355,12 @@ Exception Info: System.Net.NetworkInformation.PingException
                 Instance instance = FindInstance(strInstanceName);
                 if (instance == null)
                 {
-                    e.Result = new Result { Value = -1,
+                    e.Result = new Result
+                    {
+                        Value = -1,
                         ErrorCode = "",
-                        ErrorInfo = "以用户名 '" + e.Info.m_strID + "' 中包含的实例名 '" + strInstanceName + "' 没有找到任何实例(或实例没有启用 Z39.50 服务)" };
+                        ErrorInfo = "以用户名 '" + e.Info.m_strID + "' 中包含的实例名 '" + strInstanceName + "' 没有找到任何实例(或实例没有启用 Z39.50 服务)"
+                    };
                     return;
                 }
 
@@ -1329,9 +1372,12 @@ Exception Info: System.Net.NetworkInformation.PingException
                 }
                 else
                 {
-                    e.Result = new Result { Value = -1,
+                    e.Result = new Result
+                    {
+                        Value = -1,
                         ErrorCode = "101",
-                        ErrorInfo = "不允许匿名登录" };
+                        ErrorInfo = "不允许匿名登录"
+                    };
                     return;
                 }
             }

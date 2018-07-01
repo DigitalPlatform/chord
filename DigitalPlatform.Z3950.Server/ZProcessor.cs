@@ -1261,7 +1261,7 @@ namespace DigitalPlatform.Z3950.Server
         public long m_lMediumSetPresentNumber = 0;
 
         // bool
-        public long m_lReplaceIndicator = 0;
+        public long m_lReplaceIndicator = 0;    // 是否要替换遇到的同名结果集？
 
         public string m_strResultSetName = "default";
         public List<string> m_dbnames = null;
