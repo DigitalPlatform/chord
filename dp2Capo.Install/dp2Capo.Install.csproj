@@ -67,6 +67,12 @@
     <Compile Include="dp2MServerDialog.Designer.cs">
       <DependentUpon>dp2MServerDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="GlobalConfigDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GlobalConfigDialog.Designer.cs">
+      <DependentUpon>GlobalConfigDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="InstallDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -102,6 +108,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="dp2MServerDialog.resx">
       <DependentUpon>dp2MServerDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GlobalConfigDialog.resx">
+      <DependentUpon>GlobalConfigDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="InstallDialog.resx">
       <DependentUpon>InstallDialog.cs</DependentUpon>

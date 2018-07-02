@@ -26,7 +26,9 @@ namespace DigitalPlatform.Z3950.Server
         // 初始化阶段登录 事件
         public event InitializeLoginEventHandler InitializeLogin = null;
 
-        public event GetZConfigEventHandler GetZConfig = null;
+        public event SetChannelPropertyEventHandler SetChannelProperty = null;
+
+        // public event GetZConfigEventHandler GetZConfig = null;
 
         public event ProcessSearchEventHandler ProcessSearch = null;
 
@@ -210,6 +212,12 @@ namespace DigitalPlatform.Z3950.Server
 
         #endregion
 
+        public Result DefaultSetChannelProperty(ZServerChannel channel,
+    InitRequestInfo info)
+        {
+            return new Result();
+        }
+
         public ZConfig DefaultGetZConfig(ZServerChannel channel,
             InitRequestInfo info,
             out string strError)
@@ -265,6 +273,22 @@ namespace DigitalPlatform.Z3950.Server
         }
 
         // 根据 @xxx 找到相关的 capo 实例，然后找到配置参数
+        Result AutoSetChannelProperty(ZServerChannel channel,
+            InitRequestInfo info)
+        {
+            if (this.SetChannelProperty == null)
+                return this.DefaultSetChannelProperty(channel, info);
+            else
+            {
+                SetChannelPropertyEventArgs e = new SetChannelPropertyEventArgs();
+                e.Info = info;
+                this.SetChannelProperty(channel, e);
+                return e.Result;
+            }
+        }
+
+#if NO
+        // 根据 @xxx 找到相关的 capo 实例，然后找到配置参数
         ZConfig AutoGetZConfig(ZServerChannel channel,
             InitRequestInfo info,
             out string strError)
@@ -279,6 +303,7 @@ namespace DigitalPlatform.Z3950.Server
             strError = e.Result.ErrorInfo;
             return e.ZConfig;
         }
+#endif
 
         public async Task<byte[]> DefaultProcessInitialize(ZServerChannel channel,
             BerTree request)
@@ -299,6 +324,21 @@ namespace DigitalPlatform.Z3950.Server
 
             // 判断info中的信息，决定是否接受Init请求。
 
+            // ZServerChannel 初始化设置一些信息。这样它一直携带着伴随生命周期全程
+            Result result = AutoSetChannelProperty(channel, info);
+            if (result.Value == -1)
+            {
+                response_info.m_nResult = 0;
+                channel.SetProperty()._bInitialized = false;
+
+                ZProcessor.SetInitResponseUserInfo(response_info,
+                    "1.2.840.10003.4.1", // string strOID,
+                    string.IsNullOrEmpty(result.ErrorCode) ? 100 : Convert.ToInt32(result.ErrorCode),  // (unspecified) error
+                    result.ErrorInfo);
+                goto DO_RESPONSE;
+            }
+
+#if NO
             if (String.IsNullOrEmpty(info.m_strID) == true)
             {
                 ZConfig config = AutoGetZConfig(channel, info, out strError);
@@ -328,6 +368,7 @@ namespace DigitalPlatform.Z3950.Server
                     goto DO_RESPONSE;
                 }
             }
+#endif
 
             if (this.InitializeLogin != null)
             {
@@ -340,9 +381,9 @@ namespace DigitalPlatform.Z3950.Server
                     channel.SetProperty()._bInitialized = false;
 
                     ZProcessor.SetInitResponseUserInfo(response_info,
-                        "", // string strOID,
-                        0,  // long lErrorCode,
-                        strError);
+                        "1.2.840.10003.4.1", // string strOID,
+                        string.IsNullOrEmpty(e.Result.ErrorCode) ? 101 : Convert.ToInt32(e.Result.ErrorCode),  // Access-control failure
+                        e.Result.ErrorInfo);
                 }
                 else
                 {
@@ -463,6 +504,7 @@ namespace DigitalPlatform.Z3950.Server
             return baResponsePackage;
             ERROR1:
             // TODO: 将错误原因写入日志
+            ZManager.Log?.Error(strError);
             return null;
         }
 

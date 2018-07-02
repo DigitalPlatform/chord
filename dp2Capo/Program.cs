@@ -269,9 +269,9 @@ namespace dp2Capo
 
         static void StartServer()
         {
-            if (ServerInfo.ServerPort != 0)
+            if (ServerInfo.Z3950ServerPort != -1)
             {
-                ServerInfo.ZServer = new ZServer(ServerInfo.ServerPort);
+                ServerInfo.ZServer = new ZServer(ServerInfo.Z3950ServerPort);
                 ServerInfo.AddEvents(ServerInfo.ZServer, true);
                 ServerInfo.ZServer.Listen();
             }

@@ -347,7 +347,11 @@ namespace DigitalPlatform.Z3950.Server
                 response_info.UserInfoField = new External();
 
             response_info.UserInfoField.m_strDirectRefenerce = strOID;
-            response_info.UserInfoField.m_lIndirectReference = lErrorCode;
+            if (lErrorCode != 0)
+            {
+                response_info.UserInfoField.m_lIndirectReference = lErrorCode;
+                response_info.UserInfoField.m_bHasIndirectReference = true; // 2018/6/29
+            }
             if (String.IsNullOrEmpty(strErrorMessage) == false)
             {
                 response_info.UserInfoField.m_octectAligned = Encoding.UTF8.GetBytes(strErrorMessage);
@@ -683,10 +687,13 @@ namespace DigitalPlatform.Z3950.Server
             {
                 lSearchStatus = 0;  // failed
 
-                // TODO: nCondition 查一下 Z39.50 协议文本，看看是否还有更贴切的错误码可用
-                SetPresentDiagRecord(ref diag,
-                    2,  // temporary system error
-                    result.ErrorInfo);
+                if (diag == null)
+                {
+                    // TODO: nCondition 查一下 Z39.50 协议文本，看看是否还有更贴切的错误码可用
+                    SetPresentDiagRecord(ref diag,
+                        2,  // temporary system error
+                        result.ErrorInfo);
+                }
             }
             else
             {
@@ -1254,7 +1261,7 @@ namespace DigitalPlatform.Z3950.Server
         public long m_lMediumSetPresentNumber = 0;
 
         // bool
-        public long m_lReplaceIndicator = 0;
+        public long m_lReplaceIndicator = 0;    // 是否要替换遇到的同名结果集？
 
         public string m_strResultSetName = "default";
         public List<string> m_dbnames = null;

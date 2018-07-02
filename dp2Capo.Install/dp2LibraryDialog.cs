@@ -52,11 +52,17 @@ namespace dp2Capo.Install
                 goto ERROR1;
             }
 
+#if NO
             if (string.IsNullOrEmpty(this.comboBox_msmqPath.Text))
             {
                 strError = "尚未指定消息队列路径";
                 goto ERROR1;
             }
+#endif
+            // TODO: 检测 capo 用户名和密码是否正确
+            int nRet = DetectManagerUser(out strError);
+            if (nRet == -1)
+                goto ERROR1;
 
             if (SaveToCfgDom() == false)
                 return;
@@ -64,7 +70,7 @@ namespace dp2Capo.Install
             this.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.Close();
             return;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -74,8 +80,55 @@ namespace dp2Capo.Install
             this.Close();
         }
 
+        int DetectManagerUser(out string strError)
+        {
+            strError = "";
+            if (string.IsNullOrEmpty(this.textBox_manageUserName.Text) == false)
+            {
+                EnableControls(false);
+                try
+                {
+                    // return:
+                    //       -1  出错
+                    //      0   不存在
+                    //      1   存在, 且密码一致
+                    //      2   存在, 但密码不一致
+                    int nRet = DetectManageUser(out strError);
+                    if (nRet == -1)
+                        goto ERROR1;
+                    else if (nRet == 0)
+                    {
+                        strError = "代理帐户 '" + this.textBox_manageUserName.Text + "' 目前尚不存在。";
+                        goto ERROR1;
+                    }
+                    else if (nRet == 2)
+                    {
+                        strError = "代理帐户 '" + this.textBox_manageUserName.Text + "' 经检验存在，但其密码和当前面板上输入的密码不一致。";
+                        goto ERROR1;
+                    }
+                    else
+                    {
+                        Debug.Assert(nRet == 1, "");
+                        return 0;
+                    }
+                }
+                finally
+                {
+                    EnableControls(true);
+                }
+            }
+            ERROR1:
+            return -1;
+        }
+
         private void button_detectManageUser_Click(object sender, EventArgs e)
         {
+            int nRet = DetectManagerUser(out string strError);
+            if (nRet == -1)
+                MessageBox.Show(this, strError);
+            else
+                MessageBox.Show(this, "代理帐户 '" + this.textBox_manageUserName.Text + "' 经检验存在。");
+#if NO
             EnableControls(false);
             try
             {
@@ -113,6 +166,7 @@ namespace dp2Capo.Install
             {
                 EnableControls(true);
             }
+#endif
         }
 
         private void button_createManageUser_Click(object sender, EventArgs e)
@@ -216,6 +270,18 @@ namespace dp2Capo.Install
             this.textBox_webURL.Text = element.GetAttribute("webURL").Replace(";", "\r\n");
         }
 
+        public static string GetMessageQueue(XmlDocument CfgDom)
+        {
+            StringBuilder text = new StringBuilder();
+            XmlDocument dom = CfgDom;
+
+            XmlElement element = dom.DocumentElement.SelectSingleNode("dp2library") as XmlElement;
+            if (element == null)
+                return "";
+
+            return element.GetAttribute("defaultQueue");
+        }
+
         public static string GetDisplayText(XmlDocument CfgDom)
         {
             StringBuilder text = new StringBuilder();
@@ -281,7 +347,7 @@ namespace dp2Capo.Install
             this.comboBox_msmqPath.Enabled = bEnable;
         }
 
-        #region dp2library 协议有关操作
+#region dp2library 协议有关操作
 
         string ManageAccountRights { get; set; }
 
@@ -486,8 +552,8 @@ namespace dp2Capo.Install
                 //      -1  出错
                 //      0   dp2library 版本太低
                 //      1   成功
-                nRet = CheckVersion(channel, 
-                    ProductUtil.dp2library_base_version, 
+                nRet = CheckVersion(channel,
+                    ProductUtil.dp2library_base_version,
                     out strError);
                 if (nRet == -1 || nRet == 0)
                     return -1;
@@ -645,7 +711,7 @@ out strError);
                 //      -1  出错
                 //      0   dp2library 版本太低
                 //      1   成功
-                nRet = CheckVersion(channel, 
+                nRet = CheckVersion(channel,
                     ProductUtil.dp2library_base_version,
                     out strError);
                 if (nRet == -1 || nRet == 0)
@@ -669,7 +735,7 @@ out strError);
             }
         }
 
-        #endregion
+#endregion
 
         private void textBox_manageUserName_TextChanged(object sender, EventArgs e)
         {
@@ -703,7 +769,7 @@ out strError);
             {
                 EnableControls(true);
             }
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -745,7 +811,7 @@ out strError);
                 this.EnableControls(true);
             }
             return;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -756,7 +822,7 @@ out strError);
             if (nRet == -1)
                 goto ERROR1;
             return;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 

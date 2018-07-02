@@ -650,7 +650,8 @@ namespace DigitalPlatform.Z3950
         // 获得记录
         // 确保一定可以获得nCount个
         // parameters:
-        //          nPreferedEachCount  推荐的每次条数。这涉及到响应的敏捷性。如果为-1或者0，表示最大
+        //		nStart	获取记录的开始位置(从0开始计数)
+        //      nPreferedEachCount  推荐的每次条数。这涉及到响应的敏捷性。如果为-1或者0，表示最大
         public async Task<PresentResult> Present(
             string strResultSetName,
             int nStart,
@@ -704,7 +705,7 @@ namespace DigitalPlatform.Z3950
         // 本函数每次调用前，最好调用一次 TryInitialize()
         // 不确保一定可以获得nCount个
         // parameters:
-        //		nStart	开始记录(从0计算)
+        //		nStart	获取记录的开始位置(从0开始计数)
         public async Task<PresentResult> OncePresent(
             string strResultSetName,
             int nStart,
