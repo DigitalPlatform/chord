@@ -43,13 +43,14 @@
             this.button_edit_z3950 = new System.Windows.Forms.Button();
             this.textBox_z3950_def = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.button_edit_instanceName = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button_edit_dp2mserver
             // 
             this.button_edit_dp2mserver.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button_edit_dp2mserver.Location = new System.Drawing.Point(580, 280);
-            this.button_edit_dp2mserver.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_edit_dp2mserver.Margin = new System.Windows.Forms.Padding(4);
             this.button_edit_dp2mserver.Name = "button_edit_dp2mserver";
             this.button_edit_dp2mserver.Size = new System.Drawing.Size(68, 34);
             this.button_edit_dp2mserver.TabIndex = 26;
@@ -62,7 +63,7 @@
             this.textBox_dp2mserver_def.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_dp2mserver_def.Location = new System.Drawing.Point(232, 280);
-            this.textBox_dp2mserver_def.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_dp2mserver_def.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_dp2mserver_def.Multiline = true;
             this.textBox_dp2mserver_def.Name = "textBox_dp2mserver_def";
             this.textBox_dp2mserver_def.ReadOnly = true;
@@ -85,7 +86,7 @@
             this.button_Cancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button_Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.button_Cancel.Location = new System.Drawing.Point(537, 496);
-            this.button_Cancel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_Cancel.Margin = new System.Windows.Forms.Padding(4);
             this.button_Cancel.Name = "button_Cancel";
             this.button_Cancel.Size = new System.Drawing.Size(112, 34);
             this.button_Cancel.TabIndex = 37;
@@ -97,7 +98,7 @@
             // 
             this.button_OK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button_OK.Location = new System.Drawing.Point(416, 496);
-            this.button_OK.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_OK.Margin = new System.Windows.Forms.Padding(4);
             this.button_OK.Name = "button_OK";
             this.button_OK.Size = new System.Drawing.Size(112, 34);
             this.button_OK.TabIndex = 36;
@@ -110,7 +111,7 @@
             this.textBox_dataDir.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_dataDir.Location = new System.Drawing.Point(232, 58);
-            this.textBox_dataDir.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_dataDir.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_dataDir.Name = "textBox_dataDir";
             this.textBox_dataDir.ReadOnly = true;
             this.textBox_dataDir.Size = new System.Drawing.Size(337, 28);
@@ -128,11 +129,13 @@
             // 
             // textBox_instanceName
             // 
+            this.textBox_instanceName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_instanceName.Location = new System.Drawing.Point(232, 18);
-            this.textBox_instanceName.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_instanceName.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_instanceName.Name = "textBox_instanceName";
             this.textBox_instanceName.ReadOnly = true;
-            this.textBox_instanceName.Size = new System.Drawing.Size(246, 28);
+            this.textBox_instanceName.Size = new System.Drawing.Size(261, 28);
             this.textBox_instanceName.TabIndex = 21;
             // 
             // label1
@@ -149,7 +152,7 @@
             // 
             this.button_edit_dp2library.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button_edit_dp2library.Location = new System.Drawing.Point(580, 120);
-            this.button_edit_dp2library.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_edit_dp2library.Margin = new System.Windows.Forms.Padding(4);
             this.button_edit_dp2library.Name = "button_edit_dp2library";
             this.button_edit_dp2library.Size = new System.Drawing.Size(68, 34);
             this.button_edit_dp2library.TabIndex = 42;
@@ -162,7 +165,7 @@
             this.textBox_dp2library_def.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_dp2library_def.Location = new System.Drawing.Point(232, 120);
-            this.textBox_dp2library_def.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_dp2library_def.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_dp2library_def.Multiline = true;
             this.textBox_dp2library_def.Name = "textBox_dp2library_def";
             this.textBox_dp2library_def.ReadOnly = true;
@@ -215,6 +218,18 @@
             this.label3.TabIndex = 43;
             this.label3.Text = "Z39.50 服务(&Z):";
             // 
+            // button_edit_instanceName
+            // 
+            this.button_edit_instanceName.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button_edit_instanceName.Location = new System.Drawing.Point(501, 14);
+            this.button_edit_instanceName.Margin = new System.Windows.Forms.Padding(4);
+            this.button_edit_instanceName.Name = "button_edit_instanceName";
+            this.button_edit_instanceName.Size = new System.Drawing.Size(68, 34);
+            this.button_edit_instanceName.TabIndex = 46;
+            this.button_edit_instanceName.Text = "...";
+            this.button_edit_instanceName.UseVisualStyleBackColor = true;
+            this.button_edit_instanceName.Click += new System.EventHandler(this.button_edit_instanceName_Click);
+            // 
             // InstanceDialog
             // 
             this.AcceptButton = this.button_OK;
@@ -222,6 +237,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.button_Cancel;
             this.ClientSize = new System.Drawing.Size(668, 549);
+            this.Controls.Add(this.button_edit_instanceName);
             this.Controls.Add(this.button_edit_z3950);
             this.Controls.Add(this.textBox_z3950_def);
             this.Controls.Add(this.label3);
@@ -237,7 +253,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.textBox_instanceName);
             this.Controls.Add(this.label1);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "InstanceDialog";
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
@@ -265,5 +281,6 @@
         private System.Windows.Forms.Button button_edit_z3950;
         private System.Windows.Forms.TextBox textBox_z3950_def;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button button_edit_instanceName;
     }
 }

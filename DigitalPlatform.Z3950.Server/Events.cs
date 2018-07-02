@@ -50,6 +50,26 @@ namespace DigitalPlatform.Z3950.Server
         // public Result Result = new Result();    // [out]
     }
 
+    //
+    /// <summary>
+    /// 设置通道属性 事件
+    /// </summary>
+    /// <param name="sender">发送者</param>
+    /// <param name="e">事件参数</param>
+    public delegate void SetChannelPropertyEventHandler(object sender,
+        SetChannelPropertyEventArgs e);
+
+    /// <summary>
+    /// 设置通道属性事件的参数
+    /// </summary>
+    public class SetChannelPropertyEventArgs : EventArgs
+    {
+        public InitRequestInfo Info { get; set; }   // [in]
+
+        public Result Result = new Result();    // [out]
+    }
+    //
+
     /// <summary>
     /// 获得 Z39.50 配置 事件
     /// </summary>

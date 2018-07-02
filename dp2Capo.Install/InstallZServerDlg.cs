@@ -27,6 +27,10 @@ namespace dp2Capo.Install
             StringBuilder text = new StringBuilder();
             XmlDocument dom = CfgDom;
 
+            XmlElement root = dom.DocumentElement.SelectSingleNode("zServer") as XmlElement;
+            if (root == null)
+                return "";
+
             // 概括 databases
             XmlNodeList nodes = dom.DocumentElement.SelectNodes("zServer/databases/database");
             text.Append("databaseCount=" + nodes.Count + "\r\n");
@@ -91,7 +95,6 @@ namespace dp2Capo.Install
                     MessageBox.Show(this, "您指定的 dp2library 帐户 不正确: " + strError);
                     return;
                 }
-
 
                 MessageBox.Show(this, "您指定的 dp2library 帐户 正确");
             }
@@ -489,7 +492,6 @@ namespace dp2Capo.Install
 
             using (LibraryChannel Channel = new LibraryChannel())
             {
-
                 Channel.Url = strLibraryWsUrl;
 
                 // return:
@@ -846,6 +848,22 @@ namespace dp2Capo.Install
                     this.AnonymousPassword = strAnonymousPassword;
                 }
             }
+
+            XmlElement root = dom.DocumentElement.SelectSingleNode("zServer") as XmlElement;
+            if (root == null)
+                this.checkBox_enableZ3950.Checked = false;
+            else
+                this.checkBox_enableZ3950.Checked = true;
+
+            SetEnableZ3950UiState();
+        }
+
+        void SetEnableZ3950UiState()
+        {
+            if (this.checkBox_enableZ3950.Checked)
+                this.tabControl_main.Enabled = true;
+            else
+                this.tabControl_main.Enabled = false;
         }
 
         // 从控件到 CfgDom
@@ -854,6 +872,14 @@ namespace dp2Capo.Install
             XmlDocument dom = this.CfgDom;
 
             XmlElement root = dom.DocumentElement.SelectSingleNode("zServer") as XmlElement;
+
+            if (this.checkBox_enableZ3950.Checked == false)
+            {
+                if (root != null)
+                    root.ParentNode.RemoveChild(root);
+                return true;
+            }
+
             if (root == null)
             {
                 root = dom.CreateElement("zServer");
@@ -923,6 +949,11 @@ namespace dp2Capo.Install
         private void InstallZServerDlg_Load(object sender, EventArgs e)
         {
             FillInfo();
+        }
+
+        private void checkBox_enableZ3950_CheckedChanged(object sender, EventArgs e)
+        {
+            SetEnableZ3950UiState();
         }
     }
 }
