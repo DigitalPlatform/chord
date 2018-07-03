@@ -7,7 +7,6 @@
 @section Scripts {
     <script>
 
-
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
@@ -170,6 +169,14 @@
             // alert("clickMsgDiv");
         }
 
+        function getCheckedStr(value) { 
+            var text = "";
+            if (value == 1)
+                text = " checked ";
+
+            return text;
+        }
+
         function getMsgViewHtml(item, bContainEditDiv) {
 
             //alert("id=" + item.id + ",hostname=" + item.hostName);
@@ -178,6 +185,14 @@
 
             var html = "";
             //alert("aa");
+
+            var authmethod_str = "";
+            if (item.authmethod == 0) {
+                authmethod_str = " Open ";
+            }
+            else {
+                authmethod_str = "ID/Pass";
+            }
 
 
             if (bContainEditDiv == true)
@@ -204,14 +219,42 @@
                 + "<div><span class='name'>服务器地址：</span><span class='value'>" + item.addr + "</span></div>"
                 + "<div><span class='name'>端口号：</span><span class='value'>" + item.port + "</span></div>"
                 + "<div><span class='name'>数据库名：</span><span class='value'>" + item.dbnames + "</span></div>"
-                + "<div><span class='name'>主页：</span><span class='value'>" + item.homepage + "</span></div>"
-                + "<div><span class='name'>权限验证方式：</span><span class='value'>" + item.authmethod + "</span></div>"
+                + "<div><span class='name'>主页：</span><span class='value'>" + item.homepage + "</span></div>";
+
+            html += "<div><span class='name'>权限验证方式：</span><span class='value'>" + authmethod_str+ "</span></div>"
                 + "<div><span class='name'>创建者手机号：</span><span class='value'>" + item.creatorPhone + "</span></div>"
                 + "<div><span class='name'>创建者IP：</span><span class='value'>" + item.creatorIP + "</span></div>"
                 + "<div><span class='name'>创建时间：</span><span class='value'>" + item.createTime + "</span></div>"
                 + "<div><span class='name'>状态：</span><span class='value'>" + item.state + "</span></div>"
                 + "</div>";
 
+
+            var firstfullCkdStr = getCheckedStr(item.firstfull);
+            var detectmarcsyntaxStr = getCheckedStr(item.detectmarcsyntax);
+            var ignorereferenceidStr = getCheckedStr(item.ignorereferenceid);
+
+            //var firstfullCkdStr = "";
+            //if (item.firstfull == 1)
+            //    firstfullCkdStr = " checked ";
+
+            //var detectmarcsyntaxStr = "";
+            //if (item.detectmarcsyntax == 1)
+            //    detectmarcsyntaxStr = " checked ";
+
+            //var ignorereferenceidStr = "";
+            //if (item.ignorereferenceid == 1) 
+            //    ignorereferenceidStr = " checked ";
+
+
+            var isbn_force13Str = getCheckedStr(item.isbn_force13);
+            var isbn_force10Str = getCheckedStr(item.isbn_force10);
+            var isbn_addhyphenStr = getCheckedStr(item.isbn_addhyphen);
+            var isbn_removehyphenStr = getCheckedStr(item.isbn_removehyphen);
+            var isbn_wildStr = getCheckedStr(item.isbn_wild);
+
+            //
+            var charNegoUtf8Str = getCheckedStr(item.charNegoUtf8);
+           var charNego_recordsInSeletedCharsetsStr = getCheckedStr(item.charNego_recordsInSeletedCharsets);
 
             html += "<div onclick='expandToggle(this)'><span id='_advanceCtrl'>+</span> 高级选项<br/></div> \
               <div id='_advance' style='display:none'>\
@@ -230,40 +273,43 @@
                             <span class='value'>"+ item.defaultElementSetName +"</span>\
                         </div>\
                         <div class=''>\
-                            <span class='nameAuto'>在获取浏览记录阶段即获取全记录：</span>\
-                            <span class='value'>"+ item.firstfull +"</span>\
+                        <div class='ui toggle checkbox field'>\
+                            <input type='checkbox' disabled "+ firstfullCkdStr+">\
+                            <label>在获取浏览记录阶段即获取全记录</label>\
+                        </div>\
+                <br />\
+                        <br />\
+                        <div class='ui toggle checkbox field'>\
+                            <input type='checkbox' disabled "+ detectmarcsyntaxStr +">\
+                            <label>自动探测MARC记录格式</label>\
                         </div>\
                         <br />\
-                        <div class=''>\
-                            <span class='nameAuto'>自动探测MARC记录格式：</span>\
-                            <span class='value'>"+ item.detectmarcsyntax +"</span>\
-                        </div>\
                         <br />\
-                        <div class=''>\
-                            <span class='nameAuto'>不检查Reference：</span>\
-                            <span class='value'>"+ item.ignorereferenceid +"</span>\
+                        <div class='ui toggle checkbox field'>\
+                            <input type='checkbox' disabled "+ ignorereferenceidStr +">\
+                            <label>不检查Reference</label>\
                         </div>\
                     </div>\
                     <div class='ui segment'>\
                         <p>ISBN检索前，对检索词作如下预处理：</p>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_force13'>\
+                            <input type='checkbox' disabled "+ isbn_force13Str+">\
                             <label>规整为13位形态&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_force10'>\
+                            <input type='checkbox' disabled "+ isbn_force10Str+">\
                             <label>规整为10位形态&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_addhyphen'>\
+                            <input type='checkbox' disabled "+ isbn_addhyphenStr+">\
                             <label>加入横杠&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_removehyphen'>\
+                            <input type='checkbox' disabled "+ isbn_removehyphenStr+">\
                             <label>去除横杠&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_wild'>\
+                            <input type='checkbox' disabled "+ isbn_wildStr+">\
                             <label>野蛮匹配&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                     </div>\
@@ -276,14 +322,15 @@
                             <span class='nameAuto'>数据记录缺省编码方式</span>\
                             <span class='value'>"+ item.defaultEncoding +"</span>\
                         </div>\
-                        <div class=''>\
-                            <span class='nameAuto'>启用字符集协商功能，优先为检索词选用UTF-8编码方式</span>\
-                            <span class='value'>"+ item.charNegoUtf8 +"</span>\
+                        <div class='ui toggle  checkbox field'>\
+                            <input type='checkbox' disabled "+ charNegoUtf8Str +">\
+                            <label>启用字符集协商功能，优先为检索词选用UTF-8编码方式</label>\
                         </div>\
                         <br />\
-                        <div class=''>\
-                            <span class='nameAuto'>若启用了字符集协商功能，令数据记录也一同采用UTF-8编码试</span>\
-                            <span class='value'>"+ item.charNego_recordsInSeletedCharsets +"</span>\
+                        <br/>\
+                        <div class='ui toggle checkbox field'>\
+                            <input type='checkbox' disabled "+ charNego_recordsInSeletedCharsetsStr +">\
+                            <label>若启用了字符集协商功能，令数据记录也一同采用UTF-8编码试</label>\
                         </div>\
                     </div>\
                 </div>";
@@ -295,6 +342,15 @@
                 html += "</div>";
 
             return html;
+        }
+
+        // 获取
+        function getCheckboxValue(name) {
+            var count = 0;
+            $("#"+name+":checked").each(function () {
+                count = 1;
+            });
+            return count
         }
 
         // 保存
@@ -333,11 +389,12 @@
 
 
 
-            var authmethod = $(divId).find("#_authmethod").val();
+            var authmethod = $("input[name='_authmethod']:checked").val();
             if (authmethod == "") {
                 alert("请选择权限验证方式。");
                 return;
             }
+            //alert("save authmethod="+authmethod);
 
             var groupid = $(divId).find("#_groupid").val();
             var username = $(divId).find("#_username").val();
@@ -353,24 +410,32 @@
             var defaultElementSetName = $(divId).find("#_defaultElementSetName").val();
             //alert(defaultElementSetName);
 
-            var firstfull = $(divId).find("#_firstfull").val();
-            alert(firstfull);
+            var firstfull = getCheckboxValue("_firstfull");//$(divId).find("#_firstfull").val();
+            //alert(firstfull);
 
-            var detectmarcsyntax = $(divId).find("#_detectmarcsyntax").val();
+            var detectmarcsyntax = getCheckboxValue("_detectmarcsyntax");//$(divId).find("#_detectmarcsyntax").val();
+            //alert(detectmarcsyntax);
 
-            var ignorereferenceid = $(divId).find("#_ignorereferenceid").val();
+            var ignorereferenceid = getCheckboxValue("_ignorereferenceid");//$(divId).find("#_ignorereferenceid").val();
+            //alert(ignorereferenceid);
 
-            var isbn_force13 = $(divId).find("#_isbn_force13").val();
-            var isbn_force10 = $(divId).find("#_isbn_force10").val();
-            var isbn_addhyphen = $(divId).find("#_isbn_addhyphen").val();
-            var isbn_removehyphen = $(divId).find("#_isbn_removehyphen").val();
-            var isbn_wild = $(divId).find("#_isbn_wild").val();
+            var isbn_force13 = getCheckboxValue("_isbn_force13");//$(divId).find("#_isbn_force13").val();
+            var isbn_force10 = getCheckboxValue("_isbn_force10");// $(divId).find("#_isbn_force10").val();
+            var isbn_addhyphen = getCheckboxValue("_isbn_addhyphen");//$(divId).find("#_isbn_addhyphen").val();
+            var isbn_removehyphen = getCheckboxValue("_isbn_removehyphen");// $(divId).find("#_isbn_removehyphen").val();
+            var isbn_wild = getCheckboxValue("_isbn_wild");// $(divId).find("#_isbn_wild").val();
 
             var queryTermEncoding = $(divId).find("#_queryTermEncoding").val();
+            //alert("queryTermEncoding=" + queryTermEncoding);
+
             var defaultEncoding = $(divId).find("#_defaultEncoding").val();
-            var recordSyntaxAndEncodingBinding = $(divId).find("#_recordSyntaxAndEncodingBinding").val();
-            var charNegoUtf8 = $(divId).find("#_charNegoUtf8").val();
-            var charNego_recordsInSeletedCharsets = $(divId).find("#_charNego_recordsInSeletedCharsets").val();
+            //alert("defaultEncoding=" + defaultEncoding);
+
+            //var recordSyntaxAndEncodingBinding = $(divId).find("#_recordSyntaxAndEncodingBinding").val();
+
+
+            var charNegoUtf8 = getCheckboxValue("_charNegoUtf8");// $(divId).find("#_charNegoUtf8").val();
+            var charNego_recordsInSeletedCharsets = getCheckboxValue("_charNego_recordsInSeletedCharsets");// $(divId).find("#_charNego_recordsInSeletedCharsets").val();
 
             var creatorPhone = $(divId).find("#_creatorPhone").val();
             if (creatorPhone == "") {
@@ -447,7 +512,19 @@
                     // 高级选项
                     recsperbatch: recsperbatch,
                     defaultMarcSyntaxOID: defaultMarcSyntaxOID,
-                    defaultElementSetName: defaultElementSetName
+                    defaultElementSetName: defaultElementSetName,
+                    firstfull: firstfull,
+                    detectmarcsyntax: detectmarcsyntax,
+                    ignorereferenceid: ignorereferenceid,
+                    isbn_force13: isbn_force13,
+                    isbn_force10: isbn_force10,
+                    isbn_addhyphen: isbn_addhyphen,
+                    isbn_removehyphen: isbn_removehyphen,
+                    isbn_wild: isbn_wild,
+                    charNegoUtf8: charNegoUtf8,
+                    charNego_recordsInSeletedCharsets: charNego_recordsInSeletedCharsets,
+                    queryTermEncoding: queryTermEncoding,
+                    defaultEncoding: defaultEncoding
                 }
             );
 
@@ -558,11 +635,8 @@
 
         }
 
-
-
-
         // 获取编辑态html
-        function getMsgEditHtml(msgItem) {
+        function getMsgEditHtml(item) {
 
             var saveBtnName = "新增";
             var msgId = "new"; //默认新建的情况
@@ -571,7 +645,6 @@
             var port = "";
             var dbnames = "";
             var homepage = "";
-            var authmethod = "";    // 权限验证方式
             var groupid = "";  // groud id
             var username = "";   // 用户名
             var password = "";  // 密码
@@ -584,6 +657,11 @@
             var state = ""; //状态，0 未审核，1审核通过，2审核不通过
             var verifier = ""; //审核人
             var verifyTime = ""; //审核时间
+
+            //权限验证方式
+            var authmethod_open_str = "";    
+            var authmethod_idpassword_str = "";   
+
 
             // 高级选项
             var recsperbatch = "";
@@ -600,34 +678,64 @@
             var defaultElementSetName_marcxml = "";
             var defaultElementSetName_opacxml = "";
 
+            var queryTermEncoding_gb2312 = "";
+            var queryTermEncoding_utf8 = "";
+
+            var defaultEncoding_gb2312 = "";
+            var defaultEncoding_utf8 = "";
+            var defaultEncoding_MARC8 = "";
+
+
+            var firstfullCkdStr = "";
+            var detectmarcsyntaxStr = "";
+            var ignorereferenceidStr = "";
+
+            var isbn_force13Str = "";
+            var isbn_force10Str = "";
+            var isbn_addhyphenStr = "";
+            var isbn_removehyphenStr = "";
+            var isbn_wildStr = "";
+
+
+            var charNegoUtf8Str = "";
+            var charNego_recordsInSeletedCharsetsStr = "";
+
+
             var idpassStr = "";
-            if (msgItem != null) {
+            if (item != null) {
                 //alert("取值");
-                msgId = msgItem.id;
-                name = msgItem.name;
-                addr = msgItem.addr;
-                port = msgItem.port;
-                dbnames = msgItem.dbnames;
-                homepage = msgItem.homepage;
+                msgId = item.id;
+                name = item.name;
+                addr = item.addr;
+                port = item.port;
+                dbnames = item.dbnames;
+                homepage = item.homepage;
 
-                authmethod = msgItem.authmethod;
-                groupid = msgItem.groupid;
-                username = msgItem.username;
-                password = msgItem.password;
+                if (item.authmethod == 0) {
+                    authmethod_open_str = " checked ";
+                }
+                else {
+                    authmethod_idpassword_str = " checked ";
+                }
 
-                creatorPhone = msgItem.creatorPhone;
-                creatorIP = msgItem.creatorIP;
-                createTime = msgItem.createTime;
-                state = msgItem.state;
-                verifier = msgItem.verifier;
-                verifyTime = msgItem.verifyTime;
 
-                if (msgItem.authmethod == 1)
+                groupid = item.groupid;
+                username = item.username;
+                password = item.password;
+
+                creatorPhone = item.creatorPhone;
+                creatorIP = item.creatorIP;
+                createTime = item.createTime;
+                state = item.state;
+                verifier = item.verifier;
+                verifyTime = item.verifyTime;
+
+                if (item.authmethod == 1)
                     idpassStr = " selected ";
 
 
-                recsperbatch = msgItem.recsperbatch;
-                var defaultMarcSyntaxOID = msgItem.defaultMarcSyntaxOID;
+                recsperbatch = item.recsperbatch;
+                var defaultMarcSyntaxOID = item.defaultMarcSyntaxOID;
                 //alert("~~" + defaultMarcSyntaxOID);
 
                 if (defaultMarcSyntaxOID == "UNIMARC")
@@ -639,8 +747,8 @@
                 else if (defaultMarcSyntaxOID == "XML")
                     defaultMarcSyntaxOID_XML = " selected ";
 
-                var defaultElementSetName = msgItem.defaultElementSetName;
-                alert(defaultElementSetName);
+                var defaultElementSetName = item.defaultElementSetName;
+                // alert(defaultElementSetName);
                 if (defaultElementSetName == "B")
                     defaultElementSetName_B = " selected ";
                 else if (defaultElementSetName == "F")
@@ -653,6 +761,38 @@
                     defaultElementSetName_marcxml = " selected ";
                 else if (defaultElementSetName == "opacxml")
                     defaultElementSetName_opacxml = " selected ";
+
+                //
+                var queryTermEncoding = item.queryTermEncoding;
+                if (queryTermEncoding == "gb2312")
+                    queryTermEncoding_gb2312 = " selected ";
+                else if (queryTermEncoding == "utf-8")
+                     queryTermEncoding_utf8 = " selected ";
+
+                //
+                var defaultEncoding = item.defaultEncoding;
+                if (defaultEncoding == "gb2312")
+                    defaultEncoding_gb2312 = " selected ";
+                else if (defaultEncoding == "utf-8")
+                    defaultEncoding_utf8 = " selected ";
+                else if (defaultEncoding == "MARC-8")
+                    defaultEncoding_MARC8 = " selected ";
+                //
+                 firstfullCkdStr = getCheckedStr(item.firstfull);
+                 detectmarcsyntaxStr = getCheckedStr(item.detectmarcsyntax);
+                ignorereferenceidStr = getCheckedStr(item.ignorereferenceid);
+
+                //isbn相关
+                 isbn_force13Str = getCheckedStr(item.isbn_force13);
+                 isbn_force10Str = getCheckedStr(item.isbn_force10);
+                 isbn_addhyphenStr = getCheckedStr(item.isbn_addhyphen);
+                 isbn_removehyphenStr = getCheckedStr(item.isbn_removehyphen);
+                isbn_wildStr = getCheckedStr(item.isbn_wild);
+
+
+                //
+                charNegoUtf8Str = getCheckedStr(item.charNegoUtf8);
+                charNego_recordsInSeletedCharsetsStr = getCheckedStr(item.charNego_recordsInSeletedCharsets);
 
                 saveBtnName = "保存";
             }
@@ -685,13 +825,13 @@
                     <label>权限验证方式</label>\
                     <div class='field'>\
                         <div class='ui radio checkbox'>\
-                            <input name='_authmethod' type='radio' checked='checked' value='0'>\
+                            <input   name='_authmethod' type='radio' "+ authmethod_open_str+" value='0'>\
                             <label>Open</label>\
                         </div>\
                     </div>\
                     <div class='field'>\
                         <div class='ui radio checkbox'>\
-                            <input name='_authmethod' type='radio' value='1'>\
+                            <input name='_authmethod' type='radio' "+ authmethod_idpassword_str+" value='1'>\
                             <label>ID/Password</label>\
                         </div>\
                     </div>\
@@ -755,40 +895,40 @@
                             </select>\
                         </div>\
                         <div class='ui   toggle checkbox  field'>\
-                            <input type='checkbox' id='_firstfull'>\
+                            <input type='checkbox' id='_firstfull' "+ firstfullCkdStr+">\
                             <label>在获取浏览记录阶段即获取全记录</label>\
                         </div>\
                         <br />\
                         <div class='ui toggle checkbox  field'>\
-                            <input type='checkbox' id='_detectmarcsyntax'>\
+                            <input type='checkbox' id='_detectmarcsyntax' "+ detectmarcsyntaxStr+">\
                             <label>自动探测MARC记录格式</label>\
                         </div>\
                         <br />\
                         <div class='ui toggle checkbox  field'>\
-                            <input type='checkbox' id='_ignorereferenceid'>\
+                            <input type='checkbox' id='_ignorereferenceid' "+ ignorereferenceidStr+">\
                             <label>不检查Reference</label>\
                         </div>\
                     </div>\
                     <div class='ui segment'>\
                         <p>ISBN检索前，对检索词作如下预处理：</p>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_force13'>\
+                            <input type='checkbox' id='_isbn_force13' "+ isbn_force13Str+">\
                             <label>规整为13位形态&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_force10'>\
+                            <input type='checkbox' id='_isbn_force10' "+ isbn_force10Str+">\
                             <label>规整为10位形态&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_addhyphen'>\
+                            <input type='checkbox' id='_isbn_addhyphen' "+ isbn_addhyphenStr+">\
                             <label>加入横杠&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_removehyphen'>\
+                            <input type='checkbox' id='_isbn_removehyphen' "+ isbn_removehyphenStr+">\
                             <label>去除横杠&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_wild'>\
+                            <input type='checkbox' id='_isbn_wild' "+ isbn_wildStr+">\
                             <label>野蛮匹配&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                     </div>\
@@ -797,25 +937,26 @@
                             <label>检索词缺省编码方式</label>\
                             <select id='_queryTermEncoding'>\
                                 <option value=''></option>\
-                                <option value='utf-8'>gb2312</option>\
-                                <option value='utf-8'>utf-8</option>\
+                                <option value='gb2312' "+ queryTermEncoding_gb2312+">gb2312</option>\
+                                <option value='utf-8' "+ queryTermEncoding_utf8+">utf-8</option>\
                             </select>\
                         </div>\
                         <div class='inline field'>\
                             <label>数据记录缺省编码方式</label>\
                             <select id='_defaultEncoding'>\
                                 <option value=''></option>\
-                                <option value='utf-8'>utf-8</option>\
-                                <option value='utf-8'>MARC-8</option>\
+                                <option value='gb2312' "+ defaultEncoding_gb2312 +">gb2312</option>\
+                                <option value='utf-8' "+ defaultEncoding_utf8 + ">utf-8</option>\
+                                <option value='MARC-8' "+ defaultEncoding_MARC8 +">MARC-8</option>\
                             </select>\
                         </div>\
                         <div class='ui   toggle checkbox  field'>\
-                            <input type='checkbox' id='_charNegoUtf8'>\
+                            <input type='checkbox' id='_charNegoUtf8' "+ charNegoUtf8Str+">\
                             <label>启用字符集协商功能，优先为检索词选用UTF-8编码方式</label>\
                         </div>\
                         <br />\
                         <div class='ui toggle checkbox  field'>\
-                            <input name='public' type='checkbox' id='_charNego_recordsInSeletedCharsets'>\
+                            <input name='public' type='checkbox' id='_charNego_recordsInSeletedCharsets' "+ charNego_recordsInSeletedCharsetsStr+">\
                             <label>若启用了字符集协商功能，令数据记录也一同采用UTF-8编码试</label>\
                         </div>\
                     </div>\
@@ -827,18 +968,6 @@
 </div>";
 
 
-
-
-            var html = "<table class='edit'>"
-                + "<tr>"
-                + "<td class='label'>权限验证方式</td>"
-                + "<td class='value'>"
-                + "<select id = '_authmethod'  >  "
-                + "    <option value='0'>Open</option>"
-                + "    <option value='1' " + idpassStr + ">ID/Pass</option>"
-                + "</select >"
-                + "</td>"
-                + "</tr>"
 
 
 
@@ -1133,7 +1262,7 @@
 
 <div>
     <div id="_more1" onclick="search()">点击加载更多...</div>
-
+    
 </div>
 
 
