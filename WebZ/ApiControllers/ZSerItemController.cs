@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DigitalPlatform.IO;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WebZ.Server;
 using WebZ.Server.database;
@@ -61,16 +62,69 @@ namespace WebZ.ApiControllers
             return result;
         }
 
+        // 验证码存在session中的key
+        public const string SessionKey_VerifyCode = "_verifycode";
+
+
+        public void SendVerifyCode()
+        {
+            // 生成验证码
+
+            //  记在session里
+            HttpContext.Session.SetString(SessionKey_VerifyCode, "test");
+
+            // 发短信
+        }
         // POST api/<controller>
         [HttpPost]
-        public ApiResult Post([FromBody]ZServerItem item)
+        public ApiResult Post(string verifyCode,[FromBody]ZServerItem item)
         {
             ApiResult result = new ApiResult();
             if (item == null)
             {
                 result.errorCode = -1;
                 result.errorInfo = "item对象为null";
+                return result;
             }
+
+            //============
+            // 验证码相关代码
+            if (string.IsNullOrEmpty(verifyCode) == true)
+            {
+                // 检查session中是否已经存在验证码
+                // 如果不存在，发短信，且把验证码保存在session里
+                if (string.IsNullOrEmpty(HttpContext.Session.GetString(SessionKey_VerifyCode)))
+                {
+
+                    this.SendVerifyCode();
+                }
+
+                result.errorCode = -1;
+                result.errorInfo = "尚未输入短信验证码。";
+                return result;
+            }
+
+            // 
+            string myverifycode = HttpContext.Session.GetString(SessionKey_VerifyCode);
+            if (String.IsNullOrEmpty(myverifycode) == true)
+            {
+                // 重发验证码
+                this.SendVerifyCode();
+
+                result.errorCode = -1;
+                result.errorInfo = "验证码失效，已重发验证码，请使用手机短信中新的验证码提交。";
+                return result;
+            }
+
+            // 比如传入的验证码与session中的验证码是否一致
+            if (verifyCode != myverifycode)
+            {
+                result.errorCode = -1;
+                result.errorInfo = "验证码不匹配，请重新输入手机短信中验证码。";
+                return result;
+            }
+            //===================
+
             try
             {
                 // 创建者ip地址
@@ -90,7 +144,7 @@ namespace WebZ.ApiControllers
         // 一般有管理员审核修改
         // PUT api/<controller>/5
         [HttpPut("{id}")]
-        public ApiResult Put(string id,[FromBody]ZServerItem item)
+        public ApiResult Put(string id, string verifyCode, [FromBody]ZServerItem item)
         {
             ApiResult result = new ApiResult();
             try

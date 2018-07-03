@@ -29,7 +29,18 @@ namespace WebZ
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+
             services.AddMvc();
+
+            services.AddDistributedMemoryCache();
+
+            services.AddSession(options =>
+            {
+                // Set a short timeout for easy testing.
+                options.IdleTimeout = TimeSpan.FromSeconds(20);
+                options.Cookie.HttpOnly = true;
+            });
 
             //// 增加的配置
             //services.Configure<ApplicationConfiguration>(Configuration.GetSection("ApplicationConfiguration"));
@@ -49,7 +60,7 @@ namespace WebZ
             }
 
             app.UseStaticFiles();
-
+            app.UseSession();
             app.UseMvc(routes =>
             {
                 routes.MapRoute(

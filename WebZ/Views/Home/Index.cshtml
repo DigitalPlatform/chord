@@ -401,8 +401,14 @@
             var password = $(divId).find("#_password").val();
 
             // 其它配置字段
-            var recsperbatch = $(divId).find("#_recsperbatch").val();
+            var recsperbatch =parseInt($(divId).find("#_recsperbatch").val());
             //alert(recsperbatch);
+
+            if (isNaN(recsperbatch)==true) { 
+
+                alert("获取记录每批条数 的配置值应该为整数");
+                return;
+            }
 
             var defaultMarcSyntaxOID = $(divId).find("#_defaultMarcSyntaxOID").val();
             //alert(defaultMarcSyntaxOID);
@@ -443,14 +449,24 @@
                 return;
             }
 
+            var verifyCode = $(divId).find("#_verifyCode").val();
+            if (verifyCode == null)
+                verifyCode = "";
+            alert("verifyCode=" + verifyCode);
+            if (verifyCode == "" || verifyCode==null) {
+                alert("请输入短信验证码。");
+                return;
+            }
+
+
             var subjects = "";  //这里以逗号分隔
 
             //显示等待图层
             showMaskLayer();
 
-            var id = "";
-            if (msgId != "new")
-                id = msgId;
+            var id = msgId;//"";
+            //if (msgId != "new")
+            //    id = msgId;
 
 
             var url = "/api/ZSerItem";
@@ -459,15 +475,16 @@
             var action = "";
             if (msgId == "new") {
                 action = "POST";
+                url += "?verifyCode=" + encodeURIComponent(verifyCode);  //url也加一截
             }
             else {
                 action = "PUT";
-                url += "/" + id;  //url也加一截
+                url += "/" + id + "?verifyCode=" + encodeURIComponent(verifyCode);  //url也加一截
             }
 
+            //alert(recsperbatch);
 
-
-            //alert(url);
+            alert(url);
             sendAjaxRequest(url, action,
                 function (result) {
                     // 关闭等待层
@@ -659,12 +676,12 @@
             var verifyTime = ""; //审核时间
 
             //权限验证方式
-            var authmethod_open_str = "";    
+            var authmethod_open_str = " checked ";    
             var authmethod_idpassword_str = "";   
 
 
             // 高级选项
-            var recsperbatch = "";
+            var recsperbatch = "20";
 
             var defaultMarcSyntaxOID_UNIMARC = "";
             var defaultMarcSyntaxOID_MARC21 = "";
@@ -857,11 +874,10 @@
                         <label>创建者手机号</label>\
                         <input type='text' placeholder='phone' id='_creatorPhone' value='" + creatorPhone + "'>\
                     </div>\
-                    <div class='ui inline button' onclick=\"alert('todo')\">获取验证码</div>\
                 </div>\
                 <div class='required inline  field '>\
                     <label>输入验证码&nbsp;&nbsp;&nbsp;&nbsp;</label>\
-                    <input type='text' id='_verifycode'>\
+                    <input type='text' id='_verifyCode'>\
                 </div>\
             </div>\
               <div onclick='expandToggle(this)'><span id='_advanceCtrl'>+</span> 高级选项<br/></div> \
