@@ -2,11 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 using System.Threading;
-using System.Net;
 using System.Xml;
 using System.Diagnostics;
 using System.ServiceModel;
@@ -20,12 +18,11 @@ using System.IdentityModel.Claims;
 using System.IdentityModel.Selectors;
 using System.Security.Cryptography.X509Certificates;
 using System.Collections;
+using System.ServiceModel.Description;
 
-//using DigitalPlatform.Range;
 using DigitalPlatform.Text;
 using DigitalPlatform.LibraryClient.localhost;
 using DigitalPlatform.Range;
-using System.ServiceModel.Description;
 
 namespace DigitalPlatform.LibraryClient
 {

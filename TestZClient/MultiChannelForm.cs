@@ -1,14 +1,8 @@
-﻿using DigitalPlatform.Forms;
-using DigitalPlatform.Z3950;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 using System.Windows.Forms;
+
+using DigitalPlatform.Forms;
+using DigitalPlatform.Z3950;
 
 namespace TestZClient
 {
