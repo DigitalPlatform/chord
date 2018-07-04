@@ -195,3 +195,4 @@ ChordInstaller/*.zip
 ChordInstaller/*_app/
 .vs/
 *.nupkg
+/WebZ/DongshifangMessageInterface.dll.config
