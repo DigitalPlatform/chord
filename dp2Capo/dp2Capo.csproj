@@ -51,7 +51,9 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Management" />
     <Reference Include="System.Messaging" />
+    <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -81,6 +83,7 @@
     </Compile>
     <Compile Include="ServerConnection.cs" />
     <Compile Include="ServerInfo.cs" />
+    <Compile Include="ServiceControlServer.cs" />
     <Compile Include="Z3950Utility.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -103,6 +106,10 @@
     <ProjectReference Include="..\DigitalPlatform.HTTP\DigitalPlatform.HTTP.csproj">
       <Project>{db68395b-9fed-47c1-b5ef-5c238e813279}</Project>
       <Name>DigitalPlatform.HTTP</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.Interfaces\DigitalPlatform.Interfaces.csproj">
+      <Project>{3C4F8133-8652-40B6-B37B-200B25C2B043}</Project>
+      <Name>DigitalPlatform.Interfaces</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj">
       <Project>{441cb814-af78-4503-91ef-dce5f3269502}</Project>
