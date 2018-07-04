@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Xml;
 using WebZ.Server.database;
@@ -57,6 +58,9 @@ namespace WebZ.Server
         // 初始化
         public void Initial(string dataDir)
         {
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             // 如果数据目录不存，则创建
             PathUtil.CreateDirIfNeed(dataDir);
 
@@ -99,15 +103,15 @@ namespace WebZ.Server
                     throw new Exception("尚未配置 mongoDB 元素");
                 }
 
-                //// 初始化短信接口类
-                //string strError = "";
-                //int nRet = this.InitialExternalMessageInterfaces(cfgDom, out strError);
-                //if (nRet == -1)
-                //    throw new Exception("初始化短信接口配置信息出错：" + strError);
+                // 初始化短信接口类
+                string strError = "";
+                int nRet = this.InitialExternalMessageInterfaces(cfgDom, out strError);
+                if (nRet == -1)
+                    throw new Exception("初始化短信接口配置信息出错：" + strError);
             }
             catch (Exception ex)
             {
-                WriteErrorLog("装载配置文件 '" + strCfgFileName + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                throw new Exception("装载配置文件 '" + strCfgFileName + "' 时出现异常: " + ExceptionUtil.GetExceptionText(ex));
             }
 
             // 初始化数据库
@@ -258,7 +262,9 @@ namespace WebZ.Server
         }
 
 
-        public int SendVerifyCodeSMS(string phone,out string error)
+        public int SendVerifyCodeSMS(string phone,
+            string code,
+            out string error)
         {
             error = "";
 
@@ -268,10 +274,7 @@ namespace WebZ.Server
 
             // 短信模板
             string strMessageTemplate =  "验证码为 %verifycode%。一小时内有效。";
-
-
-            string strVerifyCode = "";
-            string strBody = strMessageTemplate.Replace("%verifycode%", strVerifyCode);
+            string strBody = strMessageTemplate.Replace("%verifycode%", code);
             int nRet = 0;
             // 向手机号码发送短信
             {
@@ -397,5 +400,16 @@ namespace WebZ.Server
 
         #endregion
 
+    }
+
+    // 一个验证码事项
+    public class TempCode
+    {
+        // 键。一般由用户名 + 电话号码 + 前端 IP 地址组成
+        public string Key { get; set; }
+        // 验证码
+        public string Code { get; set; }
+        // 失效时间
+        public DateTime ExpireTime { get; set; }
     }
 }

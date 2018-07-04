@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using DigitalPlatform.IO;
 using Microsoft.AspNetCore.Builder;
@@ -80,6 +81,8 @@ namespace WebZ
 
             // 初始化
             ServerInfo.Instance.Initial(datadir);
+
+            //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
         }
 
