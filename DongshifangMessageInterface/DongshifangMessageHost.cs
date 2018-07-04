@@ -9,7 +9,7 @@ using System.Text;
 using System.Web;
 using System.Xml;
 
-namespace DongshifangMessageInterface_S
+namespace DongshifangMessageInterface
 {
 
     public class DongshifangMessageHost : ExternalMessageHost
