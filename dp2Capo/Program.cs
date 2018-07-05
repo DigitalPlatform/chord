@@ -283,9 +283,8 @@ EventLogEntryType.Error);
             {
                 ServerInfo.ZServer = new ZServer(ServerInfo.Z3950ServerPort);
                 ServerInfo.AddEvents(ServerInfo.ZServer, true);
-                ServerInfo.ZServer.Listen();
+                ServerInfo.ZServer.Listen(1000);
             }
-
         }
 
         static void StopServer()

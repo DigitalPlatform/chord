@@ -5289,7 +5289,7 @@ out strError);
 
                 // REDO:
 
-                string strMessage = "";
+                // string strMessage = "";
 
                 string strPercent = "";
                 if (lTotalLength != -1)

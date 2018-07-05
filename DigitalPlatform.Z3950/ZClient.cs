@@ -65,7 +65,8 @@ namespace DigitalPlatform.Z3950
         //      -1  出错
         //      0   成功
         //      1   调用前已经是初始化过的状态，本次没有进行初始化
-        public async Task<InitialResult> TryInitialize(TargetInfo targetinfo)
+        public async Task<InitialResult> TryInitialize(TargetInfo targetinfo,
+            bool bTry = true)
         {
             {
                 // 处理通讯缓冲区中可能残留的 Close Response
@@ -76,7 +77,8 @@ namespace DigitalPlatform.Z3950
                 InitialResult result = await CheckServerCloseRequest();
             }
 
-            if (this._channel.Connected == false
+            if (bTry == false
+                || this._channel.Connected == false
                 || this._channel.Initialized == false
     || this._channel.HostName != targetinfo.HostName
     || this._channel.Port != targetinfo.Port)
@@ -89,6 +91,10 @@ namespace DigitalPlatform.Z3950
                 }
 
                 // this.Stop.SetMessage("正在执行Z39.50初始化 ...");
+
+                // 2018/7/4
+                if (bTry == false)
+                    this._channel.Initialized = false;
 
                 {
                     // return Value:

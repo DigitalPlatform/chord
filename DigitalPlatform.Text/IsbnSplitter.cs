@@ -150,7 +150,7 @@ namespace DigitalPlatform.Text
                     if (c != strSource[9])
                         return false;
                 }
-                catch (ArgumentException ex)
+                catch (ArgumentException /*ex*/)
                 {
                     return false;
                 }
@@ -573,7 +573,7 @@ namespace DigitalPlatform.Text
             strError = "";
 
             string strSource;
-            int nSecondLen;
+            // int nSecondLen;
 
             // Debug.Assert(false, "");
 

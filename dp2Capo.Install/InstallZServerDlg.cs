@@ -231,11 +231,13 @@ namespace dp2Capo.Install
             this.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.Close();
             return;
+#if NO
             ERROR1:
             this.Invoke(new Action(() =>
             {
                 MessageBox.Show(this, strError);
             }));
+#endif
         }
 
         // 进行登录

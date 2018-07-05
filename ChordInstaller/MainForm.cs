@@ -1142,10 +1142,10 @@ MessageBoxDefaultButton.Button2);
         private void MenuItem_dp2capo_instanceManagement_Click(object sender, EventArgs e)
         {
             string strError = "";
-            int nRet = 0;
+            //int nRet = 0;
 
             bool bControl = Control.ModifierKeys == Keys.Control;
-            bool bInstalled = true;
+            //bool bInstalled = true;
 
             this._floatingMessage.Text = "正在配置 dp2Capo 实例 ...";
 
@@ -1166,7 +1166,7 @@ MessageBoxDefaultButton.Button2);
                         strError = "dp2Capo 未曾安装过";
                         goto ERROR1;
                     }
-                    bInstalled = false;
+                    // bInstalled = false;
                 }
 
 #if NO
