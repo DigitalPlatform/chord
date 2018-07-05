@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using System.Xml;
+using System.Drawing;
+using System.Runtime.Remoting.Channels;
+using System.Runtime.Remoting.Channels.Ipc;
 
 using DigitalPlatform.Xml;
 using DigitalPlatform.Drawing;
 using DigitalPlatform.Forms;
 using DigitalPlatform.IO;
 using DigitalPlatform.Text;
+using DigitalPlatform.Interfaces;
 
 namespace dp2Capo.Install
 {
@@ -40,6 +44,8 @@ namespace dp2Capo.Install
             }
 
             listView_instance_SelectedIndexChanged(this, new EventArgs());
+
+            this.BeginInvoke(new Action(RefreshInstanceState));
         }
 
         private void InstallDialog_FormClosing(object sender, FormClosingEventArgs e)
@@ -128,27 +134,38 @@ MessageBoxDefaultButton.Button2);
 
         private void button_newInstance_Click(object sender, EventArgs e)
         {
-            InstanceDialog dlg = new InstanceDialog();
-            FontUtil.AutoSetDefaultFont(dlg);
+            InstanceDialog new_instance_dlg = new InstanceDialog();
+            FontUtil.AutoSetDefaultFont(new_instance_dlg);
 
-            dlg.ParentDialog = this;
-            dlg.Index = this.listView_instance.Items.Count;
-            dlg.InstanceName = "?";
+            new_instance_dlg.ParentDialog = this;
+            new_instance_dlg.Index = this.listView_instance.Items.Count;
+            new_instance_dlg.InstanceName = "?";
             // 找到一个没有用过的目录名字
-            dlg.DataDir = GetNewDirectoryName(this.DataDir);
-            dlg.StartPosition = FormStartPosition.CenterScreen;
-            dlg.ShowDialog(this);
+            new_instance_dlg.DataDir = GetNewDirectoryName(this.DataDir);
+            new_instance_dlg.StartPosition = FormStartPosition.CenterScreen;
+            new_instance_dlg.ShowDialog(this);
 
-            if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
+            if (new_instance_dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
                 return;
 
-            ListViewItem item = new ListViewItem(dlg.InstanceName);
+            this.Enabled = false;
+            try
+            {
+                ListViewItem item = new ListViewItem(new_instance_dlg.InstanceName);
 
-            RefreshItemLine(item, dlg.DataDir);
-            this.listView_instance.Items.Add(item);
+                RefreshItemLine(item, new_instance_dlg.DataDir);
+                this.listView_instance.Items.Add(item);
 
-            if (dlg.InstanceName.IndexOf("?") != -1)
-                RefreshInstanceName(item);
+                if (new_instance_dlg.InstanceName.IndexOf("?") != -1)
+                    RefreshInstanceName(item);
+
+                if (IsDp2CapoRunning())
+                    StartOrStopOneInstance(new_instance_dlg.InstanceName, "start");
+            }
+            finally
+            {
+                this.Enabled = true;
+            }
         }
 
         private void button_modifyInstance_Click(object sender, EventArgs e)
@@ -163,21 +180,45 @@ MessageBoxDefaultButton.Button2);
 
             ListViewItem item = this.listView_instance.SelectedItems[0];
 
-            InstanceDialog dlg = new InstanceDialog();
-            FontUtil.AutoSetDefaultFont(dlg);
+            string strInstanceName = ListViewUtil.GetItemText(item, COLUMN_NAME);
+            if (IsLocking(strInstanceName))
+            {
+                strError = "实例 '" + strInstanceName + "' 当前处于被锁定状态，无法进行修改操作";
+                goto ERROR1;
+            }
 
-            dlg.ParentDialog = this;
-            dlg.Index = this.listView_instance.Items.IndexOf(item);
-            dlg.InstanceName = ListViewUtil.GetItemText(item, COLUMN_NAME);
-            dlg.DataDir = ListViewUtil.GetItemText(item, COLUMN_DATADIR);
+            bool bStopped = false;
+            if (item.ImageIndex == IMAGEINDEX_RUNNING)
+            {
+                // 只对正在 running 状态的实例做停止处理
+                StartOrStopOneInstance(strInstanceName,
+                "stop");
+                bStopped = true;
+            }
+            try
+            {
+                InstanceDialog dlg = new InstanceDialog();
+                FontUtil.AutoSetDefaultFont(dlg);
 
-            dlg.StartPosition = FormStartPosition.CenterScreen;
-            dlg.ShowDialog(this);
+                dlg.ParentDialog = this;
+                dlg.Index = this.listView_instance.Items.IndexOf(item);
+                dlg.InstanceName = strInstanceName;
+                dlg.DataDir = ListViewUtil.GetItemText(item, COLUMN_DATADIR);
 
-            if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
-                return;
+                dlg.StartPosition = FormStartPosition.CenterScreen;
+                dlg.ShowDialog(this);
 
-            RefreshItemLine(item, dlg.DataDir);
+                if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
+                    return;
+
+                RefreshItemLine(item, dlg.DataDir);
+            }
+            finally
+            {
+                if (bStopped)
+                    StartOrStopOneInstance(strInstanceName,
+    "start");
+            }
             return;
             ERROR1:
             MessageBox.Show(this, strError);
@@ -202,22 +243,65 @@ MessageBoxDefaultButton.Button2);
             if (result != DialogResult.Yes)
                 return;
 
-            List<ListViewItem> delete_items = new List<ListViewItem>();
-            foreach (ListViewItem item in this.listView_instance.SelectedItems)
-            {
-                string strDataDir = ListViewUtil.GetItemText(item, COLUMN_DATADIR);
-                PathUtil.DeleteDirectory(strDataDir);
-                delete_items.Add(item);
-            }
+            // 删除操作中，被停止过的实例的实例名
+            List<string> stopped_instance_names = new List<string>();
 
-            foreach (ListViewItem item in delete_items)
+            this.Enabled = false;
+            try
             {
-                this.listView_instance.Items.Remove(item);
-            }
+                bool bRunning = IsDp2CapoRunning();
 
-            // 重新设置序号
-            RefreshInstanceName();
-            return;
+                List<ListViewItem> delete_items = new List<ListViewItem>();
+                foreach (ListViewItem item in this.listView_instance.SelectedItems)
+                {
+                    string strInstanceName = ListViewUtil.GetItemText(item, COLUMN_NAME);
+
+                    if (IsLocking(strInstanceName))
+                    {
+                        strError = "实例 '" + strInstanceName + "' 当前处于被锁定状态，无法进行删除操作";
+                        goto ERROR1;
+                    }
+
+                    string strDataDir = ListViewUtil.GetItemText(item, COLUMN_DATADIR);
+
+                    if (String.IsNullOrEmpty(strDataDir) == true)
+                        continue;
+
+                    if (Directory.Exists(strDataDir) == false)
+                        continue;
+
+                    // 停止即将被删除的实例
+                    if (bRunning)
+                    {
+                        StartOrStopOneInstance(strInstanceName, "stop");
+                        stopped_instance_names.Add(strInstanceName);
+                    }
+
+                    PathUtil.DeleteDirectory(strDataDir);
+                    delete_items.Add(item);
+
+                    stopped_instance_names.Remove(strInstanceName);
+                }
+
+                foreach (ListViewItem item in delete_items)
+                {
+                    this.listView_instance.Items.Remove(item);
+                }
+
+                // 重新设置序号
+                RefreshInstanceName();
+
+                // 重新启动那些被放弃删除的实例
+                foreach (string strInstanceName in stopped_instance_names)
+                {
+                    StartOrStopOneInstance(strInstanceName, "start");
+                }
+                return;
+            }
+            finally
+            {
+                this.Enabled = true;
+            }
             ERROR1:
             MessageBox.Show(this, strError);
         }
@@ -733,5 +817,352 @@ MessageBoxDefaultButton.Button1);
                 return -1;
             return this.listView_instance.Items.IndexOf(item);
         }
+
+        #region 实例运行状态
+
+        void StartOrStopInstance(string strAction)
+        {
+            List<string> errors = new List<string>();
+            this.EnableControls(false);
+            try
+            {
+                string strError = "";
+
+                foreach (ListViewItem item in this.listView_instance.SelectedItems)
+                {
+                    string strInstanceName = ListViewUtil.GetItemText(item, COLUMN_NAME);
+
+                    if (IsLocking(strInstanceName))
+                    {
+                        errors.Add("实例 '" + strInstanceName + "' 当前处于被锁定状态，无法进行 " + strAction + " 操作");
+                        continue;
+                    }
+
+                    int nRet = dp2capo_serviceControl(
+        strAction,
+        strInstanceName,
+        out strError);
+                    if (nRet == -1)
+                        errors.Add(strError);
+                    else
+                        item.ImageIndex = strAction == "stop" ? IMAGEINDEX_STOPPED : IMAGEINDEX_RUNNING;
+                }
+
+            }
+            finally
+            {
+                this.EnableControls(true);
+            }
+
+            if (errors.Count > 0)
+                MessageBox.Show(this, StringUtil.MakePathList(errors, "; "));
+        }
+
+        void StartOrStopOneInstance(string strInstanceName,
+            string strAction)
+        {
+            ListViewItem item = null;
+            if (this.Visible)
+            {
+                item = ListViewUtil.FindItem(this.listView_instance, strInstanceName, COLUMN_NAME);
+                if (item == null)
+                {
+                    MessageBox.Show(this, "名为 '" + strInstanceName + "' 实例在列表中没有找到");
+                    return;
+                }
+            }
+            List<string> errors = new List<string>();
+            this.EnableControls(false);
+            try
+            {
+                string strError = "";
+
+                {
+                    int nRet = dp2capo_serviceControl(
+        strAction,
+        strInstanceName,
+        out strError);
+                    if (nRet == -1)
+                        errors.Add(strError);
+                    else
+                    {
+                        if (item != null)
+                            item.ImageIndex = strAction == "stop" ? IMAGEINDEX_STOPPED : IMAGEINDEX_RUNNING;
+                    }
+                }
+            }
+            finally
+            {
+                this.EnableControls(true);
+            }
+
+            if (errors.Count > 0)
+                MessageBox.Show(this, StringUtil.MakePathList(errors, "; "));
+        }
+
+        const int IMAGEINDEX_RUNNING = 0;
+        const int IMAGEINDEX_STOPPED = 1;
+
+        // 刷新实例状态显示
+        void RefreshInstanceState()
+        {
+            bool bError = false;
+            string strError = "";
+            foreach (ListViewItem item in this.listView_instance.Items)
+            {
+                if (bError)
+                {
+                    item.ImageIndex = IMAGEINDEX_STOPPED;
+                    continue;
+                }
+                string strInstanceName = ListViewUtil.GetItemText(item, COLUMN_NAME);
+                int nRet = dp2capo_serviceControl(
+                    "getState",
+                    strInstanceName,
+                    out strError);
+                if (nRet == -1)
+                {
+                    // 只要出错一次，后面就不再调用 dp2library_serviceControl()
+                    bError = true;
+                    item.ImageIndex = IMAGEINDEX_STOPPED;
+                }
+                else if (nRet == 0 || strError == "stopped")
+                {
+                    item.ImageIndex = IMAGEINDEX_STOPPED;
+                }
+                else
+                {
+                    // nRet == 1
+                    item.ImageIndex = IMAGEINDEX_RUNNING;
+                }
+            }
+        }
+
+        class IpcInfo
+        {
+            public IpcClientChannel Channel { get; set; }
+            public IServiceControl Server { get; set; }
+        }
+
+        static IpcInfo BeginIpc()
+        {
+            IpcInfo info = new IpcInfo();
+
+            string strUrl = "ipc://dp2capo_ServiceControlChannel/dp2library_ServiceControlServer";
+            info.Channel = new IpcClientChannel();
+
+            ChannelServices.RegisterChannel(info.Channel, false);
+
+            info.Server = (IServiceControl)Activator.GetObject(typeof(IServiceControl),
+                strUrl);
+            if (info.Server == null)
+            {
+                string strError = "无法连接到 remoting 服务器 " + strUrl;
+                throw new Exception(strError);
+            }
+
+            return info;
+        }
+
+        static void EndIpc(IpcInfo info)
+        {
+            ChannelServices.UnregisterChannel(info.Channel);
+        }
+
+        // 检测 dp2capo.exe 是否在运行状态
+        static bool IsDp2CapoRunning()
+        {
+            try
+            {
+                IpcInfo ipc = BeginIpc();
+                try
+                {
+                    ServiceControlResult result = null;
+                    InstanceInfo info = null;
+                    // 获得一个实例的信息
+                    result = ipc.Server.GetInstanceInfo(".",
+        out info);
+                    if (result.Value == -1)
+                        return false;
+                    if (info != null)
+                        return info.State == "running";
+                    else
+                        return true;
+                }
+                finally
+                {
+                    EndIpc(ipc);
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        // parameters:
+        //      strCommand  start/stop/getState
+        // return:
+        //      -1  出错
+        //      0/1 strCommand 为 "getState" 时分别表示实例 不在运行/在运行 状态
+        public static int dp2capo_serviceControl(
+    string strCommand,
+    string strInstanceName,
+    out string strError)
+        {
+            strError = "";
+
+            try
+            {
+                IpcInfo ipc = BeginIpc();
+                try
+                {
+                    ServiceControlResult result = null;
+                    if (strCommand == "start")
+                        result = ipc.Server.StartInstance(strInstanceName);
+                    else if (strCommand == "stop")
+                        result = ipc.Server.StopInstance(strInstanceName);
+                    else if (strCommand == "getState")
+                    {
+                        InstanceInfo info = null;
+                        // 获得一个实例的信息
+                        result = ipc.Server.GetInstanceInfo(strInstanceName,
+            out info);
+                        if (result.Value == -1)
+                        {
+                            strError = result.ErrorInfo;
+                            return -1;
+                        }
+                        else
+                            strError = info.State;
+                        return result.Value;
+                    }
+                    else
+                    {
+                        strError = "未知的命令 '" + strCommand + "'";
+                        return -1;
+                    }
+                    if (result.Value == -1)
+                    {
+                        strError = result.ErrorInfo;
+                        return -1;
+                    }
+                    strError = result.ErrorInfo;
+                    return 0;
+
+                }
+                finally
+                {
+                    EndIpc(ipc);
+                }
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+        }
+
+        #endregion
+
+        private void listView_instance_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Right)
+                return;
+
+            ContextMenu contextMenu = new ContextMenu();
+            MenuItem menuItem = null;
+
+            {
+                menuItem = new MenuItem("启动实例 [" + this.listView_instance.SelectedItems.Count + "] (&S)");
+                menuItem.Click += new System.EventHandler(this.menu_startInstance_Click);
+                if (this.listView_instance.SelectedItems.Count == 0)
+                    menuItem.Enabled = false;
+                contextMenu.MenuItems.Add(menuItem);
+            }
+
+
+            {
+                menuItem = new MenuItem("停止实例 [" + this.listView_instance.SelectedItems.Count + "] (&T)");
+                menuItem.Click += new System.EventHandler(this.menu_stopInstance_Click);
+                if (this.listView_instance.SelectedItems.Count == 0)
+                    menuItem.Enabled = false;
+                contextMenu.MenuItems.Add(menuItem);
+            }
+
+            // ---
+            menuItem = new MenuItem("-");
+            contextMenu.MenuItems.Add(menuItem);
+
+            {
+                menuItem = new MenuItem("刷新状态(&R)");
+                menuItem.Click += new System.EventHandler(this.menu_refreshInstanceState_Click);
+                if (this.listView_instance.Items.Count == 0)
+                    menuItem.Enabled = false;
+                contextMenu.MenuItems.Add(menuItem);
+            }
+
+            contextMenu.Show(this.listView_instance, new Point(e.X, e.Y));
+        }
+
+        // 启动所选的实例
+        void menu_startInstance_Click(object sender, EventArgs e)
+        {
+            StartOrStopInstance("start");
+        }
+
+        // 停止所选的实例
+        void menu_stopInstance_Click(object sender, EventArgs e)
+        {
+            StartOrStopInstance("stop");
+        }
+
+        // 刷新全部事项的状态显示
+        void menu_refreshInstanceState_Click(object sender, EventArgs e)
+        {
+            RefreshInstanceState();
+        }
+
+        void EnableControls(bool bEnable)
+        {
+            if (this.Enabled == false)
+                return;
+
+            this.listView_instance.Enabled = bEnable;
+            this.button_OK.Enabled = bEnable;
+            this.button_newInstance.Enabled = bEnable;
+            this.button_modifyInstance.Enabled = bEnable;
+            this.button_deleteInstance.Enabled = bEnable;
+
+            this.button_getDataDir.Enabled = bEnable;
+            this.button_globalConfig.Enabled = bEnable;
+            this.textBox_dataDir.Enabled = bEnable;
+        }
+
+        bool IsLocking(string strInstanceName)
+        {
+            if (LockingInstances.IndexOf(strInstanceName) == -1)
+                return false;
+            return true;
+        }
+
+        void LockInstance(string strInstanceName, bool bLock)
+        {
+            if (bLock)
+            {
+                if (LockingInstances.IndexOf(strInstanceName) == -1)
+                    LockingInstances.Add(strInstanceName);
+            }
+            else
+            {
+                LockingInstances.Remove(strInstanceName);
+            }
+        }
+
+        // 被锁定的实例名数组
+        // 正在进行恢复操作的实例名，会进入本数组。以防中途被启动
+        // 引用外部值
+        public List<string> LockingInstances { get; set; }
+
     }
 }

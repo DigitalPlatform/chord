@@ -7,7 +7,6 @@ using System.Web;
 using System.Windows.Forms;
 
 using DigitalPlatform.Text;
-//using DigitalPlatform.GUI;
 using DigitalPlatform.Xml;
 
 namespace DigitalPlatform.Forms

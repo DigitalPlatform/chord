@@ -52,6 +52,23 @@ namespace dp2Capo
             set;
         }
 
+        public string DataDir
+        {
+            get;
+            set;
+        }
+
+        private bool _running = false;
+
+        public bool Running
+        {
+            get
+            {
+                return _running;
+            }
+        }
+
+
         #region 全局结果集管理
 
         private readonly Object _syncResultSets = new Object();
@@ -113,15 +130,36 @@ namespace dp2Capo
             LastCheckTime = DateTime.Now;
         }
 
-        public void Initial(string strXmlFileName)
+        public static string GetInstanceName(string strXmlFileName)
         {
+            XmlDocument dom = new XmlDocument();
+            try
+            {
+                dom.Load(strXmlFileName);
+            }
+            catch (FileNotFoundException)
+            {
+                return Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
+            }
+            string strInstanceName = dom.DocumentElement.GetAttribute("instanceName");
+            if (string.IsNullOrEmpty(strInstanceName) == true)
+                return Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
+            return strInstanceName;
+        }
+
+        public void Start()
+        {
+            string strXmlFileName = Path.Combine(this.DataDir, "capo.xml");
+            if (File.Exists(strXmlFileName) == false)
+                return; // TODO: 似乎应该抛出异常才好
+
             _cancel = new CancellationTokenSource();
             // SetShortDelay();
 
-            Console.WriteLine();
-            Console.WriteLine("*** 初始化实例: " + strXmlFileName);
+            this.Name = GetInstanceName(strXmlFileName);  // Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
 
-            this.Name = Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
+            Console.WriteLine();
+            Console.WriteLine("*** 启动实例: " + this.Name + " -- " + strXmlFileName);
 
             this.LogDir = Path.Combine(Path.GetDirectoryName(strXmlFileName), "log");
             PathUtil.CreateDirIfNeed(this.LogDir);
@@ -141,9 +179,9 @@ namespace dp2Capo
 
             try
             {
-                this.Name = dom.DocumentElement.GetAttribute("instanceName");
-                if (string.IsNullOrEmpty(this.Name) == true)
-                    this.Name = Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
+                //this.Name = dom.DocumentElement.GetAttribute("instanceName");
+                //if (string.IsNullOrEmpty(this.Name) == true)
+                //    this.Name = Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
 
                 {
                     XmlElement element = dom.DocumentElement.SelectSingleNode("dp2library") as XmlElement;
@@ -201,6 +239,8 @@ namespace dp2Capo
             }
 
             InitialQueue(true);
+
+            this._running = true;
         }
 
 #if NO
@@ -396,6 +436,7 @@ namespace dp2Capo
             // this.MessageConnection.CloseConnection();
             this.MessageConnection.Close();
 
+            this._running = false;
             this.WriteErrorLog("*** 实例 " + this.Name + " 成功降落。");
         }
 
@@ -1002,7 +1043,7 @@ namespace dp2Capo
     public class ZHostInfo : HostInfo
     {
         // 慢速参数是否初始化成功?
-        public bool SlowConfigInitialized { get; set; }
+        // public bool SlowConfigInitialized { get; set; }
 
 #if NO
         // 图书馆 UID。从 dp2library 用 API 获取
@@ -1344,7 +1385,7 @@ namespace dp2Capo
             return 0;
         }
 
-#region
+        #region
 
         // 获得可用的数据库数
         public int GetDbCount()
@@ -1455,7 +1496,7 @@ namespace dp2Capo
             return strFrom;
         }
 
-#endregion
+        #endregion
     }
 
     // 书目库属性

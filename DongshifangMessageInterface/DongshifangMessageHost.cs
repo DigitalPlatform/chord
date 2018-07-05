@@ -1,6 +1,4 @@
-﻿using DigitalPlatform.Interfaces;
-using DigitalPlatform.Xml;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -8,6 +6,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using System.Xml;
+
+using DigitalPlatform.Interfaces;
+using DigitalPlatform.Xml;
 
 namespace DongshifangMessageInterface
 {

@@ -1,10 +1,8 @@
-using System;
+Ôªøusing System;
 using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
+
 using DigitalPlatform.Drawing;
-// using DigitalPlatform.GUI;
 
 namespace DigitalPlatform.Forms
 {
@@ -95,7 +93,7 @@ namespace DigitalPlatform.Forms
             this.checkBox_noAsk.Name = "checkBox_noAsk";
             this.checkBox_noAsk.Size = new System.Drawing.Size(174, 16);
             this.checkBox_noAsk.TabIndex = 1;
-            this.checkBox_noAsk.Text = "“‘∫Û”ˆœ‡Õ¨«Èøˆ≤ª‘Ÿ—ØŒ (&N)";
+            this.checkBox_noAsk.Text = "‰ª•ÂêéÈÅáÁõ∏ÂêåÊÉÖÂÜµ‰∏çÂÜçËØ¢ÈóÆ(&N)";
             // 
             // button_1
             // 
@@ -104,7 +102,7 @@ namespace DigitalPlatform.Forms
             this.button_1.Name = "button_1";
             this.button_1.Size = new System.Drawing.Size(76, 22);
             this.button_1.TabIndex = 2;
-            this.button_1.Text = " «(&Y)";
+            this.button_1.Text = "ÊòØ(&Y)";
             this.button_1.Click += new System.EventHandler(this.button_1_Click);
             // 
             // button_2
@@ -114,7 +112,7 @@ namespace DigitalPlatform.Forms
             this.button_2.Name = "button_2";
             this.button_2.Size = new System.Drawing.Size(74, 22);
             this.button_2.TabIndex = 3;
-            this.button_2.Text = "∑Ò(&N)";
+            this.button_2.Text = "Âê¶(&N)";
             this.button_2.Click += new System.EventHandler(this.button_2_Click);
             // 
             // button_3
@@ -124,7 +122,7 @@ namespace DigitalPlatform.Forms
             this.button_3.Name = "button_3";
             this.button_3.Size = new System.Drawing.Size(75, 22);
             this.button_3.TabIndex = 4;
-            this.button_3.Text = "»°œ˚(&C)";
+            this.button_3.Text = "ÂèñÊ∂à(&C)";
             this.button_3.Click += new System.EventHandler(this.button_3_Click);
             // 
             // MessageDlg
@@ -165,19 +163,19 @@ namespace DigitalPlatform.Forms
             {
                 if (buttons == MessageBoxButtons.AbortRetryIgnore)
                 {
-                    button_1.Text = "÷’÷π Abort";
+                    button_1.Text = "ÁªàÊ≠¢ Abort";
                     button_1.Enabled = true;
 
-                    button_2.Text = "÷ÿ ‘ Retry";
+                    button_2.Text = "ÈáçËØï Retry";
                     button_2.Enabled = true;
 
-                    button_3.Text = "∫ˆ¬‘ Ignore";
+                    button_3.Text = "ÂøΩÁï• Ignore";
                     button_3.Enabled = true;
                 }
 
                 if (buttons == MessageBoxButtons.OK)
                 {
-                    button_1.Text = "»∑∂® OK";
+                    button_1.Text = "Á°ÆÂÆö OK";
                     button_1.Enabled = true;
 
                     button_2.Text = "";
@@ -190,10 +188,10 @@ namespace DigitalPlatform.Forms
 
                 if (buttons == MessageBoxButtons.OKCancel)
                 {
-                    button_1.Text = "»∑∂® OK";
+                    button_1.Text = "Á°ÆÂÆö OK";
                     button_1.Enabled = true;
 
-                    button_2.Text = "»°œ˚ Cancel";
+                    button_2.Text = "ÂèñÊ∂à Cancel";
                     button_2.Enabled = true;
 
                     button_3.Text = "";
@@ -202,10 +200,10 @@ namespace DigitalPlatform.Forms
 
                 if (buttons == MessageBoxButtons.RetryCancel)
                 {
-                    button_1.Text = "÷ÿ ‘ Retry";
+                    button_1.Text = "ÈáçËØï Retry";
                     button_1.Enabled = true;
 
-                    button_2.Text = "»°œ˚ Cancel";
+                    button_2.Text = "ÂèñÊ∂à Cancel";
                     button_2.Enabled = true;
 
                     button_3.Text = "";
@@ -214,10 +212,10 @@ namespace DigitalPlatform.Forms
 
                 if (buttons == MessageBoxButtons.YesNo)
                 {
-                    button_1.Text = " « Yes";
+                    button_1.Text = "ÊòØ Yes";
                     button_1.Enabled = true;
 
-                    button_2.Text = "∑Ò No";
+                    button_2.Text = "Âê¶ No";
                     button_2.Enabled = true;
 
                     button_3.Text = "";
@@ -226,13 +224,13 @@ namespace DigitalPlatform.Forms
 
                 if (buttons == MessageBoxButtons.YesNoCancel)
                 {
-                    button_1.Text = " « Yes";
+                    button_1.Text = "ÊòØ Yes";
                     button_1.Enabled = true;
 
-                    button_2.Text = "∑Ò No";
+                    button_2.Text = "Âê¶ No";
                     button_2.Enabled = true;
 
-                    button_3.Text = "»°œ˚ Cancel";
+                    button_3.Text = "ÂèñÊ∂à Cancel";
                     button_3.Enabled = true;
                 }
             }

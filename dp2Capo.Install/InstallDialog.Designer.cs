@@ -28,6 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(InstallDialog));
             this.button_Cancel = new System.Windows.Forms.Button();
             this.button_OK = new System.Windows.Forms.Button();
             this.button_deleteInstance = new System.Windows.Forms.Button();
@@ -43,6 +45,7 @@
             this.textBox_dataDir = new System.Windows.Forms.TextBox();
             this.button_getDataDir = new System.Windows.Forms.Button();
             this.button_globalConfig = new System.Windows.Forms.Button();
+            this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.SuspendLayout();
             // 
             // button_Cancel
@@ -50,7 +53,7 @@
             this.button_Cancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button_Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.button_Cancel.Location = new System.Drawing.Point(686, 422);
-            this.button_Cancel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_Cancel.Margin = new System.Windows.Forms.Padding(4);
             this.button_Cancel.Name = "button_Cancel";
             this.button_Cancel.Size = new System.Drawing.Size(112, 34);
             this.button_Cancel.TabIndex = 20;
@@ -62,7 +65,7 @@
             // 
             this.button_OK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button_OK.Location = new System.Drawing.Point(565, 422);
-            this.button_OK.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_OK.Margin = new System.Windows.Forms.Padding(4);
             this.button_OK.Name = "button_OK";
             this.button_OK.Size = new System.Drawing.Size(112, 34);
             this.button_OK.TabIndex = 19;
@@ -74,7 +77,7 @@
             // 
             this.button_deleteInstance.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.button_deleteInstance.Location = new System.Drawing.Point(308, 378);
-            this.button_deleteInstance.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_deleteInstance.Margin = new System.Windows.Forms.Padding(4);
             this.button_deleteInstance.Name = "button_deleteInstance";
             this.button_deleteInstance.Size = new System.Drawing.Size(112, 34);
             this.button_deleteInstance.TabIndex = 18;
@@ -86,7 +89,7 @@
             // 
             this.button_modifyInstance.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.button_modifyInstance.Location = new System.Drawing.Point(164, 378);
-            this.button_modifyInstance.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_modifyInstance.Margin = new System.Windows.Forms.Padding(4);
             this.button_modifyInstance.Name = "button_modifyInstance";
             this.button_modifyInstance.Size = new System.Drawing.Size(135, 34);
             this.button_modifyInstance.TabIndex = 17;
@@ -98,7 +101,7 @@
             // 
             this.button_newInstance.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.button_newInstance.Location = new System.Drawing.Point(18, 378);
-            this.button_newInstance.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_newInstance.Margin = new System.Windows.Forms.Padding(4);
             this.button_newInstance.Name = "button_newInstance";
             this.button_newInstance.Size = new System.Drawing.Size(136, 34);
             this.button_newInstance.TabIndex = 16;
@@ -119,16 +122,19 @@
             this.columnHeader_dp2MServer_url});
             this.listView_instance.FullRowSelect = true;
             this.listView_instance.HideSelection = false;
+            this.listView_instance.LargeImageList = this.imageList1;
             this.listView_instance.Location = new System.Drawing.Point(18, 93);
-            this.listView_instance.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.listView_instance.Margin = new System.Windows.Forms.Padding(4);
             this.listView_instance.MultiSelect = false;
             this.listView_instance.Name = "listView_instance";
             this.listView_instance.Size = new System.Drawing.Size(779, 274);
+            this.listView_instance.SmallImageList = this.imageList1;
             this.listView_instance.TabIndex = 15;
             this.listView_instance.UseCompatibleStateImageBehavior = false;
             this.listView_instance.View = System.Windows.Forms.View.Details;
             this.listView_instance.SelectedIndexChanged += new System.EventHandler(this.listView_instance_SelectedIndexChanged);
             this.listView_instance.DoubleClick += new System.EventHandler(this.listView_instance_DoubleClick);
+            this.listView_instance.MouseUp += new System.Windows.Forms.MouseEventHandler(this.listView_instance_MouseUp);
             // 
             // columnHeader_name
             // 
@@ -169,7 +175,7 @@
             this.textBox_dataDir.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_dataDir.Location = new System.Drawing.Point(18, 42);
-            this.textBox_dataDir.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_dataDir.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_dataDir.Name = "textBox_dataDir";
             this.textBox_dataDir.ReadOnly = true;
             this.textBox_dataDir.Size = new System.Drawing.Size(508, 28);
@@ -180,7 +186,7 @@
             // 
             this.button_getDataDir.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button_getDataDir.Location = new System.Drawing.Point(537, 39);
-            this.button_getDataDir.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_getDataDir.Margin = new System.Windows.Forms.Padding(4);
             this.button_getDataDir.Name = "button_getDataDir";
             this.button_getDataDir.Size = new System.Drawing.Size(52, 34);
             this.button_getDataDir.TabIndex = 23;
@@ -201,6 +207,13 @@
             this.button_globalConfig.UseVisualStyleBackColor = true;
             this.button_globalConfig.Click += new System.EventHandler(this.button_globalConfig_Click);
             // 
+            // imageList1
+            // 
+            this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
+            this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
+            this.imageList1.Images.SetKeyName(0, "StatusAnnotations_Play_16xLG_color.png");
+            this.imageList1.Images.SetKeyName(1, "StatusAnnotations_Stop_16xLG_color.png");
+            // 
             // InstallDialog
             // 
             this.AcceptButton = this.button_OK;
@@ -218,7 +231,7 @@
             this.Controls.Add(this.button_modifyInstance);
             this.Controls.Add(this.button_newInstance);
             this.Controls.Add(this.listView_instance);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "InstallDialog";
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
@@ -248,5 +261,6 @@
         private System.Windows.Forms.Button button_getDataDir;
         private System.Windows.Forms.ColumnHeader columnHeader_dataDir;
         private System.Windows.Forms.Button button_globalConfig;
+        private System.Windows.Forms.ImageList imageList1;
     }
 }

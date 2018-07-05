@@ -38,7 +38,7 @@ namespace DigitalPlatform.Z3950.Server
 
         public event PresentGetRecordsEventHandler PresentGetRecords = null;
 
-        public static ZServerChannelCollection _zChannels = new ZServerChannelCollection();
+        public ZServerChannelCollection _zChannels = new ZServerChannelCollection();
 
         public CancellationToken _cancelToken = new CancellationToken();
 
@@ -64,10 +64,10 @@ namespace DigitalPlatform.Z3950.Server
             return ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
         }
 
-        public async void Listen()
+        public async void Listen(int backlog)
         {
             this.Listener = new TcpListener(IPAddress.Any, this.Port);
-            this.Listener.Start();  // TODO: 要捕获异常
+            this.Listener.Start(backlog);  // TODO: 要捕获异常
 
             Console.WriteLine("Z39.50 服务器成功监听于 " + this.Port.ToString());
 
@@ -99,6 +99,7 @@ namespace DigitalPlatform.Z3950.Server
         {
             this.IsActive = false;
             this.Listener.Stop();
+            _zChannels.Clear();
         }
 
 #if NO

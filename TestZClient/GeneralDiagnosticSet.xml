@@ -159,7 +159,9 @@
   <item code="1001" meaning="Malformed APDU." addinfo="" />
   <item code="1002" meaning="ES: EXTERNAL form of Item Order request not supported." addinfo="" />
   <item code="1003" meaning="ES: Result set item form of Item Order request not supported." addinfo="" />
-  <item code="1004" meaning="ES: Extended services not supported unless access control is in effect. 1005 Response records in Search response not supported." addinfo="" />
+  <item code="1004" meaning="ES: Extended services not supported unless access control is in effect. " />
+  <item code="1005" meaning="Response records in Search response not supported." />
+  
   <item code="1006" meaning="Response records in Search response not possible for specified database (or database combination). See note 1." addinfo="" 
         notes="1. Diagnostic 1006 is intended for the case of an intermediary providing access to multiple servers, some of which may support piggybacking and some which do not. This diagnostic is for the intermediary to use in case the particular end server doesn't support piggybacking (as opposed to diagnostic 1005, which, in the case of an intermediary, would imply that the intermediary does not support piggybacking). "/>
   <item code="1007" meaning="No Explain server. See note 2." 
@@ -232,7 +234,7 @@
         addinfo="attribute (oid, type, and value), and database name" />
   <item code="1057" meaning="ES: Unsupported value of task package parameter (See Note 9)" 
         addinfo="parameter and value" 
-        notes="9. Diagnostic 1057 applies for example when a client sends a PeriodicQuerySchedule with a period of "fortnight", but the server only supports period in seconds and cannot convert to fortnight; or the client send ExportInvocation where the value of 'records' is' ranges', but the server only support a value of 'all'."/>
+        notes="9. Diagnostic 1057 applies for example when a client sends a PeriodicQuerySchedule with a period of 'fortnight', but the server only supports period in seconds and cannot convert to fortnight; or the client send ExportInvocation where the value of 'records' is' ranges', but the server only support a value of 'all'."/>
   <item code="1058" meaning="Duplicate Detection: Cannot dedup on requested record portion" addinfo="" />
   <item code="1059" meaning="Duplicate Detection: Requested detection criterion not supported" 
         addinfo="detection criterion" />
