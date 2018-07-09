@@ -46,11 +46,25 @@
             }
         }
 
+        function showMore(bdisplay)
+        { 
+            if (bdisplay == true) {
+                $("#_more").css("display", "block");
+             }
+            else { 
+                $("#_more").css("display", "none");
+            }
+        }
+
         // 每页显示条数
         var _percount = 6;
 
+
+
         //获取所有站点
         function search(bNew) {
+
+            //showMore(true);
 
             var table = $("#_subject_main");
 
@@ -86,9 +100,18 @@
                     return;
                 }
 
+                // 不显示更多
                 if (result.data.length == 0) {
-                    alert("未命中");
-                    return;
+                    showMore(false);
+
+                    if (start == 0) {
+                        alert("未命中");
+                        return;
+                     }
+                    else { 
+                        alert("到尾");
+                        return;
+                    }
                 }
 
                 //alert("ok");
@@ -98,6 +121,8 @@
 
                 //设为下次的起始值
                 $("#_start").text(Number(start) + Number(result.data.length));
+
+
 
                 //alert("2");
                 for (var i = 0; i < result.data.length; i++) {
@@ -118,6 +143,8 @@
 
                     table.append(itemHtml);
                 }
+
+                showMore(true);
 
                 // 关闭等待层
                 hideLoading();
@@ -1293,7 +1320,7 @@
 </div>
 
 <div>
-    <div id="_more1" onclick="search()">点击加载更多...</div>
+    <div id="_more" style="display:none" onclick="search()">点击加载更多...</div>
     
 </div>
 

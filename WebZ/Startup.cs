@@ -23,6 +23,25 @@ namespace WebZ
             // 2016.10.25 再次启用session 用于出纳窗命令
             //this.PostAuthenticateRequest += (sender, e) => HttpContext.Current.SetSessionStateBehavior(SessionStateBehavior.Required);
 
+
+            // 初始化
+            try
+            {
+
+                // 读取配置文件
+                var config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json").Build();
+                string datadir = config["ApplicationConfiguration:datadir"];
+                if (string.IsNullOrEmpty(datadir) == true)
+                    datadir = Directory.GetCurrentDirectory();
+
+                ServerInfo.Instance.Initial(datadir);
+            }
+            catch (Exception ex)
+            {
+                ServerInfo.Instance.WriteErrorLog("初始化出错：" + ex.Message);
+            }
         }
 
 
@@ -67,20 +86,8 @@ namespace WebZ
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
-            // 读取配置文件
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json").Build();
-            string datadir = config["ApplicationConfiguration:datadir"];
-            if (string.IsNullOrEmpty(datadir) == true)
-                datadir = Directory.GetCurrentDirectory();
 
 
-
-            // 初始化
-            ServerInfo.Instance.Initial(datadir);
-
-            //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
         }
 

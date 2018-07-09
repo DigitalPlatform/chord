@@ -109,6 +109,8 @@ namespace WebZ.Server
                 int nRet = this.InitialExternalMessageInterfaces(cfgDom, out strError);
                 if (nRet == -1)
                     throw new Exception("初始化短信接口配置信息出错：" + strError);
+
+                this.WriteErrorLog("初始化短信接口配置完成。");
             }
             catch (Exception ex)
             {
@@ -188,7 +190,7 @@ namespace WebZ.Server
             if (root == null)
             {
                 strError = "在weixin.xml中没有找到<externalMessageInterface>元素";
-                return 0;
+                return -1;
             }
 
             m_externalMessageInterfaces = new List<MessageInterface>();
@@ -244,12 +246,15 @@ namespace WebZ.Server
                 this.m_externalMessageInterfaces.Add(message_interface);
             }
 
-            return 1;
+            return 0;
         }
 
         public MessageInterface GetMessageInterface(string strType)
         {
             // 2012/3/29
+            if (this.m_externalMessageInterfaces == null)
+                return null;
+
             if (this.m_externalMessageInterfaces == null)
                 return null;
 
@@ -271,11 +276,16 @@ namespace WebZ.Server
             int nRet = 0;
 
 
-            // 短信接口            
+            // 短信接口
+            if (this.m_externalMessageInterfaces == null)
+            {
+                error = "m_externalMessageInterfaces为null。";
+                goto ERROR1;
+            }
             MessageInterface external_interface = this.GetMessageInterface("sms");
             if (external_interface == null)
             {
-                error = "短信接口sms对象为null。";
+                error = "未找到短信接口对象。";
                 goto ERROR1;
             }
 
@@ -316,7 +326,7 @@ namespace WebZ.Server
 
             ERROR1:
 
-            error = "向" + phone + "发送" + external_interface.Type + " message时出错：" + error;
+            error = "向" + phone + "发送短信时出错：" + error;
             this.WriteErrorLog(error);
             return -1;
         }
@@ -328,7 +338,7 @@ namespace WebZ.Server
 
         private  readonly Object _syncRoot = new Object();
 
-         void WriteErrorLog(string strText)
+         public void WriteErrorLog(string strText)
         {
             // 注: 当 LogDir 为空的时候会抛出异常
             lock (_syncRoot)
