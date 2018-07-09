@@ -61,10 +61,17 @@ namespace dp2Capo.Install
         private void button_OK_Click(object sender, EventArgs e)
         {
             string strError = "";
+
             // 检查参数是否输入全了
             if (string.IsNullOrEmpty(this.textBox_dataDir.Text))
             {
                 strError = "尚未指定数据目录";
+                goto ERROR1;
+            }
+
+            if (this.textBox_instanceName.Text.IndexOf("?") != -1)
+            {
+                strError = "实例名中不允许出现问号。请修改实例名";
                 goto ERROR1;
             }
 
@@ -82,6 +89,17 @@ namespace dp2Capo.Install
                 goto ERROR1;
 #endif
             }
+
+            // 如果指定了 dp2mserver 参数，要检查 dp2library 参数中是否指定了消息队列
+            if (string.IsNullOrEmpty(this.textBox_dp2mserver_def.Text) == false)
+            {
+                if (string.IsNullOrEmpty(dp2LibraryDialog.GetMessageQueue(this.CfgDom)))
+                {
+                    strError = "定义了 dp2MServer 服务器参数的情况下，要求 dp2Library 服务器参数中必须定义消息队列路径。请为 dp2Library 服务器参数增配消息队列路径";
+                    goto ERROR1;
+                }
+            }
+
 
             // 为以前的配置文件添加 root/@instanceName
             if (this.CfgDom != null && this.CfgDom.DocumentElement != null)
@@ -117,6 +135,10 @@ namespace dp2Capo.Install
 
             if (string.IsNullOrEmpty(this.DataDir))
                 return;
+
+            if (this.textBox_instanceName.Text == "?")
+                this.textBox_instanceName.Text = Path.GetFileName(this.textBox_dataDir.Text);
+
             if (Directory.Exists(this.DataDir) == false)
                 return;
 

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj" />
+    <ProjectReference Include="..\DigitalPlatform.Interfaces\DigitalPlatform.Interfaces.csproj" />
+    <ProjectReference Include="..\DigitalPlatform.Xml\DigitalPlatform.Xml.csproj" />
+  </ItemGroup>
+
+</Project>

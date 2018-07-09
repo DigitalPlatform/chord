@@ -1,12 +1,10 @@
-﻿using DigitalPlatform.Text;
-using DigitalPlatform.Z3950;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Security;
 using System.Text;
-using System.Threading.Tasks;
+
+using DigitalPlatform.Z3950;
 
 namespace dp2Capo
 {
@@ -18,8 +16,9 @@ namespace dp2Capo
         //		node    RPN 结构的根结点
         //		strXml[out] 返回局部XML检索式
         // return:
-        //      -1  error
-        //      0   succeed
+        //      -1  出错
+        //      0   数据库没有找到
+        //      1   成功
         public static int BuildQueryXml(
             ZHostInfo zhost,
             List<string> dbnames,
@@ -68,6 +67,10 @@ namespace dp2Capo
                     if (nRet == -1)
                         return -1;
 
+                    // return:
+                    //      -1  出错
+                    //      0   数据库没有找到
+                    //      1   成功
                     nRet = BuildOneXml(
                         zhost,
                         dbnames,
@@ -77,13 +80,10 @@ namespace dp2Capo
                         out strError);
                     if (nRet == -1)
                         return -1;
+                    if (nRet == 0)
+                        return 0;
 
-                    return 0;
-
-                    /*
-			// 真的要去检索数据库啦
-			SearchDBMulti(pResult, nAttributeValue, strTerm);
-                     * */
+                    return 1;
                 }
                 else if (31 == pChild.m_uTag)
                 {
@@ -108,7 +108,8 @@ namespace dp2Capo
 
             }
             else if (1 == node.m_uTag)
-            { // rpnRpnOp
+            { 
+                // rpnRpnOp
                 //
                 if (3 != node.ChildrenCollection.Count)
                 {
@@ -116,8 +117,6 @@ namespace dp2Capo
                     return -1;
                 }
                 //
-                string strXmlLeft = "";
-                string strXmlRight = "";
                 int nOperator = -1;
 
                 nRet = BuildQueryXml(
@@ -125,21 +124,20 @@ namespace dp2Capo
                     dbnames,
                     node.ChildrenCollection[0],
                     searchTermEncoding,
-                    out strXmlLeft,
+                    out string strXmlLeft,
                     out strError);
-                if (nRet == -1)
-                    return -1;
+                if (nRet == -1 || nRet == 0)
+                    return nRet;
 
                 nRet = BuildQueryXml(
                     zhost,
                     dbnames,
                     node.ChildrenCollection[1],
                     searchTermEncoding,
-                    out strXmlRight,
+                    out string strXmlRight,
                     out strError);
-                if (nRet == -1)
-                    return -1;
-
+                if (nRet == -1 || nRet == 0)
+                    return nRet;
 
                 //	and     [0] 
                 //	or      [1] 
@@ -173,11 +171,15 @@ namespace dp2Capo
                 strError = "bad RPN structure";
             }
 
-            return 0;
+            return 1;
         }
 
         // 构造一个检索词的XML检索式局部
         // 本函数不递归
+        // return:
+        //      -1  出错
+        //      0   数据库没有找到
+        //      1   成功
         static int BuildOneXml(
             ZHostInfo zhost,
             List<string> dbnames,
@@ -222,7 +224,7 @@ namespace dp2Capo
                     if (prop == null)
                     {
                         strError = "数据库 '" + strDbName + "' 不存在";
-                        return -1;
+                        return 0;
                     }
 
                     // 如果当前库的MaxResultCount参数和前面紧邻的不一样了，则需要推入当前正在使用的props，新起一个props
@@ -263,10 +265,9 @@ namespace dp2Capo
                         if (j == 0)
                             nMaxResultCount = prop.MaxResultCount;  // 只取第一个prop的值即可
 
-                        string strOutputDbName = "";
                         string strFrom = zhost.GetFromName(strDbName,
                             lAttritueValue,
-                            out strOutputDbName,
+                            out string strOutputDbName,
                             out strError);
                         if (strFrom == null)
                             return -1;  // 寻找from名的过程发生错误
@@ -293,7 +294,7 @@ namespace dp2Capo
                 if (prop_groups.Count > 1)
                     strQueryXml = "<target>" + strQueryXml + "</target>";
 
-                return 0;
+                return 1;
             }
             catch (Exception ex)
             {
@@ -325,7 +326,6 @@ namespace dp2Capo
 
             return 0;
         }
-
 
         // 获得search请求中的RPN根节点
         static BerNode GetRPNStructureRoot(BerNode root,

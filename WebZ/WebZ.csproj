@@ -37,4 +37,10 @@
     <ProjectReference Include="..\WebZ.Server\WebZ.Server.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="DongshifangMessageInterface.dll.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

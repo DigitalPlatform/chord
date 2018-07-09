@@ -1,19 +1,18 @@
-﻿using DigitalPlatform.Forms;
-using DigitalPlatform.Z3950;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
+using DigitalPlatform.Forms;
+using DigitalPlatform.Z3950;
+using static DigitalPlatform.Z3950.ZClient;
 
 namespace TestZClient
 {
     public partial class MultiChannelForm : Form
     {
+        CancellationTokenSource cancel = new CancellationTokenSource();
+
         public MultiChannelForm()
         {
             InitializeComponent();
@@ -26,22 +25,28 @@ namespace TestZClient
 
         private void MultiChannelForm_FormClosed(object sender, FormClosedEventArgs e)
         {
+            cancel.Cancel();
 
+            foreach (ListViewItem item in this.listView_channels.Items)
+            {
+                ZClient client = (ZClient)item.Tag;
+                if (client != null)
+                    client.Dispose();
+            }
         }
 
         private async void button_begin_Click(object sender, EventArgs e)
         {
-#if NO
             // TODO: 需要一个对话框选择服务器配置参数
             TargetInfo targetInfo = new TargetInfo
             {
-                HostName = this.textBox_serverAddr.Text,
-                Port = Convert.ToInt32(this.textBox_serverPort.Text),
-                DbNames = StringUtil.SplitList(this.textBox_database.Text).ToArray(),
-                AuthenticationMethod = GetAuthentcationMethod(),
-                GroupID = this.textBox_groupID.Text,
-                UserName = this.textBox_userName.Text,
-                Password = this.textBox_password.Text,
+                HostName = "localhost",
+                Port = 210,
+                DbNames = new string[] { "cbook" },
+                //AuthenticationMethod = GetAuthentcationMethod(),
+                //GroupID = this.textBox_groupID.Text,
+                UserName = "public",
+                Password = "",
             };
             this.button_begin.Enabled = false;
             try
@@ -50,7 +55,7 @@ namespace TestZClient
                 {
                     for (int i = 0; i < this.numericUpDown_channelCount.Value; i++)
                     {
-                        NewChannel();
+                        NewChannel(targetInfo);
                     }
                 });
             }
@@ -58,7 +63,6 @@ namespace TestZClient
             {
                 this.button_begin.Enabled = true;
             }
-#endif
         }
 
         // 创建一个新的通道
@@ -66,12 +70,59 @@ namespace TestZClient
         {
             ZClient client = new ZClient();
 
-            ListViewItem item = new ListViewItem();
-            ListViewUtil.ChangeItemText(item, 0, this.listView_channels.Items.Count.ToString());
-            item.Tag = client;
-            this.listView_channels.Items.Add(item);
+            ListViewItem item = null;
+
+            this.Invoke(
+    (Action)(() =>
+    {
+        item = new ListViewItem();
+        ListViewUtil.ChangeItemText(item, 0, this.listView_channels.Items.Count.ToString());
+        item.Tag = client;
+        this.listView_channels.Items.Add(item);
+    }
+    ));
+            // 启动测试过程
+            HandleTesting(client,
+    targetinfo,
+    item);
 
             return item;
+        }
+
+        // 执行一个通道的测试
+        async Task HandleTesting(ZClient client,
+            TargetInfo targetInfo,
+            ListViewItem item)
+        {
+            string strError = "";
+
+            Random rnd = new Random();
+
+            int i = 0;
+            while (cancel.Token.IsCancellationRequested == false)
+            {
+                // return Value:
+                //      -1  出错
+                //      0   成功
+                //      1   调用前已经是初始化过的状态，本次没有进行初始化
+                InitialResult result = await client.TryInitialize(targetInfo, false);
+                if (result.Value == -1)
+                {
+                    strError = "Initialize error: " + result.ErrorInfo;
+                    this.Invoke(
+                        (Action)(() =>
+                    ListViewUtil.ChangeItemText(item, 2, strError)
+                        ));
+                    return;
+                }
+
+                this.Invoke(
+                    (Action)(() =>
+                ListViewUtil.ChangeItemText(item, 1, ((i++) + 1).ToString())
+                    ));
+
+                await Task.Delay(rnd.Next(1, 500));
+            }
         }
     }
 }

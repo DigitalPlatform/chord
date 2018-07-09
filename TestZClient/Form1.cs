@@ -356,31 +356,35 @@ namespace TestZClient
         async Task FetchRecords(TargetInfo targetinfo)
         {
             EnableControls(false);  // 暂时禁用
-
-            if (_resultCount - _fetched > 0)
+            try
             {
-                PresentResult present_result = await _zclient.Present(
-                    "default",
-                    _fetched,
-                    Math.Min((int)_resultCount - _fetched, 10),
-                    10,
-                    "F",
-                    _targetInfo.PreferredRecordSyntax);
-                if (present_result.Value == -1)
+                if (_resultCount - _fetched > 0)
                 {
-                    this.Invoke((Action)(() => MessageBox.Show(this, present_result.ToString())));
-                }
-                else
-                {
-                    // 把 MARC 记录显示出来
-                    AppendMarcRecords(present_result.Records,
-                        _zclient.ForcedRecordsEncoding == null ? targetinfo.DefaultRecordsEncoding : _zclient.ForcedRecordsEncoding,
-                        _fetched);
-                    _fetched += present_result.Records.Count;
+                    PresentResult present_result = await _zclient.Present(
+                        "default",
+                        _fetched,
+                        Math.Min((int)_resultCount - _fetched, 10),
+                        10,
+                        "F",
+                        targetinfo.PreferredRecordSyntax);
+                    if (present_result.Value == -1)
+                    {
+                        this.Invoke((Action)(() => MessageBox.Show(this, present_result.ToString())));
+                    }
+                    else
+                    {
+                        // 把 MARC 记录显示出来
+                        AppendMarcRecords(present_result.Records,
+                            _zclient.ForcedRecordsEncoding == null ? targetinfo.DefaultRecordsEncoding : _zclient.ForcedRecordsEncoding,
+                            _fetched);
+                        _fetched += present_result.Records.Count;
+                    }
                 }
             }
-
-            EnableControls(true);
+            finally
+            {
+                EnableControls(true);
+            }
 
 #if NO
             if (_resultCount - _fetched > 0)
@@ -561,7 +565,10 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         // 获得下一批记录
         private async void button_nextBatch_Click(object sender, EventArgs e)
         {
-            await FetchRecords(_targetInfo);
+            if ((Control.ModifierKeys & Keys.Control) != 0)
+                await Present();
+            else
+                await FetchRecords(_targetInfo);
         }
 
         // 停止检索等操作
@@ -672,6 +679,53 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             {
                 this.MenuItem_iso2709LoaderTest.Enabled = true;
             }
+        }
+
+        string _uiState;
+
+        async Task Present()
+        {
+            PresentDialog dlg = new PresentDialog();
+            dlg.UiState = _uiState;
+            dlg.ShowDialog(this);
+            _uiState = dlg.UiState;
+            if (dlg.DialogResult == DialogResult.Cancel)
+                return;
+
+            int nStart = Convert.ToInt32(dlg.PresentStart);
+            int nCount = Convert.ToInt32(dlg.PresentCount);
+            EnableControls(false);  // 暂时禁用
+            try
+            {
+                PresentResult present_result = await _zclient.Present(
+                    dlg.ResultSetName,
+                    nStart,
+                    nCount,
+                    10,
+                    "F",
+                    _targetInfo.PreferredRecordSyntax);
+                if (present_result.Value == -1)
+                {
+                    this.Invoke((Action)(() => MessageBox.Show(this, present_result.ToString())));
+                }
+                else
+                {
+                    // 把 MARC 记录显示出来
+                    AppendMarcRecords(present_result.Records,
+                        _zclient.ForcedRecordsEncoding == null ? _targetInfo.DefaultRecordsEncoding : _zclient.ForcedRecordsEncoding,
+                        _fetched);
+                    _fetched += present_result.Records.Count;
+                }
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        }
+
+        private async void MenuItem_singlePresent_Click(object sender, EventArgs e)
+        {
+            await Present();
         }
     }
 }

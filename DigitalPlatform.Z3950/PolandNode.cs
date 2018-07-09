@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+
 using DigitalPlatform.Text;
-// using DigitalPlatform.Text;
 
 namespace DigitalPlatform.Z3950
 {

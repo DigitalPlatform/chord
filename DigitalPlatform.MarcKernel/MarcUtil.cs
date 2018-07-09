@@ -2,10 +2,9 @@
 using System.Xml;
 using System.Diagnostics;
 using System.Text;
+using System.Web;
 
 using DigitalPlatform.Xml;
-using System.Web;
-using System.Collections.Generic;
 using DigitalPlatform.Text;
 
 namespace DigitalPlatform.Marc
@@ -20,8 +19,58 @@ namespace DigitalPlatform.Marc
         public const char SUBFLD = (char)31;    // 子字段指示符
 
 
+        // 探测 MARCXML 的 MARC Syntax
+        // return:
+        //      -1  出错
+        //      0   正常
+        public static int GetMarcSyntax(string strXml,
+    out string strOutMarcSyntax,
+    out string strError)
+        {
+            strError = "";
+            strOutMarcSyntax = "";
 
+            if (string.IsNullOrEmpty(strXml) == true)
+                return 0;
 
+            Debug.Assert(string.IsNullOrEmpty(strXml) == false, "");
+
+            XmlDocument dom = new XmlDocument();
+            dom.PreserveWhitespace = true;  // 在意空白符号
+            try
+            {
+                dom.LoadXml(strXml);
+            }
+            catch (Exception ex)
+            {
+                strError = "GetMarcSyntax() strXml 加载 XML 到 DOM 时出错: " + ex.Message;
+                return -1;
+            }
+
+            // 取MARC根
+            XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
+            nsmgr.AddNamespace("unimarc", Ns.unimarcxml);
+            nsmgr.AddNamespace("usmarc", Ns.usmarcxml);
+
+            XmlNode root = null;
+            {
+                // '//'保证了无论MARC的根在何处，都可以正常取出。
+                root = dom.DocumentElement.SelectSingleNode("//unimarc:record", nsmgr);
+                if (root == null)
+                {
+                    root = dom.DocumentElement.SelectSingleNode("//usmarc:record", nsmgr);
+
+                    if (root == null)
+                        return 0;
+
+                    strOutMarcSyntax = "usmarc";
+                }
+                else
+                    strOutMarcSyntax = "unimarc";
+            }
+
+            return 0;
+        }
 
 
         // 包装以后的版本

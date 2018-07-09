@@ -35,6 +35,7 @@
             this.button_begin = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.numericUpDown_channelCount = new System.Windows.Forms.NumericUpDown();
+            this.columnHeader_errors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_channelCount)).BeginInit();
             this.SuspendLayout();
             // 
@@ -54,7 +55,8 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.listView_channels.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader_index,
-            this.columnHeader_requestCount});
+            this.columnHeader_requestCount,
+            this.columnHeader_errors});
             this.listView_channels.FullRowSelect = true;
             this.listView_channels.Location = new System.Drawing.Point(16, 35);
             this.listView_channels.Name = "listView_channels";
@@ -98,6 +100,11 @@
             // 
             this.numericUpDown_channelCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.numericUpDown_channelCount.Location = new System.Drawing.Point(89, 409);
+            this.numericUpDown_channelCount.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
             this.numericUpDown_channelCount.Name = "numericUpDown_channelCount";
             this.numericUpDown_channelCount.Size = new System.Drawing.Size(120, 28);
             this.numericUpDown_channelCount.TabIndex = 4;
@@ -106,6 +113,11 @@
             0,
             0,
             0});
+            // 
+            // columnHeader_errors
+            // 
+            this.columnHeader_errors.Text = "出错信息";
+            this.columnHeader_errors.Width = 300;
             // 
             // MultiChannelForm
             // 
@@ -136,5 +148,6 @@
         private System.Windows.Forms.Button button_begin;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.NumericUpDown numericUpDown_channelCount;
+        private System.Windows.Forms.ColumnHeader columnHeader_errors;
     }
 }

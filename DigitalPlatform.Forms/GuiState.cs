@@ -7,7 +7,6 @@ using System.Web;
 using System.Windows.Forms;
 
 using DigitalPlatform.Text;
-//using DigitalPlatform.GUI;
 using DigitalPlatform.Xml;
 
 namespace DigitalPlatform.Forms
@@ -499,6 +498,9 @@ namespace DigitalPlatform.Forms
         public static void SetUiState(List<object> controls,
             string strStates)
         {
+            if (strStates == null)
+                strStates = "";
+
             string[] sections = strStates.Split(new char[] { ';' });
 
             int i = 0;

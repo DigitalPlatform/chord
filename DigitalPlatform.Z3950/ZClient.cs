@@ -65,7 +65,8 @@ namespace DigitalPlatform.Z3950
         //      -1  出错
         //      0   成功
         //      1   调用前已经是初始化过的状态，本次没有进行初始化
-        public async Task<InitialResult> TryInitialize(TargetInfo targetinfo)
+        public async Task<InitialResult> TryInitialize(TargetInfo targetinfo,
+            bool bTry = true)
         {
             {
                 // 处理通讯缓冲区中可能残留的 Close Response
@@ -76,7 +77,8 @@ namespace DigitalPlatform.Z3950
                 InitialResult result = await CheckServerCloseRequest();
             }
 
-            if (this._channel.Connected == false
+            if (bTry == false
+                || this._channel.Connected == false
                 || this._channel.Initialized == false
     || this._channel.HostName != targetinfo.HostName
     || this._channel.Port != targetinfo.Port)
@@ -89,6 +91,10 @@ namespace DigitalPlatform.Z3950
                 }
 
                 // this.Stop.SetMessage("正在执行Z39.50初始化 ...");
+
+                // 2018/7/4
+                if (bTry == false)
+                    this._channel.Initialized = false;
 
                 {
                     // return Value:
@@ -650,7 +656,8 @@ namespace DigitalPlatform.Z3950
         // 获得记录
         // 确保一定可以获得nCount个
         // parameters:
-        //          nPreferedEachCount  推荐的每次条数。这涉及到响应的敏捷性。如果为-1或者0，表示最大
+        //		nStart	获取记录的开始位置(从0开始计数)
+        //      nPreferedEachCount  推荐的每次条数。这涉及到响应的敏捷性。如果为-1或者0，表示最大
         public async Task<PresentResult> Present(
             string strResultSetName,
             int nStart,
@@ -704,7 +711,7 @@ namespace DigitalPlatform.Z3950
         // 本函数每次调用前，最好调用一次 TryInitialize()
         // 不确保一定可以获得nCount个
         // parameters:
-        //		nStart	开始记录(从0计算)
+        //		nStart	获取记录的开始位置(从0开始计数)
         public async Task<PresentResult> OncePresent(
             string strResultSetName,
             int nStart,
