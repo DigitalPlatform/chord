@@ -501,6 +501,9 @@
             //    return;
             //}
 
+            var testMode = getCheckboxValue("_test");//$(divId).find("#_firstfull").val();
+            //alert(firstfull);
+
 
             var subjects = "";  //这里以逗号分隔
 
@@ -518,11 +521,11 @@
             var action = "";
             if (msgId == "new") {
                 action = "POST";
-                url += "?verifyCode=" + encodeURIComponent(verifyCode);  //url也加一截
+                url += "?verifyCode=" + encodeURIComponent(verifyCode) + "&testMode=" + testMode;  //url也加一截
             }
             else {
                 action = "PUT";
-                url += "/" + id + "?verifyCode=" + encodeURIComponent(verifyCode);  //url也加一截
+                url += "/" + id + "?verifyCode=" + encodeURIComponent(verifyCode) + "&testMode=" + testMode;  //url也加一截
             }
 
             //alert(recsperbatch);
@@ -533,8 +536,14 @@
                     // 关闭等待层
                     hideMaskLayer();
 
+                    // 改为直接显示了
+                    //if (result.errorCode == -2) { 
+                    //    $("#_codeDiv").css("display", "block");
+                    //}
+
                     if (result.errorCode <= -1) {
-                        alert("操作失败：" + result.errorInfo);
+                        alert("操作失败：" + result.errorInfo
+                            + "\r\n验证码为" + result.info);
                         return;
                     }
 
@@ -918,10 +927,14 @@
                         <input type='text' placeholder='phone' id='_creatorPhone' value='" + creatorPhone + "'>\
                     </div>\
                 </div>\
-                <div class='required inline  field '>\
-                    <label>输入验证码&nbsp;&nbsp;&nbsp;&nbsp;</label>\
+                <div class='inline  field '  id='_codeDiv'  style='font-size:20px'>\
+                    <label>短信验证码(不清楚可不填)</label>\
                     <input type='text' id='_verifyCode'>\
                 </div>\
+                                    <div class='ui    checkbox  field'>\
+                            <input type='checkbox' id='_test' checked>\
+                            <label>测试模块，不实际发短信</label>\
+                        </div>\
             </div>\
               <div onclick='expandToggle(this)'><span id='_advanceCtrl'>+</span> 高级选项<br/></div> \
               <div id='_advance' style='display:none'>\

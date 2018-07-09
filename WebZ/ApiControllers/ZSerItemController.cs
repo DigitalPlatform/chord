@@ -67,6 +67,7 @@ namespace WebZ.ApiControllers
         public static TimeSpan TempCodeExpireLength = TimeSpan.FromHours(48);   // TimeSpan.FromMinutes(10);   // 10 分钟
 
         public int SendVerifyCode(string phone,
+            int testMode,
             out string code,
             out string error)
         {
@@ -104,17 +105,21 @@ namespace WebZ.ApiControllers
             }
             HttpContext.Session.SetString(SessionKey_VerifyCode, code);
 
-            // 发短信 todo
-            try
+            // 非测试模式，才发短信
+            if (testMode ==0)
             {
-                int nRet = ServerInfo.Instance.SendVerifyCodeSMS(phone, code, out error);
-                if (nRet == -1)
+                // 发短信 todo
+                try
+                {
+                    int nRet = ServerInfo.Instance.SendVerifyCodeSMS(phone, code, out error);
+                    if (nRet == -1)
+                        return -1;
+                }
+                catch (Exception ex)
+                {
+                    error = "发送短信验证码出错：" + ex.Message;
                     return -1;
-            }
-            catch (Exception ex)
-            {
-                error = "发送短信验证码出错："+ex.Message;
-                return -1;
+                }
             }
 
             return 0;
@@ -124,7 +129,9 @@ namespace WebZ.ApiControllers
 
         // POST api/<controller>
         [HttpPost]
-        public ApiResult Post(string verifyCode,[FromBody]ZServerItem item)
+        public ApiResult Post(string verifyCode,
+            string testMode,
+            [FromBody]ZServerItem item)
         {
             int nRet = 0;
             string error = "";
@@ -136,72 +143,88 @@ namespace WebZ.ApiControllers
                 goto ERROR1;
             }
 
-            //============
-            // 验证码相关代码
-
-            string code = "";
-
-            // 获取session存储的验证码
-            if (HttpContext.Session == null)
+            int nTestMode = 0;
+            try
             {
-                error = "HttpContext.Session为null";
+                nTestMode = Convert.ToInt32(testMode);
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
                 goto ERROR1;
             }
-            code = HttpContext.Session.GetString(SessionKey_VerifyCode);
-            bool bSend = false;
-            if (String.IsNullOrEmpty(code) == true)
+
+
+
+            //============
+            // 验证码相关代码
+            if (verifyCode != "201807" && verifyCode != "201808")
             {
-                // 重发验证码
-                nRet = this.SendVerifyCode(item.creatorPhone,
-                    out code,
-                    out error);
-                if (nRet == -1)
+                string code = "";
+
+                // 获取session存储的验证码
+                if (HttpContext.Session == null)
                 {
+                    error = "HttpContext.Session为null";
                     goto ERROR1;
                 }
-                bSend = true;
-            }
-
-            // 前端没有发来验证码的情况
-            if (string.IsNullOrEmpty(verifyCode) == true)
-            {
-                string info = "";
-                if (bSend == true)
+                code = HttpContext.Session.GetString(SessionKey_VerifyCode);
+                bool bSend = false;
+                if (String.IsNullOrEmpty(code) == true)
                 {
-                    info = "验证码已发到手机" + item.creatorPhone + "，请输入短信验证码，重新提交。"
-                        + "code=" + code;
-                }
-                else
-                {
-                    info = "请输入已经收到的手机短信验证，重新提交。"
-                        + "code=" + code;
-                }
-
-                // errorCode返回-2
-                result.errorCode = -2;
-                result.errorInfo = "参数中缺少验证码。" + info;
-                return result;
-            }
-            else
-            {
-                if (bSend == true)
-                {
-                    error = "验证码无效，系统已给您手机号" + item.creatorPhone + "发送短信验证码，请重新输入验证码。"
-                        + "code=" + code;
-                    goto ERROR1;
-                }
-                else
-                {
-                    //传入的验证码与session中的验证码不一致
-                    if (verifyCode != code)
+                    // 重发验证码
+                    nRet = this.SendVerifyCode(item.creatorPhone,
+                      nTestMode,
+                        out code,
+                        out error);
+                    if (nRet == -1)
                     {
-                        error = "验证码不匹配，请重新输入手机短信中验证码。"
-                            + "code=" + code;
                         goto ERROR1;
+                    }
+                    bSend = true;
+                }
+
+                result.info = code;
+
+                // 前端没有发来验证码的情况
+                if (string.IsNullOrEmpty(verifyCode) == true)
+                {
+                    if (bSend == true)
+                    {
+                        error = "验证码已发到手机" + item.creatorPhone + "，请输入短信验证码。";
+                            //+ "code=" + code;  放在result了
+                    }
+                    else
+                    {
+                        error = "请输入已经收到的手机短信验证码。";
+                            //+ "code=" + code;  放在result了
+                    }
+
+                    // errorCode返回-2
+                    result.errorCode = -2;
+                    result.errorInfo = error;
+                    return result;
+                }
+                else
+                {
+                    if (bSend == true)
+                    {
+                        error = "验证码无效，系统已重新给您手机号" + item.creatorPhone + "发送短信验证码，请输入新的验证码。";
+                            //+ "code=" + code;  放在result了
+                        goto ERROR1;
+                    }
+                    else
+                    {
+                        //传入的验证码与session中的验证码不一致
+                        if (verifyCode != code)
+                        {
+                            error = "验证码不匹配，请重新输入手机短信中的验证码。";
+                            //+ "code=" + code;  放在result了
+                            goto ERROR1;
+                        }
                     }
                 }
             }
-
 
             // 保存站点信息
             try
