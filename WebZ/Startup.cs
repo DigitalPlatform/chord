@@ -31,17 +31,15 @@ namespace WebZ
         public void ConfigureServices(IServiceCollection services)
         {
 
-
-            services.AddMvc();
-
             services.AddDistributedMemoryCache();
-
             services.AddSession(options =>
             {
                 // Set a short timeout for easy testing.
                 options.IdleTimeout = TimeSpan.FromSeconds(20);
                 options.Cookie.HttpOnly = true;
             });
+
+            services.AddMvc();
 
             //// 增加的配置
             //services.Configure<ApplicationConfiguration>(Configuration.GetSection("ApplicationConfiguration"));

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
 using WebZ.Server.database;
@@ -261,63 +262,63 @@ namespace WebZ.Server
             return null;
         }
 
-
+        // 发送短信验证码
         public int SendVerifyCodeSMS(string phone,
             string code,
             out string error)
         {
             error = "";
+            int nRet = 0;
 
 
             // 短信接口            
             MessageInterface external_interface = this.GetMessageInterface("sms");
+            if (external_interface == null)
+            {
+                error = "短信接口sms对象为null。";
+                goto ERROR1;
+            }
 
             // 短信模板
-            string strMessageTemplate =  "验证码为 %verifycode%。一小时内有效。";
+            string strMessageTemplate = "Z39.50站点提交验证码为 %verifycode%。";
             string strBody = strMessageTemplate.Replace("%verifycode%", code);
-            int nRet = 0;
+
             // 向手机号码发送短信
+            string strXml = "<root><tel>" + phone + "</tel></root>";
+            try
             {
-                // 得到高级xml
-                string strXml = "<root><tel>" + phone + "</tel></root>";
-                // 发送消息
-                try
-                {
-
-                    // 发送一条消息
-                    // parameters:
-                    //      strPatronBarcode    读者证条码号
-                    //      strPatronXml    读者记录XML字符串。如果需要除证条码号以外的某些字段来确定消息发送地址，可以从XML记录中取
-                    //      strMessageText  消息文字
-                    //      strError    [out]返回错误字符串
-                    // return:
-                    //      -1  发送失败
-                    //      0   没有必要发送
-                    //      >=1   发送成功，返回实际发送的消息条数
-                    nRet = external_interface.HostObj.SendMessage(
-                        "", //strBarcode
-                        strXml,
-                        strBody,
-                        "",//lib.libName, //todo,注意这里原来传的code 还是读者的libraryCode
-                        out error);
-                    if (nRet == -1 || nRet == 0)
-                        return nRet;
-                }
-                catch (Exception ex)
-                {
-                    error = external_interface.Type + " 类型的外部消息接口Assembly中SendMessage()函数抛出异常: " + ex.Message;
-                    nRet = -1;
-                }
-                if (nRet == -1)
-                {
-                    error = "向"+phone+"发送" + external_interface.Type + " message时出错：" + error;
-
-                    this.WriteErrorLog(error);
-                    return -1;
-                }
+                // 发送一条消息
+                // parameters:
+                //      strPatronBarcode    读者证条码号
+                //      strPatronXml    读者记录XML字符串。如果需要除证条码号以外的某些字段来确定消息发送地址，可以从XML记录中取
+                //      strMessageText  消息文字
+                //      strError    [out]返回错误字符串
+                // return:
+                //      -1  发送失败
+                //      0   没有必要发送
+                //      >=1   发送成功，返回实际发送的消息条数
+                nRet = external_interface.HostObj.SendMessage(
+                    "",
+                    strXml,
+                    strBody,
+                    "",//strLibraryCode
+                    out error);
+                if (nRet == -1 || nRet == 0)
+                    return nRet;
+            }
+            catch (Exception ex)
+            {
+                error = external_interface.Type + " 类型的外部消息接口Assembly中SendMessage()函数抛出异常: " + ex.Message;
+                goto ERROR1;
             }
 
             return 0;
+
+            ERROR1:
+
+            error = "向" + phone + "发送" + external_interface.Type + " message时出错：" + error;
+            this.WriteErrorLog(error);
+            return -1;
         }
 
 
@@ -397,6 +398,35 @@ namespace WebZ.Server
 
         }
 
+
+        #endregion
+
+        #region 
+
+        public static bool CheckPhone(string input)
+        {
+            if (input.Length < 11)
+            {
+                return false;
+            }
+            //电信手机号码正则
+            string dianxin = @"^1[3578][01379]\d{8}$";
+            Regex regexDX = new Regex(dianxin);
+            //联通手机号码正则
+            string liantong = @"^1[34578][01256]\d{8}";
+            Regex regexLT = new Regex(liantong);
+            //移动手机号码正则
+            string yidong = @"^(1[012345678]\d{8}|1[345678][012356789]\d{8})$";
+            Regex regexYD = new Regex(yidong);
+            if (regexDX.IsMatch(input) || regexLT.IsMatch(input) || regexYD.IsMatch(input))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         #endregion
 
