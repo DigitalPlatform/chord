@@ -44,6 +44,11 @@ namespace DigitalPlatform.LibraryRestClient
         /// </summary>
         public event BeforeLoginEventHandle BeforeLogin;
 
+        /// <summary>
+        /// 空闲事件
+        /// </summary>
+        public event IdleEventHandler Idle = null;
+
         // 重登录次数
         int _loginCount = 0;
 
@@ -1468,7 +1473,249 @@ namespace DigitalPlatform.LibraryRestClient
         }
 
 
+        public WriteResResponse WriteRes(
+            string strResPath,
+            string strRanges,
+            long lTotalLength,
+            byte[] baContent,
+            string strMetadata,
+            string strStyle,
+            byte[] baInputTimestamp)
+        {
+            REDO:
+            CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
+            client.Headers["Content-type"] = "application/json; charset=utf-8";
 
+            WriteResRequest request = new WriteResRequest()
+            {
+                strResPath = strResPath,
+                strRanges = strRanges,
+                lTotalLength = lTotalLength,
+                baContent = baContent,
+                strMetadata = strMetadata,
+                strStyle = strStyle,
+                baInputTimestamp = baInputTimestamp
+            };
+
+            byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
+            byte[] result = client.UploadData(GetRestfulApiUrl("WriteRes"),
+                "POST",
+                baData);
+
+            string strResult = Encoding.UTF8.GetString(result);
+            WriteResResponse response = Deserialize<WriteResResponse>(strResult);
+            if (response.WriteResResult.Value == -1
+                && response.WriteResResult.ErrorCode == ErrorCode.NotLogin)
+            {
+                string strError = "";
+                if (DoNotLogin(ref strError) == 1)
+                    goto REDO;
+            }
+
+            return response;
+        }
+
+        public long WriteRes(
+            string strPath,
+            string strXml,
+            bool bInlucdePreamble,
+            string strStyle,
+            byte[] timestamp,
+            out byte[] baOutputTimestamp,
+            out string strOutputPath,
+            out string strError)
+        {
+            strError = "";
+            strOutputPath = "";
+            baOutputTimestamp = null;
+
+            int nChunkMaxLength = 4096;	// chunk
+
+            int nStart = 0;
+
+            byte[] baInputTimeStamp = null;
+
+            byte[] baPreamble = Encoding.UTF8.GetPreamble();
+
+            byte[] baTotal = Encoding.UTF8.GetBytes(strXml);
+
+            if (bInlucdePreamble == true
+                && baPreamble != null && baPreamble.Length > 0)
+            {
+                byte[] temp = null;
+                temp = ByteArray.Add(temp, baPreamble);
+                baTotal = ByteArray.Add(temp, baTotal);
+            }
+
+            int nTotalLength = baTotal.Length;
+
+            if (timestamp != null)
+            {
+                baInputTimeStamp = ByteArray.Add(baInputTimeStamp, timestamp);
+            }
+
+            while (true)
+            {
+                DoIdle();
+
+                int nThisChunkSize = nChunkMaxLength;
+
+                if (nThisChunkSize + nStart > nTotalLength)
+                {
+                    nThisChunkSize = nTotalLength - nStart;	// 最后一次
+                    if (nThisChunkSize <= 0)
+                        break;
+                }
+
+                byte[] baChunk = new byte[nThisChunkSize];
+                Array.Copy(baTotal, nStart, baChunk, 0, baChunk.Length);
+
+                string strMetadata = "";
+                string strRange = Convert.ToString(nStart) + "-" + Convert.ToString(nStart + baChunk.Length - 1);
+
+                WriteResResponse response = WriteRes(strPath,
+                    strRange,
+                    nTotalLength,
+                    baChunk,
+                    strMetadata,
+                    strStyle,
+                    baInputTimeStamp);
+                if (response.WriteResResult.Value == -1)
+                {
+                    strError = response.WriteResResult.ErrorInfo;
+                    return -1;
+                }
+
+                baOutputTimestamp = response.baOutputTimestamp;
+                strOutputPath = response.strOutputResPath;
+
+                nStart += baChunk.Length;
+
+                if (nStart >= nTotalLength)
+                    break;
+
+                Debug.Assert(strOutputPath != "", "outputpath不能为空");
+
+                strPath = strOutputPath;	// 如果第一次的strPath中包含'?'id, 必须用outputpath才能正确继续
+                baInputTimeStamp = baOutputTimestamp;	//baOutputTimeStamp;
+            }
+
+            return 0;
+        }
+
+
+        public GetResResponse GetRes(
+            string strResPath,
+            long lStart,
+            int nLength,
+            string strStyle)
+        {
+            REDO:
+            CookieAwareWebClient client = new CookieAwareWebClient(this.Cookies);
+            client.Headers["Content-type"] = "application/json; charset=utf-8";
+
+            GetResRequest request = new GetResRequest()
+            {
+                strResPath = strResPath,
+                nStart = lStart,
+                nLength = nLength,
+                strStyle = strStyle
+            };
+            byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
+            byte[] result = client.UploadData(GetRestfulApiUrl("GetRes"),
+                "POST",
+                baData);
+
+            string strResult = Encoding.UTF8.GetString(result);
+            GetResResponse response = Deserialize<GetResResponse>(strResult);
+            if (response.GetResResult.Value == -1
+                && response.GetResResult.ErrorCode == ErrorCode.NotLogin)
+            {
+                string strError = "";
+                if (DoNotLogin(ref strError) == 1)
+                    goto REDO;
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="strPath"></param>
+        /// <param name="strStyle">一般设置为"content,data,metadata,timestamp,outputpath"</param>
+        /// <param name="strResult"></param>
+        /// <param name="strMetaData"></param>
+        /// <param name="baOutputTimeStamp"></param>
+        /// <param name="strOutputResPath"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public long GetRes(
+            string strPath,
+            string strStyle,
+            out string strResult,
+            out string strMetaData,
+            out byte[] baOutputTimeStamp,
+            out string strOutputResPath,
+            out string strError)
+        {
+            strMetaData = "";
+            strResult = "";
+            strError = "";
+            strOutputResPath = "";
+            baOutputTimeStamp = null;
+
+            byte[] baContent = null;
+
+            int nStart = 0;
+            int nPerLength = -1;
+
+            byte[] baTotal = null;
+
+            while(true)
+            {
+                DoIdle();
+
+                GetResResponse response = GetRes(strPath,
+                    nStart,
+                    nPerLength,
+                    strStyle);
+
+                long lRet = response.GetResResult.Value;
+                if (lRet == -1)
+                {
+                    strError = response.GetResResult.ErrorInfo;
+                    return -1;
+                }
+
+                strMetaData = response.strMetadata;
+                strOutputResPath = response.strOutputResPath;
+                baOutputTimeStamp = response.baOutputTimestamp;
+                baContent = response.baContent;
+
+                if (StringUtil.IsInList("data", strStyle) != true)
+                    break;
+
+                if (StringUtil.IsInList("content", strStyle) == false)
+                    return lRet;
+
+                baTotal = ByteArray.Add(baTotal, baContent);
+
+                Debug.Assert(baContent != null, "");
+                Debug.Assert(baContent.Length <= (int)lRet, "每次返回的包尺寸[" + Convert.ToString(baContent.Length) + "]应当小于result.Value[" + Convert.ToString(lRet) + "]");
+
+                nStart += baContent.Length;
+                if (nStart >= (int)lRet)
+                    break;	// 结束
+            }
+
+            if (StringUtil.IsInList("data", strStyle) != true)
+                return 0;
+
+            strResult = ByteArray.ToString(baTotal);
+
+            return 0;
+        }
 
         public void Close()
         {
@@ -1523,6 +1770,19 @@ namespace DigitalPlatform.LibraryRestClient
 
         #region 公共函数
 
+        void DoIdle()
+        {
+            System.Threading.Thread.Sleep(1);	// 避免CPU资源过度耗费
+
+            // bool bDoEvents = true;
+            if (this.Idle != null)
+            {
+                IdleEventArgs e = new IdleEventArgs();
+                this.Idle(this, e);
+                // bDoEvents = e.bDoEvents;
+            }
+            System.Threading.Thread.Sleep(1);	// 避免CPU资源过度耗费
+        }
         /// <summary>
         /// 拼出接口url地址
         /// </summary>
@@ -1750,6 +2010,20 @@ namespace DigitalPlatform.LibraryRestClient
         public LoginFailCondition LoginFailCondition = LoginFailCondition.NormalError;
     }
 
+    /// <summary>
+    /// 空闲事件
+    /// </summary>
+    /// <param name="sender">发送者</param>
+    /// <param name="e">事件参数</param>
+    public delegate void IdleEventHandler(object sender,
+    IdleEventArgs e);
 
+    /// <summary>
+    /// 空闲事件的参数
+    /// </summary>
+    public class IdleEventArgs : EventArgs
+    {
+        // public bool bDoEvents = true;
+    }
 
 }

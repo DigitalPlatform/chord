@@ -52,6 +52,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj">
+      <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
+      <Name>DigitalPlatform.Base</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.Text\DigitalPlatform.Text.csproj">
       <Project>{26f96cc3-a4a9-4bc4-a10a-bc7e25581ff6}</Project>
       <Name>DigitalPlatform.Text</Name>
