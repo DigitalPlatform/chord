@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DigitalPlatform.Common</RootNamespace>
     <AssemblyName>DigitalPlatform.Base</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -50,6 +50,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Range.cs" />
     <Compile Include="RecordLock.cs" />
+    <Compile Include="SafeList.cs" />
     <Compile Include="ThreadBase.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

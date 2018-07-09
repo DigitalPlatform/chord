@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>dp2Capo.Install</RootNamespace>
     <AssemblyName>dp2Capo.Install</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -40,6 +40,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
@@ -137,6 +138,10 @@
     <ProjectReference Include="..\DigitalPlatform.Forms\DigitalPlatform.Forms.csproj">
       <Project>{2dd0618d-c554-46d0-91a2-353f2f8ea2f2}</Project>
       <Name>DigitalPlatform.Forms</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.Interfaces\DigitalPlatform.Interfaces.csproj">
+      <Project>{3C4F8133-8652-40B6-B37B-200B25C2B043}</Project>
+      <Name>DigitalPlatform.Interfaces</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj">
       <Project>{441cb814-af78-4503-91ef-dce5f3269502}</Project>

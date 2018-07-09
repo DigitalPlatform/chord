@@ -31,10 +31,13 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.MenuItem_test = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuItem_multiChannelTest = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_iso2709LoaderTest = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuItem_utility = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuItem_escapeString = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
+            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.panel_query = new System.Windows.Forms.Panel();
             this.radioButton_query_origin = new System.Windows.Forms.RadioButton();
@@ -65,9 +68,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.MenuItem_iso2709LoaderTest = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
+            this.MenuItem_singlePresent = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -95,7 +96,8 @@
             // 
             this.MenuItem_test.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.MenuItem_multiChannelTest,
-            this.MenuItem_iso2709LoaderTest});
+            this.MenuItem_iso2709LoaderTest,
+            this.MenuItem_singlePresent});
             this.MenuItem_test.Name = "MenuItem_test";
             this.MenuItem_test.Size = new System.Drawing.Size(58, 28);
             this.MenuItem_test.Text = "测试";
@@ -106,6 +108,13 @@
             this.MenuItem_multiChannelTest.Size = new System.Drawing.Size(279, 30);
             this.MenuItem_multiChannelTest.Text = "多通道测试";
             this.MenuItem_multiChannelTest.Click += new System.EventHandler(this.MenuItem_multiChannelTest_Click);
+            // 
+            // MenuItem_iso2709LoaderTest
+            // 
+            this.MenuItem_iso2709LoaderTest.Name = "MenuItem_iso2709LoaderTest";
+            this.MenuItem_iso2709LoaderTest.Size = new System.Drawing.Size(279, 30);
+            this.MenuItem_iso2709LoaderTest.Text = "ISO2709 文件装载测试";
+            this.MenuItem_iso2709LoaderTest.Click += new System.EventHandler(this.MenuItem_iso2709LoaderTest_Click);
             // 
             // MenuItem_utility
             // 
@@ -143,6 +152,17 @@
             this.statusStrip1.Size = new System.Drawing.Size(1040, 29);
             this.statusStrip1.TabIndex = 2;
             this.statusStrip1.Text = "statusStrip1";
+            // 
+            // toolStripProgressBar1
+            // 
+            this.toolStripProgressBar1.Name = "toolStripProgressBar1";
+            this.toolStripProgressBar1.Size = new System.Drawing.Size(200, 23);
+            // 
+            // toolStripStatusLabel1
+            // 
+            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(195, 24);
+            this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
             // 
             // splitContainer1
             // 
@@ -232,7 +252,7 @@
             this.textBox_queryString.Location = new System.Drawing.Point(152, 321);
             this.textBox_queryString.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_queryString.Name = "textBox_queryString";
-            this.textBox_queryString.Size = new System.Drawing.Size(169, 31);
+            this.textBox_queryString.Size = new System.Drawing.Size(143, 31);
             this.textBox_queryString.TabIndex = 13;
             // 
             // label9
@@ -382,7 +402,7 @@
             this.textBox_database.Location = new System.Drawing.Point(138, 104);
             this.textBox_database.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_database.Name = "textBox_database";
-            this.textBox_database.Size = new System.Drawing.Size(183, 31);
+            this.textBox_database.Size = new System.Drawing.Size(157, 31);
             this.textBox_database.TabIndex = 5;
             // 
             // button_search
@@ -414,7 +434,7 @@
             this.comboBox_use.Location = new System.Drawing.Point(152, 237);
             this.comboBox_use.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.comboBox_use.Name = "comboBox_use";
-            this.comboBox_use.Size = new System.Drawing.Size(169, 32);
+            this.comboBox_use.Size = new System.Drawing.Size(143, 32);
             this.comboBox_use.TabIndex = 10;
             // 
             // textBox_serverAddr
@@ -424,7 +444,7 @@
             this.textBox_serverAddr.Location = new System.Drawing.Point(138, 13);
             this.textBox_serverAddr.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_serverAddr.Name = "textBox_serverAddr";
-            this.textBox_serverAddr.Size = new System.Drawing.Size(183, 31);
+            this.textBox_serverAddr.Size = new System.Drawing.Size(157, 31);
             this.textBox_serverAddr.TabIndex = 1;
             // 
             // label5
@@ -454,7 +474,7 @@
             this.textBox_queryWord.Location = new System.Drawing.Point(152, 191);
             this.textBox_queryWord.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_queryWord.Name = "textBox_queryWord";
-            this.textBox_queryWord.Size = new System.Drawing.Size(169, 31);
+            this.textBox_queryWord.Size = new System.Drawing.Size(143, 31);
             this.textBox_queryWord.TabIndex = 8;
             // 
             // textBox_serverPort
@@ -464,7 +484,7 @@
             this.textBox_serverPort.Location = new System.Drawing.Point(138, 59);
             this.textBox_serverPort.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_serverPort.Name = "textBox_serverPort";
-            this.textBox_serverPort.Size = new System.Drawing.Size(183, 31);
+            this.textBox_serverPort.Size = new System.Drawing.Size(157, 31);
             this.textBox_serverPort.TabIndex = 3;
             // 
             // label4
@@ -497,23 +517,12 @@
             this.webBrowser1.Size = new System.Drawing.Size(566, 720);
             this.webBrowser1.TabIndex = 0;
             // 
-            // MenuItem_iso2709LoaderTest
+            // MenuItem_singlePresent
             // 
-            this.MenuItem_iso2709LoaderTest.Name = "MenuItem_iso2709LoaderTest";
-            this.MenuItem_iso2709LoaderTest.Size = new System.Drawing.Size(279, 30);
-            this.MenuItem_iso2709LoaderTest.Text = "ISO2709 文件装载测试";
-            this.MenuItem_iso2709LoaderTest.Click += new System.EventHandler(this.MenuItem_iso2709LoaderTest_Click);
-            // 
-            // toolStripStatusLabel1
-            // 
-            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(195, 24);
-            this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
-            // 
-            // toolStripProgressBar1
-            // 
-            this.toolStripProgressBar1.Name = "toolStripProgressBar1";
-            this.toolStripProgressBar1.Size = new System.Drawing.Size(200, 23);
+            this.MenuItem_singlePresent.Name = "MenuItem_singlePresent";
+            this.MenuItem_singlePresent.Size = new System.Drawing.Size(279, 30);
+            this.MenuItem_singlePresent.Text = "单个 Present 操作 ...";
+            this.MenuItem_singlePresent.Click += new System.EventHandler(this.MenuItem_singlePresent_Click);
             // 
             // Form1
             // 
@@ -591,6 +600,7 @@
         private System.Windows.Forms.ToolStripMenuItem MenuItem_iso2709LoaderTest;
         private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem_singlePresent;
     }
 }
 

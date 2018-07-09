@@ -7,6 +7,11 @@ using System.Threading;
 using System.Diagnostics;
 using System.Xml;
 using System.Text;
+using System.Runtime.Remoting.Channels.Ipc;
+using System.Runtime.Remoting.Channels;
+using System.Collections;
+using System.Runtime.Remoting;
+using System.Runtime.Serialization.Formatters;
 
 using Microsoft.AspNet.SignalR.Client;
 using log4net;
@@ -22,6 +27,7 @@ using DigitalPlatform.Z3950;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.Marc;
 using DigitalPlatform.Message;
+using DigitalPlatform.Interfaces;
 
 namespace dp2Capo
 {
@@ -29,9 +35,8 @@ namespace dp2Capo
     {
         public static ZServer ZServer { get; set; }
 
-
         // 实例集合
-        public static List<Instance> _instances = new List<Instance>();
+        public static SafeList<Instance> _instances = new SafeList<Instance>();
 
         // 管理线程
         public static DefaultThread _defaultThread = new DefaultThread();
@@ -67,9 +72,7 @@ namespace dp2Capo
 
         internal static CancellationTokenSource _cancel = new CancellationTokenSource();
 
-
-
-        public static void LoadCfg(string strDataDir, bool bAutoCreate = true)
+        public static void LoadGlobalCfg(string strDataDir, bool bAutoCreate = true)
         {
             string strCfgFileName = Path.Combine(strDataDir, "config.xml");
             try
@@ -113,7 +116,8 @@ namespace dp2Capo
             }
         }
 
-        public static void SaveCfg(string strDataDir)
+        // 暂时没有地方调用本函数。注意应该是有个 changed 表示为 true 时候才覆盖原有配置文件。避免和外面主动修改配置文件的时候互相覆盖
+        public static void SaveGlobalCfg(string strDataDir)
         {
             if (ConfigDom == null)
                 throw new Exception("尚未执行 Initial()");
@@ -133,7 +137,7 @@ namespace dp2Capo
         }
 
 
-        // 从数据目录装载全部实例定义，并连接服务器
+        // 首次从数据目录装载全部实例定义，并连接服务器
         public static void Initial(string strDataDir)
         {
             DataDir = strDataDir;
@@ -153,15 +157,17 @@ namespace dp2Capo
             // DetectWriteErrorLog("*** dp2Capo 开始启动 (dp2Capo 版本: " + strVersion + ")");
             WriteLog("info", "*** dp2Capo 开始启动 (dp2Capo 版本: " + strVersion + ")");
 
+#if NO
             try
             {
-                ServerInfo.LoadCfg(DataDir);
+                ServerInfo.LoadGlobalCfg(DataDir);
             }
             catch (Exception ex)
             {
                 WriteLog("fatal", "dp2Capo 装载全局配置文件阶段出错: " + ex.Message);
                 throw ex;
             }
+#endif
 
             _exited = false;
 
@@ -171,11 +177,12 @@ namespace dp2Capo
             {
                 if (di.Name.ToLower() == "log")
                     continue;
-                string strXmlFileName = Path.Combine(di.FullName, "capo.xml");
-                if (File.Exists(strXmlFileName) == false)
-                    continue;
+                //string strXmlFileName = Path.Combine(di.FullName, "capo.xml");
+                //if (File.Exists(strXmlFileName) == false)
+                //    continue;
                 Instance instance = new Instance();
-                instance.Initial(strXmlFileName);
+                instance.DataDir = di.FullName;
+                instance.Start();
                 _instances.Add(instance);
             }
 
@@ -191,6 +198,235 @@ namespace dp2Capo
 
             _lifeThread.BeginThread();
         }
+
+#if NO
+        // 根据实例名，找到实例数据目录
+        public static string FindInstanceDataDir(string strInstanceName)
+        {
+            DirectoryInfo root = new DirectoryInfo(DataDir);
+            var dis = root.GetDirectories();
+            foreach (DirectoryInfo di in dis)
+            {
+                if (di.Name.ToLower() == "log")
+                    continue;
+                string strXmlFileName = Path.Combine(di.FullName, "capo.xml");
+                string strCurrentInstanceName = Instance.GetInstanceName(strXmlFileName);
+                //if (File.Exists(strXmlFileName) == false)
+                //    continue;
+                if (strInstanceName == strCurrentInstanceName)
+                    return di.FullName;
+            }
+
+            return null;
+        }
+#endif
+        // 从 _instances 集合中查找一个实例
+        public static Instance FindInstance(string strInstanceName)
+        {
+            Instance instance = null;
+            if (string.IsNullOrEmpty(strInstanceName))
+                instance = _instances[0];
+            else
+                instance = _instances.Find(
+                    (o) =>
+                    {
+                        return (o.Name == strInstanceName);
+                    });
+            if (instance == null)
+                return instance;
+            return instance;
+        }
+
+        // 尝试从数据目录装载一个尚未存在于 _instances 集合中的实例
+        public static Instance LoadInstance(string strInstanceName)
+        {
+            var exist = _instances.Find((o) => {
+                if (o.Name == strInstanceName) return true;
+                return false;
+            });
+            if (exist != null)
+                return exist;
+
+            DirectoryInfo root = new DirectoryInfo(DataDir);
+            var dis = root.GetDirectories();
+            foreach (DirectoryInfo di in dis)
+            {
+                if (di.Name.ToLower() == "log")
+                    continue;
+                string strXmlFileName = Path.Combine(di.FullName, "capo.xml");
+                if (File.Exists(strXmlFileName) == false)
+                    continue;
+
+                string strCurrentInstanceName = Instance.GetInstanceName(strXmlFileName);
+                if (strCurrentInstanceName == strInstanceName)
+                {
+                    Instance instance = new Instance();
+                    instance.Name = strCurrentInstanceName;
+                    instance.DataDir = di.FullName;
+                    _instances.Add(instance);
+                    return instance;
+                }
+            }
+
+            return null;
+        }
+
+        // 启动一个实例
+        // parameters:
+        //      strInstanceName 实例名。如果为 ".global" 表示全局服务
+        public static ServiceControlResult StartInstance(string strInstanceName)
+        {
+            if (strInstanceName == ".global")
+            {
+                StartGlobalService(true);
+                return new ServiceControlResult();
+            }
+
+            Instance instance = FindInstance(strInstanceName);
+            if (instance == null)
+            {
+                // 尝试从数据目录装载一个尚未存在于 _instances 集合中的实例
+                instance = LoadInstance(strInstanceName);
+            }
+
+            if (instance == null)
+                return new ServiceControlResult
+                {
+                    Value = -1,
+                    ErrorCode = "NotFound",
+                    ErrorInfo = "实例 '" + strInstanceName + "' 没有找到"
+                };
+            try
+            {
+                instance.Start();
+                return new ServiceControlResult();
+            }
+            catch (Exception ex)
+            {
+                return new ServiceControlResult
+                {
+                    Value = -1,
+                    ErrorCode = ex.GetType().ToString(),
+                    ErrorInfo = "启动实例 '" + strInstanceName + "' 时出现异常: " + ex.Message
+                };
+            }
+        }
+
+        public static void StartGlobalService(bool bLoadGlobalCfg)
+        {
+            if (bLoadGlobalCfg)
+            {
+                try
+                {
+                    ServerInfo.LoadGlobalCfg(DataDir);
+                }
+                catch (Exception ex)
+                {
+                    WriteLog("fatal", "dp2Capo 启动全局服务阶段，装载全局配置文件出错: " + ex.Message);
+                    throw ex;
+                }
+            }
+
+            if (ServerInfo.Z3950ServerPort != -1)
+            {
+                ServerInfo.ZServer = new ZServer(ServerInfo.Z3950ServerPort);
+                ServerInfo.AddEvents(ServerInfo.ZServer, true);
+                ServerInfo.ZServer.Listen(1000);
+            }
+        }
+
+        public static void StopGlobalService()
+        {
+            if (ServerInfo.ZServer != null)
+            {
+                ServerInfo.ZServer.Close();
+                ServerInfo.ZServer.Dispose();
+                ServerInfo.AddEvents(ServerInfo.ZServer, false);
+                ServerInfo.ZServer = null;
+            }
+        }
+
+        public static bool IsGlobalServiceRunning()
+        {
+            if (ServerInfo.ZServer != null)
+                return true;
+            return false;
+        }
+
+        // 停止一个实例
+        //      strInstanceName 实例名。如果为 ".global" 表示全局服务
+        public static ServiceControlResult StopInstance(string strInstanceName)
+        {
+            if (strInstanceName == ".global")
+            {
+                StopGlobalService();
+                return new ServiceControlResult();
+            }
+
+            Instance instance = FindInstance(strInstanceName);
+            if (instance == null)
+                return new ServiceControlResult
+                {
+                    Value = -1,
+                    ErrorCode = "NotFound",
+                    ErrorInfo = "实例 '" + strInstanceName + "' 没有找到"
+                };
+            try
+            {
+                instance.Close();
+                return new ServiceControlResult();
+            }
+            catch (Exception ex)
+            {
+                return new ServiceControlResult
+                {
+                    Value = -1,
+                    ErrorCode = ex.GetType().ToString(),
+                    ErrorInfo = "停止实例 '" + strInstanceName + "' 时出现异常: " + ex.Message
+                };
+            }
+        }
+
+#region Windows Service 控制命令设施
+
+        static IpcServerChannel m_serverChannel = null;
+
+        public static void StartRemotingServer()
+        {
+            // http://www.cnblogs.com/gisser/archive/2011/12/31/2308989.html
+            // https://stackoverflow.com/questions/7126733/ipcserverchannel-properties-problem
+            // https://stackoverflow.com/questions/2400320/dealing-with-security-on-ipc-remoting-channel
+            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
+            provider.TypeFilterLevel = TypeFilterLevel.Full;
+            Hashtable ht = new Hashtable();
+            ht["portName"] = "dp2capo_ServiceControlChannel";
+            ht["name"] = "ipc";
+            ht["authorizedGroup"] = "Administrators"; // "Everyone";
+            m_serverChannel = new IpcServerChannel(ht, provider);
+
+            //Register the server channel.
+            ChannelServices.RegisterChannel(m_serverChannel, false);
+
+            RemotingConfiguration.ApplicationName = "dp2library_ServiceControlServer";
+
+            //Register this service type.
+            RemotingConfiguration.RegisterWellKnownServiceType(
+                typeof(ServiceControlServer),
+                "dp2library_ServiceControlServer",
+                WellKnownObjectMode.Singleton);
+        }
+
+        public static void EndRemotingServer()
+        {
+            if (m_serverChannel != null)
+            {
+                ChannelServices.UnregisterChannel(m_serverChannel);
+                m_serverChannel = null;
+            }
+        }
+
+#endregion
+
 
         // 运用控制台显示方式，设置一个实例的基本参数
         // parameters:
@@ -499,7 +735,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                     }
 
                     // 重试初始化 ZHost 慢速参数
-                    instance.InitialZHostSlowConfig();
+                    // instance.InitialZHostSlowConfig();
 
                     // 清理闲置超期的 zChannels
                     ZServer._zChannels.CleanIdleChannels(TimeSpan.FromMinutes(2));
@@ -536,7 +772,7 @@ Exception Info: System.Net.NetworkInformation.PingException
             }
         }
 
-        #region 日志
+#region 日志
 
         public static Logger _logger = new Logger();
 
@@ -662,7 +898,7 @@ Exception Info: System.Net.NetworkInformation.PingException
             Log.WriteEntry(strText, type);
         }
 
-        #endregion
+#endregion
 
         public static void AddEvents(ZServer zserver, bool bAdd)
         {
@@ -720,6 +956,7 @@ Exception Info: System.Net.NetworkInformation.PingException
         private static void Zserver_PresentGetRecords(object sender, PresentGetRecordsEventArgs e)
         {
             string strError = "";
+            int nCondition = 100;   // (unspecified)error
 
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
@@ -730,10 +967,16 @@ Exception Info: System.Net.NetworkInformation.PingException
                 ZManager.Log.Error(strError);
                 goto ERROR1;
             }
-            Instance instance = FindInstance(strInstanceName);
+            Instance instance = FindZ3950Instance(strInstanceName);
             if (instance == null)
             {
-                strError = "实例名 '" + strInstanceName + "' 不存在";
+                strError = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)";
+                goto ERROR1;
+            }
+            if (instance.Running == false)
+            {
+                strError = "实例 '" + instance.Name + "' 正在维护中，暂时不能访问";
+                nCondition = 1019;  // Init/AC: System not available due to maintenance
                 goto ERROR1;
             }
 
@@ -797,7 +1040,8 @@ Exception Info: System.Net.NetworkInformation.PingException
 
                         // 如果取得的是xml记录，则根元素可以看出记录的marc syntax，进一步可以获得oid；
                         // 如果取得的是MARC格式记录，则需要根据数据库预定义的marc syntax来看出oid了
-                        string strMarcSyntaxOID = GetMarcSyntaxOID(instance, strDbName);
+                        // string strMarcSyntaxOID = GetMarcSyntaxOID(instance, strDbName);
+                        // string strMarcSyntaxOID = GetMarcSyntaxOID(dp2library_record);
 
                         RetrivalRecord record = new RetrivalRecord
                         {
@@ -814,6 +1058,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                             prop != null ? prop.AddField901 : false,
                             prop != null ? prop.RemoveFields : "997",
                             zserver_channel.SetProperty().MarcRecordEncoding,
+                            out string strMarcSyntaxOID,
                             out byte[] baIso2709,
                             out strError);
 
@@ -849,8 +1094,9 @@ Exception Info: System.Net.NetworkInformation.PingException
                             record.m_surrogateDiagnostic = new DiagFormat
                             {
                                 m_strDiagSetID = "1.2.840.10003.4.1",
-                                m_nDiagCondition = 109,  // database unavailable // 似乎235:database dos not exist也可以
-                                m_strAddInfo = "根据数据库名 '" + strDbName + "' 无法获得 marc syntax oid"
+                                m_nDiagCondition = 227,  // No data available in requested record syntax // 239?
+                                // m_strAddInfo = "根据数据库名 '" + strDbName + "' 无法获得 marc syntax oid"
+                                m_strAddInfo = "根据书目记录 '" + dp2library_record.Path + "' 的 MARCXML 无法获得 marc syntax oid"
                             };
                         }
                         else
@@ -893,6 +1139,18 @@ Exception Info: System.Net.NetworkInformation.PingException
                     i++;
                 }
             }
+            catch (ChannelException ex)
+            {
+                // 指定的结果集没有找到
+                if (ex.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound)
+                {
+                    nCondition = 30;  // Specified result set does not exist
+                    strError = ex.Message;
+                    goto ERROR1;
+                }
+                strError = "获取结果集时出现异常(ChannelException): " + ex.Message;
+                goto ERROR1;
+            }
             catch (Exception ex)
             {
                 strError = "获取结果集时出现异常: " + ex.Message;
@@ -910,14 +1168,14 @@ Exception Info: System.Net.NetworkInformation.PingException
             {
                 DiagFormat diag1 = null;
                 ZProcessor.SetPresentDiagRecord(ref diag1,
-                    2,  // temporary system error
+                    nCondition,
                     strError);
                 e.Diag = diag1;
-                // e.Result = new ZClient.SearchResult { Value = -1, ErrorInfo = strError };
                 return;
             }
         }
 
+#if NO
         static string GetMarcSyntaxOID(Instance instance, string strBiblioDbName)
         {
             string strSyntax = instance.zhost.GetMarcSyntax(strBiblioDbName);
@@ -930,9 +1188,40 @@ Exception Info: System.Net.NetworkInformation.PingException
 
             return null;
         }
+#endif
 
+#if NO
+        // 获得一条记录的 MARC 格式 OID
+        static string GetMarcSyntaxOID(DigitalPlatform.LibraryClient.localhost.Record dp2library_record)
+        {
+            if (dp2library_record.RecordBody == null)
+                return null;
+
+            if (string.IsNullOrEmpty(dp2library_record.RecordBody.Xml))
+                return null;
+
+            // return:
+            //      -1  出错
+            //      0   正常
+            int nRet = MarcUtil.GetMarcSyntax(dp2library_record.RecordBody.Xml,
+        out string strOutMarcSyntax,
+        out string strError);
+            if (nRet == -1)
+                throw new Exception("获得 MARCXML 记录的 MARC Syntax 时出错: " + strError);
+
+            if (strOutMarcSyntax == "unimarc")
+                return "1.2.840.10003.5.1";
+            if (strOutMarcSyntax == "usmarc")
+                return "1.2.840.10003.5.10";
+
+            return null;
+        }
+#endif
+
+        // TODO: 实现简略格式和详细格式提供。简略格式可以理解为略去一些分类号主题词字段，最好用一段用户定制的脚本来进行过滤
         // 获得MARC记录
         // parameters:
+        //      elementSetNames 元素集列表。每个元素集为 'B' 或 'F'，表示简略和详细格式
         //      bAddField901    是否加入901字段？
         // return:
         //      -1  error
@@ -944,19 +1233,19 @@ Exception Info: System.Net.NetworkInformation.PingException
             bool bAddField901,
             string strRemoveFields,
             Encoding marcRecordEncoding,
+            out string strMarcSyntaxOID,
             out byte[] baIso2709,
             out string strError)
         {
             baIso2709 = null;
             strError = "";
-
-            string strMarcSyntax = "";
+            strMarcSyntaxOID = "";
 
             // 转换为机内格式
             int nRet = MarcUtil.Xml2Marc(dp2library_record.RecordBody.Xml,
                 true,
-                strMarcSyntax,
-                out string strOutMarcSyntax,
+                "",
+                out string strMarcSyntax,
                 out string strMarc,
                 out strError);
             if (nRet == -1)
@@ -993,18 +1282,26 @@ Exception Info: System.Net.NetworkInformation.PingException
             // 转换为ISO2709
             nRet = MarcUtil.CvtJineiToISO2709(
                 strMarc,
-                strOutMarcSyntax,
+                strMarcSyntax,
                 marcRecordEncoding,
                 out baIso2709,
                 out strError);
             if (nRet == -1)
                 return -1;
 
+            if (strMarcSyntax == "unimarc")
+                strMarcSyntaxOID = "1.2.840.10003.5.1";
+            if (strMarcSyntax == "usmarc")
+                strMarcSyntaxOID = "1.2.840.10003.5.10";
+
             return 1;
         }
 
         private static void Zserver_SearchSearch(object sender, SearchSearchEventArgs e)
         {
+            string strError = "";
+            int nCondition = 100;
+
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
             string strInstanceName = zserver_channel.SetProperty().GetKeyValue("i_n");
@@ -1015,34 +1312,62 @@ Exception Info: System.Net.NetworkInformation.PingException
                 e.Result = new DigitalPlatform.Z3950.ZClient.SearchResult { Value = -1, ErrorInfo = strErrorText };
                 return;
             }
-            Instance instance = FindInstance(strInstanceName);
+            Instance instance = FindZ3950Instance(strInstanceName);
             if (instance == null)
             {
-                e.Result = new DigitalPlatform.Z3950.ZClient.SearchResult { Value = -1, ErrorInfo = "实例名 '" + strInstanceName + "' 不存在" };
+                e.Result = new DigitalPlatform.Z3950.ZClient.SearchResult { Value = -1, ErrorInfo = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)" };
                 return;
+            }
+            if (instance.Running == false)
+            {
+                strError = "实例 '" + instance.Name + "' 正在维护中，暂时不能访问";
+                nCondition = 1019;  // Init/AC: System not available due to maintenance
+                goto ERROR1;
+            }
+
+            // 检查实例是否有至少一个可用数据库
+            if (instance.zhost.GetDbCount() == 0)
+            {
+#if NO
+                string strErrorText = "实例 '" + strInstanceName + "' 没有提供可检索的数据库";
+                DiagFormat diag = null;
+                ZProcessor.SetPresentDiagRecord(ref diag,
+                    1017,  // Init/AC: No databases available for specified userId
+                    strErrorText);
+                e.Diag = diag;
+                e.Result = new ZClient.SearchResult { Value = -1, ErrorInfo = strErrorText };
+                return;
+#endif
+                strError = "实例 '" + instance.Name + "' 没有提供可检索的数据库";
+                nCondition = 1017;// Init/AC: No databases available for specified userId
+                goto ERROR1;
             }
 
             // 根据逆波兰表构造出 dp2 系统检索式
-
             // return:
-            //      -1  error
-            //      0   succeed
+            //      -1  出错
+            //      0   数据库没有找到
+            //      1   成功
             int nRet = Z3950Utility.BuildQueryXml(
                 instance.zhost,
                 e.Request.m_dbnames,
                 e.Request.m_rpnRoot,
                 zserver_channel.SetProperty().SearchTermEncoding,
                 out string strQueryXml,
-                out string strError);
-            if (nRet == -1)
+                out strError);
+            if (nRet == -1 || nRet == 0)
             {
+#if NO
                 DiagFormat diag = null;
                 ZProcessor.SetPresentDiagRecord(ref diag,
-                    2,  // temporary system error
+                    nRet == -1 ? 2 : 235,  // 2:temporary system error; 235:Database does not exist (database name)
                     strError);
                 e.Diag = diag;
                 e.Result = new ZClient.SearchResult { Value = -1, ErrorInfo = strError };
                 return;
+#endif
+                nCondition = nRet == -1 ? 2 : 235;  // 2:temporary system error; 235:Database does not exist (database name)
+                goto ERROR1;
             }
 
             string strUserName = zserver_channel.SetProperty().GetKeyValue("i_u");
@@ -1070,6 +1395,7 @@ Exception Info: System.Net.NetworkInformation.PingException
 
                 if (lRet == -1)
                 {
+#if NO
                     DiagFormat diag = null;
                     ZProcessor.SetPresentDiagRecord(ref diag,
                         2,  // temporary system error
@@ -1077,18 +1403,47 @@ Exception Info: System.Net.NetworkInformation.PingException
                     e.Diag = diag;
                     e.Result = new ZClient.SearchResult { Value = -1, ErrorInfo = strError };
                     return;
+#endif
+                    goto ERROR1;
                 }
                 else
                 {
                     // 记忆结果集名
-                    MemoryResultSetName(zserver_channel, resultset_name);
+                    // return:
+                    //      false   正常
+                    //      true    结果集数量超过 MAX_RESULTSET_COUNT，返回前已经开始释放所有结果集
+                    if (MemoryResultSetName(zserver_channel, resultset_name) == true)
+                    {
+#if NO
+                        DiagFormat diag = null;
+                        ZProcessor.SetPresentDiagRecord(ref diag,
+                            112,  // Too many result sets created (maximum)
+                            strError);  // TODO: 应为 MAX_RESULTSET_COUNT
+                        e.Diag = diag;
+                        e.Result = new ZClient.SearchResult { Value = -1, ErrorInfo = strError };
+                        return;
+#endif
+                        nCondition = 112;  // Too many result sets created (maximum)
+                        goto ERROR1;
+                    }
 
                     e.Result = new ZClient.SearchResult { ResultCount = lRet };
                 }
+                return;
             }
             finally
             {
                 instance.MessageConnection.ReturnChannel(library_channel);
+            }
+            ERROR1:
+            {
+                DiagFormat diag = null;
+                ZProcessor.SetPresentDiagRecord(ref diag,
+                    nCondition,
+                    strError);
+                e.Diag = diag;
+                e.Result = new ZClient.SearchResult { Value = -1, ErrorInfo = strError };
+                return;
             }
         }
 
@@ -1102,7 +1457,10 @@ Exception Info: System.Net.NetworkInformation.PingException
         static readonly int MAX_RESULTSET_COUNT = 100;
 
         // 记忆全局结果集名
-        static void MemoryResultSetName(ZServerChannel zserver_channel,
+        // return:
+        //      false   正常
+        //      true    结果集数量超过 MAX_RESULTSET_COUNT，返回前已经开始释放所有结果集
+        static bool MemoryResultSetName(ZServerChannel zserver_channel,
             string resultset_name)
         {
             if (!(zserver_channel.SetProperty().GetKeyObject("r_n") is List<string> names))
@@ -1116,7 +1474,12 @@ Exception Info: System.Net.NetworkInformation.PingException
 
             // 如果结果集名数量太多，就要开始删除
             if (names.Count > MAX_RESULTSET_COUNT)
+            {
                 FreeGlobalResultSets(zserver_channel, names);
+                return true;
+            }
+
+            return false;
         }
 
         // 取出先前记忆的全局结果集名列表
@@ -1147,10 +1510,10 @@ Exception Info: System.Net.NetworkInformation.PingException
                 string strError = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
                 ZManager.Log?.Error(strError);
             }
-            Instance instance = FindInstance(strInstanceName);
+            Instance instance = FindZ3950Instance(strInstanceName);
             if (instance == null)
             {
-                string strError = "实例名 '" + strInstanceName + "' 不存在";
+                string strError = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)";
                 // 写入错误日志
                 ZManager.Log?.Error(strError);
                 return;
@@ -1187,17 +1550,15 @@ Exception Info: System.Net.NetworkInformation.PingException
 #endif
         }
 
-        static Instance FindInstance(string strInstanceName)
+        public static Instance FindZ3950Instance(string strInstanceName)
         {
-            if (string.IsNullOrEmpty(strInstanceName))
-                return _instances[0];
-            else
-                return _instances.Find(
-                    (o) =>
-                    {
-                        return (o.Name == strInstanceName);
-                    });
+            Instance instance = FindInstance(strInstanceName);
+
+            if (instance.zhost == null)
+                return null;    // 实例虽然存在，但没有启用 Z39.50 服务
+            return instance;
         }
+
 
 #if NO
         private static void Zserver_GetZConfig(object sender, GetZConfigEventArgs e)
@@ -1245,20 +1606,35 @@ Exception Info: System.Net.NetworkInformation.PingException
             {
                 string strErrorText = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
                 ZManager.Log?.Error(strErrorText);
-                e.Result = new Result { Value = -1, ErrorInfo = strErrorText };
+                e.Result = new Result
+                {
+                    Value = -1,
+                    ErrorCode = "2",
+                    ErrorInfo = strErrorText
+                };
                 return;
             }
-            Instance instance = FindInstance(strInstanceName);
+            Instance instance = FindZ3950Instance(strInstanceName);
             if (instance == null)
             {
-                e.Result = new Result { Value = -1, ErrorInfo = "实例名 '" + strInstanceName + "' 不存在" };
+                e.Result = new Result
+                {
+                    Value = -1,
+                    ErrorCode = "",
+                    ErrorInfo = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)"
+                };
                 return;
             }
-
-            // result.Value:
-            //      -1  登录出错
-            //      0   登录未成功
-            //      1   登录成功
+            if (instance.Running == false)
+            {
+                e.Result = new Result
+                {
+                    Value = -1,
+                    ErrorCode = "1019", // Init/AC: System not available due to maintenance
+                    ErrorInfo = "实例 '" + instance.Name + "' 正在维护中，暂时不能访问"
+                };
+                return;
+            }
 
             string strUserName = zserver_channel.SetProperty().GetKeyValue("i_u");
             string strPassword = zserver_channel.SetProperty().GetKeyValue("i_p");
@@ -1273,11 +1649,17 @@ Exception Info: System.Net.NetworkInformation.PingException
                     strParameters += ",type=reader";
                 strParameters += ",client=dp2capo|" + "0.01";
 
+                // result.Value:
+                //      -1  登录出错
+                //      0   登录未成功
+                //      1   登录成功
                 long lRet = library_channel.Login(strUserName,
                     strPassword,
                     strParameters,
                     out string strError);
                 e.Result.Value = (int)lRet;
+                if (lRet != 1)
+                    e.Result.ErrorCode = "101";
                 e.Result.ErrorInfo = strError;
             }
             finally
@@ -1299,14 +1681,19 @@ Exception Info: System.Net.NetworkInformation.PingException
             // 匿名登录情形
             if (string.IsNullOrEmpty(strUserName))
             {
-                Instance instance = FindInstance(strInstanceName);
+                Instance instance = FindZ3950Instance(strInstanceName);
                 if (instance == null)
                 {
-                    e.Result = new Result { Value = -1,
-                        ErrorCode = "InstanceNotFound",
-                        ErrorInfo = "以用户名 '" + e.Info.m_strID + "' 中包含的实例名 '" + strInstanceName + "' 没有找到任何实例" };
+                    e.Result = new Result
+                    {
+                        Value = -1,
+                        ErrorCode = "",
+                        ErrorInfo = "以用户名 '" + e.Info.m_strID + "' 中包含的实例名 '" + strInstanceName + "' 没有找到任何实例(或实例没有启用 Z39.50 服务)"
+                    };
                     return;
                 }
+
+                strInstanceName = instance.Name;
 
                 // 如果定义了允许匿名登录
                 if (String.IsNullOrEmpty(instance.zhost.AnonymousUserName) == false)
@@ -1316,9 +1703,12 @@ Exception Info: System.Net.NetworkInformation.PingException
                 }
                 else
                 {
-                    e.Result = new Result { Value = -1,
-                        ErrorCode = "AnonymouseLoginDenied",
-                        ErrorInfo = "不允许匿名登录" };
+                    e.Result = new Result
+                    {
+                        Value = -1,
+                        ErrorCode = "101",
+                        ErrorInfo = "不允许匿名登录"
+                    };
                     return;
                 }
             }

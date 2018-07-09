@@ -1,7 +1,9 @@
-﻿using DigitalPlatform.Text;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Text;
+
+using DigitalPlatform.Text;
 
 namespace DigitalPlatform.Z3950
 {

@@ -7,11 +7,11 @@ using System.Diagnostics;
 using System.ServiceProcess;
 
 // using dp2Capo.Properties;
+using log4net;
 
 using DigitalPlatform;
 using DigitalPlatform.ServiceProcess;
 using DigitalPlatform.Z3950.Server;
-using log4net;
 
 namespace dp2Capo
 {
@@ -269,16 +269,30 @@ namespace dp2Capo
 
         static void StartServer()
         {
+            try
+            {
+                ServerInfo.StartRemotingServer();
+            }
+            catch (Exception ex)
+            {
+                WriteWindowsLog("dp2Capo StartRemotingServer() exception: " + ExceptionUtil.GetDebugText(ex),
+EventLogEntryType.Error);
+            }
+
+#if NO
             if (ServerInfo.Z3950ServerPort != -1)
             {
                 ServerInfo.ZServer = new ZServer(ServerInfo.Z3950ServerPort);
                 ServerInfo.AddEvents(ServerInfo.ZServer, true);
-                ServerInfo.ZServer.Listen();
+                ServerInfo.ZServer.Listen(1000);
             }
+#endif
+            ServerInfo.StartGlobalService(true);
         }
 
         static void StopServer()
         {
+#if NO
             if (ServerInfo.ZServer != null)
             {
                 ServerInfo.ZServer.Close();
@@ -286,6 +300,10 @@ namespace dp2Capo
                 ServerInfo.AddEvents(ServerInfo.ZServer, false);
                 ServerInfo.ZServer = null;
             }
+#endif
+            ServerInfo.StopGlobalService();
+
+            ServerInfo.EndRemotingServer();
         }
     }
 }

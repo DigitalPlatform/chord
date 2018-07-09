@@ -12,7 +12,7 @@ namespace DigitalPlatform.Z3950.Server
     /// </summary>
     public class ZServerChannelCollection : IDisposable
     {
-        static int MAX_CHANNELS = 1000;
+        static int MAX_CHANNELS = 10000;
 
         List<ZServerChannel> _channels = new List<ZServerChannel>();
 
@@ -42,7 +42,7 @@ namespace DigitalPlatform.Z3950.Server
             }
             catch (Exception ex)
             {
-                ZManager.Log?.Error("HttpChannelColleciont Clear() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                ZManager.Log?.Error("ZServerChannelColleciont Clear() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
             }
             finally
             {
@@ -56,7 +56,7 @@ namespace DigitalPlatform.Z3950.Server
             try
             {
                 if (_channels.Count >= MAX_CHANNELS)
-                    throw new Exception("HttpChannelCollection 配额超出。请稍后重试操作");
+                    throw new Exception("ZServerChannelCollection 配额超出。请稍后重试操作");
 
                 _channels.Add(channel);
             }

@@ -20,7 +20,7 @@ namespace WebZ.Server.database
             if (_collection == null)
                 throw new Exception("_collection 尚未初始化");
 
-            /*
+            
             // 服务器地址建索引
             await _collection.Indexes.CreateOneAsync(
                 Builders<ZServerItem>.IndexKeys.Ascending("name"),
@@ -30,7 +30,7 @@ namespace WebZ.Server.database
             await _collection.Indexes.CreateOneAsync(
                 Builders<ZServerItem>.IndexKeys.Ascending("addr"),
                 new CreateIndexOptions() { Unique = false });
-            */
+            
         }
 
 

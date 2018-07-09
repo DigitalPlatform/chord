@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
@@ -33,6 +30,10 @@ namespace ChordInstaller
 {
     public partial class MainForm : Form
     {
+        // 被锁定的实例名数组
+        // 正在进行恢复操作的实例名，会进入本数组。以防中途被启动
+        List<string> locking_instances = new List<string>();
+
         FileVersionManager _versionManager = new FileVersionManager();
 
         FloatingMessageForm _floatingMessage = null;
@@ -414,7 +415,7 @@ FormWindowState.Normal);
                 {
                     dp2Capo.Install.InstallDialog dlg = new dp2Capo.Install.InstallDialog();
                     FontUtil.AutoSetDefaultFont(dlg);
-
+                    dlg.LockingInstances = this.locking_instances;
                     dlg.BinDir = strProgramDir;
                     // dlg.DataZipFileName = Path.Combine(this.DataDir, "kernel_data.zip");
                     dlg.StartPosition = FormStartPosition.CenterScreen;
@@ -479,6 +480,12 @@ FormWindowState.Normal);
         {
             string strError = "";
             int nRet = 0;
+
+            if (this.locking_instances.Count > 0)
+            {
+                strError = "目前有下列 dp2capo 实例(" + StringUtil.MakePathList(this.locking_instances) + ")处于锁定状态，不允许此时升级 dp2capo";
+                goto ERROR1;
+            }
 
             this._floatingMessage.Text = "正在升级 dp2Capo - V2 V3 桥接模块 ...";
 
@@ -761,6 +768,12 @@ MessageBoxDefaultButton.Button2);
             string strError = "";
             int nRet = 0;
 
+            if (this.locking_instances.Count > 0)
+            {
+                strError = "目前有下列 dp2capo 实例(" + StringUtil.MakePathList(this.locking_instances) + ")处于锁定状态，不允许此时启动或者停止 dp2capo";
+                goto ERROR1;
+            }
+
             AppendString("正在获得可执行文件目录 ...\r\n");
 
             Application.DoEvents();
@@ -1020,6 +1033,12 @@ MessageBoxDefaultButton.Button2);
             string strError = "";
             int nRet = 0;
 
+            if (this.locking_instances.Count > 0)
+            {
+                strError = "目前有下列 dp2capo 实例(" + StringUtil.MakePathList(this.locking_instances) + ")处于锁定状态，无法卸载 dp2capo";
+                goto ERROR1;
+            }
+
             this._floatingMessage.Text = "正在卸载 dp2Capo - V2 V3 桥接模块 ...";
 
             try
@@ -1040,6 +1059,7 @@ MessageBoxDefaultButton.Button2);
 
                 string strProgramDir = Path.GetDirectoryName(strExePath);
 
+#if NO
                 {
                     AppendString("正在停止 dp2Capo 服务 ...\r\n");
 
@@ -1051,11 +1071,12 @@ MessageBoxDefaultButton.Button2);
 
                     AppendString("dp2Capo 服务已经停止\r\n");
                 }
-
+#endif
 
                 {
                     dp2Capo.Install.InstallDialog dlg = new dp2Capo.Install.InstallDialog();
                     FontUtil.AutoSetDefaultFont(dlg);
+                    dlg.LockingInstances = this.locking_instances;
                     dlg.Text = "dp2Capo - 彻底卸载所有实例和数据目录";
                     // dlg.Comment = "下列实例将被全部卸载。请仔细确认。一旦卸载，全部数据目录、数据库和实例信息将被删除，并且无法恢复。";
                     dlg.UninstallMode = true;
@@ -1121,10 +1142,10 @@ MessageBoxDefaultButton.Button2);
         private void MenuItem_dp2capo_instanceManagement_Click(object sender, EventArgs e)
         {
             string strError = "";
-            int nRet = 0;
+            //int nRet = 0;
 
             bool bControl = Control.ModifierKeys == Keys.Control;
-            bool bInstalled = true;
+            //bool bInstalled = true;
 
             this._floatingMessage.Text = "正在配置 dp2Capo 实例 ...";
 
@@ -1145,9 +1166,10 @@ MessageBoxDefaultButton.Button2);
                         strError = "dp2Capo 未曾安装过";
                         goto ERROR1;
                     }
-                    bInstalled = false;
+                    // bInstalled = false;
                 }
 
+#if NO
                 if (bInstalled == true)
                 {
                     AppendString("正在停止 dp2Capo 服务 ...\r\n");
@@ -1160,11 +1182,12 @@ MessageBoxDefaultButton.Button2);
 
                     AppendString("dp2Capo 服务已经停止\r\n");
                 }
-
+#endif
                 try
                 {
                     dp2Capo.Install.InstallDialog dlg = new dp2Capo.Install.InstallDialog();
                     FontUtil.AutoSetDefaultFont(dlg);
+                    dlg.LockingInstances = this.locking_instances;
                     dlg.Text = "配置 dp2Capo 的实例";
                     dlg.BinDir = Path.GetDirectoryName(strExePath);
                     dlg.StartPosition = FormStartPosition.CenterScreen;
@@ -1182,6 +1205,7 @@ MessageBoxDefaultButton.Button2);
                 }
                 finally
                 {
+#if NO
                     if (bInstalled == true)
                     {
                         AppendString("正在重新启动 dp2Capo 服务 ...\r\n");
@@ -1198,6 +1222,7 @@ MessageBoxDefaultButton.Button2);
                             AppendString("dp2Capo 服务启动成功\r\n");
                         }
                     }
+#endif
 
                     AppendSectionTitle("配置实例结束");
                 }
@@ -1628,7 +1653,7 @@ MessageBoxDefaultButton.Button1);
             return 0;
         }
 
-        #region MakeDates()
+#region MakeDates()
 
         List<string> MakeDates(string strName)
         {
@@ -1849,7 +1874,7 @@ MessageBoxDefaultButton.Button1);
         }
 
 
-        #endregion
+#endregion
 
         public static Version GetIisVersion()
         {

@@ -52,6 +52,23 @@ namespace dp2Capo
             set;
         }
 
+        public string DataDir
+        {
+            get;
+            set;
+        }
+
+        private bool _running = false;
+
+        public bool Running
+        {
+            get
+            {
+                return _running;
+            }
+        }
+
+
         #region 全局结果集管理
 
         private readonly Object _syncResultSets = new Object();
@@ -113,15 +130,36 @@ namespace dp2Capo
             LastCheckTime = DateTime.Now;
         }
 
-        public void Initial(string strXmlFileName)
+        public static string GetInstanceName(string strXmlFileName)
         {
+            XmlDocument dom = new XmlDocument();
+            try
+            {
+                dom.Load(strXmlFileName);
+            }
+            catch (FileNotFoundException)
+            {
+                return Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
+            }
+            string strInstanceName = dom.DocumentElement.GetAttribute("instanceName");
+            if (string.IsNullOrEmpty(strInstanceName) == true)
+                return Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
+            return strInstanceName;
+        }
+
+        public void Start()
+        {
+            string strXmlFileName = Path.Combine(this.DataDir, "capo.xml");
+            if (File.Exists(strXmlFileName) == false)
+                return; // TODO: 似乎应该抛出异常才好
+
             _cancel = new CancellationTokenSource();
             // SetShortDelay();
 
-            Console.WriteLine();
-            Console.WriteLine("*** 初始化实例: " + strXmlFileName);
+            this.Name = GetInstanceName(strXmlFileName);  // Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
 
-            this.Name = Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
+            Console.WriteLine();
+            Console.WriteLine("*** 启动实例: " + this.Name + " -- " + strXmlFileName);
 
             this.LogDir = Path.Combine(Path.GetDirectoryName(strXmlFileName), "log");
             PathUtil.CreateDirIfNeed(this.LogDir);
@@ -141,9 +179,9 @@ namespace dp2Capo
 
             try
             {
-                this.Name = dom.DocumentElement.GetAttribute("instanceName");
-                if (string.IsNullOrEmpty(this.Name) == true)
-                    this.Name = Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
+                //this.Name = dom.DocumentElement.GetAttribute("instanceName");
+                //if (string.IsNullOrEmpty(this.Name) == true)
+                //    this.Name = Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
 
                 {
                     XmlElement element = dom.DocumentElement.SelectSingleNode("dp2library") as XmlElement;
@@ -181,8 +219,8 @@ namespace dp2Capo
                         this.zhost = new ZHostInfo();
                         this.zhost.Initial(element);
 
-                        this.zhost.SlowConfigInitialized = false;
-                        InitialZHostSlowConfig();
+                        // this.zhost.SlowConfigInitialized = false;
+                        // InitialZHostSlowConfig();
                     }
                 }
             }
@@ -201,8 +239,11 @@ namespace dp2Capo
             }
 
             InitialQueue(true);
+
+            this._running = true;
         }
 
+#if NO
         public void InitialZHostSlowConfig()
         {
             if (this.zhost == null)
@@ -234,6 +275,7 @@ namespace dp2Capo
                 this.zhost.SlowConfigInitialized = true;
             }
         }
+#endif
 
         // parameters:
         //      bFirst  是否首次启动。首次启动和重试启动，若发生错误写入日志的方式不同。
@@ -394,6 +436,7 @@ namespace dp2Capo
             // this.MessageConnection.CloseConnection();
             this.MessageConnection.Close();
 
+            this._running = false;
             this.WriteErrorLog("*** 实例 " + this.Name + " 成功降落。");
         }
 
@@ -1000,7 +1043,7 @@ namespace dp2Capo
     public class ZHostInfo : HostInfo
     {
         // 慢速参数是否初始化成功?
-        public bool SlowConfigInitialized { get; set; }
+        // public bool SlowConfigInitialized { get; set; }
 
 #if NO
         // 图书馆 UID。从 dp2library 用 API 获取
@@ -1133,8 +1176,16 @@ namespace dp2Capo
 
                 this.MaxResultCount = nMaxResultCount;
             }
+
+            {
+                int nRet = this.AppendDbProperties(out string strError);
+                if (nRet == -1)
+                    throw new Exception(strError);
+            }
+
         }
 
+#if NO
         // 获得一些比较耗时的配置参数。
         // return:
         //      -2  出错。但后面可以重试
@@ -1161,9 +1212,11 @@ namespace dp2Capo
                 return 0;
             }
         }
+#endif
 
         public List<BiblioDbProperty> BiblioDbProperties = null;
 
+#if NO
         // 获得编目库属性列表
         int GetBiblioDbProperties(ServerConnection connection,
             out string strError)
@@ -1222,36 +1275,6 @@ namespace dp2Capo
                     this.BiblioDbProperties[i].Syntax = syntaxs[i];
                 }
 
-
-#if NO
-                ///
-
-                // 获得对应的实体库名
-                lRet = channel.GetSystemParameter("item",
-                    "dbnames",
-                    out strValue,
-                    out strError);
-                if (lRet == -1)
-                {
-                    strError = "针对服务器 " + channel.Url + " 获得实体库名列表过程发生错误：" + strError;
-                    goto ERROR1;
-                }
-
-                string[] itemdbnames = strValue.Split(new char[] { ',' });
-
-                if (itemdbnames.Length != this.BiblioDbProperties.Count)
-                {
-                    strError = "针对服务器 " + channel.Url + " 获得编目库名为 " + this.BiblioDbProperties.Count.ToString() + " 个，而实体库名为 " + itemdbnames.Length.ToString() + " 个，数量不一致";
-                    goto ERROR1;
-                }
-
-                // 增补数据格式
-                for (int i = 0; i < this.BiblioDbProperties.Count; i++)
-                {
-                    this.BiblioDbProperties[i].ItemDbName = itemdbnames[i];
-                }
-#endif
-
                 // 获得虚拟数据库名
                 lRet = channel.GetSystemParameter(
                     "virtual",
@@ -1283,6 +1306,7 @@ namespace dp2Capo
             this.BiblioDbProperties = null;
             return -1;
         }
+#endif
 
         // 为数据库属性集合中增补需要从xml文件中获得的其他属性
         int AppendDbProperties(out string strError)
@@ -1298,8 +1322,14 @@ namespace dp2Capo
 
             Debug.Assert(this._root != null, "");
 
-            for (int i = 0; i < this.BiblioDbProperties.Count; i++)
+            this.BiblioDbProperties = new List<BiblioDbProperty>();
+
+            XmlNodeList databases = _root.SelectNodes("databases/database");
+            foreach (XmlElement nodeDatabase in databases)
+
+            // for (int i = 0; i < this.BiblioDbProperties.Count; i++)
             {
+#if NO
                 BiblioDbProperty prop = this.BiblioDbProperties[i];
 
                 string strDbName = prop.DbName;
@@ -1307,6 +1337,10 @@ namespace dp2Capo
                 XmlElement nodeDatabase = _root.SelectSingleNode("databases/database[@name='" + strDbName + "']") as XmlElement;
                 if (nodeDatabase == null)
                     continue;
+#endif
+                BiblioDbProperty prop = new BiblioDbProperty();
+                this.BiblioDbProperties.Add(prop);
+                prop.DbName = nodeDatabase.GetAttribute("name");
 
                 // maxResultCount
 
@@ -1322,13 +1356,12 @@ namespace dp2Capo
                     out strError);
                 if (nRet == -1)
                 {
-                    strError = "为数据库 '" + strDbName + "' 配置的<databases/database>元素的" + strError;
+                    strError = "为数据库 '" + prop.DbName + "' 配置的<databases/database>元素的" + strError;
                     return -1;
                 }
 
                 // alias
                 prop.DbNameAlias = DomUtil.GetAttr(nodeDatabase, "alias");
-
 
                 // addField901
                 // 2007/12/16
@@ -1339,7 +1372,7 @@ namespace dp2Capo
                     out strError);
                 if (nRet == -1)
                 {
-                    strError = "为数据库 '" + strDbName + "' 配置的<databases/database>元素的" + strError;
+                    strError = "为数据库 '" + prop.DbName + "' 配置的<databases/database>元素的" + strError;
                     return -1;
                 }
 
@@ -1353,6 +1386,14 @@ namespace dp2Capo
         }
 
         #region
+
+        // 获得可用的数据库数
+        public int GetDbCount()
+        {
+            if (this.BiblioDbProperties == null)
+                return 0;
+            return this.BiblioDbProperties.Count;
+        }
 
         // 根据书目库名获得书目库属性对象
         public BiblioDbProperty GetDbProperty(string strBiblioDbName,
@@ -1381,6 +1422,7 @@ namespace dp2Capo
             return null;
         }
 
+#if NO
         // 根据书目库名获得MARC格式语法名
         public string GetMarcSyntax(string strBiblioDbName)
         {
@@ -1406,6 +1448,7 @@ namespace dp2Capo
 
             return DomUtil.GetAttr(nodeDatabase, "marcSyntax");
         }
+#endif
 
         // 根据书目库名(或者别名)获得检索途径名
         // parameters:
@@ -1463,8 +1506,7 @@ namespace dp2Capo
     {
         // dp2library定义的特性
         public string DbName = "";  // 书目库名
-        public string Syntax = "";  // 格式语法
-        // public string ItemDbName = "";  // 对应的实体库名
+        // public string Syntax = "";  // 格式语法
 
         public bool IsVirtual = false;  // 是否为虚拟库
 

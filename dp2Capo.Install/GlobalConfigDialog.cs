@@ -79,10 +79,13 @@ namespace dp2Capo.Install
                 this.Changed = true;
             }
 
-            if (Int32.TryParse(this.textBox_listeningPort.Text, out int v) == false)
-                throw new Exception("端口号必须是纯数字");
-            if (v < 0)
-                throw new Exception("端口号必须大于等于 0");
+            if (string.IsNullOrEmpty(this.textBox_listeningPort.Text) == false)
+            {
+                if (Int32.TryParse(this.textBox_listeningPort.Text, out int v) == false)
+                    throw new Exception("端口号必须是纯数字");
+                if (v < 0)
+                    throw new Exception("端口号必须大于等于 0");
+            }
 
             zServer.SetAttribute("port", this.textBox_listeningPort.Text);
 
@@ -111,7 +114,7 @@ namespace dp2Capo.Install
             {
                 Restore();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(this, ex.Message);
                 return;

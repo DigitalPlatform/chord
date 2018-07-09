@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <root>
   <item code="1" meaning="permanent system error" addinfo="(unspecified)" />
-  <item code="" meaning="" addinfo="(unspecified)" />
   <item code="2" meaning="temporary system error" addinfo="(unspecified)" />
   <item code="3" meaning="unsupported search" addinfo="(unspecified)" />
   <item code="4" meaning="Terms only exclusion (stop) words" addinfo="(unspecified)" />
@@ -43,89 +42,217 @@
   <item code="106" meaning="No abstract syntaxes agreed to for this record" addinfo="(unspecified)" />
   <item code="107" meaning="Query type not supported" addinfo="(unspecified)" />
   <item code="108" meaning="Malformed query" addinfo="(unspecified)" />
-  <item code="109" meaning="Database unavailable" addinfo="database name" />
-  <item code="110" meaning="Operator unsupported" addinfo="operator" />
-  <item code="111" meaning="Too many databases specified" addinfo="maximum" />
-
-     112 Too many result sets created maximum 113 Unsupported attribute type type 114 Unsupported Use attribute value 115 Unsupported term value for Use attribute term 116 Use attribute required but not supplied (unspecified) 117 Unsupported Relation attribute value 118 Unsupported Structure attribute value 119 Unsupported Position attribute value 120 Unsupported Truncation attribute value 121 Unsupported Attribute Set oid 122 Unsupported Completeness attribute value 123 Unsupported attribute combination (unspecified) 124 Unsupported coded value for term value 125 Malformed search term (unspecified) 126 Illegal term value for attribute term 127 Unparsable format for un-normalized value value 128 Illegal result set name name 129 Proximity search of sets not supported (unspecified) 130 Illegal result set in proximity search result set name 131 Unsupported proximity relation value 132 Unsupported proximity unit code value
-  201
-  Proximity not supported with this attribute combination attribute list 202 Unsupported distance for proximity distance 203 Ordered flag not supported for proximity (unspecified) 205 Only zero step size supported for Scan (unspecified) 206 Specified step size not supported for Scan step size 207 Cannot sort according to sequence sequence
-  ANSI/NISO Z39.50-2003
-  ©NISO Page       124
-  Code Meaning Addinfo
-  208 No result set name supplied on Sort (unspecified)
-  209
-  Generic sort not supported (database-specific sort only supported) (unspecified) 210 Database specific sort not supported (unspecified) 211 Too many sort keys number 212 Duplicate sort keys key 213 Unsupported missing data action value 214 Illegal sort relation relation 215 Illegal case value value 216 Illegal missing data action value
-  217
-  Segmentation: Cannot guarantee records will fit in specified segments (unspecified) 218 ES: Package name already in use name 219 ES: no such package, on modify/delete name 220 ES: quota exceeded (unspecified) 221 ES: extended service type not supported type 222 ES: permission denied on ES - id not authorized (unspecified) 223 ES: permission denied on ES - cannot modify or delete (unspecified) 224 ES: immediate execution failed (unspecified) 225 ES: immediate execution not supported for this service (unspecified)
-  226
-  ES: immediate execution not supported for these parameters (unspecified) 227 No data available in requested record syntax (unspecified) 228 Scan: malformed scan (unspecified) 229 Term type not supported type 230 Sort: too many input results max 231 Sort: incompatible record formats (unspecified) 232 Scan: term list not supported alternative term list 233 Scan: unsupported value of position-in-response value 234 Too many index terms processed number of terms 235 Database does not exist database name 236 Access to specified database denied database name 237 Sort: illegal sort (unspecified)
-  238 Record not available in requested syntax
-  alternative suggested syntax(es) 239 Record syntax not supported syntax 240 Scan: Resources exhausted looking for satisfying terms (unspecified)
-  ANSI/NISO Z39.50-2003
-  ©NISO Page       125
-  Code Meaning Addinfo
-  241 Scan: Beginning or end of term list (unspecified)
-  242
-  Segmentation: max-segment-size too small to segment record smallest acceptable size 243 Present: additional-ranges parameter not supported (unspecified) 244 Present: comp-spec parameter not supported (unspecified) 245 Type-1 query: restriction ('resultAttr') operand not supported (unspecified) 246 Type-1 query: 'complex' attributeValue not supported (unspecified)
-  247
-  Type-1 query: 'attributeSet' as part of AttributeElement not supported (unspecified) 1001 Malformed APDU. 1002 ES: EXTERNAL form of Item Order request not supported.
-  1003
-  ES: Result set item form of Item Order request not supported.
-  1004
-  ES: Extended services not supported unless access control is in effect. 1005 Response records in Search response not supported.
-  1006
-  Response records in Search response not possible for specified database (or database combination). See note 1.
-  1007 No Explain server. See note 2.
-  pointers to servers that have a surrogate Explain database for this server. 1008 ES: missing mandatory parameter for specified function parameter 1009 ES: Item Order, unsupported OID in itemRequest. OID 1010 Init/AC: Bad Userid 1011 Init/AC: Bad Userid and/or Password
-  1012
-  Init/AC: No searches remaining (pre-purchased searches exhausted)
-  1013
-  Init/AC: Incorrect interface type (specified id valid only when used with a particular access method or client) 1014 Init/AC: Authentication System error
-  1015
-  Init/AC: Maximum number of simultaneous sessions for Userid 1016 Init/AC: Blocked network address 1017 Init/AC: No databases available for specified userId 1018 Init/AC: System temporarily out of resources 1019 Init/AC: System not available due to maintenance when it's expected back up 1020 Init/AC: System temporarily unavailable when it's expected back up 1021 Init/AC: Account has expired 1022 Init/AC: Password has expired so a new one must be
-  ANSI/NISO Z39.50-2003
-  ©NISO Page       126
-  Code Meaning Addinfo
-  supplied
-  1023
-  Init/AC: Password has been changed by an administrator so a new one must be supplied
-  1024 Unsupported Attribute. See note 3.
-  an unstructured string indicating the object identifier of the attribute set id, the numeric value of the attribute type, and the numeric value of the attribute. 1025 Service not supported for this database 1026 Record cannot be opened because it is locked 1027 SQL error 1028 Record deleted 1029 Scan: too many terms requested. Addinfo: max terms supported 1030 1039 currently unnassigned 1040 ES: Invalid function function 1041 ES: Error in retention time (unspecified) 1042 ES: Permissions data not understood permissions 1043 ES: Invalid OID for task specific parameters oid 1044 ES: Invalid action action 1045 ES: Unknown schema schema 1046 ES: Too many records in package maximum number allowed 1047 ES: Invalid wait action wait action
-  1048
-  ES: Cannot create task package -- exceeds maximum permissable size (see note 4) maximum task package size
-  1049
-  ES: Cannot return task package -- exceeds maximum permissable size for ES response (see note 5)
-  maximum task package size for ES response
-  1050 ES: Extended services request too large (see note 6)
-  maximum size of extended services request 1051 Scan: Attribute set id required -- not supplied
-  1052
-  ES: Cannot process task package record -- exceeds maximum permissible record size for ES (see note 7) maximum record size for ES
-  1053
-  ES: Cannot return task package record -- exceeds maximum permissible record size for ES response (see note 8)
-  maximum record size for ES response
-  1054 Init: Required negotiation record not included
-  oid(s) of required negotiation record(s) 1055 Init: negotiation option required 1056 Attribute not supported for database attribute (oid, type, and
-  ANSI/NISO Z39.50-2003
-  ©NISO Page       127
-  Code Meaning Addinfo
-  value), and database name
-  1057
-  ES: Unsupported value of task package parameter (See Note 9) parameter and value
-  1058
-  Duplicate Detection: Cannot dedup on requested record portion
-  1059
-  Duplicate Detection: Requested detection criterion not supported detection criterion
-  1060
-  Duplicate Detection: Requested level of match not supported
-  1061
-  Duplicate Detection: Requested regular expression not supported 1062 Duplicate Detection: Cannot do clustering 1063 Duplicate Detection: Retention criterion not supported retention criterion
-  1064
-  Duplicate Detection: Requested number (or percentage) of entries for retention too large 1065 Duplicate Detection: Requested sort criterion not supported sort criterion 1066 CompSpec: Unknown schema, or schema not supported.
-  1067
-  Encapsulation: Encapsulated sequence of APDUs not supported
-  specific unsupported sequence
-  1068
-  Encapsulation: Base operation (and encapsulated APDUs) not executed based on pre-screening analysis. 1069 No syntaxes available for this request. See note 10.
-  1070
-  user not authorized to receive record(s) in requested syntax 1071 preferredRecordSyntax not supplied 1072             Query term includes characters that do not translate into the target character set. Characters that do not translate
+  <item code="109" meaning="Database unavailable" 
+        addinfo="database name" />
+  <item code="110" meaning="Operator unsupported" 
+        addinfo="operator" />
+  <item code="111" meaning="Too many databases specified" 
+        addinfo="maximum" />
+  <item code="112" meaning="Too many result sets created" 
+        addinfo="maximum" />
+  <item code="113" meaning="Unsupported attribute type" 
+        addinfo="type" />
+  <item code="114" meaning="Unsupported Use attribute" 
+        addinfo="value" />
+  <item code="115" meaning="Unsupported term value for Use" 
+        addinfo="attribute term" />
+  <item code="116" meaning="Use attribute required but not supplied" addinfo="(unspecified)" />
+  <item code="117" meaning="Unsupported Relation attribute" 
+        addinfo="value" />
+  <item code="118" meaning="Unsupported Structure attribute" 
+        addinfo="value" />
+  <item code="119" meaning="Unsupported Position attribute" 
+        addinfo="value" />
+  <item code="120" meaning="Unsupported Truncation attribute" 
+        addinfo="value" />
+  <item code="121" meaning="Unsupported Attribute Set" 
+        addinfo="oid" />
+  <item code="122" meaning="Unsupported Completeness attribute" 
+        addinfo="value" />
+  <item code="123" meaning="Unsupported attribute combination" addinfo="(unspecified)" />
+  <item code="124" meaning="Unsupported coded value for term" 
+        addinfo="value" />
+  <item code="125" meaning="Malformed search term" addinfo="(unspecified)" />
+  <item code="126" meaning="Illegal term value for attribute" 
+        addinfo="term" />
+  <item code="127" meaning="Unparsable format for un-normalized value" 
+        addinfo="value" />
+  <item code="128" meaning="Illegal result set name" 
+        addinfo="name" />
+  <item code="129" meaning="Proximity search of sets not supported" addinfo="(unspecified)" />
+  <item code="130" meaning="Illegal result set in proximity search" 
+        addinfo="result set name" />
+  <item code="131" meaning="Unsupported proximity relation" 
+        addinfo="value" />
+  <item code="132" meaning="Unsupported proximity unit code" 
+        addinfo="value" />
+  <item code="201" meaning="Proximity not supported with this attribute combination attribute" 
+        addinfo="list" />
+  <item code="202" meaning="Unsupported distance for proximity" 
+        addinfo="distance" />
+  <item code="203" meaning="Ordered flag not supported for proximity" addinfo="(unspecified)" />
+  <item code="205" meaning="Only zero step size supported for Scan" addinfo="(unspecified)" />
+  <item code="206" meaning="Specified step size not supported for Scan step" 
+        addinfo="size" />
+  <item code="207" meaning="Cannot sort according to sequence" 
+        addinfo="sequence" />
+  <item code="208" meaning=" No result set name supplied on Sort" addinfo="(unspecified)" />
+  <item code="209" meaning="Generic sort not supported (database-specific sort only supported)" addinfo="(unspecified)" />
+  <item code="210" meaning="Database specific sort not supported" addinfo="(unspecified)" />
+  <item code="211" meaning="Too many sort keys" 
+        addinfo="number" />
+  <item code="212" meaning="Duplicate sort keys" 
+        addinfo="key" />
+  <item code="213" meaning="Unsupported missing data action" 
+        addinfo="value" />
+  <item code="214" meaning="Illegal sort relation" 
+        addinfo="relation" />
+  <item code="215" meaning="Illegal case value" 
+        addinfo="value" />
+  <item code="216" meaning="Illegal missing data action" 
+        addinfo="value" />
+  <item code="217" meaning="Segmentation: Cannot guarantee records will fit in specified segments" addinfo="(unspecified)" />
+  <item code="218" meaning="ES: Package name already in use" 
+        addinfo="name" />
+  <item code="219" meaning="ES: no such package, on modify/delete" 
+        addinfo="name" />
+  <item code="220" meaning="ES: quota exceeded" addinfo="(unspecified)" />
+  <item code="221" meaning="ES: extended service type not supported" 
+        addinfo="type" />
+  <item code="222" meaning="ES: permission denied on ES - id not authorized" addinfo="(unspecified)" />
+  <item code="223" meaning="ES: permission denied on ES - cannot modify or delete" addinfo="(unspecified)" />
+  <item code="224" meaning="ES: immediate execution failed" addinfo="(unspecified)" />
+  <item code="225" meaning="ES: immediate execution not supported for this service" addinfo="(unspecified)" />
+  <item code="226" meaning="ES: immediate execution not supported for these parameters" addinfo="(unspecified)" />
+  <item code="227" meaning="No data available in requested record syntax" addinfo="(unspecified)" />
+  <item code="228" meaning="Scan: malformed scan" addinfo="(unspecified)" />
+  <item code="229" meaning="Term type not supported" 
+        addinfo="type" />
+  <item code="230" meaning="Sort: too many input results" 
+        addinfo="max" />
+  <item code="231" meaning="Sort: incompatible record formats" addinfo="(unspecified)" />
+  <item code="232" meaning="Scan: term list not supported" 
+        addinfo="alternative term list" />
+  <item code="233" meaning="Scan: unsupported value of position-in-response" 
+        addinfo="value" />
+  <item code="234" meaning="Too many index terms processed" 
+        addinfo="number of terms" />
+  <item code="235" meaning="Database does not exist" 
+        addinfo="database name" />
+  <item code="236" meaning="Access to specified database denied" 
+        addinfo="database name" />
+  <item code="237" meaning="Sort: illegal sort" addinfo="(unspecified)" />
+  <item code="238" meaning="Record not available in requested syntax" 
+        addinfo="alternative suggested syntax(es)" />
+  <item code="239" meaning="Record syntax not supported" 
+        addinfo="syntax" />
+  <item code="240" meaning="Scan: Resources exhausted looking for satisfying terms" addinfo="(unspecified)" />
+  <item code="241" meaning="Scan: Beginning or end of term list" addinfo="(unspecified)" />
+  <item code="242" meaning="Segmentation: max-segment-size too small to segment record" 
+        addinfo="smallest acceptable size" />
+  <item code="243" meaning="Present: additional-ranges parameter not supported" addinfo="(unspecified)" />
+  <item code="244" meaning="Present: comp-spec parameter not supported" addinfo="(unspecified)" />
+  <item code="245" meaning="Type-1 query: restriction ('resultAttr') operand not supported" addinfo="(unspecified)" />
+  <item code="246" meaning="Type-1 query: 'complex' attributeValue not supported" addinfo="(unspecified)" />
+  <item code="247" meaning="Type-1 query: 'attributeSet' as part of AttributeElement not supported" addinfo="(unspecified)" />
+  
+  <item code="1001" meaning="Malformed APDU." addinfo="" />
+  <item code="1002" meaning="ES: EXTERNAL form of Item Order request not supported." addinfo="" />
+  <item code="1003" meaning="ES: Result set item form of Item Order request not supported." addinfo="" />
+  <item code="1004" meaning="ES: Extended services not supported unless access control is in effect. " />
+  <item code="1005" meaning="Response records in Search response not supported." />
+  
+  <item code="1006" meaning="Response records in Search response not possible for specified database (or database combination). See note 1." addinfo="" 
+        notes="1. Diagnostic 1006 is intended for the case of an intermediary providing access to multiple servers, some of which may support piggybacking and some which do not. This diagnostic is for the intermediary to use in case the particular end server doesn't support piggybacking (as opposed to diagnostic 1005, which, in the case of an intermediary, would imply that the intermediary does not support piggybacking). "/>
+  <item code="1007" meaning="No Explain server. See note 2." 
+        addinfo="pointers to servers that have a surrogate Explain database for this server."
+        notes="2. Diagnostic 1007 is intended for use as Search diagnostic, when the client attempts to search the Explain database, and although the server doesn't support Explain, it is smart enough to recognize that this is what the client is attempting, and is able to recommend a surrogate server. "/>
+  <item code="1008" meaning="ES: missing mandatory parameter for specified function" 
+        addinfo="parameter" />
+  <item code="1009" meaning="ES: Item Order, unsupported OID in itemRequest." 
+        addinfo="OID" />
+  <item code="1010" meaning="Init/AC: Bad Userid" addinfo="" />
+  <item code="1011" meaning="Init/AC: Bad Userid and/or Password" addinfo="" />
+  <item code="1012" meaning="Init/AC: No searches remaining (pre-purchased searches exhausted)" addinfo="" />
+  <item code="1013" meaning="Init/AC: Incorrect interface type (specified id valid only when used with a particular access method or client)" addinfo="" />
+  <item code="1014" meaning="Init/AC: Authentication System error" addinfo="" />
+  <item code="1015" meaning="Init/AC: Maximum number of simultaneous sessions for Userid" addinfo="" />
+  <item code="1016" meaning="Init/AC: Blocked network address" addinfo="" />
+  <item code="1017" meaning="Init/AC: No databases available for specified userId" addinfo="" />
+  <item code="1018" meaning="Init/AC: System temporarily out of resources" addinfo="" />
+  <item code="1019" meaning="Init/AC: System not available due to maintenance" 
+        addinfo="when it's expected back up" />
+  <item code="1020" meaning="Init/AC: System temporarily unavailable" 
+        addinfo="when it's expected back up" />
+  <item code="1021" meaning="Init/AC: Account has expired" addinfo="" />
+  <item code="1022" meaning="Init/AC: Password has expired so a new one must be supplied" addinfo="" />
+  <item code="1023" meaning="Init/AC: Password has been changed by an administrator so a new one must be supplied" addinfo="" />
+  <item code="1024" meaning="Unsupported Attribute. See note 3." 
+        addinfo="an unstructured string indicating the object identifier of the attribute set id, the numeric value of the attribute type, and the numeric value of the attribute. "
+        notes="3. Diagnostic 1024 was included because existing attribute-related diagnostics are specific to the bib-1 attribute set. For example a query might contain the operand 'Parent-collection = 'federal theater Project'' where 'parent-collection' is a Use attribute from the digital collection attribute set. If the server does not support that attribute, it may return this diagnostic and attach the string (in the addinfo field) 'attribute set: 1.2.840.10003.3.7; type: 1; value: 4'. "/>
+  <item code="1025" meaning="Service not supported for this database" addinfo="" />
+  <item code="1026" meaning="Record cannot be opened because it is locked" addinfo="" />
+  <item code="1027" meaning="SQL error" addinfo="" />
+  <item code="1028" meaning="Record deleted" addinfo="" />
+  <item code="1029" meaning="Scan: too many terms requested." 
+        addinfo="Addinfo: max terms supported" />
+  <item code="1040" meaning="ES: Invalid function" 
+        addinfo="function" />
+  <item code="1041" meaning="ES: Error in retention time" addinfo="(unspecified)" />
+  <item code="1042" meaning="ES: Permissions data not understood" 
+        addinfo="permissions" />
+  <item code="1043" meaning="ES: Invalid OID for task specific parameters" 
+        addinfo="oid" />
+  <item code="1044" meaning="ES: Invalid action" 
+        addinfo="action" />
+  <item code="1045" meaning="ES: Unknown schema" 
+        addinfo="schema" />
+  <item code="1046" meaning="ES: Too many records in package" 
+        addinfo="maximum number allowed" />
+  <item code="1047" meaning="ES: Invalid wait action" 
+        addinfo="wait action" />
+  <item code="1048" meaning="ES: Cannot create task package -- exceeds maximum permissable size (see note 4)" 
+        addinfo="maximum task package size" 
+        notes="4. Diagnostic 1048 applies when the client sends an ES request (update) containing one or more records, and the resultant task package is too large for the server. (The client must then find a way to reduce the size of the task package or use some other means of sending the update request.) "/>
+  <item code="1049" meaning="ES: Cannot return task package -- exceeds maximum permissable size for ES response (see note 5)" 
+        addinfo="maximum task package size for ES response" 
+        notes="5. Diagnostic 1049 applies when the client sends an ES request (update) with waitAction = 'wait', the task package is created, but it is too large for the server to return in the response. The client can then use Search and Present on the task package database to retrieve the task package, perhaps specifying an element set that will reduce record sizes, or using segmentation. (When using Search and Present on the task package the diagnostics 16, 'Record exceeds preferred message size', and 17, 'Record exceeds preferred message size' apply.) "/>
+  <item code="1050" meaning="ES: Extended services request too large (see note 6)" 
+        addinfo="maximum size of extended services request" 
+        notes="6. Diagnostic 1050 applies when the client sends an ES request (Update) containing one or more records, and the entire message is too large for the server. The client must then find a way to reduce the message size or use some other means of sending the update request. "/>
+  <item code="1051" meaning="Scan: Attribute set id required -- not supplied" addinfo="" />
+  <item code="1052" meaning="ES: Cannot process task package record -- exceeds maximum permissible record size for ES (see note 7)" 
+        addinfo="maximum record size for ES" 
+        notes="7. Diagnostic 1052 applies when the client sends an ES request (Update) containing one or more records; the message is within message size limits and the task package is within task package limits, but one of the records is too large. Diagnostic 1052 would be substituted as a surrogate diagnostic within the returned task package. The offending record would have no effect on the processing of other records that may have been included in the request, and in fact these other records may be returned in the ES response in the case of waitAction = 'wait'. The client should recreate the record within the size limit and submit another ES request with that record. "/>
+  <item code="1053" meaning="ES: Cannot return task package record -- exceeds maximum permissible record size for ES response (see note 8)" 
+        addinfo="maximum record size for ES response" 
+        notes="8. Diagnostic 1053 applies when the client sends an ES request (Update) with waitAction = 'wait', containing one or more records; the message is within message size limits and the task package is within task package limits, but one of the records is too large to fit in task package for return in the ES response. Diagnostic 1053 would be substituted as a surrogate diagnostic within the returned task package in the ES response. The record may in fact have been updated but it could not be included in the returned task package. The client can then use Search and Present on either the database itself or on the task package database to retrieve the record, if necessary specifying an element set that will reduce the record size, or using segmentation. (When using Search and Present on the task package the diagnostics 16, 'Record exceeds preferred message size', and 17, 'Record exceeds preferred message size' apply.) "/>
+  <item code="1054" meaning="Init: Required negotiation record not included" 
+        addinfo="oid(s) of required negotiation record(s)" />
+  <item code="1055" meaning="Init: negotiation option required" addinfo="" />
+  <item code="1056" meaning="Attribute not supported for database" 
+        addinfo="attribute (oid, type, and value), and database name" />
+  <item code="1057" meaning="ES: Unsupported value of task package parameter (See Note 9)" 
+        addinfo="parameter and value" 
+        notes="9. Diagnostic 1057 applies for example when a client sends a PeriodicQuerySchedule with a period of 'fortnight', but the server only supports period in seconds and cannot convert to fortnight; or the client send ExportInvocation where the value of 'records' is' ranges', but the server only support a value of 'all'."/>
+  <item code="1058" meaning="Duplicate Detection: Cannot dedup on requested record portion" addinfo="" />
+  <item code="1059" meaning="Duplicate Detection: Requested detection criterion not supported" 
+        addinfo="detection criterion" />
+  <item code="1060" meaning="Duplicate Detection: Requested level of match not supported" addinfo="" />
+  <item code="1061" meaning="Duplicate Detection: Requested regular expression not supported" addinfo="" />
+  <item code="1062" meaning="Duplicate Detection: Cannot do clustering" addinfo="" />
+  <item code="1063" meaning="Duplicate Detection: Retention criterion not supported" 
+        addinfo="retention criterion" />
+  <item code="1064" meaning="Duplicate Detection: Requested number (or percentage) of entries for retention too large" addinfo="" />
+  <item code="1065" meaning="Duplicate Detection: Requested sort criterion not supported" 
+        addinfo="sort criterion" />
+  <item code="1066" meaning="CompSpec: Unknown schema, or schema not supported." addinfo="" />
+  <item code="1067" meaning="Encapsulation: Encapsulated sequence of APDUs not supported" 
+        addinfo="specific unsupported sequence" />
+  <item code="1068" meaning="Encapsulation: Base operation (and encapsulated APDUs) not executed based on pre-screening analysis. 1069 No syntaxes available for this request. See note 10." 
+        addinfo="" 
+        notes="10. Diagnostic 1069 is used when Present status is 'failure'. This is a non-surrogate diagnostic applying to the Present operation (or Retrieval phase of search operation) at large rather than to a single record."/>
+  <item code="1070" meaning="user not authorized to receive record(s) in requested syntax" addinfo="" />
+  <item code="1071" meaning="preferredRecordSyntax not supplied" addinfo="" />
+  <item code="1072" meaning="Query term includes characters that do not translate into the target character set." addinfo="Characters that do not translate" />
+</root>

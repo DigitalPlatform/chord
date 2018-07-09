@@ -38,7 +38,7 @@ namespace DigitalPlatform.Z3950.Server
 
         public event PresentGetRecordsEventHandler PresentGetRecords = null;
 
-        public static ZServerChannelCollection _zChannels = new ZServerChannelCollection();
+        public ZServerChannelCollection _zChannels = new ZServerChannelCollection();
 
         public CancellationToken _cancelToken = new CancellationToken();
 
@@ -64,10 +64,10 @@ namespace DigitalPlatform.Z3950.Server
             return ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
         }
 
-        public async void Listen()
+        public async void Listen(int backlog)
         {
             this.Listener = new TcpListener(IPAddress.Any, this.Port);
-            this.Listener.Start();  // TODO: 要捕获异常
+            this.Listener.Start(backlog);  // TODO: 要捕获异常
 
             Console.WriteLine("Z39.50 服务器成功监听于 " + this.Port.ToString());
 
@@ -99,6 +99,7 @@ namespace DigitalPlatform.Z3950.Server
         {
             this.IsActive = false;
             this.Listener.Stop();
+            _zChannels.Clear();
         }
 
 #if NO
@@ -332,9 +333,9 @@ namespace DigitalPlatform.Z3950.Server
                 channel.SetProperty()._bInitialized = false;
 
                 ZProcessor.SetInitResponseUserInfo(response_info,
-                    "", // string strOID,
-                    100,  // (unspecified) error
-                    result.ErrorInfo + ", kernel errorcode=" + result.ErrorCode);
+                    "1.2.840.10003.4.1", // string strOID,
+                    string.IsNullOrEmpty(result.ErrorCode) ? 100 : Convert.ToInt32(result.ErrorCode),  // (unspecified) error
+                    result.ErrorInfo);
                 goto DO_RESPONSE;
             }
 
@@ -381,8 +382,8 @@ namespace DigitalPlatform.Z3950.Server
                     channel.SetProperty()._bInitialized = false;
 
                     ZProcessor.SetInitResponseUserInfo(response_info,
-                        "", // string strOID,
-                        101,  // Access-control failure
+                        "1.2.840.10003.4.1", // string strOID,
+                        string.IsNullOrEmpty(e.Result.ErrorCode) ? 101 : Convert.ToInt32(e.Result.ErrorCode),  // Access-control failure
                         e.Result.ErrorInfo);
                 }
                 else
