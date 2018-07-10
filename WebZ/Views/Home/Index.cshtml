@@ -57,7 +57,7 @@
         }
 
         // 每页显示条数
-        var _percount = 6;
+        var _percount = 5;
 
 
 
@@ -100,9 +100,15 @@
                     return;
                 }
 
+                if (result.data.length == 0 || result.data.length < _percount) {
+                    showMore(false);
+                }
+                else { 
+                    showMore(true);
+                }
+
                 // 不显示更多
                 if (result.data.length == 0) {
-                    showMore(false);
 
                     if (start == 0) {
                         alert("未命中");
@@ -114,6 +120,7 @@
                     }
                 }
 
+   
                 //alert("ok");
 
                 //ulResult");//$('.mui-table-view');
@@ -144,7 +151,7 @@
                     table.append(itemHtml);
                 }
 
-                showMore(true);
+               
 
                 // 关闭等待层
                 hideLoading();
@@ -501,7 +508,9 @@
             //    return;
             //}
 
-            var remark = $(divId).find("#_remark").val()
+            var remark = $(divId).find("#_remark").val();
+            if (remark == null)
+                remark = "";
 
             var state = $(divId).find("#_state").val();
             if (state == null || state == "")
