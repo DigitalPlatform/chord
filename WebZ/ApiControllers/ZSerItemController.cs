@@ -133,6 +133,35 @@ namespace WebZ.ApiControllers
             string testMode,
             [FromBody]ZServerItem item)
         {
+            // 关于验证类等事情
+            ApiResult result = CheckInfo(verifyCode, testMode, item);
+            if (result.errorCode != 0)
+                return result;
+
+            // 保存站点信息
+            try
+            {
+                // 创建者ip地址
+                item.creatorIP = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+                result.data = ServerInfo.Instance.AddZServerItem(item);
+            }
+            catch (Exception ex)
+            {
+                result.errorCode = -1;
+                result.errorInfo = ex.Message;
+            }
+
+            return result;
+
+
+ 
+        }
+
+
+        public ApiResult CheckInfo(string verifyCode,
+            string testMode,
+            [FromBody]ZServerItem item)
+        {
             int nRet = 0;
             string error = "";
 
@@ -140,6 +169,13 @@ namespace WebZ.ApiControllers
             if (item == null)
             {
                 error = "item对象为null";
+                goto ERROR1;
+            }
+
+            // 只有公司的人才有审核权限
+            if (item.state != 0 && item.creatorPhone != "13862157150")
+            {
+                error = "您没有修改状态的权限，状态请设置为普通。";
                 goto ERROR1;
             }
 
@@ -192,12 +228,12 @@ namespace WebZ.ApiControllers
                     if (bSend == true)
                     {
                         error = "验证码已发到手机" + item.creatorPhone + "，请输入短信验证码。";
-                            //+ "code=" + code;  放在result了
+                        //+ "code=" + code;  放在result了
                     }
                     else
                     {
                         error = "请输入已经收到的手机短信验证码。";
-                            //+ "code=" + code;  放在result了
+                        //+ "code=" + code;  放在result了
                     }
 
                     // errorCode返回-2
@@ -210,7 +246,7 @@ namespace WebZ.ApiControllers
                     if (bSend == true)
                     {
                         error = "验证码无效，系统已重新给您手机号" + item.creatorPhone + "发送短信验证码，请输入新的验证码。";
-                            //+ "code=" + code;  放在result了
+                        //+ "code=" + code;  放在result了
                         goto ERROR1;
                     }
                     else
@@ -226,38 +262,32 @@ namespace WebZ.ApiControllers
                 }
             }
 
-            // 保存站点信息
-            try
-            {
-                // 创建者ip地址
-                item.creatorIP = Request.HttpContext.Connection.RemoteIpAddress.ToString();
-                result.data = ServerInfo.Instance.AddZServerItem(item);
-            }
-            catch (Exception ex)
-            {
-                result.errorCode = -1;
-                result.errorInfo = ex.Message;
-            }
-
             return result;
-
 
             ERROR1:
 
             result.errorCode = -1;
             result.errorInfo = error;
             return result;
+
         }
 
         // 一般有管理员审核修改
         // PUT api/<controller>/5
         [HttpPut("{id}")]
-        public ApiResult Put(string id, string verifyCode, [FromBody]ZServerItem item)
+        public ApiResult Put(string id, string verifyCode,
+            string testMode, 
+            [FromBody]ZServerItem item)
         {
-            ApiResult result = new ApiResult();
+            // 关于验证类等事情
+            ApiResult result = CheckInfo(verifyCode, testMode, item);
+            if (result.errorCode != 0)
+                return result;
+
             try
             {
-
+                // 创建者ip地址
+                item.creatorIP = Request.HttpContext.Connection.RemoteIpAddress.ToString();
                 result.data = ServerInfo.Instance.UpdateZServerItem(item);
             }
             catch (Exception ex)

@@ -57,7 +57,7 @@
         }
 
         // 每页显示条数
-        var _percount = 6;
+        var _percount = 5;
 
 
 
@@ -100,9 +100,15 @@
                     return;
                 }
 
+                if (result.data.length == 0 || result.data.length < _percount) {
+                    showMore(false);
+                }
+                else { 
+                    showMore(true);
+                }
+
                 // 不显示更多
                 if (result.data.length == 0) {
-                    showMore(false);
 
                     if (start == 0) {
                         alert("未命中");
@@ -114,6 +120,7 @@
                     }
                 }
 
+   
                 //alert("ok");
 
                 //ulResult");//$('.mui-table-view');
@@ -144,7 +151,7 @@
                     table.append(itemHtml);
                 }
 
-                showMore(true);
+               
 
                 // 关闭等待层
                 hideLoading();
@@ -501,8 +508,22 @@
             //    return;
             //}
 
+            var remark = $(divId).find("#_remark").val();
+            if (remark == null)
+                remark = "";
+
+            var state = $(divId).find("#_state").val();
+            if (state == null || state == "")
+                state = 0;
+            else
+                state = parseInt($(divId).find("#_state").val());
+            //alert("state=" + state);
+
+            
+
             var testMode = getCheckboxValue("_test");//$(divId).find("#_firstfull").val();
             //alert(firstfull);
+
 
 
             var subjects = "";  //这里以逗号分隔
@@ -593,7 +614,9 @@
                     charNegoUtf8: charNegoUtf8,
                     charNego_recordsInSeletedCharsets: charNego_recordsInSeletedCharsets,
                     queryTermEncoding: queryTermEncoding,
-                    defaultEncoding: defaultEncoding
+                    defaultEncoding: defaultEncoding,
+                    state: state,
+                    remark: remark
                 }
             );
 
@@ -723,7 +746,12 @@
             var creatorIP = "";  //创建者ip
             var createTime = "";
 
+
             var state = ""; //状态，0 未审核，1审核通过，2审核不通过
+            var state_0 = "";
+            var state_1 = "";
+            var state_2 = "";
+            var remark = "";
             var verifier = ""; //审核人
             var verifyTime = ""; //审核时间
 
@@ -796,6 +824,14 @@
                 creatorIP = item.creatorIP;
                 createTime = item.createTime;
                 state = item.state;
+                if (state == 0)
+                    state_0 = " selected ";
+                else if (state == 1)
+                    state_1 = " selected ";
+                else if (state == 2)
+                    state_2 = " selected ";
+                remark = item.remark;
+
                 verifier = item.verifier;
                 verifyTime = item.verifyTime;
 
@@ -894,13 +930,13 @@
                     <label>权限验证方式</label>\
                     <div class='field'>\
                         <div class='ui radio checkbox'>\
-                            <input   name='_authmethod' type='radio' "+ authmethod_open_str+" value='0'>\
+                            <input   name='_authmethod' type='radio' "+ authmethod_open_str + " value='0'>\
                             <label>Open</label>\
                         </div>\
                     </div>\
                     <div class='field'>\
                         <div class='ui radio checkbox'>\
-                            <input name='_authmethod' type='radio' "+ authmethod_idpassword_str+" value='1'>\
+                            <input name='_authmethod' type='radio' "+ authmethod_idpassword_str + " value='1'>\
                             <label>ID/Password</label>\
                         </div>\
                     </div>\
@@ -948,59 +984,59 @@
                             <label>缺省数据格式OID</label>\
                             <select id='_defaultMarcSyntaxOID'>\
                                 <option value=''></option>\
-                                <option value='UNIMARC' "+ defaultMarcSyntaxOID_UNIMARC+">1.2.840.10003.5.1 -- UNIMARC</option>\
-                                <option value='MARC21' "+ defaultMarcSyntaxOID_MARC21+">1.2.840.10003.5.10 -- MARC21</option>\
-                                <option value='SUTRS' "+ defaultMarcSyntaxOID_SUTRS+">1.2.840.10003.5.101 -- SUTRS</option>\
-                                <option value='XML' "+ defaultMarcSyntaxOID_XML+">1.2.840.10003.5.109.10 -- XML</option>\
+                                <option value='UNIMARC' "+ defaultMarcSyntaxOID_UNIMARC + ">1.2.840.10003.5.1 -- UNIMARC</option>\
+                                <option value='MARC21' "+ defaultMarcSyntaxOID_MARC21 + ">1.2.840.10003.5.10 -- MARC21</option>\
+                                <option value='SUTRS' "+ defaultMarcSyntaxOID_SUTRS + ">1.2.840.10003.5.101 -- SUTRS</option>\
+                                <option value='XML' "+ defaultMarcSyntaxOID_XML + ">1.2.840.10003.5.109.10 -- XML</option>\
                             </select>\
                         </div>\
                         <div class='inline field'>\
                             <label>缺省元素集名</label>\
                             <select id='_defaultElementSetName'>\
                                 <option value=''></option>\
-                                <option value='B' "+ defaultElementSetName_B+">B -- Brief(MARC records)</option>\
-                                <option value='F' "+ defaultElementSetName_F +">F -- Full (MARC and OPAC records)</option>\
-                                <option value='dc' "+ defaultElementSetName_dc +">dc --  Dublin Core (XML records)</option>\
-                                <option value='mods' "+ defaultElementSetName_mods +">mods  -- MODS (XML records)</option>\
-                                <option value='marcxml' "+ defaultElementSetName_marcxml +">marcxml -- MARCXML (XML records), default schema for XML</option>\
-                                <option value='opacxml' "+ defaultElementSetName_opacxml +">opacxml -- MARCXML with holdings attached</option>\
+                                <option value='B' "+ defaultElementSetName_B + ">B -- Brief(MARC records)</option>\
+                                <option value='F' "+ defaultElementSetName_F + ">F -- Full (MARC and OPAC records)</option>\
+                                <option value='dc' "+ defaultElementSetName_dc + ">dc --  Dublin Core (XML records)</option>\
+                                <option value='mods' "+ defaultElementSetName_mods + ">mods  -- MODS (XML records)</option>\
+                                <option value='marcxml' "+ defaultElementSetName_marcxml + ">marcxml -- MARCXML (XML records), default schema for XML</option>\
+                                <option value='opacxml' "+ defaultElementSetName_opacxml + ">opacxml -- MARCXML with holdings attached</option>\
                             </select>\
                         </div>\
                         <div class='ui   toggle checkbox  field'>\
-                            <input type='checkbox' id='_firstfull' "+ firstfullCkdStr+">\
+                            <input type='checkbox' id='_firstfull' "+ firstfullCkdStr + ">\
                             <label>在获取浏览记录阶段即获取全记录</label>\
                         </div>\
                         <br />\
                         <div class='ui toggle checkbox  field'>\
-                            <input type='checkbox' id='_detectmarcsyntax' "+ detectmarcsyntaxStr+">\
+                            <input type='checkbox' id='_detectmarcsyntax' "+ detectmarcsyntaxStr + ">\
                             <label>自动探测MARC记录格式</label>\
                         </div>\
                         <br />\
                         <div class='ui toggle checkbox  field'>\
-                            <input type='checkbox' id='_ignorereferenceid' "+ ignorereferenceidStr+">\
+                            <input type='checkbox' id='_ignorereferenceid' "+ ignorereferenceidStr + ">\
                             <label>不检查Reference</label>\
                         </div>\
                     </div>\
                     <div class='ui segment'>\
                         <p>ISBN检索前，对检索词作如下预处理：</p>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_force13' "+ isbn_force13Str+">\
+                            <input type='checkbox' id='_isbn_force13' "+ isbn_force13Str + ">\
                             <label>规整为13位形态&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_force10' "+ isbn_force10Str+">\
+                            <input type='checkbox' id='_isbn_force10' "+ isbn_force10Str + ">\
                             <label>规整为10位形态&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_addhyphen' "+ isbn_addhyphenStr+">\
+                            <input type='checkbox' id='_isbn_addhyphen' "+ isbn_addhyphenStr + ">\
                             <label>加入横杠&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_removehyphen' "+ isbn_removehyphenStr+">\
+                            <input type='checkbox' id='_isbn_removehyphen' "+ isbn_removehyphenStr + ">\
                             <label>去除横杠&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                         <div class='ui  checkbox field'>\
-                            <input type='checkbox' id='_isbn_wild' "+ isbn_wildStr+">\
+                            <input type='checkbox' id='_isbn_wild' "+ isbn_wildStr + ">\
                             <label>野蛮匹配&nbsp;&nbsp;&nbsp;&nbsp;</label>\
                         </div>\
                     </div>\
@@ -1009,32 +1045,50 @@
                             <label>检索词缺省编码方式</label>\
                             <select id='_queryTermEncoding'>\
                                 <option value=''></option>\
-                                <option value='gb2312' "+ queryTermEncoding_gb2312+">gb2312</option>\
-                                <option value='utf-8' "+ queryTermEncoding_utf8+">utf-8</option>\
+                                <option value='gb2312' "+ queryTermEncoding_gb2312 + ">gb2312</option>\
+                                <option value='utf-8' "+ queryTermEncoding_utf8 + ">utf-8</option>\
                             </select>\
                         </div>\
                         <div class='inline field'>\
                             <label>数据记录缺省编码方式</label>\
                             <select id='_defaultEncoding'>\
                                 <option value=''></option>\
-                                <option value='gb2312' "+ defaultEncoding_gb2312 +">gb2312</option>\
+                                <option value='gb2312' "+ defaultEncoding_gb2312 + ">gb2312</option>\
                                 <option value='utf-8' "+ defaultEncoding_utf8 + ">utf-8</option>\
-                                <option value='MARC-8' "+ defaultEncoding_MARC8 +">MARC-8</option>\
+                                <option value='MARC-8' "+ defaultEncoding_MARC8 + ">MARC-8</option>\
                             </select>\
                         </div>\
                         <div class='ui   toggle checkbox  field'>\
-                            <input type='checkbox' id='_charNegoUtf8' "+ charNegoUtf8Str+">\
+                            <input type='checkbox' id='_charNegoUtf8' "+ charNegoUtf8Str + ">\
                             <label>启用字符集协商功能，优先为检索词选用UTF-8编码方式</label>\
                         </div>\
                         <br />\
                         <div class='ui toggle checkbox  field'>\
-                            <input name='public' type='checkbox' id='_charNego_recordsInSeletedCharsets' "+ charNego_recordsInSeletedCharsetsStr+">\
+                            <input name='public' type='checkbox' id='_charNego_recordsInSeletedCharsets' "+ charNego_recordsInSeletedCharsetsStr + ">\
                             <label>若启用了字符集协商功能，令数据记录也一同采用UTF-8编码试</label>\
                         </div>\
                     </div>\
                 </div>\
-                </div>\
-            <br />\
+                </div>";
+
+            if (item != null) {
+                h += " <div class='ui segment' >\
+                    <div class=' inline field '>\
+                        <label>状态</label>\
+                            <select id='_state'>\
+                                <option value='0' "+ state_0 + ">未审核</option>\
+                                <option value='1' "+ state_1 + ">审核通过</option>\
+                                <option value='2' "+ state_2 + ">审核不通过</option>\
+                            </select>\
+                   </div>\
+                  <div class='inline field'>\
+                    <label>审核备注</label >\
+                    <textarea rows='2' id='_remark'>"+ remark + "</textarea>\
+                </div >\
+                </div >";
+            }
+
+                h+="<br/>\
             <div class='ui  button' onclick=\"save('" + msgId + "')\">" + saveBtnName + "</div>\
             <div class='ui  button' onclick=\"cancelEdit('" + msgId + "')\">取消</div>\
 </div>";
