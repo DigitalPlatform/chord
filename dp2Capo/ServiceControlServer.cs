@@ -11,12 +11,14 @@ namespace dp2Capo
     public class ServiceControlServer : MarshalByRefObject, IServiceControl, IDisposable
     {
         // 启动一个 Instance
+        //      strInstanceName 实例名。如果为 ".global" 表示全局服务
         public ServiceControlResult StartInstance(string strInstanceName)
         {
             return ServerInfo.StartInstance(strInstanceName);
         }
 
         // 停止一个 Instance
+        //      strInstanceName 实例名。如果为 ".global" 表示全局服务
         public ServiceControlResult StopInstance(string strInstanceName)
         {
             return ServerInfo.StopInstance(strInstanceName);
@@ -37,6 +39,15 @@ namespace dp2Capo
                     info.InstanceName = strInstanceName;
                     info.State = "running";
                     result.Value = 1;   // 表示 dp2capo 正在运行状态
+                    return result;
+                }
+
+                if (strInstanceName == ".global")
+                {
+                    info = new InstanceInfo();
+                    info.InstanceName = strInstanceName;
+                    info.State = ServerInfo.IsGlobalServiceRunning() ? "running" : "stopped";
+                    result.Value = 1;
                     return result;
                 }
 

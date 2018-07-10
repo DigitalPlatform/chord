@@ -793,12 +793,28 @@ MessageBoxDefaultButton.Button1);
         // 全局参数配置
         private void button_globalConfig_Click(object sender, EventArgs e)
         {
-            GlobalConfigDialog dlg = new GlobalConfigDialog();
-            FontUtil.AutoSetDefaultFont(dlg);
+            bool bStopped = false;
 
-            dlg.DataDir = this.textBox_dataDir.Text;
-            dlg.StartPosition = FormStartPosition.CenterScreen;
-            dlg.ShowDialog(this);
+            if (GetGlobalRunningState() == true)
+            {
+                StartOrStopGlobalInstance("stop");
+                bStopped = true;
+            }
+
+            try
+            {
+                GlobalConfigDialog dlg = new GlobalConfigDialog();
+                FontUtil.AutoSetDefaultFont(dlg);
+
+                dlg.DataDir = this.textBox_dataDir.Text;
+                dlg.StartPosition = FormStartPosition.CenterScreen;
+                dlg.ShowDialog(this);
+            }
+            finally
+            {
+                if (bStopped)
+                    StartOrStopGlobalInstance("start");
+            }
         }
 
         private void textBox_dataDir_TextChanged(object sender, EventArgs e)
@@ -819,6 +835,57 @@ MessageBoxDefaultButton.Button1);
         }
 
         #region 实例运行状态
+
+        void StartOrStopGlobalInstance(string strAction)
+        {
+            List<string> errors = new List<string>();
+            this.EnableControls(false);
+            try
+            {
+                string strError = "";
+
+                {
+                    string strInstanceName = ".global";
+
+                    if (IsLocking(strInstanceName))
+                    {
+                        errors.Add("全局服务当前处于被锁定状态，无法进行 " + strAction + " 操作");
+                        goto END1;
+                    }
+
+                    int nRet = dp2capo_serviceControl(
+        strAction,
+        strInstanceName,
+        out strError);
+                    if (nRet == -1)
+                        errors.Add(strError);
+                    else
+                        SetGlobalRunningState(strAction == "stop" ? false : true);
+                }
+
+                return;
+            }
+            finally
+            {
+                this.EnableControls(true);
+            }
+
+            END1:
+            if (errors.Count > 0)
+                MessageBox.Show(this, StringUtil.MakePathList(errors, "; "));
+        }
+
+        void SetGlobalRunningState(bool bRunning)
+        {
+            button_globalConfig.Text = (bRunning ? "+" : "-") + " 全局参数 ...";
+        }
+
+        bool GetGlobalRunningState()
+        {
+            if (button_globalConfig.Text.StartsWith("+"))
+                return true;
+            return false;
+        }
 
         void StartOrStopInstance(string strAction)
         {
@@ -935,6 +1002,29 @@ MessageBoxDefaultButton.Button1);
                     // nRet == 1
                     item.ImageIndex = IMAGEINDEX_RUNNING;
                 }
+            }
+
+            RefreshGlobalInstanceState();
+        }
+
+        void RefreshGlobalInstanceState()
+        {
+            string strInstanceName = ".global";
+            int nRet = dp2capo_serviceControl(
+"getState",
+strInstanceName,
+out string strError);
+            if (nRet == -1)
+            {
+                SetGlobalRunningState(false);
+            }
+            else if (nRet == 0 || strError == "stopped")
+            {
+                SetGlobalRunningState(false);
+            }
+            else
+            {
+                SetGlobalRunningState(true);
             }
         }
 
@@ -1095,6 +1185,23 @@ MessageBoxDefaultButton.Button1);
             contextMenu.MenuItems.Add(menuItem);
 
             {
+                menuItem = new MenuItem("启动全局服务 (&S)");
+                menuItem.Click += new System.EventHandler(this.menu_startGlobalInstance_Click);
+                contextMenu.MenuItems.Add(menuItem);
+            }
+
+
+            {
+                menuItem = new MenuItem("停止全局服务 (&T)");
+                menuItem.Click += new System.EventHandler(this.menu_stopGlobalInstance_Click);
+                contextMenu.MenuItems.Add(menuItem);
+            }
+
+            // ---
+            menuItem = new MenuItem("-");
+            contextMenu.MenuItems.Add(menuItem);
+
+            {
                 menuItem = new MenuItem("刷新状态(&R)");
                 menuItem.Click += new System.EventHandler(this.menu_refreshInstanceState_Click);
                 if (this.listView_instance.Items.Count == 0)
@@ -1115,6 +1222,18 @@ MessageBoxDefaultButton.Button1);
         void menu_stopInstance_Click(object sender, EventArgs e)
         {
             StartOrStopInstance("stop");
+        }
+
+        // 启动全局服务
+        void menu_startGlobalInstance_Click(object sender, EventArgs e)
+        {
+            StartOrStopGlobalInstance("start");
+        }
+
+        // 停止全局服务
+        void menu_stopGlobalInstance_Click(object sender, EventArgs e)
+        {
+            StartOrStopGlobalInstance("stop");
         }
 
         // 刷新全部事项的状态显示

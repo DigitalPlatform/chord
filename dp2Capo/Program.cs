@@ -279,16 +279,20 @@ namespace dp2Capo
 EventLogEntryType.Error);
             }
 
+#if NO
             if (ServerInfo.Z3950ServerPort != -1)
             {
                 ServerInfo.ZServer = new ZServer(ServerInfo.Z3950ServerPort);
                 ServerInfo.AddEvents(ServerInfo.ZServer, true);
                 ServerInfo.ZServer.Listen(1000);
             }
+#endif
+            ServerInfo.StartGlobalService(true);
         }
 
         static void StopServer()
         {
+#if NO
             if (ServerInfo.ZServer != null)
             {
                 ServerInfo.ZServer.Close();
@@ -296,6 +300,8 @@ EventLogEntryType.Error);
                 ServerInfo.AddEvents(ServerInfo.ZServer, false);
                 ServerInfo.ZServer = null;
             }
+#endif
+            ServerInfo.StopGlobalService();
 
             ServerInfo.EndRemotingServer();
         }

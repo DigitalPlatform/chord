@@ -41,11 +41,11 @@
             this.columnHeader_dataDir = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_dp2library_url = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_dp2MServer_url = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.label1 = new System.Windows.Forms.Label();
             this.textBox_dataDir = new System.Windows.Forms.TextBox();
             this.button_getDataDir = new System.Windows.Forms.Button();
             this.button_globalConfig = new System.Windows.Forms.Button();
-            this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.SuspendLayout();
             // 
             // button_Cancel
@@ -160,6 +160,13 @@
             this.columnHeader_dp2MServer_url.Text = "dp2MServer 服务器";
             this.columnHeader_dp2MServer_url.Width = 250;
             // 
+            // imageList1
+            // 
+            this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
+            this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
+            this.imageList1.Images.SetKeyName(0, "StatusAnnotations_Play_16xLG_color.png");
+            this.imageList1.Images.SetKeyName(1, "StatusAnnotations_Stop_16xLG_color.png");
+            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -199,20 +206,13 @@
             this.button_globalConfig.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.button_globalConfig.Enabled = false;
-            this.button_globalConfig.Location = new System.Drawing.Point(658, 39);
+            this.button_globalConfig.Location = new System.Drawing.Point(631, 39);
             this.button_globalConfig.Name = "button_globalConfig";
-            this.button_globalConfig.Size = new System.Drawing.Size(139, 34);
+            this.button_globalConfig.Size = new System.Drawing.Size(166, 34);
             this.button_globalConfig.TabIndex = 24;
             this.button_globalConfig.Text = "全局参数 ...";
             this.button_globalConfig.UseVisualStyleBackColor = true;
             this.button_globalConfig.Click += new System.EventHandler(this.button_globalConfig_Click);
-            // 
-            // imageList1
-            // 
-            this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
-            this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
-            this.imageList1.Images.SetKeyName(0, "StatusAnnotations_Play_16xLG_color.png");
-            this.imageList1.Images.SetKeyName(1, "StatusAnnotations_Stop_16xLG_color.png");
             // 
             // InstallDialog
             // 

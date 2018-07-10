@@ -29,7 +29,6 @@ using DigitalPlatform.Marc;
 using DigitalPlatform.Message;
 using DigitalPlatform.Interfaces;
 
-
 namespace dp2Capo
 {
     public static class ServerInfo
@@ -73,7 +72,7 @@ namespace dp2Capo
 
         internal static CancellationTokenSource _cancel = new CancellationTokenSource();
 
-        public static void LoadCfg(string strDataDir, bool bAutoCreate = true)
+        public static void LoadGlobalCfg(string strDataDir, bool bAutoCreate = true)
         {
             string strCfgFileName = Path.Combine(strDataDir, "config.xml");
             try
@@ -117,7 +116,8 @@ namespace dp2Capo
             }
         }
 
-        public static void SaveCfg(string strDataDir)
+        // 暂时没有地方调用本函数。注意应该是有个 changed 表示为 true 时候才覆盖原有配置文件。避免和外面主动修改配置文件的时候互相覆盖
+        public static void SaveGlobalCfg(string strDataDir)
         {
             if (ConfigDom == null)
                 throw new Exception("尚未执行 Initial()");
@@ -137,7 +137,7 @@ namespace dp2Capo
         }
 
 
-        // 从数据目录装载全部实例定义，并连接服务器
+        // 首次从数据目录装载全部实例定义，并连接服务器
         public static void Initial(string strDataDir)
         {
             DataDir = strDataDir;
@@ -157,15 +157,17 @@ namespace dp2Capo
             // DetectWriteErrorLog("*** dp2Capo 开始启动 (dp2Capo 版本: " + strVersion + ")");
             WriteLog("info", "*** dp2Capo 开始启动 (dp2Capo 版本: " + strVersion + ")");
 
+#if NO
             try
             {
-                ServerInfo.LoadCfg(DataDir);
+                ServerInfo.LoadGlobalCfg(DataDir);
             }
             catch (Exception ex)
             {
                 WriteLog("fatal", "dp2Capo 装载全局配置文件阶段出错: " + ex.Message);
                 throw ex;
             }
+#endif
 
             _exited = false;
 
@@ -221,8 +223,6 @@ namespace dp2Capo
         // 从 _instances 集合中查找一个实例
         public static Instance FindInstance(string strInstanceName)
         {
-            // Debugger.Launch();
-
             Instance instance = null;
             if (string.IsNullOrEmpty(strInstanceName))
                 instance = _instances[0];
@@ -271,9 +271,17 @@ namespace dp2Capo
             return null;
         }
 
+        // 启动一个实例
+        // parameters:
+        //      strInstanceName 实例名。如果为 ".global" 表示全局服务
         public static ServiceControlResult StartInstance(string strInstanceName)
         {
-            // TODO: 新增的实例也要能 start
+            if (strInstanceName == ".global")
+            {
+                StartGlobalService(true);
+                return new ServiceControlResult();
+            }
+
             Instance instance = FindInstance(strInstanceName);
             if (instance == null)
             {
@@ -304,8 +312,57 @@ namespace dp2Capo
             }
         }
 
+        public static void StartGlobalService(bool bLoadGlobalCfg)
+        {
+            if (bLoadGlobalCfg)
+            {
+                try
+                {
+                    ServerInfo.LoadGlobalCfg(DataDir);
+                }
+                catch (Exception ex)
+                {
+                    WriteLog("fatal", "dp2Capo 启动全局服务阶段，装载全局配置文件出错: " + ex.Message);
+                    throw ex;
+                }
+            }
+
+            if (ServerInfo.Z3950ServerPort != -1)
+            {
+                ServerInfo.ZServer = new ZServer(ServerInfo.Z3950ServerPort);
+                ServerInfo.AddEvents(ServerInfo.ZServer, true);
+                ServerInfo.ZServer.Listen(1000);
+            }
+        }
+
+        public static void StopGlobalService()
+        {
+            if (ServerInfo.ZServer != null)
+            {
+                ServerInfo.ZServer.Close();
+                ServerInfo.ZServer.Dispose();
+                ServerInfo.AddEvents(ServerInfo.ZServer, false);
+                ServerInfo.ZServer = null;
+            }
+        }
+
+        public static bool IsGlobalServiceRunning()
+        {
+            if (ServerInfo.ZServer != null)
+                return true;
+            return false;
+        }
+
+        // 停止一个实例
+        //      strInstanceName 实例名。如果为 ".global" 表示全局服务
         public static ServiceControlResult StopInstance(string strInstanceName)
         {
+            if (strInstanceName == ".global")
+            {
+                StopGlobalService();
+                return new ServiceControlResult();
+            }
+
             Instance instance = FindInstance(strInstanceName);
             if (instance == null)
                 return new ServiceControlResult
@@ -330,7 +387,7 @@ namespace dp2Capo
             }
         }
 
-        #region Windows Service 控制命令设施
+#region Windows Service 控制命令设施
 
         static IpcServerChannel m_serverChannel = null;
 
@@ -368,7 +425,7 @@ namespace dp2Capo
             }
         }
 
-        #endregion
+#endregion
 
 
         // 运用控制台显示方式，设置一个实例的基本参数
@@ -715,7 +772,7 @@ Exception Info: System.Net.NetworkInformation.PingException
             }
         }
 
-        #region 日志
+#region 日志
 
         public static Logger _logger = new Logger();
 
@@ -841,7 +898,7 @@ Exception Info: System.Net.NetworkInformation.PingException
             Log.WriteEntry(strText, type);
         }
 
-        #endregion
+#endregion
 
         public static void AddEvents(ZServer zserver, bool bAdd)
         {
