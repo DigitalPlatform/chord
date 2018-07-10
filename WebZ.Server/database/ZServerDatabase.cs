@@ -48,7 +48,7 @@ namespace WebZ.Server.database
             // 创建时间
             item.id = Guid.NewGuid().ToString();
             item.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-            item.state = C_State_WaitForVerfity; // 未审核
+            //item.state = C_State_WaitForVerfity; // 未审核
             item.verifier = "";
             item.lastModifyTime = item.createTime;//新增时，两个时间一致，状态没改变时，会修改
 
@@ -100,8 +100,8 @@ namespace WebZ.Server.database
 
 
                 // 辅助信息
-                //.Set("creatorPhone", item.creatorPhone)
-                //.Set("creatorIP", item.creatorIP)
+                .Set("creatorPhone", item.creatorPhone)
+                .Set("creatorIP", item.creatorIP)
                 //.Set("createTime", item.createTime)
                 .Set("state", item.state)
                 .Set("verifier", item.verifier)
