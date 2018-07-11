@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj" />
     <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj" />
+    <ProjectReference Include="..\DigitalPlatform.Net\DigitalPlatform.Net.csproj" />
     <ProjectReference Include="..\DigitalPlatform.Z3950\DigitalPlatform.Z3950.csproj" />
   </ItemGroup>
 

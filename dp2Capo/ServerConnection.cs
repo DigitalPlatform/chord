@@ -1409,6 +1409,10 @@ strError);
                 return;
             }
 
+            SearchBiblio(searchParam);
+            return;
+
+#if NO
             string strError = "";
             string strErrorCode = "";
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
@@ -1557,7 +1561,163 @@ this.dp2library.LibraryUID,
 records,
 strError,
 strErrorCode));
+#endif
         }
+
+        void SearchBiblio(SearchRequest searchParam)
+        { 
+            string strError = "";
+            string strErrorCode = "";
+            IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
+
+            string strResultSetName = searchParam.ResultSetName;
+            if (string.IsNullOrEmpty(strResultSetName) == true)
+                strResultSetName = "default";  // "#" + searchParam.TaskID;    // "default";
+            else
+                strResultSetName = "#" + strResultSetName;  // 如果请求方指定了结果集名，则在 dp2library 中处理为全局结果集名
+
+            try
+            {
+                LibraryChannel channel = GetChannel(searchParam.LoginInfo);
+                TimeSpan old_timeout = channel.Timeout;
+                if (searchParam.Timeout != TimeSpan.FromMilliseconds(0))
+                    channel.Timeout = searchParam.Timeout;
+                try
+                {
+                    string strQueryXml = "";
+                    long lRet = 0;
+
+                    if (searchParam.QueryWord == "!getResult")
+                    {
+                        lRet = -1;
+                    }
+                    else
+                    {
+                        if (searchParam.Operation == "searchBiblio")
+                        {
+                            // TODO: 根据数据库名列表，分析出需要针对 dp2library 服务器检索和针对 Z39.50 服务器检索的部分，分别调用
+                            // 等待所有 Task 完成后，统一发出一个表示结束的包
+                            lRet = channel.SearchBiblio(// null,
+                                 searchParam.DbNameList,
+                                 searchParam.QueryWord,
+                                 (int)searchParam.MaxResults,
+                                 searchParam.UseList,
+                                 searchParam.MatchStyle,
+                                 "zh",
+                                 strResultSetName,
+                                 "", // strSearchStyle
+                                 "", // strOutputStyle
+                                 searchParam.Filter,
+                                 out strQueryXml,
+                                 out strError);
+                            writeDebug("searchBiblio() lRet=" + lRet
+                                + ", strQueryXml=" + strQueryXml
+                                + ", strError=" + strError
+                                + ",errorcode=" + channel.ErrorCode.ToString());
+                        }
+                        else if (searchParam.Operation == "searchPatron")
+                        {
+                            lRet = channel.SearchReader(// null,
+                                searchParam.DbNameList,
+                                searchParam.QueryWord,
+                                (int)searchParam.MaxResults,
+                                searchParam.UseList,
+                                searchParam.MatchStyle,
+                                "zh",
+                                strResultSetName,
+                                "",
+                                out strError);
+                        }
+                        else
+                        {
+                            lRet = -1;
+                            strError = "无法识别的 Operation 值 '" + searchParam.Operation + "'";
+                        }
+
+                        strErrorCode = channel.ErrorCode.ToString();
+
+                        if (lRet == -1 || lRet == 0)
+                        {
+                            if (lRet == 0
+                                || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                            {
+                                // 没有命中
+                                TryResponseSearch(
+                                    new SearchResponse(
+        searchParam.TaskID,
+        0,
+        0,
+        this.dp2library.LibraryUID,
+        records,
+        strError,  // 出错信息大概为 not found。
+        strErrorCode));
+                                return;
+                            }
+                            goto ERROR1;
+                        }
+                    }
+
+
+                    {
+                        long lHitCount = lRet;
+
+                        if (searchParam.Count == 0)
+                        {
+                            // 返回命中数
+                            TryResponseSearch(
+                                new SearchResponse(
+                                searchParam.TaskID,
+                                lHitCount,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    "本次没有返回任何记录",
+    strErrorCode));
+                            return;
+                        }
+
+                        // 注: SendResults() 负责 ReturnChannel()
+                        LibraryChannel temp_channel = channel;
+                        channel = null;
+                        Task.Run(() => SendResults(
+                            temp_channel,
+                            searchParam,
+                        strResultSetName,
+                        lHitCount));
+                    }
+                }
+                finally
+                {
+                    if (channel != null)
+                    {
+                        channel.Timeout = old_timeout;
+                        this.ReturnChannel(channel);
+                    }
+                }
+
+                this.AddInfoLine("search and response end");
+                return;
+            }
+            catch (Exception ex)
+            {
+                AddErrorLine("SearchAndResponse() 出现异常: " + ex.Message);
+                strError = ExceptionUtil.GetDebugText(ex);
+                goto ERROR1;
+            }
+
+            ERROR1:
+            // 报错
+            TryResponseSearch(
+                new SearchResponse(
+searchParam.TaskID,
+-1,
+0,
+this.dp2library.LibraryUID,
+records,
+strError,
+strErrorCode));
+        }
+
 
         // 注: 本函数最后要主动 ReturnChannel()
         void SendResults(
@@ -1614,7 +1774,7 @@ strErrorCode));
                         + ",lStart=" + lStart
                         + ",lPerCount=" + lPerCount
                         + ",strBrowseStyle=" + strBrowseStyle
-                        + ", strError=" + strError
+                        + ",strError=" + strError
                         + ",errorcode=" + strErrorCode);
 
                     if (lRet == -1)
@@ -2201,16 +2361,12 @@ strErrorCode));
                         nPathFormatIndex = Array.IndexOf(formats, "outputpath");
                     }
 
-                    string[] results = null;
-                    // string strRecPath = "";
-                    byte[] baTimestamp = null;
-
                     long lRet = channel.GetBiblioInfos(
                         searchParam.QueryWord,
                         searchParam.UseList, // strBiblioXml
                         formats,
-                        out results,
-                        out baTimestamp,
+                        out string[] results,
+                        out byte[] baTimestamp,
                         out strError);
                     strErrorCode = channel.ErrorCode.ToString();
                     if (lRet == -1 || lRet == 0)
@@ -2688,7 +2844,7 @@ strError,
 strErrorCode));
         }
 
-        #endregion
+#endregion
 
 #if NO
         // 连接成功后被调用，执行登录功能。重载时要调用 Login(...) 向 server 发送 login 消息

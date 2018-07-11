@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using DigitalPlatform.Net;
 using log4net;
 
 namespace DigitalPlatform.Z3950.Server
@@ -48,6 +48,8 @@ namespace DigitalPlatform.Z3950.Server
         private TcpListener Listener;
         private bool IsActive = true;
 
+        private IpTable IpTable;
+
         #endregion
 
         // public static ILog _log = null;
@@ -66,6 +68,7 @@ namespace DigitalPlatform.Z3950.Server
 
         public async void Listen(int backlog)
         {
+            this.IpTable = new IpTable();
             this.Listener = new TcpListener(IPAddress.Any, this.Port);
             this.Listener.Start(backlog);  // TODO: 要捕获异常
 
@@ -73,20 +76,45 @@ namespace DigitalPlatform.Z3950.Server
 
             while (this.IsActive)
             {
+                TcpClient tcpClient = null;
                 try
                 {
-                    TcpClient tcpClient = await this.Listener.AcceptTcpClientAsync();
+                    tcpClient = await this.Listener.AcceptTcpClientAsync();
 
                     // string ip = ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
                     string ip = GetClientIP(tcpClient);
-                    ZManager.Log?.Info("*** ip [" + ip + "] request");
+                    // ZManager.Log?.Info("*** ip [" + ip + "] request");
 
-                    Task.Run(() => HandleClient(tcpClient, _cancelToken));
+                    if (this.IpTable != null)
+                    {
+                        string error = this.IpTable.CheckIp(ip);
+                        if (error != null)
+                        {
+                            tcpClient.Close();
+                            // TODO: 可以在首次出现这种情况的时候记入错误日志
+                            // ZManager.Log?.Info("*** ip [" + ip + "] 被禁止 Connect。原因: " + error);
+                            continue;
+                        }
+                    }
 
-                    // TestHandleClient(tcpClient, ServerInfo._cancel.Token);
+                    Task task = // 用来消除警告 // https://stackoverflow.com/questions/18577054/alternative-to-task-run-that-doesnt-throw-warning
+                    Task.Run(() =>
+                            HandleClient(tcpClient,
+                                () =>
+                                {
+                                    if (this.IpTable != null)
+                                        this.IpTable.FinishIp(ip);
+                                    tcpClient = null;
+                                },
+                                _cancelToken));
+
+
                 }
                 catch (Exception ex)
                 {
+                    if (tcpClient != null)
+                        tcpClient.Close();
+
                     if (this.IsActive == false)
                         break;
                     ZManager.Log?.Error("Listen() 出现异常: " + ExceptionUtil.GetExceptionMessage(ex));
@@ -100,6 +128,15 @@ namespace DigitalPlatform.Z3950.Server
             this.IsActive = false;
             this.Listener.Stop();
             _zChannels.Clear();
+        }
+
+        public void TryClearBlackList()
+        {
+            if (this.IpTable == null)
+                return;
+
+            // 清理一次黑名单
+            this.IpTable.ClearBlackList(TimeSpan.FromMinutes(10));
         }
 
 #if NO
@@ -117,6 +154,7 @@ namespace DigitalPlatform.Z3950.Server
 
         // 处理一个通道的通讯活动
         public async void HandleClient(TcpClient tcpClient,
+            Action close_action,
             CancellationToken token)
         {
             ZServerChannel channel = _zChannels.Add(tcpClient);
@@ -139,6 +177,8 @@ namespace DigitalPlatform.Z3950.Server
                     bool running = true;
                     while (running)
                     {
+                        if (token != null && token.IsCancellationRequested)
+                            return;
                         // 注意调用返回后如果发现返回 null 或者抛出了异常，调主要主动 Close 和重新分配 TcpClient
                         BerTree request = await ZProcessor.GetIncomingRequest(tcpClient);
                         if (request == null)
@@ -149,6 +189,8 @@ namespace DigitalPlatform.Z3950.Server
                         Console.WriteLine("request " + i);
 
                         channel.Touch();
+                        if (token != null && token.IsCancellationRequested)
+                            return;
 
                         byte[] response = null;
                         if (this.ProcessRequest == null)
@@ -162,6 +204,8 @@ namespace DigitalPlatform.Z3950.Server
                         }
 
                         channel.Touch();
+                        if (token != null && token.IsCancellationRequested)
+                            return;
 
                         // 注意调用返回 result.Value == -1 情况下，要及时 Close TcpClient
                         Result result = await ZProcessor.SendResponse(response, tcpClient);
@@ -177,8 +221,9 @@ namespace DigitalPlatform.Z3950.Server
                 }
                 catch (Exception ex)
                 {
-                    // 2016/11/14
-                    ZManager.Log?.Error("ip:" + ip + " HandleClient() 异常: " + ExceptionUtil.GetExceptionText(ex));
+                    string strError = "ip:" + ip + " HandleClient() 异常: " + ExceptionUtil.GetExceptionText(ex);
+                    ZManager.Log?.Error(strError);
+                    // Console.WriteLine(strError);
                 }
                 finally
                 {
@@ -208,6 +253,7 @@ namespace DigitalPlatform.Z3950.Server
                 }
 #endif
                 channel.Close();
+                close_action.Invoke();
             }
         }
 
