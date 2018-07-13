@@ -272,10 +272,11 @@ namespace dp2Mini
                 StringBuilder sb = new StringBuilder(256);
                 foreach (ListViewItem item in this.listView_results.SelectedItems)
                 {
+/*
                     string strPrintState = ListViewUtil.GetItemText(item, item.SubItems.Count - 1);
                     if (strPrintState == "已打印")
                         continue;
-
+*/
                     foreach (ListViewItem.ListViewSubItem subItem in item.SubItems)
                     {
                         string strText = subItem.Text;
@@ -395,10 +396,12 @@ namespace dp2Mini
 
         private void toolStripMenuItem_change_Click(object sender, EventArgs e)
         {
-
+            ListViewItem[] listViews = new ListViewItem[this.listView_results.SelectedItems.Count];
+            this.listView_results.SelectedItems.CopyTo(listViews, 0);
+            changeAcctiveItemPrintState(listViews, "");
         }
 
-        void changeAcctiveItemPrintState(ListViewItem[] items)
+        void changeAcctiveItemPrintState(ListViewItem[] items, string strChangeState = "已打印")
         {
             if (items.Length == 0)
                 return;
@@ -439,10 +442,10 @@ namespace dp2Mini
                     dom.LoadXml(strResult);
 
                     string strPrintState = DomUtil.GetElementText(dom.DocumentElement, "printState");
-                    if (strPrintState == "已打印")
+                    if (strPrintState == strChangeState)
                         continue;
 
-                    DomUtil.SetElementText(dom.DocumentElement, "printState", "已打印");
+                    DomUtil.SetElementText(dom.DocumentElement, "printState", strChangeState);
 
                     byte[] baOutTimestamp = null;
                     lRet = channel.WriteRes(strResPath,
@@ -459,7 +462,7 @@ namespace dp2Mini
                         return;
                     }
 
-                    ListViewUtil.ChangeItemText(item, 11, "已打印");
+                    ListViewUtil.ChangeItemText(item, 11, strChangeState);
                 }
             }
             finally
