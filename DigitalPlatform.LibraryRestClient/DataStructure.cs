@@ -411,6 +411,36 @@ namespace DigitalPlatform.LibraryRestClient
         [DataMember]
         public byte[] baOutputTimestamp { get; set; }
     }
+
+    [DataContract]
+    public class GetResRequest
+    {
+        [DataMember]
+        public string strResPath { get; set; }
+        [DataMember]
+        public long nStart { get; set; }
+        [DataMember]
+        public int nLength { get; set; }
+        [DataMember]
+        public string strStyle { get; set; }
+    }
+
+    [DataContract]
+    public class GetResResponse
+    {
+        [DataMember]
+        public LibraryServerResult GetResResult { get; set; }
+
+        [DataMember]
+        public byte[] baContent { get; set; }
+        [DataMember]
+        public string strMetadata { get; set; }
+        [DataMember]
+        public string strOutputResPath { get; set; }
+        [DataMember]
+        public byte[] baOutputTimestamp { get; set; }
+    }
+
     // GetSearchResult()
     [DataContract]
     public class GetSearchResultRequest
