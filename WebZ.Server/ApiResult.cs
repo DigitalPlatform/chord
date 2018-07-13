@@ -19,5 +19,8 @@ namespace WebZ.Server
 
         // 返回的数据对象
         public object data = "";
+
+        // 其它信息，例如提交站点信息的短信验证码
+        public object info = "";
     }
 }

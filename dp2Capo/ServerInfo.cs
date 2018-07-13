@@ -742,6 +742,8 @@ Exception Info: System.Net.NetworkInformation.PingException
 
                     // 清除废弃的全局结果集
                     Task.Run(() => instance.FreeGlobalResultSets());
+
+                    ZServer.TryClearBlackList();
                 }
             }
 
