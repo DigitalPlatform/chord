@@ -12,6 +12,7 @@ using DigitalPlatform.Xml;
 using DigitalPlatform.Marc;
 using DigitalPlatform.Forms;
 using DigitalPlatform.LibraryRestClient;
+using System.Collections.Generic;
 
 namespace dp2Mini
 {
@@ -120,7 +121,7 @@ namespace dp2Mini
                     {
                         string strPath = record.Path;
 
-                        string[] cols = FillListViewItem(channel, record);
+                        string[] cols = FillListViewItem(channel, record.RecordBody.Xml);
 
                         AppendNewLine(this.listView_results, strPath, cols);
 
@@ -147,7 +148,7 @@ namespace dp2Mini
         }
 
 
-        string[] FillListViewItem(LibraryChannel channel, Record record)
+        string[] FillListViewItem(LibraryChannel channel, string strRecord)
         {
             string strErrorInfo = "";
             string strError = "";
@@ -155,9 +156,9 @@ namespace dp2Mini
 
             long lRet = 0;
 
-            string strXML = record.RecordBody.Xml;
+            // string strXML = record.RecordBody.Xml;
             XmlDocument dom = new XmlDocument();
-            dom.LoadXml(strXML);
+            dom.LoadXml(strRecord);
 
             string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
             if ("arrived" == strState)
@@ -167,6 +168,9 @@ namespace dp2Mini
 
             string strLocation = DomUtil.GetElementText(dom.DocumentElement, "location");
             string strAccessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
+            string strPrintState = DomUtil.GetElementText(dom.DocumentElement, "printState");
+            if (string.IsNullOrEmpty(strPrintState))
+                strPrintState = "未打印";
 
 
             string strItemBarcode = DomUtil.GetElementText(dom.DocumentElement, "itemBarcode");
@@ -223,7 +227,7 @@ namespace dp2Mini
             cols[4] = strAccessNo;
             cols[5] = strLocation;
             cols[9] = strState;
-            cols[10] = "未打印";
+            cols[10] = strPrintState;
 
             return cols;
         }
@@ -246,7 +250,6 @@ namespace dp2Mini
                 ListViewUtil.EnsureColumns(list, others.Length + 1, 100);
 
             ListViewItem item = new ListViewItem(strID, 0);
-
             list.Items.Add(item);
 
             if (others != null)
@@ -269,6 +272,11 @@ namespace dp2Mini
                 StringBuilder sb = new StringBuilder(256);
                 foreach (ListViewItem item in this.listView_results.SelectedItems)
                 {
+/*
+                    string strPrintState = ListViewUtil.GetItemText(item, item.SubItems.Count - 1);
+                    if (strPrintState == "已打印")
+                        continue;
+*/
                     foreach (ListViewItem.ListViewSubItem subItem in item.SubItems)
                     {
                         string strText = subItem.Text;
@@ -302,13 +310,17 @@ namespace dp2Mini
 
         private void toolStripMenuItem_print_Click(object sender, EventArgs e)
         {
+            Cursor oldCursor = this.Cursor;
+            this.Cursor = Cursors.WaitCursor;
+
             string strError = "";
 
             outputPrintFile();
 
             CardPrintForm form = new CardPrintForm();
             form.PrinterInfo = new PrinterInfo();
-            form.CardFilename = "print.xml";  // 卡片文件名
+            form.CardFilename = printFilename;  // 卡片文件名
+            form.ShowInTaskbar = false;
 
             form.WindowState = FormWindowState.Minimized;
             form.Show();
@@ -320,6 +332,12 @@ namespace dp2Mini
                 goto ERROR1;
             }
             form.Close();
+
+            ListViewItem[] items = new ListViewItem[this.listView_results.SelectedItems.Count];
+            this.listView_results.SelectedItems.CopyTo(items, 0);
+            changeAcctiveItemPrintState(items);
+
+            this.Cursor = oldCursor;
             return;
             ERROR1:
             MessageBox.Show(this, strError);
@@ -327,26 +345,15 @@ namespace dp2Mini
 
         private void toolStripMenuItem_printPreview_Click(object sender, EventArgs e)
         {
+            Cursor oldCursor = this.Cursor;
+            this.Cursor = Cursors.WaitCursor;
+
+            outputPrintFile();
             CardPrintForm dlg = new CardPrintForm();
-            dlg.CardFilename = "print.xml";  // 卡片文件名
+            dlg.CardFilename = printFilename;  // 卡片文件名
             dlg.PrintPreviewFromCardFile();
 
-
-            /*
-            if (printDialog_prep.ShowDialog(this) != DialogResult.OK)
-                return;
-
-            try
-            {
-                outputPrintFile();
-                printDocument_prep.PrinterSettings.PrinterName = printDialog_prep.PrinterSettings.PrinterName;
-                printPreviewDialog_prep.ShowDialog(this);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            */
+            this.Cursor = oldCursor;
         }
 
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
@@ -372,43 +379,6 @@ namespace dp2Mini
 
         }
 
-        private void pd_PrintPage(object sender, PrintPageEventArgs e)
-        {
-            int linesPerPage = 0;
-            float yPos = 0;
-            int count = 0;
-            float leftMargin = 5; // ev.MarginBounds.Left;
-            float topMargin = 5; // ev.MarginBounds.Top;
-            string line = null;
-
-            Font printFont = new Font("微软雅黑", 9);
-
-            // Calculate the number of lines per page.
-            linesPerPage = (int)(e.MarginBounds.Height / printFont.GetHeight(e.Graphics));
-
-            using (StreamReader reader = new StreamReader(printFilename, Encoding.UTF8))
-            {
-                while (count < linesPerPage &&
-                   ((line = reader.ReadLine()) != null))
-                {
-                    yPos = topMargin + (count * printFont.GetHeight(e.Graphics));
-
-                    e.Graphics.DrawString(line,
-                        printFont,
-                        Brushes.Black,
-                        leftMargin,
-                        yPos,
-                        new StringFormat());
-                    count++;
-                }
-                // If more lines exist, print another page.
-                if (line != null)
-                    e.HasMorePages = true;
-                else
-                    e.HasMorePages = false;
-            }
-        }
-
         private void toolStripMenuItem_remove_Click(object sender, EventArgs e)
         {
             Cursor oldCursor = this.Cursor;
@@ -422,6 +392,83 @@ namespace dp2Mini
             this.listView_results.EndUpdate();
 
             this.Cursor = oldCursor;
+        }
+
+        private void toolStripMenuItem_change_Click(object sender, EventArgs e)
+        {
+            ListViewItem[] listViews = new ListViewItem[this.listView_results.SelectedItems.Count];
+            this.listView_results.SelectedItems.CopyTo(listViews, 0);
+            changeAcctiveItemPrintState(listViews, "");
+        }
+
+        void changeAcctiveItemPrintState(ListViewItem[] items, string strChangeState = "已打印")
+        {
+            if (items.Length == 0)
+                return;
+
+            MainForm mainForm = null;
+            if (this.MdiParent is MainForm)
+                mainForm = this.MdiParent as MainForm;
+
+            Debug.Assert(mainForm != null, "MdiParent 父窗口为 null");
+
+            LibraryChannel channel = mainForm.GetChannel();
+            try
+            {
+                string strResult = "";
+                string strMetaData = "";
+                byte[] baTimestamp = null;
+                string strOutputResPath = "";
+                string strError = "";
+                foreach (ListViewItem item in items)
+                {
+                    Application.DoEvents();
+
+                    string strResPath = item.Text;
+                    long lRet = channel.GetRes(strResPath,
+                        "content,data,metadata,timestamp,outputpath",
+                        out strResult,
+                        out strMetaData,
+                        out baTimestamp,
+                        out strOutputResPath,
+                        out strError);
+                    if (lRet == -1)
+                    {
+                        MessageBox.Show(this, strError);
+                        return;
+                    }
+
+                    XmlDocument dom = new XmlDocument();
+                    dom.LoadXml(strResult);
+
+                    string strPrintState = DomUtil.GetElementText(dom.DocumentElement, "printState");
+                    if (strPrintState == strChangeState)
+                        continue;
+
+                    DomUtil.SetElementText(dom.DocumentElement, "printState", strChangeState);
+
+                    byte[] baOutTimestamp = null;
+                    lRet = channel.WriteRes(strResPath,
+                        dom.DocumentElement.OuterXml,
+                        true,
+                        "",
+                        baTimestamp,
+                        out baOutTimestamp,
+                        out strOutputResPath,
+                        out strError);
+                    if (lRet == -1)
+                    {
+                        MessageBox.Show(this, strError);
+                        return;
+                    }
+
+                    ListViewUtil.ChangeItemText(item, 11, strChangeState);
+                }
+            }
+            finally
+            {
+                mainForm.ReturnChannel(channel);
+            }
         }
     }
 }

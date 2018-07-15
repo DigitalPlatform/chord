@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PrepForm));
             this.splitContainer_prep = new System.Windows.Forms.SplitContainer();
             this.button_search = new System.Windows.Forms.Button();
             this.textBox_queryWord = new System.Windows.Forms.TextBox();
@@ -52,9 +51,7 @@
             this.toolStripMenuItem_printPreview = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_export = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_remove = new System.Windows.Forms.ToolStripMenuItem();
-            this.printDialog_prep = new System.Windows.Forms.PrintDialog();
-            this.printDocument_prep = new System.Drawing.Printing.PrintDocument();
-            this.printPreviewDialog_prep = new System.Windows.Forms.PrintPreviewDialog();
+            this.toolStripMenuItem_change = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_prep)).BeginInit();
             this.splitContainer_prep.Panel1.SuspendLayout();
             this.splitContainer_prep.Panel2.SuspendLayout();
@@ -139,19 +136,22 @@
             // columnHeader_path
             // 
             this.columnHeader_path.Text = "路径";
-            this.columnHeader_path.Width = 200;
+            this.columnHeader_path.Width = 150;
             // 
             // columnHeader_itemBarcode
             // 
             this.columnHeader_itemBarcode.Text = "册条码";
+            this.columnHeader_itemBarcode.Width = 100;
             // 
             // columnHeader_isbn
             // 
             this.columnHeader_isbn.Text = "ISBN";
+            this.columnHeader_isbn.Width = 100;
             // 
             // columnHeader_title
             // 
             this.columnHeader_title.Text = "书名";
+            this.columnHeader_title.Width = 150;
             // 
             // columnHeader_author
             // 
@@ -160,30 +160,32 @@
             // columnHeader_accessNo
             // 
             this.columnHeader_accessNo.Text = "索取号";
+            this.columnHeader_accessNo.Width = 100;
             // 
             // columnHeader_location
             // 
             this.columnHeader_location.Text = "馆藏地点";
-            this.columnHeader_location.Width = 73;
+            this.columnHeader_location.Width = 100;
             // 
             // columnHeader_readerBarcode
             // 
             this.columnHeader_readerBarcode.Text = "预约者条码号";
-            this.columnHeader_readerBarcode.Width = 96;
+            this.columnHeader_readerBarcode.Width = 100;
             // 
             // columnHeader_readerName
             // 
             this.columnHeader_readerName.Text = "预约者姓名";
-            this.columnHeader_readerName.Width = 87;
+            this.columnHeader_readerName.Width = 100;
             // 
             // columnHeader_department
             // 
             this.columnHeader_department.Text = "预约者部门";
-            this.columnHeader_department.Width = 90;
+            this.columnHeader_department.Width = 100;
             // 
             // columnHeader_state
             // 
             this.columnHeader_state.Text = "到书状态";
+            this.columnHeader_state.Width = 100;
             // 
             // columnHeader_isPrint
             // 
@@ -196,9 +198,10 @@
             this.toolStripMenuItem_print,
             this.toolStripMenuItem_printPreview,
             this.toolStripMenuItem_export,
-            this.toolStripMenuItem_remove});
+            this.toolStripMenuItem_remove,
+            this.toolStripMenuItem_change});
             this.contextMenuStrip_prep.Name = "contextMenuStrip1";
-            this.contextMenuStrip_prep.Size = new System.Drawing.Size(141, 92);
+            this.contextMenuStrip_prep.Size = new System.Drawing.Size(141, 114);
             this.contextMenuStrip_prep.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
             // toolStripMenuItem_print
@@ -229,25 +232,12 @@
             this.toolStripMenuItem_remove.Text = "移除(&R)";
             this.toolStripMenuItem_remove.Click += new System.EventHandler(this.toolStripMenuItem_remove_Click);
             // 
-            // printDialog_prep
+            // toolStripMenuItem_change
             // 
-            this.printDialog_prep.Document = this.printDocument_prep;
-            // 
-            // printDocument_prep
-            // 
-            this.printDocument_prep.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(this.pd_PrintPage);
-            // 
-            // printPreviewDialog_prep
-            // 
-            this.printPreviewDialog_prep.AutoScrollMargin = new System.Drawing.Size(0, 0);
-            this.printPreviewDialog_prep.AutoScrollMinSize = new System.Drawing.Size(0, 0);
-            this.printPreviewDialog_prep.ClientSize = new System.Drawing.Size(400, 300);
-            this.printPreviewDialog_prep.Document = this.printDocument_prep;
-            this.printPreviewDialog_prep.Enabled = true;
-            this.printPreviewDialog_prep.Icon = ((System.Drawing.Icon)(resources.GetObject("printPreviewDialog_prep.Icon")));
-            this.printPreviewDialog_prep.Name = "printPreviewDialog_prep";
-            this.printPreviewDialog_prep.UseAntiAlias = true;
-            this.printPreviewDialog_prep.Visible = false;
+            this.toolStripMenuItem_change.Name = "toolStripMenuItem_change";
+            this.toolStripMenuItem_change.Size = new System.Drawing.Size(140, 22);
+            this.toolStripMenuItem_change.Text = "修改(&M)";
+            this.toolStripMenuItem_change.Click += new System.EventHandler(this.toolStripMenuItem_change_Click);
             // 
             // PrepForm
             // 
@@ -294,8 +284,6 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_export;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_remove;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_printPreview;
-        private System.Windows.Forms.PrintDialog printDialog_prep;
-        private System.Windows.Forms.PrintPreviewDialog printPreviewDialog_prep;
-        private System.Drawing.Printing.PrintDocument printDocument_prep;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_change;
     }
 }

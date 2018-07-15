@@ -136,11 +136,9 @@ namespace dp2Mini
 
                     if (bRet == false)
                         return 1;	// 结束
-
                 }
 
                 strXml = m_reader.ReadOuterXml();
-
 
                 return 0;
             }
@@ -603,13 +601,13 @@ namespace dp2Mini
         }
 
         static void DrawFourAngel(
-    Graphics g,
-    Pen pen,
-    float x,
-    float y,
-    float w,
-    float h,
-    float line_length)
+            Graphics g,
+            Pen pen,
+            float x,
+            float y,
+            float w,
+            float h,
+            float line_length)
         {
             // *** 左上
 
@@ -841,16 +839,16 @@ namespace dp2Mini
                     strHeaderCondition += ",tailpage";
 
                 int nRet = DoColumns(g,
-        nodeHeader,
-        x,
-        y,
-        width,
-        height,
-        true,
-        macro_table,
-        strHeaderCondition,
-        ref temp_pages,
-        out strError);
+                    nodeHeader,
+                    x,
+                    y,
+                    width,
+                    height,
+                    true,
+                    macro_table,
+                    strHeaderCondition,
+                    ref temp_pages,
+                    out strError);
                 if (nRet == -1)
                     return -1;
             }
@@ -900,16 +898,16 @@ namespace dp2Mini
                     strHeaderCondition += ",tailpage";
 
                 int nRet = DoColumns(g,
-        nodeHeader,
-        x,
-        y,
-        width,
-        height,
-        true,
-        macro_table,
-        strHeaderCondition,
-        ref temp_pages,
-        out strError);
+                    nodeHeader,
+                    x,
+                    y,
+                    width,
+                    height,
+                    true,
+                    macro_table,
+                    strHeaderCondition,
+                    ref temp_pages,
+                    out strError);
                 if (nRet == -1)
                     return -1;
             }
@@ -1025,13 +1023,13 @@ namespace dp2Mini
                 {
                     string strStyle = DomUtil.GetAttr(node, "style");
                     if (StringUtil.IsInList("hidewhenonepage", strStyle) == true
-    && StringUtil.IsInList("onlyonepage", strHeaderCondition) == true)
+                        && StringUtil.IsInList("onlyonepage", strHeaderCondition) == true)
                         continue;
                     if (StringUtil.IsInList("hidewhenfirstpage", strStyle) == true
-&& StringUtil.IsInList("firstpage", strHeaderCondition) == true)
+                        && StringUtil.IsInList("firstpage", strHeaderCondition) == true)
                         continue;
                     if (StringUtil.IsInList("hidewhentailpage", strStyle) == true
-&& StringUtil.IsInList("tailpage", strHeaderCondition) == true)
+                        && StringUtil.IsInList("tailpage", strHeaderCondition) == true)
                         continue;
                 }
 
@@ -1167,8 +1165,8 @@ namespace dp2Mini
                 nodeContainer,
                 macro_table,
                 rect_group,
-        ref lines,
-        out strError);
+                ref lines,
+                out strError);
             if (nRet == -1)
                 return -1;
 
@@ -1323,13 +1321,13 @@ namespace dp2Mini
                 try
                 {
                     nRet = BuildLines(g,
-            rect_def,
-            "\r\n",
-            font,
-            color,
-            format,
-            ref lines,
-            out strError);
+                        rect_def,
+                        "\r\n",
+                        font,
+                        color,
+                        format,
+                        ref lines,
+                        out strError);
                     if (nRet == -1)
                         return -1;
                 }
@@ -1365,13 +1363,13 @@ namespace dp2Mini
                 {
 
                     nRet = BuildLines(g,
-            rect_def,
-            null,
-            font,
-            color,
-            format,
-            ref lines,
-            out strError);
+                        rect_def,
+                        null,
+                        font,
+                        color,
+                        format,
+                        ref lines,
+                        out strError);
                     if (nRet == -1)
                         return -1;
 
