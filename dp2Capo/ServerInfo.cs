@@ -136,6 +136,7 @@ namespace dp2Capo
             ConfigDom.Save(strCfgFileName);
         }
 
+        static Mutex _mutex = null;
 
         // 首次从数据目录装载全部实例定义，并连接服务器
         public static void Initial(string strDataDir)
@@ -144,8 +145,16 @@ namespace dp2Capo
             LogDir = Path.Combine(strDataDir, "log");   // 日志目录
             PathUtil.CreateDirIfNeed(LogDir);
 
+
+            // http://stackoverflow.com/questions/184084/how-to-force-c-sharp-net-app-to-run-only-one-instance-in-windows
+            // mutex name need contains windows account name. or us programes file path, hashed
+            // _mutex = new Mutex(true, "dp2Capo V1", out bool createdNew);
+
+            // 要避免初始化发生两次
+            // https://stackoverflow.com/questions/579688/why-is-the-date-appended-twice-on-filenames-when-using-log4net
             var repository = log4net.LogManager.CreateRepository("main");
-            log4net.GlobalContext.Properties["LogFileName"] = Path.Combine(LogDir, "log_");
+            // if (createdNew)
+                log4net.GlobalContext.Properties["LogFileName"] = Path.Combine(LogDir, "log_");
             log4net.Config.XmlConfigurator.Configure(repository);
 
             ZManager.Log = LogManager.GetLogger("main", "zlib");
@@ -240,7 +249,8 @@ namespace dp2Capo
         // 尝试从数据目录装载一个尚未存在于 _instances 集合中的实例
         public static Instance LoadInstance(string strInstanceName)
         {
-            var exist = _instances.Find((o) => {
+            var exist = _instances.Find((o) =>
+            {
                 if (o.Name == strInstanceName) return true;
                 return false;
             });
@@ -387,7 +397,7 @@ namespace dp2Capo
             }
         }
 
-#region Windows Service 控制命令设施
+        #region Windows Service 控制命令设施
 
         static IpcServerChannel m_serverChannel = null;
 
@@ -425,7 +435,7 @@ namespace dp2Capo
             }
         }
 
-#endregion
+        #endregion
 
 
         // 运用控制台显示方式，设置一个实例的基本参数
@@ -774,7 +784,7 @@ Exception Info: System.Net.NetworkInformation.PingException
             }
         }
 
-#region 日志
+        #region 日志
 
         public static Logger _logger = new Logger();
 
@@ -900,7 +910,7 @@ Exception Info: System.Net.NetworkInformation.PingException
             Log.WriteEntry(strText, type);
         }
 
-#endregion
+        #endregion
 
         public static void AddEvents(ZServer zserver, bool bAdd)
         {
@@ -1638,6 +1648,11 @@ Exception Info: System.Net.NetworkInformation.PingException
                 return;
             }
 
+            string strClientIP = ZServer.GetClientIP(zserver_channel.TcpClient);
+
+            // testing
+            // strClientIP = "127.0.0.2";
+
             string strUserName = zserver_channel.SetProperty().GetKeyValue("i_u");
             string strPassword = zserver_channel.SetProperty().GetKeyValue("i_p");
 
@@ -1649,7 +1664,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                 string strParameters = "";
                 if (login_info.UserType == "patron")
                     strParameters += ",type=reader";
-                strParameters += ",client=dp2capo|" + "0.01";
+                strParameters += ",client=dp2capo|" + "0.01" + ",clientip=" + strClientIP;
 
                 // result.Value:
                 //      -1  登录出错

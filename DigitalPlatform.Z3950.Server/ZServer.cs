@@ -61,16 +61,25 @@ namespace DigitalPlatform.Z3950.Server
             // _log = log;
         }
 
-        static string GetClientIP(TcpClient s)
+        public static string GetClientIP(TcpClient s)
         {
             return ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
         }
 
         public async void Listen(int backlog)
         {
-            this.IpTable = new IpTable();
-            this.Listener = new TcpListener(IPAddress.Any, this.Port);
-            this.Listener.Start(backlog);  // TODO: 要捕获异常
+            try
+            {
+                this.IpTable = new IpTable();
+                this.Listener = new TcpListener(IPAddress.Any, this.Port);
+                this.Listener.Start(backlog);  // TODO: 要捕获异常
+            }
+            catch (Exception ex)
+            {
+                string strError = "Listen() Start() 出现异常: " + ExceptionUtil.GetExceptionMessage(ex);
+                ZManager.Log?.Error(strError);
+                throw ex;
+            }
 
             Console.WriteLine("Z39.50 服务器成功监听于 " + this.Port.ToString());
 

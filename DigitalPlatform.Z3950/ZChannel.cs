@@ -169,7 +169,7 @@ namespace DigitalPlatform.Z3950
             {
                 this._hostName = host_name;
                 this._port = port;
-                await _client.ConnectAsync(host_name, port);
+                await _client.ConnectAsync(host_name, port).ConfigureAwait(false);
                 // client.NoDelay = true;
                 return new Result();
             }
@@ -271,7 +271,7 @@ namespace DigitalPlatform.Z3950
             {
                 Result result = await SimpleSendTcpPackage(this._client,
                     baSend,
-                    baSend.Length);
+                    baSend.Length).ConfigureAwait(false);
                 if (result.Value == -1 || result.Value == 1)
                 {
                     this.CloseSocket();
@@ -288,7 +288,7 @@ namespace DigitalPlatform.Z3950
                 //byte[] baPackage = null;
                 //int nRecvLen = 0;
                 // 注意调用返回后如果发现出错，调主要主动 Close 和重新分配 TcpClient
-                RecvResult result = await SimpleRecvTcpPackage(this._client);
+                RecvResult result = await SimpleRecvTcpPackage(this._client).ConfigureAwait(false);
                 if (result.Value == -1)
                 {
                     this.CloseSocket();
@@ -375,7 +375,7 @@ namespace DigitalPlatform.Z3950
             try
             {
                 // stream.Write(baPackage, 0, nLen);
-                await stream.WriteAsync(baPackage, 0, nLen);
+                await stream.WriteAsync(baPackage, 0, nLen).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -426,7 +426,7 @@ namespace DigitalPlatform.Z3950
                 {
                     wRet = await _client.GetStream().ReadAsync(result.Package,
                         nInLen,
-                        result.Package.Length - nInLen);
+                        result.Package.Length - nInLen).ConfigureAwait(false);
                 }
                 catch (SocketException ex)
                 {
