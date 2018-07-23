@@ -157,7 +157,7 @@ namespace dp2Capo
                 log4net.GlobalContext.Properties["LogFileName"] = Path.Combine(LogDir, "log_");
             log4net.Config.XmlConfigurator.Configure(repository);
 
-            ZManager.Log = LogManager.GetLogger("main", "zlib");
+            LibraryManager.Log = LogManager.GetLogger("main", "zlib");
             _log = LogManager.GetLogger("main", "capo");
 
             string strVersion = Assembly.GetAssembly(typeof(ServerInfo)).GetName().Version.ToString();
@@ -748,7 +748,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                     // instance.InitialZHostSlowConfig();
 
                     // 清理闲置超期的 zChannels
-                    ZServer._zChannels.CleanIdleChannels(TimeSpan.FromMinutes(2));
+                    ZServer._tcpChannels.CleanIdleChannels(TimeSpan.FromMinutes(2));
 
                     // 清除废弃的全局结果集
                     Task.Run(() => instance.FreeGlobalResultSets());
@@ -938,7 +938,7 @@ Exception Info: System.Net.NetworkInformation.PingException
 
         private static void Zserver_ChannelOpened(object sender, EventArgs e)
         {
-            ZServerChannel channel = (ZServerChannel)sender;
+            TcpChannel channel = (TcpChannel)sender;
             channel.Closed += Channel_Closed;
         }
 
@@ -972,11 +972,11 @@ Exception Info: System.Net.NetworkInformation.PingException
 
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
-            string strInstanceName = zserver_channel.SetProperty().GetKeyValue("i_n");
+            string strInstanceName = zserver_channel.EnsureProperty().GetKeyValue("i_n");
             if (strInstanceName == null)
             {
                 strError = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
-                ZManager.Log.Error(strError);
+                LibraryManager.Log.Error(strError);
                 goto ERROR1;
             }
             Instance instance = FindZ3950Instance(strInstanceName);
@@ -1007,8 +1007,8 @@ Exception Info: System.Net.NetworkInformation.PingException
             DiagFormat diag = null;
             List<RetrivalRecord> records = new List<RetrivalRecord>();
 
-            string strUserName = zserver_channel.SetProperty().GetKeyValue("i_u");
-            string strPassword = zserver_channel.SetProperty().GetKeyValue("i_p");
+            string strUserName = zserver_channel.EnsureProperty().GetKeyValue("i_u");
+            string strPassword = zserver_channel.EnsureProperty().GetKeyValue("i_p");
 
             LoginInfo login_info = new LoginInfo { UserName = strUserName, Password = strPassword };
             LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
@@ -1069,7 +1069,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                             e.Request.m_elementSetNames,
                             prop != null ? prop.AddField901 : false,
                             prop != null ? prop.RemoveFields : "997",
-                            zserver_channel.SetProperty().MarcRecordEncoding,
+                            zserver_channel.EnsureProperty().MarcRecordEncoding,
                             out string strMarcSyntaxOID,
                             out byte[] baIso2709,
                             out strError);
@@ -1125,19 +1125,19 @@ Exception Info: System.Net.NetworkInformation.PingException
                         if (i == 0)
                         {
                             // 连一条记录也放不下
-                            if (nSize > zserver_channel.SetProperty().ExceptionalRecordSize)
+                            if (nSize > zserver_channel.EnsureProperty().ExceptionalRecordSize)
                             {
                                 Debug.Assert(diag == null, "");
                                 ZProcessor.SetPresentDiagRecord(ref diag,
                                     17, // record exceeds Exceptional_record_size
-                                    "记录尺寸 " + nSize.ToString() + " 超过 Exceptional_record_size " + zserver_channel.SetProperty().ExceptionalRecordSize.ToString());
+                                    "记录尺寸 " + nSize.ToString() + " 超过 Exceptional_record_size " + zserver_channel.EnsureProperty().ExceptionalRecordSize.ToString());
                                 lNumber = 0;
                                 break;
                             }
                         }
                         else
                         {
-                            if (nSize >= zserver_channel.SetProperty().PreferredMessageSize)
+                            if (nSize >= zserver_channel.EnsureProperty().PreferredMessageSize)
                             {
                                 // 调整返回的记录数
                                 lNumber = i;
@@ -1316,11 +1316,11 @@ Exception Info: System.Net.NetworkInformation.PingException
 
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
-            string strInstanceName = zserver_channel.SetProperty().GetKeyValue("i_n");
+            string strInstanceName = zserver_channel.EnsureProperty().GetKeyValue("i_n");
             if (strInstanceName == null)
             {
                 string strErrorText = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
-                ZManager.Log?.Error(strErrorText);
+                LibraryManager.Log?.Error(strErrorText);
                 e.Result = new DigitalPlatform.Z3950.ZClient.SearchResult { Value = -1, ErrorInfo = strErrorText };
                 return;
             }
@@ -1364,7 +1364,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                 instance.zhost,
                 e.Request.m_dbnames,
                 e.Request.m_rpnRoot,
-                zserver_channel.SetProperty().SearchTermEncoding,
+                zserver_channel.EnsureProperty().SearchTermEncoding,
                 out string strQueryXml,
                 out strError);
             if (nRet == -1 || nRet == 0)
@@ -1382,8 +1382,8 @@ Exception Info: System.Net.NetworkInformation.PingException
                 goto ERROR1;
             }
 
-            string strUserName = zserver_channel.SetProperty().GetKeyValue("i_u");
-            string strPassword = zserver_channel.SetProperty().GetKeyValue("i_p");
+            string strUserName = zserver_channel.EnsureProperty().GetKeyValue("i_u");
+            string strPassword = zserver_channel.EnsureProperty().GetKeyValue("i_p");
 
             LoginInfo login_info = new LoginInfo { UserName = strUserName, Password = strPassword };
 
@@ -1460,7 +1460,7 @@ Exception Info: System.Net.NetworkInformation.PingException
         }
 
         // 构造全局结果集名
-        static string MakeGlobalResultSetName(ZServerChannel zserver_channel, string strResultSetName)
+        static string MakeGlobalResultSetName(TcpChannel zserver_channel, string strResultSetName)
         {
             return "#" + zserver_channel.GetHashCode() + "_" + strResultSetName;
         }
@@ -1475,10 +1475,10 @@ Exception Info: System.Net.NetworkInformation.PingException
         static bool MemoryResultSetName(ZServerChannel zserver_channel,
             string resultset_name)
         {
-            if (!(zserver_channel.SetProperty().GetKeyObject("r_n") is List<string> names))
+            if (!(zserver_channel.EnsureProperty().GetKeyObject("r_n") is List<string> names))
             {
                 names = new List<string>();
-                zserver_channel.SetProperty().SetKeyObject("r_n", names);
+                zserver_channel.EnsureProperty().SetKeyObject("r_n", names);
             }
 
             if (names.IndexOf(resultset_name) == -1)
@@ -1502,12 +1502,12 @@ Exception Info: System.Net.NetworkInformation.PingException
         {
             lock (zserver_channel)
             {
-                if (!(zserver_channel.SetProperty().GetKeyObject("r_n") is List<string> names))
+                if (!(zserver_channel.EnsureProperty().GetKeyObject("r_n") is List<string> names))
                     return new List<string>();
                 else
                 {
                     if (bRemove)
-                        zserver_channel.SetProperty().SetKeyObject("r_n", null);
+                        zserver_channel.EnsureProperty().SetKeyObject("r_n", null);
                 }
                 return names;
             }
@@ -1516,18 +1516,18 @@ Exception Info: System.Net.NetworkInformation.PingException
         static void FreeGlobalResultSets(ZServerChannel zserver_channel,
             List<string> names)
         {
-            string strInstanceName = zserver_channel.SetProperty().GetKeyValue("i_n");
+            string strInstanceName = zserver_channel.EnsureProperty().GetKeyValue("i_n");
             if (strInstanceName == null)
             {
                 string strError = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
-                ZManager.Log?.Error(strError);
+                LibraryManager.Log?.Error(strError);
             }
             Instance instance = FindZ3950Instance(strInstanceName);
             if (instance == null)
             {
                 string strError = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)";
                 // 写入错误日志
-                ZManager.Log?.Error(strError);
+                LibraryManager.Log?.Error(strError);
                 return;
             }
 
@@ -1613,11 +1613,11 @@ Exception Info: System.Net.NetworkInformation.PingException
         {
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
-            string strInstanceName = zserver_channel.SetProperty().GetKeyValue("i_n");
+            string strInstanceName = zserver_channel.EnsureProperty().GetKeyValue("i_n");
             if (strInstanceName == null)
             {
                 string strErrorText = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
-                ZManager.Log?.Error(strErrorText);
+                LibraryManager.Log?.Error(strErrorText);
                 e.Result = new Result
                 {
                     Value = -1,
@@ -1653,8 +1653,8 @@ Exception Info: System.Net.NetworkInformation.PingException
             // testing
             // strClientIP = "127.0.0.2";
 
-            string strUserName = zserver_channel.SetProperty().GetKeyValue("i_u");
-            string strPassword = zserver_channel.SetProperty().GetKeyValue("i_p");
+            string strUserName = zserver_channel.EnsureProperty().GetKeyValue("i_u");
+            string strPassword = zserver_channel.EnsureProperty().GetKeyValue("i_p");
 
             LoginInfo login_info = new LoginInfo { UserName = strUserName, Password = strPassword };
 
@@ -1731,9 +1731,9 @@ Exception Info: System.Net.NetworkInformation.PingException
             }
 
             // 让 channel 从此携带 Instance Name
-            zserver_channel.SetProperty().SetKeyValue("i_n", strInstanceName);
-            zserver_channel.SetProperty().SetKeyValue("i_u", strUserName);
-            zserver_channel.SetProperty().SetKeyValue("i_p", strPassword);
+            zserver_channel.EnsureProperty().SetKeyValue("i_n", strInstanceName);
+            zserver_channel.EnsureProperty().SetKeyValue("i_u", strUserName);
+            zserver_channel.EnsureProperty().SetKeyValue("i_p", strPassword);
 
             Debug.Assert(e.Result != null, "");
         }
