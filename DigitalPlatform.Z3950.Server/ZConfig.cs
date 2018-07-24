@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalPlatform.Net;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -13,8 +14,8 @@ namespace DigitalPlatform.Z3950.Server
 
     }
 
-    // 每个通道特有的信息
-    public class ChannelProperty
+    // 每个(Z39.50 服务器)通道特有的信息
+    public class ZServerChannelProperty : ChannelProperty
     {
         // 是否成功进行了 Initialize()
         internal bool _bInitialized { get; set; }

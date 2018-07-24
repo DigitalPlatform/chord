@@ -98,10 +98,9 @@ namespace dp2Capo
                 }
 #endif
 
-                string strError = "";
                 int nRet = ServiceUtil.InstallService(strExePath,
         bInstall,
-        out strError);
+        out string strError);
                 if (nRet == -1)
                     Console.WriteLine("error: " + strError);
 

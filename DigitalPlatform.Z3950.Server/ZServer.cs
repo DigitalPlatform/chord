@@ -6,12 +6,14 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DigitalPlatform.Common;
 using DigitalPlatform.Net;
+
 using log4net;
 
 namespace DigitalPlatform.Z3950.Server
 {
-    public class ZServer : IDisposable
+    public class ZServer : TcpServer
     {
         // ZServerChannel 对象打开事件
         // 如果希望为 ZServerChannel 挂接 Closed 事件，可以在此事件内挂接
@@ -38,105 +40,14 @@ namespace DigitalPlatform.Z3950.Server
 
         public event PresentGetRecordsEventHandler PresentGetRecords = null;
 
-        public ZServerChannelCollection _zChannels = new ZServerChannelCollection();
-
-        public CancellationToken _cancelToken = new CancellationToken();
-
-        #region Fields
-
-        private int Port;
-        private TcpListener Listener;
-        private bool IsActive = true;
-
-        private IpTable IpTable;
-
-        #endregion
 
         // public static ILog _log = null;
 
         #region Public Methods
-        public ZServer(int port)
+
+        public ZServer(int port) : base(port)
         {
-            this.Port = port;
-            // _log = log;
-        }
-
-        static string GetClientIP(TcpClient s)
-        {
-            return ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
-        }
-
-        public async void Listen(int backlog)
-        {
-            this.IpTable = new IpTable();
-            this.Listener = new TcpListener(IPAddress.Any, this.Port);
-            this.Listener.Start(backlog);  // TODO: 要捕获异常
-
-            Console.WriteLine("Z39.50 服务器成功监听于 " + this.Port.ToString());
-
-            while (this.IsActive)
-            {
-                TcpClient tcpClient = null;
-                try
-                {
-                    tcpClient = await this.Listener.AcceptTcpClientAsync();
-
-                    // string ip = ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
-                    string ip = GetClientIP(tcpClient);
-                    // ZManager.Log?.Info("*** ip [" + ip + "] request");
-
-                    if (this.IpTable != null)
-                    {
-                        string error = this.IpTable.CheckIp(ip);
-                        if (error != null)
-                        {
-                            tcpClient.Close();
-                            // TODO: 可以在首次出现这种情况的时候记入错误日志
-                            // ZManager.Log?.Info("*** ip [" + ip + "] 被禁止 Connect。原因: " + error);
-                            continue;
-                        }
-                    }
-
-                    Task task = // 用来消除警告 // https://stackoverflow.com/questions/18577054/alternative-to-task-run-that-doesnt-throw-warning
-                    Task.Run(() =>
-                            HandleClient(tcpClient,
-                                () =>
-                                {
-                                    if (this.IpTable != null)
-                                        this.IpTable.FinishIp(ip);
-                                    tcpClient = null;
-                                },
-                                _cancelToken));
-
-
-                }
-                catch (Exception ex)
-                {
-                    if (tcpClient != null)
-                        tcpClient.Close();
-
-                    if (this.IsActive == false)
-                        break;
-                    ZManager.Log?.Error("Listen() 出现异常: " + ExceptionUtil.GetExceptionMessage(ex));
-                }
-                Thread.Sleep(1);
-            }
-        }
-
-        public void Close()
-        {
-            this.IsActive = false;
-            this.Listener.Stop();
-            _zChannels.Clear();
-        }
-
-        public void TryClearBlackList()
-        {
-            if (this.IpTable == null)
-                return;
-
-            // 清理一次黑名单
-            this.IpTable.ClearBlackList(TimeSpan.FromMinutes(10));
+            // this.Port = port;
         }
 
 #if NO
@@ -147,17 +58,16 @@ namespace DigitalPlatform.Z3950.Server
         }
 #endif
 
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            _zChannels.Dispose();
         }
 
         // 处理一个通道的通讯活动
-        public async void HandleClient(TcpClient tcpClient,
+        public async override void HandleClient(TcpClient tcpClient,
             Action close_action,
             CancellationToken token)
         {
-            ZServerChannel channel = _zChannels.Add(tcpClient);
+            ZServerChannel channel = _tcpChannels.Add(tcpClient, () => { return new ZServerChannel(); }) as ZServerChannel;
             // 允许对 channel 做额外的初始化
             if (this.ChannelOpened != null)
                 this.ChannelOpened(channel, new EventArgs());
@@ -222,7 +132,7 @@ namespace DigitalPlatform.Z3950.Server
                 catch (Exception ex)
                 {
                     string strError = "ip:" + ip + " HandleClient() 异常: " + ExceptionUtil.GetExceptionText(ex);
-                    ZManager.Log?.Error(strError);
+                    LibraryManager.Log?.Error(strError);
                     // Console.WriteLine(strError);
                 }
                 finally
@@ -243,7 +153,7 @@ namespace DigitalPlatform.Z3950.Server
             }
             finally
             {
-                _zChannels.Remove(channel);
+                _tcpChannels.Remove(channel);
 #if NO
                 if (this.ChannelClosed != null)
                 {
@@ -259,13 +169,13 @@ namespace DigitalPlatform.Z3950.Server
 
         #endregion
 
-        public Result DefaultSetChannelProperty(ZServerChannel channel,
+        public Result DefaultSetChannelProperty(TcpChannel channel,
     InitRequestInfo info)
         {
             return new Result();
         }
 
-        public ZConfig DefaultGetZConfig(ZServerChannel channel,
+        public ZConfig DefaultGetZConfig(TcpChannel channel,
             InitRequestInfo info,
             out string strError)
         {
@@ -320,7 +230,7 @@ namespace DigitalPlatform.Z3950.Server
         }
 
         // 根据 @xxx 找到相关的 capo 实例，然后找到配置参数
-        Result AutoSetChannelProperty(ZServerChannel channel,
+        Result AutoSetChannelProperty(TcpChannel channel,
             InitRequestInfo info)
         {
             if (this.SetChannelProperty == null)
@@ -352,7 +262,7 @@ namespace DigitalPlatform.Z3950.Server
         }
 #endif
 
-        public async Task<byte[]> DefaultProcessInitialize(ZServerChannel channel,
+        public /*async*/ Task<byte[]> DefaultProcessInitialize(ZServerChannel channel,
             BerTree request)
         {
             BerNode root = request.GetAPDuRoot();
@@ -376,7 +286,7 @@ namespace DigitalPlatform.Z3950.Server
             if (result.Value == -1)
             {
                 response_info.m_nResult = 0;
-                channel.SetProperty()._bInitialized = false;
+                channel.EnsureProperty()._bInitialized = false;
 
                 ZProcessor.SetInitResponseUserInfo(response_info,
                     "1.2.840.10003.4.1", // string strOID,
@@ -425,7 +335,7 @@ namespace DigitalPlatform.Z3950.Server
                 if (e.Result.Value == -1 || e.Result.Value == 0)
                 {
                     response_info.m_nResult = 0;
-                    channel.SetProperty()._bInitialized = false;
+                    channel.EnsureProperty()._bInitialized = false;
 
                     ZProcessor.SetInitResponseUserInfo(response_info,
                         "1.2.840.10003.4.1", // string strOID,
@@ -435,13 +345,13 @@ namespace DigitalPlatform.Z3950.Server
                 else
                 {
                     response_info.m_nResult = 1;
-                    channel.SetProperty()._bInitialized = true;
+                    channel.EnsureProperty()._bInitialized = true;
                 }
             }
             else
             {
                 response_info.m_nResult = 1;
-                channel.SetProperty()._bInitialized = true;
+                channel.EnsureProperty()._bInitialized = true;
             }
 
 #if NO
@@ -479,18 +389,18 @@ namespace DigitalPlatform.Z3950.Server
             //    channel._property = new ChannelPropterty();
 
             if (info.m_lPreferredMessageSize != 0)
-                channel.SetProperty().PreferredMessageSize = info.m_lPreferredMessageSize;
+                channel.EnsureProperty().PreferredMessageSize = info.m_lPreferredMessageSize;
             // 极限
-            if (channel.SetProperty().PreferredMessageSize > ChannelProperty.MaxPreferredMessageSize)
-                channel.SetProperty().PreferredMessageSize = ChannelProperty.MaxPreferredMessageSize;
-            response_info.m_lPreferredMessageSize = channel.SetProperty().PreferredMessageSize;
+            if (channel.EnsureProperty().PreferredMessageSize > ZServerChannelProperty.MaxPreferredMessageSize)
+                channel.EnsureProperty().PreferredMessageSize = ZServerChannelProperty.MaxPreferredMessageSize;
+            response_info.m_lPreferredMessageSize = channel.EnsureProperty().PreferredMessageSize;
 
             if (info.m_lExceptionalRecordSize != 0)
-                channel.SetProperty().ExceptionalRecordSize = info.m_lExceptionalRecordSize;
+                channel.EnsureProperty().ExceptionalRecordSize = info.m_lExceptionalRecordSize;
             // 极限
-            if (channel.SetProperty().ExceptionalRecordSize > ChannelProperty.MaxExceptionalRecordSize)
-                channel.SetProperty().ExceptionalRecordSize = ChannelProperty.MaxExceptionalRecordSize;
-            response_info.m_lExceptionalRecordSize = channel.SetProperty().ExceptionalRecordSize;
+            if (channel.EnsureProperty().ExceptionalRecordSize > ZServerChannelProperty.MaxExceptionalRecordSize)
+                channel.EnsureProperty().ExceptionalRecordSize = ZServerChannelProperty.MaxExceptionalRecordSize;
+            response_info.m_lExceptionalRecordSize = channel.EnsureProperty().ExceptionalRecordSize;
 
             response_info.m_strImplementationId = "Digital Platform";
             response_info.m_strImplementationName = "dp2Capo";
@@ -530,12 +440,12 @@ namespace DigitalPlatform.Z3950.Server
                         17,
                         true);
                     response_info.m_charNego = info.m_charNego;
-                    channel.SetProperty()._searchTermEncoding = Encoding.UTF8;
+                    channel.EnsureProperty()._searchTermEncoding = Encoding.UTF8;
                     if (info.m_charNego.RecordsInSelectedCharsets != -1)
                     {
                         response_info.m_charNego.RecordsInSelectedCharsets = info.m_charNego.RecordsInSelectedCharsets; // 依从前端的请求
                         if (response_info.m_charNego.RecordsInSelectedCharsets == 1)
-                            channel.SetProperty()._marcRecordEncoding = Encoding.UTF8;
+                            channel.EnsureProperty()._marcRecordEncoding = Encoding.UTF8;
                     }
                 }
             }
@@ -548,10 +458,10 @@ namespace DigitalPlatform.Z3950.Server
             ZProcessor.Encode_InitialResponse(response_info,
                 out byte[] baResponsePackage);
 
-            return baResponsePackage;
+            return Task.FromResult(baResponsePackage);
             ERROR1:
             // TODO: 将错误原因写入日志
-            ZManager.Log?.Error(strError);
+            LibraryManager.Log?.Error(strError);
             return null;
         }
 
@@ -568,7 +478,7 @@ namespace DigitalPlatform.Z3950.Server
             if (nRet == -1)
                 goto ERROR1;
 
-            if (channel.SetProperty()._bInitialized == false)
+            if (channel.EnsureProperty()._bInitialized == false)
                 return null;
 
             SearchSearchEventArgs e = new SearchSearchEventArgs();
@@ -611,7 +521,7 @@ namespace DigitalPlatform.Z3950.Server
             if (nRet == -1)
                 goto ERROR1;
 
-            if (channel.SetProperty()._bInitialized == false)
+            if (channel.EnsureProperty()._bInitialized == false)
                 return null;
 
             PresentGetRecordsEventArgs e = new PresentGetRecordsEventArgs();

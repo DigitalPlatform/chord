@@ -74,7 +74,7 @@ namespace DigitalPlatform.Z3950
                 //      -1  error
                 //      0   不是Close
                 //      1   是Close，已经迫使ZChannel处于尚未初始化状态
-                InitialResult result = await CheckServerCloseRequest();
+                InitialResult result = await CheckServerCloseRequest().ConfigureAwait(false);
             }
 
             if (bTry == false
@@ -85,7 +85,7 @@ namespace DigitalPlatform.Z3950
             {
                 if (this._channel.Connected == false)
                 {
-                    Result result = await this._channel.Connect(targetinfo.HostName, targetinfo.Port);
+                    Result result = await this._channel.Connect(targetinfo.HostName, targetinfo.Port).ConfigureAwait(false);
                     if (result.Value == -1)
                         return new InitialResult { Value = -1, ErrorInfo = result.ErrorInfo };
                 }
@@ -103,7 +103,7 @@ namespace DigitalPlatform.Z3950
                     InitialResult result = await Initial(
         targetinfo,
         targetinfo.IgnoreReferenceID,
-        this._currentRefID);
+        this._currentRefID).ConfigureAwait(false);
                     if (result.Value == -1)
                         return result;
 
@@ -216,7 +216,7 @@ namespace DigitalPlatform.Z3950
 
 
             RecvResult result = await this._channel.SendAndRecv(
-                baPackage);
+                baPackage).ConfigureAwait(false);
             if (result.Value == -1)
                 return new InitialResult(result);
 
@@ -470,7 +470,7 @@ namespace DigitalPlatform.Z3950
 
             {
                 RecvResult result = await this._channel.SendAndRecv(
-        baPackage);
+        baPackage).ConfigureAwait(false);
                 if (result.Value == -1)
                     return new SearchResult(result);
 
@@ -689,7 +689,7 @@ namespace DigitalPlatform.Z3950
                     nStart + nGeted,
                     nPerCount,
                     strElementSetName,
-                    strPreferredRecordSyntax);
+                    strPreferredRecordSyntax).ConfigureAwait(false);
                 if (result.Value == -1)
                     return result;
                 if (result.Records == null)
@@ -757,7 +757,7 @@ namespace DigitalPlatform.Z3950
 
             {
                 RecvResult result = await this._channel.SendAndRecv(
-        baPackage);
+        baPackage).ConfigureAwait(false);
                 if (result.Value == -1)
                     return new PresentResult(result);
 
@@ -827,7 +827,7 @@ namespace DigitalPlatform.Z3950
                 return new InitialResult(); // 没有发现问题
 
             // 注意调用返回后如果发现出错，调主要主动 Close 和重新分配 TcpClient
-            RecvResult result = await ZChannel.SimpleRecvTcpPackage(this._channel._client);
+            RecvResult result = await ZChannel.SimpleRecvTcpPackage(this._channel._client).ConfigureAwait(false);
             if (result.Value == -1)
             {
                 this.CloseConnection();

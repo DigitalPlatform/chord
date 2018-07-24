@@ -48,7 +48,7 @@ namespace DigitalPlatform.Z3950.Server
         // 注意调用返回 result.Value == -1 情况下，要及时 Close TcpClient
         public static async Task<Result> SendResponse(byte[] response, TcpClient client)
         {
-            Result result = await SimpleSendTcpPackage(client,
+            Result result = await ZChannel.SimpleSendTcpPackage(client,
                 response,
                 response.Length);
             if (result.Value == -1 || result.Value == 1)
@@ -56,7 +56,6 @@ namespace DigitalPlatform.Z3950.Server
 
             return new Result();
         }
-
 
 #if NO
         public static async Task<HttpRequest> GetIncomingRequest(Stream inputStream,
