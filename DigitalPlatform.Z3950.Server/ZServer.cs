@@ -50,6 +50,11 @@ namespace DigitalPlatform.Z3950.Server
             // this.Port = port;
         }
 
+        public override string GetServerName()
+        {
+            return "Z39.50 服务器";
+        }
+
 #if NO
         public virtual async void TestHandleClient(TcpClient tcpClient,
     CancellationToken token)

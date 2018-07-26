@@ -35,6 +35,15 @@ namespace DigitalPlatform.Net
             // _log = log;
         }
 
+        /// <summary>
+        /// 用于写入 Log 的服务器名称
+        /// </summary>
+        /// <returns>服务器名称</returns>
+        public virtual string GetServerName()
+        {
+            return "TcpServer";
+        }
+
         #region IDisposable Support
         private bool disposedValue = false; // 要检测冗余调用
 
@@ -91,7 +100,7 @@ namespace DigitalPlatform.Net
                 throw ex;
             }
 
-            Console.WriteLine("Z39.50 服务器成功监听于 " + this._port.ToString());
+            Console.WriteLine(this.GetServerName() + "成功监听于 " + this._port.ToString());
 
             while (this._isActive)
             {
@@ -136,7 +145,7 @@ namespace DigitalPlatform.Net
 
                     if (this._isActive == false)
                         break;
-                    LibraryManager.Log?.Error("Listen() 出现异常: " + ExceptionUtil.GetExceptionMessage(ex));
+                    LibraryManager.Log?.Error(this.GetServerName() + " Listen() 出现异常: " + ExceptionUtil.GetExceptionMessage(ex));
                 }
                 Thread.Sleep(1);
             }
