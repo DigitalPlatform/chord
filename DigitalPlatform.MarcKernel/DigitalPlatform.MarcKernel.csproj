@@ -161,6 +161,7 @@
     <Compile Include="MarcUtil.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MarcXmlWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

@@ -34,6 +34,8 @@ namespace dp2Capo
         // 2016/6/16
         public ZHostInfo zhost { get; set; }
 
+        public SipHostInfo sip_host { get; set; }
+
         // 没有用 MessageConnectionCollectoin 管理
         public ServerConnection MessageConnection = new ServerConnection();
 
@@ -221,6 +223,15 @@ namespace dp2Capo
 
                         // this.zhost.SlowConfigInitialized = false;
                         // InitialZHostSlowConfig();
+                    }
+                }
+
+                {
+                    XmlElement element = dom.DocumentElement.SelectSingleNode("sipServer") as XmlElement;
+                    if (element != null)
+                    {
+                        this.sip_host = new SipHostInfo();
+                        this.sip_host.Initial(element);
                     }
                 }
             }
@@ -1518,6 +1529,93 @@ namespace dp2Capo
 
         // 2017/4/15
         public string RemoveFields = "997"; // 返回前要删除的字段名列表，逗号分隔。缺省为 "997"
+    }
+
+    // SIP 主机信息
+    public class SipHostInfo : HostInfo
+    {
+        // 匿名访问时使用的用户名和密码
+        public string AnonymousUserName { get; set; }
+        public string AnonymousPassword { get; set; }
+
+        public string DateFormat { get; set; }
+
+        public Encoding Encoding { get; set; }
+
+        new string EncryptKey = "dp2sipserver_password_key";
+
+        public string DecryptPasssword(string strEncryptedText)
+        {
+            if (String.IsNullOrEmpty(strEncryptedText) == false)
+            {
+                try
+                {
+                    string strPassword = Cryptography.Decrypt(
+        strEncryptedText,
+        EncryptKey);
+                    return strPassword;
+                }
+                catch
+                {
+                    return "errorpassword";
+                }
+
+            }
+
+            return "";
+        }
+
+        public string EncryptPassword(string strPlainText)
+        {
+            return Cryptography.Encrypt(strPlainText, this.EncryptKey);
+        }
+
+        private XmlElement _root = null;
+
+        public override void Initial(XmlElement element)
+        {
+            _root = element;
+
+            // base.Initial(element);
+
+            {
+                // 取出一些常用的指标
+
+                // 1) 图书馆应用服务器URL
+                // 2) 管理员用的帐户和密码
+                if (element.SelectSingleNode("dp2library") is XmlElement node)
+                {
+                    this.AnonymousUserName = node.GetAttribute("anonymousUserName");
+                    string strPassword = node.GetAttribute("anonymousPassword");
+                    this.AnonymousPassword = DecryptPasssword(strPassword);
+                }
+                else
+                {
+                    this.AnonymousUserName = "";
+                    this.AnonymousPassword = "";
+                }
+            }
+
+            {
+                // SIP 服务参数
+
+                if (element.SelectSingleNode("sipServer") is XmlElement node)
+                {
+                    this.DateFormat = node.GetAttribute("dateFormat");
+                    string strEncoding = node.GetAttribute("encoding");
+                    if (string.IsNullOrEmpty(strEncoding) == false)
+                        this.Encoding = Encoding.GetEncoding(strEncoding);
+                    else
+                        this.Encoding = Encoding.UTF8;
+                }
+                else
+                {
+                    this.DateFormat = "yyyy-MM-dd";
+                    this.Encoding = Encoding.UTF8;
+                }
+            }
+
+        }
     }
 
 }

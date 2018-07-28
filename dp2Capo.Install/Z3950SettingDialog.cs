@@ -10,12 +10,12 @@ using DigitalPlatform.Xml;
 
 namespace dp2Capo.Install
 {
-    public partial class InstallZServerDlg : Form
+    public partial class Z3950SettingDialog : Form
     {
         // capo.xml
         public XmlDocument CfgDom { get; set; }
 
-        public InstallZServerDlg()
+        public Z3950SettingDialog()
         {
             InitializeComponent();
 
@@ -104,126 +104,13 @@ namespace dp2Capo.Install
             }
         }
 
-#if NO
-        int VerifyXml(out string strError)
-        {
-            strError = "";
-
-            if (string.IsNullOrEmpty(this.textBox_databaseDef.Text) == false)
-            {
-                XmlDocument dom = new XmlDocument();
-                try
-                {
-                    dom.LoadXml(this.textBox_databaseDef.Text);
-                }
-                catch (Exception ex)
-                {
-                    this.tabControl_main.SelectedTab = this.tabPage_database;
-                    strError = "数据库定义 XML 存在格式错误: " + ex.Message;
-                    return -1;
-                }
-            }
-
-            return 0;
-        }
-#endif
         // 按住 Control 键可以越过检测 dp2library server 的部分
         private void button_OK_Click(object sender, EventArgs e)
         {
-#if NO
-            string strError = "";
-
-            bool bControl = Control.ModifierKeys == Keys.Control;
-
-            EnableControls(false);
-            try
-            {
-                if (string.IsNullOrEmpty(this.LibraryWsUrl))
-                {
-                    strError = "尚未输入 dp2Library 服务器的 URL";
-                    goto ERROR1;
-                }
-
-                if (string.IsNullOrEmpty(this.UserName))
-                {
-                    strError = "尚未指定 dp2Library 管理用户名。";
-                    goto ERROR1;
-                }
-
-                if (this.textBox_anonymousUserName.Text == ""
-                    && this.textBox_anonymousPassword.Text != "")
-                {
-                    strError = "在未指定匿名登录用户名的情况下，不允许指定匿名登录密码。";
-                    goto ERROR1;
-                }
-
-                if (VerifyXml(out strError) == -1)
-                    goto ERROR1;
-
-                /*
-                if (this.textBox_managePassword.Text != this.textBox_confirmManagePassword.Text)
-                {
-                    strError = "dp2Library 管理用户 密码 和 再次输入密码 不一致。请重新输入。";
-                    MessageBox.Show(this, strError);
-                    return;
-                }*/
-
-                // 检测帐户登录是否成功?
-                if (bControl == false)
-                {
-                    // 进行登录
-                    // return:
-                    //      -1  error
-                    //      0   登录未成功
-                    //      1   登录成功
-                    int nRet = DoLogin(
-                        this.comboBox_librarywsUrl.Text,
-                        this.textBox_manageUserName.Text,
-                        this.textBox_managePassword.Text,
-                        out strError);
-                    if (nRet == -1)
-                    {
-                        strError = "检测 dp2library 帐户时发生错误: " + strError;
-                        goto ERROR1;
-                    }
-                    if (nRet == 0)
-                    {
-                        strError = "您指定的 dp2library 帐户 不正确: " + strError;
-                        goto ERROR1;
-                    }
-                }
-            }
-            finally
-            {
-                EnableControls(true);
-            }
-
-            this.DialogResult = DialogResult.OK;
-            this.Close();
-            return;
-            ERROR1:
-            MessageBox.Show(this, strError);
-#endif
             // 按下 Control 键可越过探测步骤
             bool bControl = Control.ModifierKeys == Keys.Control;
 
             string strError = "";
-#if NO
-            if (string.IsNullOrEmpty(this.textBox_url.Text))
-            {
-                strError = "尚未指定 dp2MServer URL";
-                goto ERROR1;
-            }
-
-            if (string.IsNullOrEmpty(this.textBox_userName.Text))
-            {
-                strError = "尚未指定用户名";
-                goto ERROR1;
-            }
-
-            if (bControl == false && await DetectUser() == false)
-                return;
-#endif
 
             if (SaveToCfgDom() == false)
                 return;
@@ -279,12 +166,6 @@ namespace dp2Capo.Install
 
         void EnableControls(bool bEnable)
         {
-#if NO
-            this.textBox_managePassword.Enabled = bEnable;
-            this.textBox_manageUserName.Enabled = bEnable;
-            this.comboBox_librarywsUrl.Enabled = bEnable;
-#endif
-
             this.button_OK.Enabled = bEnable;
             this.button_Cancel.Enabled = bEnable;
             this.button_detectManageUser.Enabled = bEnable;

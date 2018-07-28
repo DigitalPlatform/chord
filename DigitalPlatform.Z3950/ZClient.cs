@@ -7,6 +7,7 @@ using System.Xml;
 
 using static DigitalPlatform.Z3950.ZChannel;
 using DigitalPlatform.Text;
+using DigitalPlatform.Net;
 
 namespace DigitalPlatform.Z3950
 {

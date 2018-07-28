@@ -1,9 +1,12 @@
 ﻿using DigitalPlatform.Common;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DigitalPlatform.Net
 {
@@ -210,6 +213,208 @@ namespace DigitalPlatform.Net
             this._property = new ChannelProperty();
             return this._property;
         }
+
+        // 通讯包是否完整到达?
+        // return:
+        //      0   通讯包不完整
+        //      其他  通讯包完整到达，返回值表示通讯包 byte 数。也就是说后面要从 package 前部开始移走这么多 byte
+        public delegate Tuple<int, byte> Delegate_isComplete(byte[] package,
+                        int start, int length);
+
+        // 接收通讯包
+        // 本函数支持 Pipeline 方式。
+        // parameters:
+        //      cache   支持 Pipeline 方式，把多于一个通讯包的 bytes 部分，存储起来，下次先处理这部分内容
+        public static async Task<RecvResult> SimpleRecvTcpPackage(TcpClient _client,
+            List<byte> cache,
+            Delegate_isComplete procIsComplete)
+        {
+            // string strError = "";
+            RecvResult result = new RecvResult();
+
+            int nInLen;
+            int wRet = 0;
+            bool bInitialLen = false;
+
+            Debug.Assert(_client != null, "client为空");
+
+            result.Package = new byte[4096];
+            nInLen = 0;
+            result.Length = 4096; //COMM_BUFF_LEN;
+
+            if (cache.Count > 0)
+            {
+                result.Package = EnlargeBuffer(cache.ToArray(), 4096);
+                result.Length = result.Package.Length;
+                nInLen = result.Length;
+            }
+
+            while (nInLen < result.Length)
+            {
+                if (_client == null)
+                {
+                    return new RecvResult
+                    {
+                        Value = -1,
+                        ErrorInfo = "通讯中断",
+                        ErrorCode = "abort"
+                    };
+                }
+
+                try
+                {
+                    wRet = await _client.GetStream().ReadAsync(result.Package,
+                        nInLen,
+                        result.Package.Length - nInLen).ConfigureAwait(false);
+                }
+                catch (SocketException ex)
+                {
+
+                    if (ex.ErrorCode == 10035)
+                    {
+                        System.Threading.Thread.Sleep(100);
+                        continue;
+                    }
+                    return new RecvResult
+                    {
+                        Value = -1,
+                        ErrorInfo = "recv出错1: " + ex.Message,
+                        // "ConnectionAborted"
+                        ErrorCode = ((SocketException)ex).SocketErrorCode.ToString()
+                    };
+                }
+                catch (Exception ex)
+                {
+                    if (ex is IOException && ex.InnerException is SocketException)
+                    {
+                        // "ConnectionAborted"
+                        result.ErrorCode = ((SocketException)ex.InnerException).SocketErrorCode.ToString();
+                    }
+                    result.ErrorInfo = "recv出错2: " + ex.Message;
+                    result.Value = -1;
+                    return result;
+                }
+
+                if (wRet == 0)
+                {
+                    return new RecvResult
+                    {
+                        Value = -1,
+                        ErrorCode = "Closed",
+                        ErrorInfo = "Closed by remote peer"
+                    };
+                }
+
+                // 得到包的长度
+
+                if ((wRet >= 1 || nInLen >= 1)
+                    && bInitialLen == false)
+                {
+                    var ret = procIsComplete(result.Package,
+                        0,
+                        nInLen + wRet);
+                    if (ret.Item1 > 0)
+                    {
+                        result.Length = ret.Item1;
+                        result.Terminator = ret.Item2;
+                        break;
+                    }
+                }
+
+                nInLen += wRet;
+                if (nInLen >= result.Package.Length
+                    && bInitialLen == false)
+                {
+#if NO
+                    // 扩大缓冲区
+                    byte[] temp = new byte[result.Package.Length + 4096];
+                    Array.Copy(result.Package, 0, temp, 0, nInLen);
+                    result.Package = temp;
+                    result.Length = result.Package.Length;
+#endif
+                    result.Package = EnlargeBuffer(result.Package, 4096);
+                    result.Length = result.Package.Length;
+
+                }
+            }
+
+            // 最后规整缓冲区尺寸，如果必要的话
+            if (result.Package.Length > result.Length)
+            {
+                byte[] temp = new byte[result.Length];
+                Array.Copy(result.Package, 0, temp, 0, result.Length);
+                result.Package = temp;
+            }
+
+            return result;
+        }
+
+        static byte[] EnlargeBuffer(byte[] package, int delta)
+        {
+            // 扩大缓冲区
+            byte[] temp = new byte[package.Length + delta];
+            Array.Copy(package, 0, temp, 0, package.Length);
+            return temp;
+        }
+
+        // 发出请求包
+        // return:
+        //      -1  出错
+        //      0   正确发出
+        //      1   发出前，发现流中有未读入的数据
+        public static async Task<Result> SimpleSendTcpPackage(
+            TcpClient _client,
+            byte[] baPackage,
+            int nLen)
+        {
+            Result result = new Result();
+
+            if (_client == null)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "client尚未初始化。请重新连接";
+                return result;
+            }
+
+            if (_client == null)
+            {
+                result.Value = -1;
+                result.ErrorInfo = "用户中断";
+                return result;
+            }
+
+            // TODO: 是否要关闭 NetworkStream !!!
+            NetworkStream stream = _client.GetStream();
+
+            if (stream.DataAvailable == true)
+            {
+                result.Value = 1;
+                result.ErrorInfo = "发送前发现流中有未读的数据";
+                return result;
+            }
+
+            try
+            {
+                // stream.Write(baPackage, 0, nLen);
+                await stream.WriteAsync(baPackage, 0, nLen).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                if (ex is IOException && ex.InnerException is SocketException)
+                {
+                    // "ConnectionAborted"
+                    result.ErrorCode = ((SocketException)ex.InnerException).SocketErrorCode.ToString();
+                }
+
+                result.Value = -1;
+                result.ErrorInfo = "send出错: " + ex.Message;
+                // this.CloseSocket();
+                return result;
+            }
+
+            return result;
+        }
+
     }
 
     public class ChannelProperty

@@ -1,6 +1,6 @@
 ﻿namespace dp2Capo.Install
 {
-    partial class InstallZServerDlg
+    partial class Z3950SettingDialog
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(InstallZServerDlg));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Z3950SettingDialog));
             this.button_Cancel = new System.Windows.Forms.Button();
             this.button_OK = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -104,7 +104,7 @@
             this.groupBox1.Size = new System.Drawing.Size(549, 177);
             this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Z39.50 服务器管理帐户";
+            this.groupBox1.Text = "Z39.50 管理帐户";
             // 
             // button_detectManageUser
             // 
@@ -422,7 +422,7 @@
             this.checkBox_enableZ3950.UseVisualStyleBackColor = true;
             this.checkBox_enableZ3950.CheckedChanged += new System.EventHandler(this.checkBox_enableZ3950_CheckedChanged);
             // 
-            // InstallZServerDlg
+            // Z3950SettingDialog
             // 
             this.AcceptButton = this.button_OK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
@@ -433,8 +433,9 @@
             this.Controls.Add(this.button_Cancel);
             this.Controls.Add(this.button_OK);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "InstallZServerDlg";
-            this.Text = "请指定 Z39.50 服务安装参数";
+            this.Name = "Z3950SettingDialog";
+            this.ShowInTaskbar = false;
+            this.Text = "Z39.50 服务参数";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.InstallZServerDlg_FormClosed);
             this.Load += new System.EventHandler(this.InstallZServerDlg_Load);
             this.groupBox1.ResumeLayout(false);
