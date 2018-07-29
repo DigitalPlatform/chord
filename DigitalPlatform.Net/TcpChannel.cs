@@ -1,5 +1,4 @@
-﻿using DigitalPlatform.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,10 +7,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using DigitalPlatform.Common;
+
 namespace DigitalPlatform.Net
 {
     /// <summary>
-    /// 存储管理 TCP 通道的集合
+    /// 存储管理 TCP 服务器的 TCP 通道的集合
     /// </summary>
     public class TcpChannelCollection : IDisposable
     {
@@ -107,6 +108,7 @@ namespace DigitalPlatform.Net
             return delta2;
         }
 
+        // 清理休眠的通道
         // parameters:
         //      delta   休眠多少时间以上的要清除
         public void CleanIdleChannels(TimeSpan delta)
@@ -119,6 +121,7 @@ namespace DigitalPlatform.Net
                 foreach (TcpChannel channel in _channels)
                 {
                     TimeSpan current = delta;
+                    // 如果 Timeout 的值更大，则弃 delta 而用 Timeout，作为超时长度
                     if (channel.Timeout != TimeSpan.MinValue)
                         current = Max(delta, channel.Timeout);
                     if (now - channel.LastTime > current)
@@ -153,7 +156,7 @@ namespace DigitalPlatform.Net
         }
     }
 
-    // 一个 TCP 通讯通道
+    // 一个 TCP (服务器端)通讯通道
     public class TcpChannel
     {
         public event EventHandler Closed = null;
@@ -161,8 +164,12 @@ namespace DigitalPlatform.Net
         public TcpClient TcpClient { get; set; }
         public DateTime LastTime { get; set; }
 
-        // 2017/3/6
-        public TimeSpan Timeout { get; set; }
+        TimeSpan _timeout = TimeSpan.MinValue;
+        public TimeSpan Timeout
+        {
+            get { return _timeout; }
+            set { _timeout = value; }
+        }
 
         private ChannelProperty _property = null;
         public ChannelProperty Property // Initialize 成功时，才 new 这个成员，以节省空间
@@ -224,34 +231,41 @@ namespace DigitalPlatform.Net
         // 接收通讯包
         // 本函数支持 Pipeline 方式。
         // parameters:
-        //      cache   支持 Pipeline 方式，把多于一个通讯包的 bytes 部分，存储起来，下次先处理这部分内容
-        public static async Task<RecvResult> SimpleRecvTcpPackage(TcpClient _client,
+        //      cache   用来支持 Pipeline 方式，把多于一个通讯包的 bytes 部分，存储起来，下次先处理这部分内容
+        //              如果为 null，表示不支持 Pipeline 方式
+        //      nMaxLength  读入等待处理的 bytes 极限数字。超过了这个，还没有找到结束符，就会抛出异常。意在防范攻击。-1 表示不限制
+        public static async Task<RecvResult> SimpleRecvTcpPackage(TcpClient client,
             List<byte> cache,
-            Delegate_isComplete procIsComplete)
+            Delegate_isComplete procIsComplete,
+            int nMaxLength = 4096)
         {
             // string strError = "";
             RecvResult result = new RecvResult();
 
-            int nInLen;
-            int wRet = 0;
-            bool bInitialLen = false;
+            int recieved = 0;   // 累计读取的 byte 数
+            int current = 0;    // 本次读取的 byte 数
+            // bool bInitialLen = false;
 
-            Debug.Assert(_client != null, "client为空");
+            Debug.Assert(client != null, "client为空");
 
-            result.Package = new byte[4096];
-            nInLen = 0;
-            result.Length = 4096; //COMM_BUFF_LEN;
+            int CHUNK_SIZE = 10;
 
-            if (cache.Count > 0)
+            result.Package = new byte[CHUNK_SIZE];
+            recieved = 0;
+            result.Length = CHUNK_SIZE;
+
+            // 优先从 cache 中复制数据过来进行处理
+            if (cache != null && cache.Count > 0)
             {
-                result.Package = EnlargeBuffer(cache.ToArray(), 4096);
+                result.Package = EnlargeBuffer(cache.ToArray(), CHUNK_SIZE);
                 result.Length = result.Package.Length;
-                nInLen = result.Length;
+                recieved = result.Length;
+                cache.Clear();
             }
 
-            while (nInLen < result.Length)
+            while (recieved < result.Length)
             {
-                if (_client == null)
+                if (client == null)
                 {
                     return new RecvResult
                     {
@@ -263,9 +277,9 @@ namespace DigitalPlatform.Net
 
                 try
                 {
-                    wRet = await _client.GetStream().ReadAsync(result.Package,
-                        nInLen,
-                        result.Package.Length - nInLen).ConfigureAwait(false);
+                    current = await client.GetStream().ReadAsync(result.Package,
+                        recieved,
+                        result.Package.Length - recieved).ConfigureAwait(false);
                 }
                 catch (SocketException ex)
                 {
@@ -295,7 +309,7 @@ namespace DigitalPlatform.Net
                     return result;
                 }
 
-                if (wRet == 0)
+                if (current == 0)
                 {
                     return new RecvResult
                     {
@@ -307,23 +321,31 @@ namespace DigitalPlatform.Net
 
                 // 得到包的长度
 
-                if ((wRet >= 1 || nInLen >= 1)
-                    && bInitialLen == false)
+                if (current >= 1 || recieved >= 1)
                 {
                     var ret = procIsComplete(result.Package,
                         0,
-                        nInLen + wRet);
+                        recieved + current);
                     if (ret.Item1 > 0)
                     {
                         result.Length = ret.Item1;
                         result.Terminator = ret.Item2;
+                        // 将结束符后面多出来的部分复制到 cache 中，以便下一次调用处理
+                        if (result.Length > recieved + current)
+                        {
+                            if (cache == null)
+                                throw new Exception("当前不支持 Pipeline 方式的请求。发现前端一次性发送了多于一个通讯包");
+                            for (int i = result.Length; i < recieved + current; i++)
+                            {
+                                cache.Add(result.Package[i]);
+                            }
+                        }
                         break;
                     }
                 }
 
-                nInLen += wRet;
-                if (nInLen >= result.Package.Length
-                    && bInitialLen == false)
+                recieved += current;
+                if (recieved >= result.Package.Length)
                 {
 #if NO
                     // 扩大缓冲区
@@ -332,9 +354,11 @@ namespace DigitalPlatform.Net
                     result.Package = temp;
                     result.Length = result.Package.Length;
 #endif
-                    result.Package = EnlargeBuffer(result.Package, 4096);
+                    if (nMaxLength != -1 && result.Package.Length >= nMaxLength)
+                        throw new Exception("接收超过 " + nMaxLength + " bytes 也没有找到通讯包结束符");
+                    // 扩大缓冲区
+                    result.Package = EnlargeBuffer(result.Package, CHUNK_SIZE);
                     result.Length = result.Package.Length;
-
                 }
             }
 
@@ -363,20 +387,20 @@ namespace DigitalPlatform.Net
         //      0   正确发出
         //      1   发出前，发现流中有未读入的数据
         public static async Task<Result> SimpleSendTcpPackage(
-            TcpClient _client,
+            TcpClient client,
             byte[] baPackage,
             int nLen)
         {
             Result result = new Result();
 
-            if (_client == null)
+            if (client == null)
             {
                 result.Value = -1;
                 result.ErrorInfo = "client尚未初始化。请重新连接";
                 return result;
             }
 
-            if (_client == null)
+            if (client == null)
             {
                 result.Value = -1;
                 result.ErrorInfo = "用户中断";
@@ -384,7 +408,7 @@ namespace DigitalPlatform.Net
             }
 
             // TODO: 是否要关闭 NetworkStream !!!
-            NetworkStream stream = _client.GetStream();
+            NetworkStream stream = client.GetStream();
 
             if (stream.DataAvailable == true)
             {
@@ -395,7 +419,6 @@ namespace DigitalPlatform.Net
 
             try
             {
-                // stream.Write(baPackage, 0, nLen);
                 await stream.WriteAsync(baPackage, 0, nLen).ConfigureAwait(false);
             }
             catch (Exception ex)

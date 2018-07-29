@@ -217,7 +217,7 @@
             this.button_stpp.TabIndex = 30;
             this.button_stpp.Text = "停止";
             this.button_stpp.UseVisualStyleBackColor = true;
-            this.button_stpp.Click += new System.EventHandler(this.button_stpp_Click);
+            this.button_stpp.Click += new System.EventHandler(this.button_stop_Click);
             // 
             // button_deleteTestEnv
             // 

@@ -17,6 +17,7 @@ using DigitalPlatform.IO;
 using DigitalPlatform.LibraryClient.localhost;
 using DigitalPlatform.Xml;
 using DigitalPlatform.LibraryClient;
+using DigitalPlatform.SIP.Server;
 
 namespace dp2Capo
 {
@@ -1024,7 +1025,7 @@ namespace dp2Capo
 
     public class HostInfo
     {
-        public static string EncryptKey = "dp2capopassword";
+        public static readonly string EncryptKey = "dp2capopassword";
 
         public string Url { get; set; }
 
@@ -1090,7 +1091,7 @@ namespace dp2Capo
             set => _maxResultCount = value;
         }
 
-        new string EncryptKey = "dp2zserver_password_key";
+        new static readonly string EncryptKey = "dp2zserver_password_key";
 
         public string DecryptPasssword(string strEncryptedText)
         {
@@ -1115,7 +1116,7 @@ namespace dp2Capo
 
         public string EncryptPassword(string strPlainText)
         {
-            return Cryptography.Encrypt(strPlainText, this.EncryptKey);
+            return Cryptography.Encrypt(strPlainText, ZHostInfo.EncryptKey);
         }
 
         private XmlElement _root = null;
@@ -1538,11 +1539,16 @@ namespace dp2Capo
         public string AnonymousUserName { get; set; }
         public string AnonymousPassword { get; set; }
 
+        // 日期格式
         public string DateFormat { get; set; }
 
+        // 编码方式
         public Encoding Encoding { get; set; }
 
-        new string EncryptKey = "dp2sipserver_password_key";
+        // 前端 IP 地址白名单。空表示所有 IP 地址都许可，和 * 作用一致
+        public string IpList { get; set; }
+
+        new static readonly string EncryptKey = "dp2sipserver_password_key";
 
         public string DecryptPasssword(string strEncryptedText)
         {
@@ -1567,16 +1573,20 @@ namespace dp2Capo
 
         public string EncryptPassword(string strPlainText)
         {
-            return Cryptography.Encrypt(strPlainText, this.EncryptKey);
+            return Cryptography.Encrypt(strPlainText, SipHostInfo.EncryptKey);
         }
 
         private XmlElement _root = null;
 
+        // parameters:
+        //      element sipServer 元素
         public override void Initial(XmlElement element)
         {
             _root = element;
 
             // base.Initial(element);
+
+            Debug.Assert(element != null, "");
 
             {
                 // 取出一些常用的指标
@@ -1599,20 +1609,17 @@ namespace dp2Capo
             {
                 // SIP 服务参数
 
-                if (element.SelectSingleNode("sipServer") is XmlElement node)
-                {
-                    this.DateFormat = node.GetAttribute("dateFormat");
-                    string strEncoding = node.GetAttribute("encoding");
-                    if (string.IsNullOrEmpty(strEncoding) == false)
-                        this.Encoding = Encoding.GetEncoding(strEncoding);
-                    else
-                        this.Encoding = Encoding.UTF8;
-                }
+                this.DateFormat = element.GetAttribute("dateFormat");
+                if (string.IsNullOrEmpty(this.DateFormat))
+                    this.DateFormat = SipServer.DEFAULT_DATE_FORMAT;
+
+                string strEncoding = element.GetAttribute("encoding");
+                if (string.IsNullOrEmpty(strEncoding) == false)
+                    this.Encoding = Encoding.GetEncoding(strEncoding);
                 else
-                {
-                    this.DateFormat = "yyyy-MM-dd";
-                    this.Encoding = Encoding.UTF8;
-                }
+                    this.Encoding = Encoding.GetEncoding(SipServer.DEFAULT_ENCODING_NAME);
+
+                this.IpList = element.GetAttribute("ipList");
             }
 
         }

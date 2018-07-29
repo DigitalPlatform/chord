@@ -169,7 +169,7 @@ namespace dp2Capo
             ConfigDom.Save(strCfgFileName);
         }
 
-        static Mutex _mutex = null;
+        // static Mutex _mutex = null;
 
         // 首次从数据目录装载全部实例定义，并连接服务器
         public static void Initial(string strDataDir)

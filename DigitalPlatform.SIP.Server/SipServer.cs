@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-
 using DigitalPlatform.Common;
 using DigitalPlatform.Net;
 
@@ -15,6 +14,22 @@ namespace DigitalPlatform.SIP.Server
     /// </summary>
     public class SipServer : TcpServer
     {
+        // 常量
+        public static string DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+        public static string DEFAULT_ENCODING_NAME = "UTF-8";
+
+        int _maxPackageLength = 4096;
+        public int MaxPackageLength
+        {
+            get
+            {
+                return _maxPackageLength;
+            }
+            set
+            {
+                _maxPackageLength = value;
+            }
+        }
         public event ProcessSipRequestEventHandler ProcessRequest = null;
 
         public SipServer(int port) : base(port)
@@ -45,16 +60,12 @@ namespace DigitalPlatform.SIP.Server
             CancellationToken token)
         {
             SipChannel channel = _tcpChannels.Add(tcpClient, () => { return new SipChannel(); }) as SipChannel;
-            // 允许对 channel 做额外的初始化
-            //if (this.ChannelOpened != null)
-            //    this.ChannelOpened(channel, new EventArgs());
+
             List<byte> cache = new List<byte>();
 
             try
             {
                 string ip = "";
-                //Stream inputStream = tcpClient.GetStream();
-                //Stream outputStream = tcpClient.GetStream();
 
                 try
                 {
@@ -77,7 +88,8 @@ namespace DigitalPlatform.SIP.Server
                                 (package, start, length) =>
                                 {
                                     return FindTerminator(package, start, length);
-                                });
+                                },
+                                this.MaxPackageLength);
                             if (result.Value == -1)
                             {
                                 if (result.ErrorCode == "ConnectionAborted")

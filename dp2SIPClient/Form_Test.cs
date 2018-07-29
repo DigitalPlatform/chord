@@ -39,8 +39,8 @@ namespace dp2SIPClient
                 (object)this.toolStripProgressBar1);
             _stop = new DigitalPlatform.Stop();
             _stop.Register(this._stopManager, true);	// 和容器关联
-
             this.Progress.SetMessage(info);
+
 #endif
         }
 
@@ -305,7 +305,7 @@ namespace dp2SIPClient
             {
                 // 删除书目库
                 info = "正在删除测试用书目库 ...";
-                // Progress.SetMessage(info);
+                ProgressSetMessage(info);
                 LogManager.Logger.Info(info);
                 string strOutputInfo = "";
                 long lRet = channel.ManageDatabase(
@@ -324,7 +324,7 @@ namespace dp2SIPClient
 
                 // 删除读者库
                 info = "正在删除测试用读者库 ...";
-                // Progress.SetMessage(info);
+                ProgressSetMessage(info);
                 LogManager.Logger.Info(info);
                 lRet = channel.ManageDatabase(
                    // _stop,
@@ -343,7 +343,7 @@ namespace dp2SIPClient
 
                 // *** 删除馆藏地
                 info = "正在删除馆藏地 ...";
-                // Progress.SetMessage(info);
+                ProgressSetMessage(info);
                 LogManager.Logger.Info(info);
                 List<DigitalPlatform.CirculationClient.ManageHelper.LocationItem> items = new List<DigitalPlatform.CirculationClient.ManageHelper.LocationItem>();
                 items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem("", "_测试阅览室", true, true));
@@ -360,7 +360,7 @@ namespace dp2SIPClient
 
                 //***删除工作日历
                 info = "正在删除工作日历 ...";
-                //Progress.SetMessage(info);
+                ProgressSetMessage(info);
                 LogManager.Logger.Info(info);
                 CalenderInfo[] infos1 = null;
                 lRet = channel.GetCalendar(
@@ -393,7 +393,7 @@ namespace dp2SIPClient
 
                 // ***删除权限流通权限
                 info = "正在删除流通权限 ...";
-                // Progress.SetMessage(info);
+                ProgressSetMessage(info);
                 LogManager.Logger.Info(info);
 
                 nRet = this.RemoveTestRightsTable(channel, null, out error);
@@ -470,7 +470,7 @@ namespace dp2SIPClient
                 {
                     // *** 定义测试所需的馆藏地
                     info = "正在定义测试所需的馆藏地 ...";
-                    // Progress.SetMessage(info);
+                    ProgressSetMessage(info);
                     LogManager.Logger.Info(info);
 
                     List<DigitalPlatform.CirculationClient.ManageHelper.LocationItem> items = new List<DigitalPlatform.CirculationClient.ManageHelper.LocationItem>();
@@ -487,7 +487,7 @@ namespace dp2SIPClient
 
                     //***创建工作日历
                     info = "正在创建工作日历 ...";
-                    // Progress.SetMessage(info);
+                    ProgressSetMessage(info);
                     LogManager.Logger.Info(info);
 
                     CalenderInfo cInfo = new CalenderInfo();
@@ -505,7 +505,7 @@ namespace dp2SIPClient
 
                     // ***创建流通权限
                     info = "正在创建测试所需的流通权限 ...";
-                    // Progress.SetMessage(info);
+                    ProgressSetMessage(info);
                     LogManager.Logger.Info(info);
 
                     nRet = this.AddTestRightsTable(channel, null, out error);
@@ -514,7 +514,7 @@ namespace dp2SIPClient
 
                     // ***创建测试所需的书目库
                     info = "正在创建测试用书目库 ...";
-                    // Progress.SetMessage(info);
+                    ProgressSetMessage(info);
                     LogManager.Logger.Info(info);
                     // 创建一个书目库
                     // parameters:
@@ -534,7 +534,7 @@ namespace dp2SIPClient
 
                     // 创建书目记录
                     info = "正在创建书目记录和册记录 ...";
-                    // Progress.SetMessage(info);
+                    ProgressSetMessage(info);
                     LogManager.Logger.Info(info);
 
                     nRet = this.CreateBiblioRecord(channel, C_BiblioDbName, out error);
@@ -543,7 +543,7 @@ namespace dp2SIPClient
 
                     // ***创建测试所需的读者库
                     info = "正在创建测试用读者库 ...";
-                    // Progress.SetMessage(info);
+                    ProgressSetMessage(info);
                     LogManager.Logger.Info(info);
 
                     XmlDocument database_dom = new XmlDocument();
@@ -564,14 +564,14 @@ namespace dp2SIPClient
                         goto ERROR1;
 
                     info = "正在创建测试读者记录 ...";
-                    // Progress.SetMessage(info);
+                    ProgressSetMessage(info);
                     LogManager.Logger.Info(info);
                     lRet = this.CreateReaderRecord(channel, out error);
                     if (lRet == -1)
                         goto ERROR1;
 
                     info = "初始化测试环境完成";
-                    // Progress.SetMessage(info);
+                    ProgressSetMessage(info);
                     LogManager.Logger.Info(info);
                     MessageBoxShow(this, info);
                     return;
@@ -1664,9 +1664,17 @@ namespace dp2SIPClient
 
         #endregion
 
-        private void button_stpp_Click(object sender, EventArgs e)
+        private void button_stop_Click(object sender, EventArgs e)
         {
 
+        }
+
+        void ProgressSetMessage(string strText)
+        {
+            this.Invoke(new Action(() =>
+            {
+                this.toolStripStatusLabel1.Text = strText;
+            }));
         }
     }
 }

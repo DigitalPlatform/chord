@@ -85,10 +85,11 @@ namespace dp2Capo
                 LibraryManager.Log?.Error(strError);
                 goto ERROR1;
             }
-            Instance instance = FindZ3950Instance(strInstanceName);
+            Instance instance = FindZ3950Instance(strInstanceName, out strError);
             if (instance == null)
             {
-                strError = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)";
+                if (string.IsNullOrEmpty(strError))
+                    strError = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)";
                 goto ERROR1;
             }
             if (instance.Running == false)
@@ -430,10 +431,12 @@ namespace dp2Capo
                 e.Result = new DigitalPlatform.Z3950.ZClient.SearchResult { Value = -1, ErrorInfo = strErrorText };
                 return;
             }
-            Instance instance = FindZ3950Instance(strInstanceName);
+            Instance instance = FindZ3950Instance(strInstanceName, out strError);
             if (instance == null)
             {
-                e.Result = new DigitalPlatform.Z3950.ZClient.SearchResult { Value = -1, ErrorInfo = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)" };
+                if (string.IsNullOrEmpty(strError))
+                    strError = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)";
+                e.Result = new DigitalPlatform.Z3950.ZClient.SearchResult { Value = -1, ErrorInfo = strError };
                 return;
             }
             if (instance.Running == false)
@@ -625,13 +628,13 @@ namespace dp2Capo
             string strInstanceName = zserver_channel.EnsureProperty().GetKeyValue("i_n");
             if (strInstanceName == null)
             {
-                string strError = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
-                LibraryManager.Log?.Error(strError);
+                LibraryManager.Log?.Error("通道中 实例名 'i_n'='" + strInstanceName + "' 尚未初始化");
             }
-            Instance instance = FindZ3950Instance(strInstanceName);
+            Instance instance = FindZ3950Instance(strInstanceName, out string strError);
             if (instance == null)
             {
-                string strError = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)";
+                if (string.IsNullOrEmpty(strError))
+                    strError = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)";
                 // 写入错误日志
                 LibraryManager.Log?.Error(strError);
                 return;
@@ -668,13 +671,24 @@ namespace dp2Capo
 #endif
         }
 
-        public static Instance FindZ3950Instance(string strInstanceName)
+        public static Tuple<Instance, string> FindZ3950Instance(string strInstanceName)
         {
             Instance instance = ServerInfo.FindInstance(strInstanceName);
-
+            if (instance == null)
+                return new Tuple<Instance, string>(null, "实例 '" + strInstanceName + "' 不存在");
             if (instance.zhost == null)
-                return null;    // 实例虽然存在，但没有启用 Z39.50 服务
-            return instance;
+                return new Tuple<Instance, string>(null, "实例 '" + strInstanceName + "' 没有启用 Z39.50 服务");
+            return new Tuple<Instance, string>(instance, "");
+        }
+
+        public static Instance FindZ3950Instance(string strInstanceName, out string strError)
+        {
+            strError = "";
+            var ret = FindZ3950Instance(strInstanceName);
+            if (ret.Item1 != null)
+                return ret.Item1;
+            strError = ret.Item2;
+            return null;
         }
 
 #if NO
@@ -731,14 +745,16 @@ namespace dp2Capo
                 };
                 return;
             }
-            Instance instance = FindZ3950Instance(strInstanceName);
+            Instance instance = FindZ3950Instance(strInstanceName, out string strError);
             if (instance == null)
             {
+                if (string.IsNullOrEmpty(strError))
+                    strError = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)";
                 e.Result = new Result
                 {
                     Value = -1,
                     ErrorCode = "",
-                    ErrorInfo = "实例名 '" + strInstanceName + "' 不存在(或实例没有启用 Z39.50 服务)"
+                    ErrorInfo = strError
                 };
                 return;
             }
@@ -778,7 +794,7 @@ namespace dp2Capo
                 long lRet = library_channel.Login(strUserName,
                     strPassword,
                     strParameters,
-                    out string strError);
+                    out strError);
                 e.Result.Value = (int)lRet;
                 if (lRet != 1)
                     e.Result.ErrorCode = "101";
@@ -803,14 +819,18 @@ namespace dp2Capo
             // 匿名登录情形
             if (string.IsNullOrEmpty(strUserName))
             {
-                Instance instance = FindZ3950Instance(strInstanceName);
+                Instance instance = FindZ3950Instance(strInstanceName, out string strError);
                 if (instance == null)
                 {
+                    if (string.IsNullOrEmpty(strError))
+                        strError = "以用户名 '" + e.Info.m_strID + "' 中包含的实例名 '" + strInstanceName + "' 没有找到任何实例(或实例没有启用 Z39.50 服务)";
+                    else
+                        strError = "以用户名 '" + e.Info.m_strID + "' 中包含的实例名 '" + strInstanceName + "' 定位，" + strError;
                     e.Result = new Result
                     {
                         Value = -1,
                         ErrorCode = "",
-                        ErrorInfo = "以用户名 '" + e.Info.m_strID + "' 中包含的实例名 '" + strInstanceName + "' 没有找到任何实例(或实例没有启用 Z39.50 服务)"
+                        ErrorInfo = strError
                     };
                     return;
                 }

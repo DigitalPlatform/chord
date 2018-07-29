@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Xml;
 
 using DigitalPlatform;
@@ -37,31 +38,52 @@ namespace dp2Capo
             }
         }
 
-        public static Instance FindSipInstance(string strInstanceName)
+        public static Tuple<Instance, string> FindSipInstance(string strInstanceName)
         {
             Instance instance = ServerInfo.FindInstance(strInstanceName);
-
+            if (instance == null)
+                return new Tuple<Instance, string>(null, "实例 '" + strInstanceName + "' 不存在");
+            if (instance.zhost == null)
+                return new Tuple<Instance, string>(null, "实例 '" + strInstanceName + "' 没有启用 SIP 服务");
+            return new Tuple<Instance, string>(instance, "");
+#if NO
+            Instance instance = ServerInfo.FindInstance(strInstanceName);
+            if (instance == null)
+                return null;
             if (instance.sip_host == null)
                 return null;    // 实例虽然存在，但没有启用 SIP 服务
             return instance;
+#endif
+        }
+
+        public static Instance FindSipInstance(string strInstanceName, out string strError)
+        {
+            strError = "";
+            var ret = FindSipInstance(strInstanceName);
+            if (ret.Item1 != null)
+                return ret.Item1;
+            strError = ret.Item2;
+            return null;
         }
 
         private static void Sip_server_ProcessRequest(object sender, ProcessSipRequestEventArgs e)
         {
             string strBackMsg = "";
-            string strError = "";
-            int nRet = 0;
+            //string strError = "";
+            //int nRet = 0;
 
             SipChannel sip_channel = sender as SipChannel;
 
             string ip = TcpServer.GetClientIP(sip_channel.TcpClient);
 
-            string strPackage = Encoding.UTF8.GetString(e.Request);
+            // Login 之前，这里只是默认的编码方式。因为 Login 之前没法确定实例名。如果 Login 的用户名(和实例名)能确保是英文，用默认编码方式倒也不会有问题
+            // 如果 Login 请求中的用户名包含汉字，则要求 SIP Client 开发者把字符串按照 UrlEncode 方式进行转义，这样 SIP Server 依然可以识别
+            string strPackage = sip_channel.Encoding.GetString(e.Request);
+
             string strMessageIdentifiers = strPackage.Substring(0, 2);
 
             try
             {
-
                 // 处理消息
                 switch (strMessageIdentifiers)
                 {
@@ -171,7 +193,7 @@ namespace dp2Capo
                 // 加校验码
                 strBackMsg = AddChecksumForMessage(sip_channel, strBackMsg);
 
-                e.Response = Encoding.UTF8.GetBytes(strBackMsg);
+                e.Response = sip_channel.Encoding.GetBytes(strBackMsg);
                 return;
             }
             catch (Exception ex)
@@ -179,8 +201,8 @@ namespace dp2Capo
                 LibraryManager.Log?.Error(ExceptionUtil.GetDebugText(ex));
             }
 
-            ERROR1:
-            throw new Exception(strError);
+            //ERROR1:
+            //throw new Exception(strError);
         }
 
         // 加校验码
@@ -239,7 +261,6 @@ namespace dp2Capo
             return checksum;
         }
 
-
         static string Login(SipChannel sip_channel,
             string strClientIP,
             string message)
@@ -268,22 +289,38 @@ namespace dp2Capo
                 return response.ToText();
             }
 
+            // 对用户名解除转义
+            string strRequestUserID = request.CN_LoginUserId_r;
+            if (string.IsNullOrEmpty(strRequestUserID) == false && strRequestUserID.IndexOf("%") != -1)
+                strRequestUserID = Uri.UnescapeDataString(strRequestUserID);
+
             // 解析出实例名
-            List<string> parts = StringUtil.ParseTwoPart(request.CN_LoginUserId_r, "@");
+            List<string> parts = StringUtil.ParseTwoPart(strRequestUserID, "@");
             string strUserName = parts[0];
             string strInstanceName = parts[1];
 
             string strPassword = request.CO_LoginPassword_r;
             string strLocationCode = request.CP_LocationCode_o;
+            if (string.IsNullOrEmpty(strLocationCode) == false && strLocationCode.IndexOf("%") != -1)
+                strLocationCode = Uri.UnescapeDataString(strLocationCode);
 
-            Instance instance = FindSipInstance(strInstanceName);
-            if (instance == null)
+            var ret = FindSipInstance(strInstanceName);
+            if (ret.Item1 == null)
             {
-                strError = "以用户名 '" + request.CN_LoginUserId_r + "' 中包含的实例名 '" + strInstanceName + "' 没有找到任何实例(或实例没有启用 SIP 服务)";
+                strError = "以用户名 '" + strRequestUserID + "' 定位实例，" + ret.Item2;
                 goto ERROR1;
             }
+            Instance instance = ret.Item1;
 
             strInstanceName = instance.Name;
+
+            // 检查 IP 白名单
+            if (string.IsNullOrEmpty(instance.sip_host.IpList) == false && instance.sip_host.IpList != "*"
+                && StringUtil.MatchIpAddressList(instance.sip_host.IpList, strClientIP) == false)
+            {
+                strError = "前端 IP 地址 '" + strClientIP + "' 不在白名单允许的范围内";
+                goto ERROR1;
+            }
 
             // 匿名登录情形
             if (string.IsNullOrEmpty(strUserName))
@@ -371,10 +408,11 @@ namespace dp2Capo
                 strError = "SIP 通道中 实例名 ('InstanceName') 尚未在属性集合初始化。可能是因为尚未登录引起的";
                 goto ERROR1;
             }
-            info.Instance = FindSipInstance(info.InstanceName);
+            info.Instance = FindSipInstance(info.InstanceName, out strError);
             if (info.Instance == null)
             {
-                strError = "实例名 '" + info.InstanceName + "' 不存在(或实例没有启用 SIP 服务)";
+                if (string.IsNullOrEmpty(strError))
+                    strError = "实例名 '" + info.InstanceName + "' 不存在(或实例没有启用 SIP 服务)";
                 goto ERROR1;
             }
             if (info.Instance.Running == false)

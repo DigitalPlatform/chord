@@ -32,6 +32,10 @@
             this.button_Cancel = new System.Windows.Forms.Button();
             this.button_OK = new System.Windows.Forms.Button();
             this.tabPage_sip = new System.Windows.Forms.TabPage();
+            this.comboBox_encodingName = new System.Windows.Forms.ComboBox();
+            this.label10 = new System.Windows.Forms.Label();
+            this.comboBox_dateFormat = new System.Windows.Forms.ComboBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.tabPage_dp2library = new System.Windows.Forms.TabPage();
             this.comboBox_librarywsUrl = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -41,21 +45,19 @@
             this.label3 = new System.Windows.Forms.Label();
             this.textBox_anonymousUserName = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.groupBox_managerAccount = new System.Windows.Forms.GroupBox();
             this.button_detectManageUser = new System.Windows.Forms.Button();
             this.textBox_managePassword = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.textBox_manageUserName = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.tabControl_main = new System.Windows.Forms.TabControl();
-            this.comboBox_dateFormat = new System.Windows.Forms.ComboBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.comboBox_encodingName = new System.Windows.Forms.ComboBox();
-            this.label10 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.textBox_ipList = new System.Windows.Forms.TextBox();
             this.tabPage_sip.SuspendLayout();
             this.tabPage_dp2library.SuspendLayout();
             this.groupBox2.SuspendLayout();
-            this.groupBox1.SuspendLayout();
+            this.groupBox_managerAccount.SuspendLayout();
             this.tabControl_main.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -95,6 +97,8 @@
             // 
             // tabPage_sip
             // 
+            this.tabPage_sip.Controls.Add(this.textBox_ipList);
+            this.tabPage_sip.Controls.Add(this.label7);
             this.tabPage_sip.Controls.Add(this.comboBox_encodingName);
             this.tabPage_sip.Controls.Add(this.label10);
             this.tabPage_sip.Controls.Add(this.comboBox_dateFormat);
@@ -107,13 +111,59 @@
             this.tabPage_sip.Text = "SIP";
             this.tabPage_sip.UseVisualStyleBackColor = true;
             // 
+            // comboBox_encodingName
+            // 
+            this.comboBox_encodingName.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox_encodingName.FormattingEnabled = true;
+            this.comboBox_encodingName.Items.AddRange(new object[] {
+            "UTF-8",
+            "GB2312"});
+            this.comboBox_encodingName.Location = new System.Drawing.Point(153, 25);
+            this.comboBox_encodingName.Margin = new System.Windows.Forms.Padding(4);
+            this.comboBox_encodingName.Name = "comboBox_encodingName";
+            this.comboBox_encodingName.Size = new System.Drawing.Size(225, 26);
+            this.comboBox_encodingName.TabIndex = 11;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(20, 28);
+            this.label10.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(125, 18);
+            this.label10.TabIndex = 10;
+            this.label10.Text = "编码方式(&E)：";
+            // 
+            // comboBox_dateFormat
+            // 
+            this.comboBox_dateFormat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox_dateFormat.FormattingEnabled = true;
+            this.comboBox_dateFormat.Items.AddRange(new object[] {
+            "yyyyMMdd",
+            "yyyy-MM-dd"});
+            this.comboBox_dateFormat.Location = new System.Drawing.Point(153, 63);
+            this.comboBox_dateFormat.Margin = new System.Windows.Forms.Padding(4);
+            this.comboBox_dateFormat.Name = "comboBox_dateFormat";
+            this.comboBox_dateFormat.Size = new System.Drawing.Size(225, 26);
+            this.comboBox_dateFormat.TabIndex = 9;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(20, 66);
+            this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(125, 18);
+            this.label6.TabIndex = 8;
+            this.label6.Text = "日期格式(&D)：";
+            // 
             // tabPage_dp2library
             // 
             this.tabPage_dp2library.AutoScroll = true;
             this.tabPage_dp2library.Controls.Add(this.comboBox_librarywsUrl);
             this.tabPage_dp2library.Controls.Add(this.label1);
             this.tabPage_dp2library.Controls.Add(this.groupBox2);
-            this.tabPage_dp2library.Controls.Add(this.groupBox1);
+            this.tabPage_dp2library.Controls.Add(this.groupBox_managerAccount);
             this.tabPage_dp2library.Location = new System.Drawing.Point(4, 28);
             this.tabPage_dp2library.Margin = new System.Windows.Forms.Padding(4);
             this.tabPage_dp2library.Name = "tabPage_dp2library";
@@ -175,6 +225,7 @@
             this.button_detectAnonymousUser.TabIndex = 4;
             this.button_detectAnonymousUser.Text = "检测(&T)";
             this.button_detectAnonymousUser.UseVisualStyleBackColor = true;
+            this.button_detectAnonymousUser.Click += new System.EventHandler(this.button_detectAnonymousUser_Click);
             // 
             // textBox_anonymousPassword
             // 
@@ -213,21 +264,22 @@
             this.label5.TabIndex = 0;
             this.label5.Text = "用户名(&U):";
             // 
-            // groupBox1
+            // groupBox_managerAccount
             // 
-            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.groupBox_managerAccount.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Controls.Add(this.button_detectManageUser);
-            this.groupBox1.Controls.Add(this.textBox_managePassword);
-            this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Controls.Add(this.textBox_manageUserName);
-            this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Location = new System.Drawing.Point(26, 98);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(549, 177);
-            this.groupBox1.TabIndex = 2;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "SIP 管理帐户";
+            this.groupBox_managerAccount.Controls.Add(this.button_detectManageUser);
+            this.groupBox_managerAccount.Controls.Add(this.textBox_managePassword);
+            this.groupBox_managerAccount.Controls.Add(this.label2);
+            this.groupBox_managerAccount.Controls.Add(this.textBox_manageUserName);
+            this.groupBox_managerAccount.Controls.Add(this.label4);
+            this.groupBox_managerAccount.Location = new System.Drawing.Point(26, 98);
+            this.groupBox_managerAccount.Name = "groupBox_managerAccount";
+            this.groupBox_managerAccount.Size = new System.Drawing.Size(549, 177);
+            this.groupBox_managerAccount.TabIndex = 2;
+            this.groupBox_managerAccount.TabStop = false;
+            this.groupBox_managerAccount.Text = "SIP 管理帐户";
+            this.groupBox_managerAccount.Visible = false;
             // 
             // button_detectManageUser
             // 
@@ -237,6 +289,7 @@
             this.button_detectManageUser.TabIndex = 4;
             this.button_detectManageUser.Text = "检测(&D)";
             this.button_detectManageUser.UseVisualStyleBackColor = true;
+            this.button_detectManageUser.Click += new System.EventHandler(this.button_detectManageUser_Click);
             // 
             // textBox_managePassword
             // 
@@ -291,51 +344,25 @@
             this.tabControl_main.Size = new System.Drawing.Size(609, 536);
             this.tabControl_main.TabIndex = 4;
             // 
-            // comboBox_dateFormat
+            // label7
             // 
-            this.comboBox_dateFormat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBox_dateFormat.FormattingEnabled = true;
-            this.comboBox_dateFormat.Items.AddRange(new object[] {
-            "yyyyMMdd",
-            "yyyy-MM-dd"});
-            this.comboBox_dateFormat.Location = new System.Drawing.Point(198, 63);
-            this.comboBox_dateFormat.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBox_dateFormat.Name = "comboBox_dateFormat";
-            this.comboBox_dateFormat.Size = new System.Drawing.Size(195, 26);
-            this.comboBox_dateFormat.TabIndex = 9;
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(20, 126);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(296, 18);
+            this.label7.TabIndex = 12;
+            this.label7.Text = "前端 IP 地址白名单(逗号间隔)(&B):";
             // 
-            // label6
+            // textBox_ipList
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(20, 66);
-            this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(98, 18);
-            this.label6.TabIndex = 8;
-            this.label6.Text = "日期格式：";
-            // 
-            // comboBox_encodingName
-            // 
-            this.comboBox_encodingName.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBox_encodingName.FormattingEnabled = true;
-            this.comboBox_encodingName.Items.AddRange(new object[] {
-            "UTF-8",
-            "GB2312"});
-            this.comboBox_encodingName.Location = new System.Drawing.Point(198, 25);
-            this.comboBox_encodingName.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBox_encodingName.Name = "comboBox_encodingName";
-            this.comboBox_encodingName.Size = new System.Drawing.Size(195, 26);
-            this.comboBox_encodingName.TabIndex = 11;
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(20, 33);
-            this.label10.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(98, 18);
-            this.label10.TabIndex = 10;
-            this.label10.Text = "编码方式：";
+            this.textBox_ipList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_ipList.Location = new System.Drawing.Point(23, 147);
+            this.textBox_ipList.Multiline = true;
+            this.textBox_ipList.Name = "textBox_ipList";
+            this.textBox_ipList.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.textBox_ipList.Size = new System.Drawing.Size(553, 87);
+            this.textBox_ipList.TabIndex = 13;
             // 
             // SipSettingDialog
             // 
@@ -359,8 +386,8 @@
             this.tabPage_dp2library.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            this.groupBox_managerAccount.ResumeLayout(false);
+            this.groupBox_managerAccount.PerformLayout();
             this.tabControl_main.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -383,7 +410,7 @@
         private System.Windows.Forms.TextBox textBox_anonymousUserName;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TabControl tabControl_main;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox groupBox_managerAccount;
         private System.Windows.Forms.Button button_detectManageUser;
         private System.Windows.Forms.TextBox textBox_managePassword;
         private System.Windows.Forms.Label label2;
@@ -393,5 +420,7 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.ComboBox comboBox_encodingName;
         private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.TextBox textBox_ipList;
+        private System.Windows.Forms.Label label7;
     }
 }

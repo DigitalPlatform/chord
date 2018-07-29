@@ -31,7 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Z3950SettingDialog));
             this.button_Cancel = new System.Windows.Forms.Button();
             this.button_OK = new System.Windows.Forms.Button();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.groupBox_managerAccount = new System.Windows.Forms.GroupBox();
             this.button_detectManageUser = new System.Windows.Forms.Button();
             this.textBox_managePassword = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -59,7 +59,7 @@
             this.numericUpDown_z3950_port = new System.Windows.Forms.NumericUpDown();
             this.label7 = new System.Windows.Forms.Label();
             this.checkBox_enableZ3950 = new System.Windows.Forms.CheckBox();
-            this.groupBox1.SuspendLayout();
+            this.groupBox_managerAccount.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.tabControl_main.SuspendLayout();
             this.tabPage_dp2library.SuspendLayout();
@@ -90,21 +90,22 @@
             this.button_OK.UseVisualStyleBackColor = true;
             this.button_OK.Click += new System.EventHandler(this.button_OK_Click);
             // 
-            // groupBox1
+            // groupBox_managerAccount
             // 
-            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.groupBox_managerAccount.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Controls.Add(this.button_detectManageUser);
-            this.groupBox1.Controls.Add(this.textBox_managePassword);
-            this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Controls.Add(this.textBox_manageUserName);
-            this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Location = new System.Drawing.Point(26, 98);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(549, 177);
-            this.groupBox1.TabIndex = 2;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Z39.50 管理帐户";
+            this.groupBox_managerAccount.Controls.Add(this.button_detectManageUser);
+            this.groupBox_managerAccount.Controls.Add(this.textBox_managePassword);
+            this.groupBox_managerAccount.Controls.Add(this.label2);
+            this.groupBox_managerAccount.Controls.Add(this.textBox_manageUserName);
+            this.groupBox_managerAccount.Controls.Add(this.label4);
+            this.groupBox_managerAccount.Location = new System.Drawing.Point(26, 98);
+            this.groupBox_managerAccount.Name = "groupBox_managerAccount";
+            this.groupBox_managerAccount.Size = new System.Drawing.Size(549, 177);
+            this.groupBox_managerAccount.TabIndex = 2;
+            this.groupBox_managerAccount.TabStop = false;
+            this.groupBox_managerAccount.Text = "Z39.50 管理帐户";
+            this.groupBox_managerAccount.Visible = false;
             // 
             // button_detectManageUser
             // 
@@ -249,7 +250,7 @@
             this.tabPage_dp2library.Controls.Add(this.comboBox_librarywsUrl);
             this.tabPage_dp2library.Controls.Add(this.label1);
             this.tabPage_dp2library.Controls.Add(this.groupBox2);
-            this.tabPage_dp2library.Controls.Add(this.groupBox1);
+            this.tabPage_dp2library.Controls.Add(this.groupBox_managerAccount);
             this.tabPage_dp2library.Location = new System.Drawing.Point(4, 28);
             this.tabPage_dp2library.Margin = new System.Windows.Forms.Padding(4);
             this.tabPage_dp2library.Name = "tabPage_dp2library";
@@ -438,8 +439,8 @@
             this.Text = "Z39.50 服务参数";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.InstallZServerDlg_FormClosed);
             this.Load += new System.EventHandler(this.InstallZServerDlg_Load);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            this.groupBox_managerAccount.ResumeLayout(false);
+            this.groupBox_managerAccount.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.tabControl_main.ResumeLayout(false);
@@ -459,7 +460,7 @@
 
         private System.Windows.Forms.Button button_Cancel;
         private System.Windows.Forms.Button button_OK;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox groupBox_managerAccount;
         private System.Windows.Forms.Button button_detectManageUser;
         private System.Windows.Forms.TextBox textBox_managePassword;
         private System.Windows.Forms.Label label2;

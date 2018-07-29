@@ -35,12 +35,19 @@ namespace dp2Capo.Install
             XmlNodeList nodes = dom.DocumentElement.SelectNodes("zServer/databases/database");
             text.Append("databaseCount=" + nodes.Count + "\r\n");
 
+            if (dom.DocumentElement.SelectSingleNode("zServer/dp2library") is XmlElement node)
+            {
+                text.Append("anonymousUserName=" + node.GetAttribute("anonymousUserName") + "\r\n");
+            }
+
             XmlElement element = dom.DocumentElement.SelectSingleNode("zServer") as XmlElement;
             if (element != null)
             {
-                // text.Append("url=" + element.GetAttribute("url") + "\r\n");
-                text.Append("anonymousUserName=" + element.GetAttribute("anonymousUserName") + "\r\n");
             }
+
+            if (text.Length == 0)
+                text.Append("*");
+
             return text.ToString();
         }
 
@@ -50,17 +57,16 @@ namespace dp2Capo.Install
 
             try
             {
-                string strError = "";
 
-                if (this.LibraryWsUrl == "")
+                if (string.IsNullOrEmpty(this.comboBox_librarywsUrl.Text))
                 {
                     MessageBox.Show(this, "尚未输入 dp2Library 服务器的 URL");
                     return;
                 }
 
-                if (this.UserName == "")
+                if (string.IsNullOrEmpty(this.textBox_manageUserName.Text))
                 {
-                    MessageBox.Show(this, "尚未指定 dp2Library 管理用户名。");
+                    MessageBox.Show(this, "尚未指定 dp2Library 管理用户名");
                     return;
                 }
 
@@ -84,7 +90,7 @@ namespace dp2Capo.Install
                     this.comboBox_librarywsUrl.Text,
                     this.textBox_manageUserName.Text,
                     this.textBox_managePassword.Text,
-                    out strError);
+                    out string strError);
                 if (nRet == -1)
                 {
                     MessageBox.Show(this, "检测 dp2library 帐户时发生错误: " + strError);
@@ -151,7 +157,7 @@ namespace dp2Capo.Install
                 //      1   登录成功
                 long lRet = Channel.Login(strUserName,
                     strPassword,
-                    "location=z39.50 server,type=worker,client=dp2ZServer|0.01",
+                    "location=Z39.50 Server,type=worker,client=chordInstaller|3.0",
                     /*
                     "z39.50 server",    // string strLocation,
                     false,  // bReader,
@@ -257,23 +263,20 @@ namespace dp2Capo.Install
 
             try
             {
-                string strError = "";
 
-                if (this.LibraryWsUrl == "")
+                if (string.IsNullOrEmpty(this.comboBox_librarywsUrl.Text))
                 {
                     MessageBox.Show(this, "尚未输入 dp2Library 服务器的 URL");
                     return;
                 }
 
-                if (this.AnonymousUserName == "")
+                if (string.IsNullOrEmpty(this.textBox_anonymousUserName.Text))
                 {
-                    MessageBox.Show(this, "尚未指定 匿名登录用户名。");
+                    MessageBox.Show(this, "尚未指定 匿名登录用户名");
                     return;
                 }
 
-
                 // 检测帐户登录是否成功?
-
 
                 // 进行登录
                 // return:
@@ -284,7 +287,7 @@ namespace dp2Capo.Install
                     this.comboBox_librarywsUrl.Text,
                     this.textBox_anonymousUserName.Text,
                     this.textBox_anonymousPassword.Text,
-                    out strError);
+                    out string strError);
                 if (nRet == -1)
                 {
                     MessageBox.Show(this, "检测 匿名登录 用户时发生错误: " + strError);
