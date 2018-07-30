@@ -180,12 +180,11 @@ namespace dp2Capo
             XmlDocument dom = new XmlDocument();
             dom.Load(strXmlFileName);
 
-            try
             {
                 //this.Name = dom.DocumentElement.GetAttribute("instanceName");
                 //if (string.IsNullOrEmpty(this.Name) == true)
                 //    this.Name = Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
-
+                try
                 {
                     XmlElement element = dom.DocumentElement.SelectSingleNode("dp2library") as XmlElement;
                     if (element == null)
@@ -197,10 +196,14 @@ namespace dp2Capo
                     this.dp2library = new LibraryHostInfo();
                     this.dp2library.Initial(element);
                 }
-
+                catch (Exception ex)
                 {
-                    XmlElement element = dom.DocumentElement.SelectSingleNode("dp2mserver") as XmlElement;
-                    if (element == null)
+                    this.WriteErrorLog("配置文件 " + strXmlFileName + " (dp2library 元素内) 格式错误: " + ex.Message);
+                }
+
+                try
+                {
+                    if (!(dom.DocumentElement.SelectSingleNode("dp2mserver") is XmlElement element))
                     {
                         // dp2Capo 应可以不配置 dp2mserver 相关参数，这种状态也是有意义的，因为可以配置 Z39.50 服务器参数仅作为 Z39.50 服务器使用
                         // this.WriteErrorLog("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2mserver 元素");
@@ -214,10 +217,14 @@ namespace dp2Capo
                     this.MessageConnection.Instance = this;
                     this.MessageConnection.dp2library = this.dp2library;
                 }
-
+                catch (Exception ex)
                 {
-                    XmlElement element = dom.DocumentElement.SelectSingleNode("zServer") as XmlElement;
-                    if (element != null)
+                    this.WriteErrorLog("配置文件 " + strXmlFileName + " (dp2mserver 元素内) 格式错误: " + ex.Message);
+                }
+
+                try
+                {
+                    if (dom.DocumentElement.SelectSingleNode("zServer") is XmlElement element)
                     {
                         this.zhost = new ZHostInfo();
                         this.zhost.Initial(element);
@@ -226,21 +233,25 @@ namespace dp2Capo
                         // InitialZHostSlowConfig();
                     }
                 }
-
+                catch (Exception ex)
                 {
-                    XmlElement element = dom.DocumentElement.SelectSingleNode("sipServer") as XmlElement;
-                    if (element != null)
+                    this.WriteErrorLog("配置文件 " + strXmlFileName + " (zServer 元素内) 格式错误: " + ex.Message);
+                }
+
+                try
+                {
+                    if (dom.DocumentElement.SelectSingleNode("sipServer") is XmlElement element)
                     {
                         this.sip_host = new SipHostInfo();
                         this.sip_host.Initial(element);
                     }
                 }
+                catch (Exception ex)
+                {
+                    this.WriteErrorLog("配置文件 " + strXmlFileName + " (sipServer 元素内) 格式错误: " + ex.Message);
+                }
             }
-            catch (Exception ex)
-            {
-                // throw new Exception("配置文件 " + strXmlFileName + " 格式错误: " + ex.Message);
-                this.WriteErrorLog("配置文件 " + strXmlFileName + " 格式错误: " + ex.Message);
-            }
+
 
             // 只要定义了队列就启动这个线程
             if (string.IsNullOrEmpty(this.dp2library.DefaultQueue) == false)
@@ -860,12 +871,12 @@ namespace dp2Capo
 
         // 发送心跳消息给 dp2mserver
         /*
-<root>
+    <root>
     <type>patronNotify</type>
     <recipient>R0000001@LUID:62637a12-1965-4876-af3a-fc1d3009af8a</recipient>
     <mime>xml</mime>
     <body>...</body>
-</root>
+    </root>
 
          * */
         public bool SendHeartBeat()
@@ -1518,7 +1529,7 @@ namespace dp2Capo
     {
         // dp2library定义的特性
         public string DbName = "";  // 书目库名
-        // public string Syntax = "";  // 格式语法
+                                    // public string Syntax = "";  // 格式语法
 
         public bool IsVirtual = false;  // 是否为虚拟库
 

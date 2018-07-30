@@ -27,6 +27,19 @@ namespace DigitalPlatform.Net
 
         Dictionary<string, IpEntry> _ipTable = new Dictionary<string, IpEntry>();   // IP -- 信息 对照表
 
+        public void Clear()
+        {
+            _lock.EnterWriteLock();
+            try
+            {
+                _ipTable.Clear();
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
+        }
+
         // 查找一个 IpEntry
         public IpEntry FindIpEntry(string ip)
         {

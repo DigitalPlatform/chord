@@ -25,7 +25,14 @@ namespace DigitalPlatform.Net
         private TcpListener _listener;
         private bool _isActive = true;
 
-        private IpTable _ipTable;
+        private IpTable _ipTable = new IpTable();
+        public IpTable IpTable
+        {
+            get
+            {
+                return _ipTable;
+            }
+        }
 
         #endregion
 
@@ -89,7 +96,7 @@ namespace DigitalPlatform.Net
         {
             try
             {
-                this._ipTable = new IpTable();
+                this._ipTable.Clear();
                 this._listener = new TcpListener(IPAddress.Any, this._port);
                 this._listener.Start(backlog);  // TODO: 要捕获异常
             }
