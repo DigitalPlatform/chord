@@ -17,6 +17,7 @@ using DigitalPlatform.IO;
 using DigitalPlatform.LibraryClient.localhost;
 using DigitalPlatform.Xml;
 using DigitalPlatform.LibraryClient;
+using DigitalPlatform.SIP.Server;
 
 namespace dp2Capo
 {
@@ -33,6 +34,8 @@ namespace dp2Capo
 
         // 2016/6/16
         public ZHostInfo zhost { get; set; }
+
+        public SipHostInfo sip_host { get; set; }
 
         // 没有用 MessageConnectionCollectoin 管理
         public ServerConnection MessageConnection = new ServerConnection();
@@ -221,6 +224,15 @@ namespace dp2Capo
 
                         // this.zhost.SlowConfigInitialized = false;
                         // InitialZHostSlowConfig();
+                    }
+                }
+
+                {
+                    XmlElement element = dom.DocumentElement.SelectSingleNode("sipServer") as XmlElement;
+                    if (element != null)
+                    {
+                        this.sip_host = new SipHostInfo();
+                        this.sip_host.Initial(element);
                     }
                 }
             }
@@ -1013,7 +1025,7 @@ namespace dp2Capo
 
     public class HostInfo
     {
-        public static string EncryptKey = "dp2capopassword";
+        public static readonly string EncryptKey = "dp2capopassword";
 
         public string Url { get; set; }
 
@@ -1079,7 +1091,7 @@ namespace dp2Capo
             set => _maxResultCount = value;
         }
 
-        new string EncryptKey = "dp2zserver_password_key";
+        new static readonly string EncryptKey = "dp2zserver_password_key";
 
         public string DecryptPasssword(string strEncryptedText)
         {
@@ -1104,7 +1116,7 @@ namespace dp2Capo
 
         public string EncryptPassword(string strPlainText)
         {
-            return Cryptography.Encrypt(strPlainText, this.EncryptKey);
+            return Cryptography.Encrypt(strPlainText, ZHostInfo.EncryptKey);
         }
 
         private XmlElement _root = null;
@@ -1518,6 +1530,99 @@ namespace dp2Capo
 
         // 2017/4/15
         public string RemoveFields = "997"; // 返回前要删除的字段名列表，逗号分隔。缺省为 "997"
+    }
+
+    // SIP 主机信息
+    public class SipHostInfo : HostInfo
+    {
+        // 匿名访问时使用的用户名和密码
+        public string AnonymousUserName { get; set; }
+        public string AnonymousPassword { get; set; }
+
+        // 日期格式
+        public string DateFormat { get; set; }
+
+        // 编码方式
+        public Encoding Encoding { get; set; }
+
+        // 前端 IP 地址白名单。空表示所有 IP 地址都许可，和 * 作用一致
+        public string IpList { get; set; }
+
+        new static readonly string EncryptKey = "dp2sipserver_password_key";
+
+        public string DecryptPasssword(string strEncryptedText)
+        {
+            if (String.IsNullOrEmpty(strEncryptedText) == false)
+            {
+                try
+                {
+                    string strPassword = Cryptography.Decrypt(
+        strEncryptedText,
+        EncryptKey);
+                    return strPassword;
+                }
+                catch
+                {
+                    return "errorpassword";
+                }
+
+            }
+
+            return "";
+        }
+
+        public string EncryptPassword(string strPlainText)
+        {
+            return Cryptography.Encrypt(strPlainText, SipHostInfo.EncryptKey);
+        }
+
+        private XmlElement _root = null;
+
+        // parameters:
+        //      element sipServer 元素
+        public override void Initial(XmlElement element)
+        {
+            _root = element;
+
+            // base.Initial(element);
+
+            Debug.Assert(element != null, "");
+
+            {
+                // 取出一些常用的指标
+
+                // 1) 图书馆应用服务器URL
+                // 2) 管理员用的帐户和密码
+                if (element.SelectSingleNode("dp2library") is XmlElement node)
+                {
+                    this.AnonymousUserName = node.GetAttribute("anonymousUserName");
+                    string strPassword = node.GetAttribute("anonymousPassword");
+                    this.AnonymousPassword = DecryptPasssword(strPassword);
+                }
+                else
+                {
+                    this.AnonymousUserName = "";
+                    this.AnonymousPassword = "";
+                }
+            }
+
+            {
+                // SIP 服务参数
+
+                this.DateFormat = element.GetAttribute("dateFormat");
+                if (string.IsNullOrEmpty(this.DateFormat))
+                    this.DateFormat = SipServer.DEFAULT_DATE_FORMAT;
+
+                string strEncoding = element.GetAttribute("encoding");
+                if (string.IsNullOrEmpty(strEncoding) == false)
+                    this.Encoding = Encoding.GetEncoding(strEncoding);
+                else
+                    this.Encoding = Encoding.GetEncoding(SipServer.DEFAULT_ENCODING_NAME);
+
+                this.IpList = element.GetAttribute("ipList");
+            }
+
+        }
     }
 
 }

@@ -1,0 +1,39 @@
+﻿        #region 界面控件
+
+        delegate void SetTextCallback(string text);
+
+        delegate void SetCtrlStateCallback(bool enabled);
+        private void SetCtrlState(bool enabled)
+        {
+            if (this.btnConnect.InvokeRequired)
+            {
+                SetCtrlStateCallback d = new SetCtrlStateCallback(SetCtrlState);
+                this.Invoke(d, new object[] { enabled });
+            }
+            else
+            {
+                btnConnect.Enabled = enabled;
+                btnDown.Enabled = !enabled;
+                btnSend.Enabled = !enabled;
+            }
+        }
+
+
+        private void SetText(string text)
+        {
+            // InvokeRequired required compares the thread ID of the
+            // calling thread to the thread ID of the creating thread.
+            // If these threads are different, it returns true.
+            if (this.listBox_printer.InvokeRequired)
+            {
+                SetTextCallback d = new SetTextCallback(SetText);
+                this.Invoke(d, new object[] { text });
+            }
+            else
+            {
+                this.listBox_printer.Items.Add(text);
+                // this.textBox1.Text = text;
+            }
+        }
+
+        #endregion

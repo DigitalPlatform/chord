@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Request\" />
+    <Folder Include="Response\" />
+    <Folder Include="SIP2Entity\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj" />
+  </ItemGroup>
+
+</Project>

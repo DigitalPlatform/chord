@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalPlatform.Net;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using static DigitalPlatform.Z3950.ZClient;

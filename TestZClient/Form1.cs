@@ -15,6 +15,7 @@ using DigitalPlatform.Z3950;
 using DigitalPlatform.Marc;
 using System.Web;
 using DigitalPlatform.MarcQuery;
+using DigitalPlatform.Net;
 
 namespace TestZClient
 {
@@ -260,6 +261,8 @@ namespace TestZClient
                     //      -1  出错
                     //      0   成功
                     //      1   调用前已经是初始化过的状态，本次没有进行初始化
+                    // InitialResult result = _zclient.TryInitialize(_targetInfo).GetAwaiter().GetResult();
+                    // InitialResult result = _zclient.TryInitialize(_targetInfo).Result;
                     InitialResult result = await _zclient.TryInitialize(_targetInfo);
                     if (result.Value == -1)
                     {

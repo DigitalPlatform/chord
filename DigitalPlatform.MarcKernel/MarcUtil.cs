@@ -3,6 +3,8 @@ using System.Xml;
 using System.Diagnostics;
 using System.Text;
 using System.Web;
+using System.IO;
+using System.Collections.Generic;
 
 using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
@@ -72,6 +74,287 @@ namespace DigitalPlatform.Marc
             return 0;
         }
 
+        // 将MARC记录转换为字段(字符串)数组。
+        public static int ConvertMarcToFieldArray(string strMARC,
+            out string[] saField,
+            out string strError)
+        {
+            strError = "";
+            saField = null;
+
+            string[] aDataField = null;
+
+            string strLeader = "";
+
+            if (strMARC.Length < 24)
+            {
+                strLeader = strMARC.PadRight(24, '*');
+                saField = new string[1];
+                saField[0] = strLeader;
+                return 0;
+            }
+            else
+            {
+                strLeader = strMARC.Substring(0, 24);
+            }
+
+            aDataField = strMARC.Substring(24).Split(new char[] { (char)FLDEND });
+
+            int i;
+            List<string> temp = new List<string>(500);
+
+            for (i = 1; i < aDataField.Length; i++)
+            {
+                string strField = aDataField[i - 1];
+                if (strField.Length == 0)
+                    continue;
+                if (strField.Length < 3)
+                    strField = strField.PadRight(3, '*');
+
+                temp.Add(strField);
+            }
+
+            // 2012/11/3 修改
+            temp.Insert(0, strLeader);
+            saField = new string[temp.Count];
+            temp.CopyTo(saField);
+#if NO
+			saField = new string [temp.Count+1];
+
+			saField[0] = strLeader;
+			for(i=1;i<saField.Length;i++)
+			{
+				saField[i] = (string)temp[i-1];
+			}
+#endif
+
+            return 0;
+        }
+
+        // 看一个字段名是否是控制字段。所谓控制字段没有指示符概念
+        // parameters:
+        //		strFieldName	字段名
+        // return:
+        //		true	是控制字段
+        //		false	不是控制字段
+        public static bool IsControlFieldName(string strFieldName)
+        {
+            if (strFieldName == null || strFieldName.Length < 3)
+                throw new ArgumentException("strFieldName 参数值应当是 3 字符的字符串");
+
+            if (strFieldName[0] == '0' && strFieldName[1] == '0')
+                return true;
+            if (strFieldName == "hdr" || strFieldName == "###" || strFieldName == "-01")
+                return true;
+            return false;
+        }
+
+
+        // 2013/3/5
+        // 将 MARC 格式转换为 MARCXML 格式，替换已有的 XML 中的相关部分，保留其他部分
+        public static int Marc2XmlEx(string strMARC,
+            string strMarcSyntax,
+            ref string strXml,
+            out string strError)
+        {
+            strError = "";
+
+            if (string.IsNullOrEmpty(strXml) == true)
+            {
+                return Marc2Xml(strMARC, strMarcSyntax, out strXml, out strError);
+            }
+
+            XmlDocument domXmlFragment = null;
+
+            // 装载书目以外的其它XML片断
+            int nRet = LoadXmlFragment(strXml,
+    out domXmlFragment,
+    out strError);
+            if (nRet == -1)
+                return -1;
+
+            XmlDocument domMarc = null;
+            nRet = MarcUtil.Marc2Xml(strMARC,
+                strMarcSyntax,
+                out domMarc,
+                out strError);
+            if (nRet == -1)
+                return -1;
+
+            // 合成其它XML片断
+            if (domXmlFragment != null
+                && string.IsNullOrEmpty(domXmlFragment.DocumentElement.InnerXml) == false)
+            {
+                XmlDocumentFragment fragment = domMarc.CreateDocumentFragment();
+                try
+                {
+                    fragment.InnerXml = domXmlFragment.DocumentElement.InnerXml;
+                }
+                catch (Exception ex)
+                {
+                    strError = "fragment XML装入XmlDocumentFragment时出错: " + ex.Message;
+                    return -1;
+                }
+
+                domMarc.DocumentElement.AppendChild(fragment);
+            }
+            strXml = domMarc.OuterXml;
+            return 0;
+        }
+
+        // 2008/5/16
+        // 将MARC记录转换为xml格式
+        // parameters:
+        //      strMarcSyntax   MARC格式．为 unimarc/usmarc之一，缺省为unimarc
+        public static int Marc2Xml(string strMARC,
+            string strMarcSyntax,
+            out XmlDocument domMarc,
+            out string strError)
+        {
+            strError = "";
+            domMarc = null;
+
+            // MARC控件中内容更新一些. 需要刷新到xml控件中
+            using (MemoryStream s = new MemoryStream())
+            using (MarcXmlWriter writer = new MarcXmlWriter(s, Encoding.UTF8))
+            {
+                if (strMarcSyntax == "unimarc")
+                {
+                    writer.MarcNameSpaceUri = DpNs.unimarcxml;
+                    writer.MarcPrefix = strMarcSyntax;
+                }
+                else if (strMarcSyntax == "usmarc")
+                {
+                    writer.MarcNameSpaceUri = Ns.usmarcxml;
+                    writer.MarcPrefix = strMarcSyntax;
+                }
+                else
+                {
+                    writer.MarcNameSpaceUri = DpNs.unimarcxml;
+                    writer.MarcPrefix = "unimarc";
+                }
+
+                int nRet = writer.WriteRecord(strMARC,
+                    out strError);
+                if (nRet == -1)
+                    return -1; ;
+
+                writer.Flush();
+                s.Flush();
+
+                s.Seek(0, SeekOrigin.Begin);
+
+                domMarc = new XmlDocument();
+                try
+                {
+                    domMarc.Load(s);
+                }
+                catch (Exception ex)
+                {
+                    strError = "Marc2Xml()中XML数据装入DOM时出错: " + ex.Message;
+                    return -1;
+                }
+
+                return 0;
+            }
+        }
+
+        // 将MARC记录转换为xml格式
+        // 2015/5/10 改进了函数性能，采用 StringWriter 获取字符串结果
+        // parameters:
+        //      strMarcSyntax   MARC格式．为 unimarc/usmarc之一，缺省为unimarc
+        public static int Marc2Xml(string strMARC,
+            string strMarcSyntax,
+            out string strXml,
+            out string strError)
+        {
+            strError = "";
+            strXml = "";
+
+            // MARC控件中内容更新一些. 需要刷新到xml控件中
+            using (StringWriter s = new StringWriter())
+            using (MarcXmlWriter writer = new MarcXmlWriter(s))
+            {
+                if (strMarcSyntax == "unimarc")
+                {
+                    writer.MarcNameSpaceUri = DpNs.unimarcxml;
+                    writer.MarcPrefix = strMarcSyntax;
+                }
+                else if (strMarcSyntax == "usmarc")
+                {
+                    writer.MarcNameSpaceUri = Ns.usmarcxml;
+                    writer.MarcPrefix = strMarcSyntax;
+                }
+                else
+                {
+                    writer.MarcNameSpaceUri = DpNs.unimarcxml;
+                    writer.MarcPrefix = "unimarc";
+                }
+
+                int nRet = writer.WriteRecord(strMARC,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+
+                writer.Flush();
+
+                strXml = s.ToString();
+                return 0;
+            }
+        }
+
+        // 包装后的版本
+        public static int LoadXmlFragment(string strXml,
+    out string strXmlFragment,
+    out string strError)
+        {
+            strXmlFragment = "";
+            XmlDocument domXmlFragment = null;
+            int nRet = LoadXmlFragment(strXml, out domXmlFragment, out strError);
+            if (nRet == -1)
+                return -1;
+            if (domXmlFragment != null && domXmlFragment.DocumentElement != null)
+                strXmlFragment = domXmlFragment.DocumentElement.OuterXml;
+            return nRet;
+        }
+
+        // 装载书目以外的其它XML片断
+        static int LoadXmlFragment(string strXml,
+            out XmlDocument domXmlFragment,
+            out string strError)
+        {
+            strError = "";
+
+            domXmlFragment = null;
+
+            XmlDocument dom = new XmlDocument();
+            try
+            {
+                dom.LoadXml(strXml);
+            }
+            catch (Exception ex)
+            {
+                strError = "XML装入DOM时出错: " + ex.Message;
+                return -1;
+            }
+
+            XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
+            nsmgr.AddNamespace("dprms", DpNs.dprms);
+            nsmgr.AddNamespace("unimarc", DpNs.unimarcxml);
+            nsmgr.AddNamespace("usmarc", Ns.usmarcxml);
+
+            XmlNodeList nodes = dom.DocumentElement.SelectNodes("//unimarc:leader | //unimarc:controlfield | //unimarc:datafield | //usmarc:leader | //usmarc:controlfield | //usmarc:datafield", nsmgr); // | //dprms:file
+            foreach (XmlNode node in nodes)
+            {
+                node.ParentNode.RemoveChild(node);
+            }
+
+            domXmlFragment = new XmlDocument();
+            domXmlFragment.LoadXml("<root />");
+            domXmlFragment.DocumentElement.InnerXml = dom.DocumentElement.InnerXml;
+
+            return 0;
+        }
 
         // 包装以后的版本
         public static int Xml2Marc(string strXml,

@@ -54,59 +54,112 @@ namespace dp2Capo.Install
                 _cfgDom.LoadXml("<root />");
             }
 
-            XmlElement zServer = _cfgDom.DocumentElement.SelectSingleNode("zServer") as XmlElement;
-            if (zServer == null)
             {
-                zServer = _cfgDom.CreateElement("zServer");
-                _cfgDom.DocumentElement.AppendChild(zServer);
-                this.Changed = true;
+                if (!(_cfgDom.DocumentElement.SelectSingleNode("zServer") is XmlElement zServer))
+                {
+                    zServer = _cfgDom.CreateElement("zServer");
+                    _cfgDom.DocumentElement.AppendChild(zServer);
+                    this.Changed = true;
+                }
+
+                this.textBox_z3950ListeningPort.Text = zServer.GetAttribute("port");
+                SetZ3950EnabledByPortNumber();
             }
 
-            this.textBox_listeningPort.Text = zServer.GetAttribute("port");
-            SetEnabledByPortNumber();
+            {
+                if (!(_cfgDom.DocumentElement.SelectSingleNode("sipServer") is XmlElement sipServer))
+                {
+                    sipServer = _cfgDom.CreateElement("sipServer");
+                    _cfgDom.DocumentElement.AppendChild(sipServer);
+                    this.Changed = true;
+                }
+
+                this.textBox_sipListeningPort.Text = sipServer.GetAttribute("port");
+                SetSipEnabledByPortNumber();
+            }
         }
 
         // 把界面上的配置值兑现到配置文件
         void Restore()
         {
+            if (string.IsNullOrEmpty(this.textBox_z3950ListeningPort.Text) == false
+                && this.textBox_z3950ListeningPort.Text == this.textBox_sipListeningPort.Text)
+                throw new Exception("Z39.50 端口号 '" + this.textBox_z3950ListeningPort.Text + "' 和 SIP 端口号 '" + this.textBox_sipListeningPort.Text + "' 冲突了");
+
             Debug.Assert(_cfgDom != null && _cfgDom.DocumentElement != null, "");
 
-            XmlElement zServer = _cfgDom.DocumentElement.SelectSingleNode("zServer") as XmlElement;
-            if (zServer == null)
             {
-                zServer = _cfgDom.CreateElement("zServer");
-                _cfgDom.DocumentElement.AppendChild(zServer);
-                this.Changed = true;
+                if (!(_cfgDom.DocumentElement.SelectSingleNode("zServer") is XmlElement zServer))
+                {
+                    zServer = _cfgDom.CreateElement("zServer");
+                    _cfgDom.DocumentElement.AppendChild(zServer);
+                    this.Changed = true;
+                }
+
+                if (string.IsNullOrEmpty(this.textBox_z3950ListeningPort.Text) == false)
+                {
+                    if (Int32.TryParse(this.textBox_z3950ListeningPort.Text, out int v) == false)
+                        throw new Exception("Z39.50 端口号必须是纯数字");
+                    if (v < 0)
+                        throw new Exception("Z39.50 端口号必须大于等于 0");
+                }
+
+                zServer.SetAttribute("port", this.textBox_z3950ListeningPort.Text);
             }
 
-            if (string.IsNullOrEmpty(this.textBox_listeningPort.Text) == false)
             {
-                if (Int32.TryParse(this.textBox_listeningPort.Text, out int v) == false)
-                    throw new Exception("端口号必须是纯数字");
-                if (v < 0)
-                    throw new Exception("端口号必须大于等于 0");
-            }
+                if (!(_cfgDom.DocumentElement.SelectSingleNode("sipServer") is XmlElement sipServer))
+                {
+                    sipServer = _cfgDom.CreateElement("sipServer");
+                    _cfgDom.DocumentElement.AppendChild(sipServer);
+                    this.Changed = true;
+                }
 
-            zServer.SetAttribute("port", this.textBox_listeningPort.Text);
+                if (string.IsNullOrEmpty(this.textBox_sipListeningPort.Text) == false)
+                {
+                    if (Int32.TryParse(this.textBox_sipListeningPort.Text, out int v) == false)
+                        throw new Exception("SIP 端口号必须是纯数字");
+                    if (v < 0)
+                        throw new Exception("SIP 端口号必须大于等于 0");
+                }
+
+                sipServer.SetAttribute("port", this.textBox_sipListeningPort.Text);
+            }
 
             string filename = this.GetCfgFileName();
             _cfgDom.Save(filename);
         }
 
-        // 根据 this.textBox_listeningPort.Text 设置 
-        void SetEnabledByPortNumber()
+        // 根据 this.textBox_z3950ListeningPort.Text 设置 
+        void SetZ3950EnabledByPortNumber()
         {
-            if (string.IsNullOrEmpty(this.textBox_listeningPort.Text))
+            if (string.IsNullOrEmpty(this.textBox_z3950ListeningPort.Text))
             {
                 this.checkBox_enableZ3950Server.Checked = false;
-                this.textBox_listeningPort.Enabled = false;
+                this.textBox_z3950ListeningPort.Enabled = false;
             }
             else
             {
                 this.checkBox_enableZ3950Server.Checked = true;
-                this.textBox_listeningPort.Enabled = true;
+                this.textBox_z3950ListeningPort.Enabled = true;
             }
         }
+
+        // 根据 this.textBox_sipListeningPort.Text 设置 
+        void SetSipEnabledByPortNumber()
+        {
+            if (string.IsNullOrEmpty(this.textBox_sipListeningPort.Text))
+            {
+                this.checkBox_enableSipServer.Checked = false;
+                this.textBox_sipListeningPort.Enabled = false;
+            }
+            else
+            {
+                this.checkBox_enableSipServer.Checked = true;
+                this.textBox_sipListeningPort.Enabled = true;
+            }
+        }
+
 
         private void button_OK_Click(object sender, EventArgs e)
         {
@@ -128,14 +181,29 @@ namespace dp2Capo.Install
         {
             if (this.checkBox_enableZ3950Server.Checked == true)
             {
-                if (string.IsNullOrEmpty(this.textBox_listeningPort.Text))
-                    this.textBox_listeningPort.Text = "210";
-                this.textBox_listeningPort.Enabled = true;
+                if (string.IsNullOrEmpty(this.textBox_z3950ListeningPort.Text))
+                    this.textBox_z3950ListeningPort.Text = "210";
+                this.textBox_z3950ListeningPort.Enabled = true;
             }
             else
             {
-                this.textBox_listeningPort.Text = "";
-                this.textBox_listeningPort.Enabled = false;
+                this.textBox_z3950ListeningPort.Text = "";
+                this.textBox_z3950ListeningPort.Enabled = false;
+            }
+        }
+
+        private void checkBox_enableSipServer_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.checkBox_enableSipServer.Checked == true)
+            {
+                if (string.IsNullOrEmpty(this.textBox_sipListeningPort.Text))
+                    this.textBox_sipListeningPort.Text = "8100";
+                this.textBox_sipListeningPort.Enabled = true;
+            }
+            else
+            {
+                this.textBox_sipListeningPort.Text = "";
+                this.textBox_sipListeningPort.Enabled = false;
             }
         }
     }

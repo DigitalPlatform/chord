@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalPlatform.Net;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -169,7 +170,7 @@ namespace DigitalPlatform.Z3950
             {
                 this._hostName = host_name;
                 this._port = port;
-                await _client.ConnectAsync(host_name, port);
+                await _client.ConnectAsync(host_name, port).ConfigureAwait(false);
                 // client.NoDelay = true;
                 return new Result();
             }
@@ -271,7 +272,7 @@ namespace DigitalPlatform.Z3950
             {
                 Result result = await SimpleSendTcpPackage(this._client,
                     baSend,
-                    baSend.Length);
+                    baSend.Length).ConfigureAwait(false);
                 if (result.Value == -1 || result.Value == 1)
                 {
                     this.CloseSocket();
@@ -288,7 +289,7 @@ namespace DigitalPlatform.Z3950
                 //byte[] baPackage = null;
                 //int nRecvLen = 0;
                 // 注意调用返回后如果发现出错，调主要主动 Close 和重新分配 TcpClient
-                RecvResult result = await SimpleRecvTcpPackage(this._client);
+                RecvResult result = await SimpleRecvTcpPackage(this._client).ConfigureAwait(false);
                 if (result.Value == -1)
                 {
                     this.CloseSocket();
@@ -309,30 +310,6 @@ namespace DigitalPlatform.Z3950
                 // this.baRecv = result.Package;
                 // this.eventFinished.Set();
                 return result;
-            }
-        }
-
-        public class RecvResult : Result
-        {
-            public int Length { get; set; }
-            public byte[] Package { get; set; }
-
-            public RecvResult()
-            {
-
-            }
-
-            public RecvResult(Result source)
-            {
-                Result.CopyTo(source, this);
-            }
-
-            public override string ToString()
-            {
-                StringBuilder text = new StringBuilder(base.ToString());
-                text.Append("Package=" + this.Package + "\r\n");
-                text.Append("Length=" + this.Length + "\r\n");
-                return text.ToString();
             }
         }
 
@@ -375,7 +352,7 @@ namespace DigitalPlatform.Z3950
             try
             {
                 // stream.Write(baPackage, 0, nLen);
-                await stream.WriteAsync(baPackage, 0, nLen);
+                await stream.WriteAsync(baPackage, 0, nLen).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -426,7 +403,7 @@ namespace DigitalPlatform.Z3950
                 {
                     wRet = await _client.GetStream().ReadAsync(result.Package,
                         nInLen,
-                        result.Package.Length - nInLen);
+                        result.Package.Length - nInLen).ConfigureAwait(false);
                 }
                 catch (SocketException ex)
                 {
