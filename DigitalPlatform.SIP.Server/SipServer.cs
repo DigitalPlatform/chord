@@ -34,7 +34,7 @@ namespace DigitalPlatform.SIP.Server
 
         public SipServer(int port) : base(port)
         {
-
+            this.IpTable.MaxClientsPerIp = 100; // 每个前端 IP 最多允许 100 个通道
         }
 
         public override string GetServerName()
