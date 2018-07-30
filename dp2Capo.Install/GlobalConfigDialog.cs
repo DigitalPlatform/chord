@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalPlatform.IO;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -50,6 +51,10 @@ namespace dp2Capo.Install
                 _cfgDom.Load(filename);
             }
             catch (FileNotFoundException)
+            {
+                _cfgDom.LoadXml("<root />");
+            }
+            catch (DirectoryNotFoundException)
             {
                 _cfgDom.LoadXml("<root />");
             }
@@ -127,6 +132,9 @@ namespace dp2Capo.Install
             }
 
             string filename = this.GetCfgFileName();
+
+            PathUtil.CreateDirIfNeed(Path.GetDirectoryName(filename));
+
             _cfgDom.Save(filename);
         }
 
