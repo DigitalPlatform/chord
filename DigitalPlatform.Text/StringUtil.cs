@@ -594,6 +594,12 @@ namespace DigitalPlatform.Text
             return null;
         }
 
+        public static bool IsDouble(string s)
+        {
+            double v = 0;
+            return Double.TryParse(s, out v);
+        }
+
         // 检测字符串是否为纯数字(前面可以包含一个'-'号)
         public static bool IsNumber(string s)
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalPlatform.Net;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -309,30 +310,6 @@ namespace DigitalPlatform.Z3950
                 // this.baRecv = result.Package;
                 // this.eventFinished.Set();
                 return result;
-            }
-        }
-
-        public class RecvResult : Result
-        {
-            public int Length { get; set; }
-            public byte[] Package { get; set; }
-
-            public RecvResult()
-            {
-
-            }
-
-            public RecvResult(Result source)
-            {
-                Result.CopyTo(source, this);
-            }
-
-            public override string ToString()
-            {
-                StringBuilder text = new StringBuilder(base.ToString());
-                text.Append("Package=" + this.Package + "\r\n");
-                text.Append("Length=" + this.Length + "\r\n");
-                return text.ToString();
             }
         }
 

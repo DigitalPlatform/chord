@@ -158,7 +158,8 @@ namespace dp2Capo.Install
 
             DisplayDp2libraryInfo();
             DisplayDp2mserverInfo();
-            DisplayDp2zserverInfo();
+            DisplayZ3950Info();
+            DisplaySipInfo();
         }
 
         public static string GetInstanceName(string filename)
@@ -195,9 +196,14 @@ namespace dp2Capo.Install
             this.textBox_dp2mserver_def.Text = dp2MServerDialog.GetDisplayText(this.CfgDom);
         }
 
-        void DisplayDp2zserverInfo()
+        void DisplayZ3950Info()
         {
-            this.textBox_z3950_def.Text = InstallZServerDlg.GetDisplayText(this.CfgDom);
+            this.textBox_z3950_def.Text = Z3950SettingDialog.GetDisplayText(this.CfgDom);
+        }
+
+        void DisplaySipInfo()
+        {
+            this.textBox_sip_def.Text = SipSettingDialog.GetDisplayText(this.CfgDom);
         }
 
         void SaveCfgXml()
@@ -245,7 +251,7 @@ namespace dp2Capo.Install
 
         private void button_edit_z3950_Click(object sender, EventArgs e)
         {
-            InstallZServerDlg dlg = new InstallZServerDlg();
+            Z3950SettingDialog dlg = new Z3950SettingDialog();
             FontUtil.AutoSetDefaultFont(dlg);
 
             dlg.CfgDom = this.CfgDom;
@@ -257,7 +263,7 @@ namespace dp2Capo.Install
 
             this.Changed = true;
             // 刷新显示
-            this.DisplayDp2zserverInfo();
+            this.DisplayZ3950Info();
         }
 
         // 修改实例名
@@ -290,6 +296,23 @@ namespace dp2Capo.Install
             if (this.CfgDom != null && this.CfgDom.DocumentElement != null)
                 this.CfgDom.DocumentElement.SetAttribute("instanceName", strInstanceName);
             this.Changed = true;
+        }
+
+        private void button_edit_sip_Click(object sender, EventArgs e)
+        {
+            SipSettingDialog dlg = new SipSettingDialog();
+            FontUtil.AutoSetDefaultFont(dlg);
+
+            dlg.CfgDom = this.CfgDom;
+            dlg.StartPosition = FormStartPosition.CenterScreen;
+            dlg.ShowDialog(this);
+
+            if (dlg.DialogResult == System.Windows.Forms.DialogResult.Cancel)
+                return;
+
+            this.Changed = true;
+            // 刷新显示
+            this.DisplaySipInfo();
         }
     }
 }

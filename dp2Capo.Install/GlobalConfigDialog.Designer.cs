@@ -32,11 +32,16 @@
             this.button_OK = new System.Windows.Forms.Button();
             this.tabControl_main = new System.Windows.Forms.TabControl();
             this.tabPage_z3950 = new System.Windows.Forms.TabPage();
-            this.label1 = new System.Windows.Forms.Label();
-            this.textBox_listeningPort = new System.Windows.Forms.TextBox();
             this.checkBox_enableZ3950Server = new System.Windows.Forms.CheckBox();
+            this.textBox_z3950ListeningPort = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.tabPage_sip = new System.Windows.Forms.TabPage();
+            this.checkBox_enableSipServer = new System.Windows.Forms.CheckBox();
+            this.textBox_sipListeningPort = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.tabControl_main.SuspendLayout();
             this.tabPage_z3950.SuspendLayout();
+            this.tabPage_sip.SuspendLayout();
             this.SuspendLayout();
             // 
             // button_Cancel
@@ -69,6 +74,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl_main.Controls.Add(this.tabPage_z3950);
+            this.tabControl_main.Controls.Add(this.tabPage_sip);
             this.tabControl_main.Location = new System.Drawing.Point(13, 13);
             this.tabControl_main.Name = "tabControl_main";
             this.tabControl_main.SelectedIndex = 0;
@@ -78,7 +84,7 @@
             // tabPage_z3950
             // 
             this.tabPage_z3950.Controls.Add(this.checkBox_enableZ3950Server);
-            this.tabPage_z3950.Controls.Add(this.textBox_listeningPort);
+            this.tabPage_z3950.Controls.Add(this.textBox_z3950ListeningPort);
             this.tabPage_z3950.Controls.Add(this.label1);
             this.tabPage_z3950.Location = new System.Drawing.Point(4, 28);
             this.tabPage_z3950.Name = "tabPage_z3950";
@@ -87,24 +93,6 @@
             this.tabPage_z3950.TabIndex = 0;
             this.tabPage_z3950.Text = "Z39.50 服务";
             this.tabPage_z3950.UseVisualStyleBackColor = true;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(8, 66);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(134, 18);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "监听端口号(&P):";
-            // 
-            // textBox_listeningPort
-            // 
-            this.textBox_listeningPort.Enabled = false;
-            this.textBox_listeningPort.Location = new System.Drawing.Point(177, 63);
-            this.textBox_listeningPort.Name = "textBox_listeningPort";
-            this.textBox_listeningPort.Size = new System.Drawing.Size(104, 28);
-            this.textBox_listeningPort.TabIndex = 2;
-            this.textBox_listeningPort.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // checkBox_enableZ3950Server
             // 
@@ -116,6 +104,65 @@
             this.checkBox_enableZ3950Server.Text = "启用 Z39.50 服务(&E)";
             this.checkBox_enableZ3950Server.UseVisualStyleBackColor = true;
             this.checkBox_enableZ3950Server.CheckedChanged += new System.EventHandler(this.checkBox_enableZ3950Server_CheckedChanged);
+            // 
+            // textBox_z3950ListeningPort
+            // 
+            this.textBox_z3950ListeningPort.Enabled = false;
+            this.textBox_z3950ListeningPort.Location = new System.Drawing.Point(177, 63);
+            this.textBox_z3950ListeningPort.Name = "textBox_z3950ListeningPort";
+            this.textBox_z3950ListeningPort.Size = new System.Drawing.Size(104, 28);
+            this.textBox_z3950ListeningPort.TabIndex = 2;
+            this.textBox_z3950ListeningPort.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(8, 66);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(134, 18);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "监听端口号(&P):";
+            // 
+            // tabPage_sip
+            // 
+            this.tabPage_sip.Controls.Add(this.checkBox_enableSipServer);
+            this.tabPage_sip.Controls.Add(this.textBox_sipListeningPort);
+            this.tabPage_sip.Controls.Add(this.label2);
+            this.tabPage_sip.Location = new System.Drawing.Point(4, 28);
+            this.tabPage_sip.Name = "tabPage_sip";
+            this.tabPage_sip.Size = new System.Drawing.Size(571, 329);
+            this.tabPage_sip.TabIndex = 1;
+            this.tabPage_sip.Text = "SIP 服务";
+            this.tabPage_sip.UseVisualStyleBackColor = true;
+            // 
+            // checkBox_enableSipServer
+            // 
+            this.checkBox_enableSipServer.AutoSize = true;
+            this.checkBox_enableSipServer.Location = new System.Drawing.Point(11, 24);
+            this.checkBox_enableSipServer.Name = "checkBox_enableSipServer";
+            this.checkBox_enableSipServer.Size = new System.Drawing.Size(178, 22);
+            this.checkBox_enableSipServer.TabIndex = 3;
+            this.checkBox_enableSipServer.Text = "启用 SIP 服务(&E)";
+            this.checkBox_enableSipServer.UseVisualStyleBackColor = true;
+            this.checkBox_enableSipServer.CheckedChanged += new System.EventHandler(this.checkBox_enableSipServer_CheckedChanged);
+            // 
+            // textBox_sipListeningPort
+            // 
+            this.textBox_sipListeningPort.Enabled = false;
+            this.textBox_sipListeningPort.Location = new System.Drawing.Point(177, 61);
+            this.textBox_sipListeningPort.Name = "textBox_sipListeningPort";
+            this.textBox_sipListeningPort.Size = new System.Drawing.Size(104, 28);
+            this.textBox_sipListeningPort.TabIndex = 5;
+            this.textBox_sipListeningPort.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(8, 64);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(134, 18);
+            this.label2.TabIndex = 4;
+            this.label2.Text = "监听端口号(&P):";
             // 
             // GlobalConfigDialog
             // 
@@ -135,6 +182,8 @@
             this.tabControl_main.ResumeLayout(false);
             this.tabPage_z3950.ResumeLayout(false);
             this.tabPage_z3950.PerformLayout();
+            this.tabPage_sip.ResumeLayout(false);
+            this.tabPage_sip.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -146,7 +195,11 @@
         private System.Windows.Forms.TabControl tabControl_main;
         private System.Windows.Forms.TabPage tabPage_z3950;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox textBox_listeningPort;
+        private System.Windows.Forms.TextBox textBox_z3950ListeningPort;
         private System.Windows.Forms.CheckBox checkBox_enableZ3950Server;
+        private System.Windows.Forms.TabPage tabPage_sip;
+        private System.Windows.Forms.CheckBox checkBox_enableSipServer;
+        private System.Windows.Forms.TextBox textBox_sipListeningPort;
+        private System.Windows.Forms.Label label2;
     }
 }

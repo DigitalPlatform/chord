@@ -1,4 +1,4 @@
-﻿#define BASIC_HTTP
+﻿#define BASIC_HTTP  // 定义了这个宏表示多了支持 basic.http 协议的能力
 
 using System;
 using System.Collections.Generic;
@@ -23,6 +23,10 @@ using System.ServiceModel.Description;
 using DigitalPlatform.Text;
 using DigitalPlatform.LibraryClient.localhost;
 using DigitalPlatform.Range;
+
+// dynamic 函数的实际参数类型，可以用下面一句来帮助探测：
+// localhost.dp2libraryREST _ws = ws as localhost.dp2libraryREST;
+
 
 namespace DigitalPlatform.LibraryClient
 {
@@ -418,6 +422,7 @@ out strError);
 #if BASIC_HTTP
         // localhost.dp2libraryRESTClient 
         dynamic
+        // localhost.dp2libraryREST // 放开这个注释可以在编译阶段检验 API 参数列表正确性
 #else
         localhost.dp2libraryClient
 #endif
@@ -2216,7 +2221,7 @@ out strError);
                     out borrow_info,
                     out aDupPath,
                     out strOutputReaderBarcode,
-                                        bRenew,
+                    bRenew,
                     strReaderBarcode,
                     strItemBarcode,
                     strConfirmItemRecPath,
@@ -2314,7 +2319,7 @@ out strError);
                     out aDupPath,
                     out strOutputReaderBarcode,
                     out return_info,
-                                        strAction,
+                    strAction,
                     strReaderBarcode,
                     strItemBarcode,
                     strConfirmItemRecPath,
@@ -2324,6 +2329,70 @@ out strError);
                     strReaderFormatList,
                     strBiblioFormatList
                     );
+                if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
+                {
+                    if (DoNotLogin(ref strError) == 1)
+                        goto REDO;
+                    return -1;
+                }
+                strError = result.ErrorInfo;
+                this.ErrorCode = result.ErrorCode;
+                this.ClearRedoCount();
+                return result.Value;
+            }
+            catch (Exception ex)
+            {
+                int nRet = ConvertWebError(ex, out strError);
+                if (nRet == 0)
+                    return -1;
+                goto REDO;
+            }
+        }
+
+        // 交费
+        // return:
+        //      -1  出错
+        //      0   正常
+        //      1   部分成功
+        /// <summary>
+        /// 违约金/押金处理
+        /// </summary>
+        /// <param name="stop">Stop 对象</param>
+        /// <param name="strFunction">动作参数</param>
+        /// <param name="strReaderBarcode">读者证条码号</param>
+        /// <param name="amerce_items">费用信息数组</param>
+        /// <param name="failed_items">返回操作失败的费用信息数组</param>
+        /// <param name="strReaderXml">返回改变后的读者记录 XML 字符串</param>
+        /// <param name="strError">返回出错信息</param>
+        /// <returns>
+        /// <para>-1:   出错</para>
+        /// <para>0:    操作成功</para>
+        /// <para>1:    部分成功。提示信息在 strError 中</para>
+        /// </returns>
+        public long Amerce(
+            // DigitalPlatform.Stop stop,
+            string strFunction,
+            string strReaderBarcode,
+            AmerceItem[] amerce_items,
+            out AmerceItem[] failed_items,
+            out string strReaderXml,
+            out string strError)
+        {
+            strReaderXml = "";
+            strError = "";
+            failed_items = null;
+
+            REDO:
+            try
+            {
+                // localhost.dp2libraryREST _ws = ws as localhost.dp2libraryREST;
+
+                LibraryServerResult result = this.ws.Amerce(
+                    out failed_items,
+                    out strReaderXml,
+                    strFunction,
+                    strReaderBarcode,
+                    amerce_items);
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)
@@ -4243,6 +4312,7 @@ out strError);
             string strBiblio,
             byte[] baTimestamp,
             string strComment,
+            string strStyle,
             out string strOutputBiblioRecPath,
             out byte[] baOutputTimestamp,
             out string strError)
@@ -4257,13 +4327,13 @@ out strError);
                 LibraryServerResult result = this.ws.SetBiblioInfo(
                     out strOutputBiblioRecPath,
                     out baOutputTimestamp,
-                     strAction,
+                    strAction,
                     strBiblioRecPath,
                     strBiblioType,
                     strBiblio,
                     baTimestamp,
-                    strComment
-                    );
+                    strComment,
+                    strStyle);
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
                     if (DoNotLogin(ref strError) == 1)

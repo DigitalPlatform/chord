@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using DigitalPlatform.Common;
 using DigitalPlatform.Net;
 
@@ -13,6 +14,9 @@ using log4net;
 
 namespace DigitalPlatform.Z3950.Server
 {
+    /// <summary>
+    /// Z39.50 服务器
+    /// </summary>
     public class ZServer : TcpServer
     {
         // ZServerChannel 对象打开事件
@@ -50,6 +54,11 @@ namespace DigitalPlatform.Z3950.Server
             // this.Port = port;
         }
 
+        public override string GetServerName()
+        {
+            return "Z39.50 服务器";
+        }
+
 #if NO
         public virtual async void TestHandleClient(TcpClient tcpClient,
     CancellationToken token)
@@ -57,10 +66,6 @@ namespace DigitalPlatform.Z3950.Server
 
         }
 #endif
-
-        protected override void Dispose(bool disposing)
-        {
-        }
 
         // 处理一个通道的通讯活动
         public async override void HandleClient(TcpClient tcpClient,

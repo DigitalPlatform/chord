@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-
+using DigitalPlatform.Net;
 using DigitalPlatform.Text;
 
 namespace DigitalPlatform.Z3950
