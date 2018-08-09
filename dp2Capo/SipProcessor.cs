@@ -43,7 +43,7 @@ namespace dp2Capo
             Instance instance = ServerInfo.FindInstance(strInstanceName);
             if (instance == null)
                 return new Tuple<Instance, string>(null, "实例 '" + strInstanceName + "' 不存在");
-            if (instance.zhost == null)
+            if (instance.sip_host == null)
                 return new Tuple<Instance, string>(null, "实例 '" + strInstanceName + "' 没有启用 SIP 服务");
             return new Tuple<Instance, string>(instance, "");
 #if NO
