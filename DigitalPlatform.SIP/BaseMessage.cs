@@ -203,24 +203,24 @@ namespace DigitalPlatform.SIP2
         public virtual string ToText()
         {
             Debug.Assert(String.IsNullOrEmpty(this.CommandIdentifier) == false, "命令指示符未赋值");
-            string text = this.CommandIdentifier;
+            StringBuilder text = new StringBuilder(this.CommandIdentifier);
 
             foreach (FixedLengthField field in this.FixedLengthFields)
             {
                 if (field.Value == null || field.Value.Length != field.Length)
                     throw new Exception("定长字段[" + field.Name + "]的值为null或者长度不符合定义");
-                text += field.Value;
+                text.Append(field.Value);
             }
 
             foreach (VariableLengthField field in this.VariableLengthFields)
             {
                 if (field.Value != null)
                 {
-                    text += field.ID + field.Value + SIPConst.FIELD_TERMINATOR;
+                    text.Append(field.ID + field.Value + SIPConst.FIELD_TERMINATOR);
                 }
             }
 
-            return text;
+            return text.ToString();
         }
 
         // 校验对象的各参数是否合法

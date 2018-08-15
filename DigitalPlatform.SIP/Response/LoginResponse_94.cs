@@ -39,6 +39,5 @@ namespace DigitalPlatform.SIP2.Response
                 this.SetFixedFieldValue(SIPConst.F_Ok, value);
             }
         }
-
     }
 }
