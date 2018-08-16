@@ -154,7 +154,8 @@ namespace DigitalPlatform.SIP.Server
             {
                 _tcpChannels.Remove(channel);
                 channel.Close();
-                close_action.Invoke();
+                if (close_action != null)
+                    close_action.Invoke();
             }
         }
 
