@@ -121,9 +121,8 @@ namespace DigitalPlatform.Net
                 foreach (TcpChannel channel in _channels)
                 {
                     TimeSpan current = delta;
-                    // 如果 Timeout 的值更大，则弃 delta 而用 Timeout，作为超时长度
                     if (channel.Timeout != TimeSpan.MinValue)
-                        current = Max(delta, channel.Timeout);
+                        current = channel.Timeout;  //  Max(delta, channel.Timeout);
                     if (now - channel.LastTime > current)
                         delete_channels.Add(channel);
                 }

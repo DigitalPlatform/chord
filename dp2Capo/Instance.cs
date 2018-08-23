@@ -1550,6 +1550,10 @@ namespace dp2Capo
         public string AnonymousUserName { get; set; }
         public string AnonymousPassword { get; set; }
 
+#if NO
+        // 自动清理的秒数。0 表示不清理
+        public int AutoClearSeconds { get; set; }
+
         // 日期格式
         public string DateFormat { get; set; }
 
@@ -1558,6 +1562,7 @@ namespace dp2Capo
 
         // 前端 IP 地址白名单。空表示所有 IP 地址都许可，和 * 作用一致
         public string IpList { get; set; }
+#endif
 
         new static readonly string EncryptKey = "dp2sipserver_password_key";
 
@@ -1617,6 +1622,7 @@ namespace dp2Capo
                 }
             }
 
+#if NO
             {
                 // SIP 服务参数
 
@@ -1631,9 +1637,81 @@ namespace dp2Capo
                     this.Encoding = Encoding.GetEncoding(SipServer.DEFAULT_ENCODING_NAME);
 
                 this.IpList = element.GetAttribute("ipList");
-            }
 
+                // 2018/8/10
+                string strAutoClearSeconds = element.GetAttribute("autoClearSeconds");
+                int seconds = 0;
+                if (string.IsNullOrEmpty(strAutoClearSeconds) == false
+                    && Int32.TryParse(strAutoClearSeconds, out seconds) == false)
+                {
+                    throw new Exception("sipServer@autoClearSeconds 属性值 '"+strAutoClearSeconds+"' 不合法。应为纯数字");
+                }
+                this.AutoClearSeconds = seconds;
+            }
+#endif
+        }
+
+        // 获得一个用户相关的 SIP 服务参数
+        public SipParam GetSipParam(string userName)
+        {
+            return SipParam.GetSipParam(this._root, userName);
         }
     }
 
+    public class SipParam
+    {
+        // 自动清理的秒数。0 表示不清理
+        public int AutoClearSeconds { get; set; }
+
+        // 日期格式
+        public string DateFormat { get; set; }
+
+        // 编码方式
+        public Encoding Encoding { get; set; }
+
+        // 前端 IP 地址白名单。空表示所有 IP 地址都许可，和 * 作用一致
+        public string IpList { get; set; }
+
+        public static SipParam GetSipParam(XmlElement element1,
+            string userName)
+        {
+            if (element1 == null)
+                return null;
+
+            if (!(element1.SelectSingleNode("user[@userName='" + userName + "']") is XmlElement user))
+            {
+                user = element1.SelectSingleNode("user[@userName='*']") as XmlElement;
+                if (user == null)
+                    throw new Exception("用户名 '" + userName + "' 在 capo.xml 中没有找到 SIP 配置信息");
+            }
+
+            // SIP 服务参数
+            SipParam param = new SipParam();
+
+            param.DateFormat = user.GetAttribute("dateFormat");
+            if (string.IsNullOrEmpty(param.DateFormat))
+                param.DateFormat = SipServer.DEFAULT_DATE_FORMAT;
+
+            string strEncoding = user.GetAttribute("encoding");
+            if (string.IsNullOrEmpty(strEncoding) == false)
+                param.Encoding = Encoding.GetEncoding(strEncoding);
+            else
+                param.Encoding = Encoding.GetEncoding(SipServer.DEFAULT_ENCODING_NAME);
+
+            param.IpList = user.GetAttribute("ipList");
+
+            // 2018/8/10
+            string strAutoClearSeconds = user.GetAttribute("autoClearSeconds");
+            int seconds = 0;
+            if (string.IsNullOrEmpty(strAutoClearSeconds) == false
+                && Int32.TryParse(strAutoClearSeconds, out seconds) == false)
+            {
+                throw new Exception("sipServer@autoClearSeconds 属性值 '" + strAutoClearSeconds + "' 不合法。应为纯数字");
+            }
+            param.AutoClearSeconds = seconds;
+
+            return param;
+        }
+
+    }
 }

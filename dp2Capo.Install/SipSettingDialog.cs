@@ -3,10 +3,13 @@ using System.Diagnostics;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using System.ComponentModel;
 
 using DigitalPlatform.Text;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.SIP.Server;
+using DigitalPlatform.Forms;
+using DigitalPlatform;
 
 namespace dp2Capo.Install
 {
@@ -18,6 +21,9 @@ namespace dp2Capo.Install
         public SipSettingDialog()
         {
             InitializeComponent();
+
+            this.tabControl_main.TabPages.Remove(this.tabPage_sip);
+            this.tabPage_sip.Dispose();
         }
 
         private void SipSettingDialog_Load(object sender, EventArgs e)
@@ -32,8 +38,15 @@ namespace dp2Capo.Install
 
             string strError = "";
 
+
             if (SaveToCfgDom() == false)
                 return;
+
+            // 警告：如果一个 UserMap 事项也没有，则启用了 SIP Service 也无法真正投入使用
+            if (this.checkBox_enableSIP.Checked == true && this.listBox_userNameList.Items.Count == 0)
+            {
+                MessageBox.Show(this, "警告：虽然启用了 SIP Service，但因为没有配置任何用户名映射参数，所以该实例的 SIP Service 实际上无法访问");
+            }
 
             this.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.Close();
@@ -63,9 +76,15 @@ namespace dp2Capo.Install
 
             if (dom.DocumentElement.SelectSingleNode("sipServer") is XmlElement element)
             {
+                XmlNodeList nodes = element.SelectNodes("user");
+                text.Append("userCount=" + nodes.Count + "\r\n");
+
+#if NO
                 text.Append("encoding=" + element.GetAttribute("encoding") + "\r\n");
                 text.Append("dateFormat=" + element.GetAttribute("dateFormat") + "\r\n");
                 text.Append("ipList=" + element.GetAttribute("ipList") + "\r\n");
+                text.Append("autoClearSeconds=" + element.GetAttribute("autoClearSeconds") + "\r\n");
+#endif
             }
 
             if (text.Length == 0)
@@ -123,7 +142,7 @@ namespace dp2Capo.Install
             }
 
             {
-                // sipServer 服务器参数
+                // sipServer 匿名登录账号 参数
                 if (!(dom.DocumentElement.SelectSingleNode("sipServer/dp2library") is XmlElement node))
                 {
                     this.textBox_anonymousUserName.Text = "";
@@ -142,14 +161,15 @@ namespace dp2Capo.Install
                 }
             }
 
+#if NO
             {
                 // sipServer 参数
-
                 if (!(dom.DocumentElement.SelectSingleNode("sipServer") is XmlElement node))
                 {
                     this.comboBox_dateFormat.Text = "";
                     this.comboBox_encodingName.Text = "";
                     this.textBox_ipList.Text = "";
+                    this.textBox_autoClearTime.Text = "";
                 }
                 else
                 {
@@ -158,6 +178,7 @@ namespace dp2Capo.Install
                     this.comboBox_dateFormat.Text = node.GetAttribute("dateFormat");
                     this.comboBox_encodingName.Text = node.GetAttribute("encoding");
                     this.textBox_ipList.Text = node.GetAttribute("ipList");
+                    this.textBox_autoClearTime.Text = node.GetAttribute("autoClearSeconds");
                 }
 
                 if (string.IsNullOrEmpty(this.comboBox_dateFormat.Text))
@@ -165,14 +186,234 @@ namespace dp2Capo.Install
                 if (string.IsNullOrEmpty(this.comboBox_encodingName.Text))
                     this.comboBox_encodingName.Text = SipServer.DEFAULT_ENCODING_NAME;
             }
+#endif
 
-            if (!(dom.DocumentElement.SelectSingleNode("sipServer") is XmlElement root))
-                this.checkBox_enableSIP.Checked = false;
-            else
-                this.checkBox_enableSIP.Checked = true;
+            XmlElement root = dom.DocumentElement.SelectSingleNode("sipServer") as XmlElement;
 
-            SetEnableSipUiState();
+            FillUserMap(root);
+
+            this.checkBox_enableSIP.Checked = root != null;
+
+            // SetEnableSipUiState();
         }
+
+        void FillUserMap(XmlElement root)
+        {
+            this.listBox_userNameList.Items.Clear();
+
+            if (root == null)
+                return;
+
+            XmlNodeList nodes = root.SelectNodes("user");
+            foreach (XmlElement user in nodes)
+            {
+                UserItem item = new UserItem();
+                item.UserName = user.GetAttribute("userName");
+                item.DateFormat = user.GetAttribute("dateFormat");
+                item.EncodingName = user.GetAttribute("encoding");
+                item.IpList = user.GetAttribute("ipList");
+                item.AutoClearSeconds = user.GetAttribute("autoClearSeconds");
+                item.PropertyChanged += Item_PropertyChanged;
+
+                this.listBox_userNameList.Items.Add(item);
+            }
+
+            if (this.listBox_userNameList.Items.Count > 0)
+                this.listBox_userNameList.SelectedIndex = 0;
+        }
+
+        // 把内存对象兑现到 XML Document
+        void RestoreUserMap(XmlElement root)
+        {
+            if (root == null)
+                return;
+
+            // TODO: 检查数据合法性
+            if (string.IsNullOrEmpty(this.textBox_anonymousUserName.Text) == false)
+            {
+                bool bFound = false;
+                // 要求至少有一个 * 用户名，或者和匿名账户相等的用户名
+                foreach (UserItem item in this.listBox_userNameList.Items)
+                {
+                    if (item.UserName == "*" || item.UserName == this.textBox_anonymousUserName.Text)
+                    {
+                        bFound = true;
+                        break;
+                    }
+                }
+
+                if (bFound == false)
+                {
+                    throw new ArgumentException("匿名账户名 '" + this.textBox_anonymousUserName.Text + "' 在 'SIP' 属性页的用户名列表中尚未定义");
+                }
+            }
+
+            XmlNodeList nodes = root.SelectNodes("user");
+            // 删除以前的 uer 元素
+            foreach (XmlElement user in nodes)
+            {
+                user.ParentNode.RemoveChild(user);
+            }
+
+            // 重新创建 user 元素
+            foreach (UserItem item in this.listBox_userNameList.Items)
+            {
+                XmlElement user = root.OwnerDocument.CreateElement("user");
+                root.AppendChild(user);
+
+                user.SetAttribute("userName", item.UserName);
+                user.SetAttribute("dateFormat", item.DateFormat);
+                user.SetAttribute("encoding", item.EncodingName);
+                user.SetAttribute("ipList", item.IpList);
+                user.SetAttribute("autoClearSeconds", item.AutoClearSeconds);
+            }
+        }
+
+        #region 为 UserMap 服务的类
+
+        [DefaultProperty("UserName")]
+        class UserItem : INotifyPropertyChanged
+        {
+            #region INotifyPropertyChanged Members
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            void OnPropertyChanged(string propertyName)
+            {
+                if (PropertyChanged != null)
+                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+
+            #endregion
+
+            string _userName = "";
+
+            [DisplayName("用户名"), Description("dp2library 用户名")]
+            [Category(" 用户名")]
+            public string UserName
+            {
+
+                get { return _userName; }
+
+                set
+                {
+                    // TODO: 检查 UserName 值的合法性
+                    if (string.IsNullOrEmpty(value))
+                        throw new ArgumentException("用户名不应为空");
+
+                    _userName = value;
+                    OnPropertyChanged("UserName");
+                }
+            }
+
+            string _encodingName = SipServer.DEFAULT_ENCODING_NAME;
+
+            [DisplayName("编码方式"), Description("SIP 通讯包采用何种编码方式")]
+            [TypeConverter(typeof(EncodingNameConverter))]
+            [DefaultValue(SipServer.DEFAULT_ENCODING_NAME)]
+            [Category("SIP 参数")]
+            public string EncodingName
+            {
+                get { return _encodingName; }
+                set
+                {
+                    if (string.IsNullOrEmpty(value) == false)
+                    {
+                        try
+                        {
+                            Encoding encoding = Encoding.GetEncoding(value);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new ArgumentException("编码方式 '" + value + "' 不合法。" + ex.Message);
+                        }
+                    }
+
+                    _encodingName = value;
+                    OnPropertyChanged("EncodingName");
+                }
+            }
+
+            string _dateFormat = SipServer.DEFAULT_DATE_FORMAT;
+
+            [DisplayName("时间格式"), Description("SIP 通讯包中采用何种时间格式")]
+            [TypeConverter(typeof(DateFormatConverter))]
+            [DefaultValue(SipServer.DEFAULT_DATE_FORMAT)]
+            [Category("SIP 参数")]
+            public string DateFormat
+            {
+                get { return _dateFormat; }
+                set
+                {
+                    // TODO: 验证时间格式合法性
+                    _dateFormat = value;
+                    OnPropertyChanged("DateFormat");
+                }
+            }
+
+            [DisplayName("前端 IP 地址白名单"), Description("前端 IP 地址白名单。空表示不启用白名单机制，也就是所有前端的访问都被允许")]
+            [Category("SIP 参数")]
+            public string IpList { get; set; }
+
+            string _autoClearSeconds = "";
+            [DisplayName("通道自动清理秒数"), Description("休眠多少秒以后自动清理通道。空或 0 表示不清理")]
+            [Category("SIP 参数")]
+            public string AutoClearSeconds
+            {
+                get { return _autoClearSeconds; }
+                set
+                {
+                    if (string.IsNullOrEmpty(value) == false
+                        && Int32.TryParse(value, out int seconds) == false)
+                        throw new ArgumentException("自动清理秒数值 '" + value + "' 不合法。应为纯数字");
+                    _autoClearSeconds = value;
+                }
+            }
+
+            public override string ToString()
+            {
+                return UserName;
+            }
+        }
+
+        // 具有列表的编码方式名
+        class EncodingNameConverter : StringConverter
+        {
+            public override bool GetStandardValuesSupported(ITypeDescriptorContext context)
+            {
+                return true;
+            }
+
+            public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
+            {
+                return new StandardValuesCollection(new string[] { "UTF-8", "GB2312", });
+            }
+
+            public override bool GetStandardValuesExclusive(ITypeDescriptorContext context)
+            {
+                return false;
+            }
+        }
+
+        class DateFormatConverter : StringConverter
+        {
+            public override bool GetStandardValuesSupported(ITypeDescriptorContext context)
+            {
+                return true;
+            }
+
+            public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
+            {
+                return new StandardValuesCollection(new string[] { "yyyy-MM-dd", "yyyyMMdd", });
+            }
+
+            public override bool GetStandardValuesExclusive(ITypeDescriptorContext context)
+            {
+                return false;
+            }
+        }
+
+        #endregion
 
         void SetEnableSipUiState()
         {
@@ -182,7 +423,60 @@ namespace dp2Capo.Install
                 this.tabControl_main.Enabled = false;
         }
 
+        // 刚启用 SIP 以后的后继动作
+        void AfterEnableSipUiState()
+        {
+            if (this.listBox_userNameList.Items.Count == 0)
+            {
+                // 加入一个 * 用户名事项，表示匹配任意用户名
+                UserItem item = new UserItem { UserName = "*" };
+                item.PropertyChanged += Item_PropertyChanged;
+                this.listBox_userNameList.Items.Add(item);
+                this.listBox_userNameList.SelectedItem = item;
+            }
+        }
+
+        UserItem FindItem(string userName, UserItem exclude)
+        {
+            foreach (UserItem item in this.listBox_userNameList.Items)
+            {
+                if (item != exclude && item.UserName == userName)
+                    return item;
+            }
+
+            return null;
+        }
+
+        private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != "UserName")
+                return;
+
+            UserItem item = sender as UserItem;
+
+            // TODO: 对 UserName 进行查重
+            UserItem dup = FindItem(item.UserName, item);
+            if (dup != null)
+            {
+                throw new ArgumentException("用户名 '" + item.UserName + "' 已经被其他事项使用了。请修改");
+            }
+
+            int index = this.listBox_userNameList.Items.IndexOf(item);
+            if (index != -1)
+            {
+                object selected_item = this.listBox_userNameList.SelectedItem;
+
+                this.listBox_userNameList.Items.Remove(item);
+                this.listBox_userNameList.Items.Insert(index, item);
+
+                this.listBox_userNameList.SelectedItem = selected_item;
+            }
+        }
+
         // 从控件到 CfgDom
+        // return:
+        //      false   数据有错。没有保存成功
+        //      true    保存成功
         bool SaveToCfgDom()
         {
             XmlDocument dom = this.CfgDom;
@@ -194,6 +488,14 @@ namespace dp2Capo.Install
                 if (root != null)
                     root.ParentNode.RemoveChild(root);
                 return true;
+            }
+
+            // 检查数据合法性
+            if (string.IsNullOrEmpty(this.textBox_autoClearTime.Text) == false
+                && Int32.TryParse(this.textBox_autoClearTime.Text, out int seconds) == false)
+            {
+                MessageBox.Show(this, "自动清理时间秒数 '" + this.textBox_autoClearTime.Text + "' 不合法。应该为纯数字");
+                return false;
             }
 
             if (root == null)
@@ -213,10 +515,23 @@ namespace dp2Capo.Install
                 element.SetAttribute("anonymousPassword", EncryptPassword(this.textBox_anonymousPassword.Text));
             }
 
+#if NO
             {
                 root.SetAttribute("dateFormat", this.comboBox_dateFormat.Text);
                 root.SetAttribute("encoding", this.comboBox_encodingName.Text);
                 root.SetAttribute("ipList", this.textBox_ipList.Text);
+                root.SetAttribute("autoClearSeconds", this.textBox_autoClearTime.Text);
+            }
+#endif
+
+            try
+            {
+                RestoreUserMap(root);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ExceptionUtil.GetAutoText(ex));
+                return false;
             }
 
             return true;
@@ -251,6 +566,14 @@ namespace dp2Capo.Install
 
         private void checkBox_enableSIP_CheckedChanged(object sender, EventArgs e)
         {
+#if NO
+            // TODO: 只能是勾选了 checkbox 才触发这里
+            if (this.checkBox_enableSIP.Checked == true)
+            {
+                AfterEnableSipUiState();
+            }
+#endif
+
             SetEnableSipUiState();
         }
 
@@ -382,5 +705,79 @@ namespace dp2Capo.Install
                 return (int)lRet;
             }
         }
+
+        private void button_userMap_Click(object sender, EventArgs e)
+        {
+            string strError = "";
+
+            // sipServer 参数
+            if (!(this.CfgDom.DocumentElement.SelectSingleNode("sipServer") is XmlElement node))
+            {
+                strError = "配置文件中根元素下不存在 sipServer 元素";
+                goto ERROR1;
+            }
+
+            SipAttributesDialog dlg = new SipAttributesDialog();
+
+            dlg.ContainerElement = node;
+            dlg.ShowDialog(this);
+
+            return;
+            ERROR1:
+            MessageBox.Show(this, strError);
+        }
+
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (this.listBox_userNameList.SelectedItem != null)
+            {
+                this.toolStripButton_deleteUser.Enabled = true;
+
+                this.propertyGrid_userMapProperty.SelectedObject = this.listBox_userNameList.SelectedItem;
+            }
+            else
+            {
+                this.toolStripButton_deleteUser.Enabled = false;
+
+                this.propertyGrid_userMapProperty.SelectedObject = null;
+            }
+        }
+
+        private void toolStripButton_newUser_Click(object sender, EventArgs e)
+        {
+            REDO:
+            string strUserName = InputDlg.GetInput(this,
+    "创建新用户事项",
+    "用户名(* 表示匹配任意用户名)",
+    "",
+    this.Font);
+            if (strUserName == null)
+                return;
+
+            UserItem dup = FindItem(strUserName, null);
+            if (dup != null)
+            {
+                this.listBox_userNameList.SelectedItem = dup;
+                MessageBox.Show(this, "用户名 '" + strUserName + "' 已经被其他事项使用了。请重新输入");
+                goto REDO;
+            }
+
+            // TODO: 对用户名在列表中查重。不允许空用户名
+            UserItem item = new UserItem();
+            item.UserName = strUserName;
+            item.PropertyChanged += Item_PropertyChanged;
+
+            this.listBox_userNameList.Items.Add(item);
+            this.listBox_userNameList.SelectedItem = item;
+        }
+
+        private void toolStripButton_deleteUser_Click(object sender, EventArgs e)
+        {
+            if (this.listBox_userNameList.SelectedItem != null)
+                this.listBox_userNameList.Items.Remove(this.listBox_userNameList.SelectedItem);
+
+        }
+
+
     }
 }

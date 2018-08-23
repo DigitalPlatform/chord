@@ -80,6 +80,12 @@
     <Compile Include="InstallDialog.Designer.cs">
       <DependentUpon>InstallDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="SipAttributesDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SipAttributesDialog.Designer.cs">
+      <DependentUpon>SipAttributesDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Z3950SettingDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -121,6 +127,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="InstallDialog.resx">
       <DependentUpon>InstallDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SipAttributesDialog.resx">
+      <DependentUpon>SipAttributesDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SipSettingDialog.resx">
       <DependentUpon>SipSettingDialog.cs</DependentUpon>

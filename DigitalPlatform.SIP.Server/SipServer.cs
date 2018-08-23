@@ -15,8 +15,8 @@ namespace DigitalPlatform.SIP.Server
     public class SipServer : TcpServer
     {
         // 常量
-        public static string DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
-        public static string DEFAULT_ENCODING_NAME = "UTF-8";
+        public const string DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+        public const string DEFAULT_ENCODING_NAME = "UTF-8";
 
         int _maxPackageLength = 4096;
         public int MaxPackageLength
@@ -54,12 +54,15 @@ namespace DigitalPlatform.SIP.Server
             return new Tuple<int, byte>(0, (byte)0);
         }
 
+        static int DEFAULT_CLEAR_SECONDS = 10;  // TCP 连接后，登录以前，能存活的秒数。超过这个秒数就可能被管理线程 Close 和清除
+
         // 处理一个通道的通讯活动
         public async override void HandleClient(TcpClient tcpClient,
             Action close_action,
             CancellationToken token)
         {
             SipChannel channel = _tcpChannels.Add(tcpClient, () => { return new SipChannel(); }) as SipChannel;
+            channel.Timeout = TimeSpan.FromSeconds(DEFAULT_CLEAR_SECONDS);  // 在登录以前，TCP 连接可以存活 DEFAULT_CLEAR_SECONDS 秒。DEFAULT_CLEAR_SECONDS 秒以后还不接到登录请求，TCP 连接会被自动清除。登录后，Timeout 则会被设置为实例参数 AutoClearSeconds 值
 
             List<byte> cache = new List<byte>();
 
@@ -82,6 +85,7 @@ namespace DigitalPlatform.SIP.Server
                         byte[] response = null;
 
                         {
+                            // TODO: 也可以在这里等待多少秒，然后超时以后，条件符合时，自动清除 TCP 通道。可以弥补管理线程轮次不及时的缺点
                             // 注意调用返回后如果发现返回 null 或者抛出了异常，调主要主动 Close 和重新分配 TcpClient
                             RecvResult result = await TcpChannel.SimpleRecvTcpPackage(tcpClient,
                                 cache,
@@ -150,7 +154,8 @@ namespace DigitalPlatform.SIP.Server
             {
                 _tcpChannels.Remove(channel);
                 channel.Close();
-                close_action.Invoke();
+                if (close_action != null)
+                    close_action.Invoke();
             }
         }
 
