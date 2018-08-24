@@ -41,6 +41,11 @@ namespace DigitalPlatform.SIP2
             this.SetDefaultParameter();
         }
 
+        public TcpClientWrapper(Encoding encoding)
+        {
+            this.Encoding = encoding;
+        }
+
         // 设置缺省参数;
         public void SetDefaultParameter()
         {
