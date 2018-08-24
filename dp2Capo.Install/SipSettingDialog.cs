@@ -10,6 +10,7 @@ using DigitalPlatform.LibraryClient;
 using DigitalPlatform.SIP.Server;
 using DigitalPlatform.Forms;
 using DigitalPlatform;
+using DigitalPlatform.Xml;
 
 namespace dp2Capo.Install
 {
@@ -29,6 +30,8 @@ namespace dp2Capo.Install
         private void SipSettingDialog_Load(object sender, EventArgs e)
         {
             FillInfo();
+
+            SetEnableSipUiState();
         }
 
         private void button_OK_Click(object sender, EventArgs e)
@@ -192,7 +195,7 @@ namespace dp2Capo.Install
 
             FillUserMap(root);
 
-            this.checkBox_enableSIP.Checked = root != null;
+            this.checkBox_enableSIP.Checked = (root != null && DomUtil.IsBooleanTrue(root.GetAttribute("enable"), true));
 
             // SetEnableSipUiState();
         }
@@ -417,10 +420,16 @@ namespace dp2Capo.Install
 
         void SetEnableSipUiState()
         {
+#if NO
             if (this.checkBox_enableSIP.Checked)
                 this.tabControl_main.Enabled = true;
             else
                 this.tabControl_main.Enabled = false;
+#endif
+            foreach(TabPage page in this.tabControl_main.TabPages)
+            {
+                page.Enabled = this.checkBox_enableSIP.Checked;
+            }
         }
 
         // 刚启用 SIP 以后的后继动作
@@ -485,10 +494,12 @@ namespace dp2Capo.Install
 
             if (this.checkBox_enableSIP.Checked == false)
             {
-                if (root != null)
-                    root.ParentNode.RemoveChild(root);
-                return true;
+                //if (root != null)
+                //    root.ParentNode.RemoveChild(root);
+                if (root == null)
+                    return true;
             }
+            root.SetAttribute("enable", this.checkBox_enableSIP.Checked ? "true" : "false");
 
             // 检查数据合法性
             if (string.IsNullOrEmpty(this.textBox_autoClearTime.Text) == false
@@ -717,10 +728,10 @@ namespace dp2Capo.Install
                 goto ERROR1;
             }
 
-            SipAttributesDialog dlg = new SipAttributesDialog();
+            //SipAttributesDialog dlg = new SipAttributesDialog();
 
-            dlg.ContainerElement = node;
-            dlg.ShowDialog(this);
+            //dlg.ContainerElement = node;
+            //dlg.ShowDialog(this);
 
             return;
             ERROR1:
