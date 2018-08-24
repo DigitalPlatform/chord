@@ -168,7 +168,8 @@ namespace DigitalPlatform.Z3950.Server
                 }
 #endif
                 channel.Close();
-                close_action.Invoke();
+                if (close_action != null)
+                    close_action.Invoke();
             }
         }
 

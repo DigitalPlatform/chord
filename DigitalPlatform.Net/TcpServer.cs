@@ -112,12 +112,13 @@ namespace DigitalPlatform.Net
             while (this._isActive)
             {
                 TcpClient tcpClient = null;
+                string ip = "";
                 try
                 {
                     tcpClient = await this._listener.AcceptTcpClientAsync();
 
                     // string ip = ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
-                    string ip = GetClientIP(tcpClient);
+                    ip = GetClientIP(tcpClient);
                     // ZManager.Log?.Info("*** ip [" + ip + "] request");
 
                     if (this._ipTable != null)
@@ -132,13 +133,18 @@ namespace DigitalPlatform.Net
                         }
                     }
 
+                    // throw new Exception("test");
+
                     Task task = // 用来消除警告 // https://stackoverflow.com/questions/18577054/alternative-to-task-run-that-doesnt-throw-warning
                     Task.Run(() =>
                             HandleClient(tcpClient,
                                 () =>
                                 {
-                                    if (this._ipTable != null)
+                                    if (this._ipTable != null && string.IsNullOrEmpty(ip) == false)
+                                    {
                                         this._ipTable.FinishIp(ip);
+                                        ip = "";
+                                    }
                                     tcpClient = null;
                                 },
                                 _cancelToken));
@@ -148,7 +154,15 @@ namespace DigitalPlatform.Net
                 catch (Exception ex)
                 {
                     if (tcpClient != null)
+                    {
                         tcpClient.Close();
+                        if (this._ipTable != null && string.IsNullOrEmpty(ip) == false)
+                        {
+                            this._ipTable.FinishIp(ip);
+                            ip = "";
+                        }
+                        tcpClient = null;
+                    }
 
                     if (this._isActive == false)
                         break;

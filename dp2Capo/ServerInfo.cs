@@ -274,8 +274,8 @@ namespace dp2Capo
                     {
                         return (o.Name == strInstanceName);
                     });
-            if (instance == null)
-                return instance;
+            //if (instance == null)
+            //    return instance;
             return instance;
         }
 
@@ -795,13 +795,15 @@ Exception Info: System.Net.NetworkInformation.PingException
                     // 重试初始化 ZHost 慢速参数
                     // instance.InitialZHostSlowConfig();
 
-                    // 清理闲置超期的 zChannels
-                    ZServer._tcpChannels.CleanIdleChannels(TimeSpan.FromMinutes(2));
+                    // 清理闲置超期的 Channels
+                    ZServer?._tcpChannels.CleanIdleChannels(TimeSpan.FromMinutes(2));
+                    SipServer?._tcpChannels.CleanIdleChannels(TimeSpan.FromMinutes(2));
 
                     // 清除废弃的全局结果集
                     Task.Run(() => instance.FreeGlobalResultSets());
 
-                    ZServer.TryClearBlackList();
+                    ZServer?.TryClearBlackList();
+                    SipServer?.TryClearBlackList();
                 }
             }
 

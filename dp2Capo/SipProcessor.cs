@@ -43,7 +43,7 @@ namespace dp2Capo
             Instance instance = ServerInfo.FindInstance(strInstanceName);
             if (instance == null)
                 return new Tuple<Instance, string>(null, "实例 '" + strInstanceName + "' 不存在");
-            if (instance.zhost == null)
+            if (instance.sip_host == null)
                 return new Tuple<Instance, string>(null, "实例 '" + strInstanceName + "' 没有启用 SIP 服务");
             return new Tuple<Instance, string>(instance, "");
 #if NO
@@ -82,127 +82,154 @@ namespace dp2Capo
 
             string strMessageIdentifiers = strPackage.Substring(0, 2);
 
-            try
+            //try
+            //{
+            // 处理消息
+            switch (strMessageIdentifiers)
             {
-                // 处理消息
-                switch (strMessageIdentifiers)
-                {
-                    case "09":
-                        {
-                            strBackMsg = Checkin(sip_channel, strPackage);
-                            break;
-                        }
-                    case "11":
-                        {
-                            strBackMsg = Checkout(sip_channel, strPackage);
-                            break;
-                        }
-                    case "17":
+                case "09":
+                    {
+                        strBackMsg = Checkin(sip_channel, strPackage);
+                        break;
+                    }
+                case "11":
+                    {
+                        strBackMsg = Checkout(sip_channel, strPackage);
+                        break;
+                    }
+                case "17":
+                    {
+
+                        strBackMsg = ItemInfo(sip_channel, strPackage);
+                        break;
+                    }
+                case "29":
+                    {
+                        strBackMsg = Renew(sip_channel, strPackage);
+                        break;
+                    }
+                case "35":
+                    {
+                        strBackMsg = EndPatronSession(strPackage);
+                        break;
+                    }
+                case "37":
+                    {
+                        strBackMsg = Amerce(sip_channel, strPackage);
+                        break;
+                    }
+                case "85":
+                    {
+                        /*
+                        nRet = GetReaderInfo(strReaderBarcode,
+                            strPassword,
+                            "readerInfo",
+                            out strBackMsg,
+                            out strError);
+                        if (nRet == 0)
+                            this.WriteToLog(strError);
+                        */
+                        break;
+                    }
+                case "63":
+                    {
+                        strBackMsg = PatronInfo(sip_channel, strPackage);
+                        break;
+                    }
+                case "81":
+                    {
+                        strBackMsg = SetReaderInfo(sip_channel, strPackage);
+                        //if (nRet == 0)
+                        //{
+                        //    if (String.IsNullOrEmpty(strError) == false)
+                        //        LogManager.Logger.Error(strError);
+                        //}
+                        break;
+                    }
+                case "91":
+                    {
+                        strBackMsg = CheckDupReaderInfo(sip_channel, strPackage);
+                        //if (nRet == 0)
+                        //{
+                        //    if (String.IsNullOrEmpty(strError) == false)
+                        //        LogManager.Logger.Error(strError);
+                        //}
+                        break;
+                    }
+                case "93":
+                    {
+                        strBackMsg = Login(sip_channel, ip, strPackage);
+                        if ("941" == strBackMsg)
                         {
 
-                            strBackMsg = ItemInfo(sip_channel, strPackage);
-                            break;
                         }
-                    case "29":
-                        {
-                            strBackMsg = Renew(sip_channel, strPackage);
-                            break;
-                        }
-                    case "35":
-                        {
-                            strBackMsg = EndPatronSession(strPackage);
-                            break;
-                        }
-                    case "37":
-                        {
-                            strBackMsg = Amerce(sip_channel, strPackage);
-                            break;
-                        }
-                    case "85":
+                        else
                         {
                             /*
-                            nRet = GetReaderInfo(strReaderBarcode,
-                                strPassword,
-                                "readerInfo",
-                                out strBackMsg,
-                                out strError);
-                            if (nRet == 0)
-                                this.WriteToLog(strError);
+                            sip_channel._dp2username = "";
+                            sip_channel._dp2password = "";
+                            sip_channel._locationCode = "";
                             */
-                            break;
                         }
-                    case "63":
-                        {
-                            strBackMsg = PatronInfo(sip_channel, strPackage);
-                            break;
-                        }
-                    case "81":
-                        {
-                            strBackMsg = SetReaderInfo(sip_channel, strPackage);
-                            //if (nRet == 0)
-                            //{
-                            //    if (String.IsNullOrEmpty(strError) == false)
-                            //        LogManager.Logger.Error(strError);
-                            //}
-                            break;
-                        }
-                    case "91":
-                        {
-                            strBackMsg = CheckDupReaderInfo(sip_channel, strPackage);
-                            //if (nRet == 0)
-                            //{
-                            //    if (String.IsNullOrEmpty(strError) == false)
-                            //        LogManager.Logger.Error(strError);
-                            //}
-                            break;
-                        }
-                    case "93":
-                        {
-                            strBackMsg = Login(sip_channel, ip, strPackage);
-                            if ("941" == strBackMsg)
-                            {
 
-                            }
-                            else
-                            {
-                                /*
-                                sip_channel._dp2username = "";
-                                sip_channel._dp2password = "";
-                                sip_channel._locationCode = "";
-                                */
-                            }
-
-                            break;
-                        }
-                    case "96":
-                        {
-                            strBackMsg = sip_channel.LastMsg;
-                            break;
-                        }
-                    case "99":
-                        {
-                            strBackMsg = SCStatus(sip_channel, strPackage);
-                            break;
-                        }
-                    default:
-                        strBackMsg = "无法识别的命令'" + strMessageIdentifiers + "'";
                         break;
-                }
-
-                sip_channel.LastMsg = strBackMsg;
-                // 加校验码
-                strBackMsg = AddChecksumForMessage(sip_channel, strBackMsg);
-
-                e.Response = sip_channel.Encoding.GetBytes(strBackMsg);
-                return;
+                    }
+                case "96":
+                    {
+                        strBackMsg = sip_channel.LastMsg;
+                        break;
+                    }
+                case "99":
+                    {
+                        strBackMsg = SCStatus(sip_channel, strPackage);
+                        break;
+                    }
+                default:
+                    strBackMsg = "无法识别的命令'" + strMessageIdentifiers + "'";
+                    break;
             }
+
+            sip_channel.LastMsg = strBackMsg;
+            // 加校验码
+            strBackMsg = AddChecksumForMessage(sip_channel, strBackMsg);
+
+            e.Response = sip_channel.Encoding.GetBytes(strBackMsg);
+            return;
+            // }
+#if NO
             catch (Exception ex)
             {
                 LibraryManager.Log?.Error(ExceptionUtil.GetDebugText(ex));
+                throw ex;
             }
+#endif
 
             //ERROR1:
             //throw new Exception(strError);
+        }
+
+        // 用实例中的自动清理时间参数设置 SipChannel 的 Timeout 值
+        static void SetChannelTimeout(SipChannel sip_channel, 
+            string userName,
+            Instance instance)
+        {
+#if NO
+            if (instance == null)
+            {
+                if (sip_channel.InstanceName == null)
+                    return; // 没有 login 的就没法确定 Instance，也就没法为 sip_channel 设置 Timeout
+
+                instance = FindSipInstance(sip_channel.InstanceName, out string strError);
+                if (instance == null)
+                    return;
+            }
+#endif
+
+            // sip_channel.Timeout = instance.sip_host.AutoClearSeconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(instance.sip_host.AutoClearSeconds);
+
+            Debug.Assert(string.IsNullOrEmpty(userName) == false, "");
+            int autoclear_seconds = instance.sip_host.GetSipParam(userName).AutoClearSeconds;
+            sip_channel.Timeout = autoclear_seconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(autoclear_seconds);
         }
 
         // 加校验码
@@ -314,14 +341,6 @@ namespace dp2Capo
 
             strInstanceName = instance.Name;
 
-            // 检查 IP 白名单
-            if (string.IsNullOrEmpty(instance.sip_host.IpList) == false && instance.sip_host.IpList != "*"
-                && StringUtil.MatchIpAddressList(instance.sip_host.IpList, strClientIP) == false)
-            {
-                strError = "前端 IP 地址 '" + strClientIP + "' 不在白名单允许的范围内";
-                goto ERROR1;
-            }
-
             // 匿名登录情形
             if (string.IsNullOrEmpty(strUserName))
             {
@@ -338,11 +357,33 @@ namespace dp2Capo
                 }
             }
 
+            try
+            {
+                SipParam sip_config = instance.sip_host.GetSipParam(strUserName);
+
+                // 检查 IP 白名单
+                string ipList = sip_config.IpList;
+                if (string.IsNullOrEmpty(ipList) == false && ipList != "*"
+                    && StringUtil.MatchIpAddressList(ipList, strClientIP) == false)
+                {
+                    strError = "前端 IP 地址 '" + strClientIP + "' 不在白名单允许的范围内";
+                    goto ERROR1;
+                }
+            }
+            catch(Exception ex)
+            {
+                strError = "获取 SIP 参数时出错:" + ExceptionUtil.GetAutoText(ex);
+                goto ERROR1;
+            }
+
             // 让 channel 从此携带 Instance Name
             sip_channel.InstanceName = strInstanceName;
             sip_channel.UserName = strUserName;
             sip_channel.Password = strPassword;
-            sip_channel.Encoding = instance.sip_host.Encoding;
+            sip_channel.Encoding = instance.sip_host.GetSipParam(sip_channel.UserName).Encoding;
+            // 注：登录以后 Timeout 才按照实例参数来设定。此前是 sip_channel.Timeout 的默认值
+            // sip_channel.Timeout = instance.sip_host.AutoClearSeconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(instance.sip_host.AutoClearSeconds);
+            SetChannelTimeout(sip_channel, sip_channel.UserName, instance);
 
             LoginInfo login_info = new LoginInfo { UserName = sip_channel.UserName, Password = sip_channel.Password };
 
@@ -382,7 +423,6 @@ namespace dp2Capo
             sip_channel.InstanceName = "";
             sip_channel.UserName = "";
             sip_channel.Password = "";
-
             LibraryManager.Log?.Info("Login() error: " + strError);
             return response.ToText();
         }
@@ -398,15 +438,26 @@ namespace dp2Capo
 
         static FunctionInfo BeginFunction(SipChannel sip_channel)
         {
+            bool useSingleInstance = true;  // 是否允许单实例情况，不登录而直接使用唯一实例的匿名账户
+
             string strError = "";
 
+            bool bSingleInstance = false;
             FunctionInfo info = new FunctionInfo();
 
             info.InstanceName = sip_channel.InstanceName;
             if (info.InstanceName == null)
             {
-                strError = "SIP 通道中 实例名 ('InstanceName') 尚未在属性集合初始化。可能是因为尚未登录引起的";
-                goto ERROR1;
+                if (useSingleInstance == true && ServerInfo._instances.Count == 1)
+                {
+                    // 表示此时属于单实例特殊状态
+                    bSingleInstance = true;
+                }
+                else
+                {
+                    strError = "尚未登录。(SIP 通道中 实例名 ('InstanceName') 尚未在属性集合初始化)";
+                    goto ERROR1;
+                }
             }
             info.Instance = FindSipInstance(info.InstanceName, out strError);
             if (info.Instance == null)
@@ -415,6 +466,9 @@ namespace dp2Capo
                     strError = "实例名 '" + info.InstanceName + "' 不存在(或实例没有启用 SIP 服务)";
                 goto ERROR1;
             }
+
+            info.InstanceName = info.Instance.Name; // 2018/8/10
+
             if (info.Instance.Running == false)
             {
                 strError = "实例 '" + info.Instance.Name + "' 正在维护中，暂时不能访问";
@@ -422,6 +476,32 @@ namespace dp2Capo
             }
 
             var login_info = new LoginInfo { UserName = sip_channel.UserName, Password = sip_channel.Password };
+
+            // 单实例特殊情况下，使用匿名登录账户
+            if (login_info.UserName == null)
+            {
+                if (bSingleInstance)
+                {
+                    if (string.IsNullOrEmpty(info.Instance.sip_host.AnonymousUserName))
+                    {
+                        strError = "虽然是单实例情形，但尚未配置匿名登录账户，因此无法对 dp2library 进行登录和访问";
+                        goto ERROR1;
+                    }
+                    login_info.UserName = info.Instance.sip_host.AnonymousUserName;
+                    login_info.Password = info.Instance.sip_host.AnonymousPassword;
+
+                    // Password 为 null 表示需要代理方式登录。要避免出现 null 这种情况 
+                    if (login_info.Password == null)
+                        login_info.Password = "";
+
+                    SetChannelTimeout(sip_channel, login_info.UserName, info.Instance);
+                }
+                else
+                {
+                    strError = "尚未登录，无法定位实例";
+                    goto ERROR1;
+                }
+            }
 
             info.LibraryChannel = info.Instance.MessageConnection.GetChannel(login_info);
 
@@ -771,7 +851,8 @@ namespace dp2Capo
 
                         response.AJ_TitleIdentifier_r = strBiblioSummary;
 
-                        string strLatestReturnTime = DateTimeUtil.Rfc1123DateTimeStringToLocal(borrow_info.LatestReturnTime, info.Instance.sip_host.DateFormat);
+                        string strLatestReturnTime = DateTimeUtil.Rfc1123DateTimeStringToLocal(borrow_info.LatestReturnTime,
+                            info.Instance.sip_host.GetSipParam(sip_channel.UserName).DateFormat);
                         response.AH_DueDate_r = strLatestReturnTime;
 
                         response.AF_ScreenMessage_o = "成功";
@@ -934,7 +1015,8 @@ namespace dp2Capo
                         string strReturningDate = DomUtil.GetElementText(dom.DocumentElement, "returningDate");
                         if (!String.IsNullOrEmpty(strReturningDate))
                         {
-                            strReturningDate = DateTimeUtil.Rfc1123DateTimeStringToLocal(strReturningDate, info.Instance.sip_host.DateFormat);
+                            strReturningDate = DateTimeUtil.Rfc1123DateTimeStringToLocal(strReturningDate,
+                                info.Instance.sip_host.GetSipParam(sip_channel.UserName).DateFormat);
                             response.AH_DueDate_o = strReturningDate;
                         }
 
@@ -1136,7 +1218,8 @@ namespace dp2Capo
 
                     response.AJ_TitleIdentifier_r = strBiblioSummary;
 
-                    string strLatestReturnTime = DateTimeUtil.Rfc1123DateTimeStringToLocal(borrow_info.LatestReturnTime, info.Instance.sip_host.DateFormat);
+                    string strLatestReturnTime = DateTimeUtil.Rfc1123DateTimeStringToLocal(borrow_info.LatestReturnTime,
+                        info.Instance.sip_host.GetSipParam(sip_channel.UserName).DateFormat);
                     response.AH_DueDate_r = strLatestReturnTime;
 
                     response.AF_ScreenMessage_o = "成功";
@@ -2369,7 +2452,28 @@ namespace dp2Capo
         /// <returns></returns>
         static string SCStatus(SipChannel sip_channel, string message)
         {
+            // throw new Exception("test exception");
+            // 提前准备好响应对象，以便出错时候可以返回。因为这个消息的 fixed length fields 必须要具备
+            ACSStatus_98 response = new ACSStatus_98()
+            {
+                OnlineStatus_1 = "N",
+                CheckinOk_1 = "N",
+                CheckoutOk_1 = "N",
+                ACSRenewalPolicy_1 = "N",
+                StatusUpdateOk_1 = "N",
+                OfflineOk_1 = "N",
+                TimeoutPeriod_3 = "010",
+                RetriesAllowed_3 = "003",
+                DatetimeSync_18 = SIPUtility.NowDateTime,
+                ProtocolVersion_4 = "2.00",
+                AO_InstitutionId_r = "dp2Library",
+                AM_LibraryName_o = "dp2Library",
+                BX_SupportedMessages_r = "YYYYYYYYYYYYYYYY",
+                AF_ScreenMessage_o = "",
+            };
+
             string strError = "";
+
             FunctionInfo info = BeginFunction(sip_channel);
             if (string.IsNullOrEmpty(info.ErrorInfo) == false)
             {
@@ -2378,21 +2482,26 @@ namespace dp2Capo
             }
             try
             {
-                //2018/06/19 check system for acs status
+                // TODO: 要检查相关 dp2Capo 实例是否在线
+
+                //2018/06/19 
                 long lRet = info.LibraryChannel.GetSystemParameter("system",
                     "hangup",
                     out string strValue,
                     out strError);
                 if (lRet == -1)
-                    goto ERROR1;
-                ACSStatus_98 response = new ACSStatus_98()
                 {
-                    OnlineStatus_1 = "Y",
+                    strError = "GetSystemParameter('system', 'hangup') error: " + strError;
+                    goto ERROR1;
+                }
+                response = new ACSStatus_98()
+                {
+                    OnlineStatus_1 = "Y",   // see instance info
                     CheckinOk_1 = (lRet == -1 ? "N" : "Y"),
                     CheckoutOk_1 = (lRet == -1 ? "N" : "Y"),
                     ACSRenewalPolicy_1 = (lRet == -1 ? "N" : "Y"),
-                    StatusUpdateOk_1 = "Y",
-                    OfflineOk_1 = "Y",
+                    StatusUpdateOk_1 = "N", // "Y",
+                    OfflineOk_1 = "N",   // "Y",
                     TimeoutPeriod_3 = "010",
                     RetriesAllowed_3 = "003",
                     DatetimeSync_18 = SIPUtility.NowDateTime,
@@ -2411,10 +2520,7 @@ namespace dp2Capo
             }
             ERROR1:
             {
-                ACSStatus_98 response = new ACSStatus_98()
-                {
-                    AF_ScreenMessage_o = strError,
-                };
+                response.AF_ScreenMessage_o = strError;
                 return response.ToText();
             }
         }
