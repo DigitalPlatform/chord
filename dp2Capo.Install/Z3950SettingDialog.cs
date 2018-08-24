@@ -746,10 +746,16 @@ namespace dp2Capo.Install
 
         void SetEnableZ3950UiState()
         {
+#if NO
             if (this.checkBox_enableZ3950.Checked)
                 this.tabControl_main.Enabled = true;
             else
                 this.tabControl_main.Enabled = false;
+#endif
+            foreach (TabPage page in this.tabControl_main.TabPages)
+            {
+                page.Enabled = this.checkBox_enableZ3950.Checked;
+            }
         }
 
         // 从控件到 CfgDom
@@ -835,6 +841,8 @@ namespace dp2Capo.Install
         private void InstallZServerDlg_Load(object sender, EventArgs e)
         {
             FillInfo();
+
+            SetEnableZ3950UiState();
         }
 
         private void checkBox_enableZ3950_CheckedChanged(object sender, EventArgs e)

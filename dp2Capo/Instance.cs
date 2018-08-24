@@ -242,8 +242,11 @@ namespace dp2Capo
                 {
                     if (dom.DocumentElement.SelectSingleNode("sipServer") is XmlElement element)
                     {
-                        this.sip_host = new SipHostInfo();
-                        this.sip_host.Initial(element);
+                        if (DomUtil.IsBooleanTrue(element.GetAttribute("enable"), true))
+                        {
+                            this.sip_host = new SipHostInfo();
+                            this.sip_host.Initial(element);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -458,6 +461,16 @@ namespace dp2Capo
 
             // this.MessageConnection.CloseConnection();
             this.MessageConnection.Close();
+
+            // Close 所有和这个实例有关的 SIP 通道
+            if (this.sip_host != null)
+            {
+                ServerInfo.SipServer?._tcpChannels?.Clean((channel) =>
+                {
+                    SipChannel sip_channel = channel as SipChannel;
+                    return (sip_channel.InstanceName == this.Name);
+                });
+            }
 
             this._running = false;
             this.WriteErrorLog("*** 实例 " + this.Name + " 成功降落。");
@@ -1581,7 +1594,6 @@ namespace dp2Capo
                 {
                     return "errorpassword";
                 }
-
             }
 
             return "";

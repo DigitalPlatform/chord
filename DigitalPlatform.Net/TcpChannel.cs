@@ -153,6 +153,55 @@ namespace DigitalPlatform.Net
                 }
             }
         }
+
+        // return:
+        //      false   不希望被清理
+        //      true    希望被清理
+        public delegate bool Delegate_needClean(TcpChannel channel);
+
+        // 按需清理通道
+        public int Clean(Delegate_needClean procNeedClear)
+        {
+            List<TcpChannel> delete_channels = new List<TcpChannel>();
+            _lock.EnterReadLock();
+            try
+            {
+                DateTime now = DateTime.Now;
+                foreach (TcpChannel channel in _channels)
+                {
+                    if (procNeedClear(channel) == true)
+                        delete_channels.Add(channel);
+                }
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
+
+            if (delete_channels.Count > 0)
+            {
+                _lock.EnterWriteLock();
+                try
+                {
+                    foreach (TcpChannel channel in delete_channels)
+                    {
+                        _channels.Remove(channel);
+                    }
+                }
+                finally
+                {
+                    _lock.ExitWriteLock();
+                }
+
+                foreach (TcpChannel channel in delete_channels)
+                {
+                    channel.Close();
+                }
+            }
+
+            return delete_channels.Count;
+        }
+
     }
 
     // 一个 TCP (服务器端)通讯通道
