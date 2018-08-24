@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -404,7 +403,7 @@ namespace dp2Capo
                     response.Ok_1 = "1";
 
                     sip_channel.LocationCode = strLocationCode;
-                    sip_channel.InstanceName = "";
+                    sip_channel.InstanceName = strInstanceName; // "";  BUG 2018/8/24 排除
                     sip_channel.UserName = strUserName;
                     sip_channel.Password = strPassword;
 
