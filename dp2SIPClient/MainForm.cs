@@ -16,6 +16,9 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
+using DigitalPlatform.Text;
+using System.Web;
+
 namespace dp2SIPClient
 {
     public partial class MainForm : Form
@@ -40,13 +43,16 @@ namespace dp2SIPClient
             // 当配置了SIP2服务器地址时，自动连接服务器
             if (string.IsNullOrEmpty(this.SIPServerUrl) == false)
             {
-                string info = "";
-                this.ConnectionServer(out info);
+                // string info = "";
+                // this.ConnectionServer(out info);
             }
 
             //SIPUtility.Logger.Info("test");
             //SIPUtility.Logger.Error("error1");
             //SIPUtility.Logger.Warn("警告");
+
+            this.tabControl_main.SelectedTab = this.tabPage_function;
+            ClearHtml();
         }
 
         public string SIPServerUrl
@@ -564,16 +570,56 @@ namespace dp2SIPClient
 
         #region 通用函数
 
-        private void Print(string text)
+        private void Print(string strHtml)
         {
-            if (this.txtInfo.Text != "")
-                this.txtInfo.Text += "\r\n";
-            this.txtInfo.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + text;
-            this.txtInfo.SelectionStart = txtInfo.Text.Length;
-            this.txtInfo.ScrollToCaret();
-            //this.txtInfo.Text = text;
+            strHtml = String.Format("{0}  {1}<br />", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), strHtml);
+            WriteHtml(this.webBrowser1,
+                strHtml);
         }
 
+        // 不支持异步调用
+        public static void WriteHtml(WebBrowser webBrowser,
+            string strHtml)
+        {
+
+            HtmlDocument doc = webBrowser.Document;
+
+            if (doc == null)
+            {
+                webBrowser.Navigate("about:blank");
+                doc = webBrowser.Document;
+                doc.Write("<pre>");
+            }
+
+            doc.Write(strHtml);
+
+            // 保持末行可见
+            ScrollToEnd(webBrowser);
+        }
+
+        public void ClearHtml()
+        {
+            HtmlDocument doc = webBrowser1.Document;
+
+            if (doc == null)
+            {
+                webBrowser1.Navigate("about:blank");
+                doc = webBrowser1.Document;
+            }
+            doc = doc.OpenNew(true);
+            doc.Write("<pre>");
+        }
+
+
+        public static void ScrollToEnd(WebBrowser webBrowser1)
+        {
+            if (webBrowser1.Document != null
+                && webBrowser1.Document.Window != null
+                && webBrowser1.Document.Body != null)
+                webBrowser1.Document.Window.ScrollTo(
+                    0,
+                    webBrowser1.Document.Body.ScrollRectangle.Height);
+        }
 
         #endregion
 
@@ -587,7 +633,7 @@ namespace dp2SIPClient
 
         private void 清空信息区ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.txtInfo.Text = "";
+            ClearHtml();
         }
 
         private void tabControl_main_SelectedIndexChanged(object sender, EventArgs e)
@@ -608,8 +654,344 @@ namespace dp2SIPClient
             dlg.ShowDialog(this);
         }
 
+
         #endregion
 
 
+        #region 功能测试
+
+        string TransactionDate
+        {
+            get
+            {
+                return DateTime.Now.ToString("yyyyMMdd    HHmmss");
+            }
+        }
+
+
+        Encoding _encoding
+        {
+            get
+            {
+                string strEncoding = this.comboBox_encoding.Text;
+                if (string.IsNullOrEmpty(strEncoding))
+                    return Encoding.UTF8;
+                else
+                    return Encoding.GetEncoding(strEncoding);
+            }
+        }
+
+        private void button_connection_Click(object sender, EventArgs e)
+        {
+            string info = "";
+
+            for (int i = 0; i < int.Parse(this.textBox_copies.Text); i++)
+            {
+                this.Update();
+                Application.DoEvents();
+
+                bool bRet = SCHelper.Instance.Connection(this.textBox_addr.Text, int.Parse(this.textBox_port.Text), _encoding, out info);
+                if (bRet == false) // 出错
+                {
+                    this.toolStripStatusLabel_info.Text = info;
+                    return;
+                }
+
+                // 连接成功
+                string text = this.textBox_addr.Text + ":" + this.textBox_port.Text;
+                info = "连接SIP2服务器[" + text + "]成功(" + (i + 1).ToString() + ")编码方式：" + this._encoding?.EncodingName;
+                this.toolStripStatusLabel_info.Text = info;
+
+                this.button_connection.Text = "连接(" + (i + 1).ToString() + ")";
+                this.button_connection.Update();
+            }
+        }
+
+        private void button_login_Click(object sender, EventArgs e)
+        {
+            string responseText = "";
+            string error = "";
+
+            for (int i = 0; i < int.Parse(this.textBox_login_copies.Text); i++)
+            {
+                Login_93 request = new Login_93()
+                {
+                    UIDAlgorithm_1 = " ",
+                    PWDAlgorithm_1 = " ",
+
+                    CN_LoginUserId_r = this.textBox_username.Text,
+                    CO_LoginPassword_r = this.textBox_password.Text,
+                    CP_LocationCode_o = this.textBox_locationCode.Text
+                };
+                string cmdText = request.ToText();
+
+                this.Print("send:" + cmdText);
+                BaseMessage response = null;
+                int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                    out response,
+                    out responseText,
+                    out error);
+                if (nRet == -1)
+                {
+                    MessageBox.Show(error);
+                    this.Print("error:" + error);
+                    return;
+                }
+
+                this.Print("recv:" + responseText);
+
+                this.button_login.Text = "登录(" + (i + 1).ToString() + ")";
+                this.button_login.Update();
+            }
+        }
+
+        private void button_getItemInfo_Click(object sender, EventArgs e)
+        {
+            ItemInformation_17 request = new ItemInformation_17()
+            {
+                TransactionDate_18 = this.TransactionDate,
+
+                AO_InstitutionId_r = "dp2Library",
+                AC_TerminalPassword_o = "",
+            };
+
+            string responseText = "";
+            string error = "";
+            string[] barcodes = this.textBox_barcodes.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            int i = 0;
+            foreach (string barcode in barcodes)
+            {
+                this.Update();
+                Application.DoEvents();
+                Thread.Sleep(100);
+
+                request.AB_ItemIdentifier_r = barcode;
+
+                string cmdText = request.ToText();
+
+                this.Print("send:" + cmdText);
+                BaseMessage response = null;
+                int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                    out response,
+                    out responseText,
+                    out error);
+                if (nRet == -1)
+                {
+                    MessageBox.Show(error);
+                    this.Print("error:" + error);
+                    return;
+                }
+
+                this.Print("recv:" + responseText);
+
+                this.button_getItemInfo.Text = "获取(" + (i + 1).ToString() + ")";
+                i++;
+            }
+        }
+
+        #endregion
+
+        private void button_checkOut_Click(object sender, EventArgs e)
+        {
+            Checkout_11 request = new Checkout_11()
+            {
+                SCRenewalPolicy_1 = "Y",
+                NoBlock_1 = "N",
+                TransactionDate_18 = this.TransactionDate,
+                AO_InstitutionId_r = "dp2Library",
+                AA_PatronIdentifier_r = this.textBox_checkout_readerBarcode.Text,
+                AD_PatronPassword_o = this.textBox_checkout_readerPassword.Text,
+                BO_FeeAcknowledged_1_o = "N",
+                BI_Cancel_1_o = "N",
+                NbDueDate_18 = "                  ",
+                AC_TerminalPassword_r = "",
+            };
+
+            Button button = sender as Button;
+            string responseText = "";
+            string error = "";
+            string[] barcodes = this.textBox_barcodes.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            int i = 0;
+            foreach (string barcode in barcodes)
+            {
+                this.Update();
+                Application.DoEvents();
+                Thread.Sleep(100);
+
+                request.AB_ItemIdentifier_r = barcode;
+
+                string cmdText = request.ToText();
+
+                this.Print("send:" + cmdText);
+                BaseMessage response = null;
+                int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                    out response,
+                    out responseText,
+                    out error);
+                if (nRet == -1)
+                {
+                    MessageBox.Show(error);
+                    this.Print("error:" + error);
+                    return;
+                }
+
+                this.Print("recv:" + responseText);
+
+                button.Text = "借书(" + (i + 1).ToString() + ")";
+                i++;
+            }
+        }
+
+        private void button_getPatronInfo_Click(object sender, EventArgs e)
+        {
+            PatronInformation_63 request = new PatronInformation_63()
+            {
+                Language_3 = "019",
+                TransactionDate_18 = this.TransactionDate,
+                Summary_10 = "  Y       ",
+                AO_InstitutionId_r = "dp2Library",
+            };
+            Button button = sender as Button;
+            string responseText = "";
+            string error = "";
+            string[] barcodes = this.textBox_patronInfo_barcodes.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            int i = 0;
+            foreach(string barcode in barcodes)
+            {
+                this.Update();
+                Application.DoEvents();
+                Thread.Sleep(100);
+
+                request.AA_PatronIdentifier_r = barcode;
+                string cmdText = request.ToText();
+
+                this.Print("send:" + cmdText);
+                BaseMessage response = null;
+                int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                    out response,
+                    out responseText,
+                    out error);
+                if (nRet == -1)
+                {
+                    MessageBox.Show(error);
+                    this.Print("error:" + error);
+                    return;
+                }
+
+                this.Print("recv:" + responseText);
+
+                button.Text = "获取(" + (i + 1).ToString() + ")";
+                i++;
+            }
+        }
+
+        private void button_checkIn_Click(object sender, EventArgs e)
+        {
+            Checkin_09 request = new Checkin_09()
+            {
+                NoBlock_1 = "N",
+                TransactionDate_18 = this.TransactionDate,
+                ReturnDate_18 = this.TransactionDate,
+                AP_CurrentLocation_r = "",
+                AC_TerminalPassword_r = "",
+                AO_InstitutionId_r = "dp2Library",
+                BI_Cancel_1_o = "N"
+            };
+
+            Button button = sender as Button;
+            string responseText = "";
+            string error = "";
+            string[] barcodes = this.textBox_barcodes.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            int i = 0;
+            foreach (string barcode in barcodes)
+            {
+                this.Update();
+                Application.DoEvents();
+                Thread.Sleep(100);
+
+                request.AB_ItemIdentifier_r = barcode;
+
+                string cmdText = request.ToText();
+
+                this.Print("send:" + cmdText);
+                BaseMessage response = null;
+                int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                    out response,
+                    out responseText,
+                    out error);
+                if (nRet == -1)
+                {
+                    MessageBox.Show(error);
+                    this.Print("error:" + error);
+                    return;
+                }
+
+                this.Print("recv:" + responseText);
+
+                button.Text = "还书(" + (i + 1).ToString() + ")";
+                i++;
+            }
+        }
+
+        private void checkBox_UrlEncode_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ContainHanzi(this.textBox_username.Text) && this.checkBox_UrlEncode.Checked)
+            {
+                this.textBox_username.Text = HttpUtility.UrlEncode(this.textBox_username.Text);
+            }
+            else if(this.checkBox_UrlEncode.Checked == false)
+            {
+                this.textBox_username.Text = HttpUtility.UrlDecode(this.textBox_username.Text);
+            }
+        }
+
+
+        static int[] iSign =   
+        {
+            65306,
+            8220,
+            65307,
+            8216,
+            65292,
+            65281,
+            12289,
+            65311,
+            8212,
+            12290,
+            12298,
+            12297,
+            8230,
+            65509,
+            65288,
+            65289,
+            8217,
+            8221
+        };
+
+        public static bool IsHanzi(char ch)
+        {
+            int n = (int)ch;
+            if (n <= 0X1ef3) // < 1024
+                return false;
+            foreach (int v in iSign)
+            {
+                if (ch == v)
+                    return false;
+            }
+
+            return true;
+        }
+
+        // 是否包含一个以上的汉字
+        public static bool ContainHanzi(string strText)
+        {
+            foreach (char ch in strText)
+            {
+                if (IsHanzi(ch) == true)
+                    return true;
+            }
+
+            return false;
+        }
     }
 }

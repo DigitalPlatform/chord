@@ -51,6 +51,13 @@ namespace DigitalPlatform.SIP2
             return this._clientWrapper.Connection(serverUrl, port, out error);
         }
 
+        public bool Connection(string serverUrl, int port, Encoding encoding, out string error)
+        {
+            error = "";
+            this._clientWrapper = new TcpClientWrapper(encoding);
+            return this._clientWrapper.Connection(serverUrl, port, out error);
+        }
+
         // 关闭连接
         public void Close()
         {
