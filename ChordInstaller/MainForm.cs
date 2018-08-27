@@ -22,6 +22,7 @@ using DigitalPlatform.IO;
 using DigitalPlatform.Text;
 using DigitalPlatform.Drawing;
 using DigitalPlatform.ServiceProcess;
+using System.Reflection;
 
 // TODO: 自动升级 dp2mserver
 // TODO: 自动升级 dp2router
@@ -252,7 +253,7 @@ FormWindowState.Normal);
             }
 
             string strHead = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\"><head>"
-                // + "<link rel='stylesheet' href='"+strCssFileName+"' type='text/css'>"
+    // + "<link rel='stylesheet' href='"+strCssFileName+"' type='text/css'>"
     + "<style media='screen' type='text/css'>"
     + "body { font-family:Microsoft YaHei; background-color:#555555; color:#eeeeee; } "
     + "</style>"
@@ -472,7 +473,7 @@ FormWindowState.Normal);
                 this._floatingMessage.Text = "";
             }
             return;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -540,13 +541,14 @@ FormWindowState.Normal);
                 AppendString("dp2Capo 服务启动成功\r\n");
 
                 AppendSectionTitle("升级 dp2Capo 结束");
+                DisplayAssemblyVersion(strExePath);
             }
             finally
             {
                 this._floatingMessage.Text = "";
             }
             return;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -567,6 +569,29 @@ FormWindowState.Normal);
 
             this.MenuItem_dp2capo_openDataDir.DropDownItems.Clear();
             AddMenuItem(MenuItem_dp2capo_openDataDir, "dp2Capo");
+
+            DisplayAssemblyVersion(strExePath);
+
+            //var versionInfo = FileVersionInfo.GetVersionInfo(strExePath);
+            //AppendString("dp2Capo version: " + versionInfo.ProductVersion + "\r\n");
+        }
+
+        void DisplayAssemblyVersion(string strExePath)
+        {
+            if (string.IsNullOrEmpty(strExePath) == false)
+            {
+                strExePath = StringUtil.Unquote(strExePath, "\"\"");
+
+                // https://stackoverflow.com/questions/6258160/unloading-the-assembly-loaded-with-assembly-loadfrom
+                var assemblyName = Assembly.Load(File.ReadAllBytes(strExePath)).GetName();
+                string assemblyVersion = assemblyName.Version.ToString();
+                AppendString(assemblyName.Name + " assembly version: " + assemblyVersion + "\r\n");
+
+#if NO
+                var versionInfo = FileVersionInfo.GetVersionInfo(strExePath);
+                AppendString(versionInfo.ProductName + " version: " + versionInfo.ProductVersion + "\r\n");
+#endif
+            }
         }
 
         void AddMenuItem(ToolStripMenuItem menuItem, string strProductName)
@@ -813,7 +838,7 @@ MessageBoxDefaultButton.Button2);
 
             AppendString("\r\n");
             return;
-        ERROR1:
+            ERROR1:
             AppendString("出错: " + strError + "\r\n");
             MessageBox.Show(this, strError);
         }
@@ -913,7 +938,7 @@ MessageBoxDefaultButton.Button2);
                 strExePath = Path.Combine(strProgramDir, strName + ".exe");
                 if (File.Exists(strExePath) == false)
                 {
-                    strError = strName + ".exe 尚未复制到目标位置 '"+strExePath+"'，无法进行注册";
+                    strError = strName + ".exe 尚未复制到目标位置 '" + strExePath + "'，无法进行注册";
                     goto ERROR1;
                 }
             }
@@ -944,7 +969,7 @@ MessageBoxDefaultButton.Button2);
                 this.Refresh_dp2router_MenuItems();
 
             return;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -1109,8 +1134,8 @@ MessageBoxDefaultButton.Button2);
 
                 AppendString("删除程序目录\r\n");
 
-            // 删除程序目录
-            REDO_DELETE_PROGRAMDIR:
+                // 删除程序目录
+                REDO_DELETE_PROGRAMDIR:
                 try
                 {
                     PathUtil.DeleteDirectory(Path.GetDirectoryName(strExePath));
@@ -1135,7 +1160,7 @@ MessageBoxDefaultButton.Button2);
                 this._floatingMessage.Text = "";
             }
             return;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -1234,7 +1259,7 @@ MessageBoxDefaultButton.Button2);
                 this._floatingMessage.Text = "";
             }
             return;
-        ERROR1:
+            ERROR1:
             AppendString("出错: " + strError + "\r\n");
             MessageBox.Show(this, strError);
         }
@@ -1393,7 +1418,7 @@ MessageBoxDefaultButton.Button1);
                 this._floatingMessage.Text = "";
             }
             return;
-        ERROR1:
+            ERROR1:
             this.Invoke(new Action(() =>
             {
                 MessageBox.Show(this, strError);
@@ -1474,11 +1499,11 @@ MessageBoxDefaultButton.Button1);
                     "dp2RouterService",
                     "dp2MessageService"
                 };
-                string[] dir_names = new string[] { 
+                string[] dir_names = new string[] {
                 "dp2capo",
                 "dp2router",
                 "dp2mserver"};
-                string[] xml_filenames = new string[] { 
+                string[] xml_filenames = new string[] {
                 "capo.xml",
                 "config.xml",
                 "config.xml"
@@ -1508,18 +1533,18 @@ MessageBoxDefaultButton.Button1);
                         {
                             string strSettingFileName = Path.Combine(Path.GetDirectoryName(strExePath), "settings.xml");
                             string strDataDir = GetRouterDataDir(strSettingFileName);
-                            data_dirs = new List<string>() {strDataDir};
+                            data_dirs = new List<string>() { strDataDir };
                         }
                         else if (service_name == "dp2MessageService")
                         {
                             string strSettingFileName = Path.Combine(Path.GetDirectoryName(strExePath), "settings.xml");
                             string strDataDir = GetMServerDataDir(strSettingFileName);
-                            data_dirs = new List<string>() {strDataDir};
+                            data_dirs = new List<string>() { strDataDir };
                         }
                         else
                         {
                             Debug.Assert(false, "");
-                            strError = "未知的 service_name '"+service_name+"'";
+                            strError = "未知的 service_name '" + service_name + "'";
                             return -1;
                         }
 
@@ -1742,7 +1767,7 @@ MessageBoxDefaultButton.Button1);
                 goto ERROR1;
 
             return filenames;
-        ERROR1:
+            ERROR1:
             throw new Exception(strError);
         }
 
@@ -2082,7 +2107,7 @@ MessageBoxDefaultButton.Button1);
                 this._floatingMessage.Text = "";
             }
             return;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -2103,6 +2128,8 @@ MessageBoxDefaultButton.Button1);
 
             // TODO: 观察数据目录是否存在
             this.MenuItem_dp2Router_openDataDir.DropDownItems.Clear();
+
+            DisplayAssemblyVersion(strExePath);
         }
 
         private void MenuItem_dp2Router_upgrade_Click(object sender, EventArgs e)
@@ -2163,13 +2190,14 @@ MessageBoxDefaultButton.Button1);
                 AppendString("dp2Router 服务启动成功\r\n");
 
                 AppendSectionTitle("升级 dp2Router 结束");
+                DisplayAssemblyVersion(strExePath);
             }
             finally
             {
                 this._floatingMessage.Text = "";
             }
             return;
-        ERROR1:
+            ERROR1:
             AppendString("出错: " + strError + "\r\n");
             MessageBox.Show(this, strError);
         }
@@ -2201,7 +2229,7 @@ MessageBoxDefaultButton.Button1);
                 MessageBox.Show(this, ExceptionUtil.GetAutoText(ex));
             }
             return;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -2227,7 +2255,7 @@ MessageBoxDefaultButton.Button1);
                 MessageBox.Show(this, ExceptionUtil.GetAutoText(ex));
             }
             return;
-        ERROR1:
+            ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -2341,7 +2369,7 @@ MessageBoxDefaultButton.Button1);
                 this._floatingMessage.Text = "";
             }
             return;
-        ERROR1:
+            ERROR1:
             AppendString("出错: " + strError + "\r\n");
             MessageBox.Show(this, strError);
         }
@@ -2431,13 +2459,14 @@ MessageBoxDefaultButton.Button1);
                 AppendString("dp2MServer 服务启动成功\r\n");
 
                 AppendSectionTitle("升级 dp2MServer 结束");
+                DisplayAssemblyVersion(strExePath);
             }
             finally
             {
                 this._floatingMessage.Text = "";
             }
             return;
-        ERROR1:
+            ERROR1:
             AppendString("出错: " + strError + "\r\n");
             MessageBox.Show(this, strError);
         }
@@ -2459,6 +2488,8 @@ MessageBoxDefaultButton.Button1);
 
             // TODO: 观察数据目录是否存在
             // this.MenuItem_dp2MServer_openDataDir.DropDownItems.Clear();
+
+            DisplayAssemblyVersion(strExePath);
         }
 
     }

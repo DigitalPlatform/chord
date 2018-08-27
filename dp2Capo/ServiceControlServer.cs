@@ -33,6 +33,7 @@ namespace dp2Capo
 
             try
             {
+                // 查询 dp2Capo 运行状态
                 if (strInstanceName == ".")
                 {
                     info = new InstanceInfo();
@@ -42,11 +43,12 @@ namespace dp2Capo
                     return result;
                 }
 
+                // 查询全局服务运行状态。全局服务包括 SIP 和 Z39.50 Service
                 if (strInstanceName == ".global")
                 {
                     info = new InstanceInfo();
                     info.InstanceName = strInstanceName;
-                    info.State = ServerInfo.IsGlobalServiceRunning() ? "running" : "stopped";
+                    info.State = ServerInfo.GlobalServiceRunning ? "running" : "stopped";
                     result.Value = 1;
                     return result;
                 }

@@ -28,6 +28,9 @@ namespace dp2Capo
 {
     public static class ServerInfo
     {
+        // 指示全局 Service 是否处在运行状态
+        public static bool GlobalServiceRunning { get; set; }
+
         public static ZServer ZServer { get; set; }
 
         public static SipServer SipServer { get; set; }
@@ -383,6 +386,8 @@ namespace dp2Capo
                 SipProcessor.AddEvents(ServerInfo.SipServer, true);
                 ServerInfo.SipServer.Listen(1000);
             }
+
+            ServerInfo.GlobalServiceRunning = true;
         }
 
         public static void StopGlobalService()
@@ -402,14 +407,19 @@ namespace dp2Capo
                 SipProcessor.AddEvents(ServerInfo.SipServer, false);
                 ServerInfo.SipServer = null;
             }
+
+            ServerInfo.GlobalServiceRunning = false;
         }
 
+#if NO
+        // TODO: 这里有个问题：什么能代表全局服务？
         public static bool IsGlobalServiceRunning()
         {
             if (ServerInfo.ZServer != null)
                 return true;
             return false;
         }
+#endif
 
         // 停止一个实例
         //      strInstanceName 实例名。如果为 ".global" 表示全局服务
