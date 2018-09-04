@@ -3,19 +3,18 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 using System.IO;
-
+using Newtonsoft.Json;
 
 namespace DigitalPlatform.Z3950
 {
     public class BerNode
     {
-        public List<BerNode> ChildrenCollection = new List<BerNode>();
 
+        // https://stackoverflow.com/questions/7397207/json-net-error-self-referencing-loop-detected-for-type
+        [JsonIgnore] 
+        //[IgnoreDataMember]
         public BerNode ParentNode = null;   /* 父节点 */
 
-        public byte[] m_baData = null;
-
-        public string m_strDebugInfo = "";
 
         public UInt16 m_uTag = 0;    /* 标识号 */
         public char m_cClass = (char)0;
@@ -28,6 +27,13 @@ namespace DigitalPlatform.Z3950
         /* 
           0 = primitive
           1 = constructed */
+
+        public byte[] m_baData = null;
+
+        public string m_strDebugInfo = "";
+
+        public List<BerNode> ChildrenCollection = new List<BerNode>();
+
 
         #region 常量
 
@@ -266,7 +272,6 @@ namespace DigitalPlatform.Z3950
                 value);
         }
 
-
         // 在当前节点下方构造一个存放整型数据的子节点
         // parameters:
         // return:
@@ -294,7 +299,6 @@ namespace DigitalPlatform.Z3950
 
             ChangeIntegerOrder(ref charray);
 
-
             if (charray[0] == 0)
             {
                 while ((charray.Count > 1) &&
@@ -317,7 +321,6 @@ namespace DigitalPlatform.Z3950
             node.m_cForm = ASN1_PRIMITIVE;
 
             return node;
-
         }
 
         string GetNumber(string strText,
@@ -370,7 +373,6 @@ namespace DigitalPlatform.Z3950
                     return null;
                 }
 
-
                 strTemp = GetNumber(strValue, i);
 
                 value = Convert.ToInt64(strTemp);
@@ -422,7 +424,6 @@ namespace DigitalPlatform.Z3950
                 }
             }
 
-
             node.m_baData = new byte[offset];
             Array.Copy(place, node.m_baData,
                 offset);
@@ -433,8 +434,6 @@ namespace DigitalPlatform.Z3950
 
             return node;
         }
-
-
 
         //
 
@@ -483,10 +482,10 @@ namespace DigitalPlatform.Z3950
                 baPackage = ByteArray.Add(baPackage, this.m_baData);
             }
 
-
             // 2.根据1.步得到的包长度，最终加入本节点需要的识别信息
+            if (baPackage == null)
+                throw new ArgumentException("MakeHeadPart() 之前 baPackage 为 null");
             MakeHeadPart(ref baTempPackage, baPackage.Length);
-
             baPackage = ByteArray.Add(baTempPackage, baPackage);
         }
 
@@ -512,7 +511,6 @@ namespace DigitalPlatform.Z3950
             Debug.Assert(baTempPackage.Length != 0, "");
             baHead = ByteArray.Add(baHead, baTempPackage);
         }
-
 
         // 构造tag + class + form包
         void MakeTagClassFormPart(ref byte[] baPart)
@@ -1510,10 +1508,6 @@ namespace DigitalPlatform.Z3950
 
             return strResult;
         }
-
     }
-
-
-
 }
 

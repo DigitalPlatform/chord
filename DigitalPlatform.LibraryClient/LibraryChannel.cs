@@ -645,9 +645,9 @@ out strError);
             try
             {
                 long lRet = channel.Login("public",
-                    "",
-                    "",
-                    out strError);
+    "",
+    "client=crashReport|0.01",
+    out strError);
                 if (lRet != 1)
                     return -1;
 

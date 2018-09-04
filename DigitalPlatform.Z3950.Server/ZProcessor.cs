@@ -1,4 +1,5 @@
 ﻿using DigitalPlatform.Net;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -870,10 +871,14 @@ namespace DigitalPlatform.Z3950.Server
             //int nRet = 0;
             //string strError = "";
 
+            //ZProcessor.SetPresentDiagRecord(ref diag,
+            //    17, // record exceeds Exceptional_record_size
+            //    "");
+
+
             // DiagFormat diag = null;
 
             BerTree tree = new BerTree();
-            BerNode root = null;
 
             string strResultSetName = info.m_strResultSetID;
             if (String.IsNullOrEmpty(strResultSetName) == true)
@@ -985,6 +990,7 @@ namespace DigitalPlatform.Z3950.Server
                 nNextResultSetPosition = lStart + lNumber + 1;
             }
 
+            BerNode root = null;
             root = tree.m_RootNode.NewChildConstructedNode(
                 BerTree.z3950_presentResponse,
                 BerNode.ASN1_CONTEXT);
@@ -1175,35 +1181,47 @@ namespace DigitalPlatform.Z3950.Server
             if (0 != nPresentStatus)
                 goto END1;
 
-            // 编码记录BER树
-
-            // 以下为 present 成功时，打包返回记录。
-            // present success
-            // presRoot records child, constructed (choice of ... ... optional)
-            // if present fail, then may be no records 'node'
-            // Records ::= CHOICE {
-            //		responseRecords              [28]   IMPLICIT SEQUENCE OF NamePlusRecord,
-            //		nonSurrogateDiagnostic       [130]  IMPLICIT DefaultDiagFormat,
-            //		multipleNonSurDiagnostics    [205]  IMPLICIT SEQUENCE OF DiagRec} 
-
-            // 当 present 成功时，response 选择了 NamePlusRecord (数据库名 +　记录)
-            BerNode node = root.NewChildConstructedNode(BerTree.z3950_dataBaseOrSurDiagnostics,    // 28
-                            BerNode.ASN1_CONTEXT);
-
-            if (records != null)
+            // if (records != null && records.Count > 0)
             {
-                foreach (RetrivalRecord record in records)
+                // 编码记录BER树
+
+                // 以下为 present 成功时，打包返回记录。
+                // present success
+                // presRoot records child, constructed (choice of ... ... optional)
+                // if present fail, then may be no records 'node'
+                // Records ::= CHOICE {
+                //		responseRecords              [28]   IMPLICIT SEQUENCE OF NamePlusRecord,
+                //		nonSurrogateDiagnostic       [130]  IMPLICIT DefaultDiagFormat,
+                //		multipleNonSurDiagnostics    [205]  IMPLICIT SEQUENCE OF DiagRec} 
+
+                // 当 present 成功时，response 选择了 NamePlusRecord (数据库名 +　记录)
+                BerNode node = root.NewChildConstructedNode(BerTree.z3950_dataBaseOrSurDiagnostics,    // 28
+                                BerNode.ASN1_CONTEXT);
+
+                if (records != null)
                 {
-                    record.BuildNamePlusRecord(node);
+                    foreach (RetrivalRecord record in records)
+                    {
+                        record.BuildNamePlusRecord(node);
+                    }
                 }
             }
 
             END1:
 
-            baPackage = null;
-            root.EncodeBERPackage(ref baPackage);
+            try
+            {
+                // string text = JsonConvert.SerializeObject(root, Formatting.Indented);
 
-            return 0;
+                baPackage = null;
+                root.EncodeBERPackage(ref baPackage);
+                return 0;
+            }
+            catch(Exception ex)
+            {
+                string text = JsonConvert.SerializeObject(root, Formatting.Indented);
+                throw new Exception("EncodeBERPackage() 抛出异常。BerNode ["+text+"]", ex);
+            }
         }
 
     }
@@ -1352,8 +1370,7 @@ Ralph
 
             if (this.m_external != null
                 && this.m_surrogateDiagnostic != null)
-                throw new Exception("m_external 和 m_surrogateDiagnostic 不能同时为非空。只能有一个为空");
-
+                throw new Exception("m_external 和 m_surrogateDiagnostic 不能同时为非空。只能有一个为非空");
 
             BerNode pSequence = node.NewChildConstructedNode(
                 BerNode.ASN1_SEQUENCE,    // 16
@@ -1368,7 +1385,6 @@ Ralph
             BerNode nodeRecord = pSequence.NewChildConstructedNode(
                 1,
                 BerNode.ASN1_CONTEXT);
-
 
             if (this.m_external != null)
             {

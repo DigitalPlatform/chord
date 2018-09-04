@@ -425,7 +425,11 @@ MessageBoxDefaultButton.Button2);
             else
                 this.ShadowDataDir = "";
 
-            FillInstance(this.DataDir);
+            if (FillInstance(this.DataDir) == false)
+            {
+                this.DialogResult = DialogResult.Cancel;
+                this.Close();
+            }
         }
 
         public bool Finish()
@@ -569,8 +573,10 @@ MessageBoxDefaultButton.Button2);
         const int COLUMN_DP2LIBRARY_URL = 3;
         const int COLUMN_DP2MSERVER_URL = 4;
 
-        void FillInstance(string strDataDir)
+        bool FillInstance(string strDataDir)
         {
+            string strError = "";
+
             this.listView_instance.Items.Clear();
 
 #if NO
@@ -600,7 +606,8 @@ MessageBoxDefaultButton.Button2);
             {
                 string strFileName = Path.Combine(data_dir, "capo.xml");
                 LineInfo info = new LineInfo();
-                info.Build(strFileName);
+                if (info.Build(strFileName, out strError) == false)
+                    goto ERROR1;
 
                 string instance_name = Path.GetFileName(data_dir);
 
@@ -619,6 +626,11 @@ MessageBoxDefaultButton.Button2);
                 this.listView_instance.Columns[COLUMN_ERRORINFO].Width = 200;
             else
                 this.listView_instance.Columns[COLUMN_ERRORINFO].Width = 0;
+
+            return true;
+            ERROR1:
+            MessageBox.Show(this, strError);
+            return false;
         }
 
         void RefreshItemLine(ListViewItem item,
@@ -626,7 +638,11 @@ MessageBoxDefaultButton.Button2);
         {
             string strFileName = Path.Combine(data_dir, "capo.xml");
             LineInfo info = new LineInfo();
-            info.Build(strFileName);
+            if (info.Build(strFileName, out string strError) == false)
+            {
+                MessageBox.Show(this, strError);
+                return;
+            }
 
             string instance_name = Path.GetFileName(data_dir);
 
@@ -643,8 +659,10 @@ MessageBoxDefaultButton.Button2);
             public string dp2Library_url { get; set; }
             public string dp2MServer_url { get; set; }
 
-            public void Build(string strFileName)
+            public bool Build(string strFileName, out string strError)
             {
+                strError = "";
+
                 XmlDocument dom = new XmlDocument();
                 try
                 {
@@ -654,7 +672,12 @@ MessageBoxDefaultButton.Button2);
                 {
                     dp2Library_url = "";
                     dp2MServer_url = "";
-                    return;
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    strError = "从文件 '" + strFileName + "' 装入 XMLDOM 时出错: " + ex.Message;
+                    return false;
                 }
 
                 XmlElement element = dom.DocumentElement.SelectSingleNode("dp2library") as XmlElement;
@@ -664,6 +687,8 @@ MessageBoxDefaultButton.Button2);
                 element = dom.DocumentElement.SelectSingleNode("dp2mserver") as XmlElement;
                 if (element != null)
                     this.dp2MServer_url = element.GetAttribute("url");
+
+                return true;
             }
         }
 
@@ -679,7 +704,12 @@ MessageBoxDefaultButton.Button2);
             if (string.IsNullOrEmpty(strDataDir))
                 return new List<string>();
 
-            return GetInstanceDataDir(strDataDir);
+            List<string> results = new List<string>();
+            results.Add(strDataDir);    // 根级数据目录也包含到其中，这样便于后面打包其 log 子目录中的错误日志
+
+            results.AddRange(GetInstanceDataDir(strDataDir));
+
+            return results;
         }
 
         public static List<string> GetInstanceDataDir(string strDataDir)
@@ -992,15 +1022,19 @@ MessageBoxDefaultButton.Button1);
                     // 只要出错一次，后面就不再调用 dp2library_serviceControl()
                     bError = true;
                     item.ImageIndex = IMAGEINDEX_STOPPED;
+                    ListViewUtil.ChangeItemText(item, COLUMN_ERRORINFO, strError);
+                    // TODO: 展开显示 errorinfo 列
                 }
                 else if (nRet == 0 || strError == "stopped")
                 {
                     item.ImageIndex = IMAGEINDEX_STOPPED;
+                    ListViewUtil.ChangeItemText(item, COLUMN_ERRORINFO, "");
                 }
                 else
                 {
                     // nRet == 1
                     item.ImageIndex = IMAGEINDEX_RUNNING;
+                    ListViewUtil.ChangeItemText(item, COLUMN_ERRORINFO, "");
                 }
             }
 

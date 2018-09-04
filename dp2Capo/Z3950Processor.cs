@@ -78,10 +78,13 @@ namespace dp2Capo
 
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
+            if (zserver_channel == null)
+                throw new ArgumentException("zserver_channel 为空");
+
             string strInstanceName = zserver_channel.EnsureProperty().GetKeyValue("i_n");
             if (strInstanceName == null)
             {
-                strError = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
+                strError = "通道中 实例名 'i_n' 尚未初始化";   // ?? bug
                 LibraryManager.Log?.Error(strError);
                 goto ERROR1;
             }
@@ -423,10 +426,13 @@ namespace dp2Capo
 
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
+            if (zserver_channel == null)
+                throw new ArgumentException("zserver_channel 为空");
+
             string strInstanceName = zserver_channel.EnsureProperty().GetKeyValue("i_n");
             if (strInstanceName == null)
             {
-                string strErrorText = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
+                string strErrorText = "通道中 实例名 'i_n' 尚未初始化";    // ?? bug
                 LibraryManager.Log?.Error(strErrorText);
                 e.Result = new DigitalPlatform.Z3950.ZClient.SearchResult { Value = -1, ErrorInfo = strErrorText };
                 return;
@@ -584,6 +590,9 @@ namespace dp2Capo
         static bool MemoryResultSetName(ZServerChannel zserver_channel,
             string resultset_name)
         {
+            if (zserver_channel == null)
+                throw new ArgumentException("zserver_channel 为空");
+
             if (!(zserver_channel.EnsureProperty().GetKeyObject("r_n") is List<string> names))
             {
                 names = new List<string>();
@@ -625,10 +634,13 @@ namespace dp2Capo
         static void FreeGlobalResultSets(ZServerChannel zserver_channel,
             List<string> names)
         {
+            if (zserver_channel == null)
+                throw new ArgumentException("zserver_channel 为空");
+
             string strInstanceName = zserver_channel.EnsureProperty().GetKeyValue("i_n");
             if (strInstanceName == null)
             {
-                LibraryManager.Log?.Error("通道中 实例名 'i_n'='" + strInstanceName + "' 尚未初始化");
+                LibraryManager.Log?.Error("通道中 实例名 'i_n' 尚未初始化");   // ?? bug
             }
             Instance instance = FindZ3950Instance(strInstanceName, out string strError);
             if (instance == null)
@@ -732,10 +744,13 @@ namespace dp2Capo
         {
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
+            if (zserver_channel == null)
+                throw new ArgumentException("zserver_channel 为空");
+
             string strInstanceName = zserver_channel.EnsureProperty().GetKeyValue("i_n");
             if (strInstanceName == null)
             {
-                string strErrorText = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
+                string strErrorText = "通道中 实例名 'i_n' 尚未初始化";    // ?? bug
                 LibraryManager.Log?.Error(strErrorText);
                 e.Result = new Result
                 {

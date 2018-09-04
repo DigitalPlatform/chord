@@ -26,7 +26,7 @@ namespace dp2Capo
             {
                 string strText = "*** dp2Capo 因为检测到死锁而主动退出";
                 Program.WriteWindowsLog(strText, EventLogEntryType.Error);
-                ServerInfo.WriteFirstInstanceErrorLog(strText);
+                ServerInfo.WriteErrorLog(strText);
 
                 // 结束进程
                 // http://stackoverflow.com/questions/220382/how-can-a-windows-service-programmatically-restart-itself

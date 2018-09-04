@@ -31,7 +31,11 @@ namespace dp2Capo.Install
 
         private void GlobalConfigDialog_Load(object sender, EventArgs e)
         {
-            Fill();
+            if (Fill() == false)
+            {
+                this.DialogResult = DialogResult.Cancel;
+                this.Close();
+            }
         }
 
         string GetCfgFileName()
@@ -42,7 +46,7 @@ namespace dp2Capo.Install
         }
 
         // 从配置文件获取数据，填充到界面
-        void Fill()
+        bool Fill()
         {
             string filename = this.GetCfgFileName();
 
@@ -57,6 +61,11 @@ namespace dp2Capo.Install
             catch (DirectoryNotFoundException)
             {
                 _cfgDom.LoadXml("<root />");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, "装载配置文件 '" + filename + "' 进入 XMLDOM 时出错: " + ex.Message);
+                return false;
             }
 
             {
@@ -82,6 +91,7 @@ namespace dp2Capo.Install
                 this.textBox_sipListeningPort.Text = sipServer.GetAttribute("port");
                 SetSipEnabledByPortNumber();
             }
+            return true;
         }
 
         // 把界面上的配置值兑现到配置文件

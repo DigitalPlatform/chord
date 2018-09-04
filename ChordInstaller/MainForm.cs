@@ -479,6 +479,11 @@ FormWindowState.Normal);
 
         private void MenuItem_dp2capo_upgrade_Click(object sender, EventArgs e)
         {
+            Task.Run(() => dp2capo_upgrade_Click());
+        }
+
+        void dp2capo_upgrade_Click()
+        {
             string strError = "";
             int nRet = 0;
 
@@ -488,8 +493,8 @@ FormWindowState.Normal);
                 goto ERROR1;
             }
 
+            this.MainMenuStrip.Enabled = false;
             this._floatingMessage.Text = "正在升级 dp2Capo - V2 V3 桥接模块 ...";
-
             try
             {
                 AppendSectionTitle("升级 dp2Capo 开始");
@@ -546,10 +551,14 @@ FormWindowState.Normal);
             finally
             {
                 this._floatingMessage.Text = "";
+                this.MainMenuStrip.Enabled = true;
             }
             return;
             ERROR1:
-            MessageBox.Show(this, strError);
+            this.Invoke(new Action(() =>
+            {
+                MessageBox.Show(this, strError);
+            }));
         }
 
         // 刷新菜单状态
@@ -1384,6 +1393,7 @@ MessageBoxDefaultButton.Button1);
 
             bool bControl = Control.ModifierKeys == Keys.Control;
 
+            this.MainMenuStrip.Enabled = false;
             this._floatingMessage.Text = "正在打包事件日志信息 ...";
             try
             {
@@ -1416,6 +1426,7 @@ MessageBoxDefaultButton.Button1);
             finally
             {
                 this._floatingMessage.Text = "";
+                this.MainMenuStrip.Enabled = true;
             }
             return;
             ERROR1:
@@ -1504,7 +1515,7 @@ MessageBoxDefaultButton.Button1);
                 "dp2router",
                 "dp2mserver"};
                 string[] xml_filenames = new string[] {
-                "capo.xml",
+                "capo.xml,config.xml",
                 "config.xml",
                 "config.xml"
                 };
@@ -1563,9 +1574,11 @@ MessageBoxDefaultButton.Button1);
                             }
 
                             // 复制 capo.xml
+                            List<string> xmls = StringUtil.SplitList(xml_filename);
+                            foreach (string filename in xmls)
                             {
-                                string strFilePath = Path.Combine(data_dir, xml_filename);
-                                string strTargetFilePath = Path.Combine(strInstanceDir, xml_filename);
+                                string strFilePath = Path.Combine(data_dir, filename);
+                                string strTargetFilePath = Path.Combine(strInstanceDir, filename);
                                 if (File.Exists(strFilePath) == true)
                                 {
                                     File.Copy(strFilePath,
@@ -1678,7 +1691,7 @@ MessageBoxDefaultButton.Button1);
             return 0;
         }
 
-#region MakeDates()
+        #region MakeDates()
 
         List<string> MakeDates(string strName)
         {
@@ -1899,7 +1912,7 @@ MessageBoxDefaultButton.Button1);
         }
 
 
-#endregion
+        #endregion
 
         public static Version GetIisVersion()
         {

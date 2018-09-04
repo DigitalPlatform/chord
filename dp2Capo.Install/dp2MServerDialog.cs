@@ -11,6 +11,7 @@ using DigitalPlatform.MessageClient;
 using DigitalPlatform.Forms;
 using DigitalPlatform.Drawing;
 using DigitalPlatform.Message;
+using DigitalPlatform.Xml;
 
 namespace dp2Capo.Install
 {
@@ -39,6 +40,7 @@ namespace dp2Capo.Install
             bool bControl = Control.ModifierKeys == Keys.Control;
 
             string strError = "";
+#if NO
             if (string.IsNullOrEmpty(this.textBox_url.Text))
             {
                 strError = "尚未指定 dp2MServer URL";
@@ -50,8 +52,12 @@ namespace dp2Capo.Install
                 strError = "尚未指定用户名";
                 goto ERROR1;
             }
+#endif
 
-            if (bControl == false && await DetectUser() == false)
+            if (bControl == false 
+                && string.IsNullOrEmpty(this.textBox_url.Text) == false
+                && string.IsNullOrEmpty(this.textBox_userName.Text) == false
+                && await DetectUser() == false)
                 return;
 
             if (SaveToCfgDom() == false)
@@ -224,15 +230,22 @@ namespace dp2Capo.Install
                 dom.DocumentElement.AppendChild(element);
 
                 FillDefaultValue();
-                return;
+
+                this.checkBox_enableDp2mserver.Checked = false;
+            }
+            else
+            {
+                this.textBox_url.Text = element.GetAttribute("url");
+
+                this.textBox_userName.Text = element.GetAttribute("userName");
+
+                string strPassword = Cryptography.Decrypt(element.GetAttribute("password"), EncryptKey);
+                this.textBox_password.Text = strPassword;
             }
 
-            this.textBox_url.Text = element.GetAttribute("url");
+            this.checkBox_enableDp2mserver.Checked = (element != null && DomUtil.IsBooleanTrue(element.GetAttribute("enable"), true));
 
-            this.textBox_userName.Text = element.GetAttribute("userName");
-
-            string strPassword = Cryptography.Decrypt(element.GetAttribute("password"), EncryptKey);
-            this.textBox_password.Text = strPassword;
+            checkBox_enableDp2mserver_CheckedChanged(this, new EventArgs());
         }
 
         public static string GetDisplayText(XmlDocument CfgDom)
@@ -242,6 +255,9 @@ namespace dp2Capo.Install
 
             XmlElement element = dom.DocumentElement.SelectSingleNode("dp2mserver") as XmlElement;
             if (element == null)
+                return "";
+
+            if (DomUtil.IsBooleanTrue(element.GetAttribute("enable"), true) == false)
                 return "";
 
             text.Append("url=" + element.GetAttribute("url") + "\r\n");
@@ -255,11 +271,38 @@ namespace dp2Capo.Install
             XmlDocument dom = this.CfgDom;
 
             XmlElement element = dom.DocumentElement.SelectSingleNode("dp2mserver") as XmlElement;
+
+            if (this.checkBox_enableDp2mserver.Checked == false)
+            {
+                //if (root != null)
+                //    root.ParentNode.RemoveChild(root);
+                if (element == null)
+                    return true;
+            }
+
+            string strError = "";
+            if (this.checkBox_enableDp2mserver.Checked == true)
+            {
+                if (string.IsNullOrEmpty(this.textBox_url.Text))
+                {
+                    strError = "尚未指定 dp2MServer URL";
+                    goto ERROR1;
+                }
+
+                if (string.IsNullOrEmpty(this.textBox_userName.Text))
+                {
+                    strError = "尚未指定用户名";
+                    goto ERROR1;
+                }
+            }
+
             if (element == null)
             {
                 element = dom.CreateElement("dp2mserver");
                 dom.DocumentElement.AppendChild(element);
             }
+
+            element.SetAttribute("enable", this.checkBox_enableDp2mserver.Checked ? "true" : "false");
 
             element.SetAttribute("url", this.textBox_url.Text);
 
@@ -268,6 +311,9 @@ namespace dp2Capo.Install
             string strPassword = Cryptography.Encrypt(this.textBox_password.Text, EncryptKey);
             element.SetAttribute("password", strPassword);
             return true;
+            ERROR1:
+            MessageBox.Show(this, strError);
+            return false;
         }
 
         private void textBox_userName_TextChanged(object sender, EventArgs e)
@@ -485,5 +531,22 @@ gn:_lib_homePage
             e.Parameters = "propertyList=biblio_search,libraryUID=install";
         }
 
+        private void checkBox_enableDp2mserver_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.checkBox_enableDp2mserver.Checked)
+            {
+                this.textBox_url.Enabled = true;
+                this.textBox_userName.Enabled = true;
+                this.textBox_password.Enabled = true;
+                this.textBox_confirmManagePassword.Enabled = true;
+            }
+            else
+            {
+                this.textBox_url.Enabled = false;
+                this.textBox_userName.Enabled = false;
+                this.textBox_password.Enabled = false;
+                this.textBox_confirmManagePassword.Enabled = false;
+            }
+        }
     }
 }

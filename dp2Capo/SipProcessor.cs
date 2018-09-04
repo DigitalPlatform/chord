@@ -37,13 +37,22 @@ namespace dp2Capo
             }
         }
 
-        public static Tuple<Instance, string> FindSipInstance(string strInstanceName)
+        public static Tuple<Instance, string> FindSipInstance(string strInstanceName,
+            bool bEnglishErrorInfo = true)
         {
             Instance instance = ServerInfo.FindInstance(strInstanceName);
             if (instance == null)
-                return new Tuple<Instance, string>(null, "实例 '" + strInstanceName + "' 不存在");
+                return new Tuple<Instance, string>(null,
+                    bEnglishErrorInfo ?
+                    "instance '" + strInstanceName + "' not exist" :
+                    "实例 '" + strInstanceName + "' 不存在"
+                    );
             if (instance.sip_host == null)
-                return new Tuple<Instance, string>(null, "实例 '" + strInstanceName + "' 没有启用 SIP 服务");
+                return new Tuple<Instance, string>(null,
+                    bEnglishErrorInfo ?
+                    "instance '" + strInstanceName + "' not enable SIP service" :
+                    "实例 '" + strInstanceName + "' 没有启用 SIP 服务"
+                    );
             return new Tuple<Instance, string>(instance, "");
 #if NO
             Instance instance = ServerInfo.FindInstance(strInstanceName);
@@ -71,13 +80,18 @@ namespace dp2Capo
             //string strError = "";
             //int nRet = 0;
 
+            Encoding default_encoding = Encoding.GetEncoding(936);
+
             SipChannel sip_channel = sender as SipChannel;
 
             string ip = TcpServer.GetClientIP(sip_channel.TcpClient);
 
             // Login 之前，这里只是默认的编码方式。因为 Login 之前没法确定实例名。如果 Login 的用户名(和实例名)能确保是英文，用默认编码方式倒也不会有问题
             // 如果 Login 请求中的用户名包含汉字，则要求 SIP Client 开发者把字符串按照 UrlEncode 方式进行转义，这样 SIP Server 依然可以识别
-            string strPackage = sip_channel.Encoding.GetString(e.Request);
+            Encoding encoding = sip_channel.Encoding;
+            if (encoding == null)
+                encoding = default_encoding;
+            string strPackage = encoding.GetString(e.Request);
 
             string strMessageIdentifiers = strPackage.Substring(0, 2);
 
@@ -192,7 +206,9 @@ namespace dp2Capo
             // 加校验码
             strBackMsg = AddChecksumForMessage(sip_channel, strBackMsg);
 
-            e.Response = sip_channel.Encoding.GetBytes(strBackMsg);
+            e.Response = sip_channel.Encoding == null ?
+                default_encoding.GetBytes(strBackMsg)
+                : sip_channel.Encoding.GetBytes(strBackMsg);
             return;
             // }
 #if NO
@@ -208,7 +224,7 @@ namespace dp2Capo
         }
 
         // 用实例中的自动清理时间参数设置 SipChannel 的 Timeout 值
-        static void SetChannelTimeout(SipChannel sip_channel, 
+        static void SetChannelTimeout(SipChannel sip_channel,
             string userName,
             Instance instance)
         {
@@ -330,10 +346,13 @@ namespace dp2Capo
             if (string.IsNullOrEmpty(strLocationCode) == false && strLocationCode.IndexOf("%") != -1)
                 strLocationCode = Uri.UnescapeDataString(strLocationCode);
 
-            var ret = FindSipInstance(strInstanceName);
+            var ret = FindSipInstance(strInstanceName, sip_channel.Encoding == null);
             if (ret.Item1 == null)
             {
-                strError = "以用户名 '" + strRequestUserID + "' 定位实例，" + ret.Item2;
+                if (sip_channel.Encoding == null)
+                    strError = "user name '" + strRequestUserID + "' locate instance ，" + ret.Item2;
+                else
+                    strError = "以用户名 '" + strRequestUserID + "' 定位实例，" + ret.Item2;
                 goto ERROR1;
             }
             Instance instance = ret.Item1;
@@ -351,7 +370,10 @@ namespace dp2Capo
                 }
                 else
                 {
-                    strError = "不允许匿名登录";
+                    if (sip_channel.Encoding == null)
+                        strError = "anonymouse login not allowed";
+                    else
+                        strError = "不允许匿名登录";
                     goto ERROR1;
                 }
             }
@@ -365,13 +387,19 @@ namespace dp2Capo
                 if (string.IsNullOrEmpty(ipList) == false && ipList != "*"
                     && StringUtil.MatchIpAddressList(ipList, strClientIP) == false)
                 {
-                    strError = "前端 IP 地址 '" + strClientIP + "' 不在白名单允许的范围内";
+                    if (sip_channel.Encoding == null)
+                        strError = "client IP address '" + strClientIP + "' not in white list";
+                    else
+                        strError = "前端 IP 地址 '" + strClientIP + "' 不在白名单允许的范围内";
                     goto ERROR1;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                strError = "获取 SIP 参数时出错:" + ExceptionUtil.GetAutoText(ex);
+                if (sip_channel.Encoding == null)
+                    strError = "get SIP configuration error:" + ExceptionUtil.GetAutoText(ex);
+                else
+                    strError = "获取 SIP 参数时出错:" + ExceptionUtil.GetAutoText(ex);
                 goto ERROR1;
             }
 
@@ -379,6 +407,7 @@ namespace dp2Capo
             sip_channel.InstanceName = strInstanceName;
             sip_channel.UserName = strUserName;
             sip_channel.Password = strPassword;
+            // 从此以后，报错信息才可以使用中文了
             sip_channel.Encoding = instance.sip_host.GetSipParam(sip_channel.UserName).Encoding;
             // 注：登录以后 Timeout 才按照实例参数来设定。此前是 sip_channel.Timeout 的默认值
             // sip_channel.Timeout = instance.sip_host.AutoClearSeconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(instance.sip_host.AutoClearSeconds);
@@ -454,7 +483,10 @@ namespace dp2Capo
                 }
                 else
                 {
-                    strError = "尚未登录。(SIP 通道中 实例名 ('InstanceName') 尚未在属性集合初始化)";
+                    if (sip_channel.Encoding == null)
+                        strError = "not login。(SIP channel instance name ('InstanceName') has not initialized)";
+                    else
+                        strError = "尚未登录。(SIP 通道中 实例名 ('InstanceName') 尚未在属性集合初始化)";
                     goto ERROR1;
                 }
             }
@@ -462,7 +494,12 @@ namespace dp2Capo
             if (info.Instance == null)
             {
                 if (string.IsNullOrEmpty(strError))
-                    strError = "实例名 '" + info.InstanceName + "' 不存在(或实例没有启用 SIP 服务)";
+                {
+                    if (sip_channel.Encoding == null)
+                        strError = "instance name '" + info.InstanceName + "' not exists (or SIP Service has not enabled)";
+                    else
+                        strError = "实例名 '" + info.InstanceName + "' 不存在(或实例没有启用 SIP 服务)";
+                }
                 goto ERROR1;
             }
 
@@ -470,7 +507,10 @@ namespace dp2Capo
 
             if (info.Instance.Running == false)
             {
-                strError = "实例 '" + info.Instance.Name + "' 正在维护中，暂时不能访问";
+                if (sip_channel.Encoding == null)
+                    strError = "instance '" + info.Instance.Name + "' is in maintenance";
+                else
+                    strError = "实例 '" + info.Instance.Name + "' 正在维护中，暂时不能访问";
                 goto ERROR1;
             }
 
@@ -483,7 +523,10 @@ namespace dp2Capo
                 {
                     if (string.IsNullOrEmpty(info.Instance.sip_host.AnonymousUserName))
                     {
-                        strError = "虽然是单实例情形，但尚未配置匿名登录账户，因此无法对 dp2library 进行登录和访问";
+                        if (sip_channel.Encoding == null)
+                            strError = "please login. (single instance and none anonymouse account, access dp2library denied)";
+                        else
+                            strError = "虽然是单实例情形，但尚未配置匿名登录账户，因此无法对 dp2library 进行登录和访问";
                         goto ERROR1;
                     }
                     login_info.UserName = info.Instance.sip_host.AnonymousUserName;
@@ -497,7 +540,10 @@ namespace dp2Capo
                 }
                 else
                 {
-                    strError = "尚未登录，无法定位实例";
+                    if (sip_channel.Encoding == null)
+                        strError = "not login, can't locate instance";
+                    else
+                        strError = "尚未登录，无法定位实例";
                     goto ERROR1;
                 }
             }

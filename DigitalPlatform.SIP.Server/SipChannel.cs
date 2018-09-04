@@ -16,7 +16,7 @@ namespace DigitalPlatform.SIP.Server
         public string LocationCode { get; set; }
 
         // 消息所用编码方式
-        Encoding _encoding = Encoding.UTF8;
+        Encoding _encoding = null;  // null 表示根本没有初始化这个参数 // Encoding.UTF8;
         public Encoding Encoding
         {
             get { return _encoding; }
