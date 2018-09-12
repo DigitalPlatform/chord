@@ -76,7 +76,7 @@ namespace dp2Capo
 
         private static void Sip_server_ProcessRequest(object sender, ProcessSipRequestEventArgs e)
         {
-            string strBackMsg = "";
+            string strResponse = "";
             //string strError = "";
             //int nRet = 0;
 
@@ -91,9 +91,12 @@ namespace dp2Capo
             Encoding encoding = sip_channel.Encoding;
             if (encoding == null)
                 encoding = default_encoding;
-            string strPackage = encoding.GetString(e.Request);
+            string strRequest = encoding.GetString(e.Request);
 
-            string strMessageIdentifiers = strPackage.Substring(0, 2);
+            string strChannelName = "ip:" + ip + ",channel:" + sip_channel.GetHashCode();
+            LibraryManager.Log?.Info(strChannelName + ",\r\nrequest=" + strRequest);
+
+            string strMessageIdentifiers = strRequest.Substring(0, 2);
 
             //try
             //{
@@ -102,33 +105,33 @@ namespace dp2Capo
             {
                 case "09":
                     {
-                        strBackMsg = Checkin(sip_channel, strPackage);
+                        strResponse = Checkin(sip_channel, strRequest);
                         break;
                     }
                 case "11":
                     {
-                        strBackMsg = Checkout(sip_channel, strPackage);
+                        strResponse = Checkout(sip_channel, strRequest);
                         break;
                     }
                 case "17":
                     {
 
-                        strBackMsg = ItemInfo(sip_channel, strPackage);
+                        strResponse = ItemInfo(sip_channel, strRequest);
                         break;
                     }
                 case "29":
                     {
-                        strBackMsg = Renew(sip_channel, strPackage);
+                        strResponse = Renew(sip_channel, strRequest);
                         break;
                     }
                 case "35":
                     {
-                        strBackMsg = EndPatronSession(strPackage);
+                        strResponse = EndPatronSession(strRequest);
                         break;
                     }
                 case "37":
                     {
-                        strBackMsg = Amerce(sip_channel, strPackage);
+                        strResponse = Amerce(sip_channel, strRequest);
                         break;
                     }
                 case "85":
@@ -146,12 +149,12 @@ namespace dp2Capo
                     }
                 case "63":
                     {
-                        strBackMsg = PatronInfo(sip_channel, strPackage);
+                        strResponse = PatronInfo(sip_channel, strRequest);
                         break;
                     }
                 case "81":
                     {
-                        strBackMsg = SetReaderInfo(sip_channel, strPackage);
+                        strResponse = SetReaderInfo(sip_channel, strRequest);
                         //if (nRet == 0)
                         //{
                         //    if (String.IsNullOrEmpty(strError) == false)
@@ -161,7 +164,7 @@ namespace dp2Capo
                     }
                 case "91":
                     {
-                        strBackMsg = CheckDupReaderInfo(sip_channel, strPackage);
+                        strResponse = CheckDupReaderInfo(sip_channel, strRequest);
                         //if (nRet == 0)
                         //{
                         //    if (String.IsNullOrEmpty(strError) == false)
@@ -171,8 +174,8 @@ namespace dp2Capo
                     }
                 case "93":
                     {
-                        strBackMsg = Login(sip_channel, ip, strPackage);
-                        if ("941" == strBackMsg)
+                        strResponse = Login(sip_channel, ip, strRequest);
+                        if ("941" == strResponse)
                         {
 
                         }
@@ -189,26 +192,28 @@ namespace dp2Capo
                     }
                 case "96":
                     {
-                        strBackMsg = sip_channel.LastMsg;
+                        strResponse = sip_channel.LastMsg;
                         break;
                     }
                 case "99":
                     {
-                        strBackMsg = SCStatus(sip_channel, strPackage);
+                        strResponse = SCStatus(sip_channel, strRequest);
                         break;
                     }
                 default:
-                    strBackMsg = "无法识别的命令'" + strMessageIdentifiers + "'";
+                    strResponse = "无法识别的命令'" + strMessageIdentifiers + "'";
                     break;
             }
 
-            sip_channel.LastMsg = strBackMsg;
+            sip_channel.LastMsg = strResponse;
             // 加校验码
-            strBackMsg = AddChecksumForMessage(sip_channel, strBackMsg);
+            strResponse = AddChecksumForMessage(sip_channel, strResponse);
+
+            LibraryManager.Log?.Info(strChannelName + ",\r\nresponse=" + strResponse);
 
             e.Response = sip_channel.Encoding == null ?
-                default_encoding.GetBytes(strBackMsg)
-                : sip_channel.Encoding.GetBytes(strBackMsg);
+                default_encoding.GetBytes(strResponse)
+                : sip_channel.Encoding.GetBytes(strResponse);
             return;
             // }
 #if NO

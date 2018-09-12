@@ -843,7 +843,7 @@ Exception Info: System.Net.NetworkInformation.PingException
 
                         // 清理闲置超期的 Channels
                         ZServer?._tcpChannels?.CleanIdleChannels(TimeSpan.FromMinutes(2));
-                        SipServer?._tcpChannels?.CleanIdleChannels(TimeSpan.FromMinutes(2));
+                        SipServer?._tcpChannels?.CleanIdleChannels(TimeSpan.MaxValue);   // TimeSpan.FromMinutes(2)
 
                         // 清除废弃的全局结果集
                         Task.Run(() => instance.FreeGlobalResultSets());
