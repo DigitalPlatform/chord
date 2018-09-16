@@ -55,14 +55,13 @@ namespace dp2Capo
                     // AttributesPlusTerm
                     long nAttributeType = -1;
                     long nAttributeValue = -1;
-                    string strTerm = "";
 
                     nRet = DecodeAttributeAndTerm(
                         searchTermEncoding,
                         pChild,
                         out nAttributeType,
                         out nAttributeValue,
-                        out strTerm,
+                        out string strTerm,
                         out strError);
                     if (nRet == -1)
                         return -1;

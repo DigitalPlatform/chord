@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 using DigitalPlatform;
 using DigitalPlatform.Common;
 using DigitalPlatform.LibraryClient;
@@ -419,6 +418,9 @@ namespace dp2Capo
             return 1;
         }
 
+        // 慢速检索的时间长度阈值
+        static TimeSpan slow_length = TimeSpan.FromSeconds(5);
+
         private static void Zserver_SearchSearch(object sender, SearchSearchEventArgs e)
         {
             string strError = "";
@@ -507,12 +509,24 @@ namespace dp2Capo
             {
                 // 全局结果集名
                 string resultset_name = MakeGlobalResultSetName(zserver_channel, e.Request.m_strResultSetName);
+
+                DateTime start = DateTime.Now;
                 // 进行检索
                 long lRet = library_channel.Search(
         strQueryXml,
         resultset_name,
         "", // strOutputStyle
         out strError);
+
+                // testing System.Threading.Thread.Sleep(TimeSpan.FromSeconds(6));
+                TimeSpan length = DateTime.Now - start;
+                if (length >= slow_length)
+                {
+                    string ip = TcpServer.GetClientIP(zserver_channel.TcpClient);
+                    string strChannelName = "ip:" + ip + ",channel:" + zserver_channel.GetHashCode();
+
+                    LibraryManager.Log?.Info("通道 " + strChannelName + " 检索式 '" + strQueryXml + "' 检索耗时 " + length.ToString() + "，超过慢速阈值");   // ?? bug
+                }
 
                 /*
                 // 测试检索失败
