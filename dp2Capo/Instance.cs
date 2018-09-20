@@ -89,18 +89,23 @@ namespace dp2Capo
 
         public void FreeGlobalResultSets()
         {
-            List<string> names = new List<string>();
-            lock (_syncResultSets)
+            try
             {
-                names.AddRange(_globalResultSets);
-                _globalResultSets.Clear();
-            }
-
-            if (names.Count > 0)
-            {
-                LibraryChannel library_channel = this.MessageConnection.GetChannel(null);
-                try
+                List<string> names = new List<string>();
+                lock (_syncResultSets)
                 {
+                    names.AddRange(_globalResultSets);
+                    _globalResultSets.Clear();
+                }
+
+                if (names.Count > 0)
+                {
+                    DateTime start = DateTime.Now;
+                    ServerInfo.WriteLog("info", "开始集中清除全局结果集。数量=" + names.Count);
+                    LibraryChannel library_channel = this.MessageConnection.GetChannel(null);
+                    try
+                    {
+#if NO
                     foreach (string name in names)
                     {
                         // TODO: 要是能用通配符来删除大量结果集就好了
@@ -118,15 +123,37 @@ namespace dp2Capo
                             return;
                         }
                     }
+#endif
+                        string strNameList = StringUtil.MakePathList(names);
+                        long lRet = library_channel.GetSearchResult("",
+        0,
+        0,
+        "@remove:" + strNameList,
+        "zh",
+        out DigitalPlatform.LibraryClient.localhost.Record[] searchresults,
+        out string strError);
+                        if (lRet == -1)
+                        {
+                            // 写入错误日志
+                            WriteErrorLog("清除全局结果集 '" + strNameList + "' 时发生错误: " + strError);
+                            return;
+                        }
+                    }
+                    finally
+                    {
+                        this.MessageConnection.ReturnChannel(library_channel);
+                        TimeSpan length = DateTime.Now - start;
+                        ServerInfo.WriteLog("info", "结束集中清除全局结果集。数量=" + names.Count + ", 耗时 " + length.TotalSeconds + " 秒");
+                    }
                 }
-                finally
-                {
-                    this.MessageConnection.ReturnChannel(library_channel);
-                }
+            }
+            catch(Exception ex)
+            {
+                ServerInfo.WriteLog("error", "FreeGlobalResultSets() 出现异常: " + ExceptionUtil.GetDebugText(ex));
             }
         }
 
-        #endregion
+#endregion
 
         public Instance()
         {
@@ -495,6 +522,9 @@ namespace dp2Capo
 
         public void Close()
         {
+            // 清除废弃的全局结果集
+            FreeGlobalResultSets();
+
             _cancel.Cancel();
 
             if (this._notifyThread != null)
@@ -975,7 +1005,7 @@ namespace dp2Capo
             }
         }
 
-        #region 日志
+#region 日志
 
         private readonly Object _syncLog = new Object();
 
@@ -1047,7 +1077,7 @@ namespace dp2Capo
             }
         }
 
-        #endregion
+#endregion
 
     }
 
@@ -1473,7 +1503,7 @@ namespace dp2Capo
             return 0;
         }
 
-        #region
+#region
 
         // 获得可用的数据库数
         public int GetDbCount()
@@ -1584,7 +1614,7 @@ namespace dp2Capo
             return strFrom;
         }
 
-        #endregion
+#endregion
     }
 
     // 书目库属性

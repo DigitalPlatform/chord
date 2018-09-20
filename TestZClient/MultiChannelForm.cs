@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -101,25 +102,52 @@ namespace TestZClient
             int i = 0;
             while (cancel.Token.IsCancellationRequested == false)
             {
-                // return Value:
-                //      -1  出错
-                //      0   成功
-                //      1   调用前已经是初始化过的状态，本次没有进行初始化
-                InitialResult result = await client.TryInitialize(targetInfo, false);
-                if (result.Value == -1)
                 {
-                    strError = "Initialize error: " + result.ErrorInfo;
-                    this.Invoke(
-                        (Action)(() =>
-                    ListViewUtil.ChangeItemText(item, 2, strError)
-                        ));
-                    return;
+                    // return Value:
+                    //      -1  出错
+                    //      0   成功
+                    //      1   调用前已经是初始化过的状态，本次没有进行初始化
+                    InitialResult result = await client.TryInitialize(targetInfo, false);
+                    if (result.Value == -1)
+                    {
+                        strError = "Initialize error: " + result.ErrorInfo;
+                        this.Invoke(
+                            (Action)(() =>
+                        ListViewUtil.ChangeItemText(item, 2, strError)
+                            ));
+                        return;
+                    }
                 }
 
                 this.Invoke(
                     (Action)(() =>
                 ListViewUtil.ChangeItemText(item, 1, ((i++) + 1).ToString())
                     ));
+
+                // 检索
+                {
+                    string strQuery = "\"中国\"/1=4";
+                    SearchResult result = await client.Search(strQuery,
+                        targetInfo.DefaultQueryTermEncoding,
+                        targetInfo.DbNames,
+                        targetInfo.PreferredRecordSyntax,
+                        "default");
+                    if (result.Value == -1)
+                    {
+                        strError = "Search error: " + result.ErrorInfo;
+                        this.Invoke(
+                            (Action)(() =>
+                        ListViewUtil.ChangeItemText(item, 2, strError)
+                            ));
+                        return;
+                    }
+                }
+
+                // 获取
+
+                // 切断
+                if ((i % 10) == 0)
+                    client.CloseConnection();
 
                 await Task.Delay(rnd.Next(1, 500));
             }

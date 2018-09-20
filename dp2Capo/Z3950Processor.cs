@@ -119,7 +119,7 @@ namespace dp2Capo
             string strUserName = zserver_channel.EnsureProperty().GetKeyValue("i_u");
             string strPassword = zserver_channel.EnsureProperty().GetKeyValue("i_p");
 
-            LoginInfo login_info = new LoginInfo { UserName = strUserName, Password = strPassword };
+            LoginInfo login_info = BuildLoginInfo(strUserName, strPassword);
             LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
             try
             {
@@ -502,8 +502,7 @@ namespace dp2Capo
             string strUserName = zserver_channel.EnsureProperty().GetKeyValue("i_u");
             string strPassword = zserver_channel.EnsureProperty().GetKeyValue("i_p");
 
-            LoginInfo login_info = new LoginInfo { UserName = strUserName, Password = strPassword };
-
+            LoginInfo login_info = BuildLoginInfo(strUserName, strPassword);
             LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
             try
             {
@@ -525,7 +524,7 @@ namespace dp2Capo
                     string ip = TcpServer.GetClientIP(zserver_channel.TcpClient);
                     string strChannelName = "ip:" + ip + ",channel:" + zserver_channel.GetHashCode();
 
-                    LibraryManager.Log?.Info("通道 " + strChannelName + " 检索式 '" + strQueryXml + "' 检索耗时 " + length.ToString() + "，超过慢速阈值");   // ?? bug
+                    LibraryManager.Log?.Info("通道 " + strChannelName + " 检索式 '" + strQueryXml + "' 检索耗时 " + length.ToString() + " (命中记录 " + lRet + ")，超过慢速阈值");
                 }
 
                 /*
@@ -806,7 +805,7 @@ namespace dp2Capo
             string strUserName = zserver_channel.EnsureProperty().GetKeyValue("i_u");
             string strPassword = zserver_channel.EnsureProperty().GetKeyValue("i_p");
 
-            LoginInfo login_info = new LoginInfo { UserName = strUserName, Password = strPassword };
+            LoginInfo login_info = BuildLoginInfo(strUserName, strPassword);
 
             LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
             try
@@ -820,8 +819,8 @@ namespace dp2Capo
                 //      -1  登录出错
                 //      0   登录未成功
                 //      1   登录成功
-                long lRet = library_channel.Login(strUserName,
-                    strPassword,
+                long lRet = library_channel.Login(login_info.UserName,
+                    login_info.Password,    // strPassword,
                     strParameters,
                     out strError);
                 e.Result.Value = (int)lRet;
@@ -833,6 +832,22 @@ namespace dp2Capo
             {
                 instance.MessageConnection.ReturnChannel(library_channel);
             }
+        }
+
+        static LoginInfo BuildLoginInfo(string strUserName, string strPassword)
+        {
+            if (strUserName.StartsWith("~"))
+            {
+                string strBarcode = strUserName.Substring(1);
+                return new LoginInfo
+                {
+                    UserName = strBarcode,
+                    UserType = "patron",
+                    Password = strPassword
+                };
+            }
+            else
+                return new LoginInfo { UserName = strUserName, Password = strPassword };
         }
 
         private static void Zserver_SetChannelProperty(object sender, SetChannelPropertyEventArgs e)

@@ -23,6 +23,7 @@ using DigitalPlatform.IO;
 using DigitalPlatform.Z3950.Server;
 using DigitalPlatform.Interfaces;
 using DigitalPlatform.SIP.Server;
+using DigitalPlatform.Text;
 
 namespace dp2Capo
 {
@@ -750,6 +751,8 @@ Exception Info: System.Net.NetworkInformation.PingException
         }
 #endif
 
+        static int _statisCount = 0;
+
         static DateTime _lastCleanTime = DateTime.Now;
 
         // 执行一些后台管理任务
@@ -841,16 +844,26 @@ Exception Info: System.Net.NetworkInformation.PingException
                         // 重试初始化 ZHost 慢速参数
                         // instance.InitialZHostSlowConfig();
 
-                        // 清理闲置超期的 Channels
-                        ZServer?._tcpChannels?.CleanIdleChannels(TimeSpan.FromMinutes(2));
-                        SipServer?._tcpChannels?.CleanIdleChannels(TimeSpan.MaxValue);   // TimeSpan.FromMinutes(2)
-
                         // 清除废弃的全局结果集
                         Task.Run(() => instance.FreeGlobalResultSets());
-
-                        ZServer?.TryClearBlackList();
-                        SipServer?.TryClearBlackList();
                     }
+                }
+
+                {
+                    // 写入统计信息
+                    _statisCount++;
+                    if ((_statisCount % 10) == 0)
+                    {
+                        LogCpuUsage("dp2capo");
+                        WriteLog("info", "ZServer 统计信息: " + ZServer?.GetStatisInfo());
+                    }
+
+                    // 清理闲置超期的 Channels
+                    ZServer?._tcpChannels?.CleanIdleChannels(TimeSpan.FromMinutes(2));
+                    SipServer?._tcpChannels?.CleanIdleChannels(TimeSpan.MaxValue);   // TimeSpan.FromMinutes(2)
+
+                    ZServer?.TryClearBlackList();
+                    SipServer?.TryClearBlackList();
                 }
 
                 // 阻塞，直到全部任务完成。避免 BeginConnect() 函数被重叠调用
@@ -873,6 +886,35 @@ Exception Info: System.Net.NetworkInformation.PingException
                 WriteLog("error", "BackgroundWork() 出现异常: " + ExceptionUtil.GetDebugText(ex));
             }
         }
+
+        private static void LogCpuUsage(string appName)
+        {
+            try
+            {
+                PerformanceCounter total_cpu = new PerformanceCounter("Process", "% Processor Time", "_Total");
+                PerformanceCounter process_cpu = new PerformanceCounter("Process", "% Processor Time", appName);
+                PerformanceCounter memory = new PerformanceCounter("Process", "Private Bytes", appName);
+                
+
+                for (int i = 0; i < 2; i++)
+                {
+                    float t = total_cpu.NextValue();
+                    float p = process_cpu.NextValue();
+                    float m = memory.NextValue();
+                    if (i != 0)
+                    {
+                        // Console.WriteLine(String.Format("_Total = {0}  App = {1} {2}%\n", t, p, p / t * 100));
+                        WriteLog("info", "CPU " + Convert.ToInt64(p / t * 100).ToString() + "%, Memory " + StringUtil.GetLengthText(Convert.ToInt64(m)));
+                    }
+                    System.Threading.Thread.Sleep(1000);
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteLog("error", "LogCpuUsage() 内出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
+        }
+
 
         public static string Version
         {

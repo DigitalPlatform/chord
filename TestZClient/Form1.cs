@@ -189,6 +189,8 @@ namespace TestZClient
 
         private async void button_search_Click(object sender, EventArgs e)
         {
+            this.toolStripStatusLabel1.Text = "";
+
             string strError = "";
 
             this.ClearHtml();
@@ -404,7 +406,8 @@ namespace TestZClient
             EnableControls(false);
             _zclient.CloseConnection();
             EnableControls(true);
-            MessageBox.Show(this, "通道已切断");
+            // MessageBox.Show(this, "通道已切断");
+            this.toolStripStatusLabel1.Text = "通道已切断";
         }
 
         void AppendMarcRecords(RecordCollection records,

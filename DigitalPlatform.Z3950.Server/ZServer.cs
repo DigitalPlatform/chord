@@ -136,9 +136,22 @@ namespace DigitalPlatform.Z3950.Server
                 }
                 catch (Exception ex)
                 {
-                    string strError = "ip:" + ip + " HandleClient() 异常: " + ExceptionUtil.GetExceptionText(ex);
-                    LibraryManager.Log?.Error(strError);
-                    // Console.WriteLine(strError);
+                    if (ex.InnerException != null && ex.InnerException is ObjectDisposedException)
+                    {
+                        // 这种情况一般是 server 主动清理闲置通道导致的，不记入日志
+                    }
+                    else if (ex is ObjectDisposedException)
+                    {
+                        // 这种情况一般是 client close 通道导致，不记入日志
+                    }
+                    else
+                    {
+                        string strName = "ip:" + ip 
+                            + channel == null ? "(null)" : " channel:" + channel.GetHashCode();
+                        string strError = strName + " HandleClient() 异常: " + ExceptionUtil.GetExceptionText(ex);
+                        LibraryManager.Log?.Error(strError);
+                        // Console.WriteLine(strError);
+                    }
                 }
                 finally
                 {
@@ -273,8 +286,12 @@ namespace DigitalPlatform.Z3950.Server
         {
             BerNode root = request.GetAPDuRoot();
 
+            Encoding encoding = Encoding.GetEncoding(936);
+
+            REDO:
             int nRet = ZProcessor.Decode_InitRequest(
                 root,
+                encoding,
                 out InitRequestInfo info,
                 out string strDebugInfo,
                 out string strError);
@@ -284,6 +301,65 @@ namespace DigitalPlatform.Z3950.Server
             // 可以用groupid来表示字符集信息
 
             InitResponseInfo response_info = new InitResponseInfo();
+
+            if (info.m_charNego != null)
+            {
+                /* option
+        * 
+        search                 (0), 
+        present                (1), 
+        delSet                 (2),
+        resourceReport         (3),
+        triggerResourceCtrl    (4),
+        resourceCtrl           (5), 
+        accessCtrl             (6),
+        scan                   (7),
+        sort                   (8), 
+        --                     (9) (reserved)
+        extendedServices       (10),
+        level-1Segmentation    (11),
+        level-2Segmentation    (12),
+        concurrentOperations   (13),
+        namedResultSets        (14)
+        15 Encapsulation  Z39.50-1995 Amendment 3: Z39.50 Encapsulation 
+        16 resultCount parameter in Sort Response  See Note 8 Z39.50-1995 Amendment 1: Add resultCount parameter to Sort Response  
+        17 Negotiation Model  See Note 9 Model for Z39.50 Negotiation During Initialization  
+        18 Duplicate Detection See Note 1  Z39.50 Duplicate Detection Service  
+        19 Query type 104 
+        * }
+        */
+                response_info.m_strOptions = "yynnnnnnnnnnnnn";
+
+                if (info.m_charNego.EncodingLevelOID == CharsetNeogatiation.Utf8OID)
+                {
+                    BerTree.SetBit(ref response_info.m_strOptions,
+                        17,
+                        true);
+                    response_info.m_charNego = info.m_charNego;
+
+                    // 2018/9/19
+                    // 如果最初解码用的编码方式不是 UTF8，则需要重新解码
+                    if (encoding != Encoding.UTF8)
+                    {
+                        encoding = Encoding.UTF8;
+                        goto REDO;
+                    }
+                    channel.EnsureProperty()._searchTermEncoding = Encoding.UTF8;
+                    if (info.m_charNego.RecordsInSelectedCharsets != -1)
+                    {
+                        response_info.m_charNego.RecordsInSelectedCharsets = info.m_charNego.RecordsInSelectedCharsets; // 依从前端的请求
+                        if (response_info.m_charNego.RecordsInSelectedCharsets == 1)
+                            channel.EnsureProperty()._marcRecordEncoding = Encoding.UTF8;
+                    }
+                }
+            }
+            else
+            {
+                response_info.m_strOptions = "yynnnnnnnnnnnnn";
+            }
+
+
+
 
             // 判断info中的信息，决定是否接受Init请求。
 
@@ -412,54 +488,6 @@ namespace DigitalPlatform.Z3950.Server
             response_info.m_strImplementationName = "dp2Capo";
             response_info.m_strImplementationVersion = "1.0";
 
-            if (info.m_charNego != null)
-            {
-                /* option
-        * 
-        search                 (0), 
-        present                (1), 
-        delSet                 (2),
-        resourceReport         (3),
-        triggerResourceCtrl    (4),
-        resourceCtrl           (5), 
-        accessCtrl             (6),
-        scan                   (7),
-        sort                   (8), 
-        --                     (9) (reserved)
-        extendedServices       (10),
-        level-1Segmentation    (11),
-        level-2Segmentation    (12),
-        concurrentOperations   (13),
-        namedResultSets        (14)
-        15 Encapsulation  Z39.50-1995 Amendment 3: Z39.50 Encapsulation 
-        16 resultCount parameter in Sort Response  See Note 8 Z39.50-1995 Amendment 1: Add resultCount parameter to Sort Response  
-        17 Negotiation Model  See Note 9 Model for Z39.50 Negotiation During Initialization  
-        18 Duplicate Detection See Note 1  Z39.50 Duplicate Detection Service  
-        19 Query type 104 
-        * }
-        */
-                response_info.m_strOptions = "yynnnnnnnnnnnnn";
-
-                if (info.m_charNego.EncodingLevelOID == CharsetNeogatiation.Utf8OID)
-                {
-                    BerTree.SetBit(ref response_info.m_strOptions,
-                        17,
-                        true);
-                    response_info.m_charNego = info.m_charNego;
-                    channel.EnsureProperty()._searchTermEncoding = Encoding.UTF8;
-                    if (info.m_charNego.RecordsInSelectedCharsets != -1)
-                    {
-                        response_info.m_charNego.RecordsInSelectedCharsets = info.m_charNego.RecordsInSelectedCharsets; // 依从前端的请求
-                        if (response_info.m_charNego.RecordsInSelectedCharsets == 1)
-                            channel.EnsureProperty()._marcRecordEncoding = Encoding.UTF8;
-                    }
-                }
-            }
-            else
-            {
-                response_info.m_strOptions = "yynnnnnnnnnnnnn";
-            }
-
             // BerTree tree = new BerTree();
             ZProcessor.Encode_InitialResponse(response_info,
                 out byte[] baResponsePackage);
@@ -558,6 +586,17 @@ namespace DigitalPlatform.Z3950.Server
             ERROR1:
             // TODO: 将错误原因写入日志
             return null;
+        }
+
+        // 获得统计信息
+        public string GetStatisInfo()
+        {
+            StringBuilder text = new StringBuilder();
+
+            text.AppendFormat("通道对象数: {0}\r\n", this._tcpChannels.Count);
+            text.AppendFormat("IpTable: {0}\r\n", this.IpTable.GetStatisInfo());
+
+            return text.ToString();
         }
     }
 

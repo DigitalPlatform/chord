@@ -423,6 +423,7 @@ namespace DigitalPlatform.Z3950
                 }
                 catch (Exception ex)
                 {
+                    result.Exception = ex;
                     if (ex is IOException && ex.InnerException is SocketException)
                     {
                         // "ConnectionAborted"

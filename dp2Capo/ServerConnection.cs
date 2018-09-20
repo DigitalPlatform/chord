@@ -36,7 +36,7 @@ namespace dp2Capo
         public Instance Instance { get; set; }  // 方便访问 Instance
 
         public LibraryHostInfo dp2library { get; set; }
-        internal LibraryChannelPool _libraryChannelPool = new LibraryChannelPool();
+        internal LibraryChannelPool _libraryChannelPool = new LibraryChannelPool(150);  // 默认的 50 通常不够用
 
         public ServerConnection()
         {

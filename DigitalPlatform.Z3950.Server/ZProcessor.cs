@@ -23,7 +23,7 @@ namespace DigitalPlatform.Z3950.Server
             {
                 if (result.ErrorCode == "Closed")
                     return null;    // 表示通道被对方切断
-                throw new Exception(result.ErrorInfo);
+                throw new Exception(result.ErrorInfo, result.Exception);
             }
 
 #if DEBUG
@@ -169,8 +169,11 @@ namespace DigitalPlatform.Z3950.Server
 #endif
 
         // 解码Initial请求包
+        // parameters:
+        //      encoding    解码 InternationalString 所用的编码方式
         public static int Decode_InitRequest(
             BerNode root,
+            Encoding encoding,
             out InitRequestInfo info,
             out string strDebugInfo,
             out string strError)
@@ -214,17 +217,14 @@ namespace DigitalPlatform.Z3950.Server
                         break;
                     case BerTree.z3950_idAuthentication:
                         {
-                            string strGroupId = "";
-                            string strUserId = "";
-                            string strPassword = "";
-                            int nAuthentType = 0;
 
                             int nRet = DecodeAuthentication(
                                 node,
-                                out strGroupId,
-                                out strUserId,
-                                out strPassword,
-                                out nAuthentType,
+                                encoding,
+                                out string strGroupId,
+                                out string strUserId,
+                                out string strPassword,
+                                out int nAuthentType,
                                 out strError);
                             if (nRet == -1)
                                 return -1;
@@ -267,6 +267,7 @@ namespace DigitalPlatform.Z3950.Server
         //      nAuthentType 0: open(simple) 1:idPass(group)
         static int DecodeAuthentication(
             BerNode root,
+            Encoding encodingOfInternationalString,
             out string strGroupId,
             out string strUserId,
             out string strPassword,
@@ -287,7 +288,6 @@ namespace DigitalPlatform.Z3950.Server
 
             string strOpen = ""; // open mode authentication
 
-
             for (int i = 0; i < root.ChildrenCollection.Count; i++)
             {
                 BerNode node = root.ChildrenCollection[i];
@@ -302,13 +302,14 @@ namespace DigitalPlatform.Z3950.Server
                             switch (nodek.m_uTag)
                             {
                                 case 0: // groupId
-                                    strGroupId = nodek.GetCharNodeData();
+                                    strGroupId = nodek.GetCharNodeData(encodingOfInternationalString);
                                     break;
                                 case 1: // userId
-                                    strUserId = nodek.GetCharNodeData();
+                                    // TODO: 这里用什么编码方式?
+                                    strUserId = nodek.GetCharNodeData(encodingOfInternationalString);
                                     break;
                                 case 2: // password
-                                    strPassword = nodek.GetCharNodeData();
+                                    strPassword = nodek.GetCharNodeData(encodingOfInternationalString);
                                     break;
                             }
                         }
@@ -317,7 +318,7 @@ namespace DigitalPlatform.Z3950.Server
                     case BerNode.ASN1_VISIBLESTRING:
                     case BerNode.ASN1_GENERALSTRING:
                         nAuthentType = 0; //  "SIMPLE";
-                        strOpen = node.GetCharNodeData();
+                        strOpen = node.GetCharNodeData(encodingOfInternationalString);
                         break;
                 }
             }

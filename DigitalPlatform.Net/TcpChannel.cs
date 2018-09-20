@@ -37,20 +37,22 @@ namespace DigitalPlatform.Net
 
         public void Clear()
         {
+            _lock.EnterWriteLock();
             try
             {
                 foreach (TcpChannel channel in _channels)
                 {
                     channel.Close();
                 }
+                _channels.Clear();
             }
             catch (Exception ex)
             {
-                LibraryManager.Log?.Error("ZServerChannelColleciont Clear() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                LibraryManager.Log?.Error("TcpChannelCollection Clear() 出现异常: " + ExceptionUtil.GetDebugText(ex));
             }
             finally
             {
-                _channels.Clear();
+                _lock.ExitWriteLock();
             }
         }
 
