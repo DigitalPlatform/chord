@@ -420,8 +420,8 @@ namespace DigitalPlatform.Z3950
 
             string strProtocol_version = "yyn";  //  "yyynnnnn";  // "yy" versions 1 and 2 
             string strOptions_supported = "yynnnnnnnnnnnnnnnn";   //  "yynnnny"; /* search and present only */
-                                                                  //"yyynynnyynynnnyn"
-                                                                  // 012345678901234567
+                                                                  // "yyynynnyynynnnyn"
+                                                                  //  012345678901234567
             if (struInit_request.m_charNego != null)
             {
                 SetBit(ref strOptions_supported,
@@ -653,7 +653,6 @@ otherInfo {
 
             baPackage = null;
             root.EncodeBERPackage(ref baPackage);
-
             return 0;
         }
 

@@ -733,5 +733,30 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
         {
             await Present();
         }
+
+        private async void MenuItem_hugeRequestAttack_Click(object sender, EventArgs e)
+        {
+            await HugeRequestAttack();
+        }
+
+        async Task HugeRequestAttack()
+        {
+            EnableControls(false);  // 暂时禁用
+            try
+            {
+                Result result = await _zclient.HugeRequestAttack(_targetInfo,
+                    1024 * 1024 * 1024);
+
+                if (result.Value == -1)
+                {
+                    this.Invoke((Action)(() => MessageBox.Show(this, result.ToString())));
+                }
+            }
+            finally
+            {
+                EnableControls(true);
+            }
+        }
+
     }
 }

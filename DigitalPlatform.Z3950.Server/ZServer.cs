@@ -72,6 +72,8 @@ namespace DigitalPlatform.Z3950.Server
             Action close_action,
             CancellationToken token)
         {
+            List<byte> cache = new List<byte>();
+
             ZServerChannel channel = _tcpChannels.Add(tcpClient, () => { return new ZServerChannel(); }) as ZServerChannel;
             // 允许对 channel 做额外的初始化
             if (this.ChannelOpened != null)
@@ -95,7 +97,10 @@ namespace DigitalPlatform.Z3950.Server
                         if (token != null && token.IsCancellationRequested)
                             return;
                         // 注意调用返回后如果发现返回 null 或者抛出了异常，调主要主动 Close 和重新分配 TcpClient
-                        BerTree request = await ZProcessor.GetIncomingRequest(tcpClient);
+                        BerTree request = await ZProcessor.GetIncomingRequest(
+                            cache,
+                            tcpClient,
+                            ()=>channel.Touch());
                         if (request == null)
                         {
                             Console.WriteLine("client close on request " + i);
@@ -464,7 +469,7 @@ namespace DigitalPlatform.Z3950.Server
 #endif
 
             DO_RESPONSE:
-            // 填充response_info的其它结构
+            // 填充 response_info 的其它结构
             response_info.m_strReferenceId = info.m_strReferenceId;
 
             //if (channel._property == null)

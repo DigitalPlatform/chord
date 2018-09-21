@@ -16,9 +16,34 @@ namespace DigitalPlatform.Z3950.Server
     public static class ZProcessor
     {
         // 注意调用返回后如果发现返回 null 或者抛出了异常，调主要主动 Close 和重新分配 TcpClient
-        public static async Task<BerTree> GetIncomingRequest(TcpClient client)
+        public static async Task<BerTree> GetIncomingRequest(
+            List<byte> cache,
+            TcpClient client, 
+            delegate_touch touch_func)
         {
-            RecvResult result = await ZChannel.SimpleRecvTcpPackage(client);
+#if NO
+            RecvResult result = await ZChannel.SimpleRecvTcpPackage(client,
+                // (int)Math.Max(ZServerChannelProperty.MaxPreferredMessageSize, ZServerChannelProperty.MaxExceptionalRecordSize)  // 防范攻击
+                -1, // testing
+                touch_func);
+#endif
+            RecvResult result = await ZChannel.SimpleRecvTcpPackage(client,
+    cache,
+    (package, start, length) =>
+    {
+        bool bRet = BerNode.IsCompleteBER(package,
+            start,
+            length,
+            out long remainder);
+        if (bRet == true)
+            return new Tuple<int, byte>((int)remainder, 0);
+        return new Tuple<int, byte>(0, 0);
+    },
+    touch_func,
+    // (int)Math.Max(ZServerChannelProperty.MaxPreferredMessageSize, ZServerChannelProperty.MaxExceptionalRecordSize)
+    -1  // testing
+    );
+
             if (result.Value == -1)
             {
                 if (result.ErrorCode == "Closed")
@@ -1218,10 +1243,10 @@ namespace DigitalPlatform.Z3950.Server
                 root.EncodeBERPackage(ref baPackage);
                 return 0;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string text = JsonConvert.SerializeObject(root, Formatting.Indented);
-                throw new Exception("EncodeBERPackage() 抛出异常。BerNode ["+text+"]", ex);
+                throw new Exception("EncodeBERPackage() 抛出异常。BerNode [" + text + "]", ex);
             }
         }
 

@@ -248,6 +248,7 @@ namespace dp2Capo
                         {
                             if (nSize >= zserver_channel.EnsureProperty().PreferredMessageSize)
                             {
+                                // TODO: 记入日志?
                                 // 调整返回的记录数
                                 lNumber = i;
                                 break;

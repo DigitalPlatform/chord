@@ -11,7 +11,7 @@ namespace DigitalPlatform.Z3950
     {
 
         // https://stackoverflow.com/questions/7397207/json-net-error-self-referencing-loop-detected-for-type
-        [JsonIgnore] 
+        [JsonIgnore]
         //[IgnoreDataMember]
         public BerNode ParentNode = null;   /* 父节点 */
 
@@ -490,7 +490,7 @@ namespace DigitalPlatform.Z3950
         }
 
         // 根据所有下级节点共同构成的包的总长度， 最终构造出本节点的头部
-        void MakeHeadPart(ref byte[] baHead,
+        public void MakeHeadPart(ref byte[] baHead,
             int nDataSize)
         {
             baHead = null;
@@ -502,7 +502,6 @@ namespace DigitalPlatform.Z3950
             Debug.Assert(baTempPackage.Length != 0, "");
 
             baHead = baTempPackage;
-
 
             // 2.构造length
             baTempPackage = null;
@@ -669,8 +668,12 @@ namespace DigitalPlatform.Z3950
         // BER包是否完整到达
         // 疑问：虽然本函数能够知道BER包是否完整，但是，如果缓冲区内容比一个BER包
         // 还长，也就是说多个BER包堆积起来，还需要得知当前已经结束的这个BER包在何处结束
+        // parameters:
+        //      remainder   如果返回 false, remainder 表示 BER 包还需要多少字节才能完整。-1 表示未知(无限多)
+        //                  如果返回 true, remainder 表示 BER 包共包含(用掉)了多少字节
         // return:
-        //		TRUE	完整到达
+        //		true	完整到达
+        //      false   不完整
         public static bool IsCompleteBER(byte[] baBuffer,
             long start,
             long len_param,
