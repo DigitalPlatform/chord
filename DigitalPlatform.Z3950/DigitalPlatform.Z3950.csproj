@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj" />
     <ProjectReference Include="..\DigitalPlatform.Net\DigitalPlatform.Net.csproj" />
     <ProjectReference Include="..\DigitalPlatform.Text\DigitalPlatform.Text.csproj" />

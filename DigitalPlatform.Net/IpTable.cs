@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace DigitalPlatform.Net
@@ -266,6 +267,13 @@ namespace DigitalPlatform.Net
 
 #endif
 
+        public string GetStatisInfo()
+        {
+            StringBuilder text = new StringBuilder();
+
+            text.AppendFormat("条目数: {0}\r\n", _ipTable.Count);
+            return text.ToString();
+        }
     }
 
     /// <summary>

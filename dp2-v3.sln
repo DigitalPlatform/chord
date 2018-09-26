@@ -106,6 +106,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigitalPlatform.SIP.Server"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2SIPClient", "dp2SIPClient\dp2SIPClient.csproj", "{4D15BD5A-1042-4246-AFA0-7962E9E1B840}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestZ3950", "UnitTestZ3950\UnitTestZ3950.csproj", "{A68511AF-A29F-425F-B0CD-D1E2581DD96A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -773,6 +775,24 @@ Global
 		{4D15BD5A-1042-4246-AFA0-7962E9E1B840}.Test|Mixed Platforms.Build.0 = Release|Any CPU
 		{4D15BD5A-1042-4246-AFA0-7962E9E1B840}.Test|x86.ActiveCfg = Release|Any CPU
 		{4D15BD5A-1042-4246-AFA0-7962E9E1B840}.Test|x86.Build.0 = Release|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Debug|x86.Build.0 = Debug|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Release|x86.ActiveCfg = Release|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Release|x86.Build.0 = Release|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Test|Any CPU.ActiveCfg = Debug|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Test|Any CPU.Build.0 = Debug|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Test|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Test|Mixed Platforms.Build.0 = Debug|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Test|x86.ActiveCfg = Debug|Any CPU
+		{A68511AF-A29F-425F-B0CD-D1E2581DD96A}.Test|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

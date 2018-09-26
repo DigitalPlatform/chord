@@ -37,20 +37,22 @@ namespace DigitalPlatform.Net
 
         public void Clear()
         {
+            _lock.EnterWriteLock();
             try
             {
                 foreach (TcpChannel channel in _channels)
                 {
                     channel.Close();
                 }
+                _channels.Clear();
             }
             catch (Exception ex)
             {
-                LibraryManager.Log?.Error("ZServerChannelColleciont Clear() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                LibraryManager.Log?.Error("TcpChannelCollection Clear() 出现异常: " + ExceptionUtil.GetDebugText(ex));
             }
             finally
             {
-                _channels.Clear();
+                _lock.ExitWriteLock();
             }
         }
 
@@ -296,7 +298,7 @@ namespace DigitalPlatform.Net
 
             Debug.Assert(client != null, "client为空");
 
-            int CHUNK_SIZE = 10;
+            int CHUNK_SIZE = 4096;
 
             result.Package = new byte[CHUNK_SIZE];
             recieved = 0;
@@ -379,7 +381,7 @@ namespace DigitalPlatform.Net
                         result.Length = ret.Item1;
                         result.Terminator = ret.Item2;
                         // 将结束符后面多出来的部分复制到 cache 中，以便下一次调用处理
-                        if (result.Length > recieved + current)
+                        if (result.Length > recieved + current) // ?? bug
                         {
                             if (cache == null)
                                 throw new Exception("当前不支持 Pipeline 方式的请求。发现前端一次性发送了多于一个通讯包");

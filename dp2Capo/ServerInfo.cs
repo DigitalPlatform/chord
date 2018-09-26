@@ -23,11 +23,15 @@ using DigitalPlatform.IO;
 using DigitalPlatform.Z3950.Server;
 using DigitalPlatform.Interfaces;
 using DigitalPlatform.SIP.Server;
+using DigitalPlatform.Text;
 
 namespace dp2Capo
 {
     public static class ServerInfo
     {
+        // 指示全局 Service 是否处在运行状态
+        public static bool GlobalServiceRunning { get; set; }
+
         public static ZServer ZServer { get; set; }
 
         public static SipServer SipServer { get; set; }
@@ -187,7 +191,7 @@ namespace dp2Capo
             // https://stackoverflow.com/questions/579688/why-is-the-date-appended-twice-on-filenames-when-using-log4net
             var repository = log4net.LogManager.CreateRepository("main");
             // if (createdNew)
-                log4net.GlobalContext.Properties["LogFileName"] = Path.Combine(LogDir, "log_");
+            log4net.GlobalContext.Properties["LogFileName"] = Path.Combine(LogDir, "log_");
             log4net.Config.XmlConfigurator.Configure(repository);
 
             LibraryManager.Log = LogManager.GetLogger("main", "zlib");
@@ -280,6 +284,8 @@ namespace dp2Capo
         }
 
         // 尝试从数据目录装载一个尚未存在于 _instances 集合中的实例
+        // exception:
+        //      可能会抛出异常。XML 文件装载失败引起
         public static Instance LoadInstance(string strInstanceName)
         {
             var exist = _instances.Find((o) =>
@@ -329,7 +335,21 @@ namespace dp2Capo
             if (instance == null)
             {
                 // 尝试从数据目录装载一个尚未存在于 _instances 集合中的实例
-                instance = LoadInstance(strInstanceName);
+                // exception:
+                //      可能会抛出异常。XML 文件装载失败引起
+                try
+                {
+                    instance = LoadInstance(strInstanceName);
+                }
+                catch (Exception ex)
+                {
+                    return new ServiceControlResult
+                    {
+                        Value = -1,
+                        ErrorCode = ex.GetType().ToString(),
+                        ErrorInfo = "实例 '" + strInstanceName + "' LoadInstance() 时出现异常: " + ExceptionUtil.GetAutoText(ex)
+                    };
+                }
             }
 
             if (instance == null)
@@ -366,7 +386,8 @@ namespace dp2Capo
                 catch (Exception ex)
                 {
                     WriteLog("fatal", "dp2Capo 启动全局服务阶段，装载全局配置文件出错: " + ex.Message);
-                    throw ex;
+                    // throw ex;
+                    return;
                 }
             }
 
@@ -383,6 +404,8 @@ namespace dp2Capo
                 SipProcessor.AddEvents(ServerInfo.SipServer, true);
                 ServerInfo.SipServer.Listen(1000);
             }
+
+            ServerInfo.GlobalServiceRunning = true;
         }
 
         public static void StopGlobalService()
@@ -402,14 +425,19 @@ namespace dp2Capo
                 SipProcessor.AddEvents(ServerInfo.SipServer, false);
                 ServerInfo.SipServer = null;
             }
+
+            ServerInfo.GlobalServiceRunning = false;
         }
 
+#if NO
+        // TODO: 这里有个问题：什么能代表全局服务？
         public static bool IsGlobalServiceRunning()
         {
             if (ServerInfo.ZServer != null)
                 return true;
             return false;
         }
+#endif
 
         // 停止一个实例
         //      strInstanceName 实例名。如果为 ".global" 表示全局服务
@@ -551,8 +579,12 @@ namespace dp2Capo
 
         static TimeSpan LongTime = TimeSpan.FromMinutes(5);    // 10
 
-        static bool NeedCheck(Instance instance)
+        static bool NeedCheckMessageServer(Instance instance)
         {
+            // 2018/8/28
+            if (instance.dp2mserver == null)
+                return false;
+
             DateTime now = DateTime.Now;
 
             ConnectionState state = instance.MessageConnection.ConnectState;
@@ -574,8 +606,12 @@ namespace dp2Capo
             return false;
         }
 
-        static void Echo(Instance instance, bool writeLog)
+        static void EchoMessageServer(Instance instance, bool writeLog)
         {
+            // 2018/8/28
+            if (instance.dp2mserver == null)
+                return;
+
             if (instance.MessageConnection.ConnectState != ConnectionState.Connected)
                 return;
 
@@ -638,9 +674,9 @@ Exception Info: System.Net.NetworkInformation.PingException
    at System.Threading.ExecutionContext.Run(System.Threading.ExecutionContext, System.Threading.ContextCallback, System.Object)
    at System.Threading.ThreadHelper.ThreadStart()
          * */
-        static void Check(Instance instance, List<Task> tasks)
+        static void CheckMessageServer(Instance instance, List<Task> tasks)
         {
-            if (instance.dp2mserver == null)
+            if (instance.dp2mserver == null || string.IsNullOrEmpty(instance.dp2mserver.Url))
                 return;
 
             if (instance.MessageConnection.ConnectState == ConnectionState.Disconnected)    // 注：如果在 Connecting 和 Reconnecting 状态则不尝试 ConnectAsync
@@ -669,7 +705,7 @@ Exception Info: System.Net.NetworkInformation.PingException
             }
             else
             {
-                Echo(instance, true);
+                EchoMessageServer(instance, true);
             }
         }
 
@@ -685,6 +721,9 @@ Exception Info: System.Net.NetworkInformation.PingException
             TimeSpan delta = TimeSpan.FromMinutes(10);  // 10 分钟没有动作就表明死锁了
             foreach (Instance instance in _instances)
             {
+                // 2018/8/28
+                if (instance.dp2mserver == null)
+                    continue;
                 if (now - instance.LastCheckTime > delta)
                     return true;
             }
@@ -692,6 +731,7 @@ Exception Info: System.Net.NetworkInformation.PingException
             return false;
         }
 
+#if NO
         // 向第一个实例的日志文件中写入
         public static void WriteFirstInstanceErrorLog(string strText)
         {
@@ -709,58 +749,67 @@ Exception Info: System.Net.NetworkInformation.PingException
                 }
             }
         }
+#endif
+
+        static int _statisCount = 0;
 
         static DateTime _lastCleanTime = DateTime.Now;
 
         // 执行一些后台管理任务
         public static void BackgroundWork()
         {
-            List<Task> tasks = new List<Task>();
-
-            bool bOutputBegin = false;
-
-            Instance first_instance = null;
-            if (_instances.Count > 0)
-                first_instance = _instances[0];
-            foreach (Instance instance in _instances)
+            try
             {
-                // 向 dp2mserver 发送心跳消息
-                // instance.SendHeartBeat();
+                List<Task> tasks = new List<Task>();
 
-                bool bNeedCheck = NeedCheck(instance);
+                bool bOutputBegin = false;
 
-                if (bNeedCheck)
+#if NO
+                Instance first_instance = null;
+                if (_instances.Count > 0)
+                    first_instance = _instances[0];
+#endif
+
+                foreach (Instance instance in _instances)
                 {
-                    instance.WriteErrorLog("<<< BackgroundWork 开始一轮处理\r\n状态:\r\n" + instance.GetDebugState());
-                    bOutputBegin = true;
-                }
+                    // 向 dp2mserver 发送心跳消息
+                    // instance.SendHeartBeat();
 
-                string strError = "";
-                // 利用 dp2library API 获取一些配置信息
-                if (string.IsNullOrEmpty(instance.dp2library.LibraryUID) == true)
-                {
-                    int nRet = instance.MessageConnection.GetConfigInfo(out strError);
-                    if (nRet == -1)
+                    bool bNeedCheckMessageServer = NeedCheckMessageServer(instance);
+
+                    if (bNeedCheckMessageServer)
                     {
-                        // Program.WriteWindowsLog(strError);
-                        instance.WriteErrorLog("获得 dp2library 配置时出错: " + strError);
+                        instance.WriteErrorLog("<<< BackgroundWork 开始一轮处理\r\n状态:\r\n" + instance.GetDebugState());
+                        bOutputBegin = true;
                     }
-                    else
+
+                    string strError = "";
+                    // 利用 dp2library API 获取一些配置信息
+                    if (instance.dp2library != null
+                        && string.IsNullOrEmpty(instance.dp2library.LibraryUID) == true)
                     {
+                        int nRet = instance.MessageConnection.GetConfigInfo(out strError);
+                        if (nRet == -1)
+                        {
+                            // Program.WriteWindowsLog(strError);
+                            instance.WriteErrorLog("获得 dp2library 配置时出错: " + strError);
+                        }
+                        else
+                        {
 #if NO
                         if (instance.MessageConnection.IsConnected == false)
                         {
                             tasks.Add(instance.BeginConnectTask()); // 2016/10/13 以前没有 if 语句，那样就容易导致重复 BeginConnect()
                         }
 #endif
-                        if (bNeedCheck)
-                            Check(instance, tasks);
-                        else
-                            Echo(instance, false);
+                            if (bNeedCheckMessageServer)
+                                CheckMessageServer(instance, tasks);
+                            else
+                                EchoMessageServer(instance, false);
+                        }
                     }
-                }
-                else
-                {
+                    else
+                    {
 #if NO
                     if (instance.MessageConnection.IsConnected == false)
                     {
@@ -773,58 +822,99 @@ Exception Info: System.Net.NetworkInformation.PingException
                     }
 #endif
 
-                    if (bNeedCheck)
-                        Check(instance, tasks);
-                    else
-                        Echo(instance, false);
+                        if (bNeedCheckMessageServer)
+                            CheckMessageServer(instance, tasks);
+                        else
+                            EchoMessageServer(instance, false);
 
-                    // 每隔二十分钟清理一次闲置的 dp2library 通道
-                    if (DateTime.Now - _lastCleanTime >= TimeSpan.FromMinutes(20))
+                        // 每隔二十分钟清理一次闲置的 dp2library 通道
+                        if (DateTime.Now - _lastCleanTime >= TimeSpan.FromMinutes(20))
+                        {
+                            try
+                            {
+                                instance.MessageConnection.CleanLibraryChannel();
+                            }
+                            catch (Exception ex)
+                            {
+                                instance.WriteErrorLog("CleanLibraryChannel() 异常: " + ExceptionUtil.GetExceptionText(ex));
+                            }
+                            _lastCleanTime = DateTime.Now;
+                        }
+
+                        // 重试初始化 ZHost 慢速参数
+                        // instance.InitialZHostSlowConfig();
+
+                        // 清除废弃的全局结果集
+                        Task.Run(() => instance.FreeGlobalResultSets());
+                    }
+                }
+
+                {
+                    // 写入统计信息
+                    _statisCount++;
+                    if ((_statisCount % 10) == 0)
                     {
-                        try
-                        {
-                            instance.MessageConnection.CleanLibraryChannel();
-                        }
-                        catch (Exception ex)
-                        {
-                            instance.WriteErrorLog("CleanLibraryChannel() 异常: " + ExceptionUtil.GetExceptionText(ex));
-                        }
-                        _lastCleanTime = DateTime.Now;
+                        LogCpuUsage("dp2capo");
+                        WriteLog("info", "ZServer 统计信息: " + ZServer?.GetStatisInfo());
                     }
 
-                    // 重试初始化 ZHost 慢速参数
-                    // instance.InitialZHostSlowConfig();
-
                     // 清理闲置超期的 Channels
-                    ZServer?._tcpChannels.CleanIdleChannels(TimeSpan.FromMinutes(2));
-                    SipServer?._tcpChannels.CleanIdleChannels(TimeSpan.FromMinutes(2));
-
-                    // 清除废弃的全局结果集
-                    Task.Run(() => instance.FreeGlobalResultSets());
+                    ZServer?._tcpChannels?.CleanIdleChannels(TimeSpan.FromMinutes(2));
+                    SipServer?._tcpChannels?.CleanIdleChannels(TimeSpan.MaxValue);   // TimeSpan.FromMinutes(2)
 
                     ZServer?.TryClearBlackList();
                     SipServer?.TryClearBlackList();
                 }
-            }
 
-            // 阻塞，直到全部任务完成。避免 BeginConnect() 函数被重叠调用
-            if (tasks.Count > 0)
+                // 阻塞，直到全部任务完成。避免 BeginConnect() 函数被重叠调用
+                if (tasks.Count > 0)
+                {
+                    // test 这一句可以用来制造死锁测试场景
+                    // Thread.Sleep(60 * 60 * 1000);
+                    WriteErrorLog("-- BackgroundWork - 等待 " + tasks.Count + " 个 Connect 任务完成");
+
+                    Task.WaitAll(tasks.ToArray());
+
+                    WriteErrorLog("-- BackgroundWork - " + tasks.Count + " 个 Connect 任务已经完成");
+                }
+
+                if (bOutputBegin == true)
+                    WriteErrorLog(">>> BackgroundWork 结束一轮处理\r\n");
+            }
+            catch (Exception ex)
             {
-                // test 这一句可以用来制造死锁测试场景
-                // Thread.Sleep(60 * 60 * 1000);
-
-                if (first_instance != null)
-                    first_instance.WriteErrorLog("-- BackgroundWork - 等待 " + tasks.Count + " 个 Connect 任务完成");
-
-                Task.WaitAll(tasks.ToArray());
-
-                if (first_instance != null)
-                    first_instance.WriteErrorLog("-- BackgroundWork - " + tasks.Count + " 个 Connect 任务已经完成");
+                WriteLog("error", "BackgroundWork() 出现异常: " + ExceptionUtil.GetDebugText(ex));
             }
-
-            if (bOutputBegin == true && first_instance != null)
-                first_instance.WriteErrorLog(">>> BackgroundWork 结束一轮处理\r\n");
         }
+
+        private static void LogCpuUsage(string appName)
+        {
+            try
+            {
+                PerformanceCounter total_cpu = new PerformanceCounter("Process", "% Processor Time", "_Total");
+                PerformanceCounter process_cpu = new PerformanceCounter("Process", "% Processor Time", appName);
+                PerformanceCounter memory = new PerformanceCounter("Process", "Private Bytes", appName);
+                
+
+                for (int i = 0; i < 2; i++)
+                {
+                    float t = total_cpu.NextValue();
+                    float p = process_cpu.NextValue();
+                    float m = memory.NextValue();
+                    if (i != 0)
+                    {
+                        // Console.WriteLine(String.Format("_Total = {0}  App = {1} {2}%\n", t, p, p / t * 100));
+                        WriteLog("info", "CPU " + Convert.ToInt64(p / t * 100).ToString() + "%, Memory " + StringUtil.GetLengthText(Convert.ToInt64(m)));
+                    }
+                    System.Threading.Thread.Sleep(1000);
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteLog("error", "LogCpuUsage() 内出现异常: " + ExceptionUtil.GetExceptionText(ex));
+            }
+        }
+
 
         public static string Version
         {

@@ -89,18 +89,23 @@ namespace dp2Capo
 
         public void FreeGlobalResultSets()
         {
-            List<string> names = new List<string>();
-            lock (_syncResultSets)
+            try
             {
-                names.AddRange(_globalResultSets);
-                _globalResultSets.Clear();
-            }
-
-            if (names.Count > 0)
-            {
-                LibraryChannel library_channel = this.MessageConnection.GetChannel(null);
-                try
+                List<string> names = new List<string>();
+                lock (_syncResultSets)
                 {
+                    names.AddRange(_globalResultSets);
+                    _globalResultSets.Clear();
+                }
+
+                if (names.Count > 0)
+                {
+                    DateTime start = DateTime.Now;
+                    ServerInfo.WriteLog("info", "开始集中清除全局结果集。数量=" + names.Count);
+                    LibraryChannel library_channel = this.MessageConnection.GetChannel(null);
+                    try
+                    {
+#if NO
                     foreach (string name in names)
                     {
                         // TODO: 要是能用通配符来删除大量结果集就好了
@@ -118,21 +123,45 @@ namespace dp2Capo
                             return;
                         }
                     }
+#endif
+                        string strNameList = StringUtil.MakePathList(names);
+                        long lRet = library_channel.GetSearchResult("",
+        0,
+        0,
+        "@remove:" + strNameList,
+        "zh",
+        out DigitalPlatform.LibraryClient.localhost.Record[] searchresults,
+        out string strError);
+                        if (lRet == -1)
+                        {
+                            // 写入错误日志
+                            WriteErrorLog("清除全局结果集 '" + strNameList + "' 时发生错误: " + strError);
+                            return;
+                        }
+                    }
+                    finally
+                    {
+                        this.MessageConnection.ReturnChannel(library_channel);
+                        TimeSpan length = DateTime.Now - start;
+                        ServerInfo.WriteLog("info", "结束集中清除全局结果集。数量=" + names.Count + ", 耗时 " + length.TotalSeconds + " 秒");
+                    }
                 }
-                finally
-                {
-                    this.MessageConnection.ReturnChannel(library_channel);
-                }
+            }
+            catch(Exception ex)
+            {
+                ServerInfo.WriteLog("error", "FreeGlobalResultSets() 出现异常: " + ExceptionUtil.GetDebugText(ex));
             }
         }
 
-        #endregion
+#endregion
 
         public Instance()
         {
             LastCheckTime = DateTime.Now;
         }
 
+        // exception:
+        //      可能会抛出异常。XML 文件装载失败引起
         public static string GetInstanceName(string strXmlFileName)
         {
             XmlDocument dom = new XmlDocument();
@@ -143,6 +172,10 @@ namespace dp2Capo
             catch (FileNotFoundException)
             {
                 return Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("配置文件 '" + strXmlFileName + "' 装入 XMLDOM 时出现异常: " + ex.Message, ex);
             }
             string strInstanceName = dom.DocumentElement.GetAttribute("instanceName");
             if (string.IsNullOrEmpty(strInstanceName) == true)
@@ -159,7 +192,16 @@ namespace dp2Capo
             _cancel = new CancellationTokenSource();
             // SetShortDelay();
 
-            this.Name = GetInstanceName(strXmlFileName);  // Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
+            try
+            {
+                this.Name = GetInstanceName(strXmlFileName);  // Path.GetFileName(Path.GetDirectoryName(strXmlFileName));
+            }
+            catch (Exception ex)
+            {
+                // 2018/9/4
+                this.WriteErrorLog("!!! GetInstanceName() 时出错: " + ex.Message);
+                return;
+            }
 
             Console.WriteLine();
             Console.WriteLine("*** 启动实例: " + this.Name + " -- " + strXmlFileName);
@@ -178,7 +220,16 @@ namespace dp2Capo
             this.WriteErrorLog("new ServicePointManager.DefaultConnectionLimit=" + ServicePointManager.DefaultConnectionLimit);
 
             XmlDocument dom = new XmlDocument();
-            dom.Load(strXmlFileName);
+            try
+            {
+                dom.Load(strXmlFileName);
+            }
+            catch (Exception ex)
+            {
+                // 2018/9/4
+                this.WriteErrorLog("!!! 配置文件 " + strXmlFileName + " 装载时出错: " + ex.Message);
+                return;
+            }
 
             {
                 //this.Name = dom.DocumentElement.GetAttribute("instanceName");
@@ -190,15 +241,18 @@ namespace dp2Capo
                     if (element == null)
                     {
                         // throw new Exception("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2library 元素");
-                        this.WriteErrorLog("配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2library 元素");
+                        this.WriteErrorLog("!!! 配置文件 " + strXmlFileName + " 中根元素下尚未定义 dp2library 元素");
                     }
 
                     this.dp2library = new LibraryHostInfo();
                     this.dp2library.Initial(element);
+
+                    this.MessageConnection.Instance = this;
+                    this.MessageConnection.dp2library = this.dp2library;
                 }
                 catch (Exception ex)
                 {
-                    this.WriteErrorLog("配置文件 " + strXmlFileName + " (dp2library 元素内) 格式错误: " + ex.Message);
+                    this.WriteErrorLog("!!! 配置文件 " + strXmlFileName + " (dp2library 元素内) 格式错误: " + ex.Message);
                 }
 
                 try
@@ -210,16 +264,24 @@ namespace dp2Capo
                     }
                     else
                     {
-                        this.dp2mserver = new HostInfo();
-                        this.dp2mserver.Initial(element);
+                        if (DomUtil.IsBooleanTrue(element.GetAttribute("enable"), true))
+                        {
+                            this.dp2mserver = new HostInfo();
+                            this.dp2mserver.Initial(element);
+                        }
+                        else
+                            this.dp2mserver = null;
                     }
 
+#if NO
+                    // 这里可能会被异常跳过，影响到 Z39.50 和 SIP 的正常功能执行
                     this.MessageConnection.Instance = this;
                     this.MessageConnection.dp2library = this.dp2library;
+#endif
                 }
                 catch (Exception ex)
                 {
-                    this.WriteErrorLog("配置文件 " + strXmlFileName + " (dp2mserver 元素内) 格式错误: " + ex.Message);
+                    this.WriteErrorLog("!!! 配置文件 " + strXmlFileName + " (dp2mserver 元素内) 格式错误: " + ex.Message);
                 }
 
                 try
@@ -232,10 +294,12 @@ namespace dp2Capo
                         // this.zhost.SlowConfigInitialized = false;
                         // InitialZHostSlowConfig();
                     }
+                    else
+                        this.zhost = null;
                 }
                 catch (Exception ex)
                 {
-                    this.WriteErrorLog("配置文件 " + strXmlFileName + " (zServer 元素内) 格式错误: " + ex.Message);
+                    this.WriteErrorLog("!!! 配置文件 " + strXmlFileName + " (zServer 元素内) 格式错误: " + ex.Message);
                 }
 
                 try
@@ -247,11 +311,15 @@ namespace dp2Capo
                             this.sip_host = new SipHostInfo();
                             this.sip_host.Initial(element);
                         }
+                        else
+                            this.sip_host = null;
                     }
+                    else
+                        this.sip_host = null;
                 }
                 catch (Exception ex)
                 {
-                    this.WriteErrorLog("配置文件 " + strXmlFileName + " (sipServer 元素内) 格式错误: " + ex.Message);
+                    this.WriteErrorLog("!!! 配置文件 " + strXmlFileName + " (sipServer 元素内) 格式错误: " + ex.Message);
                 }
             }
 
@@ -454,6 +522,9 @@ namespace dp2Capo
 
         public void Close()
         {
+            // 清除废弃的全局结果集
+            FreeGlobalResultSets();
+
             _cancel.Cancel();
 
             if (this._notifyThread != null)
@@ -934,7 +1005,7 @@ namespace dp2Capo
             }
         }
 
-        #region 日志
+#region 日志
 
         private readonly Object _syncLog = new Object();
 
@@ -979,8 +1050,14 @@ namespace dp2Capo
         // 写入实例的错误日志文件
         public void WriteErrorLog(string strText)
         {
-            if (_errorLogError == true) // 先前写入实例的日志文件发生过错误，所以改为写入 Windows 日志。会加上实例名前缀字符串
-                Program.WriteWindowsLog("实例 " + this.Name + ": " + strText, EventLogEntryType.Error);
+            if (_errorLogError == true // 先前写入实例的日志文件发生过错误，所以改为写入 Windows 日志。会加上实例名前缀字符串
+                || this.LogDir == null)
+            {
+                // Program.WriteWindowsLog("实例 " + this.Name + ": " + strText, EventLogEntryType.Error);
+                ServerInfo.WriteErrorLog("实例 "
+                    + (this.Name == null ? "?" : this.Name)
+                    + ": " + strText);
+            }
             else
             {
                 try
@@ -989,13 +1066,18 @@ namespace dp2Capo
                 }
                 catch (Exception ex)
                 {
-                    Program.WriteWindowsLog("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入 Windows 日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
-                    Program.WriteWindowsLog(strText, EventLogEntryType.Error);
+                    //Program.WriteWindowsLog("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入 Windows 日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                    //Program.WriteWindowsLog(strText, EventLogEntryType.Error);
+                    ServerInfo.WriteErrorLog("因为原本要写入实例日志文件的操作发生异常， 所以不得不改为写入全局日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'");
+                    ServerInfo.WriteErrorLog("实例 "
+                        + (this.Name == null ? "?" : this.Name)
+                        + ": " + strText);
+                    Console.WriteLine(strText);
                 }
             }
         }
 
-        #endregion
+#endregion
 
     }
 
@@ -1421,7 +1503,7 @@ namespace dp2Capo
             return 0;
         }
 
-        #region
+#region
 
         // 获得可用的数据库数
         public int GetDbCount()
@@ -1532,7 +1614,7 @@ namespace dp2Capo
             return strFrom;
         }
 
-        #endregion
+#endregion
     }
 
     // 书目库属性

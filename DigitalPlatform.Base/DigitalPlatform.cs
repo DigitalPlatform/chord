@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
@@ -11,11 +11,11 @@ using System.Drawing;
 namespace DigitalPlatform
 {
 
-	// byte[] Êı×éµÄÊµÓÃº¯Êı¼¯
-	public class ByteArray
-	{
+    // byte[] æ•°ç»„çš„å®ç”¨å‡½æ•°é›†
+    public class ByteArray
+    {
         /*
-        // ¸´ÖÆÒ»¸öbyteÊı×é
+        // å¤åˆ¶ä¸€ä¸ªbyteæ•°ç»„
         public static byte[] Dup(byte [] source)
         {
             if (source == null)
@@ -29,217 +29,216 @@ namespace DigitalPlatform
             return result;
         }*/
 
-		// ¿ËÂ¡Ò»¸ö×Ö·ûÊı×é
-		public static byte[] GetCopy(byte[] baContent)
-		{
-			if (baContent == null)
-				return null;
-			byte [] baResult = new byte[baContent.Length];
-			Array.Copy(baContent, 0, baResult, 0, baContent.Length);
-			return baResult;
-		}
+        // å…‹éš†ä¸€ä¸ªå­—ç¬¦æ•°ç»„
+        public static byte[] GetCopy(byte[] baContent)
+        {
+            if (baContent == null)
+                return null;
+            byte[] baResult = new byte[baContent.Length];
+            Array.Copy(baContent, 0, baResult, 0, baContent.Length);
+            return baResult;
+        }
 
-		// ½«byte[]×ª»»Îª×Ö·û´®£¬×Ô¶¯Ì½²â±àÂë·½Ê½
-		public static string ToString(byte [] baContent)
-		{
-			ArrayList encodings = new ArrayList();
+        // å°†byte[]è½¬æ¢ä¸ºå­—ç¬¦ä¸²ï¼Œè‡ªåŠ¨æ¢æµ‹ç¼–ç æ–¹å¼
+        public static string ToString(byte[] baContent)
+        {
+            ArrayList encodings = new ArrayList();
 
-			encodings.Add(Encoding.UTF8);
-			encodings.Add(Encoding.Unicode);
+            encodings.Add(Encoding.UTF8);
+            encodings.Add(Encoding.Unicode);
 
-			for(int i=0;i<encodings.Count;i++)
-			{
-				Encoding encoding = (Encoding)encodings[i];
+            for (int i = 0; i < encodings.Count; i++)
+            {
+                Encoding encoding = (Encoding)encodings[i];
 
-				byte [] Preamble = encoding.GetPreamble();
+                byte[] Preamble = encoding.GetPreamble();
 
-				if (baContent.Length < Preamble.Length)
-					continue;
+                if (baContent.Length < Preamble.Length)
+                    continue;
 
-				if (ByteArray.Compare(baContent, Preamble, Preamble.Length) == 0)
-					return encoding.GetString(baContent,
-						Preamble.Length,
-						baContent.Length - Preamble.Length);
-			}
+                if (ByteArray.Compare(baContent, Preamble, Preamble.Length) == 0)
+                    return encoding.GetString(baContent,
+                        Preamble.Length,
+                        baContent.Length - Preamble.Length);
+            }
 
-			// È±Ê¡µ±×÷UTF8
-			return Encoding.UTF8.GetString(baContent);
-		}
+            // ç¼ºçœå½“ä½œUTF8
+            return Encoding.UTF8.GetString(baContent);
+        }
 
-		// byte[] µ½ ×Ö·û´®
-		public static string ToString(byte[] bytes,
-			Encoding encoding)
-		{
-			int nIndex = 0;
-			int nCount = bytes.Length;
-			byte[] baPreamble = encoding.GetPreamble();
-			if (baPreamble != null
-				&& baPreamble.Length != 0
-				&& bytes.Length >= baPreamble.Length)
-			{
-				byte[] temp = new byte[baPreamble.Length];
-				Array.Copy(bytes,
-					0,
-					temp,
-					0,
-					temp.Length);
+        // byte[] åˆ° å­—ç¬¦ä¸²
+        public static string ToString(byte[] bytes,
+            Encoding encoding)
+        {
+            int nIndex = 0;
+            int nCount = bytes.Length;
+            byte[] baPreamble = encoding.GetPreamble();
+            if (baPreamble != null
+                && baPreamble.Length != 0
+                && bytes.Length >= baPreamble.Length)
+            {
+                byte[] temp = new byte[baPreamble.Length];
+                Array.Copy(bytes,
+                    0,
+                    temp,
+                    0,
+                    temp.Length);
 
-				bool bEqual = true;
-				for(int i=0;i<temp.Length;i++)
-				{
-					if (temp[i] != baPreamble[i])
-					{
-						bEqual = false;
-						break;
-					}
-				}
+                bool bEqual = true;
+                for (int i = 0; i < temp.Length; i++)
+                {
+                    if (temp[i] != baPreamble[i])
+                    {
+                        bEqual = false;
+                        break;
+                    }
+                }
 
-				if (bEqual == true)
-				{
-					nIndex = temp.Length;
-					nCount = bytes.Length - temp.Length;
-				}
-			}
+                if (bEqual == true)
+                {
+                    nIndex = temp.Length;
+                    nCount = bytes.Length - temp.Length;
+                }
+            }
 
-			return encoding.GetString(bytes,
-				nIndex,
-				nCount);
-		}
+            return encoding.GetString(bytes,
+                nIndex,
+                nCount);
+        }
 
-		// ±È½ÏÁ½¸öbyte[]Êı×éÊÇ·ñÏàµÈ¡£
-		// parameter:
-		//		timestamp1: µÚÒ»¸öbyte[]Êı×é
-		//		timestamp2: µÚ¶ş¸öbyte[]Êı×é
-		// return:
-		//		0   ÏàµÈ
-		//		´óÓÚ»òÕßĞ¡ÓÚ0   ²»µÈ¡£ÏÈ±È½Ï³¤¶È¡£³¤¶ÈÏàµÈ£¬ÔÙÖğ¸ö×Ö·ûÏà¼õ¡£
-		public static int Compare(
-			byte[] bytes1,
-			byte[] bytes2)
-		{
-			if (bytes1 == null	&& bytes2 == null)
-				return 0;
-			if (bytes1 == null)
-				return -1;
-			if (bytes2 == null)
-				return 1;
+        // æ¯”è¾ƒä¸¤ä¸ªbyte[]æ•°ç»„æ˜¯å¦ç›¸ç­‰ã€‚
+        // parameter:
+        //		timestamp1: ç¬¬ä¸€ä¸ªbyte[]æ•°ç»„
+        //		timestamp2: ç¬¬äºŒä¸ªbyte[]æ•°ç»„
+        // return:
+        //		0   ç›¸ç­‰
+        //		å¤§äºæˆ–è€…å°äº0   ä¸ç­‰ã€‚å…ˆæ¯”è¾ƒé•¿åº¦ã€‚é•¿åº¦ç›¸ç­‰ï¼Œå†é€ä¸ªå­—ç¬¦ç›¸å‡ã€‚
+        public static int Compare(
+            byte[] bytes1,
+            byte[] bytes2)
+        {
+            if (bytes1 == null && bytes2 == null)
+                return 0;
+            if (bytes1 == null)
+                return -1;
+            if (bytes2 == null)
+                return 1;
 
-			int nDelta = bytes1.Length - bytes2.Length;
-			if (nDelta != 0)
-				return nDelta;
+            int nDelta = bytes1.Length - bytes2.Length;
+            if (nDelta != 0)
+                return nDelta;
 
-			for(int i=0;i<bytes1.Length;i++)
-			{
-				nDelta = bytes1[i] - bytes2[i];
-				if (nDelta != 0)
-					return nDelta;
-			}
+            for (int i = 0; i < bytes1.Length; i++)
+            {
+                nDelta = bytes1[i] - bytes2[i];
+                if (nDelta != 0)
+                    return nDelta;
+            }
 
-			return 0;
-		}
+            return 0;
+        }
 
-		// ±È½ÏÁ½¸öbyteÊı×éµÄ¾Ö²¿
-		public static int Compare(
-			byte[] bytes1,
-			byte[] bytes2, 
-			int nLength)
-		{
-			if (bytes1.Length < nLength || bytes2.Length < nLength)
-				return Compare(bytes1, bytes2, Math.Min(bytes1.Length, bytes2.Length));
+        // æ¯”è¾ƒä¸¤ä¸ªbyteæ•°ç»„çš„å±€éƒ¨
+        public static int Compare(
+            byte[] bytes1,
+            byte[] bytes2,
+            int nLength)
+        {
+            if (bytes1.Length < nLength || bytes2.Length < nLength)
+                return Compare(bytes1, bytes2, Math.Min(bytes1.Length, bytes2.Length));
 
-			for(int i=0;i<nLength;i++)
-			{
-				int nDelta = bytes1[i] - bytes2[i];
-				if (nDelta != 0)
-					return nDelta;
-			}
+            for (int i = 0; i < nLength; i++)
+            {
+                int nDelta = bytes1[i] - bytes2[i];
+                if (nDelta != 0)
+                    return nDelta;
+            }
 
-			return 0;
-		}
+            return 0;
+        }
 
-		public static int IndexOf(byte [] source,
-			byte v,
-			int nStartPos)
-		{
-			for(int i=nStartPos;i<source.Length;i++)
-			{
-				if (source[i] == v)
-					return i;
-			}
-			return -1;
-		}
+        public static int IndexOf(byte[] source,
+            byte v,
+            int nStartPos)
+        {
+            for (int i = nStartPos; i < source.Length; i++)
+            {
+                if (source[i] == v)
+                    return i;
+            }
+            return -1;
+        }
 
-		// È·±£Êı×é³ß´ç×ã¹»
-		public static byte [] EnsureSize(byte [] source,
-			int nSize)
-		{
-			if (source == null) 
-			{
-				return new byte[nSize];
-			}
+        // ç¡®ä¿æ•°ç»„å°ºå¯¸è¶³å¤Ÿ
+        public static byte[] EnsureSize(byte[] source,
+            int nSize)
+        {
+            if (source == null)
+            {
+                return new byte[nSize];
+            }
 
-			if (source.Length < nSize) 
-			{
-				byte [] temp = new byte [nSize];
-				Array.Copy(source, 
-					0,
-					temp,
-					0,
-					source.Length);
-				return temp;	// ³ß´ç²»¹»£¬ÒÑ¾­ÖØĞÂ·ÖÅä£¬²¢ÇÒ¼Ì³ĞÁËÔ­ÓĞÄÚÈİ
-			}
+            if (source.Length < nSize)
+            {
+                byte[] temp = new byte[nSize];
+                Array.Copy(source,
+                    0,
+                    temp,
+                    0,
+                    source.Length);
+                return temp;    // å°ºå¯¸ä¸å¤Ÿï¼Œå·²ç»é‡æ–°åˆ†é…ï¼Œå¹¶ä¸”ç»§æ‰¿äº†åŸæœ‰å†…å®¹
+            }
 
-			return source;	// ³ß´ç×ã¹»
-		}
+            return source;  // å°ºå¯¸è¶³å¤Ÿ
+        }
 
 
-		// ÔÚ»º³åÇøÎ²²¿×·¼ÓÒ»¸ö×Ö½Ú
-		public static byte[] Add(byte[] source,
-			byte v)
-		{
-			int nIndex = -1;
-			if (source != null) 
-			{
-				nIndex = source.Length;
-				source = EnsureSize(source, source.Length + 1);
-			}
-			else 
-			{
-				nIndex = 0;
-				source = EnsureSize(source, 1);
-			}
+        // åœ¨ç¼“å†²åŒºå°¾éƒ¨è¿½åŠ ä¸€ä¸ªå­—èŠ‚
+        public static byte[] Add(byte[] source,
+            byte v)
+        {
+            int nIndex = -1;
+            if (source != null)
+            {
+                nIndex = source.Length;
+                source = EnsureSize(source, source.Length + 1);
+            }
+            else
+            {
+                nIndex = 0;
+                source = EnsureSize(source, 1);
+            }
 
-			source[nIndex] = v;
+            source[nIndex] = v;
 
-			return source;
-		}
+            return source;
+        }
 
-		// ÔÚ»º³åÇøÎ²²¿×·¼ÓÈô¸É×Ö½Ú
-		public static byte[] Add(byte[] source,
-			byte[] v)
-		{
-			int nIndex = -1;
-			if (source != null) 
-			{
-				nIndex = source.Length;
-				source = EnsureSize(source, source.Length + v.Length);
-			}
-			else 
-			{
+        // åœ¨ç¼“å†²åŒºå°¾éƒ¨è¿½åŠ è‹¥å¹²å­—èŠ‚
+        public static byte[] Add(byte[] source,
+            byte[] v)
+        {
+            int nIndex = -1;
+            if (source != null)
+            {
+                nIndex = source.Length;
+                source = EnsureSize(source, source.Length + v.Length);
+            }
+            else
+            {
                 // 2011/1/22
                 if (v == null)
                     return null;
-				nIndex = 0;
-				source = EnsureSize(source, v.Length);
-			}
+                nIndex = 0;
+                source = EnsureSize(source, v.Length);
+            }
 
-			Array.Copy(v,0,source, nIndex, v.Length);
-
-			return source;
-		}
+            Array.Copy(v, 0, source, nIndex, v.Length);
+            return source;
+        }
 
         // 2011/9/12
-        // ÔÚ»º³åÇøÎ²²¿×·¼ÓÈô¸É×Ö½Ú
+        // åœ¨ç¼“å†²åŒºå°¾éƒ¨è¿½åŠ è‹¥å¹²å­—èŠ‚
         public static byte[] Add(byte[] source,
             byte[] v,
             int nLength)
@@ -265,13 +264,13 @@ namespace DigitalPlatform
             return source;
         }
 
-        // ´Ó source Í·²¿ÒÆ×ßÒ»¶Î¡£source Ëæºó±»¸Ä±ä
-        public static byte [] Remove(ref byte [] source, int length)
+        // ä» source å¤´éƒ¨ç§»èµ°ä¸€æ®µã€‚source éšåè¢«æ”¹å˜
+        public static byte[] Remove(ref byte[] source, int length)
         {
             if (length > source.Length)
                 length = source.Length;
 
-            byte [] result = new byte [length];
+            byte[] result = new byte[length];
             Array.Copy(source, result, length);
             int rest = source.Length - length;
             byte[] temp = new byte[rest];
@@ -282,40 +281,40 @@ namespace DigitalPlatform
             return result;
         }
 
-		// µÃµ½ÓÃ16½øÖÆ±íÊ¾µÄÊ±¼ä´Á×Ö·û´®
-		public static string GetHexTimeStampString(byte [] baTimeStamp)
-		{
-			if (baTimeStamp == null)
-				return "";
-			string strText = "";
-			for(int i=0;i<baTimeStamp.Length;i++) 
-			{
-				//string strHex = String.Format("{0,2:X}",baTimeStamp[i]);
-				string strHex = Convert.ToString(baTimeStamp[i], 16);
-				strText +=  strHex.PadLeft(2, '0');
-			}
+        // å¾—åˆ°ç”¨16è¿›åˆ¶è¡¨ç¤ºçš„æ—¶é—´æˆ³å­—ç¬¦ä¸²
+        public static string GetHexTimeStampString(byte[] baTimeStamp)
+        {
+            if (baTimeStamp == null)
+                return "";
+            string strText = "";
+            for (int i = 0; i < baTimeStamp.Length; i++)
+            {
+                //string strHex = String.Format("{0,2:X}",baTimeStamp[i]);
+                string strHex = Convert.ToString(baTimeStamp[i], 16);
+                strText += strHex.PadLeft(2, '0');
+            }
 
-			return strText;
-		}
+            return strText;
+        }
 
-		// µÃµ½byte[]ÀàĞÍµÄÊ±¼ä´Á
-		public static byte[] GetTimeStampByteArray(string strHexTimeStamp)
-		{
-			if (string.IsNullOrEmpty(strHexTimeStamp) == true)
-				return null;
+        // å¾—åˆ°byte[]ç±»å‹çš„æ—¶é—´æˆ³
+        public static byte[] GetTimeStampByteArray(string strHexTimeStamp)
+        {
+            if (string.IsNullOrEmpty(strHexTimeStamp) == true)
+                return null;
 
-			byte [] result = new byte[strHexTimeStamp.Length / 2];
+            byte[] result = new byte[strHexTimeStamp.Length / 2];
 
-			for(int i=0;i<strHexTimeStamp.Length / 2;i++)
-			{
-				string strHex = strHexTimeStamp.Substring(i*2, 2);
-				result[i] = Convert.ToByte(strHex, 16);
+            for (int i = 0; i < strHexTimeStamp.Length / 2; i++)
+            {
+                string strHex = strHexTimeStamp.Substring(i * 2, 2);
+                result[i] = Convert.ToByte(strHex, 16);
 
-			}
+            }
 
-			return result;
-		}
-	}
+            return result;
+        }
+    }
 
 
 }

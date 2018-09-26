@@ -300,9 +300,17 @@ namespace dp2Capo.Install
 
                 set
                 {
-                    // TODO: 检查 UserName 值的合法性
                     if (string.IsNullOrEmpty(value))
                         throw new ArgumentException("用户名不应为空");
+
+                    // 检查用户名合法性
+                    // return:
+                    //      -1  校验过程出错
+                    //      0   校验发现不正确
+                    //      1   校验正确
+                    if (VerifyDp2libraryUserName(value,
+                        out string strError) != 1)
+                        throw new ArgumentException("用户名 '" + value + "' 不合法：" + strError);
 
                     _userName = value;
                     OnPropertyChanged("UserName");
@@ -426,7 +434,7 @@ namespace dp2Capo.Install
             else
                 this.tabControl_main.Enabled = false;
 #endif
-            foreach(TabPage page in this.tabControl_main.TabPages)
+            foreach (TabPage page in this.tabControl_main.TabPages)
             {
                 page.Enabled = this.checkBox_enableSIP.Checked;
             }
@@ -499,6 +507,13 @@ namespace dp2Capo.Install
                 if (root == null)
                     return true;
             }
+
+            if (root == null)
+            {
+                root = dom.CreateElement("sipServer");
+                dom.DocumentElement.AppendChild(root);
+            }
+
             root.SetAttribute("enable", this.checkBox_enableSIP.Checked ? "true" : "false");
 
             // 检查数据合法性
@@ -507,12 +522,6 @@ namespace dp2Capo.Install
             {
                 MessageBox.Show(this, "自动清理时间秒数 '" + this.textBox_autoClearTime.Text + "' 不合法。应该为纯数字");
                 return false;
-            }
-
-            if (root == null)
-            {
-                root = dom.CreateElement("sipServer");
-                dom.DocumentElement.AppendChild(root);
             }
 
             {
@@ -754,6 +763,30 @@ namespace dp2Capo.Install
             }
         }
 
+        // return:
+        //      -1  校验过程出错
+        //      0   校验发现不正确
+        //      1   校验正确
+        public static int VerifyDp2libraryUserName(string strUserName,
+            out string strError)
+        {
+            strError = "";
+
+            if (string.IsNullOrEmpty(strUserName))
+            {
+                strError = "用户名不应为空";
+                return 0;
+            }
+
+            if (strUserName.IndexOf("@") != -1)
+            {
+                strError = "用户名中不应包含 @";
+                return 0;
+            }
+
+            return 1;
+        }
+
         private void toolStripButton_newUser_Click(object sender, EventArgs e)
         {
             REDO:
@@ -764,6 +797,18 @@ namespace dp2Capo.Install
     this.Font);
             if (strUserName == null)
                 return;
+
+            // 检查用户名合法性
+            // return:
+            //      -1  校验过程出错
+            //      0   校验发现不正确
+            //      1   校验正确
+            if (VerifyDp2libraryUserName(strUserName,
+                out string strError) != 1)
+            {
+                MessageBox.Show(this, "用户名 '" + strUserName + "' 不合法：" + strError);
+                goto REDO;
+            }
 
             UserItem dup = FindItem(strUserName, null);
             if (dup != null)

@@ -30,6 +30,16 @@ namespace DigitalPlatform.LibraryClient
         internal ReaderWriterLockSlim m_lock = new ReaderWriterLockSlim();
         internal static int m_nLockTimeout = 5000;	// 5000=5秒
 
+        public LibraryChannelPool()
+        {
+
+        }
+
+        public LibraryChannelPool(int max_count)
+        {
+            this.MaxCount = max_count;
+        }
+
         // 
         /// <summary>
         /// 征用一个通道

@@ -36,7 +36,7 @@ namespace dp2Capo
         public Instance Instance { get; set; }  // 方便访问 Instance
 
         public LibraryHostInfo dp2library { get; set; }
-        internal LibraryChannelPool _libraryChannelPool = new LibraryChannelPool();
+        internal LibraryChannelPool _libraryChannelPool = new LibraryChannelPool(150);  // 默认的 50 通常不够用
 
         public ServerConnection()
         {
@@ -275,7 +275,7 @@ namespace dp2Capo
                 loginInfo = GetManagerLoginInfo();  // 宽容一些，让老的前端也能用
             }
 
-            if (loginInfo.UserName == "")
+            if (loginInfo.UserName == "")   // == ""
                 loginInfo = GetManagerLoginInfo();
 
             ChannelExtData data = new ChannelExtData();
@@ -285,6 +285,11 @@ namespace dp2Capo
             string strUserName = loginInfo.UserName;
             if (loginInfo.UserType == "patron")
                 data.IsPatron = true;
+
+            if (this.dp2library == null)
+                throw new ArgumentException("this.dp2library == null");
+            if (this._libraryChannelPool == null)
+                throw new ArgumentException("this._libraryChannelPool == null");
 
             string strServerUrl = this.dp2library.Url;
             LibraryChannel channel = this._libraryChannelPool.GetChannel(strServerUrl, strUserName);
@@ -306,6 +311,9 @@ namespace dp2Capo
         // 获得 dp2library 代理账号的 LoginInfo
         LoginInfo GetManagerLoginInfo()
         {
+            if (this.dp2library == null)
+                throw new ArgumentException("this.dp2library == null");
+
             return new LoginInfo(this.dp2library.UserName, false);
         }
 

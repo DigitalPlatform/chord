@@ -92,8 +92,9 @@ Stack:
             if (ex is AggregateException)
                 return GetAggregateExceptionText(ex as AggregateException);
 
-            return ex.GetType().ToString() + ":" + ex.Message + "\r\n"
-                + ex.StackTrace.ToString();
+            //return ex.GetType().ToString() + ":" + ex.Message + "\r\n"
+            //    + ex.StackTrace.ToString();
+            return GetDebugText(ex);    // 包含了 innerException
         }
 
         public static string GetAggregateExceptionText(AggregateException exception)

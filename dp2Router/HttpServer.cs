@@ -81,7 +81,7 @@ namespace dp2Router
                 {
                     if (this.IsActive == false)
                         break;
-                    ServerInfo.WriteErrorLog("Listen() 出现异常: " + ExceptionUtil.GetExceptionMessage(ex));
+                    ServerInfo.WriteErrorLog("AcceptTcpClientAsync() 出现异常: " + ExceptionUtil.GetExceptionMessage(ex));
                 }
                 Thread.Sleep(1);
             }

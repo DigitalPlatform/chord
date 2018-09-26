@@ -128,7 +128,7 @@ namespace DigitalPlatform.Net
                         {
                             tcpClient.Close();
                             // TODO: 可以在首次出现这种情况的时候记入错误日志
-                            // ZManager.Log?.Info("*** ip [" + ip + "] 被禁止 Connect。原因: " + error);
+                            LibraryManager.Log?.Info("*** ip [" + ip + "] 被禁止 Connect。原因: " + error);
                             continue;
                         }
                     }
@@ -166,7 +166,7 @@ namespace DigitalPlatform.Net
 
                     if (this._isActive == false)
                         break;
-                    LibraryManager.Log?.Error(this.GetServerName() + " Listen() 出现异常: " + ExceptionUtil.GetExceptionMessage(ex));
+                    LibraryManager.Log?.Error(this.GetServerName() + " AcceptTcpClientAsync() 出现异常: " + ExceptionUtil.GetDebugText(ex));
                 }
                 Thread.Sleep(1);
             }
@@ -273,10 +273,6 @@ namespace DigitalPlatform.Net
             }
 #endif
         }
-
-
-
-
     }
 }
 

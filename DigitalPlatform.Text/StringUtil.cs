@@ -14,6 +14,23 @@ namespace DigitalPlatform.Text
     /// </summary>
     public static class StringUtil
     {
+        public static string[] units = new string[] { "K", "M", "G", "T" };
+        public static string GetLengthText(long length)
+        {
+            decimal v = length;
+            int i = 0;
+            foreach (string strUnit in units)
+            {
+                v = decimal.Round(v / 1024, 2);
+                if (v < 1024 || i >= units.Length - 1)
+                    return v.ToString() + strUnit;
+
+                i++;
+            }
+
+            return length.ToString();
+        }
+
 
         public static bool IsHttpUrl(string url)
         {

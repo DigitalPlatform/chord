@@ -828,7 +828,7 @@ namespace DigitalPlatform.Z3950
                 return new InitialResult(); // 没有发现问题
 
             // 注意调用返回后如果发现出错，调主要主动 Close 和重新分配 TcpClient
-            RecvResult result = await ZChannel.SimpleRecvTcpPackage(this._channel._client).ConfigureAwait(false);
+            RecvResult result = await ZChannel.SimpleRecvTcpPackage(this._channel._client, -1).ConfigureAwait(false);
             if (result.Value == -1)
             {
                 this.CloseConnection();
@@ -872,6 +872,57 @@ namespace DigitalPlatform.Z3950
             var temp = this.Closed;
             if (temp != null)
                 temp(this, new EventArgs());
+        }
+
+
+        public async Task<InitialResult> HugeRequestAttack(TargetInfo targetinfo,
+            int length)
+        {
+
+            bool bTry = true;
+            {
+                // 处理通讯缓冲区中可能残留的 Close Response
+                // return value:
+                //      -1  error
+                //      0   不是Close
+                //      1   是Close，已经迫使ZChannel处于尚未初始化状态
+                InitialResult result = await CheckServerCloseRequest().ConfigureAwait(false);
+            }
+
+            if (bTry == false
+                || this._channel.Connected == false
+                || this._channel.Initialized == false
+    || this._channel.HostName != targetinfo.HostName
+    || this._channel.Port != targetinfo.Port)
+            {
+                if (this._channel.Connected == false)
+                {
+                    Result result = await this._channel.Connect(targetinfo.HostName, targetinfo.Port).ConfigureAwait(false);
+                    if (result.Value == -1)
+                        return new InitialResult { Value = -1, ErrorInfo = result.ErrorInfo };
+                }
+
+                // this.Stop.SetMessage("正在执行Z39.50初始化 ...");
+
+                // 2018/7/4
+                if (bTry == false)
+                    this._channel.Initialized = false;
+
+                {
+                    // return Value:
+                    //      -1  出错
+                    //      0   成功
+                    Result result = await ZChannel.SendInfinitPackage(
+this._channel._client,
+length).ConfigureAwait(false);
+                    if (result.Value == -1)
+                        return new InitialResult(result);
+
+                    return new InitialResult(result);
+                }
+            }
+
+            return new InitialResult { Value = 1 };
         }
 
     }

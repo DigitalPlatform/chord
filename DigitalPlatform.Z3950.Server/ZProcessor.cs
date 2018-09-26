@@ -1,4 +1,5 @@
 ﻿using DigitalPlatform.Net;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,14 +16,39 @@ namespace DigitalPlatform.Z3950.Server
     public static class ZProcessor
     {
         // 注意调用返回后如果发现返回 null 或者抛出了异常，调主要主动 Close 和重新分配 TcpClient
-        public static async Task<BerTree> GetIncomingRequest(TcpClient client)
+        public static async Task<BerTree> GetIncomingRequest(
+            List<byte> cache,
+            TcpClient client, 
+            delegate_touch touch_func)
         {
-            RecvResult result = await ZChannel.SimpleRecvTcpPackage(client);
+#if NO
+            RecvResult result = await ZChannel.SimpleRecvTcpPackage(client,
+                // (int)Math.Max(ZServerChannelProperty.MaxPreferredMessageSize, ZServerChannelProperty.MaxExceptionalRecordSize)  // 防范攻击
+                -1, // testing
+                touch_func);
+#endif
+            RecvResult result = await ZChannel.SimpleRecvTcpPackage(client,
+    cache,
+    (package, start, length) =>
+    {
+        bool bRet = BerNode.IsCompleteBER(package,
+            start,
+            length,
+            out long remainder);
+        if (bRet == true)
+            return new Tuple<int, byte>((int)remainder, 0);
+        return new Tuple<int, byte>(0, 0);
+    },
+    touch_func,
+    // (int)Math.Max(ZServerChannelProperty.MaxPreferredMessageSize, ZServerChannelProperty.MaxExceptionalRecordSize)
+    -1  // testing
+    );
+
             if (result.Value == -1)
             {
                 if (result.ErrorCode == "Closed")
                     return null;    // 表示通道被对方切断
-                throw new Exception(result.ErrorInfo);
+                throw new Exception(result.ErrorInfo, result.Exception);
             }
 
 #if DEBUG
@@ -168,8 +194,11 @@ namespace DigitalPlatform.Z3950.Server
 #endif
 
         // 解码Initial请求包
+        // parameters:
+        //      encoding    解码 InternationalString 所用的编码方式
         public static int Decode_InitRequest(
             BerNode root,
+            Encoding encoding,
             out InitRequestInfo info,
             out string strDebugInfo,
             out string strError)
@@ -213,17 +242,14 @@ namespace DigitalPlatform.Z3950.Server
                         break;
                     case BerTree.z3950_idAuthentication:
                         {
-                            string strGroupId = "";
-                            string strUserId = "";
-                            string strPassword = "";
-                            int nAuthentType = 0;
 
                             int nRet = DecodeAuthentication(
                                 node,
-                                out strGroupId,
-                                out strUserId,
-                                out strPassword,
-                                out nAuthentType,
+                                encoding,
+                                out string strGroupId,
+                                out string strUserId,
+                                out string strPassword,
+                                out int nAuthentType,
                                 out strError);
                             if (nRet == -1)
                                 return -1;
@@ -266,6 +292,7 @@ namespace DigitalPlatform.Z3950.Server
         //      nAuthentType 0: open(simple) 1:idPass(group)
         static int DecodeAuthentication(
             BerNode root,
+            Encoding encodingOfInternationalString,
             out string strGroupId,
             out string strUserId,
             out string strPassword,
@@ -286,7 +313,6 @@ namespace DigitalPlatform.Z3950.Server
 
             string strOpen = ""; // open mode authentication
 
-
             for (int i = 0; i < root.ChildrenCollection.Count; i++)
             {
                 BerNode node = root.ChildrenCollection[i];
@@ -301,13 +327,14 @@ namespace DigitalPlatform.Z3950.Server
                             switch (nodek.m_uTag)
                             {
                                 case 0: // groupId
-                                    strGroupId = nodek.GetCharNodeData();
+                                    strGroupId = nodek.GetCharNodeData(encodingOfInternationalString);
                                     break;
                                 case 1: // userId
-                                    strUserId = nodek.GetCharNodeData();
+                                    // TODO: 这里用什么编码方式?
+                                    strUserId = nodek.GetCharNodeData(encodingOfInternationalString);
                                     break;
                                 case 2: // password
-                                    strPassword = nodek.GetCharNodeData();
+                                    strPassword = nodek.GetCharNodeData(encodingOfInternationalString);
                                     break;
                             }
                         }
@@ -316,7 +343,7 @@ namespace DigitalPlatform.Z3950.Server
                     case BerNode.ASN1_VISIBLESTRING:
                     case BerNode.ASN1_GENERALSTRING:
                         nAuthentType = 0; //  "SIMPLE";
-                        strOpen = node.GetCharNodeData();
+                        strOpen = node.GetCharNodeData(encodingOfInternationalString);
                         break;
                 }
             }
@@ -870,10 +897,14 @@ namespace DigitalPlatform.Z3950.Server
             //int nRet = 0;
             //string strError = "";
 
+            //ZProcessor.SetPresentDiagRecord(ref diag,
+            //    17, // record exceeds Exceptional_record_size
+            //    "");
+
+
             // DiagFormat diag = null;
 
             BerTree tree = new BerTree();
-            BerNode root = null;
 
             string strResultSetName = info.m_strResultSetID;
             if (String.IsNullOrEmpty(strResultSetName) == true)
@@ -985,6 +1016,7 @@ namespace DigitalPlatform.Z3950.Server
                 nNextResultSetPosition = lStart + lNumber + 1;
             }
 
+            BerNode root = null;
             root = tree.m_RootNode.NewChildConstructedNode(
                 BerTree.z3950_presentResponse,
                 BerNode.ASN1_CONTEXT);
@@ -1175,35 +1207,47 @@ namespace DigitalPlatform.Z3950.Server
             if (0 != nPresentStatus)
                 goto END1;
 
-            // 编码记录BER树
-
-            // 以下为 present 成功时，打包返回记录。
-            // present success
-            // presRoot records child, constructed (choice of ... ... optional)
-            // if present fail, then may be no records 'node'
-            // Records ::= CHOICE {
-            //		responseRecords              [28]   IMPLICIT SEQUENCE OF NamePlusRecord,
-            //		nonSurrogateDiagnostic       [130]  IMPLICIT DefaultDiagFormat,
-            //		multipleNonSurDiagnostics    [205]  IMPLICIT SEQUENCE OF DiagRec} 
-
-            // 当 present 成功时，response 选择了 NamePlusRecord (数据库名 +　记录)
-            BerNode node = root.NewChildConstructedNode(BerTree.z3950_dataBaseOrSurDiagnostics,    // 28
-                            BerNode.ASN1_CONTEXT);
-
-            if (records != null)
+            // if (records != null && records.Count > 0)
             {
-                foreach (RetrivalRecord record in records)
+                // 编码记录BER树
+
+                // 以下为 present 成功时，打包返回记录。
+                // present success
+                // presRoot records child, constructed (choice of ... ... optional)
+                // if present fail, then may be no records 'node'
+                // Records ::= CHOICE {
+                //		responseRecords              [28]   IMPLICIT SEQUENCE OF NamePlusRecord,
+                //		nonSurrogateDiagnostic       [130]  IMPLICIT DefaultDiagFormat,
+                //		multipleNonSurDiagnostics    [205]  IMPLICIT SEQUENCE OF DiagRec} 
+
+                // 当 present 成功时，response 选择了 NamePlusRecord (数据库名 +　记录)
+                BerNode node = root.NewChildConstructedNode(BerTree.z3950_dataBaseOrSurDiagnostics,    // 28
+                                BerNode.ASN1_CONTEXT);
+
+                if (records != null)
                 {
-                    record.BuildNamePlusRecord(node);
+                    foreach (RetrivalRecord record in records)
+                    {
+                        record.BuildNamePlusRecord(node);
+                    }
                 }
             }
 
             END1:
 
-            baPackage = null;
-            root.EncodeBERPackage(ref baPackage);
+            try
+            {
+                // string text = JsonConvert.SerializeObject(root, Formatting.Indented);
 
-            return 0;
+                baPackage = null;
+                root.EncodeBERPackage(ref baPackage);
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                string text = JsonConvert.SerializeObject(root, Formatting.Indented);
+                throw new Exception("EncodeBERPackage() 抛出异常。BerNode [" + text + "]", ex);
+            }
         }
 
     }
@@ -1352,8 +1396,7 @@ Ralph
 
             if (this.m_external != null
                 && this.m_surrogateDiagnostic != null)
-                throw new Exception("m_external 和 m_surrogateDiagnostic 不能同时为非空。只能有一个为空");
-
+                throw new Exception("m_external 和 m_surrogateDiagnostic 不能同时为非空。只能有一个为非空");
 
             BerNode pSequence = node.NewChildConstructedNode(
                 BerNode.ASN1_SEQUENCE,    // 16
@@ -1368,7 +1411,6 @@ Ralph
             BerNode nodeRecord = pSequence.NewChildConstructedNode(
                 1,
                 BerNode.ASN1_CONTEXT);
-
 
             if (this.m_external != null)
             {

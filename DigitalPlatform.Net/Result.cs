@@ -12,6 +12,7 @@ namespace DigitalPlatform.Net
         public int Value { get; set; }
         public string ErrorInfo { get; set; }
         public string ErrorCode { get; set; }
+        public Exception Exception { get; set; }
 
         public static void CopyTo(Result source, Result target)
         {

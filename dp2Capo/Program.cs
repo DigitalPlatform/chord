@@ -252,8 +252,8 @@ namespace dp2Capo
         {
             base.Close();
 
-            ServerInfo.Exit();
             StopServer();
+            ServerInfo.Exit();
         }
 
         protected override void Dispose(bool disposing)

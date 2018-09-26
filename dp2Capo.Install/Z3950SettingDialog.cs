@@ -470,6 +470,9 @@ namespace dp2Capo.Install
                 new_database.SetAttribute("name", name);
                 new_database.SetAttribute("alias", alias);
 
+                // 2018/9/16
+                new_database.SetAttribute("maxResultCount", "1000");
+
                 createCount++;
 
                 // 翻译 use

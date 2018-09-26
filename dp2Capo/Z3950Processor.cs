@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 using DigitalPlatform;
 using DigitalPlatform.Common;
 using DigitalPlatform.LibraryClient;
@@ -78,10 +77,13 @@ namespace dp2Capo
 
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
+            if (zserver_channel == null)
+                throw new ArgumentException("zserver_channel 为空");
+
             string strInstanceName = zserver_channel.EnsureProperty().GetKeyValue("i_n");
             if (strInstanceName == null)
             {
-                strError = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
+                strError = "通道中 实例名 'i_n' 尚未初始化";   // ?? bug
                 LibraryManager.Log?.Error(strError);
                 goto ERROR1;
             }
@@ -117,7 +119,7 @@ namespace dp2Capo
             string strUserName = zserver_channel.EnsureProperty().GetKeyValue("i_u");
             string strPassword = zserver_channel.EnsureProperty().GetKeyValue("i_p");
 
-            LoginInfo login_info = new LoginInfo { UserName = strUserName, Password = strPassword };
+            LoginInfo login_info = BuildLoginInfo(strUserName, strPassword);
             LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
             try
             {
@@ -246,6 +248,7 @@ namespace dp2Capo
                         {
                             if (nSize >= zserver_channel.EnsureProperty().PreferredMessageSize)
                             {
+                                // TODO: 记入日志?
                                 // 调整返回的记录数
                                 lNumber = i;
                                 break;
@@ -416,6 +419,9 @@ namespace dp2Capo
             return 1;
         }
 
+        // 慢速检索的时间长度阈值
+        static TimeSpan slow_length = TimeSpan.FromSeconds(5);
+
         private static void Zserver_SearchSearch(object sender, SearchSearchEventArgs e)
         {
             string strError = "";
@@ -423,10 +429,13 @@ namespace dp2Capo
 
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
+            if (zserver_channel == null)
+                throw new ArgumentException("zserver_channel 为空");
+
             string strInstanceName = zserver_channel.EnsureProperty().GetKeyValue("i_n");
             if (strInstanceName == null)
             {
-                string strErrorText = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
+                string strErrorText = "通道中 实例名 'i_n' 尚未初始化";    // ?? bug
                 LibraryManager.Log?.Error(strErrorText);
                 e.Result = new DigitalPlatform.Z3950.ZClient.SearchResult { Value = -1, ErrorInfo = strErrorText };
                 return;
@@ -494,19 +503,30 @@ namespace dp2Capo
             string strUserName = zserver_channel.EnsureProperty().GetKeyValue("i_u");
             string strPassword = zserver_channel.EnsureProperty().GetKeyValue("i_p");
 
-            LoginInfo login_info = new LoginInfo { UserName = strUserName, Password = strPassword };
-
+            LoginInfo login_info = BuildLoginInfo(strUserName, strPassword);
             LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
             try
             {
                 // 全局结果集名
                 string resultset_name = MakeGlobalResultSetName(zserver_channel, e.Request.m_strResultSetName);
+
+                DateTime start = DateTime.Now;
                 // 进行检索
                 long lRet = library_channel.Search(
         strQueryXml,
         resultset_name,
         "", // strOutputStyle
         out strError);
+
+                // testing System.Threading.Thread.Sleep(TimeSpan.FromSeconds(6));
+                TimeSpan length = DateTime.Now - start;
+                if (length >= slow_length)
+                {
+                    string ip = TcpServer.GetClientIP(zserver_channel.TcpClient);
+                    string strChannelName = "ip:" + ip + ",channel:" + zserver_channel.GetHashCode();
+
+                    LibraryManager.Log?.Info("通道 " + strChannelName + " 检索式 '" + strQueryXml + "' 检索耗时 " + length.ToString() + " (命中记录 " + lRet + ")，超过慢速阈值");
+                }
 
                 /*
                 // 测试检索失败
@@ -584,6 +604,9 @@ namespace dp2Capo
         static bool MemoryResultSetName(ZServerChannel zserver_channel,
             string resultset_name)
         {
+            if (zserver_channel == null)
+                throw new ArgumentException("zserver_channel 为空");
+
             if (!(zserver_channel.EnsureProperty().GetKeyObject("r_n") is List<string> names))
             {
                 names = new List<string>();
@@ -625,10 +648,13 @@ namespace dp2Capo
         static void FreeGlobalResultSets(ZServerChannel zserver_channel,
             List<string> names)
         {
+            if (zserver_channel == null)
+                throw new ArgumentException("zserver_channel 为空");
+
             string strInstanceName = zserver_channel.EnsureProperty().GetKeyValue("i_n");
             if (strInstanceName == null)
             {
-                LibraryManager.Log?.Error("通道中 实例名 'i_n'='" + strInstanceName + "' 尚未初始化");
+                LibraryManager.Log?.Error("通道中 实例名 'i_n' 尚未初始化");   // ?? bug
             }
             Instance instance = FindZ3950Instance(strInstanceName, out string strError);
             if (instance == null)
@@ -732,10 +758,13 @@ namespace dp2Capo
         {
             ZServerChannel zserver_channel = (ZServerChannel)sender;
 
+            if (zserver_channel == null)
+                throw new ArgumentException("zserver_channel 为空");
+
             string strInstanceName = zserver_channel.EnsureProperty().GetKeyValue("i_n");
             if (strInstanceName == null)
             {
-                string strErrorText = "通道中 实例名 '" + strInstanceName + "' 尚未初始化";
+                string strErrorText = "通道中 实例名 'i_n' 尚未初始化";    // ?? bug
                 LibraryManager.Log?.Error(strErrorText);
                 e.Result = new Result
                 {
@@ -777,7 +806,7 @@ namespace dp2Capo
             string strUserName = zserver_channel.EnsureProperty().GetKeyValue("i_u");
             string strPassword = zserver_channel.EnsureProperty().GetKeyValue("i_p");
 
-            LoginInfo login_info = new LoginInfo { UserName = strUserName, Password = strPassword };
+            LoginInfo login_info = BuildLoginInfo(strUserName, strPassword);
 
             LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
             try
@@ -791,8 +820,8 @@ namespace dp2Capo
                 //      -1  登录出错
                 //      0   登录未成功
                 //      1   登录成功
-                long lRet = library_channel.Login(strUserName,
-                    strPassword,
+                long lRet = library_channel.Login(login_info.UserName,
+                    login_info.Password,    // strPassword,
                     strParameters,
                     out strError);
                 e.Result.Value = (int)lRet;
@@ -804,6 +833,22 @@ namespace dp2Capo
             {
                 instance.MessageConnection.ReturnChannel(library_channel);
             }
+        }
+
+        static LoginInfo BuildLoginInfo(string strUserName, string strPassword)
+        {
+            if (strUserName.StartsWith("~"))
+            {
+                string strBarcode = strUserName.Substring(1);
+                return new LoginInfo
+                {
+                    UserName = strBarcode,
+                    UserType = "patron",
+                    Password = strPassword
+                };
+            }
+            else
+                return new LoginInfo { UserName = strUserName, Password = strPassword };
         }
 
         private static void Zserver_SetChannelProperty(object sender, SetChannelPropertyEventArgs e)
