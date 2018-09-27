@@ -24,7 +24,7 @@ namespace DigitalPlatform.Net
         /// <summary>
         /// 每个(来自前端的) IP 最多允许访问服务器的前端机器数量
         /// </summary>
-        public int MaxClientsPerIp = 1000; // -1 表示不限制
+        public int MaxClientsPerIp = 1000; // 1000 -1 表示不限制
 
         Dictionary<string, IpEntry> _ipTable = new Dictionary<string, IpEntry>();   // IP -- 信息 对照表
 
@@ -172,7 +172,7 @@ namespace DigitalPlatform.Net
             }
 
             long value = entry.IncOnline();
-            if (MaxClientsPerIp != -1 && value >= MaxClientsPerIp)
+            if (MaxClientsPerIp != -1 && value > MaxClientsPerIp)
             {
                 entry.DecOnline();
                 return "IP 地址为 '" + ip + "' 的前端数量超过配额 " + MaxClientsPerIp;

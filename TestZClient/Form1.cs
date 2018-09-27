@@ -6,6 +6,7 @@ using System.Xml;
 using System.Text;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Web;
 
 using TestZClient.Properties;
 
@@ -13,7 +14,6 @@ using static DigitalPlatform.Z3950.ZClient;
 using DigitalPlatform.Text;
 using DigitalPlatform.Z3950;
 using DigitalPlatform.Marc;
-using System.Web;
 using DigitalPlatform.MarcQuery;
 using DigitalPlatform.Net;
 
@@ -720,7 +720,8 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     AppendMarcRecords(present_result.Records,
                         _zclient.ForcedRecordsEncoding == null ? _targetInfo.DefaultRecordsEncoding : _zclient.ForcedRecordsEncoding,
                         _fetched);
-                    _fetched += present_result.Records.Count;
+                    if (present_result.Records != null)
+                        _fetched += present_result.Records.Count;
                 }
             }
             finally
