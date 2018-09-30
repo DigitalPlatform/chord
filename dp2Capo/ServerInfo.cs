@@ -852,7 +852,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                 {
                     // 写入统计信息
                     _statisCount++;
-                    if ((_statisCount % 10) == 0)
+                    if ((_statisCount % 10) == 1)
                     {
                         LogCpuUsage("dp2capo");
                         WriteLog("info", "ZServer 统计信息: " + ZServer?.GetStatisInfo());
@@ -864,6 +864,9 @@ Exception Info: System.Net.NetworkInformation.PingException
 
                     ZServer?.TryClearBlackList();
                     SipServer?.TryClearBlackList();
+
+                    // 把紧凑日志写入日志文件
+                    ZServer?.TryFlushCompactLog();
                 }
 
                 // 阻塞，直到全部任务完成。避免 BeginConnect() 函数被重叠调用

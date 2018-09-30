@@ -696,7 +696,6 @@ namespace DigitalPlatform.Z3950
                 if (result.Records == null)
                     break;
 
-
                 nGeted += result.Records.Count;
                 if (result.Records.Count > 0)
                     records.AddRange(result.Records);

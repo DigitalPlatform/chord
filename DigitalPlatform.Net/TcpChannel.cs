@@ -341,6 +341,7 @@ namespace DigitalPlatform.Net
                     }
                     return new RecvResult
                     {
+                        Exception = ex,
                         Value = -1,
                         ErrorInfo = "recv出错1: " + ex.Message,
                         // "ConnectionAborted"
@@ -349,6 +350,7 @@ namespace DigitalPlatform.Net
                 }
                 catch (Exception ex)
                 {
+                    result.Exception = ex;
                     if (ex is IOException && ex.InnerException is SocketException)
                     {
                         // "ConnectionAborted"

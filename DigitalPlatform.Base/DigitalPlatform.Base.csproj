@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CompactLog.cs" />
     <Compile Include="DigitalPlatform.cs" />
     <Compile Include="ExceptionUtil.cs" />
     <Compile Include="Extension.cs" />

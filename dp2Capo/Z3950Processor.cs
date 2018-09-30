@@ -152,6 +152,15 @@ namespace dp2Capo
                             e.Diag = diag1;
                             return;
                         }
+                        if (lStart + lNumber > loader.TotalCount)
+                        {
+                            DiagFormat diag1 = null;
+                            ZProcessor.SetPresentDiagRecord(ref diag1,
+    13,  // Present request out-of-range
+    "Present 所请求的结束偏移位置 " + (lStart + lNumber) + " 超过结果集中记录总数 " + loader.TotalCount);
+                            e.Diag = diag1;
+                            return;
+                        }
                     }
 
                     {
