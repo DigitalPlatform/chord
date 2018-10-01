@@ -449,7 +449,6 @@ namespace DigitalPlatform.Z3950
         public void EncodeBERPackage(ref byte[] baPackage)
         {
             // 1.得到全部子节点的BER包
-
             BerNode node = null;
             byte[] baTempPackage = null;
 

@@ -18,7 +18,7 @@ namespace DigitalPlatform.Z3950.Server
         // 注意调用返回后如果发现返回 null 或者抛出了异常，调主要主动 Close 和重新分配 TcpClient
         public static async Task<BerTree> GetIncomingRequest(
             List<byte> cache,
-            TcpClient client, 
+            TcpClient client,
             delegate_touch touch_func)
         {
 #if NO
@@ -40,8 +40,8 @@ namespace DigitalPlatform.Z3950.Server
         return new Tuple<int, byte>(0, 0);
     },
     touch_func,
-    // (int)Math.Max(ZServerChannelProperty.MaxPreferredMessageSize, ZServerChannelProperty.MaxExceptionalRecordSize)
-    -1  // testing
+    (int)Math.Max(ZServerChannelProperty.MaxPreferredMessageSize, ZServerChannelProperty.MaxExceptionalRecordSize)
+    // -1  // testing
     );
 
             if (result.Value == -1)
@@ -901,6 +901,12 @@ namespace DigitalPlatform.Z3950.Server
             //    17, // record exceeds Exceptional_record_size
             //    "");
 
+            // 2018/9/27
+            if ((records == null || records.Count == 0)
+                && diag == null)
+                ZProcessor.SetPresentDiagRecord(ref diag,
+                    13, // Present request out-of-range
+                    "结果集为空");
 
             // DiagFormat diag = null;
 

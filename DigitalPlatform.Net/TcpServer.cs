@@ -34,6 +34,8 @@ namespace DigitalPlatform.Net
             }
         }
 
+        CompactLog _compactLog = new CompactLog();
+
         #endregion
 
         public TcpServer(int port)
@@ -128,7 +130,8 @@ namespace DigitalPlatform.Net
                         {
                             tcpClient.Close();
                             // TODO: 可以在首次出现这种情况的时候记入错误日志
-                            LibraryManager.Log?.Info("*** ip [" + ip + "] 被禁止 Connect。原因: " + error);
+                            _compactLog?.Add("*** ip {0} 被禁止 Connect。原因: {1}", new object[] { ip, error });
+                            // LibraryManager.Log?.Info("*** ip [" + ip + "] 被禁止 Connect。原因: " + error);
                             continue;
                         }
                     }
@@ -177,6 +180,7 @@ namespace DigitalPlatform.Net
             this._isActive = false;
             this._listener.Stop();
             _tcpChannels.Clear();
+            TryFlushCompactLog();
         }
 
         public void TryClearBlackList()
@@ -186,6 +190,15 @@ namespace DigitalPlatform.Net
 
             // 清理一次黑名单
             this._ipTable.ClearBlackList(TimeSpan.FromMinutes(10));
+        }
+
+        // 把紧凑日志写入日志文件
+        public void TryFlushCompactLog()
+        {
+            _compactLog?.WriteToLog((text) =>
+            {
+                LibraryManager.Log?.Error(text);
+            });
         }
 
         // 处理一个通道的通讯活动

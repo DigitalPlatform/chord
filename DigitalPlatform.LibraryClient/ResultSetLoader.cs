@@ -108,7 +108,13 @@ namespace DigitalPlatform.LibraryClient
                 }
                 if (searchresults.Length == 0)
                 {
-                    strError = "searchresults.Length == 0";
+                    if (lStart >= this.TotalCount)
+                    {
+                        strError = "获取结果集时，起始偏移 " + lStart + " 越过结果集尾部(记录总数 " + this.TotalCount + ")";
+                        // TODO: 抛出一个专门的异常类
+                    }
+                    else
+                        strError = "searchresults.Length == 0";
                     throw new Exception(strError);
                 }
                 lHitCount = lRet;
