@@ -9,6 +9,40 @@ namespace dp2weixinWeb.Controllers
 {
     public class BiblioController : BaseController
     {
+
+        public ActionResult ViewPDF(string libId,string uri, string page,string totalPage)
+        {
+            // 登录检查
+            string strError = "";
+            int nRet = 0;
+
+            string strImgUri = uri+ "/page:" + page + ",format:jpeg,dpi:75";
+
+            ViewBag.imgUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
+                            + "&objectPath=" + HttpUtility.UrlEncode(strImgUri);
+
+            int nPage = 0;
+            Int32.TryParse(page, out nPage);
+
+            if (nPage < 1)
+                nPage = 1;
+
+            ViewBag.page = page;
+            ViewBag.totalPage = totalPage;
+
+            ViewBag.fristUrl= "gotoUrl('/Biblio/ViewPDF?libid=" + libId + "&uri=" + uri + "&page=1&totalPage=" + totalPage + "')";
+            ViewBag.prevUrl = "gotoUrl('/Biblio/ViewPDF?libid=" + libId + "&uri=" + uri + "&page="+(nPage-1)+ "&totalPage=" + totalPage + "') ";
+            ViewBag.nextUrl = "gotoUrl('/Biblio/ViewPDF?libid=" + libId + "&uri=" + uri + "&page=" + (nPage + 1) + "&totalPage=" + totalPage + "') ";
+            ViewBag.tailUrl = "gotoUrl('/Biblio/ViewPDF?libid=" + libId + "&uri=" + uri + "&page=" + (nPage + 1) + "&totalPage=" + totalPage + "')";
+
+            return View();
+
+            ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
+
         // 书目查询主界面
         public ActionResult Index(string code, string state)
         {

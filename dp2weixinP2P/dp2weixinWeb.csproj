@@ -45,6 +45,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="DongshifangMessageInterface">
+      <HintPath>..\..\..\..\publish\i\bin\DongshifangMessageInterface.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <Private>True</Private>
@@ -374,6 +377,7 @@
     <Content Include="Views\Library\Circulate.cshtml" />
     <Content Include="Views\Account\WebLogin.cshtml" />
     <Content Include="Views\Library\Message.cshtml" />
+    <Content Include="Views\Biblio\ViewPDF.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -1,0 +1,22 @@
+﻿@section header {
+    <h1 class="mui-title">PDF在线阅读</h1>
+}
+    <center>
+        <div>
+            <button class="mui-btn" onclick="@ViewBag.fristUrl">|<</button>
+            <button class="mui-btn" onclick="@ViewBag.prevUrl"><</button>
+
+            <button class="mui-btn mui-btn-primary">@ViewBag.page</button>
+            <button class="mui-btn" onclick="@ViewBag.nextUrl">></button>
+            <button class="mui-btn" onclick="@ViewBag.tailUrl">>| @ViewBag.totalPage</button>
+
+        </div>
+
+        <div>
+            <img id="" src="@ViewBag.imgUrl" />
+
+        </div>
+
+    </center>
+
+
