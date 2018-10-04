@@ -156,6 +156,10 @@
 
             $(document).ready(function () {
                 totalHeight = $(window).height();
+                totalWidth = $(window).width();
+
+                //$("#idTest").html("totalHeight=" + totalHeight + ";totalWidth=" + totalWidth);
+
                 if (browser.versions.iPhone == true) {
                     $("input").focus(function () {
                         setShowValue(false);
@@ -202,6 +206,7 @@
             // 真正做事，隐藏或显示头尾菜单
             var bShowTopBottom = true;
             var totalHeight = 0;
+            var totalWidth = 0;
             function showTopBottom() {
                 if (bShowTopBottom == true) {
 
@@ -213,7 +218,7 @@
                     //if (top == 416)
                     //    top = top - 40;
                     $("#divBottonTab").css('top', top + 'px');
-                    //$("#idTest").html(totalHeight + "===" + $("#divBottonTab").height() +"==="+ top);
+                    $("#idTest").html(totalHeight + "===" + $("#divBottonTab").height() +"==="+ top);
 
                     $("#divBottonTab").css('display', 'block');
                     $("#myheader").css('display', 'block');

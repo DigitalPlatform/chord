@@ -16,11 +16,13 @@ namespace dp2weixinWeb.Controllers
 
 
 
-
         // 操作类型常量字符串
         const string C_ope_borrow = "borrow";
         const string C_ope_return = "return";
         const string C_ope_searchItem = "searchItem";
+
+
+
 
         // 专业借还流程
         // operationType 操作类型
@@ -270,13 +272,7 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
-        // 内务
-        public ActionResult SearchItem(string from,string word)
-        {
-            string strError = "";
 
-            return View();
-        }
 
         // 内务
         public ActionResult Charge2(string code, string state)

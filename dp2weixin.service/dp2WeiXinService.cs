@@ -4969,8 +4969,16 @@ public string ErrorCode { get; set; }
 
             if (lRet == -1 || lRet == 0)
             {
+
+                string libName = "";
+                LibEntity libEntity = this.GetLibById(libId);
+                if (libEntity != null)
+                {
+                    libName = libEntity.libName;
+                }
+
                 searchRet.apiResult.errorCode = (int)lRet;
-                searchRet.apiResult.errorInfo = strError;
+                searchRet.apiResult.errorInfo = strError +"[图书馆为"+libName+",帐户为"+loginInfo.UserName+"]";
                 return searchRet;
             }
 
@@ -5274,7 +5282,7 @@ public string ErrorCode { get; set; }
 
             if (publicDefault == true)
             {
-                // 如果即没有绑工作人员，也没有绑读者账户，采用publish帐号，
+                // 如果即没有绑工作人员，也没有绑读者账户，采用publc帐号，
                 // 因为数字资源有访问权限，不能再用capo， capo账户有wirteobject权限 导致 856和对象上设置的访问权限失效了
                 if (string.IsNullOrEmpty(userName) == true)
                 {
@@ -5330,6 +5338,18 @@ public string ErrorCode { get; set; }
             return html;
         }
 
+//        public static string GetImageHtmlFragment(string libId,
+//string strBiblioRecPath,
+//string strImageUrl,
+//    bool addOnloadEvent)
+//        {
+//            return GetImageHtmlFragment(libId,
+//                strBiblioRecPath,
+//                strImageUrl,
+//                addOnloadEvent,
+//                0);
+//        }
+
         public static string GetImageHtmlFragment(string libId,
     string strBiblioRecPath,
     string strImageUrl,
@@ -5345,6 +5365,7 @@ public string ErrorCode { get; set; }
                 string strUri = MakeObjectUrl(strBiblioRecPath,
                       strImageUrl);
 
+
                 strImageUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
                 + "&objectPath=" + HttpUtility.UrlEncode(strUri);
             }
@@ -5352,6 +5373,8 @@ public string ErrorCode { get; set; }
             string onloadStr = "";
             if (addOnloadEvent == true)
                 onloadStr = " onload='setImgSize(this)' ";
+
+
 
             string html = "<img src='" + strImageUrl + "'  style='max-width:200px' " + onloadStr + "></img>"; // 2016/8/19 不要人为把宽高固定了  width='100px' height='100px'
             return html;
@@ -5996,7 +6019,17 @@ public string ErrorCode { get; set; }
 
                     string resHtml = "<table>";
 
-                    XmlNodeList resLineList = node.SelectNodes("table/line");
+                    XmlDocument objectDom = new XmlDocument();
+                    try
+                    {
+                        objectDom.LoadXml(value);
+                    }
+                    catch (Exception ex)
+                    {
+                        strError = "加载table格式返回数字资源信息到dom出错:"+ex.Message;
+                        return -1;
+                    }
+                    XmlNodeList resLineList = objectDom.SelectNodes("table/line");
                     foreach (XmlNode resLineNode in resLineList)
                     {
                         //if (resHtml != "")
@@ -6008,6 +6041,16 @@ public string ErrorCode { get; set; }
                         string mime = DomUtil.GetAttr(resLineNode, "mime");
                         string bytes = DomUtil.GetAttr(resLineNode, "bytes");
 
+                        //int totalPage = 0;
+                        //string objectUri = "";
+                        //if (mime == @"application/pdf")
+                        //{
+                        //    objectUri = MakeObjectUrl(biblioPath, uri);
+                        //    string filename = "";
+                        //    totalPage = dp2WeiXinService.Instance.GetPDFCount(lib.id, objectUri, out filename, out strError);
+                        //    urlLabel = filename;
+                        //}
+
                         string objectHtml = GetObjectHtmlFragment(lib.id, biblioPath, uri, mime, urlLabel);
 
                         resHtml += "<tr><td style='padding-bottom:5px'>" + objectHtml;
@@ -6017,6 +6060,20 @@ public string ErrorCode { get; set; }
 
                         if (bytes != "")
                             resHtml += "<br/><span style='color:gray'>字节数：</span>" + bytes;
+
+                        if (mime == @"application/pdf")
+                        {
+                            string objectUri = MakeObjectUrl(biblioPath, uri);
+                            string strPdfUri = objectUri + "/page:1,format:jpeg,dpi:75";
+                            string imgSrc = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(lib.id)
+                                                 + "&objectPath=" + HttpUtility.UrlEncode(strPdfUri);
+
+
+                            string onClickStr = " onclick='gotoUrl(\"/Biblio/ViewPDF?libid=" + lib.id + "&uri=" + objectUri + "\")' ";
+                            string pdfImgHtml = "<img src='" + imgSrc + "'  style='max-width:200px' " + onClickStr + " onload='setImgSize(this)' ></img>"; 
+
+                            resHtml += "<br/>" + "<div style='padding:5px;background-color:#eeeeee'>" + pdfImgHtml + "</div>";
+                        }
 
                         resHtml += "</td></tr>";
 
@@ -8772,7 +8829,100 @@ tempRemark);
         }
 
 
+        public int GetPDFCount(string libId,
+    string objectPath,
+    out string filename,
+    out string strError)
+        {
+            strError = "";
+            filename = "";
 
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                goto ERROR1;
+            }
+
+            // 使用代理账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo("", false);
+
+            CancellationToken cancel_token = new CancellationToken();
+
+            
+            string id = Guid.NewGuid().ToString();
+            GetResRequest request = new GetResRequest(id,
+                loginInfo,
+                "getRes",
+                objectPath+"/page:?",
+                0,
+                0,
+                "data,metadata");
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this.dp2MServerUrl,
+                    lib.capoUserName).Result;
+
+                MemoryStream s = new MemoryStream();
+                GetResResponse result = connection.GetResTaskAsync(
+                   lib.capoUserName,
+                    request,
+                    s,
+                    null,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+
+                if (String.IsNullOrEmpty(result.ErrorCode) == false)
+                {
+                    strError = "调GetRes出错：" + result.ErrorInfo;
+                    return -1;
+                }
+
+                if (result.TotalLength == -1)
+                {
+                    strError = "调GetRes出错：" + result.ErrorInfo;
+                    return -1;
+                }
+
+                string metadata = result.Metadata;
+                XmlDocument dom = new XmlDocument();
+                try
+                {
+                    dom.LoadXml(metadata);
+                }
+                catch (Exception ex)
+                {
+                    strError = "加载pdf的metadata到dom出错："+ex.Message;
+                    goto ERROR1;
+                }
+
+                 filename = DomUtil.GetAttr(dom.DocumentElement, "localpath");
+                int nIndex = filename.LastIndexOf('\\');
+                if (nIndex> 0)
+                {
+                    filename = filename.Substring(nIndex+1);
+                }
+                
+
+                // 成功
+                return (int)result.TotalLength;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                goto ERROR1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
+            }
+
+
+            ERROR1:
+            return -1;
+        }
 
         #endregion
 

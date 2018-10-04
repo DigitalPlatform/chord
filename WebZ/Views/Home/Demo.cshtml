@@ -1,20 +1,20 @@
 ﻿@section Scripts {
     <script>
 
-        function createList() { 
+        function createList() {
 
             //alert("test");
 
             var h = "<div class='ui styled fluid accordion'>\
-                < div class='title active' > <i class='dropdown icon'></i> What is a dog ? </div >\
-                    <div class='content active'>\
-                        <p class='transition visible' style='display: block !important;'>狗算是一种家畜。以其忠诚与忠心广受人类欢迎, 可以在世界各地的许多家庭里发现这个受欢迎的客人。</p>\
-                    </div>\
-                    <div class='title'><i class='dropdown icon'></i> What kinds of dogs are there? </div>\
-                    <div class='content'>\
-                        <p>狗有许多品种，每个品种都有不同的大小及性格，饲主通常选择适合自己生活方式的品种当作自已的伙伴，其中最受欢迎的品种绝对是吉娃娃。</p>\
-                    </div>\
-        </div >";
+                    < div class='title active' > <i class='dropdown icon'></i> What is a dog ? </div >\
+                        <div class='content active'>\
+                            <p class='transition visible' style='display: block !important;'>狗算是一种家畜。以其忠诚与忠心广受人类欢迎, 可以在世界各地的许多家庭里发现这个受欢迎的客人。</p>\
+                        </div>\
+                        <div class='title'><i class='dropdown icon'></i> What kinds of dogs are there? </div>\
+                        <div class='content'>\
+                            <p>狗有许多品种，每个品种都有不同的大小及性格，饲主通常选择适合自己生活方式的品种当作自已的伙伴，其中最受欢迎的品种绝对是吉娃娃。</p>\
+                        </div>\
+            </div >";
             $('#_container').html(h);
 
             $('.ui.accordion').accordion({ duration: 'click' });
@@ -50,6 +50,32 @@
         });
 
 
+        function expandItemToggle(obj) {
+            //alert("1");
+
+            //alert("2");
+
+            // 找到当前传入对象的下级_advanceCtrl
+            var advanceCtrl = $(obj).parent().find("#ctrl");
+            //alert(advanceCtrl.html());
+
+            // 找到当前传入对象并列的_advance
+            var advance = $(obj).parent().find("#detail");
+           // alert(advance);
+
+            // 当前符号
+            var ctrl = advanceCtrl.html();
+            if (ctrl == "+") {
+               // alert("需要展开");
+                advanceCtrl.text("-")
+                $(advance).css("display", "block");
+            }
+            else if (ctrl == "-") {
+                //alert("需要收缩");
+                advanceCtrl.html("+")
+                $(advance).css("display", "none");
+            }
+        }
 
 
     </script>
@@ -57,14 +83,22 @@
 }
 
 
-    <button id='btnCreate' class='ui button' onclick='createList()'>
-        生成列表
-    </button>
-
-
-    <div id='_container'>
-
+    <div>
+        <span onclick='expandItemToggle(this)'>面板1</span><span id='ctrl'>+</span>       
+        <div id='detail' style='display:none'>
+            <p>面板1子内容</p>
+        </div>
     </div>
+
+
+<button id='btnCreate' class='ui button' onclick='createList()'>
+    生成列表
+</button>
+
+
+<div id='_container'>
+
+</div>
 
 
 

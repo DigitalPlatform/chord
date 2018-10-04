@@ -113,7 +113,7 @@ namespace WebZ.Controllers
         }
 
 
-            public IActionResult Index()
+            public IActionResult Index(string type)
         {
             /*
             Request.Cookies
@@ -155,6 +155,12 @@ namespace WebZ.Controllers
             }
             //ViewData["datadir"] = StarInfoConfig.datadir;
             */
+
+            if (type == "edit")
+            {
+                ViewData["Type"] = "edit";
+            }
+
             return View();
         }
 
