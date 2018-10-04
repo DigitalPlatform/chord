@@ -707,7 +707,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
                     dlg.ResultSetName,
                     nStart,
                     nCount,
-                    10,
+                    1000,   // 10
                     "F",
                     _targetInfo.PreferredRecordSyntax);
                 if (present_result.Value == -1)

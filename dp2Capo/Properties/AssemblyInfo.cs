@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.28.*")]
-[assembly: AssemblyFileVersion("1.28.0.0")]
+[assembly: AssemblyVersion("1.30.*")]
+[assembly: AssemblyFileVersion("1.30.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -63,3 +63,5 @@ using System.Runtime.InteropServices;
 // 1.26 (2017/4/25) 点对点 API Circulation() 中的 VerifyBarcode 功能中增加了 TransformBarcode 子功能。
 // 1.27 (2017/5/10) 点对点 API Search()中的 SearchRequest 结构增加了 Filter 成员。dp2capo 支持带有馆代码限定的 SearchBiblio() 检索了
 // 1.28 (2018/9/27) Z39.50 Service 基本稳定
+// 1.29 (2018/9/28) Z39.50 Service 中，进一步加强了对 Present 请求参数的检查，避免获取记录阶段出现巨量的循环
+// 1.30 (2018/10/2) 修正了点对点 GetRes() API 中当 param.Data 为 Length 0 的时候的一处无法返回响应导致超时的 bug

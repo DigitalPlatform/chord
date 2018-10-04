@@ -3567,6 +3567,10 @@ strError,
         {
             string strError = "";
 
+            // 修正 2018/10/2
+            if (param.Data != null && param.Data.Length == 0)
+                param.Data = null;
+
             List<byte> rest = new List<byte>(); // 等待发送的
             List<byte> current = new List<byte>();  // 当前正在发送的
             if (param.Data != null)

@@ -477,7 +477,7 @@ namespace DigitalPlatform.Z3950.Server
             }
 
             baPackage = null;
-            root.EncodeBERPackage(ref baPackage);
+            root.EncodeBERPackage(ref baPackage, MAX_RESPONSE_PACKAGE_SIZE);
         }
 
         // 解码Search请求包
@@ -783,7 +783,7 @@ namespace DigitalPlatform.Z3950.Server
             }
 
             baPackage = null;
-            root.EncodeBERPackage(ref baPackage);
+            root.EncodeBERPackage(ref baPackage, MAX_RESPONSE_PACKAGE_SIZE);
 
             return 0;
         }
@@ -884,7 +884,6 @@ namespace DigitalPlatform.Z3950.Server
 
             return 0;
         }
-
 
         // 编码(构造) Present响应包
         public static int Encode_PresentResponse(PresentRequestInfo info,
@@ -1246,7 +1245,7 @@ namespace DigitalPlatform.Z3950.Server
                 // string text = JsonConvert.SerializeObject(root, Formatting.Indented);
 
                 baPackage = null;
-                root.EncodeBERPackage(ref baPackage);
+                root.EncodeBERPackage(ref baPackage, MAX_RESPONSE_PACKAGE_SIZE);
                 return 0;
             }
             catch (Exception ex)
@@ -1256,6 +1255,7 @@ namespace DigitalPlatform.Z3950.Server
             }
         }
 
+        public const int MAX_RESPONSE_PACKAGE_SIZE = 500 * 1024;
     }
 
     // Init请求信息结构

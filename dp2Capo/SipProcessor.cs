@@ -2534,6 +2534,9 @@ namespace dp2Capo
             {
                 // TODO: 要检查相关 dp2Capo 实例是否在线
 
+                // TODO: 如果某个通道的 ScStatus 请求来得很频繁，要考虑缓冲 GetSystemParameter() API 的结果，直接把这个结果返回给前端
+                // TODO: 如果 ScStatus 请求来得很频繁，要考虑不在 Log 中记载 Info
+
                 //2018/06/19 
                 long lRet = info.LibraryChannel.GetSystemParameter("system",
                     "hangup",

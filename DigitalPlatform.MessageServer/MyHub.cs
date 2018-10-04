@@ -366,7 +366,7 @@ ex.GetType().ToString());
             }
 
             return false;   // 表示拼接尚未结束。需要继续等待后面的请求来进行拼接
-        FINISH:
+            FINISH:
             param.Records = new List<MessageRecord>();
             param.Records.Add(search_info.Data as MessageRecord);
 #if NO
@@ -4118,7 +4118,7 @@ ex.GetType().ToString());
                         Groups.Remove(connection_info.ConnectionID, def.GroupNameString);
                     }
 
-                CONTINUE:
+                    CONTINUE:
                     defaults.Remove(def.GroupNameString);
                 }
             }
