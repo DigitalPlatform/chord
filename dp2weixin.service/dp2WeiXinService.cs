@@ -5338,40 +5338,33 @@ public string ErrorCode { get; set; }
             return html;
         }
 
-        public static string GetImageHtmlFragment(string libId,
-string strBiblioRecPath,
-string strImageUrl,
-    bool addOnloadEvent)
-        {
-            return GetImageHtmlFragment(libId,
-                strBiblioRecPath,
-                strImageUrl,
-                addOnloadEvent,
-                0);
-        }
+//        public static string GetImageHtmlFragment(string libId,
+//string strBiblioRecPath,
+//string strImageUrl,
+//    bool addOnloadEvent)
+//        {
+//            return GetImageHtmlFragment(libId,
+//                strBiblioRecPath,
+//                strImageUrl,
+//                addOnloadEvent,
+//                0);
+//        }
 
         public static string GetImageHtmlFragment(string libId,
     string strBiblioRecPath,
     string strImageUrl,
-            bool addOnloadEvent,
-            int pdfPageNo)
+            bool addOnloadEvent)
         {
             //
 
             if (string.IsNullOrEmpty(strImageUrl) == true)
                 return "";
 
-            string objectUri = "";
             if (StringUtil.IsHttpUrl(strImageUrl)==false)//StringUtil.HasHead(strImageUrl, "http:") == false)
             {
                 string strUri = MakeObjectUrl(strBiblioRecPath,
                       strImageUrl);
 
-                if (pdfPageNo > 0)
-                {
-                    objectUri = strUri;
-                    strUri += "/page:"+pdfPageNo+ ",format:jpeg,dpi:75";
-                }
 
                 strImageUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
                 + "&objectPath=" + HttpUtility.UrlEncode(strUri);
@@ -5381,18 +5374,9 @@ string strImageUrl,
             if (addOnloadEvent == true)
                 onloadStr = " onload='setImgSize(this)' ";
 
-            string onClickStr = "";
-            if (pdfPageNo > 0)
-            {
-                string strError = "";
-                int totalPage = 1;
-                //int totalPage = dp2WeiXinService.Instance.GetPDFCount(libId, objectUri, out strError);
-                //if (totalPage > 0)
-                //{ }
-                onClickStr = " onclick='gotoUrl(\"/Biblio/ViewPDF?libid="+libId+"&uri="+ objectUri + "&page=1&totalPage=?\")' ";
-            }
 
-            string html = "<img src='" + strImageUrl + "'  style='max-width:200px' " + onloadStr + onClickStr+ "></img>"; // 2016/8/19 不要人为把宽高固定了  width='100px' height='100px'
+
+            string html = "<img src='" + strImageUrl + "'  style='max-width:200px' " + onloadStr + "></img>"; // 2016/8/19 不要人为把宽高固定了  width='100px' height='100px'
             return html;
         }
 
@@ -6057,8 +6041,15 @@ string strImageUrl,
                         string mime = DomUtil.GetAttr(resLineNode, "mime");
                         string bytes = DomUtil.GetAttr(resLineNode, "bytes");
 
-                        
-
+                        //int totalPage = 0;
+                        //string objectUri = "";
+                        //if (mime == @"application/pdf")
+                        //{
+                        //    objectUri = MakeObjectUrl(biblioPath, uri);
+                        //    string filename = "";
+                        //    totalPage = dp2WeiXinService.Instance.GetPDFCount(lib.id, objectUri, out filename, out strError);
+                        //    urlLabel = filename;
+                        //}
 
                         string objectHtml = GetObjectHtmlFragment(lib.id, biblioPath, uri, mime, urlLabel);
 
@@ -6072,12 +6063,16 @@ string strImageUrl,
 
                         if (mime == @"application/pdf")
                         {
-                            string pdfImg = GetImageHtmlFragment(lib.id,
-                                biblioPath,
-                                uri,
-                                true,
-                                1);
-                            resHtml += "<br/>" + pdfImg;
+                            string objectUri = MakeObjectUrl(biblioPath, uri);
+                            string strPdfUri = objectUri + "/page:1,format:jpeg,dpi:75";
+                            string imgSrc = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(lib.id)
+                                                 + "&objectPath=" + HttpUtility.UrlEncode(strPdfUri);
+
+
+                            string onClickStr = " onclick='gotoUrl(\"/Biblio/ViewPDF?libid=" + lib.id + "&uri=" + objectUri + "\")' ";
+                            string pdfImgHtml = "<img src='" + imgSrc + "'  style='max-width:200px' " + onClickStr + " onload='setImgSize(this)' ></img>"; 
+
+                            resHtml += "<br/>" + "<div style='padding:5px;background-color:#eeeeee'>" + pdfImgHtml + "</div>";
                         }
 
                         resHtml += "</td></tr>";
@@ -8836,9 +8831,11 @@ tempRemark);
 
         public int GetPDFCount(string libId,
     string objectPath,
+    out string filename,
     out string strError)
         {
             strError = "";
+            filename = "";
 
             LibEntity lib = this.GetLibById(libId);
             if (lib == null)
@@ -8857,10 +8854,10 @@ tempRemark);
             GetResRequest request = new GetResRequest(id,
                 loginInfo,
                 "getRes",
-                objectPath,
+                objectPath+"/page:?",
                 0,
                 0,
-                "data");
+                "data,metadata");
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
@@ -8887,6 +8884,26 @@ tempRemark);
                     strError = "调GetRes出错：" + result.ErrorInfo;
                     return -1;
                 }
+
+                string metadata = result.Metadata;
+                XmlDocument dom = new XmlDocument();
+                try
+                {
+                    dom.LoadXml(metadata);
+                }
+                catch (Exception ex)
+                {
+                    strError = "加载pdf的metadata到dom出错："+ex.Message;
+                    goto ERROR1;
+                }
+
+                 filename = DomUtil.GetAttr(dom.DocumentElement, "localpath");
+                int nIndex = filename.LastIndexOf('\\');
+                if (nIndex> 0)
+                {
+                    filename = filename.Substring(nIndex+1);
+                }
+                
 
                 // 成功
                 return (int)result.TotalLength;

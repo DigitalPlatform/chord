@@ -129,7 +129,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="20180308delete.txt" />
     <Content Include="audio\1\book.wav" />
     <Content Include="audio\1\error.wav" />
     <Content Include="audio\1\loadPatron.wav" />
@@ -208,11 +207,9 @@
     <Content Include="Content\themes\base\tabs.css" />
     <Content Include="Content\themes\base\theme.css" />
     <Content Include="Content\themes\base\tooltip.css" />
-    <Content Include="customer.html" />
-    <Content Include="delete.txt" />
-    <Content Include="delete2.txt" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
+    <Content Include="img\1.jpg" />
     <Content Include="img\ajax-loader.gif" />
     <Content Include="img\arrowdown.png" />
     <Content Include="img\arrowright.png" />
@@ -254,7 +251,6 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\jweixin-1.0.0.js" />
-    <Content Include="TabTest.html" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
@@ -267,7 +263,6 @@
     <Content Include="Scripts\weixin.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Views\Library\delete.txt" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -336,11 +331,8 @@
     <Content Include="Views\Patron\BorrowInfo.cshtml" />
     <Content Include="Views\Account\ChangePassword.cshtml" />
     <Content Include="Views\Patron\QRcode.cshtml" />
-    <Content Include="Views\Library\MsgManage.txt" />
     <Content Include="Views\Biblio\Detail.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
-    <Content Include="Views\Library\BookMsg.txt" />
-    <Content Include="Views\Library\BookEdit.txt" />
     <Content Include="Views\Library\BookSubject.cshtml" />
     <Content Include="Views\UI\BiblioIndex.cshtml" />
     <Content Include="Views\UI\PersonalInfo.cshtml" />
@@ -358,22 +350,13 @@
     <Content Include="Views\Account\ScanQRCodeBind.cshtml" />
     <Content Include="Views\Library\Book.cshtml" />
     <Content Include="Views\Library\dpHome.cshtml" />
-    <Content Include="Views\Library\Charge.cshtml" />
-    <Content Include="Views\Library\Charge1.cshtml" />
     <Content Include="Views\UI\charge.cshtml" />
-    <Content Include="Views\Library\SearchItem.cshtml" />
     <Content Include="Views\Shared\_LayoutEmpty.cshtml" />
     <Content Include="Views\Library\Charge2.cshtml" />
-    <Content Include="Views\Library\Charge2.txt" />
     <Content Include="Views\UI\CtrlDemo.cshtml" />
     <Content Include="Views\Library\PatronEdit.cshtml" />
     <Content Include="Views\Patron\SelectLib.cshtml" />
-    <Content Include="Views\Library\SelfServiceMain.txt" />
-    <Content Include="Views\Library\SelfService.cshtml" />
     <Content Include="Views\UI\AudioTest.cshtml" />
-    <Content Include="Views\Library\Circulate.txt">
-      <SubType>Code</SubType>
-    </Content>
     <Content Include="Views\Library\Circulate.cshtml" />
     <Content Include="Views\Account\WebLogin.cshtml" />
     <Content Include="Views\Library\Message.cshtml" />

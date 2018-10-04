@@ -272,13 +272,7 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
-        // 内务
-        public ActionResult SearchItem(string from,string word)
-        {
-            string strError = "";
 
-            return View();
-        }
 
         // 内务
         public ActionResult Charge2(string code, string state)
