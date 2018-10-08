@@ -254,6 +254,8 @@ namespace DigitalPlatform.Z3950
             }
             else
             {
+                // 2018/9/28
+                throw new Exception("ChangeIntegerOrder() 出现不支持的整数长度 " + baData.Count);
                 Debug.Assert(false, "不支持的整数长度 " + baData.Count);
                 return;
             }
@@ -446,7 +448,9 @@ namespace DigitalPlatform.Z3950
         }
 
         // 将本节点以及所有子节点编码为BER包
-        public void EncodeBERPackage(ref byte[] baPackage)
+        // parameters:
+        //      nMaxBytes   限制产生包的最大尺寸。如果为 -1，表示不限定
+        public void EncodeBERPackage(ref byte[] baPackage, int nMaxBytes = -1)
         {
             // 1.得到全部子节点的BER包
             BerNode node = null;
@@ -463,7 +467,7 @@ namespace DigitalPlatform.Z3950
 
                     // 递归
                     baTempPackage = null;
-                    node.EncodeBERPackage(ref baTempPackage);
+                    node.EncodeBERPackage(ref baTempPackage, nMaxBytes);
 
                     if (baTempPackage == null)
                     {
@@ -472,20 +476,21 @@ namespace DigitalPlatform.Z3950
                     }
 
                     Debug.Assert(baTempPackage != null, "");    // 2008/12/17
-                    baPackage = ByteArray.Add(baPackage, baTempPackage);
+
+                    baPackage = ByteArray.SafeAdd(baPackage, baTempPackage, nMaxBytes);
                 }
             }
             else
             {
                 Debug.Assert(this.m_baData != null, "");    // 2007/7/20
-                baPackage = ByteArray.Add(baPackage, this.m_baData);
+                baPackage = ByteArray.SafeAdd(baPackage, this.m_baData, nMaxBytes);
             }
 
             // 2.根据1.步得到的包长度，最终加入本节点需要的识别信息
             if (baPackage == null)
                 throw new ArgumentException("MakeHeadPart() 之前 baPackage 为 null");
             MakeHeadPart(ref baTempPackage, baPackage.Length);
-            baPackage = ByteArray.Add(baTempPackage, baPackage);
+            baPackage = ByteArray.SafeAdd(baTempPackage, baPackage, nMaxBytes);
         }
 
         // 根据所有下级节点共同构成的包的总长度， 最终构造出本节点的头部
@@ -898,7 +903,6 @@ namespace DigitalPlatform.Z3950
 
             int offs = nHead;
 
-
             if (this.ParentNode == null)
             {
                 node = new BerNode();
@@ -910,7 +914,6 @@ namespace DigitalPlatform.Z3950
                     nLen,
                     out nUsedLen);
             }
-
 
             // 探测tag占据byte数
             int taglen = get_tag(out tag, baBuffer, offs, nLen);
@@ -1364,7 +1367,6 @@ namespace DigitalPlatform.Z3950
             return strResult;
         }
 
-
         // 获取Integer节点的数据
         // parameters:
         // return:
@@ -1383,7 +1385,6 @@ namespace DigitalPlatform.Z3950
             {
                 throw new Exception("m_baData.Length>" + longlen.ToString());
             }
-
 
             count = m_baData.Length;
             if (this.m_baData[0] > 127)

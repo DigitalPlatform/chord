@@ -370,6 +370,9 @@ namespace DigitalPlatform.Z3950
 
         public BerNode GetAPDuRoot()
         {
+            // 2018/9/28
+            if (this.m_RootNode.ChildrenCollection.Count != 1)
+                throw new Exception("GetAPDuRoot() this.m_RootNode.ChildrenCollection.Count != 1 (实际上为 " + this.m_RootNode.ChildrenCollection.Count + ")");
             Debug.Assert(this.m_RootNode.ChildrenCollection.Count == 1);
             return this.m_RootNode.ChildrenCollection[0];
         }
@@ -517,6 +520,9 @@ namespace DigitalPlatform.Z3950
                 subroot = root.NewChildConstructedNode(
                     z3950_idAuthentication,
                     BerNode.ASN1_CONTEXT);
+                // 2018/9/28
+                if (subroot == null)
+                    throw new Exception("InitRequest() subroot == null");
                 Debug.Assert(subroot != null, "");
 
                 if (struInit_request.m_nAuthenticationMethod == 0)
@@ -539,6 +545,10 @@ namespace DigitalPlatform.Z3950
                     subroot = subroot.NewChildConstructedNode(
                         BerNode.ASN1_SEQUENCE,
                         BerNode.ASN1_UNIVERSAL);
+                    // 2018/9/28
+                    if (subroot == null)
+                        throw new Exception("InitRequest() subroot == null 2");
+
                     Debug.Assert(subroot != null, "");
 
                     subroot.NewChildCharNode(0,
@@ -554,10 +564,10 @@ namespace DigitalPlatform.Z3950
                 }
                 else
                 {
+                    throw new ArgumentException("InitRequest() 出现了无法支持的 struInit_request.m_nAuthenticationMethod (" + struInit_request.m_nAuthenticationMethod + ")");
                     Debug.Assert(false, "");
                 }
             }
-
 
             root.NewChildCharNode(z3950_ImplementationId,
                 BerNode.ASN1_CONTEXT,
@@ -664,6 +674,10 @@ otherInfo {
         {
             strError = "";
             strDebugInfo = "";
+
+            // 2018/9/28
+            if (root == null)
+                throw new ArgumentException("root 不应为 null");
 
             Debug.Assert(root != null, "");
 
@@ -814,9 +828,10 @@ otherInfo {
             if (struSearch_request.m_nQuery_type == 1
                 || struSearch_request.m_nQuery_type == 100)
             {
-                /*nRet = */make_type_1(struSearch_request.m_strQuery,
-                    struSearch_request.m_queryTermEncoding,
-                    subroot);
+                /*nRet = */
+                make_type_1(struSearch_request.m_strQuery,
+         struSearch_request.m_queryTermEncoding,
+         subroot);
 #if NO
                 if (nRet == -1)
                 {
@@ -828,7 +843,8 @@ otherInfo {
 
             if (struSearch_request.m_nQuery_type == 101)
             {
-                /*nRet = */make_type_101(struSearch_request.m_strQuery, subroot);
+                /*nRet = */
+                make_type_101(struSearch_request.m_strQuery, subroot);
 #if NO
                 if (nRet == -1)
                 {
@@ -857,6 +873,10 @@ otherInfo {
         {
             strError = "";
             strDebugInfo = "";
+
+            // 2018/9/28
+            if (root == null)
+                throw new ArgumentException("root 不应为 null");
 
             Debug.Assert(root != null, "");
 
@@ -1219,6 +1239,9 @@ otherInfo {
             strError = "";
             strDebugInfo = "";
 
+            // 2018/9/28
+            if (root == null)
+                throw new ArgumentException("root 不应为 null");
             Debug.Assert(root != null, "");
 
             if (root.m_uTag != z3950_presentRequest)
@@ -1289,6 +1312,9 @@ otherInfo {
         {
             strError = "";
 
+            // 2018/9/28
+            if (root == null)
+                throw new ArgumentException("root 不应为 null");
             Debug.Assert(root != null, "");
             Debug.Assert(InitStruct != null, "");
 
@@ -1463,6 +1489,9 @@ otherInfo {
             strError = "";
             strDebugInfo = "";
 
+            // 2018/9/28
+            if (root == null)
+                throw new ArgumentException("root 不应为 null");
             Debug.Assert(root != null, "");
 
             if (root.m_uTag != z3950_initResponse)
@@ -1519,6 +1548,9 @@ otherInfo {
         {
             strError = "";
 
+            // 2018/9/28
+            if (root == null)
+                throw new ArgumentException("root 不应为 null");
             Debug.Assert(root != null, "");
             Debug.Assert(CloseStruct != null, "");
 
@@ -1582,6 +1614,9 @@ otherInfo {
             string strTemp;
             long lTemp;
 
+            // 2018/9/28
+            if (root == null)
+                throw new ArgumentException("root 不应为 null");
             Debug.Assert(root != null, "");
             Debug.Assert(SearchStruct != null, "");
 
@@ -1731,6 +1766,9 @@ otherInfo {
             long lTemp;
              * */
 
+            // 2018/9/28
+            if (root == null)
+                throw new ArgumentException("root 不应为 null");
             Debug.Assert(root != null, "");
 
             if (root.m_uTag != z3950_searchResponse)
@@ -1962,6 +2000,9 @@ otherInfo {
             records = null;
             strError = "";
 
+            // 2018/9/28
+            if (subroot == null)
+                throw new ArgumentException("subroot 不应为 null");
             Debug.Assert(subroot != null, "");
             Debug.Assert(subroot.m_uTag == 28, "");
 
@@ -2068,6 +2109,10 @@ otherInfo {
             strDiagSetID = "";
             strAddInfo = "";
             strError = "";
+
+            // 2018/9/28
+            if (subroot == null)
+                throw new Exception("GetOneRecord() subroot == null");
 
             Debug.Assert(subroot != null, "");
             Debug.Assert(subroot.m_uTag == 16, "");
@@ -2216,6 +2261,10 @@ otherInfo {
             strDiagSetID = "";
             strAddInfo = "";
             strError = "";
+
+            // 2018/9/28
+            if (subroot == null)
+                throw new Exception("GetOneDiagRec() subroot == null");
 
             Debug.Assert(subroot != null, "");
             Debug.Assert(subroot.m_uTag == 16, "");
@@ -2810,7 +2859,6 @@ http://www.lists.ufl.edu/cgi-bin/wa?A2=ind9506&L=z3950iw&D=0&X=5BD6A0503A7D1E026
                     }
                 } // end of if // proposalCharSets
             }
-
         }
 
 
