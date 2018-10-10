@@ -108,7 +108,7 @@
 
                 var objectUri = $("#_objectUri").text();
                 var libId = $("#_libId").text();
-                var strImgUri = objectUri + "/page:" + no + ",format:jpeg,dpi:75";
+                var strImgUri = objectUri + "/page:" + no + ",format:jpeg,dpi:100";
                 var src = "../patron/getphoto?libId=" + libId
                     + "&objectPath=" + encodeURIComponent(strImgUri);
 
@@ -123,7 +123,20 @@
         }
 
 
+        function testOrientation() {
+            if (window.orientation == 90 || window.orientation == -90) {
+                //alert('现在是横屏');
+                // 重新加载页面
+                window.location.reload();
+            }
+            else if (window.orientation == 180 || window.orientation == 0) {
+               // alert('现在是竖屏');
+                // 重新加载页面
+                window.location.reload();
+            }
+        }
 
+        window.addEventListener('onorientationchange' in window ? 'orientationchange' : 'resize', testOrientation, false);
 
 
     </script>

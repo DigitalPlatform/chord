@@ -428,7 +428,7 @@ namespace dp2weixin.service
             return;
 
             ERROR1:
-            dp2WeiXinService.Instance.WriteErrorLog1("获取库信息出错:" + strError);
+            dp2WeiXinService.Instance.WriteErrorLog1("获取["+ libEntity.libName+ "]的数据库信息出错:" + strError);
 
         
         }

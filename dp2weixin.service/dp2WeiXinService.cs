@@ -6064,15 +6064,15 @@ public string ErrorCode { get; set; }
                         if (mime == @"application/pdf")
                         {
                             string objectUri = MakeObjectUrl(biblioPath, uri);
-                            string strPdfUri = objectUri + "/page:1,format:jpeg,dpi:75";
+                            string strPdfUri = objectUri + "/page:1,format:jpeg,dpi:150";
                             string imgSrc = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(lib.id)
                                                  + "&objectPath=" + HttpUtility.UrlEncode(strPdfUri);
 
 
                             string onClickStr = " onclick='gotoUrl(\"/Biblio/ViewPDF?libid=" + lib.id + "&uri=" + objectUri + "\")' ";
-                            string pdfImgHtml = "<img src='" + imgSrc + "'  style='max-width:200px' " + onClickStr + " onload='setImgSize(this)' ></img>"; 
+                            string pdfImgHtml = "<img src='" + imgSrc + "'  style='max-width:200px;padding:5px;background-color:#eeeeee' " + onClickStr + " onload='setImgSize(this)' ></img>";
 
-                            resHtml += "<br/>" + "<div style='padding:5px;background-color:#eeeeee'>" + pdfImgHtml + "</div>";
+                            resHtml += "<br/>" + pdfImgHtml;//"<div style='padding:5px;background-color:#eeeeee'>" + pdfImgHtml + "</div>";
                         }
 
                         resHtml += "</td></tr>";
@@ -7303,6 +7303,12 @@ public string ErrorCode { get; set; }
             // 电话
             string strTel = DomUtil.GetElementText(dom.DocumentElement, "tel");
             patron.tel = strTel;
+            if (strTel.Length > 4)
+            {
+                string left = strTel.Substring(0, strTel.Length - 4);
+                left = "".PadLeft( left.Length, '*');
+                patron.tel = left + strTel.Substring(strTel.Length - 4);
+            }
 
             // email
             string strEmail = DomUtil.GetElementText(dom.DocumentElement, "email");
@@ -8748,6 +8754,7 @@ tempRemark);
 
 
         public int GetObjectMetadata(string libId,
+            string weixinId,
             string objectPath,
             string style,
             Stream outputStream,
@@ -8769,7 +8776,9 @@ tempRemark);
             }
 
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo("", false);
+            LoginInfo loginInfo = Getdp2AccoutForSearch(weixinId);// new LoginInfo("", false);
+
+            
 
             CancellationToken cancel_token = new CancellationToken();
 
@@ -8793,6 +8802,14 @@ tempRemark);
                     null,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
+
+   //             GetResResponse result = connection.GetResAsyncLite(
+   //lib.capoUserName,
+   // request,
+   // outputStream,
+   // null,
+   // new TimeSpan(0, 1, 0),
+   // cancel_token).Result;
 
                 if (String.IsNullOrEmpty(result.ErrorCode) == false)
                 {
@@ -10891,8 +10908,15 @@ tempRemark);
             List<WxUserItem> list = WxUserDatabase.Current.Get(null, id, -1);
             if (list != null && list.Count > 0)
             {
-                strError = "不能删除图书馆:目前存在" + list.Count + "个微信用户绑定，第一个名称为"+list[0].readerName+list[0].userName;
-                goto ERROR1;
+
+                // 先删除绑定的用户，因为用户是与图书馆id关联的，删除了图书馆，那绑定的用户也没有意义了。
+                foreach (WxUserItem u in list)
+                {
+                    WxUserDatabase.Current.SimpleDelete(u.id);
+                }
+
+                //strError = "不能删除图书馆:目前存在" + list.Count + "个微信用户绑定，第一个名称为"+list[0].readerName+list[0].userName;
+                //goto ERROR1;
             }
 
             //// 检查是否有微信用户设置了该图书馆
@@ -10988,7 +11012,9 @@ tempRemark);
             return sResult;
         }
 
-        public static int GetObject0(Controller mvcControl, string libId, string uri, out string strError)
+        public static int GetObject0(Controller mvcControl, string libId,
+            string weixinId,
+            string uri, out string strError)
         {
             strError = "";
             int nRet = 0;
@@ -10997,16 +11023,20 @@ tempRemark);
             string metadata = "";
             string timestamp = "";
             string outputpath = "";
-            nRet = dp2WeiXinService.Instance.GetObjectMetadata(libId,
-                uri,
-                "metadata",
-                null,
-                out metadata,
-                out timestamp,
-                out outputpath,
-                out strError);
-            if (nRet == -1)
-                return -1;
+            using (MemoryStream s = new MemoryStream())
+            {
+                nRet = dp2WeiXinService.Instance.GetObjectMetadata(libId,
+                    weixinId,
+                    uri,
+                    "metadata",
+                    s,
+                    out metadata,
+                    out timestamp,
+                    out outputpath,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+            }
 
             // <file mimetype="application/pdf" localpath="D:\工作清单.pdf" size="188437"
             // lastmodified="2016/9/6 12:45:14" readCount="17" />
@@ -11089,6 +11119,7 @@ tempRemark);
 
             // 输出数据流
             nRet = dp2WeiXinService.Instance.GetObjectMetadata(libId,
+                weixinId,
                 uri,
                 "metadata,timestamp,data,outputpath",
                 mvcControl.Response.OutputStream, //ms,//
