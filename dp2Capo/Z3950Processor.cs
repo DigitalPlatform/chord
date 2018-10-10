@@ -126,6 +126,7 @@ namespace dp2Capo
                 // 全局结果集名
                 string resultset_name = MakeGlobalResultSetName(zserver_channel, strResultSetName);
 
+                // TODO: timestamp 有必要获取么？
                 ResultSetLoader loader = new ResultSetLoader(library_channel,
                     resultset_name,
                     "id,xml,timestamp")
@@ -140,6 +141,7 @@ namespace dp2Capo
                     if (i >= lNumber)
                         break;
 
+                    // 判断请求边界是否合法。放到循环里面的 i==0 时刻来做，是因为枚举器(loader)需要请求 dp2library 之后才能知道结果集大小
                     if (i == 0)
                     {
                         e.TotalCount = loader.TotalCount;
@@ -179,6 +181,7 @@ namespace dp2Capo
                         };
 
                         // 根据书目库名获得书目库属性对象
+                        // TODO: 这里可以考虑 cache
                         BiblioDbProperty prop = instance.zhost.GetDbProperty(
                             strDbName,
                             false);
@@ -238,6 +241,7 @@ namespace dp2Capo
                             };
                         }
 
+                        // TODO: 测试观察这里的 size 增长情况
                         nSize += record.GetPackageSize();
 
                         if (i == 0)
@@ -268,6 +272,11 @@ namespace dp2Capo
                     }
 
                     i++;
+                    // 2018/9/28
+                    // 防范性编程
+                    // TODO: 还可以通过时间长度来控制。超过一定时间，就抛出异常
+                    if (i > MAX_PRESENT_RECORD)
+                        throw new Exception("Zserver_PresentGetRecords() 中获取记录的循环超过极限数量 " + MAX_PRESENT_RECORD + "(此时 lNumber=" + lNumber + ")");
                 }
             }
             catch (ChannelException ex)
@@ -629,6 +638,9 @@ namespace dp2Capo
             if (names.Count > MAX_RESULTSET_COUNT)
             {
                 FreeGlobalResultSets(zserver_channel, names);
+                // 2018/9/28
+                names = new List<string>();
+                zserver_channel.EnsureProperty().SetKeyObject("r_n", names);
                 return true;
             }
 
@@ -675,7 +687,7 @@ namespace dp2Capo
                 return;
             }
 
-            // TODO: 交给 Instance 释放
+            // 交给 Instance 释放
             instance.AddGlobalResultSets(names);
 
 #if NO

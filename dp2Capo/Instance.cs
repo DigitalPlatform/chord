@@ -79,12 +79,25 @@ namespace dp2Capo
         // 需要(管理线程去)删除的全局结果集名
         List<string> _globalResultSets = new List<string>();
 
+        const int MAX_GLOBAL_RESULTSET_COUNT = 1000;
+
         public void AddGlobalResultSets(List<string> names)
         {
+            bool bClear = false;
             lock (_syncResultSets)
             {
+                // TODO: 这里是否要限制一个极限数目?
+                if (_globalResultSets.Count + names.Count > MAX_GLOBAL_RESULTSET_COUNT)
+                {
+                    ServerInfo.WriteLog("error", "实例 '" + this.Name + "' 的 _globalResultSets.Count=" + _globalResultSets.Count + " + names.Count=" + names.Count + " 超过 MAX_GLOBAL_RESULTSET_COUNT=" + MAX_GLOBAL_RESULTSET_COUNT + "(注：稍后会立即启动一次清理)");
+                    bClear = true;
+                }
                 _globalResultSets.AddRange(names);
             }
+
+            // 立即清除
+            if (bClear)
+                FreeGlobalResultSets();
         }
 
         public void FreeGlobalResultSets()
@@ -147,13 +160,13 @@ namespace dp2Capo
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ServerInfo.WriteLog("error", "FreeGlobalResultSets() 出现异常: " + ExceptionUtil.GetDebugText(ex));
             }
         }
 
-#endregion
+        #endregion
 
         public Instance()
         {
@@ -1005,7 +1018,7 @@ namespace dp2Capo
             }
         }
 
-#region 日志
+        #region 日志
 
         private readonly Object _syncLog = new Object();
 
@@ -1077,7 +1090,7 @@ namespace dp2Capo
             }
         }
 
-#endregion
+        #endregion
 
     }
 
@@ -1503,7 +1516,7 @@ namespace dp2Capo
             return 0;
         }
 
-#region
+        #region
 
         // 获得可用的数据库数
         public int GetDbCount()
@@ -1614,7 +1627,7 @@ namespace dp2Capo
             return strFrom;
         }
 
-#endregion
+        #endregion
     }
 
     // 书目库属性

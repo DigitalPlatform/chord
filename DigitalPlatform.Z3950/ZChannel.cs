@@ -1,5 +1,6 @@
 ﻿using DigitalPlatform.Net;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -489,8 +490,6 @@ namespace DigitalPlatform.Z3950
                 cache.Clear();
             }
 
-            byte[] temp = new byte[CHUNK_SIZE];
-
             while (true)
             {
                 if (client == null)
@@ -503,6 +502,8 @@ namespace DigitalPlatform.Z3950
                     };
                 }
 
+                // byte[] temp = new byte[CHUNK_SIZE];
+                byte[] temp = ArrayPool<byte>.Shared.Rent(CHUNK_SIZE);
                 int current = 0;
                 try
                 {
@@ -557,6 +558,10 @@ namespace DigitalPlatform.Z3950
                     result.ErrorInfo = "recv出错2: " + ex.Message;
                     result.Value = -1;
                     return result;
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(temp);
                 }
 
                 // 得到包的长度
