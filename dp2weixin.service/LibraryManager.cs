@@ -17,11 +17,13 @@ namespace dp2weixin.service
         public List<Library> Librarys = null;
 
         // 宏macro
-        public const string M_Lib_PatronCount = "%PatronCount%";
-        public const string M_Lib_WorkerCount = "%WorkerCount%";
+        public const string M_Lib_WxPatronCount = "%PatronCount%";
+        public const string M_Lib_WxWorkerCount = "%WorkerCount%";
+        public const string M_Lib_WxTotalCount = "%WxTotalCount%";
+        public const string M_Lib_WebPatronCount = "%WebPatronCount%";
+        public const string M_Lib_WebWorkerCount = "%WebWorkerCount%";
+        public const string M_Lib_WebTotalCount = "%WebTotalCount%";
         public const string M_Lib_BindTotalCount = "%BindTotalCount%";
-        public const string M_Lib_webPatronCount = "%WebPatronCount%";
-        public const string M_Lib_webWorkerCount = "%WebWorkerCount%";
 
         public const string C_RequestCapoVersion = "1.26";
         public const string C_State_Hangup = "hang-up";
@@ -428,7 +430,7 @@ namespace dp2weixin.service
             return;
 
             ERROR1:
-            dp2WeiXinService.Instance.WriteErrorLog1("获取库信息出错:" + strError);
+            dp2WeiXinService.Instance.WriteErrorLog1("获取["+ libEntity.libName+ "]的数据库信息出错:" + strError);
 
         
         }

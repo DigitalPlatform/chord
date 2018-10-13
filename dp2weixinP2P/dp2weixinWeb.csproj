@@ -361,6 +361,7 @@
     <Content Include="Views\Account\WebLogin.cshtml" />
     <Content Include="Views\Library\Message.cshtml" />
     <Content Include="Views\Biblio\ViewPDF.cshtml" />
+    <Content Include="Views\Biblio\ViewPDF-V.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

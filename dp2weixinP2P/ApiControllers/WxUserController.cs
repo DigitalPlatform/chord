@@ -23,7 +23,7 @@ namespace dp2weixinWeb.ApiControllers
             //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()开始");
 
             WxUserResult result = new WxUserResult();
-            List<WxUserItem> list = wxUserDb.Get(null,null,-1,null,null,false);//.GetUsers();
+            List<WxUserItem> list = wxUserDb.Get(null,null,null,-1,null,null,false);//.GetUsers();
 
             // 在绑定的时候已经设置好了，
             //foreach (WxUserItem user in list)

@@ -166,6 +166,7 @@ namespace dp2weixinWeb.ApiControllers
             // 检查下有无绑定工作人员账号
             result.userName = "";
             string userName = "";
+            string libraryCode= "";
             if (string.IsNullOrEmpty(weixinId) == false)
             {
                 // 查找当前微信用户绑定的工作人员账号
@@ -173,6 +174,7 @@ namespace dp2weixinWeb.ApiControllers
                 WxUserItem user = sessionInfo.Active; //WxUserDatabase.Current.GetWorker(weixinId, libId);
                 if (user != null)
                 {
+                    libraryCode = user.bindLibraryCode;
                     // 检索是否有权限 _wx_setbbj
                     string needRight =dp2WeiXinService.GetNeedRight(group);
 
@@ -208,7 +210,7 @@ namespace dp2weixinWeb.ApiControllers
 
             List<MessageItem> list = null;
             int nRet = dp2WeiXinService.Instance.GetMessage(group,
-                libId,
+                libId+"/"+libraryCode,
                 msgId, 
                 subject,
                 style,

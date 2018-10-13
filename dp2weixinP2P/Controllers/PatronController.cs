@@ -372,11 +372,20 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 图片
-        public ActionResult GetPhoto(string libId, string type, string barcode, string objectPath)
+        public ActionResult GetPhoto(string code, string state,string libId, string type, string barcode, string objectPath)
         {
             MemoryStream ms = new MemoryStream(); ;
             string strError = "";
             int nRet = 0;
+
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state,
+                out activeUser,
+                out strError);
+            if (nRet == -1 && ViewBag.LibState != LibraryManager.C_State_Hangup)
+            {
+                goto ERROR1;
+            }
 
 
             // 读者二维码
@@ -426,7 +435,8 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 取头像 或 封面
-            nRet = dp2WeiXinService.GetObject0(this, libId, objectPath, out strError);
+            string weixinId = ViewBag.weixinId;
+            nRet = dp2WeiXinService.GetObject0(this, libId,weixinId,objectPath, out strError);
             if (nRet == -1)
                 goto ERROR1;
 
@@ -440,10 +450,19 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 资源
-        public ActionResult GetObject(string libId,string uri)
+        public ActionResult GetObject(string code, string state,string libId,string uri)
         {
             string strError = "";
             int nRet = 0;
+
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state,
+                out activeUser,
+                out strError);
+            if (nRet == -1 && ViewBag.LibState != LibraryManager.C_State_Hangup)
+            {
+                goto ERROR1;
+            }
 
             //处理 dp2 系统外部的 URL
             Uri tempUri = dp2WeiXinService.GetUri(uri);
@@ -453,7 +472,8 @@ namespace dp2weixinWeb.Controllers
                 return Redirect(uri);
             }
 
-            nRet = dp2WeiXinService.GetObject0(this, libId, uri, out strError);
+            string weixinId = ViewBag.weixinId;
+            nRet = dp2WeiXinService.GetObject0(this, libId, weixinId, uri, out strError);
             if (nRet == -1)
                 goto ERROR1;
  

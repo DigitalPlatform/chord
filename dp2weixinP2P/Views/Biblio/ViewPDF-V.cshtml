@@ -1,0 +1,146 @@
+﻿
+
+@{
+    ViewBag.Title = "PDF在线阅读";
+    Layout = "~/Views/Shared/_LayoutEmpty.cshtml";
+}
+
+@section Scripts {
+
+    <script>
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            var totalHeight1 = $(window).height();
+            var totalWidth1 = $(window).width() - 20;
+            var main = $("#main");
+
+
+            var styleStr = " style='width:" + totalWidth1 + "px; height:" + totalHeight1 + "px'";
+
+            var styleStr1 = " style='height:" + totalHeight1 + "px'";
+
+            //alert(styleStr);
+
+
+            var pageCountStr = $("#_pageCount").text();
+            var pageCount = parseInt(pageCountStr);
+            if (pageCount > 0) {
+
+                // alert(pageCount);
+
+                for (var i = 1; i <= pageCount; i++) {
+
+                    var div = "";
+
+                    if (i == 1) {
+
+                        var objectUri = $("#_objectUri").text();
+                        var libId = $("#_libId").text();
+                        var strImgUri = objectUri + "/page:1,format:jpeg,dpi:75";
+                        var src = "../patron/getphoto?libId=" + libId
+                            + "&objectPath=" + encodeURIComponent(strImgUri);
+
+                        // alert(src);
+
+                        div = "<div class='block' " + styleStr + ">"
+                            + "<img class='page' id='img" + i + "' " + styleStr1 + " src='" + src + "'/>"
+                            + "</div>";
+                    }
+                    else {
+                        //div += "<div class=' "'>img" + i + "</div>";//"<img class='page,todo' id='img" + i + "' />"
+
+                        div = "<div class='block todo" + i + "' " + styleStr + ">"
+                            + "img" + i
+                            + "</div>";
+                    }
+
+                    main.append(div);
+
+                }
+
+
+                //var img1 = $("#img1");
+                //alert(img1.width());
+
+            }
+
+
+            // 滑滚
+            $(window).scroll(function () {
+
+                var winHeight = $(window).height();
+                var winScrollTop = $(window).scrollTop();
+                var docHeight = $(document).height();
+
+                // alert("winHeight=" + winHeight + ";winScrollTop=" + winScrollTop + ";docHeight=" + docHeight);
+
+
+                var value = (winHeight + winScrollTop) / (winHeight + 10);
+
+                var no = Math.ceil(value);
+
+                //alert("value=" + value + ";no=" + no);
+
+                var name = ".todo" + no;
+
+                var todoDiv = $(name);
+                if (todoDiv != null && todoDiv.html() != undefined) {
+
+                    // alert(todoImg.html());
+
+                    var objectUri = $("#_objectUri").text();
+                    var libId = $("#_libId").text();
+                    var strImgUri = objectUri + "/page:" + no + ",format:jpeg,dpi:75";
+                    var src = "../patron/getphoto?libId=" + libId
+                        + "&objectPath=" + encodeURIComponent(strImgUri);
+                    todoDiv.html("<img class='page' id='img" + no + "' " + styleStr1 + " src='" + src + "'/>");
+
+                    //alert("显示" + name);
+
+                    todoDiv.removeClass("todo" + no);
+                }
+                else {
+                    //alert("未找到" + name);
+                }
+
+            })
+
+
+
+        });
+
+
+
+
+
+
+
+    </script>
+}
+
+@section style {
+    <style>
+        .block {
+            background-color: #dddddd;
+            margin-top: 10px;
+        }
+
+        .page {
+            background-color: lightyellow;
+        }
+    </style>
+}
+
+<span id="_libId" style="display:none;">@ViewBag.libId</span>
+<span id="_objectUri" style="display:none;">@ViewBag.objectUri</span>
+<span id="_pageCount" style="display:none;">@ViewBag.pageCount</span>
+<center>
+    <div id="main">
+
+
+    </div>
+</center>
+
