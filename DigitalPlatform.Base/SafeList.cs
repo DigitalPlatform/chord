@@ -23,7 +23,6 @@ namespace DigitalPlatform.Common
             }
         }
 
-
         public T this[int index]
         {
             get

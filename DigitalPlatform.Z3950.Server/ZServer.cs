@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -9,8 +7,6 @@ using System.Threading.Tasks;
 
 using DigitalPlatform.Common;
 using DigitalPlatform.Net;
-
-using log4net;
 
 namespace DigitalPlatform.Z3950.Server
 {
@@ -67,6 +63,7 @@ namespace DigitalPlatform.Z3950.Server
         }
 #endif
 
+#if NO
         // 处理一个通道的通讯活动
         public async override void HandleClient(TcpClient tcpClient,
             Action close_action,
@@ -80,10 +77,7 @@ namespace DigitalPlatform.Z3950.Server
                 this.ChannelOpened(channel, new EventArgs());
             try
             {
-                //List<byte> cache = new List<byte>();
                 string ip = "";
-                //Stream inputStream = tcpClient.GetStream();
-                //Stream outputStream = tcpClient.GetStream();
 
                 try
                 {
@@ -100,7 +94,7 @@ namespace DigitalPlatform.Z3950.Server
                         BerTree request = await ZProcessor.GetIncomingRequest(
                             cache,
                             tcpClient,
-                            ()=>channel.Touch());
+                            ()=>channel.Touch()).ConfigureAwait(false);  // 2018/10/10 add configure
                         if (request == null)
                         {
                             Console.WriteLine("client close on request " + i);
@@ -114,7 +108,7 @@ namespace DigitalPlatform.Z3950.Server
 
                         byte[] response = null;
                         if (this.ProcessRequest == null)
-                            response = await DefaultProcessRequest(channel, request);
+                            response = await DefaultProcessRequest(channel, request).ConfigureAwait(false);  // 2018/10/10 add configure
                         else
                         {
                             ProcessRequestEventArgs e = new ProcessRequestEventArgs();
@@ -128,7 +122,7 @@ namespace DigitalPlatform.Z3950.Server
                             return;
 
                         // 注意调用返回 result.Value == -1 情况下，要及时 Close TcpClient
-                        Result result = await ZProcessor.SendResponse(response, tcpClient);
+                        Result result = await ZProcessor.SendResponse(response, tcpClient).ConfigureAwait(false); // 2018/10/10 add configure
                         channel.Touch();
                         if (result.Value == -1)
                         {
@@ -190,6 +184,242 @@ namespace DigitalPlatform.Z3950.Server
                     close_action.Invoke();
             }
         }
+#endif
+        // Pipeline 版本
+        // 处理一个通道的通讯活动
+        public async override void HandleClient(TcpClient tcpClient,
+            Action close_action,
+            CancellationToken token)
+        {
+            List<byte> cache = new List<byte>();
+
+            ZServerChannel channel = _tcpChannels.Add(tcpClient, () => { return new ZServerChannel(); }) as ZServerChannel;
+            // 允许对 channel 做额外的初始化
+            if (this.ChannelOpened != null)
+                this.ChannelOpened(channel, new EventArgs());
+            try
+            {
+                string name = "";
+
+                Task<Result> task = null;
+                try
+                {
+                    name = channel.GetDebugName(tcpClient);
+                    channel.Touch();
+
+                    int i = 0;
+                    bool running = true;
+                    while (running)
+                    {
+                        if (token != null && token.IsCancellationRequested)
+                            return;
+
+                        // 注意调用返回后如果发现返回 null 或者抛出了异常，调主要主动 Close 和重新分配 TcpClient
+                        BerTree request = await ZProcessor.GetIncomingRequest(
+                            cache,
+                            tcpClient,
+                            () => channel.Touch()).ConfigureAwait(false);  // 2018/10/10 add configure
+                        if (request == null)
+                        {
+                            Console.WriteLine("client close on request " + i);
+                            break;
+                        }
+                        Console.WriteLine("request " + i);
+
+                        channel.Touch();
+                        if (token != null && token.IsCancellationRequested)
+                            return;
+
+                        // 如果前一轮的任务还没有完成，这里等待
+                        if (task != null)
+                        {
+                            Result result = task.Result;
+                            if (result.Value == -1)
+                                return;
+                            task = null;
+                        }
+
+                        task = Task.Run(() =>
+                         ProcessAndResponse(
+    tcpClient,
+    close_action,
+    channel,
+    request,
+    token));
+
+                        i++;
+                    }
+                }
+                catch (Exception ex)
+                {
+#if NO
+                                        if (ex.InnerException != null && ex.InnerException is ObjectDisposedException)
+                    {
+                        // 这种情况一般是 server 主动清理闲置通道导致的，不记入日志
+                    }
+                    else if (ex is ObjectDisposedException)
+                    {
+                        // 这种情况一般是 client close 通道导致，不记入日志
+                    }
+#endif
+
+#if NO
+                    if (GetException(ex, typeof(ObjectDisposedException)) != null)
+                        return;
+
+                    SocketException socket_ex = (SocketException)GetException(ex, typeof(SocketException));
+                    if (socket_ex != null && socket_ex.SocketErrorCode == SocketError.ConnectionReset)
+                        return;
+
+                    {
+                        string strName = "ip:" + ip
+                        + channel == null ? "(null)" : " channel:" + channel.GetHashCode();
+                        string strError = strName + " HandleClient() 异常: " + ExceptionUtil.GetExceptionText(ex);
+                        LibraryManager.Log?.Error(strError);
+                        // Console.WriteLine(strError);
+                    }
+#endif
+                    LogException(ex, channel, name);
+                }
+                finally
+                {
+#if NO
+                    outputStream.Flush();
+                    outputStream.Close();
+                    outputStream = null;
+
+                    inputStream.Close();
+                    inputStream = null;
+#endif
+
+                    // tcpClient.Close();
+
+                    // 清除全局结果集
+                    if (task != null)
+                    {
+                        // TODO: 要想办法立即终止检索和响应过程
+                    }
+                }
+            }
+            finally
+            {
+                _tcpChannels.Remove(channel);
+#if NO
+                if (this.ChannelClosed != null)
+                {
+                    ChannelClosedEventArgs e = new ChannelClosedEventArgs();
+                    e.Channel = channel;
+                    this.ChannelClosed(channel, e);
+                }
+#endif
+                channel.Close();
+                if (close_action != null)
+                    close_action.Invoke();
+            }
+        }
+
+        static Exception GetException(Exception exception, Type type)
+        {
+            while (exception != null)
+            {
+                if (exception.GetType() == type)
+                    return exception;
+                exception = exception.InnerException;
+            }
+
+            return null;
+        }
+
+        void LogException(Exception ex,
+            ZServerChannel channel,
+            string name)
+        {
+            if (GetException(ex, typeof(ObjectDisposedException)) != null)
+                return;
+
+            SocketException socket_ex = (SocketException)GetException(ex, typeof(SocketException));
+            if (socket_ex != null && socket_ex.SocketErrorCode == SocketError.ConnectionReset)
+                return;
+
+            {
+                //string strName = "ip:" + ip
+                //+ channel == null ? "(null)" : " channel:" + channel.GetHashCode();
+                string strError = string.Format("{0} HandleClient() 异常: {1}",
+                    name, ExceptionUtil.GetExceptionText(ex));
+                LibraryManager.Log?.Error(strError);
+                // Console.WriteLine(strError);
+            }
+        }
+
+        async Task<Result> ProcessAndResponse(
+            TcpClient tcpClient,
+            Action close_action,
+            ZServerChannel channel,
+            BerTree request,
+            CancellationToken token)
+        {
+            string name = "";
+            bool error = false;
+            try
+            {
+                name = channel.GetDebugName(tcpClient);
+
+                byte[] response = null;
+                if (this.ProcessRequest == null)
+                    response = await DefaultProcessRequest(channel, request).ConfigureAwait(false);  // 2018/10/10 add configure
+                else
+                {
+                    ProcessRequestEventArgs e = new ProcessRequestEventArgs();
+                    e.Request = request;
+                    this.ProcessRequest(channel, e);
+                    response = e.Response;
+                }
+
+                channel.Touch();
+                if (token != null && token.IsCancellationRequested)
+                {
+                    error = true;
+                    return new Result { Value = -1, ErrorInfo = "Cancelled" };
+                }
+
+                // 注意调用返回 result.Value == -1 情况下，要及时 Close TcpClient
+                Result result = await ZProcessor.SendResponse(response, tcpClient).ConfigureAwait(false); // 2018/10/10 add configure
+                channel.Touch();
+                if (result.Value == -1)
+                {
+                    Console.WriteLine("error on response " + name + ": " + result.ErrorInfo);
+                    error = true;
+                    return result;
+                }
+
+                return new Result();
+            }
+            catch (Exception ex)
+            {
+                if (channel != null)
+                {
+                    channel.Close();
+                    if (close_action != null)
+                        close_action.Invoke();
+                    LogException(ex, channel, name);
+                    channel = null;
+                }
+                else
+                    LogException(ex, channel, name);
+
+                return new Result { Value = -1, ErrorInfo = "Cancelled" };
+            }
+            finally
+            {
+                if (error == true
+                    && channel != null)
+                {
+                    channel.Close();
+                    if (close_action != null)
+                        close_action.Invoke();
+                }
+            }
+        }
 
         #endregion
 
@@ -218,7 +448,7 @@ namespace DigitalPlatform.Z3950.Server
             {
                 case BerTree.z3950_initRequest:
                     if (this.ProcessInitialize == null)
-                        return await DefaultProcessInitialize(channel, request);
+                        return await DefaultProcessInitialize(channel, request).ConfigureAwait(false);   // 2018/10/10 add configure
                     else
                     {
                         ProcessInitializeEventArgs e = new ProcessInitializeEventArgs();
@@ -229,7 +459,7 @@ namespace DigitalPlatform.Z3950.Server
                     break;
                 case BerTree.z3950_searchRequest:
                     if (this.ProcessSearch == null)
-                        return await DefaultProcessSearch(channel, request);
+                        return await DefaultProcessSearch(channel, request).ConfigureAwait(false); // 2018/10/10 add configure
                     else
                     {
                         ProcessSearchEventArgs e = new ProcessSearchEventArgs();
@@ -240,7 +470,7 @@ namespace DigitalPlatform.Z3950.Server
                     break;
                 case BerTree.z3950_presentRequest:
                     if (this.ProcessPresent == null)
-                        return await DefaultProcessPresent(channel, request);
+                        return await DefaultProcessPresent(channel, request).ConfigureAwait(false); // 2018/10/10 add configure
                     else
                     {
                         ProcessPresentEventArgs e = new ProcessPresentEventArgs();
@@ -599,7 +829,7 @@ namespace DigitalPlatform.Z3950.Server
             StringBuilder text = new StringBuilder();
 
             text.AppendFormat("通道对象数: {0}\r\n", this._tcpChannels.Count);
-            text.AppendFormat("IpTable: {0}\r\n", this.IpTable.GetStatisInfo());
+            text.AppendFormat("IpTable: {0}", this.IpTable.GetStatisInfo());
 
             return text.ToString();
         }

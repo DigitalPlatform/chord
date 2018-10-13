@@ -24,6 +24,7 @@ using DigitalPlatform.Z3950.Server;
 using DigitalPlatform.Interfaces;
 using DigitalPlatform.SIP.Server;
 using DigitalPlatform.Text;
+using System.Text;
 
 namespace dp2Capo
 {
@@ -847,6 +848,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                         // 清除废弃的全局结果集
                         Task.Run(() => instance.FreeGlobalResultSets());
                     }
+
                 }
 
                 {
@@ -855,7 +857,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                     if ((_statisCount % 10) == 1)
                     {
                         LogCpuUsage("dp2capo");
-                        WriteLog("info", "ZServer 统计信息: " + ZServer?.GetStatisInfo());
+                        WriteLog("info", "ZServer 统计信息: " + ZServer?.GetStatisInfo() + "LibraryChannel 占用: " + GetLibraryChannelCountText());
                     }
 
                     // 清理闲置超期的 Channels
@@ -890,6 +892,26 @@ Exception Info: System.Net.NetworkInformation.PingException
             }
         }
 
+        // 获得描述每个通道正在使用的 LibraryChannel 数量的文字
+        static string GetLibraryChannelCountText()
+        {
+            try
+            {
+                StringBuilder text = new StringBuilder();
+                foreach (Instance instance in _instances)
+                {
+                    text.AppendFormat("{0}={1}; ",
+                        instance.Name,
+                        instance.MessageConnection._libraryChannelPool.GetUsingCount());
+                }
+                return text.ToString().TrimEnd();
+            }
+            catch(Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+
         private static void LogCpuUsage(string appName)
         {
             try
@@ -897,7 +919,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                 PerformanceCounter total_cpu = new PerformanceCounter("Process", "% Processor Time", "_Total");
                 PerformanceCounter process_cpu = new PerformanceCounter("Process", "% Processor Time", appName);
                 PerformanceCounter memory = new PerformanceCounter("Process", "Private Bytes", appName);
-                
+
 
                 for (int i = 0; i < 2; i++)
                 {

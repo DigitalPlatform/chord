@@ -137,19 +137,23 @@ namespace dp2Capo
                         }
                     }
 #endif
-                        string strNameList = StringUtil.MakePathList(names);
-                        long lRet = library_channel.GetSearchResult("",
-        0,
-        0,
-        "@remove:" + strNameList,
-        "zh",
-        out DigitalPlatform.LibraryClient.localhost.Record[] searchresults,
-        out string strError);
-                        if (lRet == -1)
+                        // string strNameList = StringUtil.MakePathList(names);
+                        List<string> batchs = MakeBatchList(names);
+                        foreach (string strNameList in batchs)
                         {
-                            // 写入错误日志
-                            WriteErrorLog("清除全局结果集 '" + strNameList + "' 时发生错误: " + strError);
-                            return;
+                            long lRet = library_channel.GetSearchResult("",
+            0,
+            0,
+            "@remove:" + strNameList,
+            "zh",
+            out DigitalPlatform.LibraryClient.localhost.Record[] searchresults,
+            out string strError);
+                            if (lRet == -1)
+                            {
+                                // 写入错误日志
+                                WriteErrorLog("清除全局结果集 '" + strNameList + "' 时发生错误: " + strError);
+                                return;
+                            }
                         }
                     }
                     finally
@@ -164,6 +168,30 @@ namespace dp2Capo
             {
                 ServerInfo.WriteLog("error", "FreeGlobalResultSets() 出现异常: " + ExceptionUtil.GetDebugText(ex));
             }
+        }
+
+        static List<string> MakeBatchList(List<string> names)
+        {
+            if (names == null || names.Count == 0)
+                throw new ArgumentException("names 参数不应为 null 或空集合");
+
+            List<string> results = new List<string>();
+            List<string> batch = new List<string>();
+            int i = 0;
+            foreach (string name in names)
+            {
+                batch.Add(name);
+                if (batch.Count >= 200
+                    || (i >= names.Count - 1 && batch.Count > 0))
+                {
+                    results.Add(StringUtil.MakePathList(batch));
+                    batch.Clear();
+                }
+                i++;
+            }
+
+            Debug.Assert(batch.Count == 0, "");
+            return results;
         }
 
         #endregion

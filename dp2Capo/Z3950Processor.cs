@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-
+using System.Threading;
 using DigitalPlatform;
 using DigitalPlatform.Common;
 using DigitalPlatform.LibraryClient;
@@ -51,6 +51,14 @@ namespace dp2Capo
         {
             ZServerChannel channel = (ZServerChannel)sender;
             channel.Closed -= Channel_Closed;   // 避免重入
+
+            // 中断正在进行的检索
+            LibraryChannel library_channel = (LibraryChannel)channel.Tag;
+            if (library_channel != null)
+            {
+                library_channel.Abort();
+                LibraryManager.Log?.Info(string.Format("ZServerChannel({0}) Channel_Closed() 引发 LibraryChannel.Abort()", channel.GetHashCode()));
+            }
 
             List<string> names = GetResultSetNameList(channel, true);
             if (names.Count > 0)
@@ -121,6 +129,7 @@ namespace dp2Capo
 
             LoginInfo login_info = BuildLoginInfo(strUserName, strPassword);
             LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
+            zserver_channel.Tag = library_channel;
             try
             {
                 // 全局结果集名
@@ -298,6 +307,7 @@ namespace dp2Capo
             }
             finally
             {
+                zserver_channel.Tag = null;
                 instance.MessageConnection.ReturnChannel(library_channel);
             }
 
@@ -525,21 +535,35 @@ namespace dp2Capo
             LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
             try
             {
+                // TODO: 附加到 Abort 事件。这样当事件被触发的时候，能执行 library_channel.Abort
+
                 // 全局结果集名
                 string resultset_name = MakeGlobalResultSetName(zserver_channel, e.Request.m_strResultSetName);
 
+
                 DateTime start = DateTime.Now;
                 // 进行检索
-                long lRet = library_channel.Search(
-        strQueryXml,
-        resultset_name,
-        "", // strOutputStyle
-        out strError);
+                long lRet = 0;
+
+                zserver_channel.Tag = library_channel;
+                try
+                {
+                    lRet = library_channel.Search(
+            strQueryXml,
+            resultset_name,
+            "", // strOutputStyle
+            out strError);
+                }
+                finally
+                {
+                    zserver_channel.Tag = null;
+                }
 
                 // testing System.Threading.Thread.Sleep(TimeSpan.FromSeconds(6));
                 TimeSpan length = DateTime.Now - start;
                 if (length >= slow_length)
                 {
+                    // TODO: TcpClient 可能为 null, 表示通道已经被切断
                     string ip = TcpServer.GetClientIP(zserver_channel.TcpClient);
                     string strChannelName = "ip:" + ip + ",channel:" + zserver_channel.GetHashCode();
 
@@ -819,6 +843,7 @@ namespace dp2Capo
                 return;
             }
 
+            // TODO: TcpClient 可能为 null, 表示通道已经被切断
             string strClientIP = ZServer.GetClientIP(zserver_channel.TcpClient);
 
             // testing

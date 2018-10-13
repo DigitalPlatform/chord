@@ -209,6 +209,8 @@ namespace DigitalPlatform.Net
     // 一个 TCP (服务器端)通讯通道
     public class TcpChannel
     {
+        public object Tag { get; set; }
+
         public event EventHandler Closed = null;
 
         public TcpClient TcpClient { get; set; }

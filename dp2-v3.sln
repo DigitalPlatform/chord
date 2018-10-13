@@ -106,7 +106,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigitalPlatform.SIP.Server"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2SIPClient", "dp2SIPClient\dp2SIPClient.csproj", "{4D15BD5A-1042-4246-AFA0-7962E9E1B840}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestZ3950", "UnitTestZ3950\UnitTestZ3950.csproj", "{A68511AF-A29F-425F-B0CD-D1E2581DD96A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTestZ3950", "UnitTestZ3950\UnitTestZ3950.csproj", "{A68511AF-A29F-425F-B0CD-D1E2581DD96A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
