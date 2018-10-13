@@ -114,6 +114,30 @@ namespace DigitalPlatform.LibraryClient
                 this.BeforeLogin(sender, e);
         }
 
+        // 获得正在使用中的通道数量
+        // exception:
+        //      可能会抛出异常
+        public int GetUsingCount()
+        {
+            if (this.m_lock.TryEnterReadLock(m_nLockTimeout) == false)
+                throw new LockException("锁定尝试中超时");
+            try
+            {
+                int count = 0;
+                foreach (LibraryChannelWrapper wrapper in this)
+                {
+                    if (wrapper.InUsing == true)
+                        count++;
+                }
+
+                return count;
+            }
+            finally
+            {
+                this.m_lock.ExitReadLock();
+            }
+        }
+
         // 查找指定URL的LibraryChannel对象
         LibraryChannelWrapper _findChannel(string strUrl,
             string strUserName,

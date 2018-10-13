@@ -42,7 +42,7 @@ namespace DigitalPlatform.Z3950.Server
     touch_func,
     (int)Math.Max(ZServerChannelProperty.MaxPreferredMessageSize, ZServerChannelProperty.MaxExceptionalRecordSize)
     // -1  // testing
-    );
+    ).ConfigureAwait(false); // 2018/10/10 add configure
 
             if (result.Value == -1)
             {
@@ -77,7 +77,7 @@ namespace DigitalPlatform.Z3950.Server
         {
             Result result = await ZChannel.SimpleSendTcpPackage(client,
                 response,
-                response.Length);
+                response.Length).ConfigureAwait(false); // 2018/10/10 add configure
             if (result.Value == -1 || result.Value == 1)
                 return new Result { Value = -1, ErrorInfo = result.ErrorInfo };
 

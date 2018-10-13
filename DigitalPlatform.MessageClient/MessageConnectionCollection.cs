@@ -171,7 +171,7 @@ namespace DigitalPlatform.MessageClient
                 return Task.Run<MessageConnection>(async () =>
                 {
                     // TODO: 建议抛出原有 Exception
-                    MessageResult result = await connection.ConnectAsync();
+                    MessageResult result = await connection.ConnectAsync().ConfigureAwait(false);
                     if (result.Value == -1)
                         throw new MessageException(result.String, connection.UserName, result.ErrorInfo);
                     return connection;
@@ -200,6 +200,7 @@ namespace DigitalPlatform.MessageClient
                 return task;
             }
 #endif
+            // return Task.FromResult(connection);
             return Task.Run(() =>
             {
                 return connection;
@@ -272,7 +273,7 @@ bool autoConnect = true)
         // FOUND:
             if (autoConnect && connection.ConnectState == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
             {
-                MessageResult result = await connection.ConnectAsync();
+                MessageResult result = await connection.ConnectAsync().ConfigureAwait(false);
                 if (result.Value == -1)
                     throw new MessageException(result.String, connection.UserName, result.ErrorInfo);
                 return connection;

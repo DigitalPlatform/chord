@@ -84,6 +84,7 @@ namespace dp2Capo
 
             SipChannel sip_channel = sender as SipChannel;
 
+            // TODO: TcpClient 可能为 null, 表示通道已经被切断
             string ip = TcpServer.GetClientIP(sip_channel.TcpClient);
 
             // Login 之前，这里只是默认的编码方式。因为 Login 之前没法确定实例名。如果 Login 的用户名(和实例名)能确保是英文，用默认编码方式倒也不会有问题
