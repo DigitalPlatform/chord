@@ -93,7 +93,7 @@ namespace DigitalPlatform.SIP.Server
                                 {
                                     return FindTerminator(package, start, length);
                                 },
-                                this.MaxPackageLength);
+                                this.MaxPackageLength).ConfigureAwait(false); // 2018/10/10 add configure
                             if (result.Value == -1)
                             {
                                 if (result.ErrorCode == "ConnectionAborted")
@@ -125,7 +125,7 @@ namespace DigitalPlatform.SIP.Server
                             // 注意调用返回 result.Value == -1 情况下，要及时 Close TcpClient
                             Result result = await TcpChannel.SimpleSendTcpPackage(tcpClient,
         response,
-        response.Length);
+        response.Length).ConfigureAwait(false); // 2018/10/10 add configure
                             channel.Touch();
                             if (result.Value == -1 || result.Value == 1)
                             {

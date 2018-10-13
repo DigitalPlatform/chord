@@ -195,7 +195,7 @@ namespace DigitalPlatform.MessageClient
             {
 
                 // ConnectAsync().Wait();
-                await ConnectAsync();
+                await ConnectAsync().ConfigureAwait(false);
                 return true;
             }
             return false;
@@ -529,7 +529,7 @@ errorInfo)
             try
             {
                 // Connection.EnsureReconnecting();
-                await Connection.Start();
+                await Connection.Start().ConfigureAwait(false);
 #if NO
                 if (Connection.Start().Wait(TimeSpan.FromSeconds(60)) == false)
                 {
@@ -776,7 +776,7 @@ errorCode) =>
         }
     },
     timeout,
-    cancel_token);
+    cancel_token).ConfigureAwait(false);
             return new GetMessageResult(result, results);
         }
 
@@ -945,7 +945,7 @@ errorCode) =>
                 {
                     MessageResult temp = await HubProxy.Invoke<MessageResult>(
 "RequestGetMessage",
-request);
+request).ConfigureAwait(false);
                     if (temp.Value == -1 || temp.Value == 0 || temp.Value == 2)
                         return temp;
 
@@ -955,7 +955,7 @@ request);
     request.TaskID,
     wait_events,
     timeout,
-    token);
+    token).ConfigureAwait(false);
                     return result;
                 }
             }
@@ -994,7 +994,7 @@ SetMessageRequest request)
         {
             // 请求结构中如果具备了 TaskID 值，说明调主想自己控制拼接过程，那这里就直接发送出去
             if (string.IsNullOrEmpty(request.TaskID) == false)
-                return await TrySetMessageAsync(request);
+                return await TrySetMessageAsync(request).ConfigureAwait(false);
 
             int chunk_size = 4096;
             int length = GetLength(request);
@@ -1033,7 +1033,7 @@ SetMessageRequest request)
 "SetMessage",
 current_request);
 #endif
-                    result = await TrySetMessageAsync(current_request);
+                    result = await TrySetMessageAsync(current_request).ConfigureAwait(false);
                     if (result.Value == -1)
                         return result;  // 中途出错了
 
@@ -1084,7 +1084,7 @@ CancellationToken token)
             Task<SetMessageResult> task = HubProxy.Invoke<SetMessageResult>(
 "SetMessage",
 request);
-            if (task == await Task.WhenAny(task, Task.Delay(timeout)))
+            if (task == await Task.WhenAny(task, Task.Delay(timeout)).ConfigureAwait(false))
                 return task.Result;
 
             throw new TimeoutException("已超时 " + timeout.ToString());
@@ -1174,7 +1174,7 @@ CancellationToken token)
                 {
                     MessageResult message = await HubProxy.Invoke<MessageResult>(
         "RequestGetConnectionInfo",
-        request);
+        request).ConfigureAwait(false);
                     if (message.Value == -1 || message.Value == 0)
                     {
                         result.ErrorInfo = message.ErrorInfo;
@@ -1191,7 +1191,7 @@ CancellationToken token)
     request.TaskID,
     wait_events,
     timeout,
-    token);
+    token).ConfigureAwait(false);
                     return result;
                 }
             }
@@ -1389,7 +1389,7 @@ CancellationToken token)
                         MessageResult message = await HubProxy.Invoke<MessageResult>(
 "RequestWebCall",
 strRemoteUserName,
-param);
+param).ConfigureAwait(false);
                         if (message.Value == -1 || message.Value == 0)
                         {
                             result.ErrorInfo = message.ErrorInfo;
@@ -1406,7 +1406,7 @@ param);
         request.TaskID,
         wait_events,
         timeout,
-        token);
+        token).ConfigureAwait(false);
                     }
                     catch (TimeoutException)
                     {
@@ -2079,7 +2079,7 @@ token);
                     MessageResult message = await HubProxy.Invoke<MessageResult>(
         "RequestSearch",
         strRemoteUserName,
-        request);
+        request).ConfigureAwait(false);
                     if (message.Value == -1 || message.Value == 0)
                     {
                         result.ErrorInfo = message.ErrorInfo;
@@ -2101,7 +2101,7 @@ token);
         request.TaskID,
         wait_events,
         timeout,
-        token);
+        token).ConfigureAwait(false);
                     }
                     catch (TimeoutException)
                     {
@@ -2396,7 +2396,7 @@ CancellationToken token)
                     MessageResult message = await HubProxy.Invoke<MessageResult>(
         "RequestSetInfo",
         strRemoteUserName,
-        request);
+        request).ConfigureAwait(false);
                     if (message.Value == -1
                         || message.Value == 0)
                     {
@@ -2410,7 +2410,7 @@ CancellationToken token)
     request.TaskID,
     wait_events,
     timeout,
-    token);
+    token).ConfigureAwait(false);
                     return result;
                 }
             }
@@ -2470,7 +2470,7 @@ CancellationToken token)
                     MessageResult message = await HubProxy.Invoke<MessageResult>(
         "RequestBindPatron",
         strRemoteUserName,
-        request);
+        request).ConfigureAwait(false);
                     if (message.Value == -1
                         || message.Value == 0)
                     {
@@ -2484,7 +2484,7 @@ CancellationToken token)
 request.TaskID,
 wait_events,
 timeout,
-token);
+token).ConfigureAwait(false);
                     return result;
                 }
             }
@@ -2539,7 +2539,7 @@ CancellationToken token)
                     MessageResult message = await HubProxy.Invoke<MessageResult>(
         "RequestCirculation",
         strRemoteUserName,
-        request);
+        request).ConfigureAwait(false);
                     if (message.Value == -1
                         || message.Value == 0)
                     {
@@ -2554,7 +2554,7 @@ CancellationToken token)
 request.TaskID,
 wait_events,
 timeout,
-token);
+token).ConfigureAwait(false);
                     return result;
                 }
             }
@@ -2680,7 +2680,7 @@ token);
                     MessageResult message = await HubProxy.Invoke<MessageResult>(
         "RequestGetRes",
         strRemoteUserName,
-        request);
+        request).ConfigureAwait(false);
                     if (message.Value == -1 || message.Value == 0)
                     {
                         result.ErrorInfo = message.ErrorInfo;
@@ -2696,7 +2696,7 @@ token);
         request.TaskID,
         wait_events,
         timeout,
-        token);
+        token).ConfigureAwait(false);
                     }
                     catch (TimeoutException)
                     {
@@ -2833,7 +2833,7 @@ CancellationToken token)
                     MessageResult message = await HubProxy.Invoke<MessageResult>(
         "RequestGetRes",
         strRemoteUserName,
-        request);
+        request).ConfigureAwait(false);
                     if (message.Value == -1 || message.Value == 0)
                     {
                         result.ErrorInfo = message.ErrorInfo;
@@ -2897,7 +2897,7 @@ CancellationToken token)
                 users);
 
             List<Task> tasks = new List<Task>() { };
-            if (task == await Task.WhenAny(task, Task.Delay(timeout), token.AsTask()))
+            if (task == await Task.WhenAny(task, Task.Delay(timeout), token.AsTask()).ConfigureAwait(false))
                 return task.Result;
 
             throw new TimeoutException("已超时 " + timeout.ToString());
@@ -2955,7 +2955,7 @@ CancellationToken token)
         }
     },
     timeout,
-    cancel_token);
+    cancel_token).ConfigureAwait(false);
             return new ListResResult(result, results);
         }
 
@@ -3058,7 +3058,7 @@ CancellationToken token)
                 {
                     MessageResult temp = await HubProxy.Invoke<MessageResult>(
 "RequestListRes",
-request);
+request).ConfigureAwait(false);
                     if (temp.Value == -1 /*|| temp.Value == 0 || temp.Value == 2*/)
                         return temp;
 
@@ -3068,7 +3068,7 @@ request);
     request.TaskID,
     wait_events,
     timeout,
-    token);
+    token).ConfigureAwait(false);
                     return result;
                 }
             }
@@ -3364,7 +3364,7 @@ circulation_result);
 taskID,
 resultValue,
 results,
-errorInfo);
+errorInfo).ConfigureAwait(false);
         }
 
         public async void TryResponseBindPatron(
@@ -3379,7 +3379,7 @@ errorInfo);
     taskID,
     resultValue,
     results,
-    errorInfo);
+    errorInfo).ConfigureAwait(false);
             }
             catch
             {
@@ -3399,7 +3399,7 @@ errorInfo);
 taskID,
 resultValue,
 results,
-errorInfo);
+errorInfo).ConfigureAwait(false);
         }
 
         public async void TryResponseSetInfo(
@@ -3414,7 +3414,7 @@ errorInfo);
     taskID,
     resultValue,
     results,
-    errorInfo);
+    errorInfo).ConfigureAwait(false);
             }
             catch
             {
@@ -3712,7 +3712,7 @@ SearchResponse responseParam)
             try
             {
                 MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSearch",
- responseParam);
+ responseParam).ConfigureAwait(false);
                 if (result.Value == -1)
                 {
                     AddErrorLine(result.ErrorInfo);
@@ -3837,7 +3837,7 @@ WebCallResponse responseParam)
                 {
                     return await HubProxy.Invoke<SetMessageResult>(
 "SetMessage",
-request);
+request).ConfigureAwait(false);
 
                 }
                 catch (Exception ex)

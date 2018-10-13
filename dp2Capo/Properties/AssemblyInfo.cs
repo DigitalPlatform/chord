@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.30.*")]
-[assembly: AssemblyFileVersion("1.30.0.0")]
+[assembly: AssemblyVersion("1.31.*")]
+[assembly: AssemblyFileVersion("1.31.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -65,3 +65,5 @@ using System.Runtime.InteropServices;
 // 1.28 (2018/9/27) Z39.50 Service 基本稳定
 // 1.29 (2018/9/28) Z39.50 Service 中，进一步加强了对 Present 请求参数的检查，避免获取记录阶段出现巨量的循环
 // 1.30 (2018/10/2) 修正了点对点 GetRes() API 中当 param.Data 为 Length 0 的时候的一处无法返回响应导致超时的 bug
+// 1.31 (2018/10/11) Z39.50 服务器 TCP 通道能在检索中途感知到前端切断通道的动作，并及时让 LibraryChannel Abort()。清理全局结果集按照分批进行，保证每批请求的规模不至于过大
+

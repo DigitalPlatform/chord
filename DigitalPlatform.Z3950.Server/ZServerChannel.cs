@@ -17,5 +17,13 @@ namespace DigitalPlatform.Z3950.Server
             this.Property = new ZServerChannelProperty();
             return this.Property as ZServerChannelProperty;
         }
+
+        // 获得用于调试输出的，当前通道名称
+        public string GetDebugName(TcpClient tcpClient)
+        {
+            string ip = TcpServer.GetClientIP(tcpClient);
+
+            return string.Format("ip:{0} channel:{1}", ip, this.GetHashCode());
+        }
     }
 }

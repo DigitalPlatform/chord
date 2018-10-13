@@ -94,7 +94,7 @@ namespace DigitalPlatform.Net
             return ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
         }
 
-        public async void Listen(int backlog)
+        public void Listen(int backlog)
         {
             try
             {
@@ -111,13 +111,18 @@ namespace DigitalPlatform.Net
 
             Console.WriteLine(this.GetServerName() + "成功监听于 " + this._port.ToString());
 
+            var task = Task.Run(() => Run());
+        }
+
+        async Task Run()
+        {
             while (this._isActive)
             {
                 TcpClient tcpClient = null;
                 string ip = "";
                 try
                 {
-                    tcpClient = await this._listener.AcceptTcpClientAsync();
+                    tcpClient = await this._listener.AcceptTcpClientAsync().ConfigureAwait(false);
 
                     // string ip = ((IPEndPoint)s.Client.RemoteEndPoint).Address.ToString();
                     ip = GetClientIP(tcpClient);
@@ -151,7 +156,6 @@ namespace DigitalPlatform.Net
                                     tcpClient = null;
                                 },
                                 _cancelToken));
-
 
                 }
                 catch (Exception ex)

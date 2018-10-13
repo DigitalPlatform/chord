@@ -55,7 +55,7 @@ namespace DigitalPlatform.HTTP
             Write(stream, string.Join("\r\n", response.Headers.Select(x => string.Format("{0}: {1}", x.Key, x.Value))));
             Write(stream, "\r\n\r\n");
 
-            await stream.WriteAsync(response.Content, 0, response.Content.Length, token);
+            await stream.WriteAsync(response.Content, 0, response.Content.Length, token).ConfigureAwait(false);
         }
 
 
@@ -70,7 +70,7 @@ namespace DigitalPlatform.HTTP
             CancellationToken token)
         {
             // Read Request Line
-            string request = await ReadLineAsync(inputStream, cache, token);
+            string request = await ReadLineAsync(inputStream, cache, token).ConfigureAwait(false);
             if (string.IsNullOrEmpty(request))
                 return null;    // 表示前端已经切断通讯
 #if NO
@@ -91,7 +91,7 @@ namespace DigitalPlatform.HTTP
             //Read Headers
             Dictionary<string, string> headers = new Dictionary<string, string>();
             string line;
-            while ((line = await ReadLineAsync(inputStream, cache, token)) != null)
+            while ((line = await ReadLineAsync(inputStream, cache, token).ConfigureAwait(false)) != null)
             {
                 if (line.Equals(""))
                 {
@@ -149,7 +149,7 @@ namespace DigitalPlatform.HTTP
                     if (nRet < buffer.Length)
                     {
                         // int n = inputStream.Read(buffer, 0, buffer.Length);
-                        n = await inputStream.ReadAsync(buffer, nRet, buffer.Length - nRet, token);
+                        n = await inputStream.ReadAsync(buffer, nRet, buffer.Length - nRet, token).ConfigureAwait(false);
                     }
 
                     buffer.CopyTo(bytes, totalBytes - bytesLeft);
@@ -206,12 +206,12 @@ namespace DigitalPlatform.HTTP
                 nPort = 80;
 
             TcpClient client = new TcpClient(AddressFamily.InterNetwork);
-            await client.ConnectAsync(strHostName, nPort);
+            await client.ConnectAsync(strHostName, nPort).ConfigureAwait(false);
 
             request.Url = builder.Path;
-            await WriteRequestAsync(client.GetStream(), request, token);
+            await WriteRequestAsync(client.GetStream(), request, token).ConfigureAwait(false);
 
-            return await GetResponseAsync(client.GetStream(), token);
+            return await GetResponseAsync(client.GetStream(), token).ConfigureAwait(false);
         }
 
         // 向 dp2library 发出请求
@@ -254,15 +254,15 @@ namespace DigitalPlatform.HTTP
 
             await WriteAsync(stream,
                 string.Format("{0} {1} HTTP/1.0\r\n", request.Method, request.Url),
-                token);
+                token).ConfigureAwait(false);
             await WriteAsync(stream,
                 string.Join("\r\n", request.Headers.Select(x => string.Format("{0}: {1}", x.Key, x.Value))),
-                token);
+                token).ConfigureAwait(false);
             await WriteAsync(stream,
                 "\r\n\r\n",
-                token);
+                token).ConfigureAwait(false);
 
-            await stream.WriteAsync(request.Content, 0, request.Content.Length, token);
+            await stream.WriteAsync(request.Content, 0, request.Content.Length, token).ConfigureAwait(false);
         }
 
 
@@ -347,7 +347,7 @@ namespace DigitalPlatform.HTTP
             CancellationToken token)
         {
             // Read Response Line
-            string first_line = await ReadLineAsync0(inputStream, token);
+            string first_line = await ReadLineAsync0(inputStream, token).ConfigureAwait(false);
 
 #if NO
             // HTTP/1.1 404 Not Found
@@ -368,7 +368,7 @@ namespace DigitalPlatform.HTTP
             //Read Headers
             Dictionary<string, string> headers = new Dictionary<string, string>();
             string line;
-            while ((line = await ReadLineAsync0(inputStream, token)) != null)
+            while ((line = await ReadLineAsync0(inputStream, token).ConfigureAwait(false)) != null)
             {
                 if (line.Equals(""))
                 {
@@ -402,7 +402,7 @@ namespace DigitalPlatform.HTTP
                 while (bytesLeft > 0)
                 {
                     byte[] buffer = new byte[bytesLeft > 1024 ? 1024 : bytesLeft];
-                    int n = await inputStream.ReadAsync(buffer, 0, buffer.Length, token);
+                    int n = await inputStream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
                     buffer.CopyTo(bytes, totalBytes - bytesLeft);
 
                     bytesLeft -= n;
@@ -452,7 +452,7 @@ namespace DigitalPlatform.HTTP
             {
                 // next_char = stream.ReadByte();
 
-                int nRet = await stream.ReadAsync(buffer, 0, 1, token);
+                int nRet = await stream.ReadAsync(buffer, 0, 1, token).ConfigureAwait(false);
                 if (nRet < 1)
                     break;
                 next_char = buffer[0];
@@ -500,7 +500,7 @@ namespace DigitalPlatform.HTTP
             {
                 if (cache.Count == 0)
                 {
-                    int nRet = await stream.ReadAsync(buffer, 0, buffer.Length, token);
+                    int nRet = await stream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
                     if (nRet <= 0)
                         break;
 
@@ -560,7 +560,7 @@ namespace DigitalPlatform.HTTP
         private static async Task WriteAsync(Stream stream, string text, CancellationToken token)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(text);
-            await stream.WriteAsync(bytes, 0, bytes.Length, token);
+            await stream.WriteAsync(bytes, 0, bytes.Length, token).ConfigureAwait(false);
         }
     }
 }
