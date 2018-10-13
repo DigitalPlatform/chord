@@ -438,7 +438,7 @@ namespace dp2weixinWeb.Controllers
             // 获取消息
             List<MessageItem> list = null;
             nRet =dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_Group_Bb,
-                libId,
+                libId+"/"+activeUser.bindLibraryCode,
                 "",
                 "",
                 "browse",
@@ -532,7 +532,8 @@ namespace dp2weixinWeb.Controllers
 
                 nRet = this.GetActive(code, state,
                     out activeUser,
-                    out strError);
+                    out strError,
+                    weixinId);
                 if (nRet == -1)
                 {
                     goto ERROR1;
@@ -560,12 +561,7 @@ namespace dp2weixinWeb.Controllers
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
                 goto ERROR1;
             }
-            //LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
-            //if (lib == null)
-            //{
-            //    strError = "未找到id为[" + libId + "]的图书馆定义。";
-            //    goto ERROR1;
-            //}
+
 
             // 2016-8-24 超级管理员可修改任何图书馆的介绍与公告
             if (weixinId == dp2WeiXinService.C_Supervisor)
@@ -891,7 +887,7 @@ namespace dp2weixinWeb.Controllers
             if (String.IsNullOrEmpty(subject) == false)
             {
                 nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_Group_Book,
-                    libId,
+                    libId + "/" + activeUser.bindLibraryCode,
                     "",
                     subject,
                     "browse",
@@ -972,7 +968,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.subject = subject;
             List<MessageItem> list = new List<MessageItem>();
             nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_Group_Book,
-                libId,
+                libId + "/" + activeUser.bindLibraryCode,
                 "",
                 subject,
                 "browse",
@@ -1072,7 +1068,7 @@ namespace dp2weixinWeb.Controllers
             {
                 List<MessageItem> list = null;
                 nRet = dp2WeiXinService.Instance.GetMessage(dp2WeiXinService.C_Group_Book,
-                    libId,
+                    libId + "/" + activeUser.bindLibraryCode,
                     msgId,
                     "",
                     "original",

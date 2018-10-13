@@ -1493,7 +1493,7 @@ namespace dp2weixin.service
             //    weixinIdList = this.GetWeixinIds(email);
             //}
 
-           List<WxUserItem> userList= WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Patron,
+           List<WxUserItem> userList= WxUserDatabase.Current.Get("", libId,null, WxUserDatabase.C_Type_Patron,
                 patronBarcode,
                 "",
                 true);
@@ -6064,7 +6064,7 @@ public string ErrorCode { get; set; }
                         if (mime == @"application/pdf")
                         {
                             string objectUri = MakeObjectUrl(biblioPath, uri);
-                            string strPdfUri = objectUri + "/page:1,format:jpeg,dpi:150";
+                            string strPdfUri = objectUri + "/page:1,format:jpeg,dpi:72";
                             string imgSrc = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(lib.id)
                                                  + "&objectPath=" + HttpUtility.UrlEncode(strPdfUri);
 
@@ -8956,6 +8956,14 @@ tempRemark);
             list = new List<MessageItem>();
             strError = "";
 
+            string libraryCode = "";
+            if (libId.IndexOf('/') != -1)
+            {
+                int nIndex = libId.IndexOf('/');
+                libraryCode = libId.Substring(nIndex+ 1);
+                libId = libId.Substring(0,nIndex);
+            }
+
 
 
             List<MessageRecord> records = new List<MessageRecord>();
@@ -8971,7 +8979,7 @@ tempRemark);
 
             foreach (MessageRecord record in records)
             {
-                MessageItem item = ConvertMsgRecord(group, record, style, libId);
+                MessageItem item = ConvertMsgRecord(group, record, style, libId, libraryCode);
                 list.Add(item);
             }
 
@@ -8981,7 +8989,8 @@ tempRemark);
         public MessageItem ConvertMsgRecord(string group,
             MessageRecord record,
             string style,
-            string libId)
+            string libId,
+            string libraryCode)
         {
 
             MessageItem item = new MessageItem();
@@ -9048,7 +9057,7 @@ tempRemark);
                 string contentHtml = "";
                 if (group == C_Group_Bb || group == C_Group_HomePage || group == C_Group_dp_home)
                 {
-                    contentHtml = GetMsgHtml(format, content, libId);
+                    contentHtml = GetMsgHtml(format, content, libId,libraryCode);
                 }
                 else if (group == C_Group_Book)
                 {
@@ -9059,13 +9068,13 @@ tempRemark);
 
                 if (String.IsNullOrEmpty(item.remark) == false)
                 {
-                    item.remarkHtml = GetMsgHtml("text", item.remark, libId);
+                    item.remarkHtml = GetMsgHtml("text", item.remark, libId,libraryCode);
                 }
             }
             return item;
         }
 
-        public string GetMsgHtml(string format, string content, string libId)
+        public string GetMsgHtml(string format, string content, string libId,string libraryCode)
         {
             string contentHtml = "";
             if (format == "markdown")
@@ -9142,34 +9151,46 @@ tempRemark);
             }
 
             // 替换宏
-            if (contentHtml.Contains(LibraryManager.M_Lib_PatronCount) == true
-                || contentHtml.Contains(LibraryManager.M_Lib_WorkerCount) == true
-                || contentHtml.Contains(LibraryManager.M_Lib_BindTotalCount) == true)
-            {
-                int totalCount = 0;
+            if (contentHtml.Contains(LibraryManager.M_Lib_WxPatronCount) == true
+                || contentHtml.Contains(LibraryManager.M_Lib_WxWorkerCount) == true
+                || contentHtml.Contains(LibraryManager.M_Lib_WxTotalCount) == true
 
+                || contentHtml.Contains(LibraryManager.M_Lib_WebPatronCount) == true
+                || contentHtml.Contains(LibraryManager.M_Lib_WebWorkerCount) == true
+                || contentHtml.Contains(LibraryManager.M_Lib_WebTotalCount) == true
+
+                || contentHtml.Contains(LibraryManager.M_Lib_BindTotalCount) == true
+                )
+            {
+               
                 List<WxUserItem>  wxPatronList = new List<WxUserItem>();
                 List<WxUserItem> webPatronList = new List<WxUserItem>();
                 List<WxUserItem> wxWorkerList = new List<WxUserItem>();
                 List<WxUserItem> webWorkerList = new List<WxUserItem>();
 
                 this.GetBind(libId,
+                    libraryCode,
                     out wxPatronList,
                     out webPatronList,
                     out wxWorkerList,
                     out webWorkerList);
                
-                totalCount = wxPatronList.Count 
-                    + wxWorkerList.Count;
+                int wxTotalCount = wxPatronList.Count + wxWorkerList.Count;
+                int webTotalCount = webPatronList.Count + webWorkerList.Count;
+                int bindTotalCount = wxTotalCount + webTotalCount;
 
 
-                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_PatronCount, wxPatronList.Count.ToString());
-                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_WorkerCount, wxWorkerList.Count.ToString());
-                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_BindTotalCount, totalCount.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_WxPatronCount, wxPatronList.Count.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_WxWorkerCount, wxWorkerList.Count.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_WxTotalCount, wxTotalCount.ToString());
 
                 // 新增加的web绑定统计
-                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_webPatronCount, webPatronList.Count.ToString());
-                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_webWorkerCount, webWorkerList.Count.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_WebPatronCount, webPatronList.Count.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_WebWorkerCount, webWorkerList.Count.ToString());
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_WebTotalCount, webTotalCount.ToString());
+
+                // 总人数
+                contentHtml = contentHtml.Replace(LibraryManager.M_Lib_BindTotalCount, bindTotalCount.ToString());
 
             }
 
@@ -9180,6 +9201,7 @@ tempRemark);
 
 
         public void GetBind(string libId,
+            string libraryCode,
             out List<WxUserItem> wxPatronList,
             out List<WxUserItem> webPatronList,
             out List<WxUserItem> wxWorkerList,
@@ -9191,7 +9213,7 @@ tempRemark);
             webWorkerList = new List<WxUserItem>();
 
             // 获取绑定的读者数量
-            List<WxUserItem> patrons = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Patron);
+            List<WxUserItem> patrons = WxUserDatabase.Current.Get("", libId,libraryCode, WxUserDatabase.C_Type_Patron,null,null,true);
             foreach (WxUserItem user in patrons)
             {
                 if (user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
@@ -9205,7 +9227,7 @@ tempRemark);
             }
 
             // 获取绑定的工作人员数量
-            List<WxUserItem> workers = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Worker);
+            List<WxUserItem> workers = WxUserDatabase.Current.Get("", libId,libraryCode, WxUserDatabase.C_Type_Worker,null,null,true);
             foreach (WxUserItem user in workers)
             {
                 if (user.userName == "public")
@@ -9402,11 +9424,21 @@ tempRemark);
             strError = "";
             returnItem = null;
 
+            string libraryCode = "";
+            if (libId.IndexOf('/') != -1)
+            {
+                int nIndex = libId.IndexOf('/');
+                libraryCode = libId.Substring(nIndex + 1);
+                libId = libId.Substring(0, nIndex);
+            }
+
             if (worker == null || worker.type != WxUserDatabase.C_Type_Worker)
             {
                 strError = "当前帐户是工作人员，才能编辑消息";
                 return -1;
             }
+
+
 
 
             strError = checkGroup(group);
@@ -9511,7 +9543,7 @@ tempRemark);
 
                 MessageRecord returnRecord = result.Results[0];
                 returnRecord.data = strText;
-                returnItem = this.ConvertMsgRecord(group, returnRecord, "browse", libId);
+                returnItem = this.ConvertMsgRecord(group, returnRecord, "browse", libId, libraryCode);
                 //returnItem
 
                 // 新创建，且check栏目的序号

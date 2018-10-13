@@ -305,9 +305,10 @@
                                 // alert(code);
                                 var left = code.substring(0, code.indexOf(","))
                                 var right = code.substring(code.indexOf(",") + 1)
-                                if (left != "EAN_13" && left != "CODE_39") {
+                                if (left != "EAN_13" && left != "CODE_39" && left != "CODE_128") //20181012 增加识别CODE_128码
+                                {
                                     // 扫描的册条码不对了，提示一下，允许继续输入
-                                    warn("扫描的不是册条码或者ISBN号", C_next_receiveBarcode);
+                                    warn("扫描结果["+code+"]不是册条码或者ISBN号", C_next_receiveBarcode);
                                     return;
                                 }
 
@@ -320,7 +321,8 @@
                             if (code.indexOf(",") != -1) {
                                 var left = code.substring(0, code.indexOf(","))
                                 var right = code.substring(code.indexOf(",") + 1)
-                                if (left == "CODE_39") {
+                                if (left == "CODE_39" || left == "CODE_128") //20181012 增加识别CODE_128码
+                                {
                                     setBarcode(right);
                                 }
                             }

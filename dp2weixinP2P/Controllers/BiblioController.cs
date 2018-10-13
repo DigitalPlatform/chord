@@ -21,7 +21,7 @@ namespace dp2weixinWeb.Controllers
             int totalPage = dp2WeiXinService.Instance.GetPDFCount(libId, uri, out filename, out strError);
             ViewBag.pageCount = totalPage;
 
-            string strImgUri = uri + "/page:1,format:jpeg,dpi:100";
+            string strImgUri = uri + "/page:1,format:jpeg,dpi:75";
             ViewBag.firstUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
                             + "&objectPath=" + HttpUtility.UrlEncode(strImgUri);
             return View();
