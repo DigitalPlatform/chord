@@ -110,6 +110,9 @@
 
             if (todoDiv != null && todoDiv.html() != undefined) {
 
+                //todoDiv.html("<img src='../img/loading.gif' />");
+                todoDiv.addClass("page");
+
                 var img1 = $("#img1");
                 var imgWidth = img1.width();
                 var styleStr1 = " style='width:" + imgWidth + "px'";
@@ -120,7 +123,7 @@
                 var src = "../patron/getphoto?libId=" + libId
                     + "&objectPath=" + encodeURIComponent(strImgUri);
 
-                todoDiv.html("<img class='page' id='img" + no + "'  " + styleStr1 + " src='" + src + "'/>");
+                todoDiv.html("<img  id='w" + no + "' src='../img/wait2.gif' /><img id='img" + no + "'  " + styleStr1 + " src='" + src + "'  onload='deletewait(" + no + ")'/>");
 
                 todoDiv.removeClass("todo" + no);
             }
@@ -128,6 +131,14 @@
 
                 //alert("已经显示");
             }
+        }
+
+        function deletewait(no) {
+            //alert("0");
+            var o = $("#w" + no);
+            o.remove();
+            //o.parent().remove(o);
+           // alert("1");
         }
 
 
