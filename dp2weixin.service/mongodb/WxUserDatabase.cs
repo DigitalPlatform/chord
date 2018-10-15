@@ -106,10 +106,12 @@ namespace dp2weixin.service
         // 获取绑定账户
         public List<WxUserItem> Get(string weixinId, 
             string libId,
+            string libraryCode,
             int type,
             string patronBarcode,
             string userName,
-            bool bOnlyAvailable)
+            bool bOnlyAvailable
+            )
         {
             var filter = Builders<WxUserItem>.Filter.Empty;
 
@@ -130,12 +132,22 @@ namespace dp2weixin.service
                 //info.Append(" weixinId=" + weixinId);
             }
 
+
             if (string.IsNullOrEmpty(libId) == false)
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("libId", libId);
 
                 //info.Append(" libId=" + libId);
             }
+
+            if (string.IsNullOrEmpty(libraryCode) == false)
+            {
+                filter = filter & Builders<WxUserItem>.Filter.Eq("bindLibraryCode", libraryCode);
+
+                //info.Append(" libId=" + libId);
+            }
+
+            
 
             if (type != -1)
             {
@@ -175,18 +187,18 @@ namespace dp2weixin.service
         // 获取有效的绑定账户
         public List<WxUserItem> Get(string weixinId, string libId, int type)
         {
-            return this.Get(weixinId, libId,type,null,null, true);
+            return this.Get(weixinId, libId,null,type,null,null, true);
         }
 
         // 获取指定的读者账户,针对一个图书馆可绑定多个读者账户
         public List<WxUserItem> GetPatron(string weixinId, string libId, string readerBarcode)
         {
-            return this.Get(weixinId, libId, C_Type_Patron, readerBarcode,null, true);
+            return this.Get(weixinId, libId, null,C_Type_Patron, readerBarcode,null, true);
         }
 
         public List<WxUserItem> GetWorkers(string weixinId, string libId, string userName)
         {
-            return this.Get(weixinId, libId, C_Type_Worker,  null,userName, true);
+            return this.Get(weixinId, libId, null,C_Type_Worker,  null,userName, true);
         }
 
 
@@ -401,7 +413,7 @@ namespace dp2weixin.service
             {
                 dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.Add(),id=" + item.id + " weixinid=" + item.weixinId);
 
-                List<WxUserItem> itemList = this.Get(item.weixinId, item.libId, item.type, item.readerBarcode, item.userName, true);
+                List<WxUserItem> itemList = this.Get(item.weixinId, item.libId, null,item.type, item.readerBarcode, item.userName, true);
                 if (itemList.Count == 0)
                 {
                     this.wxUserCollection.InsertOne(item);
