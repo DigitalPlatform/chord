@@ -810,7 +810,7 @@ out strError);
             strOutputUserName = "";
             strLibraryCode = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.Login(
@@ -871,7 +871,7 @@ out strError);
             strOutputUserName = "";
             strLibraryCode = "";
 
-        REDO:
+            REDO:
             TimeSpan old_timeout = this.Timeout;
             this.Timeout = new TimeSpan(0, 0, 10);
             try
@@ -1117,7 +1117,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             this.BeginSearch();
             try
             {
@@ -1142,6 +1142,7 @@ out strError);
             }
             catch (Exception ex)
             {
+                // TODO: 这里可能引起死循环
                 int nRet = ConvertWebError(ex, out strError);
                 if (nRet == 0)
                     return -1;
@@ -1176,7 +1177,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetFriends(
@@ -1224,7 +1225,7 @@ out strError);
             strVersion = "";
             strUID = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetVersion(out strUID);
@@ -1264,7 +1265,7 @@ out strError);
         /// <para>0:    成功</para>
         /// </returns>
         public long SetLang(
-            // // DigitalPlatform.Stop stop,
+    // // DigitalPlatform.Stop stop,
     string strLang,
     out string strOldLang,
     out string strError)
@@ -1272,7 +1273,7 @@ out strError);
             strError = "";
             strOldLang = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetLang(
@@ -1358,7 +1359,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             this.BeginSearch();
             try
             {
@@ -1440,7 +1441,7 @@ out strError);
         /// <para>&gt;=0:  结果集内的记录数。注意，不是本次调用返回的结果数</para>
         /// </returns>
         public long GetSearchResult(
-            // // DigitalPlatform.Stop stop,
+    // // DigitalPlatform.Stop stop,
     string strResultSetName,
     long lStart,
     long lCount,
@@ -1458,7 +1459,7 @@ out strError);
             {
                 Record[] searchresults = null;
                 long lRet = GetSearchResult(
-                    // stop,
+            // stop,
             strResultSetName,
             _lStart,
             _lCount,
@@ -1518,7 +1519,7 @@ out strError);
             Record[] searchresults = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetSearchResult(
@@ -1595,7 +1596,7 @@ out strError);
             searchresults = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetSearchResult(
@@ -1660,7 +1661,7 @@ out strError);
             searchresults = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetBrowseRecords(
@@ -1719,7 +1720,7 @@ out strError);
             strXml = "";
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetRecord(
@@ -1791,7 +1792,7 @@ out strError);
             baNewTimestamp = null;
             kernel_errorcode = ErrorCodeValue.NoError;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetReaderInfo(
@@ -1894,7 +1895,7 @@ out strError);
             strRecPath = "";
             baTimestamp = null;
 
-        REDO:
+            REDO:
             try
             {
                 // localhost.dp2libraryREST _ws = ws as localhost.dp2libraryREST;
@@ -1946,7 +1947,7 @@ out strError);
                 ea.FirstTry = true;
                 ea.ErrorInfo = strError;
 
-            REDOLOGIN:
+                REDOLOGIN:
                 this.BeforeLogin(this, ea);
 
                 if (ea.Cancel == true)
@@ -2121,7 +2122,7 @@ out strError);
 
             item_timestamp = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetItemInfo(
@@ -2211,7 +2212,7 @@ out strError);
             strError = "";
 
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.Borrow(
@@ -2309,7 +2310,7 @@ out strError);
             strOutputReaderBarcode = "";
             return_info = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.Return(
@@ -2439,7 +2440,7 @@ out strError);
             errorinfos = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetEntities(
@@ -2500,7 +2501,7 @@ out strError);
             infos = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.ListBiblioDbFroms(
@@ -2582,7 +2583,7 @@ out strError);
             strError = "";
             strQueryXml = "";
 
-        REDO:
+            REDO:
             this.BeginSearch();
             try
             {
@@ -2649,7 +2650,7 @@ out strError);
             strBiblio = "";
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetBiblioInfo(
@@ -2701,7 +2702,7 @@ out strError);
             values = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetValueTable(
@@ -2766,7 +2767,7 @@ out strError);
             strError = "";
             records = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetOperLogs(
@@ -2851,7 +2852,7 @@ out strError);
             attachment_data = null;
             lAttachmentTotalLength = 0;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetOperLog(
@@ -2913,7 +2914,7 @@ out strError);
             strError = "";
 
             contents = null;
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetCalendar(
@@ -2956,14 +2957,14 @@ out strError);
         /// <para>0:    成功</para>
         /// </returns>
         public long SetCalendar(
-            // DigitalPlatform.Stop stop,
+    // DigitalPlatform.Stop stop,
     string strAction,
     CalenderInfo info,
     out string strError)
         {
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetCalendar(
@@ -3014,7 +3015,7 @@ out strError);
             strError = "";
             resultInfo = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.BatchTask(
@@ -3066,7 +3067,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             this.BeginSearch();
             try
             {
@@ -3201,7 +3202,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetClock(
@@ -3245,7 +3246,7 @@ out strError);
             strTime = "";
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetClock(
@@ -3291,7 +3292,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.VerifyReaderPassword(
@@ -3341,7 +3342,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.ChangeReaderPassword(
@@ -3394,7 +3395,7 @@ out strError);
             strError = "";
             strMessage = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.ResetPassword(
@@ -3435,7 +3436,7 @@ out strError);
             strError = "";
             results = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.BindPatron(
@@ -3492,7 +3493,7 @@ out strError);
             strError = "";
             strOutputInfo = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.ManageDatabase(
@@ -3548,7 +3549,7 @@ out strError);
             strError = "";
 
             contents = null;
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetUser(
@@ -3598,7 +3599,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetUser(
@@ -3648,7 +3649,7 @@ out strError);
             strError = "";
 
             contents = null;
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetChannelInfo(
@@ -3693,7 +3694,7 @@ out strError);
         /// <para>&gt;=0:   返回总结果数量</para>
         /// </returns>
         public long ManageChannel(
-            // DigitalPlatform.Stop stop,
+    // DigitalPlatform.Stop stop,
     string strAction,
     string strStyle,
     ChannelInfo[] requests,
@@ -3703,7 +3704,7 @@ out strError);
             strError = "";
 
             results = null;
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.ManageChannel(
@@ -3758,7 +3759,7 @@ out strError);
             strError = "";
             target_timestamp = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.MoveReaderInfo(
@@ -3806,7 +3807,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.DevolveReaderInfo(strSourceReaderBarcode,
@@ -3853,7 +3854,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.ChangeUserPassword(strUserName,
@@ -3917,7 +3918,7 @@ out strError);
             strError = "";
             strOutputBarcode = "";
 
-        REDO:
+            REDO:
             try
             {
                 //dp2libraryClient ws0 = null;
@@ -3961,7 +3962,7 @@ out strError);
             strError = "";
             infos = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.ListFile(
@@ -4031,7 +4032,7 @@ out strError);
             strFileTime = "";
             baContent = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetFile(
@@ -4085,7 +4086,7 @@ out strError);
             strError = "";
             strValue = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetSystemParameter(
@@ -4133,7 +4134,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetSystemParameter(strCategory,
@@ -4167,7 +4168,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.UrgentRecover(
@@ -4212,7 +4213,7 @@ out strError);
             aDupPath = null;
             strOutputReaderBarcode = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.RepairBorrowInfo(
@@ -4273,7 +4274,7 @@ out strError);
             baTimestamp = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetBiblioInfos(
@@ -4321,7 +4322,7 @@ out strError);
             strOutputBiblioRecPath = "";
             baOutputTimestamp = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetBiblioInfo(
@@ -4375,7 +4376,7 @@ out strError);
             baOutputTimestamp = null;
             strOutputBiblio = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.CopyBiblioInfo(
@@ -4423,7 +4424,7 @@ out strError);
             strError = "";
             results = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.PassGate(
@@ -4469,7 +4470,7 @@ out strError);
 
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.Foregift(
@@ -4511,7 +4512,7 @@ out strError);
             strOutputID = "";
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.Hire(
@@ -4549,7 +4550,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.Settlement(
@@ -4587,7 +4588,7 @@ out strError);
             strError = "";
             strQueryXml = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SearchOneClassCallNumber(
@@ -4631,7 +4632,7 @@ out strError);
             strError = "";
             searchresults = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetCallNumberSearchResult(
@@ -4664,7 +4665,7 @@ out strError);
         }
 
         public long GetOneClassTailNumber(
-            // DigitalPlatform.Stop stop,
+    // DigitalPlatform.Stop stop,
     string strArrangeGroupName,
     string strClass,
     out string strTailNumber,
@@ -4673,7 +4674,7 @@ out strError);
             strError = "";
             strTailNumber = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetOneClassTailNumber(
@@ -4714,7 +4715,7 @@ out strError);
             strError = "";
             strOutputNumber = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetOneClassTailNumber(
@@ -4756,7 +4757,7 @@ out strError);
             strError = "";
             strQueryXml = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SearchUsedZhongcihao(
@@ -4800,7 +4801,7 @@ out strError);
             strError = "";
             searchresults = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetZhongcihaoSearchResult(
@@ -4841,7 +4842,7 @@ out strError);
             strError = "";
             strTailNumber = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetZhongcihaoTailNumber(
@@ -4882,7 +4883,7 @@ out strError);
             strError = "";
             strOutputNumber = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetZhongcihaoTailNumber(
@@ -4927,7 +4928,7 @@ out strError);
             strError = "";
             strUsedProjectName = "";
 
-        REDO:
+            REDO:
             this.BeginSearch();
             try
             {
@@ -4972,7 +4973,7 @@ out strError);
             strError = "";
             results = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.ListDupProjectInfos(
@@ -5011,7 +5012,7 @@ out strError);
             strError = "";
             searchresults = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetDupSearchResult(
@@ -5053,7 +5054,7 @@ out strError);
             strError = "";
             strValue = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetUtilInfo(
@@ -5098,7 +5099,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetUtilInfo(
@@ -5167,7 +5168,7 @@ out strError);
             strOutputResPath = "";
             baOutputTimestamp = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetRes(
@@ -5525,7 +5526,7 @@ out strError);
             strOutputResPath = "";
             baOutputTimestamp = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.WriteRes(
@@ -5829,7 +5830,7 @@ out strError);
             entityinfos = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetEntities(
@@ -5879,7 +5880,7 @@ out strError);
             issueinfos = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetIssues(
@@ -5924,7 +5925,7 @@ out strError);
             errorinfos = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetIssues(
@@ -5954,7 +5955,7 @@ out strError);
 
         // 包装后的版本
         public long GetIssueInfo(
-            // DigitalPlatform.Stop stop,
+    // DigitalPlatform.Stop stop,
     string strRefID,
     string strResultType,
     out string strResult,
@@ -5966,7 +5967,7 @@ out strError);
     out string strError)
         {
             return GetIssueInfo(
-                // stop,
+            // stop,
             strRefID,
             "",
             strResultType,
@@ -6034,7 +6035,7 @@ out strError);
             strIssueRecPath = "";
             issue_timestamp = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetIssueInfo(
@@ -6103,7 +6104,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             this.BeginSearch();
             try
             {
@@ -6160,7 +6161,7 @@ out strError);
             orderinfos = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetOrders(
@@ -6205,7 +6206,7 @@ out strError);
             errorinfos = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetOrders(
@@ -6235,7 +6236,7 @@ out strError);
 
         // 包装后的版本
         public long GetOrderInfo(
-            // DigitalPlatform.Stop stop,
+    // DigitalPlatform.Stop stop,
     string strRefID,
     string strResultType,
     out string strResult,
@@ -6247,7 +6248,7 @@ out strError);
     out string strError)
         {
             return GetOrderInfo(
-                // stop,
+            // stop,
             strRefID,
             "",
             strResultType,
@@ -6328,7 +6329,7 @@ out strError);
 
             strItemRecPath = "";
             item_timestamp = null;
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetOrderInfo(
@@ -6397,7 +6398,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             this.BeginSearch();
             try
             {
@@ -6454,7 +6455,7 @@ out strError);
             commentinfos = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetComments(
@@ -6499,7 +6500,7 @@ out strError);
             errorinfos = null;
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetComments(
@@ -6529,7 +6530,7 @@ out strError);
 
         // 包装后的版本
         public long GetCommentInfo(
-            // DigitalPlatform.Stop stop,
+    // DigitalPlatform.Stop stop,
     string strRefID,
     string strResultType,
     out string strResult,
@@ -6541,7 +6542,7 @@ out strError);
     out string strError)
         {
             return GetCommentInfo(
-                // stop,
+            // stop,
             strRefID,
             "",
             strResultType,
@@ -6623,7 +6624,7 @@ out strError);
             strCommentRecPath = "";
             comment_timestamp = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetCommentInfo(
@@ -6673,7 +6674,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.Reservation(
@@ -6730,7 +6731,7 @@ out strError);
         {
             strError = "";
 
-        REDO:
+            REDO:
             this.BeginSearch();
             try
             {
@@ -6776,7 +6777,7 @@ out strError);
             strError = "";
             messages = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetMessage(
@@ -6819,7 +6820,7 @@ out strError);
             messages = null;
             nTotalCount = 0;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.ListMessage(
@@ -6884,7 +6885,7 @@ out strError);
             strError = "";
             output_messages = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.SetMessage(
@@ -6923,7 +6924,7 @@ out strError);
             info = null;
             strXml = "";
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.GetStatisInfo(
@@ -6959,7 +6960,7 @@ out strError);
             strError = "";
             dates = null;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.ExistStatisInfo(
@@ -6995,7 +6996,7 @@ out strError);
             strError = "";
             lValue = 0;
 
-        REDO:
+            REDO:
             try
             {
                 LibraryServerResult result = this.ws.HitCounter(
@@ -7038,18 +7039,18 @@ out strError);
             strError = "";
             results = null;
 
-        REDO:
+            REDO:
             this.BeginSearch();
             try
             {
                 LibraryServerResult result = this.ws.SearchCharging(
                     out results,
-                                        patronBarcode,
-                        timeRange,
-                        actions,
-                        order,
-                        start,
-                        count
+                    patronBarcode,
+                    timeRange,
+                    actions,
+                    order,
+                    start,
+                    count
                     );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {

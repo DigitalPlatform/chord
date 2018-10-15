@@ -88,7 +88,7 @@ namespace DigitalPlatform.MessageServer
 
         public virtual async Task CreateIndex()
         {
-            await Task.Run(() => { });
+            await Task.Run(() => { }).ConfigureAwait(false);
         }
 
         // 清除集合内的全部内容
@@ -99,8 +99,8 @@ namespace DigitalPlatform.MessageServer
 
             // https://docs.mongodb.org/getting-started/csharp/remove/
             var filter = new BsonDocument();
-            await _collection.DeleteManyAsync(filter);
-            await CreateIndex();
+            await _collection.DeleteManyAsync(filter).ConfigureAwait(false);
+            await CreateIndex().ConfigureAwait(false);
         }
 
     }

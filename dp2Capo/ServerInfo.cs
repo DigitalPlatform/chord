@@ -763,7 +763,6 @@ Exception Info: System.Net.NetworkInformation.PingException
             {
                 List<Task> tasks = new List<Task>();
 
-                bool bOutputBegin = false;
 
 #if NO
                 Instance first_instance = null;
@@ -777,6 +776,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                     // instance.SendHeartBeat();
 
                     bool bNeedCheckMessageServer = NeedCheckMessageServer(instance);
+                    bool bOutputBegin = false;
 
                     if (bNeedCheckMessageServer)
                     {
@@ -833,11 +833,15 @@ Exception Info: System.Net.NetworkInformation.PingException
                         {
                             try
                             {
-                                instance.MessageConnection.CleanLibraryChannel();
+                                WriteLog("info", $"实例 {instance.Name} 开始释放空闲通道");
+                                int count = instance.MessageConnection.CleanLibraryChannel();
+                                WriteLog("info", $"实例 {instance.Name} 释放空闲通道 {count} 个。正在占用的通道为 {instance.MessageConnection._libraryChannelPool.GetUsingCount()} 个");
                             }
                             catch (Exception ex)
                             {
-                                instance.WriteErrorLog("CleanLibraryChannel() 异常: " + ExceptionUtil.GetExceptionText(ex));
+                                string error = $"实例 {instance.Name} 释放空闲通道时出现异常: {ExceptionUtil.GetExceptionText(ex)}";
+                                instance.WriteErrorLog(error);
+                                WriteLog("error", error);
                             }
                             _lastCleanTime = DateTime.Now;
                         }
@@ -849,6 +853,8 @@ Exception Info: System.Net.NetworkInformation.PingException
                         Task.Run(() => instance.FreeGlobalResultSets());
                     }
 
+                    if (bOutputBegin == true)
+                        instance.WriteErrorLog(">>> BackgroundWork 结束一轮处理\r\n");
                 }
 
                 {
@@ -876,15 +882,13 @@ Exception Info: System.Net.NetworkInformation.PingException
                 {
                     // test 这一句可以用来制造死锁测试场景
                     // Thread.Sleep(60 * 60 * 1000);
-                    WriteErrorLog("-- BackgroundWork - 等待 " + tasks.Count + " 个 Connect 任务完成");
+                    WriteLog("info", "-- BackgroundWork - 等待 " + tasks.Count + " 个 Connect 任务完成");
+                    
+                    Task.WaitAll(tasks.ToArray(), ServerInfo._cancel.Token);
 
-                    Task.WaitAll(tasks.ToArray());
-
-                    WriteErrorLog("-- BackgroundWork - " + tasks.Count + " 个 Connect 任务已经完成");
+                    WriteLog("info", "-- BackgroundWork - " + tasks.Count + " 个 Connect 任务已经完成");
                 }
 
-                if (bOutputBegin == true)
-                    WriteErrorLog(">>> BackgroundWork 结束一轮处理\r\n");
             }
             catch (Exception ex)
             {
@@ -906,7 +910,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                 }
                 return text.ToString().TrimEnd();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return ex.Message;
             }

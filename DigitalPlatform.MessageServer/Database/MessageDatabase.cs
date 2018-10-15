@@ -24,19 +24,19 @@ namespace DigitalPlatform.MessageServer
 
             await _collection.Indexes.CreateOneAsync(
                 Builders<MessageItem>.IndexKeys.Ascending("publishTime"),
-                new CreateIndexOptions() { Unique = false });
+                new CreateIndexOptions() { Unique = false }).ConfigureAwait(false);
             await _collection.Indexes.CreateOneAsync(
     Builders<MessageItem>.IndexKeys.Ascending("creator"),
-    new CreateIndexOptions() { Unique = false });
+    new CreateIndexOptions() { Unique = false }).ConfigureAwait(false);
             await _collection.Indexes.CreateOneAsync(
 Builders<MessageItem>.IndexKeys.Ascending("groups"),
-new CreateIndexOptions() { Unique = false });
+new CreateIndexOptions() { Unique = false }).ConfigureAwait(false);
             await _collection.Indexes.CreateOneAsync(
 Builders<MessageItem>.IndexKeys.Ascending("thread"),
-new CreateIndexOptions() { Unique = false });
+new CreateIndexOptions() { Unique = false }).ConfigureAwait(false);
             await _collection.Indexes.CreateOneAsync(
 Builders<MessageItem>.IndexKeys.Ascending("subjects"),
-new CreateIndexOptions() { Unique = false });
+new CreateIndexOptions() { Unique = false }).ConfigureAwait(false);
             // TODO: 消息库要能随时初始化，或者重新创建 index
         }
 
@@ -213,10 +213,10 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
             var index = 0;
             using (var cursor = await collection.FindAsync(
                 filter == null ? new BsonDocument() : filter
-                , options))
+                , options).ConfigureAwait(false))
             {
 
-                while (await cursor.MoveNextAsync())
+                while (await cursor.MoveNextAsync().ConfigureAwait(false))
                 {
                     var batch = cursor.Current;
                     int batch_count = batch.Count<MessageItem>();
@@ -252,9 +252,9 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
             var index = 0;
             using (var cursor = await collection.FindAsync(
                 groupName == "*" ? new BsonDocument() : filter
-                ))
+                ).ConfigureAwait(false))
             {
-                while (await cursor.MoveNextAsync())
+                while (await cursor.MoveNextAsync().ConfigureAwait(false))
                 {
                     var batch = cursor.Current;
                     foreach (var document in batch)
@@ -281,9 +281,9 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
 
             var filter = Builders<MessageItem>.Filter.Eq("id", id);
             var index = 0;
-            using (var cursor = await collection.FindAsync(filter))
+            using (var cursor = await collection.FindAsync(filter).ConfigureAwait(false))
             {
-                while (await cursor.MoveNextAsync())
+                while (await cursor.MoveNextAsync().ConfigureAwait(false))
                 {
                     var batch = cursor.Current;
                     foreach (var document in batch)
@@ -490,9 +490,9 @@ int count,
             List<string> keys = new List<string>();
             Hashtable table = new Hashtable();  // groups --> true 
 
-            using (var cursor = await collection.FindAsync(filter, options))
+            using (var cursor = await collection.FindAsync(filter, options).ConfigureAwait(false))
             {
-                while (await cursor.MoveNextAsync())
+                while (await cursor.MoveNextAsync().ConfigureAwait(false))
                 {
                     var batch = cursor.Current;
                     foreach (var document in batch)
@@ -620,7 +620,7 @@ Delegate_outputMessage proc)
                                 } 
                             }
 )
-.ToListAsync();
+.ToListAsync().ConfigureAwait(false);
 
             long totalCount = myresults.Count;
             var index = 0;
@@ -674,7 +674,7 @@ Delegate_outputMessage proc)
             //item.publishTime = DateTime.Now;
             //item.expireTime = new DateTime(0); // 表示永远不失效
 
-            await collection.InsertOneAsync(item);
+            await collection.InsertOneAsync(item).ConfigureAwait(false);
         }
 
         // 更新 id,groups,expireTime 以外的全部字段
@@ -698,7 +698,7 @@ Delegate_outputMessage proc)
                 .Set("thread", item.thread)
                 .Set("subjects", item.subjects);
 
-            await collection.UpdateOneAsync(filter, update);
+            await collection.UpdateOneAsync(filter, update).ConfigureAwait(false);
         }
 
         public async Task DeleteExpired(DateTime expire_end_time)
@@ -710,7 +710,7 @@ Builders<MessageItem>.Filter.Gt("expireTime", new DateTime(0)),
 Builders<MessageItem>.Filter.Lt("expireTime", expire_end_time));
 
             // DeleteResult result = 
-            await collection.DeleteManyAsync(expire_filter);
+            await collection.DeleteManyAsync(expire_filter).ConfigureAwait(false);
             // long i = result.DeletedCount;
         }
 
@@ -726,7 +726,7 @@ Builders<MessageItem>.Filter.Gt("expireTime", new DateTime(0)),
 Builders<MessageItem>.Filter.Lt("publishTime", publish_end_time));
 
             // DeleteResult result = 
-            await collection.DeleteManyAsync(filter);
+            await collection.DeleteManyAsync(filter).ConfigureAwait(false);
             // long i = result.DeletedCount;
         }
 
@@ -738,7 +738,7 @@ Builders<MessageItem>.Filter.Lt("publishTime", publish_end_time));
             // var filter = Builders<UserItem>.Filter.Eq("id", item.id);
             var filter = Builders<MessageItem>.Filter.Eq(field, value);
 
-            await collection.DeleteOneAsync(filter);
+            await collection.DeleteOneAsync(filter).ConfigureAwait(false);
         }
 
         // 根据一个字段的特征，立即失效匹配的事项
@@ -753,7 +753,7 @@ Builders<MessageItem>.Filter.Lt("publishTime", publish_end_time));
             var update = Builders<MessageItem>.Update
                 .Set("expireTime", now);
 
-            await collection.UpdateOneAsync(filter, update);
+            await collection.UpdateOneAsync(filter, update).ConfigureAwait(false);
         }
 
         public async Task DeleteByID(string id)
@@ -762,7 +762,7 @@ Builders<MessageItem>.Filter.Lt("publishTime", publish_end_time));
             if (string.IsNullOrEmpty(id) == true)
                 throw new ArgumentException("id 不能为空");
 
-            await Delete("id", id);
+            await Delete("id", id).ConfigureAwait(false);
         }
 
         public async Task ExpireByID(string id, DateTime now)
@@ -771,7 +771,7 @@ Builders<MessageItem>.Filter.Lt("publishTime", publish_end_time));
             if (string.IsNullOrEmpty(id) == true)
                 throw new ArgumentException("id 不能为空");
 
-            await Expire("id", id, now);
+            await Expire("id", id, now).ConfigureAwait(false);
         }
     }
 

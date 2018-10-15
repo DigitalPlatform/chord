@@ -71,10 +71,10 @@ namespace DigitalPlatform.MessageServer
             // FieldDefinition<UserItem> field = "OperTime";
             await _collection.Indexes.CreateOneAsync(
                 Builders<UserItem>.IndexKeys.Ascending("userName"),
-                new CreateIndexOptions() { Unique = true });
+                new CreateIndexOptions() { Unique = true }).ConfigureAwait(false);
             await _collection.Indexes.CreateOneAsync(
     Builders<UserItem>.IndexKeys.Ascending("groups"),
-    new CreateIndexOptions() { Unique = false });
+    new CreateIndexOptions() { Unique = false }).ConfigureAwait(false);
 
 #if NO
                 .CreateIndex(new IndexKeysBuilder().Ascending("OperTime"),
@@ -119,9 +119,9 @@ namespace DigitalPlatform.MessageServer
             var index = 0;
             using (var cursor = await collection.FindAsync(
                 id == "*" ? new BsonDocument() : filter
-                ))
+                ).ConfigureAwait(false))
             {
-                while (await cursor.MoveNextAsync())
+                while (await cursor.MoveNextAsync().ConfigureAwait(false))
                 {
                     var batch = cursor.Current;
                     foreach (var document in batch)
@@ -151,9 +151,9 @@ namespace DigitalPlatform.MessageServer
             var index = 0;
             using (var cursor = await collection.FindAsync(
                 userName == "*" ? new BsonDocument() : filter
-                ))
+                ).ConfigureAwait(false))
             {
-                while (await cursor.MoveNextAsync())
+                while (await cursor.MoveNextAsync().ConfigureAwait(false))
                 {
                     var batch = cursor.Current;
                     foreach (var document in batch)
@@ -184,9 +184,9 @@ namespace DigitalPlatform.MessageServer
             var index = 0;
             using (var cursor = await collection.FindAsync(
                 groupName == "*" ? new BsonDocument() : filter
-                ))
+                ).ConfigureAwait(false))
             {
-                while (await cursor.MoveNextAsync())
+                while (await cursor.MoveNextAsync().ConfigureAwait(false))
                 {
                     var batch = cursor.Current;
                     foreach (var document in batch)
@@ -214,7 +214,7 @@ namespace DigitalPlatform.MessageServer
             IMongoCollection<UserItem> collection = this._collection;
 
             item.password = Cryptography.GetSHA1(item.password);
-            await collection.InsertOneAsync(item);
+            await collection.InsertOneAsync(item).ConfigureAwait(false);
         }
 
         // 更新 password 以外的全部字段
@@ -238,7 +238,7 @@ namespace DigitalPlatform.MessageServer
                 .Set("groups", item.groups)
                 .Set("binding", item.binding);
 
-            await collection.UpdateOneAsync(filter, update);
+            await collection.UpdateOneAsync(filter, update).ConfigureAwait(false);
         }
 
         // 只更新 password
@@ -255,7 +255,7 @@ namespace DigitalPlatform.MessageServer
             var update = Builders<UserItem>.Update
                 .Set("password", item.password);
 
-            await collection.UpdateOneAsync(filter, update);
+            await collection.UpdateOneAsync(filter, update).ConfigureAwait(false);
         }
 
         public async Task Delete(UserItem item)
@@ -265,7 +265,7 @@ namespace DigitalPlatform.MessageServer
             // var filter = Builders<UserItem>.Filter.Eq("id", item.id);
             var filter = Builders<UserItem>.Filter.Eq("userName", item.userName);
 
-            await collection.DeleteOneAsync(filter);
+            await collection.DeleteOneAsync(filter).ConfigureAwait(false);
         }
 #if NO
         // parameters:

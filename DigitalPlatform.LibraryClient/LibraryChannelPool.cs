@@ -10,8 +10,11 @@ namespace DigitalPlatform.LibraryClient
     /// <summary>
     /// 通道池
     /// </summary>
-    public class LibraryChannelPool : List<LibraryChannelWrapper>
+    public class LibraryChannelPool
     {
+        List<LibraryChannelWrapper> _usedList = new List<LibraryChannelWrapper>();
+        List<LibraryChannelWrapper> _freeList = new List<LibraryChannelWrapper>();
+
         /// <summary>
         /// 登录前事件
         /// </summary>
@@ -58,7 +61,7 @@ namespace DigitalPlatform.LibraryClient
                 throw new LockException("锁定尝试中超时");
             try
             {
-                wrapper = this._findChannel(strUrl, strUserName, strLang, true);
+                wrapper = this._findFreeChannel(strUrl, strUserName, strLang);
 
                 if (wrapper != null)
                 {
@@ -66,10 +69,10 @@ namespace DigitalPlatform.LibraryClient
                     return result;
                 }
 
-                if (this.Count >= MaxCount)
+                if (this._usedList.Count + this._freeList.Count >= MaxCount)
                 {
                     // 清理不用的通道
-                    int nDeleteCount = _cleanChannel(false);
+                    int nDeleteCount = _cleanFreeChannel(false);
                     if (nDeleteCount == 0)
                     {
                         // 全部都在使用
@@ -90,9 +93,9 @@ namespace DigitalPlatform.LibraryClient
 
                 wrapper = new LibraryChannelWrapper();
                 wrapper.Channel = inner_channel;
-                wrapper.InUsing = true;
+                // wrapper.InUsing = true;
 
-                this.Add(wrapper);
+                this._usedList.Add(wrapper);
                 return inner_channel;
             }
             finally
@@ -119,12 +122,14 @@ namespace DigitalPlatform.LibraryClient
         //      可能会抛出异常
         public int GetUsingCount()
         {
+            return this._usedList.Count;
+#if NO
             if (this.m_lock.TryEnterReadLock(m_nLockTimeout) == false)
                 throw new LockException("锁定尝试中超时");
             try
             {
                 int count = 0;
-                foreach (LibraryChannelWrapper wrapper in this)
+                foreach (LibraryChannelWrapper wrapper in this._usedList)
                 {
                     if (wrapper.InUsing == true)
                         count++;
@@ -136,37 +141,52 @@ namespace DigitalPlatform.LibraryClient
             {
                 this.m_lock.ExitReadLock();
             }
+#endif
         }
 
-        // 查找指定URL的LibraryChannel对象
-        LibraryChannelWrapper _findChannel(string strUrl,
+        // 查找指定 URL 的 闲置状态的 LibraryChannel 对象
+        LibraryChannelWrapper _findFreeChannel(string strUrl,
             string strUserName,
-            string strLang,
-            bool bAutoSetUsing)
+            string strLang
+            // bool bAutoSetUsing
+            )
         {
-            foreach (LibraryChannelWrapper wrapper in this)
+            foreach (LibraryChannelWrapper wrapper in this._freeList)
             {
-                if (wrapper.InUsing == false
-                    && wrapper.Channel.Url == strUrl
+                if (wrapper.Channel.Url == strUrl
                     && (string.IsNullOrEmpty(wrapper.Channel.UserName) == true
                     || wrapper.Channel.UserName == strUserName)
                     && (string.IsNullOrEmpty(strLang) == true
                     || wrapper.Channel.Lang == strLang)
                     )
                 {
-                    if (bAutoSetUsing == true)
-                        wrapper.InUsing = true;
-                    return wrapper;
+                    //if (bAutoSetUsing == true)
+                    //    wrapper.InUsing = true;
+                    return MoveToUsedList(wrapper);
                 }
             }
 
             return null;
         }
 
-        // 查找指定URL的LibraryChannel对象
-        LibraryChannelWrapper _findChannel(LibraryChannel inner_channel)
+        LibraryChannelWrapper MoveToUsedList(LibraryChannelWrapper wrapper)
         {
-            foreach (LibraryChannelWrapper channel in this)
+            this._freeList.Remove(wrapper);
+            this._usedList.Add(wrapper);
+            return wrapper;
+        }
+
+        LibraryChannelWrapper MoveToFreeList(LibraryChannelWrapper wrapper)
+        {
+            this._usedList.Remove(wrapper);
+            this._freeList.Add(wrapper);
+            return wrapper;
+        }
+
+        // 查找指定URL的LibraryChannel对象
+        LibraryChannelWrapper _findUsedChannel(LibraryChannel inner_channel)
+        {
+            foreach (LibraryChannelWrapper channel in this._usedList)
             {
                 if (channel.Channel == inner_channel)
                 {
@@ -185,25 +205,29 @@ namespace DigitalPlatform.LibraryClient
         public void ReturnChannel(LibraryChannel channel)
         {
             LibraryChannelWrapper wrapper = null;
-            if (this.m_lock.TryEnterReadLock(m_nLockTimeout) == false)
+            if (this.m_lock.TryEnterWriteLock(m_nLockTimeout) == false)
                 throw new LockException("锁定尝试中超时");
             try
             {
-                wrapper = _findChannel(channel);
+                wrapper = _findUsedChannel(channel);
                 if (wrapper != null)
                 {
-                    wrapper.InUsing = false;
+                    // wrapper.InUsing = false;
+                    MoveToFreeList(wrapper);
                 }
             }
             finally
             {
-                this.m_lock.ExitReadLock();
+                this.m_lock.ExitWriteLock();
             }
+
+            // testing
+            // CleanChannel();
         }
 
         public int CleanChannel(string strUserName = "")
         {
-            return _cleanChannel(true, strUserName);
+            return _cleanFreeChannel(true, strUserName);
         }
 
         // 清理处在未使用状态的通道
@@ -211,7 +235,7 @@ namespace DigitalPlatform.LibraryClient
         //      strUserName 希望清除用户名为此值的全部通道。如果本参数值为空，则表示清除全部通道
         // return:
         //      清理掉的通道数目
-        int _cleanChannel(bool bLock, string strUserName = "")
+        int _cleanFreeChannel(bool bLock, string strUserName = "")
         {
             List<LibraryChannelWrapper> deletes = new List<LibraryChannelWrapper>();
 
@@ -222,14 +246,12 @@ namespace DigitalPlatform.LibraryClient
             }
             try
             {
-                for (int i = 0; i < this.Count; i++)
+                for (int i = 0; i < this._freeList.Count; i++)
                 {
-                    LibraryChannelWrapper wrapper = this[i];
-                    if (wrapper.InUsing == false
-                        && (string.IsNullOrEmpty(strUserName) == true || wrapper.Channel.UserName == strUserName)
-                        )
+                    LibraryChannelWrapper wrapper = this._freeList[i];
+                    if (string.IsNullOrEmpty(strUserName) == true || wrapper.Channel.UserName == strUserName)
                     {
-                        this.RemoveAt(i);
+                        this._freeList.RemoveAt(i);
                         i--;
                         deletes.Add(wrapper);
                     }
@@ -254,18 +276,23 @@ namespace DigitalPlatform.LibraryClient
         /// <summary>
         /// 关闭所有通道，清除集合
         /// </summary>
-        public new void Clear()
+        public void Clear()
         {
             if (this.m_lock.TryEnterWriteLock(m_nLockTimeout) == false)
                 throw new LockException("锁定尝试中超时");
             try
             {
-                foreach (LibraryChannelWrapper wrapper in this)
+                foreach (LibraryChannelWrapper wrapper in this._freeList)
                 {
                     wrapper.Channel.Close();
                 }
+                this._freeList.Clear();
 
-                base.Clear();
+                foreach (LibraryChannelWrapper wrapper in this._usedList)
+                {
+                    wrapper.Channel.Close();
+                }
+                this._usedList.Clear();
             }
             finally
             {
@@ -288,7 +315,8 @@ namespace DigitalPlatform.LibraryClient
         /// <summary>
         /// 通道是否正在使用中
         /// </summary>
-        public bool InUsing = false;
+        // public bool InUsing = false;
+
         /// <summary>
         /// 通道对象
         /// </summary>
