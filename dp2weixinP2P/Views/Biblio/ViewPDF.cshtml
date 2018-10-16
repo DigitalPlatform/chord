@@ -90,15 +90,15 @@
                 $(".block").width(img1.width());
                 $(".block").height(img1.height());
 
-                //计算屏幕高度能一次显示几个图片
-                var winHeight = $(window).height();
-                var tempNo = (winHeight) / (img1.height() + 10);
-                var no = Math.ceil(tempNo);
-                if (no > 1) {
-                    for (i = 2; i <= no; i++) {
-                        tryShowImg(i);
-                    }
-                }
+                ////计算屏幕高度能一次显示几个图片
+                //var winHeight = $(window).height();
+                //var tempNo = (winHeight) / (img1.height() + 10);
+                //var no = Math.ceil(tempNo);
+                //if (no > 1) {
+                //    for (i = 2; i <= no; i++) {
+                //        tryShowImg(i);
+                //    }
+                //}
             }
 
         }
@@ -119,13 +119,16 @@
 
                 var objectUri = $("#_objectUri").text();
                 var libId = $("#_libId").text();
-                var strImgUri = objectUri + "/page:" + no + ",format:jpeg,dpi:75";
+                var strImgUri = objectUri + "/page:" + no + ",format:jpeg,dpi:150";
                 var src = "../patron/getphoto?libId=" + libId
                     + "&objectPath=" + encodeURIComponent(strImgUri);
 
                 todoDiv.html("<img  id='w" + no + "' src='../img/wait2.gif' /><img id='img" + no + "'  " + styleStr1 + " src='" + src + "'  onload='deletewait(" + no + ")'/>");
 
                 todoDiv.removeClass("todo" + no);
+
+
+
             }
             else {
 
@@ -139,6 +142,14 @@
             o.remove();
             //o.parent().remove(o);
            // alert("1");
+
+            // 测试出现pdf每页的尺寸可能不一样，div的尺寸随着img的尺寸变化。
+            //alert("3-1");
+            var imgN = $("#img" + no);
+            if (imgN != undefined) {
+                imgN.parent().height(imgN.height());
+            }
+               // alert("3-2");
         }
 
 

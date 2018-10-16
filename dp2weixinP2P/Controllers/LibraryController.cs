@@ -318,13 +318,26 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("借还窗", "/Library/Charge2", true);
                 return View();
             }
-            if (activeUser.rights.Contains("borrow") == false)
+            if (activeUser.type == WxUserDatabase.C_Type_Worker)
             {
-                canBorrow = false;
+                if (activeUser.rights.Contains("borrow") == false)
+                {
+                    canBorrow = false;
+                }
+                if (activeUser.rights.Contains("return") == false)
+                {
+                    canReturn = false;
+                }
             }
-            if (activeUser.rights.Contains("return") == false)
+            else 
             {
-                canReturn = false;
+                //读者如果有权限可以借还，但都不可以还书。
+                if (activeUser.rights.Contains("return") == false)
+                {
+                    canReturn = false;
+                }
+
+                ViewBag.patronBarcode = activeUser.readerBarcode;
             }
 
 

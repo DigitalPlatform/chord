@@ -381,7 +381,8 @@ namespace dp2weixinWeb.Controllers
             try
             {
                 if (Request.Path.Contains("/Biblio/Index") == true
-                    || Request.Path.Contains("/Library/Charge2") == true)
+                    || Request.Path.Contains("/Library/Charge2") == true
+                    || Request.Path.Contains("/Account/ScanQRCodeBind") == true)
                 {
                     GzhCfg gzh = sessionInfo.gzh;
                     bool bJsReg = JsApiTicketContainer.CheckRegistered(gzh.appId);

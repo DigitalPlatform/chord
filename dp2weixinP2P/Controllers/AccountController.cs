@@ -177,7 +177,7 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
-        //
+        // 柜台绑定
         public ActionResult ScanQRCodeBind(string code, string state,
             string libId)
         {
@@ -185,40 +185,31 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             int nRet = 0;
 
-            //// 登录检查
-            //nRet = this.CheckLogin(code, state, out strError);
-            //if (nRet == -1)
-            //{
-            //    goto ERROR1;
-            //}
-            //if (nRet == 0)
-            //{
-            //    return Redirect("~/Account/Bind?from=web");
-            //}
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state,
+                out activeUser,
+                out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Accout/ScanQRCodeBind");
+                return View();
+            }
 
             if (libId == null)
                 libId = "";
 
             // 图书馆html
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-            string selLibHtml = "";
-            //nRet = this.GetLibSelectHtml(libId,
-            //    weixinId,
-            //    true,
-            //    "",
-            //    out selLibHtml,
-            //    out strError);
-            //if (nRet == -1)
-            //{
-            //    goto ERROR1;
-            //}
-            ViewBag.LibHtml = selLibHtml; //this.GetLibSelectHtml(libId, weixinId, true);
+
 
             ViewBag.LibVersions = dp2WeiXinService.Instance.LibManager.GetLibVersiongString();
 
-            // 2016-11-16去掉，统一放在weixinId里
-            //SessionInfo sessionInfo = this.GetSessionInfo();
-            //ViewBag.appId = sessionInfo.gzh.appId;
+
 
             return View();
 

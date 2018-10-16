@@ -75,7 +75,7 @@ namespace dp2weixin.service
 
         #region 成员变量
         // 日志级别
-        public int LogLevel = 1;
+        public int LogLevel = 3;
 
         // 微信数据目录
         public string weiXinDataDir = "";
@@ -555,11 +555,13 @@ namespace dp2weixin.service
             // auth2地址
             string url = "https://open.weixin.qq.com/connect/oauth2/authorize"
                 + "?appid=" + gzh.appId
-                + "&redirect_uri=http%3a%2f%2fdp2003.com%2fdp2weixin%2f" + func
+                + "&redirect_uri=http%3a%2f%2fdp2003.com%2fi%2f" + func
                 + "&response_type=code"
                 + "&scope=snsapi_base"
                 + "&state=" + gzh.appName
                 + "#wechat_redirect";
+
+            WriteLog1(url);
             return url;
 
 
@@ -4451,7 +4453,7 @@ public string ErrorCode { get; set; }
                         }
                         else
                         {
-                            strError = "您的帐户没有 "+thislibName+" 的权限";
+                            strError = "您的帐户没有 "+thislibName+" 的权限 libraryCode=["+libraryCode+"] bindLibraryCode=["+ bindLibraryCode+"]";
                             goto ERROR1;
                         }
                     }
@@ -5244,8 +5246,17 @@ public string ErrorCode { get; set; }
             string userName = "";
             bool isPatron = false;
 
+            if (string.IsNullOrEmpty(weixinId) == true)
+            {
+                return null;
+            }
+
             WxUserItem user=  WxUserDatabase.Current.GetActive(weixinId);
-            Debug.Assert(user != null, "此时不应该没有活动帐呈");
+            if (user == null)
+            {
+                return null;
+            }
+            //Debug.Assert(user != null, "此时不应该没有活动帐呈");
             if (user.type == WxUserDatabase.C_Type_Patron)
             {
                 isPatron = true;
@@ -6064,7 +6075,7 @@ public string ErrorCode { get; set; }
                         if (mime == @"application/pdf")
                         {
                             string objectUri = MakeObjectUrl(biblioPath, uri);
-                            string strPdfUri = objectUri + "/page:1,format:jpeg,dpi:72";
+                            string strPdfUri = objectUri + "/page:1,format:jpeg,dpi:50";
                             string imgSrc = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(lib.id)
                                                  + "&objectPath=" + HttpUtility.UrlEncode(strPdfUri);
 
@@ -8777,7 +8788,10 @@ tempRemark);
 
             // 使用代理账号capo 20161024 jane
             LoginInfo loginInfo = Getdp2AccoutForSearch(weixinId);// new LoginInfo("", false);
-
+            if (loginInfo == null)//todo
+            {
+                loginInfo =  new LoginInfo("", false);
+            }
             
 
             CancellationToken cancel_token = new CancellationToken();
@@ -8813,7 +8827,15 @@ tempRemark);
 
                 if (String.IsNullOrEmpty(result.ErrorCode) == false)
                 {
-                    strError = "调GetRes出错：" + result.ErrorInfo;
+                    //如果是得到 getRes 返回的错误码表示 AccessDenied，需要报错成“权限不够”之类，不要当作普通“出错”来报错，这样读者感觉会好一点。这个不着急改，记下来就行
+                    if (result.ErrorCode == "AccessDenied")
+                    {
+                        strError = result.ErrorInfo;
+                    }
+                    else
+                    {
+                        strError = "调GetRes出错：" + result.ErrorInfo;
+                    }
                     return -1;
                 }
 
