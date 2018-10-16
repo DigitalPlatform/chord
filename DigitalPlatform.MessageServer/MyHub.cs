@@ -275,7 +275,7 @@ ex.GetType().ToString());
                         }
 
                         return true;
-                    }); // .Wait();
+                    }).ConfigureAwait(false); // .Wait();
             }
             finally
             {
@@ -507,7 +507,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         item.creator = BuildMessageUserID(connection_info);
                         item.userName = connection_info.UserName;
                         item.SetID(Guid.NewGuid().ToString());  // 确保 id 字段有值。是否可以允许前端指定这个 ID 呢？如果要进行查重就麻烦了
-                        await ServerInfo.MessageDatabase.Add(item); // .Wait();
+                        await ServerInfo.MessageDatabase.Add(item).ConfigureAwait(false); // .Wait();
                         saved_items.Add(item);
 
 #if NO
@@ -630,7 +630,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
 
                         // exipreTime 字段不允许修改
                         item.expireTime = exist.expireTime;
-                        await ServerInfo.MessageDatabase.Update(item);  // .Wait();
+                        await ServerInfo.MessageDatabase.Update(item).ConfigureAwait(false);  // .Wait();
                         saved_items.Add(item);  // TODO: 应该返回修改后的记录内容
                     }
                 }
@@ -713,11 +713,11 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         }
 
                         if (param.Action == "delete")
-                            await ServerInfo.MessageDatabase.DeleteByID(item.id);   // .Wait();
+                            await ServerInfo.MessageDatabase.DeleteByID(item.id).ConfigureAwait(false);   // .Wait();
                         else
                         {
                             DateTime now = DateTime.Now;
-                            await ServerInfo.MessageDatabase.ExpireByID(item.id, now);  // .Wait();
+                            await ServerInfo.MessageDatabase.ExpireByID(item.id, now).ConfigureAwait(false);  // .Wait();
                             item.expireTime = now;
                         }
                         saved_items.Add(exist);
@@ -1390,7 +1390,7 @@ ex.GetType().ToString());
                         }
 
                         return true;
-                    }); // .Wait();
+                    }).ConfigureAwait(false); // .Wait();
             }
             catch (Exception ex)
             {
@@ -1583,7 +1583,7 @@ ex.GetType().ToString());
                         }
 
                         return true;
-                    }); // .Wait();
+                    }).ConfigureAwait(false); // .Wait();
             }
             catch (Exception ex)
             {
@@ -1862,7 +1862,7 @@ true);
                         // 2016/9/16
                         AutoBindingIP(item, connection_info.ClientIP);
 
-                        await ServerInfo.UserDatabase.Add(item);  // .Wait();
+                        await ServerInfo.UserDatabase.Add(item).ConfigureAwait(false);  // .Wait();
                     }
                 }
                 else if (action == "change")
@@ -1881,7 +1881,7 @@ true);
 
                     foreach (UserItem item in users)
                     {
-                        await ServerInfo.UserDatabase.Update(item); // .Wait();
+                        await ServerInfo.UserDatabase.Update(item).ConfigureAwait(false); // .Wait();
                     }
                 }
                 else if (action == "changePassword")
@@ -1898,7 +1898,7 @@ true);
                             return result;
                         }
 
-                        await ServerInfo.UserDatabase.UpdatePassword(item); // .Wait();
+                        await ServerInfo.UserDatabase.UpdatePassword(item).ConfigureAwait(false); // .Wait();
                     }
                 }
                 else if (action == "delete")
@@ -1916,7 +1916,7 @@ true);
 
                     foreach (UserItem item in users)
                     {
-                        await ServerInfo.UserDatabase.Delete(item); // .Wait();
+                        await ServerInfo.UserDatabase.Delete(item).ConfigureAwait(false); // .Wait();
                     }
                 }
                 else

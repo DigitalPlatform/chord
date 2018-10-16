@@ -151,10 +151,13 @@ namespace dp2Capo
             }
         }
 
-        public void CleanLibraryChannel()
+        // return:
+        //      返回实际清理的个数
+        public int CleanLibraryChannel()
         {
             if (this._libraryChannelPool != null)
-                this._libraryChannelPool.CleanChannel();
+                return this._libraryChannelPool.CleanChannel();
+            return 0;
         }
 
         /// <summary>

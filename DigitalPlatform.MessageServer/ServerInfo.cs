@@ -174,9 +174,9 @@ namespace DigitalPlatform.MessageServer
             try
             {
                 // 删除 1 天以前失效的消息
-                await MessageDatabase.DeleteExpired(DateTime.Now - new TimeSpan(1, 0, 0, 0));
+                await MessageDatabase.DeleteExpired(DateTime.Now - new TimeSpan(1, 0, 0, 0)).ConfigureAwait(false);
                 // 删除一年前发布的消息
-                await MessageDatabase.DeleteByPublishTime(DateTime.Now - new TimeSpan(365, 0, 0, 0));
+                await MessageDatabase.DeleteByPublishTime(DateTime.Now - new TimeSpan(365, 0, 0, 0)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -196,10 +196,10 @@ namespace DigitalPlatform.MessageServer
                     AutoTriggerUrl
                     );
                 request.Timeout = 1000;
-                using (var stream = (await request.GetResponseAsync()).GetResponseStream())
+                using (var stream = (await request.GetResponseAsync().ConfigureAwait(false)).GetResponseStream())
                 using (var reader = new StreamReader(stream))
                 {
-                    await reader.ReadToEndAsync();
+                    await reader.ReadToEndAsync().ConfigureAwait(false);
                 }
             }
             catch(Exception ex)
@@ -326,9 +326,9 @@ namespace DigitalPlatform.MessageServer
             ServerInfo.InitialMongoDb(_first);
             _first = false;
 
-            await ServerInfo.TriggerUrl();
+            await ServerInfo.TriggerUrl().ConfigureAwait(false);
 
-            await ServerInfo.CleanExpiredMessage();
+            await ServerInfo.CleanExpiredMessage().ConfigureAwait(false);
         }
     }
 

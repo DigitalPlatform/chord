@@ -867,7 +867,7 @@ errorCode) =>
         static int GetCount(IList<MessageRecord> records)
         {
             int count = 0;
-            foreach(MessageRecord record in records)
+            foreach (MessageRecord record in records)
             {
                 if (string.IsNullOrEmpty(record.id) == false)
                     count++;
@@ -3540,7 +3540,7 @@ errorInfo).ConfigureAwait(false);
             Debug.Assert(rest.Count == 0, "");
             Debug.Assert(current.Count == 0, "");
             return true;
-        ERROR1:
+            ERROR1:
             // 报错
             TryResponseSearch(
                 new SearchResponse(
@@ -3663,7 +3663,7 @@ strError,
             Debug.Assert(rest.Count == 0, "");
             Debug.Assert(current.Count == 0, "");
             return true;
-        ERROR1:
+            ERROR1:
             // 报错
             {
                 MessageResult result = HubProxy.Invoke<MessageResult>("ResponseGetRes",
@@ -3708,7 +3708,7 @@ SearchResponse responseParam)
         {
             // TODO: 等待执行完成。如果有异常要当时处理。比如减小尺寸重发。
             int nRedoCount = 0;
-        REDO:
+            REDO:
             try
             {
                 MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSearch",

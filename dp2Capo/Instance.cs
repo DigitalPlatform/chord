@@ -470,7 +470,7 @@ namespace dp2Capo
                 this.MessageConnection.Parameters = GetParameters();
 
                 // this.MessageConnection.InitialAsync();
-                MessageResult result = await this.MessageConnection.ConnectAsync();
+                MessageResult result = await this.MessageConnection.ConnectAsync().ConfigureAwait(false);
                 if (result.Value == -1)
                 {
                     string strError = "BeginConnect() 连接 " + this.MessageConnection.ServerUrl + " 时出错: " + result.ErrorInfo;
@@ -508,7 +508,7 @@ namespace dp2Capo
                 this.MessageConnection.Parameters = GetParameters();
 
                 // this.MessageConnection.InitialAsync();
-                MessageResult result = await this.MessageConnection.ConnectAsync();
+                MessageResult result = await this.MessageConnection.ConnectAsync().ConfigureAwait(false);
                 if (result.Value == -1)
                 {
                     string strError = "BeginConnect() 连接 " + this.MessageConnection.ServerUrl + " 时出错: " + result.ErrorInfo;

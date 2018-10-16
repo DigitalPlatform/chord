@@ -20,10 +20,10 @@ namespace DigitalPlatform.MessageServer
 
             await _collection.Indexes.CreateOneAsync(
                 Builders<GroupItem>.IndexKeys.Ascending("name"),
-                new CreateIndexOptions() { Unique = true });
+                new CreateIndexOptions() { Unique = true }).ConfigureAwait(false);
             await _collection.Indexes.CreateOneAsync(
     Builders<GroupItem>.IndexKeys.Ascending("creator"),
-    new CreateIndexOptions() { Unique = false });
+    new CreateIndexOptions() { Unique = false }).ConfigureAwait(false);
 
         }
 
@@ -45,9 +45,9 @@ int count,
             var index = 0;
             using (var cursor = await collection.FindAsync(
                 groupName == "*" ? new BsonDocument() : filter
-                ))
+                ).ConfigureAwait(false))
             {
-                while (await cursor.MoveNextAsync())
+                while (await cursor.MoveNextAsync().ConfigureAwait(false))
                 {
                     var batch = cursor.Current;
                     long totalCount = batch.Count<GroupItem>();
@@ -82,9 +82,9 @@ int count)
             var index = 0;
             using (var cursor = await collection.FindAsync(
                 groupName == "*" ? new BsonDocument() : filter
-                ))
+                ).ConfigureAwait(false))
             {
-                while (await cursor.MoveNextAsync())
+                while (await cursor.MoveNextAsync().ConfigureAwait(false))
                 {
                     var batch = cursor.Current;
                     foreach (var document in batch)
@@ -116,9 +116,9 @@ int count)
             var index = 0;
             using (var cursor = await collection.FindAsync(
                 id == "*" ? new BsonDocument() : filter
-                ))
+                ).ConfigureAwait(false))
             {
-                while (await cursor.MoveNextAsync())
+                while (await cursor.MoveNextAsync().ConfigureAwait(false))
                 {
                     var batch = cursor.Current;
                     foreach (var document in batch)
