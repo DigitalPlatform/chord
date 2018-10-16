@@ -13,7 +13,7 @@ senparc.menu ={
         // 数字平台{ appId: 'wxd24b193130bbaa7c', appSecret: '137afb49af90a07c2c72b11f520bb4b3' }, 
         // 甘肃 appId = "wx55db596ba723c5a3"  secret= "e26912c8d94348cfdb2a381f17b49ad3"
         // 自动获取accessToken
-        $.getJSON('/Menu/GetToken?t=' + Math.random(), { appId: 'wx40cb4550327e7611', appSecret: 'e1d5d2f4187ba696898d4628b3c476d1' },
+        $.getJSON('/Menu/GetToken?t=' + Math.random(), { appId: 'wx57aa3682c59d16c2', appSecret: '5d1a0507f05be41a56e27c632c0a808d' },
 
         function (json) {
             if (json.access_token) {

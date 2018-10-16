@@ -277,11 +277,15 @@ namespace dp2Mini
                     if (strPrintState == "已打印")
                         continue;
 */
-                    foreach (ListViewItem.ListViewSubItem subItem in item.SubItems)
+                    //foreach (ListViewItem.ListViewSubItem subItem in item.SubItems)
+                    for(int i=0;i<item.SubItems.Count-1;i++)
                     {
+                        ListViewItem.ListViewSubItem subItem = item.SubItems[i];
                         string strText = subItem.Text;
                         if (string.IsNullOrEmpty(strText))
                             continue;
+
+                        
 
                         sb.Append("<p>").Append(strText).Append("</p>").AppendLine();
                     }

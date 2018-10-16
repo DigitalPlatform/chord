@@ -1,20 +1,147 @@
-﻿
-@{
-    ViewBag.Title = "ScanQRCodeBind";
+﻿@{
+    ViewBag.Title = "扫码";
+
 }
 
 @section Scripts {
     <script>
 
+
+
+        function callbackFunction() {
+            //alert("1");
+            if (wx != null) {
+                //alert("走进wx");
+
+                //alert('@ViewData["AppId"]');
+                wx.config({
+                    debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+                    appId: '@ViewData["AppId"]', // 必填，公众号的唯一标识
+                    timestamp: '@ViewData["Timestamp"]', // 必填，生成签名的时间戳
+                    nonceStr: '@ViewData["NonceStr"]', // 必填，生成签名的随机串
+                    signature: '@ViewData["Signature"]',// 必填，签名
+                    jsApiList: [
+                        "checkJsApi",
+                        'onMenuShareTimeline',
+                        'onMenuShareAppMessage',
+                        'onMenuShareQQ',
+                        'onMenuShareWeibo',
+                        'hideMenuItems',
+                        'showMenuItems',
+                        'hideAllNonBaseMenuItem',
+                        'showAllNonBaseMenuItem',
+                        'translateVoice',
+                        'startRecord',
+                        'stopRecord',
+                        'onRecordEnd',
+                        'playVoice',
+                        'pauseVoice',
+                        'stopVoice',
+                        'uploadVoice',
+                        'downloadVoice',
+                        'chooseImage',
+                        'previewImage',
+                        'uploadImage',
+                        'downloadImage',
+                        'getNetworkType',
+                        'openLocation',
+                        'getLocation',
+                        'hideOptionMenu',
+                        'showOptionMenu',
+                        'closeWindow',
+                        'scanQRCode',
+                        'chooseWXPay',
+                        'openProductSpecificView',
+                        'addCard',
+                        'chooseCard',
+                        'openCard'
+                    ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2。详见：http://mp.weixin.qq.com/wiki/7/aaa137b55fb2e0456bf8dd9148dd613f.html
+                });
+
+                wx.error(function (res) {
+                    //alert('JSSDK config信息验证失败：' + JSON.stringify(res));
+                    jssdkReady = -1;
+                });
+
+                wx.ready(function () {
+                    jssdkReady = 1;
+                });
+            }
+        }
+
+
+        function loadJs(sid, jsurl, callback) {
+            var nodeHead = document.getElementsByTagName('head')[0];
+
+            //alert("0-1");
+            var nodeScript = null;
+            if (document.getElementById(sid) == null) {
+                nodeScript = document.createElement('script');
+                nodeScript.setAttribute('type', 'text/javascript');
+                nodeScript.setAttribute('src', jsurl);
+                nodeScript.setAttribute('id', sid);
+
+                //alert("0-2");
+
+                if (callback != null) {
+                    nodeScript.onload = nodeScript.onreadystatechange = function () {
+
+                        //alert("0-3");
+
+                        if (nodeScript.ready) {
+
+                            //alert("0-4");
+
+                            return false;
+                        }
+                        if (!nodeScript.readyState || nodeScript.readyState == "loaded" || nodeScript.readyState == 'complete') {
+                            //alert("0-5");
+
+                            nodeScript.ready = true;
+                            callback();
+                        }
+                    };
+                }
+                nodeHead.appendChild(nodeScript);
+
+                //alert("0-6");
+
+            } else {
+                if (callback != null) {
+
+                    //alert("0-7");
+
+                    callback();
+                }
+            }
+        }
+
+        //浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 如果是web来源，才加载JSSDK
+            if (browser.versions.weixin == true) {
+                //alert("动态加载JSSDK...");
+                var myUrl = getRootPath() + "/Scripts/jweixin-1.0.0.js";
+                loadJs("yy", myUrl, callbackFunction);
+            }
+        });
+
         // 绑定账号
         function scanBind() {
+
             // 图书馆
-            var libId = $("#selLib").val();  //2016-8-13 jane 找回密码界面加入选择图书馆 getLibId();//
+            var libId = $("#libId").text();//$("#selLib").val();  // 2016-8-13 jane加入选择图书馆项，而不是从设置来 getLibId();//
             if (libId == "" || libId == null) {
                 alert("您尚未选择图书馆。");
                 return;
             }
-            var libName=$("#selLib").find("option:selected").text();
+
+            var libraryCode = $("#libraryCode").text();
+            if (libraryCode == null)
+                libraryCode = "";
+
+            //var libName = $("#selLib").find("option:selected").text();
             //alert("libName=" + libName);
 
             // 微信id
@@ -44,13 +171,11 @@
             //alert("version=" + version);
 
             var error = "";
-            if (version == "0")
-            {
+            if (version == "0") {
                 error = libName + " 的桥接服务器dp2capo版本不够新，请尽快升级。";
             }
 
-            if (error != "")
-            {
+            if (error != "") {
                 $("#errorInfo").text(error);
                 $("#errorInfo").css('display', 'block');
                 alert(error);
@@ -79,12 +204,10 @@
                         var code = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
                         var word = "";
                         //PQR:R0000001@OULTPG6IDX2LZU20JVJMY1NR08
-                        if (code.length > 4 && code.substring(0, 4) == "PQR:")
-                        {
+                        if (code.length > 4 && code.substring(0, 4) == "PQR:") {
                             word = code.substring(4);
                         }
-                        else
-                        {
+                        else {
                             alert("抱歉，您扫描的不是合法的读者二维码。\n扫描返回字符串为[" + code + "]，");
                             return;
                         }
@@ -130,7 +253,8 @@
                                 prefix: "PQR",
                                 word: word,
                                 password: "",
-                                libId: libId
+                                libId: libId,
+                                bindLibraryCode: libraryCode
                             }
                         );
 
@@ -146,7 +270,16 @@
                 alert("扫码异常：" + err);
             }
 
-            
+
+        }
+
+
+        function gotoSelectLib() {
+
+            //$('#selPrefix option:checked').text();
+            var fromUrl = "/Account/ScanQRCodeBind";
+            var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent(fromUrl);
+            gotoUrl(url);
         }
 
     </script>
@@ -167,34 +300,45 @@
 }
 
 @section header {
-        <h1 class="mui-title">图书馆柜台绑定</h1>
-    }
+    <h1 class="mui-title">图书馆柜台绑定</h1>
+}
 <span id="weixinId" style="display:none">@ViewBag.weixinId</span>
+<span id="libraryCode" style="display:none">@ViewBag.LibraryCode</span>
 <span id="_libversions" style="display:none">@ViewBag.LibVersions</span>
+<span id="libId" style="display:none">@ViewBag.LibId</span>
 
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
     <div class="mui-content-padded">
-            <span class="errorinfo">
-                @Html.Raw(ViewBag.Error)
-            </span>
-        </div>
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
 }
 else
 {
     <div class="mui-input-group">
 
-            <div class="mui-input-row ">
-                <label style="color:#cccccc">图书馆</label>
-                @Html.Raw(ViewBag.LibHtml)
-            </div>
+        <table style="width:100%">
+            <tr>
+                <td style="width:100%">
+                    <div class="mui-input-group" style="background-color:white">
+                        <div class="mui-input-row">
+                            <label style="color:#cccccc;">图书馆</label>
+                            <input type="text" class="mui-input mui-input-clear" id="txtLib" readonly value="@ViewBag.PureLibName">
+                        </div>
+                    </div>
+                </td>
+                <td><button onclick="gotoSelectLib()" class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
+            </tr>
+        </table>
 
-        </div>
+    </div>
     <div class="comment">（请先选择图书馆，然后点击 扫码并绑定 按钮，系统将打开扫描二维码界面，请对准图书馆系统显示的读者二维码，扫描成功后自动绑定读者账号。）</div>
 
     <div class="mui-content-padded">
-            <button id='btnScanBind' class="mui-btn mui-btn-block mui-btn-primary" onclick="scanBind()">扫码并绑定</button>
-        </div>
-        <div class="mui-content-padded" id="errorInfo" style="display:none;color:red">
-            </div>
+        <button id='btnScanBind' class="mui-btn mui-btn-block mui-btn-primary" onclick="scanBind()">扫码并绑定</button>
+    </div>
+    <div class="mui-content-padded" id="errorInfo" style="display:none;color:red">
+    </div>
 }

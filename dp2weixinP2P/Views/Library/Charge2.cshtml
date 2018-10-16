@@ -1019,7 +1019,18 @@
             $("#_charge_operation").val(value);
 
             if (value == C_ope_borrow) {
-                setInputType(C_inputType_patron);
+
+                // 如果是当前帐户是读者，不需要扫入证条码，直接扫入册条码
+                var _patronBarcode = $("#_patronBarcode").html();
+                if (_patronBarcode != undefined && _patronBarcode != null && _patronBarcode !="")
+                {
+                    alert("["+_patronBarcode+"]");
+                    setPatron(_patronBarcode);
+                    setInputType(C_inputType_item);
+                }
+                else {
+                    setInputType(C_inputType_patron);
+                }
             }
             else {
                 setInputType(C_inputType_item);
@@ -1360,6 +1371,7 @@
 <span id="libraryCode" style="display:none">@ViewBag.LibraryCode</span>
 <span id="userName" style="display:none">@ViewBag.userName</span>
 <span id="isPatron" style="display:none">@ViewBag.isPatron</span>
+
 <span id="verifyBarcode" style="display:none">@ViewBag.verifyBarcode</span>
 <span id="userId" style="display:none">@ViewBag.userId</span>
 
@@ -1367,6 +1379,8 @@
 <input id="_charge_inputType" type="hidden" value="">
 <input id="_patron" type="hidden" value="">
 <input id="_barcode" type="hidden" value="">
+
+<span id="_patronBarcode" style="display:none">@ViewBag.patronBarcode</span>
 
 
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
