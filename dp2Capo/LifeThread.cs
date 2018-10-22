@@ -32,6 +32,17 @@ namespace dp2Capo
                 // http://stackoverflow.com/questions/220382/how-can-a-windows-service-programmatically-restart-itself
                 Environment.Exit(1);
             }
+
+            if (ServerInfo.DetectHighMemory("dp2capo", 1024 * 1024 * 1024))
+            {
+                string strText = "*** dp2Capo 因为检测到高内存耗用而主动退出";
+                Program.WriteWindowsLog(strText, EventLogEntryType.Error);
+                ServerInfo.WriteErrorLog(strText);
+
+                // 结束进程
+                // http://stackoverflow.com/questions/220382/how-can-a-windows-service-programmatically-restart-itself
+                Environment.Exit(1);
+            }
         }
     }
 }

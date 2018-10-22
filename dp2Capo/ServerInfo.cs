@@ -883,7 +883,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                     // test 这一句可以用来制造死锁测试场景
                     // Thread.Sleep(60 * 60 * 1000);
                     WriteLog("info", "-- BackgroundWork - 等待 " + tasks.Count + " 个 Connect 任务完成");
-                    
+
                     Task.WaitAll(tasks.ToArray(), ServerInfo._cancel.Token);
 
                     WriteLog("info", "-- BackgroundWork - " + tasks.Count + " 个 Connect 任务已经完成");
@@ -916,6 +916,40 @@ Exception Info: System.Net.NetworkInformation.PingException
             }
         }
 
+        // 检测高内存耗用
+        public static bool DetectHighMemory(string appName, long threshold)
+        {
+            try
+            {
+                PerformanceCounter memory = new PerformanceCounter("Process", "Private Bytes", appName);
+
+                for (int i = 0; i < 2; i++)
+                {
+                    if (i != 0)
+                        System.Threading.Thread.Sleep(1000);
+
+                    float m = memory.NextValue();
+                    if (i != 0)
+                    {
+                        long mem_bytes = Convert.ToInt64(m);
+                        if (mem_bytes >= threshold)
+                        {
+                            WriteLog("info", "*** 检测到高内存耗用 " + StringUtil.GetLengthText(mem_bytes));
+                            return true;
+                        }
+                        return false;
+                    }
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                WriteLog("error", "DetectHighMemory() 内出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                return false;
+            }
+        }
+
         private static void LogCpuUsage(string appName)
         {
             try
@@ -927,6 +961,9 @@ Exception Info: System.Net.NetworkInformation.PingException
 
                 for (int i = 0; i < 2; i++)
                 {
+                    if (i != 0)
+                        System.Threading.Thread.Sleep(1000);
+
                     float t = total_cpu.NextValue();
                     float p = process_cpu.NextValue();
                     float m = memory.NextValue();
@@ -935,7 +972,6 @@ Exception Info: System.Net.NetworkInformation.PingException
                         // Console.WriteLine(String.Format("_Total = {0}  App = {1} {2}%\n", t, p, p / t * 100));
                         WriteLog("info", "CPU " + Convert.ToInt64(p / t * 100).ToString() + "%, Memory " + StringUtil.GetLengthText(Convert.ToInt64(m)));
                     }
-                    System.Threading.Thread.Sleep(1000);
                 }
             }
             catch (Exception ex)

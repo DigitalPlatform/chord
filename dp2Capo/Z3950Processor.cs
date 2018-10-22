@@ -541,7 +541,6 @@ namespace dp2Capo
                 // 全局结果集名
                 string resultset_name = MakeGlobalResultSetName(zserver_channel, e.Request.m_strResultSetName);
 
-
                 DateTime start = DateTime.Now;
                 // 进行检索
                 long lRet = 0;
@@ -565,11 +564,15 @@ namespace dp2Capo
                 if (length >= slow_length)
                 {
                     // TODO: TcpClient 可能为 null, 表示通道已经被切断
-                    string ip = TcpServer.GetClientIP(zserver_channel.TcpClient);
-                    string strChannelName = "ip:" + ip + ",channel:" + zserver_channel.GetHashCode();
+                    //string ip = TcpServer.GetClientIP(zserver_channel.TcpClient);
+                    //string strChannelName = "ip:" + ip + ",channel:" + zserver_channel.GetHashCode();
 
-                    LibraryManager.Log?.Info("通道 " + strChannelName + " 检索式 '" + strQueryXml + "' 检索耗时 " + length.ToString() + " (命中记录 " + lRet + ")，超过慢速阈值");
+                    LibraryManager.Log?.Info("通道 " + zserver_channel.GetDebugName(zserver_channel.TcpClient) + " 检索式 '" + strQueryXml + "' 检索耗时 " + length.ToString() + " (命中记录 " + lRet + ")，超过慢速阈值");
                 }
+
+                if (lRet == -1)
+                    LibraryManager.Log?.Error("通道 " + zserver_channel.GetDebugName(zserver_channel.TcpClient) + " 检索式 '" + strQueryXml + "' 检索出错: " + strError);
+
 
                 /*
                 // 测试检索失败
