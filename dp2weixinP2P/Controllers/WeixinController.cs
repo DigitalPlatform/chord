@@ -240,7 +240,7 @@ namespace dp2weixinWeb.Controllers
                         return Content("");
                     }
                 }
-                return new WeixinResult(messageHandler);//v0.8+
+                return new WeixinResult(messageHandler.TextResponseMessage);// ResponseMessage);//v0.8+
             }
             catch (Exception ex)
             {

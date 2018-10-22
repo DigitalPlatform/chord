@@ -6,9 +6,11 @@ using Senparc.Weixin.MP;
 using Senparc.Weixin.MP.Entities;
 using Senparc.Weixin.MP.Helpers;
 using Senparc.Weixin.MP.MessageHandlers;
-using Senparc.Weixin.Context;
+//using Senparc.Weixin.Context;
 using dp2Command.Service;
 using dp2weixin.service;
+using Senparc.NeuChar.Entities;
+
 namespace dp2weixin
 {
     /// <summary>

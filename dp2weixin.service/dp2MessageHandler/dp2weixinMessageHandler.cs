@@ -10,7 +10,7 @@ using Senparc.Weixin.MP.Helpers;
 using System.Xml;
 using DigitalPlatform.Xml;
 using System.Globalization;
-using Senparc.Weixin.Context;
+//using Senparc.Weixin.Context;
 using Senparc.Weixin.MP.Entities.Request;
 using DigitalPlatform.IO;
 using System.Diagnostics;
@@ -22,6 +22,7 @@ using System.Web.Mvc.Async;
 using System.Threading.Tasks;
 using dp2weixin.service;
 using dp2Command.Service;
+using Senparc.NeuChar.Entities;
 
 namespace dp2weixin
 {
