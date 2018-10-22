@@ -91,7 +91,7 @@ namespace DigitalPlatform.Net
 
         public static string GetClientIP(TcpClient s)
         {
-            return ((IPEndPoint)s.Client?.RemoteEndPoint)?.Address?.ToString();
+            return ((IPEndPoint)s?.Client?.RemoteEndPoint)?.Address?.ToString();
         }
 
         public void Listen(int backlog)
