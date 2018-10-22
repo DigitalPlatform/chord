@@ -17,13 +17,13 @@ using System.Threading;
 using System.Web;
 using System.Web.Configuration;
 using Senparc.Weixin.MP.Agent;
-using Senparc.Weixin.Context;
 using Senparc.Weixin.MP.Entities;
 using Senparc.Weixin.MP.Entities.Request;
 using Senparc.Weixin.MP.MessageHandlers;
 using Senparc.Weixin.MP.Helpers;
 using Senparc.Weixin.MP.Sample.CommonService.Utilities;
 using Senparc.Weixin.MP.Containers;
+using Senparc.NeuChar.Entities;
 
 namespace Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler
 {
@@ -175,20 +175,20 @@ namespace Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler
                         t2 - t1
                         );
             }
-            else if (requestMessage.Content == "错误")
-            {
-                var errorResponseMessage = requestMessage.CreateResponseMessage<ResponseMessageText>();
-                //因为没有设置errorResponseMessage.Content，所以这小消息将无法正确返回。
-                return errorResponseMessage;
-            }
-            else if (requestMessage.Content == "容错")
-            {
-                Thread.Sleep(1500);//故意延时1.5秒，让微信多次发送消息过来，观察返回结果
-                var faultTolerantResponseMessage = requestMessage.CreateResponseMessage<ResponseMessageText>();
-                faultTolerantResponseMessage.Content = string.Format("测试容错，MsgId：{0}，Ticks：{1}", requestMessage.MsgId,
-                    DateTime.Now.Ticks);
-                return faultTolerantResponseMessage;
-            }
+            //else if (requestMessage.Content == "错误")
+            //{
+            //    var errorResponseMessage = requestMessage.CreateResponseMessage<ResponseMessageText>();
+            //    //因为没有设置errorResponseMessage.Content，所以这小消息将无法正确返回。
+            //    return errorResponseMessage;
+            //}
+            //else if (requestMessage.Content == "容错")
+            //{
+            //    Thread.Sleep(1500);//故意延时1.5秒，让微信多次发送消息过来，观察返回结果
+            //    var faultTolerantResponseMessage = requestMessage.CreateResponseMessage<ResponseMessageText>();
+            //    faultTolerantResponseMessage.Content = string.Format("测试容错，MsgId：{0}，Ticks：{1}", requestMessage.MsgId,
+            //        DateTime.Now.Ticks);
+            //    return faultTolerantResponseMessage;
+            //}
             else
             {
                 var result = new StringBuilder();

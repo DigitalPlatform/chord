@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web.Mvc;
+using Senparc.NeuChar.MessageHandlers;
 using Senparc.Weixin.Entities;
-using Senparc.Weixin.MessageHandlers;
+//using Senparc.Weixin.MessageHandlers;
 
 namespace Senparc.Weixin.MP.MvcExtension
 {

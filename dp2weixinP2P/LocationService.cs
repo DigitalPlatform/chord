@@ -9,8 +9,11 @@
 ----------------------------------------------------------------*/
 
 using System.Collections.Generic;
+using Senparc.CO2NET.Helpers;
+using Senparc.CO2NET.Helpers.GoogleMap;
+using Senparc.NeuChar.Entities;
 using Senparc.Weixin.MP.Entities;
-using Senparc.Weixin.MP.Entities.GoogleMap;
+//using Senparc.Weixin.MP.Entities.GoogleMap;
 using Senparc.Weixin.MP.Helpers;
 
 namespace Senparc.Weixin.MP.Sample.CommonService
