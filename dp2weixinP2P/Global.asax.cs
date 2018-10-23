@@ -16,6 +16,10 @@ using System.IO;
 using System.Web.Caching;
 using dp2weixin.service;
 using DigitalPlatform;
+using Senparc.CO2NET;
+using Senparc.Weixin;
+using Senparc.Weixin.Entities;
+using Senparc.CO2NET.RegisterServices;
 
 namespace dp2weixinWeb
 {
@@ -23,6 +27,18 @@ namespace dp2weixinWeb
     {
         void Application_Start(object sender, EventArgs e)
         {
+
+            //...
+
+            var isGLobalDebug = true;//设置全局 Debug 状态
+            var senparcSetting = SenparcSetting.BuildFromWebConfig(isGLobalDebug);
+            var register = RegisterService.Start(senparcSetting).UseSenparcGlobal();//CO2NET全局注册，必须！
+
+            var isWeixinDebug = true;//设置微信 Debug 状态
+            var senparcWeixinSetting = SenparcWeixinSetting.BuildFromWebConfig(isWeixinDebug);
+            register.UseSenparcWeixin(senparcWeixinSetting, senparcSetting);////微信全局注册，必须！
+
+            //...
 
             // 在应用程序启动时运行的代码
             AreaRegistration.RegisterAllAreas();
