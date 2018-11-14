@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.32.*")]
-[assembly: AssemblyFileVersion("1.32.0.0")]
+[assembly: AssemblyVersion("1.34.*")]
+[assembly: AssemblyFileVersion("1.34.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -67,4 +67,5 @@ using System.Runtime.InteropServices;
 // 1.30 (2018/10/2) 修正了点对点 GetRes() API 中当 param.Data 为 Length 0 的时候的一处无法返回响应导致超时的 bug
 // 1.31 (2018/10/11) Z39.50 服务器 TCP 通道能在检索中途感知到前端切断通道的动作，并及时让 LibraryChannel Abort()。清理全局结果集按照分批进行，保证每批请求的规模不至于过大
 // 1.32 (2018/10/22) 自动检测高内存耗用(超过 1G)，触发自动重启 dp2capo.exe
-
+// 1.33 (2018/10/30) SIP Service 对于 ScStatus 缓存 dp2library get hangup 结果。大约每分钟才真正去 dp2library 获取一次。ScStatus 动作也不再进入 Info 日志
+// 1.34 (2018/11/13) Z39.50 Service 中消除了 BuildPartTree() 中出现死循环的 bug。遇到有问题的 BER 包，会记入错误日志

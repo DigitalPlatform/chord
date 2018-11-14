@@ -94,10 +94,13 @@ namespace dp2Capo
                 encoding = default_encoding;
             string strRequest = encoding.GetString(e.Request);
 
-            string strChannelName = "ip:" + ip + ",channel:" + sip_channel.GetHashCode();
-            LibraryManager.Log?.Info(strChannelName + ",\r\nrequest=" + strRequest);
-
             string strMessageIdentifiers = strRequest.Substring(0, 2);
+
+            string strChannelName = "ip:" + ip + ",channel:" + sip_channel.GetHashCode();
+
+            if (strMessageIdentifiers != "99")
+                LibraryManager.Log?.Info(strChannelName + ",\r\nrequest=" + strRequest);
+
 
             //try
             //{
@@ -210,7 +213,9 @@ namespace dp2Capo
             // 加校验码
             strResponse = AddChecksumForMessage(sip_channel, strResponse);
 
-            LibraryManager.Log?.Info(strChannelName + ",\r\nresponse=" + strResponse);
+            // ScStatus 请求来得很频繁，不在 Log 中记载 Info
+            if (strMessageIdentifiers != "99")
+                LibraryManager.Log?.Info(strChannelName + ",\r\nresponse=" + strResponse);
 
             e.Response = sip_channel.Encoding == null ?
                 default_encoding.GetBytes(strResponse)
@@ -2495,6 +2500,19 @@ namespace dp2Capo
             return sb.ToString();
         }
 
+        // dp2library url --> hangup value string
+        static Dictionary<string, string> _hangupStatusTable = new Dictionary<string, string>();
+        private static readonly Object _syncRoot_hangupStatusTable = new Object();
+
+        // 清空 hangup 状态缓存表。这样可以迫使后继 ScStatus 请求真正从 dp2library 获取状态
+        public static void ClearHangupStatusTable()
+        {
+            lock (_syncRoot_hangupStatusTable)
+            {
+                _hangupStatusTable.Clear();
+            }
+        }
+
         /// <summary>
         /// 状态查询
         /// </summary>
@@ -2536,18 +2554,46 @@ namespace dp2Capo
                 // TODO: 要检查相关 dp2Capo 实例是否在线
 
                 // TODO: 如果某个通道的 ScStatus 请求来得很频繁，要考虑缓冲 GetSystemParameter() API 的结果，直接把这个结果返回给前端
-                // TODO: 如果 ScStatus 请求来得很频繁，要考虑不在 Log 中记载 Info
+                string strExistingValue = null;
 
-                //2018/06/19 
-                long lRet = info.LibraryChannel.GetSystemParameter("system",
-                    "hangup",
-                    out string strValue,
-                    out strError);
-                if (lRet == -1)
+                lock (_syncRoot_hangupStatusTable)
                 {
-                    strError = "GetSystemParameter('system', 'hangup') error: " + strError;
-                    goto ERROR1;
+                    if (_hangupStatusTable != null
+                        && _hangupStatusTable.ContainsKey(info.LibraryChannel.Url))
+                        strExistingValue = _hangupStatusTable[info.LibraryChannel.Url];
                 }
+
+                long lRet = -1;
+                string strValue = "";
+                if (strExistingValue == null)
+                {
+                    //2018/06/19 
+                    lRet = info.LibraryChannel.GetSystemParameter("system",
+                        "hangup",
+                        out strValue,
+                        out strError);
+                    if (lRet == -1)
+                    {
+                        strError = "GetSystemParameter('system', 'hangup') error: " + strError;
+                        goto ERROR1;
+                    }
+
+                    // 缓存起来
+                    if (lRet == 1)
+                    {
+                        lock (_syncRoot_hangupStatusTable)
+                        {
+                            if (_hangupStatusTable != null && _hangupStatusTable.Count < 100)
+                                _hangupStatusTable[info.LibraryChannel.Url] = strValue;
+                        }
+                    }
+                }
+                else
+                {
+                    strValue = strExistingValue;
+                    lRet = 1;
+                }
+
                 response = new ACSStatus_98()
                 {
                     OnlineStatus_1 = "Y",   // see instance info

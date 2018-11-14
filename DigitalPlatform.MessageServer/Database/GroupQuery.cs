@@ -184,6 +184,17 @@ namespace DigitalPlatform.MessageServer
             return results.ToArray();
         }
 
+
+        public List<string> ToStringList()
+        {
+            List<string> results = new List<string>();
+            foreach (GroupName name in this.Names)
+            {
+                results.Add(name.ToString());
+            }
+            return results;
+        }
+
         // 检查正规化以后的组名是否符合要求
         void CheckGroupNameUnion()
         {
@@ -274,6 +285,35 @@ namespace DigitalPlatform.MessageServer
             }
 
             return segment.ToStringArray();
+        }
+
+        // 变换为适于保存到数据库中 MessageItem.groups 的形态
+        public static List<string> Canonicalize(List<string> names,
+            Delegate_replaceName proc_replace,
+            bool bCheckUnion = true)
+        {
+            GroupSegment segment = new GroupSegment(names.ToArray(), "");
+
+            // 把 gn 替换为 gi
+            // 把 un 替换为 ui
+            foreach (GroupName name in segment.Names)
+            {
+                if ((name.Type == "gn" && (name.Text[0] != '<' && name.Text[0] != '_'))
+                    || name.Type == "un")
+                {
+                    GroupName result_name = proc_replace(name);
+                    name.Text = result_name.Text;
+                    name.Type = result_name.Type;
+                }
+            }
+
+            if (bCheckUnion)
+            {
+                segment.SortNames();
+                segment.CheckGroupNameUnion();
+            }
+
+            return segment.ToStringList();
         }
 
         // 把下级元素按照名字排序

@@ -195,6 +195,24 @@ namespace DigitalPlatform.Net
             }
         }
 
+        // 把一个 IP 加入黑名单
+        // exception:
+        //      可能会抛出异常
+        // return:
+        //      false   调用前已经在黑名单之中
+        //      true    成功
+        public bool SetInBlackList(string ip, TimeSpan lockLength)
+        {
+            // exception:
+            //      可能会抛出异常
+            IpEntry entry = GetIpEntry(ip);
+            if (entry.IsInBlackList() == true)
+                return false;   // 已经在黑名单之中
+
+            entry.SetInBlackList(lockLength);
+            return true;
+        }
+
 #if NO
         // 增量 IP 统计数字
         // 如果 IP 事项总数超过限额，会抛出异常
@@ -339,13 +357,21 @@ namespace DigitalPlatform.Net
                 if (this._attackInfo == null)
                     this._attackInfo = new AttackInfo();
 
-                this._attackInfo.Memo();
+                this._attackInfo.Memo(TimeSpan.FromSeconds(0));
             }
             else
             {
                 if (this._attackInfo != null)
                     this._attackInfo = null;
             }
+        }
+
+        public void SetInBlackList(TimeSpan lockLength)
+        {
+            if (this._attackInfo == null)
+                this._attackInfo = new AttackInfo();
+
+            this._attackInfo.Memo(lockLength);
         }
 
         // 如果累计开始时间超过指定长度，则清除 total 值
@@ -385,6 +411,9 @@ namespace DigitalPlatform.Net
         // 是否允许清理？
         public bool CanRemove()
         {
+            // 2018/11/15
+            if (this._attackInfo != null)
+                return false;
             if (this._totalConnectCount <= 1)
                 return true;
             return false;
@@ -395,12 +424,15 @@ namespace DigitalPlatform.Net
     public class AttackInfo
     {
         public DateTime AttackTime = DateTime.Now; // 最后一次攻击的时间
+        public TimeSpan LockLength = TimeSpan.FromSeconds(0);   // 攻击信息失效被清除前应该被锁定的时长
         public long AttackCount = 0;    // 一共发生的攻击次数
 
+        // TODO: 操作时是否要加锁？
         // 记载一次攻击
-        public void Memo()
+        public void Memo(TimeSpan lockLength)
         {
             this.AttackTime = DateTime.Now;
+            this.LockLength = lockLength;
             this.AttackCount++;
         }
 
@@ -408,7 +440,7 @@ namespace DigitalPlatform.Net
         //      delta   从最后一次攻击的时间计算，多长以后清除攻击记忆
         public bool IsExpired(TimeSpan delta)
         {
-            if (DateTime.Now > this.AttackTime + delta)
+            if (this.AttackTime + this.LockLength + delta > DateTime.Now)
                 return true;
             return false;
         }

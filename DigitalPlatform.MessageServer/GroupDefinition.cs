@@ -117,6 +117,31 @@ namespace DigitalPlatform.MessageServer
             return false;
         }
 
+        // 探测 one 是否包含在 array 列表中。
+        // parameters:
+        //      one 可能是不纯粹的群组名
+        public static bool IncludeGroup(List<string> array, string one)
+        {
+            if (array == null)
+            {
+                if (IsDefaultGroupName(one) == true)
+                    return true;
+                return false;
+            }
+
+            // return Array.IndexOf(array, one) != -1;
+
+            var def_one = GroupDefinition.Build(one);
+
+            foreach (string s in array)
+            {
+                var def = GroupDefinition.Build(s);
+                if (Equal(def.GroupNames, def_one.GroupNames))
+                    return true;
+            }
+            return false;
+        }
+
         // 从 array 中找到匹配 one 名字的群的定义参数
         // one -- MessageItem 里面的 groups 成员
         public static string FindGroupDefinition(string[] array, string[] one)
@@ -137,6 +162,29 @@ namespace DigitalPlatform.MessageServer
 
         // one -- MessageItem 里面的 groups 成员
         public static bool IncludeGroup(string[] array, string [] one)
+        {
+            if (array == null)
+            {
+                if (IsDefaultGroupName(one) == true)
+                    return true;
+                return false;
+            }
+
+            // return Array.IndexOf(array, one) != -1;
+
+            var def_one = GroupDefinition.Build(string.Join(",", one));
+
+            foreach (string s in array)
+            {
+                var def = GroupDefinition.Build(s);
+                if (Equal(def.GroupNames, def_one.GroupNames))
+                    return true;
+            }
+            return false;
+        }
+
+        // one -- MessageItem 里面的 groups 成员
+        public static bool IncludeGroup(List<string> array, List<string> one)
         {
             if (array == null)
             {

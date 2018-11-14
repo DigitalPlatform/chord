@@ -84,8 +84,19 @@ namespace DigitalPlatform.Text
             }
         }
 
+        // parameters:
+        //      bSorted 是否在调用前就排过序?
+        public static void RemoveDup(ref List<string> list, bool bSorted)
+        {
+            if (bSorted == false)
+                list.Sort();
+
+            _removeDup(ref list);
+        }
+
         // 把一个字符串数组去重。调用前，应当已经排序
-        public static void RemoveDup(ref List<string> list)
+        // 警告：此函数极易在忘记先排序的情况下调用
+        public static void _removeDup(ref List<string> list)
         {
             for (int i = 0; i < list.Count; i++)
             {

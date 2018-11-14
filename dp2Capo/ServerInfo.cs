@@ -688,8 +688,7 @@ Exception Info: System.Net.NetworkInformation.PingException
                 Uri uri = new Uri(instance.dp2mserver.Url);
                 try
                 {
-                    string strInformation = "";
-                    if (NetUtil.Ping(uri.DnsSafeHost, out strInformation) == true)
+                    if (NetUtil.Ping(uri.DnsSafeHost, out string strInformation) == true)
                     {
                         instance.WriteErrorLog("ping '" + uri.DnsSafeHost + "' success");
                     }
@@ -702,7 +701,6 @@ Exception Info: System.Net.NetworkInformation.PingException
                 {
                     instance.WriteErrorLog("ping '" + uri.DnsSafeHost + "' 出现异常: " + ExceptionUtil.GetExceptionText(ex));
                 }
-
             }
             else
             {
@@ -875,6 +873,9 @@ Exception Info: System.Net.NetworkInformation.PingException
 
                     // 把紧凑日志写入日志文件
                     ZServer?.TryFlushCompactLog();
+
+                    // 顺便清理一下 hangup 状态缓存
+                    SipProcessor.ClearHangupStatusTable();
                 }
 
                 // 阻塞，直到全部任务完成。避免 BeginConnect() 函数被重叠调用

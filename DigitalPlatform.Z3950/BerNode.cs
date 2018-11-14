@@ -935,7 +935,7 @@ namespace DigitalPlatform.Z3950
                 nLen - taglen);
             if ((lenlen) == 0)
             {
-                Debug.Assert(false, "");
+                // Debug.Assert(false, "");    // 2018/11/12 这里可能是内存泄漏的根源?
                 return false;  /* no len yet */
             }
 
@@ -1003,28 +1003,32 @@ namespace DigitalPlatform.Z3950
                         node = new BerNode();	//生成此节点的一个子节点
                         node.ParentNode = this;
                         this.ChildrenCollection.Add(node);
+                        if (this.ChildrenCollection.Count > 1000)
+                            throw new Exception("BuildPartTree() 中疑似陷入死循环");
 
                         bool bRet = node.BuildPartTree(baBuffer,
                             nHead + headerlen + nStart,
                             fieldlen,
                             out nSubLen);
-
+                        // 2018/11/12
+                        if (bRet == false)
+                            return false;
                         Debug.Assert(nSubLen <= fieldlen, "");
 
-
                         // 如果nSubLen永远为0怎么办
+                        if (nSubLen == 0)
+                            throw new Exception("BuildPartTree() 中 nSubLen 为 0");
+
                         nMax -= nSubLen;
                         nStart += nSubLen;
                         nUsedLen += nSubLen;
                         Debug.Assert(nUsedLen <= nLenParam, "");
-
 
                         Debug.Assert(nMax >= 0, "");
                     }
                 }
                 else
                 {
-
                     this.m_baData = new byte[fieldlen];
                     Array.Copy(baBuffer, nHead + headerlen,
                         this.m_baData, 0, fieldlen);

@@ -230,6 +230,7 @@ namespace DigitalPlatform.Z3950
 
             ////////////////////////////////////////////////////////////////
             BerTree tree1 = new BerTree();
+            // TODO: 这里需要捕获异常，然后把 Package Dump 到日志文件(base64 形态)，便于事后分析调试
             tree1.m_RootNode.BuildPartTree(result.Package,
                 0,
                 result.Package.Length,
@@ -491,6 +492,7 @@ namespace DigitalPlatform.Z3950
 				baOutPackage.GetSize());
 #endif
 
+                // TODO: 这里需要捕获异常，然后把 Package Dump 到日志文件(base64 形态)，便于事后分析调试
                 tree1.m_RootNode.BuildPartTree(result.Package,
                     0,
                     result.Package.Length,
@@ -769,6 +771,7 @@ namespace DigitalPlatform.Z3950
 #endif
 
 
+                // TODO: 这里需要捕获异常，然后把 Package Dump 到日志文件(base64 形态)，便于事后分析调试
                 tree1.m_RootNode.BuildPartTree(result.Package,
                     0,
                     result.Package.Length,
@@ -835,6 +838,7 @@ namespace DigitalPlatform.Z3950
             }
 
             BerTree tree1 = new BerTree();
+            // TODO: 这里需要捕获异常，然后把 Package Dump 到日志文件(base64 形态)，便于事后分析调试
             tree1.m_RootNode.BuildPartTree(result.Package,
                 0,
                 result.Package.Length,

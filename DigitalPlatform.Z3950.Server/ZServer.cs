@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using DigitalPlatform.Common;
 using DigitalPlatform.Net;
+using Newtonsoft.Json;
 
 namespace DigitalPlatform.Z3950.Server
 {
@@ -200,11 +201,14 @@ namespace DigitalPlatform.Z3950.Server
             try
             {
                 string name = "";
+                string ip = "";
 
                 Task<Result> task = null;
                 try
                 {
                     name = channel.GetDebugName(tcpClient);
+                    ip = TcpServer.GetClientIP(tcpClient);
+
                     channel.Touch();
 
                     int i = 0;
@@ -279,6 +283,13 @@ namespace DigitalPlatform.Z3950.Server
                         // Console.WriteLine(strError);
                     }
 #endif
+                    if (ex is UnknownApduException
+                        || ex is BadApduException)
+                    {
+                        IpTable.SetInBlackList(ip, TimeSpan.FromHours(1));
+                        LibraryManager.Log?.Info(string.Format("IP 地址 {0} 已被加入黑名单，时限一个小时", ip));
+                    }
+
                     LogException(ex, channel, name);
                 }
                 finally
@@ -359,10 +370,12 @@ namespace DigitalPlatform.Z3950.Server
             CancellationToken token)
         {
             string name = "";
+            string ip = "";
             bool error = false;
             try
             {
                 name = channel.GetDebugName(tcpClient);
+                ip = TcpServer.GetClientIP(tcpClient);
 
                 byte[] response = null;
                 if (this.ProcessRequest == null)
@@ -396,6 +409,13 @@ namespace DigitalPlatform.Z3950.Server
             }
             catch (Exception ex)
             {
+                if (ex is UnknownApduException
+                    || ex is BadApduException)
+                {
+                    IpTable.SetInBlackList(ip, TimeSpan.FromHours(1));
+                    LibraryManager.Log?.Info(string.Format("IP 地址 {0} 已被加入黑名单，时限一个小时", ip));
+                }
+
                 if (channel != null)
                 {
                     channel.Close();
@@ -480,7 +500,10 @@ namespace DigitalPlatform.Z3950.Server
                     }
                     break;
             }
-            return new byte[0];
+            // return new byte[0];
+            // TODO 如果将来嫌日志中记载 BerNode Dump 结果体积太大，Dump 结果可以考虑不进入日志
+            string text = JsonConvert.SerializeObject(root, Formatting.Indented);
+            throw new UnknownApduException(string.Format("无法识别的 APDU tag[{0}]\r\nBerNode={1}", root.m_uTag, text));
         }
 
         // 根据 @xxx 找到相关的 capo 实例，然后找到配置参数
@@ -835,4 +858,35 @@ namespace DigitalPlatform.Z3950.Server
         }
     }
 
+    /// <summary>
+    /// 无法识别的 APDU。注：APDU 本身是完整的
+    /// </summary>
+    public class UnknownApduException : Exception
+    {
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="error"></param>
+        /// <param name="strText"></param>
+        public UnknownApduException(string strText)
+            : base(strText)
+        {
+        }
+    }
+
+    /// <summary>
+    /// 不合法的 APDU
+    /// </summary>
+    public class BadApduException : Exception
+    {
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="error"></param>
+        /// <param name="strText"></param>
+        public BadApduException(string strText)
+            : base(strText)
+        {
+        }
+    }
 }

@@ -517,7 +517,11 @@ int count,
                 if (index >= start)
                 {
                     MessageItem item = new MessageItem();
+#if ARRAY
                     item.groups = key.Split(new char[] { ',' });
+#else
+                    item.groups = new List<string>(key.Split(new char[] { ',' }));
+#endif
                     if (proc(totalCount, item) == false)
                         return;
                 }
@@ -604,20 +608,20 @@ Delegate_outputMessage proc)
 #endif
 
             var myresults = await collection.Aggregate().Match(filter)
-                //.Group(new BsonDocument("_id", "$subjects"))
+//.Group(new BsonDocument("_id", "$subjects"))
 .Group(
-                        new BsonDocument 
-                            { 
-                                { "_id", "$" + field }, 
+                        new BsonDocument
+                            {
+                                { "_id", "$" + field },
 
-                                { 
-                                    "c", new BsonDocument 
-                                                 { 
-                                                     { 
-                                                         "$sum", 1 
-                                                     } 
-                                                 } 
-                                } 
+                                {
+                                    "c", new BsonDocument
+                                                 {
+                                                     {
+                                                         "$sum", 1
+                                                     }
+                                                 }
+                                }
                             }
 )
 .ToListAsync().ConfigureAwait(false);
@@ -639,6 +643,8 @@ Delegate_outputMessage proc)
                     BsonValue temp = doc.GetValue("_id");
                     if (type.Equals(typeof(string[])))
                         item.SetPropertyValue(field, GetStringArray(temp as BsonArray));
+                    else if (type.Equals(typeof(List<string>))) // 2018/11/14
+                        item.SetPropertyValue(field, new List<string>(GetStringArray(temp as BsonArray)));
                     else
                         item.SetPropertyValue(field, temp.ToString());
 
@@ -665,9 +671,21 @@ Delegate_outputMessage proc)
 
             // group 的空实际上代表一个群组
             if (item.groups == null)
+            {
+#if ARRAY
                 item.groups = new string[1] { "" };
+#else
+                item.groups = new List<string> { "" };
+#endif
+            }
             else
+            {
+#if ARRAY
                 Array.Sort(item.groups);    // 排序后确保名字规范，将来用起来(比如构造为逗号间隔的字符串时)可以少一次排序
+#else
+                item.groups.Sort();
+#endif
+            }
 
             IMongoCollection<MessageItem> collection = this._collection;
 
@@ -785,20 +803,38 @@ Builders<MessageItem>.Filter.Lt("publishTime", publish_end_time));
         [BsonId]    // 允许 GUID
         public string id { get; private set; }  // 消息的 id
 
-        public string[] groups { get; set; }   // 组名 或 组id。消息所从属的组
+        public List<string> groups { get; set; }   // 组名 或 组id。消息所从属的组
+
         public string creator { get; set; } // 创建消息的人的id
         public string userName { get; set; } // 创建消息的人的用户名
         public string data { get; set; }  // 消息数据体
         public string format { get; set; } // 消息格式。格式是从存储格式角度来说的
         public string type { get; set; }    // 消息类型。类型是从用途角度来说的
         public string thread { get; set; }    // 消息所从属的话题线索
-        public string[] subjects { get; set; }   // 主题词
+
+        public List<string> subjects { get; set; }   // 主题词
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime publishTime { get; set; } // 消息发布时间
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime expireTime { get; set; } // 消息失效时间
+
+        static bool IsEqual(List<string> array1, List<string> array2)
+        {
+            if (array1 == null && array2 == null)
+                return true;
+            if (array1 == null || array2 == null)
+                return false;   // 其中一个为 null
+            if (array1.Count != array2.Count)
+                return false;
+            for (int i = 0; i < array1.Count; i++)
+            {
+                if (array1[i] != array2[i])
+                    return false;
+            }
+            return true;
+        }
 
         static bool IsEqual(string[] array1, string[] array2)
         {

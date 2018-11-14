@@ -1974,6 +1974,9 @@ namespace DigitalPlatform.LibraryClient.localhost {
         private string DenyPeriodField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string ItemBarcodeField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
         private string LatestReturnTimeField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
@@ -2024,6 +2027,19 @@ namespace DigitalPlatform.LibraryClient.localhost {
                 if ((object.ReferenceEquals(this.DenyPeriodField, value) != true)) {
                     this.DenyPeriodField = value;
                     this.RaisePropertyChanged("DenyPeriod");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string ItemBarcode {
+            get {
+                return this.ItemBarcodeField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.ItemBarcodeField, value) != true)) {
+                    this.ItemBarcodeField = value;
+                    this.RaisePropertyChanged("ItemBarcode");
                 }
             }
         }
@@ -2084,6 +2100,9 @@ namespace DigitalPlatform.LibraryClient.localhost {
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private string BorrowTimeField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string ItemBarcodeField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private string LatestReturnTimeField;
@@ -2161,6 +2180,19 @@ namespace DigitalPlatform.LibraryClient.localhost {
                 if ((object.ReferenceEquals(this.BorrowTimeField, value) != true)) {
                     this.BorrowTimeField = value;
                     this.RaisePropertyChanged("BorrowTime");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string ItemBarcode {
+            get {
+                return this.ItemBarcodeField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.ItemBarcodeField, value) != true)) {
+                    this.ItemBarcodeField = value;
+                    this.RaisePropertyChanged("ItemBarcode");
                 }
             }
         }
@@ -3649,10 +3681,10 @@ namespace DigitalPlatform.LibraryClient.localhost {
         DigitalPlatform.LibraryClient.localhost.LibraryServerResult EndGetAuthorNumber(ref DigitalPlatform.LibraryClient.localhost.Question[] questions, out string strNumber, out string strDebugInfo, System.IAsyncResult result);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/rest/dp2libraryREST/GetPinyin", ReplyAction="http://dp2003.com/dp2library/rest/dp2libraryREST/GetPinyinResponse")]
-        DigitalPlatform.LibraryClient.localhost.LibraryServerResult GetPinyin(out string strPinyinXml, string strText);
+        DigitalPlatform.LibraryClient.localhost.LibraryServerResult GetPinyin(out string strPinyinXml, string strType, string strText);
         
         [System.ServiceModel.OperationContractAttribute(AsyncPattern=true, Action="http://dp2003.com/dp2library/rest/dp2libraryREST/GetPinyin", ReplyAction="http://dp2003.com/dp2library/rest/dp2libraryREST/GetPinyinResponse")]
-        System.IAsyncResult BeginGetPinyin(string strText, System.AsyncCallback callback, object asyncState);
+        System.IAsyncResult BeginGetPinyin(string strType, string strText, System.AsyncCallback callback, object asyncState);
         
         DigitalPlatform.LibraryClient.localhost.LibraryServerResult EndGetPinyin(out string strPinyinXml, System.IAsyncResult result);
         
@@ -4113,10 +4145,10 @@ namespace DigitalPlatform.LibraryClient.localhost {
         DigitalPlatform.LibraryClient.localhost.LibraryServerResult EndClearAllDbs(System.IAsyncResult result);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/rest/dp2libraryREST/ManageDatabase", ReplyAction="http://dp2003.com/dp2library/rest/dp2libraryREST/ManageDatabaseResponse")]
-        DigitalPlatform.LibraryClient.localhost.LibraryServerResult ManageDatabase(out string strOutputInfo, string strAction, string strDatabaseName, string strDatabaseInfo);
+        DigitalPlatform.LibraryClient.localhost.LibraryServerResult ManageDatabase(out string strOutputInfo, string strAction, string strDatabaseName, string strDatabaseInfo, string strStyle);
         
         [System.ServiceModel.OperationContractAttribute(AsyncPattern=true, Action="http://dp2003.com/dp2library/rest/dp2libraryREST/ManageDatabase", ReplyAction="http://dp2003.com/dp2library/rest/dp2libraryREST/ManageDatabaseResponse")]
-        System.IAsyncResult BeginManageDatabase(string strAction, string strDatabaseName, string strDatabaseInfo, System.AsyncCallback callback, object asyncState);
+        System.IAsyncResult BeginManageDatabase(string strAction, string strDatabaseName, string strDatabaseInfo, string strStyle, System.AsyncCallback callback, object asyncState);
         
         DigitalPlatform.LibraryClient.localhost.LibraryServerResult EndManageDatabase(out string strOutputInfo, System.IAsyncResult result);
         
@@ -9081,13 +9113,13 @@ namespace DigitalPlatform.LibraryClient.localhost {
                         questions}, this.onEndGetAuthorNumberDelegate, this.onGetAuthorNumberCompletedDelegate, userState);
         }
         
-        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult GetPinyin(out string strPinyinXml, string strText) {
-            return base.Channel.GetPinyin(out strPinyinXml, strText);
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult GetPinyin(out string strPinyinXml, string strType, string strText) {
+            return base.Channel.GetPinyin(out strPinyinXml, strType, strText);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        public System.IAsyncResult BeginGetPinyin(string strText, System.AsyncCallback callback, object asyncState) {
-            return base.Channel.BeginGetPinyin(strText, callback, asyncState);
+        public System.IAsyncResult BeginGetPinyin(string strType, string strText, System.AsyncCallback callback, object asyncState) {
+            return base.Channel.BeginGetPinyin(strType, strText, callback, asyncState);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
@@ -9096,8 +9128,9 @@ namespace DigitalPlatform.LibraryClient.localhost {
         }
         
         private System.IAsyncResult OnBeginGetPinyin(object[] inValues, System.AsyncCallback callback, object asyncState) {
-            string strText = ((string)(inValues[0]));
-            return this.BeginGetPinyin(strText, callback, asyncState);
+            string strType = ((string)(inValues[0]));
+            string strText = ((string)(inValues[1]));
+            return this.BeginGetPinyin(strType, strText, callback, asyncState);
         }
         
         private object[] OnEndGetPinyin(System.IAsyncResult result) {
@@ -9115,11 +9148,11 @@ namespace DigitalPlatform.LibraryClient.localhost {
             }
         }
         
-        public void GetPinyinAsync(string strText) {
-            this.GetPinyinAsync(strText, null);
+        public void GetPinyinAsync(string strType, string strText) {
+            this.GetPinyinAsync(strType, strText, null);
         }
         
-        public void GetPinyinAsync(string strText, object userState) {
+        public void GetPinyinAsync(string strType, string strText, object userState) {
             if ((this.onBeginGetPinyinDelegate == null)) {
                 this.onBeginGetPinyinDelegate = new BeginOperationDelegate(this.OnBeginGetPinyin);
             }
@@ -9130,6 +9163,7 @@ namespace DigitalPlatform.LibraryClient.localhost {
                 this.onGetPinyinCompletedDelegate = new System.Threading.SendOrPostCallback(this.OnGetPinyinCompleted);
             }
             base.InvokeAsync(this.onBeginGetPinyinDelegate, new object[] {
+                        strType,
                         strText}, this.onEndGetPinyinDelegate, this.onGetPinyinCompletedDelegate, userState);
         }
         
@@ -12364,13 +12398,13 @@ namespace DigitalPlatform.LibraryClient.localhost {
             base.InvokeAsync(this.onBeginClearAllDbsDelegate, null, this.onEndClearAllDbsDelegate, this.onClearAllDbsCompletedDelegate, userState);
         }
         
-        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult ManageDatabase(out string strOutputInfo, string strAction, string strDatabaseName, string strDatabaseInfo) {
-            return base.Channel.ManageDatabase(out strOutputInfo, strAction, strDatabaseName, strDatabaseInfo);
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult ManageDatabase(out string strOutputInfo, string strAction, string strDatabaseName, string strDatabaseInfo, string strStyle) {
+            return base.Channel.ManageDatabase(out strOutputInfo, strAction, strDatabaseName, strDatabaseInfo, strStyle);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        public System.IAsyncResult BeginManageDatabase(string strAction, string strDatabaseName, string strDatabaseInfo, System.AsyncCallback callback, object asyncState) {
-            return base.Channel.BeginManageDatabase(strAction, strDatabaseName, strDatabaseInfo, callback, asyncState);
+        public System.IAsyncResult BeginManageDatabase(string strAction, string strDatabaseName, string strDatabaseInfo, string strStyle, System.AsyncCallback callback, object asyncState) {
+            return base.Channel.BeginManageDatabase(strAction, strDatabaseName, strDatabaseInfo, strStyle, callback, asyncState);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
@@ -12382,7 +12416,8 @@ namespace DigitalPlatform.LibraryClient.localhost {
             string strAction = ((string)(inValues[0]));
             string strDatabaseName = ((string)(inValues[1]));
             string strDatabaseInfo = ((string)(inValues[2]));
-            return this.BeginManageDatabase(strAction, strDatabaseName, strDatabaseInfo, callback, asyncState);
+            string strStyle = ((string)(inValues[3]));
+            return this.BeginManageDatabase(strAction, strDatabaseName, strDatabaseInfo, strStyle, callback, asyncState);
         }
         
         private object[] OnEndManageDatabase(System.IAsyncResult result) {
@@ -12400,11 +12435,11 @@ namespace DigitalPlatform.LibraryClient.localhost {
             }
         }
         
-        public void ManageDatabaseAsync(string strAction, string strDatabaseName, string strDatabaseInfo) {
-            this.ManageDatabaseAsync(strAction, strDatabaseName, strDatabaseInfo, null);
+        public void ManageDatabaseAsync(string strAction, string strDatabaseName, string strDatabaseInfo, string strStyle) {
+            this.ManageDatabaseAsync(strAction, strDatabaseName, strDatabaseInfo, strStyle, null);
         }
         
-        public void ManageDatabaseAsync(string strAction, string strDatabaseName, string strDatabaseInfo, object userState) {
+        public void ManageDatabaseAsync(string strAction, string strDatabaseName, string strDatabaseInfo, string strStyle, object userState) {
             if ((this.onBeginManageDatabaseDelegate == null)) {
                 this.onBeginManageDatabaseDelegate = new BeginOperationDelegate(this.OnBeginManageDatabase);
             }
@@ -12417,7 +12452,8 @@ namespace DigitalPlatform.LibraryClient.localhost {
             base.InvokeAsync(this.onBeginManageDatabaseDelegate, new object[] {
                         strAction,
                         strDatabaseName,
-                        strDatabaseInfo}, this.onEndManageDatabaseDelegate, this.onManageDatabaseCompletedDelegate, userState);
+                        strDatabaseInfo,
+                        strStyle}, this.onEndManageDatabaseDelegate, this.onManageDatabaseCompletedDelegate, userState);
         }
         
         public DigitalPlatform.LibraryClient.localhost.LibraryServerResult GetUser(out DigitalPlatform.LibraryClient.localhost.UserInfo[] contents, string strAction, string strName, int nStart, int nCount) {
@@ -14274,10 +14310,10 @@ namespace DigitalPlatform.LibraryClient.localhost {
         DigitalPlatform.LibraryClient.localhost.LibraryServerResult EndGetAuthorNumber(ref DigitalPlatform.LibraryClient.localhost.Question[] questions, out string strNumber, out string strDebugInfo, System.IAsyncResult result);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/dp2library/GetPinyin", ReplyAction="http://dp2003.com/dp2library/dp2library/GetPinyinResponse")]
-        DigitalPlatform.LibraryClient.localhost.LibraryServerResult GetPinyin(out string strPinyinXml, string strText);
+        DigitalPlatform.LibraryClient.localhost.LibraryServerResult GetPinyin(out string strPinyinXml, string strType, string strText);
         
         [System.ServiceModel.OperationContractAttribute(AsyncPattern=true, Action="http://dp2003.com/dp2library/dp2library/GetPinyin", ReplyAction="http://dp2003.com/dp2library/dp2library/GetPinyinResponse")]
-        System.IAsyncResult BeginGetPinyin(string strText, System.AsyncCallback callback, object asyncState);
+        System.IAsyncResult BeginGetPinyin(string strType, string strText, System.AsyncCallback callback, object asyncState);
         
         DigitalPlatform.LibraryClient.localhost.LibraryServerResult EndGetPinyin(out string strPinyinXml, System.IAsyncResult result);
         
@@ -14738,10 +14774,10 @@ namespace DigitalPlatform.LibraryClient.localhost {
         DigitalPlatform.LibraryClient.localhost.LibraryServerResult EndClearAllDbs(System.IAsyncResult result);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://dp2003.com/dp2library/dp2library/ManageDatabase", ReplyAction="http://dp2003.com/dp2library/dp2library/ManageDatabaseResponse")]
-        DigitalPlatform.LibraryClient.localhost.LibraryServerResult ManageDatabase(out string strOutputInfo, string strAction, string strDatabaseName, string strDatabaseInfo);
+        DigitalPlatform.LibraryClient.localhost.LibraryServerResult ManageDatabase(out string strOutputInfo, string strAction, string strDatabaseName, string strDatabaseInfo, string strStyle);
         
         [System.ServiceModel.OperationContractAttribute(AsyncPattern=true, Action="http://dp2003.com/dp2library/dp2library/ManageDatabase", ReplyAction="http://dp2003.com/dp2library/dp2library/ManageDatabaseResponse")]
-        System.IAsyncResult BeginManageDatabase(string strAction, string strDatabaseName, string strDatabaseInfo, System.AsyncCallback callback, object asyncState);
+        System.IAsyncResult BeginManageDatabase(string strAction, string strDatabaseName, string strDatabaseInfo, string strStyle, System.AsyncCallback callback, object asyncState);
         
         DigitalPlatform.LibraryClient.localhost.LibraryServerResult EndManageDatabase(out string strOutputInfo, System.IAsyncResult result);
         
@@ -19700,13 +19736,13 @@ namespace DigitalPlatform.LibraryClient.localhost {
                         questions}, this.onEndGetAuthorNumberDelegate, this.onGetAuthorNumberCompletedDelegate, userState);
         }
         
-        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult GetPinyin(out string strPinyinXml, string strText) {
-            return base.Channel.GetPinyin(out strPinyinXml, strText);
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult GetPinyin(out string strPinyinXml, string strType, string strText) {
+            return base.Channel.GetPinyin(out strPinyinXml, strType, strText);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        public System.IAsyncResult BeginGetPinyin(string strText, System.AsyncCallback callback, object asyncState) {
-            return base.Channel.BeginGetPinyin(strText, callback, asyncState);
+        public System.IAsyncResult BeginGetPinyin(string strType, string strText, System.AsyncCallback callback, object asyncState) {
+            return base.Channel.BeginGetPinyin(strType, strText, callback, asyncState);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
@@ -19715,8 +19751,9 @@ namespace DigitalPlatform.LibraryClient.localhost {
         }
         
         private System.IAsyncResult OnBeginGetPinyin(object[] inValues, System.AsyncCallback callback, object asyncState) {
-            string strText = ((string)(inValues[0]));
-            return this.BeginGetPinyin(strText, callback, asyncState);
+            string strType = ((string)(inValues[0]));
+            string strText = ((string)(inValues[1]));
+            return this.BeginGetPinyin(strType, strText, callback, asyncState);
         }
         
         private object[] OnEndGetPinyin(System.IAsyncResult result) {
@@ -19734,11 +19771,11 @@ namespace DigitalPlatform.LibraryClient.localhost {
             }
         }
         
-        public void GetPinyinAsync(string strText) {
-            this.GetPinyinAsync(strText, null);
+        public void GetPinyinAsync(string strType, string strText) {
+            this.GetPinyinAsync(strType, strText, null);
         }
         
-        public void GetPinyinAsync(string strText, object userState) {
+        public void GetPinyinAsync(string strType, string strText, object userState) {
             if ((this.onBeginGetPinyinDelegate == null)) {
                 this.onBeginGetPinyinDelegate = new BeginOperationDelegate(this.OnBeginGetPinyin);
             }
@@ -19749,6 +19786,7 @@ namespace DigitalPlatform.LibraryClient.localhost {
                 this.onGetPinyinCompletedDelegate = new System.Threading.SendOrPostCallback(this.OnGetPinyinCompleted);
             }
             base.InvokeAsync(this.onBeginGetPinyinDelegate, new object[] {
+                        strType,
                         strText}, this.onEndGetPinyinDelegate, this.onGetPinyinCompletedDelegate, userState);
         }
         
@@ -22983,13 +23021,13 @@ namespace DigitalPlatform.LibraryClient.localhost {
             base.InvokeAsync(this.onBeginClearAllDbsDelegate, null, this.onEndClearAllDbsDelegate, this.onClearAllDbsCompletedDelegate, userState);
         }
         
-        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult ManageDatabase(out string strOutputInfo, string strAction, string strDatabaseName, string strDatabaseInfo) {
-            return base.Channel.ManageDatabase(out strOutputInfo, strAction, strDatabaseName, strDatabaseInfo);
+        public DigitalPlatform.LibraryClient.localhost.LibraryServerResult ManageDatabase(out string strOutputInfo, string strAction, string strDatabaseName, string strDatabaseInfo, string strStyle) {
+            return base.Channel.ManageDatabase(out strOutputInfo, strAction, strDatabaseName, strDatabaseInfo, strStyle);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        public System.IAsyncResult BeginManageDatabase(string strAction, string strDatabaseName, string strDatabaseInfo, System.AsyncCallback callback, object asyncState) {
-            return base.Channel.BeginManageDatabase(strAction, strDatabaseName, strDatabaseInfo, callback, asyncState);
+        public System.IAsyncResult BeginManageDatabase(string strAction, string strDatabaseName, string strDatabaseInfo, string strStyle, System.AsyncCallback callback, object asyncState) {
+            return base.Channel.BeginManageDatabase(strAction, strDatabaseName, strDatabaseInfo, strStyle, callback, asyncState);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
@@ -23001,7 +23039,8 @@ namespace DigitalPlatform.LibraryClient.localhost {
             string strAction = ((string)(inValues[0]));
             string strDatabaseName = ((string)(inValues[1]));
             string strDatabaseInfo = ((string)(inValues[2]));
-            return this.BeginManageDatabase(strAction, strDatabaseName, strDatabaseInfo, callback, asyncState);
+            string strStyle = ((string)(inValues[3]));
+            return this.BeginManageDatabase(strAction, strDatabaseName, strDatabaseInfo, strStyle, callback, asyncState);
         }
         
         private object[] OnEndManageDatabase(System.IAsyncResult result) {
@@ -23019,11 +23058,11 @@ namespace DigitalPlatform.LibraryClient.localhost {
             }
         }
         
-        public void ManageDatabaseAsync(string strAction, string strDatabaseName, string strDatabaseInfo) {
-            this.ManageDatabaseAsync(strAction, strDatabaseName, strDatabaseInfo, null);
+        public void ManageDatabaseAsync(string strAction, string strDatabaseName, string strDatabaseInfo, string strStyle) {
+            this.ManageDatabaseAsync(strAction, strDatabaseName, strDatabaseInfo, strStyle, null);
         }
         
-        public void ManageDatabaseAsync(string strAction, string strDatabaseName, string strDatabaseInfo, object userState) {
+        public void ManageDatabaseAsync(string strAction, string strDatabaseName, string strDatabaseInfo, string strStyle, object userState) {
             if ((this.onBeginManageDatabaseDelegate == null)) {
                 this.onBeginManageDatabaseDelegate = new BeginOperationDelegate(this.OnBeginManageDatabase);
             }
@@ -23036,7 +23075,8 @@ namespace DigitalPlatform.LibraryClient.localhost {
             base.InvokeAsync(this.onBeginManageDatabaseDelegate, new object[] {
                         strAction,
                         strDatabaseName,
-                        strDatabaseInfo}, this.onEndManageDatabaseDelegate, this.onManageDatabaseCompletedDelegate, userState);
+                        strDatabaseInfo,
+                        strStyle}, this.onEndManageDatabaseDelegate, this.onManageDatabaseCompletedDelegate, userState);
         }
         
         public DigitalPlatform.LibraryClient.localhost.LibraryServerResult GetUser(out DigitalPlatform.LibraryClient.localhost.UserInfo[] contents, string strAction, string strName, int nStart, int nCount) {
