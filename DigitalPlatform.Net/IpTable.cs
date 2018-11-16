@@ -440,7 +440,7 @@ namespace DigitalPlatform.Net
         //      delta   从最后一次攻击的时间计算，多长以后清除攻击记忆
         public bool IsExpired(TimeSpan delta)
         {
-            if (this.AttackTime + this.LockLength + delta > DateTime.Now)
+            if (this.AttackTime + this.LockLength + delta < DateTime.Now)
                 return true;
             return false;
         }

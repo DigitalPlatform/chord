@@ -871,8 +871,9 @@ Exception Info: System.Net.NetworkInformation.PingException
                     ZServer?.TryClearBlackList();
                     SipServer?.TryClearBlackList();
 
-                    // 把紧凑日志写入日志文件
-                    ZServer?.TryFlushCompactLog();
+                    // 把紧凑日志写入日志文件。约十分钟写一次
+                    if ((_statisCount % 10) == 1)
+                        ZServer?.TryFlushCompactLog();
 
                     // 顺便清理一下 hangup 状态缓存
                     SipProcessor.ClearHangupStatusTable();
