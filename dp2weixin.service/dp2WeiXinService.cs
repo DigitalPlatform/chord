@@ -75,7 +75,7 @@ namespace dp2weixin.service
 
         #region 成员变量
         // 日志级别
-        public int LogLevel = 3;
+        public int LogLevel = 1;
 
         // 微信数据目录
         public string weiXinDataDir = "";
@@ -6002,6 +6002,7 @@ public string ErrorCode { get; set; }
                 string type = DomUtil.GetAttr(node, "type");
 
                 // 处理换行
+                value = value.Trim();
                 value = this.ConvertHtmlLine(value);
 
                 if (name == "_coverImage")
@@ -6025,9 +6026,8 @@ public string ErrorCode { get; set; }
                 }
 
                 // 处理数字资源
-                if (this.CheckContainWord(type, "object") == true)
+                if (this.CheckContainWord(type, "object") == true && string.IsNullOrEmpty(value)==false)
                 {
-
                     string resHtml = "<table>";
 
                     XmlDocument objectDom = new XmlDocument();
@@ -6038,13 +6038,14 @@ public string ErrorCode { get; set; }
                     catch (Exception ex)
                     {
                         strError = "加载table格式返回数字资源信息到dom出错:"+ex.Message;
+
+                        WriteErrorLog1(strError);
+                        WriteErrorLog1(value);
                         return -1;
                     }
                     XmlNodeList resLineList = objectDom.SelectNodes("table/line");
                     foreach (XmlNode resLineNode in resLineList)
                     {
-                        //if (resHtml != "")
-                        //    resHtml += "<br/>";
 
                         //<line type="" urlLabel="this is link txt" uri="1" mime="image/pjpeg" bytes="20121" />
                         string urlLabel = DomUtil.GetAttr(resLineNode, "urlLabel");
@@ -6052,15 +6053,6 @@ public string ErrorCode { get; set; }
                         string mime = DomUtil.GetAttr(resLineNode, "mime");
                         string bytes = DomUtil.GetAttr(resLineNode, "bytes");
 
-                        //int totalPage = 0;
-                        //string objectUri = "";
-                        //if (mime == @"application/pdf")
-                        //{
-                        //    objectUri = MakeObjectUrl(biblioPath, uri);
-                        //    string filename = "";
-                        //    totalPage = dp2WeiXinService.Instance.GetPDFCount(lib.id, objectUri, out filename, out strError);
-                        //    urlLabel = filename;
-                        //}
 
                         string objectHtml = GetObjectHtmlFragment(lib.id, biblioPath, uri, mime, urlLabel);
 
