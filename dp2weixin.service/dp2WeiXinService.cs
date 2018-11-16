@@ -5956,7 +5956,7 @@ public string ErrorCode { get; set; }
             int nRet = this.GetBiblioInfo(lib,
                 loginInfo,
                 biblioPath,
-               "table",
+               "table:*|object_template",
                 out dataList,
                 out strError);
             if (nRet == -1 || nRet == 0)

@@ -25,7 +25,7 @@ namespace dp2weixin.service
         public const string M_Lib_WebTotalCount = "%WebTotalCount%";
         public const string M_Lib_BindTotalCount = "%BindTotalCount%";
 
-        public const string C_RequestCapoVersion = "1.26";
+        public const string C_RequestCapoVersion = "1.32";
         public const string C_State_Hangup = "hang-up";
 
         /// <summary>
