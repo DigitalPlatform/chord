@@ -1,15 +1,16 @@
-﻿using DigitalPlatform.Net;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json;
+
 using static DigitalPlatform.Z3950.ZChannel;
 using static DigitalPlatform.Z3950.ZClient;
+using DigitalPlatform.Common;
+using DigitalPlatform.Net;
 
 namespace DigitalPlatform.Z3950.Server
 {
@@ -64,11 +65,30 @@ namespace DigitalPlatform.Z3950.Server
 
             // 分析请求包
             BerTree tree1 = new BerTree();
-            tree1.m_RootNode.BuildPartTree(result.Package,
-                0,
-                result.Package.Length,
-                out int nTotallen);
+            bool bRet1 = false;
+            try
+            {
+                bRet1 = tree1.m_RootNode.BuildPartTree(result.Package,
+                    0,
+                    result.Package.Length,
+                    out int nTotallen);
+            }
+            catch (Exception ex)
+            {
+                // 这里需要捕获异常，然后把 Package Dump 到日志文件(base64 形态)，便于事后分析调试
+                // 最好把前端类型也记载下来，便于跟踪分析
+                string name = string.Format("ip={0},hashtable={1}", TcpServer.GetClientIP(client), client.GetHashCode());
+                LibraryManager.Log?.Error(name + " 请求包结构解析时出现异常。包内容 [" + Convert.ToBase64String(result.Package) + "]，异常信息: " + ExceptionUtil.GetDebugText(ex));
+                return null;
+            }
 
+            if (bRet1 == false)
+            {
+                // 报错：包结构有错误
+                string name = string.Format("ip={0},hashtable={1}", TcpServer.GetClientIP(client), client.GetHashCode());
+                // LibraryManager.Log?.Error(name + " 请求包结构解析错误。包内容 [" + Convert.ToBase64String(result.Package) + "]");
+                throw new BadApduException(name + " 请求包结构解析错误。包内容 [" + Convert.ToBase64String(result.Package) + "]");
+            }
             return tree1;
         }
 

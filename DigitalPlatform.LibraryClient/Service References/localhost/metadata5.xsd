@@ -443,6 +443,7 @@
   <xs:element name="GetPinyin">
     <xs:complexType>
       <xs:sequence>
+        <xs:element minOccurs="0" name="strType" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="strText" nillable="true" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
@@ -1010,6 +1011,7 @@
       <xs:element minOccurs="0" name="BorrowCount" type="xs:long" />
       <xs:element minOccurs="0" name="BorrowOperator" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="DenyPeriod" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ItemBarcode" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="LatestReturnTime" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="Period" nillable="true" type="xs:string" />
     </xs:sequence>
@@ -1049,6 +1051,7 @@
       <xs:element minOccurs="0" name="BorrowCount" type="xs:long" />
       <xs:element minOccurs="0" name="BorrowOperator" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="BorrowTime" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ItemBarcode" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="LatestReturnTime" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="Location" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="OverdueString" nillable="true" type="xs:string" />
@@ -1559,6 +1562,7 @@
         <xs:element minOccurs="0" name="strAction" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="strDatabaseName" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="strDatabaseInfo" nillable="true" type="xs:string" />
+        <xs:element minOccurs="0" name="strStyle" nillable="true" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

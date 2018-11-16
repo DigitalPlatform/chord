@@ -324,11 +324,19 @@ ex.GetType().ToString());
         // 如果 subjects 仅有一个元素而且为 ""，则规范为 subjects 为空
         MessageItem CanonicalizeMessageItemSubjects(MessageItem item)
         {
+#if ARRAY
             if (item.subjects != null && item.subjects.Length == 1
                 && string.IsNullOrEmpty(item.subjects[0]))
             {
                 item.subjects = null;
             }
+#else
+            if (item.subjects != null && item.subjects.Count == 1
+                && string.IsNullOrEmpty(item.subjects[0]))
+            {
+                item.subjects = null;
+            }
+#endif
 
             return item;
         }
@@ -382,6 +390,7 @@ ex.GetType().ToString());
             return true;
         }
 
+#if ARRAY
         // 正规化 MessageItem 里面的 groups 成员内容
         void CanonicalizeMessageItemGroups(MessageItem item, ConnectionInfo connection_info)
         {
@@ -408,7 +417,34 @@ ex.GetType().ToString());
                 return name;
             });
         }
-
+#else
+        // 正规化 MessageItem 里面的 groups 成员内容
+        void CanonicalizeMessageItemGroups(MessageItem item, ConnectionInfo connection_info)
+        {
+            // 正规化组名
+            item.groups = GroupSegment.Canonicalize(item.groups, (name) =>
+            {
+                if (name.Type == "un" && name.Text == connection_info.UserName)
+                    return new GroupName("ui", connection_info.UserID);
+                // 需要进行检索
+                if (name.Type == "un")
+                {
+                    List<UserItem> users = ServerInfo.UserDatabase.GetUsersByName(name.Text, 0, 1).Result;
+                    if (users == null || users.Count == 0)
+                        throw new Exception("未知的用户名 '" + name.Text + "'");
+                    return new GroupName("ui", users[0].id);
+                }
+                if (name.Type == "gn")
+                {
+                    List<GroupItem> groups = ServerInfo.GroupDatabase.GetGroupsByName(name.Text, 0, 1).Result;
+                    if (groups == null || groups.Count == 0)
+                        throw new Exception("未知的组名 '" + name.Text + "'");
+                    return new GroupName("gi", groups[0].id);
+                }
+                return name;
+            });
+        }
+#endif
         // 返回 MessageRecord 数组，因为有些字段是服务器给设定的，例如 PublishTime, ID
         // 但如果让前端知道哪条是哪条呢？方法是返回的数组和请求的数组大小顺序一样
         // 前端得到这些内容的好处是，可以自己在本地刷新显示，不必等服务器发过来通知
@@ -491,8 +527,14 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             }
                             else
                             {
+#if ARRAY
                                 if (item.groups.Length == 1 &&  // 多个 id 联合的情况暂时不检查
                                     GroupDefinition.IncludeGroup(connection_info.Groups, item.groups) == false)
+#else
+                                if (item.groups.Count == 1 &&  // 多个 id 联合的情况暂时不检查
+                                    GroupDefinition.IncludeGroup(connection_info.Groups, item.groups?.ToArray()) == false)
+
+#endif
                                 {
                                     result.String = "Denied";
                                     result.Value = -1;
@@ -578,7 +620,11 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
 
                         if (bSupervisor == false)
                         {
+#if ARRAY
                             string strParameters = GroupDefinition.FindGroupDefinition(connection_info.Groups, exist.groups);
+#else
+                            string strParameters = GroupDefinition.FindGroupDefinition(connection_info.Groups, exist.groups?.ToArray());
+#endif
                             if (string.IsNullOrEmpty(strParameters) == false
     && StringUtil.ContainsRight(strParameters, "ca") == 1)
                             {
@@ -598,8 +644,13 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                                 }
                                 else
                                 {
+#if ARRAY
                                     if (exist.groups.Length == 1 &&  // 多个 id 联合的情况暂时不检查
                                         GroupDefinition.IncludeGroup(connection_info.Groups, exist.groups) == false)
+#else
+                                    if (exist.groups.Count == 1 &&  // 多个 id 联合的情况暂时不检查
+    GroupDefinition.IncludeGroup(connection_info.Groups, exist.groups?.ToArray()) == false)
+#endif
                                     {
                                         result.String = "Denied";
                                         result.Value = -1;
@@ -668,7 +719,11 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         bool bDeleteAllRights = false;
                         if (bSupervisor == false)
                         {
+#if ARRAY
                             string strParameters = GroupDefinition.FindGroupDefinition(connection_info.Groups, exist.groups);
+#else
+                            string strParameters = GroupDefinition.FindGroupDefinition(connection_info.Groups, exist.groups?.ToArray());
+#endif
                             if (string.IsNullOrEmpty(strParameters) == false
     && StringUtil.ContainsRight(strParameters, "da") == 1)
                             {
@@ -689,8 +744,13 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                                 }
                                 else
                                 {
+#if ARRAY
                                     if (exist.groups.Length == 1 &&  // 多个 id 联合的情况暂时不检查
                                         GroupDefinition.IncludeGroup(connection_info.Groups, exist.groups) == false)
+#else
+                                    if (exist.groups.Count == 1 &&  // 多个 id 联合的情况暂时不检查
+    GroupDefinition.IncludeGroup(connection_info.Groups, exist.groups?.ToArray()) == false)
+#endif
                                     {
                                         result.String = "Denied";
                                         result.Value = -1;
@@ -796,9 +856,19 @@ ex.GetType().ToString());
                     groupName = "<default>";    // 需要在各个环节正规化组的名字
 #endif
                     // 二人或者三人小组，没有必要采用 SignalR 的 group 机制，而用 connection id 一个一个发送
-                    if (item.groups.Length > 1)
+                    if (item.groups.
+#if ARRAY
+                        Length
+#else
+                        Count
+#endif
+                        > 1)
                     {
+#if ARRAY
                         List<string> ids = ServerInfo.ConnectionTable.GetConnectionIds(item.groups);
+#else
+                        List<string> ids = ServerInfo.ConnectionTable.GetConnectionIds(item.groups?.ToArray());
+#endif
                         if (ids.Count > 0)
                         {
                             List<MessageRecord> records = BuildMessageRecords(item);
@@ -899,33 +969,54 @@ ex.GetType().ToString());
         {
             MessageItem item = new MessageItem();
             item.SetID(record.id);
+#if ARRAY
             item.groups = record.groups;
+#else
+            item.groups = NewListString(record.groups);
+#endif
             item.creator = record.creator;
             item.userName = record.userName;
             item.data = record.data;
             item.format = record.format;
             item.type = record.type;
             item.thread = record.thread;
+#if ARRAY
             item.subjects = record.subjects;
-
+#else
+            item.subjects = NewListString(record.subjects);
+#endif
             item.publishTime = record.publishTime;
             item.expireTime = record.expireTime;
             return item;
+        }
+
+        static List<string> NewListString(string [] contents)
+        {
+            if (contents == null)
+                return new List<string>();
+            return new List<string>(contents);
         }
 
         static MessageRecord BuildMessageRecord(MessageItem item)
         {
             MessageRecord record = new MessageRecord();
             record.id = item.id;
+#if ARRAY
             record.groups = item.groups;
+#else
+            record.groups = item.groups?.ToArray();
+#endif
             record.creator = item.creator;
             record.userName = item.userName;
             record.data = item.data;
             record.format = item.format;
             record.type = item.type;
             record.thread = item.thread;
+#if ARRAY
             record.subjects = item.subjects;
-
+#else
+            record.subjects = item.subjects?.ToArray();
+#endif
             record.publishTime = item.publishTime;
             record.expireTime = item.expireTime;
             return record;
@@ -948,14 +1039,21 @@ ex.GetType().ToString());
                 {
                     // 表示最后一个 chunk
                     record.id = item.id;
+#if ARRAY
                     record.groups = item.groups;
+#else
+                    record.groups = item.groups?.ToArray();
+#endif
                     record.creator = item.creator;
                     record.userName = item.userName;
                     record.format = item.format;
                     record.type = item.type;
                     record.thread = item.thread;
+#if ARRAY
                     record.subjects = item.subjects;
-
+#else
+                    record.subjects = item.subjects?.ToArray();
+#endif
                     record.publishTime = item.publishTime;
                     record.expireTime = item.expireTime;
                 }
@@ -1013,9 +1111,9 @@ ex.GetType().ToString());
             return results;
         }
 
-        #endregion
+#endregion
 
-        #region GetMessage() API
+#region GetMessage() API
 
         // 把用户名列表字符串转换为用户ID列表字符串
         string CanonicalizeUserName(string userNameList)
@@ -1638,10 +1736,10 @@ ex.GetType().ToString());
         }
 #endif
 
-        #endregion
+#endregion
 
 
-        #region GetUsers() API
+#region GetUsers() API
 
         public GetUserResult GetUsers(string userName, int start, int count)
         {
@@ -1708,9 +1806,9 @@ ex.GetType().ToString());
             }
         }
 
-        #endregion
+#endregion
 
-        #region SetUsers() API
+#region SetUsers() API
 
         // 正规化 UserItem 里面的 groups 定义
         // groups 的每一个元素，都是一个完整的群名定义
@@ -2037,9 +2135,9 @@ ex.GetType().ToString());
             info.UserItem.groups = item.groups;
         }
 
-        #endregion
+#endregion
 
-        #region Login() API
+#region Login() API
 
         // 登录，并告知 server 关于自己的一些属性。如果不登录，则 server 会按照缺省的方式设置这些属性，例如无法实现检索响应功能
         // parameters:
@@ -2119,9 +2217,9 @@ ex.GetType().ToString());
             return result;
         }
 
-        #endregion
+#endregion
 
-        #region Logout() API
+#region Logout() API
 
         // 错误码:
         //      异常
@@ -2178,7 +2276,7 @@ ex.GetType().ToString());
             return result;
         }
 
-        #endregion
+#endregion
 
 #if NO
         // parameters:
@@ -2273,7 +2371,7 @@ ex.GetType().ToString());
         }
 #endif
 
-        #region GetConnectionInfo() API
+#region GetConnectionInfo() API
 
         MessageResult ClearConnection(string connection_id)
         {
@@ -2587,9 +2685,9 @@ ex.GetType().ToString());
             return result;
         }
 #endif
-        #endregion
+#endregion
 
-        #region CancelSearch() API
+#region CancelSearch() API
         // 错误码:
         //      _notFound/异常
         public MessageResult CancelSearch(string taskID)
@@ -2625,9 +2723,9 @@ ex.GetType().ToString());
             return result;
         }
 
-        #endregion
+#endregion
 
-        #region WebCall() API
+#region WebCall() API
 
         public MessageResult RequestWebCall(
     string userNameList,
@@ -2844,9 +2942,9 @@ ex.GetType().ToString());
 #endif
         }
 
-        #endregion
+#endregion
 
-        #region Search() API
+#region Search() API
 
         void writeDebug(string strText)
         {
@@ -3184,9 +3282,9 @@ ex.GetType().ToString());
 #endif
         }
 
-        #endregion
+#endregion
 
-        #region SetInfo() API
+#region SetInfo() API
 
         // return:
         //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
@@ -3344,9 +3442,9 @@ ex.GetType().ToString());
             return result;
         }
 
-        #endregion
+#endregion
 
-        #region BindPatron() API
+#region BindPatron() API
 
         // return:
         //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
@@ -3479,9 +3577,9 @@ ex.GetType().ToString());
             return result;
         }
 
-        #endregion
+#endregion
 
-        #region Circulation() API
+#region Circulation() API
 
         // return:
         //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
@@ -3622,9 +3720,9 @@ ex.GetType().ToString());
             return result;
         }
 
-        #endregion
+#endregion
 
-        #region GetRes() API
+#region GetRes() API
 
         public MessageResult RequestGetRes(
             string userNameList,
@@ -3811,9 +3909,9 @@ ex.GetType().ToString());
         }
 
 
-        #endregion
+#endregion
 
-        #region ListRes() API
+#region ListRes() API
 
         public MessageResult RequestListRes(
             string userNameList,
@@ -3997,9 +4095,9 @@ ex.GetType().ToString());
         }
 
 
-        #endregion
+#endregion
 
-        #region 几个事件
+#region 几个事件
 
         public static string[] default_groups = new string[] {
             "gn:<default>",
@@ -4191,7 +4289,7 @@ ex.GetType().ToString());
             return base.OnDisconnected(stopCalled);
         }
 
-        #endregion
+#endregion
 
     }
 
