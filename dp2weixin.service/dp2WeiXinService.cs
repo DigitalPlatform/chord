@@ -6026,67 +6026,74 @@ public string ErrorCode { get; set; }
                 }
 
                 // 处理数字资源
-                if (this.CheckContainWord(type, "object") == true && string.IsNullOrEmpty(value)==false)
+                if (this.CheckContainWord(type, "object") == true)
                 {
-                    string resHtml = "<table>";
-
-                    XmlDocument objectDom = new XmlDocument();
-                    try
-                    {
-                        objectDom.LoadXml(value);
-                    }
-                    catch (Exception ex)
-                    {
-                        strError = "加载table格式返回数字资源信息到dom出错:"+ex.Message;
-
-                        WriteErrorLog1(strError);
-                        WriteErrorLog1(value);
-                        return -1;
-                    }
-                    XmlNodeList resLineList = objectDom.SelectNodes("table/line");
-                    foreach (XmlNode resLineNode in resLineList)
+                    string tableXml = node.InnerXml;
+                    if (string.IsNullOrEmpty(tableXml) == false)
                     {
 
-                        //<line type="" urlLabel="this is link txt" uri="1" mime="image/pjpeg" bytes="20121" />
-                        string urlLabel = DomUtil.GetAttr(resLineNode, "urlLabel");
-                        string uri = DomUtil.GetAttr(resLineNode, "uri");
-                        string mime = DomUtil.GetAttr(resLineNode, "mime");
-                        string bytes = DomUtil.GetAttr(resLineNode, "bytes");
+                        string resHtml = "<table>";
 
-
-                        string objectHtml = GetObjectHtmlFragment(lib.id, biblioPath, uri, mime, urlLabel);
-
-                        resHtml += "<tr><td style='padding-bottom:5px'>" + objectHtml;
-
-                        if (mime != "")
-                            resHtml += "<br/><span style='color:gray'>媒体类型：</span>" + mime;
-
-                        if (bytes != "")
-                            resHtml += "<br/><span style='color:gray'>字节数：</span>" + bytes;
-
-                        if (mime == @"application/pdf")
+                        XmlDocument objectDom = new XmlDocument();
+                        try
                         {
-                            string objectUri = MakeObjectUrl(biblioPath, uri);
-                            string strPdfUri = objectUri + "/page:1,format:jpeg,dpi:50";
-                            string imgSrc = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(lib.id)
-                                                 + "&objectPath=" + HttpUtility.UrlEncode(strPdfUri);
+                            objectDom.LoadXml(tableXml);
+                        }
+                        catch (Exception ex)
+                        {
+                            strError = "加载table格式返回数字资源信息到dom出错:" + ex.Message;
+
+                            WriteErrorLog1(strError);
+                            WriteErrorLog1(value);
+                            return -1;
+                        }
+                        XmlNodeList resLineList = objectDom.SelectNodes("table/line");
+                        foreach (XmlNode resLineNode in resLineList)
+                        {
+
+                            //<line type="" urlLabel="this is link txt" uri="1" mime="image/pjpeg" bytes="20121" />
+                            string urlLabel = DomUtil.GetAttr(resLineNode, "urlLabel");
+                            string uri = DomUtil.GetAttr(resLineNode, "uri");
+                            string mime = DomUtil.GetAttr(resLineNode, "mime");
+                            string bytes = DomUtil.GetAttr(resLineNode, "bytes");
 
 
-                            string onClickStr = " onclick='gotoUrl(\"/Biblio/ViewPDF?libid=" + lib.id + "&uri=" + objectUri + "\")' ";
-                            string pdfImgHtml = "<img src='" + imgSrc + "'  style='max-width:200px;padding:5px;background-color:#eeeeee' " + onClickStr + " onload='setImgSize(this)' ></img>";
+                            string objectHtml = GetObjectHtmlFragment(lib.id, biblioPath, uri, mime, urlLabel);
 
-                            resHtml += "<br/>" + pdfImgHtml;//"<div style='padding:5px;background-color:#eeeeee'>" + pdfImgHtml + "</div>";
+                            resHtml += "<tr><td style='padding-bottom:5px'>" + objectHtml;
+
+                            if (mime != "")
+                                resHtml += "<br/><span style='color:gray'>媒体类型：</span>" + mime;
+
+                            if (bytes != "")
+                                resHtml += "<br/><span style='color:gray'>字节数：</span>" + bytes;
+
+                            if (mime == @"application/pdf")
+                            {
+                                string objectUri = MakeObjectUrl(biblioPath, uri);
+                                string strPdfUri = objectUri + "/page:1,format:jpeg,dpi:50";
+                                string imgSrc = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(lib.id)
+                                                     + "&objectPath=" + HttpUtility.UrlEncode(strPdfUri);
+
+
+                                string onClickStr = " onclick='gotoUrl(\"/Biblio/ViewPDF?libid=" + lib.id + "&uri=" + objectUri + "\")' ";
+                                string pdfImgHtml = "<img src='" + imgSrc + "'  style='max-width:200px;padding:5px;background-color:#eeeeee' " + onClickStr + " onload='setImgSize(this)' ></img>";
+
+                                resHtml += "<br/>" + pdfImgHtml;//"<div style='padding:5px;background-color:#eeeeee'>" + pdfImgHtml + "</div>";
+                            }
+
+                            resHtml += "</td></tr>";
+
                         }
 
-                        resHtml += "</td></tr>";
+                        resHtml += "</table>";
 
+
+                        table += "<tr>"
+                           + "<td class='name'>" + name + "</td>"
+                           + "<td class='value' style='word-wrap:break-word;word-break:break-all;white-space:pre-wrap'>" + resHtml + "</td>"
+                           + "</tr>";
                     }
-                    resHtml += "</table>";
-
-                    table += "<tr>"
-                       + "<td class='name'>" + name + "</td>"
-                       + "<td class='value' style='word-wrap:break-word;word-break:break-all;white-space:pre-wrap'>" + resHtml + "</td>"
-                       + "</tr>";
 
                     continue;
                 }

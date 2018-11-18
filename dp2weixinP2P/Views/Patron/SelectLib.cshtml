@@ -1,4 +1,9 @@
-﻿@section Scripts {
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Scripts {
     <script>
 
         // 获取全部选中的馆藏地
@@ -8,13 +13,13 @@
             $(".library:checked").each(function () {
 
                 var libcode = $(this).val();
-                xml += "<library code='"+libcode+"'>";
+                xml += "<library code='" + libcode + "'>";
 
-                var name = "#ckblib-"+libcode+":checked";
+                var name = "#ckblib-" + libcode + ":checked";
                 $(name).each(function () {
 
                     var loc = $(this).val();
-                    xml+= "<item>"+loc+"</item>";
+                    xml += "<item>" + loc + "</item>";
 
                 });
 
@@ -23,7 +28,7 @@
             });
 
             if (xml != "")
-                xml = "<root>"+xml+"</root>";
+                xml = "<root>" + xml + "</root>";
 
             return xml
         }
@@ -56,8 +61,7 @@
             }
 
             var lib = $("input[name='rdLib']:checked").val();//getLib();
-            if (lib == null || lib == "")
-            {
+            if (lib == null || lib == "") {
                 alert("lib未设置");
                 return;
 
@@ -76,7 +80,7 @@
                 function (result) {
 
                     //alert("1");
-                    
+
                     // 关闭等待层
                     //layer.close(index);
                     hideMaskLayer();
@@ -98,7 +102,7 @@
                         // 重新加载页面
                         window.location.reload();
                     }
-   
+
 
                 },
                 function (xhq, textStatus, errorThrown) {
@@ -111,7 +115,7 @@
 
             //var url = "/Patron/Setting";
             //gotoUrl(url);
-                
+
         }
 
 
@@ -146,7 +150,7 @@ else
                 {
                     continue;
                 }
-                
+
                 <div style="padding-left:10px">
                     <label>@area.name &nbsp;<span style="color:#cccccc;font-size:18pt" onclick="expand(this,'area-@area.name')">-</span></label>
                     <div style="padding-left:10px" id="area-@area.name">
@@ -164,14 +168,14 @@ else
             }
 
         }
-        
+
 
 
     </div>
 
-            <!--
-            <div class="mui-content-padded">
-                <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>
-            </div>
-                -->
+    <!--
+    <div class="mui-content-padded">
+        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>
+    </div>
+        -->
 }
