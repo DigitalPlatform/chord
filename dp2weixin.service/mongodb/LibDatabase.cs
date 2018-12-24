@@ -199,6 +199,7 @@ namespace dp2weixin.service
                 .Set("searchDbs", item.searchDbs)
                 .Set("match", item.match)
                 .Set("state", item.state)
+                .Set("biblioFilter", item.biblioFilter)//
                 ;
 
             UpdateResult ret = this.LibCollection.UpdateOneAsync(filter, update).Result;
@@ -251,6 +252,10 @@ namespace dp2weixin.service
         public int no = 0;
 
         public string state { get; set; } //到期等 
+
+        // 对应opac.xml里的databaseFilter/@biblioFilter
+        public string biblioFilter { get; set; } // 检索书目库时候，额外添加的限制结果集。缺省值为空，表示不进行限制。
+
 
     }
 }

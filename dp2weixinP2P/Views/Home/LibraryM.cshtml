@@ -62,7 +62,8 @@
                 comment: ko.observable(""),
                 noShareBiblio: ko.observable(0),
                 //verifyBarcode:ko.observable(0),
-                searchDbs: ko.observable("")
+                searchDbs: ko.observable(""),
+                biblioFilter: ko.observable("")
             },
             displaySummary: ko.observable(true)
 
@@ -361,8 +362,12 @@
             }
 
             var state = $("#selState").val();
-            //alert(state);
 
+
+            // 参于检索的数据库
+            var biblioFilter = "";
+            if (model.editor.biblioFilter() != null)
+                biblioFilter = model.editor.biblioFilter().trim();
 
             //alert("id-[" + model.editor.id() + "]-2");
 
@@ -426,7 +431,8 @@
                     //verifyBarcode:getVerifyBarcode(),
                     searchDbs: searchDbs,
                     match: match,
-                    state: state
+                    state: state,
+                    biblioFilter: biblioFilter
                 }
             );
         }
@@ -450,6 +456,8 @@
 
             $("#selMatch").val("left");
             $("#selState").val("");
+
+            model.editor.biblioFilter("");
         }
 
         // 点击新增图书馆按钮
@@ -505,6 +513,8 @@
             if (state == null)
                 state = "";
             $("#selState").val(state);
+
+            model.editor.biblioFilter(item.biblioFilter);
         }
 
 
@@ -584,11 +594,11 @@
                     <td class="value" data-bind="text:id"></td>
                 </tr>
                 <!--
-                 <tr>
-                     <td class="label">图书馆代码</td>
-                     <td class="value" data-bind="text:libCode"></td>
-                 </tr>
-                     -->
+     <tr>
+         <td class="label">图书馆代码</td>
+         <td class="value" data-bind="text:libCode"></td>
+     </tr>
+         -->
                 <tr>
                     <td class="label">图书馆名称</td>
                     <td class="value" data-bind="text:libName"></td>
@@ -637,16 +647,20 @@
                     <td class="label">状态</td>
                     <td class="value" data-bind="text:state"></td>
                 </tr>
-                <!--
                 <tr>
-                    <td class="label">借还时校验条码号</td>
-                    <td class="value" data-bind="text:verifyBarcode"></td>
-                </tr>  
-                -->    
+                    <td class="label">限制的书目结果集</td>
+                    <td class="value" data-bind="text:biblioFilter"></td>
+                </tr>
+                <!--
+    <tr>
+        <td class="label">借还时校验条码号</td>
+        <td class="value" data-bind="text:verifyBarcode"></td>
+    </tr>
+    -->
                 <tr>
                     <td class="label">操作时间</td>
                     <td class="value" data-bind="text:OperTime"></td>
-                </tr>          
+                </tr>
                 <tr>
                     <td>&nbsp;</td>
                     <td>
@@ -744,11 +758,11 @@
             <input id='ckbNoShareBiblio' type='checkbox' data-bind="checked:model.editor.noShareBiblio" />
         </div>
         <!--
-        <div class='mui-input-row mui-checkbox mui-left'>
-            <label>借还时校验条码号</label>
-            <input id='ckbVerifyBarcode' type='checkbox' data-bind="checked:model.editor.verifyBarcode" />
-        </div>
-        -->
+    <div class='mui-input-row mui-checkbox mui-left'>
+        <label>借还时校验条码号</label>
+        <input id='ckbVerifyBarcode' type='checkbox' data-bind="checked:model.editor.verifyBarcode" />
+    </div>
+    -->
         <div class="mui-input-row">
             <label class="leftLabel">备注</label>
             <textarea rows="5" data-bind="value:model.editor.comment" placeholder="请输入  备注"></textarea>
@@ -760,6 +774,16 @@
                 <option value="" selected></option>
                 <option value="到期" selected>到期</option>
             </select>
+        </div>
+
+        <div class="mui-input-row">
+            <label class="leftLabel">限制的书目结果集</label>
+            <textarea rows="1" data-bind="value:model.editor.biblioFilter" placeholder="请输入限制的书目结果集"></textarea>
+        </div>
+
+        <div class="mui-input-row ">
+            <label class="leftLabel">id</label>
+            <input type="text" class="mui-input" readonly data-bind="value:model.editor.id">
         </div>
 
     </div>

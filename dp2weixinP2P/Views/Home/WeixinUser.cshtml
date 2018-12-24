@@ -198,6 +198,30 @@
             });
         }
 
+
+        function updateUser(item) {
+
+            var url = "/api/wxuser?userId=" + item.id
+                + "&infoType=libName";
+
+            sendAjaxRequest(url, "POST", function (result) {
+                //getAllLib();
+
+                if (result.errorCode == -1) {
+                    alert("出错：" + result.errorInfo);
+                    return;
+                }
+
+                alert("成功。");
+
+
+            }, function (xhq, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+        }
+
+
+
         // 恢复用户
         function recoveUser()
         {
@@ -343,6 +367,10 @@
                             <td class="value" data-bind="text:libId"></td>
                         </tr>
                         <tr>
+                            <td class="label">图书馆名称</td>
+                            <td class="value" data-bind="text:libName"></td>
+                        </tr>
+                        <tr>
                             <td class="label">姓名/账户</td>
                             <td class="value">
                                 <span data-bind="text:readerName"></span>
@@ -386,6 +414,7 @@
                             <td>&nbsp;</td>
                             <td>
                                 <button class="mui-btn mui-btn-danger" data-bind="click: removeUser">X&nbsp;删除</button>
+                                <button class="mui-btn mui-btn-danger" data-bind="click: updateUser">&nbsp;刷新馆名</button>
                             </td>
                         </tr>
                     </table>
