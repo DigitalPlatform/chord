@@ -314,6 +314,32 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+
+        // 更新用户信息
+        [HttpPost]
+        public ApiResult UpdateUserInfo(string userId, string infoType)
+        {
+
+            ApiResult result = new ApiResult();
+            string error = "";
+
+            if (infoType == "libName")
+            {
+                WxUserItem user = WxUserDatabase.Current.GetById(userId);
+
+                LibEntity lib = LibDatabase.Current.GetLibById1(user.libId);
+                user.libName = lib.libName;
+                user.libraryCode = "";
+                user.bindLibraryCode = "";
+
+                WxUserDatabase.Current.Update(user);
+            }
+
+            return result;
+
+
+        }
+
         /// <summary>
         /// 设置
         /// </summary>

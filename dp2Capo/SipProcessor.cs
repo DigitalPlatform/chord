@@ -1061,6 +1061,9 @@ namespace dp2Capo
 
                         response.AQ_PermanentLocation_o = DomUtil.GetElementText(dom.DocumentElement, "location");
 
+                        // 2018/12/25 根据设备厂家的建议，用CH字段存放索取号
+                        response.CH_ItemProperties_o = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
+
                         string strBorrowDate = DomUtil.GetElementText(dom.DocumentElement, "borrowDate");
                         if (!String.IsNullOrEmpty(strBorrowDate))
                         {
@@ -1718,6 +1721,30 @@ namespace dp2Capo
                         string strItemBarcode = DomUtil.GetAttr(node, "barcode");
                         if (string.IsNullOrEmpty(strItemBarcode))
                             continue;
+
+                        
+                        // 2018/12/25 ryh 如果是@refID:开头，尝试获取对应的索取号
+                        if (strItemBarcode.IndexOf("@refID:") != -1)
+                        {
+                            string strItemXml = "";
+                            string strBiblio = "";
+                            lRet = info.LibraryChannel.GetItemInfo(
+                               strItemBarcode,
+                               "xml",
+                               out strItemXml,
+                               "xml",
+                               out strBiblio,
+                               out strError);
+                            if (1 == lRet)
+                            {
+                                XmlDocument itemDom = new XmlDocument();
+                                itemDom.LoadXml(strItemXml);
+
+                                string registerNo = DomUtil.GetElementText(itemDom.DocumentElement, "registerNo");
+                                strItemBarcode = registerNo;
+                            }
+                        }
+
 
                         chargedItems.Add(new VariableLengthField(SIPConst.F_AU_ChargedItems, false, strItemBarcode));
 

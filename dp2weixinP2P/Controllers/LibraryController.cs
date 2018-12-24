@@ -762,7 +762,8 @@ namespace dp2weixinWeb.Controllers
             if (lib.Entity.noShareBiblio == 1)
             {
                 List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.Entity.id, -1);
-                if (users.Count == 0)
+                if (users.Count == 0
+                    ||( users.Count==1 && users[0].userName=="public"))
                 {
                     ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", lib.Entity.libName);
                     return View();
@@ -859,7 +860,8 @@ namespace dp2weixinWeb.Controllers
             if (lib.Entity.noShareBiblio == 1)
             {
                 List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.Entity.id, -1);
-                if (users.Count == 0)
+                if (users.Count == 0
+                 || (users.Count == 1 && users[0].userName == "public"))
                 {
                     ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", lib.Entity.libName);
                     return View();
@@ -969,7 +971,8 @@ namespace dp2weixinWeb.Controllers
             if (lib.noShareBiblio == 1)
             {
                 List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.id, -1);
-                if (users.Count == 0)
+                if (users.Count == 0
+                 || (users.Count == 1 && users[0].userName == "public"))
                 {
                     ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", lib.libName);
                     return View();

@@ -5084,7 +5084,6 @@ public string ErrorCode { get; set; }
             // 检查该图书馆的配置是否支持检索
             if (lib.noShareBiblio == 1)
             {
-
                 // 测试加的日志
                 //this.WriteErrorLog1("走进SearchBiblioInternal-3");
 
@@ -5098,6 +5097,11 @@ public string ErrorCode { get; set; }
                     return -1;
                 }
             }
+
+            string biblioFilter = lib.biblioFilter;
+            if (biblioFilter == null)
+                biblioFilter = "";
+
 
             // 测试加的日志
             //this.WriteErrorLog1("走进SearchBiblioInternal-4");
@@ -5127,6 +5131,17 @@ public string ErrorCode { get; set; }
                 // 构造LoginInfo
                 //LoginInfo loginInfo = this.NewLoginInfo(userName, isPatron); //new LoginInfo("", false);
 
+
+                string filter = "";
+                if (string.IsNullOrEmpty(libraryCode) == false)
+                {
+                    filter = libraryCode;
+                }
+                else if (string.IsNullOrEmpty(biblioFilter) == false)
+                {
+                    filter = biblioFilter;
+                }
+
                 CancellationToken cancel_token = new CancellationToken();
                 string id = Guid.NewGuid().ToString();
                 SearchRequest request = new SearchRequest(id,
@@ -5138,7 +5153,7 @@ public string ErrorCode { get; set; }
                     match,
                     resultSet,
                     "id,cols",
-                    libraryCode,//filter 20170509
+                    filter,//libraryCode,//filter 20170509
                     WeiXinConst.C_Search_MaxCount,  //最大数量
                     start,  //每次获取范围
                     count);
