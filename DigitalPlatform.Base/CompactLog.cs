@@ -53,9 +53,10 @@ namespace DigitalPlatform.Common
         }
 
         // 把累积的条目一次性写入日志文件
-        public void WriteToLog(delegate_writeLog func_writeLog)
+        public int WriteToLog(delegate_writeLog func_writeLog)
         {
-            List<string> keys = new List<string>();
+            int count = 0;
+            // List<string> keys = new List<string>();
             _lock.EnterReadLock();
             try
             {
@@ -64,7 +65,7 @@ namespace DigitalPlatform.Common
                     CompactEntry entry = _table[key];
                     lock (entry)
                     {
-                        entry.WriteToLog(func_writeLog);
+                        count += entry.WriteToLog(func_writeLog);
                     }
                 }
             }
@@ -73,6 +74,7 @@ namespace DigitalPlatform.Common
                 _lock.ExitReadLock();
             }
 
+#if NO
             _lock.EnterWriteLock();
             try
             {
@@ -85,6 +87,9 @@ namespace DigitalPlatform.Common
             {
                 _lock.ExitWriteLock();
             }
+#endif
+
+            return count;
         }
     }
 
@@ -115,11 +120,11 @@ namespace DigitalPlatform.Common
             TotalCount++;
         }
 
-        public void WriteToLog(delegate_writeLog func_writeLog,
+        public int WriteToLog(delegate_writeLog func_writeLog,
             string style = "display")
         {
             if (this.Datas.Count == 0)
-                return;
+                return 0;
 
             if (style == "display")
             {
@@ -154,8 +159,10 @@ namespace DigitalPlatform.Common
                     text.Append("... (余下 " + (this.TotalCount - i) + " 项被略去)");
                 func_writeLog(text.ToString());
             }
+            int count = this.Datas.Count;
             this.Datas.Clear(); // 写入日志后，清除内存
             this.TotalCount = 0;
+            return count;
         }
     }
 
