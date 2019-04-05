@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Collections;
 
 using DigitalPlatform;
+using DigitalPlatform.Core;
 
 namespace DigitalPlatform.MessageServer
 {

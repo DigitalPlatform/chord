@@ -13,6 +13,7 @@ using System.Reflection;
 using MongoDB.Driver;
 
 using DigitalPlatform.IO;
+using DigitalPlatform.Core;
 
 namespace DigitalPlatform.MessageServer
 {

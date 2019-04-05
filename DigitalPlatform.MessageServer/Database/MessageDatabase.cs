@@ -9,7 +9,6 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
-using DigitalPlatform.Common;
 using DigitalPlatform.Text;
 
 namespace DigitalPlatform.MessageServer

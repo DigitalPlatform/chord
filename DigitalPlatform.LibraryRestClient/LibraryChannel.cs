@@ -503,7 +503,7 @@ namespace DigitalPlatform.LibraryRestClient
                 request.strRecPath = strRecPath;
                 request.strNewXml = strNewXml;
                 request.strOldXml = strOldXml;
-                request.baOldTimestamp = StringUtil.GetTimeStampByteArray(strOldTimestamp);
+                request.baOldTimestamp = ByteArray.GetTimeStampByteArray(strOldTimestamp);
                 byte[] baData = Encoding.UTF8.GetBytes(Serialize(request));
                 byte[] result = client.UploadData(this.GetRestfulApiUrl("setreaderinfo"),
                     "POST",

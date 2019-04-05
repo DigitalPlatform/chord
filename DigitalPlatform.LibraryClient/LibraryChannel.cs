@@ -22,7 +22,7 @@ using System.ServiceModel.Description;
 
 using DigitalPlatform.Text;
 using DigitalPlatform.LibraryClient.localhost;
-using DigitalPlatform.Range;
+using DigitalPlatform.Core;
 
 // dynamic 函数的实际参数类型，可以用下面一句来帮助探测：
 // localhost.dp2libraryREST _ws = ws as localhost.dp2libraryREST;

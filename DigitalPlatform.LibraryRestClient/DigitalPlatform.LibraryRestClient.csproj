@@ -57,6 +57,10 @@
       <Project>{26f96cc3-a4a9-4bc4-a10a-bc7e25581ff6}</Project>
       <Name>DigitalPlatform.Text</Name>
     </ProjectReference>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.Core\DigitalPlatform.Core.csproj">
+      <Project>{ffd44d99-c846-477a-86e9-a68c04985c0e}</Project>
+      <Name>DigitalPlatform.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

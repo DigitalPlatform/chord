@@ -181,6 +181,12 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.Core\DigitalPlatform.Core.csproj">
+      <Project>{ffd44d99-c846-477a-86e9-a68c04985c0e}</Project>
+      <Name>DigitalPlatform.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
