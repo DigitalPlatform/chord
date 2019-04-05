@@ -9,6 +9,7 @@ using System.Web;
 
 namespace DigitalPlatform.Text
 {
+#if REMOVED
     /// <summary>
     /// 字符串实用函数
     /// </summary>
@@ -1135,4 +1136,6 @@ namespace DigitalPlatform.Text
             return true;
         }
     }
+
+#endif
 }

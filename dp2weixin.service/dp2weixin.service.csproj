@@ -142,10 +142,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj">
-      <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
-      <Name>DigitalPlatform.Base</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.Interfaces\DigitalPlatform.Interfaces.csproj">
       <Project>{3c4f8133-8652-40b6-b37b-200b25c2b043}</Project>
       <Name>DigitalPlatform.Interfaces</Name>

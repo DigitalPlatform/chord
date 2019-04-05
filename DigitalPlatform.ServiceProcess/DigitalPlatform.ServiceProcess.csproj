@@ -56,10 +56,6 @@
     <Content Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj">
-      <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
-      <Name>DigitalPlatform.Base</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.Xml\DigitalPlatform.Xml.csproj">
       <Project>{a62f763a-96ee-43ad-80c5-9ce57ecfeaf4}</Project>
       <Name>DigitalPlatform.Xml</Name>

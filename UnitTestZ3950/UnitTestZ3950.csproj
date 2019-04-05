@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DigitalPlatform.Z3950.Server\DigitalPlatform.Z3950.Server.csproj" />
-    <ProjectReference Include="..\DigitalPlatform.Z3950\DigitalPlatform.Z3950.csproj" />
   </ItemGroup>
 
 </Project>

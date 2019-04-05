@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using System.Drawing;
 
 using DigitalPlatform.Xml;
+using DigitalPlatform.Core;
 
 namespace DigitalPlatform.Forms
 {

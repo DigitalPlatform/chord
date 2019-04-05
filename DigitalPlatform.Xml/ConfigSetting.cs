@@ -8,6 +8,8 @@ using System.Xml;
 
 namespace DigitalPlatform.Xml
 {
+#if REMOVED
+    // TODO: 这里需要删除，因为 DigitalPlatform.Core 里面已经有了
     /// <summary>
     /// 用 XML 文件存储配置信息
     /// </summary>
@@ -122,4 +124,6 @@ namespace DigitalPlatform.Xml
             return text.ToString();
         }
     }
+
+#endif
 }

@@ -136,10 +136,6 @@
     <Content Include="delete.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj">
-      <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
-      <Name>DigitalPlatform.Base</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.LibraryClient\DigitalPlatform.LibraryClient.csproj">
       <Project>{cff3ddab-e444-4a73-aab2-bee66ea510cc}</Project>
       <Name>DigitalPlatform.LibraryClient</Name>
