@@ -8,4 +8,8 @@
     <PackageReference Include="log4net" Version="2.0.8" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.Net\DigitalPlatform.Net.csproj" />
+  </ItemGroup>
+
 </Project>

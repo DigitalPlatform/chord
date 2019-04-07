@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 
 using DigitalPlatform;
-using DigitalPlatform.Common;
+using DigitalPlatform.Core;
 using DigitalPlatform.SIP2;
 
 namespace DigitalPlatform.SIP2

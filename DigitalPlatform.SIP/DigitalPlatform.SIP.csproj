@@ -14,4 +14,8 @@
     <Folder Include="SIP2Entity\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.Core\DigitalPlatform.Core.csproj" />
+  </ItemGroup>
+
 </Project>

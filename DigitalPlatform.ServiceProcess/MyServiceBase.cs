@@ -11,6 +11,7 @@ using System.Reflection;
 using System.IO;
 
 using DigitalPlatform.Xml;
+using DigitalPlatform.Core;
 
 namespace DigitalPlatform.ServiceProcess
 {
