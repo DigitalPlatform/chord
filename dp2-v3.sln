@@ -106,6 +106,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigitalPlatform.Net", "dp-l
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigitalPlatform.Z3950", "dp-library\DigitalPlatform.Z3950\DigitalPlatform.Z3950.csproj", "{A4547E99-0EEE-479F-8305-1EC524B3321C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigitalPlatform.SIP", "dp-library\DigitalPlatform.SIP\DigitalPlatform.SIP.csproj", "{D5C91377-2EA0-4DEB-9660-B7B321BC689D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -779,6 +781,24 @@ Global
 		{A4547E99-0EEE-479F-8305-1EC524B3321C}.Test|Mixed Platforms.Build.0 = Debug|Any CPU
 		{A4547E99-0EEE-479F-8305-1EC524B3321C}.Test|x86.ActiveCfg = Debug|Any CPU
 		{A4547E99-0EEE-479F-8305-1EC524B3321C}.Test|x86.Build.0 = Debug|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Debug|x86.Build.0 = Debug|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Release|x86.ActiveCfg = Release|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Release|x86.Build.0 = Release|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Test|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Test|Any CPU.Build.0 = Debug|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Test|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Test|Mixed Platforms.Build.0 = Debug|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Test|x86.ActiveCfg = Debug|Any CPU
+		{D5C91377-2EA0-4DEB-9660-B7B321BC689D}.Test|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

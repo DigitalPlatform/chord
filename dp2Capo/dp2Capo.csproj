@@ -162,6 +162,10 @@
       <Project>{10d28ecc-80d2-4a18-942d-d4e08d620e75}</Project>
       <Name>DigitalPlatform.Net</Name>
     </ProjectReference>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.SIP\DigitalPlatform.SIP.csproj">
+      <Project>{d5c91377-2ea0-4deb-9660-b7b321bc689d}</Project>
+      <Name>DigitalPlatform.SIP</Name>
+    </ProjectReference>
     <ProjectReference Include="..\dp-library\DigitalPlatform.Z3950\DigitalPlatform.Z3950.csproj">
       <Project>{a4547e99-0eee-479f-8305-1ec524b3321c}</Project>
       <Name>DigitalPlatform.Z3950</Name>
