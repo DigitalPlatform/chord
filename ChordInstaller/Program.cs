@@ -9,7 +9,7 @@ using System.Threading;
 using System.Windows.Forms;
 
 using DigitalPlatform;
-using DigitalPlatform.Common;
+using DigitalPlatform.Core;
 using DigitalPlatform.Forms;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.Text;
