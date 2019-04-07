@@ -8,13 +8,14 @@
 
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="System.Buffers" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj" />
     <ProjectReference Include="..\dp-library\DigitalPlatform.Net\DigitalPlatform.Net.csproj" />
+    <ProjectReference Include="..\dp-library\DigitalPlatform.Z3950\DigitalPlatform.Z3950.csproj" />
   </ItemGroup>
 
 </Project>

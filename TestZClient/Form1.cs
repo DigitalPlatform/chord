@@ -16,6 +16,7 @@ using DigitalPlatform.Z3950;
 using DigitalPlatform.Marc;
 using DigitalPlatform.MarcQuery;
 using DigitalPlatform.Net;
+using DigitalPlatform.Script;
 
 namespace TestZClient
 {

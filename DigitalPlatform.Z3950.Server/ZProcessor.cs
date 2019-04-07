@@ -9,8 +9,8 @@ using Newtonsoft.Json;
 
 using static DigitalPlatform.Z3950.ZChannel;
 using static DigitalPlatform.Z3950.ZClient;
-using DigitalPlatform.Common;
 using DigitalPlatform.Net;
+using DigitalPlatform.Core;
 
 namespace DigitalPlatform.Z3950.Server
 {

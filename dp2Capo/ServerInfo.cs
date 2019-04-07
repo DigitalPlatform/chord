@@ -16,7 +16,6 @@ using Microsoft.AspNet.SignalR.Client;
 using log4net;
 
 using DigitalPlatform;
-using DigitalPlatform.Common;
 using DigitalPlatform.Net;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.IO;
@@ -25,6 +24,7 @@ using DigitalPlatform.Interfaces;
 using DigitalPlatform.SIP.Server;
 using DigitalPlatform.Text;
 using System.Text;
+using DigitalPlatform.Core;
 
 namespace dp2Capo
 {

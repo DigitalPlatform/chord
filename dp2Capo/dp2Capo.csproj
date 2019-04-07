@@ -158,6 +158,18 @@
       <Project>{fe4a5219-4e3b-4bbd-962b-1ff27cb2b1f2}</Project>
       <Name>DigitalPlatform.Z3950.Server</Name>
     </ProjectReference>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.Core\DigitalPlatform.Core.csproj">
+      <Project>{FFD44D99-C846-477A-86E9-A68C04985C0E}</Project>
+      <Name>DigitalPlatform.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.Net\DigitalPlatform.Net.csproj">
+      <Project>{10d28ecc-80d2-4a18-942d-d4e08d620e75}</Project>
+      <Name>DigitalPlatform.Net</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.Z3950\DigitalPlatform.Z3950.csproj">
+      <Project>{a4547e99-0eee-479f-8305-1ec524b3321c}</Project>
+      <Name>DigitalPlatform.Z3950</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,4 +1,5 @@
 ﻿using DigitalPlatform;
+using DigitalPlatform.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -13,6 +13,7 @@ using DigitalPlatform.Forms;
 using DigitalPlatform.IO;
 using DigitalPlatform.Text;
 using DigitalPlatform.Interfaces;
+using DigitalPlatform.Core;
 
 namespace dp2Capo.Install
 {

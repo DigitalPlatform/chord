@@ -4,6 +4,7 @@ using System.Diagnostics;
 
 namespace DigitalPlatform.Text
 {
+#if REMOVED
     public class PriceUtil
     {
         #region 级联操作函数
@@ -1503,5 +1504,7 @@ namespace DigitalPlatform.Text
             // 注: value.ToString("#.##") 采用的是四舍五入的方法
         }
     }
+
+#endif
 }
 

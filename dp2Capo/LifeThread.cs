@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 
 using DigitalPlatform;
+using DigitalPlatform.Core;
 
 namespace dp2Capo
 {

@@ -7,7 +7,7 @@ using System.Web;
 using System.Xml;
 
 using DigitalPlatform;
-using DigitalPlatform.Common;
+using DigitalPlatform.Core;
 using DigitalPlatform.IO;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.LibraryClient.localhost;
