@@ -142,10 +142,6 @@
       <Project>{5669CC9A-7ED6-4138-ACCE-2E4ABA4A34D5}</Project>
       <Name>DigitalPlatform.SIP.Server</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DigitalPlatform.SIP\DigitalPlatform.SIP.csproj">
-      <Project>{310D95E9-0C90-4B26-BAB7-504CD9552506}</Project>
-      <Name>DigitalPlatform.SIP</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.Text\DigitalPlatform.Text.csproj">
       <Project>{eeb5253b-ab62-4d06-896e-8f17e3ffd215}</Project>
       <Name>DigitalPlatform.Text</Name>
