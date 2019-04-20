@@ -7,6 +7,7 @@ using System.Text;
 
 namespace DigitalPlatform.MarcQuery
 {
+#if REMOVED
     /// <summary>
     /// 用于从 ISO2709 文件读入 MARC 记录的枚举器
     /// </summary>
@@ -266,7 +267,7 @@ namespace DigitalPlatform.MarcQuery
             return nRet;
         }
 
-        #region ISO2709 --> 机内格式
+#region ISO2709 --> 机内格式
 
         /// <summary>
         /// 字段结束符
@@ -783,7 +784,7 @@ namespace DigitalPlatform.MarcQuery
             return 0;
         }
 
-        #endregion
+#endregion
     }
 
     // ISO2709ANSIHEADER结构定义
@@ -1189,5 +1190,5 @@ namespace DigitalPlatform.MarcQuery
             return base.ToArray();
         }
     }
-
+#endif
 }
