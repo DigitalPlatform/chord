@@ -1,4 +1,5 @@
-﻿using DigitalPlatform.IO;
+﻿using DigitalPlatform;
+using DigitalPlatform.IO;
 using DigitalPlatform.Message;
 using System;
 using System.Collections.Generic;
@@ -147,6 +148,33 @@ namespace dp2weixin.service
             return this._debugInfo;
         }
 
+        /// <summary>
+        /// 写日志
+        /// </summary>
+        /// <param name="strText"></param>
+        public static void WriteLog(string strFilename, string strText, string strEventLogSource)
+        {
+            try
+            {
+                //lock (logSyncRoot)
+                {
+                    string strTime = DateTime.Now.ToString();
+                    StreamUtil.WriteText(strFilename, strTime + " " + strText + "\r\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                EventLog Log = new EventLog();
+                Log.Source = strEventLogSource;
+                Log.WriteEntry("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入 Windows 日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                Log.WriteEntry(strText, EventLogEntryType.Error);
+            }
+        }
 
+        // 日期转换成yyyy-MM-dd HH:mm:ss格式字符串
+        public static string DateTimeToStringNoSec(DateTime time)
+        {
+            return time.ToString("yyyy-MM-dd HH:mm");
+        }
     }
 }

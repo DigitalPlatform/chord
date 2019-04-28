@@ -76,6 +76,10 @@
       <Project>{ffd44d99-c846-477a-86e9-a68c04985c0e}</Project>
       <Name>DigitalPlatform.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.MarcQuery\DigitalPlatform.MarcQuery.csproj">
+      <Project>{df196fa7-7593-4548-a80f-3b10609e95a7}</Project>
+      <Name>DigitalPlatform.MarcQuery</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

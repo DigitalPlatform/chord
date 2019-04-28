@@ -91,6 +91,10 @@
       <Project>{ffd44d99-c846-477a-86e9-a68c04985c0e}</Project>
       <Name>DigitalPlatform.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.MarcQuery\DigitalPlatform.MarcQuery.csproj">
+      <Project>{df196fa7-7593-4548-a80f-3b10609e95a7}</Project>
+      <Name>DigitalPlatform.MarcQuery</Name>
+    </ProjectReference>
     <ProjectReference Include="..\dp-library\DigitalPlatform.Net\DigitalPlatform.Net.csproj">
       <Project>{10d28ecc-80d2-4a18-942d-d4e08d620e75}</Project>
       <Name>DigitalPlatform.Net</Name>
