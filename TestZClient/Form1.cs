@@ -14,7 +14,6 @@ using static DigitalPlatform.Z3950.ZClient;
 using DigitalPlatform.Text;
 using DigitalPlatform.Z3950;
 using DigitalPlatform.Marc;
-using DigitalPlatform.MarcQuery;
 using DigitalPlatform.Net;
 using DigitalPlatform.Script;
 

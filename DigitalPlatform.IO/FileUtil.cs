@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace DigitalPlatform.IO
 {
+#if REMOVED
     public static class FileUtil
     {
         // 写入文本文件。
@@ -251,4 +252,5 @@ UTF-32 little-endian byte order: FF FE 00 00
             }
         }
     }
+#endif
 }

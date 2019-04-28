@@ -382,7 +382,7 @@ namespace dp2Tools
                 Directory.CreateDirectory(logDir);
             }
             string strFilename = string.Format(logDir + "/{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
-            FileUtil.WriteText(strFilename, strText);
+            StreamUtil.WriteText(strFilename, strText);
         }
 
         #endregion
