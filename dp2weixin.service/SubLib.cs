@@ -155,6 +155,25 @@ namespace dp2weixin.service
                 this.areas.Remove(area);
             }
         }
+
+
+        public string GetLibCfgName(string id, string libraryCode)
+        {
+            List<Area> delAreas = new List<Area>();
+
+            foreach (Area area in this.areas)
+            {
+                List<libModel> delLibs = new List<libModel>();
+                foreach (libModel lib in area.libs)
+                {
+                    if (lib.libId == id && lib.libraryCode == libraryCode)
+                    {
+                        return lib.name;
+                    }
+                }
+            }
+            return "";
+        }
     }
 
     public class Area
