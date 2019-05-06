@@ -345,7 +345,13 @@ namespace dp2weixinWeb.Controllers
 
                 string libName = sessionInfo.Active.libName;//sessionInfo.CurrentLib.Entity.libName;
                 if (string.IsNullOrEmpty(sessionInfo.Active.bindLibraryCode) == false)
-                    libName = sessionInfo.Active.bindLibraryCode;
+                {
+                    //libName = sessionInfo.Active.bindLibraryCode;
+                    // 2019/05/06 显示的名称依据libcfg.xml的配置
+                    libName = dp2WeiXinService.Instance.areaMgr.GetLibCfgName(sessionInfo.Active.libId, sessionInfo.Active.bindLibraryCode);
+                }
+
+                    
 
                 string libId = sessionInfo.Active.libId;
 

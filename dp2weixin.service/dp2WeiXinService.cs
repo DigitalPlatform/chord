@@ -5154,7 +5154,7 @@ public string ErrorCode { get; set; }
                     resultSet,
                     "id,cols",
                     filter,//libraryCode,//filter 20170509
-                    WeiXinConst.C_Search_MaxCount,  //最大数量
+                    WeiXinConst.C_Search_MaxCount,  //最大数量 // 20190506 todo这个参数要传进来，如果不传表示用默认设置
                     start,  //每次获取范围
                     count);
 
