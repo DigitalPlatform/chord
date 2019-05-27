@@ -9097,7 +9097,7 @@ tempRemark);
                 }
                 else if (group == C_Group_Book)
                 {
-                    contentHtml = GetBookHtml(content, libId);
+                    contentHtml = GetBookHtml(format, content, libId);
 
                 }
                 item.contentHtml = contentHtml;
@@ -9304,7 +9304,7 @@ tempRemark);
         }
 
 
-        public string GetBookHtml(string content, string libId)
+        public string GetBookHtml(string format,string content, string libId)
         {
             string contentHtml = "";
 
@@ -9317,7 +9317,16 @@ tempRemark);
                 bool bPath = dp2WeiXinService.CheckIsBiblioPath(str);
                 if (bPath == false)
                 {
-                    contentHtml += "<div style='color:gray'>" + HttpUtility.HtmlEncode(str) + "</div>";
+
+                    if (format == "markdown")
+                    {
+                        contentHtml += CommonMark.CommonMarkConverter.Convert(str);
+                    }
+                    else
+                    {
+                        contentHtml += "<div style='color:gray'>" + HttpUtility.HtmlEncode(str) + "</div>";
+                    }
+
                 }
                 else
                 {
