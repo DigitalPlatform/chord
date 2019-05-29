@@ -106,6 +106,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigitalPlatform.SIP", "dp-l
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigitalPlatform.MarcQuery", "dp-library\DigitalPlatform.MarcQuery\DigitalPlatform.MarcQuery.csproj", "{DF196FA7-7593-4548-A80F-3B10609E95A7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigitalPlatform.LibraryRestClient", "dp-library\DigitalPlatform.LibraryRestClient\DigitalPlatform.LibraryRestClient.csproj", "{B3BC9023-937D-474A-B38A-1EC41F8CFA34}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -791,6 +793,24 @@ Global
 		{DF196FA7-7593-4548-A80F-3B10609E95A7}.Test|Mixed Platforms.Build.0 = Debug|Any CPU
 		{DF196FA7-7593-4548-A80F-3B10609E95A7}.Test|x86.ActiveCfg = Debug|Any CPU
 		{DF196FA7-7593-4548-A80F-3B10609E95A7}.Test|x86.Build.0 = Debug|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Debug|x86.Build.0 = Debug|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Release|x86.ActiveCfg = Release|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Release|x86.Build.0 = Release|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Test|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Test|Any CPU.Build.0 = Debug|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Test|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Test|Mixed Platforms.Build.0 = Debug|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Test|x86.ActiveCfg = Debug|Any CPU
+		{B3BC9023-937D-474A-B38A-1EC41F8CFA34}.Test|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -143,6 +143,10 @@
       <Project>{ffd44d99-c846-477a-86e9-a68c04985c0e}</Project>
       <Name>DigitalPlatform.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.LibraryRestClient\DigitalPlatform.LibraryRestClient.csproj">
+      <Project>{b3bc9023-937d-474a-b38a-1ec41f8cfa34}</Project>
+      <Name>DigitalPlatform.LibraryRestClient</Name>
+    </ProjectReference>
     <ProjectReference Include="..\dp-library\DigitalPlatform.MarcQuery\DigitalPlatform.MarcQuery.csproj">
       <Project>{df196fa7-7593-4548-a80f-3b10609e95a7}</Project>
       <Name>DigitalPlatform.MarcQuery</Name>
