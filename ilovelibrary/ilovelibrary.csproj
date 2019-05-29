@@ -287,10 +287,6 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DigitalPlatform.LibraryRestClient\DigitalPlatform.LibraryRestClient.csproj">
-      <Project>{1b74d69a-530f-4275-845b-8ca6d1463bdd}</Project>
-      <Name>DigitalPlatform.LibraryRestClient</Name>
-    </ProjectReference>
     <ProjectReference Include="..\dp-library\DigitalPlatform.Core\DigitalPlatform.Core.csproj">
       <Project>{ffd44d99-c846-477a-86e9-a68c04985c0e}</Project>
       <Name>DigitalPlatform.Core</Name>

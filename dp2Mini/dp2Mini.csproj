@@ -127,10 +127,6 @@
       <Project>{2dd0618d-c554-46d0-91a2-353f2f8ea2f2}</Project>
       <Name>DigitalPlatform.Forms</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DigitalPlatform.LibraryRestClient\DigitalPlatform.LibraryRestClient.csproj">
-      <Project>{1b74d69a-530f-4275-845b-8ca6d1463bdd}</Project>
-      <Name>DigitalPlatform.LibraryRestClient</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.MarcKernel\DigitalPlatform.MarcKernel.csproj">
       <Project>{74242530-ef96-457e-852d-5c21a3ea8449}</Project>
       <Name>DigitalPlatform.MarcKernel</Name>

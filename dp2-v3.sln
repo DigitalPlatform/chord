@@ -26,8 +26,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.Text", "Dig
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.IO", "DigitalPlatform.IO\DigitalPlatform.IO.csproj", "{441CB814-AF78-4503-91EF-DCE5F3269502}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalPlatform.LibraryRestClient", "DigitalPlatform.LibraryRestClient\DigitalPlatform.LibraryRestClient.csproj", "{1B74D69A-530F-4275-845B-8CA6D1463BDD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ilovelibrary", "ilovelibrary\ilovelibrary.csproj", "{7C31EA17-404D-4CE6-8401-71808BEB5883}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ilovelibrary.Server", "ilovelibrary.Server\ilovelibrary.Server.csproj", "{159E08AE-5C0F-4DA7-9F73-AF07791247CE}"
@@ -243,18 +241,6 @@ Global
 		{441CB814-AF78-4503-91EF-DCE5F3269502}.Test|Any CPU.ActiveCfg = Release|Any CPU
 		{441CB814-AF78-4503-91EF-DCE5F3269502}.Test|Mixed Platforms.ActiveCfg = Release|x86
 		{441CB814-AF78-4503-91EF-DCE5F3269502}.Test|x86.ActiveCfg = Release|x86
-		{1B74D69A-530F-4275-845B-8CA6D1463BDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1B74D69A-530F-4275-845B-8CA6D1463BDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1B74D69A-530F-4275-845B-8CA6D1463BDD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{1B74D69A-530F-4275-845B-8CA6D1463BDD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{1B74D69A-530F-4275-845B-8CA6D1463BDD}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{1B74D69A-530F-4275-845B-8CA6D1463BDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1B74D69A-530F-4275-845B-8CA6D1463BDD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1B74D69A-530F-4275-845B-8CA6D1463BDD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{1B74D69A-530F-4275-845B-8CA6D1463BDD}.Release|x86.ActiveCfg = Release|Any CPU
-		{1B74D69A-530F-4275-845B-8CA6D1463BDD}.Test|Any CPU.ActiveCfg = Release|Any CPU
-		{1B74D69A-530F-4275-845B-8CA6D1463BDD}.Test|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{1B74D69A-530F-4275-845B-8CA6D1463BDD}.Test|x86.ActiveCfg = Release|Any CPU
 		{7C31EA17-404D-4CE6-8401-71808BEB5883}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7C31EA17-404D-4CE6-8401-71808BEB5883}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C31EA17-404D-4CE6-8401-71808BEB5883}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
