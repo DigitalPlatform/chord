@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
@@ -102,10 +105,6 @@
     <Content Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DigitalPlatform.Base\DigitalPlatform.Base.csproj">
-      <Project>{56eb94fd-45d0-4c82-ae8e-d398f1c4efcf}</Project>
-      <Name>DigitalPlatform.Base</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.HTTP\DigitalPlatform.HTTP.csproj">
       <Project>{db68395b-9fed-47c1-b5ef-5c238e813279}</Project>
       <Name>DigitalPlatform.HTTP</Name>
@@ -126,10 +125,6 @@
       <Project>{74242530-EF96-457E-852D-5C21A3EA8449}</Project>
       <Name>DigitalPlatform.MarcKernel</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DigitalPlatform.MarcQuery\DigitalPlatform.MarcQuery.csproj">
-      <Project>{57fe2fb1-4134-409b-876c-8a1c0776b498}</Project>
-      <Name>DigitalPlatform.MarcQuery</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.MessageClient\DigitalPlatform.MessageClient.csproj">
       <Project>{e4b339d9-4843-40f1-a404-33043adcd6a3}</Project>
       <Name>DigitalPlatform.MessageClient</Name>
@@ -138,10 +133,6 @@
       <Project>{2fbb1294-0814-447d-b8c6-77e206417231}</Project>
       <Name>DigitalPlatform.Message</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DigitalPlatform.Net\DigitalPlatform.Net.csproj">
-      <Project>{449b12c3-d209-4e54-8e0a-e4661f75e7db}</Project>
-      <Name>DigitalPlatform.Net</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.ServiceProcess\DigitalPlatform.ServiceProcess.csproj">
       <Project>{696b2b7f-d5f6-47ae-8113-c0cd27fad21e}</Project>
       <Name>DigitalPlatform.ServiceProcess</Name>
@@ -149,10 +140,6 @@
     <ProjectReference Include="..\DigitalPlatform.SIP.Server\DigitalPlatform.SIP.Server.csproj">
       <Project>{5669CC9A-7ED6-4138-ACCE-2E4ABA4A34D5}</Project>
       <Name>DigitalPlatform.SIP.Server</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DigitalPlatform.SIP\DigitalPlatform.SIP.csproj">
-      <Project>{310D95E9-0C90-4B26-BAB7-504CD9552506}</Project>
-      <Name>DigitalPlatform.SIP</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.Text\DigitalPlatform.Text.csproj">
       <Project>{eeb5253b-ab62-4d06-896e-8f17e3ffd215}</Project>
@@ -166,8 +153,24 @@
       <Project>{fe4a5219-4e3b-4bbd-962b-1ff27cb2b1f2}</Project>
       <Name>DigitalPlatform.Z3950.Server</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DigitalPlatform.Z3950\DigitalPlatform.Z3950.csproj">
-      <Project>{858A9604-2FBB-4B74-86EC-C1DCC9390F3F}</Project>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.Core\DigitalPlatform.Core.csproj">
+      <Project>{FFD44D99-C846-477A-86E9-A68C04985C0E}</Project>
+      <Name>DigitalPlatform.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.MarcQuery\DigitalPlatform.MarcQuery.csproj">
+      <Project>{df196fa7-7593-4548-a80f-3b10609e95a7}</Project>
+      <Name>DigitalPlatform.MarcQuery</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.Net\DigitalPlatform.Net.csproj">
+      <Project>{10d28ecc-80d2-4a18-942d-d4e08d620e75}</Project>
+      <Name>DigitalPlatform.Net</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.SIP\DigitalPlatform.SIP.csproj">
+      <Project>{d5c91377-2ea0-4deb-9660-b7b321bc689d}</Project>
+      <Name>DigitalPlatform.SIP</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\dp-library\DigitalPlatform.Z3950\DigitalPlatform.Z3950.csproj">
+      <Project>{a4547e99-0eee-479f-8305-1ec524b3321c}</Project>
       <Name>DigitalPlatform.Z3950</Name>
     </ProjectReference>
   </ItemGroup>

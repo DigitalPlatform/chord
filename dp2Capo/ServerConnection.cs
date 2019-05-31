@@ -18,7 +18,7 @@ using DigitalPlatform.Xml;
 using DigitalPlatform.Text;
 using DigitalPlatform.LibraryClient.localhost;
 using DigitalPlatform.HTTP;
-using DigitalPlatform.Common;
+using DigitalPlatform.Core;
 
 namespace dp2Capo
 {

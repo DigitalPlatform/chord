@@ -23,6 +23,7 @@ using DigitalPlatform.Text;
 using DigitalPlatform.Drawing;
 using DigitalPlatform.ServiceProcess;
 using System.Reflection;
+using DigitalPlatform.Core;
 
 // TODO: 自动升级 dp2mserver
 // TODO: 自动升级 dp2router

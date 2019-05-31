@@ -4,8 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
-using DigitalPlatform.Common;
+using DigitalPlatform.Core;
 using DigitalPlatform.Net;
 using Newtonsoft.Json;
 
@@ -500,10 +499,11 @@ namespace DigitalPlatform.Z3950.Server
                     }
                     break;
             }
-            // return new byte[0];
+
+            return new byte[0];
             // TODO 如果将来嫌日志中记载 BerNode Dump 结果体积太大，Dump 结果可以考虑不进入日志
-            string text = JsonConvert.SerializeObject(root, Formatting.Indented);
-            throw new UnknownApduException(string.Format("无法识别的 APDU tag[{0}]\r\nBerNode={1}", root.m_uTag, text));
+            //string text = JsonConvert.SerializeObject(root, Formatting.Indented);
+            //throw new UnknownApduException(string.Format("无法识别的 APDU tag[{0}]\r\nBerNode={1}", root.m_uTag, text));
         }
 
         // 根据 @xxx 找到相关的 capo 实例，然后找到配置参数

@@ -1,5 +1,5 @@
 ﻿using DigitalPlatform.IO;
-using DigitalPlatform.LibraryRestClient;
+//using DigitalPlatform.LibraryRestClient;
 using DigitalPlatform.Text;
 using dp2Command.Service;
 using dp2weixin;

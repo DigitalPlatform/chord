@@ -347,7 +347,7 @@ namespace WebZ.Server
                 // 每天一个日志文件
                 string strFilename = Path.Combine(LogDir, "log_" + DateTimeUtil.DateTimeToString8(now) + ".txt");
                 string strTime = now.ToString();
-                FileUtil.WriteText(strFilename,
+                StreamUtil.WriteText(strFilename,
                     strTime + " " + strText + "\r\n");
             }
         }

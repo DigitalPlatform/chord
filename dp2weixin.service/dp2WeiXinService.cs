@@ -1202,7 +1202,7 @@ namespace dp2weixin.service
             string oldRemark = templateData.remark.value;
 
             // 加日期与操作人
-            string nowTime = DateTimeUtil.DateTimeToStringNoSec(DateTime.Now);
+            string nowTime = SessionInfo.DateTimeToStringNoSec(DateTime.Now);
             templateData.remark.value = oldRemark + "\n" + nowTime;
             if (theOperator != "")
                 templateData.remark.value = templateData.remark.value + " " + theOperator;
@@ -8308,6 +8308,7 @@ public string ErrorCode { get; set; }
 
         #region 预约
 
+
         public int Reservation(string weixinId,
             string libId,
             string patron,
@@ -8614,7 +8615,7 @@ tempRemark);
             {
                 var logDir = this.weiXinLogDir;
                 string strFilename = string.Format(logDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
-                FileUtil.WriteLog(strFilename, strText, "dp2weixin");
+                SessionInfo.WriteLog(strFilename, strText, "dp2weixin");
             }
         }
 

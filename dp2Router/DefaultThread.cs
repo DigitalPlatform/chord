@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using DigitalPlatform;
+using DigitalPlatform.Core;
 
 namespace dp2Router
 {

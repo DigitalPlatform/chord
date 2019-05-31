@@ -9,13 +9,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
-
+using DigitalPlatform.Core;
 using DigitalPlatform.Drawing;
 using DigitalPlatform.Forms;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.LibraryClient.localhost;
 using DigitalPlatform.Text;
-using DigitalPlatform.Common;
 
 namespace dp2Capo.Install
 {

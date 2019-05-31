@@ -1,6 +1,4 @@
 ﻿using DigitalPlatform;
-using DigitalPlatform.SIP2;
-using DigitalPlatform.SIP2.Request;
 using SIP2;
 using System;
 using System.Collections.Generic;
@@ -18,6 +16,8 @@ using System.Windows.Forms;
 
 using DigitalPlatform.Text;
 using System.Web;
+using DigitalPlatform.SIP2;
+using DigitalPlatform.SIP2.Request;
 
 namespace dp2SIPClient
 {

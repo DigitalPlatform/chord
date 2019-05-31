@@ -4,6 +4,7 @@ using System.Xml;
 
 namespace DigitalPlatform.Text
 {
+#if REMOVED
     /// <summary>
     /// ISBN号分析器，帮助插入'-'
     /// </summary>
@@ -828,5 +829,7 @@ namespace DigitalPlatform.Text
             throw new Exception("ISBN '" + strSource + "' 格式不正确，符号'-'数目不足");
         }
     }
+
+#endif
 }
 

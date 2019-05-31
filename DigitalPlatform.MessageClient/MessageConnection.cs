@@ -20,7 +20,6 @@ using Nito.AsyncEx;
 
 using DigitalPlatform.Message;
 using DigitalPlatform.Text;
-using DigitalPlatform.Common;
 
 namespace DigitalPlatform.MessageClient
 {

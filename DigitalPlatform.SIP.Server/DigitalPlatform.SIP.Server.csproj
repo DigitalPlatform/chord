@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DigitalPlatform.Net\DigitalPlatform.Net.csproj" />
+    <ProjectReference Include="..\dp-library\DigitalPlatform.Net\DigitalPlatform.Net.csproj" />
   </ItemGroup>
 
 </Project>

@@ -8,6 +8,7 @@ using System.Collections;
 using DigitalPlatform;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.Message;
+using DigitalPlatform.Core;
 
 namespace dp2weixin.service
 {

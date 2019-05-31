@@ -4,8 +4,9 @@ using System.Linq;
 using System.Web;
 using System.Net;
 
-namespace DigitalPlatform.LibraryRestClient
+namespace dp2weixin
 {
+    // 2019/5/29 注: 原来这个类是在 DigitalPlatform.LibraryRestClient 中。但为了这一个类引用 DigitalPlatform.LibraryRestClient.dll 不划算，所以这里把代码单独复制过来了
     /// <summary>
     /// 从WebClient继承
     /// </summary>

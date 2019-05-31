@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 
 using DigitalPlatform;
-using DigitalPlatform.Common;
+using DigitalPlatform.Core;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.Marc;
 using DigitalPlatform.Message;

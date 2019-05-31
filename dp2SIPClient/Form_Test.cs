@@ -13,7 +13,6 @@ using log4net;
 
 using DigitalPlatform;
 using DigitalPlatform.CirculationClient;
-using DigitalPlatform.Common;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.LibraryClient.localhost;
 using DigitalPlatform.Marc;

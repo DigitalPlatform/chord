@@ -16,7 +16,6 @@ using Microsoft.AspNet.SignalR.Client;
 using log4net;
 
 using DigitalPlatform;
-using DigitalPlatform.Common;
 using DigitalPlatform.Net;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.IO;
@@ -25,6 +24,7 @@ using DigitalPlatform.Interfaces;
 using DigitalPlatform.SIP.Server;
 using DigitalPlatform.Text;
 using System.Text;
+using DigitalPlatform.Core;
 
 namespace dp2Capo
 {
@@ -871,8 +871,9 @@ Exception Info: System.Net.NetworkInformation.PingException
                     ZServer?.TryClearBlackList();
                     SipServer?.TryClearBlackList();
 
-                    // 把紧凑日志写入日志文件
-                    ZServer?.TryFlushCompactLog();
+                    // 把紧凑日志写入日志文件。约十分钟写一次
+                    if ((_statisCount % 10) == 1)
+                        ZServer?.TryFlushCompactLog();
 
                     // 顺便清理一下 hangup 状态缓存
                     SipProcessor.ClearHangupStatusTable();

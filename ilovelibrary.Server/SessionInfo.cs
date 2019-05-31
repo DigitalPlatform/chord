@@ -43,6 +43,12 @@ namespace ilovelibrary.Server
             return this.cmdList.Where(r => r.id == id).FirstOrDefault();
         }
 
+        // 日期转换成yyyy-MM-dd HH:mm:ss格式字符串
+        public static string DateTimeToString(DateTime time)
+        {
+            return time.ToString("yyyy-MM-dd HH:mm:ss");
+        }
+
         public Command AddCmd(Command item)
         {
             Debug.Assert(item != null, "AddCmd传进的item不能为空。");
@@ -52,7 +58,7 @@ namespace ilovelibrary.Server
             // 补充命令信息
             item.id = this.cmdList.Count + 1;
             item.description = item.readerBarcode + "-" + item.type + "-" + item.itemBarcode;
-            item.operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+            item.operTime = DateTimeToString(DateTime.Now);
             item.typeString = Command.getTypeString(item.type);
 
             if (item.type == Command.C_Command_Borrow 

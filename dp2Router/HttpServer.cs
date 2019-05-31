@@ -73,7 +73,7 @@ namespace dp2Router
                     });
                     thread.Start();
 #endif
-                    Task.Run(() => TestHandleClient(tcpClient, ServerInfo._cancel.Token));
+                    var task = Task.Run(() => TestHandleClient(tcpClient, ServerInfo._cancel.Token));
 
                     // TestHandleClient(tcpClient, ServerInfo._cancel.Token);
                 }

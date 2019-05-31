@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-
-using DigitalPlatform.Common;
+using DigitalPlatform.Core;
 using DigitalPlatform.Net;
 
 namespace DigitalPlatform.SIP.Server
