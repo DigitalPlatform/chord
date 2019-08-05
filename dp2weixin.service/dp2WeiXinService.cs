@@ -8051,10 +8051,16 @@ public string ErrorCode { get; set; }
             {
                 gzhName = state.Substring(0, nIndex);
                 libCapoNames = state.Substring(nIndex + 1);
-                if (libCapoNames != "")
-                {
-                    libs = libCapoNames.Split(new char[] { ',' });
-                }
+            }
+            else if (state != "")
+            {
+                gzhName ="ilovelibrary";
+                libCapoNames = state;
+            }
+
+            if (libCapoNames != "")
+            {
+                libs = libCapoNames.Split(new char[] { ',' });
             }
 
             // 根据传进来的参数，得到公众号配置信息
@@ -8081,8 +8087,14 @@ public string ErrorCode { get; set; }
 
                 foreach (Library lib in this.LibManager.Librarys)
                 {
-                    if (libs.Contains(lib.Entity.capoUserName) ==true)
+
+
+                    if (libs.Contains(lib.Entity.capoUserName) == true && string.IsNullOrEmpty(lib.Entity.state) == true)
+                    {
+                        WriteErrorLog1("***" + lib.Entity.capoUserName +"--"+lib.Entity.state);
+
                         libList.Add(lib.Entity.id);
+                    }
                 }
             }
 
