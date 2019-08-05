@@ -1,7 +1,6 @@
 ﻿using DigitalPlatform.IO;
 using DigitalPlatform.Text;
 using DigitalPlatform.Xml;
-using DigitalPlatform.LibraryRestClient;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +11,8 @@ using System.Xml;
 using System.Net;
 using System.Collections;
 using DigitalPlatform.Marc;
+using DigitalPlatform.LibraryRestClient;
+
 
 namespace ilovelibrary.Server
 {

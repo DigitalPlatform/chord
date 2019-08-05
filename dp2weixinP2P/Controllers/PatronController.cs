@@ -44,6 +44,7 @@ namespace dp2weixinWeb.Controllers
             // 2017-10-1 只列出可访问的图书馆
             List<Library> avaiblelibList = dp2WeiXinService.Instance.LibManager.GetLibraryByIds(sessionInfo.libIds);
 
+
             // 绑定的帐户
             List<WxUserItem> list = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
 
@@ -77,6 +78,10 @@ namespace dp2weixinWeb.Controllers
                         //disVisibleCout++;
                         continue;
                     }
+
+                    // 2019/08/05加，如果不加这一句，会把一些到期的图书馆列出来
+                    if (thisLib == null)
+                        continue;
 
                     libList.Add(lib);
                     //
