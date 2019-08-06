@@ -8045,23 +8045,35 @@ public string ErrorCode { get; set; }
             //state格式：公众号名称:图书馆capo账户1+图书馆capo账户2
             int nIndex = state.IndexOf(":");
             string gzhName = state;
+
+            //WriteErrorLog1("*0*-state:"+state +"-gzhName:"+ gzhName);
+
             string libCapoNames = "";
             string[] libs = null;
             if (nIndex != -1)
             {
                 gzhName = state.Substring(0, nIndex);
                 libCapoNames = state.Substring(nIndex + 1);
+                if (libCapoNames != "")
+                {
+                    libs = libCapoNames.Split(new char[] { ',' });
+                }
+
+                //WriteErrorLog1("*1*" + libs.Length);
             }
-            else if (state != "")
+            else if (state != "" && state  != "ilovelibrary" && state!=null)
             {
                 gzhName ="ilovelibrary";
                 libCapoNames = state;
+                if (libCapoNames != "")
+                {
+                    libs = libCapoNames.Split(new char[] { ',' });
+                }
+
+                //WriteErrorLog1("*2*" + libs.Length);
             }
 
-            if (libCapoNames != "")
-            {
-                libs = libCapoNames.Split(new char[] { ',' });
-            }
+
 
             // 根据传进来的参数，得到公众号配置信息
             gzh = this.gzhContainer.GetByAppName(gzhName); //函数内会处理空的情况
@@ -8076,6 +8088,7 @@ public string ErrorCode { get; set; }
             //得到可以访问的图书馆列表
             if (libs == null || libs.Length == 0)
             {
+
                 //未配时，全部图书馆
                 foreach (Library lib in this.LibManager.Librarys)
                 {
@@ -8091,7 +8104,7 @@ public string ErrorCode { get; set; }
 
                     if (libs.Contains(lib.Entity.capoUserName) == true && string.IsNullOrEmpty(lib.Entity.state) == true)
                     {
-                        WriteErrorLog1("***" + lib.Entity.capoUserName +"--"+lib.Entity.state);
+                       // WriteErrorLog1("***" + lib.Entity.capoUserName +"--"+lib.Entity.state);
 
                         libList.Add(lib.Entity.id);
                     }
